@@ -87,18 +87,20 @@ function normalizedCoreUiContext(context: unknown): object {
 
 function deduplicateUiEntries(values: readonly unknown[], callbackName: string): unknown[] {
   const keys = new Set<string>();
-  return values.filter((value, index) => {
-    if (!value || typeof value !== 'object') return true;
+  // Validate identity without filtering: every entry survives unless a duplicate is rejected.
+  for (const [index, value] of values.entries()) {
+    if (!value || typeof value !== 'object') continue;
     const candidate = value as { readonly id?: unknown };
     const key = candidate.id == null ? '' : String(candidate.id);
-    if (!key) return true;
+    if (!key) continue;
     if (keys.has(key)) {
       throw new TypeError(`ui.${callbackName} returned duplicate id ${key} at index ${index}.`);
     }
 
     keys.add(key);
-    return true;
-  });
+  }
+
+  return [...values];
 }
 
 function normalizeApplicationUiList(values: readonly unknown[], callbackName: string): unknown[] {
@@ -182,7 +184,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
       };
     }
 
-    const skillSpecialization = String(skill?.specialization || '').trim();
+    const skillSpecialization = (skill?.specialization || '').trim();
     const specialization = definition.specializations[skillSpecialization];
     if (specialization && eliteNames.has(skillSpecialization)) {
       return {
@@ -218,11 +220,12 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
             ...(selected.context as object),
             resources: Object.fromEntries(
               Object.entries(policies)
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Optional policies may be explicitly undefined in authored module objects.
                 .filter(([, policy]) => policy != null)
                 .map(([key, policy]) => [
                   key,
                   {
-                    maximum: policy!.maximum({
+                    maximum: policy.maximum({
                       ...(selected.context as object),
                       config: ((selected.context as UiSelectionCandidate).config ??
                         selected.context) as ProfessionConfig,
@@ -244,7 +247,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
       selected.slices,
       'paletteSkillAvailability',
       [selected.context, skill],
-      (result) => (result as PaletteSkillAvailability)?.available === false,
+      (result) => !(result as PaletteSkillAvailability).available,
       { available: true, message: '' }
     );
   };
@@ -370,7 +373,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     if (owners.length) ui[name] = owners[0][name];
   }
 
-  return Object.freeze(ui) as UiSlice;
+  return Object.freeze(ui);
 }
 
 /**
@@ -387,7 +390,7 @@ type UiCallback = (...args: unknown[]) => unknown;
 function mergeUiList(slices: readonly UiSliceLike[], name: string, args: readonly unknown[]): unknown[] {
   return slices.flatMap((slice) => {
     const callback = slice[name];
-    return typeof callback === 'function' ? ((callback as UiCallback)(...args) as unknown[]) || [] : [];
+    return typeof callback === 'function' ? (callback as UiCallback)(...args) || [] : [];
   });
 }
 

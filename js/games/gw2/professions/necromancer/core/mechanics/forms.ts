@@ -152,7 +152,7 @@ function exitNecromancerShroud(runtime: NecromancerRuntime): void {
   // Depletion has no cast completion; the actual form exit still invalidates its pending attack chain.
   resetAutoattackChains(runtime);
   const entry =
-    state.activeShroudEntryId == null ? undefined : runtime.helpers.skillsById?.get(state.activeShroudEntryId);
+    state.activeShroudEntryId == null ? undefined : runtime.helpers.skillsById.get(state.activeShroudEntryId);
   if (state.activeShroudExitId != null) consumeSkillFlip(state.availableFlips, state.activeShroudExitId);
   state.activeShroud = '';
   state.activeShroudEntryId = null;
@@ -192,8 +192,8 @@ export function completeNecromancerForm(runtime: NecromancerRuntime, cast: Runti
     prepareShroudEntry(runtime);
     state.activeShroud = skill.shroudEntry;
     state.activeShroudEntryId = skill.id;
-    state.activeShroudProfileId = String(skill.shroudProfileId || PROFILE.shroud);
-    const exit = [...(runtime.helpers.skillsById?.values() ?? [])].find(
+    state.activeShroudProfileId = skill.shroudProfileId || PROFILE.shroud;
+    const exit = [...runtime.helpers.skillsById.values()].find(
       (candidate) => candidate.shroudExit === skill.shroudEntry
     );
     state.activeShroudExitId = exit?.id ?? null;

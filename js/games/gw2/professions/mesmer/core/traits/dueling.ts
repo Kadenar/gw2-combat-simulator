@@ -44,7 +44,7 @@ type BlindingDissipationContext = Pick<MesmerMechanics, 'traits' | 'addEvent' | 
 // the resolver condition hook, preserving causal attribution.
 function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerResolverEvent, detail: string): void {
   if (!context.traits.has(TRAIT.INEPTITUDE)) return;
-  const count = Math.max(1, Math.trunc(Number(event.count || 1)));
+  const count = Math.max(1, Math.trunc(event.count || 1));
   const ineptitudeProfile = requireBalanceProfileFromContext(context, TRAIT.INEPTITUDE);
   const effect = requireEffect(ineptitudeProfile, 'condition', 'Confusion');
   if (!effect) return;
@@ -120,7 +120,7 @@ export function emitFencersFinesseStacks(
   // Stack lifetime and cap come from the selected trait profile.
   const duration = balanceProfileNumber(fencersFinesseProfile, 'durationMultiplier');
   const maximum = balanceProfileNumber(fencersFinesseProfile, 'maximumStacks');
-  const hitCount = Math.max(1, Math.trunc(Number(hits || 1)));
+  const hitCount = Math.max(1, Math.trunc(hits || 1));
   if (hitTimes.length === hitCount) {
     for (const hitAt of hitTimes) {
       context.addEvent({
@@ -211,7 +211,7 @@ export function triggerMasterFencer(
       skillName: 'Master Fencer',
       name: `Master Fencer — ${effect.audience?.recipients ?? 'self'} fury`,
       kind: 'fury',
-      duration: context.boonDuration(String(effect.boon), Number(effect.duration)),
+      duration: context.boonDuration(String(effect.boon), effect.duration),
       stacks: Number(effect.stacks),
       audience: effect.audience
     });
@@ -224,7 +224,7 @@ export function triggerSharperImages(
   event: SimulationEvent,
   chance: number
 ): void {
-  if (!context.traits.has(TRAIT.SHARPER_IMAGES) || !['clone', 'phantasm'].includes(String(event.summonKind || ''))) {
+  if (!context.traits.has(TRAIT.SHARPER_IMAGES) || !['clone', 'phantasm'].includes(event.summonKind || '')) {
     return;
   }
 

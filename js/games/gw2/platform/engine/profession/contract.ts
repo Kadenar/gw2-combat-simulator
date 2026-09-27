@@ -8,7 +8,7 @@ import type { DynamicFields, UnvalidatedFields } from '#kernel/core/unvalidated.
 import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
 import type { NormalizedProfessionContract, ProfessionDefinition } from '#gw2/platform/engine/profession/types.js';
 
-type ComposableHook = (...args: any[]) => unknown;
+type ComposableHook = (...args: unknown[]) => unknown;
 
 interface OrderedHook {
   readonly id: string;
@@ -106,7 +106,7 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
   if (!hooks.length) return fallback;
   // Modifiers preserve the current value when a hook returns undefined.
   if (hookName.startsWith('modify')) {
-    const composed = (context: UnvalidatedFields, initialValue: unknown) =>
+    const composed = (context: unknown, initialValue: unknown) =>
       hooks.reduce((chainedValue: unknown, hook) => {
         const next = hook.handler(context, chainedValue);
         return next === undefined ? chainedValue : next;
@@ -119,7 +119,7 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
     return composed;
   }
 
-  return (context: UnvalidatedFields, value: unknown) => {
+  return (context: unknown, value: unknown) => {
     let result: unknown;
     for (const hook of hooks) {
       const next = hook.handler(context, value);

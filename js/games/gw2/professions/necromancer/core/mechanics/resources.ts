@@ -27,7 +27,7 @@ export const necromancerLifeForce: ResourcePolicy<NecromancerRuntime> = {
   kind: 'continuous',
   state: (runtime) => runtime.profession.core.lifeForce,
   maximum: () => 100,
-  initial: (runtime) => Number(runtime.config.initialResource ?? 100),
+  initial: (runtime) => runtime.config.initialResource ?? 100,
   recovery(runtime) {
     const state = runtime.profession.core;
     return state.activeShroud && state.activeShroud !== 'lich'

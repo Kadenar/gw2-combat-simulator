@@ -15,7 +15,7 @@ import type {
 function baseRevenantEnergyCost({ state }: RevenantEnergyCostInput, skill: RevenantSkill): number {
   const active = (state.activeUpkeeps || []).some((upkeep) => upkeep.skillId === skill.id);
   if (active) return 0;
-  return Math.max(0, Number(skill.energyCost || 0));
+  return Math.max(0, skill.energyCost || 0);
 }
 
 /** Composes the shared base Energy cost with the active elite specialization's policy. */

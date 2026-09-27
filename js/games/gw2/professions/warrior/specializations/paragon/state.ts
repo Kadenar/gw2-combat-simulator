@@ -41,7 +41,7 @@ export const paragonState = defineProfessionSpecializationState('Paragon', creat
 
 /** Publishes detached, current public values without mutating the live module state. */
 export function projectParagonPlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState<ParagonState>(input.profession);
+  const state = snapshotProfessionState(input.profession) as ParagonState;
   const publicState = {
     ...state,
     activeRefrain: state.activeRefrainId == null ? '' : input.catalog.skillsById.get(state.activeRefrainId)?.name || ''

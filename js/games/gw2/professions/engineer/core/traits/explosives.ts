@@ -28,10 +28,7 @@ import type {
 
 /** Schedules Grenadier's lesser barrage from an eligible healing cast after its internal cooldown. */
 export function applyGrenadier(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  if (
-    !hasTrait(context.config, TRAIT.GRENADIER) ||
-    !isInternalCooldownReady(at, Number(context.procs.readyAt.grenadier || 0))
-  )
+  if (!hasTrait(context.config, TRAIT.GRENADIER) || !isInternalCooldownReady(at, context.procs.readyAt.grenadier || 0))
     return;
   const grenadierProfile = requireBalanceProfileFromContext(context, PROFILE.grenadier);
   const grenadier = requireEffect(grenadierProfile, 'strike', 'Grenadier');
@@ -123,11 +120,7 @@ export function applyShortFuse(
   explosion: boolean
 ): void {
   const state = context.procs.readyAt;
-  if (
-    !explosion ||
-    !hasTrait(context, TRAIT.SHORT_FUSE) ||
-    !isInternalCooldownReady(event.at, Number(state.shortFuse || 0))
-  ) {
+  if (!explosion || !hasTrait(context, TRAIT.SHORT_FUSE) || !isInternalCooldownReady(event.at, state.shortFuse || 0)) {
     return;
   }
 
@@ -139,7 +132,7 @@ export function applyShortFuse(
       name: 'Short Fuse',
       kind: String(shortFuseFury.boon).toLowerCase(),
       stacks: Number(shortFuseFury.stacks),
-      duration: Number(shortFuseFury.duration),
+      duration: shortFuseFury.duration,
       sourceId: TRAIT.SHORT_FUSE,
       actorType: 'effect'
     });
@@ -162,7 +155,7 @@ export function applyExplosiveTemper(
       name: 'Explosive Temper',
       kind: 'explosive-temper',
       stacks: Number(explosiveTemperBuff.stacks),
-      duration: Number(explosiveTemperBuff.duration),
+      duration: explosiveTemperBuff.duration,
       sourceId: TRAIT.EXPLOSIVE_TEMPER,
       actorType: 'effect'
     });
@@ -241,8 +234,7 @@ function isAimAssistedProjectile(context: EngineerResolverContext, event: Engine
   if (event.projectile === true) return true;
   const skill = resolverSkill(context, event.skillId);
   return Boolean(
-    skill?.kit === 'Grenade Kit' ||
-    skill?.categories?.some((category) => String(category).toLowerCase() === 'projectile')
+    skill?.kit === 'Grenade Kit' || skill?.categories?.some((category) => category.toLowerCase() === 'projectile')
   );
 }
 
@@ -252,15 +244,14 @@ export function applyAimAssistedRocket(context: EngineerResolverContext, event: 
   if (
     !hasTrait(context, TRAIT.AIM_ASSISTED_ROCKET) ||
     !isAimAssistedProjectile(context, event) ||
-    !isInternalCooldownReady(event.at, Number(state.aimAssistedRocket || 0))
+    !isInternalCooldownReady(event.at, state.aimAssistedRocket || 0)
   ) {
     return;
   }
 
   const aimAssistedRocketProfile = requireBalanceProfileFromContext(context, PROFILE.aimAssistedRocket);
   state.aimAssistedRocket = event.at + balanceProfileNumber(aimAssistedRocketProfile, 'internalCooldown');
-  professionCoreState(context).aimAssistedRocketCount =
-    Number(professionCoreState(context).aimAssistedRocketCount || 0) + 1;
+  professionCoreState(context).aimAssistedRocketCount = (professionCoreState(context).aimAssistedRocketCount || 0) + 1;
   // Every fifth projectile upgrades to Orbital Command Strike with its two-second call-down delay.
   const alternateEvery = balanceProfileNumber(aimAssistedRocketProfile, 'maximumStacks');
   const orbital = professionCoreState(context).aimAssistedRocketCount % alternateEvery === 0;

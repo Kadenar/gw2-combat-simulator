@@ -71,7 +71,7 @@ export function resolveBladesong(
 
   if (shatter.kind === 'blade-control') {
     // A blade cannot impact before the activation has actually committed its resource spend.
-    const damageAt = Math.max(at, castStart + Number(shatter.damageAtMs || 0) / 1000);
+    const damageAt = Math.max(at, castStart + (shatter.damageAtMs || 0) / 1000);
     if (strike)
       runtime.addDamage(
         skill,

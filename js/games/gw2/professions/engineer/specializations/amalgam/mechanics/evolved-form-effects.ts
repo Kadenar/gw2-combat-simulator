@@ -59,9 +59,9 @@ function reactToAmalgamDamage(context: EngineerResolverContext, event: EngineerR
   if (
     event.actorType !== 'summon' &&
     event.sourceId !== 'engineer.rapacious-strain' &&
-    Number(amalgamState.from(context).evolvedUntil || 0) > event.at &&
-    Number(amalgamState.from(context).rapaciousUntil || 0) > event.at &&
-    (cooldown === 0 || isInternalCooldownReady(event.at, Number(state.rapacious || 0)))
+    (amalgamState.from(context).evolvedUntil || 0) > event.at &&
+    (amalgamState.from(context).rapaciousUntil || 0) > event.at &&
+    (cooldown === 0 || isInternalCooldownReady(event.at, state.rapacious || 0))
   ) {
     state.rapacious = event.at + cooldown;
     const strike = requireEffect(rapaciousStrainProfile, 'strike', 'Rapacious Strain');

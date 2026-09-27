@@ -30,9 +30,10 @@ export function createCooldownController({
   rechargeDuration,
   rechargeIntervals = (_skill, start, end) => [{ start, end, rate: 1 }],
   skillFor = () => undefined,
-  maximumAmmo = (skill) => Number(skill.ammo || 0)
+  maximumAmmo = (skill) => skill.ammo || 0
 }: CooldownControllerOptions): Readonly<CooldownController> {
-  if (!state?.ammo || !state?.cooldowns || !state?.rechargeProgress) {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Headless JavaScript callers must supply all cooldown stores.
+  if (!state.ammo || !state.cooldowns || !state.rechargeProgress) {
     throw new TypeError('Cooldown controller requires live runtime state.');
   }
 
@@ -91,10 +92,10 @@ export function createCooldownController({
 
   const syncAmmoCooldown = (skill: Skill, ammo: AmmoState, at: number): void => {
     // Derive availability from independent deadlines so returning a charge cannot erase a cast lockout.
-    const activeLockout = Number(ammo.lockoutReadyAt || 0);
+    const activeLockout = ammo.lockoutReadyAt || 0;
     const readyAt = Math.max(
       gw2CooldownReadyAt(activeLockout) > at ? activeLockout : 0,
-      ammo.charges === 0 ? Number(ammo.nextRechargeAt || 0) : 0
+      ammo.charges === 0 ? ammo.nextRechargeAt || 0 : 0
     );
     if (gw2CooldownReadyAt(readyAt) > at) {
       state.cooldowns.set(skill.id, readyAt);
@@ -107,13 +108,13 @@ export function createCooldownController({
    * Lazily initializes ammo tracking for skills that use charges.
    */
   const ensureAmmo = (skill: Skill, at = state.time): AmmoState | null => {
-    const maximum = Math.max(0, Number(maximumAmmo(skill) || 0));
+    const maximum = Math.max(0, maximumAmmo(skill) || 0);
     if (!maximum) return null;
     if (!state.ammo.has(skill.id)) {
       state.ammo.set(skill.id, {
         charges: maximum,
         maximum,
-        rechargeWork: Math.max(0, Number(rechargeDuration(skill, at) || 0)) * rate(skill, at),
+        rechargeWork: Math.max(0, rechargeDuration(skill, at) || 0) * rate(skill, at),
         nextRechargeAt: null
       });
     }
@@ -173,7 +174,7 @@ export function createCooldownController({
     const ammo = refreshAmmo(skill, at);
     if (!ammo) return 0;
     // Restore only available capacity; negative requests or an already-full pool grant nothing.
-    const restored = clamp(Number(count) || 0, 0, ammo.maximum - ammo.charges);
+    const restored = clamp(count || 0, 0, ammo.maximum - ammo.charges);
     if (!restored) return 0;
     ammo.charges += restored;
     if (ammo.charges >= ammo.maximum && whenFull === 'reset') {
@@ -208,7 +209,7 @@ export function createCooldownController({
 
   /** Applies game-adjusted recharge progress to ammo or an ordinary cooldown without passing its ready time. */
   const reduceSkillRecharge = (skill: Skill, reduction: number, at = state.time): number => {
-    const requested = Math.max(0, Number(reduction) || 0);
+    const requested = Math.max(0, reduction || 0);
     if (requested <= 0) return 0;
     if (state.ammo.has(skill.id)) {
       return reduceAmmoRecharge(skill, requested, at);
@@ -238,7 +239,7 @@ export function createCooldownController({
     if (!ammo) return;
     const progress = { startedAt: at, work: Math.max(0, work) };
     const projected = project(skill, progress);
-    const previous = ammo.lockoutProgress ? project(skill, ammo.lockoutProgress) : Number(ammo.lockoutReadyAt || 0);
+    const previous = ammo.lockoutProgress ? project(skill, ammo.lockoutProgress) : ammo.lockoutReadyAt || 0;
     // Extending a lockout preserves work already accrued on the longer timer.
     if (projected >= previous) ammo.lockoutProgress = progress;
     ammo.lockoutReadyAt = Math.max(previous, projected);

@@ -39,7 +39,7 @@ function applyMistral(context: RangerRuntime, event: Gw2ResolverEvent): void {
   if ((event.skillId === ID.PATH_OF_SCARS || event.skillId === ID.PATH_OF_SCARS_MAX_RANGE) && event.activationId) {
     if (event.hitIndex === 1 && enhanced) state.mistralPathOfScars[event.activationId] = true;
     if (event.hitIndex === event.totalHits) {
-      enhanced ||= state.mistralPathOfScars[event.activationId] === true;
+      enhanced ||= state.mistralPathOfScars[event.activationId];
       delete state.mistralPathOfScars[event.activationId];
     }
   }
@@ -142,7 +142,7 @@ export function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEve
   const at = event.at;
 
   const state = galeshotState.from(context);
-  const activationId = String(event.activationId || '');
+  const activationId = event.activationId || '';
   if (
     !hasTrait({ config: context.config }, TRAIT.WUTHERING_WIND) ||
     !state.wutheringWindReady ||
@@ -284,7 +284,7 @@ export function galeshotCastAvailability(context: RangerRuntime, skill: RangerSk
     return deny(skill, 'ranger.cyclone-bow-inactive', 'the Cyclone Bow is not active.');
   }
 
-  if (Number(skill.arrowCost || 0) > state.arrows.value) {
+  if ((skill.arrowCost || 0) > state.arrows.value) {
     return deny(skill, 'ranger.arrows', `requires ${skill.arrowCost} arrows.`);
   }
 

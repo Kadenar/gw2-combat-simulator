@@ -89,7 +89,7 @@ export function resolveTroubadourTale({ context, skill, at, castStart, activatio
       at,
       kind: String(protection.boon),
       stacks: Number(protection.stacks),
-      duration: Number(protection.duration),
+      duration: protection.duration,
       skillName: skill.name,
       sourceSkill: skill.name,
       ...partyRecipients

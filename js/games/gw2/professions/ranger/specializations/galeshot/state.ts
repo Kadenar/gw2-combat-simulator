@@ -69,7 +69,7 @@ export const galeshotArrows: ResourcePolicy<RangerRuntime> = {
   state: (context) => galeshotState.from(context).arrows,
   maximum: (context) =>
     balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks'),
-  initial: (context, maximum) => Number(context.config.initialArrows ?? maximum),
+  initial: (context, maximum) => context.config.initialArrows ?? maximum,
   recovery: (context) => ({
     interval: balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'pulseInterval'),
     amount: 1,

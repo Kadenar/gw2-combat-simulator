@@ -198,7 +198,7 @@ export function reactToFirebrandControl(runtime: Runtime, event: Gw2ResolverEven
 export function reactToFirebrandBuff(runtime: Runtime, event: Gw2ResolverEvent): void {
   const state = firebrandState.from(runtime);
   const self = event.resolvedAudience?.includesSelf === true;
-  const allies = Number(event.resolvedAudience?.alliedPlayerCount ?? 0);
+  const allies = event.resolvedAudience?.alliedPlayerCount ?? 0;
   if (!self && allies <= 0) return;
   if (
     (event.kind === 'aegis' || event.kind === 'stability') &&

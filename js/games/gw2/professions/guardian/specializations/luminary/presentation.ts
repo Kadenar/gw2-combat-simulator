@@ -8,7 +8,7 @@ import {
   guardianUiSkillIdsByName,
   guardianUiSkillsByMode
 } from '#gw2/professions/guardian/core/presentation.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+
 import type {
   PaletteSkillAvailability,
   ProfessionEffectPresentation,
@@ -59,12 +59,12 @@ function professionState(context: GuardianUiContext): Partial<GuardianState> {
 }
 
 function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
-  const result = context.result as Gw2SimulationResult | null | undefined;
+  const result = context.result;
   const at = guardianSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
   const state = professionState(context);
   // Expose Light Aura while it can still be consumed by Luminary skills.
-  const lightAuraRemaining = Number(state.lightAuraUntil || 0) - at;
+  const lightAuraRemaining = (state.lightAuraUntil || 0) - at;
   if (lightAuraRemaining > 0) {
     items.push({
       id: 'luminary-light-aura',
@@ -74,7 +74,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
     });
   }
 
-  const effulgentRemaining = Number(state.effulgentActiveUntil || 0) - at;
+  const effulgentRemaining = (state.effulgentActiveUntil || 0) - at;
   if (effulgentRemaining > 0) {
     const stacks = boundedInteger(state.effulgentStacks || 0, 0, 0, 10);
     items.push({
@@ -134,7 +134,7 @@ function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
       id: 'guardian-radiant-armaments',
       kind: 'guardian-radiant-armaments',
       name: (event) => {
-        const weapon = RADIANT_ARMAMENT_NAMES[String(event.metadata?.radiantWeapon || '')];
+        const weapon = RADIANT_ARMAMENT_NAMES[event.metadata?.radiantWeapon || ''];
         return weapon ? `Radiant Armaments (${weapon})` : 'Radiant Armaments';
       },
       maximumStacks: 1,

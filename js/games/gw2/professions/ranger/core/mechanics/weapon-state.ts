@@ -13,6 +13,6 @@ export const RANGER_SPEAR_STEALTH_FLIP_BY_PARENT: Readonly<Record<number, number
 export function rangerSpearStealthAvailable(state: Partial<RangerCoreState>, at: number): boolean {
   return (
     skillFlipReady(state.availableFlips?.[ID.WOLFS_ONSLAUGHT], at) ||
-    (Number(state.stealthUntil || 0) > at && Number(state.revealedUntil || 0) <= at)
+    ((state.stealthUntil || 0) > at && (state.revealedUntil || 0) <= at)
   );
 }

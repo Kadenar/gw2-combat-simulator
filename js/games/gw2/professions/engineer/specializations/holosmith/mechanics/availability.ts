@@ -72,7 +72,7 @@ export function holosmithCastAvailability(context: EngineerRuntime, skill: Holos
 
   // Kits use Photon Forge's six-second base recharge lockout after entry. The
   // stored ready time already includes recharge modifiers such as Alacrity.
-  if (skill.kitTransition === 'equip' && context.time < Number(state.kitLockoutUntil || 0)) {
+  if (skill.kitTransition === 'equip' && context.time < (state.kitLockoutUntil || 0)) {
     return denyEngineerCast(
       skill,
       'engineer.kit-lockout',

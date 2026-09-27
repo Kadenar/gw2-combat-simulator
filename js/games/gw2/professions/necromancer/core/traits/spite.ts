@@ -60,7 +60,7 @@ export function applyReapersMight(
       triggeredBy: event.skillName
     })
   );
-  context.recordProc?.('trait', "Reaper's Might", event.at, event.skillName);
+  context.recordProc('trait', "Reaper's Might", event.at, event.skillName);
 }
 
 export function applySiphonedPower(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
@@ -87,7 +87,7 @@ export function applySiphonedPower(context: NecromancerResolverContext, event: N
       triggeredBy: event.skillName
     })
   );
-  context.recordProc?.('trait', 'Siphoned Power', event.at, event.skillName);
+  context.recordProc('trait', 'Siphoned Power', event.at, event.skillName);
 }
 
 export function applyChillOfDeath(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {

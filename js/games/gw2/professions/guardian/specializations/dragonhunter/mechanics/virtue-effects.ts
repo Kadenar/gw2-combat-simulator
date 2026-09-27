@@ -22,7 +22,7 @@ export function reactToDragonhunterJusticeHit(
   dependencies: Pick<NativeResolvedDamageDetails, 'hitContext'> = {}
 ): void {
   const core = professionCoreState(context);
-  const passiveBefore = Number(core.justicePassiveBurns || 0);
+  const passiveBefore = core.justicePassiveBurns || 0;
   reactToJusticeHitWithOptions(context, event, dependencies, {
     retainsPassive: false,
     skillId: ID.SPEAR_OF_JUSTICE,
@@ -31,7 +31,7 @@ export function reactToDragonhunterJusticeHit(
 
   // Passive Crippled only fires when the passive burn counter actually incremented,
   // i.e. a new passive Justice proc occurred on this hit (not an active proc).
-  if (Number(core.justicePassiveBurns || 0) > passiveBefore) {
+  if ((core.justicePassiveBurns || 0) > passiveBefore) {
     const tetherProfile = requireBalanceProfileFromContext(context, PROFILE.tether);
     const crippled = requireEffect(tetherProfile, 'condition', 'Crippled (passive)');
     if (crippled) {

@@ -90,7 +90,7 @@ function emitEnhancedCapacityMight(context: EngineerRuntime, at: number): void {
       actorType: 'player',
       name: 'Enhanced Capacity Storage Unit — might',
       kind: String(boon.boon).toLowerCase(),
-      duration: Number(boon.duration),
+      duration: boon.duration,
       stacks: Number(boon.stacks)
     });
   }
@@ -133,7 +133,7 @@ function grantSolarFocusingLens(context: EngineerRuntime, at: number, stacks: nu
 function applyToolbeltOverheatPenalty(context: EngineerRuntime, at: number, seconds: number): void {
   for (const skill of context.helpers.skills) {
     if (!skill.toolbeltParentName || HOLOSMITH_FORGE_TOGGLE_SKILL_IDS.has(Number(skill.id))) continue;
-    const existingReadyAt = Number(context.cooldowns.get(skill.id) || 0);
+    const existingReadyAt = context.cooldowns.get(skill.id) || 0;
     context.cooldownController.setReadyAt(skill.id, Math.max(existingReadyAt, at + seconds));
   }
 }
@@ -432,7 +432,7 @@ function triggerVentExhaust(context: EngineerRuntime, triggeringSkill: EngineerS
 
   // Vent heat immediately after its combat packets are queued at the same timestamp.
   const state = holosmithState.from(context);
-  state.heat = Math.max(0, state.heat - Math.max(0, Number(ventExhaust.heatLoss || 0)));
+  state.heat = Math.max(0, state.heat - Math.max(0, ventExhaust.heatLoss || 0));
   if (state.heat === 0 && !state.photonForgeActive) state.overheated = false;
   reportHeat(context, 'vent-exhaust');
 }
@@ -456,7 +456,7 @@ export function triggerThermalReleaseValve(context: EngineerRuntime, skill: Engi
       skillName: skill.name,
       name: 'Thermal Release Valve — vigor',
       kind: String(boon.boon).toLowerCase(),
-      duration: Number(boon.duration),
+      duration: boon.duration,
       stacks: Number(boon.stacks)
     });
   }
@@ -530,6 +530,6 @@ export const photonForgeTasks: RuntimeProfession<EngineerRuntimeState>['tasks'] 
     reportHeat(context, 'heat');
   },
   [PHOTON_FORGE_OVERHEAT_PENALTY_TASK](context, data) {
-    applyToolbeltOverheatPenalty(context, context.time, Math.max(0, Number((data as { seconds: number }).seconds)));
+    applyToolbeltOverheatPenalty(context, context.time, Math.max(0, (data as { seconds: number }).seconds));
   }
 };

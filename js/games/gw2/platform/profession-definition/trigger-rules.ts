@@ -146,9 +146,7 @@ export function compileProfessionRules<T extends object>(
           // Hit predicates consume the resolved outcome, never a prediction from the packet.
           if (
             hasTrait(runtime, rule.trait) &&
-            (rule.on === 'damage.resolved'
-              ? rule.when(runtime, event, details as NativeResolvedDamageDetails)
-              : rule.when(runtime, event))
+            (rule.on === 'damage.resolved' ? rule.when(runtime, event, details) : rule.when(runtime, event))
           )
             emit(
               runtime,

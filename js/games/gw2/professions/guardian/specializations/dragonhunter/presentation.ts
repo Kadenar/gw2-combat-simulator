@@ -12,7 +12,7 @@ const VIRTUE_NAMES = Object.freeze(['Spear of Justice', 'Wings of Resolve', 'Shi
 
 /** Shows the target tether only while Big Game Hunter can still benefit from it. */
 function dragonhunterStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
-  const remaining = Number(guardianUiState(context).tetherUntil || 0) - guardianSnapshotAt(context);
+  const remaining = (guardianUiState(context).tetherUntil || 0) - guardianSnapshotAt(context);
   return remaining > 0
     ? [
         {

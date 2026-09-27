@@ -200,7 +200,7 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
   const target = event.to;
   const previous = event.from;
   const sourceId = event.skillId ?? event.sourceId;
-  const source = String(event.skillName || event.source || 'Attunement');
+  const source = event.skillName || event.source || 'Attunement';
   const unravelActive = state.unravelUntil > at;
 
   // While Unravel is active both hands follow the swap, so the recorded event
@@ -228,7 +228,7 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
   applyWeaveSelfAttunement(context, at, target, source, sourceId);
 
   // Pre-combat setup swaps must not generate trait procs.
-  if (at < Number(context.combatStartTime || 0) - EPSILON) return;
+  if (at < (context.combatStartTime || 0) - EPSILON) return;
   if (hasTrait(context, TRAIT.WEAVERS_PROWESS) && (unravelActive || target === previous)) {
     const weaversProwessProfile = requireBalanceProfileFromContext(context, PROFILE.weaversProwess);
     const resistance = requireEffect(weaversProwessProfile, 'boon', 'Resistance');
@@ -241,7 +241,7 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
         actorType: 'player',
         kind: String(resistance.boon).toLowerCase(),
         stacks: Number(resistance.stacks),
-        duration: Number(resistance.duration),
+        duration: resistance.duration,
         skillName: "Weaver's Prowess"
       });
     }
@@ -373,7 +373,7 @@ function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: 
         actorType: 'player',
         name: skill.name,
         kind: boonKind,
-        duration: Number(profiledBoon.duration),
+        duration: profiledBoon.duration,
         stacks: Number(profiledBoon.stacks)
       });
     }
@@ -407,7 +407,7 @@ function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: 
         actorType: 'player',
         kind: String(might.boon).toLowerCase(),
         stacks: Number(might.stacks),
-        duration: Number(might.duration),
+        duration: might.duration,
         skillName: 'Fervent Stance'
       });
     }
@@ -421,8 +421,7 @@ export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
   // The Air bullet and Flow State reductions compose without consuming bullet state during lookup.
   rechargeRules: [
     {
-      when: (context, skill) =>
-        skill.id === ID.PURBLINDING_PLASMA && Boolean(professionCoreState(context).pistolBullets.Air),
+      when: (context, skill) => skill.id === ID.PURBLINDING_PLASMA && professionCoreState(context).pistolBullets.Air,
       multiplier: { profile: PROFILE.purblindingPlasma, field: 'rechargeMultiplier' }
     },
     {

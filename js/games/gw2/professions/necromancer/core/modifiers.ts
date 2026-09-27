@@ -39,14 +39,14 @@ export function necromancerRuntimeSpecializationState(
 
 /** Returns the active Necromancer shroud identifier, or an empty string outside shroud. */
 export function necromancerActiveShroud(context: Gw2ModifierContext): string {
-  return String(necromancerRuntimeCoreState(context).activeShroud || '');
+  return necromancerRuntimeCoreState(context).activeShroud || '';
 }
 
 /** Reports permanent or runtime Chilled target state at modifier evaluation time. */
 export function necromancerTargetChilled(context: Gw2ModifierContext): boolean {
   return (
     targetConditionActive(context, 'Chilled') ||
-    Number(necromancerRuntimeCoreState(context).targetChilledUntil || 0) > context.time
+    (necromancerRuntimeCoreState(context).targetChilledUntil || 0) > context.time
   );
 }
 
@@ -94,7 +94,7 @@ export function modifyNecromancerCoreAttributes(context: Gw2ModifierContext, att
   // Conversions read gear-only stats. config.stats excludes might
   // (baked into the seed's power/condition damage) and live trait bonuses
   // (accrued on `result`).
-  const gearPower = Number(context.config?.stats?.power || 0);
+  const gearPower = context.config?.stats?.power || 0;
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   if (hasSelectedSkill(context, 'Signet of Spite')) {
     const signetOfSpiteProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfSpite);
@@ -113,7 +113,7 @@ export function modifyNecromancerCoreAttributes(context: Gw2ModifierContext, att
     ? Object.values(necromancerRuntimeCoreState(context).activeMinions || {}).reduce(
         (total: number, count: number) =>
           total +
-          Number(count || 0) *
+          (count || 0) *
             balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.fleshOfTheMaster), 'resourceGain'),
         0
       )
@@ -132,7 +132,7 @@ export function modifyNecromancerCoreAttributes(context: Gw2ModifierContext, att
   if (hasTrait(context, TRAIT.AWAKEN_THE_PAIN)) {
     const awakenThePainProfile = requireBalanceProfileFromContext(context, PROFILE.awakenThePain);
     const perStack = balanceProfileNumber(awakenThePainProfile, 'attributePerStack');
-    result.power += Number(context.query?.mightStacksAt(context.time, context.runtime, context.event) || 0) * perStack;
+    result.power += (context.query?.mightStacksAt(context.time, context.runtime, context.event) || 0) * perStack;
   }
 
   if (!staticRulesApplied) {
@@ -175,7 +175,7 @@ const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.5,
     order: 100,
-    when: (context) => Boolean(eventSkill(context)?.id === ID.LIFE_SIPHON && targetConditionActive(context, 'Bleeding'))
+    when: (context) => eventSkill(context)?.id === ID.LIFE_SIPHON && targetConditionActive(context, 'Bleeding')
   },
   {
     id: 'necromancer.target-the-weak-critical-chance',
@@ -216,7 +216,7 @@ const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.2,
     when: (context) =>
-      hasTrait(context, TRAIT.DREAD) && Number(necromancerRuntimeCoreState(context).dreadUntil || 0) > context.time
+      hasTrait(context, TRAIT.DREAD) && (necromancerRuntimeCoreState(context).dreadUntil || 0) > context.time
   },
   {
     id: 'necromancer.death-perception-critical-hit-damage',
@@ -261,8 +261,7 @@ const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     factor: (context) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.NECROMANTIC_CORRUPTION), 'damageMultiplier'),
     order: 100,
-    when: (context) =>
-      Boolean(context.event?.summonKind === 'minion' && hasTrait(context, TRAIT.NECROMANTIC_CORRUPTION))
+    when: (context) => context.event?.summonKind === 'minion' && hasTrait(context, TRAIT.NECROMANTIC_CORRUPTION)
   },
   {
     id: 'necromancer.putrid-defense',

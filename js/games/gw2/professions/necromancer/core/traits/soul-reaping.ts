@@ -58,7 +58,7 @@ export function applyDhuumfire(
   if (!hasTrait(context, TRAIT.DHUUMFIRE) || !shroudSkillOne) return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.dhuumfire);
   const effect = requireEffect(profile, 'condition', 'Burning');
-  const interval = Number(event.metadata?.dhuumfireInterval || 0);
+  const interval = event.metadata?.dhuumfireInterval || 0;
   // Zero or absent intervals bypass the claim so same-time applications remain unrestricted; the claim gates only
   // Burning, so a removed packet leaves it ready.
   if (!effect) return;
@@ -71,7 +71,7 @@ export function applyDhuumfire(
     traitId: TRAIT.DHUUMFIRE,
     condition: String(effect.condition),
     stacks: effectNumber(profile, effect, 'stacks'),
-    duration: Number(event.metadata?.dhuumfireDuration ?? skillDuration ?? effect?.duration ?? 3)
+    duration: Number(event.metadata?.dhuumfireDuration ?? skillDuration ?? effect.duration ?? 3)
   });
 }
 

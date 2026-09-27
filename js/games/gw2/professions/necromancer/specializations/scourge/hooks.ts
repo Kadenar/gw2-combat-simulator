@@ -47,7 +47,7 @@ function emitPacket(runtime: NecromancerRuntime, cast: RuntimeCast, event: Simul
     ...event,
     activationId: cast.id,
     offTarget: cast.command.offTarget,
-    at: canonicalTime(event.at + (isHostileTargetEvent(event) ? Number(cast.command.impactDelayMs ?? 0) / 1000 : 0))
+    at: canonicalTime(event.at + (isHostileTargetEvent(event) ? (cast.command.impactDelayMs ?? 0) / 1000 : 0))
   });
 }
 

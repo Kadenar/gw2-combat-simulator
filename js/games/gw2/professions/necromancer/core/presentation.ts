@@ -133,7 +133,7 @@ function necromancerCorePaletteAvailability(
   skill: NecromancerSkill
 ): PaletteSkillAvailability {
   const state = necromancerUiState(context);
-  const active = String(state.activeShroud || '');
+  const active = state.activeShroud || '';
   const activeTraitNames = new Set(getActiveTraits(context.build?.specializations || []).map((trait) => trait.name));
   // Apply trait replacements and living-minion restrictions before transform-wide gates.
   if (skill.id === ID.DEVOURING_DARKNESS && !activeTraitNames.has('Lingering Curse')) {
@@ -150,7 +150,7 @@ function necromancerCorePaletteAvailability(
   if (
     skill.rechargeOnMinionDeath &&
     skill.flipSkillId != null &&
-    skillFlipReady(state.availableFlips?.[skill.flipSkillId], Number(context.time || 0))
+    skillFlipReady(state.availableFlips?.[skill.flipSkillId], context.time || 0)
   ) {
     return {
       available: false,
@@ -182,7 +182,7 @@ function necromancerCorePaletteAvailability(
     };
   }
 
-  if (active && ['Heal', 'Utility', 'Elite'].includes(String(skill.type || ''))) {
+  if (active && ['Heal', 'Utility', 'Elite'].includes(skill.type || '')) {
     return {
       available: false,
       message: 'Slot skills are unavailable while shrouded'
@@ -227,14 +227,14 @@ export function necromancerSoulShardResourceViews(context: NecromancerUiContext)
     gw2PrimaryWeapon(context.config, 1),
     gw2PrimaryWeapon(context.config, 2)
   ];
-  return equippedWeapons.includes('Spear') || Number(state.soulShardGrant?.charges || 0) > 0
+  return equippedWeapons.includes('Spear') || (state.soulShardGrant?.charges || 0) > 0
     ? [
         {
           id: 'soul-shards',
           singular: 'soul shard',
           plural: 'soul shards',
           maximum: 6,
-          value: Number(state.soulShardGrant?.charges || 0),
+          value: state.soulShardGrant?.charges || 0,
           canStart: false,
           step: 1,
           displayMode: 'counter',

@@ -49,6 +49,7 @@ test('removed Dark Defense protection keeps its carapace and cooldown', () => {
 test('removed minion Vampiric siphon keeps the player siphon bound to its own values', () => {
   const queued = [];
   const context = {
+    recordProc() {},
     config: { selectedTraitIds: [TRAIT.VAMPIRIC] },
     catalog: patched({ [CORE.vampiric]: remove('strike', 'minion') }),
     queue: { enqueue: (event) => queued.push(event) }

@@ -19,7 +19,7 @@ function applyVirtuosoAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   const staticApplied = professionStaticRulesApplied(context.config);
   const quietIntensityDelta =
     hasTrait(context, TRAIT.QUIET_INTENSITY) && !staticApplied
-      ? Number(context.config?.stats?.vitality || 0) *
+      ? (context.config?.stats?.vitality || 0) *
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.quietIntensity), 'vitalityConversion')
       : 0;
   const sharpeningSorrowDelta = hasTrait(context, PROFILE.sharpeningSorrow)
@@ -29,8 +29,8 @@ function applyVirtuosoAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   if (quietIntensityDelta === 0 && sharpeningSorrowDelta === 0) return attributes;
   return {
     ...attributes,
-    ferocity: Number(attributes.ferocity || 0) + quietIntensityDelta,
-    expertise: Number(attributes.expertise || 0) + sharpeningSorrowDelta
+    ferocity: (attributes.ferocity || 0) + quietIntensityDelta,
+    expertise: (attributes.expertise || 0) + sharpeningSorrowDelta
   };
 }
 

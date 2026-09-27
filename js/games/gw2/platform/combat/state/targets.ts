@@ -154,11 +154,11 @@ export function permanentTargetConditionStacks(config: Gw2Config, name: string):
 }
 
 function activeRuntimeStackWeight(stack: Gw2RuntimeConditionStack, at: number): number {
-  const appliedAt = Number(stack?.appliedAt ?? -Infinity);
-  const expiresAt = Number(stack?.expiresAt ?? Infinity);
-  const removedAt = Number(stack?.removedAt ?? Infinity);
+  const appliedAt = stack.appliedAt ?? -Infinity;
+  const expiresAt = stack.expiresAt ?? Infinity;
+  const removedAt = stack.removedAt ?? Infinity;
   return isTimeInWindow(at, appliedAt, Math.min(expiresAt, removedAt))
-    ? Math.max(0, Number(stack?.weight ?? stack?.stacks ?? 0))
+    ? Math.max(0, stack.weight ?? stack.stacks ?? 0)
     : 0;
 }
 
@@ -190,7 +190,7 @@ export function targetConditionStacks(
   at: number,
   runtime: Gw2RuntimeStateLike | null = null
 ): number {
-  return permanentTargetConditionStacks(config, name) + runtimeTargetConditionStacks(runtime, name, Number(at || 0));
+  return permanentTargetConditionStacks(config, name) + runtimeTargetConditionStacks(runtime, name, at || 0);
 }
 
 /** Reports whether permanent assumptions or runtime state give the target a condition. */

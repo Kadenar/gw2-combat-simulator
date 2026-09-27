@@ -17,7 +17,7 @@ const RELEASE_ID_BY_NAME: Readonly<Record<string, SkillId>> = Object.freeze({
 /** Reports both the legend-derived Cosmic Wisdom form and its remaining duration. */
 function conduitStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
   const state = revenantUiState(context);
-  const remaining = Number(state.cosmicWisdomUntil || 0) - Math.max(0, Number(context.atSeconds || 0));
+  const remaining = (state.cosmicWisdomUntil || 0) - Math.max(0, context.atSeconds || 0);
   return remaining > 0 && state.conduitForm
     ? [
         {
@@ -60,7 +60,7 @@ export const conduitUi: RevenantUiSlice = Object.freeze({
       singular: 'affinity',
       plural: 'affinity',
       maximum: 5,
-      value: Number(revenantUiState(context).affinity || 0),
+      value: revenantUiState(context).affinity || 0,
       // Affinity cannot be manually set by the user; it is always gained through gameplay actions.
       canStart: false,
       step: 1,

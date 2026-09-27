@@ -18,7 +18,7 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
   if (
     event.condition !== 'Torment' ||
     !hasTrait(context, TRAIT.DEMONIC_LORE) ||
-    !isInternalCooldownReady(event.at, Number(context.procs.deadline('necromancer.scourge.demonicLore') || 0))
+    !isInternalCooldownReady(event.at, context.procs.deadline('necromancer.scourge.demonicLore') || 0)
   ) {
     return;
   }

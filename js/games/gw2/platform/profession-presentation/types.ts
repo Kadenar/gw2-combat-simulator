@@ -266,9 +266,7 @@ interface ProfessionResultUiContext<TProfessionState = unknown> extends Professi
 }
 
 /** Event-log rows; the caller owns time and resource formatting. */
-export interface ProfessionEventLogContext<
-  TProfessionState = unknown
-> extends ProfessionResultUiContext<TProfessionState> {}
+export type ProfessionEventLogContext<TProfessionState = unknown> = ProfessionResultUiContext<TProfessionState>;
 
 /** Rotation state snapshot at the inspected point. */
 interface ProfessionStateSnapshotContext<

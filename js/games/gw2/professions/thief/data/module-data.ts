@@ -10,7 +10,7 @@ import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/professions/thief/data/thief-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/thief/data/traits-data.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
-import type { CatalogEntity, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // Link dual-wield openers to their follow-ups for flip metadata and opener detection.
@@ -127,7 +127,7 @@ const normalize = (skill: ThiefSkill): ThiefSkill => ({
   flipParentId: flipParentById.get(skill.id) ?? null,
   dualWieldOpener: Object.hasOwn(DUAL_FOLLOWUP_BY_PARENT, skill.id),
   flipDuration: WEAPON_FLIP_DURATION_BY_PARENT[Number(skill.id)] ?? skill.flipDuration,
-  ...(Number(skill.initiativeCost || 0) > 0
+  ...((skill.initiativeCost || 0) > 0
     ? {
         resource: 'initiative'
       }
@@ -197,7 +197,7 @@ const WEAPON_DATA = defineProfessionWeapons({
 const createModuleData = createProfessionModuleDataFactory({
   generatedSkills: generated,
   sharedExtraSkills: supplemental,
-  traits: TRAITS as readonly CatalogEntity[],
+  traits: TRAITS,
   specializations: SPECIALIZATIONS,
   specializationOnlySkills: SPECIALIZATION_ONLY_SKILLS,
   core: WEAPON_DATA

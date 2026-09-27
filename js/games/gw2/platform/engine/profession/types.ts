@@ -91,8 +91,8 @@ export interface ProfessionFamilyDefinition<TBuild extends object = object> {
   readonly name: string;
   readonly catalog: CanonicalCatalog;
   readonly build?: ProfessionBuildDefinition<TBuild>;
-  readonly core: ProfessionModuleDefinition<any>;
-  readonly specializations: Readonly<Record<string, ProfessionModuleDefinition<any>>>;
+  readonly core: ProfessionModuleDefinition;
+  readonly specializations: Readonly<Record<string, ProfessionModuleDefinition>>;
   /**
    * Application-only callbacks that are genuinely global to the family.
    * Runtime callbacks belong to Core or the active specialization module.

@@ -87,10 +87,10 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Gw2S
   // its passive re-applies might bonuses directly to the mech afterward.
   const inheritedSource = {
     ...modified,
-    power: Math.max(0, Number(modified.power || 0) - mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK),
+    power: Math.max(0, (modified.power || 0) - mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK),
     ferocity: Math.max(
       0,
-      Number(modified.ferocity || 0) -
+      (modified.ferocity || 0) -
         (hasTrait(context, TRAIT.NO_SCOPE) && activeBoonStacks(context, 'fury', 1) > 0
           ? balanceProfileNumber(
               requireBalanceProfileFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.noScope),
@@ -98,7 +98,7 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Gw2S
             )
           : 0)
     ),
-    conditionDamage: Math.max(0, Number(modified.conditionDamage || 0) - mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK)
+    conditionDamage: Math.max(0, (modified.conditionDamage || 0) - mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK)
   };
   const mech = engineerMechAttributes(
     context.config,

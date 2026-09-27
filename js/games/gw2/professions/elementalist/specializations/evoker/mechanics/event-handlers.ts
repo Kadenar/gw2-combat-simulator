@@ -43,7 +43,7 @@ export function onAcceptedEvent(context: ElementalistRuntime, event: SimulationE
         actorType: 'player',
         kind: String(might.boon).toLowerCase(),
         stacks: Number(might.stacks),
-        duration: Number(might.duration),
+        duration: might.duration,
         skillName: 'Fire Familiar'
       });
     }
@@ -76,7 +76,7 @@ export function onAcceptedEvent(context: ElementalistRuntime, event: SimulationE
         name: 'Elemental Balance',
         procType: 'skill',
         sourceId: event.skillId ?? event.sourceId,
-        sourceSkill: String(event.skillName || event.source || ''),
+        sourceSkill: event.skillName || event.source || '',
         detail: `CDR armed (${duration}s)`,
         icon: 'https://wiki.guildwars2.com/images/4/4c/Elemental_Balance.png'
       });

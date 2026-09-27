@@ -18,7 +18,7 @@ export function guardianTraitIcon(traitId: SkillId): string {
 
 export function isGuardianSymbolSkill(skill: GuardianSkill | undefined, fallbackName = ''): boolean {
   const name = skill?.name || fallbackName;
-  const description = String(skill?.description || '');
+  const description = skill?.description || '';
   return (
     /^Symbol of /.test(name) ||
     /^Lesser Symbol of /.test(name) ||

@@ -63,7 +63,7 @@ export function handleAirBlast(context: EngineerResolverContext, event: Engineer
 
 // Focused is the shared spear target window established by Conduit Surge.
 function focused(context: EngineerResolverContext, at: number): boolean {
-  return Number(professionCoreState(context).focusedUntil || 0) > at;
+  return (professionCoreState(context).focusedUntil || 0) > at;
 }
 
 /** Each Lightning Rod pulse applies Vulnerability, with stronger strikes and stacks against Focused targets. */
@@ -112,7 +112,7 @@ export function handleConduitSurge(context: EngineerResolverContext, event: Engi
     (context.combatStartTime == null || event.at >= context.combatStartTime)
   )
     professionCoreState(context).focusedUntil = Math.max(
-      Number(professionCoreState(context).focusedUntil || 0),
+      professionCoreState(context).focusedUntil || 0,
       event.at + balanceProfileNumber(idProfile, 'durationMultiplier')
     );
   const strike = requireEffect(idProfile, 'strike', profile.name);

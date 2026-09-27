@@ -61,12 +61,12 @@ interface MinionCommandDefinition {
 function minionAttackFromEffect(profile: BalanceProfile, effect: SkillEffect): MinionAttack {
   return {
     // Packet keys may differ while their summon attack attribution remains shared.
-    name: String(effect.skillName || effect.name || profile.name),
+    name: effect.skillName || effect.name || profile.name,
     coefficient: effectNumber(profile, effect, 'coefficient'),
-    offset: Number(effect.atMs || 0) / 1000,
+    offset: (effect.atMs || 0) / 1000,
     castTimeMs: Number(effect.castTimeMs || 0),
     skillId: effect.sourceId,
-    icon: effect.icon == null ? undefined : String(effect.icon),
+    icon: effect.icon == null ? undefined : effect.icon,
     damagePerCoefficient: effect.damagePerCoefficient == null ? undefined : Number(effect.damagePerCoefficient),
     comboFinishers: effect.comboFinishers
   };
@@ -149,16 +149,12 @@ export function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefi
   }));
   const conditions = effects
     .filter((effect) => effect.type === 'condition')
-    .map(
-      (effect) => [String(effect.condition || ''), Number(effect.stacks ?? 1), Number(effect.duration || 0)] as const
-    );
+    .map((effect) => [effect.condition || '', effect.stacks ?? 1, effect.duration || 0] as const);
   const controlEffect = effects.find((effect) => effect.type === 'control' || effect.type === 'blind');
   return {
     coefficient: Number(strike?.coefficient || 0),
     conditions,
-    control: String(
-      controlEffect?.type === 'blind' ? 'blind' : controlEffect?.controlKind || attacks[0]?.controlKind || ''
-    ),
+    control: controlEffect?.type === 'blind' ? 'blind' : controlEffect?.controlKind || attacks[0]?.controlKind || '',
 
     controlWindow: Number(skill.controlWindow || 0),
     blindDuration: Number(controlEffect?.duration || 0),

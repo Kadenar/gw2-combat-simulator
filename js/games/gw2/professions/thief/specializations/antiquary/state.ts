@@ -98,7 +98,7 @@ export const antiquaryState = defineProfessionSpecializationState('Antiquary', c
 
 /** Publishes detached, current public values without mutating the live module state. */
 export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState<AntiquaryState>(input.profession);
+  const state = snapshotProfessionState(input.profession) as AntiquaryState;
   expireCharges(state.mistburn, input.time);
   state.combatHighExpirations = purgeExpiredStacks(state.combatHighExpirations, input.time);
   state.holoUtilityCooldownReductionExpirations = purgeExpiredStacks(

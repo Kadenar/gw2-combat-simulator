@@ -75,8 +75,7 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     factor: 1.15,
     order: 110,
     when: (context) =>
-      hasTrait(context, TRAIT.MAGEBANE_TETHER) &&
-      Number(spellbreakerStateAt(context).magebaneTetherUntil || 0) > context.time
+      hasTrait(context, TRAIT.MAGEBANE_TETHER) && (spellbreakerStateAt(context).magebaneTetherUntil || 0) > context.time
   }
 ]);
 

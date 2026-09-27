@@ -151,7 +151,7 @@ export function createGw2ResolverRuntimeState({
       const identityId = skillId ?? sourceId;
       // Summon subtype prevents clone and phantasm entries from sharing one identity bucket.
       const actorIdentity = source?.summonKind
-        ? `${source.actorType ?? ''}:${source.summonKind}`
+        ? `${source.actorType}:${source.summonKind}`
         : (source?.actorType ?? source?.source ?? '');
       const key = source ? `${String(identityId)}|${actorIdentity}|${parentSkill}|${name}` : name;
       const current: Gw2DamageBreakdownEntry = this.breakdown.get(key) || {
@@ -176,7 +176,7 @@ export function createGw2ResolverRuntimeState({
         current.skillId = source.skillId;
       }
 
-      if (current.sourceId == null && sourceId != null) {
+      if (current.sourceId == null) {
         current.sourceId = sourceId;
       }
 
@@ -197,7 +197,7 @@ export function createGw2ResolverRuntimeState({
       current.hits += hits;
       // Both modes report the seeded critical outcomes used by proc reactions.
       if (type === 'strikeDamage' && critical) {
-        const eligible = Number(hits) || 0;
+        const eligible = hits || 0;
         current.critEligibleHits = (current.critEligibleHits || 0) + eligible;
         const critShare = critical.didCrit === true ? eligible : 0;
         current.critHits = (current.critHits || 0) + critShare;

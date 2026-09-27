@@ -112,8 +112,8 @@ export function settleMesmerSkillFlips(
     // Canonical exact deadlines keep flip availability and expiry tasks on the same clock; Abstraction starts at creation.
     const flipStart = armedFlip.id === ID.ABSTRACTION ? at : cast.start;
     const flip = {
-      availableAt: canonicalTime(flipStart + Number(armedFlip.flipDelay || 0)),
-      expiresAt: canonicalTime(flipStart + Number(armedFlip.flipDuration || 0))
+      availableAt: canonicalTime(flipStart + (armedFlip.flipDelay || 0)),
+      expiresAt: canonicalTime(flipStart + (armedFlip.flipDuration || 0))
     };
     if (flip.expiresAt > canonicalTime(at)) {
       armSkillFlip(
@@ -154,7 +154,7 @@ export function settleMesmerSkillFlips(
       context.cooldownController.startRecharge(
         parent,
         at,
-        work + mesmerRechargeWork(context, parent, gw2BaseRecharge(parent)) * Number(skill.parentCooldownIncrease)
+        work + mesmerRechargeWork(context, parent, gw2BaseRecharge(parent)) * skill.parentCooldownIncrease
       );
     }
   }
@@ -181,7 +181,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast, sk
   };
   try {
     if (details.reservedShatterResources && !details.shatterSpendCommitted) {
-      runtime.actions.restoreReservedResources(Number(details.shatterSpent || 0));
+      runtime.actions.restoreReservedResources(details.shatterSpent || 0);
       return;
     }
 
@@ -225,18 +225,18 @@ export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast, skill
     shatter?.consumesResources !== false && Number.isFinite(spendProgress) && cast.fullEnd > cast.start + EPSILON;
   const earlyResourceAt =
     skill.resource?.mode === 'add' && skill.resource.timingAnchor === 'castStart'
-      ? cast.start + Number(skill.resource.atMs || 0) / 1000
+      ? cast.start + (skill.resource.atMs || 0) / 1000
       : null;
   const resourceScheduledDuringCast = earlyResourceAt != null && earlyResourceAt < cast.fullEnd - EPSILON;
   const earlyResourceOwnerId = `${cast.id}:mesmer.resource`;
-  if (resourceScheduledDuringCast && earlyResourceAt! <= cast.effectiveEnd) {
+  if (resourceScheduledDuringCast && earlyResourceAt <= cast.effectiveEnd) {
     // Cast-start resource packets must resolve during the cast so concurrent shatters can consume them.
     context.schedule(
       'mesmer.resource-gain',
-      earlyResourceAt!,
+      earlyResourceAt,
       {
         at: earlyResourceAt,
-        count: Number(skill.resource?.count || 0),
+        count: skill.resource?.count || 0,
         weapon: skill.weapon || runtime.activePrimaryWeapon(),
         reason: skill.name,
         cause: { kind: 'skill', sourceSkillId: skill.id }

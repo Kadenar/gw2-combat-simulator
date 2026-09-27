@@ -30,6 +30,7 @@ export interface Gw2ProfessionContract<
 }
 
 /** Joins the application surface to a runtime source whose GW2 resolver callbacks remain type checked. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- The application registry holds multiple profession state types; concrete sources retain their generic state.
 export type Gw2ProfessionSource<TProfessionState extends object = any> = ProfessionApplicationContract<Gw2Build> &
   ProfessionSource<TProfessionState, Gw2ProfessionContract<TProfessionState>, Gw2Build> & {
     runtimeFor(config: Gw2Config): RuntimeProfession<TProfessionState>;

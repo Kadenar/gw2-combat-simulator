@@ -41,7 +41,7 @@ function modifyEngineerConditionBaseDuration(context: Gw2ModifierContext, multip
   return multiplier * balanceProfileNumber(chemicalRoundsProfile, 'conditionDurationMultiplier');
 }
 
-export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+export const engineerCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
   {
     id: 'engineer.glass-cannon',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -70,7 +70,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     parameters: {
       maximumStacks: 25,
       damagePerStack: 0.005
-    } as Readonly<Record<string, number>>,
+    },
     factor: (context, _target, parameters) =>
       1 + Math.min(parameters.maximumStacks, vulnerabilityStacks(context)) * parameters.damagePerStack,
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.SHAPED_CHARGE)
@@ -81,7 +81,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'multiply',
     parameters: {
       damagePerCondition: 0.01
-    } as Readonly<Record<string, number>>,
+    },
     factor: (context, _target, parameters) => 1 + targetConditionCount(context) * parameters.damagePerCondition,
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.MODIFIED_AMMUNITION)
   },
@@ -107,7 +107,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
         isGw2PlayerModifierOwnedEvent(context.event) &&
         hasTrait(context, TRAIT.TAKEDOWN_ROUND) &&
         !resourceAtLeast(
-          Number(state.endurance || 0),
+          state.endurance || 0,
           balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks')
         )
       );
@@ -182,8 +182,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'damage-additive',
     amount: 0.05,
     when: (context) =>
-      hasTrait(context, TRAIT.THERMAL_VISION) &&
-      Number(engineerRuntimeState(context).thermalVisionUntil || 0) > context.time
+      hasTrait(context, TRAIT.THERMAL_VISION) && (engineerRuntimeState(context).thermalVisionUntil || 0) > context.time
   },
   {
     id: 'engineer.serrated-steel-duration',
@@ -231,12 +230,12 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: G
   if (hasTrait(context, TRAIT.CHEMICAL_ROUNDS) && !buildAttributesApplied) {
     const chemicalRoundsProfile = requireBalanceProfileFromContext(context, PROFILE.chemicalRounds);
     modified.conditionDamage =
-      Number(modified.conditionDamage || 0) + balanceProfileNumber(chemicalRoundsProfile, 'attributeBonus');
+      (modified.conditionDamage || 0) + balanceProfileNumber(chemicalRoundsProfile, 'attributeBonus');
   }
 
   if (hasTrait(context, TRAIT.THERMAL_VISION) && !buildAttributesApplied) {
     const thermalVisionProfile = requireBalanceProfileFromContext(context, PROFILE.thermalVision);
-    modified.expertise = Number(modified.expertise || 0) + balanceProfileNumber(thermalVisionProfile, 'attributeBonus');
+    modified.expertise = (modified.expertise || 0) + balanceProfileNumber(thermalVisionProfile, 'attributeBonus');
   }
 
   if (
@@ -247,8 +246,8 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: G
   ) {
     const energyAmplifierProfile = requireBalanceProfileFromContext(context, PROFILE.energyAmplifier);
     const attributeBonus = balanceProfileNumber(energyAmplifierProfile, 'attributeBonus');
-    modified.power = Number(modified.power || 0) + attributeBonus;
-    modified.healingPower = Number(modified.healingPower || 0) + attributeBonus;
+    modified.power = (modified.power || 0) + attributeBonus;
+    modified.healingPower = (modified.healingPower || 0) + attributeBonus;
   }
 
   if (
@@ -257,13 +256,13 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: G
     !(buildAttributesApplied && Boolean(context.config?.boons?.fury))
   ) {
     const noScopeProfile = requireBalanceProfileFromContext(context, PROFILE.noScope);
-    modified.ferocity = Number(modified.ferocity || 0) + balanceProfileNumber(noScopeProfile, 'attributeBonus');
+    modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(noScopeProfile, 'attributeBonus');
   }
 
   if (hasTrait(context, TRAIT.EXPLOSIVE_TEMPER)) {
     const explosiveTemperProfile = requireBalanceProfileFromContext(context, PROFILE.explosiveTemper);
     modified.ferocity =
-      Number(modified.ferocity || 0) +
+      (modified.ferocity || 0) +
       activeBoonStacks(context, 'explosive-temper', balanceProfileNumber(explosiveTemperProfile, 'maximumStacks')) *
         balanceProfileNumber(explosiveTemperProfile, 'attributePerStack');
   }
@@ -291,7 +290,7 @@ export function applyEngineerSharpshooterConditionDamage(
   const sharpshooterProfile = requireBalanceProfileFromContext(context, PROFILE.sharpshooter);
   // Sharpshooter replaces the attribute only for bleeding that inherits the player's outgoing modifiers.
   attributes.conditionDamage =
-    Number(attributes.power || 0) * balanceProfileNumber(sharpshooterProfile, 'coefficientMultiplier');
+    (attributes.power || 0) * balanceProfileNumber(sharpshooterProfile, 'coefficientMultiplier');
 }
 
 export const engineerCoreModifiers = Object.freeze({

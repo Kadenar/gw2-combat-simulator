@@ -55,7 +55,7 @@ function conditionHelpers(context: Gw2ResolverRuntime, details: Record<string, u
 }
 
 function criticalFoodProc(ctx: Gw2ResolverRuntime): CriticalFoodProc | undefined {
-  const proc = FOOD_DATA[String(ctx.config.food || '')]?.proc as CriticalFoodProc | undefined;
+  const proc = FOOD_DATA[ctx.config.food || '']?.proc as CriticalFoodProc | undefined;
   return proc?.type === 'critStrike' ? proc : undefined;
 }
 
@@ -83,7 +83,7 @@ function createResolvedCriticalSigilEffects(
       at: event.at,
       sigilCauseEventOrder: event.eventOrder
     } as Gw2ResolverEvent);
-    ctx.recordProc('sigil', `Sigil of ${name}`, event.at, sourceSkill, '', String(proc.icon || ''));
+    ctx.recordProc('sigil', `Sigil of ${name}`, event.at, sourceSkill, '', proc.icon || '');
   }
 }
 
@@ -96,7 +96,7 @@ function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEve
     at: event.at,
     skillName: proc.name,
     source: 'Food',
-    sourceId: `food.${String(proc.name || 'proc').toLowerCase()}`,
+    sourceId: `food.${(proc.name || 'proc').toLowerCase()}`,
     actorType: 'effect',
     ownerActorType: 'player',
     triggeredBy: event.skillName
@@ -111,7 +111,7 @@ function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEve
       kind: name.toLowerCase(),
       stacks: conditionalEffect.stacks,
       duration: gw2ResolverBoonDuration(ctx, event, name, conditionalEffect.duration)
-    } as Gw2ResolverEvent;
+    };
   } else if (conditionalEffect?.type === 'condition') {
     foodEvent = {
       ...commonEvent,
@@ -120,7 +120,7 @@ function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEve
       condition: conditionalEffect.name,
       stacks: conditionalEffect.stacks,
       duration: conditionalEffect.duration
-    } as Gw2ResolverEvent;
+    };
   } else {
     // Nourishment is a flat life-siphon strike, so it bypasses coefficient and critical scaling but stays strike damage.
     foodEvent = {
@@ -134,7 +134,7 @@ function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEve
       hitIndex: 1,
       totalHits: 1,
       canCrit: false
-    } as Gw2ResolverEvent;
+    };
   }
 
   ctx.queue.enqueue(foodEvent);
@@ -144,7 +144,7 @@ function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEve
     event.at,
     event.skillName,
     '',
-    String(FOOD_DATA[String(ctx.config.food || '')]?.icon || NOURISHMENT_ICON)
+    String(FOOD_DATA[ctx.config.food || '']?.icon || NOURISHMENT_ICON)
   );
 }
 
@@ -158,7 +158,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       when: (ctx, event) =>
         isGw2PlayerActorEvent(event) && Number(event.coefficient) > 0 && criticalFoodProc(ctx) != null,
       internalCooldown: {
-        duration: (ctx) => Number(criticalFoodProc(ctx)?.icdMs || 0) / 1000,
+        duration: (ctx) => (criticalFoodProc(ctx)?.icdMs || 0) / 1000,
         readyAt: (ctx) => ctx.food.readyAt,
         setReadyAt: (ctx, readyAt) => {
           ctx.food.readyAt = readyAt;
@@ -191,11 +191,8 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         id: 'sigil.severance',
         order: GW2_REACTION_ORDER.EARLY_COMMON,
         handler(ctx, event) {
-          if (String(event.kind || '').toLowerCase() !== 'sigil-severance') return;
-          ctx.sigil.severanceUntil = Math.max(
-            ctx.sigil.severanceUntil,
-            event.at + Math.max(0, Number(event.duration || 0))
-          );
+          if ((event.kind || '').toLowerCase() !== 'sigil-severance') return;
+          ctx.sigil.severanceUntil = Math.max(ctx.sigil.severanceUntil, event.at + Math.max(0, event.duration || 0));
         }
       },
       {

@@ -26,10 +26,10 @@ function catalystEmpowermentPool(attributeData: ProfessionAttributeData): Cataly
   return Object.fromEntries(
     Object.entries(CATALYST_EMPOWERMENT_ATTRIBUTES).map(([key, name]) => {
       const attribute = attributeData.attributes[name] || {};
-      const direct = CATALYST_EMPOWERMENT_SOURCES.reduce((total, source) => total + Number(attribute[source] || 0), 0);
+      const direct = CATALYST_EMPOWERMENT_SOURCES.reduce((total, source) => total + (attribute[source] || 0), 0);
       // EVTC condition ticks show that build-time trait and utility Condition Damage
       // participates in Elemental Empowerment, while skill passives remain excluded.
-      const derived = key === 'conditionDamage' ? Number(attribute.utility || 0) + Number(attribute.traits || 0) : 0;
+      const derived = key === 'conditionDamage' ? (attribute.utility || 0) + (attribute.traits || 0) : 0;
       return [key, direct + derived];
     })
   ) as unknown as CatalystEmpowermentPool;
@@ -63,7 +63,7 @@ export const elementalistAppAdapter = defineProfessionApp({
   specializationFallback: 'Fire',
   runtime: {
     buildConfigExtras: (app, { attributeData }) => {
-      const catalyst = build(app).specializations?.some((specialization) => specialization.name === 'Catalyst');
+      const catalyst = build(app).specializations.some((specialization) => specialization.name === 'Catalyst');
       return {
         ...(catalyst
           ? {

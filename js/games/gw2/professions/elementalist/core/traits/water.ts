@@ -34,7 +34,7 @@ export function applySoothingIce(
     applyAura(context, {
       at,
       aura: String(soothingIceFrostAura.kind),
-      duration: Number(soothingIceFrostAura.duration),
+      duration: soothingIceFrostAura.duration,
       skillName: 'Soothing Ice',
       sourceId: skill.id
     });

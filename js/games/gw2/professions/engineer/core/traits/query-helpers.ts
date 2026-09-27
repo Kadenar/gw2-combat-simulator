@@ -15,7 +15,7 @@ import type { EngineerSimulationEvent, EngineerState } from '#gw2/professions/en
 
 /** Narrows the active modifier event to Engineer's extended simulation event shape. */
 export function engineerEvent(context: Gw2ModifierContext): EngineerSimulationEvent | undefined {
-  return (context.event || undefined) as EngineerSimulationEvent | undefined;
+  return context.event || undefined;
 }
 
 /** Reads Core state from the live simulation or the isolated attribute preview. */
@@ -55,5 +55,5 @@ export function activeEngineerSpecializationState(
   field: keyof EngineerState
 ): boolean {
   const state = engineerSpecializationState(context, expectedKind);
-  return Number(state?.[field] || 0) > context.time;
+  return Number(state[field] || 0) > context.time;
 }

@@ -47,9 +47,9 @@ export function createIllusionResourceController({
     if (skill.resource?.mode === 'add') {
       const resourceAt =
         skill.resource.timingAnchor === 'castStart'
-          ? castStart + Number(skill.resource.atMs || 0) / 1000
-          : at + Number(skill.resource.atMs || 0) / 1000;
-      queueResources(resourceAt, Number(skill.resource.count || 0), skill.weapon || activePrimaryWeapon(), skill.name, {
+          ? castStart + (skill.resource.atMs || 0) / 1000
+          : at + (skill.resource.atMs || 0) / 1000;
+      queueResources(resourceAt, skill.resource.count || 0, skill.weapon || activePrimaryWeapon(), skill.name, {
         kind: 'skill',
         sourceSkillId: skill.id
       });

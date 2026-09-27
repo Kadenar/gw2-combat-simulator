@@ -77,7 +77,7 @@ export function triggerBountifulPower(
         actorType: 'player',
         kind: 'bountiful power active',
         stacks: Number(active.stacks),
-        duration: Number(active.duration),
+        duration: active.duration,
         skillName: 'Bountiful Power'
       });
     }
@@ -158,7 +158,7 @@ export function triggerEvasiveArcana(context: ElementalistRuntime, cast: Runtime
     skillName: source,
     attunement
   });
-  emitElementalistProc(context as never, {
+  emitElementalistProc(context, {
     at,
     name: source,
     procType: 'trait',
@@ -182,7 +182,7 @@ export function applyArcaneLightning(context: ElementalistRuntime, cast: Runtime
       actorType: 'player',
       kind: 'arcane lightning',
       stacks: Number(arcaneWindow.stacks),
-      duration: Number(arcaneWindow.duration),
+      duration: arcaneWindow.duration,
       skillName: skill.name
     });
   }
@@ -256,13 +256,6 @@ export function applyRenewingStamina(context: Gw2ResolverRuntime, event: Gw2Reso
   const renewingStaminaProfile = requireBalanceProfileFromContext(context, PROFILE.renewingStamina);
   const vigor = requireEffect(renewingStaminaProfile, 'boon', 'Vigor');
   if (vigor) {
-    queueElementalistBuff(
-      context,
-      event,
-      String(vigor.boon),
-      Number(vigor.stacks),
-      Number(vigor.duration),
-      'Renewing Stamina'
-    );
+    queueElementalistBuff(context, event, String(vigor.boon), Number(vigor.stacks), vigor.duration, 'Renewing Stamina');
   }
 }

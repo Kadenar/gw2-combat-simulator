@@ -34,7 +34,7 @@ const chillingNovaCriticalHit = onResolvedCriticalHit<
   internalCooldown: {
     duration: (context) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.chillingNova), 'cooldown'),
-    readyAt: (context) => Number(context.procs.deadline('necromancer.reaper.chillingNova') || 0),
+    readyAt: (context) => context.procs.deadline('necromancer.reaper.chillingNova') || 0,
     setReadyAt: (context, readyAt) => {
       context.procs.readyAt['necromancer.reaper.chillingNova'] = readyAt;
     }

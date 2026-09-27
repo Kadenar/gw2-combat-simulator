@@ -25,9 +25,9 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
   const at = guardianSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
   for (const [id, label, expiresAt] of [
-    ['willbender-rushing-justice', 'Rushing Justice', Number(state.justiceUntil || 0)],
-    ['willbender-flowing-resolve', 'Flowing Resolve', Number(state.resolveUntil || 0)],
-    ['willbender-crashing-courage', 'Crashing Courage', Number(state.courageUntil || 0)]
+    ['willbender-rushing-justice', 'Rushing Justice', state.justiceUntil || 0],
+    ['willbender-flowing-resolve', 'Flowing Resolve', state.resolveUntil || 0],
+    ['willbender-crashing-courage', 'Crashing Courage', state.courageUntil || 0]
   ] as const) {
     const remaining = expiresAt - at;
     // The final instant still accepts virtue hits, but an unarmed zero deadline is never active.
@@ -35,12 +35,12 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
     items.push({ id, label, value: formatSecondsRemaining(remaining), title: `${label} active window` });
   }
 
-  const lethalRemaining = Number(state.lethalTempoUntil || 0) - at;
+  const lethalRemaining = (state.lethalTempoUntil || 0) - at;
   const lethalTempoProfile = requireBalanceProfileFromContext(context, PROFILE.lethalTempo);
   const maximum = balanceProfileNumber(lethalTempoProfile, 'maximumStacks');
   const lethalStacks = boundedInteger(state.lethalTempoStacks || 0, 0, 0, maximum);
   // Lethal Tempo remains available for damage and refreshes on its final tick.
-  if (Number(state.lethalTempoUntil || 0) > 0 && lethalRemaining >= 0 && lethalStacks > 0) {
+  if ((state.lethalTempoUntil || 0) > 0 && lethalRemaining >= 0 && lethalStacks > 0) {
     items.push({
       id: 'willbender-lethal-tempo',
       label: 'Lethal Tempo',

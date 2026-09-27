@@ -98,9 +98,9 @@ export function createPhantasmEffectController({
     const policy = phantasmPolicy();
     const spawnModifier = policy.spawnModifiers[skill.id];
     const count =
-      Number(skill.resource.count ?? 1) *
+      (skill.resource.count ?? 1) *
       (skill.id === ID.PHANTASMAL_LANCER && clarityConsumed ? 2 : 1) *
-      Number(spawnModifier?.countMultiplier ?? 1);
+      (spawnModifier?.countMultiplier ?? 1);
 
     const timing = phantasmAttackTimings[skill.id];
     if (!timing) {
@@ -128,7 +128,7 @@ export function createPhantasmEffectController({
       return {
         skill,
         entityIndex,
-        damageMultiplier: Number(spawnModifier?.damageMultiplier ?? 1),
+        damageMultiplier: spawnModifier?.damageMultiplier ?? 1,
         summonAt,
         damageAt,
         spawnAt,
@@ -139,7 +139,7 @@ export function createPhantasmEffectController({
           : spawnAt,
         initialBladeAt:
           timing.phantasmalBladeDelayAfterSpawnMs != null
-            ? spawnAt + Number(timing.phantasmalBladeDelayAfterSpawnMs) / 1000
+            ? spawnAt + timing.phantasmalBladeDelayAfterSpawnMs / 1000
             : damageAt,
         hasRepeat,
         resourceAtOverride:
@@ -278,10 +278,10 @@ export function createPhantasmEffectController({
             hits: undefined,
             ticks: baseTicks.map((tick) => ({
               ...tick,
-              coefficient: Number(tick.coefficient) * execution.damageMultiplier
+              coefficient: tick.coefficient * execution.damageMultiplier
             }))
           }
-        : { coefficient: Number(sourcedGroup.coefficient || 0) * execution.damageMultiplier })
+        : { coefficient: (sourcedGroup.coefficient || 0) * execution.damageMultiplier })
     };
     const groupName = group.name || '';
     const attackDisplayName = phantasmAttackDisplayName(execution.skill.id, groupName);
@@ -300,9 +300,7 @@ export function createPhantasmEffectController({
     let initialEvents: ReturnType<MesmerAddDamage>;
 
     if (measuredTicks?.length) {
-      const coefficients = fixedTicks?.map((tick) => Number(tick.coefficient)) ?? [
-        Number(damageGroup.coefficient || 0)
-      ];
+      const coefficients = fixedTicks?.map((tick) => tick.coefficient) ?? [damageGroup.coefficient || 0];
       if (measuredTicks.length !== coefficients.length) {
         throw new TypeError(
           `Phantasm strike ${execution.skill.id} packet count does not match its measured timing metadata.`
@@ -371,9 +369,7 @@ export function createPhantasmEffectController({
         execution.timing.repeatDamageTicks?.[groupName] ??
         null;
       if (repeatMeasuredTicks?.length) {
-        const coefficients = fixedTicks?.map((tick) => Number(tick.coefficient)) ?? [
-          Number(damageGroup.coefficient || 0)
-        ];
+        const coefficients = fixedTicks?.map((tick) => tick.coefficient) ?? [damageGroup.coefficient || 0];
         if (repeatMeasuredTicks.length !== coefficients.length) {
           throw new TypeError(
             `Phantasm strike ${execution.skill.id} packet count does not match its measured repeat timing metadata.`
@@ -489,7 +485,7 @@ export function createPhantasmEffectController({
         : null;
       if (conditionTicks && conditionTicks.length > 0) {
         // Split stacks evenly across application packets.
-        const packetStacks = Number(condition.stacks ?? 1) / conditionTicks.length;
+        const packetStacks = (condition.stacks ?? 1) / conditionTicks.length;
         const applicationTimes = conditionTicks.map((tick) => execution.endpoint(tick.atMs));
         const conditionOrigin = Math.min(...applicationTimes);
         addCondition(
@@ -539,7 +535,7 @@ export function createPhantasmEffectController({
       // Use repeat-specific ticks if available; otherwise fall back to shifted initial ticks.
       const conditionTicks = repeatConditionTicks ?? initialConditionTicks;
       if (conditionTicks && conditionTicks.length > 0) {
-        const packetStacks = Number(condition.stacks ?? 1) / conditionTicks.length;
+        const packetStacks = (condition.stacks ?? 1) / conditionTicks.length;
         const applicationTimes = conditionTicks.map((tick) =>
           repeatConditionTicks ? execution.endpoint(tick.atMs) : execution.endpoint(tick.atMs) + repeatOffset
         );

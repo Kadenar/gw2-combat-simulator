@@ -252,7 +252,7 @@ function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonl
   return Object.freeze({
     ...normalized,
     [field]: resolver
-  }) as Readonly<Gw2NormalizedModifierRule>;
+  });
 }
 
 /**

@@ -51,22 +51,21 @@ export function consumeSolarFocusingLens(
   // Lens cannot activate before its grant; zero-ICD consumption does not enforce readyAt.
   if (event.at < (state.solarFocusingLens.readyAt ?? 0) || !consumeCharge(state.solarFocusingLens, event.at, 0, true))
     return;
-  if (condition) {
-    context.queue.enqueue(
-      buildResolverCondition({
-        at: event.at,
-        source: 'Trait',
-        sourceId: TRAIT.SOLAR_FOCUSING_LENS,
-        actorType: 'player',
-        skillId: event.skillId,
-        skillName: event.skillName,
-        name: 'Solar Focusing Lens — Burning',
-        condition: String(condition.condition),
-        stacks: Number(condition.stacks),
-        duration: Number(condition.duration)
-      })
-    );
-  }
+
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.SOLAR_FOCUSING_LENS,
+      actorType: 'player',
+      skillId: event.skillId,
+      skillName: event.skillName,
+      name: 'Solar Focusing Lens — Burning',
+      condition: String(condition.condition),
+      stacks: Number(condition.stacks),
+      duration: Number(condition.duration)
+    })
+  );
 
   return { solarFocusingLens: true };
 }
@@ -264,7 +263,7 @@ function handleRadiantArcQuickness(context: EngineerResolverContext, event: Holo
 
 /** Materializes every heat-granted Refraction Cutter blade as a strike, bleed, and projectile finisher. */
 function handleRefractionCutterExtraBlades(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
-  const extraBlades = Math.max(0, Math.trunc(Number(holosmithEventMetadata(event).extraBlades || 0)));
+  const extraBlades = Math.max(0, Math.trunc(holosmithEventMetadata(event).extraBlades || 0));
   const refractionCutterHeatTierProfile = requireBalanceProfileFromContext(context, PROFILE.refractionCutterHeatTier);
   const delay = Math.max(0, balanceProfileNumber(refractionCutterHeatTierProfile, 'initialDelay'));
   const strike = requireEffect(refractionCutterHeatTierProfile, 'strike', 'Refraction Cutter Heat Tier');

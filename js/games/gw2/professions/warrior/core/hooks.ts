@@ -97,7 +97,7 @@ function firstBurstHit(runtime: WarriorRuntime, event: Gw2ResolverEvent): boolea
   const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
   if (!skill?.burst || event.activationId == null) return false;
   const state = runtime.profession.core;
-  const key = String(event.activationId);
+  const key = event.activationId;
   if (state.burstHitActivations[key]) return false;
   state.burstHitActivations[key] = true;
   const attribution = {
@@ -164,7 +164,7 @@ function criticalTraits(
   const opportunity = criticalOpportunity(
     hit.critEligible ? hit.critical.chance : 0,
     hit.critical.didCrit,
-    Math.max(1, Number(event.hits ?? 1))
+    Math.max(1, event.hits ?? 1)
   );
   const criticals = opportunity.sampledCriticals;
 
@@ -335,7 +335,7 @@ function completeTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
 function burstAdrenalineSpend(runtime: WarriorRuntime, skill: WarriorSkill): number {
   const available = runtime.profession.core.adrenaline;
   return skill.primalBurst || ['Spellbreaker', 'Paragon'].includes(runtime.profession.specialization.kind)
-    ? Math.min(available, Number(skill.adrenalineCost ?? 0))
+    ? Math.min(available, skill.adrenalineCost ?? 0)
     : available;
 }
 
@@ -544,7 +544,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
       return { ready: true };
     // Bladesworn's own availability rejects weapon bursts and checks its Flow/charge state.
     if (runtime.profession.specialization.kind === 'Bladesworn') return { ready: true };
-    const cost = Number(skill.adrenalineCost ?? 0);
+    const cost = skill.adrenalineCost ?? 0;
     if (state.adrenaline < cost)
       return {
         ready: false,
@@ -583,7 +583,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     // Dragon's Roar commits the available rounds; the shared completion spends the final reserved round once.
     if (cast.skill.id === ID.DRAGONS_ROAR) {
       const ammo = runtime.ammo.get(cast.skill.id);
-      const bullets = Math.max(1, Number(ammo?.charges ?? 1));
+      const bullets = Math.max(1, ammo?.charges ?? 1);
       if (ammo && ammo.charges > 1) ammo.charges = 1;
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.dragonsRoar);
       const strike = requireEffect(profile, 'strike', 'Strike');
@@ -660,7 +660,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
         metadata: { ...effect.metadata, warriorAdrenalineSpent: spent, warriorBurstTier: tier }
       };
       if (cast.skill.id === ID.ARCING_SLICE && effect.type === 'boon' && effect.boon === 'fury')
-        return [{ ...captured, duration: Number(effect.duration) * [1, 1.5, 2][tier - 1] }];
+        return [{ ...captured, duration: effect.duration * [1, 1.5, 2][tier - 1] }];
       if (cast.skill.id === ID.KILL_SHOT && effect.type === 'strike')
         return [{ ...captured, coefficient: (Number(effect.coefficient) * [2.25, 2.75, 3.25][tier - 1]) / 2.25 }];
       if (cast.skill.id === ID.BLOODTHIRSTER && effect.type === 'condition' && effect.condition === 'Bleeding') {
@@ -729,7 +729,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     'damage.resolved'(runtime, event, details) {
       if ((event.actorType === 'player' || event.canTriggerCriticalTraits === true) && Number(event.coefficient) > 0) {
         const firstBurst = firstBurstHit(runtime, event);
-        criticalTraits(runtime, event, details?.hitContext as Gw2HitResolutionContext, firstBurst);
+        criticalTraits(runtime, event, details.hitContext as Gw2HitResolutionContext, firstBurst);
       }
 
       if (
@@ -737,7 +737,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
         (event.actorType === 'player' || event.source === 'Sigil') &&
         Number(event.coefficient) > 0
       )
-        grantWarriorAdrenaline(runtime, Math.max(1, Number(event.hits ?? 1)));
+        grantWarriorAdrenaline(runtime, Math.max(1, event.hits ?? 1));
       reactToWarriorDamage(runtime, event);
     },
     'buff.applied': reactToWarriorBuff,

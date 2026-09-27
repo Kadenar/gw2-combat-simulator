@@ -53,6 +53,7 @@ test('Amalgam resolver procs honor positive poison fields and zero strike coeffi
     });
     const conditions = [];
     const context = {
+      recordProc() {},
       procs: createProcRegistry(() => context),
       helpers: catalog,
       traits: new Set([TRAIT.CARBOLIC_COMPOSITION]),
@@ -83,6 +84,7 @@ test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic 
   });
   const conditions = [];
   const context = {
+    recordProc() {},
     procs: createProcRegistry(() => context),
     helpers: catalog,
     traits: new Set([TRAIT.CARBOLIC_COMPOSITION]),

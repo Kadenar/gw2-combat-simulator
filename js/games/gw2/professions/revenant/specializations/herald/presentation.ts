@@ -19,7 +19,7 @@ function heraldPaletteAvailability(context: RevenantUiContext, skill: RevenantSk
     activeRevenantLegend(context)
   ];
   const consumeActive =
-    expected != null && skillFlipReady(revenantUiState(context).availableFlips?.[expected], Number(context.time || 0));
+    expected != null && skillFlipReady(revenantUiState(context).availableFlips?.[expected], context.time || 0);
   if (skill.id === SKILL.FACET_OF_NATURE) {
     return consumeActive
       ? { available: false, message: 'True Nature currently replaces Facet of Nature' }

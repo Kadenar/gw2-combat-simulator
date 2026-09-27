@@ -55,7 +55,7 @@ const shadowForce: ResourcePolicy<ThiefRuntime> = {
   state: (runtime) => specterState.from(runtime).shadowClock,
   maximum: (runtime) =>
     balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks'),
-  initial: (runtime) => Number((runtime.config as ThiefConfig).initialShadowForce ?? 0),
+  initial: (runtime) => (runtime.config as ThiefConfig).initialShadowForce ?? 0,
   recovery: (runtime) => {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
     return specterState.from(runtime).shadowShroudActive
@@ -67,7 +67,7 @@ const shadowForce: ResourcePolicy<ThiefRuntime> = {
 
 /** Shroud transitions block input for their recovery and publish the bar change like a weapon swap. */
 function setShadowShroud(runtime: ThiefRuntime, active: boolean, skill: { id: string | number; name: string }): void {
-  lockTransitionInput(runtime, active ? 'shroudEntryMs' : 'shroudExitMs', skill as ThiefSkill);
+  lockTransitionInput(runtime, active ? 'shroudEntryMs' : 'shroudExitMs', skill);
   specterState.from(runtime).shadowShroudActive = active;
   runtime.resourceController.refresh('shadowForce');
   runtime.emit({
@@ -100,7 +100,7 @@ function darkSentry(runtime: ThiefRuntime, data: unknown): void {
         .filter((ally) => Number.isInteger(ally) && ally >= 1 && ally <= party.count)
     )
   ].filter((ally) =>
-    isInternalCooldownReady(runtime.time, Number(runtime.procs.readyAt[`thief.specter.darkSentry:${ally}`] || 0))
+    isInternalCooldownReady(runtime.time, runtime.procs.readyAt[`thief.specter.darkSentry:${ally}`] || 0)
   );
   if (!allies.length) return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.darkSentry);
@@ -282,7 +282,7 @@ function larcenousTorment(runtime: ThiefRuntime, application: Gw2ResolverEvent):
     !hasTrait(runtime, TRAIT.LARCENOUS_TORMENT)
   )
     return;
-  const stacks = Math.max(0, Math.trunc(Number(application.stacks || 0)));
+  const stacks = Math.max(0, Math.trunc(application.stacks || 0));
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.larcenousTorment);
   const strike = requireEffect(profile, 'strike', 'Larcenous Torment');
   if (strike)
@@ -315,7 +315,7 @@ export const specterHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   availability: specterAvailability,
   onCastStart(runtime, cast) {
     // Spent initiative converts into Shadow Force in parallel with Core's spend.
-    const cost = Number((cast.skill as ThiefSkill).initiativeCost || 0);
+    const cost = (cast.skill as ThiefSkill).initiativeCost || 0;
     if (cost > 0)
       runtime.resourceController.grant(
         'shadowForce',

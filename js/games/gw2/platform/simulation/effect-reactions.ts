@@ -19,6 +19,7 @@ export type EffectReaction = {
     readonly on: On;
     readonly actor: 'player' | 'summon' | 'effect';
     readonly packets: 'each' | 'first';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Reaction declarations and handler registries erase profession state at the shared dispatch boundary.
     readonly when?: (runtime: Gw2Runtime<any>, trigger: ResolvedEffectTrigger<On>) => boolean;
     readonly do: SideEffectAction | readonly SideEffectAction[];
   };
@@ -33,6 +34,7 @@ export interface EffectReactionRef {
 /** Shared groups are interned by skill and declaration identity, independent of ordinary packet count. */
 export function createEffectReactions(
   catalog: CanonicalCatalog,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Reaction declarations and handler registries erase profession state at the shared dispatch boundary.
   handlers: RuntimeProfession<any>['sideEffectHandlers']
 ) {
   const groups: { skill: Skill; rules: readonly EffectReaction[] }[] = [];

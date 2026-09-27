@@ -397,7 +397,7 @@ export function scheduleSharedStance(context: RangerResolverContext, event: Gw2R
   const start = Math.max(event.at, context.combatStartTime ?? event.at);
   for (const proc of gw2AlliedPlayerProcTimeline(context.config, {
     start,
-    duration: Math.max(0, event.at + Number(event.duration || 0) - start),
+    duration: Math.max(0, event.at + (event.duration || 0) - start),
     maximumAllies
   })) {
     context.queue.enqueue({

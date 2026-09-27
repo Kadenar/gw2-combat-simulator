@@ -16,23 +16,21 @@ function galeshotRuntimeState(context: RangerModifierContext) {
 }
 
 function windForce(context: RangerModifierContext): number {
-  return Number(galeshotRuntimeState(context)?.windForce || 0);
+  return galeshotRuntimeState(context)?.windForce || 0;
 }
 
 function galeForceAmount(context: RangerModifierContext, parameters: Readonly<Record<string, number>>): number {
-  const galeForce =
-    Number(galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time ? parameters.galeForceBonus : 0;
+  const galeForce = (galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time ? parameters.galeForceBonus : 0;
   // Hawkeye converts the five existing stacks into a 25% flat bonus (galeForce),
   // but Wind Force earned while Gale Force is active still adds 3% per stack on top.
   return galeForce + windForce(context) * parameters.windForcePerStack;
 }
 
 function activePetIsFeathered(context: RangerModifierContext): boolean {
-  const name = String(
+  const name =
     readProfessionCoreState<{ activePet?: string }>(context.runtime?.profession).activePet ||
-      context.config?.selectedPet ||
-      ''
-  );
+    context.config?.selectedPet ||
+    '';
   return ['avian', 'moa', 'phoenix', 'raptor swiftwing'].includes(rangerPetByName(name).family);
 }
 
@@ -41,7 +39,7 @@ function eventSkillId(context: RangerModifierContext): number {
 }
 
 // Galeshot player modifiers follow outgoing ownership without changing explicit pet-only branches.
-export const galeshotModifiers: readonly Gw2ModifierRule[] = Object.freeze([
+export const galeshotModifiers = Object.freeze<readonly Gw2ModifierRule[]>([
   {
     id: 'ranger.bird-of-prey',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -60,12 +58,12 @@ export const galeshotModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     parameters: {
       galeForceBonus: 0.25,
       windForcePerStack: 0.03
-    } as Readonly<Record<string, number>>,
+    },
     amount: (context, _target, parameters) => galeForceAmount(context, parameters),
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.GALE_FORCE) &&
-      (Number(galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time || windForce(context) > 0)
+      ((galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time || windForce(context) > 0)
   },
   {
     id: 'ranger.flock-together',
@@ -74,7 +72,7 @@ export const galeshotModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     factor: 1.25,
     when: (context) =>
       context.event?.actorType === 'summon' &&
-      context.event?.source === 'ranger-pet' &&
+      context.event.source === 'ranger-pet' &&
       hasTrait(context, TRAIT.FLOCK_TOGETHER) &&
       activePetIsFeathered(context)
   },
@@ -89,10 +87,10 @@ export const galeshotModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     parameters: {
       baseFactor: 1,
       vulnerabilityPerStack: 0.02
-    } as Readonly<Record<string, number>>,
+    },
     factor: (context, _target, parameters) =>
       parameters.baseFactor +
-      Number(context.query?.vulnerabilityStacksAt(context.time, context.runtime || undefined) || 0) *
+      (context.query?.vulnerabilityStacksAt(context.time, context.runtime || undefined) || 0) *
         parameters.vulnerabilityPerStack,
     when: (context) => eventSkillId(context) === ID.PIERCING_GALES
   }

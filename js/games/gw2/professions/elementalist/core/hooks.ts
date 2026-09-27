@@ -141,7 +141,7 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
         applyElementalistAura(runtime, {
           at: runtime.time,
           aura: String(effect.kind),
-          duration: Number(effect.duration),
+          duration: effect.duration,
           skillName: cast.skill.name,
           sourceId: cast.skill.id
         });

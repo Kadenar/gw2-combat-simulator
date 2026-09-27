@@ -20,12 +20,12 @@ const VINDICATOR_DODGE_AUTO_ICON =
 function activeAutoattack(context: RevenantUiContext): Skill | null {
   // activeAutoattack may be a raw ID string rather than a Skill object; guard ensures we only return a full object.
   const skill = context.activeAutoattack;
-  return skill && typeof skill === 'object' ? (skill as Skill) : null;
+  return skill && typeof skill === 'object' ? skill : null;
 }
 
 function vindicatorDodgeAutoPaletteSkill(context: RevenantUiContext): Skill | null {
   // Guard specialization first: this helper is called from shared palette code that doesn't know the spec.
-  if (String(context.specialization || '') !== 'Vindicator') return null;
+  if ((context.specialization || '') !== 'Vindicator') return null;
   // No auto-attack means there's nothing to pair a dodge with; suppress the synthetic entry.
   if (!activeAutoattack(context)) return null;
   return {
@@ -53,7 +53,7 @@ export function vindicatorDodgeAutoRotationEntries(context: RevenantUiContext, o
       type: 'cast',
       skillId: autoattack.id,
       // Pay endurance at takeoff, then place the auto inside the jump using its relative offset.
-      concurrentOffsetMs: Math.max(0, Math.round(Number(offsetMs) || 0))
+      concurrentOffsetMs: Math.max(0, Math.round(offsetMs || 0))
     }
   ];
 }
@@ -82,8 +82,8 @@ function resolveVindicatorPaletteAction(
 
 /** Shows the armed Reaver's Curse window until the next dodge consumes it. */
 function vindicatorStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
-  const expiresAt = Number(revenantUiState(context).reaversCurseUntil || 0);
-  const remaining = expiresAt - Math.max(0, Number(context.atSeconds || 0));
+  const expiresAt = revenantUiState(context).reaversCurseUntil || 0;
+  const remaining = expiresAt - Math.max(0, context.atSeconds || 0);
   // A landing exactly at expiry can still consume the armed charge.
   return expiresAt > 0 && remaining >= 0
     ? [
@@ -118,7 +118,7 @@ export const vindicatorUi: RevenantUiSlice = Object.freeze({
         plural: 'endurance',
         // Capacity is the shared Revenant bound used by live recovery.
         maximum: REVENANT_MAXIMUM_ENDURANCE,
-        value: Number(state.endurance ?? 100),
+        value: state.endurance ?? 100,
         canStart: false,
         step: 1,
         displayMode: 'bar',

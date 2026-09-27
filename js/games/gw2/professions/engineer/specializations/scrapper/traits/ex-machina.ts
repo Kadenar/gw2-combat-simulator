@@ -12,7 +12,7 @@ export function scrapperMaximumAmmo(context: EngineerRuntime, skill: EngineerSki
   return skill.id === ID.FUNCTION_GYRO && hasTrait(context.config, TRAIT.EX_MACHINA)
     ? Math.max(
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EX_MACHINA), 'maximumAmmo'),
-        Number(maximum || 0)
+        maximum || 0
       )
     : maximum;
 }

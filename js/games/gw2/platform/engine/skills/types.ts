@@ -43,6 +43,7 @@ export interface SkillEffectBase {
   readonly reactions?: readonly EffectReaction[];
   readonly type: string;
   /** Capture acceptance-time eligibility once; impact-time state remains a resolver responsibility. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Catalogs combine callbacks authored against different profession runtimes; dispatch preserves the owning runtime.
   readonly when?: (runtime: Gw2Runtime<any>, cast: RuntimeCast) => boolean;
   readonly atMs?: number;
   readonly intervalMs?: number;
@@ -267,9 +268,11 @@ export interface Skill extends CatalogEntity {
   readonly sideEffects?: readonly SkillSideEffect[];
   /** First matching variant supplies the selected profile's effects before ordinary profession modifiers. */
   readonly effectVariants?: readonly {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Catalogs combine callbacks authored against different profession runtimes; dispatch preserves the owning runtime.
     readonly when: (runtime: Gw2Runtime<any>, cast: RuntimeCast) => boolean;
     readonly profileId: SkillId;
     readonly transform?: (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Catalogs combine callbacks authored against different profession runtimes; dispatch preserves the owning runtime.
       runtime: Gw2Runtime<any>,
       cast: RuntimeCast,
       effects: readonly SkillEffect[]

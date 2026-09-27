@@ -25,7 +25,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
           const might = runtime.config.boons?.might
             ? Number(runtime.config.boons.might)
             : buffApplicationStacks(runtime.boons.get('might') ?? [], 'might', cast.start, 25, {
-                includes: (application) => application.resolvedAudience?.includesSelf !== false
+                includes: (application) => application.resolvedAudience.includesSelf
               });
           const profile = requireBalanceProfileFromContext(runtime, PROFILE.foxsFury);
           const threshold = balanceProfileNumber(profile, 'threshold');

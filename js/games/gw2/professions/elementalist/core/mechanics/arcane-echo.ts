@@ -24,7 +24,7 @@ export function completeArcaneEcho(context: ElementalistRuntime, cast: RuntimeCa
     state.arcaneEchoUntil <= 0 ||
     state.arcaneEchoUntil <= cast.effectiveEnd ||
     skill.type !== 'Weapon' ||
-    Number(skill.cooldown || 0) <= 0
+    (skill.cooldown || 0) <= 0
   )
     return;
 
@@ -40,7 +40,7 @@ export function completeArcaneEcho(context: ElementalistRuntime, cast: RuntimeCa
   if (arcaneEcho) {
     // At weapon-cast completion, add that work to Arcane Echo's remaining base-recharge work.
     // Project combined work at the permanent recharge rate while preserving progress already earned.
-    const currentReadyAt = Number(context.cooldowns.get(arcaneEcho.id) || cast.effectiveEnd);
+    const currentReadyAt = context.cooldowns.get(arcaneEcho.id) || cast.effectiveEnd;
     const progress = context.rechargeProgress.get(arcaneEcho.id);
     const work = progress
       ? context.cooldownController.remaining(arcaneEcho, progress, cast.effectiveEnd)

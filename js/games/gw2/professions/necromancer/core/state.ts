@@ -95,15 +95,14 @@ export function necromancerLifeForceCostMultiplier(
   }
 ): number {
   const traits = normalizeSelectedTraitIds(config.selectedTraitIds);
-  let vitality = Number(config.stats?.vitality ?? 1000);
+  let vitality = config.stats?.vitality ?? 1000;
   if (!professionStaticRulesApplied(config)) {
     if (hasTrait(traits, NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE)) {
       const spitefulFortitudeProfile = requireBalanceProfileFromContext(
         balanceContext,
         NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE
       );
-      vitality +=
-        Number(config.stats?.power ?? 1000) * balanceProfileNumber(spitefulFortitudeProfile, 'attributeConversion');
+      vitality += (config.stats?.power ?? 1000) * balanceProfileNumber(spitefulFortitudeProfile, 'attributeConversion');
     }
 
     if (hasTrait(traits, NECROMANCER_TRAIT_IDS.VITAL_PERSISTENCE)) {
@@ -131,19 +130,19 @@ export function normalizedNecromancerLifeForceCost(
   state: Pick<NecromancerCoreState, 'lifeForceCostMultiplier'>,
   baseHealthPercent: number
 ): number {
-  return Math.max(0, Number(baseHealthPercent || 0)) * state.lifeForceCostMultiplier;
+  return Math.max(0, baseHealthPercent || 0) * state.lifeForceCostMultiplier;
 }
 
 /** Converts a base-health percentage into its raw life-force pool cost. */
 export function actualNecromancerLifeForceCost(baseHealthPercent: number): number {
-  return (NECROMANCER_BASE_HEALTH * Math.max(0, Number(baseHealthPercent || 0))) / 100;
+  return (NECROMANCER_BASE_HEALTH * Math.max(0, baseHealthPercent || 0)) / 100;
 }
 
 /** Creates fresh Core Necromancer resources, transforms, summons, and trait proc state from a build config. */
 export function createNecromancerCoreState(config: NecromancerConfig = {}): NecromancerCoreState {
   // Seed every mutable subsystem independently and bound the initial life-force value.
   const state: NecromancerCoreState = {
-    lifeForce: { value: clamp(Number(config.initialResource ?? 100), 0, 100), maximum: 100, rate: 0, updatedAt: 0 },
+    lifeForce: { value: clamp(config.initialResource ?? 100, 0, 100), maximum: 100, rate: 0, updatedAt: 0 },
     lifeForceCostMultiplier: necromancerLifeForceCostMultiplier(config),
     lifeForceWakeGeneration: 0,
     passiveNextAt: {},
@@ -174,7 +173,7 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
 
 /** Publishes detached, current public values without mutating the live module state. */
 export function projectNecromancerPlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState<NecromancerCoreState>(input.profession);
+  const state = snapshotProfessionState(input.profession) as NecromancerCoreState;
   state.lifeForce.value = cappedResource(state.lifeForce.value, state.lifeForce.maximum);
   return projectPublicProfessionState(
     state,

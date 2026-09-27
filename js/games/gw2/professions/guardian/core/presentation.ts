@@ -23,7 +23,7 @@ function guardianUiSpecialization(context: GuardianUiContext = {}): string {
 
 /** Simulation time (seconds) of the rotation point being inspected. */
 export function guardianSnapshotAt(context: GuardianUiContext = {}): number {
-  return Math.max(0, Number(context.atSeconds || 0));
+  return Math.max(0, context.atSeconds || 0);
 }
 
 /** Formats a remaining duration for the active-state bar (e.g. `4.2s`). */
@@ -62,8 +62,8 @@ export function guardianUiSkillIdsByName(
   context: GuardianUiContext = {}
 ): SkillId[] {
   const activeFlips =
-    (flattenProfessionState(context.state?.profession || context.professionState).availableFlips as SkillFlipWindows) ||
-    {};
+    (flattenProfessionState(context.state?.profession || context.professionState).availableFlips as
+      SkillFlipWindows | undefined) || {};
   return names.flatMap((name) => {
     const id = catalog.skillsByName.get(name)?.id;
     if (id == null) return [];

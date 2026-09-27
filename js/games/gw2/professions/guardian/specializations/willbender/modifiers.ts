@@ -19,7 +19,7 @@ export const willbenderModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     parameters: {
       damagePerStack: 0.02,
       tyrantsMomentumDamagePerStack: 0.05
-    } as Readonly<Record<string, number>>,
+    },
     amount: (context, _target, parameters) =>
       lethalTempoStacks(context) *
       (hasTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM)
@@ -36,7 +36,7 @@ export const willbenderModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     parameters: {
       damagePerStack: 0.02,
       tyrantsMomentumDamagePerStack: 0.03
-    } as Readonly<Record<string, number>>,
+    },
     amount: (context, _target, parameters) =>
       lethalTempoStacks(context) *
       (hasTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM)

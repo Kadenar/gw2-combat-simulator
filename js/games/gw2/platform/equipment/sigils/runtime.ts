@@ -42,7 +42,7 @@ export function applyRuntimeSigils(
       runtime.emitDerived(event, { ...createSigilStrikeEvent(name, proc, sourceSkill), at: event.at });
     if (proc.effect === 'condition' || (proc.effect === 'strike-condition' && proc.condition))
       runtime.emitDerived(event, { ...createSigilConditionEvent(name, proc, sourceSkill), at: event.at });
-    if (proc.effect === 'endurance') runtime.endurance.grant(Number(proc.amount ?? 0));
+    if (proc.effect === 'endurance') runtime.endurance.grant(proc.amount ?? 0);
     if (proc.effect === 'severance')
       runtime.emitDerived(event, {
         type: 'buff',

@@ -24,7 +24,7 @@ import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/speciali
 import { EVOKER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/index.js';
 import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
 import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
-import type { CatalogEntity, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Catalog generation needs the complete module-owned declaration set, and the
 // duplicate check prevents one module from silently overwriting another.
@@ -100,17 +100,13 @@ function apiSkill(name: string): Skill | undefined {
 
 // Every declared skill in canonical id order; ids without an owning module are skipped.
 const ELEMENTALIST_DECLARED_SKILLS: readonly Skill[] = Object.freeze(
-  [...Object.values(ID), SHARED_SKILL_IDS.DODGE].flatMap((id) => {
+  [...Object.values(ID), SHARED_SKILL_IDS.DODGE].flatMap<Skill>((id) => {
     const declaration = ELEMENTALIST_SKILL_MECHANICS[id];
 
-    return declaration
-      ? [
-          {
-            ...declaration,
-            id
-          } as Skill
-        ]
-      : [];
+    if (!declaration) return [];
+    // The owning skill declaration supplies identity fields before catalog validation checks the merged skill.
+    const skill = { ...declaration, id } as Skill;
+    return [skill];
   })
 );
 
@@ -282,7 +278,7 @@ const WEAPON_DATA = defineProfessionWeapons({
 
 const createModuleData = createProfessionModuleDataFactory({
   generatedSkills: generated,
-  traits: TRAITS as readonly CatalogEntity[],
+  traits: TRAITS,
   specializations: ELEMENTALIST_API_SPECIALIZATIONS,
   core: { ...WEAPON_DATA, autoattackChains: { additional: AUTOATTACK_CHAINS } }
 });

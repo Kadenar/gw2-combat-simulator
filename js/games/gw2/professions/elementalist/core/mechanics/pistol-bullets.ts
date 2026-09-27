@@ -57,7 +57,7 @@ export function applyPistolState(context: ElementalistRuntime, cast: RuntimeCast
         applyElementalistAura(context, {
           at,
           aura: String(aura.kind),
-          duration: Number(aura.duration),
+          duration: aura.duration,
           skillName: skill.name,
           sourceId: skill.id
         });

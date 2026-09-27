@@ -59,7 +59,7 @@ export function applyAlliedLeechingVenoms(context: ThiefResolverContext, applica
   if (
     !application.metadata?.triggeredByAlly ||
     !VENOM_SKILL_IDS.has(Number(application.skillId)) ||
-    Number(application.metadata?.venomProcEffectIndex || 0) !== 0
+    (application.metadata.venomProcEffectIndex || 0) !== 0
   )
     return;
   applyLeechingVenoms(context, application);

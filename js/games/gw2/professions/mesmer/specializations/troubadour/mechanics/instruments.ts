@@ -107,7 +107,7 @@ function instrumentAttack(
         at: damageAt,
         kind: effect.boon,
         stacks: effect.stacks,
-        duration: Number(effect.duration),
+        duration: effect.duration,
         skillName: skill.name,
         sourceSkill: skill.name,
         audience: { recipients: 'party', maximumRecipients: 5 }
@@ -216,7 +216,7 @@ export function resolveCrescendo(context: MesmerRuntime, cast: RuntimeCast, skil
         at: damageAt,
         kind: String(effect.boon),
         stacks: Number(effect.stacks),
-        duration: Number(effect.duration),
+        duration: effect.duration,
         skillName: skill.name,
         sourceSkill: skill.name,
         audience: { recipients: 'party' as const, maximumRecipients: 5 }
@@ -283,7 +283,7 @@ export function scheduleTroubadourPerformance(context: MesmerRuntime, cast: Runt
   if (!instrument && skill.id !== ID.CRESCENDO) return;
   withMesmerCastEmission(context, cast, skill, () => {
     if (instrument) {
-      instrumentAttack(context, skill, instrument, cast.start + Number(instrument.damageAtMs || 0) / 1000);
+      instrumentAttack(context, skill, instrument, cast.start + (instrument.damageAtMs || 0) / 1000);
       if (instrument.instrument === 'Harp') {
         const instrumentsProfile = requireBalanceProfileFromContext(runtime, PROFILE.instruments);
         const distortion = requireEffect(instrumentsProfile, 'buff', 'distortion');
@@ -293,7 +293,7 @@ export function scheduleTroubadourPerformance(context: MesmerRuntime, cast: Runt
             at: cast.start,
             kind: 'distortion',
             stacks: Number(distortion.stacks),
-            duration: Number(distortion.duration),
+            duration: distortion.duration,
             sourceSkill: skill.name
           });
       }
@@ -314,6 +314,6 @@ export function completeTroubadourPerformance(context: MesmerRuntime, cast: Runt
   if (!instrument) return;
 
   const interrupted = castWasInterrupted(cast);
-  const at = interrupted && instrument?.instrument === 'Harp' ? cast.effectiveEnd : cast.fullEnd;
+  const at = interrupted && instrument.instrument === 'Harp' ? cast.effectiveEnd : cast.fullEnd;
   withMesmerCastEmission(context, cast, skill, () => commitInstrument(context, cast, skill, instrument, at));
 }

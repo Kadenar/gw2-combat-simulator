@@ -45,7 +45,7 @@ export const reaperHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = 
           requireBalanceProfileFromContext(runtime, PROFILE.reapersOnslaught),
           'rechargeReduction'
         );
-        for (const skill of runtime.helpers.skillsById?.values() ?? []) {
+        for (const skill of runtime.helpers.skillsById.values()) {
           if (skill.shroud === 'reaper') runtime.cooldownController.reduceSkillRecharge(skill, reduction, runtime.time);
         }
       }

@@ -37,7 +37,7 @@ export function applyMesmerSignetReset(
   for (const target of allSkills.filter(
     (candidate) =>
       Boolean(instruments[candidate.id]) ||
-      Boolean(shatters[candidate.id] && shatters[candidate.id].resetBySignetOfIllusions !== false)
+      (shatters[candidate.id] && shatters[candidate.id].resetBySignetOfIllusions !== false)
   )) {
     if (state.ammo.has(target.id)) state.cooldownController.restoreAmmo(target, 1, at, 'reset');
     state.cooldownController.clear(target.id);
@@ -73,7 +73,7 @@ export function restartSignetIllusionsPassive(context: MesmerRuntime, activeAt: 
     'pulseInterval'
   );
   if (!(interval > 0)) return;
-  const at = Math.max(context.time, Math.max(activeAt, Number(context.cooldowns.get(skill.id) ?? 0)) + interval);
+  const at = Math.max(context.time, Math.max(activeAt, context.cooldowns.get(skill.id) ?? 0) + interval);
   context.profession.core.signetIllusionsAt = at;
   context.schedule(SIGNET_ILLUSIONS_OWNER, at, at, undefined, -20);
 }
@@ -83,7 +83,7 @@ export function signetIllusionsPulse(context: MesmerRuntime, data: unknown): voi
   if (context.profession.core.signetIllusionsAt !== data) return;
   const skill = equippedSignetOfIllusions(context);
   if (!skill || context.combatStartPending) return;
-  const ready = Number(context.cooldowns.get(skill.id) ?? 0);
+  const ready = context.cooldowns.get(skill.id) ?? 0;
   if (ready > context.time + EPSILON) {
     restartSignetIllusionsPassive(context, ready);
     return;

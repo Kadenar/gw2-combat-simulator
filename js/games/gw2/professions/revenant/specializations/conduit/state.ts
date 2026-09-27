@@ -36,7 +36,7 @@ export function revenantConduitFormIsActive(
   form: string,
   at = 0
 ): boolean {
-  return state?.conduitForm === form && Number(state.cosmicWisdomUntil || 0) > Number(at || 0);
+  return state?.conduitForm === form && (state.cosmicWisdomUntil || 0) > (at || 0);
 }
 
 function createConduitState(): ConduitState {
@@ -65,7 +65,7 @@ export function effectiveConduitAffinity(runtime: RevenantRuntime): number {
   );
   return Math.min(
     maximum,
-    Number(conduitState.from(runtime).affinity || 0) +
+    (conduitState.from(runtime).affinity || 0) +
       (hasTrait(runtime, TRAIT.KINETIC_INSIGHT)
         ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.KINETIC_INSIGHT), 'resourceGain')
         : 0)

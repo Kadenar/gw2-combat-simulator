@@ -19,7 +19,7 @@ function overloadPaletteAvailability(context: ElementalistUiContext, skill: Skil
   if (!skill.overload) return { available: true, message: '' };
   const state = context.professionState || {};
   const build = context.build;
-  const primaryAttunement = String(state.primaryAttunement || build?.startAttunement || 'Fire');
+  const primaryAttunement = state.primaryAttunement || build?.startAttunement || 'Fire';
   if (skill.attunement !== primaryAttunement) {
     return {
       available: false,
@@ -28,14 +28,14 @@ function overloadPaletteAvailability(context: ElementalistUiContext, skill: Skil
   }
 
   // A negative entry stamp marks the configured starting attunement as already dwelled.
-  const enteredAt = Number(state.attunementEnteredAt ?? -1);
+  const enteredAt = state.attunementEnteredAt ?? -1;
   if (enteredAt < 0) return { available: true, message: '' };
 
   // Mirror scheduler dwell rules so the palette exposes singularity as a
   // visible temporary lockout, including trait and Alacrity adjustments.
   const dwell = tempestOverloadDwell(context);
   const retryAt = enteredAt + dwell;
-  const available = Number(context.time || 0) + 1e-9 >= retryAt;
+  const available = (context.time || 0) + 1e-9 >= retryAt;
   return {
     available,
     message: available ? '' : 'Attunement singularity has not formed.',
@@ -59,7 +59,7 @@ function tempestStateSnapshot(context: ElementalistUiContext): RotationStateSnap
   let ariaExpiresAt = 0;
   for (const proc of context.result?.procSteps || []) {
     if (proc.type === 'trait_proc' && proc.skill === 'Tempestuous Aria' && proc.start <= at * 1000) {
-      ariaExpiresAt = Math.max(ariaExpiresAt, Number(proc.expiresAt || 0) / 1000);
+      ariaExpiresAt = Math.max(ariaExpiresAt, (proc.expiresAt || 0) / 1000);
     }
   }
 

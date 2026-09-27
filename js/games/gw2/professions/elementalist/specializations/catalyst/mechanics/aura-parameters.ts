@@ -20,7 +20,7 @@ export function elementalEpitomeEmpowerment(context: unknown) {
   const elementalEpitomeProfile = requireBalanceProfileFromContext(context, PROFILE.elementalEpitome);
   const effect = requireEffect(elementalEpitomeProfile, 'buff', 'Empowerment');
   if (!effect) return undefined;
-  return { stacks: Number(effect.stacks), duration: Number(effect.duration) };
+  return { stacks: Number(effect.stacks), duration: effect.duration };
 }
 
 /** Resolves the shared aura defaults; the resolver retains its canonical attunement identity. */
@@ -28,7 +28,7 @@ export function elementalEpitomeAura(context: unknown, attunement: ElementalistA
   const elementalEpitomeProfile = requireBalanceProfileFromContext(context, PROFILE.elementalEpitome);
   const effect = requireEffect(elementalEpitomeProfile, 'buff', attunement);
   if (!effect) return undefined;
-  return { aura: String(effect.kind), duration: Number(effect.duration) };
+  return { aura: String(effect.kind), duration: effect.duration };
 }
 
 /** Fire and Earth combos share boon selection; Air's endurance remains phase-owned. */
@@ -39,6 +39,6 @@ export function elementalSynergyBoon(context: unknown, attunement: 'Fire' | 'Ear
   return {
     kind: String(effect.boon).toLowerCase(),
     stacks: Number(effect.stacks),
-    duration: Number(effect.duration)
+    duration: effect.duration
   };
 }

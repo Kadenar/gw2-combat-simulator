@@ -19,7 +19,7 @@ export function observeChronomancerEvent(context: MesmerRuntime, event: Simulati
     return;
   }
 
-  const skillName = String(event.skillName || event.name || 'Control effect');
+  const skillName = event.skillName || event.name || 'Control effect';
   const dangerTimeProfile = requireBalanceProfileFromContext(runtime, TRAIT.DANGER_TIME);
   runtime.addEvent({
     type: 'buff',

@@ -43,7 +43,7 @@ function selectedDodge(runtime: RevenantRuntime): RevenantSkill | undefined {
     : hasTrait(runtime, TRAIT.VASSALS_OF_THE_EMPIRE)
       ? ID.IMPERIAL_IMPACT
       : ID.DEATH_DROP;
-  return runtime.helpers.skillsById.get(skillId) as RevenantSkill | undefined;
+  return runtime.helpers.skillsById.get(skillId);
 }
 
 /** A dodge's landing resolves at its authored offset from the landing origin, not at acceptance. */
@@ -52,7 +52,7 @@ function scheduleLanding(runtime: RevenantRuntime, cast: RuntimeCast, origin: nu
   const effect = profile?.effects?.find((candidate) => candidate.type === 'strike' || candidate.type === 'boon');
   if (!profile || !effect) return;
   const offset = effect.type === 'strike' ? effectFirstAtMs(effect) : effect.atMs;
-  runtime.schedule(LANDING, canonicalTime(origin + Math.max(0, Number(offset || 0)) / 1000), {
+  runtime.schedule(LANDING, canonicalTime(origin + Math.max(0, offset || 0) / 1000), {
     skillId: cast.skill.id,
     activationId: cast.id
   });
@@ -70,7 +70,7 @@ function land(runtime: RevenantRuntime, data: unknown): void {
     hasTrait(runtime, TRAIT.REAVERS_CURSE) && state.reaversCurseUntil > 0 && state.reaversCurseUntil >= runtime.time;
   if (reaversCurse) state.reaversCurseUntil = 0;
   if (effect.type === 'strike' && strikeEffectCoefficient(effect) > 0) {
-    const previousForerunnerUntil = Number(state.forerunnerOfDeathUntil || 0);
+    const previousForerunnerUntil = state.forerunnerOfDeathUntil || 0;
     const hits = strikeEffectTicks(effect).length;
     const coefficient =
       strikeEffectCoefficient(effect) *
@@ -137,9 +137,9 @@ function land(runtime: RevenantRuntime, data: unknown): void {
         skillId: profile.id,
         skillName: profile.name,
         activationId,
-        kind: String(secondary.boon || ''),
-        duration: Number(secondary.duration),
-        stacks: Number(secondary.stacks ?? 1),
+        kind: secondary.boon || '',
+        duration: secondary.duration,
+        stacks: secondary.stacks ?? 1,
         ...(secondary.audience ? { audience: secondary.audience } : {})
       });
     else if (secondary.type === 'condition')
@@ -210,14 +210,14 @@ function invokeAlliance(runtime: RevenantRuntime): void {
   const song = runtime.helpers.skillsById.get(ID.CALL_OF_THE_ALLIANCE);
   if (!hasTrait(runtime, TRAIT.SONG_OF_THE_MISTS) || !song) return;
   emitRevenantInvocationSkill(runtime, ID.CALL_OF_THE_ALLIANCE, TRAIT.SONG_OF_THE_MISTS);
-  runtime.endurance.grant(Number(song.resourceGain || 0));
+  runtime.endurance.grant(song.resourceGain || 0);
 }
 
 /** Vindicator owns its dodge landings, Energy Meld, and Alliance invocation on the shared live state. */
 export const vindicatorHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   // The landing-only Dodge input uses the selected dodge's fixed animation.
   castDurationMs: (runtime, skill, duration) =>
-    skill.id === SHARED_SKILL_IDS.DODGE ? Math.max(0, Number(selectedDodge(runtime)?.castTimeMs || 0)) : duration,
+    skill.id === SHARED_SKILL_IDS.DODGE ? Math.max(0, selectedDodge(runtime)?.castTimeMs || 0) : duration,
   // Energy Meld variants share the same selected trait reduction.
   rechargeRules: [
     {

@@ -42,7 +42,7 @@ export const chronomancerState = defineProfessionSpecializationState('Chronomanc
 
 /** Publishes this module's detached public observations at the planning boundary. */
 export function projectChronomancerPlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState<MesmerChronomancerState>(input.profession);
+  const state = snapshotProfessionState(input.profession) as MesmerChronomancerState;
   const at = canonicalTime(input.time);
   return {
     continuumActive: Boolean(state.continuum),

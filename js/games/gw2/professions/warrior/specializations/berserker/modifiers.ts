@@ -25,8 +25,8 @@ function active(context: Gw2ModifierContext): boolean {
 // Apply Berserker's live trait and Berserk-window attribute changes without
 // mutating the shared resolved-stat object.
 function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
-  const conversionPower = Number(context.config?.stats?.power ?? attributes.power ?? 0);
-  const conversionPrecision = Number(context.config?.stats?.precision ?? attributes.precision ?? 0);
+  const conversionPower = context.config?.stats?.power ?? attributes.power ?? 0;
+  const conversionPrecision = context.config?.stats?.precision ?? attributes.precision ?? 0;
   const result = { ...attributes } as Gw2MutableStats & {
     power: number;
     precision: number;
@@ -41,7 +41,7 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw
     if (hasTrait(context, TRAIT.GREAT_FORTITUDE)) {
       const greatFortitudeProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.greatFortitude);
       const conversion = balanceProfileNumber(greatFortitudeProfile, 'attributeConversion');
-      result.vitality = Number(result.vitality || 0) + powerBonus * conversion;
+      result.vitality = (result.vitality || 0) + powerBonus * conversion;
       result.ferocity += powerBonus * conversion;
     }
   }

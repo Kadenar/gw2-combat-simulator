@@ -32,7 +32,7 @@ import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/
  * The compiler is single-owner (normally Core) so GW2 damage buckets are
  * compiled once after Core and active-specialization declarations are merged.
  */
-function composeModuleModifiers(modules: readonly NamedModule<object>[]): ProfessionModifierDefinition {
+function composeModuleModifiers(modules: readonly NamedModule[]): ProfessionModifierDefinition {
   const result = composeHookContainer(modules, MODIFIER_HOOK_NAMES);
   const declarations = modules.flatMap((entry) => {
     const value = entry.module.modifiers?.modifierRules;
@@ -71,7 +71,7 @@ function composeRuntimeDefinition<TProfessionState extends object, TBuild extend
   definition: ProfessionFamilyDefinition<TBuild>,
   modules: readonly NamedModule[]
 ): ProfessionDefinition<TProfessionState, TBuild> {
-  const genericModules = modules as readonly NamedModule<object>[];
+  const genericModules = modules;
   // Merge only Core and the selected specialization, in module order, so inactive state stays private.
   const projectors = genericModules.flatMap(({ module }) => {
     const project = module.resources?.projectPlanningState;
@@ -141,7 +141,7 @@ export function defineProfessionFamily<TProfessionState extends object = object,
   const resolveProfession = (
     config: Readonly<ProfessionConfig> = {}
   ): Readonly<NormalizedProfessionContract<TProfessionState>> => {
-    const specialization = String(config.specialization || 'Core').trim() || 'Core';
+    const specialization = (config.specialization || 'Core').trim() || 'Core';
     if (specialization !== 'Core' && !specializationModules.has(specialization)) {
       throw new Error(
         `Unknown ${definition.name} elite specialization "${specialization}". ` +
@@ -190,7 +190,7 @@ export function defineProfessionFamily<TProfessionState extends object = object,
     },
     ...build,
     resolveProfession
-  }) as Readonly<ProfessionFamilyContract<TProfessionState, NormalizedProfessionContract<TProfessionState>, TBuild>>;
+  });
 }
 
 /**

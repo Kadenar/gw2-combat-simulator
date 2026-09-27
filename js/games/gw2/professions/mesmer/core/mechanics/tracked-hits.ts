@@ -14,9 +14,9 @@ export function scheduleMesmerTrackedHits(
 ): void {
   if (!skill.trackedHitDamage) return;
   const tracking = skill.trackedHitDamage;
-  const duration = Number(tracking.duration || 0);
+  const duration = tracking.duration || 0;
   let recentHits = [...(professionCoreState(state).trackedSkillHits[skill.id] || [])];
-  const required = Math.max(1, Math.trunc(Number(tracking.hitsRequired || 1)));
+  const required = Math.max(1, Math.trunc(tracking.hitsRequired || 1));
   for (const currentHitAt of [...playerHitTimes].sort((a, b) => a - b)) {
     // A prior hit expires at its exact age limit; retain its final live microsecond.
     recentHits = recentHits.filter((hitAt) => canonicalTime(hitAt + duration) > canonicalTime(currentHitAt));

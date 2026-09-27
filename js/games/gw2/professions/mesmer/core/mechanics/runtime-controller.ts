@@ -121,7 +121,7 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
   const emit = (event: SimulationEventBase): SimulationEvent | null => {
     const active = runtime.activeEmission;
     // Packets committed by a landed projectile remain scheduled after the player interrupts its cast animation.
-    if (active && Number(event.at) > active.effectiveEnd + EPSILON && event.persistsAfterInterrupt !== true) {
+    if (active && event.at > active.effectiveEnd + EPSILON && event.persistsAfterInterrupt !== true) {
       return null;
     }
 

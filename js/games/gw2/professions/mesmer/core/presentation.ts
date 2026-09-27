@@ -36,15 +36,15 @@ function mesmerUiSpecialization(context: MesmerUiContext = {}): string {
 }
 
 export function mesmerUiState(context: MesmerUiContext = {}): MesmerUiState {
-  return flattenProfessionState(context.state?.profession || context.professionState) as MesmerUiState;
+  return flattenProfessionState(context.state?.profession || context.professionState);
 }
 
 /** Converts the projected millisecond Clarity duration into an active-state timer. */
 function mesmerCoreStateSnapshot(context: MesmerUiContext): RotationStateSnapshotItem[] {
   const state = mesmerUiState(context);
-  const at = Math.max(0, Number(context.atSeconds || 0));
+  const at = Math.max(0, context.atSeconds || 0);
   const remaining =
-    state.clarityRemaining != null ? Number(state.clarityRemaining || 0) / 1000 : Number(state.clarityUntil || 0) - at;
+    state.clarityRemaining != null ? (state.clarityRemaining || 0) / 1000 : (state.clarityUntil || 0) - at;
   return remaining > 0
     ? [
         {
@@ -66,7 +66,7 @@ export function mesmerMechanicPaletteGroups(
     {
       id: 'profession',
       label: 'Profession',
-      skillIds: skillIds.filter((id) => context.catalog?.skillsById?.has(id)),
+      skillIds: skillIds.filter((id) => context.catalog?.skillsById.has(id)),
       resourceAnchor: true,
       // Keep the blades/clones/notes pips directly above the shatter/instrument
       // skills rather than tucked underneath them.
@@ -79,7 +79,7 @@ export function mesmerResourceViews(
   context: MesmerUiContext,
   definition: MesmerUiResourceDefinition
 ): ProfessionResourceView[] {
-  const state = flattenProfessionState(context.state?.profession || context.professionState) as MesmerUiState;
+  const state: MesmerUiState = flattenProfessionState(context.state?.profession || context.professionState);
   // Palette pips use the same selected capacity as runtime resource spending.
   const specialization = definition.id === 'blades' ? 'Virtuoso' : definition.id === 'notes' ? 'Troubadour' : 'Core';
   const maximum = balanceProfileNumber(
@@ -116,7 +116,7 @@ const MESMER_EVENT_ROWS: Readonly<Record<string, (event: MesmerResolverEvent) =>
     }),
     'mesmer.phantasm-attack': (event) => ({
       type: event.type,
-      description: `PHANTASM DAMAGE COMPLETE ${event.name} x${event.count}` + `${event.repeat ? ' [repeat]' : ''}`,
+      description: `PHANTASM DAMAGE COMPLETE ${event.name} x${event.count}` + (event.repeat ? ' [repeat]' : ''),
       className: 'phantasm',
       order: 22,
       flags: ['phantasm-clone']
@@ -127,7 +127,7 @@ function mesmerEventLogRow(
   _context: MesmerUiContext,
   event: MesmerResolverEvent
 ): ProfessionEventLogDescriptor | undefined {
-  const present = MESMER_EVENT_ROWS[event?.type];
+  const present = MESMER_EVENT_ROWS[event.type];
   return present ? present(event) : undefined;
 }
 

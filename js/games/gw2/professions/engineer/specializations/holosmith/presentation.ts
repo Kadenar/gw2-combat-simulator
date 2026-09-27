@@ -39,8 +39,8 @@ const HOLOSMITH_PACKET_EVENTS = new Set<string>([
 /** Projects Forge replacement rules and the kit lockout into palette availability. */
 function holosmithPaletteAvailability(context: EngineerUiContext, skill: HolosmithSkill): PaletteSkillAvailability {
   const state = engineerUiState(context);
-  const now = Number(context.time || 0);
-  const kitLockoutUntil = Number(state.kitLockoutUntil || 0);
+  const now = context.time || 0;
+  const kitLockoutUntil = state.kitLockoutUntil || 0;
   // The shared tile projector selects the active Photon Forge transition while
   // this contract remains the sole source of its state availability.
   if (skill.id === ID.ENGAGE_PHOTON_FORGE && state.photonForgeActive) {
@@ -83,10 +83,10 @@ function holosmithEventLogRow(
   const buildSpecializations = Array.isArray(context.build?.specializations) ? context.build.specializations : [];
   const isHolosmith =
     engineerUiSpecialization(context) === 'Holosmith' ||
-    buildSpecializations.some((specialization) => String(specialization?.name || specialization) === 'Holosmith');
+    buildSpecializations.some((specialization) => String(specialization.name || specialization) === 'Holosmith');
   if (!isHolosmith) return undefined;
-  if (HOLOSMITH_PACKET_EVENTS.has(event?.type)) return null;
-  if (event?.type !== 'engineer.heat') return undefined;
+  if (HOLOSMITH_PACKET_EVENTS.has(event.type)) return null;
+  if (event.type !== 'engineer.heat') return undefined;
   if (!HEAT_STATE_REASONS.has(String(event.reason || ''))) return null;
   return {
     type: event.type,
@@ -149,14 +149,14 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog>): EngineerUi
     },
     resourceViews: (context: EngineerUiContext): ProfessionResourceView[] => {
       const state = engineerUiState(context);
-      const maximum = Number(state.maximumHeat || 100);
+      const maximum = state.maximumHeat || 100;
       return [
         {
           id: 'heat',
           singular: 'heat',
           plural: 'heat',
           maximum,
-          value: Number(state.heat ?? context.initialHeat ?? 0),
+          value: state.heat ?? context.initialHeat ?? 0,
           startMaximum: maximum,
           canStart: true,
           buildKey: 'initialHeat',

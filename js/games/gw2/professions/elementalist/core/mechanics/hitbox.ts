@@ -15,15 +15,15 @@ export function prepareElementalistHitboxEvent(
   const professionAssumptions = context.config.professionAssumptions || {};
   const hitboxSize = String(professionAssumptions.hitboxSize || context.config.hitboxSize || 'small');
   if (hitboxSize !== 'small') return preparedEvent;
-  const hitIndex = Number(preparedEvent.metadata?.hitboxIndex || 0);
-  const smallHitboxCap = Number(preparedEvent.metadata?.smallHitboxCap || 0);
+  const hitIndex = preparedEvent.metadata?.hitboxIndex || 0;
+  const smallHitboxCap = preparedEvent.metadata?.smallHitboxCap || 0;
   const excluded =
     preparedEvent.metadata?.largeHitboxOnly === true || (smallHitboxCap > 0 && hitIndex > smallHitboxCap);
   if (!excluded) return preparedEvent;
   return {
     ...preparedEvent,
     type: 'marker',
-    name: `${String(preparedEvent.skillName || preparedEvent.name || 'Elementalist effect')} misses small hitbox`,
+    name: `${preparedEvent.skillName || preparedEvent.name || 'Elementalist effect'} misses small hitbox`,
     cancelled: true,
     detail: 'excluded by Elementalist target-hitbox rules'
   };

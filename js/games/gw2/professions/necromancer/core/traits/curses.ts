@@ -68,7 +68,7 @@ export function applyBitterChill(context: NecromancerResolverContext, event: Nec
       triggeredBy: event.skillName
     })
   );
-  context.recordProc?.('trait', 'Bitter Chill', event.at, event.skillName);
+  context.recordProc('trait', 'Bitter Chill', event.at, event.skillName);
 }
 
 export function applyChillingDarkness(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
@@ -82,9 +82,9 @@ export function applyChillingDarkness(context: NecromancerResolverContext, event
   applyTraitCondition(context, event, {
     name: 'Chilling Darkness',
     traitId: TRAIT.CHILLING_DARKNESS,
-    condition: String(effect?.condition || 'Chilled'),
-    stacks: Number(effect?.stacks ?? 1),
-    duration: Number(effect?.duration ?? 2)
+    condition: effect.condition || 'Chilled',
+    stacks: effect.stacks ?? 1,
+    duration: effect.duration ?? 2
   });
 }
 
@@ -94,7 +94,7 @@ export function applyTerror(context: NecromancerResolverContext, event: Necroman
     name: 'Terror',
     traitId: TRAIT.TERROR,
     condition: 'Fear',
-    duration: Number(event.duration ?? 1)
+    duration: event.duration ?? 1
   });
 }
 

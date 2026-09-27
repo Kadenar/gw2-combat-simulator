@@ -270,7 +270,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     effectVariants: [
       {
         when: (runtime: ThiefRuntime) =>
-          Number(runtime.profession.core.spearChainStage || 0) === 2 &&
+          (runtime.profession.core.spearChainStage || 0) === 2 &&
           runtime.profession.core.spearPreviousSkillId === ID.ENTANGLING_ASP,
         profileId: PROFILE.fallingSpiderEmpowered,
         transform: (runtime, cast) => {
@@ -283,20 +283,18 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
               return effect.ticks?.length
                 ? {
                     ...effect,
-                    ticks: effect.ticks.map((tick) => ({ ...tick, coefficient: Number(tick.coefficient) * factor }))
+                    ticks: effect.ticks.map((tick) => ({ ...tick, coefficient: tick.coefficient * factor }))
                   }
-                : { ...effect, coefficient: Number(effect.coefficient || 0) * factor };
+                : { ...effect, coefficient: (effect.coefficient || 0) * factor };
             if (effect.type !== 'condition') return effect;
             if (effect.ticks?.length)
               return {
                 ...effect,
                 ticks: effect.ticks.map((tick) =>
-                  boosted(tick.condition ?? effect.condition)
-                    ? { ...tick, stacks: Number(tick.stacks ?? 1) + extraStacks }
-                    : tick
+                  boosted(tick.condition) ? { ...tick, stacks: tick.stacks + extraStacks } : tick
                 )
               };
-            return boosted(effect.condition) ? { ...effect, stacks: Number(effect.stacks ?? 1) + extraStacks } : effect;
+            return boosted(effect.condition) ? { ...effect, stacks: (effect.stacks ?? 1) + extraStacks } : effect;
           });
         }
       }

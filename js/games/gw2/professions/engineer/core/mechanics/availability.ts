@@ -18,7 +18,7 @@ export function engineerCoreCastAvailability(context: EngineerRuntime, skill: En
   const artillery = state.availableFlips[ID.ELECTRIC_ARTILLERY];
   if (skill.id === ID.ELECTRIC_ARTILLERY && !skillFlipReady(artillery, context.time)) {
     // The stored window carries readiness even while its palette tile is hidden.
-    const retryAt = Number(artillery?.availableAt || 0);
+    const retryAt = artillery?.availableAt || 0;
     return denyEngineerCast(
       skill,
       'engineer.electric-artillery-inactive',

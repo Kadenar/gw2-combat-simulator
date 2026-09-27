@@ -2,7 +2,7 @@ import { EPSILON, timeKey } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 /** Nourys relic rules. */
 import { defineRelic, explicitCombatStartTime } from '#gw2/platform/equipment/relics/rules/shared.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+
 import type { Gw2RelicState, Gw2RelicRuntimeContext } from '#gw2/platform/equipment/relics/types.js';
 
 const NOURYS_STACK_INTERVAL = 3;
@@ -16,7 +16,7 @@ function nourysCombatStart(context: Gw2RelicRuntimeContext, state: Gw2RelicState
   if (Number.isFinite(runtimeStart)) return runtimeStart;
   const stateStart = Number(state.combatStartTime);
   if (Number.isFinite(stateStart)) return stateStart;
-  const timelineStart = explicitCombatStartTime((state.timelineEvents as readonly SimulationEvent[] | undefined) || []);
+  const timelineStart = explicitCombatStartTime(state.timelineEvents || []);
   return Number.isFinite(timelineStart) ? timelineStart : 0;
 }
 

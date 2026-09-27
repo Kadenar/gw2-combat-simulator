@@ -68,7 +68,7 @@ export function normalizeProfessionUi(
   professionId: string,
   ui: Partial<ProfessionUiContract> = {}
 ): Readonly<ProfessionUiContract> {
-  assertUiDefinition(ui as UnvalidatedFields);
+  assertUiDefinition(ui);
   // Resource presentation is plural throughout the contract; professions
   // without resource UI normalize directly to an empty collection.
   const resourceViews = ui.resourceViews || (() => []);

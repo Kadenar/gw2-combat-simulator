@@ -87,7 +87,7 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
     nextThrillOfCombatAt: null,
     exposeDefensesUsed: false,
     selfConditions: [],
-    selfConditionCount: Math.max(0, Math.trunc(Number(config.selfConditionCount || 0))),
+    selfConditionCount: Math.max(0, Math.trunc(config.selfConditionCount || 0)),
 
     energyWakeGeneration: 0,
     assassinsPresenceGeneration: 0

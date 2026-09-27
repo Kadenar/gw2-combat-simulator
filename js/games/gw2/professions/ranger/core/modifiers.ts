@@ -35,7 +35,7 @@ import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '#gw2/platform/equipmen
 
 function weaponSetIncludes(context: Gw2ModifierContext, weaponSet: number, names: readonly string[]): boolean {
   const weapons = gw2ConfiguredWeaponSet(context.config, weaponSet);
-  return weapons.some((weapon) => names.includes(String(weapon || '')));
+  return weapons.some((weapon) => names.includes(weapon || ''));
 }
 
 function openingStrikeReady(context: Gw2ModifierContext): boolean {
@@ -44,17 +44,17 @@ function openingStrikeReady(context: Gw2ModifierContext): boolean {
     petOpeningStrikeReady?: boolean;
   }>(context.runtime?.profession);
   return rangerPetEvent(context)
-    ? core?.petOpeningStrikeReady === true
-    : isGw2PlayerModifierOwnedEvent(context.event) && core?.playerOpeningStrikeReady === true;
+    ? core.petOpeningStrikeReady === true
+    : isGw2PlayerModifierOwnedEvent(context.event) && core.playerOpeningStrikeReady === true;
 }
 
 function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   const result = { ...attributes };
   const staticRulesApplied = professionStaticRulesApplied(context.config);
-  const calculatedWeapon = String(context.config?.attributeProvenance?.calculatedPrimaryWeapon || '');
+  const calculatedWeapon = context.config?.attributeProvenance?.calculatedPrimaryWeapon || '';
   const calculatedWeaponSet = Number(context.config?.attributeProvenance?.calculatedWeaponSet) === 2 ? 2 : 1;
   const adjust = (attribute: Gw2NumericStatKey, amount: number): void => {
-    result[attribute] = Number(result[attribute] || 0) + amount;
+    result[attribute] = (result[attribute] || 0) + amount;
   };
 
   // Subtract only the contribution already calculated for this patch, weapon set, and assumed boon state.
@@ -93,7 +93,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
       if (hasTrait(context, TRAIT.WELLSPRING))
         adjust(
           'healingPower',
-          Number(context.config?.stats?.power || 0) *
+          (context.config?.stats?.power || 0) *
             balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.WELLSPRING), 'attributeConversion')
         );
     }
@@ -186,7 +186,7 @@ function positional(context: Gw2ModifierContext): boolean {
 }
 
 function targetVulnerable(context: Gw2ModifierContext): boolean {
-  return Number(context.query?.vulnerabilityStacksAt(context.time, context.runtime || undefined) || 0) > 0;
+  return (context.query?.vulnerabilityStacksAt(context.time, context.runtime || undefined) || 0) > 0;
 }
 
 const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
@@ -253,7 +253,7 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     id: 'ranger.bountiful-hunter-player',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
-    parameters: { baseFactor: 1, damagePerBoon: 0.01 } as Readonly<Record<string, number>>,
+    parameters: { baseFactor: 1, damagePerBoon: 0.01 },
     factor: (context, _target, parameters) =>
       parameters.baseFactor + rangerActiveBoonCount(context, 'player') * parameters.damagePerBoon,
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.BOUNTIFUL_HUNTER)
@@ -342,7 +342,7 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     factor: 1.2,
     when: (context) =>
       eventSkill(context)?.id === ID.FALCONS_STOOP &&
-      Boolean(context.config?.target?.defiant || targetConditionActive(context, 'Immobilized'))
+      (context.config?.target?.defiant || targetConditionActive(context, 'Immobilized'))
   },
   {
     id: 'ranger.spear-leap-low-health',
@@ -371,7 +371,7 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     id: 'ranger.condition-count-skill-bonus',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
-    parameters: { baseFactor: 1, damagePerCondition: 0.02 } as Readonly<Record<string, number>>,
+    parameters: { baseFactor: 1, damagePerCondition: 0.02 },
     // Canonical queries deduplicate aliases and count only conditions active at this observation time.
     factor: (context, _target, parameters) =>
       parameters.baseFactor + targetConditionCount(context) * parameters.damagePerCondition,
@@ -384,7 +384,7 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     parameters: {
       maximumConditions: 5,
       coefficientPerCondition: 0.025
-    } as Readonly<Record<string, number>>,
+    },
     factor: (context, _target, parameters) => {
       const coefficient = Number(context.event?.coefficient || 0);
       if (!(coefficient > 0)) return 1;

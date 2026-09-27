@@ -122,7 +122,7 @@ export function createRuntimeResources<T extends object>(runtime: Gw2Runtime<T>,
       advanceResource(state, runtime.time);
       state.value = Math.max(0, state.value - value);
       if ('nextAt' in state && value > 0) {
-        const discrete = state as DiscreteResourceClock;
+        const discrete = state;
         if (discrete.nextAt === Infinity && discrete.interval > 0 && discrete.amount > 0)
           discrete.nextAt = canonicalTime(runtime.time + discrete.interval);
       }

@@ -81,7 +81,7 @@ export function reactToSpellbreakerDamage(context: Runtime, event: Gw2ResolverEv
     return;
   }
 
-  const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
+  const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
   if (skill?.burst && triggerMagebaneTether(context, spellbreakerState.from(context), skill, event.at)) {
     context.recordProc('trait', 'Magebane Tether', event.at, event.skillName, '15% strike damage for 8 seconds');
   }

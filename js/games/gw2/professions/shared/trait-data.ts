@@ -37,9 +37,7 @@ interface ProfessionTraitDataOptions<TSourceTrait, TTrait> {
  * active-trait resolution.
  */
 function parseTraitChoices(value?: string | null): readonly number[] {
-  return String(value || '')
-    .split('-')
-    .map(Number);
+  return (value || '').split('-').map(Number);
 }
 
 /**
@@ -110,7 +108,7 @@ export function createProfessionTraitData<TSourceTrait, TTrait = TSourceTrait>(
     const active: TTrait[] = [];
 
     for (const selection of selections || []) {
-      const specialization = mappedSpecializations.find((candidate) => candidate.name === selection?.name);
+      const specialization = mappedSpecializations.find((candidate) => candidate.name === selection.name);
 
       if (!specialization) continue;
 

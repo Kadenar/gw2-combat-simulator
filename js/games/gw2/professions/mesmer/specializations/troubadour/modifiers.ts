@@ -45,15 +45,15 @@ export function applyTroubadourAttributes(context: Gw2ModifierContext, attribute
   if (fortissimo === 1) return attributes;
   return {
     ...attributes,
-    power: Number(attributes.power || 0) * fortissimo,
-    precision: Number(attributes.precision || 0) * fortissimo,
-    toughness: Number(attributes.toughness || 0) * fortissimo,
-    vitality: Number(attributes.vitality || 0) * fortissimo,
-    ferocity: Number(attributes.ferocity || 0) * fortissimo,
-    conditionDamage: Number(attributes.conditionDamage || 0) * fortissimo,
-    expertise: Number(attributes.expertise || 0) * fortissimo,
-    concentration: Number(attributes.concentration || 0) * fortissimo,
-    healingPower: Number(attributes.healingPower || 0) * fortissimo
+    power: (attributes.power || 0) * fortissimo,
+    precision: (attributes.precision || 0) * fortissimo,
+    toughness: (attributes.toughness || 0) * fortissimo,
+    vitality: (attributes.vitality || 0) * fortissimo,
+    ferocity: (attributes.ferocity || 0) * fortissimo,
+    conditionDamage: (attributes.conditionDamage || 0) * fortissimo,
+    expertise: (attributes.expertise || 0) * fortissimo,
+    concentration: (attributes.concentration || 0) * fortissimo,
+    healingPower: (attributes.healingPower || 0) * fortissimo
   };
 }
 

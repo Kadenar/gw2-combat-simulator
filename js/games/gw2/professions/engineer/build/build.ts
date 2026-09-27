@@ -119,7 +119,7 @@ function normalizeMorphRotation(savedRotation: unknown, morphIds: readonly numbe
   const selectedByName = new Map<string, Skill>(
     morphIds
       .map((skillId) => {
-        const skill = engineerCatalog.skillsById.get(Number(skillId));
+        const skill = engineerCatalog.skillsById.get(skillId);
         return [skill?.name, skill];
       })
       .filter(([name, skill]) => name && skill) as [string, Skill][]
@@ -171,11 +171,11 @@ const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
   validateExtra(build) {
     const errors: string[] = [];
     const morphs = Array.isArray(build.selectedMorphSkillIds) ? build.selectedMorphSkillIds : [];
-    const slots = morphs.map((id) => Number(engineerCatalog.skillsById.get(Number(id))?.mechanicSlot));
-    const names = morphs.map((id) => engineerCatalog.skillsById.get(Number(id))?.name);
+    const slots = morphs.map((id) => Number(engineerCatalog.skillsById.get(id)?.mechanicSlot));
+    const names = morphs.map((id) => engineerCatalog.skillsById.get(id)?.name);
     if (
       morphs.length !== 3 ||
-      morphs.some((id) => !AMALGAM_MORPHS.has(Number(id))) ||
+      morphs.some((id) => !AMALGAM_MORPHS.has(id)) ||
       new Set(slots).size !== 3 ||
       new Set(names).size !== 3 ||
       slots.some((slot) => ![2, 3, 4].includes(slot))

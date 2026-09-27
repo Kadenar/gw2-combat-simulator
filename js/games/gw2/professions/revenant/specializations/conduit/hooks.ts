@@ -78,7 +78,7 @@ function gainAffinity(runtime: RevenantRuntime, amount: number): void {
     balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.affinity), 'maximumStacks')
   );
   state.affinityMaximum = maximum;
-  const previous = Number(state.affinity || 0);
+  const previous = state.affinity || 0;
   state.affinity = grantCapped(previous, amount, maximum);
   if (previous < maximum && state.affinity === maximum && hasTrait(runtime, TRAIT.EXPANDED_CONSCIOUSNESS))
     runtime.resourceController.grant(
@@ -94,16 +94,14 @@ function hasLegend(runtime: RevenantRuntime, legendId: string): boolean {
 /** Profession attacks inherit the active weapon; slot and triggered attacks use level-based strength. */
 function skillWeapon(runtime: RevenantRuntime, skill: Skill): string {
   const set = runtime.activeWeaponSet === 2 ? 2 : 1;
-  return (
-    skill.weapon || (skill.type === 'Profession' ? String(gw2PrimaryWeapon(runtime.config, set) ?? '') : 'Unequipped')
-  );
+  return skill.weapon || (skill.type === 'Profession' ? (gw2PrimaryWeapon(runtime.config, set) ?? '') : 'Unequipped');
 }
 
 function effectAt(cast: RuntimeCast, effect: SkillEffect | undefined, atMs?: number): number {
   const origin = effect?.timingAnchor === 'castEnd' ? cast.fullEnd : cast.start;
   const packetAtMs =
     atMs ?? (effect?.type === 'strike' || effect?.type === 'condition' ? effectFirstAtMs(effect) : effect?.atMs);
-  return canonicalTime(origin + Math.max(0, Number(packetAtMs || 0)) / 1000);
+  return canonicalTime(origin + Math.max(0, packetAtMs || 0) / 1000);
 }
 
 function firstConditionTick(effect: SkillEffect | undefined, condition?: string) {
@@ -176,7 +174,7 @@ function numinousGift(runtime: RevenantRuntime, cast: RuntimeCast, allies = fals
   const legends = runtime.profession.core.selectedLegendIds;
   for (const effect of profile.effects ?? []) {
     if (effect.type !== 'boon' || !effect.boon) continue;
-    const legendId = String(effect.metadata?.legendId || '');
+    const legendId = effect.metadata?.legendId || '';
     if (legendId && !legends.includes(legendId)) continue;
     boon(runtime, cast, cast.skill, {
       at: runtime.time,
@@ -254,7 +252,7 @@ function dervishAttack(runtime: RevenantRuntime, cast: RuntimeCast, at: number, 
 /** Beguiling Haze consumes a follow-up charge, or records a main cast that arms follow-ups on completion. */
 function beguilingHaze(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const state = conduit(runtime);
-  const followUp = Number(state.beguilingHazeCharges || 0) > 0;
+  const followUp = (state.beguilingHazeCharges || 0) > 0;
   if (followUp) state.beguilingHazeCharges -= 1;
   else hazeMainCasts.add(cast);
   const owner = followUp ? requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeFollowUp) : cast.skill;
@@ -263,8 +261,8 @@ function beguilingHaze(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const tick = hit ? strikeEffectTicks(hit)[0] : undefined;
   if (tick)
     strike(runtime, cast, cast.skill, {
-      at: canonicalTime(cast.start + Math.max(0, Number(tick.atMs || 0)) / 1000),
-      coefficient: Number(tick.coefficient),
+      at: canonicalTime(cast.start + Math.max(0, tick.atMs || 0) / 1000),
+      coefficient: tick.coefficient,
       name: followUp ? 'Beguiling Haze — Follow-Up' : 'Beguiling Haze',
       skillWeapon: skillWeapon(runtime, cast.skill)
     });
@@ -284,9 +282,8 @@ function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCast): voi
     state.beguilingHazeRecharge = structuredClone(
       runtime.rechargeProgress.get(skill.id) ?? runtime.ammo.get(skill.id)?.rechargeProgress ?? null
     );
-    state.beguilingHazeReadyAt = Number(
-      runtime.cooldowns.get(skill.id) ?? runtime.ammo.get(skill.id)?.nextRechargeAt ?? runtime.time
-    );
+    state.beguilingHazeReadyAt =
+      runtime.cooldowns.get(skill.id) ?? runtime.ammo.get(skill.id)?.nextRechargeAt ?? runtime.time;
   }
 
   const ammo = runtime.ammo.get(skill.id);
@@ -320,22 +317,22 @@ function hexEaterVortex(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const tormentTicks = torment?.type === 'condition' ? (torment.ticks ?? []) : [];
   const maximum = Math.min(strikeTicks.length, tormentTicks.length);
   // Self conditions still active at the cast's end are the ones the vortex removes.
-  core.selfConditions = core.selfConditions.filter((application) => Number(application.expiresAt || 0) > at);
-  const active = Math.max(0, Number(core.selfConditionCount || 0)) + core.selfConditions.length;
+  core.selfConditions = core.selfConditions.filter((application) => (application.expiresAt || 0) > at);
+  const active = Math.max(0, core.selfConditionCount || 0) + core.selfConditions.length;
   const projectiles = hasLegend(runtime, LEGEND.DEMON) ? maximum : Math.min(maximum, active);
   const removed = Math.min(maximum, active);
   if (removed > 0) {
     // Static configured conditions deplete first, then runtime conditions oldest-first.
-    const configured = Math.min(removed, Number(core.selfConditionCount || 0));
+    const configured = Math.min(removed, core.selfConditionCount || 0);
     core.selfConditionCount -= configured;
     core.selfConditions.splice(0, removed - configured);
   }
 
   for (let index = 0; index < projectiles; index += 1) {
-    const projectileAt = canonicalTime(cast.start + Number(strikeTicks[index].atMs || 0) / 1000);
+    const projectileAt = canonicalTime(cast.start + (strikeTicks[index].atMs || 0) / 1000);
     strike(runtime, cast, cast.skill, {
       at: projectileAt,
-      coefficient: Number(strikeTicks[index].coefficient || 0),
+      coefficient: strikeTicks[index].coefficient || 0,
       name: `Hex-Eater Vortex — Projectile ${index + 1}`,
       hitIndex: index + 1,
       totalHits: projectiles,
@@ -343,9 +340,9 @@ function hexEaterVortex(runtime: RevenantRuntime, cast: RuntimeCast): void {
     });
     condition(runtime, cast, cast.skill, {
       at: projectileAt,
-      condition: String(tormentTicks[index].condition || 'Torment'),
-      stacks: Number(tormentTicks[index].stacks ?? 1),
-      duration: Number(tormentTicks[index].duration || 0),
+      condition: tormentTicks[index].condition || 'Torment',
+      stacks: tormentTicks[index].stacks,
+      duration: tormentTicks[index].duration || 0,
       name: `Hex-Eater Vortex — Projectile ${index + 1}`
     });
   }
@@ -370,16 +367,16 @@ function gladiatorsDefense(runtime: RevenantRuntime, cast: RuntimeCast): void {
         condition(runtime, cast, skill, {
           at,
           condition: tick.condition,
-          stacks: Number(tick.stacks ?? 1),
-          duration: Number(tick.duration || 0)
+          stacks: tick.stacks,
+          duration: tick.duration || 0
         });
     else if (effect.type === 'boon' && effect.boon)
       boon(runtime, cast, skill, {
         at,
         name: `${skill.name} — ${effect.boon}`,
         kind: effect.boon,
-        duration: Number(effect.duration || 0),
-        stacks: Number(effect.stacks ?? 1)
+        duration: effect.duration || 0,
+        stacks: effect.stacks ?? 1
       });
   }
 
@@ -397,7 +394,7 @@ function twinMoonSweep(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const bleedingTicks = bleeding?.type === 'condition' ? conditionEffectTicks(bleeding) : [];
   const might = effects.find((effect) => effect.type === 'boon' && effect.boon === 'might');
   const at = effectAt(cast, bleeding || might || mains[0]);
-  const packets = Math.max(0, Number(bleedingTicks.length || (might?.applications ?? mains.length)));
+  const packets = Math.max(0, bleedingTicks.length || (might?.applications ?? mains.length));
   const coefficient = (effect: SkillEffect | undefined) =>
     effect?.type === 'strike' ? strikeEffectCoefficient(effect) : 0;
   const weapon = skillWeapon(runtime, skill);
@@ -423,9 +420,9 @@ function twinMoonSweep(runtime: RevenantRuntime, cast: RuntimeCast): void {
     const tick = bleedingTicks[index] || bleedingTicks[0];
     condition(runtime, cast, skill, {
       at,
-      condition: String(tick?.condition || 'Bleeding'),
-      stacks: Number(tick?.stacks ?? 1),
-      duration: Number(tick?.duration || 0),
+      condition: tick?.condition || 'Bleeding',
+      stacks: tick?.stacks ?? 1,
+      duration: tick?.duration || 0,
       name: `Twin Moon Sweep — Bleeding ${index + 1}`
     });
     boon(runtime, cast, skill, {
@@ -444,9 +441,9 @@ function twinMoonSweep(runtime: RevenantRuntime, cast: RuntimeCast): void {
     );
     condition(runtime, cast, skill, {
       at,
-      condition: String(immobilized?.condition || 'Immobilized'),
-      stacks: Number(immobilized?.stacks ?? 1),
-      duration: Number(immobilized?.duration || 0)
+      condition: immobilized?.condition || 'Immobilized',
+      stacks: immobilized?.stacks ?? 1,
+      duration: immobilized?.duration || 0
     });
   }
 
@@ -459,7 +456,7 @@ function twinMoonSweep(runtime: RevenantRuntime, cast: RuntimeCast): void {
     for (const [index, tick] of shatterTicks.entries())
       strike(runtime, cast, skill, {
         at: effectAt(cast, shatter, tick.atMs),
-        coefficient: Number(tick.coefficient || 0),
+        coefficient: tick.coefficient || 0,
         name: `Twin Moon Sweep — Shatter ${index + 1}`,
         hitIndex: index + 1,
         totalHits: shatterTicks.length,
@@ -468,9 +465,9 @@ function twinMoonSweep(runtime: RevenantRuntime, cast: RuntimeCast): void {
     for (const [index, tick] of (confusion?.type === 'condition' ? conditionEffectTicks(confusion) : []).entries())
       condition(runtime, cast, skill, {
         at: effectAt(cast, confusion, tick.atMs),
-        condition: String(tick.condition || 'Confusion'),
-        stacks: Number(tick.stacks ?? 1),
-        duration: Number(tick.duration || 0),
+        condition: tick.condition || 'Confusion',
+        stacks: tick.stacks,
+        duration: tick.duration || 0,
         name: `Twin Moon Sweep — Confusion ${index + 1}`
       });
   }
@@ -522,8 +519,8 @@ function releasePotential(runtime: RevenantRuntime, cast: RuntimeCast): void {
       const ticks = hit?.type === 'strike' ? strikeEffectTicks(hit) : [];
       for (const [index, tick] of ticks.entries())
         strike(runtime, cast, skill, {
-          at: canonicalTime(cast.start + Number(tick.atMs || 0) / 1000),
-          coefficient: Number(tick.coefficient || 0),
+          at: canonicalTime(cast.start + (tick.atMs || 0) / 1000),
+          coefficient: tick.coefficient || 0,
           hitIndex: index + 1,
           totalHits: ticks.length,
           skillWeapon: weapon,
@@ -532,14 +529,13 @@ function releasePotential(runtime: RevenantRuntime, cast: RuntimeCast): void {
         });
       // Conditions land with the final hit and share the affinity-scaled duration formula.
       for (const effect of conditions)
-        if (effect.type === 'condition')
-          for (const tick of conditionEffectTicks(effect))
-            condition(runtime, cast, skill, {
-              at: effectAt(cast, effect, tick.atMs),
-              condition: tick.condition,
-              stacks: Number(tick.stacks ?? 1),
-              duration: Number(tick.duration || 0) * (1 + affinity * Number(effect.durationPerAffinity || 0))
-            });
+        for (const tick of conditionEffectTicks(effect))
+          condition(runtime, cast, skill, {
+            at: effectAt(cast, effect, tick.atMs),
+            condition: tick.condition,
+            stacks: tick.stacks,
+            duration: (tick.duration || 0) * (1 + affinity * Number(effect.durationPerAffinity || 0))
+          });
       break;
     }
 
@@ -568,16 +564,16 @@ function mesmerRelease(runtime: RevenantRuntime, data: unknown): void {
       skillId: skill.id,
       skillName: skill.name,
       activationId,
-      condition: String(tormentTick?.condition || 'Torment'),
-      stacks: Number(tormentTick?.stacks ?? 1),
-      duration: Number(tormentTick?.duration || 0) * (1 + affinity * Number(torment?.durationPerAffinity || 0))
+      condition: tormentTick?.condition || 'Torment',
+      stacks: tormentTick?.stacks ?? 1,
+      duration: (tormentTick?.duration || 0) * (1 + affinity * Number(torment?.durationPerAffinity || 0))
     })
   );
   const selfDuration =
-    Number(selfTick?.duration || 0) * Math.max(0, 1 - affinity * Number(self?.durationReductionPerAffinity || 0));
+    (selfTick?.duration || 0) * Math.max(0, 1 - affinity * Number(self?.durationReductionPerAffinity || 0));
   runtime.profession.core.selfConditions.push({
-    condition: String(selfTick?.condition || 'Torment'),
-    stacks: Number(selfTick?.stacks ?? 1),
+    condition: selfTick?.condition || 'Torment',
+    stacks: selfTick?.stacks ?? 1,
     at: runtime.time,
     expiresAt: runtime.time + selfDuration,
     sourceId: skill.id,
@@ -785,12 +781,12 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
         state.beguilingHazeReadyAt = gw2CooldownReadyAt(
           runtime.cooldownController.project(skill, state.beguilingHazeRecharge)
         );
-      if (Number(state.beguilingHazeCharges || 0) <= 0 && runtime.time < Number(state.beguilingHazeReadyAt || 0))
+      if ((state.beguilingHazeCharges || 0) <= 0 && runtime.time < (state.beguilingHazeReadyAt || 0))
         return denySkillCast(
           skill,
           'revenant.beguiling-haze-cooldown',
           'Beguiling Haze is recharging.',
-          Number(state.beguilingHazeReadyAt)
+          state.beguilingHazeReadyAt
         );
     }
 
@@ -811,7 +807,7 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     return (
       beguilingHazeCastDuration(
         durationMs / 1000,
-        Number(conduit(runtime).beguilingHazeCharges || 0) > 0,
+        (conduit(runtime).beguilingHazeCharges || 0) > 0,
         requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeFollowUp),
         requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeMainCastExtension)
       ) * 1000
@@ -821,7 +817,7 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     if (skill.id === ID.SWAP_LEGENDS) {
       // Precombat legend swaps stay free; Enhanced Embodiment scales the base in combat.
       if (work === 0 || !runtime.combatStartedAt() || !hasTrait(runtime, TRAIT.ENHANCED_EMBODIMENT)) return work;
-      return conduitRecharge(runtime, skill, Math.max(0, Number(skill.cooldown ?? work)));
+      return conduitRecharge(runtime, skill, Math.max(0, skill.cooldown ?? work));
     }
 
     const mesmerProfile =

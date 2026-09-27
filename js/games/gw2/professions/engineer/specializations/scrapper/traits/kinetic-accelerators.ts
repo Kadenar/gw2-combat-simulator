@@ -44,7 +44,7 @@ export function kineticAcceleratorBoons(context: EngineerResolverContext, event:
         skillName: event.skillName,
         name: `Kinetic Accelerators — ${kind}`,
         kind,
-        duration: Number(effect.duration),
+        duration: effect.duration,
         stacks: Number(effect.stacks),
         audience: { recipients: 'party' as const }
       }

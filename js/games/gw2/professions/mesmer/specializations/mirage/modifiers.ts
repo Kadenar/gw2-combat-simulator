@@ -5,7 +5,7 @@ import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/modifi
 
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
-export const mirageModifiers: readonly Gw2ModifierRule[] = Object.freeze([
+export const mirageModifiers = Object.freeze<readonly Gw2ModifierRule[]>([
   {
     id: 'mesmer.nomads-endurance',
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
@@ -13,7 +13,7 @@ export const mirageModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     parameters: {
       strikeBonus: 0.1,
       conditionBonus: 0.05
-    } as Readonly<Record<string, number>>,
+    },
     amount: (context, target, parameters) => {
       // Illusion strikes do not inherit personal strike bonuses, while their conditions remain owner-resolved.
       if (target === MODIFIER_TARGET.STRIKE_DAMAGE && illusionSource(context)) return 0;
@@ -31,7 +31,7 @@ export const mirageModifiers: readonly Gw2ModifierRule[] = Object.freeze([
       maximumStacks: 4,
       strikePerStack: 0.0625,
       conditionPerStack: 0.05
-    } as Readonly<Record<string, number>>,
+    },
     amount: (context, target, parameters) => {
       // Phantom Pain joins other additive outgoing-damage bonuses; phantasm
       // conditions use owner modifiers, but phantasm strikes use summon ownership.

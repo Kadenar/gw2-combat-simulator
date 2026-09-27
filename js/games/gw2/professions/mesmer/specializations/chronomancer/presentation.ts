@@ -11,7 +11,7 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+
 import type { MesmerResolverEvent, MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
 
 const CHRONOMANCER_MECHANIC_SKILLS = Object.freeze([
@@ -27,7 +27,7 @@ function chronomancerEventLogRow(
   _context: MesmerUiContext,
   event: MesmerResolverEvent
 ): ProfessionEventLogDescriptor | undefined {
-  if (event?.type !== 'mesmer.phantasm-resummoned') return undefined;
+  if (event.type !== 'mesmer.phantasm-resummoned') return undefined;
   return {
     type: event.type,
     description: `PHANTASM RESUMMONED ${event.name} x${event.count} [Chronophantasma]`,
@@ -51,10 +51,10 @@ function chronomancerPaletteSkillAvailability(context: MesmerUiContext, skill: S
 /** Shows active buff windows and each summoned phantasm's pending clone conversions at the inspected point. */
 function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnapshotItem[] {
   const state = mesmerUiState(context);
-  const at = Math.max(0, Number(context.atSeconds || 0));
-  const result = context.result as Gw2SimulationResult | null | undefined;
+  const at = Math.max(0, context.atSeconds || 0);
+  const result = context.result;
   const items: RotationStateSnapshotItem[] = [];
-  const continuumRemaining = Number(state.continuumRemaining || 0) / 1000;
+  const continuumRemaining = (state.continuumRemaining || 0) / 1000;
   if (state.continuumActive && continuumRemaining > 0) {
     items.push({
       id: 'chronomancer-continuum-split',
@@ -75,7 +75,7 @@ function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnaps
   }
 
   // Read deadlines from the summon event so the display uses the scheduler's timing and ignores future casts.
-  const combatStart = Number(result?.events.find((event) => event.type === 'combat_start')?.at || 0);
+  const combatStart = result?.events.find((event) => event.type === 'combat_start')?.at || 0;
   for (const event of (result?.events || []) as readonly MesmerResolverEvent[]) {
     if (event.type !== 'mesmer.phantasm-summoned' || event.at > at) continue;
     const pending = (event.conversionTimes || []).filter((conversionAt) => conversionAt > at);

@@ -31,8 +31,8 @@ function affinity(context: Gw2ModifierContext): number {
     ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.KINETIC_INSIGHT), 'resourceGain')
     : 0;
   return Math.min(
-    Math.max(1, Number(revenantRuntimeSpecializationState(context, 'Conduit').affinityMaximum || 5)),
-    Number(revenantRuntimeSpecializationState(context, 'Conduit').affinity || 0) + bonus
+    Math.max(1, revenantRuntimeSpecializationState(context, 'Conduit').affinityMaximum || 5),
+    (revenantRuntimeSpecializationState(context, 'Conduit').affinity || 0) + bonus
   );
 }
 
@@ -40,7 +40,7 @@ function equippedLegend(context: Gw2ModifierContext, legendId: string): boolean 
   return (revenantRuntimeCoreState(context).selectedLegendIds || []).includes(legendId);
 }
 
-export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+export const conduitModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
   {
     id: 'revenant.targeted-destruction-numinous-gift',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -48,7 +48,7 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     parameters: {
       vulnerabilityPerStack: 0.005,
       bonus: 0.05
-    } as Readonly<Record<string, number>>,
+    },
     // Numinous Gift unlocks Targeted Destruction's bonus; the factor is expressed as a multiplier delta on top of
     // the existing vulnerability bonus so both traits stack multiplicatively with the base formula.
     factor: (context, _target, parameters) => {
@@ -64,7 +64,7 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'revenant.release-dervish-assassin-affinity',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
-    parameters: { damagePerAffinity: 0.1 } as Readonly<Record<string, number>>,
+    parameters: { damagePerAffinity: 0.1 },
     factor: (context, _target, parameters) => 1 + affinity(context) * parameters.damagePerAffinity,
     when: (context) =>
       ([ID.RELEASE_POTENTIAL_DERVISH, ID.RELEASE_POTENTIAL_ASSASSIN] as readonly number[]).includes(
@@ -75,7 +75,7 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'revenant.release-warrior-affinity',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
-    parameters: { damagePerAffinity: 0.15 } as Readonly<Record<string, number>>,
+    parameters: { damagePerAffinity: 0.15 },
     factor: (context, _target, parameters) => 1 + affinity(context) * parameters.damagePerAffinity,
     when: (context) => context.event?.skillId === ID.RELEASE_POTENTIAL_WARRIOR
   },
@@ -122,13 +122,13 @@ function modifyConduitAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
   // so at runtime we add only the extra copies: 2 (active) - 1 (already in build stats) = 1 extra during form,
   // or 1 (inactive) - 1 (already in build stats) = 0 during non-form (effectively a no-op addition).
   const cosmicMultiplier =
-    Number(state.cosmicWisdomUntil || 0) > context.time
+    (state.cosmicWisdomUntil || 0) > context.time
       ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOLSTERED_BONDS), 'attributeMultiplier')
       : 1;
   const buildMultiplier = professionStaticRulesApplied(context.config) ? 1 : 0;
   const bonuses = bolsteredBondsBonuses(context, coreState.selectedLegendIds, cosmicMultiplier - buildMultiplier);
   for (const [attribute, bonus] of Object.entries(bonuses)) {
-    modified[attribute] = Number(modified[attribute] || 0) + Number(bonus || 0);
+    modified[attribute] = (modified[attribute] || 0) + (bonus || 0);
   }
 
   return modified;

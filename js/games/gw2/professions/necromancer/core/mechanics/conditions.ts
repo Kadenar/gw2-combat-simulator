@@ -204,7 +204,7 @@ export function resolveNecromancerTransfer(runtime: NecromancerRuntime, event: G
 /** Plague Sending remains a shared consumer across accepted player strikes. */
 export function reactToNecromancerConditions(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
-  const skill = runtime.helpers.skillsById.get(event.skillId ?? event.sourceId) as NecromancerSkill | undefined;
+  const skill = runtime.helpers.skillsById.get(event.skillId ?? event.sourceId);
   if (!skill) return;
   const work = { skillId: skill.id, activationId: event.activationId };
   const state = runtime.profession.core;
@@ -227,23 +227,23 @@ export function scheduleNecromancerConditions(runtime: NecromancerRuntime, cast:
   const skill = cast.skill as NecromancerSkill;
   const work: ConditionWork = { skillId: skill.id, activationId: cast.id, offTarget: cast.command.offTarget };
   if (skill.categories?.includes('Corruption') && skill.effects?.some(isCorruptionCompletionEffect)) {
-    const first = skill.effects?.find((effect) => effect.type === 'strike');
+    const first = skill.effects.find((effect) => effect.type === 'strike');
     const timing = first && scaleCastBoundTiming(cast, skill, first);
     const committedBloodIsPower =
       skill.id === ID.BLOOD_IS_POWER &&
       first &&
       timing?.type === 'strike' &&
-      cast.start + Number(effectFirstAtMs(timing) ?? 0) / 1000 <= cast.effectiveEnd;
+      cast.start + (effectFirstAtMs(timing) ?? 0) / 1000 <= cast.effectiveEnd;
     if (castCompleted(cast) || committedBloodIsPower) runtime.schedule(CORRUPTION, cast.effectiveEnd, work);
   }
 
   // Only the signet transfers without a hit; removing Deathly Swarm's strike must not create a completion transfer.
   if (skill.id === ID.PLAGUE_SIGNET && castCompleted(cast))
-    runtime.schedule(TRANSFER, cast.effectiveEnd + Number(cast.command.impactDelayMs ?? 0) / 1000, work);
+    runtime.schedule(TRANSFER, cast.effectiveEnd + (cast.command.impactDelayMs ?? 0) / 1000, work);
   if (skill.id === ID.DEVOURING_DARKNESS) {
     const impactAt = canonicalTime(cast.start + (cast.fullEnd - cast.start) * 0.8);
     if (impactAt <= cast.effectiveEnd)
-      runtime.schedule(DEVOURING, impactAt + Number(cast.command.impactDelayMs ?? 0) / 1000, work);
+      runtime.schedule(DEVOURING, impactAt + (cast.command.impactDelayMs ?? 0) / 1000, work);
   }
 }
 
@@ -302,7 +302,7 @@ export const necromancerConditionTasks = {
 
 /** Removes expired or not-yet-active self-condition applications and returns the remaining active set. */
 function purgeNecromancerSelfConditions(state: NecromancerCoreState, at: number): NecromancerSelfCondition[] {
-  state.selfConditions = (state.selfConditions || []).filter((application) =>
+  state.selfConditions = state.selfConditions.filter((application) =>
     isTimeInWindow(at, application.appliedAt, application.expiresAt)
   );
   return state.selfConditions;

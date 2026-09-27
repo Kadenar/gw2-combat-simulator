@@ -86,8 +86,7 @@ export function completeRevenantWeaponFlips(runtime: RevenantRuntime, cast: Runt
     skill.id !== ID.IMPERIAL_GUARD && skill.id !== ID.BLOSSOMING_AURA
       ? followUpOf(runtime.helpers.skillsById, skill)
       : undefined;
-  if (followUp)
-    armSkillFlip(flips, followUp.id, runtime.time, canonicalTime(runtime.time + Number(skill.flipDuration ?? 5)));
+  if (followUp) armSkillFlip(flips, followUp.id, runtime.time, canonicalTime(runtime.time + (skill.flipDuration ?? 5)));
 
   if (skill.id !== ID.TRUE_STRIKE && skill.flipParentId != null) consumeSkillFlip(flips, skill.id);
 }
@@ -121,7 +120,7 @@ export function startRevenantBlossomingAura(runtime: RevenantRuntime, cast: Runt
 /** Manual and automatic detonation share scaling and consume the one armed fuse. */
 function detonateAura(runtime: RevenantRuntime, activationId?: string): void {
   const flips = runtime.profession.core.availableFlips;
-  const expiresAt = Number(flips[ID.DETONATE_BLOSSOMING_AURA]?.expiresAt || 0);
+  const expiresAt = flips[ID.DETONATE_BLOSSOMING_AURA]?.expiresAt || 0;
   if (!expiresAt) return;
   const skill = auraSkill(runtime);
   const final = skill.effects?.find((effect) => effect.type === 'strike' && effect.name === 'Final Damage');
@@ -144,7 +143,7 @@ function detonateAura(runtime: RevenantRuntime, activationId?: string): void {
       ...common,
       name: final.name,
       coefficient: Number(final.coefficient) * (1 + Number(final.damageIncreasePerStack) * stacks),
-      skillWeapon: String(skill.weapon || '')
+      skillWeapon: skill.weapon || ''
     })
   );
   for (const effect of skill.effects ?? [])
@@ -183,10 +182,10 @@ export function revenantBlossomingAuraPulse(runtime: RevenantRuntime, data: unkn
       skillName: skill.name,
       activationId,
       name: pulse.name,
-      coefficient: Number(ticks[index].coefficient),
+      coefficient: ticks[index].coefficient,
       hitIndex: index + 1,
       totalHits: ticks.length,
-      skillWeapon: String(skill.weapon || '')
+      skillWeapon: skill.weapon || ''
     })
   );
 }
@@ -198,7 +197,7 @@ export function detonateRevenantBlossomingAura(runtime: RevenantRuntime, cast: R
 
 function activeCrushingAbyss(runtime: RevenantRuntime): number[] {
   const core = runtime.profession.core;
-  core.crushingAbyss = purgeExpiredStacks(core.crushingAbyss || [], runtime.time);
+  core.crushingAbyss = purgeExpiredStacks(core.crushingAbyss, runtime.time);
   return core.crushingAbyss;
 }
 
@@ -241,8 +240,8 @@ function abyssalRazePackets(
       ...common,
       name: 'Abyssal Raze — Torment',
       condition: 'Torment',
-      stacks: Number(baseTick?.stacks || 0),
-      duration: Number(baseTick?.duration || 0)
+      stacks: baseTick?.stacks || 0,
+      duration: baseTick?.duration || 0
     })
   );
   if (stacks > 0) {
@@ -252,8 +251,8 @@ function abyssalRazePackets(
         ...common,
         name: 'Abyssal Raze — Crushing Abyss Torment',
         condition: 'Torment',
-        stacks: Number(crushingTick?.stacks || 0) * stacks,
-        duration: Number(crushingTick?.duration || 0)
+        stacks: (crushingTick?.stacks || 0) * stacks,
+        duration: crushingTick?.duration || 0
       })
     );
   }
@@ -263,27 +262,27 @@ function abyssalRazePackets(
 export function startRevenantAbyssalRaze(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const strike = cast.skill.effects?.find((effect) => effect.type === 'strike');
   if (!strike) throw new Error('Abyssal Raze is missing its strike effect.');
-  runtime.schedule(REVENANT_ABYSSAL_RAZE, canonicalTime(cast.start + Number(effectFirstAtMs(strike) || 0) / 1000), {
+  runtime.schedule(REVENANT_ABYSSAL_RAZE, canonicalTime(cast.start + (effectFirstAtMs(strike) || 0) / 1000), {
     activationId: cast.id
   });
 }
 
 /** Impact packets use the current stack count; the impact then grants one more Crushing Abyss stack. */
 export function revenantAbyssalRazeImpact(runtime: RevenantRuntime, data: unknown): void {
-  const skill = runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE) as RevenantSkill | undefined;
+  const skill = runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE);
   if (!skill) return;
   const { activationId } = data as { activationId: string };
   abyssalRazePackets(runtime, skill, activeStackCount(activeCrushingAbyss(runtime), runtime.time), activationId);
   const effect = skill.effects?.find((candidate) => candidate.type === 'buff' && candidate.kind === 'crushing-abyss');
   if (effect?.type !== 'buff') throw new Error('Abyssal Raze is missing Crushing Abyss.');
   const maximum = Math.max(0, Number(skill.maximumStacks || 0));
-  const duration = Math.max(0, Number(effect.duration || 0));
+  const duration = Math.max(0, effect.duration || 0);
   const grant = addTimedStacks(activeCrushingAbyss(runtime), 1, runtime.time, duration, maximum);
   // At the cap the grant lands nothing, and the buff must not be published either.
   if (grant.added === 0) return;
   runtime.profession.core.crushingAbyss = grant.expiries;
   const effectId = effect.sourceId ?? ID.ABYSSAL_RAZE;
-  const effectName = String(effect.name || 'Crushing Abyss');
+  const effectName = effect.name || 'Crushing Abyss';
   runtime.emitProcedural(
     {
       type: 'buff',
@@ -325,7 +324,7 @@ function sameWeaponSets(runtime: RevenantRuntime): boolean {
 
 /** A committed swap to a genuinely different set spends maximum Crushing Abyss on an empowered Raze. */
 export function completeRevenantCrushingAbyssSwap(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const skill = runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE) as RevenantSkill | undefined;
+  const skill = runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE);
   if (!skill) return;
   const maximum = Math.max(0, Number(skill.maximumStacks || 0));
   if (activeCrushingAbyss(runtime).length < maximum || sameWeaponSets(runtime)) return;
@@ -335,7 +334,7 @@ export function completeRevenantCrushingAbyssSwap(runtime: RevenantRuntime, cast
 
 /** The first landed hit of a spear skill reduces Abyssal Raze's live recharge by its authored seconds. */
 export function reactRevenantSpearRecharge(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  const source = runtime.helpers.skillsById.get(Number(event.skillId)) as RevenantSkill | undefined;
+  const source = runtime.helpers.skillsById.get(Number(event.skillId));
   const seconds = Number(source?.rechargeReduction || 0);
   const raze = runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE);
   if (!source || !seconds || !raze || !(Number(raze.ammoRecharge) > 0)) return;

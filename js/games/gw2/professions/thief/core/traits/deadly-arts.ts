@@ -57,7 +57,7 @@ export function applyLotusPoison(context: ThiefResolverContext, event: ThiefReso
   if (
     event.condition !== 'Poisoned' ||
     event.actorType !== 'player' ||
-    Number(event.metadata?.triggeredByAlly || 0) > 0 ||
+    (event.metadata?.triggeredByAlly || 0) > 0 ||
     !hasTrait(context.config, TRAIT.LOTUS_POISON)
   )
     return;
@@ -115,7 +115,7 @@ export function applyLotusPoison(context: ThiefResolverContext, event: ThiefReso
 }
 
 function targetConditionCount(context: ThiefResolverContext, at: number): number {
-  return CANONICAL_TARGET_CONDITIONS.filter((condition) => context.query?.targetHasCondition(condition, at, context))
+  return CANONICAL_TARGET_CONDITIONS.filter((condition) => context.query.targetHasCondition(condition, at, context))
     .length;
 }
 

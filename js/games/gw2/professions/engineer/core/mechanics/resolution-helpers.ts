@@ -52,7 +52,7 @@ export function resolverSkill(
   skillId: SkillId | null | undefined
 ): EngineerSkill | undefined {
   if (skillId == null) return;
-  return context.helpers.skillsById?.get(skillId) as EngineerSkill | undefined;
+  return context.helpers.skillsById?.get(skillId);
 }
 
 /** Queues one derived strike; the shared runtime attempts its finisher when the strike actually resolves. */
@@ -186,14 +186,14 @@ export function recordTrait(
   event: EngineerResolverEvent,
   icon = ''
 ): void {
-  context.recordProc?.('trait', name, event.at, event.skillName, '', icon);
+  context.recordProc('trait', name, event.at, event.skillName, '', icon);
 }
 
 /** Adapts resolver time and lowercase boon names to the shared permanent-plus-timed stack query. */
 export function activeBoonStacks(context: EngineerResolverContext, kind: string, maximum = 25, at = 0): number {
   return queryActiveBoonStacks(
     { config: context.config, runtime: context, time: at },
-    String(kind || '').toLowerCase(),
+    (kind || '').toLowerCase(),
     maximum
   );
 }

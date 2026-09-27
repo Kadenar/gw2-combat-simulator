@@ -119,7 +119,7 @@ export function triggerHuntersGaze(context: RangerResolverContext, event: Gw2Res
 }
 
 export function reactToRangerCoreBuff(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const kind = String(event.kind || '').toLowerCase();
+  const kind = (event.kind || '').toLowerCase();
   if (kind === 'fury' && event.resolvedAudience?.includesSelf && hasTrait(context, TRAIT.REMORSELESS)) {
     const state = professionCoreState(context);
     state.playerOpeningStrikeReady = true;

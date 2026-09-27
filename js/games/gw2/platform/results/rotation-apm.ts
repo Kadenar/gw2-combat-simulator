@@ -43,13 +43,13 @@ function peakApm(starts: readonly number[], duration: number, windowSeconds: num
   let peak = { startSeconds: 0, endSeconds: windowSeconds, actionCount: 0, apm: 0 };
   let right = 0;
   for (let left = 0; left < starts.length; left += 1) {
-    const atEnd = starts[left]! >= duration - windowSeconds;
-    const startSeconds = Math.min(starts[left]!, duration - windowSeconds);
+    const atEnd = starts[left] >= duration - windowSeconds;
+    const startSeconds = Math.min(starts[left], duration - windowSeconds);
     const endSeconds = atEnd ? duration : startSeconds + windowSeconds;
     // Ordinary windows are half-open; the final window includes an instant input at execution end.
     while (
       right < starts.length &&
-      (starts[right]! < endSeconds || (endSeconds === duration && starts[right] === duration))
+      (starts[right] < endSeconds || (endSeconds === duration && starts[right] === duration))
     )
       right += 1;
     const actionCount = right - left;

@@ -19,7 +19,7 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
       singular: 'motivation',
       plural: 'motivation',
       maximum: 10,
-      value: Number(state.motivation || 0),
+      value: state.motivation || 0,
       canStart: false,
       step: 1,
       displayMode: 'counter',
@@ -33,8 +33,8 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
 /** Shows the refrain currently pulsing while Paragon still has motivation to sustain it. */
 function paragonStateSnapshot(context: WarriorUiContext): RotationStateSnapshotItem[] {
   const state = warriorUiState(context);
-  const refrain = String(state.activeRefrain || '');
-  return refrain && Number(state.motivation || 0) > 0
+  const refrain = state.activeRefrain || '';
+  return refrain && (state.motivation || 0) > 0
     ? [
         {
           id: 'paragon-active-refrain',

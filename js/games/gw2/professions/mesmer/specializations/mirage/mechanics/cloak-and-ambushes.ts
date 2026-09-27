@@ -87,10 +87,10 @@ export function createMirageActionController({
     for (let index = 0; index < Math.max(0, count); index += 1) {
       mirageState.from(state).mirrors.push({
         availableAt: at,
-        expiresAt: canonicalTime(at + Number(mirror.duration)),
+        expiresAt: canonicalTime(at + mirror.duration),
         source
       });
-      state.schedule('mesmer.mirror-expire', canonicalTime(at + Number(mirror.duration)), undefined);
+      state.schedule('mesmer.mirror-expire', canonicalTime(at + mirror.duration), undefined);
     }
   };
 
@@ -108,7 +108,7 @@ export function createMirageActionController({
       at,
       source: actorType === 'summon' ? 'Clone' : 'Player',
       actorType,
-      kind: String(boon.name || '').toLowerCase(),
+      kind: (boon.name || '').toLowerCase(),
       stacks: Number(boon.stacks),
       duration: Number(boon.duration),
       skillName: sourceSkill,
@@ -159,7 +159,7 @@ export function createMirageActionController({
         blade: false
       };
       // Explicit summon ownership keeps clone ambush packets independent of their display labels.
-      const impactAt = at + Number(ambush.clone.castTimeMs || 0) / 1000;
+      const impactAt = at + (ambush.clone.castTimeMs || 0) / 1000;
       // Clone ambushes use the weapon's authored control and retain summon ownership.
       const skill = skillsById.get(ambush.id);
       for (const effect of skill?.effects || []) {
@@ -321,7 +321,7 @@ export function createMirageActionController({
       weapon,
       blade: false
     };
-    const impactAt = ambush.player.damageAtMs == null ? at : castStart + Number(ambush.player.damageAtMs) / 1000;
+    const impactAt = ambush.player.damageAtMs == null ? at : castStart + ambush.player.damageAtMs / 1000;
     // Packetized ambushes resolve each hit and its repeated statuses at the measured beam timestamps.
     const statusAtMs = ambush.player.ticks?.map((tick) => tick.atMs) ?? ambush.player.statusAtMs;
     const impactTimes = statusAtMs?.length ? statusAtMs.map((atMs) => castStart + atMs / 1000) : [impactAt];

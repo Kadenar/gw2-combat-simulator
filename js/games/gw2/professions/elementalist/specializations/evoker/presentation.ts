@@ -33,13 +33,13 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 
 // the projected state record is absent until a simulation has produced one
 function uiState(context: ElementalistUiContext): Partial<EvokerState> {
-  return (context.professionState as Partial<EvokerState> | undefined) || {};
+  return context.professionState || {};
 }
 
 // prefers simulated state, then the build's configured element, then Fire
 function selectedElement(context: ElementalistUiContext): ElementalistAttunement {
   const build = context.build;
-  const value = String(uiState(context).element || build?.evokerElement || 'Fire');
+  const value = uiState(context).element || build?.evokerElement || 'Fire';
   return ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement)
     ? (value as ElementalistAttunement)
     : 'Fire';
@@ -60,7 +60,7 @@ function familiarSkillId(context: ElementalistUiContext): number {
   const build = context.build;
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   const empoweredMaximum = balanceProfileNumber(resourcesProfile, 'minimumStacks');
-  const empowered = Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0);
+  const empowered = state.empowered ?? build?.initialEvokerEmpowered ?? 0;
   const name = FAMILIAR_SKILL_NAMES[element][empowered >= empoweredMaximum ? 'empowered' : 'basic'];
   return ELEMENTALIST_FAMILIAR_SKILL_IDS[name];
 }
@@ -90,10 +90,10 @@ function familiarPaletteAvailability(context: ElementalistUiContext, skill: Skil
       ),
       'maximumStacks'
     );
-  const charges = Number(state.charges ?? build?.initialEvokerCharges ?? maximum);
+  const charges = state.charges ?? build?.initialEvokerCharges ?? maximum;
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   const empoweredMaximum = balanceProfileNumber(resourcesProfile, 'minimumStacks');
-  const empowered = Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0);
+  const empowered = state.empowered ?? build?.initialEvokerEmpowered ?? 0;
   if (BASIC_FAMILIARS.has(skill.id)) {
     return empowered < empoweredMaximum && charges >= maximum
       ? { available: true, message: '' }
@@ -113,7 +113,7 @@ function familiarPaletteAvailability(context: ElementalistUiContext, skill: Skil
 
 /** Reports the brief Elemental Balance damage window only while it can affect the next action. */
 function evokerStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
-  const remaining = Number(uiState(context).elementalBalanceUntil || 0) - Math.max(0, Number(context.atSeconds || 0));
+  const remaining = (uiState(context).elementalBalanceUntil || 0) - Math.max(0, context.atSeconds || 0);
   return remaining > 0
     ? [
         {
@@ -200,13 +200,13 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
     const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
     const empoweredMaximum = balanceProfileNumber(resourcesProfile, 'minimumStacks');
     const empowered = boundedNumber(
-      Math.floor(Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0)),
+      Math.floor(state.empowered ?? build?.initialEvokerEmpowered ?? 0),
       0,
       0,
       empoweredMaximum
     );
     const element = selectedElement(context).toLowerCase();
-    const charges = Number(state.charges ?? build?.initialEvokerCharges ?? maximum);
+    const charges = state.charges ?? build?.initialEvokerCharges ?? maximum;
     const basicReady = charges >= maximum;
     return [
       {

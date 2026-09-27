@@ -58,7 +58,7 @@ export function applyRangerBuildAttributeRules(
       to: 'Power',
       amount: balanceProfileNumber(
         stridersStrengthProfile,
-        weapons?.includes('Sword') ? 'weaponAttributeBonus' : 'attributeBonus'
+        weapons.includes('Sword') ? 'weaponAttributeBonus' : 'attributeBonus'
       ),
       feedsConversions: false,
       enabled: hasTrait(TRAIT.STRIDERS_STRENGTH)
@@ -69,7 +69,7 @@ export function applyRangerBuildAttributeRules(
       to: 'Ferocity',
       amount: balanceProfileNumber(
         honedAxesProfile,
-        weapons?.includes('Axe') ? 'weaponAttributeBonus' : 'attributeBonus'
+        weapons.includes('Axe') ? 'weaponAttributeBonus' : 'attributeBonus'
       ),
       feedsConversions: false,
       enabled: hasTrait(TRAIT.HONED_AXES)
@@ -89,7 +89,7 @@ export function applyRangerBuildAttributeRules(
     }
   }
 
-  const favoredWeapon = weapons?.some((weapon) => ['Dagger', 'Mace', 'Torch'].includes(weapon));
+  const favoredWeapon = weapons.some((weapon) => ['Dagger', 'Mace', 'Torch'].includes(weapon));
 
   const petsProwessProfile = requireBalanceProfileFromContext(profileContext, TRAIT.PETS_PROWESS);
   const ambidexterityProfile = requireBalanceProfileFromContext(profileContext, TRAIT.AMBIDEXTERITY);
@@ -176,7 +176,7 @@ export function applyRangerBuildAttributeRules(
         kind: 'flat',
         source: `Soulbeast ${archetype}`,
         to: BUILD_ATTRIBUTE_NAMES[attribute],
-        amount: Number(amount),
+        amount: amount,
         feedsConversions: false
       });
     }

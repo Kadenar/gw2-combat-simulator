@@ -30,7 +30,7 @@ export function modifyThiefLifeSiphon(context: ThiefResolverContext, event: Thie
   );
   return {
     flatStrikeMultiplier:
-      Number(event.flatStrikeMultiplier ?? 1) *
+      (event.flatStrikeMultiplier ?? 1) *
       (1 + stacks * balanceProfileNumber(leadAttacksProfile, 'damageIncreasePerStack'))
   };
 }

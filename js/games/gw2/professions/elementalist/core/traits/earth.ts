@@ -104,7 +104,7 @@ export function applyWrittenInStone(
     applyAura(context, {
       at: cast.effectiveEnd,
       aura: String(effect.kind),
-      duration: Number(effect.duration),
+      duration: effect.duration,
       skillName: 'Written in Stone',
       sourceId: skill.id
     });
@@ -146,7 +146,7 @@ function elementalShieldingEffect(context: unknown) {
   return {
     kind: String(effect.boon).toLowerCase(),
     stacks: Number(effect.stacks),
-    duration: Number(effect.duration)
+    duration: effect.duration
   };
 }
 
@@ -161,6 +161,6 @@ export function applyResolverElementalShielding(context: Gw2ResolverRuntime, eve
     protection.kind,
     protection.stacks,
     protection.duration,
-    String(event.skillName || event.name || event.source || '')
+    event.skillName || event.name || event.source || ''
   );
 }

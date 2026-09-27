@@ -97,12 +97,12 @@ function mesmerAmbushProfile(id: string, attack: MesmerAmbushAttack): BalancePro
     effects: [
       ambushStrikeEffect(attack.player, 'Player'),
       ...(attack.player.conditions || []).flatMap((status) =>
-        Array.from({ length: Number(status.applications ?? 1) }, () => attackStatusEffect(status, 'Player'))
+        Array.from({ length: status.applications ?? 1 }, () => attackStatusEffect(status, 'Player'))
       ),
       ...(attack.player.boons || []).map((status) => boonStatusEffect(status, 'Player')),
       ambushStrikeEffect(attack.clone, 'Clone'),
       ...(attack.clone.conditions || []).flatMap((status) =>
-        Array.from({ length: Number(status.applications ?? 1) }, () => attackStatusEffect(status, 'Clone'))
+        Array.from({ length: status.applications ?? 1 }, () => attackStatusEffect(status, 'Clone'))
       ),
       ...(attack.clone.boons || []).map((status) => boonStatusEffect(status, 'Clone')),
       ...(attack.vulnerability

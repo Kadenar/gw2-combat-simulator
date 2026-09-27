@@ -82,7 +82,7 @@ function passivePulse(runtime: NecromancerRuntime, data: unknown): void {
           flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
           flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
           canCrit: strike.canCrit !== false,
-          damageKind: String(strike.damageKind || '')
+          damageKind: strike.damageKind || ''
         })
       );
   }

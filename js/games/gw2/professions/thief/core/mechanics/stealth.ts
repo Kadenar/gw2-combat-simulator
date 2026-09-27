@@ -29,7 +29,7 @@ export function thiefStealthed(runtime: ThiefRuntime, at = runtime.time): boolea
 /** A specialization-granted stealth-attack charge is usable outside stealth until it expires. */
 export function thiefBonusStealthAttack(runtime: ThiefRuntime, at = runtime.time): boolean {
   const charges = thiefStealthAttackCharges(runtime);
-  return Number(charges.stealthAttackCharges || 0) > 0 && Number(charges.stealthAttackExpiresAt || 0) > at;
+  return (charges.stealthAttackCharges || 0) > 0 && (charges.stealthAttackExpiresAt || 0) > at;
 }
 
 /**
@@ -127,7 +127,7 @@ export function beginThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast
   const skill = cast.skill as ThiefSkill;
   const charges = thiefStealthAttackCharges(runtime);
   if (!thiefStealthed(runtime) && thiefBonusStealthAttack(runtime))
-    charges.stealthAttackCharges = Number(charges.stealthAttackCharges || 0) - 1;
+    charges.stealthAttackCharges = (charges.stealthAttackCharges || 0) - 1;
   core.strikeBrokeStealthAt = null;
   if (breakThiefStealth(runtime, skill, runtime.time)) return;
   core.stealthStartedAt = runtime.time;
@@ -142,7 +142,7 @@ export function completeThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeC
   const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!vulnerability) return;
-  emitThiefCondition(runtime, cast.skill as ThiefSkill, {
+  emitThiefCondition(runtime, cast.skill, {
     at: runtime.time,
     source: 'Trait',
     sourceId: TRAIT.SUNDERING_SHADE,

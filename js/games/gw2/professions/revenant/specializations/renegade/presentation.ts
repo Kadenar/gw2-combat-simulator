@@ -16,13 +16,11 @@ import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/pro
 /** Shows Kalla's Fervor stacks and the one-use Band Together enhancement window. */
 function renegadeStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
   const state = revenantUiState(context);
-  const at = Math.max(0, Number(context.atSeconds || 0));
+  const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
-  const fervor = (state.kallasFervor || []).filter(
-    (stack) => Number(stack.at || 0) <= at && Number(stack.expiresAt || 0) > at
-  );
+  const fervor = (state.kallasFervor || []).filter((stack) => (stack.at || 0) <= at && (stack.expiresAt || 0) > at);
   if (fervor.length) {
-    const remaining = Math.min(...fervor.map((stack) => Number(stack.expiresAt))) - at;
+    const remaining = Math.min(...fervor.map((stack) => stack.expiresAt)) - at;
     items.push({
       id: 'renegade-kallas-fervor',
       label: "Kalla's Fervor",
@@ -31,7 +29,7 @@ function renegadeStateSnapshot(context: RevenantUiContext): RotationStateSnapsho
     });
   }
 
-  const bandRemaining = Number(state.bandTogetherExpiresAt || 0) - at;
+  const bandRemaining = (state.bandTogetherExpiresAt || 0) - at;
   if (state.bandTogetherReady && bandRemaining > 0) {
     items.push({
       id: 'renegade-band-together',
@@ -75,6 +73,6 @@ export const renegadeUi: RevenantUiSlice = Object.freeze({
   isPaletteSkillInstant: (context: RevenantUiContext, skill: RevenantSkill) =>
     // Band Together is instant only when the one-use enhancement window is active; the UI must expose this so the user can see at a glance that the next press is the empowered summon
     RENEGADE_ENHANCED_SKILL_BY_ID[Number(skill.id)] != null &&
-    isBandTogetherReady(revenantUiState(context), Number(context.time || 0)),
+    isBandTogetherReady(revenantUiState(context), context.time || 0),
   resourceViews: () => []
 });

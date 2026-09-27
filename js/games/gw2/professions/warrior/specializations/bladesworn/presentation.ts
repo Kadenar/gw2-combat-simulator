@@ -13,7 +13,7 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 
 const PROFESSION_SKILLS = Object.freeze([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
@@ -138,7 +138,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     const state = warriorUiState(context);
     const at = warriorSnapshotAt(context);
     const items: RotationStateSnapshotItem[] = [];
-    const result = context.result as Gw2SimulationResult | null | undefined;
+    const result = context.result;
     // Bladesworn's trait buffs live on the resolved buff timeline, which keeps
     // this snapshot aligned with the damage and ferocity modifier gates.
     const fierceAsFire = Math.min(10, timedBuffStacksAt(result, 'fierce-as-fire', at));
@@ -162,25 +162,25 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     }
 
     const window = (state.overchargedCartridgeWindows || []).find(
-      (candidate) => Number(candidate.startedAt) <= at && Number(candidate.expiresAt) > at
+      (candidate) => candidate.startedAt <= at && candidate.expiresAt > at
     );
     if (window) {
       const name = window.supercharged ? 'Supercharged Cartridges' : 'Overcharged Cartridges';
       items.push({
         id: window.supercharged ? 'supercharged-cartridges' : 'overcharged-cartridges',
         label: name,
-        value: formatSecondsRemaining(Number(window.expiresAt) - at),
-        title: `${name} active (+${Math.round(Number(window.damageBonus || 0) * 100)}% damage)`
+        value: formatSecondsRemaining(window.expiresAt - at),
+        title: `${name} active (+${Math.round((window.damageBonus || 0) * 100)}% damage)`
       });
     }
 
     const positiveFlowSources = (state.flowStabilizerWindows || [])
-      .filter((candidate) => Number(candidate.startedAt) <= at && Number(candidate.expiresAt) > at)
+      .filter((candidate) => candidate.startedAt <= at && candidate.expiresAt > at)
       .map((candidate) => ({
         stacks: 2,
-        expiresAt: Number(candidate.expiresAt)
+        expiresAt: candidate.expiresAt
       }));
-    if (Number(state.traitPositiveFlowStartedAt || 0) <= at && Number(state.traitPositiveFlowUntil || 0) > at) {
+    if ((state.traitPositiveFlowStartedAt || 0) <= at && (state.traitPositiveFlowUntil || 0) > at) {
       positiveFlowSources.push({
         stacks: Number(state.traitPositiveFlowStacks),
         expiresAt: Number(state.traitPositiveFlowUntil)
@@ -191,7 +191,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     const baseStacks = result?.events.some(
       (event) =>
         event.at <= at &&
-        (!result.hasExplicitCombatStart || event.at >= Number(result.combatStartTime ?? Infinity)) &&
+        (!result.hasExplicitCombatStart || event.at >= (result.combatStartTime ?? Infinity)) &&
         isCombatEntryEvent(event)
     )
       ? 1

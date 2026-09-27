@@ -180,21 +180,14 @@ export const mesmerTooltips: ProfessionTooltips = {
 
   // Bind native mechanic descriptions to their canonical skill identities.
   skills: {
-    ...Object.fromEntries(
-      Object.keys(MESMER_CORE_PHANTASM_ATTACK_TIMINGS).map((id) => [
-        Number(id),
-        phantasmTooltip as DescribeSimulationTooltip
-      ])
-    ),
+    ...Object.fromEntries(Object.keys(MESMER_CORE_PHANTASM_ATTACK_TIMINGS).map((id) => [Number(id), phantasmTooltip])),
     ...Object.fromEntries(
       Object.keys({ ...MESMER_CORE_SHATTERS, ...MESMER_CHRONOMANCER_SHATTERS }).map((id) => [
         Number(id),
-        shatterTooltip as DescribeSimulationTooltip
+        shatterTooltip
       ])
     ),
-    ...Object.fromEntries(
-      Object.keys(MESMER_VIRTUOSO_SHATTERS).map((id) => [Number(id), shatterTooltip as DescribeSimulationTooltip])
-    ),
+    ...Object.fromEntries(Object.keys(MESMER_VIRTUOSO_SHATTERS).map((id) => [Number(id), shatterTooltip])),
     [SHARED_SKILL_IDS.SWAP_WEAPONS]: skillTooltip(
       'Switch weapon sets. Existing illusions keep their own weapons and attack patterns.'
     ),
@@ -231,8 +224,8 @@ export const mesmerTooltips: ProfessionTooltips = {
       Object.keys(MIRAGE_AMBUSH_PROFILE_IDS)
         .map((weapon) => MESMER_MIRAGE_AMBUSH_SKILLS[weapon].id)
         .map((id) => [
-          Number(id),
-          ((balanceContext, entity) => {
+          id,
+          (balanceContext, entity) => {
             const selected = balanceContext.catalog.skillsById.get(entity.id)!;
             const profile = tooltipProfile(balanceContext, MIRAGE_AMBUSH_PROFILE_IDS[String(selected.weapon)]);
             // Describe repeated statuses with the same independent cadence used by the runtime.
@@ -272,13 +265,13 @@ export const mesmerTooltips: ProfessionTooltips = {
                 (selected.id === ID.MIRAGE_THRUST ? ' This player ambush also creates a clone.' : ''),
               facts
             };
-          }) as DescribeSimulationTooltip
+          }
         ])
     ),
     ...Object.fromEntries(
       Object.keys(TROUBADOUR_INSTRUMENT_PROFILE_IDS).map((id) => [
         Number(id),
-        ((balanceContext, entity) => ({
+        (balanceContext, entity) => ({
           description:
             "Perform this instrument's attack, then spend your notes to keep the instrument active. Additional notes extend its duration. Different instruments can overlap; a new performance replaces the same instrument's previous window. Instrument and note-spending traits apply.",
           facts: [
@@ -306,7 +299,7 @@ export const mesmerTooltips: ProfessionTooltips = {
               ? simulationEffectFacts(tooltipProfile(balanceContext, TROUBADOUR.instruments).effects).facts
               : [])
           ]
-        })) as DescribeSimulationTooltip
+        })
       ])
     ),
     [ID.CRESCENDO]: (balanceContext) => ({

@@ -37,7 +37,6 @@ import {
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
 const COURAGE = 'guardian.firebrand.courage';
@@ -288,8 +287,8 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
   onCooldownReset: refreshFirebrandMantras,
   reactions: {
     'damage.resolved'(runtime, event, details) {
-      reactToFirebrandDamage(runtime, event, details as NativeResolvedDamageDetails);
-      reactToFirebrandJusticeHit(runtime, event, details as NativeResolvedDamageDetails);
+      reactToFirebrandDamage(runtime, event, details);
+      reactToFirebrandJusticeHit(runtime, event, details);
     },
     'buff.applied'(runtime, event) {
       // Executed history is appended after dispatch; reproject once the applied Alacrity window is queryable.

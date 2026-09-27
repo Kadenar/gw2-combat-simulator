@@ -47,7 +47,7 @@ export function modifyWarriorStrengthAttributes(
   if (hasTrait(context, TRAIT.PINNACLE_OF_STRENGTH)) {
     const pinnacleOfStrengthProfile = requireBalanceProfileFromContext(context, PROFILE.pinnacleOfStrength);
     result.power +=
-      Number(context.query?.mightStacksAt(context.time, context.runtime, context.event) || 0) *
+      (context.query?.mightStacksAt(context.time, context.runtime, context.event) || 0) *
       balanceProfileNumber(pinnacleOfStrengthProfile, 'attributeBonus');
   }
 
@@ -68,7 +68,7 @@ export function modifyWarriorStrengthAttributes(
   }
 }
 
-export const warriorStrengthModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+export const warriorStrengthModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
   {
     id: 'warrior.pinnacle-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
@@ -84,7 +84,7 @@ export const warriorStrengthModifierRules: readonly Gw2ModifierRule[] = Object.f
     parameters: {
       maximumStacks: 4,
       damagePerStack: 0.0375
-    } as Readonly<Record<string, number>>,
+    },
     amount: (context, _target, parameters) =>
       warriorActiveBuffStacks(context, 'berserkers-power', parameters.maximumStacks) * parameters.damagePerStack,
     when: (context) => hasTrait(context, TRAIT.BERSERKERS_POWER)
@@ -96,7 +96,7 @@ export const warriorStrengthModifierRules: readonly Gw2ModifierRule[] = Object.f
     parameters: {
       baseBonus: 0.05,
       activeBonus: 0.1
-    } as Readonly<Record<string, number>>,
+    },
     amount: (context, _target, parameters) =>
       parameters.baseBonus + (warriorActiveBuffStacks(context, 'peak-performance', 1) ? parameters.activeBonus : 0),
     when: (context) => hasTrait(context, TRAIT.PEAK_PERFORMANCE)

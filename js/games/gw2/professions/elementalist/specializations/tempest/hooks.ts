@@ -156,7 +156,7 @@ function afterCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill
       actorType: 'player',
       kind: String(alacrity.boon).toLowerCase(),
       stacks: Number(alacrity.stacks),
-      duration: Number(alacrity.duration),
+      duration: alacrity.duration,
       skillName: 'Lucid Singularity'
     });
   });
@@ -175,7 +175,7 @@ function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: 
   // Copy the overload's base progress to align both recharges while retaining longer lockouts.
   if (isElementalistAttunement(attunement)) {
     const readyAt = context.cooldowns.get(skill.id) ?? cast.effectiveEnd;
-    if (readyAt > Number(context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]) ?? 0)) {
+    if (readyAt > (context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]) ?? 0)) {
       context.cooldownController.copy(skill.id, ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]);
     }
   }
@@ -195,7 +195,7 @@ function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: 
       applyElementalistAura(context, {
         at: cast.effectiveEnd,
         aura,
-        duration: Number(unstableConduitAttunement.duration),
+        duration: unstableConduitAttunement.duration,
         skillName: 'Unstable Conduit',
         sourceId: skill.id,
         // The completion aura precedes the same-time Overload packet.
@@ -289,7 +289,7 @@ function onAttunementEvent(context: ElementalistRuntime, event: SimulationEvent)
           actorType: 'player',
           kind: String(vigor.boon).toLowerCase(),
           stacks: Number(vigor.stacks),
-          duration: Number(vigor.duration),
+          duration: vigor.duration,
           skillName: 'Latent Stamina'
         });
       }

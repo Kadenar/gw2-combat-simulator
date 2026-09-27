@@ -16,7 +16,7 @@ import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/m
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 
 export function illusionSource(context: Gw2ModifierContext): boolean {
-  return ['clone', 'phantasm'].includes(String(context.event?.summonKind || ''));
+  return ['clone', 'phantasm'].includes(context.event?.summonKind || '');
 }
 
 export function timedStacks(context: Gw2ModifierContext, kind: string, duration: number, maximum: number): number {
@@ -76,21 +76,19 @@ export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attribute
     dominationSelected && context.timeline?.skillOnCooldownAt(10232, context.time) ? dominationBonus : 0;
   return {
     ...attributes,
-    power: Number(attributes.power || 0),
-    precision: Number(attributes.precision || 0),
+    power: attributes.power || 0,
+    precision: attributes.precision || 0,
     ferocity:
-      Number(attributes.ferocity || 0) +
+      (attributes.ferocity || 0) +
       timedStacks(context, 'fencer', facts.fencerDuration, facts.fencerMaximum) * facts.fencerPerStack,
     conditionDamage:
-      Number(attributes.conditionDamage || 0) +
-      (dominationSelected && !staticApplied ? dominationBonus : 0) -
-      domination,
+      (attributes.conditionDamage || 0) + (dominationSelected && !staticApplied ? dominationBonus : 0) - domination,
     expertise:
-      Number(attributes.expertise || 0) +
+      (attributes.expertise || 0) +
       regenerationDelta * chaoticExpertiseBonus +
       (midnightSelected && !staticApplied ? midnightBonus : 0) -
       midnight,
-    concentration: Number(attributes.concentration || 0) + regenerationDelta * facts.chaoticConcentrationBonus
+    concentration: (attributes.concentration || 0) + regenerationDelta * facts.chaoticConcentrationBonus
   };
 }
 
@@ -177,7 +175,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     parameters: modifierParameters({ baseFactor: 1, damagePerStack: 0.01 }),
     factor: (context, _target, parameters) =>
       parameters.baseFactor +
-      Number(context.query?.vulnerabilityStacksAt(context.time, context.runtime) || 0) * parameters.damagePerStack,
+      (context.query?.vulnerabilityStacksAt(context.time, context.runtime) || 0) * parameters.damagePerStack,
     order: 100,
     when: (context) => context.event?.skillId === ID.MIND_STAB
   },
@@ -188,7 +186,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     parameters: modifierParameters({ baseFactor: 1, damagePerStack: 0.005 }),
     factor: (context, _target, parameters) =>
       parameters.baseFactor +
-      Number(context.query?.vulnerabilityStacksAt(context.time, context.runtime) || 0) * parameters.damagePerStack,
+      (context.query?.vulnerabilityStacksAt(context.time, context.runtime) || 0) * parameters.damagePerStack,
     order: 100,
     when: (context) => hasTrait(context, TRAIT.FRAGILITY) && !illusionSource(context)
   },
@@ -243,7 +241,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     when: (context) =>
       hasTrait(context, TRAIT.EGOTISM) &&
       !illusionSource(context) &&
-      Number(context.config?.target?.health || 0) > 0 &&
+      (context.config?.target?.health || 0) > 0 &&
       targetHealthLoss(context.config, context.runtime) > 0
   },
   {

@@ -59,9 +59,8 @@ function facetPulse(runtime: RevenantRuntime, data: unknown): void {
   const state = heraldState.from(runtime);
   if (state.facetPulseReadyAt[skillId] !== runtime.time) return;
   if (!heraldFacetPassiveActive(runtime.profession.core, state, skillId, runtime.time)) return;
-  const skill = runtime.helpers.skillsById.get(skillId) as RevenantSkill | undefined;
-  const pulse = skill?.upkeepPulse as
-    { readonly kind: string; readonly duration: number; readonly stacks: number } | undefined;
+  const skill: RevenantSkill | undefined = runtime.helpers.skillsById.get(skillId);
+  const pulse = skill?.upkeepPulse;
   if (!skill || !pulse) return;
   runtime.emitProcedural({
     type: 'buff',
@@ -77,7 +76,7 @@ function facetPulse(runtime: RevenantRuntime, data: unknown): void {
     stacks: pulse.stacks,
     audience: { recipients: 'party' }
   });
-  const next = canonicalTime(runtime.time + Math.max(EPSILON, Number(skill.pulseInterval ?? 3)));
+  const next = canonicalTime(runtime.time + Math.max(EPSILON, skill.pulseInterval ?? 3));
   if (heraldFacetPassiveActive(runtime.profession.core, state, skillId, next))
     scheduleFacetPulse(runtime, skillId, next);
   else state.facetPulseReadyAt[skillId] = next;
@@ -92,11 +91,7 @@ function startFacet(runtime: RevenantRuntime, skill: RevenantSkill): void {
   const consumeId = facetConsumeId(skill, core.activeLegendId);
   if (consumeId != null) armSkillFlip(core.availableFlips, consumeId, runtime.time);
   if (!skill.upkeepPulse) return;
-  scheduleFacetPulse(
-    runtime,
-    skill.id,
-    canonicalTime(runtime.time + Math.max(EPSILON, Number(skill.pulseInterval ?? 3)))
-  );
+  scheduleFacetPulse(runtime, skill.id, canonicalTime(runtime.time + Math.max(EPSILON, skill.pulseInterval ?? 3)));
 }
 
 // A committed consume's facet and prior activity are acceptance facts reused at its completion.
@@ -104,7 +99,7 @@ const consumedFacets = new WeakMap<RuntimeCast, { facet: RevenantSkill; wasActiv
 
 function consumedFacet(runtime: RevenantRuntime, cast: RuntimeCast): RevenantSkill | undefined {
   const facetId = (MECHANICS.facetSkillByConsumeId as Readonly<Record<SkillId, SkillId>>)[cast.skill.id];
-  return facetId == null ? undefined : (runtime.helpers.skillsById.get(facetId) as RevenantSkill | undefined);
+  return facetId == null ? undefined : runtime.helpers.skillsById.get(facetId);
 }
 
 /** A committed consume ends the facet's drain and passive immediately; its follow-up is spent. */
@@ -146,7 +141,7 @@ function elevatedCompassionActive(runtime: RevenantRuntime): boolean {
   const profile = requireBalanceProfileFromContext(runtime, HERALD_ELEVATED_COMPASSION_PROFILE_ID);
   const threshold = Math.max(0, balanceProfileNumber(profile, 'threshold'));
   const upkeep = runtime.profession.core.activeUpkeeps.reduce(
-    (total, active) => total + Math.max(0, Number(active.upkeepCost || 0)),
+    (total, active) => total + Math.max(0, active.upkeepCost || 0),
     0
   );
   return hasTrait(runtime, TRAIT.ELEVATED_COMPASSION) && upkeep >= threshold;
@@ -191,7 +186,7 @@ function syncCompassion(runtime: RevenantRuntime): void {
   }
 
   if (state.elevatedCompassionPulseAt != null && state.elevatedCompassionPulseAt >= runtime.time) return;
-  const readyAt = Math.max(runtime.time, Number(runtime.procs.deadline('revenant.herald.elevatedCompassion') || 0));
+  const readyAt = Math.max(runtime.time, runtime.procs.deadline('revenant.herald.elevatedCompassion') || 0);
   if (readyAt <= runtime.time + EPSILON) {
     grantCompassion(runtime);
     scheduleCompassion(runtime, runtime.procs.deadline('revenant.herald.elevatedCompassion'));
@@ -220,7 +215,7 @@ function trueNatureDragon(runtime: RevenantRuntime, cast: RuntimeCast): void {
     proc?.type === 'custom' ? (proc.event as { name?: string; duration?: number; audience?: EffectAudience }) : null;
   if (!authored) return;
   const extension =
-    Math.max(0, Number(authored.duration || 0)) +
+    Math.max(0, authored.duration || 0) +
     (hasTrait(runtime, TRAIT.CORE_VALUE)
       ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.CORE_VALUE), 'duration')
       : 0);

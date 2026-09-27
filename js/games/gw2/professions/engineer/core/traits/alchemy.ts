@@ -12,7 +12,7 @@ import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/t
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 
 export function isElixirSkill(skill: EngineerSkill | undefined): boolean {
-  return Boolean(skill?.categories?.some((category) => String(category).toLowerCase() === 'elixir'));
+  return Boolean(skill?.categories?.some((category) => category.toLowerCase() === 'elixir'));
 }
 
 /** Schedules Acid Bomb's extended final pulse while HGH is selected. */
@@ -42,7 +42,7 @@ export function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast): v
 /** Extends scheduled elixir fields, boons, and conditions while HGH is selected. */
 export function prepareEngineerHghEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
   if (!hasTrait(context.config, TRAIT.HGH) || event.sourceId === TRAIT.HGH) return event;
-  const skill = context.helpers.skillsById.get(event.skillId ?? event.sourceId) as EngineerSkill | undefined;
+  const skill = context.helpers.skillsById.get(event.skillId ?? event.sourceId);
   if (!isElixirSkill(skill)) return event;
   const hghProfile = requireBalanceProfileFromContext(context, TRAIT.HGH);
   const durationMultiplier = balanceProfileNumber(hghProfile, 'durationMultiplier');

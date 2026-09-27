@@ -95,7 +95,7 @@ function rangerPetAttributes(context?: RangerRuntime | RangerResolverContext) {
     if (
       runtime &&
       petHasSelectedSkill(runtime, 'Signet of the Wild') &&
-      Number(runtime.cooldowns.get(ID.SIGNET_OF_THE_WILD) || 0) <= runtime.time
+      (runtime.cooldowns.get(ID.SIGNET_OF_THE_WILD) || 0) <= runtime.time
     ) {
       const signetOfTheWildProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfTheWild);
       ferocity += balanceProfileNumber(signetOfTheWildProfile, 'attributeBonus');
@@ -215,8 +215,8 @@ function autonomousSkill(context: RangerRuntime, profile: PetAutoProfile, quickn
   return (
     (later ? [...profile.specials].reverse() : profile.specials).find(
       (skill) =>
-        (!later || quickness || Number(state.petAutoActivationUses[String(skill.id)] || 0) < 1) &&
-        Number(state.petAutoCooldowns[String(skill.id)] || 0) <= context.time + EPSILON
+        (!later || quickness || (state.petAutoActivationUses[String(skill.id)] || 0) < 1) &&
+        (state.petAutoCooldowns[String(skill.id)] || 0) <= context.time + EPSILON
     ) || profile.basic
   );
 }
@@ -245,7 +245,7 @@ function emitPetSkill(
       fullEnd,
       baseEvent: {
         activationId,
-        source: String(effect.source ?? (cast ? 'ranger' : 'ranger-pet')),
+        source: effect.source ?? (cast ? 'ranger' : 'ranger-pet'),
         sourceId: effect.sourceId ?? skill.id,
         actorType: effect.actorType ?? (cast ? 'player' : 'summon'),
         skillId: skill.id,
@@ -277,7 +277,7 @@ function petCommandStart(context: RangerRuntime, skill: RangerSkill): number {
   const profile = rangerPetAutoProfile(state.activePet);
   const openingEnd =
     profile && state.petAutoOpeningBasic && state.petAutoNextAt > context.time + EPSILON
-      ? state.petAutoNextAt + (profile.opening || profile.basic).recovery + Number(profile.openingRecoveryDelay || 0)
+      ? state.petAutoNextAt + (profile.opening || profile.basic).recovery + (profile.openingRecoveryDelay || 0)
       : 0;
   return Math.max(
     context.time,
@@ -294,7 +294,7 @@ export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast)
   const state = context.profession.core;
   const profile = rangerPetAutoProfile(state.activePet);
   const start = petCommandStart(context, skill);
-  const recovery = Number(profile?.commandRecovery[String(skill.id)] || cast.effectiveEnd - cast.start);
+  const recovery = profile?.commandRecovery[String(skill.id)] || cast.effectiveEnd - cast.start;
   state.petCommandReadyAt = start + recovery;
   state.petCommandDelays[cast.id] = start - cast.start;
   state.petCommandCooldowns[String(skill.id)] = context.cooldownController.project(skill, {
@@ -319,7 +319,7 @@ export const rangerPetTasks = {
     const opening = state.petAutoOpeningBasic;
     const quickness = petBuff(context, 'quickness');
     const selected = autonomousSkill(context, profile, quickness);
-    const skill = context.helpers.skillsById.get(selected.id) as RangerSkill | undefined;
+    const skill = context.helpers.skillsById.get(selected.id);
     const recovery = selected.recovery / (quickness ? GW2_QUICKNESS_ACTION_RATE : 1);
     if (skill) {
       const action = context.emit({
@@ -349,13 +349,12 @@ export const rangerPetTasks = {
               requireBalanceProfileFromContext(context, PROFILE.cripplingAnguishQuickness),
               'cooldown'
             )
-          : Number(selected.cooldown) *
+          : selected.cooldown *
             (hasTrait(context, TRAIT.PACK_ALPHA)
               ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.packAlpha), 'rechargeMultiplier')
               : 1);
       state.petAutoCooldowns[String(selected.id)] = context.time + cooldown / rate;
-      state.petAutoActivationUses[String(selected.id)] =
-        Number(state.petAutoActivationUses[String(selected.id)] || 0) + 1;
+      state.petAutoActivationUses[String(selected.id)] = (state.petAutoActivationUses[String(selected.id)] || 0) + 1;
     }
 
     schedulePet(
@@ -363,8 +362,7 @@ export const rangerPetTasks = {
       context.time +
         recovery +
         (opening
-          ? Number(profile.openingRecoveryDelay || 0) +
-            (quickness ? Number(profile.quicknessOpeningRecoveryDelay || 0) : 0)
+          ? (profile.openingRecoveryDelay || 0) + (quickness ? profile.quicknessOpeningRecoveryDelay || 0 : 0)
           : 0)
     );
   },
@@ -393,14 +391,7 @@ export const rangerPetTasks = {
       context.time,
       cast.rechargeWork
     );
-    emitPetSkill(
-      context,
-      cast.skill as RangerSkill,
-      context.time,
-      cast.fullEnd + context.time - cast.start,
-      cast.id,
-      cast
-    );
+    emitPetSkill(context, cast.skill, context.time, cast.fullEnd + context.time - cast.start, cast.id, cast);
     schedulePet(context, state.petAutoBusyUntil);
   },
   'ranger.pet-effect'(context: RangerRuntime, data: unknown): void {

@@ -78,7 +78,7 @@ function spawnHorror(runtime: NecromancerRuntime, data: unknown): void {
       sourceId: `unstable-horror.${work.index}`,
       actorType: 'summon' as const,
       skillId: skill.id,
-      skillName: String(effect.name ?? `Unstable Horror - ${effect.packetLabel}`),
+      skillName: effect.name ?? `Unstable Horror - ${effect.packetLabel}`,
       parentSkillName: skill.name,
       activationId: `${work.activationId}:horror:${work.index}`,
       summonKind: 'minion',
@@ -178,8 +178,7 @@ function emitAttack(
         duration: Number(attack.condition[2])
       })
     );
-  const controlKind =
-    attack.controlKind || (runtime.time <= Number(work.controlUntil ?? -1) ? work.controlKind : undefined);
+  const controlKind = attack.controlKind || (runtime.time <= (work.controlUntil ?? -1) ? work.controlKind : undefined);
   if (controlKind) runtime.emit({ ...attribution, type: 'control', controlKind });
 }
 
@@ -197,7 +196,7 @@ function scheduleAttack(runtime: NecromancerRuntime, at: number, work: MinionWor
 function attack(runtime: NecromancerRuntime, data: unknown): void {
   const work = data as MinionWork;
   if (!active(runtime, work) || runtime.deathTime != null) return;
-  const skill = runtime.helpers.skillsById?.get(work.skillId) as NecromancerSkill | undefined;
+  const skill = runtime.helpers.skillsById.get(work.skillId);
   const definition = skill && minionDefinitionForSkill(runtime, skill.id);
   if (!skill || !definition) return;
   const cursor = runtime.profession.core.minionAttackCursors[companion(work.key, work.index)];
@@ -208,7 +207,7 @@ function attack(runtime: NecromancerRuntime, data: unknown): void {
       ? definition.alternateAttacks
       : definition.attacks;
   const packet = attacks?.[cursor.attackIndex];
-  if (!packet || !attacks) return;
+  if (!packet) return;
   emitAttack(
     runtime,
     { ...work, activationId: `${work.activationId}:${cursor.cycleIndex}:${cursor.attackIndex}` },
@@ -219,13 +218,13 @@ function attack(runtime: NecromancerRuntime, data: unknown): void {
   cursor.attackIndex = (cursor.attackIndex + 1) % attacks.length;
   const interval =
     cursor.attackIndex === 0
-      ? definition.interval - Number(packet.offset ?? 0)
-      : Number(attacks[cursor.attackIndex].offset ?? 0) - Number(packet.offset ?? 0);
+      ? definition.interval - (packet.offset ?? 0)
+      : (attacks[cursor.attackIndex].offset ?? 0) - (packet.offset ?? 0);
   cursor.cycleIndex += Number(cursor.attackIndex === 0);
   const quickness =
     runtime.config.sharePlayerBoonsWithSummons !== false &&
     runtime.query.timeline.buffStacksAt('quickness', runtime.time, 0, 1, 'summon', companion(work.key, work.index)) > 0;
-  const castTimeMs = Number(packet.castTimeMs ?? 0);
+  const castTimeMs = packet.castTimeMs ?? 0;
   const saved = quickness ? castTimeMs - summonQuicknessCastTimeMs(null, castTimeMs) : 0;
   const next = actionTime(runtime.time + Math.max(0, interval - saved / 1000));
   if (next > runtime.time) scheduleAttack(runtime, next, work);
@@ -235,7 +234,7 @@ function commandImpact(runtime: NecromancerRuntime, data: unknown): void {
   const work = data as MinionWork;
   // Consuming commands commit their explosion before removing the creature; other delayed commands retain ownership.
   if (!work.consumed && !active(runtime, work)) return;
-  const skill = runtime.helpers.skillsById?.get(work.skillId) as NecromancerSkill | undefined;
+  const skill = runtime.helpers.skillsById.get(work.skillId);
   const minion = skill && minionDefinitionFor(runtime, work.key);
   if (!skill || !minion) return;
   if (work.attack) return emitAttack(runtime, work, skill, minion, work.attack);
@@ -316,7 +315,7 @@ export function completeNecromancerMinion(runtime: NecromancerRuntime, cast: Run
 
   if (!(state.activeMinions[key] > 0)) return;
   const command = commandDefinitionFor(skill);
-  const summon = skill.flipParentId == null ? undefined : runtime.helpers.skillsById?.get(skill.flipParentId);
+  const summon = skill.flipParentId == null ? undefined : runtime.helpers.skillsById.get(skill.flipParentId);
   if (definition.commandRecoveryDelay != null && summon) {
     replaceAttacks(runtime, key);
     for (let index = 0; index < state.activeMinions[key]; index++)
@@ -327,7 +326,7 @@ export function completeNecromancerMinion(runtime: NecromancerRuntime, cast: Run
         generation: state.minionGenerations[key],
         attackGeneration: state.minionAttackGenerations[key],
         activationId: `${cast.id}:resume:${index}`,
-        controlUntil: runtime.time + Number(command.controlWindow ?? 0),
+        controlUntil: runtime.time + (command.controlWindow ?? 0),
         controlKind: command.control
       });
   }
@@ -342,14 +341,14 @@ export function completeNecromancerMinion(runtime: NecromancerRuntime, cast: Run
     offTarget: cast.command.offTarget,
     consumed: Number(command.consumes) > 0
   };
-  const delay = Math.max(0, Number(cast.command.impactDelayMs ?? 0) / 1000);
+  const delay = Math.max(0, (cast.command.impactDelayMs ?? 0) / 1000);
   const queueCommand = (at: number, payload: MinionWork) =>
     runtime.schedule(COMMAND, at, payload, payload.consumed ? undefined : owner(key, payload.attackGeneration));
   if (command.attacks?.length) {
     for (const packet of command.attacks)
       for (let index = 0; index < state.activeMinions[key]; index++)
-        queueCommand(runtime.time + Number(packet.offset ?? 0) + delay, { ...work, index, attack: packet });
-  } else queueCommand(runtime.time + Number(command.impactDelay ?? 0) + delay, work);
+        queueCommand(runtime.time + (packet.offset ?? 0) + delay, { ...work, index, attack: packet });
+  } else queueCommand(runtime.time + (command.impactDelay ?? 0) + delay, work);
   if (Number(command.consumes) > 0) {
     state.activeMinions[key] = Math.max(0, state.activeMinions[key] - Number(command.consumes));
     if (!state.activeMinions[key]) {

@@ -163,7 +163,7 @@ function flames(runtime: Runtime, data: unknown): void {
   for (const [index, tick] of strike.ticks.entries())
     runtime.schedule(
       PULSE,
-      canonicalTime(runtime.time + Number(tick.atMs) / 1000),
+      canonicalTime(runtime.time + tick.atMs / 1000),
       {
         ...guardianCastCause(runtime, cast),
         type: 'damage',
@@ -172,7 +172,7 @@ function flames(runtime: Runtime, data: unknown): void {
         skillName: 'Willbender Flames',
         name: 'Willbender Flames',
         activationId: `${cast.id}:flames`,
-        coefficient: Number(tick.coefficient),
+        coefficient: tick.coefficient,
         skillWeapon: 'Unequipped',
         hitIndex: index + 1,
         totalHits: strike.ticks.length,
@@ -369,6 +369,6 @@ export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> =
     }
   },
   reactions: {
-    'damage.resolved': (runtime, event, details) => hit(runtime, event, details as NativeResolvedDamageDetails)
+    'damage.resolved': (runtime, event, details) => hit(runtime, event, details)
   }
 };

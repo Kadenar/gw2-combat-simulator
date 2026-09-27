@@ -17,7 +17,7 @@ import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state
 function enduranceNotFull(context: Gw2ModifierContext): boolean {
   const state = revenantRuntimeCoreState(context);
   const maximum = REVENANT_MAXIMUM_ENDURANCE;
-  return !resourceAtLeast(Number(state.endurance || 0), maximum);
+  return !resourceAtLeast(state.endurance || 0, maximum);
 }
 
 const vindicatorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -44,7 +44,7 @@ const vindicatorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       // Prefer the event-baked flag when present; fall back to runtime state for non-dodge strikes.
       (context.event?.forerunnerOfDeathActive != null
         ? Boolean(context.event.forerunnerOfDeathActive)
-        : Number(revenantRuntimeSpecializationState(context, 'Vindicator').forerunnerOfDeathUntil || 0) > context.time)
+        : (revenantRuntimeSpecializationState(context, 'Vindicator').forerunnerOfDeathUntil || 0) > context.time)
   }
 ]);
 
@@ -56,7 +56,7 @@ function modifyVindicatorAttributes(context: Gw2ModifierContext, attributes: Gw2
     !professionStaticRulesApplied(context.config) &&
     playerHealthFraction(context) > 0.5
   ) {
-    modified.power = Number(modified.power || 0) + 240;
+    modified.power = (modified.power || 0) + 240;
   }
 
   return modified;

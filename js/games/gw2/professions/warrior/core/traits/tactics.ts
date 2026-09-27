@@ -29,7 +29,7 @@ export const warriorTacticsModifierRules: readonly Gw2ModifierRule[] = Object.fr
     id: 'warrior.empowered',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
-    parameters: { damagePerBoon: 0.01 } as Readonly<Record<string, number>>,
+    parameters: { damagePerBoon: 0.01 },
     factor: (context, _target, parameters) => 1 + warriorActiveBoonCount(context) * parameters.damagePerBoon,
     order: 100,
     when: (context) => hasTrait(context, TRAIT.EMPOWERED)

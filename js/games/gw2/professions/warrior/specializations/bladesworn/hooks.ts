@@ -415,11 +415,7 @@ function ammoTraits(runtime: Runtime, cast: RuntimeCast): void {
       return false;
     if (skill.gunsaberSkill) return state.gunsaberActive || state.dragonTriggerActive;
     if (skill.type === 'Weapon' || skill.weapon)
-      return (
-        !state.gunsaberActive &&
-        !state.dragonTriggerActive &&
-        (!weapons.size || weapons.has(String(skill.weapon ?? '')))
-      );
+      return !state.gunsaberActive && !state.dragonTriggerActive && (!weapons.size || weapons.has(skill.weapon ?? ''));
     return !['Heal', 'Utility', 'Elite'].includes(String(skill.type)) || !selected.size || selected.has(skill.name);
   };
 

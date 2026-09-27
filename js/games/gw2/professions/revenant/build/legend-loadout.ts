@@ -47,9 +47,7 @@ function icon(name: string): string {
 }
 
 function compactLegendName(name: string): string {
-  return String(name)
-    .replace(/^Legendary\s+/, '')
-    .replace(/\s+Stance$/, '');
+  return name.replace(/^Legendary\s+/, '').replace(/\s+Stance$/, '');
 }
 
 export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(

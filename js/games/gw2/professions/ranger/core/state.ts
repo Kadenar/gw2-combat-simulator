@@ -44,7 +44,7 @@ export interface RangerCoreState {
 }
 
 export function selectedRangerPet(config: RangerConfig = {}, slot: 1 | 2 = 1) {
-  const selected = String(slot === 2 ? config.selectedPet2 || 'Lynx' : config.selectedPet || 'Pig');
+  const selected = slot === 2 ? config.selectedPet2 || 'Lynx' : config.selectedPet || 'Pig';
   return RANGER_PETS.find((pet) => pet.name === selected) || RANGER_PETS[0];
 }
 

@@ -1,4 +1,3 @@
-import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -24,12 +23,7 @@ export const warriorDefenseModifierRules: readonly Gw2ModifierRule[] = Object.fr
     when: (context) =>
       hasTrait(context, TRAIT.MERCILESS_HAMMER) &&
       ['Hammer', 'Mace'].includes(
-        String(
-          context.event?.skillWeapon ||
-            eventSkill<WarriorSkill>(context)?.skillWeapon ||
-            eventSkill<WarriorSkill>(context)?.weapon ||
-            ''
-        )
+        String(context.event?.skillWeapon || eventSkill(context)?.skillWeapon || eventSkill(context)?.weapon || '')
       ) &&
       Boolean(context.config?.target?.defiant)
   },

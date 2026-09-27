@@ -1,5 +1,5 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+
 import {
   tooltipFactorChange,
   tooltipSeconds,
@@ -131,7 +131,7 @@ const dragonSlashTooltip: DescribeSimulationTooltip = (balanceContext, entity) =
 /** Describes Warrior triggers and alternatives without copying balance numbers out of their simulation owners. */
 export const warriorTooltips: ProfessionTooltips = {
   skillFacts: (balanceContext, entity) => [
-    ...((entity as Skill).sideEffects ?? []).flatMap(({ do: action }) =>
+    ...(entity.sideEffects ?? []).flatMap(({ do: action }) =>
       action.type === 'warrior.adrenaline' && typeof action.amount === 'number'
         ? [{ name: 'Adrenaline gained', detail: tooltipDecimal(action.amount) }]
         : []
@@ -359,7 +359,7 @@ export const warriorTooltips: ProfessionTooltips = {
     [ID.TREMOR]: skillTooltip("Apply the listed effects and reset Crushing Blow's recharge."),
     [ID.BACKBREAKER]: skillTooltip("Apply the listed effects and reset Fierce Blow's recharge."),
     [ID.GUNSTINGER]: skillTooltip("Strike your target and restore Dragon's Roar ammunition.", (_c, entity) =>
-      ((entity as Skill).sideEffects ?? []).flatMap(({ do: action }) =>
+      (entity.sideEffects ?? []).flatMap(({ do: action }) =>
         action.type === 'ammoRestore' && typeof action.count === 'number'
           ? [{ name: 'Ammunition restored', detail: tooltipDecimal(action.count) }]
           : []
@@ -383,7 +383,7 @@ export const warriorTooltips: ProfessionTooltips = {
     [ID.TO_THE_LIMIT]: skillTooltip(
       'Restore endurance and gain adrenaline. Healing is outside combat simulation scope.',
       (_c, entity) =>
-        ((entity as Skill).sideEffects ?? []).flatMap(({ do: action }) =>
+        (entity.sideEffects ?? []).flatMap(({ do: action }) =>
           action.type === 'resourceGrant' && action.resource === 'endurance' && typeof action.amount === 'number'
             ? [{ name: 'Endurance restored', detail: tooltipDecimal(action.amount) }]
             : []

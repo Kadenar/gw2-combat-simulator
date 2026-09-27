@@ -21,7 +21,7 @@ const scrapperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     parameters: {
       damageFactorPerBoon: 1.05
-    } as Readonly<Record<string, number>>,
+    },
     factor: (context, _target, parameters) => {
       const count = ['stability', 'swiftness', 'superspeed'].filter(
         (kind) => activeBoonStacks(context, kind, 1) > 0
@@ -39,7 +39,7 @@ function modifyScrapperAttributes(context: Gw2ModifierContext, attributes: Gw2St
   const modified = {
     ...attributes,
     power:
-      Number(attributes.power || 0) +
+      (attributes.power || 0) +
       activeBoonStacks(context, 'might', balanceProfileNumber(appliedForceProfile, 'maximumStacks')) *
         balanceProfileNumber(appliedForceProfile, 'attributePerStack')
   };

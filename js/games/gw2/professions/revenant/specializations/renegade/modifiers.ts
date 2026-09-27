@@ -93,7 +93,7 @@ function modifyRenegadeCriticalChance(context: Gw2ModifierContext, chance: numbe
   if (!hasTrait(context, TRAIT.BRUTAL_MOMENTUM)) return chance;
   const state = revenantRuntimeCoreState(context);
   const maximum = REVENANT_MAXIMUM_ENDURANCE;
-  const full = resourceAtLeast(Number(state.endurance || 0), maximum);
+  const full = resourceAtLeast(state.endurance || 0, maximum);
   const brutalMomentumProfile = requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.brutalMomentum);
   // At full endurance: +33% crit; below full: +10% crit
   return chance + balanceProfileNumber(brutalMomentumProfile, full ? 'fullEnduranceCriticalChance' : 'criticalChance');

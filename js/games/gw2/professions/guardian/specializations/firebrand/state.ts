@@ -43,7 +43,7 @@ function initialTomePageState(
   traitMaximum: number,
   tomePageInterval: number
 ) {
-  const configuredInitialPages = Number(config.initialTomePages ?? traitMaximum);
+  const configuredInitialPages = config.initialTomePages ?? traitMaximum;
   // Archivist upgrades the untraited default, while explicit nondefault page counts remain intact.
   const initialPages =
     archivistOfWhispers && configuredInitialPages === defaultMaximum ? traitMaximum : configuredInitialPages;
@@ -125,7 +125,7 @@ export function firebrandPageTuning(context: { readonly config: GuardianConfig }
   const interval = hasTrait(context, GUARDIAN_TRAIT_IDS.LOREMASTER)
     ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.loremaster), 'pulseInterval')
     : balanceProfileNumber(resourcesProfile, 'pulseInterval');
-  const initial = Number(context.config.initialTomePages ?? traitMaximum);
+  const initial = context.config.initialTomePages ?? traitMaximum;
   return {
     maximum: traitMaximum,
     initial: archivistOfWhispers && initial === defaultMaximum ? traitMaximum : initial,

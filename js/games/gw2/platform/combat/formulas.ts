@@ -27,13 +27,13 @@ export function expectedCritMultiplier(chance: number, damage: number): number {
 export function criticalChance(precision: number): number {
   // Fraction-form API used by the resolver. Precision below the level-80
   // baseline is clamped rather than producing a negative chance.
-  return boundedNumber(criticalChanceFractionFromPrecision(Number(precision)), 0, 0, 1);
+  return boundedNumber(criticalChanceFractionFromPrecision(precision), 0, 0, 1);
 }
 
 /** Converts ferocity to a critical-damage multiplier. */
 export function criticalDamageMultiplier(ferocity: number): number {
   // Returns a factor (1.5 means 150%).
-  return criticalDamageMultiplierFromFerocity(Math.max(0, Number(ferocity)));
+  return criticalDamageMultiplierFromFerocity(Math.max(0, ferocity));
 }
 
 // Values are damage per stack-second: base + scaling * Condition Damage.
@@ -75,13 +75,10 @@ export function conditionTickDamage(
   const formula = CONDITION_FORMULA_LOOKUP[condition];
   if (!formula) return 0;
   if (condition === 'Torment' && options.stationary !== false) {
-    return (
-      Number(formula.stationaryBase || 0) +
-      Number(formula.stationaryScaling || 0) * Math.max(0, Number(conditionDamage))
-    );
+    return (formula.stationaryBase || 0) + (formula.stationaryScaling || 0) * Math.max(0, conditionDamage);
   }
 
-  return formula.base + formula.scaling * Math.max(0, Number(conditionDamage));
+  return formula.base + formula.scaling * Math.max(0, conditionDamage);
 }
 
 interface ConditionFormula {
@@ -152,10 +149,10 @@ export function gw2ConditionDurationMultiplier(
   extraBonus = 0
 ): number {
   const bonus =
-    conditionDurationFractionFromExpertise(Number(stats.expertise || 0)) +
-    Number(stats.conditionDurationBonus || 0) / 100 +
-    Number(stats.conditionDurationBonuses?.[condition] || 0) / 100 +
-    Number(extraBonus || 0);
+    conditionDurationFractionFromExpertise(stats.expertise || 0) +
+    (stats.conditionDurationBonus || 0) / 100 +
+    (stats.conditionDurationBonuses?.[condition] || 0) / 100 +
+    (extraBonus || 0);
   // This helper models duration extensions only and enforces GW2's +100% cap.
   return clamp(1 + bonus, 1, 2);
 }

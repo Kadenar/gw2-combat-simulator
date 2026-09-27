@@ -30,7 +30,7 @@ export function createCloneAttackScheduler({
 
   const sequenceStep = (clone: MesmerClone, attack: MesmerCloneAttack): MesmerCloneAttackStep => {
     if (!attack.sequence) return attack;
-    const index = Number(clone.attackSequenceIndex || 0) % attack.sequence.length;
+    const index = (clone.attackSequenceIndex || 0) % attack.sequence.length;
     return attack.sequence[index];
   };
 
@@ -39,7 +39,7 @@ export function createCloneAttackScheduler({
     clone.ownerId ||= `mesmer.clone:${clone.id}`;
     clone.attackSequenceIndex = 0;
     const step = sequenceStep(clone, attack);
-    clone.nextAttackAt = clone.createdAt + Number(attack.firstAttackDelay ?? step.interval);
+    clone.nextAttackAt = clone.createdAt + (attack.firstAttackDelay ?? step.interval);
     scheduleTask(clone, clone.nextAttackAt);
     return clone;
   };
@@ -56,7 +56,7 @@ export function createCloneAttackScheduler({
       weapon: clone.weapon,
       blade: false
     };
-    const impactAt = at + Number(step.damageAtMs || 0) / 1000;
+    const impactAt = at + (step.damageAtMs || 0) / 1000;
     addDamage(
       cloneSkill,
       impactAt,
@@ -94,16 +94,16 @@ export function createCloneAttackScheduler({
     }
 
     if (Array.isArray(attack.sequence) && attack.sequence.length > 0) {
-      clone.attackSequenceIndex = (Number(clone.attackSequenceIndex || 0) + 1) % attack.sequence.length;
+      clone.attackSequenceIndex = ((clone.attackSequenceIndex || 0) + 1) % attack.sequence.length;
     }
   };
 
   const handleTask = (cloneId: number, at: number): number | null => {
-    const clone = profession.clones.find((candidate) => candidate.id === Number(cloneId));
+    const clone = profession.clones.find((candidate) => candidate.id === cloneId);
     if (!clone) return null;
     scheduleAttack(clone, at);
     const attack = attackFor(clone);
-    clone.nextAttackAt = at + Number(sequenceStep(clone, attack).interval);
+    clone.nextAttackAt = at + sequenceStep(clone, attack).interval;
     return clone.nextAttackAt;
   };
 

@@ -52,7 +52,7 @@ export const berserkerUi: WarriorUiSlice = Object.freeze({
   paletteSkillAvailability: availability,
   rotationStateSnapshot: (context: WarriorUiContext) => {
     const state = warriorUiState(context);
-    const remaining = Number(state.berserkUntil || 0) - warriorSnapshotAt(context);
+    const remaining = (state.berserkUntil || 0) - warriorSnapshotAt(context);
     if (!state.berserkActive || remaining <= 0) return [];
     const items: RotationStateSnapshotItem[] = [
       {

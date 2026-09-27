@@ -4,7 +4,6 @@ import { boonActive, eventSkill } from '#gw2/platform/combat/query/runtime-query
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 export type WarriorModifierAttributes = Gw2MutableStats & {
   power: number;
@@ -40,8 +39,8 @@ export function warriorActiveBoonCount(context: Gw2ModifierContext): number {
 
 // Test both weapon hands at query time, including projected modifier-evaluation swaps.
 export function warriorWieldingWeapon(context: Gw2ModifierContext, weapon: string): boolean {
-  if (eventSkill<WarriorSkill>(context)?.weapon === weapon) return true;
+  if (eventSkill(context)?.weapon === weapon) return true;
   const weaponSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
   const [primary, secondary] = gw2ConfiguredWeaponSet(context.config, weaponSet);
-  return String(primary || '') === weapon || String(secondary || '') === weapon;
+  return (primary || '') === weapon || (secondary || '') === weapon;
 }

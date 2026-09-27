@@ -46,8 +46,8 @@ function isAristocracyApplication(event: SimulationEvent): boolean {
     !missesTarget(event) &&
     (isGw2PlayerActorEvent(event) || (event.actorType === 'effect' && event.ownerActorType === 'player')) &&
     (event.condition === 'Weakness' || event.condition === 'Vulnerability') &&
-    Number(event.stacks) > 0 &&
-    Number(event.duration) > 0
+    event.stacks > 0 &&
+    event.duration > 0
   );
 }
 

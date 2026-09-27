@@ -53,17 +53,17 @@ export const untamedModifiers: readonly Gw2ModifierRule[] = Object.freeze([
       baseFactor: 1,
       maximumStacks: 5,
       damagePerStack: 0.05
-    } as Readonly<Record<string, number>>,
+    },
     factor: (context, _target, parameters) => {
       const state = untamedModifierState(context);
       const pet = context.event?.source === 'ranger-pet';
       // Pet strikes use Pet stacks; player strikes use Player stacks (each built by the other).
       const stacks = pet
-        ? context.time < Number(state.ferociousSymbiosisPetUntil || 0)
-          ? Number(state.ferociousSymbiosisPetStacks || 0)
+        ? context.time < (state.ferociousSymbiosisPetUntil || 0)
+          ? state.ferociousSymbiosisPetStacks || 0
           : 0
-        : context.time < Number(state.ferociousSymbiosisPlayerUntil || 0)
-          ? Number(state.ferociousSymbiosisPlayerStacks || 0)
+        : context.time < (state.ferociousSymbiosisPlayerUntil || 0)
+          ? state.ferociousSymbiosisPlayerStacks || 0
           : 0;
       return parameters.baseFactor + Math.min(parameters.maximumStacks, stacks) * parameters.damagePerStack;
     },

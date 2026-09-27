@@ -11,7 +11,7 @@ function overclockPassive(context: EngineerRuntime, skill: EngineerSkill): boole
   return (
     !(isEngineerMechCommand(skill) && hasTrait(context, TRAIT.MECH_CORE_JADE_DYNAMO)) &&
     skill.id !== ID.OVERCLOCK_SIGNET &&
-    Boolean(skill.categories?.some((category) => String(category).toLowerCase() === 'signet')) &&
+    Boolean(skill.categories?.some((category) => category.toLowerCase() === 'signet')) &&
     selectedSkillNameSet(context.config.selectedSkills).has('Overclock Signet')
   );
 }
@@ -31,7 +31,7 @@ export const mechanistRechargeWork = compileRechargeRules<EngineerRuntimeState>(
     when: (context, skill) =>
       overclockPassive(context, skill) &&
       !hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) &&
-      Number(context.cooldowns.get(ID.OVERCLOCK_SIGNET) || 0) <= context.time,
+      (context.cooldowns.get(ID.OVERCLOCK_SIGNET) || 0) <= context.time,
     multiplier: { profile: PROFILE.overclock, field: 'rechargeMultiplier' }
   }
 ]);

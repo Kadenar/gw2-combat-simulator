@@ -17,7 +17,7 @@ import {
 import { denySkillCast as unavailable } from '#gw2/platform/engine/skills/availability.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
+
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 
 /** How long an advanced Aerial Agility stage stays offered before its chain resets. */
@@ -97,10 +97,7 @@ export function weaponAttunementAvailable(
 
 /** Reads the specialization-owned secondary attunement, or null when the active specialization has none. */
 export function activeSecondaryAttunement(context: ElementalistRuntime): ElementalistAttunement | null {
-  const specialization = (context.profession as ElementalistRuntimeState).specialization.state as Record<
-    string,
-    unknown
-  >;
+  const specialization = context.profession.specialization.state as Record<string, unknown>;
   const value = specialization.secondaryAttunement;
   return typeof value === 'string' ? (value as ElementalistAttunement) : null;
 }
@@ -116,7 +113,7 @@ export function progressedAutoattackCarryover(
     // Aerial Agility is a slot-three flip and must not inherit slot-one
     // autoattack carryover into a different attunement.
     if (root === ID.AERIAL_AGILITY) continue;
-    if (Number(rawExpected) === root) continue;
+    if (rawExpected === root) continue;
     const rootSkill = context.helpers.skillsById.get(root);
     if (rootSkill?.attunement === attunement) {
       return { root, attunement };
@@ -152,7 +149,7 @@ function clearAerialAgilityCarryover(state: ElementalistCoreState): void {
 export const elementalistWeaponStateTasks = {
   'elementalist.aerial-agility-expire'(context: ElementalistRuntime, data: unknown): void {
     const state = professionCoreState(context);
-    if (Number(state.autoattackChains[ID.AERIAL_AGILITY]) !== Number(data)) return;
+    if (state.autoattackChains[ID.AERIAL_AGILITY] !== Number(data)) return;
     resetAutoattackChains(context, [ID.AERIAL_AGILITY]);
     clearAerialAgilityCarryover(state);
   }
@@ -183,7 +180,7 @@ export function observeElementalistAutoattackTransition(
   cast: RuntimeCast,
   result: AutoattackChainTransitionResult
 ): void {
-  const state = professionCoreState(context) as ElementalistCoreState;
+  const state = professionCoreState(context);
   const chainRoot = result.castChainRootId;
   // An uncommitted cast never earns carryover, so drop the pending capture.
   if (!result.committed && chainRoot != null && state.pendingAutoattackCarryover?.root === chainRoot) {

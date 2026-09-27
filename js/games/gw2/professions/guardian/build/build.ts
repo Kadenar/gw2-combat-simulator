@@ -88,7 +88,7 @@ const guardianBuildCodec = createProfessionBuildCodec<GuardianCanonicalBuild>({
   },
   normalizeExtra(build) {
     const { initialResource: _discardedInitialResource, ...current } = build;
-    return current as GuardianCanonicalBuild;
+    return current;
   }
 });
 

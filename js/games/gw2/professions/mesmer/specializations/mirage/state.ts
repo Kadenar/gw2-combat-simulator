@@ -43,7 +43,7 @@ export const mirageState = defineProfessionSpecializationState('Mirage', createM
 
 /** Publishes this module's detached public observations at the planning boundary. */
 export function projectMiragePlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState<MesmerMirageState>(input.profession);
+  const state = snapshotProfessionState(input.profession) as MesmerMirageState;
   const at = canonicalTime(input.time);
   const weapon = gw2ActivePrimaryWeapon(input.config, input.activeWeaponSet === 1 ? 1 : 2) || '';
   return {

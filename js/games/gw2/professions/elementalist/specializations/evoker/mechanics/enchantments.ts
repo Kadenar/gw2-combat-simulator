@@ -57,12 +57,12 @@ function emitElectricEnchantment(context: ElementalistRuntime, event: Simulation
   }
 
   if (strike || burning)
-    emitElementalistProc(context as never, {
+    emitElementalistProc(context, {
       at: event.at,
       name: 'Electric Enchantment',
       procType: 'trait',
       sourceId: event.skillId ?? event.sourceId,
-      sourceSkill: String(event.skillName || event.source || ''),
+      sourceSkill: event.skillName || event.source || '',
       icon: ELECTRIC_ENCHANTMENT_ICON
     });
 }

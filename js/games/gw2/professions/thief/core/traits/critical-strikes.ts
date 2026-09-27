@@ -123,11 +123,11 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
   actorTypes: ['player'] as const,
   when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: NativeResolvedDamageDetails) =>
     Boolean(details.hitContext?.critEligible) &&
-    criticalBoonEligible(context, event, TRAIT.UNRELENTING_STRIKES, details.hitContext?.critical?.furyActive === true),
+    criticalBoonEligible(context, event, TRAIT.UNRELENTING_STRIKES, details.hitContext?.critical.furyActive === true),
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.UNRELENTING_STRIKES), 'internalCooldown'),
-    readyAt: (context: ThiefResolverContext) => Number(context.procs.readyAt[TRAIT.UNRELENTING_STRIKES] || 0),
+    readyAt: (context: ThiefResolverContext) => context.procs.readyAt[TRAIT.UNRELENTING_STRIKES] || 0,
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
       context.procs.readyAt[TRAIT.UNRELENTING_STRIKES] = readyAt;
     }
@@ -170,11 +170,11 @@ export const noQuarterCriticalReaction = Object.freeze({
   actorTypes: ['player'] as const,
   when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: NativeResolvedDamageDetails) =>
     Boolean(details.hitContext?.critEligible) &&
-    criticalBoonEligible(context, event, TRAIT.NO_QUARTER, details.hitContext?.critical?.furyActive === true),
+    criticalBoonEligible(context, event, TRAIT.NO_QUARTER, details.hitContext?.critical.furyActive === true),
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.NO_QUARTER), 'internalCooldown'),
-    readyAt: (context: ThiefResolverContext) => Number(context.procs.readyAt[TRAIT.NO_QUARTER] || 0),
+    readyAt: (context: ThiefResolverContext) => context.procs.readyAt[TRAIT.NO_QUARTER] || 0,
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
       context.procs.readyAt[TRAIT.NO_QUARTER] = readyAt;
     }

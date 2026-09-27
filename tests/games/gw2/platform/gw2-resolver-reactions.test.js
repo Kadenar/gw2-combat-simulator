@@ -130,6 +130,7 @@ test('condition stage runs once after state and ticks, including profession and 
     traits: new Set(),
     horizon: 10,
     query: {
+      ...createGw2CombatQuery({ profession: testProfession }),
       statsAt: () => ({
         power: 1000,
         precision: 1000,

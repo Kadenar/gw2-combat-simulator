@@ -58,7 +58,7 @@ function initialize(context: ElementalistRuntime): void {
   state.maximumEnergy = maximumEnergy(context);
   state.energy = Math.max(
     0,
-    Math.min(state.maximumEnergy, Number(context.config.initialCatalystEnergy ?? state.maximumEnergy))
+    Math.min(state.maximumEnergy, context.config.initialCatalystEnergy ?? state.maximumEnergy)
   );
 }
 
@@ -128,7 +128,7 @@ function onCastStart(context: ElementalistRuntime, cast: RuntimeCast, skill: Ski
         skillName: skill.name,
         kind: String(quickness.boon).toLowerCase(),
         stacks: Number(quickness.stacks),
-        duration: Number(quickness.duration) * durationMultiplier,
+        duration: quickness.duration * durationMultiplier,
         audience: { recipients: 'party' as const, maximumRecipients: 5 }
       });
     }
@@ -143,7 +143,7 @@ function onCastStart(context: ElementalistRuntime, cast: RuntimeCast, skill: Ski
         skillName: skill.name,
         kind: String(profiledBoon.boon),
         stacks: Number(profiledBoon.stacks),
-        duration: Number(profiledBoon.duration) * durationMultiplier,
+        duration: profiledBoon.duration * durationMultiplier,
         audience: { recipients: 'party' as const, maximumRecipients: 5 }
       });
     }
@@ -202,7 +202,7 @@ function activateElementalCelerity(context: ElementalistRuntime, skill: Skill, a
   for (const candidate of context.helpers.skills) {
     if (
       candidate.type === 'Weapon' &&
-      Number(candidate.cooldown || 0) > 0 &&
+      (candidate.cooldown || 0) > 0 &&
       candidate.attunement === core.primaryAttunement
     ) {
       if (Number(candidate.ammo) > 0)
@@ -225,7 +225,7 @@ function activateElementalCelerity(context: ElementalistRuntime, skill: Skill, a
         actorType: 'player',
         kind: String(effect.boon).toLowerCase(),
         stacks: Number(effect.stacks),
-        duration: Number(effect.duration),
+        duration: effect.duration,
         skillName: skill.name
       });
     }
@@ -250,7 +250,7 @@ function applyEnergizedElements(context: ElementalistRuntime, event: SimulationE
         actorType: 'player',
         kind: String(fury.boon).toLowerCase(),
         stacks: Number(fury.stacks),
-        duration: Number(fury.duration),
+        duration: fury.duration,
         skillName: 'Energized Elements'
       });
     }
@@ -350,9 +350,7 @@ export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState>>
       'durationMultiplier'
     );
     return effects.map((effect) =>
-      effect.type === 'boon' || effect.type === 'buff'
-        ? { ...effect, duration: Number(effect.duration) * multiplier }
-        : effect
+      effect.type === 'boon' || effect.type === 'buff' ? { ...effect, duration: effect.duration * multiplier } : effect
     );
   },
   tasks: {

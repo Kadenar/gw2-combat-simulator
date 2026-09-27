@@ -185,7 +185,7 @@ function maliciousEffects(runtime: ThiefRuntime, cast: RuntimeCast, effects: rea
       (effect.type === 'boon' && String(effect.boon).toLowerCase() === 'quickness') ||
       (effect.type === 'buff' && effect.kind === 'quickness');
     if (skill.id === ID.MALICIOUS_HOOK_STRIKE && quickness)
-      return malice > 0 ? [{ ...effect, duration: Number(effect.duration || 0) * malice }] : [];
+      return malice > 0 ? [{ ...effect, duration: (effect.duration || 0) * malice }] : [];
     if (
       skill.id === ID.MALICIOUS_ASHEN_ASSAULT &&
       effect.type === 'strike' &&
@@ -202,9 +202,9 @@ function maliciousEffects(runtime: ThiefRuntime, cast: RuntimeCast, effects: rea
         effect.ticks?.length
           ? {
               ...effect,
-              ticks: effect.ticks.map((tick) => ({ ...tick, coefficient: Number(tick.coefficient) * factor }))
+              ticks: effect.ticks.map((tick) => ({ ...tick, coefficient: tick.coefficient * factor }))
             }
-          : { ...effect, coefficient: Number(effect.coefficient || 0) * factor }
+          : { ...effect, coefficient: (effect.coefficient || 0) * factor }
       ];
     }
 
@@ -217,7 +217,7 @@ function maliceTorment(runtime: ThiefRuntime, cast: RuntimeCast, profileId: Skil
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   const torment = requireEffect(profile, 'condition', 'Torment');
   if (!torment) return;
-  emitThiefCondition(runtime, cast.skill as ThiefSkill, {
+  emitThiefCondition(runtime, cast.skill, {
     at: runtime.time,
     ...(trait ? { source: 'Trait', name: 'Malicious Ashen Assault — Torment' } : {}),
     activationId: cast.id,
@@ -251,7 +251,7 @@ function completeDeadeyeCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
       if (hasTrait(runtime, TRAIT.FIRE_FOR_EFFECT))
         traitBoons(runtime, cast, 'Fire for Effect', PROFILE.fireForEffect, true);
     } else if (skill.id === ID.MERCY) {
-      const malice = Math.max(0, Number(state.malice || 0));
+      const malice = Math.max(0, state.malice || 0);
       state.malice = 0;
       state.maleficentSevenTriggered = false;
       // Mercy resets Deadeye's Mark and refunds initiative per malice spent.
@@ -312,7 +312,7 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || typeof event.activationId !== 'string')
     return;
   if (event.offTarget === true || !marked(runtime)) return;
-  const skill = runtime.helpers.skillsById.get(Number(event.skillId ?? event.sourceId)) as ThiefSkill | undefined;
+  const skill = runtime.helpers.skillsById.get(Number(event.skillId ?? event.sourceId));
   if (!skill) return;
   const initiativeAttack = skill.type === 'Weapon' && Number(skill.initiativeCost || 0) > 0 && !skill.stealthAttack;
   if (!skill.malicious && !initiativeAttack) return;
@@ -361,7 +361,7 @@ export const deadeyeHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     state.malice = Math.min(state.malice, state.maximumMalice);
   },
   availability: (runtime, skill) =>
-    deadeyeCastAvailability(runtime.profession.core.availableFlips, skill as ThiefSkill, runtime.time),
+    deadeyeCastAvailability(runtime.profession.core.availableFlips, skill, runtime.time),
   onCastStart(runtime, cast) {
     const skill = cast.skill as ThiefSkill;
     const state = deadeyeState.from(runtime);

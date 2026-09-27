@@ -11,12 +11,12 @@ import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/m
 
 /** Applies an authored skill factor before ordinary condition-duration bonuses are capped. */
 function modifyHolosmithConditionBaseDuration(context: Gw2ModifierContext, multiplier: number): number {
-  const factor = Number(holosmithEventMetadata(context.event).holosmithConditionBaseDurationFactor ?? 1);
+  const factor = holosmithEventMetadata(context.event).holosmithConditionBaseDurationFactor ?? 1;
   return multiplier * (Number.isFinite(factor) ? Math.max(0, factor) : 1);
 }
 
 /** Defines Holosmith's heat- and trait-sensitive packet modifier rules. */
-export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+export const holosmithModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
   {
     id: 'engineer.lasers-edge',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -25,13 +25,13 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       standardMaximum: 0.15,
       enhancedMaximum: 0.225,
       bonusPerHeat: 0.0015
-    } as Readonly<Record<string, number>>,
+    },
     factor: (context, _target, parameters) => {
       const state = engineerSpecializationState(context, 'Holosmith');
       const maximum = hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
         ? parameters.enhancedMaximum
         : parameters.standardMaximum;
-      return 1 + Math.min(maximum, Number(state.heat || 0) * parameters.bonusPerHeat);
+      return 1 + Math.min(maximum, (state.heat || 0) * parameters.bonusPerHeat);
     },
     when: (context) => {
       const state = engineerSpecializationState(context, 'Holosmith');
@@ -39,9 +39,7 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
         isGw2PlayerModifierOwnedEvent(context.event) &&
         hasTrait(context, TRAIT.LASERS_EDGE) &&
         ((Boolean(state.photonForgeActive) && !state.overheated) ||
-          (hasTrait(context, TRAIT.PHOTONIC_BLASTING_MODULE) &&
-            Boolean(state.overheated) &&
-            Number(state.heat || 0) > 0))
+          (hasTrait(context, TRAIT.PHOTONIC_BLASTING_MODULE) && Boolean(state.overheated) && (state.heat || 0) > 0))
       );
     }
   },

@@ -1,4 +1,3 @@
-import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -22,15 +21,15 @@ import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = { ...attributes } as WarriorModifierAttributes;
   const staticRulesApplied = professionStaticRulesApplied(context.config);
-  result.power = Number(result.power || 0);
-  result.precision = Number(result.precision || 0);
-  result.ferocity = Number(result.ferocity || 0);
-  result.conditionDamage = Number(result.conditionDamage || 0);
-  result.expertise = Number(result.expertise || 0);
-  result.vitality = Number(result.vitality || 0);
-  result.healingPower = Number(result.healingPower || 0);
-  result.concentration = Number(result.concentration || 0);
-  const gearPower = Number(context.config?.stats?.power || 0);
+  result.power = result.power || 0;
+  result.precision = result.precision || 0;
+  result.ferocity = result.ferocity || 0;
+  result.conditionDamage = result.conditionDamage || 0;
+  result.expertise = result.expertise || 0;
+  result.vitality = result.vitality || 0;
+  result.healingPower = result.healingPower || 0;
+  result.concentration = result.concentration || 0;
+  const gearPower = context.config?.stats?.power || 0;
   // Compose line-owned fragments against one mutable result so conversions keep their original source pools.
   modifyWarriorStrengthAttributes(context, result, staticRulesApplied, gearPower);
   modifyWarriorTacticsAttributes(context, result, staticRulesApplied);
@@ -48,7 +47,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     order: 100,
     // Kill Shot gets the same execute bonus from either a defiant target or live sub-50% health.
     when: (context) =>
-      eventSkill<WarriorSkill>(context)?.id === ID.KILL_SHOT &&
+      eventSkill(context)?.id === ID.KILL_SHOT &&
       (context.config?.target?.defiant === true || targetHealthBelow(context, 0.5))
   },
   {
@@ -60,7 +59,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       upperThreshold: 0.5,
       lowerFactor: 2,
       upperFactor: 1.5
-    } as Readonly<Record<string, number>>,
+    },
     factor: (context, _target, parameters) =>
       targetHealthBelow(context, parameters.lowerThreshold)
         ? parameters.lowerFactor
@@ -68,7 +67,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
           ? parameters.upperFactor
           : 1,
     order: 100,
-    when: (context) => eventSkill<WarriorSkill>(context)?.id === ID.THROW_AXE
+    when: (context) => eventSkill(context)?.id === ID.THROW_AXE
   },
   ...warriorStrengthModifierRules,
   ...warriorTacticsModifierRules,
@@ -81,7 +80,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     factor: 1.15,
     order: 100,
     when: (context) => {
-      const skillId = Number(eventSkill<WarriorSkill>(context)?.id);
+      const skillId = Number(eventSkill(context)?.id);
       return skillId === ID.PRECISE_CUT || skillId === ID.FOCUSED_SLASH;
     }
   },
@@ -91,8 +90,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 2,
     order: 100,
-    when: (context) =>
-      eventSkill<WarriorSkill>(context)?.id === ID.WASTRELS_RUIN && context.config?.target?.defiant === true
+    when: (context) => eventSkill(context)?.id === ID.WASTRELS_RUIN && context.config?.target?.defiant === true
   },
   {
     id: 'warrior.breaching-strike-boonless',
@@ -100,7 +98,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.5,
     order: 100,
-    when: (context) => eventSkill<WarriorSkill>(context)?.id === ID.BREACHING_STRIKE
+    when: (context) => eventSkill(context)?.id === ID.BREACHING_STRIKE
   },
   {
     id: 'warrior.slicing-maelstrom-boonless',
@@ -108,7 +106,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.5,
     order: 100,
-    when: (context) => eventSkill<WarriorSkill>(context)?.id === ID.SLICING_MAELSTROM
+    when: (context) => eventSkill(context)?.id === ID.SLICING_MAELSTROM
   },
   ...warriorDisciplineModifierRules
 ]);

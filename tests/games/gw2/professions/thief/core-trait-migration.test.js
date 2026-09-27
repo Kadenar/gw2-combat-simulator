@@ -451,7 +451,10 @@ test('Unrelenting Strikes retains its critical threshold reaction', () => {
   const { context } = traitContext([TRAIT.UNRELENTING_STRIKES]);
   const event = { type: 'damage', at: 1, actorType: 'player', coefficient: 1, skillName: 'Critical Test' };
   const reaction = unrelentingStrikesCriticalReaction;
-  assert.equal(reaction.when(context, event, { hitContext: { critEligible: true } }), true);
+  assert.equal(
+    reaction.when(context, event, { hitContext: { critEligible: true, critical: { furyActive: false } } }),
+    true
+  );
   reaction.handler(context, event, {}, { quantity: 1 });
   const fury = context.queue.dequeue();
   assert.equal(fury.kind, 'fury');

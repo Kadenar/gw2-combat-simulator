@@ -36,7 +36,7 @@ function isBeastSkill(skill: RangerSkill): boolean {
 export function completeRangerTraits(context: RangerRuntime, skill: RangerSkill): void {
   if (skill.type === 'Heal') emitChildOfEarth(context, skill);
 
-  if (String(skill.description || '').startsWith('Command.')) {
+  if ((skill.description || '').startsWith('Command.')) {
     applyRangerCommandTraits(context, skill);
   }
 
@@ -296,7 +296,7 @@ export function triggerTrappersExpertise(context: RangerResolverContext, event: 
 /** Apply the trait-selected shortbow condition upgrades after base on-hit effects. */
 export function triggerLightOnYourFeet(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const skill = eventSkill(context, event);
-  if (skill?.id === ID.CROSSFIRE && hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) && context.config?.target?.defiant) {
+  if (skill?.id === ID.CROSSFIRE && hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) && context.config.target?.defiant) {
     const bleeding = skill.effects?.find((effect) => effect.type === 'condition' && effect.condition === 'Bleeding');
     // Defiant Crossfire gains a second stack with the same extended base duration; with the skill's own
     // Bleeding removed there is no base stack to duplicate.

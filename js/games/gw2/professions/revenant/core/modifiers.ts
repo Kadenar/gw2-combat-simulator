@@ -52,7 +52,7 @@ export function revenantTimedBuff(context: RevenantModifierContext, kind: string
 }
 
 function activeOffhand(context: RevenantModifierContext): boolean {
-  const set = Number(context.runtime?.activeWeaponSet || 1);
+  const set = context.runtime?.activeWeaponSet || 1;
   return Boolean(gw2ConfiguredWeaponSet(context.config, set)[1]);
 }
 
@@ -191,14 +191,14 @@ function modifyCoreAttributes(context: RevenantModifierContext, attributes: Gw2S
         buffMatchesAudience(application, 'all') &&
         application.at <= context.time &&
         application.expiresAt > context.time,
-      (application) => Number(application.stacks ?? 1),
+      (application) => application.stacks,
       25 - baseMight
     );
     const might = baseMight + dynamicMight;
     const notorietyProfile = requireBalanceProfileFromContext(context, TRAIT.NOTORIETY);
-    modified.power = Number(modified.power || 0) + might * balanceProfileNumber(notorietyProfile, 'attributePerStack');
+    modified.power = (modified.power || 0) + might * balanceProfileNumber(notorietyProfile, 'attributePerStack');
     modified.conditionDamage =
-      Number(modified.conditionDamage || 0) - might * balanceProfileNumber(notorietyProfile, 'attributePerStack');
+      (modified.conditionDamage || 0) - might * balanceProfileNumber(notorietyProfile, 'attributePerStack');
   }
 
   return modified;

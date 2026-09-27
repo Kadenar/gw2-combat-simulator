@@ -45,15 +45,12 @@ export function initialize(context: ElementalistRuntime): void {
   );
   state.charges = Math.max(
     0,
-    Math.min(state.maximumCharges, Number(context.config.initialEvokerCharges ?? state.maximumCharges))
+    Math.min(state.maximumCharges, context.config.initialEvokerCharges ?? state.maximumCharges)
   );
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   state.empowered = Math.max(
     0,
-    Math.min(
-      balanceProfileNumber(resourcesProfile, 'minimumStacks'),
-      Number(context.config.initialEvokerEmpowered ?? 0)
-    )
+    Math.min(balanceProfileNumber(resourcesProfile, 'minimumStacks'), context.config.initialEvokerEmpowered ?? 0)
   );
   // locks the core attunement system to the fixed element so core trait procs key off the right element
   if (hasTrait(context, TRAIT.SPECIALIZED_ELEMENTS)) {
@@ -90,7 +87,7 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pic
     !slot ||
     Number(slot[1]) < 2 ||
     Number(slot[1]) > 5 ||
-    CONJURED_WEAPONS.has(String(skill.skillWeapon || skill.weapon || '')) ||
+    CONJURED_WEAPONS.has(skill.skillWeapon || skill.weapon || '') ||
     EVOKER_NO_CHARGE_SKILLS.has(skill.id) ||
     (skill.weapon === 'Spear' && EVOKER_NO_CHARGE_SPEAR_SKILLS.has(skill.id))
   ) {

@@ -21,7 +21,7 @@ import type {
 import type { ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> {
-  return flattenProfessionState<Partial<ThiefState>>(context.state?.profession || context.professionState);
+  return flattenProfessionState(context.state?.profession || context.professionState);
 }
 
 export function thiefStealPaletteGroups(professionSkillId = ID.STEAL) {
@@ -54,28 +54,27 @@ function corePaletteSkillAvailability(context: ThiefUiContext = {}, skill: Thief
     (candidate) => candidate.prepareId === skill.id || candidate.triggerId === skill.id
   );
   if (trap) {
-    const prepared = skillFlipVisible(state.availableFlips?.[trap.triggerId], Number(context.time || 0));
+    const prepared = skillFlipVisible(state.availableFlips?.[trap.triggerId], context.time || 0);
     if (skill.id === trap.prepareId) {
       return { available: !prepared, message: prepared ? `Activate ${trap.name} before preparing it again` : '' };
     }
 
     if (!prepared) return { available: false, message: `Prepare ${trap.name} first` };
-    const retryAt = Number(state.availableFlips?.[trap.triggerId]?.availableAt || 0);
-    return retryAt > Number(context.time || 0)
+    const retryAt = state.availableFlips?.[trap.triggerId]?.availableAt || 0;
+    return retryAt > (context.time || 0)
       ? { available: false, message: 'The preparation is still arming', retryAt }
       : { available: true, message: '' };
   }
 
   const stealthed =
-    Number(state.stealthStartedAt || 0) <= Number(context.time || 0) &&
-    Number(state.stealthUntil || 0) > Number(context.time || 0) &&
-    Number(state.revealedUntil || 0) <= Number(context.time || 0);
+    (state.stealthStartedAt || 0) <= (context.time || 0) &&
+    (state.stealthUntil || 0) > (context.time || 0) &&
+    (state.revealedUntil || 0) <= (context.time || 0);
   const bonusStealthAttack =
-    Number(state.stealthAttackCharges || 0) > 0 &&
-    Number(state.stealthAttackExpiresAt || 0) > Number(context.time || 0);
+    (state.stealthAttackCharges || 0) > 0 && (state.stealthAttackExpiresAt || 0) > (context.time || 0);
   const spearChainStage = spearChainStageForSkill(skill.id);
   const flipValue = state.availableFlips?.[String(skill.id)];
-  const flipAvailable = skillFlipReady(flipValue, Number(context.time || 0));
+  const flipAvailable = skillFlipReady(flipValue, context.time || 0);
   if (
     skill.slot === 'Profession_2' &&
     (THIEF_STOLEN_SKILL_IDS.includes(skill.id) || (skill.categories || []).includes('stolen skill')) &&
@@ -88,7 +87,7 @@ function corePaletteSkillAvailability(context: ThiefUiContext = {}, skill: Thief
     };
   }
 
-  if (spearChainStage != null && Number(state.spearChainStage || 0) !== spearChainStage) {
+  if (spearChainStage != null && (state.spearChainStage || 0) !== spearChainStage) {
     return {
       available: false,
       message: `Advance the spear chain to stage ${spearChainStage + 1}`
@@ -102,7 +101,7 @@ function corePaletteSkillAvailability(context: ThiefUiContext = {}, skill: Thief
     };
   }
 
-  if (weaponFollowUpOpen(state.availableFlips, skill, Number(context.time || 0))) {
+  if (weaponFollowUpOpen(state.availableFlips, skill, context.time || 0)) {
     return {
       available: false,
       message: 'Use or wait out the active follow-up skill'
@@ -136,7 +135,7 @@ function corePaletteSkillAvailability(context: ThiefUiContext = {}, skill: Thief
 /** Show active trait stacks and skill bonuses alongside weapon trackers and stealth gates. */
 function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {
   const state = thiefUiState(context);
-  const at = Math.max(0, Number(context.atSeconds || 0));
+  const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
   const axes = purgeExpiredStacks(state.spinningAxeExpirations || [], at);
   if (axes.length || [context.build?.weapons?.[0], context.build?.alternateWeapons?.[0]].includes('Axe')) {
@@ -175,11 +174,11 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
       "Time remaining on Assassin's Signet's active Power bonus"
     ]
   ] as const) {
-    const remaining = Number(expiresAt || 0) - at;
+    const remaining = (expiresAt || 0) - at;
     if (remaining > 0) items.push({ id, label, value: `${remaining.toFixed(1)}s`, title });
   }
 
-  const revealedRemaining = Number(state.revealedUntil || 0) - at;
+  const revealedRemaining = (state.revealedUntil || 0) - at;
   if (revealedRemaining > 0) {
     return [
       ...items,
@@ -192,7 +191,7 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     ];
   }
 
-  const stealthRemaining = Number(state.stealthStartedAt || 0) <= at ? Number(state.stealthUntil || 0) - at : 0;
+  const stealthRemaining = (state.stealthStartedAt || 0) <= at ? (state.stealthUntil || 0) - at : 0;
   return stealthRemaining > 0
     ? [
         ...items,
@@ -230,21 +229,21 @@ export const thiefCoreUi = Object.freeze({
   resourceViews: (context: ThiefUiContext) => {
     const state = thiefUiState(context);
     const enduranceCapacity = context.resources!.endurance!.maximum;
-    const endurance = Number(state.endurance ?? enduranceCapacity);
+    const endurance = state.endurance ?? enduranceCapacity;
     return [
       {
         id: 'initiative',
         singular: 'initiative',
         plural: 'initiative',
-        maximum: Number(state.initiative?.maximum ?? context.resources?.initiative?.maximum ?? 12),
-        value: Number(state.initiative?.value ?? context.initialInitiative ?? 12),
-        startMaximum: Number(context.resources?.initiative?.maximum ?? state.initiative?.maximum ?? 15),
+        maximum: state.initiative?.maximum ?? context.resources?.initiative?.maximum ?? 12,
+        value: state.initiative?.value ?? context.initialInitiative ?? 12,
+        startMaximum: context.resources?.initiative?.maximum ?? state.initiative?.maximum ?? 15,
         canStart: true,
         buildKey: 'initialInitiative',
         step: 1,
         displayMode: 'pips',
         pipStyle: 'thief-initiative',
-        pipRows: Number(state.initiativePipRows || 2),
+        pipRows: state.initiativePipRows || 2,
         shortLabel: 'Init',
         statusLabel: 'Current'
       },

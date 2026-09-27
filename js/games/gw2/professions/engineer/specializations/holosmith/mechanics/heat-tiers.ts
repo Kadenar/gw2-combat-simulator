@@ -41,7 +41,7 @@ export type HolosmithResolverEvent = EngineerResolverEvent & HolosmithEventMetad
 
 /** Safely exposes Holosmith metadata fields carried by an otherwise generic event. */
 export function holosmithEventMetadata(event: unknown): HolosmithEventMetadata {
-  return (event && typeof event === 'object' ? event : {}) as HolosmithEventMetadata;
+  return event && typeof event === 'object' ? event : {};
 }
 
 // Only Holosmith skill variants receive heat scaling; Core sword variants never do.
@@ -57,7 +57,7 @@ const HEAT_STRIKE_PROFILES: ReadonlyMap<string, SkillId> = new Map([
 function snapshotHolosmithHeat(context: unknown): HolosmithHeatSnapshot {
   const source = context as { readonly config?: EngineerConfig };
   return Object.freeze({
-    heat: Number(holosmithState.from(context).heat || 0),
+    heat: holosmithState.from(context).heat || 0,
     enhancedCapacitySelected: hasTrait(source.config || {}, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
   });
 }
@@ -66,7 +66,7 @@ function snapshotHolosmithHeat(context: unknown): HolosmithHeatSnapshot {
 export function holosmithHeatSnapshotFromEvent(event: unknown): HolosmithHeatSnapshot {
   const metadata = holosmithEventMetadata(event);
   return Object.freeze({
-    heat: Number(metadata.holosmithActivationHeat || 0),
+    heat: metadata.holosmithActivationHeat || 0,
     enhancedCapacitySelected: metadata.holosmithEnhancedCapacitySelected === true
   });
 }

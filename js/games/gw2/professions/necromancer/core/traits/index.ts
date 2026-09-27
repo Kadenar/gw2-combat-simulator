@@ -60,8 +60,8 @@ export function reactToNecromancerCoreCondition(
 ): void {
   if (event.condition === 'Chilled') {
     professionCoreState(context).targetChilledUntil = Math.max(
-      Number(professionCoreState(context).targetChilledUntil || 0),
-      event.at + Number(event.effectiveDuration ?? event.duration ?? 0)
+      professionCoreState(context).targetChilledUntil || 0,
+      event.at + (event.effectiveDuration ?? event.duration ?? 0)
     );
   }
 
@@ -80,10 +80,7 @@ export function reactToNecromancerCoreControl(
   event: NecromancerResolverEvent
 ): void {
   if (event.controlKind === 'fear' || event.kind === 'fear') {
-    professionCoreState(context).dreadUntil = Math.max(
-      Number(professionCoreState(context).dreadUntil || 0),
-      event.at + 3
-    );
+    professionCoreState(context).dreadUntil = Math.max(professionCoreState(context).dreadUntil || 0, event.at + 3);
   }
 
   applyTerror(context, event);

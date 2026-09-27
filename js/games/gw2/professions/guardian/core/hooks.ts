@@ -91,7 +91,7 @@ function completeWeapon(runtime: Runtime, cast: RuntimeCast): void {
   if (followUp) {
     // Radiant Fire keeps Zealot's Flame burning longer; otherwise the window follows the skill's recharge.
     const duration =
-      Number(skill.flipDuration ?? Math.max(1, Number(skill.cooldown ?? 5))) *
+      (skill.flipDuration ?? Math.max(1, skill.cooldown ?? 5)) *
       (skill.id === ID.ZEALOTS_FLAME && hasTrait(runtime, TRAIT.RADIANT_FIRE)
         ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.RADIANT_FIRE), 'durationMultiplier')
         : 1);
@@ -198,7 +198,7 @@ export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
       reactToGuardianDamage(runtime, event, (details as NativeResolvedDamageDetails).hitContext?.damage ?? 0);
       if (runtime.profession.specialization.kind !== 'Core') return;
       refreshGuardianVirtues(runtime);
-      reactToJusticeHitWithOptions(runtime, event, details as NativeResolvedDamageDetails);
+      reactToJusticeHitWithOptions(runtime, event, details);
     },
     'buff.applied'(runtime, event) {
       if (event.kind === 'alacrity') refreshGuardianVirtues(runtime);

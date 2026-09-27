@@ -22,5 +22,5 @@ export function revenantLifeSiphonBonus(context: RevenantResolverContext, event:
 export function modifyRevenantLifeSiphon(context: RevenantResolverContext, event: Gw2ResolverEvent) {
   const bonus = revenantLifeSiphonBonus(context, event);
   if (bonus == null) return;
-  return { flatStrikeMultiplier: Number(event.flatStrikeMultiplier ?? 1) * (1 + bonus) };
+  return { flatStrikeMultiplier: (event.flatStrikeMultiplier ?? 1) * (1 + bonus) };
 }

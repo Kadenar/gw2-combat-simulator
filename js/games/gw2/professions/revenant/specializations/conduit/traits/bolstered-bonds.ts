@@ -44,10 +44,10 @@ export function bolsteredBondsBonuses(
   selectedLegendIds: readonly string[] = [],
   multiplier = 1
 ): Record<string, number> {
-  if (!Number(multiplier)) return {};
+  if (!multiplier) return {};
   const bonuses: Record<string, number> = {};
   const add = (attribute: string, amount: number): void => {
-    bonuses[attribute] = Number(bonuses[attribute] || 0) + amount * multiplier;
+    bonuses[attribute] = (bonuses[attribute] || 0) + amount * multiplier;
   };
 
   for (const legendId of selectedLegendIds) {

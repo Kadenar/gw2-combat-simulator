@@ -20,7 +20,7 @@ export const virtuosoState = defineProfessionSpecializationState('Virtuoso', cre
 
 /** Publishes this module's detached public observations at the planning boundary. */
 export function projectVirtuosoPlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState<MesmerVirtuosoState>(input.profession);
+  const state = snapshotProfessionState(input.profession) as MesmerVirtuosoState;
   return {
     resource: state.numericResource,
     resourceDefinition: mesmerResourceDefinition('Virtuoso', { catalog: input.catalog })

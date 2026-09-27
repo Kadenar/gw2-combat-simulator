@@ -89,14 +89,11 @@ export function buildCombatResult(
   const effectiveEnd = score.combatEndTime;
   finalizeConditionApplications(ctx, effectiveEnd);
   const damagePerSecond = (damage: number): number => (score.dpsWindow > 0 ? damage / score.dpsWindow : 0);
-  const environmentWindow = Math.max(
-    0,
-    effectiveEnd - (score.hasExplicitCombatStart ? Number(score.combatStartTime || 0) : 0)
-  );
+  const environmentWindow = Math.max(0, effectiveEnd - (score.hasExplicitCombatStart ? score.combatStartTime || 0 : 0));
   const environmentDamagePerSecond = (damage: number): number =>
     environmentWindow > 0 ? damage / environmentWindow : 0;
   const { output, ...numeric } = score;
-  const effectiveEvents = events.filter((event) => event.at <= effectiveEnd) as Gw2ResolverEvent[];
+  const effectiveEvents = events.filter((event) => event.at <= effectiveEnd);
   const casts = addCastsToBreakdown(ctx, effectiveEvents);
   return {
     ...numeric,

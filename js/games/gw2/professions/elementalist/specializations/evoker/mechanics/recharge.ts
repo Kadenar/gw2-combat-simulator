@@ -21,12 +21,7 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
  */
 export function commitRechargeDuration(context: ElementalistRuntime, skill: Skill, duration: number): number {
   // Weapon_1 excluded — auto-attacks don't benefit from Elemental Balance CDR
-  if (
-    !skill ||
-    skill.type !== 'Weapon' ||
-    String(skill.slot) === 'Weapon_1' ||
-    !hasTrait(context, TRAIT.ELEMENTAL_BALANCE)
-  ) {
+  if (skill.type !== 'Weapon' || String(skill.slot) === 'Weapon_1' || !hasTrait(context, TRAIT.ELEMENTAL_BALANCE)) {
     return duration;
   }
 

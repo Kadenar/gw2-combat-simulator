@@ -22,7 +22,7 @@ const DETONATE = 'warrior.king-of-fires-detonate';
 const AURA_EXPIRE = 'warrior.berserker-aura-expiry';
 
 function isBerserkerSkill(skill: WarriorSkill): boolean {
-  return Boolean(skill.primalBurst || skill.categories?.includes('Rage') || skill.specialization === 'Berserker');
+  return skill.primalBurst || skill.categories?.includes('Rage') || skill.specialization === 'Berserker';
 }
 
 /** Selected entry and burst boons remain independent, with current duration modifiers and explicit recipients. */
@@ -265,12 +265,12 @@ export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
   },
   reactions: {
     'aura.applied'(runtime, event) {
-      if (event.aura === 'Fire Aura') armAura(runtime, gw2EffectExpiresAt(runtime.time, Number(event.duration ?? 0)));
+      if (event.aura === 'Fire Aura') armAura(runtime, gw2EffectExpiresAt(runtime.time, event.duration ?? 0));
     },
     'damage.resolved'(runtime, event, details) {
       if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || !hasTrait(runtime, TRAIT.KING_OF_FIRES))
         return;
-      const hit = details?.hitContext as Gw2HitResolutionContext;
+      const hit = details.hitContext as Gw2HitResolutionContext;
       const state = berserkerState.from(runtime);
       if (
         !hit.critEligible ||

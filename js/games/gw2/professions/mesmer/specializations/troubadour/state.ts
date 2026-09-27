@@ -43,7 +43,7 @@ export function activeTroubadourInstrumentsAt(
     if (
       !previous ||
       event.at > previous.at ||
-      (event.at === previous.at && Number(event.eventOrder || 0) >= Number(previous.eventOrder || 0))
+      (event.at === previous.at && (event.eventOrder || 0) >= (previous.eventOrder || 0))
     )
       latest.set(name, event);
   }
@@ -57,7 +57,7 @@ export function activeTroubadourInstrumentsAt(
 
 /** Publishes this module's detached public observations at the planning boundary. */
 export function projectTroubadourPlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState<MesmerTroubadourState>(input.profession);
+  const state = snapshotProfessionState(input.profession) as MesmerTroubadourState;
   const at = canonicalTime(input.time);
   return {
     resource: state.numericResource,

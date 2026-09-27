@@ -24,11 +24,11 @@ interface ProceduralStrike {
  * coefficient is shared equally; `intervalSeconds` spaces consecutive hits, and explicit hit positions are kept.
  */
 export function splitStrikeHits<T extends ProceduralStrike>(packet: T, intervalSeconds = 0): T[] {
-  const hits = Math.max(1, Math.trunc(Number(packet.hits ?? 1)));
+  const hits = Math.max(1, Math.trunc(packet.hits ?? 1));
   return Array.from({ length: hits }, (_, index) => ({
     ...packet,
     at: packet.at + index * intervalSeconds,
-    coefficient: Number(packet.coefficient || 0) / hits,
+    coefficient: (packet.coefficient || 0) / hits,
     hits: 1,
     hitIndex: packet.hitIndex ?? index + 1,
     totalHits: packet.totalHits ?? hits
@@ -37,7 +37,7 @@ export function splitStrikeHits<T extends ProceduralStrike>(packet: T, intervalS
 
 /** Weapon identity for a mechanic's strike: the skill's own weapon, or none for utility and profession skills. */
 export function proceduralSkillWeapon(skill: Pick<Skill, 'skillWeapon' | 'type' | 'weapon'>): string {
-  return skill.skillWeapon ?? (skill.type === 'Weapon' ? String(skill.weapon || '') : 'Unequipped');
+  return skill.skillWeapon ?? (skill.type === 'Weapon' ? skill.weapon || '' : 'Unequipped');
 }
 
 interface EmitEffectsOptions {
@@ -66,10 +66,10 @@ export function emitEffects<T extends object>(runtime: Gw2Runtime<T>, options: E
   const at = options.at ?? runtime.time;
   for (const effect of options.effects ?? options.owner.effects ?? []) {
     for (const { event } of materializeSkillEffectApplications({
-      skill: options.owner as Skill,
+      skill: options.owner,
       effect,
       reactionGroup:
-        effect.reactions === undefined ? undefined : runtime.effectReactions.register(options.owner as Skill, effect),
+        effect.reactions === undefined ? undefined : runtime.effectReactions.register(options.owner, effect),
       start: at,
       fullEnd: options.fullEnd ?? at,
       baseEvent: typeof options.baseEvent === 'function' ? options.baseEvent(effect) : options.baseEvent,

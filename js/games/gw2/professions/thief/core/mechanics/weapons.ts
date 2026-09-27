@@ -94,7 +94,7 @@ function activateTrap(runtime: ThiefRuntime, cast: RuntimeCast): void {
   if (!trap) return;
   consumeSkillFlip(runtime.profession.core.availableFlips, trap.triggerId);
   const triggerReadyAt = runtime.cooldowns.get(trap.triggerId);
-  if (triggerReadyAt == null || triggerReadyAt <= Number(runtime.cooldowns.get(trap.prepareId) || 0)) return;
+  if (triggerReadyAt == null || triggerReadyAt <= (runtime.cooldowns.get(trap.prepareId) || 0)) return;
   const placement = runtime.helpers.skillsById.get(trap.prepareId);
   if (placement) runtime.cooldownController.startRecharge(placement, cast.rechargeStart, cast.rechargeWork);
 }
@@ -149,7 +149,7 @@ function updateSpearChain(runtime: ThiefRuntime, skill: ThiefSkill): void {
     return;
   }
 
-  if (skill.id === ID.DISTRACTING_THROW && (core.spearLastWasFinisher || Number(core.spearChainStage || 0) === 0)) {
+  if (skill.id === ID.DISTRACTING_THROW && (core.spearLastWasFinisher || (core.spearChainStage || 0) === 0)) {
     const followsFinisher = core.spearLastWasFinisher;
     core.spearChainStage = 1;
     core.spearLastWasFinisher = false;
@@ -182,14 +182,14 @@ export function completeThiefWeaponState(
   const core = runtime.profession.core;
   const flips: SkillFlipWindows = core.availableFlips;
   if (completed && !(skill.categories || []).includes('stolen skill')) grantThiefStealth(runtime, skill);
-  if (committed && Number(skill.resourceGain || 0) > 0) grantThiefEndurance(runtime, Number(skill.resourceGain));
+  if (committed && (skill.resourceGain || 0) > 0) grantThiefEndurance(runtime, Number(skill.resourceGain));
   if (committed) updateSpearChain(runtime, skill);
   if (completed && AXE_RECALL_SKILLS.has(skill.id)) core.spinningAxeExpirations = [];
   // Dual-wield openers keep their follow-up one second shorter unless the skill authors its own window.
   const followUp = committed && skill.type === 'Weapon' ? followUpOf(runtime.helpers.skillsById, skill) : undefined;
   if (followUp)
     runtime.armFlip(followUp.id, {
-      expiresAt: runtime.time + Number(skill.flipDuration ?? (skill.dualWieldOpener ? 4 : 5))
+      expiresAt: runtime.time + (skill.flipDuration ?? (skill.dualWieldOpener ? 4 : 5))
     });
 
   if (committed && skill.type === 'Weapon' && skill.flipParentId != null) consumeSkillFlip(flips, skill.id);
@@ -235,7 +235,7 @@ function completeThiefWeaponSwap(runtime: ThiefRuntime): void {
   if (
     !runtime.combatStartedAt() ||
     !hasTrait(runtime, TRAIT.QUICK_POCKETS) ||
-    !isInternalCooldownReady(runtime.time, Number(runtime.procs.deadline('thief.core.quickPockets') || 0))
+    !isInternalCooldownReady(runtime.time, runtime.procs.deadline('thief.core.quickPockets') || 0)
   )
     return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.quickPockets);
@@ -248,7 +248,7 @@ function activateAssassinsSignet(runtime: ThiefRuntime): void {
   const core = runtime.profession.core;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.assassinsSignet);
   core.assassinsSignetActiveUntil = runtime.time + balanceProfileNumber(profile, 'durationMultiplier');
-  core.assassinsSignetPassiveDisabledUntil = Number(runtime.cooldowns.get(ID.ASSASSINS_SIGNET) ?? runtime.time);
+  core.assassinsSignetPassiveDisabledUntil = runtime.cooldowns.get(ID.ASSASSINS_SIGNET) ?? runtime.time;
 }
 
 /** Utility, stance, and swap transitions owned by Core at the committed completion. */
@@ -278,7 +278,8 @@ interface GuildAttackWork {
 
 /** The two shared thieves plus the active specialization's third summon (Core Thief otherwise). */
 function thievesGuildSummons(runtime: ThiefRuntime): ThiefSummonDefinition[] {
-  const profile = (runtime.helpers.skillsById.get(ID.THIEVES_GUILD) as ThiefSkill | undefined)?.summonAttack;
+  const skill: ThiefSkill | undefined = runtime.helpers.skillsById.get(ID.THIEVES_GUILD);
+  const profile = skill?.summonAttack;
   if (!profile) return [];
   const third =
     thiefSpecializationGuildSummon(runtime.profession.specialization.kind) ||
@@ -292,7 +293,7 @@ function summonThievesGuild(runtime: ThiefRuntime, cast: RuntimeCast): void {
   if (!profile) return;
   const core = runtime.profession.core;
   const summons = thievesGuildSummons(runtime);
-  const expiresAt = canonicalTime(cast.start + Number(profile.duration || 0));
+  const expiresAt = canonicalTime(cast.start + (profile.duration || 0));
   core.activeThievesGuild = {
     ownerId: `${cast.id}:thieves-guild`,
     variant: summons.at(-1)?.name || 'Core Thief',
@@ -310,7 +311,7 @@ export function startThievesGuild(runtime: ThiefRuntime): void {
   active.started = true;
   for (const [summonIndex, summon] of thievesGuildSummons(runtime).entries())
     for (const [attackIndex, attack] of (summon.attacks || []).entries()) {
-      const at = canonicalTime(runtime.time + Number(attack.initialDelay || 0));
+      const at = canonicalTime(runtime.time + (attack.initialDelay || 0));
       if (at < active.expiresAt)
         runtime.schedule(THIEF_GUILD_ATTACK, at, {
           ownerId: active.ownerId,
@@ -346,11 +347,12 @@ export function thievesGuildAttack(runtime: ThiefRuntime, data: unknown): void {
   const work = data as GuildAttackWork;
   const active = runtime.profession.core.activeThievesGuild;
   if (!active || active.ownerId !== work.ownerId || runtime.time >= active.expiresAt) return;
-  const profile = (runtime.helpers.skillsById.get(ID.THIEVES_GUILD) as ThiefSkill | undefined)?.summonAttack;
+  const skill: ThiefSkill | undefined = runtime.helpers.skillsById.get(ID.THIEVES_GUILD);
+  const profile = skill?.summonAttack;
   const summon = thievesGuildSummons(runtime)[work.summonIndex];
   const attack = summon?.attacks?.[work.attackIndex];
   if (!profile || !summon || !attack) return;
-  const hits = Math.max(1, Number(attack.hits ?? 1));
+  const hits = Math.max(1, attack.hits ?? 1);
   const summonName = `Thieves Guild — ${summon.name}`;
   const attackName = `${summonName} — ${attack.name}`;
   const common = {
@@ -368,28 +370,28 @@ export function thievesGuildAttack(runtime: ThiefRuntime, data: unknown): void {
   emitThiefDamage(runtime, null, {
     ...common,
     name: attackName,
-    coefficient: Number(attack.coefficientPerHit || 0) * hits,
+    coefficient: (attack.coefficientPerHit || 0) * hits,
     hits,
     hitIndex: 1,
     totalHits: hits,
     skillWeapon: summon.weapon,
     weaponStrengthProfileId: summon.weaponStrengthProfileId,
     independentSummonStrike: true,
-    summonBasePower: Number(profile.basePower),
-    summonCriticalChance: Number(profile.criticalChance),
-    summonCriticalDamage: Number(profile.criticalDamage)
+    summonBasePower: profile.basePower,
+    summonCriticalChance: profile.criticalChance,
+    summonCriticalDamage: profile.criticalDamage
   });
   for (const condition of guildAttackConditions(runtime, attack))
     emitThiefCondition(runtime, null, {
       ...common,
       name: `${attackName} — ${condition.condition}`,
       condition: condition.condition,
-      stacks: Number(condition.stacks ?? 1),
-      duration: Number(condition.duration || 0),
+      stacks: condition.stacks,
+      duration: condition.duration || 0,
       summonInheritsAttributes: true
     });
-  const next = canonicalTime(runtime.time + Number(attack.interval || 0));
-  if (Number(attack.interval || 0) > 0 && next < active.expiresAt)
+  const next = canonicalTime(runtime.time + (attack.interval || 0));
+  if ((attack.interval || 0) > 0 && next < active.expiresAt)
     runtime.schedule(THIEF_GUILD_ATTACK, next, { ...work, occurrence: work.occurrence + 1 } satisfies GuildAttackWork);
 }
 
@@ -419,7 +421,7 @@ export function unsuspectingStrikeBonus(runtime: ThiefRuntime, application: Gw2R
       fixedDuration: application.fixedDuration,
       name: 'Unsuspecting Strike - Bonus Bleeding',
       condition: 'Bleeding',
-      duration: Number(application.duration || 0),
+      duration: application.duration || 0,
       stacks: 3
     })
   );

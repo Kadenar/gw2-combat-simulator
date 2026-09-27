@@ -261,7 +261,7 @@ function emitTraitSymbol(runtime: Runtime, trait: number, symbolId: SkillId, cau
           trait === TRAIT.FURIOUS_FOCUS
             ? 4
             : trait === TRAIT.PROTECTORS_RESTORATION && component.type === 'strike'
-              ? Number(component.ticks?.at(-1)?.atMs ?? 0) / 1000
+              ? (component.ticks?.at(-1)?.atMs ?? 0) / 1000
               : 0;
         runtime.emit({
           ...packet,
@@ -365,7 +365,7 @@ export function reactToGuardianDamage(runtime: Runtime, event: Gw2ResolverEvent,
 
   if (!hasTrait(runtime, TRAIT.ZEALOTS_RESOLUTION) || event.skillId === ID.LESSER_SYMBOL_OF_RESOLUTION) return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.zealotsResolution);
-  const health = Number(runtime.config.target?.health ?? 0);
+  const health = runtime.config.target?.health ?? 0;
   if (
     !(health > 0) ||
     !(targetHealthLoss(runtime.config, runtime) - damage > health * balanceProfileNumber(profile, 'threshold')) ||
@@ -498,7 +498,7 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
   const torchPulse = event.type === 'condition' && event.condition === 'Burning' && event.skillId === ID.ZEALOTS_FLAME;
   if (
     !isGw2PlayerActorEvent(event) ||
-    !((event.type === 'damage' && Number(event.coefficient || 0) > 0) || burningBolt || torchPulse) ||
+    !((event.type === 'damage' && (event.coefficient || 0) > 0) || burningBolt || torchPulse) ||
     event.skillId === ID.SYMBOL_OF_IGNITION
   ) {
     return;
@@ -506,9 +506,9 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
 
   const state = guardianResolverState(context);
   if (
-    Number(state.symbolIgnitionUntil || 0) <= Number(state.symbolIgnitionStartsAt || 0) ||
-    event.at < Number(state.symbolIgnitionStartsAt || 0) ||
-    event.at > Number(state.symbolIgnitionUntil || 0)
+    (state.symbolIgnitionUntil || 0) <= (state.symbolIgnitionStartsAt || 0) ||
+    event.at < (state.symbolIgnitionStartsAt || 0) ||
+    event.at > (state.symbolIgnitionUntil || 0)
   ) {
     return;
   }

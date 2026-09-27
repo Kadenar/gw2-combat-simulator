@@ -36,14 +36,14 @@ export function thiefRuntimeSpecializationState<TState extends object = object>(
   return readProfessionSpecializationState<TState>(context.runtime?.profession, expectedKind) || {};
 }
 
-export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+export const thiefCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
   {
     id: 'thief.exposed-weakness',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     parameters: {
       damagePerCondition: 0.02
-    } as Readonly<Record<string, number>>,
+    },
     factor: (context, _target, parameters) => 1 + targetConditionCount(context) * parameters.damagePerCondition,
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.EXPOSED_WEAKNESS)
   },
@@ -125,7 +125,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     parameters: {
       maximumStacks: 15,
       damagePerStack: 0.01
-    } as Readonly<Record<string, number>>,
+    },
     // Stacks expire individually, so strikes and condition ticks count those active at their own instant.
     amount: (context, _target, parameters) =>
       Math.min(
@@ -142,7 +142,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.FLUID_STRIKES) &&
-      Number(thiefRuntimeState(context).fluidStrikesUntil || 0) > context.time
+      (thiefRuntimeState(context).fluidStrikesUntil || 0) > context.time
   },
   {
     id: 'thief.distracting-throw-finisher',
@@ -151,7 +151,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     amount: 0.1,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      Number(thiefRuntimeState(context).distractingThrowBuffUntil || 0) > context.time
+      (thiefRuntimeState(context).distractingThrowBuffUntil || 0) > context.time
   },
   {
     id: 'thief.backstab-position',
@@ -220,8 +220,8 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
         isGw2PlayerModifierOwnedEvent(context.event) &&
         hasTrait(context, TRAIT.HIDDEN_KILLER) &&
         // The explicit expiry is armed by stealth, never by the initial Revealed sentinel.
-        Number(state.stealthStartedAt || 0) <= context.time &&
-        (Number(state.stealthUntil || 0) > context.time || Number(state.hiddenKillerUntil || 0) > context.time)
+        (state.stealthStartedAt || 0) <= context.time &&
+        ((state.stealthUntil || 0) > context.time || (state.hiddenKillerUntil || 0) > context.time)
       );
     }
   }
@@ -245,10 +245,10 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
   if (hasSelectedSkill(context, "Assassin's Signet")) {
     const assassinsSignetProfile = requireBalanceProfileFromContext(context, PROFILE.assassinsSignet);
     const passive = balanceProfileNumber(assassinsSignetProfile, 'attributeBonus');
-    const passiveDisabled = Number(state.assassinsSignetPassiveDisabledUntil || 0) > context.time;
+    const passiveDisabled = (state.assassinsSignetPassiveDisabledUntil || 0) > context.time;
     if (staticRulesApplied && passiveDisabled) result.power -= passive;
     if (!staticRulesApplied && !passiveDisabled) result.power += passive;
-    if (Number(state.assassinsSignetActiveUntil || 0) > context.time) {
+    if ((state.assassinsSignetActiveUntil || 0) > context.time) {
       result.power += balanceProfileNumber(assassinsSignetProfile, 'attributePerStack');
     }
   }
@@ -259,7 +259,7 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
       result.power += balanceProfileNumber(revealedTrainingProfile, 'attributeBonus');
     }
 
-    if (Number(state.revealedUntil || 0) > context.time && !eventSkill(context)?.stealthAttack) {
+    if ((state.revealedUntil || 0) > context.time && !eventSkill(context)?.stealthAttack) {
       const revealedTrainingProfile = requireBalanceProfileFromContext(context, PROFILE.revealedTraining);
       result.power += balanceProfileNumber(revealedTrainingProfile, 'attributePerStack');
     }
@@ -268,7 +268,7 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
   if (
     hasTrait(context, TRAIT.NO_QUARTER) &&
     context.query?.furyActiveAt(context.time, context.runtime, context.event) &&
-    !(staticRulesApplied && Boolean((context.config?.boons as Record<string, unknown>)?.fury))
+    !(staticRulesApplied && Boolean((context.config?.boons as Record<string, unknown>).fury))
   ) {
     const noQuarterProfile = requireBalanceProfileFromContext(context, PROFILE.noQuarter);
     result.ferocity += balanceProfileNumber(noQuarterProfile, 'attributeBonus');

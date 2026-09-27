@@ -46,7 +46,7 @@ export function applyConjureState(context: ElementalistRuntime, cast: RuntimeCas
         applyElementalistAura(context, {
           at,
           aura: String(conjurerBuff.kind),
-          duration: Number(conjurerBuff.duration),
+          duration: conjurerBuff.duration,
           skillName: 'Conjurer',
           sourceId: skill.id
         });

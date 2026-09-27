@@ -9,7 +9,7 @@ export const shackles = defineRelic({
   emitConditionEffects(ctx, state, application) {
     const actorType = gw2EventActorType(application);
     if (
-      application?.condition !== 'Immobilized' ||
+      application.condition !== 'Immobilized' ||
       (actorType !== GW2_EVENT_ACTOR_TYPES.PLAYER && actorType !== GW2_EVENT_ACTOR_TYPES.SUMMON) ||
       !isInternalCooldownReady(application.at, state.readyAt)
     ) {
@@ -59,7 +59,7 @@ export const shackles = defineRelic({
   },
   damageResolved(ctx, _state, event) {
     // The relic emits exactly one damage packet under its source ID, so the ID alone identifies it.
-    if (event?.type !== 'damage' || event.sourceId !== 'relic.shackles') return;
+    if (event.type !== 'damage' || event.sourceId !== 'relic.shackles') return;
 
     ctx.recordProc('relic', 'Relic of the Shackles', event.at, event.triggeredBy, 'damage');
   }

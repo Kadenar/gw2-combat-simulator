@@ -36,7 +36,7 @@ export function takeThiefCompletion(runtime: ThiefRuntime, task: string, data: u
 
 /** Resolves a Thief catalog skill by id from the live catalog. */
 export function thiefSkill(runtime: ThiefRuntime, id: SkillId | null | undefined): ThiefSkill | undefined {
-  return id == null ? undefined : (runtime.helpers.skillsById.get(id) as ThiefSkill | undefined);
+  return id == null ? undefined : runtime.helpers.skillsById.get(id);
 }
 
 interface ThiefPacketAttribution {

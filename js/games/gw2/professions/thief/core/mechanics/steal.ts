@@ -31,8 +31,8 @@ export const THIEF_STOLEN_SKILL_IDS: readonly SkillId[] = Object.freeze([
 export function storedStolenSkillChoices(
   state: Pick<ThiefCoreState, 'storedStolenSkillId' | 'storedStolenSkillIds' | 'storedStolenSkillCount'>
 ): readonly SkillId[] {
-  if (Number(state.storedStolenSkillCount || 0) <= 0) return [];
-  return state.storedStolenSkillId == null ? state.storedStolenSkillIds || [] : [state.storedStolenSkillId];
+  if ((state.storedStolenSkillCount || 0) <= 0) return [];
+  return state.storedStolenSkillId == null ? state.storedStolenSkillIds : [state.storedStolenSkillId];
 }
 
 /** A steal grants a choice pool; Improvisation allows a second use of the selected skill. */
@@ -70,13 +70,13 @@ export function completeThiefSteal(
 /** Using a stored skill spends one use; a remaining Improvisation use stays locked to the same skill. */
 export function consumeThiefStolenSkill(runtime: ThiefRuntime, skill: ThiefSkill): void {
   const core = runtime.profession.core;
-  core.storedStolenSkillCount = Math.max(0, Number(core.storedStolenSkillCount || 0) - 1);
+  core.storedStolenSkillCount = Math.max(0, (core.storedStolenSkillCount || 0) - 1);
   core.storedStolenSkillId = core.storedStolenSkillCount > 0 ? skill.id : null;
   core.storedStolenSkillIds = core.storedStolenSkillCount > 0 ? [skill.id] : [];
 }
 
 function stealSkill(cast: RuntimeCast): ThiefSkill {
-  return cast.skill as ThiefSkill;
+  return cast.skill;
 }
 
 /** Serpent's Touch Poison is attributed to its trait while retaining the triggering steal. */

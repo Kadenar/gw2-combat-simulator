@@ -57,12 +57,12 @@ function queueBloodMagicLifeSteal(
     })
   );
   // Mirror the scheduled packet in result-level trait attribution.
-  context.recordProc?.('trait', name, event.at, event.skillName, '', icon);
+  context.recordProc('trait', name, event.at, event.skillName, '', icon);
 }
 
 // Both packet variants explicitly use the granting trait's artwork so the
 // minion variant cannot fall back to the icon of the attack that triggered it.
-const VAMPIRIC_ICON = String(NECROMANCER_TRAITS.find((trait) => trait.id === TRAIT.VAMPIRIC)?.icon || '');
+const VAMPIRIC_ICON = NECROMANCER_TRAITS.find((trait) => trait.id === TRAIT.VAMPIRIC)?.icon || '';
 
 /** Applies Vampiric to qualifying player, minion, and Ritualist spirit strikes. */
 export function applyVampiric(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
@@ -95,7 +95,7 @@ function vampiricPresenceActorKey(context: NecromancerResolverContext, event: Ne
     maximumRecipients: 5,
     eligibleCompanionIds: necromancerActiveMinionCompanionIds(context)
   });
-  const owner = String(event.summonOwner || '');
+  const owner = event.summonOwner || '';
   if (owner && recipients.companionIds.includes(owner)) return owner;
   if (!owner && recipients.companionIds.length > 0) {
     return `summon:${String(event.sourceId || event.skillId || event.skillName || 'unknown')}`;
@@ -121,8 +121,8 @@ function queueVampiricPresence(
   if (!effect) return;
   const readyAt =
     actorKey === 'self'
-      ? Number(context.procs.deadline('necromancer.core.vampiricPresence') || 0)
-      : Number(context.procs.readyAt[`vampiricPresence:${actorKey}`] || 0);
+      ? context.procs.deadline('necromancer.core.vampiricPresence') || 0
+      : context.procs.readyAt[`vampiricPresence:${actorKey}`] || 0;
   if (!intervalAlreadyApplied && !isInternalCooldownReady(event.at, readyAt)) return;
 
   if (!intervalAlreadyApplied) {
@@ -196,17 +196,15 @@ function addTasteForBloodApplication(
   );
   applications.push({
     at: event.at,
-    expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
-    stacks: Math.max(1, Number(event.stacks ?? 1))
+    expiresAt: event.at + Math.max(0, event.duration || 0),
+    stacks: Math.max(1, event.stacks ?? 1)
   });
   buffs[recipient] = applications;
 }
 
 // Trait-derived Taste for Blood packets and proc markers keep Overflowing
 // Thirst artwork so attribution matches the mechanic that granted the stacks.
-const OVERFLOWING_THIRST_ICON = String(
-  NECROMANCER_TRAITS.find((trait) => trait.id === TRAIT.OVERFLOWING_THIRST)?.icon || ''
-);
+const OVERFLOWING_THIRST_ICON = NECROMANCER_TRAITS.find((trait) => trait.id === TRAIT.OVERFLOWING_THIRST)?.icon || '';
 
 /**
  * Consumes a recipient charge as Taste for Blood's power-only life-steal packet. Charges exist only to deliver the
@@ -235,7 +233,7 @@ function consumeTasteForBlood(
 export function reactToTasteForBloodGrant(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (!hasTrait(context, TRAIT.OVERFLOWING_THIRST)) return;
   if (event.resolvedAudience?.includesSelf) addTasteForBloodApplication(context, event, 'self');
-  for (let allyIndex = 1; allyIndex <= Number(event.resolvedAudience?.alliedPlayerCount || 0); allyIndex += 1) {
+  for (let allyIndex = 1; allyIndex <= (event.resolvedAudience?.alliedPlayerCount || 0); allyIndex += 1) {
     addTasteForBloodApplication(context, event, alliedTasteForBloodRecipient(allyIndex));
   }
 
@@ -262,7 +260,7 @@ export function applyOverflowingThirstDamage(
     event.actorType === 'player'
       ? 'self'
       : event.actorType === 'summon' && event.summonOwner
-        ? companionTasteForBloodRecipient(String(event.summonOwner))
+        ? companionTasteForBloodRecipient(event.summonOwner)
         : null;
   if (hasTrait(context, TRAIT.OVERFLOWING_THIRST) && recipient) consumeTasteForBlood(context, event, recipient);
 }

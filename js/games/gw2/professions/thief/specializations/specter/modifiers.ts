@@ -25,15 +25,15 @@ function modifySpecterAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   // Conversions read gear-only stats. config.stats excludes might
   // (baked into the seed's condition damage) and live trait bonuses.
   // Using gear stats directly avoids double-counting the flat bonuses added below.
-  const gearConditionDamage = Number(context.config?.stats?.conditionDamage || 0);
-  const gearVitality = Number(context.config?.stats?.vitality || 0);
+  const gearConditionDamage = context.config?.stats?.conditionDamage || 0;
+  const gearVitality = context.config?.stats?.vitality || 0;
   if (hasTrait(context, TRAIT.SECOND_OPINION)) {
     const secondOpinionProfile = requireBalanceProfileFromContext(context, PROFILE.secondOpinion);
     result.healingPower =
-      Number(result.healingPower || 0) +
+      (result.healingPower || 0) +
       gearConditionDamage * balanceProfileNumber(secondOpinionProfile, 'attributeConversion');
     result.conditionDamage =
-      Number(result.conditionDamage || 0) +
+      (result.conditionDamage || 0) +
       balanceProfileNumber(secondOpinionProfile, 'attributeBonus') +
       (wieldingScepter(context) ? balanceProfileNumber(secondOpinionProfile, 'attributePerStack') : 0);
   }
@@ -41,8 +41,7 @@ function modifySpecterAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   if (hasTrait(context, TRAIT.STRENGTH_OF_SHADOWS)) {
     const strengthOfShadowsProfile = requireBalanceProfileFromContext(context, PROFILE.strengthOfShadows);
     result.expertise =
-      Number(result.expertise || 0) +
-      gearVitality * balanceProfileNumber(strengthOfShadowsProfile, 'attributeConversion');
+      (result.expertise || 0) + gearVitality * balanceProfileNumber(strengthOfShadowsProfile, 'attributeConversion');
   }
 
   return result;

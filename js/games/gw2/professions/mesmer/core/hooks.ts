@@ -158,7 +158,7 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     'mesmer.core.relock-signet-ether'(runtime, data) {
       const cast = (data as { cast: RuntimeCast }).cast;
       const readyAt = runtime.time + cast.rechargeWork / runtime.cooldownController.rate(cast.skill);
-      if (readyAt > Number(runtime.cooldowns.get(cast.skill.id) ?? 0))
+      if (readyAt > (runtime.cooldowns.get(cast.skill.id) ?? 0))
         runtime.cooldownController.startRecharge(cast.skill, runtime.time, cast.rechargeWork);
     }
   },
@@ -209,7 +209,7 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     },
     'condition.applied': triggerThePledge,
     'control.resolved'(runtime, event) {
-      const name = String(event.skillName ?? event.name ?? 'Control effect');
+      const name = event.skillName ?? event.name ?? 'Control effect';
       triggerChaoticInterruption(runtime, event, name);
       mesmerCoreEventReactions.control(runtime, event);
     },

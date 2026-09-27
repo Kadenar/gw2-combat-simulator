@@ -38,7 +38,7 @@ const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'elementalist.familiars-prowess-strike',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
-    parameters: { baseAmount: 0.05, focusedAmount: 0.1 } as Readonly<Record<string, number>>,
+    parameters: { baseAmount: 0.05, focusedAmount: 0.1 },
     amount: (context, _target, parameters) =>
       hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? parameters.focusedAmount : parameters.baseAmount,
     when: (context: ElementalistModifierContext) =>
@@ -48,7 +48,7 @@ const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'elementalist.familiars-prowess-condition',
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: 'damage-additive',
-    parameters: { baseAmount: 0.05, focusedAmount: 0.1 } as Readonly<Record<string, number>>,
+    parameters: { baseAmount: 0.05, focusedAmount: 0.1 },
     amount: (context, _target, parameters) =>
       hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? parameters.focusedAmount : parameters.baseAmount,
     when: (context: ElementalistModifierContext) =>
@@ -87,14 +87,14 @@ function modifyEvokerAttributes(context: ElementalistModifierContext, attributes
     Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
   ) {
     const enhancedPotencyProfile = requireBalanceProfileFromContext(context, PROFILE.enhancedPotency);
-    modified.ferocity = Number(modified.ferocity || 0) + balanceProfileNumber(enhancedPotencyProfile, 'attributeBonus');
+    modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(enhancedPotencyProfile, 'attributeBonus');
   }
 
   if (context.config?.evokerElement === 'Fire' && hasTrait(context, TRAIT.ENHANCED_POTENCY)) {
     const enhancedPotencyProfile = requireBalanceProfileFromContext(context, PROFILE.enhancedPotency);
     // Fire Enhanced Potency scales condition damage per might stack
     modified.conditionDamage =
-      Number(modified.conditionDamage || 0) +
+      (modified.conditionDamage || 0) +
       elementalistMightStacks(context) * balanceProfileNumber(enhancedPotencyProfile, 'attributePerStack');
   }
 

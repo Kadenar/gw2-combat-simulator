@@ -24,7 +24,7 @@ export const catalystModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'elementalist.empowering-auras-strike',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
-    parameters: { maximumStacks: 5, damagePerStack: 0.01 } as Readonly<Record<string, number>>,
+    parameters: { maximumStacks: 5, damagePerStack: 0.01 },
     amount: (context, _target, parameters) =>
       elementalistTimedBuffStacks(context, 'empowering auras', parameters.maximumStacks) * parameters.damagePerStack,
     when: (context) => hasTrait(context, TRAIT.EMPOWERING_AURAS)
@@ -33,7 +33,7 @@ export const catalystModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'elementalist.empowering-auras-condition',
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: 'damage-additive',
-    parameters: { maximumStacks: 5, damagePerStack: 0.01 } as Readonly<Record<string, number>>,
+    parameters: { maximumStacks: 5, damagePerStack: 0.01 },
     amount: (context, _target, parameters) =>
       elementalistTimedBuffStacks(context, 'empowering auras', parameters.maximumStacks) * parameters.damagePerStack,
     when: (context) => hasTrait(context, TRAIT.EMPOWERING_AURAS)
@@ -85,10 +85,9 @@ function modifyCatalystAttributes(context: ElementalistModifierContext, attribut
   const modified = { ...attributes };
 
   for (const stat of ['power', 'precision', 'ferocity', 'conditionDamage', 'expertise', 'concentration'] as const) {
-    const eligible = Number(pool?.[stat] ?? modified[stat] ?? 0);
+    const eligible = pool?.[stat] ?? modified[stat] ?? 0;
     const bonus = eligible * multiplier;
-    modified[stat] =
-      Number(modified[stat] || 0) + (['power', 'conditionDamage'].includes(stat) ? Math.round(bonus) : bonus);
+    modified[stat] = (modified[stat] || 0) + (['power', 'conditionDamage'].includes(stat) ? Math.round(bonus) : bonus);
   }
 
   return modified;

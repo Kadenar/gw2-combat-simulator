@@ -50,7 +50,7 @@ function variantEffects(effects: readonly SkillEffect[] = [], context = '') {
   for (const effect of effects) {
     const key = effect.metadata?.legendId ?? effect.metadata?.trigger;
     const qualifier = typeof key === 'string' ? labels[key] : '';
-    if (key != null && !qualifier) throw new Error(`Unknown Revenant tooltip variant: ${String(key)}`);
+    if (key != null && !qualifier) throw new Error(`Unknown Revenant tooltip variant: ${key}`);
     const shared = key == null || key === 'entity-skill';
     const model = simulationEffectFacts([effect], [context, shared ? qualifier : ''].filter(Boolean).join(' · '));
     incomplete ||= !!model.incomplete;
@@ -99,7 +99,7 @@ const familyTooltips = {
         ...effects.facts,
         {
           name: 'Energy restored',
-          detail: tooltipDecimal(tooltipNumber(balanceContext.catalog.skillsById.get(entity.id)!, 'resourceGain'))
+          detail: tooltipDecimal(tooltipNumber(balanceContext.catalog.skillsById.get(entity.id), 'resourceGain'))
         }
       ]
     };
@@ -181,7 +181,7 @@ const familyTooltips = {
               {
                 name: 'Bleed trigger cooldown',
                 detail: tooltipSeconds(
-                  tooltipNumber(balanceContext.catalog.skillsById.get(RENEGADE.razorclawsRageProc)!, 'cooldown')
+                  tooltipNumber(balanceContext.catalog.skillsById.get(RENEGADE.razorclawsRageProc), 'cooldown')
                 )
               }
             ]
@@ -468,7 +468,7 @@ export const revenantTooltips: ProfessionTooltips = {
         ),
         {
           name: 'Pulse interval',
-          detail: tooltipSeconds(tooltipNumber(balanceContext.catalog.skillsById.get(entity.id)!, 'pulseInterval'))
+          detail: tooltipSeconds(tooltipNumber(balanceContext.catalog.skillsById.get(entity.id), 'pulseInterval'))
         }
       ]
     }),
@@ -514,7 +514,7 @@ export const revenantTooltips: ProfessionTooltips = {
         {
           name: 'Siphon trigger cooldown',
           detail: tooltipSeconds(
-            tooltipNumber(balanceContext.catalog.skillsById.get(RENEGADE.soulcleavesSummitProc)!, 'cooldown')
+            tooltipNumber(balanceContext.catalog.skillsById.get(RENEGADE.soulcleavesSummitProc), 'cooldown')
           )
         }
       ]

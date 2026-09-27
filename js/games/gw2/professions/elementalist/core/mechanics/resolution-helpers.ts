@@ -58,7 +58,7 @@ export function queueElementalistBuff(
     buildResolverBuff({
       at: event.at,
       source,
-      sourceId: event.skillId ?? event.sourceId ?? source,
+      sourceId: event.skillId ?? event.sourceId,
       actorType: 'player',
       skillName: source,
 

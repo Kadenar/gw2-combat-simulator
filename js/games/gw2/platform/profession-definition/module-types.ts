@@ -91,7 +91,7 @@ export interface NativeCatalogOptions {
   readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
 }
 
-export type AnyNativeModule<TId extends string = string> = NativeModule<TId, object, never, object, object, object>;
+export type AnyNativeModule<TId extends string = string> = NativeModule<TId, object, never>;
 
 type NativeModuleState<TModule> = TModule extends {
   readonly state: {

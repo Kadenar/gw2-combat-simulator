@@ -33,8 +33,8 @@ export function applyGuardianBuildAttributeRules(
   );
 
   const traitDurations: Gw2NumericAttributes = {};
-  const mainHand = weapons?.[0] || '';
-  const offHand = weapons?.[1] || '';
+  const mainHand = weapons[0] || '';
+  const offHand = weapons[1] || '';
 
   const oneHandedMainHand =
     mainHand !== '' && !['Greatsword', 'Hammer', 'Longbow', 'Spear', 'Staff'].includes(mainHand);

@@ -14,7 +14,7 @@ import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js'
 
 /** Reads the weapon a skill belongs to, tolerating either catalog field spelling. */
 export function skillWeapon(skill: Skill): string {
-  return String(skill.weapon || skill.skillWeapon || '');
+  return skill.weapon || skill.skillWeapon || '';
 }
 
 /** Finds the spear etching chain a stable skill ID participates in, if any. */
@@ -41,8 +41,7 @@ export function combatStarted(context: ElementalistRuntime, at: number): boolean
 export function elementalistEventSkill(context: ElementalistRuntime, source: string, sourceId: Skill['id']): Skill {
   return (
     context.helpers.skillsById.get(sourceId) ||
-    context.helpers.skillsByName.get(source) ||
-    ({ id: sourceId, name: source } as Skill)
+    context.helpers.skillsByName.get(source) || { id: sourceId, name: source }
   );
 }
 
@@ -70,7 +69,7 @@ export function emitProfiledBuff(
     actorType: 'player',
     kind,
     stacks: Number(effect.stacks),
-    duration: Number(effect.duration),
+    duration: effect.duration,
     skillName: source,
     priority,
     ...(recipients === 'party' ? { audience: { recipients: 'party' as const, maximumRecipients: 5 } } : {})

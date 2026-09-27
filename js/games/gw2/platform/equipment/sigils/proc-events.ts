@@ -49,7 +49,7 @@ export function createSigilConditionEvent(name: string, proc: Gw2SigilProc, sour
     ...commonSigilEvent(name, sourceSkill),
     type: 'condition',
     at: 0,
-    name: `Sigil of ${name} — ${String(proc.condition || '')}`,
+    name: `Sigil of ${name} — ${proc.condition || ''}`,
     condition: proc.condition,
     duration: proc.duration,
     stacks: proc.stacks

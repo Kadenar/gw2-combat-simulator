@@ -70,7 +70,7 @@ export function addVenomCharges(
 /** Consumes one charge from every active venom on a player strike and applies each venom's complete proc packet. */
 export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefResolverEvent): number {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return 0;
-  const state = professionCoreState(context) as ThiefCoreState;
+  const state = professionCoreState(context);
   refreshVenomCharges(state, event.at);
   let procCount = 0;
   for (const venom of VENOMS) {

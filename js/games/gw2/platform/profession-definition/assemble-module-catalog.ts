@@ -22,7 +22,7 @@ export interface NativeModuleDataSelection extends NativeModuleCatalogData {
 // against the elite spec names. Falls back to "Core" when there's no match,
 // so base-game skills and traits always land in the Core module.
 function canonicalModuleName(value: object, specializations: readonly CatalogEntity[]): string {
-  const specialization = String((value as { readonly specialization?: string }).specialization || '').toLowerCase();
+  const specialization = ((value as { readonly specialization?: string }).specialization || '').toLowerCase();
   return specializations.find((entry) => entry.elite && entry.name.toLowerCase() === specialization)?.name || 'Core';
 }
 
@@ -57,7 +57,7 @@ export function createNativeModuleData({
   // Restrict skillOverrides to skills this module actually owns — prevents one
   // module from patching another module's generated skills.
   const localOverrides = Object.fromEntries(
-    Object.entries(skillOverrides).filter(([skillId]) => generatedIds.has(String(skillId)))
+    Object.entries(skillOverrides).filter(([skillId]) => generatedIds.has(skillId))
   );
   return Object.freeze({
     generatedSkills: Object.freeze(generated),
@@ -254,10 +254,10 @@ function composeNativeCatalog(
   }
 
   const catalog = createCanonicalCatalog({
-    generated: generated.values as Skill[],
+    generated: generated.values,
     mechanics,
     overrides,
-    extraSkills: extras.values as Skill[],
+    extraSkills: extras.values,
     balanceProfiles: balanceProfiles.values,
     traits: traits.values,
     specializations: specializations.values,
@@ -288,7 +288,7 @@ function composeNativeCatalog(
   //   6. Core as final fallback
   for (const skill of catalog.skills) {
     const explicit = exclusiveOwners.get(String(skill.id));
-    const specialization = eliteNames.get(String(skill.specialization || '').toLowerCase());
+    const specialization = eliteNames.get((skill.specialization || '').toLowerCase());
     const mechanicOwner = mechanicsOwners.get(String(skill.id));
     const owner =
       explicit ||

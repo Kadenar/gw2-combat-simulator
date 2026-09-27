@@ -76,11 +76,7 @@ import {
 } from '#gw2/platform/skills/timing.js';
 import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
 import { spendSkillCost } from '#gw2/platform/execution/skill-cost.js';
-import type {
-  Gw2ResolverEvent,
-  Gw2ResolverReactions,
-  Gw2ResolverReactionRegistry
-} from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type {
   FlipWindowOptions,
@@ -219,7 +215,7 @@ export function runGw2Runtime<T extends object>({
           return handler(runtime, event, details ?? {});
         }
       ])
-    ) as Gw2ResolverReactions
+    )
   });
   const reactions: Gw2ResolverReactionRegistry = {
     dispatch(stage, context, event, details) {
@@ -249,8 +245,7 @@ export function runGw2Runtime<T extends object>({
   const cooldownController = createCooldownController({
     state: Object.assign(base, clocks),
     rechargeDuration: (skill, at) => rechargeWorkFor(skill) / cooldownController.rate(skill, at),
-    maximumAmmo: (skill) =>
-      profession.maximumAmmo?.(runtime, skill, Number(skill.ammo ?? 0)) ?? Number(skill.ammo ?? 0),
+    maximumAmmo: (skill) => profession.maximumAmmo?.(runtime, skill, skill.ammo ?? 0) ?? skill.ammo ?? 0,
     rechargeIntervals: (skill, start, end) => query.timeline.rechargeIntervals(skill, start, end),
     skillFor: (id) => profession.catalog.skillsById.get(id)
   });
@@ -272,7 +267,7 @@ export function runGw2Runtime<T extends object>({
     combatStartPending: markers.length > 0 || (combatStartTime != null && combatStartTime > 0),
     applyCondition(event: Gw2EventDraft) {
       // Immediate derived applications obey the same live clock and target gates as queued applications.
-      if (canonicalTime(Number(event.at)) !== runtime.time)
+      if (canonicalTime(event.at) !== runtime.time)
         throw new RangeError('Immediate conditions must apply at the live clock.');
       if (
         ('offTarget' in event && event.offTarget === true) ||
@@ -297,7 +292,7 @@ export function runGw2Runtime<T extends object>({
       });
     },
     emitProcedural(event: SimulationEventBase, options: ProceduralEmissionOptions = {}) {
-      const at = canonicalTime(Number(event.at));
+      const at = canonicalTime(event.at);
       const { cause } = options;
       event = withoutInheritedReaction(event, cause);
       // A future buff waits for its own instant so its duration samples live stats there; a future owner-bound packet
@@ -417,7 +412,7 @@ export function runGw2Runtime<T extends object>({
       'relic.activate'(context, event) {
         // Delayed relic activations own their state only when this queue packet executes.
         for (const relic of [context.relic, ...(context.precastRelics ?? [])])
-          if (relic?.name === event.sourceId) relic.rules.activate?.(context, relic.state, event);
+          if (relic.name === event.sourceId) relic.rules.activate?.(context, relic.state, event);
       }
     })
     .registerAll(profession.eventHandlers ?? {});
@@ -435,7 +430,7 @@ export function runGw2Runtime<T extends object>({
     // Duration snapshots belong to application time, after earlier same-time state changes.
     runtime.emit({
       ...event,
-      duration: gw2ResolverBoonDuration(runtime, event, String(event.kind), Number(event.duration ?? 0))
+      duration: gw2ResolverBoonDuration(runtime, event, String(event.kind), event.duration ?? 0)
     });
   });
   /** Standard boons scale with boon duration at their application instant; other buffs keep their authored duration. */
@@ -443,7 +438,7 @@ export function runGw2Runtime<T extends object>({
     event: SimulationEventBase,
     { fixedDuration }: Pick<ProceduralEmissionOptions, 'fixedDuration'>
   ): SimulationEventBase {
-    const kind = String(event.kind ?? '');
+    const kind = event.kind ?? '';
     const duration =
       !(fixedDuration ?? event.fixedDuration === true) && isStandardBoon(kind)
         ? gw2ResolverBoonDuration(runtime, event as Gw2ResolverEvent, kind, Number(event.duration))
@@ -465,7 +460,7 @@ export function runGw2Runtime<T extends object>({
           : trigger.timingAnchor === 'castComplete'
             ? cast.effectiveEnd
             : cast.fullEnd;
-      const at = Math.max(runtime.time, origin + (Number(trigger.atMs ?? 0) * scale) / 1000);
+      const at = Math.max(runtime.time, origin + ((trigger.atMs ?? 0) * scale) / 1000);
       // Catalog declarations can contain functions; queued tasks retain only the skill identity and reservation data.
       const { skill, ...reservation } = cast;
       enqueueWork(
@@ -575,7 +570,7 @@ export function runGw2Runtime<T extends object>({
         (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
     });
     for (const relic of [runtime.relic, ...(runtime.precastRelics ?? [])])
-      relic?.rules.completed?.(runtime, relic.state, completion);
+      relic.rules.completed?.(runtime, relic.state, completion);
     if (
       Number(cast.skill.selfStunMs) > 0 &&
       !config.boons?.stability &&
@@ -650,7 +645,7 @@ export function runGw2Runtime<T extends object>({
     const baseDurationMs =
       skill.independentCast && (config.boons?.quickness || query.timeline.buffStacksAt('quickness', start, 0, 1) > 0)
         ? summonQuicknessCastTimeMs(skill)
-        : Number(skill.castTimeMs ?? 0);
+        : (skill.castTimeMs ?? 0);
     // Capture profession timing once so completion, interruption, and cast-relative packets share the reservation.
     const durationMs = profession.castDurationMs?.(runtime, skill, baseDurationMs) ?? baseDurationMs;
     if (!Number.isFinite(durationMs) || durationMs < 0)
@@ -668,7 +663,7 @@ export function runGw2Runtime<T extends object>({
     const ammo = cooldownController.ensureAmmo(skill) != null;
     // Resolve the selected anchor once before reservation, retaining the same value through completion.
     const canonicalRechargeStart =
-      (skill.rechargeAnchor === 'castStart' ? start : effectiveEnd) + Number(skill.rechargeOffsetMs ?? 0) / 1000;
+      (skill.rechargeAnchor === 'castStart' ? start : effectiveEnd) + (skill.rechargeOffsetMs ?? 0) / 1000;
     const rechargeStart =
       profession.rechargeStart?.(runtime, { skill, start, fullEnd, effectiveEnd, cancelled }, canonicalRechargeStart) ??
       canonicalRechargeStart;
@@ -793,7 +788,7 @@ export function runGw2Runtime<T extends object>({
         const event = application.event;
         const packet = {
           ...event,
-          at: event.at + (isHostileTargetEvent(event) ? Number(command.impactDelayMs ?? 0) / 1000 : 0),
+          at: event.at + (isHostileTargetEvent(event) ? (command.impactDelayMs ?? 0) / 1000 : 0),
           offTarget: command.offTarget
         };
         if (event.type === 'buff' && effect.fixedDuration !== true)
@@ -886,8 +881,8 @@ export function runGw2Runtime<T extends object>({
     // Proc rows keep recharge reductions for timeline badges and timed procs keep their deadline.
     if (event.type === 'proc')
       runtime.recordProc(
-        String(event.procType ?? 'skill'),
-        String(event.name ?? ''),
+        event.procType ?? 'skill',
+        event.name ?? '',
         event.at,
         event.sourceSkill,
         event.detail,

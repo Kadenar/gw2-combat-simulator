@@ -21,7 +21,7 @@ export function gw2ResolverBoonDuration(
       ...event,
       type: 'buff',
       // Generated combo boons retain the finisher's ownership for attribute modifiers.
-      actorType: event.actorType ?? 'player',
+      actorType: event.actorType,
       kind: boon
     },
     context

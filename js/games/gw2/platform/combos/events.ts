@@ -89,18 +89,18 @@ export function selectComboFieldForFinisher(
   options: SelectComboFieldOptions = {}
 ): { readonly field?: ComboFieldEvent; readonly ambiguous: boolean } {
   const ordered = [...fields].sort(
-    (left, right) => left.at - right.at || Number(left.eventOrder || 0) - Number(right.eventOrder || 0)
+    (left, right) => left.at - right.at || (left.eventOrder || 0) - (right.eventOrder || 0)
   );
   // comboBindingPriority > 0 marks an authoritative field (e.g., the specific
   // field placed by a skill that also carries a finisher). When present, only
   // those high-priority fields are candidates — ambient fields are ignored.
   const highestBindingPriority = ordered.reduce(
-    (highest, field) => Math.max(highest, Number(field.comboBindingPriority || 0)),
+    (highest, field) => Math.max(highest, field.comboBindingPriority || 0),
     0
   );
   const candidates =
     highestBindingPriority > 0
-      ? ordered.filter((field) => Number(field.comboBindingPriority || 0) === highestBindingPriority)
+      ? ordered.filter((field) => (field.comboBindingPriority || 0) === highestBindingPriority)
       : ordered;
   const preferredTypes = (options.preferredFieldTypes || []).map(normalizeComboFieldType);
   const preferred = preferredTypes
@@ -143,7 +143,7 @@ function normalizeComboFieldBinding(value: unknown): ComboFieldBinding {
 /** Normalizes and validates GW2-owned semantic events before engine freezing. */
 export function prepareGw2ComboEvent(event: SimulationEventBase): SimulationEventBase {
   if (event.type === 'combo_field') {
-    const at = Number(event.at);
+    const at = event.at;
     const expiresAt = Number(event.expiresAt);
     const comboBindingPriority = event.comboBindingPriority == null ? null : Number(event.comboBindingPriority);
     if (!Number.isFinite(expiresAt) || !(canonicalTime(expiresAt) > canonicalTime(at))) {
@@ -172,7 +172,7 @@ export function prepareGw2ComboEvent(event: SimulationEventBase): SimulationEven
   }
 
   if (event.type === 'combo_finisher') {
-    const at = Number(event.at);
+    const at = event.at;
     const fieldSelectionAt = event.fieldSelectionAt == null ? null : Number(event.fieldSelectionAt);
     if (fieldSelectionAt != null && (!Number.isFinite(fieldSelectionAt) || fieldSelectionAt > at)) {
       throw new TypeError('Combo finisher fieldSelectionAt must be finite and must not follow at.');
@@ -323,7 +323,7 @@ function boundField(
   }
 
   const binding = event.fieldBinding;
-  if (binding.kind !== 'field-type') return null;
+  // The explicit field-id branch returned above; remaining bindings select by field type.
   const candidates = [...state.fields.values()]
     .filter(
       (field) =>

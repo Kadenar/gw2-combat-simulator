@@ -87,7 +87,7 @@ export function selectedMechCommands(traits: EngineerConfig | ReadonlySet<SkillI
 
 /** Reads a non-negative player attribute while supplying its baseline when absent. */
 function playerAttribute(stats: Partial<Gw2Stats>, key: keyof EngineerMechAttributes, fallback = 0): number {
-  return Math.max(0, Number(stats?.[key] ?? fallback));
+  return Math.max(0, stats[key] ?? fallback);
 }
 
 /** Calculates the jade mech's inherited combat attributes for the selected trait configuration. */

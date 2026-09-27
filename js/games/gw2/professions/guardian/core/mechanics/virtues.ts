@@ -73,9 +73,8 @@ function applyJusticeBurn(
       name: `${skillName} — ${active ? 'Active' : 'Passive'} Burning`,
       condition: String(burn.condition),
       stacks: effectNumber(justiceProfile, burn, 'stacks'),
-      duration: Number(
+      duration:
         !active && passiveBurnDuration != null ? passiveBurnDuration : effectNumber(justiceProfile, burn, 'duration')
-      )
     })
   );
   if (active) professionCoreState(context).justiceActiveBurns += 1;
@@ -126,7 +125,7 @@ export function reactToJusticeHitWithOptions(
     return;
   }
 
-  if (!retainsPassive && event.at < Number(state.virtueReadyAt.justice || 0)) return;
+  if (!retainsPassive && event.at < (state.virtueReadyAt.justice || 0)) return;
 
   const justiceProfile = requireBalanceProfileFromContext(context, PROFILE.justice);
   if (!requireEffect(justiceProfile, 'condition', 'Burning (passive)')) return;

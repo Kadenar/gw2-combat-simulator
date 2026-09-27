@@ -23,11 +23,9 @@ export const virtuosoHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       const mechanics = mesmerMechanicsFor(runtime);
       const details = mechanics.castDetails.get(String(data));
       if (!details || details.shatterSpendCommitted) return;
-      details.shatterSpent = mechanics.actions.commitReservedResources(
-        runtime.time,
-        Number(details.shatterSpent ?? 0),
-        { activationId: String(data) }
-      );
+      details.shatterSpent = mechanics.actions.commitReservedResources(runtime.time, details.shatterSpent ?? 0, {
+        activationId: String(data)
+      });
       details.shatterSpendCommitted = true;
     },
     'mesmer.infinite-forge'(runtime) {
@@ -49,7 +47,7 @@ export const virtuosoHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       const mechanics = mesmerMechanicsFor(runtime);
       if (event.condition !== 'Bleeding' || !mechanics.traits.has(TRAIT.BLOODSONG)) return;
       const state = virtuosoState.from(runtime);
-      state.bloodsongProgress += Number(event.stacks ?? 0);
+      state.bloodsongProgress += event.stacks ?? 0;
       const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODSONG);
       const threshold = balanceProfileNumber(profile, 'threshold');
       while (threshold > 0 && state.bloodsongProgress >= threshold - 1e-9) {

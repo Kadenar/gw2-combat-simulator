@@ -118,7 +118,7 @@ export function applyEvokerAttunementRechargePolicy(
       context,
       previous,
       Math.max(
-        Number(readyAtBefore[previous] || 0),
+        readyAtBefore[previous] || 0,
         event.at +
           elementalistAttunementRechargeDuration(context, skill, balanceProfileNumber(resourcesProfile, 'recharge'))
       )
@@ -131,7 +131,7 @@ export function applyEvokerAttunementRechargePolicy(
     const defaultReadyAt =
       event.at +
       elementalistAttunementRechargeDuration(context, skill, balanceProfileNumber(resourcesProfile, 'recharge'));
-    const existingReadyAt = Number(readyAtBefore[attunement] || 0);
+    const existingReadyAt = readyAtBefore[attunement] || 0;
     const preservedRemaining = Math.max(0, existingReadyAt - event.at);
     // if the attunement already had less time left than the new default, keep the shorter timer
     const nextReadyAt =
@@ -183,7 +183,7 @@ export function triggerSpecializedElementEntry(
           actorType: 'player',
           kind: String(freshAir.kind).toLowerCase(),
           stacks: Number(freshAir.stacks),
-          duration: Number(freshAir.duration),
+          duration: freshAir.duration,
           skillName: skill.name
         });
       }

@@ -106,7 +106,7 @@ function matchingOverride(
 export function validateAutoattackChainOptions(options: Gw2AutoattackChainOptions): void {
   const ids = new Set<string>();
   for (const override of options.overrides || []) {
-    const id = String(override.id || '').trim();
+    const id = (override.id || '').trim();
     if (!id) throw new TypeError('Autoattack-chain override id is required.');
     if (ids.has(id)) throw new TypeError(`Duplicate autoattack-chain override id: ${id}.`);
     if (override.decision !== 'preserve' && override.decision !== 'reset') {

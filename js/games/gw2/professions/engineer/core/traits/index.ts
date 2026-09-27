@@ -58,8 +58,8 @@ export function applyEngineerCastTraits(context: EngineerRuntime, cast: RuntimeC
 function isExplosion(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
   if (event.explosion || event.damageKind === 'explosion') return true;
   const skill = resolverSkill(context, event.skillId ?? event.sourceId);
-  return Boolean(
-    skill?.categories?.some((category) => String(category).toLowerCase() === 'explosion') ||
+  return (
+    skill?.categories?.some((category) => category.toLowerCase() === 'explosion') ||
     skill?.kit === 'Grenade Kit' ||
     skill?.id === ID.DEVASTATOR
   );

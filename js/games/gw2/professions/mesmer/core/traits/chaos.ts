@@ -38,8 +38,8 @@ export function triggerChaoticInterruption(context: MesmerRuntime, event: Simula
     return;
   }
 
-  const defiant = Boolean(context.config.target?.defiant);
-  if (defiant && !isInternalCooldownReady(event.at, Number(context.procs.readyAt[TRAIT.CHAOTIC_INTERRUPTION] || 0))) {
+  const defiant = Boolean(context.config.target.defiant);
+  if (defiant && !isInternalCooldownReady(event.at, context.procs.readyAt[TRAIT.CHAOTIC_INTERRUPTION] || 0)) {
     return;
   }
 
@@ -57,7 +57,7 @@ export function triggerChaoticInterruption(context: MesmerRuntime, event: Simula
   if (targetId == null) return;
 
   // Only affects weapon skills that are recharging.
-  const readyAt = Number(context.cooldowns.get(targetId) || 0);
+  const readyAt = context.cooldowns.get(targetId) || 0;
   if (!(readyAt > event.at + EPSILON)) return;
   const chaoticInterruptionProfile = requireBalanceProfileFromContext(context, TRAIT.CHAOTIC_INTERRUPTION);
   const reduction = balanceProfileNumber(chaoticInterruptionProfile, 'recharge');
@@ -96,7 +96,7 @@ export function triggerIllusionaryMembrane(
     priority: 5,
     kind: 'illusionary-membrane',
     stacks: Number(effect.stacks),
-    duration: Number(effect.duration)
+    duration: effect.duration
   });
   context.addTraitProc('Illusionary Membrane', at, skillName);
 }
@@ -131,5 +131,5 @@ export function triggerMethodOfMadness(
     }
   );
   context.addTraitProc('Method of Madness', at, skill.name);
-  context.state.procs.readyAt[TRAIT.METHOD_OF_MADNESS] = at + Number(storm.cooldown || 0);
+  context.state.procs.readyAt[TRAIT.METHOD_OF_MADNESS] = at + (storm.cooldown || 0);
 }

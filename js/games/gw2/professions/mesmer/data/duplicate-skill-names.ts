@@ -67,7 +67,7 @@ export function resolveMesmerSkillIdFromDuplicateName(
   name: string,
   { specialization = '' }: { specialization?: string } = {}
 ): number | null | undefined {
-  const family = DUPLICATE_SKILL_NAME_FAMILIES[String(name || '')];
+  const family = DUPLICATE_SKILL_NAME_FAMILIES[name || ''];
   if (!family) return undefined;
   const specialized = family.bySpecialization[specialization];
   if (specialized != null) return specialized;
@@ -76,7 +76,7 @@ export function resolveMesmerSkillIdFromDuplicateName(
 
 /** Supplies the deterministic catalog fallback for a duplicated display name. */
 export function defaultMesmerSkillIdForDuplicateName(name: string): number | undefined {
-  return DUPLICATE_SKILL_NAME_FAMILIES[String(name || '')]?.defaultId;
+  return DUPLICATE_SKILL_NAME_FAMILIES[name || '']?.defaultId;
 }
 
 export const MESMER_DUPLICATE_SKILL_NAMES: readonly string[] = Object.freeze(

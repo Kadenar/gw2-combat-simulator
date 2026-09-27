@@ -147,7 +147,7 @@ export const druidHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       state: (runtime) => druidState.from(runtime).astralClock,
       maximum: (runtime) =>
         balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks'),
-      initial: (runtime, maximum) => Number((runtime as RangerRuntime).config.initialAstralForce ?? maximum),
+      initial: (runtime, maximum) => (runtime as RangerRuntime).config.initialAstralForce ?? maximum,
       recovery(runtime) {
         const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
         const duration = balanceProfileNumber(profile, 'durationMultiplier');

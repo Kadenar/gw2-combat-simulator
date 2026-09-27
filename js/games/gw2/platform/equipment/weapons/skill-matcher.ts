@@ -16,7 +16,7 @@ export function isGw2WeaponSkillEquipped(
 }
 
 function slotNumber(skill: Skill): number {
-  return Number(String(skill?.slot || '').match(/(\d+)$/)?.[1] || 0);
+  return Number(String(skill.slot || '').match(/(\d+)$/)?.[1] || 0);
 }
 
 /**
@@ -24,7 +24,7 @@ function slotNumber(skill: Skill): number {
  * declare dual-wield and empty-offhand bars without shared profession checks.
  */
 export function defaultWeaponSkillMatchesSet(
-  skill: Skill,
+  skill: Skill | null | undefined,
   [mainHand = '', offHand = '']: readonly (string | undefined)[] = [],
   context: Gw2WeaponMatcherContext = {}
 ): boolean {
@@ -33,13 +33,13 @@ export function defaultWeaponSkillMatchesSet(
   const requiredOff = skill.requiredOffHand;
   if (requiredMain != null || requiredOff != null) {
     return (
-      (requiredMain == null || String(requiredMain) === String(mainHand)) &&
-      (requiredOff == null || (requiredOff === false ? !offHand : String(requiredOff) === String(offHand)))
+      (requiredMain == null || requiredMain === mainHand) &&
+      (requiredOff == null || (requiredOff === false ? !offHand : requiredOff === offHand))
     );
   }
 
   if (skill.type !== 'Weapon' || !skill.weapon) return true;
-  const wielding = context.weaponData?.[mainHand]?.wielding || context.catalog?.weaponHands?.get?.(mainHand);
+  const wielding = context.weaponData?.[mainHand]?.wielding || context.catalog?.weaponHands.get(mainHand);
   if (wielding === '2h') return skill.weapon === mainHand;
   const slot = slotNumber(skill);
   return slot <= 3 ? skill.weapon === mainHand : skill.weapon === offHand;

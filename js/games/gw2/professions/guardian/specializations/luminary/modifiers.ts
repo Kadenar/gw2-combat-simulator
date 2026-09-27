@@ -13,7 +13,7 @@ function stanceModifierActive(context: Gw2ModifierContext, kind: string, skillId
       event.type === 'buff' &&
       event.kind === kind &&
       event.at < context.time &&
-      gw2EffectExpiresAt(event.at, Number(event.duration || 0)) > context.time
+      gw2EffectExpiresAt(event.at, event.duration || 0) > context.time
   );
 }
 
@@ -38,7 +38,7 @@ export const luminaryModifiers: readonly Gw2ModifierRule[] = Object.freeze([
       // applied record regardless of whether it has expired.
       return (
         armament?.metadata?.radiantWeapon === 'hammer' &&
-        gw2EffectExpiresAt(armament.at, Number(armament.duration || 0)) > context.time
+        gw2EffectExpiresAt(armament.at, armament.duration || 0) > context.time
       );
     }
   },
@@ -78,7 +78,7 @@ export const luminaryModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     factor: 1.25,
     order: 100,
     when: (context) =>
-      context.event?.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST && context.event?.metadata?.radiantWeapon === 'hammer'
+      context.event?.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST && context.event.metadata?.radiantWeapon === 'hammer'
   },
   {
     id: 'guardian.gleaming-blade',

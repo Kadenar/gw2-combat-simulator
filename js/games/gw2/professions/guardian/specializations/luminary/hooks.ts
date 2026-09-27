@@ -300,7 +300,7 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
   castDurationMs(runtime, skill, duration) {
     const state = luminaryState.from(runtime);
     return skill.id === ID.GLARING_BURST && state.radiantWeapon === 'blade'
-      ? duration * ((state.glaringBurstSwordSlow ? 680 : 440) / Number(skill.castTimeMs ?? 600))
+      ? duration * ((state.glaringBurstSwordSlow ? 680 : 440) / (skill.castTimeMs ?? 600))
       : duration;
   },
   castDetail(runtime, cast) {
@@ -455,7 +455,7 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
     'damage.resolved'(runtime, event, details) {
       countEffulgentHit(runtime, event, (details as NativeResolvedDamageDetails).hitContext?.damage ?? 0);
       refreshGuardianVirtues(runtime);
-      reactToJusticeHitWithOptions(runtime, event, details as NativeResolvedDamageDetails, {
+      reactToJusticeHitWithOptions(runtime, event, details, {
         skillId: ID.RADIANT_JUSTICE,
         skillName: 'Radiant Justice',
         passiveBurnDuration: 2

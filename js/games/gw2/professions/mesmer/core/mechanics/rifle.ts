@@ -26,7 +26,7 @@ export function detonateInspiringImagery(context: MesmerRuntime, cast: RuntimeCa
     actorType: 'player',
     attemptId: `${cast.id}:abstraction`,
     finisherType: 'Blast',
-    fieldBinding: { kind: 'field-id', fieldId: String(field.fieldId) },
+    fieldBinding: { kind: 'field-id', fieldId: field.fieldId },
     // Abstraction consumes this exact field at the shared detonation timestamp.
     allowFieldAtExpiry: true,
     chance: 1,
@@ -49,7 +49,7 @@ export function expireInspiringImagery(context: MesmerRuntime, cast: RuntimeCast
         skillId: cast.skill.id,
         skillName: cast.skill.name,
         kind: String(effect.boon),
-        stacks: Number(effect.stacks ?? 1),
-        duration: Number(effect.duration)
+        stacks: effect.stacks ?? 1,
+        duration: effect.duration
       });
 }

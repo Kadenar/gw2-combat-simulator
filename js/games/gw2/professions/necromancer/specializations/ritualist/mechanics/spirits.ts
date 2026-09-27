@@ -79,9 +79,7 @@ export function spiritDefinition(context: NecromancerRuntime, skillId: SkillId):
   // Procedural spirit scheduling consumes the same canonical packet timelines as declarative skills; a removed
   // attack contributes no ticks.
   const ticks = (effect: ReturnType<typeof strike>): readonly SpiritStrikeTick[] =>
-    effect
-      ? strikeEffectTicks(effect).map((tick) => ({ atMs: Number(tick.atMs), coefficient: Number(tick.coefficient) }))
-      : [];
+    effect ? strikeEffectTicks(effect).map((tick) => ({ atMs: tick.atMs, coefficient: tick.coefficient })) : [];
   return {
     key,
     initialBusyMs: balanceProfileNumber(profile, 'initialBusyMs'),

@@ -1,5 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
+
 import { defineProfessionFamily } from '#gw2/platform/engine/profession/family.js';
 import type { RuntimeProfession, Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -15,7 +15,7 @@ import type {
 } from '#gw2/platform/engine/profession/types.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
-import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
+
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import type {
   AnyNativeModule,
@@ -53,7 +53,7 @@ function assertNativeModuleDefinition(definition: object): void {
     };
     readonly hooks?: object;
   };
-  if (!String(candidate.id || '').trim()) {
+  if (!(candidate.id || '').trim()) {
     throw new TypeError('Native profession module id is required.');
   }
 
@@ -129,10 +129,10 @@ function compileNativeModule(
     id: module.id,
     catalog: fragment,
     resources: {
-      createState: module.state.create as (config: Readonly<ProfessionConfig>) => UnvalidatedFields,
+      createState: module.state.create,
       ...(module.state.project == null ? {} : { projectPlanningState: module.state.project })
     },
-    modifiers: modifiers as ProfessionModifierDefinition | undefined,
+    modifiers: modifiers,
     get ui() {
       if (compiledUi) return compiledUi;
       const presentation =
@@ -142,11 +142,10 @@ function compileNativeModule(
         const paletteAvailability = ui.paletteSkillAvailability;
         // Resolve preview selection once so the availability gate and profession callback use the same specialization.
         ui.paletteSkillAvailability = (context, skill) => {
-          const config = context.config as { readonly specialization?: string } | undefined;
+          const config = context.config;
           const build = context.build as { readonly specialization?: string } | undefined;
-          const specialization = String(
-            context.specialization || config?.specialization || build?.specialization || skill.specialization || 'Core'
-          );
+          const specialization =
+            context.specialization || config?.specialization || build?.specialization || skill.specialization || 'Core';
           return isBuildSkillAvailable(skill, { specialization })
             ? (paletteAvailability?.({ ...context, specialization }, skill) ?? { available: true, message: '' })
             : { available: false, message: `${skill.name} is unavailable for this build.` };
@@ -188,17 +187,16 @@ export function defineNativeProfession<
         .map((module) => [module.id, compileNativeModule(module, assembly.catalog, assembly.fragments.get(module.id)!)])
     ),
     // Bind family controls directly, without relying on a Core UI initialization side effect.
-    ui: (typeof definition.presentation === 'function'
-      ? definition.presentation(assembly.catalog)
-      : definition.presentation) as Partial<ProfessionUiContract> | undefined,
+    ui:
+      typeof definition.presentation === 'function'
+        ? definition.presentation(assembly.catalog)
+        : definition.presentation,
     // Capacity previews read the resource policies owned by the selected modules' hooks.
     resourcesFor(specialization) {
       const runtime = runtimeFor({ specialization });
       return {
         ...(runtime.resources as ProfessionResourcePreview),
-        ...(runtime.endurance == null
-          ? {}
-          : { endurance: runtime.endurance as unknown as ProfessionResourcePreview['endurance'] })
+        ...(runtime.endurance == null ? {} : { endurance: runtime.endurance })
       };
     }
   };

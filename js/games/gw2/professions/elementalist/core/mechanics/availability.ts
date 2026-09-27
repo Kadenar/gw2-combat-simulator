@@ -76,9 +76,7 @@ export function elementalistCoreAvailability(context: ElementalistRuntime, skill
       return unavailable(skill, 'elementalist.same-attunement', `already attuned to ${target}.`);
     }
 
-    const naturalReadyAt = gw2CooldownReadyAt(
-      Number(context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[target]) || 0)
-    );
+    const naturalReadyAt = gw2CooldownReadyAt(context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[target]) || 0);
     const freshAirReadyAt = target === 'Air' ? projectedFreshAirReadyAt(context, naturalReadyAt) : null;
     const readyAt = freshAirReadyAt == null ? naturalReadyAt : Math.min(naturalReadyAt, freshAirReadyAt);
     return readyAt > context.time

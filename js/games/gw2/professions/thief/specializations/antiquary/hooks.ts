@@ -32,13 +32,7 @@ import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type {
-  ThiefDoubleEdgeOutcome,
-  ThiefResolverContext,
-  ThiefResolverEvent,
-  ThiefRuntimeState,
-  ThiefSkill
-} from '#gw2/professions/thief/types.js';
+import type { ThiefDoubleEdgeOutcome, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import type { ThiefArtifactSlot } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
@@ -66,7 +60,7 @@ function grantScoundrelsLuck(runtime: ThiefRuntime): void {
   const state = antiquaryState.from(runtime);
   if (
     !hasTrait(runtime, TRAIT.SCOUNDRELS_LUCK) ||
-    !isInternalCooldownReady(runtime.time, Number(runtime.procs.deadline('thief.antiquary.scoundrelsLuck') || 0))
+    !isInternalCooldownReady(runtime.time, runtime.procs.deadline('thief.antiquary.scoundrelsLuck') || 0)
   )
     return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.scoundrelsLuck);
@@ -94,8 +88,7 @@ function grantCombatHigh(runtime: ThiefRuntime): void {
 /** Improvisation shortens every selected, still-recharging utility once per internal cooldown. */
 function reduceUtilityRecharges(runtime: ThiefRuntime): void {
   if (!hasTrait(runtime, TRAIT.IMPROVISATION)) return;
-  if (!isInternalCooldownReady(runtime.time, Number(runtime.procs.deadline('thief.antiquary.improvisation') || 0)))
-    return;
+  if (!isInternalCooldownReady(runtime.time, runtime.procs.deadline('thief.antiquary.improvisation') || 0)) return;
   const profile = requireBalanceProfileFromContext(runtime, CORE_PROFILE.improvisation);
   const multiplier = balanceProfileNumber(profile, 'rechargeMultiplier');
   for (const name of selectedSkillNameSet(runtime.config.selectedSkills)) {
@@ -168,7 +161,7 @@ function possessiveHoarder(runtime: ThiefRuntime, cast: RuntimeCast, slot: Thief
   for (const effect of boons) {
     if (!effect) continue;
     const boon = String(effect.boon);
-    emitThiefBuff(runtime, cast.skill as ThiefSkill, {
+    emitThiefBuff(runtime, cast.skill, {
       at: runtime.time,
       sourceId: 'Possessive Hoarder',
       activationId: cast.id,
@@ -207,7 +200,7 @@ function completeArtifact(runtime: ThiefRuntime, cast: RuntimeCast): void {
     );
   if (hasTrait(runtime, TRAIT.EXHILARATING_EPHEMERA)) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.exhilaratingEphemera);
-    const remaining = Math.max(0, Number(state.antiquaryDamageUntil || 0) - runtime.time);
+    const remaining = Math.max(0, (state.antiquaryDamageUntil || 0) - runtime.time);
     state.antiquaryDamageUntil =
       runtime.time +
       Math.min(
@@ -338,7 +331,7 @@ function completeSkrittScuffle(runtime: ThiefRuntime, skill: ThiefSkill): void {
 
 /** Double Edge is risky only while its recharge is running; Scoundrel's Luck turns one risky use into a success. */
 function acceptDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast): ThiefDoubleEdgeOutcome {
-  if (Number(runtime.cooldowns.get(cast.skill.id) || 0) <= runtime.time + EPSILON) return 'success';
+  if ((runtime.cooldowns.get(cast.skill.id) || 0) <= runtime.time + EPSILON) return 'success';
   const state = antiquaryState.from(runtime);
   if (state.scoundrelsLuck > 0) {
     state.scoundrelsLuck -= 1;
@@ -399,9 +392,9 @@ function emitCannonSuccess(runtime: ThiefRuntime, cast: RuntimeCast): void {
     for (const [index, tick] of strike.ticks.entries())
       emitThiefDamage(runtime, null, {
         ...common,
-        at: cast.effectiveEnd + Number(tick.atMs) / 1000,
+        at: cast.effectiveEnd + tick.atMs / 1000,
         name: 'Stone Summit Cannon',
-        coefficient: Number(tick.coefficient),
+        coefficient: tick.coefficient,
         hitIndex: index + 1,
         totalHits: strike.ticks.length
       });
@@ -426,8 +419,8 @@ function tossCanachCoins(runtime: ThiefRuntime, backfire: boolean): number {
   const state = antiquaryState.from(runtime);
   let initiative = 0;
   for (let coin = 0; coin < 3; coin += 1) {
-    const heads = Number(state.canachCoinIndex || 0) % 2 === 0;
-    state.canachCoinIndex = Number(state.canachCoinIndex || 0) + 1;
+    const heads = (state.canachCoinIndex || 0) % 2 === 0;
+    state.canachCoinIndex = (state.canachCoinIndex || 0) + 1;
     initiative += backfire ? Number(heads) : heads ? 2 : 1;
   }
 
@@ -454,11 +447,11 @@ function startDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast): void {
 
 /** Initiative spending feeds Prodigious Pincher, and Chak Shield refunds it while its window is open. */
 function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  const cost = Number((cast.skill as ThiefSkill).initiativeCost || 0);
+  const cost = (cast.skill as ThiefSkill).initiativeCost || 0;
   if (!(cost > 0)) return;
   const state = antiquaryState.from(runtime);
   state.initiativeSpentSincePilfer += cost;
-  if (Number(state.chakInitiativeRefundUntil || 0) > runtime.time) grantThiefInitiative(runtime, cost);
+  if ((state.chakInitiativeRefundUntil || 0) > runtime.time) grantThiefInitiative(runtime, cost);
   // Initiative spent before combat begins does not count toward the threshold.
   if (
     runtime.combatStartedAt() &&
@@ -507,7 +500,7 @@ function antiquaryAvailability(runtime: ThiefRuntime, rawSkill: Skill): Availabi
       skill,
       'thief.artifact',
       'this artifact is not in an available artifact slot.',
-      Number(state.nextSkrittScufflePilferAt || 0) > runtime.time ? Number(state.nextSkrittScufflePilferAt) : null
+      (state.nextSkrittScufflePilferAt || 0) > runtime.time ? state.nextSkrittScufflePilferAt : null
     );
   if (skill.backfire)
     return denySkillCast(skill, 'thief.backfire-variant', 'backfire variants are resolved by their Double Edge skill.');
@@ -552,7 +545,7 @@ export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   },
   reactions: {
     'damage.resolved'(runtime, event) {
-      antiquaryResolverEventReactions.damage(runtime as unknown as ThiefResolverContext, event as ThiefResolverEvent);
+      antiquaryResolverEventReactions.damage(runtime, event);
     }
   },
   tasks: {

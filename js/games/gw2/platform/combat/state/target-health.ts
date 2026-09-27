@@ -11,12 +11,12 @@ interface Gw2TargetDamageState {
 
 /** Keeps player attribution separate while exposing the damage that actually reduced target health. */
 export function playerDamageTotal(state: Gw2TargetDamageState | null | undefined): number {
-  return Number(state?.totals?.strike || 0) + Number(state?.totals?.condition || 0);
+  return (state?.totals?.strike || 0) + (state?.totals?.condition || 0);
 }
 
 /** Returns non-player damage dealt by the configured encounter environment. */
 function environmentDamageTotal(state: Gw2TargetDamageState | null | undefined): number {
-  return Number(state?.environmentDamage || 0);
+  return state?.environmentDamage || 0;
 }
 
 /** Central target-health damage total includes both player output and environment-owned damage. */
@@ -29,7 +29,7 @@ export function targetHealthLoss(
   config: Pick<Gw2Config, 'target'> | null | undefined,
   state: Gw2TargetDamageState | null | undefined
 ): number {
-  const maximum = Number(config?.target?.health || 0);
+  const maximum = config?.target?.health || 0;
   const configured = Number(config?.target?.startingHealthFraction);
   const startingFraction = Number.isFinite(configured) ? clamp(configured, 0, 1) : 1;
   return maximum * (1 - startingFraction) + combinedTargetDamage(state);
@@ -40,7 +40,7 @@ export function remainingTargetHealthFraction(
   config: Pick<Gw2Config, 'target'> | null | undefined,
   state: Gw2TargetDamageState | null | undefined
 ): number | null {
-  const maximum = Number(config?.target?.health || 0);
+  const maximum = config?.target?.health || 0;
   if (!(maximum > 0)) return null;
   return clamp(1 - targetHealthLoss(config, state) / maximum, 0, 1);
 }

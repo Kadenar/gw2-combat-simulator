@@ -3,7 +3,7 @@ import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skil
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+
 import type { EngineerRuntime, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
@@ -160,7 +160,7 @@ export const engineerWeaponTasks: RuntimeProfession<EngineerRuntimeState>['tasks
             activationId,
             kind: String(effect.boon ?? effect.kind),
             stacks: Number(effect.stacks),
-            duration: Number(effect.duration)
+            duration: effect.duration
           },
           skill
         );
@@ -177,7 +177,7 @@ export const engineerWeaponTasks: RuntimeProfession<EngineerRuntimeState>['tasks
       skillName: skill.name,
       activationId,
       comboFields: skill.comboFields
-    } as Gw2ResolverEvent);
+    });
   },
   'engineer.turret-flip'(runtime) {
     consumeSkillFlip(runtime.profession.core.availableFlips, ID.DETONATE_HEALING_TURRET);

@@ -63,8 +63,8 @@ interface ProfessionWeaponData {
  *
  * Object key insertion order determines the resulting `weapons` ordering.
  */
-export function defineProfessionWeapons<const TWeaponHands extends Readonly<Record<string, ProfessionWeaponHand>>>(
-  weaponHands: TWeaponHands
+export function defineProfessionWeapons(
+  weaponHands: Readonly<Record<string, ProfessionWeaponHand>>
 ): ProfessionWeaponData {
   const frozenWeaponHands = Object.freeze({
     ...weaponHands

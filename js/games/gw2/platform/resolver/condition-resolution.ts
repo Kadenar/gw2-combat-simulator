@@ -61,7 +61,7 @@ export function createGw2ConditionResolution({
     if (name === 'Confusion') {
       const formula = CONDITION_FORMULAS.Confusion;
       rate +=
-        Number(ctx.config.target?.confusionActivationsPerSecond || 0) *
+        (ctx.config.target?.confusionActivationsPerSecond || 0) *
         (formula.activationBase + formula.activationScaling * conditionDamage);
     }
 
@@ -261,7 +261,7 @@ export function createGw2ConditionResolution({
     const onGrid = (timeKey(at) - timeKey(ctx.firstHitTime ?? 0)) % 1_000_000 === 0;
     // Each pass observes one target state; discard these facts before processing another event or timestamp.
     const sample = {
-      vulnerabilityStacks: ctx.query.vulnerabilityStacksAt?.(at, ctx) ?? 0,
+      vulnerabilityStacks: ctx.query.vulnerabilityStacksAt(at, ctx),
       modifierValues: new Map<object, number | null>()
     };
     for (const state of ctx.conditionState.values()) {
@@ -304,7 +304,7 @@ export function createGw2ConditionResolution({
         continue;
       }
 
-      const vulnerability = 1 + Number(sample.vulnerabilityStacks || 0) / 100;
+      const vulnerability = 1 + (sample.vulnerabilityStacks || 0) / 100;
       entry.bufferedRate = (entry.bufferedRate ?? 0) + conditionTickDamage(entry.name, 0) * vulnerability;
     }
   }
@@ -331,7 +331,7 @@ export function createGw2ConditionResolution({
     // are deliberately queried later at each tick.
     const duration = conditionApplicationDuration(ctx.query, name, queryEvent, ctx);
     const expiresAt = canonicalTime(event.at + duration);
-    const stacks = Math.max(0, Number(event.stacks || 0));
+    const stacks = Math.max(0, event.stacks || 0);
     if (!stacks || !duration) return null;
 
     const application = {
@@ -454,7 +454,7 @@ export function createGw2ConditionResolution({
     // Provisional environment wakes become inert when first damage shifts the clock.
     if ((timeKey(event.at) - timeKey(ctx.firstHitTime ?? 0)) % 1_000_000 !== 0) return;
     const condition = ctx.helpers.conditionName(event.condition);
-    const stacks = Math.max(0, Number(event.stacks || 0));
+    const stacks = Math.max(0, event.stacks || 0);
     const entry = ctx.environmentConditions.get(condition);
     if (!entry || !(stacks > 0)) return;
     environmentWakes.delete(condition);

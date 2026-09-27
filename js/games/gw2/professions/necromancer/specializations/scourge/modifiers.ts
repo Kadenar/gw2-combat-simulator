@@ -27,8 +27,7 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
     // gear stats (config.stats) not the merged attribute record because might
     // stacks and trait bonuses like Lingering Curse are already folded in there
     result.expertise +=
-      Number(context.config?.stats?.conditionDamage || 0) *
-      balanceProfileNumber(fellBeaconProfile, 'attributeConversion');
+      (context.config?.stats?.conditionDamage || 0) * balanceProfileNumber(fellBeaconProfile, 'attributeConversion');
   }
 
   if (
@@ -42,8 +41,8 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
     const bonus = balanceProfileNumber(sandSageProfile, 'attributeBonus');
     // Dynamic attribute queries may begin from sparse input stats, so normalize
     // absent duration attributes before applying Sand Sage's active-shade bonus.
-    result.concentration = Number(result.concentration || 0) + bonus;
-    result.expertise = Number(result.expertise || 0) + bonus;
+    result.concentration = (result.concentration || 0) + bonus;
+    result.expertise = (result.expertise || 0) + bonus;
   }
 
   return result;

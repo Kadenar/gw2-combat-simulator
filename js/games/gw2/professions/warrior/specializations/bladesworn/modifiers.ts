@@ -52,7 +52,7 @@ function cartridgeDamageBonus(context: Gw2ModifierContext): number {
   return effect ? effectNumber(profile, effect, 'damageIncreasePerStack') : 0;
 }
 
-const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const modifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
   {
     id: 'warrior.fierce-as-fire',
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
@@ -60,7 +60,7 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     parameters: {
       maximumStacks: 10,
       damagePerStack: 0.01
-    } as Readonly<Record<string, number>>,
+    },
     // Count live self applications only, matching Core Warrior's stack and expiry policy.
     amount: (context, _target, parameters) =>
       warriorActiveBuffStacks(context, 'fierce-as-fire', parameters.maximumStacks) * parameters.damagePerStack,
@@ -70,7 +70,7 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'warrior.overcharged-cartridges',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
-    parameters: { baseFactor: 1 } as Readonly<Record<string, number>>,
+    parameters: { baseFactor: 1 },
     factor: (context, _target, parameters) => parameters.baseFactor + cartridgeDamageBonus(context),
     when: (context) => context.event?.damageKind === 'explosion' && cartridgeDamageBonus(context) > 0
   }

@@ -42,7 +42,7 @@ export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
           .from(runtime)
           .pendingMirrorAts.push(
             canonicalTime(
-              (trigger.timingAnchor === 'castStart' ? cast.start : cast.fullEnd) + Number(trigger.atMs ?? 0) / 1000
+              (trigger.timingAnchor === 'castStart' ? cast.start : cast.fullEnd) + (trigger.atMs ?? 0) / 1000
             )
           );
       }

@@ -74,8 +74,8 @@ function queueDodgePackets(runtime: ThiefRuntime, cast: RuntimeCast): void {
           emitThiefDamage(runtime, null, {
             ...common,
             source: 'thief',
-            at: cast.start + Number(tick.atMs) / 1000,
-            coefficient: Number(tick.coefficient),
+            at: cast.start + tick.atMs / 1000,
+            coefficient: tick.coefficient,
             hitIndex: index + 1,
             totalHits: ticks.length,
             skillWeapon: 'Unequipped'
@@ -123,7 +123,7 @@ function openDodgeWindow(runtime: ThiefRuntime, cast: RuntimeCast): void {
     const duration = balanceProfileNumber(profile, 'durationMultiplier');
     state.lotusConditionDamageUntil = runtime.time + duration;
     // Expose the same timed window used by damage modifiers as a visible buff.
-    emitThiefBuff(runtime, cast.skill as ThiefSkill, {
+    emitThiefBuff(runtime, cast.skill, {
       at: runtime.time,
       source: 'Trait',
       sourceId: TRAIT.LOTUS_TRAINING,
@@ -240,7 +240,7 @@ export const daredevilHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   },
   onCastStart(runtime, cast) {
     const skill = cast.skill as ThiefSkill;
-    const cost = Number(skill.initiativeCost || 0);
+    const cost = skill.initiativeCost || 0;
     // Staff Master refunds endurance per initiative spent on staff skills.
     if (cost > 0 && skill.weapon === 'Staff' && hasTrait(runtime, TRAIT.STAFF_MASTER))
       grantThiefEndurance(

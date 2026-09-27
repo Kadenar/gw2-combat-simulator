@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { StableEventQueue } from '#kernel/events/queue.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { testProfession } from '#tests/fixtures/profession.js';
 import {
   createGw2ConditionResolution,
   finalizeConditionApplications
@@ -38,6 +40,8 @@ test('condition duration preserves phase context, fixed durations, and natural e
     });
     for (const runtime of [resolver]) {
       runtime.query = {
+        // Keep the full query contract while replacing only the duration and stat observations under test.
+        ...createGw2CombatQuery({ profession: testProfession }),
         statsAt(at, application, queriedRuntime) {
           assert.equal(queriedRuntime, runtime);
           assert.equal(application.at, 4);

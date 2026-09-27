@@ -112,9 +112,7 @@ export function applyWarriorBuildAttributeRules(
       to: 'Condition Damage',
       amount: balanceProfileNumber(deepStrikesProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled:
-        hasTrait(TRAIT.DEEP_STRIKES) &&
-        Boolean((context.build.assumptions as Record<string, unknown> | undefined)?.fury)
+      enabled: hasTrait(TRAIT.DEEP_STRIKES) && Boolean(context.build.assumptions?.fury)
     },
     {
       kind: 'conversion',

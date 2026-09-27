@@ -1,4 +1,3 @@
-import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -19,6 +18,6 @@ export const warriorDisciplineModifierRules: readonly Gw2ModifierRule[] = Object
     operation: 'multiply',
     factor: 1.15,
     order: 100,
-    when: (context) => hasTrait(context, TRAIT.BURST_MASTERY) && Boolean(eventSkill<WarriorSkill>(context)?.burst)
+    when: (context) => hasTrait(context, TRAIT.BURST_MASTERY) && Boolean(eventSkill(context)?.burst)
   }
 ]);

@@ -90,7 +90,7 @@ export function createContinuumController({
     );
     state.ammo.clear();
     for (const [id, ammo] of restoredAmmo) state.ammo.set(id, ammo);
-    replaceAutoattackChains(state, continuum.autoattackChains || {});
+    replaceAutoattackChains(state, continuum.autoattackChains);
     cooldownController.refresh(at);
     for (const [id] of state.ammo) {
       const ammoSkill = skillsById.get(id);

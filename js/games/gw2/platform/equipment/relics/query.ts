@@ -9,7 +9,7 @@ import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 export function relicStrikeMultiplier(ctx: Gw2RelicContext, event: SimulationEvent): number {
   // Expiring preparation buffs multiply with the combat relic, without duplicating an equipped relic's buff.
   return (ctx.precastRelics || []).reduce(
-    (multiplier, relic) => multiplier * Number(relic.rules.strikeMultiplier?.(ctx, relic.state, event) ?? 1),
+    (multiplier, relic) => multiplier * (relic.rules.strikeMultiplier?.(ctx, relic.state, event) ?? 1),
     Number(invokeRelicHook(ctx, 'strikeMultiplier', event) ?? 1)
   );
 }

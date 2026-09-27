@@ -25,7 +25,7 @@ interface MesmerEventEmitterOptions {
 /** Player events are the default; explicit summon metadata keeps ownership independent of display labels. */
 function ownership(actorType: SimulationActorType | undefined, summonKind: MesmerSummonKind | undefined) {
   return {
-    actorType: (actorType ?? (summonKind ? 'summon' : 'player')) as SimulationActorType,
+    actorType: actorType ?? (summonKind ? 'summon' : 'player'),
     ...(summonKind ? { summonKind } : {})
   };
 }
@@ -50,10 +50,10 @@ export function createMesmerEventEmitters({
   addDamage: MesmerAddDamage;
 }> {
   const addEvent: MesmerAddEvent = (event) => {
-    const source = String(event.source || 'mesmer');
+    const source = event.source || 'mesmer';
     const sourceId = event.sourceId ?? event.skillId ?? event.skillName ?? event.name ?? event.type;
     const canonical = { ...event, source, sourceId, ...ownership(event.actorType, event.summonKind) };
-    return emit(canonical as SimulationEventBase);
+    return emit(canonical);
   };
 
   const addTraitProc: MesmerAddTraitProc = (name, at, sourceSkill = '', detail = '') =>
@@ -82,25 +82,25 @@ export function createMesmerEventEmitters({
     const fields = supplementalFields(extra, ['actorType', 'skillId', 'skillName', 'source', 'sourceId', 'summonKind']);
     const ticks: readonly ConditionTick[] = condition.ticks?.length
       ? condition.ticks
-      : Array.from({ length: Math.max(1, Math.trunc(Number(condition.applications ?? 1))) }, (_, index) => ({
-          atMs: Number(condition.atMs || 0) + index * Number(condition.intervalMs || 0),
+      : Array.from({ length: Math.max(1, Math.trunc(condition.applications ?? 1)) }, (_, index) => ({
+          atMs: (condition.atMs || 0) + index * (condition.intervalMs || 0),
           condition: condition.name,
           duration: requireBalanceNumber(condition.duration, `${skillName} condition duration`),
-          stacks: Number(condition.stacks ?? 1)
+          stacks: condition.stacks ?? 1
         }));
 
     return ticks.flatMap((tick, index) => {
       const name = canonicalTargetConditionName(tick.condition);
-      if (!(Number(tick.duration) > 0)) return [];
+      if (!(tick.duration > 0)) return [];
       const packet = {
         ...fields,
         ...baseOwnership,
-        at: at + Number(tick.atMs || 0) / 1000,
+        at: at + (tick.atMs || 0) / 1000,
         condition: name,
-        duration: Number(tick.duration),
-        stacks: Number(tick.stacks ?? 1),
+        duration: tick.duration,
+        stacks: tick.stacks,
         name: label || `${skillName} — ${name}`,
-        source: String(extra.source || source),
+        source: extra.source || source,
         sourceId: extra.sourceId ?? skill.id,
         skillId: extra.skillId ?? skill.id,
         skillName,
@@ -115,9 +115,9 @@ export function createMesmerEventEmitters({
   };
 
   const addDamage: MesmerAddDamage = (skill, at, group, extra = {}) => {
-    const source = String(group.source || extra.source || 'Player');
+    const source = group.source || extra.source || 'Player';
     const baseOwnership = ownership(group.actorType ?? extra.actorType, group.summonKind ?? extra.summonKind);
-    const explicit = String(group.weapon || '');
+    const explicit = group.weapon || '';
     const normalized = explicit.charAt(0).toUpperCase() + explicit.slice(1).toLowerCase();
     const strength = baseOwnership.actorType === 'summon' ? weaponStrength[normalized] : undefined;
     const fields = supplementalFields({ ...group, ...extra }, [
@@ -141,26 +141,27 @@ export function createMesmerEventEmitters({
     ]);
     const ticks: readonly StrikeTick[] = group.ticks?.length
       ? group.ticks
-      : Array.from({ length: Math.max(1, Math.trunc(Number(group.hits ?? 1))) }, (_, index) => ({
-          atMs: Number(group.atMs || 0) + index * Number(group.intervalMs || 0),
-          coefficient: Number(group.coefficient || 0) / Math.max(1, Math.trunc(Number(group.hits ?? 1)))
+      : // Untimed strikes share their offset; repeated timing is authored through ticks.
+        Array.from({ length: Math.max(1, Math.trunc(group.hits ?? 1)) }, () => ({
+          atMs: group.atMs || 0,
+          coefficient: (group.coefficient || 0) / Math.max(1, Math.trunc(group.hits ?? 1))
         }));
-    const slotSkill = ['Heal', 'Utility', 'Elite'].includes(String(skill.type || ''));
+    const slotSkill = ['Heal', 'Utility', 'Elite'].includes(skill.type || '');
 
     return ticks.flatMap((tick, index) => {
       const packet = {
         ...fields,
         ...baseOwnership,
-        at: at + Number(tick.atMs || 0) / 1000,
-        coefficient: Number(tick.coefficient || 0),
+        at: at + (tick.atMs || 0) / 1000,
+        coefficient: tick.coefficient || 0,
         hits: 1,
         hitIndex: index + 1,
         totalHits: ticks.length,
-        name: String(extra.name || group.name || skill.name),
+        name: extra.name || group.name || skill.name,
         source,
         sourceId: extra.sourceId ?? skill.id,
         skillId: extra.skillId ?? skill.id,
-        skillName: String(extra.skillName || skill.name),
+        skillName: extra.skillName || skill.name,
         skillWeapon: skill.weapon || (slotSkill ? 'Utility' : activePrimaryWeapon()),
         canCrit: group.canCrit,
         // Keep the skill fallback while preserving false, zero, and unrelated packet annotations.

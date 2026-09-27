@@ -9,7 +9,7 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/guardian/data/guardian
 import { GUARDIAN_BUNDLE_SKILLS } from '#gw2/professions/guardian/data/guardian-bundle-skills.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { TRAITS } from '#gw2/professions/guardian/data/traits-data.js';
-import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 const allSkills: readonly GuardianSkill[] = Object.freeze([...SKILLS, ...GUARDIAN_BUNDLE_SKILLS]);
@@ -98,7 +98,7 @@ const WEAPON_DATA = defineProfessionWeapons({
 /** Composes module skills and profiles; the profession definition owns autoattack-chain overrides. */
 export const createGuardianModuleData = createProfessionModuleDataFactory({
   generatedSkills: generated,
-  traits: TRAITS as readonly CatalogEntity[],
+  traits: TRAITS,
   specializations: SPECIALIZATIONS,
   specializationOnlySkills: SPECIALIZATION_ONLY_SKILLS,
   core: WEAPON_DATA

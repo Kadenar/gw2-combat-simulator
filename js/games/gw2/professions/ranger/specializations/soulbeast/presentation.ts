@@ -44,7 +44,7 @@ function paletteGroups(catalog: Readonly<CanonicalCatalog>, context: RangerUiCon
 
 /** Shows One Wolf Pack only while its extra-strike window remains active. */
 function soulbeastStateSnapshot(context: RangerUiContext): RotationStateSnapshotItem[] {
-  const remaining = Number(rangerUiState(context).oneWolfPackUntil || 0) - Math.max(0, Number(context.atSeconds || 0));
+  const remaining = (rangerUiState(context).oneWolfPackUntil || 0) - Math.max(0, context.atSeconds || 0);
   return remaining > 0
     ? [
         {
@@ -102,6 +102,6 @@ export function bindSoulbeastUi(catalog: Readonly<CanonicalCatalog>): RangerUiSl
     rotationStateSnapshot: soulbeastStateSnapshot,
     // Return null (suppress) for internal bookkeeping events that have no meaningful display to the user.
     eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
-      SOULBEAST_HIDDEN_EVENT_TYPES.has(String(event.type)) ? null : undefined
+      SOULBEAST_HIDDEN_EVENT_TYPES.has(event.type) ? null : undefined
   });
 }

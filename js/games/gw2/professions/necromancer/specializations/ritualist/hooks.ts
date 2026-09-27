@@ -32,11 +32,7 @@ import {
 } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type {
-  NecromancerRuntime,
-  NecromancerRuntimeState,
-  NecromancerSkill
-} from '#gw2/professions/necromancer/types.js';
+import type { NecromancerRuntime, NecromancerRuntimeState } from '#gw2/professions/necromancer/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 const AUTO = 'ritualist.spirit-auto';
@@ -135,7 +131,7 @@ function strikes(
   attackType: string
 ): void {
   for (const [index, tick] of ticks.entries()) {
-    const at = canonicalTime(runtime.time + tick.atMs / 1000 + Number(cast.command.impactDelayMs ?? 0) / 1000);
+    const at = canonicalTime(runtime.time + tick.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000);
     queuePacket(
       runtime,
       spirit.key,
@@ -221,7 +217,7 @@ function summon(runtime: NecromancerRuntime, cast: RuntimeCast, spirit: Spirit):
     runtime.cooldownController.clear(cast.skill.id);
   }
 
-  runCreatureSummonReactions(runtime, cast.skill as NecromancerSkill, runtime.time, 1, cast.id);
+  runCreatureSummonReactions(runtime, cast.skill, runtime.time, 1, cast.id);
   if (hasTrait(runtime, TRAIT.EMPOWERING_SPIRITS)) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.empoweringSpirits);
     for (const kind of ['quickness', key === 'anguish' ? 'might' : key === 'wanderlust' ? 'fury' : 'resolution']) {
@@ -246,7 +242,7 @@ function summon(runtime: NecromancerRuntime, cast: RuntimeCast, spirit: Spirit):
     const effect = requireEffect(profile, 'buff', 'necromancer-painful-bond');
     if (effect && spirit.summonTicks.length) {
       const at = canonicalTime(
-        runtime.time + spirit.summonTicks[0].atMs / 1000 + Number(cast.command.impactDelayMs ?? 0) / 1000
+        runtime.time + spirit.summonTicks[0].atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000
       );
       const duration = effectNumber(profile, effect, 'duration');
       queuePacket(runtime, key, {
@@ -276,9 +272,7 @@ function summon(runtime: NecromancerRuntime, cast: RuntimeCast, spirit: Spirit):
           buildResolverCondition({
             ...attribution(cast),
             ...spiritFields(key, 'initial'),
-            at: canonicalTime(
-              runtime.time + first.atMs / 1000 + index + Number(cast.command.impactDelayMs ?? 0) / 1000
-            ),
+            at: canonicalTime(runtime.time + first.atMs / 1000 + index + (cast.command.impactDelayMs ?? 0) / 1000),
             condition,
             stacks,
             duration
@@ -421,7 +415,7 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
       buildResolverStrike({
         ...attribution(cast),
         source: 'necromancer',
-        at: canonicalTime(cast.start + swing.atMs / 1000 + Number(cast.command.impactDelayMs ?? 0) / 1000),
+        at: canonicalTime(cast.start + swing.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000),
         coefficient: swing.coefficient,
         skillWeapon,
         weaponStrengthProfileId: weaponStrengthProfileForName(skillWeapon)?.id
@@ -438,8 +432,7 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
     if (innervate) grantNecromancerLifeForce(runtime, Number(cast.skill.innervateLifeForceGain ?? 0));
     if (spirit || innervate)
       for (const effect of cast.skill.effects ?? []) {
-        if (effect.type === 'boon')
-          boon(runtime, cast, String(effect.boon), Number(effect.duration), Number(effect.stacks));
+        if (effect.type === 'boon') boon(runtime, cast, String(effect.boon), effect.duration, Number(effect.stacks));
         else if (innervate)
           for (const { event } of materializeSkillEffectApplications({
             skill: cast.skill,
@@ -449,7 +442,7 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
             baseEvent: { ...attribution(cast), ...spiritFields(innervate, 'innervate') },
             skillWeaponFallback: 'Profession mechanic'
           }))
-            runtime.emit({ ...event, at: canonicalTime(event.at + Number(cast.command.impactDelayMs ?? 0) / 1000) });
+            runtime.emit({ ...event, at: canonicalTime(event.at + (cast.command.impactDelayMs ?? 0) / 1000) });
       }
 
     if (cast.skill.id !== ID.SUMMON_SPIRITS) return;
@@ -466,9 +459,7 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
           controlKind: 'daze',
           sourceId: `ritualist.${spirit.key}.summon-spirits`,
           at: canonicalTime(
-            runtime.time +
-              Number(spirit.activeTicks[0]?.atMs ?? 0) / 1000 +
-              Number(cast.command.impactDelayMs ?? 0) / 1000
+            runtime.time + (spirit.activeTicks[0]?.atMs ?? 0) / 1000 + (cast.command.impactDelayMs ?? 0) / 1000
           )
         });
       state.spiritBusyUntil[spirit.key] = Math.max(

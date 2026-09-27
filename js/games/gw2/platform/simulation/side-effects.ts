@@ -62,6 +62,7 @@ export function applySideEffect(
   context: ActionContext,
   action: SideEffectAction,
   handlers: Readonly<
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Handlers belong to the selected profession, while shared dispatch erases its private state type.
     Record<string, (runtime: Gw2Runtime<any>, context: ActionContext, action: SideEffectAction) => void>
   > = {}
 ): void {

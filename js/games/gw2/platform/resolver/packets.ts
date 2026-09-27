@@ -19,7 +19,7 @@ type PacketFields = Pick<
 
 /** Selects the triggering skill's display label without inheriting its combat metadata. */
 export function resolverSourceSkill(event: Pick<Gw2ResolverEvent, 'skillName' | 'name' | 'source'>): string {
-  return String(event.skillName || event.name || event.source || '');
+  return event.skillName || event.name || event.source || '';
 }
 
 /** Builds an unscaled condition; the caller chooses immediate application or ordered queueing. */

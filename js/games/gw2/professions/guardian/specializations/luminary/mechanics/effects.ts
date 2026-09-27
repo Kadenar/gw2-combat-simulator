@@ -105,12 +105,12 @@ export function grantLuminaryAura(runtime: Runtime, event: Gw2ResolverEvent): vo
 
   const skill = event.skillId == null ? undefined : runtime.helpers.skillsById.get(event.skillId);
   if (skill && detonator(skill) && hasTrait(runtime, TRAIT.SOVEREIGN_OF_LIGHT)) detonate(runtime, event);
-  luminaryState.from(runtime).lightAuraUntil = gw2EffectExpiresAt(runtime.time, Number(duration));
+  luminaryState.from(runtime).lightAuraUntil = gw2EffectExpiresAt(runtime.time, duration);
 }
 
 /** Imported boundary state is an explicit input, applied once without restoring subsequent live state. */
 function initialState(runtime: Runtime, cast: RuntimeCast): void {
-  const duration = Math.max(0, Number(cast.command.initialStateDurationMs ?? 0)) / 1000;
+  const duration = Math.max(0, cast.command.initialStateDurationMs ?? 0) / 1000;
   if (!(duration > 0)) return;
   const event = { ...guardianCastCause(runtime, cast), duration, stacks: 1 };
   const id = cast.skill.id;

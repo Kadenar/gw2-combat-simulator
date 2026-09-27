@@ -34,13 +34,13 @@ export function applyRangerCommandTraits(context: RangerRuntime, skill: RangerSk
   }
 
   for (const event of context.history) {
-    const kind = String(event.kind || '').toLowerCase();
-    const remaining = gw2EffectExpiresAt(Number(event.at), Number(event.duration || 0)) - context.time;
+    const kind = (event.kind || '').toLowerCase();
+    const remaining = gw2EffectExpiresAt(event.at, event.duration || 0) - context.time;
     if (
       event.type !== 'buff' ||
       !event.resolvedAudience?.includesSelf ||
       !isStandardBoon(kind) ||
-      Number(event.at) > context.time + EPSILON ||
+      event.at > context.time + EPSILON ||
       !(remaining > 0)
     ) {
       continue;
@@ -48,10 +48,10 @@ export function applyRangerCommandTraits(context: RangerRuntime, skill: RangerSk
 
     const previous = active.get(kind);
     active.set(kind, {
-      duration: Math.max(remaining, Number(previous?.duration || 0)),
+      duration: Math.max(remaining, previous?.duration || 0),
       stacks: Math.min(
         kind === 'might' || kind === 'stability' ? 25 : 1,
-        Number(previous?.stacks || 0) + Math.max(1, Number(event.stacks || 1))
+        (previous?.stacks || 0) + Math.max(1, event.stacks || 1)
       )
     });
   }

@@ -57,7 +57,7 @@ export function applyCatalystResolverAura(context: ElementalistRuntime, event: G
     const { maximumStacks, duration } = empoweringAurasParameters(context);
     const current = activeElementalistBuffs(context, 'Empowering Auras', event.at);
     refreshElementalistBuffs(context, 'Empowering Auras', event.at, () => event.at + duration);
-    const activeStacks = current.reduce((total, application) => total + Number(application.stacks || 1), 0);
+    const activeStacks = current.reduce((total, application) => total + (application.stacks || 1), 0);
     if (activeStacks < maximumStacks) {
       queueElementalistBuff(context, event, 'Empowering Auras', 1, duration, resolverSourceSkill(event));
     }
@@ -149,7 +149,7 @@ function queueCatalystBuff(
  * before combat start.
  */
 export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  const immobilize = ['Immobilize', 'Immobilized'].includes(String(event.condition || ''));
+  const immobilize = ['Immobilize', 'Immobilized'].includes(event.condition || '');
   if (
     !hasTrait(context, TRAIT.VICIOUS_EMPOWERMENT) ||
     event.actorType !== 'player' ||
@@ -166,17 +166,11 @@ export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2R
   const empowerment = requireEffect(viciousEmpowermentProfile, 'buff', 'Empowerment');
   const might = requireEffect(viciousEmpowermentProfile, 'boon', 'Might');
   if (empowerment) {
-    queueCatalystBuff(
-      context,
-      event,
-      'elemental empowerment',
-      Number(empowerment.stacks),
-      Number(empowerment.duration)
-    );
+    queueCatalystBuff(context, event, 'elemental empowerment', Number(empowerment.stacks), empowerment.duration);
   }
 
   if (might) {
-    queueCatalystBuff(context, event, String(might.boon), Number(might.stacks), Number(might.duration));
+    queueCatalystBuff(context, event, String(might.boon), Number(might.stacks), might.duration);
   }
 
   context.recordProc('trait', 'Vicious Empowerment', event.at, event.skillName);
@@ -190,10 +184,10 @@ export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2R
  * proc whenever the buff is reapplied.
  */
 export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  const kind = String(event.kind || '').toLowerCase();
+  const kind = (event.kind || '').toLowerCase();
   if (kind === 'shattering ice' && event.resolvedAudience?.includesSelf) {
     const state = catalystState.from(context);
-    state.shatteringIceUntil = gw2EffectExpiresAt(event.at, Math.max(0, Number(event.duration || 0)));
+    state.shatteringIceUntil = gw2EffectExpiresAt(event.at, Math.max(0, event.duration || 0));
     // Refreshing the buff rearms its first strike; subsequent strikes use the canonical strict ICD.
     context.procs.readyAt['elementalist.catalyst.shatteringIce'] = 0;
     return;
@@ -208,8 +202,8 @@ export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2
   grantCatalystElementalEmpowerment(
     state,
     event.at,
-    Number(event.duration || 0),
-    Number(event.stacks || 1),
+    event.duration || 0,
+    event.stacks || 1,
     balanceProfileNumber(elementalEmpowermentProfile, 'maximumStacks')
   );
 }

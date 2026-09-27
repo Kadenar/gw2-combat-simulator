@@ -49,7 +49,7 @@ export function createSkillDamageController({
         ? group
         : {
             ...group,
-            ...(group.atMs == null ? {} : { atMs: Number(group.atMs) * castScale }),
+            ...(group.atMs == null ? {} : { atMs: group.atMs * castScale }),
             ...(Array.isArray(group.ticks)
               ? {
                   ticks: group.ticks.map((tick) => ({
@@ -81,7 +81,7 @@ export function createSkillDamageController({
     }
 
     if (group.castProgress != null) {
-      const hitAt = castStart + (at - castStart) * Number(group.castProgress);
+      const hitAt = castStart + (at - castStart) * group.castProgress;
       return emittedAt(hitAt, {
         ...damageGroup,
         atMs: undefined,
@@ -132,13 +132,13 @@ export function createSkillDamageController({
         continue;
       }
 
-      const firstPacketMs = Number(group.ticks?.[0]?.atMs ?? group.atMs ?? 0);
+      const firstPacketMs = group.ticks?.[0]?.atMs ?? group.atMs ?? 0;
       const firstPacketScale =
         group.timingScale === 'cast' ? castRelativeEffectTimingScale(skill, Math.max(0, at - castStart) * 1000) : 1;
       const timingOrigin = group.timingAnchor === 'castStart' ? castStart : at;
       const hitAt =
         group.castProgress != null
-          ? castStart + (at - castStart) * Number(group.castProgress)
+          ? castStart + (at - castStart) * group.castProgress
           : timingOrigin + (firstPacketMs * firstPacketScale) / 1000;
       if (hitAt > playerEffectEnd + EPSILON) continue;
       schedulePlayerStrike(skill, group, at, castStart);

@@ -121,16 +121,16 @@ export function elementalistOnCastComplete(context: ElementalistRuntime, cast: R
     for (const tick of pulse.ticks) {
       context.schedule(
         'elementalist.fulgor-pulse',
-        Math.max(context.time, cast.start + Number(tick.atMs) / 1000),
+        Math.max(context.time, cast.start + tick.atMs / 1000),
         {
-          at: cast.start + Number(tick.atMs) / 1000,
+          at: cast.start + tick.atMs / 1000,
           source: skill.name,
           sourceId: skill.id,
           actorType: 'effect',
           ownerActorType: 'player',
           skillName: skill.name,
           skillId: skill.id,
-          coefficient: Number(tick.coefficient),
+          coefficient: tick.coefficient,
           flatStrikeBase: Number(tick.flatStrikeBase),
           flatStrikePowerCoeff: Number(tick.flatStrikePowerCoeff),
           canCrit: false,

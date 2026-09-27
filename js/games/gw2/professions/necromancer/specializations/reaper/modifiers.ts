@@ -57,11 +57,9 @@ export const reaperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       return (
         Math.min(
           balanceProfileNumber(decimateDefensesProfile, 'maximumStacks'),
-          Number(
-            context.query?.targetConditionStacks
-              ? context.query.targetConditionStacks('Vulnerability', context.time, context.runtime)
-              : configuredTargetConditionStacks(context.config || {}, 'Vulnerability', context.time, context.runtime)
-          )
+          context.query?.targetConditionStacks
+            ? context.query.targetConditionStacks('Vulnerability', context.time, context.runtime)
+            : configuredTargetConditionStacks(context.config || {}, 'Vulnerability', context.time, context.runtime)
         ) * balanceProfileNumber(decimateDefensesProfile, 'criticalChancePerStack')
       );
     },

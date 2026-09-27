@@ -18,7 +18,7 @@ import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necro
 // Weapon-spell stacks follow the creature that owns an attack before its stat
 // attribution, so player-scaled spirit packets cannot spend the player's stacks.
 function recipientKeys(event: NecromancerResolverEvent): string[] {
-  if (event.summonOwnerBase && Number(event.summonCount || 0) > 1) {
+  if (event.summonOwnerBase && (event.summonCount || 0) > 1) {
     return Array.from({ length: Number(event.summonCount) }, (_, index) => `${event.summonOwnerBase}:${index}`);
   }
 
@@ -87,7 +87,7 @@ function queueNightmareWeapon(
           : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
       })
     );
-  context.recordProc?.(
+  context.recordProc(
     'skill',
     'Nightmare Weapon',
     event.at,
@@ -126,14 +126,7 @@ function queueSplinterWeapon(
         : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
     })
   );
-  context.recordProc?.(
-    'skill',
-    'Splinter Weapon',
-    event.at,
-    event.skillName,
-    '',
-    spellIcon(context, ID.SPLINTER_WEAPON)
-  );
+  context.recordProc('skill', 'Splinter Weapon', event.at, event.skillName, '', spellIcon(context, ID.SPLINTER_WEAPON));
 }
 
 // Spend eligible recipients' weapon-spell charges when their damaging strikes resolve.

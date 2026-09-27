@@ -56,7 +56,7 @@ export function triggerSunspot(
     applyAura(context, {
       at,
       aura: String(sunspotAura.kind),
-      duration: Number(sunspotAura.duration),
+      duration: sunspotAura.duration,
       skillName: 'Sunspot',
       sourceId
     });
@@ -105,7 +105,7 @@ export function triggerFlameExpulsion(context: ElementalistRuntime, at: number, 
     context.config.boons?.might
       ? Number(context.config.boons.might)
       : buffApplicationStacks(context.boons.get('might') ?? [], 'might', at, 25, {
-          includes: (application) => application.resolvedAudience?.includesSelf !== false
+          includes: (application) => application.resolvedAudience.includesSelf
         })
   );
   const flameExpulsionStrike = requireEffect(pyromancersPuissanceProfile, 'strike', 'Flame Expulsion');
@@ -161,7 +161,7 @@ export function triggerFlameExpulsion(context: ElementalistRuntime, at: number, 
         skillName: 'Flame Expulsion',
         kind: String(pyromancersPuissanceFlameExpulsionMight.boon).toLowerCase(),
         stacks: cappedMight,
-        duration: Number(pyromancersPuissanceFlameExpulsionMight.duration),
+        duration: pyromancersPuissanceFlameExpulsionMight.duration,
         audience: { recipients: 'party', affectsSelf: false, maximumRecipients: 5 }
       });
     }
@@ -225,7 +225,7 @@ export function extendPersistingFlamesEffects(
             ]
           )
             .filter((tick) => (tick.damageKind ?? effect.damageKind) === 'field-tick')
-            .map((tick) => ({ effect, tick, at: Number(effect.atMs ?? 0) + Number(tick.atMs) }))
+            .map((tick) => ({ effect, tick, at: (effect.atMs ?? 0) + tick.atMs }))
     )
     .sort((a, b) => a.at - b.at);
   const last = strikes.at(-1),
@@ -256,7 +256,7 @@ export function extendPersistingFlamesEffects(
           metadata: effect.metadata
         }
       ]) {
-        if (Number(effect.atMs ?? 0) + Number(tick.atMs) === last.at)
+        if ((effect.atMs ?? 0) + tick.atMs === last.at)
           extra.push({
             ...effect,
             atMs: 0,

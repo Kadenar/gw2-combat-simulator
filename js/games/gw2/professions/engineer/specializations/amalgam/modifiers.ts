@@ -93,11 +93,10 @@ function modifyAmalgamAttributes(context: EngineerModifierContext, attributes: G
       : balanceProfileNumber(evolveProfile, 'damageMultiplier');
     const pool = context.config?.amalgamEvolveAttributePool;
     for (const [attribute, poolAttribute] of EVOLVE_ATTRIBUTES) {
-      const eligible = Number(pool?.[poolAttribute] ?? modified[attribute] ?? 0);
+      const eligible = pool?.[poolAttribute] ?? modified[attribute];
       const bonus = eligible * (evolveFactor - 1);
       modified[attribute] =
-        Number(modified[attribute] || 0) +
-        (['power', 'conditionDamage'].includes(attribute) ? Math.round(bonus) : bonus);
+        (modified[attribute] || 0) + (['power', 'conditionDamage'].includes(attribute) ? Math.round(bonus) : bonus);
     }
   }
 

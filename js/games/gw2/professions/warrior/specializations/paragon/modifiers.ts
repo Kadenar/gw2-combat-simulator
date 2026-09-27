@@ -26,7 +26,7 @@ function paragonRuntimeState(context: Gw2ModifierContext): {
 }
 
 function motivation(context: Gw2ModifierContext): number {
-  return Number(paragonRuntimeState(context).motivation || 0);
+  return paragonRuntimeState(context).motivation || 0;
 }
 
 // Resolve Brisk Pacing's modifier amount from live Motivation and refrain state
@@ -53,7 +53,7 @@ function briskPacingAmount(
   return target === MODIFIER_TARGET.CONDITION_DAMAGE ? condition : strike;
 }
 
-const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const modifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
   {
     id: 'warrior.strengthening-stanzas',
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
@@ -61,7 +61,7 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     parameters: {
       strikeBonus: 0.15,
       conditionBonus: 0.1
-    } as Readonly<Record<string, number>>,
+    },
     amount: (_context, target, parameters) =>
       target === MODIFIER_TARGET.CONDITION_DAMAGE ? parameters.conditionBonus : parameters.strikeBonus,
     when: (context) =>
@@ -81,7 +81,7 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       conditionLow: 0.05,
       conditionMiddle: 0.15,
       conditionHigh: 0.25
-    } as Readonly<Record<string, number>>,
+    },
     amount: briskPacingAmount,
     when: (context) => hasTrait(context, TRAIT.BRISK_PACING) && motivation(context) > 0
   }
@@ -97,8 +97,7 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw
   const inspiringImplementsProfile = requireBalanceProfileFromContext(context, PROFILE.inspiringImplements);
   return {
     ...attributes,
-    concentration:
-      Number(attributes.concentration || 0) + balanceProfileNumber(inspiringImplementsProfile, 'attributeBonus')
+    concentration: (attributes.concentration || 0) + balanceProfileNumber(inspiringImplementsProfile, 'attributeBonus')
   };
 }
 

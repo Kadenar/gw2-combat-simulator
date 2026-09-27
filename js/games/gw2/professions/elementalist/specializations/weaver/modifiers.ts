@@ -79,15 +79,15 @@ function modifyWeaverAttributes(context: ElementalistModifierContext, attributes
   const elementalPolyphonyProfile = requireBalanceProfileFromContext(context, PROFILE.elementalPolyphony);
   const attributeBonus = balanceProfileNumber(elementalPolyphonyProfile, 'attributeBonus');
   if (active.has('Fire')) {
-    modified.power = Number(modified.power || 0) + attributeBonus;
+    modified.power = (modified.power || 0) + attributeBonus;
   }
 
   if (active.has('Air')) {
-    modified.ferocity = Number(modified.ferocity || 0) + attributeBonus;
+    modified.ferocity = (modified.ferocity || 0) + attributeBonus;
   }
 
   if (active.has('Earth')) {
-    modified.conditionDamage = Number(modified.conditionDamage || 0) + attributeBonus;
+    modified.conditionDamage = (modified.conditionDamage || 0) + attributeBonus;
   }
 
   return modified;

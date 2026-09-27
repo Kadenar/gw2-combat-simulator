@@ -101,10 +101,10 @@ export const GUARDIAN_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
 
 /** Detaches canonical combat state and expires public windows at the observation time. */
 export function snapshotGuardianState(state: unknown, at: number): GuardianState {
-  const snapshot = snapshotProfessionState<GuardianState>(state);
+  const snapshot = snapshotProfessionState(state) as GuardianState;
   // Snapshots can be captured before a flip's expiry task runs; never expose an expired flip to the palette.
   snapshot.availableFlips = Object.fromEntries(
-    Object.entries(snapshot.availableFlips || {}).filter(([, window]) => skillFlipVisible(window, at))
+    Object.entries(snapshot.availableFlips).filter(([, window]) => skillFlipVisible(window, at))
   );
   snapshot.symbolicAvengerExpirations = activeSymbolicAvengerExpirations(snapshot, at);
   return snapshot;

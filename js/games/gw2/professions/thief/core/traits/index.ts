@@ -26,14 +26,14 @@ import { grantThiefEndurance, grantThiefInitiative } from '#gw2/professions/thie
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { ThiefResolverContext, ThiefResolverEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefResolverContext, ThiefSkill } from '#gw2/professions/thief/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
 const unrelentingStrikes = onResolvedCriticalHit(unrelentingStrikesCriticalReaction);
 const noQuarter = onResolvedCriticalHit(noQuarterCriticalReaction);
 
 function resolverContext(runtime: ThiefRuntime): ThiefResolverContext {
-  return runtime as unknown as ThiefResolverContext;
+  return runtime;
 }
 
 /** Uncatchable's caltrop pulses are queued from the dodge's takeoff; the runtime has already paid its endurance. */
@@ -71,14 +71,14 @@ function upperHand(runtime: ThiefRuntime): void {
 /** Initiative spent grants Lead Attacks stacks at completion, replacing the oldest at the cap. */
 function leadAttacks(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const skill = cast.skill as ThiefSkill;
-  const cost = Math.max(0, Number(skill.initiativeCost || 0));
+  const cost = Math.max(0, skill.initiativeCost || 0);
   if (cost <= 0 || !hasTrait(runtime, TRAIT.LEAD_ATTACKS)) return;
   const core = runtime.profession.core;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.leadAttacks);
   const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
   const duration = balanceProfileNumber(profile, 'durationMultiplier');
   // A patched fractional cost grants a whole stack for its remainder, so round up before the integer boundary.
-  core.leadAttackExpirations = grantTimedStacks(core.leadAttackExpirations || [], {
+  core.leadAttackExpirations = grantTimedStacks(core.leadAttackExpirations, {
     at: runtime.time,
     expiresAt: runtime.time + duration,
     count: Math.ceil(cost),
@@ -125,19 +125,18 @@ export function reactThiefCoreDamage(
 ): void {
   const context = resolverContext(runtime);
   const resolved = details as unknown as NativeResolvedDamageDetails;
-  unrelentingStrikes.handler(context, event as ThiefResolverEvent, resolved);
-  noQuarter.handler(context, event as ThiefResolverEvent, resolved);
-  applyDeadlyAmbition(context, event as ThiefResolverEvent);
+  unrelentingStrikes.handler(context, event, resolved);
+  noQuarter.handler(context, event, resolved);
+  applyDeadlyAmbition(context, event);
   // Multiple venom types consume their charges but share one siphon per player strike.
-  if (applyActiveVenoms(context, event as ThiefResolverEvent) > 0)
-    applyLeechingVenoms(context, event as ThiefResolverEvent);
-  applyPanicStrike(context, event as ThiefResolverEvent);
+  if (applyActiveVenoms(context, event) > 0) applyLeechingVenoms(context, event);
+  applyPanicStrike(context, event);
 }
 
 /** Applied conditions drive Lotus Poison, allied Leeching Venoms, Panic Strike, Cloaked in Shadow, then the skill bonus. */
 export function reactThiefCoreCondition(runtime: ThiefRuntime, application: Gw2ResolverEvent): void {
   const context = resolverContext(runtime);
-  applyLotusPoison(context, application as ThiefResolverEvent);
-  applyAlliedLeechingVenoms(context, application as ThiefResolverEvent);
-  applyPanicStrikePoison(context, application as ThiefResolverEvent);
+  applyLotusPoison(context, application);
+  applyAlliedLeechingVenoms(context, application);
+  applyPanicStrikePoison(context, application);
 }

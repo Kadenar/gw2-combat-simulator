@@ -69,7 +69,7 @@ export function emitElementalistDamage(runtime: ElementalistRuntime, packet: Pac
   if (packet.activationId == null && packet.actorType === 'effect')
     packet = { ...packet, activationId: 'elementalist.effect:' + ++runtime.weaponStrengthActivationOrder };
   const { at, coefficient, hits, hitIndex, totalHits } = packet;
-  for (const hit of splitStrikeHits({ at, coefficient, hits, hitIndex, totalHits }, Number(packet.interval ?? 0)))
+  for (const hit of splitStrikeHits({ at, coefficient, hits, hitIndex, totalHits }, packet.interval ?? 0))
     emitElementalistPacket(
       runtime,
       buildResolverStrike({

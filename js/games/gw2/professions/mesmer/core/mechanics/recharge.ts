@@ -39,7 +39,7 @@ const traitRecharge = compileRechargeRules<MesmerRuntimeState>([
  */
 export function mesmerRechargeWork(context: MesmerRuntime, skill: MesmerSkill, sharedDuration: number): number {
   if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
-    return sharedDuration === 0 ? 0 : Number(skill.cooldown || 0);
+    return sharedDuration === 0 ? 0 : skill.cooldown || 0;
   }
 
   const multiplier = traitRecharge(context, skill, 1);
@@ -47,7 +47,7 @@ export function mesmerRechargeWork(context: MesmerRuntime, skill: MesmerSkill, s
   const shatter = mesmerMechanicsFor(context).shatters[skill.id];
   if (shatter?.rechargeReductionPerSource) {
     const clones = mesmerMechanicsFor(context).actions.currentResource();
-    const reduction = Number(shatter.rechargeReductionPerSource) * (clones + 1);
+    const reduction = shatter.rechargeReductionPerSource * (clones + 1);
     const baseCooldown = gw2BaseRecharge(skill);
     return Math.max(0, baseCooldown * multiplier - reduction);
   }

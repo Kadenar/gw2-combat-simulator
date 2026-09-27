@@ -248,7 +248,7 @@ export function reactRevenantConditionTraits(runtime: RevenantRuntime, event: Gw
           skillName: 'Abyssal Chill',
           name: `Abyssal Chill — ${name}`,
           condition: name,
-          stacks: Math.max(0, effectNumber(profile, condition, 'stacks')) * Math.max(1, Number(event.stacks ?? 1)),
+          stacks: Math.max(0, effectNumber(profile, condition, 'stacks')) * Math.max(1, event.stacks ?? 1),
           duration: effectNumber(profile, condition, 'duration')
         })
       );
@@ -257,7 +257,7 @@ export function reactRevenantConditionTraits(runtime: RevenantRuntime, event: Gw
 
   if (event.condition === 'Vulnerability' && hasTrait(runtime, TRAIT.DANCE_OF_DEATH))
     grantBattleScars(runtime, {
-      stacks: Number(event.stacks || 0),
+      stacks: event.stacks || 0,
       sourceId: TRAIT.DANCE_OF_DEATH,
       sourceName: 'Dance of Death',
       cause: event
@@ -276,9 +276,8 @@ function thrillOfCombat(runtime: RevenantRuntime, event: Gw2ResolverEvent): void
   const interval = Math.max(EPSILON, balanceProfileNumber(profile, 'cooldown'));
   const duration = Math.max(0, effectNumber(profile, buff, 'duration'));
   const maximum = balanceProfileNumber(battleScars, 'maximumStacks');
-  if (core.nextThrillOfCombatAt == null)
-    core.nextThrillOfCombatAt = Number(core.combatBeganAt ?? runtime.time) + interval;
-  const next = Number(core.nextThrillOfCombatAt);
+  if (core.nextThrillOfCombatAt == null) core.nextThrillOfCombatAt = (core.combatBeganAt ?? runtime.time) + interval;
+  const next = core.nextThrillOfCombatAt;
   if (!Number.isFinite(next) || next > runtime.time + EPSILON) return;
   const elapsed = Math.floor((runtime.time - next + EPSILON) / interval) + 1;
   let granted = 0;
@@ -390,8 +389,8 @@ function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEvent): vo
   const daggers = runtime.profession.core.enchantedDaggers;
   if (
     event.skillId === ID.ENCHANTED_DAGGERS ||
-    !(Number(daggers?.charges || 0) > 0) ||
-    !isInternalCooldownReady(runtime.time, Number(daggers.readyAt || 0))
+    !((daggers.charges || 0) > 0) ||
+    !isInternalCooldownReady(runtime.time, daggers.readyAt || 0)
   )
     return;
   const skill = runtime.helpers.skillsById.get(ID.ENCHANTED_DAGGERS);
@@ -401,7 +400,7 @@ function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEvent): vo
   // Charges exist only to deliver the siphon, so a removed strike leaves them unspent.
   if (!strike || !buff) return;
   const totalHits = effectNumber(skill, buff, 'stacks');
-  const delay = Number(strike.atMs || 0) / 1000;
+  const delay = (strike.atMs || 0) / 1000;
   if (!consumeCharge(daggers, runtime.time, delay)) return;
   // Preserve strict same-timestamp gating even when a patched strike has no delay.
   if (delay === 0) daggers.readyAt = runtime.time;
@@ -429,7 +428,7 @@ function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEvent): vo
 
 /** Landed player strikes drive Core on-hit traits in their established order. */
 export function reactRevenantPlayerStrike(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || !(Number(event.coefficient || 0) > 0)) return;
+  if (event.actorType !== 'player' || !((event.coefficient || 0) > 0)) return;
   thrillOfCombat(runtime, event);
   consumeBattleScar(runtime, event);
   viciousReprisal(runtime, event);
@@ -477,13 +476,13 @@ export function completeRevenantAncientEcho(runtime: RevenantRuntime, cast: Runt
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       kind: String(effect.boon || effect.kind),
-      duration: Number(effect.duration),
-      stacks: Number(effect.stacks ?? 1),
+      duration: effect.duration,
+      stacks: effect.stacks ?? 1,
       activationId: cast.id
     });
   }
 
-  runtime.resourceController.grant('energy', Number(cast.skill.resourceGain || 0));
+  runtime.resourceController.grant('energy', cast.skill.resourceGain || 0);
 }
 
 /** Assassin's Presence pulses on its own combat-anchored cadence; attacks neither trigger nor delay it. */

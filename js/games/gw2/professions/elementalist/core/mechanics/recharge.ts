@@ -45,7 +45,6 @@ export function elementalistRechargeWork(
   duration: number,
   releasing = false
 ): number {
-  if (!skill) return duration;
   // The summon owns this recharge: `mechanics/elementals/runtime.ts` starts the glyph cooldown
   // when the elemental expires, so the cast itself must not start one.
   if (skill.id === ID.GLYPH_OF_ELEMENTALS) return 0;

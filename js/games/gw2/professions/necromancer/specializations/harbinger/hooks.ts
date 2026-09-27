@@ -102,9 +102,7 @@ function emitEffects(
         offTarget: cast?.command.offTarget,
         at: canonicalTime(
           event.at +
-            (skill.id === cast?.skill.id && isHostileTargetEvent(event)
-              ? Number(cast.command.impactDelayMs ?? 0) / 1000
-              : 0)
+            (skill.id === cast?.skill.id && isHostileTargetEvent(event) ? (cast.command.impactDelayMs ?? 0) / 1000 : 0)
         )
       });
       if (packet.type === 'buff')
@@ -186,7 +184,7 @@ function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast): boolean {
             .map((effect) => ({
               ...effect,
               sourceId: TRAIT.CASCADING_CORRUPTION,
-              atMs: quantizeGw2ActionTimingMs(Number(effect.atMs ?? 0))
+              atMs: quantizeGw2ActionTimingMs(effect.atMs ?? 0)
             })),
           cast
         );
@@ -228,7 +226,7 @@ function commit(runtime: NecromancerRuntime, cast: RuntimeCast, impactAt: number
     if (cast.skill.id !== ID.DEVOURING_CUT)
       runtime.emit({
         type: 'control',
-        at: canonicalTime(runtime.time + Number(cast.command.impactDelayMs ?? 0) / 1000),
+        at: canonicalTime(runtime.time + (cast.command.impactDelayMs ?? 0) / 1000),
         source: 'necromancer',
         sourceId: cast.skill.id,
         skillId: cast.skill.id,
@@ -246,7 +244,7 @@ export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
   initialize(runtime) {
     if (!professionStaticRulesApplied(runtime.config)) {
       const vitality =
-        Number(runtime.config.stats?.vitality ?? 1000) +
+        (runtime.config.stats?.vitality ?? 1000) +
         balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.alchemicVigor), 'attributeBonus');
       runtime.profession.core.lifeForceCostMultiplier = necromancerLifeForceCostMultiplier(
         { ...runtime.config, stats: { ...runtime.config.stats, vitality } },

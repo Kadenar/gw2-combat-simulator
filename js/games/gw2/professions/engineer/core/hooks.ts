@@ -12,7 +12,7 @@ import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeProfession, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerEndurance } from '#gw2/professions/engineer/core/mechanics/resources.js';
@@ -157,7 +157,7 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
     }
 
     if (skill.paletteFlipSkillId != null && !skill.flipParentName) {
-      const flip = runtime.helpers.skillsById.get(skill.paletteFlipSkillId) as EngineerSkill | undefined;
+      const flip = runtime.helpers.skillsById.get(skill.paletteFlipSkillId);
       if (!flip?.flipParentName)
         throw new TypeError(
           `Engineer skill ${skill.name} requires a paletteFlipSkillId referencing a consumable flip.`
@@ -186,7 +186,7 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
   },
   reactions: {
     'damage.resolved'(runtime, event, details) {
-      for (const reaction of critical) reaction.handler(runtime, event, details as NativeResolvedDamageDetails);
+      for (const reaction of critical) reaction.handler(runtime, event, details);
       reactToEngineerDamage(runtime, event);
     },
     'condition.applied': reactToEngineerCondition

@@ -82,7 +82,7 @@ export function applyFreshAirAttunementEntry(
       actorType: 'player',
       kind: 'fresh air',
       stacks: Number(freshAir.stacks),
-      duration: Number(freshAir.duration),
+      duration: freshAir.duration,
       skillName: skill.name,
       priority: -10
     });
@@ -103,7 +103,7 @@ export function applyOneWithAir(context: ElementalistRuntime, at: number, skill:
       actorType: 'player',
       kind: String(superspeed.kind).toLowerCase(),
       stacks: Number(superspeed.stacks),
-      duration: Number(superspeed.duration),
+      duration: superspeed.duration,
       skillName: skill.name
     });
   }
@@ -157,7 +157,7 @@ export function applyLightningRod(context: ElementalistRuntime, event: Simulatio
       name: 'Lightning Rod',
       procType: 'trait',
       sourceId,
-      sourceSkill: String(event.skillName || event.source || '')
+      sourceSkill: event.skillName || event.source || ''
     });
 }
 
@@ -166,14 +166,7 @@ export function applyRagingStorm(context: Gw2ResolverRuntime, event: Gw2Resolver
   const ragingStormProfile = requireBalanceProfileFromContext(context, PROFILE.ragingStorm);
   const fury = requireEffect(ragingStormProfile, 'boon', 'Fury');
   if (fury) {
-    queueElementalistBuff(
-      context,
-      event,
-      String(fury.boon),
-      Number(fury.stacks),
-      Number(fury.duration),
-      'Raging Storm'
-    );
+    queueElementalistBuff(context, event, String(fury.boon), Number(fury.stacks), fury.duration, 'Raging Storm');
   }
 }
 
@@ -187,7 +180,7 @@ function zephyrsBoonEffects(context: unknown) {
       {
         kind: String(effect.boon).toLowerCase(),
         stacks: Number(effect.stacks),
-        duration: Number(effect.duration)
+        duration: effect.duration
       }
     ];
   });
@@ -196,7 +189,7 @@ function zephyrsBoonEffects(context: unknown) {
 /** Grants resolver-side Zephyr's Boon effects for one classified aura event. */
 export function applyResolverZephyrsBoon(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, TRAIT.ZEPHYRS_BOON)) return;
-  const source = String(event.skillName || event.name || event.source || '');
+  const source = event.skillName || event.name || event.source || '';
   for (const boon of zephyrsBoonEffects(context)) {
     queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, source);
   }
@@ -216,7 +209,7 @@ export function applyFreshAirCritical(
     !critical.didCrit
   )
     return;
-  if (Number(context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air) ?? 0) > event.at)
+  if ((context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air) ?? 0) > event.at)
     setElementalistAttunementReadyAt(context, 'Air', event.at);
   context.emitDerived(event, {
     type: 'elementalist.fresh-air',

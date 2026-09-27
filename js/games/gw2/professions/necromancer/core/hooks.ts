@@ -77,7 +77,7 @@ const GRAVEDIGGER_RESET = 'necromancer.gravedigger-reset';
 /** Landed player packets own weapon gains and the post-hit half-health test; no predicted observation is replayed. */
 function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
-  const skill = runtime.helpers.skillsById?.get(event.skillId ?? event.sourceId) as NecromancerSkill | undefined;
+  const skill = runtime.helpers.skillsById.get(event.skillId ?? event.sourceId);
   if (!skill) return;
   // A command grants its resource only after its owned summon strike lands on a living target.
   if (event.actorType === 'summon' && Boolean(skill.minionKey)) {
@@ -111,7 +111,7 @@ function complete(runtime: NecromancerRuntime, cast: RuntimeCast): void {
     const flip = runtime.helpers.skillsById.get(skill.flipSkillId);
     if (flip && flip.name !== skill.name && flip.flipParentId === skill.id)
       runtime.armFlip(flip.id, {
-        expiresAt: cast.rechargeStart + Math.max(1, Number(skill.flipDuration ?? skill.cooldown ?? 5))
+        expiresAt: cast.rechargeStart + Math.max(1, skill.flipDuration ?? skill.cooldown ?? 5)
       });
   }
 
@@ -198,7 +198,7 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
         return denySkillCast(skill, 'necromancer.in-shroud', `already in ${state.activeShroud} shroud.`);
       if ((skill.specialization || 'Core') !== (runtime.config.specialization || 'Core'))
         return denySkillCast(skill, 'necromancer.wrong-specialization', 'requires its matching specialization.');
-      const minimum = (state.lifeForce.maximum * Number(skill.minimumShroudLifeForcePercent ?? 10)) / 100;
+      const minimum = (state.lifeForce.maximum * (skill.minimumShroudLifeForcePercent ?? 10)) / 100;
       if (runtime.resourceController.value('lifeForce') < minimum)
         return denySkillCast(
           skill,
@@ -239,8 +239,7 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
   ],
   rechargeWork: (_runtime, skill, work) => (skill.shroudEntry || skill.rechargeOnMinionDeath ? 0 : work),
   modifyEffects(runtime, cast, effects) {
-    if (ownsNecromancerMinionSkill(cast.skill as NecromancerSkill) || cast.skill.id === ID.DEVOURING_DARKNESS)
-      return [];
+    if (ownsNecromancerMinionSkill(cast.skill) || cast.skill.id === ID.DEVOURING_DARKNESS) return [];
     // Completion owns corruption self-effects; ordinary scheduling must not apply them to the target or twice.
     const selected = cast.skill.categories?.includes('Corruption')
       ? effects.filter((effect) => !isCorruptionCompletionEffect(effect))

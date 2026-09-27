@@ -14,8 +14,7 @@ interface TimedBuffProcOptions {
 
 export function compareTimelineEvents(left: SimulationEvent, right: SimulationEvent): number {
   return (
-    left.at - right.at ||
-    Number(left.causalOrder ?? left.eventOrder ?? 0) - Number(right.causalOrder ?? right.eventOrder ?? 0)
+    left.at - right.at || (left.causalOrder ?? left.eventOrder ?? 0) - (right.causalOrder ?? right.eventOrder ?? 0)
   );
 }
 
@@ -40,8 +39,8 @@ export function recordTimedBuffProc(
   event: SimulationEvent,
   { duration, name, detail = null }: TimedBuffProcOptions
 ): void {
-  const wasActive = Number(state.buffUntil || 0) > event.at;
-  state.buffUntil = Math.max(Number(state.buffUntil || 0), gw2EffectExpiresAt(event.at, duration));
+  const wasActive = (state.buffUntil || 0) > event.at;
+  state.buffUntil = Math.max(state.buffUntil || 0, gw2EffectExpiresAt(event.at, duration));
   // Preserve the authoritative effect deadline so the timeline can distinguish
   // a true expiry from a refresh that keeps the same relic window active.
   ctx.recordProc(
@@ -52,7 +51,7 @@ export function recordTimedBuffProc(
     detail ?? (wasActive ? 'refreshed' : 'activated'),
     '',
     null,
-    Number(state.buffUntil)
+    state.buffUntil
   );
 }
 
@@ -66,8 +65,8 @@ export function timedStrikeBuff(
   predicate?: (event: SimulationEvent) => boolean
 ): NonNullable<Gw2RelicRule['strikeMultiplier']> {
   return (_ctx, state, event) =>
-    Number(state.buffFrom ?? -Infinity) <= event.at &&
-    Number(state.buffUntil || 0) > event.at &&
+    (state.buffFrom ?? -Infinity) <= event.at &&
+    (state.buffUntil || 0) > event.at &&
     (predicate ? predicate(event) : true)
       ? multiplier
       : 1;

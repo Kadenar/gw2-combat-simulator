@@ -24,7 +24,7 @@ export function withSmallHitboxCap(skill: Partial<Skill>, smallHitboxCap: number
         return effect.ticks.map((tick, tickIndex) => ({ effectIndex, tickIndex, atMs: Number(tick.atMs) }));
       }
 
-      return [{ effectIndex, tickIndex: 0, atMs: Number(effect.atMs || 0) }];
+      return [{ effectIndex, tickIndex: 0, atMs: effect.atMs || 0 }];
     })
     .sort(
       (left, right) =>
@@ -40,7 +40,7 @@ export function withSmallHitboxCap(skill: Partial<Skill>, smallHitboxCap: number
   // Match offensive companions within their strike layer by timestamp and per-kind occurrence.
   // Unmatched effects remain independent; self boons and buffs never inherit a target hitbox cap.
   function pairPacket<T extends Pick<SkillEffect, 'atMs' | 'metadata'>>(packet: T, kind: string): T {
-    const atMs = Number(packet.atMs || 0);
+    const atMs = packet.atMs || 0;
     const key = `${kind}:${atMs}`;
     const occurrence = companionOccurrences.get(key) || 0;
     companionOccurrences.set(key, occurrence + 1);
@@ -57,9 +57,7 @@ export function withSmallHitboxCap(skill: Partial<Skill>, smallHitboxCap: number
         // A new strike layer starts a fresh set of companion packet matches.
         lastStrikeIndices.clear();
         companionOccurrences.clear();
-        const hitCount = Array.isArray(effect.ticks)
-          ? effect.ticks.length
-          : Math.max(1, Math.trunc(Number(effect.hits || 1)));
+        const hitCount = Array.isArray(effect.ticks) ? effect.ticks.length : Math.max(1, Math.trunc(effect.hits || 1));
 
         (Array.isArray(effect.ticks) ? effect.ticks : [effect]).forEach((tick, tickIndex) => {
           const atMs = Number(tick.atMs || 0);

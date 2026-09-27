@@ -45,14 +45,14 @@ export function elementalistAttunements(context: ElementalistModifierContext): S
 }
 
 // Before any attunement swap is recorded, fall back to the build's start attunement.
-function primaryAttunement(context: ElementalistModifierContext): ElementalistAttunement | string {
-  return coreState(context).primaryAttunement || String(context.config?.startAttunement || 'Fire');
+function primaryAttunement(context: ElementalistModifierContext): string {
+  return coreState(context).primaryAttunement || context.config?.startAttunement || 'Fire';
 }
 
 // Conjure attributes belong to the wielder, including utility attacks, only during the equipped copy's lifetime.
 function wieldedConjure(context: ElementalistModifierContext): string | null {
   const state = coreState(context);
-  return Number(state.conjureExpiresAt || 0) > context.time ? state.conjureEquipped || null : null;
+  return (state.conjureExpiresAt || 0) > context.time ? state.conjureEquipped || null : null;
 }
 
 /** Might stacks at the event's instant, falling back to the build's assumed might. */
@@ -72,7 +72,7 @@ export function elementalistTimedBuffStacks(context: ElementalistModifierContext
     maximum,
     applications
       .filter((application) => application.at <= context.time && application.expiresAt > context.time)
-      .reduce((sum, application) => sum + Number(application.stacks || 1), 0)
+      .reduce((sum, application) => sum + (application.stacks || 1), 0)
   );
 }
 
@@ -85,8 +85,8 @@ function infernoBurningFactor(
   parameters: Readonly<Record<string, number>>
 ): number {
   const stats = context.query?.statsAt(context.time, context.event, context.runtime);
-  const power = Number(stats?.power || 0);
-  const conditionDamage = Number(stats?.conditionDamage || 0);
+  const power = stats?.power || 0;
+  const conditionDamage = stats?.conditionDamage || 0;
   // Only Inferno's power coefficient is balance-authorable; its shared burning formula stays canonical.
   const normalBurningRate = 131 + 0.155 * conditionDamage;
   return normalBurningRate > 0 ? (131 + parameters.powerScaling * power) / normalBurningRate : 1;
@@ -96,12 +96,12 @@ function infernoBurningFactor(
  * Declarative Core trait and resource modifiers, evaluated per damage event.
  * Each rule's `when` states the exact trait, buff, or target condition it needs.
  */
-export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+export const elementalistCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
   {
     id: 'elementalist.inferno',
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: 'multiply',
-    parameters: { powerScaling: 0.0825 } as Readonly<Record<string, number>>,
+    parameters: { powerScaling: 0.0825 },
     factor: infernoBurningFactor,
     when: (context) => hasTrait(context, TRAIT.INFERNO) && context.condition === 'Burning'
   },
@@ -117,7 +117,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     id: 'elementalist.persisting-flames',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
-    parameters: { maximumStacks: 5, damagePerStack: 0.02 } as Readonly<Record<string, number>>,
+    parameters: { maximumStacks: 5, damagePerStack: 0.02 },
     amount: (context, _target, parameters) =>
       elementalistTimedBuffStacks(context, 'persisting flames', parameters.maximumStacks) * parameters.damagePerStack,
     when: (context) => hasTrait(context, TRAIT.PERSISTING_FLAMES)
@@ -170,7 +170,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     id: 'elementalist.piercing-shards',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
-    parameters: { waterFactor: 1.14, otherFactor: 1.07 } as Readonly<Record<string, number>>,
+    parameters: { waterFactor: 1.14, otherFactor: 1.07 },
     factor: (context, _target, parameters) =>
       primaryAttunement(context) === 'Water' ? parameters.waterFactor : parameters.otherFactor,
     when: (context) =>
@@ -192,7 +192,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     operation: 'multiply',
     factor: (context) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ELECTRIC_DISCHARGE), 'criticalDamage'),
-    when: (context) => String(context.event?.skillName || context.event?.name || '') === 'Electric Discharge'
+    when: (context) => (context.event?.skillName || context.event?.name || '') === 'Electric Discharge'
   },
   {
     id: 'elementalist.hammer-fire-orb',
@@ -224,7 +224,7 @@ export function modifyElementalistAttributes(context: ElementalistModifierContex
   const primary = primaryAttunement(context);
   if (hasTrait(context, TRAIT.EMPOWERING_FLAME) && primary === 'Fire') {
     const empoweringFlameProfile = requireBalanceProfileFromContext(context, PROFILE.empoweringFlame);
-    modified.power = Number(modified.power || 0) + balanceProfileNumber(empoweringFlameProfile, 'attributeBonus');
+    modified.power = (modified.power || 0) + balanceProfileNumber(empoweringFlameProfile, 'attributeBonus');
   }
 
   // Power Overwhelming needs a might threshold, and pays the larger bonus while
@@ -236,7 +236,7 @@ export function modifyElementalistAttributes(context: ElementalistModifierContex
   ) {
     const powerOverwhelmingProfile = requireBalanceProfileFromContext(context, PROFILE.powerOverwhelming);
     modified.power =
-      Number(modified.power || 0) +
+      (modified.power || 0) +
       (primary === 'Fire'
         ? balanceProfileNumber(powerOverwhelmingProfile, 'weaponAttributeBonus')
         : balanceProfileNumber(powerOverwhelmingProfile, 'attributeBonus'));
@@ -244,13 +244,12 @@ export function modifyElementalistAttributes(context: ElementalistModifierContex
 
   if (hasTrait(context, TRAIT.FRESH_AIR) && elementalistTimedBuffStacks(context, 'fresh air', 1) > 0) {
     const freshAirProfile = requireBalanceProfileFromContext(context, PROFILE.freshAir);
-    modified.ferocity = Number(modified.ferocity || 0) + balanceProfileNumber(freshAirProfile, 'attributeBonus');
+    modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(freshAirProfile, 'attributeBonus');
   }
 
   if (hasTrait(context, TRAIT.AEROMANCERS_TRAINING) && primary === 'Air') {
     const aeromancersTrainingProfile = requireBalanceProfileFromContext(context, PROFILE.aeromancersTraining);
-    modified.ferocity =
-      Number(modified.ferocity || 0) + balanceProfileNumber(aeromancersTrainingProfile, 'attributeBonus');
+    modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(aeromancersTrainingProfile, 'attributeBonus');
   }
 
   if (
@@ -258,26 +257,26 @@ export function modifyElementalistAttributes(context: ElementalistModifierContex
     Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
   ) {
     const ragingStormProfile = requireBalanceProfileFromContext(context, PROFILE.ragingStorm);
-    modified.ferocity = Number(modified.ferocity || 0) + balanceProfileNumber(ragingStormProfile, 'attributeBonus');
+    modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(ragingStormProfile, 'attributeBonus');
   }
 
   if (hasTrait(context, TRAIT.ARCANE_LIGHTNING) && elementalistTimedBuffStacks(context, 'arcane lightning', 1) > 0) {
     const arcaneLightningProfile = requireBalanceProfileFromContext(context, PROFILE.arcaneLightning);
-    modified.ferocity = Number(modified.ferocity || 0) + balanceProfileNumber(arcaneLightningProfile, 'attributeBonus');
+    modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(arcaneLightningProfile, 'attributeBonus');
   }
 
   // Read equipped state at damage resolution so dropping or expiry also removes the bonuses from lingering hits.
   const weapon = wieldedConjure(context);
   if (weapon === 'Fiery Greatsword') {
     const fieryGreatswordProfile = requireBalanceProfileFromContext(context, PROFILE.fieryGreatsword);
-    modified.power = Number(modified.power || 0) + balanceProfileNumber(fieryGreatswordProfile, 'weaponAttributeBonus');
+    modified.power = (modified.power || 0) + balanceProfileNumber(fieryGreatswordProfile, 'weaponAttributeBonus');
     modified.conditionDamage =
-      Number(modified.conditionDamage || 0) + balanceProfileNumber(fieryGreatswordProfile, 'attributeBonus');
+      (modified.conditionDamage || 0) + balanceProfileNumber(fieryGreatswordProfile, 'attributeBonus');
   } else if (weapon === 'Lightning Hammer') {
     const lightningHammerProfile = requireBalanceProfileFromContext(context, PROFILE.lightningHammer);
     modified.precision =
-      Number(modified.precision || 0) + balanceProfileNumber(lightningHammerProfile, 'weaponAttributeBonus');
-    modified.ferocity = Number(modified.ferocity || 0) + balanceProfileNumber(lightningHammerProfile, 'attributeBonus');
+      (modified.precision || 0) + balanceProfileNumber(lightningHammerProfile, 'weaponAttributeBonus');
+    modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(lightningHammerProfile, 'attributeBonus');
   }
 
   // Remove baseline passive precision during live recharge, including resets, unless Written in Stone preserves it.
@@ -287,7 +286,7 @@ export function modifyElementalistAttributes(context: ElementalistModifierContex
     context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_FIRE, context.time)
   ) {
     const signetOfFireProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfFire);
-    modified.precision = Number(modified.precision || 0) - balanceProfileNumber(signetOfFireProfile, 'attributeBonus');
+    modified.precision = (modified.precision || 0) - balanceProfileNumber(signetOfFireProfile, 'attributeBonus');
   }
 
   return modified;

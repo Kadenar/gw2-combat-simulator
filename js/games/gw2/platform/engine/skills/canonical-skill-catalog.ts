@@ -1167,7 +1167,7 @@ function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
   }
 
   for (const profile of catalog.balanceProfiles)
-    for (const effect of profile.effects ?? []) validateEffectReactions(catalog, profile as Skill, effect);
+    for (const effect of profile.effects ?? []) validateEffectReactions(catalog, profile, effect);
   const ids = new Set();
   for (const skill of catalog?.skills || []) {
     if (skill.id === undefined || skill.id === null || ids.has(skill.id)) {

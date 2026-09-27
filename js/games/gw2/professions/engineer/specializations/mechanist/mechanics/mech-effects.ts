@@ -66,7 +66,7 @@ export const mechanistCriticalHitDefinitions = Object.freeze([
           requireBalanceProfileFromContext(context, CORE_PROFILE.incendiaryPowder),
           'internalCooldown'
         ),
-      readyAt: (context) => Number(context.procs.readyAt['incendiaryPowder.mech'] || 0),
+      readyAt: (context) => context.procs.readyAt['incendiaryPowder.mech'] || 0,
       setReadyAt: (context, readyAt) => {
         context.procs.readyAt['incendiaryPowder.mech'] = readyAt;
       }
@@ -108,7 +108,7 @@ function reactToMechanistDamage(
 
   if (
     hasTrait(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS) &&
-    isInternalCooldownReady(event.at, Number(state.singleEdgeCutters || 0))
+    isInternalCooldownReady(event.at, state.singleEdgeCutters || 0)
   ) {
     const mechArmsSingleEdgeCuttersProfile = requireBalanceProfileFromContext(
       context,
@@ -134,7 +134,7 @@ function reactToMechanistDamage(
 
   if (
     hasTrait(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS) &&
-    isInternalCooldownReady(event.at, Number(state.highImpactDrivers || 0))
+    isInternalCooldownReady(event.at, state.highImpactDrivers || 0)
   ) {
     const mechArmsHighImpactDriversProfile = requireBalanceProfileFromContext(
       context,
@@ -147,7 +147,7 @@ function reactToMechanistDamage(
         name: 'Mech Arms: High-Impact Drivers',
         kind: String(packet.boon).toLowerCase(),
         stacks: Number(packet.stacks),
-        duration: Number(packet.duration),
+        duration: packet.duration,
         sourceId: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS,
         actorType: 'effect'
       });

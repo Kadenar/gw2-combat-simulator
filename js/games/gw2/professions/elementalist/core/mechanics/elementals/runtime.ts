@@ -339,7 +339,7 @@ function emitStrike(
       summonUsesMight: false,
       summonUsesEquipmentModifiers: false,
       summonUsesProfessionModifiers: false,
-      summonOwner: elementalistElementalCompanionId(Number(payload.summonGeneration || 0))
+      summonOwner: elementalistElementalCompanionId(payload.summonGeneration || 0)
     });
   }
 
@@ -356,7 +356,7 @@ function emitStrike(
     hits: 1,
     hitIndex,
     totalHits,
-    ...summonStrikeMetadata(element, Number(payload.summonGeneration || 0), baseDamage),
+    ...summonStrikeMetadata(element, payload.summonGeneration || 0, baseDamage),
     ...fields
   });
 }
@@ -461,7 +461,7 @@ function handleElementalImpactTask(context: ElementalistRuntime, payload: Elemen
       profile.skillId,
       'Flame Barrage',
       profile.damagePerCoefficient,
-      Number(payload.hitIndex || 1),
+      payload.hitIndex || 1,
       4,
       profile.projectileCoefficient,
       // The elemental's own Might scales Barrage; owner equipment still does not.
@@ -517,13 +517,13 @@ function handleElementalImpactTask(context: ElementalistRuntime, payload: Elemen
     return;
   }
 
-  if (payload.impact === 'stomp') {
-    const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
-    emitStrike(context, payload, profile.skillId, 'Stomp', profile.baseDamage, 1, 1);
-    emitPlayerOwnedCondition(context, payload, profile.skillId, 'Stomp', 'Crippled', profile.crippleDuration);
-    emitPlayerOwnedCondition(context, payload, profile.skillId, 'Stomp', 'Immobilized', profile.immobilizeDuration);
-    emitStompProtection(context, payload);
-  }
+  // All other impact variants returned above; the remaining command is Stomp.
+
+  const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
+  emitStrike(context, payload, profile.skillId, 'Stomp', profile.baseDamage, 1, 1);
+  emitPlayerOwnedCondition(context, payload, profile.skillId, 'Stomp', 'Crippled', profile.crippleDuration);
+  emitPlayerOwnedCondition(context, payload, profile.skillId, 'Stomp', 'Immobilized', profile.immobilizeDuration);
+  emitStompProtection(context, payload);
 }
 
 // Actor step: picks the next autonomous attack. Prefers the secondary attack
@@ -738,17 +738,14 @@ export function elementalistElementalAvailability(
   const elemental = professionCoreState(context).summonedElemental;
   if (skill.id === FLAME_BARRAGE_ID) {
     const active = elemental.element === 'Fire' && elemental.activeUntil > context.time;
-    return active ||
-      (elemental.activeUntil <= context.time && selectedElemental(context as unknown as ElementalistRuntime) === 'Fire')
+    return active || (elemental.activeUntil <= context.time && selectedElemental(context) === 'Fire')
       ? ready()
       : unavailable('an active Fire Elemental is required.');
   }
 
   if (skill.id === STOMP_ID) {
     const active = elemental.element === 'Earth' && elemental.activeUntil > context.time;
-    return active ||
-      (elemental.activeUntil <= context.time &&
-        selectedElemental(context as unknown as ElementalistRuntime) === 'Earth')
+    return active || (elemental.activeUntil <= context.time && selectedElemental(context) === 'Earth')
       ? ready()
       : unavailable('an active Earth Elemental is required.');
   }

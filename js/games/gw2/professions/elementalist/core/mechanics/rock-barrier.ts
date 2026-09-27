@@ -18,7 +18,7 @@ function releaseRockBarrier(runtime: ElementalistRuntime): void {
     runtime.cooldownController.startRecharge(
       root,
       runtime.time,
-      elementalistRechargeWork(runtime, root, Number(root.cooldown ?? 0), true)
+      elementalistRechargeWork(runtime, root, root.cooldown ?? 0, true)
     );
     resetAutoattackChains(runtime, [root.id]);
   }

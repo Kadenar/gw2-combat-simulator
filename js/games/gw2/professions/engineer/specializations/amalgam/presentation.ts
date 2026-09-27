@@ -74,7 +74,7 @@ function amalgamSkillBarGroups(
   // Match pet selectors with concise selected-name headers while dropdowns retain the full protocol names.
   const protocolGroups = [2, 3, 4].flatMap((slot): ProfessionSkillBarGroup[] => {
     const options = amalgamProtocolOptions(catalog, slot);
-    const selected = Number(selectedMorphIds(context)[slot - 2]);
+    const selected = selectedMorphIds(context)[slot - 2];
     if (options.some((skill) => skill.id === selected)) skillIds[slot - 1] = selected;
     const skillId = skillIds[slot - 1];
     if (skillId == null || !options.length) return [];
@@ -147,9 +147,9 @@ function updateAmalgamSkillBarSelection(
 function activeBuffRemaining(context: EngineerUiContext, sourceId: string, at: number): number {
   let remaining = 0;
   for (const event of (context.result as { events?: readonly SimulationEvent[] } | undefined)?.events || []) {
-    if (Number(event.at || 0) > at) break;
+    if ((event.at || 0) > at) break;
     if (event.type !== 'buff' || event.sourceId !== sourceId) continue;
-    remaining = Math.max(remaining, gw2EffectExpiresAt(Number(event.at || 0), Number(event.duration || 0)) - at);
+    remaining = Math.max(remaining, gw2EffectExpiresAt(event.at || 0, event.duration || 0) - at);
   }
 
   return Math.max(0, remaining);
@@ -158,10 +158,10 @@ function activeBuffRemaining(context: EngineerUiContext, sourceId: string, at: n
 /** Surfaces Evolve and every duration-bearing Silver Lining strain active at the inspected point. */
 function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshotItem[] {
   const state = engineerUiState(context);
-  const at = Math.max(0, Number(context.atSeconds || 0));
+  const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
   // Evolve is state-backed, so its remaining duration comes directly from the specialization snapshot.
-  const evolveRemaining = Number(state.evolvedUntil || 0) - at;
+  const evolveRemaining = (state.evolvedUntil || 0) - at;
   if (evolveRemaining > 0) {
     items.push({
       id: 'amalgam-evolve',
@@ -175,10 +175,10 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
   const strains: [string, number][] = [
     ['Resiliant', activeBuffRemaining(context, 'engineer.resiliant-strain', at)],
     ['Replicating', activeBuffRemaining(context, 'engineer.replicating-strain', at)],
-    ['Rapacious', Number(state.rapaciousUntil || 0) - at],
-    ['Predator', Number(state.predatorUntil || 0) - at],
-    ['Titanic', Number(state.titanicUntil || 0) - at],
-    ['Berserker', Number(state.berserkerUntil || 0) - at]
+    ['Rapacious', (state.rapaciousUntil || 0) - at],
+    ['Predator', (state.predatorUntil || 0) - at],
+    ['Titanic', (state.titanicUntil || 0) - at],
+    ['Berserker', (state.berserkerUntil || 0) - at]
   ];
   const activeStrains = strains.filter(([, remaining]) => remaining > 0);
   if (activeStrains.length) {

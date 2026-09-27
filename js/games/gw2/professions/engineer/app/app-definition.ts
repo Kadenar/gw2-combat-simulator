@@ -25,7 +25,7 @@ export const engineerAppAdapter = defineProfessionApp({
     buildConfigExtras: (app, { attributeData }) => {
       const build = app.build as EngineerCanonicalBuild;
       const evolveAttributePool = (attributeData as EngineerFinalizedAttributeResult).amalgamEvolveAttributePool;
-      const amalgam = build.specializations?.some((specialization) => specialization.name === 'Amalgam');
+      const amalgam = build.specializations.some((specialization) => specialization.name === 'Amalgam');
       return {
         ...(amalgam
           ? {

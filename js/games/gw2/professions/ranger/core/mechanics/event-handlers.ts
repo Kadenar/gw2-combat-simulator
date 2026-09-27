@@ -12,7 +12,7 @@ export function handleRangerBloodThirst(context: RangerResolverContext, event: G
   // Crippling Shot replaces the remaining charges with a new finite grant.
   professionCoreState(context).bloodThirst = grantCharges(
     Math.max(0, Number(event.charges || 0)),
-    event.at + Number(event.duration || 0)
+    event.at + (event.duration || 0)
   );
 }
 
@@ -29,10 +29,7 @@ export function handleRangerBeastSkillUsed(context: RangerResolverContext, _even
 export function handleRangerPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   // Double Arc replaces the shared pet/merged-player grant instead of accumulating charges.
-  state.poisonousStrikes = grantCharges(
-    Math.max(0, Number(event.charges || 0)),
-    event.at + Number(event.duration || 0)
-  );
+  state.poisonousStrikes = grantCharges(Math.max(0, Number(event.charges || 0)), event.at + (event.duration || 0));
 }
 
 export function handleRangerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
@@ -40,7 +37,7 @@ export function handleRangerSharpeningStone(context: RangerResolverContext, even
   // Recasts add charges without renewing the lifetime of the remaining stones.
   state.sharpeningStoneExpirations = purgeExpiredStacks(state.sharpeningStoneExpirations, event.at);
   state.sharpeningStoneExpirations.push(
-    ...Array.from({ length: Math.max(0, Number(event.charges || 0)) }, () => event.at + Number(event.duration || 0))
+    ...Array.from({ length: Math.max(0, Number(event.charges || 0)) }, () => event.at + (event.duration || 0))
   );
   state.sharpeningStoneExpirations.sort((a, b) => a - b);
 }

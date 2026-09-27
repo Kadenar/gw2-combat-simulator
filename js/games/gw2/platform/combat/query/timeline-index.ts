@@ -118,7 +118,7 @@ export function createGw2TimelineIndex({
 
   const indexBuff = (event: SimulationEvent): void => {
     event = normalizeBoonDuration(event);
-    const kind = String(event.kind || '').toLowerCase();
+    const kind = (event.kind || '').toLowerCase();
     let bucket = indexedBuffs.get(kind);
     if (!bucket) {
       bucket = { all: [], summon: [], summonTrait: [], maximumDuration: 0 };
@@ -193,25 +193,25 @@ export function createGw2TimelineIndex({
     time = canonicalTime(time);
     // Reuse chronological extension replay only for histories that contain an extension.
     if (hasExtensions && isStandardBoon(kind)) {
-      const applications = boonApplicationsAt(events, String(kind).toLowerCase(), time, duration);
+      const applications = boonApplicationsAt(events, kind.toLowerCase(), time, duration);
       return buffApplicationStacks(applications, kind, time, maximum, { audience, companionId });
     }
 
-    const bucket = indexedBuffs.get(String(kind || '').toLowerCase());
+    const bucket = indexedBuffs.get((kind || '').toLowerCase());
     const applications =
       audience === 'summon-trait' ? bucket?.summonTrait : audience === 'summon' ? bucket?.summon : bucket?.all;
     if (isDurationStackingBoon(kind)) {
       return buffApplicationStacks(applications || [], kind, time, maximum, {
         audience,
         companionId,
-        duration: (event) => Number(event.duration ?? duration)
+        duration: (event) => event.duration ?? duration
       });
     }
 
     // The longest grant gives a monotonic expiry bound even when individual grants expire out of order.
     // Long grants widen this scan; use an expiry index if mixed lifetimes dominate.
     const history = applications || [];
-    const maximumDuration = Math.max(bucket?.maximumDuration ?? 0, Number(duration) || 0);
+    const maximumDuration = Math.max(bucket?.maximumDuration ?? 0, duration || 0);
     let low = 0;
     let high = history.length;
     while (low < high) {
@@ -223,7 +223,7 @@ export function createGw2TimelineIndex({
     return buffApplicationStacks(history, kind, time, maximum, {
       audience,
       companionId,
-      duration: (event) => Number(event.duration ?? duration),
+      duration: (event) => event.duration ?? duration,
       start: low,
       ordered: true
     });

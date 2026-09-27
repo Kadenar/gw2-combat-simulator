@@ -35,7 +35,7 @@ export const thiefInitiative: ResourcePolicy<ThiefRuntime> = {
       requireBalanceProfileFromContext(runtime, PROFILE.resources),
       hasTrait(runtime, TRAIT.PREPAREDNESS) ? 'minimumStacks' : 'maximumStacks'
     ),
-  initial: (runtime) => Number((runtime.config as ThiefConfig).initialInitiative ?? 12),
+  initial: (runtime) => (runtime.config as ThiefConfig).initialInitiative ?? 12,
   recovery: (runtime) => thiefInitiativeRegenerationRate(runtime.profession.core, runtime),
   // Besides regeneration, the pending signet pulse and the running cast's completion are the known grant boundaries.
   nextChange(runtime, cost) {
@@ -67,12 +67,12 @@ export const thiefEndurance: EndurancePolicy<ThiefRuntime> = {
 
 /** Grants initiative at the live clock; the shared controller settles regeneration first. */
 export function grantThiefInitiative(runtime: ThiefRuntime, amount: number): void {
-  if (Number(amount) > 0) runtime.resourceController.grant('initiative', Number(amount));
+  if (amount > 0) runtime.resourceController.grant('initiative', amount);
 }
 
 /** Grants endurance at the live clock, capped by the active specialization's pool. */
 export function grantThiefEndurance(runtime: ThiefRuntime, amount: number): void {
-  if (Number(amount) > 0) runtime.endurance.grant(Number(amount));
+  if (amount > 0) runtime.endurance.grant(amount);
 }
 
 /** Kneeling changes the regeneration rate from this instant onward. */
@@ -88,7 +88,7 @@ export function setThiefKneeling(runtime: ThiefRuntime, kneeling: boolean): void
 export function restartThiefInfiltratorsSignet(runtime: ThiefRuntime): void {
   const core = runtime.profession.core;
   if (!selectedSkillNameSet(runtime.config.selectedSkills).has("Infiltrator's Signet")) return;
-  const at = canonicalTime(Math.max(runtime.time, Number(runtime.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0)) + 10);
+  const at = canonicalTime(Math.max(runtime.time, runtime.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0) + 10);
   core.infiltratorsSignetPulseAt = at;
   runtime.schedule(THIEF_INFILTRATORS_SIGNET_PULSE, at, { at });
 }
@@ -97,15 +97,14 @@ export function restartThiefInfiltratorsSignet(runtime: ThiefRuntime): void {
 export function thiefInfiltratorsSignetPulse(runtime: ThiefRuntime, data: unknown): void {
   const core = runtime.profession.core;
   if ((data as { at: number }).at !== core.infiltratorsSignetPulseAt) return;
-  if (Number(runtime.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0) <= runtime.time + EPSILON)
-    grantThiefInitiative(runtime, 1);
+  if ((runtime.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0) <= runtime.time + EPSILON) grantThiefInitiative(runtime, 1);
   restartThiefInfiltratorsSignet(runtime);
 }
 
 /** Initiative costs are paid when the cast is accepted. */
 export function spendThiefCoreResources(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const skill = cast.skill as { initiativeCost?: number };
-  const cost = Number(skill.initiativeCost || 0);
+  const cost = skill.initiativeCost || 0;
   if (cost > 0) runtime.resourceController.spend('initiative', cost);
 }
 

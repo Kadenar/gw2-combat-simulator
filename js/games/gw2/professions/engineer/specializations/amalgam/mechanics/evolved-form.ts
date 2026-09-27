@@ -22,7 +22,7 @@ function selectedMorphKinds(context: EngineerRuntime): Set<AmalgamMorphKind> {
   return new Set(
     amalgamState
       .from(context)
-      .selectedMorphSkillIds.map((id) => AMALGAM_MORPH_KIND_BY_SKILL_ID.get(Number(id)))
+      .selectedMorphSkillIds.map((id) => AMALGAM_MORPH_KIND_BY_SKILL_ID.get(id))
       .filter((kind): kind is AmalgamMorphKind => Boolean(kind))
   );
 }
@@ -37,7 +37,7 @@ function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamMorphKin
   if (morphKind === 'thorns') {
     const rapaciousStrainProfile = requireBalanceProfileFromContext(context, PROFILE.rapaciousStrain);
     const duration = balanceProfileNumber(rapaciousStrainProfile, 'durationMultiplier');
-    state.rapaciousUntil = Math.max(Number(state.rapaciousUntil || 0), at + duration);
+    state.rapaciousUntil = Math.max(state.rapaciousUntil || 0, at + duration);
   }
 
   // The selected packet owns its effect and duration; state windows follow their associated boon.
@@ -59,19 +59,15 @@ function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamMorphKin
 
     if (effect.type !== 'boon' && effect.type !== 'buff') continue;
     if (effect.type === 'boon') {
-      if (morphKind === 'obliterate')
-        state.titanicUntil = Math.max(Number(state.titanicUntil || 0), at + effect.duration);
-      else if (morphKind === 'shred')
-        state.predatorUntil = Math.max(Number(state.predatorUntil || 0), at + effect.duration);
+      if (morphKind === 'obliterate') state.titanicUntil = Math.max(state.titanicUntil || 0, at + effect.duration);
+      else if (morphKind === 'shred') state.predatorUntil = Math.max(state.predatorUntil || 0, at + effect.duration);
       else if (morphKind === 'demolish')
-        state.berserkerUntil = Math.max(Number(state.berserkerUntil || 0), at + effect.duration);
+        state.berserkerUntil = Math.max(state.berserkerUntil || 0, at + effect.duration);
     }
 
     // Resolve each strain's catalog identity before direct canonical status emission.
-    const sourceSkill =
-      context.helpers.skillsById.get(effect.sourceId) ||
-      context.helpers.skillsByName.get(effect.name) ||
-      ({ id: effect.sourceId, name: effect.name } as EngineerSkill);
+    const sourceSkill = context.helpers.skillsById.get(effect.sourceId) ||
+      context.helpers.skillsByName.get(effect.name) || { id: effect.sourceId, name: effect.name };
     emitEngineerEvent(
       context,
       'buff',
@@ -205,7 +201,7 @@ export function evolveAmalgam(context: EngineerRuntime): void {
     // here misreported it as a single ~43s cooldown reduction (the summed
     // remaining recharge of the three morphs) attributed to Evolve.
     for (const skillId of state.selectedMorphSkillIds) {
-      context.cooldownController.clear(Number(skillId));
+      context.cooldownController.clear(skillId);
     }
   }
 
@@ -216,7 +212,7 @@ export function evolveAmalgam(context: EngineerRuntime): void {
 export function reactToMercurialTendencies(context: EngineerRuntime, event: EngineerResolverEvent): void {
   if (!hasTrait(context.config, TRAIT.MERCURIAL_TENDENCIES) || event.actorType === 'summon') return;
   const at = event.at;
-  if (!isInternalCooldownReady(at, Number(context.procs.readyAt.mercurialTendencies || 0))) return;
+  if (!isInternalCooldownReady(at, context.procs.readyAt.mercurialTendencies || 0)) return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.mercurialTendencies);
   let reducedBy = 0;
   for (const id of EVOLVE_SKILL_IDS) {
@@ -245,11 +241,11 @@ export function reactToMercurialTendencies(context: EngineerRuntime, event: Engi
 
 /** Only the selected Double Helix variant may use Evolve ammo, including profiled capacity edits. */
 export function amalgamMaximumAmmo(context: EngineerRuntime, skill: EngineerSkill, maximum: number): number {
-  if (!skill || !EVOLVE_SKILL_IDS.has(Number(skill.id))) return maximum;
+  if (!EVOLVE_SKILL_IDS.has(Number(skill.id))) return maximum;
   return skill.id === ID.EVOLVE_DOUBLE_HELIX && hasTrait(context.config, TRAIT.DOUBLE_HELIX)
     ? Math.max(
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.evolve), 'maximumStacks'),
-        Number(maximum || 0)
+        maximum || 0
       )
     : 0;
 }
@@ -257,9 +253,10 @@ export function amalgamMaximumAmmo(context: EngineerRuntime, skill: EngineerSkil
 /** Morph and Evolve grant the same protection effect with their authored duration. */
 function grantHardenedChrome(context: EngineerRuntime, durationField: 'minimumStacks' | 'maximumStacks'): void {
   if (hasTrait(context.config, TRAIT.HARDENED_CHROME)) {
-    const sourceSkill =
-      context.helpers.skillsById.get(TRAIT.HARDENED_CHROME) ||
-      ({ id: TRAIT.HARDENED_CHROME, name: 'Hardened Chrome' } as EngineerSkill);
+    const sourceSkill = context.helpers.skillsById.get(TRAIT.HARDENED_CHROME) || {
+      id: TRAIT.HARDENED_CHROME,
+      name: 'Hardened Chrome'
+    };
     const hardenedChromeProfile = requireBalanceProfileFromContext(context, PROFILE.hardenedChrome);
     emitEngineerEvent(
       context,

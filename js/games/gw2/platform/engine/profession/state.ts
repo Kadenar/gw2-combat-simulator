@@ -9,8 +9,8 @@ import type { DynamicFields, UnvalidatedFields } from '#kernel/core/unvalidated.
  * Flattens Core plus the active specialization solely for stable public
  * projections and event snapshots. Runtime mechanics use the nested state.
  */
-export function flattenProfessionState<TState extends object = UnvalidatedFields>(professionState: unknown): TState {
-  if (!professionState || typeof professionState !== 'object') return {} as TState;
+export function flattenProfessionState(professionState: unknown): UnvalidatedFields {
+  if (!professionState || typeof professionState !== 'object') return {};
   const runtime = professionState as UnvalidatedFields;
   const specialization = runtime.specialization as { readonly state?: unknown } | undefined;
   if (
@@ -22,15 +22,15 @@ export function flattenProfessionState<TState extends object = UnvalidatedFields
     return {
       ...(runtime.core as UnvalidatedFields),
       ...(specialization.state as UnvalidatedFields)
-    } as TState;
+    };
   }
 
-  return { ...runtime } as TState;
+  return { ...runtime };
 }
 
 /** Flattens and deeply clones a family runtime for detached public observations. */
-export function snapshotProfessionState<TState extends object = UnvalidatedFields>(professionState: unknown): TState {
-  return structuredClone(flattenProfessionState<TState>(professionState));
+export function snapshotProfessionState(professionState: unknown): object {
+  return structuredClone(flattenProfessionState(professionState));
 }
 
 /** Reads only the owned Core runtime slice; public projections are read by their presentation consumers. */
@@ -39,7 +39,7 @@ export function readProfessionCoreState<TCoreState extends object = DynamicField
 ): Partial<TCoreState> {
   if (!professionState || typeof professionState !== 'object') return {};
   const state = professionState as UnvalidatedFields;
-  return state.core && typeof state.core === 'object' ? (state.core as Partial<TCoreState>) : {};
+  return state.core && typeof state.core === 'object' ? state.core : {};
 }
 
 /** Reads one active specialization without exposing another specialization's state shape. */
@@ -59,7 +59,7 @@ export function readProfessionSpecializationState<TState extends object = Dynami
     return undefined;
   }
 
-  return specialization.state as Partial<TState>;
+  return specialization.state;
 }
 
 /** Declares public fields and display defaults for the owning module, separate from live state initialization. */
@@ -109,20 +109,6 @@ type RuntimeCoreState<TRuntimeState> = TRuntimeState extends {
   ? TCoreState
   : never;
 
-type RuntimeSpecialization<TRuntimeState> = TRuntimeState extends {
-  readonly specialization: infer TSpecialization;
-}
-  ? TSpecialization
-  : never;
-
-type RuntimeSpecializationKind<TRuntimeState> =
-  RuntimeSpecialization<TRuntimeState> extends { readonly kind: infer TKind } ? TKind & string : never;
-
-type RuntimeSpecializationState<TRuntimeState, TKind extends string> =
-  Extract<RuntimeSpecialization<TRuntimeState>, { readonly kind: TKind }> extends { readonly state: infer TState }
-    ? TState
-    : never;
-
 /**
  * Returns the explicitly owned Core state slice for a family runtime.
  */
@@ -144,11 +130,7 @@ export function professionCoreState<TContext>(
  * Returns the active specialization state after validating its discriminant.
  * Module mechanics use this accessor instead of a flat family-state view.
  */
-function specializationStateForKind<
-  TContext,
-  TRuntimeState = ProfessionRuntimeFromContext<TContext>,
-  TKind extends RuntimeSpecializationKind<TRuntimeState> = RuntimeSpecializationKind<TRuntimeState>
->(context: TContext, expectedKind: TKind): RuntimeSpecializationState<TRuntimeState, TKind> {
+function specializationStateForKind(context: unknown, expectedKind: string): object {
   const candidate = context as {
     readonly state?: { readonly profession?: unknown };
     readonly runtime?: { readonly profession?: unknown };
@@ -165,7 +147,7 @@ function specializationStateForKind<
     throw new TypeError(`Expected active specialization ${expectedKind}, received ${active.kind}.`);
   }
 
-  return active.state as RuntimeSpecializationState<TRuntimeState, TKind>;
+  return active.state;
 }
 
 interface ProfessionSpecializationStateDefinition<
@@ -175,7 +157,7 @@ interface ProfessionSpecializationStateDefinition<
 > {
   readonly kind: TKind;
   readonly create: (...args: TArguments) => TState;
-  readonly from: <TContext>(context: TContext) => TState;
+  readonly from: (context: unknown) => TState;
 }
 
 /**
@@ -194,11 +176,9 @@ export function defineProfessionSpecializationState<
   return Object.freeze({
     kind,
     create,
-    from<TContext>(context: TContext): TState {
-      return specializationStateForKind(
-        context,
-        kind as unknown as RuntimeSpecializationKind<ProfessionRuntimeFromContext<TContext>>
-      ) as TState;
+    from(context: unknown): TState {
+      // The owning factory determines the state type; the shared accessor only checks the active kind.
+      return specializationStateForKind(context, kind) as TState;
     }
   });
 }
@@ -210,7 +190,7 @@ export function createPublicStateProjector<const TKey extends string>(projection
 }): (input: Gw2PlanningStateInput) => Record<TKey, unknown> {
   return ({ profession }) =>
     projectPublicProfessionState(
-      flattenProfessionState<Record<TKey, unknown>>(profession),
+      flattenProfessionState(profession) as Record<TKey, unknown>,
       projection.keys,
       projection.defaults
     );

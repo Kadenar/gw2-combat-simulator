@@ -12,7 +12,7 @@ type Gw2RechargeSkill = Pick<Skill, 'ammo' | 'ammoRecharge' | 'cooldown'>;
 
 function finiteRecharge(value: number | null | undefined): number | null {
   if (value == null) return null;
-  const recharge = Number(value);
+  const recharge = value;
   return Number.isFinite(recharge) ? recharge : null;
 }
 

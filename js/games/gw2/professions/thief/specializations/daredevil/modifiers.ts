@@ -33,7 +33,7 @@ export const daredevilModifiers: readonly Gw2ModifierRule[] = Object.freeze([
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.HAVOC_SPECIALIST) &&
       // Trait activates whenever endurance is not at maximum — any spent dodge qualifies
-      Number(thiefRuntimeState(context).endurance || 0) <
+      (thiefRuntimeState(context).endurance || 0) <
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks')
   },
   {
@@ -44,8 +44,7 @@ export const daredevilModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.BOUNDING_DODGER) &&
-      Number(thiefRuntimeSpecializationState<DaredevilState>(context, 'Daredevil').boundingDamageUntil || 0) >
-        context.time
+      (thiefRuntimeSpecializationState<DaredevilState>(context, 'Daredevil').boundingDamageUntil || 0) > context.time
   },
   {
     id: 'thief.lotus-training',
@@ -55,7 +54,7 @@ export const daredevilModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.LOTUS_TRAINING) &&
-      Number(thiefRuntimeSpecializationState<DaredevilState>(context, 'Daredevil').lotusConditionDamageUntil || 0) >
+      (thiefRuntimeSpecializationState<DaredevilState>(context, 'Daredevil').lotusConditionDamageUntil || 0) >
         context.time
   }
 ]);

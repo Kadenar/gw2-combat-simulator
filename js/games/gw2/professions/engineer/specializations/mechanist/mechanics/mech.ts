@@ -103,7 +103,7 @@ interface MechStrikeOptions {
 function shiftSignetPassive(context: EngineerRuntime, at: number): boolean {
   return (
     selectedSkillNameSet(context.config.selectedSkills).has('Shift Signet') &&
-    (hasTrait(context.config, TRAIT.MECH_CORE_J_DRIVE) || Number(context.cooldowns.get(ID.SHIFT_SIGNET) || 0) <= at)
+    (hasTrait(context.config, TRAIT.MECH_CORE_J_DRIVE) || (context.cooldowns.get(ID.SHIFT_SIGNET) || 0) <= at)
   );
 }
 
@@ -174,8 +174,8 @@ export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerRe
       actorType: 'player',
       name: `Shift Signet — ${event.kind}`,
       kind: String(event.kind),
-      stacks: Number(event.stacks || 1),
-      duration: Number(event.duration || 0),
+      stacks: event.stacks || 1,
+      duration: event.duration || 0,
       fixedDuration: true,
       audience: {
         recipients: 'summons',
@@ -191,7 +191,7 @@ export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerRe
 export function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
   if (event.actorType !== 'summon') return event;
   // Infer ownership when replay packets lack the explicit engineerMech marker.
-  const skill = context.helpers?.skillsById?.get(event.skillId ?? event.sourceId);
+  const skill = context.helpers.skillsById.get(event.skillId ?? event.sourceId);
   const engineerMech =
     (event.metadata as Record<string, unknown> | undefined)?.engineerMech === true ||
     (event.skillId != null && MECH_BASIC_SKILL_IDS.has(event.skillId)) ||
@@ -292,9 +292,9 @@ export function applyEngineerMechCastTraits(context: EngineerRuntime, skill: Eng
   if (state.mech.active && isEngineerMechCommand(skill)) {
     // The command cast already reserves its measured animation on the mech lane;
     // only its recovery extends the pause before the basic attack chain resumes.
-    const hasCommandAnimation = Number(skill.castTimeMs || 0) > 0;
+    const hasCommandAnimation = (skill.castTimeMs || 0) > 0;
     const busyUntil = at + (hasCommandAnimation ? MECHANIST_ATTACK_TIMING.commandRecovery : 0);
-    state.mech.busyUntil = Math.max(Number(state.mech.busyUntil || 0), busyUntil);
+    state.mech.busyUntil = Math.max(state.mech.busyUntil || 0, busyUntil);
   }
 
   if (
@@ -302,7 +302,7 @@ export function applyEngineerMechCastTraits(context: EngineerRuntime, skill: Eng
     skill.type === 'Weapon' &&
     !skill.kit &&
     skill.slot === 'Weapon_3' &&
-    isInternalCooldownReady(at, Number(context.procs.readyAt.rocketPunch || 0))
+    isInternalCooldownReady(at, context.procs.readyAt.rocketPunch || 0)
   ) {
     const rocketPunchProfile = requireBalanceProfileFromContext(context, PROFILE.rocketPunch);
     context.procs.readyAt.rocketPunch = at + balanceProfileNumber(rocketPunchProfile, 'internalCooldown');
@@ -327,7 +327,7 @@ export function stepMechAttack(
   const state = mechanistState.from(context);
   if (!state.mech.enabled) return null;
   const rate = mechAttackRate(context, at);
-  const phase = Number(payload.phase || 0);
+  const phase = payload.phase || 0;
   // Jade Cannons replaces the melee chain with alternating arm shots and
   // distinct within-pair and between-pair delays.
   if (hasTrait(context.config, TRAIT.MECH_ARMS_JADE_CANNONS)) {
@@ -384,7 +384,7 @@ export function stepMechAttack(
 /** Reserves the mech lane and emits Overclock Signet's timed Jade Buster Cannon burst. */
 export function activateOverclockSignet(context: EngineerRuntime, skill: EngineerSkill): void {
   const state = mechanistState.from(context);
-  if (!state.mech?.active) return;
+  if (!state.mech.active) return;
   const at = context.time;
   const rate = mechAttackRate(context, at);
   const interval = MECHANIST_ATTACK_TIMING.jadeBusterPulseInterval / rate;
@@ -395,7 +395,7 @@ export function activateOverclockSignet(context: EngineerRuntime, skill: Enginee
   const condition = requireEffect(overclockProfile, 'condition', 'Burning');
   // Block the basic attack loop for the full cannon burst so hits don't overlap.
   state.mech.busyUntil = Math.max(
-    Number(state.mech.busyUntil || 0),
+    state.mech.busyUntil || 0,
     at + MECHANIST_ATTACK_TIMING.jadeBusterAnimationDuration / rate
   );
   for (let hit = 1; hit <= hits; hit += 1) {

@@ -74,7 +74,7 @@ export function perforate(runtime: NecromancerRuntime, event: Gw2ResolverEvent):
       flatStrikeHealthThreshold: balanceProfileNumber(profile, 'threshold'),
       flatStrikeThresholdMultiplier: balanceProfileNumber(profile, 'damageMultiplier'),
       canCrit: strike.canCrit !== false,
-      damageKind: String(strike.damageKind || '')
+      damageKind: strike.damageKind || ''
     })
   );
 }

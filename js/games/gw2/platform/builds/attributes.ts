@@ -196,7 +196,7 @@ function recomputeDerivedAttributes(
   const ferocity = attributes.Ferocity.final;
   const concentration = attributes.Concentration.final;
   const expertise = attributes.Expertise.final;
-  const traitCrit = Number(traitCriticalChance || 0);
+  const traitCrit = traitCriticalChance || 0;
   attributes['Critical Chance'] = derivedAttribute(
     criticalChancePercentFromPrecision(precision) + traitCrit + sigilCriticalChance,
     traitCrit,
@@ -355,7 +355,7 @@ export function calculateCommonAttributes(
       addAttribute(sigilDurations, 'Boon Duration', sigil.boonDuration);
     }
 
-    sigilCriticalChance += Number(sigil.criticalChance || 0);
+    sigilCriticalChance += sigil.criticalChance || 0;
   }
 
   const attributes: Gw2AttributeMap = {};

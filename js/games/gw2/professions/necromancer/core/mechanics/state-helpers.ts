@@ -22,8 +22,8 @@ export function necromancerActiveMinionCompanionIds(
 ): readonly string[] {
   const core = professionCoreState(context);
   const companionIds: string[] = [];
-  for (const [key, count] of Object.entries(core.activeMinions || {})) {
-    for (let index = 0; index < Number(count || 0); index += 1) {
+  for (const [key, count] of Object.entries(core.activeMinions)) {
+    for (let index = 0; index < (count || 0); index += 1) {
       companionIds.push(`minion:${key}:${index}`);
     }
   }
@@ -134,7 +134,7 @@ export function necromancerCreatureStrikeMultiplier(owner: object): number {
   let multiplier = 1;
   for (const contribution of creatureStrikeMultipliers.get(owner)?.values() || []) {
     // A specialization can explicitly disable creature strikes with a zero multiplier.
-    multiplier *= Number(contribution() ?? 1);
+    multiplier *= contribution();
   }
 
   return multiplier;

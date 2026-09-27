@@ -52,7 +52,7 @@ export function queueElementalistAura(
     type: 'elementalist.aura',
     at: event.at,
     source: skillName,
-    sourceId: event.skillId ?? event.sourceId ?? skillName,
+    sourceId: event.skillId ?? event.sourceId,
     actorType: 'effect',
     skillName,
     aura,
@@ -65,7 +65,7 @@ export function queueElementalistAura(
 export function applyElementalistResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (event.elementalistAuraReactionDispatched === true) return;
   const skillName = resolverSourceSkill(event);
-  const duration = Math.max(0, Number(event.duration || 0));
+  const duration = Math.max(0, event.duration || 0);
   const auraState: ElementalistAuraState = {
     type: String(event.aura || ''),
     appliedAt: event.at,
@@ -108,7 +108,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.ragingStorm), 'internalCooldown'),
-      readyAt: (context) => Number(context.procs.readyAt.ragingStorm || 0),
+      readyAt: (context) => context.procs.readyAt.ragingStorm || 0,
       setReadyAt: (context, readyAt) => {
         context.procs.readyAt.ragingStorm = readyAt;
       }
@@ -124,7 +124,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.arcanePrecision), 'internalCooldown'),
-      readyAt: (context) => Number(context.procs.readyAt.arcanePrecision || 0),
+      readyAt: (context) => context.procs.readyAt.arcanePrecision || 0,
       setReadyAt: (context, readyAt) => {
         context.procs.readyAt.arcanePrecision = readyAt;
       }
@@ -139,7 +139,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.renewingStamina), 'internalCooldown'),
-      readyAt: (context) => Number(context.procs.readyAt.renewingStamina || 0),
+      readyAt: (context) => context.procs.readyAt.renewingStamina || 0,
       setReadyAt: (context, readyAt) => {
         context.procs.readyAt.renewingStamina = readyAt;
       }
@@ -154,7 +154,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.burningPrecision), 'internalCooldown'),
-      readyAt: (context) => Number(context.procs.readyAt.burningPrecision || 0),
+      readyAt: (context) => context.procs.readyAt.burningPrecision || 0,
       setReadyAt: (context, readyAt) => {
         context.procs.readyAt.burningPrecision = readyAt;
       }
@@ -169,7 +169,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
 export function applyElementalistResolverBuff(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (event.kind !== 'shattering stone' || !event.resolvedAudience?.includesSelf) return;
   const core = professionCoreState(context);
-  core.shatteringStone = grantCharges(Number(event.stacks || 0), event.at + Number(event.duration || 0));
+  core.shatteringStone = grantCharges(event.stacks || 0, event.at + (event.duration || 0));
 }
 
 /** Applies strike reactions in impact order, regardless of when their packets were scheduled. */
@@ -178,7 +178,7 @@ export function applyElementalistResolvedDamage(context: ElementalistResolverCon
   if (
     event.damageKind === 'field-tick' &&
     context.helpers.skillsById
-      ?.get(event.skillId ?? event.sourceId ?? '')
+      ?.get(event.skillId ?? event.sourceId)
       ?.comboFields?.some((field) => field.fieldType === 'Fire')
   ) {
     grantPersistingFlames(context, event);

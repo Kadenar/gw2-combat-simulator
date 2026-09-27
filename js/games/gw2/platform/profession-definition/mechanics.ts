@@ -20,14 +20,14 @@ function resolvedReaction<
     handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
   }>
 ): ResolvedReaction<TContext, TEvent, TDetails> {
-  if (!String(declaration.id || '').trim() || typeof declaration.handler !== 'function') {
+  if (!(declaration.id || '').trim() || typeof declaration.handler !== 'function') {
     throw new TypeError(`${stage} resolver reaction requires id and handler.`);
   }
 
   return Object.freeze({
     stage,
     id: declaration.id,
-    order: Number(declaration.order || 0),
+    order: declaration.order || 0,
     handler: declaration.handler
   });
 }
@@ -98,29 +98,26 @@ export function onResolvedCriticalHit<
     handler(context, event, details = {} as TDetails) {
       // Reject ineligible actors and profession predicates before
       // reading cooldowns or consuming a secondary random stream.
-      if (!actorTypes.has(event.actorType || 'unknown')) return;
+      if (!actorTypes.has(event.actorType)) return;
       if (options.when?.(context, event, details) === false) return;
 
       // Resolve patched proc and ICD values at the hit timestamp so balance
       // profiles and runtime predicates remain profession-owned.
-      const chanceOnCriticalHit = Number(
+      const chanceOnCriticalHit =
         typeof options.chanceOnCriticalHit === 'function'
           ? options.chanceOnCriticalHit(context)
-          : (options.chanceOnCriticalHit ?? 1)
-      );
+          : (options.chanceOnCriticalHit ?? 1);
       const internalCooldownDuration = options.internalCooldown
-        ? Number(
-            typeof options.internalCooldown.duration === 'function'
-              ? options.internalCooldown.duration(context)
-              : options.internalCooldown.duration
-          )
+        ? typeof options.internalCooldown.duration === 'function'
+          ? options.internalCooldown.duration(context)
+          : options.internalCooldown.duration
         : 0;
-      const criticalChance = Number(details.hitContext?.critical?.chance ?? details.criticalChance ?? 0);
+      const criticalChance = details.hitContext?.critical.chance ?? details.criticalChance ?? 0;
 
       // Professions own deadlines; both modes consume the canonical seeded critical outcome.
       const state = options.internalCooldown ? { readyAt: options.internalCooldown.readyAt(context) } : undefined;
       const application = advanceCriticalProc(
-        criticalOpportunity(criticalChance, details.hitContext?.critical?.didCrit),
+        criticalOpportunity(criticalChance, details.hitContext?.critical.didCrit),
         {
           id: options.id,
           at: event.at,

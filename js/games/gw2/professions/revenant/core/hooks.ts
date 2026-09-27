@@ -65,12 +65,7 @@ import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-p
 import type { AvailabilityResult, CastCommand } from '#gw2/platform/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type {
-  RevenantConfig,
-  RevenantResolverContext,
-  RevenantRuntimeState,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantConfig, RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
 // Custom Core owners emit these skills' packets from live state; their authored effects are templates only.
@@ -99,7 +94,7 @@ const revenantEnergy: ResourcePolicy<RevenantRuntime> = {
   kind: 'continuous',
   state: (runtime) => runtime.profession.core.energy,
   maximum: () => 100,
-  initial: (runtime) => Number((runtime.config as RevenantConfig).initialEnergy ?? 50),
+  initial: (runtime) => (runtime.config as RevenantConfig).initialEnergy ?? 50,
   recovery: (runtime) =>
     balanceProfileNumber(resourceProfile(runtime), 'energyRegenerationPerSecond') - revenantUpkeepDrain(runtime),
   recoveryMaximum: (runtime) => (runtime.profession.core.combatBeganAt == null ? 50 : 100),
@@ -148,7 +143,7 @@ function revenantAvailability(runtime: RevenantRuntime, skill: Skill, _command: 
   if (flipBlock?.kind === 'open')
     return denySkillCast(skill, 'revenant.weapon-flip-active', 'use or wait out the active follow-up skill.');
   if (skill.id === ID.SWAP_LEGENDS) {
-    const specialization = String(runtime.config.specialization || 'Core');
+    const specialization = runtime.config.specialization || 'Core';
     return core.selectedLegendIds.length !== 2 ||
       core.selectedLegendIds.some((legendId) => !isLegalRevenantLegendId(legendId, specialization))
       ? denySkillCast(skill, 'revenant.legend-pair', 'select two legal legends.')
@@ -161,13 +156,13 @@ function revenantAvailability(runtime: RevenantRuntime, skill: Skill, _command: 
     return denySkillCast(skill, 'revenant.upkeep-inactive', 'activate the matching upkeep skill first.');
   if (isRevenantUpkeep(skill) && core.activeUpkeeps.some((upkeep) => upkeep.skillId === skill.id))
     return denySkillCast(skill, 'revenant.upkeep-active', 'use the matching release skill.');
-  const cost = revenantEnergyCost(runtime, skill as RevenantSkill);
+  const cost = revenantEnergyCost(runtime, skill);
   const energy = runtime.resourceController.value('energy');
   const energyReadyAt =
     energy + EPSILON < cost && core.combatBeganAt == null ? null : runtime.resourceController.readyAt('energy', cost);
   // A fractional balance can cross a cost between action ticks; wait until the shared grid permits spending it.
   if (energy + EPSILON < cost || (energyReadyAt != null && energyReadyAt > now + EPSILON)) {
-    const cooldownReadyAt = Number(runtime.cooldowns.get(skill.id) || 0);
+    const cooldownReadyAt = runtime.cooldowns.get(skill.id) || 0;
     return denySkillCast(
       skill,
       'revenant.insufficient-energy',
@@ -192,13 +187,13 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast): void {
     100,
     chargedMists && Math.floor(previous) <= balanceProfileNumber(chargedMists, 'threshold')
       ? balanceProfileNumber(chargedMists, 'resourceGain')
-      : Number(cast.skill.resourceGain || 0)
+      : cast.skill.resourceGain || 0
   );
   if (energy > previous) runtime.resourceController.grant('energy', energy - previous);
   else if (energy < previous) runtime.resourceController.spend('energy', previous - energy);
   clearRevenantLegendFlips(runtime);
   for (const active of [...core.activeUpkeeps]) {
-    const upkeep = runtime.helpers.skillsById.get(active.skillId) as RevenantSkill | undefined;
+    const upkeep: RevenantSkill | undefined = runtime.helpers.skillsById.get(active.skillId);
     const consumeId = upkeep?.upkeepConsumeByLegendId?.[core.activeLegendId];
     if (consumeId != null) armSkillFlip(core.availableFlips, consumeId, runtime.time);
     else removeRevenantUpkeep(runtime, active.skillId);
@@ -311,7 +306,7 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
       on: 'buff.applied',
       when: (runtime, event) =>
         event.kind === 'fury' &&
-        Boolean(runtime.combatStartedAt()) &&
+        runtime.combatStartedAt() &&
         isGw2PlayerModifierOwnedEvent(event) &&
         gw2BoonApplicationRecipients(runtime.config, event).includesSelf,
       emit: PROFILE.incensedResponse,
@@ -328,7 +323,7 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
   ],
   reactions: {
     'damage.resolving'(runtime, event) {
-      return modifyRevenantLifeSiphon(runtime as unknown as RevenantResolverContext, event);
+      return modifyRevenantLifeSiphon(runtime, event);
     },
     'damage.resolved'(runtime, event) {
       reactRevenantImpossibleOdds(runtime, event);

@@ -58,9 +58,7 @@ function activeBlight(context: Gw2ModifierContext): number {
   // not the current (post-impact) blight count which may already be lower due to subsequent consumption.
   return Math.max(
     0,
-    Number(
-      event?.metadata?.necromancerBlight ?? necromancerRuntimeSpecializationState(context, 'Harbinger').blight ?? 0
-    )
+    event?.metadata?.necromancerBlight ?? necromancerRuntimeSpecializationState(context, 'Harbinger').blight ?? 0
   );
 }
 
@@ -69,7 +67,7 @@ const harbingerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'necromancer.wicked-corruption-blight',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
-    parameters: { damagePerStack: 0.01 } as Readonly<Record<string, number>>,
+    parameters: { damagePerStack: 0.01 },
     amount: (context, _target, parameters) => activeBlight(context) * parameters.damagePerStack,
     when: (context) => hasTrait(context, TRAIT.WICKED_CORRUPTION)
   },
@@ -88,7 +86,7 @@ const harbingerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'necromancer.septic-corruption-blight',
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: 'damage-additive',
-    parameters: { damagePerStack: 0.0025 } as Readonly<Record<string, number>>,
+    parameters: { damagePerStack: 0.0025 },
     amount: (context, _target, parameters) => activeBlight(context) * parameters.damagePerStack,
     when: (context) => hasTrait(context, TRAIT.SEPTIC_CORRUPTION)
   },
@@ -100,7 +98,7 @@ const harbingerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     // The bonus applies only during the Meltdown window managed by Harbinger hooks.
     when: (context) =>
       hasTrait(context, TRAIT.CASCADING_CORRUPTION) &&
-      Number(necromancerRuntimeSpecializationState(context, 'Harbinger').meltdownUntil || 0) > context.time
+      (necromancerRuntimeSpecializationState(context, 'Harbinger').meltdownUntil || 0) > context.time
   }
 ]);
 

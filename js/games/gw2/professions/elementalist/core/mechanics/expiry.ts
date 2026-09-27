@@ -10,7 +10,7 @@ export function expireElementalistState(runtime: ElementalistRuntime): void {
   for (const [name, progress] of Object.entries(state.etchings))
     if (progress && progress.expiresAt <= at) state.etchings[name] = null;
   for (const element of ELEMENTALIST_ATTUNEMENTS) {
-    if (state.hammerOrbs[element] != null && state.hammerOrbs[element]! <= at) {
+    if (state.hammerOrbs[element] != null && state.hammerOrbs[element] <= at) {
       state.hammerOrbs[element] = null;
       state.hammerOrbActivationIds[element] = null;
     }

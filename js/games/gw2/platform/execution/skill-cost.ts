@@ -17,7 +17,7 @@ function skillCostAmount<T extends object>(runtime: Gw2Runtime<T>, skill: Skill)
   const source = skill.cost!.profileAmount;
   return source
     ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, source.profileId), source.field)
-    : Number(skill.resourceCost ?? 0);
+    : (skill.resourceCost ?? 0);
 }
 
 /** Affordable now, a retry when regeneration will cover the cost, or a rejection when it never can. */

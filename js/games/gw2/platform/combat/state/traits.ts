@@ -21,7 +21,7 @@ export function normalizeSelectedTraitIds(values?: readonly SkillId[] | null): S
 }
 
 function lookupContext(value: unknown): Gw2TraitLookupContext | null {
-  return typeof value === 'object' && value !== null ? (value as Gw2TraitLookupContext) : null;
+  return typeof value === 'object' && value !== null ? value : null;
 }
 
 function traitSet(value: unknown): ReadonlySet<string | number> | null {
@@ -86,7 +86,7 @@ interface TraitCatalog {
 export function selectedGw2TraitValues(config: Gw2Config = {}, catalog: TraitCatalog = {}): Set<string | number> {
   const values = new Set<string | number>(Array.isArray(config.selectedTraitIds) ? config.selectedTraitIds : []);
   const byId = new Map<number, CatalogEntity>();
-  for (const trait of catalog?.traits || []) {
+  for (const trait of catalog.traits || []) {
     byId.set(Number(trait.id), trait);
   }
 

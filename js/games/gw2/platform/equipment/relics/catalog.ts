@@ -3,8 +3,9 @@ import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 
 /** Resolves the relic's fixed weapon-swap reduction so every base recharge loses the same 2.5 seconds. */
 export function relicWeaponSwapRechargeReduction(relicName: string | undefined): number {
+  if (!relicName || !Object.hasOwn(RELIC_DATA, relicName)) return 0;
   const relic = RELIC_DATA[relicName as keyof typeof RELIC_DATA];
-  return relic && 'weaponSwapRechargeReduction' in relic ? Number(relic.weaponSwapRechargeReduction) : 0;
+  return 'weaponSwapRechargeReduction' in relic ? relic.weaponSwapRechargeReduction : 0;
 }
 
 export const RELIC_NAMES = [...Object.keys(RELIC_DATA)].sort((a, b) => a.localeCompare(b));

@@ -29,7 +29,7 @@ function activeBoonCount(context: Gw2ModifierContext): number {
 
 function markedTarget(context: Gw2ModifierContext): boolean {
   const state = thiefRuntimeSpecializationState<DeadeyeState>(context, 'Deadeye');
-  return Boolean(state.markedTargetId) && Number(state.markExpiresAt || Infinity) > context.time;
+  return Boolean(state.markedTargetId) && (state.markExpiresAt || Infinity) > context.time;
 }
 
 function modifyDeadeyeAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
@@ -57,7 +57,7 @@ function modifyDeadeyeAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   return result;
 }
 
-const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const deadeyeModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
   {
     id: 'thief.iron-sight',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -70,7 +70,7 @@ const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'thief.premeditation',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
-    parameters: { damagePerBoon: 0.01 } as Readonly<Record<string, number>>,
+    parameters: { damagePerBoon: 0.01 },
     factor: (context, _target, parameters) => 1 + activeBoonCount(context) * parameters.damagePerBoon,
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.PREMEDITATION)
   },
@@ -113,16 +113,16 @@ const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       context.config?.relic === 'Deadeye' &&
-      Number(thiefRuntimeSpecializationState<DeadeyeState>(context, 'Deadeye').deadeyeRelicUntil || 0) > context.time
+      (thiefRuntimeSpecializationState<DeadeyeState>(context, 'Deadeye').deadeyeRelicUntil || 0) > context.time
   },
   {
     id: 'thief.malicious-stealth-attack',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
     // Malice at cast start is snapshotted onto the event so each hit sees the pre-consumption value after malice is spent
-    parameters: { damagePerMalice: 0.1 } as Readonly<Record<string, number>>,
+    parameters: { damagePerMalice: 0.1 },
     amount: (context, _target, parameters) =>
-      Math.max(0, Number((context.event as ThiefSimulationEvent | undefined)?.deadeyeMaliceSnapshot || 0)) *
+      Math.max(0, (context.event as ThiefSimulationEvent | undefined)?.deadeyeMaliceSnapshot || 0) *
       parameters.damagePerMalice,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&

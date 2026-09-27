@@ -30,7 +30,7 @@ export function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSk
   if (
     skill.kitTransition !== 'equip' ||
     !hasTrait(context.config, TRAIT.STREAMLINED_KITS) ||
-    !isInternalCooldownReady(at, Number(context.procs.readyAt.streamlinedKits || 0))
+    !isInternalCooldownReady(at, context.procs.readyAt.streamlinedKits || 0)
   )
     return;
   const streamlinedKitsProfile = requireBalanceProfileFromContext(context, PROFILE.streamlinedKits);
@@ -48,7 +48,7 @@ export function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSk
         actorType: 'player',
         name: 'Streamlined Kits — swiftness',
         kind: String(streamlinedKitsSwiftness.boon).toLowerCase(),
-        duration: Number(streamlinedKitsSwiftness.duration),
+        duration: streamlinedKitsSwiftness.duration,
         stacks: Number(streamlinedKitsSwiftness.stacks)
       },
       skill
@@ -97,7 +97,7 @@ function applyOptimizedActivation(context: EngineerRuntime, skill: EngineerSkill
         actorType: 'player',
         name: 'Optimized Activation — vigor',
         kind: String(optimizedActivationVigor.boon).toLowerCase(),
-        duration: Number(optimizedActivationVigor.duration),
+        duration: optimizedActivationVigor.duration,
         stacks: Number(optimizedActivationVigor.stacks)
       },
       skill
@@ -140,13 +140,13 @@ function applyKineticBattery(context: EngineerRuntime, skill: EngineerSkill, at:
   const state = professionCoreState(context);
   const kineticBatteryProfile = requireBalanceProfileFromContext(context, PROFILE.kineticBattery);
   const maximumCharges = balanceProfileNumber(kineticBatteryProfile, 'maximumStacks');
-  state.kineticCharges = Math.min(maximumCharges, Number(state.kineticCharges || 0) + 1);
+  state.kineticCharges = Math.min(maximumCharges, (state.kineticCharges || 0) + 1);
   // Grant the speed and damage package and reset charges every fifth toolbelt cast.
   if (state.kineticCharges >= maximumCharges) {
     state.kineticCharges = 0;
     const kineticBatteryBuff = requireEffect(kineticBatteryProfile, 'buff', 'kinetic-battery');
     if (kineticBatteryBuff) {
-      const buffDuration = Number(kineticBatteryBuff.duration);
+      const buffDuration = kineticBatteryBuff.duration;
       emitEngineerEvent(
         context,
         'buff',
@@ -176,7 +176,7 @@ function applyKineticBattery(context: EngineerRuntime, skill: EngineerSkill, at:
           actorType: 'player',
           name: 'Kinetic Battery — quickness',
           kind: String(kineticBatteryQuickness.boon).toLowerCase(),
-          duration: Number(kineticBatteryQuickness.duration),
+          duration: kineticBatteryQuickness.duration,
           stacks: Number(kineticBatteryQuickness.stacks)
         },
         skill
@@ -195,7 +195,7 @@ function applyKineticBattery(context: EngineerRuntime, skill: EngineerSkill, at:
           actorType: 'player',
           name: 'Kinetic Battery — superspeed',
           kind: 'superspeed',
-          duration: Number(kineticBatterySuperspeed.duration),
+          duration: kineticBatterySuperspeed.duration,
           stacks: Number(kineticBatterySuperspeed.stacks)
         },
         skill
@@ -218,7 +218,7 @@ export function applyEngineerToolbeltTraits(context: EngineerRuntime, skill: Eng
 export function recordStaticDischargeProc(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   if (event.staticDischarge !== true) return;
   // Scheduled trait damage is not a rotation step, so expose it with its toolbelt trigger in Procs.
-  context.recordProc?.(
+  context.recordProc(
     'trait',
     'Static Discharge',
     event.at,

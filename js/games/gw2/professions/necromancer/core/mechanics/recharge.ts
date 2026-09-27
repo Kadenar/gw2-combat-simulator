@@ -10,7 +10,7 @@ export function modifyNecromancerRechargeStart(
   rechargeStart: number
 ): number {
   if (context.skill?.id !== ID.ISOLATE || context.skill.flipActivationAtMs == null) return rechargeStart;
-  const baseCastMs = Number(context.skill.castTimeMs || 0);
+  const baseCastMs = context.skill.castTimeMs || 0;
   const activationProgress = baseCastMs > 0 ? Number(context.skill.flipActivationAtMs) / baseCastMs : 1;
   return context.start + (rechargeStart - context.start) * activationProgress;
 }

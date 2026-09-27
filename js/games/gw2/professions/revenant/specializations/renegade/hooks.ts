@@ -41,7 +41,7 @@ import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { RevenantResolverContext, RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
 const SOULCLEAVE_ALLIES = 'revenant.soulcleave-allied-proc';
@@ -57,7 +57,7 @@ function fervorProfile(runtime: RevenantRuntime): BalanceProfile {
 
 function enhancedSkill(runtime: RevenantRuntime, skillId: SkillId): RevenantSkill | undefined {
   const enhancedId = RENEGADE_ENHANCED_SKILL_BY_ID[Number(skillId)];
-  return enhancedId == null ? undefined : (runtime.helpers.skillsById.get(enhancedId) as RevenantSkill | undefined);
+  return enhancedId == null ? undefined : runtime.helpers.skillsById.get(enhancedId);
 }
 
 function bandTogetherReady(runtime: RevenantRuntime, skillId: SkillId): boolean {
@@ -172,7 +172,7 @@ function razorclawsRage(runtime: RevenantRuntime, cast: RuntimeCast, profile: Re
     start: runtime.time,
     duration,
     maximumPerAlly: charges,
-    internalCooldown: Math.max(0, Number(proc.cooldown || 0))
+    internalCooldown: Math.max(0, proc.cooldown || 0)
   }))
     runtime.emit(
       buildResolverCondition({
@@ -197,8 +197,8 @@ function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast): void
   const selected = bandTogether.get(cast);
   bandTogether.delete(cast);
   if (!selected) return;
-  const profile = (runtime.helpers.skillsById.get(selected.profileSkillId) as RevenantSkill | undefined) ?? cast.skill;
-  if (cast.skill.id === ID.RAZORCLAWS_RAGE) razorclawsRage(runtime, cast, profile as RevenantSkill);
+  const profile = runtime.helpers.skillsById.get(selected.profileSkillId) ?? cast.skill;
+  if (cast.skill.id === ID.RAZORCLAWS_RAGE) razorclawsRage(runtime, cast, profile);
   if (selected.enhanced) return;
   const window = requireBalanceProfileFromContext(runtime, PROFILE.bandTogether);
   const effect = requireEffect(window, 'buff', 'band-together');
@@ -241,7 +241,7 @@ function criticalTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent, hit?:
   if (!ambush) return;
   const critical = Boolean(hit?.critEligible && hit.critical.didCrit);
   // A defiant golem never rotates, so flanking/behind positional triggers always apply.
-  if (ambush && (Boolean(runtime.config.target?.defiant) || critical))
+  if (Boolean(runtime.config.target?.defiant) || critical)
     grantKallasFervor(runtime, { sourceId: TRAIT.AMBUSH_COMMANDER, sourceName: 'Ambush Commander', cause: event });
 }
 
@@ -256,7 +256,7 @@ function razorclawProc(runtime: RevenantRuntime, event: Gw2ResolverEvent): void 
   const effect = requireEffect(profile, 'condition', 'Bleeding');
   // Charges exist only to deliver the bleed, so a removed packet leaves them unspent.
   if (!effect) return;
-  const cooldown = Math.max(0, Number(profile.cooldown || 0));
+  const cooldown = Math.max(0, profile.cooldown || 0);
   if (!consumeCharge(razorclaw, runtime.time, cooldown)) return;
   if (cooldown === 0) razorclaw.readyAt = runtime.time;
   runtime.emitDerived(
@@ -285,10 +285,10 @@ function soulcleavePlayer(runtime: RevenantRuntime, event: Gw2ResolverEvent): vo
     !proc ||
     event.skillId === soulcleave.id ||
     !activeRevenantUpkeep(runtime, soulcleave.id) ||
-    !isInternalCooldownReady(runtime.time, Number(runtime.procs.deadline('revenant.renegade.soulcleave') || 0))
+    !isInternalCooldownReady(runtime.time, runtime.procs.deadline('revenant.renegade.soulcleave') || 0)
   )
     return;
-  runtime.procs.readyAt['revenant.renegade.soulcleave'] = runtime.time + Math.max(0, Number(proc.cooldown || 0));
+  runtime.procs.readyAt['revenant.renegade.soulcleave'] = runtime.time + Math.max(0, proc.cooldown || 0);
   for (const effect of proc.effects ?? [])
     for (const { event: packet } of materializeSkillEffectApplications({
       skill: proc,
@@ -333,14 +333,11 @@ function soulcleaveAllies(runtime: RevenantRuntime, data: unknown): void {
       }))
         runtime.emitProcedural({
           ...event,
-          name: String(event.name || proc.name).replace(
-            "Soulcleave's Summit — ",
-            `Soulcleave's Summit — Ally ${allyIndex} `
-          )
+          name: (event.name || proc.name).replace("Soulcleave's Summit — ", `Soulcleave's Summit — Ally ${allyIndex} `)
         });
   runtime.schedule(
     SOULCLEAVE_ALLIES,
-    canonicalTime(runtime.time + Math.max(Number(proc.cooldown || 0), 1 / allies.strikesPerSecond)),
+    canonicalTime(runtime.time + Math.max(proc.cooldown || 0, 1 / allies.strikesPerSecond)),
     data,
     undefined,
     -200
@@ -349,10 +346,10 @@ function soulcleaveAllies(runtime: RevenantRuntime, data: unknown): void {
 
 /** Received Fury advances Blood Fury's Fervor on its own cooldown. */
 function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if (String(event.kind || '').toLowerCase() !== 'fury') return;
+  if ((event.kind || '').toLowerCase() !== 'fury') return;
   if (
     hasTrait(runtime, TRAIT.BLOOD_FURY) &&
-    isInternalCooldownReady(runtime.time, Number(runtime.procs.deadline('revenant.renegade.bloodFury') || 0))
+    isInternalCooldownReady(runtime.time, runtime.procs.deadline('revenant.renegade.bloodFury') || 0)
   ) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.bloodFury);
     runtime.procs.readyAt['revenant.renegade.bloodFury'] =
@@ -450,7 +447,7 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
       on: 'buff.applied',
       icd: 'profile',
       when: (runtime, event) =>
-        String(event.kind || '').toLowerCase() === 'fury' &&
+        (event.kind || '').toLowerCase() === 'fury' &&
         gw2BoonApplicationRecipients(runtime.config, event).includesSelf &&
         Boolean(requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.brutalMomentum), 'boon', 'vigor')),
       effects: (effect) => effect.type === 'boon' && effect.name === 'vigor',
@@ -482,13 +479,13 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   reactions: {
     'damage.resolving'(runtime, event) {
       // Core already applied its additive bonus; Fervor joins the same additive life-steal sum.
-      const core = revenantLifeSiphonBonus(runtime as unknown as RevenantResolverContext, event);
+      const core = revenantLifeSiphonBonus(runtime, event);
       if (core == null) return;
       const stacks = activeKallasFervorStacks(renegadeState.from(runtime), runtime.time);
       if (!stacks) return;
       const perStack = balanceProfileNumber(fervorProfile(runtime), 'lifeSiphonDamagePerStack');
       return {
-        flatStrikeMultiplier: (Number(event.flatStrikeMultiplier ?? 1) * (1 + core + stacks * perStack)) / (1 + core)
+        flatStrikeMultiplier: ((event.flatStrikeMultiplier ?? 1) * (1 + core + stacks * perStack)) / (1 + core)
       };
     },
     'damage.resolved'(runtime, event, details) {

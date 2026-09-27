@@ -23,7 +23,7 @@ export function triggerMassMomentum(context: EngineerRuntime, event: EngineerRes
     return false;
   const state = context.procs.readyAt;
   const massMomentumProfile = requireBalanceProfileFromContext(context, PROFILE.massMomentum);
-  if (Number(state.massMomentum || 0) <= event.at) {
+  if ((state.massMomentum || 0) <= event.at) {
     state.massMomentum = event.at + balanceProfileNumber(massMomentumProfile, 'pulseInterval');
     const massMomentumMight = requireEffect(massMomentumProfile, 'boon', 'might');
     if (massMomentumMight) {
@@ -31,7 +31,7 @@ export function triggerMassMomentum(context: EngineerRuntime, event: EngineerRes
         name: 'Mass Momentum',
         kind: String(massMomentumMight.boon).toLowerCase(),
         stacks: Number(massMomentumMight.stacks),
-        duration: Number(massMomentumMight.duration),
+        duration: massMomentumMight.duration,
         sourceId: TRAIT.MASS_MOMENTUM,
         actorType: 'effect'
       });
@@ -41,7 +41,7 @@ export function triggerMassMomentum(context: EngineerRuntime, event: EngineerRes
   }
 
   const interval = balanceProfileNumber(massMomentumProfile, 'pulseInterval');
-  const next = Math.max(event.at + interval, Number(state.massMomentum || 0));
+  const next = Math.max(event.at + interval, state.massMomentum || 0);
   const live = scrapperState.from(context);
   if (interval > 0 && live.massMomentumAt > next) {
     live.massMomentumAt = next;
@@ -56,7 +56,7 @@ function reactToScrapperDamage(context: EngineerRuntime, event: EngineerResolver
 
 /** Reacts to might thresholds and stability applications that can start Scrapper trait procs. */
 function reactToScrapperBuff(context: EngineerRuntime, event: EngineerResolverEvent): void {
-  const kind = String(event.kind || '').toLowerCase();
+  const kind = (event.kind || '').toLowerCase();
   // Applied Force (GM trait): reaching 10+ might stacks triggers 3s stability on a 10s ICD.
   if (
     kind === 'might' &&
@@ -69,7 +69,7 @@ function reactToScrapperBuff(context: EngineerRuntime, event: EngineerResolverEv
     ) >= balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.appliedForce), 'threshold')
   ) {
     const state = context.procs.readyAt;
-    if (isInternalCooldownReady(event.at, Number(state.appliedForce || 0))) {
+    if (isInternalCooldownReady(event.at, state.appliedForce || 0)) {
       const appliedForceProfile = requireBalanceProfileFromContext(context, PROFILE.appliedForce);
       state.appliedForce = event.at + balanceProfileNumber(appliedForceProfile, 'internalCooldown');
       const appliedForceStability = requireEffect(appliedForceProfile, 'boon', 'stability');
@@ -78,7 +78,7 @@ function reactToScrapperBuff(context: EngineerRuntime, event: EngineerResolverEv
           name: 'Applied Force',
           kind: String(appliedForceStability.boon).toLowerCase(),
           stacks: Number(appliedForceStability.stacks),
-          duration: Number(appliedForceStability.duration),
+          duration: appliedForceStability.duration,
           sourceId: TRAIT.APPLIED_FORCE,
           actorType: 'effect'
         });

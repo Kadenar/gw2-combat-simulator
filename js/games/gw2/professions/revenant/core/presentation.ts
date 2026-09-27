@@ -48,13 +48,13 @@ function rotationEntryName(entry: unknown, context: RevenantUiContext): string {
 // Select the timeline icon from the currently active legend, falling back safely
 // when projected runtime state is incomplete.
 function revenantTimelineSkillIcon(context: RevenantUiContext = {}): string {
-  const skill = context.skill as RevenantSkill | undefined;
+  const skill = context.skill;
   if (skill?.name !== 'Swap Legends') return '';
   const selected = context.build?.selectedLegends || [];
   if (selected.length !== 2) return '';
   const startingIndex = Math.max(0, selected.indexOf(context.build?.startingLegend || ''));
   const priorSwaps = (context.rotation || [])
-    .slice(0, Math.max(0, Number(context.index || 0)))
+    .slice(0, Math.max(0, context.index || 0))
     .filter((entry) => rotationEntryName(entry, context) === 'Swap Legends').length;
   const destination = selected[(startingIndex + priorSwaps + 1) % 2];
   return revenantLegend(destination || '')?.icon || '';
@@ -76,7 +76,7 @@ export function revenantCorePaletteSkillAvailability(
   // A free release is selectable only while armed, so low Energy cannot flip an inactive upkeep's tile.
   if (
     isRevenantUpkeepRelease(skill, (id) => catalog.skillsById.get(id)) &&
-    !skillFlipReady(state.availableFlips?.[skill.id], Number(context.time || 0))
+    !skillFlipReady(state.availableFlips?.[skill.id], context.time || 0)
   ) {
     return { available: false, message: 'Activate the matching upkeep skill first' };
   }
@@ -91,12 +91,12 @@ export function revenantCorePaletteSkillAvailability(
 
   if (skill.id === SKILL.SWAP_LEGENDS || skill.paletteLegendId) {
     // Both destination tiles use the live remaining recharge, which Alacrity does not accelerate.
-    const remaining = Number(context.cooldowns?.['Swap Legends']?.remaining || 0);
+    const remaining = context.cooldowns?.['Swap Legends']?.remaining || 0;
     if (remaining > 0) {
       return {
         available: false,
         message: 'Legend swap is recharging',
-        retryAt: Number(context.time || 0) + remaining / 1000
+        retryAt: (context.time || 0) + remaining / 1000
       };
     }
   }
@@ -104,7 +104,7 @@ export function revenantCorePaletteSkillAvailability(
   // Check for Unyielding Impact and Call to Anguish flip availability
   if (
     skill.id === SKILL.UNYIELDING_IMPACT &&
-    !skillFlipReady(state.availableFlips?.[SKILL.UNYIELDING_IMPACT], Number(context.time || 0))
+    !skillFlipReady(state.availableFlips?.[SKILL.UNYIELDING_IMPACT], context.time || 0)
   ) {
     return { available: false, message: 'Cast Call to Anguish first' };
   }
@@ -112,7 +112,7 @@ export function revenantCorePaletteSkillAvailability(
   // Check for Call to Anguish and Unyielding Impact flip availability
   if (
     skill.id === SKILL.CALL_TO_ANGUISH &&
-    skillFlipReady(state.availableFlips?.[SKILL.UNYIELDING_IMPACT], Number(context.time || 0))
+    skillFlipReady(state.availableFlips?.[SKILL.UNYIELDING_IMPACT], context.time || 0)
   ) {
     return { available: false, message: 'Use Unyielding Impact first' };
   }
@@ -138,7 +138,7 @@ export function revenantCorePaletteSkillAvailability(
     },
     skill
   );
-  const onCooldown = Number(context.cooldowns?.[skill.name]?.remaining || 0) > 0;
+  const onCooldown = (context.cooldowns?.[skill.name]?.remaining || 0) > 0;
   const available = !Number.isFinite(energy) || energy >= cost || onCooldown;
   return {
     available,
@@ -149,10 +149,10 @@ export function revenantCorePaletteSkillAvailability(
 /** Reports shared Revenant drains and spear charges that directly constrain the next action. */
 function revenantCoreStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
   const state = revenantUiState(context);
-  const at = Math.max(0, Number(context.atSeconds || 0));
+  const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
   const upkeeps = state.activeUpkeeps || [];
-  const drain = upkeeps.reduce((total, upkeep) => total + Math.max(0, Number(upkeep.upkeepCost || 0)), 0);
+  const drain = upkeeps.reduce((total, upkeep) => total + Math.max(0, upkeep.upkeepCost || 0), 0);
   if (drain > 0) {
     items.push({
       id: 'revenant-upkeep-drain',

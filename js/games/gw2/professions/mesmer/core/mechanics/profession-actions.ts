@@ -127,7 +127,7 @@ export function createProfessionActionController({
     if (resourceDefinition.singular === 'clone') return;
     numericResourceState().numericResource = Math.min(
       resourceDefinition.maximum,
-      numericResourceState().numericResource + Math.max(0, Number(spent || 0))
+      numericResourceState().numericResource + Math.max(0, spent || 0)
     );
   };
 
@@ -154,7 +154,7 @@ export function createProfessionActionController({
       throw new Error(`Missing Mesmer shatter data for ${skill.name}.`);
     }
 
-    const minimumResource = Number(shatter.minimumResource || 0);
+    const minimumResource = shatter.minimumResource || 0;
     if (resourcesSpent == null && currentResource() < minimumResource) {
       warnings.push(`${skill.name} skipped at ${at.toFixed(2)}s: no ${resourceDefinition.plural}.`);
       return null;

@@ -77,20 +77,17 @@ export function finisherDescriptors(
   let descriptors: readonly Readonly<UnvalidatedFields>[] = [];
   if (Array.isArray(event.comboFinishers)) {
     descriptors = event.comboFinishers;
-  } else if (
-    Array.isArray(skill?.comboFinishers) &&
-    !hasEffectFinishers(skill.effects as readonly UnvalidatedFields[] | undefined)
-  ) {
+  } else if (Array.isArray(skill?.comboFinishers) && !hasEffectFinishers(skill.effects)) {
     const sourceMatches = event.sourceId === skill.id;
     const actionWithoutStrikes = event.type === 'action' && !skill.effects?.some((effect) => effect.type === 'strike');
-    const damagingPacket = event.type === 'damage' && Number(event.coefficient || 0) > 0;
+    const damagingPacket = event.type === 'damage' && (event.coefficient || 0) > 0;
     if (sourceMatches && (actionWithoutStrikes || damagingPacket)) {
       descriptors = skill.comboFinishers;
     }
   }
 
   return descriptors
-    .filter((raw): raw is UnvalidatedFields => Boolean(raw && typeof raw === 'object' && !Array.isArray(raw)))
+    .filter((raw): raw is UnvalidatedFields => raw && typeof raw === 'object' && !Array.isArray(raw))
     .filter((raw) => String(raw.ownerId || '').length > 0)
     .map((raw) => ({
       ...raw,

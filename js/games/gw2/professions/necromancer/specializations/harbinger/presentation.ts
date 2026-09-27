@@ -41,7 +41,7 @@ function harbingerStateSnapshot(context: NecromancerUiContext): RotationStateSna
   }
 
   // Meltdown is a short post-proc damage window, so expose only its remaining active duration.
-  const meltdownRemaining = Number(state.meltdownUntil || 0) - Math.max(0, Number(context.atSeconds || 0));
+  const meltdownRemaining = (state.meltdownUntil || 0) - Math.max(0, context.atSeconds || 0);
   if (meltdownRemaining > 0) {
     items.push({
       id: 'harbinger-meltdown',

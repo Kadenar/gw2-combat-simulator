@@ -10,19 +10,19 @@ export const blightbringer = defineRelic({
     trackedActivations: new Set<string>()
   }),
   condition(ctx, state, application, { applyCondition }) {
-    if (application?.condition !== 'Poisoned' || !isGw2PlayerActorEvent(application)) {
+    if (application.condition !== 'Poisoned' || !isGw2PlayerActorEvent(application)) {
       return;
     }
 
     // Deduplicate by activationId (or a synthesized key) so a single skill
     // application that produces multiple poison stacks only increments the
     // Blightbringer counter once.
-    const tracked = state.trackedActivations as Set<string> | undefined;
-    const key = String(application.activationId || `${application.skillId || application.skillName}:${application.at}`);
+    const tracked = state.trackedActivations;
+    const key = application.activationId || `${application.skillId || application.skillName}:${application.at}`;
     if (tracked?.has(key)) return;
     tracked?.add(key);
-    state.count = Math.min(6, Number(state.count || 0) + 1);
-    if (Number(state.count) < 6 || !isInternalCooldownReady(application.at, state.readyAt)) {
+    state.count = Math.min(6, (state.count || 0) + 1);
+    if (state.count < 6 || !isInternalCooldownReady(application.at, state.readyAt)) {
       return;
     }
 

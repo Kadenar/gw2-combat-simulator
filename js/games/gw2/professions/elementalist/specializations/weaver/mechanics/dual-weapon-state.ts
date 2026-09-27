@@ -105,9 +105,7 @@ export function weaverHammerAvailability(
     );
   }
 
-  if (
-    elements.some((element) => state.hammerOrbs[element] != null && Number(state.hammerOrbs[element]) >= context.time)
-  ) {
+  if (elements.some((element) => state.hammerOrbs[element] != null && state.hammerOrbs[element] >= context.time)) {
     return denyCast(
       'elementalist.hammer-orb-active',
       `${skill.name} is unavailable - Grand Finale must consume the active orb first.`
@@ -144,7 +142,7 @@ export function applyWeaverPistolState(context: ElementalistRuntime, cast: Runti
         applyElementalistAura(context, {
           at,
           aura: String(aura.kind),
-          duration: Number(aura.duration),
+          duration: aura.duration,
           skillName: skill.name,
           sourceId: skill.id
         });
@@ -162,7 +160,7 @@ export function applyWeaverPistolState(context: ElementalistRuntime, cast: Runti
         applyElementalistAura(context, {
           at,
           aura: String(aura.kind),
-          duration: Number(aura.duration),
+          duration: aura.duration,
           skillName: skill.name,
           sourceId: skill.id
         });

@@ -2,11 +2,27 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   definePublicStateDefaults,
+  defineProfessionSpecializationState,
   snapshotProfessionState,
   readProfessionCoreState,
   readProfessionSpecializationState,
   projectPublicProfessionState
 } from '#gw2/platform/engine/profession/state.js';
+
+// The shared accessor preserves the owning state identity and rejects a different active specialization.
+test('specialization accessors retain factory state and validate the active kind', () => {
+  const definition = defineProfessionSpecializationState('Example', (charge) => ({ charge }));
+  const state = definition.create(2);
+  const profession = { core: {}, specialization: { kind: 'Example', state } };
+  for (const context of [{ profession }, { state: { profession } }, { runtime: { profession } }]) {
+    assert.equal(definition.from(context), state);
+  }
+
+  assert.throws(
+    () => definition.from({ profession: { ...profession, specialization: { kind: 'Other', state } } }),
+    /Expected active specialization Example, received Other/
+  );
+});
 
 // Shared profession state preserves isolated runtime fields and detached public snapshots.
 test('profession snapshots flatten and deeply clone active runtime state', () => {

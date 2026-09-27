@@ -31,7 +31,7 @@ const ATTUNEMENT_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_ATTUNEME
 // The elite spec name reaches these callbacks either directly or through the
 // simulation config, depending on which shell (build editor or results) is asking.
 function specialization(context: ElementalistUiContext): string {
-  return String(context.specialization || context.config?.specialization || 'Core');
+  return context.specialization || context.config?.specialization || 'Core';
 }
 
 // Reads the profession state from either a live scheduler context or an end-of-run
@@ -46,7 +46,7 @@ function state(context: ElementalistUiContext): Partial<ElementalistState> {
 // primary and anything unrecognized back to Fire so controls always have a valid value.
 function configuredAttunement(context: ElementalistUiContext, key: 'startAttunement' | 'secondaryAttunement') {
   const build = context.build;
-  const value = String(build?.[key] || (key === 'secondaryAttunement' ? build?.startAttunement : '') || 'Fire');
+  const value = build?.[key] || (key === 'secondaryAttunement' ? build?.startAttunement : '') || 'Fire';
   return ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement)
     ? (value as ElementalistAttunement)
     : 'Fire';
@@ -80,18 +80,18 @@ function attunementControl(
 function paletteSkillAvailability(context: ElementalistUiContext, skill: Skill) {
   // Keep the standard weapon rows visible but disabled until the wielded conjure is dropped or expires.
   const conjure = state(context).conjureEquipped;
-  const weapon = String(skill.skillWeapon || skill.weapon || '');
+  const weapon = skill.skillWeapon || skill.weapon || '';
   // Inactive conjure bars remain visible but cannot queue attacks until their own bundle is wielded.
   if (skill.type === 'Weapon' && CONJURED_WEAPONS.has(weapon) && conjure !== weapon) {
     return { available: false, message: `Equip ${weapon} before using its skills.` };
   }
 
   if (conjure && skill.type === 'Weapon' && weapon !== conjure) {
-    return { available: false, message: `Drop ${String(conjure)} before using normal weapon skills.` };
+    return { available: false, message: `Drop ${conjure} before using normal weapon skills.` };
   }
 
   if (specialization(context) === 'Weaver') return { available: true, message: '' };
-  const primary = String(state(context).primaryAttunement || context.build?.startAttunement || 'Fire');
+  const primary = state(context).primaryAttunement || context.build?.startAttunement || 'Fire';
   // Attuning to the element you are already in is the one attunement swap that is denied.
   if (ATTUNEMENT_SKILL_IDS.has(Number(skill.id))) {
     const target = skill.name.replace(/ Attunement$/, '');

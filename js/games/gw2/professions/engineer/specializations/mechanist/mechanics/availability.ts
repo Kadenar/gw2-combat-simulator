@@ -13,7 +13,7 @@ export function mechanistCastAvailability(context: EngineerRuntime, skill: Engin
 
   if (skill.mechanicSlot) {
     // Slots 1-3 are the three mech commands chosen by traits.
-    const slot = Number(skill.mechanicSlot);
+    const slot = skill.mechanicSlot;
     if (slot <= 3 && !state.mech.commandSkillIds.includes(skill.id)) {
       return denyEngineerCast(
         skill,

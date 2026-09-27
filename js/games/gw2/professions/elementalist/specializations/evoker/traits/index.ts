@@ -30,7 +30,7 @@ export function applyAltruisticAspect(context: ElementalistRuntime, cast: Runtim
       actorType: 'player',
       kind: String(effect.boon).toLowerCase(),
       stacks: Number(effect.stacks),
-      duration: Number(effect.duration),
+      duration: effect.duration,
       skillName: skill.name
     });
   }

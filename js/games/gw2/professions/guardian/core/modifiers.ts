@@ -36,7 +36,7 @@ function isOneHandedWeapon(weapon: string | undefined): boolean {
 export function guardianBoonActive(context: Gw2ModifierContext, boon: string): boolean {
   return (
     boonActive(context, boon) ||
-    (boon === 'resolution' && Number(guardianRuntimeState(context).resolutionUntil || 0) > context.time)
+    (boon === 'resolution' && (guardianRuntimeState(context).resolutionUntil || 0) > context.time)
   );
 }
 
@@ -54,7 +54,7 @@ export function latestGuardianTimedBuff(context: Gw2ModifierContext, kind: strin
   return latest;
 }
 
-const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const guardianCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
   {
     id: 'guardian.zealous-blade-power',
     label: 'Zealous Blade',
@@ -130,7 +130,7 @@ const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     amount: (context) =>
       attributeProvenance(context.config).professionStaticRulesApplied
         ? 0
-        : Number(context.config?.stats?.vitality || 0) *
+        : (context.config?.stats?.vitality || 0) *
           balanceProfileNumber(
             requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS),
             'attributeConversion'
@@ -198,7 +198,7 @@ const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     // Boon bonuses sum within this trait, then multiply the outgoing additive bucket.
     operation: 'multiply',
-    parameters: { damagePerBoon: 0.005 } as Readonly<Record<string, number>>,
+    parameters: { damagePerBoon: 0.005 },
     factor: (context, _target, parameters) =>
       1 + GW2_STANDARD_BOONS.filter((boon) => guardianBoonActive(context, boon)).length * parameters.damagePerBoon,
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE)
@@ -273,7 +273,7 @@ const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     parameters: {
       maximumStacks: 5,
       damagePerStack: 0.01
-    } as Readonly<Record<string, number>>,
+    },
     amount: (context, _target, parameters) =>
       Math.min(
         parameters.maximumStacks,

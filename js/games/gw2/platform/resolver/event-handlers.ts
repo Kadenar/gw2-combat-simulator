@@ -29,7 +29,7 @@ import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
 const noop: Gw2ResolverReaction = () => {};
 
 function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions: Gw2ResolverReactionRegistry): void {
-  const kind = String(event.kind || '').toLowerCase();
+  const kind = (event.kind || '').toLowerCase();
   // Standard boons honor the summon-sharing setting; generic positive statuses do not.
   const resolvedAudience = isStandardBoon(kind)
     ? gw2BoonApplicationRecipients(ctx.config, event)

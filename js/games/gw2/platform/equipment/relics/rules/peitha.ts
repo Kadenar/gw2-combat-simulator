@@ -34,13 +34,13 @@ export const peitha = defineRelic({
     const triggerAt = event.at;
     if (!isInternalCooldownReady(triggerAt, state.readyAt)) return;
     state.readyAt = triggerAt + 4;
-    const combatStart = Number(ctx.combatStartTime ?? -Infinity);
+    const combatStart = ctx.combatStartTime ?? -Infinity;
     // The trigger carries its skill's launch latency and travel; only impacts that would still land before
     // combat clamp to combat start, so their conditions cannot preload.
     const impactAt = clamp(triggerAt + Math.max(0, Number(event.peithaImpactDelayMs)) / 1000, combatStart, Infinity);
     state.buffFrom = impactAt;
     state.buffUntil = gw2EffectExpiresAt(impactAt, 4);
-    ctx.recordProc('relic', 'Relic of Peitha', impactAt, event.skillName, '', '', null, Number(state.buffUntil));
+    ctx.recordProc('relic', 'Relic of Peitha', impactAt, event.skillName, '', '', null, state.buffUntil);
     // Delayed impacts enter the common queue so duration and condition reactions see impact-time state.
     ctx.queue.enqueue({
       type: 'condition',

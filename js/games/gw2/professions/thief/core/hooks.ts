@@ -64,7 +64,7 @@ import {
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { ThiefResolverContext, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
 /**
@@ -76,7 +76,7 @@ function thiefAvailability(runtime: ThiefRuntime, rawSkill: Skill): Availability
   const core = runtime.profession.core;
   const now = runtime.time;
   if (skill.type === 'Weapon' && skill.flipParentId != null && !skillFlipReady(core.availableFlips[skill.id], now)) {
-    const parent = runtime.helpers.skillsById.get(Number(skill.flipParentId)) as ThiefSkill | undefined;
+    const parent = runtime.helpers.skillsById.get(Number(skill.flipParentId));
     return denySkillCast(
       skill,
       'thief.follow-up',
@@ -85,7 +85,7 @@ function thiefAvailability(runtime: ThiefRuntime, rawSkill: Skill): Availability
   }
 
   const spearStage = spearChainStageForSkill(skill.id);
-  if (spearStage != null && Number(core.spearChainStage || 0) !== spearStage)
+  if (spearStage != null && (core.spearChainStage || 0) !== spearStage)
     return denySkillCast(skill, 'thief.spear-chain', `requires spear chain stage ${spearStage + 1}.`);
   const trap = thiefTrapAvailability(runtime, skill);
   if (trap) return trap;
@@ -117,7 +117,7 @@ function thiefAvailability(runtime: ThiefRuntime, rawSkill: Skill): Availability
     skill.id !== ID.KNEEL &&
     skill.id !== ID.FREE_ACTION &&
     !skill.stealthAttack &&
-    Boolean(skill.kneelSkill) !== Boolean(core.kneeling)
+    Boolean(skill.kneelSkill) !== core.kneeling
   )
     return denySkillCast(skill, 'thief.rifle-stance', core.kneeling ? 'use a kneeling rifle skill.' : 'kneel first.');
   if (
@@ -127,7 +127,7 @@ function thiefAvailability(runtime: ThiefRuntime, rawSkill: Skill): Availability
   )
     return denySkillCast(skill, 'thief.stolen-skill', 'steal this skill before using it.');
 
-  const cost = Number(skill.initiativeCost || 0);
+  const cost = skill.initiativeCost || 0;
   if (cost <= 0) return { ready: true };
   const readyAt = runtime.resourceController.readyAt('initiative', cost);
   // Retain fractional initiative while waiting for the tick that detects affordability.
@@ -212,9 +212,7 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   rechargeWork: thiefRechargeWork,
   // A Double Edge recast while recharging keeps the running recharge instead of reserving a new one.
   reserveRecharge: (runtime, skill, work) =>
-    skill.usableWhileRecharging === true && Number(runtime.cooldowns.get(skill.id) || 0) > runtime.time + EPSILON
-      ? 0
-      : work,
+    skill.usableWhileRecharging === true && (runtime.cooldowns.get(skill.id) || 0) > runtime.time + EPSILON ? 0 : work,
   onCastStart(runtime, cast) {
     const skill = cast.skill as ThiefSkill;
     pruneSkillFlips(runtime.profession.core.availableFlips, runtime.time);
@@ -276,7 +274,7 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
       emit: PROFILE.assassinsFury,
       icd: 'profile',
       when: (runtime, event) =>
-        String(event.kind || '').toLowerCase() === 'fury' &&
+        (event.kind || '').toLowerCase() === 'fury' &&
         Boolean(event.resolvedAudience?.includesSelf) &&
         Boolean(requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.assassinsFury), 'boon', 'Might')),
       effects: (effect) => effect.type === 'boon' && effect.name === 'Might',
@@ -290,7 +288,7 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   ],
   reactions: {
     'damage.resolving'(runtime, event) {
-      return modifyThiefLifeSiphon(runtime as unknown as ThiefResolverContext, event);
+      return modifyThiefLifeSiphon(runtime, event);
     },
     'damage.resolved'(runtime, event, details) {
       reactThiefStealthBreakingStrike(runtime, event);

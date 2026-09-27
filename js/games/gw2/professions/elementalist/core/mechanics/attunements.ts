@@ -102,7 +102,7 @@ export function onAttunementComplete(
   const dualAttunement = transition.rechargeDuration != null;
   if (dualAttunement) {
     state.primaryAttunement = target;
-    const recharge = Number(transition.rechargeDuration);
+    const recharge = transition.rechargeDuration;
     for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
       setElementalistAttunementReadyAt(context, attunement, at + recharge);
     }

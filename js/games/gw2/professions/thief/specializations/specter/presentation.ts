@@ -38,7 +38,7 @@ export const specterUi = Object.freeze({
         singular: 'shadow force',
         plural: 'shadow force',
         maximum: 100,
-        value: Number(state.shadowClock?.value ?? context.initialShadowForce ?? 0),
+        value: state.shadowClock?.value ?? context.initialShadowForce ?? 0,
         startMaximum: 100,
         canStart: true,
         buildKey: 'initialShadowForce',
@@ -55,7 +55,7 @@ export const specterUi = Object.freeze({
     const state = thiefUiState(context);
     if (skill.id === ID.ENTER_SHADOW_SHROUD) {
       // Runtime snapshots and detached planning projections share the same force clock.
-      const available = !state.shadowShroudActive && Number(state.shadowClock?.value ?? 0) > 0;
+      const available = !state.shadowShroudActive && (state.shadowClock?.value ?? 0) > 0;
       return {
         available,
         message: available

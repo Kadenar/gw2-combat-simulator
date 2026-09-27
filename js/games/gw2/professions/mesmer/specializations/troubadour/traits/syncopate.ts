@@ -29,7 +29,7 @@ export function observeSyncopateEvent(context: MesmerRuntime, event: SimulationE
   if (!damage) return;
 
   if (event.type === 'control') {
-    const skillName = String(event.skillName || event.name || 'Control effect');
+    const skillName = event.skillName || event.name || 'Control effect';
     runtime.addDamage(
       { id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false },
       event.at,

@@ -66,8 +66,8 @@ export function clearRevenantLegendFlips(runtime: RevenantRuntime): void {
 /** Aggregate drain includes only upkeeps whose activation has completed. */
 export function revenantUpkeepDrain(runtime: RevenantRuntime): number {
   return runtime.profession.core.activeUpkeeps
-    .filter((active) => Number(active.startsAt || 0) <= runtime.time)
-    .reduce((sum, active) => sum + Number(active.upkeepCost || 0), 0);
+    .filter((active) => (active.startsAt || 0) <= runtime.time)
+    .reduce((sum, active) => sum + (active.upkeepCost || 0), 0);
 }
 
 /** Every rate or balance change replaces the prior starvation wake at the next action-tick zero crossing. */
@@ -110,8 +110,7 @@ function embracePulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number
   const strike = skill.effects?.find((effect) => effect.type === 'strike');
   const torment = skill.effects?.find(
     (effect) =>
-      effect.type === 'condition' &&
-      String(effect.metadata?.trigger || '') === (empowered ? 'empowered-upkeep-pulse' : '')
+      effect.type === 'condition' && (effect.metadata?.trigger || '') === (empowered ? 'empowered-upkeep-pulse' : '')
   );
   if (strike?.type !== 'strike' || torment?.type !== 'condition')
     throw new Error('Embrace the Darkness is missing its pulse effects.');
@@ -139,8 +138,8 @@ function embracePulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number
       name: empowered ? `${skill.name} — Empowered Torment` : `${skill.name} — Torment`,
       ...(torment.metadata ? { metadata: torment.metadata } : {}),
       condition: 'Torment',
-      stacks: Number(tick?.stacks || 0),
-      duration: Number(tick?.duration || 0)
+      stacks: tick?.stacks || 0,
+      duration: tick?.duration || 0
     })
   );
 }
@@ -149,7 +148,7 @@ function embracePulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number
 function hammerPulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number): void {
   const strike = skill.effects?.find((effect) => effect.type === 'strike');
   if (strike?.type !== 'strike') throw new Error('Vengeful Hammers is missing its strike effect.');
-  const hammers = Math.max(1, Math.trunc(Number(strike.hits ?? 1)));
+  const hammers = Math.max(1, Math.trunc(strike.hits ?? 1));
   if (!(Number(strike.atMs) >= 0))
     throw new Error('Vengeful Hammers requires one explicit simultaneous-hit timestamp.');
   for (let index = 1; index <= hammers; index += 1)
@@ -162,7 +161,7 @@ function hammerPulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number)
         skillId: skill.id,
         skillName: skill.name,
         name: `Vengeful Hammers — Hammer ${index}`,
-        coefficient: Number(strike.coefficient || 0) / hammers,
+        coefficient: (strike.coefficient || 0) / hammers,
         hitIndex: index,
         totalHits: hammers,
         skillWeapon: 'Unequipped'
@@ -176,7 +175,7 @@ export function startRevenantUpkeepCast(runtime: RevenantRuntime, cast: RuntimeC
   if (skill.id !== ID.EMBRACE_THE_DARKNESS || activeRevenantUpkeep(runtime, skill.id)) return;
   const strike = skill.effects?.find((effect) => effect.type === 'strike');
   if (!strike) throw new Error('Embrace the Darkness is missing its strike effect.');
-  embracePulse(runtime, skill, canonicalTime(cast.start + Number(effectFirstAtMs(strike) || 0) / 1000), false);
+  embracePulse(runtime, skill, canonicalTime(cast.start + (effectFirstAtMs(strike) || 0) / 1000), false);
 }
 
 /** Activation starts the sustained drain at completion, arms the release, and owns its recurring pulses. */
@@ -190,7 +189,7 @@ export function toggleRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCast
 
   const active: RevenantUpkeepState = {
     skillId: skill.id,
-    upkeepCost: Number(skill.upkeepCost || 0),
+    upkeepCost: skill.upkeepCost || 0,
     startsAt: runtime.time,
     empoweredNextPulse: false
   };
@@ -203,7 +202,7 @@ export function toggleRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCast
     skill.id === ID.EMBRACE_THE_DARKNESS
       ? Math.floor(runtime.time + EPSILON) + 1
       : VENGEFUL_HAMMERS_IDS.has(skill.id)
-        ? runtime.time + Math.max(0, Number(skill.pulseInterval ?? 1))
+        ? runtime.time + Math.max(0, skill.pulseInterval ?? 1)
         : null;
   if (first != null)
     runtime.schedule(
@@ -232,7 +231,7 @@ export function releaseRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCas
 export function revenantUpkeepPulse(runtime: RevenantRuntime, data: unknown): void {
   const { skillId, startsAt } = data as UpkeepPulse;
   const active = activeRevenantUpkeep(runtime, skillId, startsAt);
-  const skill = runtime.helpers.skillsById.get(skillId) as RevenantSkill | undefined;
+  const skill = runtime.helpers.skillsById.get(skillId);
   if (!active || !skill) return;
   if (skill.id === ID.EMBRACE_THE_DARKNESS) {
     embracePulse(runtime, skill, runtime.time, active.empoweredNextPulse);
@@ -259,7 +258,7 @@ export function empowerRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCa
 
 function triggersImpossibleOdds(event: Gw2ResolverEvent): boolean {
   return (
-    Number(event.coefficient || 0) > 0 &&
+    (event.coefficient || 0) > 0 &&
     event.skillId !== ID.IMPOSSIBLE_ODDS &&
     // Form attacks inherit player modifiers but must not recursively trigger on-hit attacks.
     event.skillId !== ID.LESSER_ENCHANTED_DAGGERS &&
@@ -276,7 +275,7 @@ function triggersImpossibleOdds(event: Gw2ResolverEvent): boolean {
 export function reactRevenantImpossibleOdds(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   if (!triggersImpossibleOdds(event) || !activeRevenantUpkeep(runtime, ID.IMPOSSIBLE_ODDS)) return;
   // Integer clock keys allow the expiry instant without admitting hits just before it.
-  if (timeKey(runtime.time) < timeKey(Number(runtime.procs.readyAt.impossibleOdds || 0))) return;
+  if (timeKey(runtime.time) < timeKey(runtime.procs.readyAt.impossibleOdds || 0)) return;
   const impossible = runtime.helpers.skillsById.get(ID.IMPOSSIBLE_ODDS);
   const strike = impossible && requireEffect(impossible, 'strike', 'Impossible Odds');
   // The trigger interval gates only this strike, so a removed strike leaves it ready.
@@ -285,7 +284,7 @@ export function reactRevenantImpossibleOdds(runtime: RevenantRuntime, event: Gw2
   runtime.emitDerived(
     event,
     buildResolverStrike({
-      at: canonicalTime(runtime.time + Number(effectFirstAtMs(strike) || 0) / 1000),
+      at: canonicalTime(runtime.time + (effectFirstAtMs(strike) || 0) / 1000),
       source: 'revenant',
       sourceId: impossible.id,
       actorType: 'effect',

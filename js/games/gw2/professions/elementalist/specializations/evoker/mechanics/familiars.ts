@@ -61,7 +61,7 @@ function releaseElementalProcession(context: ElementalistRuntime, cast: RuntimeC
     for (const effect of familiar.effects || []) {
       if (!['strike', 'condition', 'control', 'blind'].includes(effect.type)) continue;
       // Procession preserves the familiar's unquickened timing and each surviving packet's representation.
-      const runtimeCastMs = Math.max(0, Number(familiar.castTimeMs || 0) * GW2_QUICKNESS_ACTION_RATE);
+      const runtimeCastMs = Math.max(0, (familiar.castTimeMs || 0) * GW2_QUICKNESS_ACTION_RATE);
       const scale = effect.timingScale === 'cast' ? castRelativeEffectTimingScale(familiar, runtimeCastMs) : 1;
       for (const application of materializeSkillEffectApplications({
         skill: familiar,
@@ -265,7 +265,7 @@ function applyFamiliarSkillEffects(context: ElementalistRuntime, cast: RuntimeCa
     const stacks = balanceProfileNumber(familiarUtilityProfile, 'resourceGain');
     const enchantment = requireEffect(familiarUtilityProfile, 'buff', 'Lightning Blitz Enchantment');
     if (enchantment) {
-      grantElectricEnchantments(state, at, stacks, Number(enchantment.duration));
+      grantElectricEnchantments(state, at, stacks, enchantment.duration);
 
       emitElementalistProc(context, {
         at,
@@ -291,7 +291,7 @@ function applyFamiliarSkillEffects(context: ElementalistRuntime, cast: RuntimeCa
         skillName: skill.name,
         kind: 'zap buff',
         stacks: Number(zap.stacks),
-        duration: Number(zap.duration)
+        duration: zap.duration
       });
     }
   }
@@ -316,7 +316,7 @@ function settleFamiliarChargeState(context: ElementalistRuntime, cast: RuntimeCa
       );
       context.cooldownController.setReadyAt(
         empowered.id,
-        Math.max(Number(context.cooldowns.get(empowered.id) || 0), at + delay)
+        Math.max(context.cooldowns.get(empowered.id) || 0, at + delay)
       );
     }
 
@@ -352,7 +352,7 @@ function applyMeditationEffects(context: ElementalistRuntime, cast: RuntimeCast,
     const stacks = balanceProfileNumber(familiarUtilityProfile, 'playerStacks');
     const enchantment = requireEffect(familiarUtilityProfile, 'buff', 'Hare Enchantment');
     if (enchantment) {
-      grantElectricEnchantments(state, at, stacks, Number(enchantment.duration));
+      grantElectricEnchantments(state, at, stacks, enchantment.duration);
 
       emitElementalistProc(context, {
         at,
@@ -376,7 +376,7 @@ function applyMeditationEffects(context: ElementalistRuntime, cast: RuntimeCast,
         actorType: 'player',
         kind: String(resistance.boon).toLowerCase(),
         stacks: Number(resistance.stacks),
-        duration: Number(resistance.duration),
+        duration: resistance.duration,
         skillName: skill.name
       });
     }
@@ -395,7 +395,7 @@ function applyMeditationEffects(context: ElementalistRuntime, cast: RuntimeCast,
       const boon = {
         kind: String(effect.boon).toLowerCase(),
         stacks: Number(effect.stacks),
-        duration: Number(effect.duration)
+        duration: effect.duration
       };
       emitElementalistBuff(context, {
         skill: skill,

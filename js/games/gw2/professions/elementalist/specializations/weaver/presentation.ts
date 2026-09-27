@@ -50,7 +50,7 @@ function isCarriedAutoattackSkill(
   const carryover = state.autoattackCarryover;
   const root = Number(carryover?.root);
   if (!Number.isFinite(root) || Number(skill.chainRoot) !== root) return false;
-  if (String(carryover?.attunement || '') !== String(skill.attunement || '')) return false;
+  if ((carryover?.attunement || '') !== String(skill.attunement || '')) return false;
   const chains: ProfessionWeaponPaletteRenderContext['autoattackChains'] =
     state.autoattackChains || context.autoattackChains || {};
   const expected = chains[String(root)] ?? root;
@@ -62,9 +62,9 @@ function isCarriedAutoattackSkill(
 function weaverPaletteAvailability(context: ElementalistUiContext, skill: Skill): PaletteSkillAvailability {
   const state = elementalistUiState(context);
   const build = context.build;
-  const now = Number(context.time || 0);
-  const primary = String(state.primaryAttunement || build?.startAttunement || 'Fire');
-  const secondary = String(state.secondaryAttunement || build?.secondaryAttunement || primary);
+  const now = context.time || 0;
+  const primary = state.primaryAttunement || build?.startAttunement || 'Fire';
+  const secondary = state.secondaryAttunement || build?.secondaryAttunement || primary;
   // Unravel, then the Weave Self / Tailored Victory flipover pair, then the
   // attunement buttons; each explains itself before the weapon-slot rules run.
   if (skill.id === ELEMENTALIST_WEAVER_SKILL_IDS.Unravel) {
@@ -73,7 +73,7 @@ function weaverPaletteAvailability(context: ElementalistUiContext, skill: Skill)
   }
 
   if (skill.name === 'Weave Self' || skill.name === 'Tailored Victory') {
-    const tailoredVictoryActive = Number(state.perfectWeaveUntil || 0) > now;
+    const tailoredVictoryActive = (state.perfectWeaveUntil || 0) > now;
     const available = skill.name === (tailoredVictoryActive ? 'Tailored Victory' : 'Weave Self');
     return {
       available,
@@ -95,7 +95,7 @@ function weaverPaletteAvailability(context: ElementalistUiContext, skill: Skill)
   // A dual hammer skill cannot recreate an orb that is still orbiting.
   const hammerElements = skill.weapon === 'Hammer' ? weaverDualAttunements(skill) : null;
   const hammerOrbs: Partial<ElementalistState['hammerOrbs']> = state.hammerOrbs || {};
-  if (hammerElements?.some((element) => hammerOrbs[element] != null && Number(hammerOrbs[element]) >= now)) {
+  if (hammerElements?.some((element) => hammerOrbs[element] != null && hammerOrbs[element] >= now)) {
     return {
       available: false,
       message: 'Grand Finale must consume the active orb before it can be created again.'
@@ -109,7 +109,7 @@ function weaverPaletteAvailability(context: ElementalistUiContext, skill: Skill)
   const dualAttunements = weaverDualAttunements(skill);
   const required = dualAttunements || [String(skill.attunement)];
   const slot = Number(String(skill.slot || '').match(/(\d+)$/)?.[1] || 0);
-  const unravelActive = Number(state.unravelUntil || 0) > now;
+  const unravelActive = (state.unravelUntil || 0) > now;
   const available = unravelActive
     ? required.length === 1 && required[0] === primary
     : dualAttunements
@@ -128,18 +128,17 @@ function weaverPaletteAvailability(context: ElementalistUiContext, skill: Skill)
 // Project Unravel and attunement casts into compact primary/secondary labels
 // without mutating the simulation state used by the timeline.
 function unravelTimelineWeaponLineTransition(context: ElementalistUiContext): string | undefined {
-  const skill = context.skill as Skill | undefined;
+  const skill = context.skill;
   const build = context.build;
   if (context.initial === true) {
-    const primary = String(build?.startAttunement || 'Fire');
-    const secondary = String(build?.secondaryAttunement || primary);
+    const primary = build?.startAttunement || 'Fire';
+    const secondary = build?.secondaryAttunement || primary;
     return `${primary[0]}/${secondary[0]}`;
   }
 
-  const currentPrimary = String(context.weaponLine || '').split('/')[0];
+  const currentPrimary = (context.weaponLine || '').split('/')[0];
   const primary =
-    ELEMENTALIST_ATTUNEMENTS.find((attunement) => attunement[0] === currentPrimary) ||
-    String(build?.startAttunement || 'Fire');
+    ELEMENTALIST_ATTUNEMENTS.find((attunement) => attunement[0] === currentPrimary) || build?.startAttunement || 'Fire';
   if (skill?.id === ELEMENTALIST_WEAVER_SKILL_IDS.Unravel) return `${primary[0]}/${primary[0]}`;
   const target = skill?.name.replace(/ Attunement$/, '') || '';
   return skill?.skillFamily === 'Attunement' && ELEMENTALIST_ATTUNEMENTS.includes(target as never)
@@ -165,15 +164,15 @@ function eventLogRow(
 // Describe Weaver's active windows; its attunement pair is already shown in the palette.
 function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
   const state = elementalistUiState(context);
-  const at = Math.max(0, Number(context.atSeconds || 0));
+  const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
 
   // Surface only the Weaver windows currently affecting the inspected rotation point,
   // so stance follow-ups and the temporary single-attunement override are easy to time.
   for (const [id, label, expiresAt] of [
-    ['weave-self', 'Weave Self', Number(state.weaveSelfUntil || 0)],
-    ['perfect-weave', 'Perfect Weave', Number(state.perfectWeaveUntil || 0)],
-    ['unravel', 'Unravel', Number(state.unravelUntil || 0)]
+    ['weave-self', 'Weave Self', state.weaveSelfUntil || 0],
+    ['perfect-weave', 'Perfect Weave', state.perfectWeaveUntil || 0],
+    ['unravel', 'Unravel', state.unravelUntil || 0]
   ] as const) {
     const remaining = expiresAt - at;
     if (remaining <= 0) continue;
@@ -308,14 +307,14 @@ function elementRowsHtml(
 function renderWeaverWeaponPalette(
   context: ProfessionWeaponPaletteRenderContext<Partial<ElementalistState>>
 ): ProfessionWeaponPaletteView | null {
-  if (String(context.specialization || '') !== 'Weaver') return null;
+  if ((context.specialization || '') !== 'Weaver') return null;
   const skills = context.skills;
   if (!skills.length) return null;
   const state = context.professionState;
   const build = context.build;
-  const primaryAttunement = String(state?.primaryAttunement || build?.startAttunement || 'Fire');
-  const secondaryAttunement = String(state?.secondaryAttunement || build?.secondaryAttunement || primaryAttunement);
-  const autoattackChains = context.autoattackChains || {};
+  const primaryAttunement = state?.primaryAttunement || build?.startAttunement || 'Fire';
+  const secondaryAttunement = state?.secondaryAttunement || build?.secondaryAttunement || primaryAttunement;
+  const autoattackChains = context.autoattackChains;
   const isAvailable = context.isSkillAvailable;
   const unavailableMessage = context.unavailableMessage;
   const renderSkill = context.renderSkill;
@@ -335,6 +334,7 @@ function renderWeaverWeaponPalette(
     // current root beside it as an explicit way to cancel and restart the chain.
     return [carriedAutoattack, skill];
   });
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- The flatMap callback above mutates placedCarriedAutoattack.
   if (carriedAutoattack && !placedCarriedAutoattack) primarySkills.unshift(carriedAutoattack);
   const slotThreeSkills = active([...layout.sameAttunementSkills, ...layout.dualSkills]);
   const secondarySkills = active(layout.secondaryRows.flatMap((row) => row.skills));

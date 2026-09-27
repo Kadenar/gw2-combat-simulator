@@ -20,6 +20,7 @@ export interface DiscreteResourceClock extends ResourceClock {
   amount: number;
   nextAt: number;
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- The shared registry erases profession state; each owner declares its concrete TContext.
 export interface ResourcePolicy<TContext = Gw2Runtime<any>> {
   readonly kind: 'continuous' | 'discrete';
   readonly depletion?: { refresh(context: TContext): void; stop(context: TContext): void };

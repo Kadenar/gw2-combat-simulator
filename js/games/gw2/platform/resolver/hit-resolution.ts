@@ -44,7 +44,7 @@ export function createGw2HitResolution({
   }
 
   function targetArmorFor(ctx: Gw2ResolverRuntime): number {
-    return Math.max(1, Number(ctx.config.target?.armor || STANDARD_TARGET_ARMOR));
+    return Math.max(1, ctx.config.target?.armor || STANDARD_TARGET_ARMOR);
   }
 
   // Both modes share seeded crit outcomes for reactions while retaining average critical damage.
@@ -68,22 +68,21 @@ export function createGw2HitResolution({
     critical.didCrit =
       typeof event.didCrit === 'boolean'
         ? event.didCrit
-        : ctx.random.roll(critical.chance, `critical:${String(event.actorType || 'player')}`);
+        : ctx.random.roll(critical.chance, `critical:${event.actorType}`);
     return critical;
   }
 
   // Flat strikes ignore weapon strength and crit; a single health threshold may
   // scale the fixed multiplier once the target drops below it.
   function resolveFlatStrike(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, power: number): ResolvedStrikeParts {
-    let outgoingMultiplier = Number(event.flatStrikeMultiplier ?? 1);
-    const threshold = Number(event.flatStrikeHealthThreshold || 0);
+    let outgoingMultiplier = event.flatStrikeMultiplier ?? 1;
+    const threshold = event.flatStrikeHealthThreshold || 0;
     const healthFraction = currentHealthFraction(ctx);
     if (threshold > 0 && healthFraction != null && healthFraction < threshold) {
-      outgoingMultiplier *= Number(event.flatStrikeThresholdMultiplier ?? 1);
+      outgoingMultiplier *= event.flatStrikeThresholdMultiplier ?? 1;
     }
 
-    const baseDamage =
-      Number(event.flatDamage ?? event.flatStrikeBase ?? 0) + Number(event.flatStrikePowerCoeff || 0) * power;
+    const baseDamage = (event.flatDamage ?? event.flatStrikeBase ?? 0) + (event.flatStrikePowerCoeff || 0) * power;
     return {
       baseDamage,
       coefficientMultiplier: 1,
@@ -122,7 +121,7 @@ export function createGw2HitResolution({
     // base-power ratio instead of the player's weapon strength.
     if (independentSummonStrike && !summonWeaponStrengthProfile) {
       const baseDamage =
-        (((Number(event.coefficient || 0) * summonDamagePerCoefficient * power) / Number(event.summonBasePower)) *
+        ((((event.coefficient || 0) * summonDamagePerCoefficient * power) / Number(event.summonBasePower)) *
           STANDARD_TARGET_ARMOR) /
         targetArmor;
       return {
@@ -137,7 +136,7 @@ export function createGw2HitResolution({
     const weaponStrength = resolvedWeaponStrength(ctx, event);
     const effectiveCoefficientMultiplier = coefficientMultiplier(ctx, event);
     const baseDamage = strikeDamage(
-      Number(event.coefficient || 0) * effectiveCoefficientMultiplier,
+      (event.coefficient || 0) * effectiveCoefficientMultiplier,
       weaponStrength.value,
       power,
       targetArmor
@@ -213,7 +212,7 @@ export function createGw2HitResolution({
       event.name || event.skillName || String(event.sourceId),
       damage,
       damageType,
-      damageType === 'strikeDamage' ? Number(event.hits || 1) : 0,
+      damageType === 'strikeDamage' ? event.hits || 1 : 0,
       event,
       damageType === 'strikeDamage' && hitContext.critEligible ? hitContext.critical : null
     );

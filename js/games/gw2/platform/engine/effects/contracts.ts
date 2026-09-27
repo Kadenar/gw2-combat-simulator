@@ -133,5 +133,5 @@ export function normalizeEffectMetadata(value: unknown): EffectMetadata | undefi
     }
   }
 
-  return Object.freeze({ ...metadata }) as EffectMetadata;
+  return Object.freeze({ ...metadata });
 }

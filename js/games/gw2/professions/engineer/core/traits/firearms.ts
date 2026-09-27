@@ -60,7 +60,7 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.noScope), 'internalCooldown'),
-      readyAt: (context) => Number(context.procs.readyAt.noScope || 0),
+      readyAt: (context) => context.procs.readyAt.noScope || 0,
       setReadyAt: (context, readyAt) => {
         context.procs.readyAt.noScope = readyAt;
       }
@@ -74,7 +74,7 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
           name: 'No Scope',
           kind: String(noScopeFury.boon).toLowerCase(),
           stacks: Number(noScopeFury.stacks),
-          duration: Number(noScopeFury.duration),
+          duration: noScopeFury.duration,
           sourceId: TRAIT.NO_SCOPE,
           actorType: 'effect'
         });
@@ -90,7 +90,7 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.incendiaryPowder), 'internalCooldown'),
-      readyAt: (context) => Number(context.procs.readyAt['incendiaryPowder.player'] || 0),
+      readyAt: (context) => context.procs.readyAt['incendiaryPowder.player'] || 0,
       setReadyAt: (context, readyAt) => {
         context.procs.readyAt['incendiaryPowder.player'] = readyAt;
       }
@@ -127,10 +127,7 @@ export function applyThermalVision(context: EngineerResolverContext, event: Engi
   // Math.max extends the window when multiple Burning applications overlap.
   const thermalVisionBuff = requireEffect(thermalVisionProfile, 'buff', 'thermal-vision');
   if (thermalVisionBuff) {
-    state.thermalVisionUntil = Math.max(
-      Number(state.thermalVisionUntil || 0),
-      event.at + Number(thermalVisionBuff.duration)
-    );
+    state.thermalVisionUntil = Math.max(state.thermalVisionUntil || 0, event.at + thermalVisionBuff.duration);
   }
 }
 
@@ -146,8 +143,8 @@ export function applySanguineArray(context: EngineerResolverContext, event: Engi
     queueBuff(context, event, {
       name: 'Sanguine Array',
       kind: String(sanguineArrayMight.boon).toLowerCase(),
-      stacks: Math.max(1, Number(event.stacks || 1)),
-      duration: Number(sanguineArrayMight.duration),
+      stacks: Math.max(1, event.stacks || 1),
+      duration: sanguineArrayMight.duration,
       sourceId: TRAIT.SANGUINE_ARRAY,
       actorType: 'effect'
     });
@@ -163,7 +160,7 @@ export function applyHematicFocus(context: EngineerResolverContext, event: Engin
   }
 
   const state = context.procs.readyAt;
-  if (!isInternalCooldownReady(event.at, Number(state.hematicFocus || 0))) return;
+  if (!isInternalCooldownReady(event.at, state.hematicFocus || 0)) return;
   const hematicFocusProfile = requireBalanceProfileFromContext(context, PROFILE.hematicFocus);
   const hematicFocusFury = requireEffect(hematicFocusProfile, 'boon', 'fury');
   if (hematicFocusFury) {
@@ -172,7 +169,7 @@ export function applyHematicFocus(context: EngineerResolverContext, event: Engin
       name: 'Hematic Focus',
       kind: String(hematicFocusFury.boon).toLowerCase(),
       stacks: Number(hematicFocusFury.stacks),
-      duration: Number(hematicFocusFury.duration),
+      duration: hematicFocusFury.duration,
       sourceId: TRAIT.HEMATIC_FOCUS,
       actorType: 'effect'
     });

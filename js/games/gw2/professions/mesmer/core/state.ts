@@ -38,7 +38,7 @@ export function createMesmerCoreState(_config: Partial<MesmerConfig> = {}): Mesm
 
 /** Publishes this module's detached public observations at the planning boundary. */
 export function projectMesmerCorePlanningState(input: Gw2PlanningStateInput) {
-  const state = snapshotProfessionState<MesmerCoreState>(input.profession);
+  const state = snapshotProfessionState(input.profession) as MesmerCoreState;
   const at = canonicalTime(input.time);
   return {
     resource: state.clones.length,

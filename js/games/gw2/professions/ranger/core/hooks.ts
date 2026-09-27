@@ -15,7 +15,7 @@ import {
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+
 import type { RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
@@ -142,7 +142,7 @@ function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast): void {
 
   if (skill.type !== 'Weapon' || isRangerHammerVariant(skill.id)) return;
   const followUp = followUpOf(runtime.helpers.skillsById, skill);
-  if (followUp) armSkillFlip(flips, followUp.id, runtime.time, runtime.time + Number(skill.flipDuration || 5));
+  if (followUp) armSkillFlip(flips, followUp.id, runtime.time, runtime.time + (skill.flipDuration || 5));
 
   if (skill.flipParentId != null && !spearAttacks.has(Number(skill.id))) consumeSkillFlip(flips, skill.id);
 }
@@ -377,7 +377,7 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
     'damage.resolved'(runtime, event, details) {
       reactToRangerGreatswordDamage(runtime, event);
       reactToRangerCoreDamage(runtime, event);
-      critical.handler(runtime, event, details as NativeResolvedDamageDetails);
+      critical.handler(runtime, event, details);
       const state = runtime.profession.core;
       if ((event.actorType === 'player' || event.ownerActorType === 'player') && state.stealthUntil > runtime.time) {
         state.stealthUntil = runtime.time;
@@ -388,7 +388,7 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       reactToRangerCoreBuff(runtime, event);
       const state = runtime.profession.core;
       if (event.kind === 'stealth' && event.resolvedAudience?.includesSelf && state.revealedUntil <= runtime.time)
-        runtime.schedule('ranger.stealth', runtime.time, Number(event.duration || 0), undefined, 10);
+        runtime.schedule('ranger.stealth', runtime.time, event.duration || 0, undefined, 10);
     }
   }
 };

@@ -47,7 +47,7 @@ function modifyDruidAttributes(context: Gw2ModifierContext, attributes: Gw2Resol
   const result = { ...attributes };
   const naturalFortitudeProfile = requireBalanceProfileFromContext(context, PROFILE.naturalFortitude);
   const vitality = balanceProfileNumber(naturalFortitudeProfile, 'attributeBonus');
-  result.vitality = Number(result.vitality || 0) + (staticRulesApplied ? 0 : vitality);
+  result.vitality = (result.vitality || 0) + (staticRulesApplied ? 0 : vitality);
   return result;
 }
 

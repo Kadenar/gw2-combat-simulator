@@ -25,8 +25,7 @@ const triggerShatterBoon = (
   const effect = requireEffect(traitProfile, 'boon', effectName);
   if (!effect) return;
   const kind = String(effect.boon);
-  const baseDuration =
-    Number(effect.duration) + (resolution.spent + 1) * balanceProfileNumber(traitProfile, 'durationPerTier');
+  const baseDuration = effect.duration + (resolution.spent + 1) * balanceProfileNumber(traitProfile, 'durationPerTier');
   const duration = baseDuration;
   runtime.addEvent({
     type: 'buff',

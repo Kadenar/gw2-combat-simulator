@@ -20,7 +20,7 @@ function matchesThiefVariant(skill: ThiefSkill, context: ThiefWeaponMatcherConte
   return (
     spearChainStage == null ||
     Boolean(context.weaponBarPreview) ||
-    Number(professionState.spearChainStage || 0) === spearChainStage
+    (professionState.spearChainStage || 0) === spearChainStage
   );
 }
 
@@ -41,7 +41,7 @@ function matchesThiefWeaponSet(
   }
 
   const primary = pair[0] || '';
-  const wielding = context.weaponData?.[primary]?.wielding || context.catalog?.weaponHands?.get(primary);
+  const wielding = context.weaponData?.[primary]?.wielding || context.catalog?.weaponHands.get(primary);
   if (wielding === '2h') return skill.weapon === pair[0];
   const slot = Number(String(skill.slot || '').match(/(\d+)$/)?.[1] || 0);
   return slot <= 3 ? skill.weapon === pair[0] : skill.weapon === pair[1];

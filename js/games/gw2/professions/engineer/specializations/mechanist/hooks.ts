@@ -4,7 +4,7 @@ import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mecha
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { castWasInterrupted, summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+
 import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
@@ -51,9 +51,7 @@ export const mechanistHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = 
   rechargeWork: mechanistRechargeWork,
   castDurationMs(runtime, skill, durationMs) {
     if (!isEngineerMechCommand(skill)) return durationMs;
-    return engineerMechHasQuickness(runtime, runtime.time)
-      ? summonQuicknessCastTimeMs(skill)
-      : Number(skill.castTimeMs || 0);
+    return engineerMechHasQuickness(runtime, runtime.time) ? summonQuicknessCastTimeMs(skill) : skill.castTimeMs || 0;
   },
   prepareEvent(runtime, event) {
     return prepareEngineerMechEvent(
@@ -89,7 +87,7 @@ export const mechanistHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = 
   reactions: {
     'buff.applied': copyEngineerMechBoon,
     'damage.resolved'(runtime, event, details) {
-      for (const reaction of critical) reaction.handler(runtime, event, details as NativeResolvedDamageDetails);
+      for (const reaction of critical) reaction.handler(runtime, event, details);
       mechanistResolverEventReactions.damage(runtime, event);
     }
   }

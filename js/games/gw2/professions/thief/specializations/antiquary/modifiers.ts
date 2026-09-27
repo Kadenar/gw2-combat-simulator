@@ -40,7 +40,7 @@ function meticulousArtifactStrikeFactor(
   return 1;
 }
 
-export const antiquaryModifiers: readonly Gw2ModifierRule[] = Object.freeze([
+export const antiquaryModifiers = Object.freeze<readonly Gw2ModifierRule[]>([
   {
     id: 'thief.antiquary-artifact-momentum',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -48,8 +48,7 @@ export const antiquaryModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     amount: 0.1,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      Number(thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').antiquaryDamageUntil || 0) >
-        context.time
+      (thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').antiquaryDamageUntil || 0) > context.time
   },
   {
     id: 'thief.combat-high-strike',
@@ -57,7 +56,7 @@ export const antiquaryModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     parameters: {
       damagePerStack: 0.03
-    } as Readonly<Record<string, number>>,
+    },
     amount: (context, _target, parameters) =>
       activeStackCount(
         thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').combatHighExpirations || [],
@@ -71,7 +70,7 @@ export const antiquaryModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     parameters: {
       damagePerStack: 0.02
-    } as Readonly<Record<string, number>>,
+    },
     amount: (context, _target, parameters) =>
       activeStackCount(
         thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').combatHighExpirations || [],
@@ -86,8 +85,7 @@ export const antiquaryModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     factor: 1.15,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      Number(thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').kryptisDamageUntil || 0) >
-        context.time
+      (thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').kryptisDamageUntil || 0) > context.time
   },
   {
     id: 'thief.meticulous-custodian-artifact-strike',
@@ -100,7 +98,7 @@ export const antiquaryModifiers: readonly Gw2ModifierRule[] = Object.freeze([
       chakFactor: 1,
       kryptisFactor: 3.84 / 2.8,
       holoFactor: 3 / 2
-    } as Readonly<Record<string, number>>,
+    },
     factor: meticulousArtifactStrikeFactor,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
@@ -115,8 +113,8 @@ export const antiquaryModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       hasTrait(context, TRAIT.METICULOUS_CUSTODIAN) &&
       context.event?.skillId === ID.MISTBURN_MORTAR &&
-      context.event?.condition === 'Burning' &&
-      context.event?.triggeredBy == null // the Charged Strike bonus burn (applied by the landed strike) must not have its duration doubled a second time
+      context.event.condition === 'Burning' &&
+      context.event.triggeredBy == null // the Charged Strike bonus burn (applied by the landed strike) must not have its duration doubled a second time
   },
   {
     id: 'thief.meticulous-custodian-sun-crystal-burning',
@@ -126,7 +124,7 @@ export const antiquaryModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       hasTrait(context, TRAIT.METICULOUS_CUSTODIAN) &&
       context.event?.skillId === ID.ZEPHYRITE_SUN_CRYSTAL &&
-      context.event?.condition === 'Burning' &&
-      context.event?.triggeredBy == null // only the base skill packet needs enhancement
+      context.event.condition === 'Burning' &&
+      context.event.triggeredBy == null // only the base skill packet needs enhancement
   }
 ]);

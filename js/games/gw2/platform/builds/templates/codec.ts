@@ -75,7 +75,7 @@ function traits(byte: number): string {
 
 /** Decodes the stable binary contract behind a GW2 `[&...=]` build chat link. */
 export function decodeGw2BuildTemplate(chatCode: string): DecodedGw2BuildTemplate {
-  const match = /^\[&([A-Za-z0-9+/]+={0,2})\]$/.exec(String(chatCode).trim());
+  const match = /^\[&([A-Za-z0-9+/]+={0,2})\]$/.exec(chatCode.trim());
   if (!match) {
     throw new Error('Build template must be a Guild Wars 2 [&...=] chat code.');
   }

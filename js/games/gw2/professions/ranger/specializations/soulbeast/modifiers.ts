@@ -57,7 +57,7 @@ function petArchetype(context: RangerModifierContext, active: boolean): string {
     ? readProfessionCoreState<{ activePet?: string }>(context.runtime?.profession).activePet ||
       context.config?.selectedPet
     : context.config?.selectedPet;
-  return rangerPetByName(String(configured || 'Pig')).archetype;
+  return rangerPetByName(configured || 'Pig').archetype;
 }
 
 /** Reconciles Soulbeast merge attributes against the calculator's static merged baseline. */
@@ -66,7 +66,7 @@ function modifySoulbeastAttributes(context: RangerModifierContext, attributes: G
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   const merged = beastmodeActive(context);
   const adjust = (attribute: Gw2NumericStatKey, amount: number): void => {
-    result[attribute] = Number(result[attribute] || 0) + amount;
+    result[attribute] = (result[attribute] || 0) + amount;
   };
 
   if (!staticRulesApplied && merged) {
@@ -85,7 +85,7 @@ function modifySoulbeastAttributes(context: RangerModifierContext, attributes: G
     for (const [attribute, amount] of Object.entries(
       soulbeastArchetypeAttributes(context, petArchetype(context, true))
     )) {
-      adjust(attribute as Gw2NumericStatKey, Number(amount));
+      adjust(attribute as Gw2NumericStatKey, amount);
     }
   } else if (staticRulesApplied && !merged) {
     if (hasTrait(context, TRAIT.PACK_ALPHA)) {
@@ -105,18 +105,18 @@ function modifySoulbeastAttributes(context: RangerModifierContext, attributes: G
     for (const [attribute, amount] of Object.entries(
       soulbeastArchetypeAttributes(context, petArchetype(context, false))
     )) {
-      adjust(attribute as Gw2NumericStatKey, -Number(amount));
+      adjust(attribute as Gw2NumericStatKey, -amount);
     }
   } else if (staticRulesApplied && merged) {
     const configuredArchetype = petArchetype(context, false);
     const activeArchetype = petArchetype(context, true);
 
     for (const [attribute, amount] of Object.entries(soulbeastArchetypeAttributes(context, configuredArchetype))) {
-      adjust(attribute as Gw2NumericStatKey, -Number(amount));
+      adjust(attribute as Gw2NumericStatKey, -amount);
     }
 
     for (const [attribute, amount] of Object.entries(soulbeastArchetypeAttributes(context, activeArchetype))) {
-      adjust(attribute as Gw2NumericStatKey, Number(amount));
+      adjust(attribute as Gw2NumericStatKey, amount);
     }
   }
 

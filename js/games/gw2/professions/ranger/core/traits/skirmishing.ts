@@ -35,7 +35,7 @@ export function applyRangerDodgeTraits(context: RangerRuntime, at = context.time
   // instead of replacing it with another six-second overlapping window.
   const activeUntil = context.history
     .filter((event) => event.type === 'buff' && event.kind === kind && event.at <= at)
-    .reduce((maximum, event) => Math.max(maximum, gw2EffectExpiresAt(event.at, Number(event.duration || 0))), at);
+    .reduce((maximum, event) => Math.max(maximum, gw2EffectExpiresAt(event.at, event.duration || 0)), at);
   context.emitProcedural(
     rangerEvent(
       {

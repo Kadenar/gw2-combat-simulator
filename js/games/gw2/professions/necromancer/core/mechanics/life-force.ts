@@ -33,10 +33,9 @@ export function grantNecromancerSkillLifeForce(
     skill.lifeForceGain ?? skill.lifeForcePerHit ?? skill.lifeForcePerPulse ?? skill.lifeForceOnHit ?? 0
   );
   if (Number(skill.lifeForcePerCondition) > 0) {
-    const count = Number(
+    const count =
       event.metadata?.necromancerConditionCount ??
-        targetConditionCount({ config: runtime.config, query: runtime.query, runtime, time: runtime.time })
-    );
+      targetConditionCount({ config: runtime.config, query: runtime.query, runtime, time: runtime.time });
     amount += Math.min(Number(skill.maximumConditions), count) * Number(skill.lifeForcePerCondition);
   }
 

@@ -30,16 +30,15 @@ function modifyRitualistAttributes(context: Gw2ModifierContext, attributes: Gw2S
   return result;
 }
 
-const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const ritualistModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
   {
     id: 'necromancer.essence-blast-active-spirits',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
-    parameters: { damagePerSpirit: 0.15 } as Readonly<Record<string, number>>,
+    parameters: { damagePerSpirit: 0.15 },
     amount: (context, _target, parameters) =>
-      Number(context.event?.metadata?.activeSpirits || 0) * parameters.damagePerSpirit,
-    when: (context) =>
-      Boolean(eventSkill(context)?.id === ID.ESSENCE_BLAST && Number(context.event?.metadata?.activeSpirits || 0) > 0)
+      (context.event?.metadata?.activeSpirits || 0) * parameters.damagePerSpirit,
+    when: (context) => eventSkill(context)?.id === ID.ESSENCE_BLAST && (context.event?.metadata?.activeSpirits || 0) > 0
   },
   {
     id: 'necromancer.lingering-spirits',
@@ -57,7 +56,7 @@ const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     // Apply the condition bonus; temporary target-control bonuses are outside simulation scope.
     parameters: {
       damagePerCondition: 0.02
-    } as Readonly<Record<string, number>>,
+    },
     amount: (context, _target, parameters) => targetConditionCount(context) * parameters.damagePerCondition,
     // Flag is set on Anguish autoattacks and summon barrage hits but NOT on innervate or Summon Spirits hits
     when: (context) => Boolean(context.event?.metadata?.anguishConditionalDamage)
@@ -71,12 +70,10 @@ const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     // order: 100 ensures this multiplicative trait applies after all additive stacking (Lingering Spirits, Anguish conditional, etc.)
     order: 100,
     when: (context) =>
-      Boolean(
-        (context.event?.actorType === 'summon' || context.event?.summonKind === 'spirit') &&
-        // Innervate attacks are player-buffed abilities, not spirit autonomous attacks; the trait does not apply to them
-        context.event?.metadata?.spiritAttackType !== 'innervate' &&
-        hasTrait(context, TRAIT.SPIRITS_STRENGTH)
-      )
+      (context.event?.actorType === 'summon' || context.event?.summonKind === 'spirit') &&
+      // Innervate attacks are player-buffed abilities, not spirit autonomous attacks; the trait does not apply to them
+      context.event.metadata?.spiritAttackType !== 'innervate' &&
+      hasTrait(context, TRAIT.SPIRITS_STRENGTH)
   }
 ]);
 
