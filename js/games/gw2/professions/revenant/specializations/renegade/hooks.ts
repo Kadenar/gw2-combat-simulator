@@ -311,31 +311,6 @@ function razorclawProc(runtime: RevenantRuntime, event: Gw2ResolverEvent): void 
   );
 }
 
-/** Citadel Bombardment's first landed impact applies Vindication's Daze. */
-function vindication(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if (
-    event.skillId !== ID.CITADEL_BOMBARDMENT ||
-    Number(event.hitIndex || 1) !== 1 ||
-    !hasTrait(runtime, TRAIT.VINDICATION)
-  )
-    return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.vindication);
-  const effect = requireEffect(profile, 'control', 'daze');
-  if (!effect) return;
-  runtime.emitDerived(event, {
-    type: 'control',
-    at: runtime.time,
-    source: 'revenant',
-    sourceId: TRAIT.VINDICATION,
-    actorType: 'player',
-    skillId: TRAIT.VINDICATION,
-    skillName: 'Vindication',
-    name: 'Vindication — Daze',
-    ...(effect.metadata ? { metadata: effect.metadata } : {}),
-    controlKind: String(effect.controlKind)
-  });
-}
-
 /** Soulcleave's Summit's player proc fires once per cooldown from a landed player strike while active. */
 function soulcleavePlayer(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   const soulcleave = runtime.helpers.skillsById.get(ID.SOULCLEAVES_SUMMIT);
@@ -511,6 +486,24 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
         -200
       );
   },
+  // Only Bombardment's first resolved hit emits Vindication's control packet.
+  traitTriggers: [
+    {
+      trait: TRAIT.VINDICATION,
+      on: 'damage.resolved',
+      when: (_runtime, event) => event.skillId === ID.CITADEL_BOMBARDMENT && Number(event.hitIndex || 1) === 1,
+      emit: PROFILE.vindication,
+      effects: (effect) => effect.type === 'control' && effect.name === 'daze',
+      attribution: {
+        source: 'revenant',
+        sourceId: TRAIT.VINDICATION,
+        actorType: 'player',
+        skillId: TRAIT.VINDICATION,
+        skillName: 'Vindication',
+        name: 'Vindication — Daze'
+      }
+    }
+  ],
   reactions: {
     'damage.resolving'(runtime, event) {
       // Core already applied its additive bonus; Fervor joins the same additive life-steal sum.
@@ -527,7 +520,6 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
       };
     },
     'damage.resolved'(runtime, event, details) {
-      vindication(runtime, event);
       if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
       criticalTraits(runtime, event, (details as { hitContext?: Gw2HitResolutionContext }).hitContext);
       razorclawProc(runtime, event);

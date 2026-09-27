@@ -35,7 +35,17 @@ function presentationFor(module, catalog) {
 }
 
 function reactionKeys(...modules) {
-  return [...new Set(modules.flatMap((module) => [...Object.keys(module?.hooks?.reactions || {})]))].sort();
+  // Declarative resolver triggers register the same stages as imperative reactions.
+  return [
+    ...new Set(
+      modules.flatMap((module) => [
+        ...Object.keys(module?.hooks?.reactions || {}),
+        ...(module?.hooks?.traitTriggers ?? [])
+          .map((rule) => rule.on)
+          .filter((stage) => CANONICAL_REACTION_STAGES.has(stage))
+      ])
+    )
+  ].sort();
 }
 
 function modifierRules(module) {

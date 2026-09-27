@@ -1,3 +1,5 @@
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { EngineerRuntimeState, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
@@ -11,6 +13,22 @@ import {
 
 /** Actual combo results grant Kinetic Accelerators once; one pending pulse rechecks live Stability. */
 export const scrapperHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
+  // Function Gyro's Stability seeds the existing live Stability pulse loop.
+  traitTriggers: [
+    {
+      trait: TRAIT.MASS_MOMENTUM,
+      on: 'castComplete',
+      when: (_runtime, cast) => cast.skill.id === ID.FUNCTION_GYRO,
+      emit: PROFILE.massMomentum,
+      effects: (effect) => effect.type === 'boon' && effect.name === 'stability',
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.MASS_MOMENTUM,
+        actorType: 'player',
+        name: 'Mass Momentum — stability'
+      }
+    }
+  ],
   maximumAmmo: scrapperMaximumAmmo,
   onCastComplete(runtime, cast) {
     if (!castWasInterrupted(cast)) applyScrapperCastTraits(runtime, cast);

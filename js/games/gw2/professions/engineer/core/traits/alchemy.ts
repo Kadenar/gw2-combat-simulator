@@ -11,58 +11,18 @@ import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js'
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 
-function isElixirSkill(skill: EngineerSkill | undefined): boolean {
+export function isElixirSkill(skill: EngineerSkill | undefined): boolean {
   return Boolean(skill?.categories?.some((category) => String(category).toLowerCase() === 'elixir'));
 }
 
-/** Applies HGH cast boons and Acid Bomb's extended final pulse to eligible elixirs. */
-export function applyHgh(context: EngineerRuntime, cast: RuntimeCast): void {
+/** Schedules Acid Bomb's extended final pulse while HGH is selected. */
+export function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast): void {
   const skill = cast.skill;
-  const at = context.time;
-  if (!hasTrait(context.config, TRAIT.HGH) || !isElixirSkill(skill)) return;
+  if (!hasTrait(context.config, TRAIT.HGH) || skill.id !== ID.ACID_BOMB) return;
 
   const hghProfile = requireBalanceProfileFromContext(context, TRAIT.HGH);
-  // The same patched packets drive elixir boons, the extra strike, and their tooltips.
-  const might = requireEffect(hghProfile, 'boon', 'might');
-  const fury = requireEffect(hghProfile, 'boon', 'fury');
   const strike = requireEffect(hghProfile, 'strike', 'HGH');
-  if (might) {
-    emitEngineerEvent(
-      context,
-      'buff',
-      {
-        at,
-        source: 'Trait',
-        sourceId: TRAIT.HGH,
-        actorType: 'player',
-        name: 'HGH — might',
-        kind: String(might.boon).toLowerCase(),
-        duration: Number(might.duration),
-        stacks: Number(might.stacks)
-      },
-      skill
-    );
-  }
-
-  if (fury) {
-    emitEngineerEvent(
-      context,
-      'buff',
-      {
-        at,
-        source: 'Trait',
-        sourceId: TRAIT.HGH,
-        actorType: 'player',
-        name: 'HGH — fury',
-        kind: String(fury.boon).toLowerCase(),
-        duration: Number(fury.duration),
-        stacks: Number(fury.stacks)
-      },
-      skill
-    );
-  }
-
-  if (skill.id === ID.ACID_BOMB && strike) {
+  if (strike) {
     emitEngineerEvent(
       context,
       'damage',

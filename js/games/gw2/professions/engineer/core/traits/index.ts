@@ -9,7 +9,7 @@ import type {
   EngineerResolverEvent,
   EngineerSkill
 } from '#gw2/professions/engineer/types.js';
-import { applyHgh, prepareEngineerHghEvent } from '#gw2/professions/engineer/core/traits/alchemy.js';
+import { applyHghAcidBomb, prepareEngineerHghEvent } from '#gw2/professions/engineer/core/traits/alchemy.js';
 import {
   engineerCoreCriticalHitDefinitions,
   applyHematicFocus,
@@ -52,7 +52,7 @@ export function applyEngineerCastTraits(context: EngineerRuntime, cast: RuntimeC
   applyStreamlinedKits(context, skill, at);
   // Issuing a mech command uses the tool-belt slot immediately while its animation runs independently.
   if (!skill.independentCast) applyEngineerToolbeltTraits(context, skill, at);
-  applyHgh(context, cast);
+  applyHghAcidBomb(context, cast);
 }
 
 // Keep shared explosion classification here so every later Explosives reaction consumes the same result.

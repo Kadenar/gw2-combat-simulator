@@ -1,8 +1,6 @@
 import { canonicalTime, EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { addTimedStacks, consumeNewestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
@@ -232,33 +230,6 @@ export function completeRevenantBrutality(runtime: RevenantRuntime, cast: Runtim
   });
 }
 
-/** Actual player-owned Fury on the player converts into Incensed Response's Might. */
-export function reactRevenantIncensedResponse(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if (
-    event.kind !== 'fury' ||
-    !runtime.combatStartedAt() ||
-    !hasTrait(runtime, TRAIT.INCENSED_RESPONSE) ||
-    !isGw2PlayerModifierOwnedEvent(event) ||
-    !gw2BoonApplicationRecipients(runtime.config, event).includesSelf
-  )
-    return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.incensedResponse);
-  const effect = requireEffect(profile, 'boon', 'might');
-  if (!effect) return;
-  traitBuff(
-    runtime,
-    {
-      sourceId: profile.id,
-      skillId: profile.id,
-      skillName: profile.name,
-      kind: String(effect.boon),
-      duration: effectNumber(profile, effect, 'duration'),
-      stacks: effectNumber(profile, effect, 'stacks')
-    },
-    event
-  );
-}
-
 /** Accepted Chilled and Vulnerability applications drive Abyssal Chill and Dance of Death. */
 export function reactRevenantConditionTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   if (event.condition === 'Chilled' && hasTrait(runtime, TRAIT.ABYSSAL_CHILL)) {
@@ -291,30 +262,6 @@ export function reactRevenantConditionTraits(runtime: RevenantRuntime, event: Gw
       sourceName: 'Dance of Death',
       cause: event
     });
-}
-
-/** Accepted controls apply Dwarven Battle Training's Weakness. */
-export function reactRevenantControlTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if (!hasTrait(runtime, TRAIT.DWARVEN_BATTLE_TRAINING)) return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.dwarvenBattleTraining);
-  const condition = requireEffect(profile, 'condition', 'Weakness');
-  if (!condition) return;
-  const name = String(condition.condition);
-  runtime.emitDerived(
-    event,
-    buildResolverCondition({
-      at: runtime.time,
-      source: 'revenant',
-      sourceId: TRAIT.DWARVEN_BATTLE_TRAINING,
-      actorType: 'player',
-      skillId: TRAIT.DWARVEN_BATTLE_TRAINING,
-      skillName: 'Dwarven Battle Training',
-      name: `Dwarven Battle Training — ${name}`,
-      condition: name,
-      stacks: effectNumber(profile, condition, 'stacks'),
-      duration: effectNumber(profile, condition, 'duration')
-    })
-  );
 }
 
 // Catch Thrill of Combat up to this hit, retaining only grants that can still be active under the shared cap.

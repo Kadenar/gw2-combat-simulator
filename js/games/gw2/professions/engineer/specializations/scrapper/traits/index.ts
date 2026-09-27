@@ -145,27 +145,4 @@ export function applyScrapperCastTraits(context: EngineerRuntime, cast: RuntimeC
       controlKind: 'daze'
     });
   }
-
-  // Mass Momentum (GM trait): Function Gyro grants 3 stacks of stability (seeds the pulse loop).
-  if (hasTrait(context.config, TRAIT.MASS_MOMENTUM)) {
-    const massMomentumProfile = requireBalanceProfileFromContext(context, PROFILE.massMomentum);
-    const massMomentumStability = requireEffect(massMomentumProfile, 'boon', 'stability');
-    if (massMomentumStability) {
-      emitEngineerEvent(
-        context,
-        'buff',
-        {
-          at: context.time,
-          source: 'Trait',
-          sourceId: TRAIT.MASS_MOMENTUM,
-          actorType: 'player',
-          name: 'Mass Momentum — stability',
-          kind: String(massMomentumStability.boon).toLowerCase(),
-          duration: Number(massMomentumStability.duration),
-          stacks: Number(massMomentumStability.stacks)
-        },
-        skill
-      );
-    }
-  }
 }

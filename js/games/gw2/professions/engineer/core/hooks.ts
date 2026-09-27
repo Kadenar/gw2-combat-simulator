@@ -1,3 +1,4 @@
+import { isElixirSkill } from '#gw2/professions/engineer/core/traits/alchemy.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
@@ -10,7 +11,6 @@ import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mecha
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeProfession, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerEndurance } from '#gw2/professions/engineer/core/mechanics/resources.js';
@@ -96,23 +96,17 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
     return prepareEngineerHghEvent(runtime, event);
   },
   onCombatStart: detonateMines,
-  modifyEffects(runtime, cast, effects) {
-    if (customSpear.has(Number(cast.skill.id))) return [];
-    if (cast.skill.id !== ID.DETONATE || !hasTrait(runtime.config, TRAIT.GADGETEER)) return effects;
-    return effects.flatMap<SkillEffect>((effect) =>
-      effect.type === 'strike'
-        ? [
-            effect,
-            {
-              ...effect,
-              comboFinishers: effect.comboFinishers?.map((finisher) => ({
-                ...finisher,
-                attemptGroup: 'gadgeteer-mine'
-              }))
-            }
-          ]
-        : [effect]
-    );
+  // HGH grants its own unextended boons only after an elixir finishes.
+  traitTriggers: ['might', 'fury'].map((boon) => ({
+    trait: TRAIT.HGH,
+    on: 'castComplete',
+    when: (_runtime, cast) => isElixirSkill(cast.skill),
+    emit: TRAIT.HGH,
+    effects: (effect) => effect.type === 'boon' && effect.name === boon,
+    attribution: { source: 'Trait', sourceId: TRAIT.HGH, actorType: 'player', name: `HGH — ${boon}` }
+  })),
+  modifyEffects(_runtime, cast, effects) {
+    return customSpear.has(Number(cast.skill.id)) ? [] : effects;
   },
   onCastStart(runtime, cast) {
     if (cast.skill.independentCast) applyEngineerToolbeltTraits(runtime, cast.skill, runtime.time);

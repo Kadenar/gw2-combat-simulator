@@ -1,3 +1,5 @@
+import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { armSkillFlip, skillFlipReady, weaponFlipBlock } from '#gw2/platform/engine/skills/skill-flips.js';
@@ -53,8 +55,6 @@ import {
   completeRevenantCastTraits,
   completeRevenantEnchantedDaggers,
   reactRevenantConditionTraits,
-  reactRevenantControlTraits,
-  reactRevenantIncensedResponse,
   reactRevenantPlayerStrike,
   REVENANT_ASSASSINS_PRESENCE,
   revenantAssassinsPresencePulse,
@@ -283,6 +283,43 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
     if (!runtime.combatStartedAt()) return;
     runtime.resourceController.grant('energy', runtime.profession.core.energy.maximum);
   },
+  // Resolver triggers retain trait ownership and the accepted event's causal chain.
+  traitTriggers: [
+    {
+      trait: TRAIT.DWARVEN_BATTLE_TRAINING,
+      on: 'control.resolved',
+      when: () => true,
+      emit: PROFILE.dwarvenBattleTraining,
+      effects: (effect) => effect.type === 'condition' && effect.name === 'Weakness',
+      attribution: {
+        source: 'revenant',
+        sourceId: TRAIT.DWARVEN_BATTLE_TRAINING,
+        actorType: 'player',
+        skillId: TRAIT.DWARVEN_BATTLE_TRAINING,
+        skillName: 'Dwarven Battle Training',
+        name: 'Dwarven Battle Training — Weakness'
+      }
+    },
+    {
+      trait: TRAIT.INCENSED_RESPONSE,
+      on: 'buff.applied',
+      when: (runtime, event) =>
+        event.kind === 'fury' &&
+        Boolean(runtime.combatStartedAt()) &&
+        isGw2PlayerModifierOwnedEvent(event) &&
+        gw2BoonApplicationRecipients(runtime.config, event).includesSelf,
+      emit: PROFILE.incensedResponse,
+      effects: (effect) => effect.type === 'boon' && effect.name === 'might',
+      attribution: {
+        source: 'revenant',
+        sourceId: PROFILE.incensedResponse,
+        actorType: 'player',
+        skillId: PROFILE.incensedResponse,
+        skillName: 'Incensed Response',
+        name: undefined
+      }
+    }
+  ],
   reactions: {
     'damage.resolving'(runtime, event) {
       return modifyRevenantLifeSiphon(runtime as unknown as RevenantResolverContext, event);
@@ -293,9 +330,7 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
       reactRevenantImpossibleOdds(runtime, event);
       reactRevenantPlayerStrike(runtime, event);
     },
-    'condition.applied': reactRevenantConditionTraits,
-    'control.resolved': reactRevenantControlTraits,
-    'buff.applied': reactRevenantIncensedResponse
+    'condition.applied': reactRevenantConditionTraits
   },
   tasks: {
     [REVENANT_ENERGY_DEPLETED]: starveRevenantUpkeeps,
