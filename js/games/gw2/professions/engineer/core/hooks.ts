@@ -35,7 +35,7 @@ import {
 } from '#gw2/professions/engineer/core/traits/index.js';
 import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 import {
-  completeEngineerSpear,
+  engineerSpearSideEffectHandlers,
   completeEngineerTurret,
   engineerWeaponTasks
 } from '#gw2/professions/engineer/core/mechanics/weapons.js';
@@ -92,6 +92,7 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
   availability: engineerCoreCastAvailability,
   rechargeRules: engineerRechargeRules,
   sideEffectHandlers: {
+    ...engineerSpearSideEffectHandlers,
     // Both sword finishers declare the reward while live cooldown selection and proc reporting share one owner.
     'engineer.sword-recharge'(runtime, context, action) {
       if (action.type !== 'engineer.sword-recharge' || action.amount == null)
@@ -166,7 +167,6 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
 
     if (skill.flipParentName) consumeSkillFlip(state.availableFlips, skill.id);
     completeEngineerTurret(runtime, cast);
-    completeEngineerSpear(runtime, cast);
     if (skill.id === ID.MINE_FIELD) {
       if (runtime.combatStartPending) state.pendingMineFieldActivationIds.push(cast.id);
       else applyEngineerToolbeltTraits(runtime, runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!, runtime.time);

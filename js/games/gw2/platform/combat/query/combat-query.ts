@@ -248,6 +248,8 @@ export function createGw2CombatQuery({
       return dynamicBoonStacksAt(kind, time, maximum, runtime, 'summon', 0, summonCompanionId(event));
     }
 
+    // Nonnegative dynamic grants cannot change an already-capped permanent assumption.
+    if (configured >= maximum) return maximum;
     const dynamic = dynamicBoonStacksAt(kind, time, maximum, runtime, 'all', 1);
     return clamp(configured + dynamic, 0, maximum);
   };

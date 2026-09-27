@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { completeEngineerSpear } from '#gw2/professions/engineer/core/mechanics/weapons.js';
+import { engineerSpearSideEffectHandlers } from '#gw2/professions/engineer/core/mechanics/weapons.js';
+import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -15,6 +17,52 @@ const simulate = createObservedProfessionSimulator(engineerProfession, {
   target: { armor: 2597, conditions: {} }
 });
 const artilleryEvents = (result) => result.resolvedEvents.filter((event) => event.sourceId === ID.ELECTRIC_ARTILLERY);
+
+// The authored task observes live target state at its deadline, independently of an earlier committed interruption.
+test('Devastator samples Focused at its task deadline and requires a committed cast with the task declared', () => {
+  for (const { focused, cancelled = false, removeTask = false } of [
+    { focused: true },
+    { focused: false },
+    { focused: true, cancelled: true },
+    { focused: true, removeTask: true }
+  ]) {
+    const result = runEngineer(
+      [
+        { type: 'cast', skillId: ID.DEVASTATOR, interruptAfterMs: cancelled ? 100 : 600 },
+        { type: 'wait', durationMs: 2000 }
+      ],
+      { primaryWeapon: 'Spear', boons: { quickness: true } },
+      {
+        initialize(runtime) {
+          runtime.profession.core.focusedUntil = focused ? 0 : 10;
+        },
+        extend(native) {
+          return {
+            catalog: withSkill(native.catalog, ID.DEVASTATOR, {
+              castTimeMs: 1000,
+              interruptCommitMs: 400,
+              ...(removeTask ? { tasks: [] } : {})
+            }),
+            onCastStart(runtime, cast) {
+              native.onCastStart(runtime, cast);
+              runtime.schedule('test.focus-change', cast.start + (cast.fullEnd - cast.start) * 0.75);
+            },
+            tasks: {
+              ...native.tasks,
+              'test.focus-change'(runtime) {
+                runtime.profession.core.focusedUntil = focused ? runtime.time + 10 : 0;
+              }
+            }
+          };
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const followup = result.resolvedEvents.filter((event) => event.sourceId === ID.FOCUSED_DEVASTATION);
+    assert.equal(followup.length > 0, focused && !cancelled && !removeTask);
+    assert.ok(followup.every((event) => event.at >= (result.steps[0].start + result.steps[0].fullCastMs) / 1000));
+  }
+});
 
 // Missed custom packets retain their cast's target eligibility through delayed dispatch.
 test('off-target spear casts grant no Focused window, charges, damage, or conditions', () => {
@@ -52,7 +100,7 @@ test('Lightning Rod replacement retires old pulses and each charge expires after
           fullEnd: 0,
           effectiveEnd: 0
         };
-        completeEngineerSpear(runtime, cast);
+        applySkillSideEffects(runtime, cast, 'castCommit', engineerSpearSideEffectHandlers);
         runtime.schedule('test.replace-rod', 0.2, cast);
       },
       extend(native) {
@@ -60,13 +108,18 @@ test('Lightning Rod replacement retires old pulses and each charge expires after
           tasks: {
             ...native.tasks,
             'test.replace-rod'(runtime, cast) {
-              completeEngineerSpear(runtime, {
-                ...cast,
-                id: 'second',
-                start: runtime.time,
-                fullEnd: runtime.time,
-                effectiveEnd: runtime.time
-              });
+              applySkillSideEffects(
+                runtime,
+                {
+                  ...cast,
+                  id: 'second',
+                  start: runtime.time,
+                  fullEnd: runtime.time,
+                  effectiveEnd: runtime.time
+                },
+                'castCommit',
+                engineerSpearSideEffectHandlers
+              );
             }
           }
         };

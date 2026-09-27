@@ -332,6 +332,60 @@ test('effective boon and Vulnerability queries use their canonical runtime state
   assert.equal(query.vulnerabilityStacksAt(1, runtime), 4);
 });
 
+test('capped permanent Might skips history while uncapped and isolated summon queries stay dynamic', () => {
+  // Saturated player assumptions bypass history; lower assumptions and each summon still observe their own grants.
+  for (const configured of [0, 20, 25, 40]) {
+    const query = createGw2CombatQuery({
+      profession: queryProfession,
+      config: { boons: { might: configured } }
+    });
+    const boons = new Map([
+      [
+        'might',
+        [
+          { at: 1, expiresAt: 3, stacks: 10, resolvedAudience: resolvedAudience() },
+          {
+            at: 1,
+            expiresAt: 3,
+            stacks: 2,
+            resolvedAudience: resolvedAudience({ includesSelf: false, companionIds: ['minion:one'] })
+          }
+        ]
+      ]
+    ]);
+    let reads = 0;
+    const runtime = {
+      get boons() {
+        reads++;
+        return boons;
+      }
+    };
+    for (const event of [
+      null,
+      { actorType: 'player' },
+      { actorType: 'summon', summonInheritsAttributes: true },
+      { actorType: 'summon', source: 'Phantasm' }
+    ]) {
+      assert.equal(query.mightStacksAt(0, runtime, event), Math.min(25, configured));
+      assert.equal(query.mightStacksAt(1, runtime, event), Math.min(25, configured + 10));
+      assert.equal(query.mightStacksAt(3, runtime, event), Math.min(25, configured));
+      assert.equal(query.mightStacksAt(1, null, event), Math.min(25, configured));
+    }
+
+    if (configured >= 25) assert.equal(reads, 0);
+    else assert.ok(reads > 0);
+
+    const summon = { actorType: 'summon', summonOwner: 'minion:one' };
+    assert.equal(query.mightStacksAt(0, runtime, summon), 0);
+    assert.equal(query.mightStacksAt(1, runtime, summon), 2);
+    assert.equal(query.mightStacksAt(3, runtime, summon), 0);
+    assert.equal(query.mightStacksAt(1, runtime, { ...summon, summonOwner: 'minion:two' }), 0);
+    boons.clear();
+    assert.equal(query.mightStacksAt(1, runtime, summon), 0);
+    assert.equal(query.mightStacksAt(1, runtime), Math.min(25, configured));
+  }
+});
+
 test('permanent Vulnerability at the cap skips history while uncapped queries observe live stacks', () => {
   // Capped assumptions need no runtime read; lower assumptions still observe application, expiry, and same-time removal.
   for (const configured of [0, 20, 25, 40]) {

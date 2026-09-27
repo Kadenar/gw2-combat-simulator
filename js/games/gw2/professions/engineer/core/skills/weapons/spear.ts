@@ -25,8 +25,8 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.DEVASTATOR]: {
-    // Custom: Schedules Devastator's delayed follow-up strike; see `core/mechanics/weapons.ts`.
-
+    // Check Focused at the reserved cast end before emitting the delayed follow-up.
+    tasks: [{ type: 'engineer.devastation', timingAnchor: 'castEnd' }],
     castTimeMs: 1000,
 
     cooldown: 20,
@@ -57,8 +57,8 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.ROILING_SKIES]: {
-    // Custom: Schedules Roiling Skies' delayed control packet; see `core/mechanics/weapons.ts`.
-
+    // Select launch or stun from the live Focused state when the cast commits.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.roiling-skies' } }],
     castTimeMs: 680,
     cooldown: 15,
     effects: [
@@ -106,8 +106,8 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.LIGHTNING_ROD]: {
-    // Custom: Schedules Lightning Rod's charge and pulse sequence; see `core/mechanics/weapons.ts`.
-
+    // Replace the owned pulse sequence and arm Artillery's delayed follow-up window on commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.lightning-rod' } }],
     castTimeMs: 400,
     interruptCommitMs: 280,
     cooldown: 12,
@@ -164,16 +164,16 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.CONDUIT_SURGE]: {
-    // Custom: Schedules the delayed Conduit Surge sequence; see `core/mechanics/weapons.ts`.
-
+    // Resolve the committed impact through the owner that establishes the target's Focused window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.conduit-surge' } }],
     castTimeMs: 520,
 
     cooldown: 5,
     effects: []
   },
   [ID.ELECTRIC_ARTILLERY]: {
-    // Custom: Consumes Lightning Rod charges and schedules Electric Artillery; see `core/mechanics/weapons.ts`.
-
+    // Snapshot charges at release, then retire Lightning Rod while the launched projectile remains pending.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.electric-artillery' } }],
     castTimeMs: 520,
     cooldown: 1,
     effects: []

@@ -2,7 +2,7 @@ import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast, RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
 
 import type { EngineerRuntime, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -11,12 +11,13 @@ import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 // Deploying, detonating, or bursting the Healing Turret all restart the one deployed turret lifetime.
 const HEALING_TURRET_SKILL_IDS = new Set<number>([ID.HEALING_TURRET, ID.DETONATE_HEALING_TURRET, ID.CLEANSING_BURST]);
 
-/** Spear lifetimes retire pending pulses together; launched Artillery retains its release-time charges. */
-export function completeEngineerSpear(runtime: EngineerRuntime, cast: RuntimeCast): void {
-  const state = runtime.profession.core;
-  const skill = cast.skill;
-  const at = runtime.time;
-  if (skill.id === ID.LIGHTNING_ROD) {
+/** Skill declarations select each spear mutation; handlers retain lifetime ownership and release-time snapshots. */
+export const engineerSpearSideEffectHandlers: RuntimeProfession<EngineerRuntimeState>['sideEffectHandlers'] = {
+  'engineer.lightning-rod'(runtime, context) {
+    if (context.kind !== 'cast') throw new TypeError('Lightning Rod requires a cast trigger.');
+    const { cast } = context;
+    const state = runtime.profession.core;
+    const at = runtime.time;
     runtime.cancelOwner({ id: 'engineer.lightning-rod', generation: state.lightningRodGeneration });
     const owner = { id: 'engineer.lightning-rod', generation: ++state.lightningRodGeneration };
     state.lightningRodChargeExpiries = [];
@@ -25,14 +26,22 @@ export function completeEngineerSpear(runtime: EngineerRuntime, cast: RuntimeCas
     for (let index = 0; index < 8; index++)
       runtime.schedule('engineer.rod-pulse', at + 0.16 + index * 0.5, { cast, index }, owner);
     runtime.schedule('engineer.rod-expire', readyAt + 8, undefined, owner);
-  } else if (skill.id === ID.CONDUIT_SURGE) {
+  },
+  'engineer.conduit-surge'(runtime, context) {
+    if (context.kind !== 'cast') throw new TypeError('Conduit Surge requires a cast trigger.');
+    const { cast } = context;
     emitEngineerEvent(
       runtime,
       'engineer.conduit-surge',
-      { at, activationId: cast.id, offTarget: cast.command.offTarget },
-      skill
+      { at: runtime.time, activationId: cast.id, offTarget: cast.command.offTarget },
+      cast.skill
     );
-  } else if (skill.id === ID.ELECTRIC_ARTILLERY) {
+  },
+  'engineer.electric-artillery'(runtime, context) {
+    if (context.kind !== 'cast') throw new TypeError('Electric Artillery requires a cast trigger.');
+    const { cast } = context;
+    const state = runtime.profession.core;
+    const at = runtime.time;
     emitEngineerEvent(
       runtime,
       'engineer.electric-artillery',
@@ -43,26 +52,29 @@ export function completeEngineerSpear(runtime: EngineerRuntime, cast: RuntimeCas
         charges: activeStackCount(state.lightningRodChargeExpiries, at),
         persistsAfterInterrupt: true
       },
-      skill
+      cast.skill
     );
     runtime.cancelOwner({ id: 'engineer.lightning-rod', generation: state.lightningRodGeneration });
     state.lightningRodChargeExpiries = [];
     consumeSkillFlip(state.availableFlips, ID.ELECTRIC_ARTILLERY);
-  } else if (skill.id === ID.ROILING_SKIES) {
-    const focused = state.focusedUntil > at;
+  },
+  'engineer.roiling-skies'(runtime, context) {
+    if (context.kind !== 'cast') throw new TypeError('Roiling Skies requires a cast trigger.');
+    const { cast } = context;
+    const focused = runtime.profession.core.focusedUntil > runtime.time;
     emitEngineerEvent(
       runtime,
       'control',
       {
-        at,
+        at: runtime.time,
         activationId: cast.id,
         offTarget: cast.command.offTarget,
         controlKind: focused ? 'launch' : 'stun'
       },
-      skill
+      cast.skill
     );
-  } else if (skill.id === ID.DEVASTATOR) runtime.schedule('engineer.devastation', cast.fullEnd, cast);
-}
+  }
+};
 
 /** Automatic overcharge and palette expiry belong to the deployed turret, while cooldown starts on detonation. */
 export function completeEngineerTurret(runtime: EngineerRuntime, cast: RuntimeCast): void {
@@ -115,8 +127,9 @@ export const engineerWeaponTasks: RuntimeProfession<EngineerRuntimeState>['tasks
     consumeSkillFlip(runtime.profession.core.availableFlips, ID.ELECTRIC_ARTILLERY);
   },
   'engineer.devastation'(runtime, data) {
+    // Focused is sampled at the authored task deadline, after any intervening target-state changes.
     if (runtime.profession.core.focusedUntil <= runtime.time) return;
-    const cast = data as RuntimeCast;
+    const { cast } = data as SkillTaskData;
     const followup = runtime.helpers.skillsById.get(ID.FOCUSED_DEVASTATION)!;
     for (const effect of followup.effects ?? [])
       for (const { at, event } of materializeSkillEffectApplications({
