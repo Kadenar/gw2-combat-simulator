@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
@@ -36,7 +37,7 @@ export function engineerCoreCastAvailability(context: EngineerRuntime, skill: En
     );
   }
 
-  if (skill.id === ID.SWAP_WEAPONS) {
+  if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
     // engineers have no weapon swap except to exit a kit back to baseline weapons
     return state.activeKit
       ? { ready: true }

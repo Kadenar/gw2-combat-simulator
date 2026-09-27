@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  composePublicStateProjections,
   definePublicStateDefaults,
   snapshotProfessionState,
   readProfessionCoreState,
@@ -38,22 +37,18 @@ test('profession-state reads require nested ownership and cannot cross specializ
   assert.deepEqual(readProfessionCoreState(null), {});
 });
 
-test('public descriptors preserve field order, fallback precedence, and detached projected values', () => {
-  // Explicit fields need no fallback; overlapping slices retain their original key and merge order.
+test('public descriptors preserve field order, explicit values, and detached projected values', () => {
+  // Explicit state values take precedence over display defaults, including explicit undefined.
   const fallback = definePublicStateDefaults({
     active: { stacks: 0 },
     explicit: 'fallback',
     inactive: [{ stacks: 1 }]
   });
-  const projection = composePublicStateProjections([
-    { keys: ['core'], defaults: {} },
-    fallback,
-    definePublicStateDefaults({ explicit: 'later fallback' })
-  ]);
-  assert.deepEqual(projection.keys, ['core', 'active', 'explicit', 'inactive', 'explicit']);
-  assert.equal(projection.defaults.explicit, 'later fallback');
+  const projection = { keys: ['core', ...fallback.keys], defaults: fallback.defaults };
+  assert.deepEqual(projection.keys, ['core', 'active', 'explicit', 'inactive']);
+  assert.equal(projection.defaults.explicit, 'fallback');
   const absent = projectPublicProfessionState({}, projection.keys, projection.defaults);
-  assert.equal(absent.explicit, 'later fallback');
+  assert.equal(absent.explicit, 'fallback');
   assert.equal(Object.hasOwn(absent, 'core'), true);
   assert.equal(absent.core, undefined);
 

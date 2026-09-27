@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { GALESHOT_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 import { galeshotModifiers } from '#gw2/professions/ranger/specializations/galeshot/modifiers.js';
@@ -14,7 +16,7 @@ export const galeshotModule = defineNativeModule({
     skillMechanics: GALESHOT_BASE_SKILL_MECHANICS,
     balanceProfiles: GALESHOT_BALANCE_PROFILES
   }),
-  state: { create: galeshotState.create },
+  state: { create: galeshotState.create, project: createPublicStateProjector(GALESHOT_PUBLIC_STATE_PROJECTION) },
   modifiers: galeshotModifiers,
   hooks: galeshotHooks,
   presentation: bindGaleshotUi

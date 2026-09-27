@@ -52,3 +52,11 @@ export function buildResolverStrike<
 >(fields: T) {
   return { name: fields.skillName, hits: 1, hitIndex: 1, totalHits: 1, ...fields, type: 'damage' as const };
 }
+
+/** Identifies explicit flat life steal, which bypasses ordinary strike modifiers. */
+export function isFlatLifeStealPacket(event: Gw2ResolverEvent): boolean {
+  return (
+    event.damageKind === 'life-steal' &&
+    [event.flatDamage, event.flatStrikeBase, event.flatStrikePowerCoeff].some(Number.isFinite)
+  );
+}

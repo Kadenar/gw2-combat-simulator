@@ -1,10 +1,10 @@
 /** Keep public Elementalist state and native Weaver casts closed to unknown field names. */
-import type { projectElementalistPlanningState } from '#gw2/professions/elementalist/family-state.js';
+import type { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import type { schedulePrimordialStance } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
 import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
 
 type Assert<T extends true> = T;
-type PlanningState = ReturnType<typeof projectElementalistPlanningState>;
+type PlanningState = ReturnType<NonNullable<typeof elementalistCoreModule.state.project>>;
 type StanceCast = Parameters<typeof schedulePrimordialStance>[1];
 
 export type ElementalistRecordAssertions = [

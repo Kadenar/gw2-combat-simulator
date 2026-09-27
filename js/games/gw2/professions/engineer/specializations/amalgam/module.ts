@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { AMALGAM_PUBLIC_STATE_PROJECTION } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
 import { amalgamModifiers } from '#gw2/professions/engineer/specializations/amalgam/modifiers.js';
@@ -15,7 +17,7 @@ export const amalgamModule = defineNativeModule({
     skillMechanics: AMALGAM_SKILL_MECHANICS,
     balanceProfiles: AMALGAM_BALANCE_PROFILES
   }),
-  state: { create: amalgamState.create },
+  state: { create: amalgamState.create, project: createPublicStateProjector(AMALGAM_PUBLIC_STATE_PROJECTION) },
   modifiers: amalgamModifiers,
   hooks: amalgamHooks,
   presentation: bindAmalgamUi

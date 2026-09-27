@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   tooltipFactorChange,
   tooltipSeconds,
@@ -196,9 +197,9 @@ const familyTooltips = {
   )
 } satisfies Record<string, DescribeSimulationTooltip>;
 const familySkillIds: Record<keyof typeof familyTooltips, readonly (number | string)[]> = {
-  'ranger.dodge': [ID.DODGE],
+  'ranger.dodge': [SHARED_SKILL_IDS.DODGE],
   'ranger.pet-swap': [ID.PET_SWAP],
-  'ranger.weapon-swap': [ID.SWAP_WEAPONS],
+  'ranger.weapon-swap': [SHARED_SKILL_IDS.SWAP_WEAPONS],
   'ranger.hilt-bash': [ID.HILT_BASH],
   'ranger.winters-bite': [ID.WINTERS_BITE],
   'ranger.sun-spirit': [ID.SUN_SPIRIT],

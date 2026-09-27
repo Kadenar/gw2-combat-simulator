@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
@@ -62,7 +63,7 @@ function vindicatorPaletteActionSkills(context: RevenantUiContext, skills: reado
   const ordinarySkills = skills
     .filter((skill) => skill.name !== VINDICATOR_DODGE_AUTO_ACTION && skill.id !== VINDICATOR_JUMP_SKILL.id)
     // Manual reconstruction uses the full jump; legacy landing-only commands remain loadable by ID.
-    .map((skill) => (skill.id === SKILL.DODGE ? VINDICATOR_JUMP_SKILL : skill));
+    .map((skill) => (skill.id === SHARED_SKILL_IDS.DODGE ? VINDICATOR_JUMP_SKILL : skill));
   const dodgeAuto = vindicatorDodgeAutoPaletteSkill(context);
   if (!dodgeAuto) return ordinarySkills;
   const dodgeIndex = ordinarySkills.findIndex((skill) => skill.id === VINDICATOR_JUMP_SKILL.id);

@@ -1,3 +1,4 @@
+import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import type { Gw2BuffAudience } from '#gw2/platform/combat/boons.js';
 import {
   boonApplicationsAt,
@@ -11,7 +12,7 @@ import {
 } from '#gw2/platform/combat/boons.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RechargeProgress, RechargeInterval } from '#gw2/platform/engine/skills/recharge.js';
+import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 import {
   GW2_ALACRITY_RECHARGE_RATE,
   gw2RechargeIntervals,
@@ -98,7 +99,7 @@ export function createGw2TimelineIndex({
     return (alacrityWindows ??= prepareBoonWindows(events, 'alacrity', 'summon'));
   };
 
-  const rechargeIntervals = (skill: Skill, start: number, end: number): Iterable<RechargeInterval> =>
+  const rechargeIntervals = (skill: Skill, start: number, end: number): Iterable<RateInterval> =>
     gw2RechargeIntervals(playerAlacrityRechargeRate, summonAlacrityWindows, skill, start, end);
   const rechargeReadyAt = (skill: Skill, progress: RechargeProgress): number =>
     projectRecharge(progress, rechargeIntervals(skill, progress.startedAt, Infinity));
@@ -346,7 +347,7 @@ export function createGw2TimelineIndex({
 }
 
 export interface Gw2TimelineIndex {
-  rechargeIntervals(skill: Skill, start: number, end: number): Iterable<RechargeInterval>;
+  rechargeIntervals(skill: Skill, start: number, end: number): Iterable<RateInterval>;
   rechargeReadyAt(skill: Skill, progress: RechargeProgress): number;
   buffStacksAt(
     kind: string,

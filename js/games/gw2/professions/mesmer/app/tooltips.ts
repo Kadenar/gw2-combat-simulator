@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   tooltipFactorChange,
@@ -194,7 +195,7 @@ export const mesmerTooltips: ProfessionTooltips = {
     ...Object.fromEntries(
       Object.keys(MESMER_VIRTUOSO_SHATTERS).map((id) => [Number(id), shatterTooltip as DescribeSimulationTooltip])
     ),
-    [ID.SWAP_WEAPONS]: skillTooltip(
+    [SHARED_SKILL_IDS.SWAP_WEAPONS]: skillTooltip(
       'Switch weapon sets. Existing illusions keep their own weapons and attack patterns.'
     ),
     [ID.AXES_OF_SYMMETRY]: skillTooltip(
@@ -429,7 +430,7 @@ export const mesmerTooltips: ProfessionTooltips = {
         ...cloakFacts(balanceContext)
       ]
     }),
-    [ID.DODGE_TROUBADOUR]: skillTooltip('Spend 50 endurance to evade. Mayhem reduces Flustering Flute recharge.'),
+    [SHARED_SKILL_IDS.DODGE]: skillTooltip('Spend 50 endurance to evade. Mayhem reduces Flustering Flute recharge.'),
     ...Object.fromEntries(
       [
         [ID.TALE_OF_THE_HONORABLE_ROGUE, TROUBADOUR.honorableRogue, 'Drum'],

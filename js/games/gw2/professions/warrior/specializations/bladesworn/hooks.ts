@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { canonicalTime, EPSILON, isInternalCooldownReady, timeKey } from '#kernel/core/clock.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -593,7 +594,7 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = 
     const state = bladeswornState.from(runtime);
     if (skill.burst && !skill.dragonSlash)
       return denyCast('warrior.flow', 'Bladesworn replaces weapon bursts with Dragon Slash.');
-    if (skill.id === ID.SWAP_WEAPONS)
+    if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS)
       return denyCast('warrior.gunsaber', 'Bladesworn cannot swap normal weapon sets in combat.');
     if (skill.id === ID.UNSHEATHE_GUNSABER && state.gunsaberActive)
       return denyCast('warrior.gunsaber', 'Gunsaber is already active.');

@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   tooltipFactorChange,
   tooltipSeconds,
@@ -364,9 +365,9 @@ const familyTooltips = {
 
 /** Canonical members of each described family, independent of the live owner that executes them. */
 const FAMILY_SKILL_IDS: Readonly<Record<keyof typeof familyTooltips, readonly SkillId[]>> = {
-  'weapon-swap': [ID.SWAP_WEAPONS],
+  'weapon-swap': [SHARED_SKILL_IDS.SWAP_WEAPONS],
   'legend-swap': [ID.SWAP_LEGENDS],
-  dodge: [ID.DODGE],
+  dodge: [SHARED_SKILL_IDS.DODGE],
   'vindicator-jump': [VINDICATOR_JUMP_SKILL.id],
   'ancient-echo': [ID.ANCIENT_ECHO],
   upkeep: [

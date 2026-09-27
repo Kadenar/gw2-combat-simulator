@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
@@ -150,7 +151,7 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
     state: { time: 1, profession: { core: createRangerCoreState(config) } },
     emit: (event) => events.push(event)
   };
-  applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(ID.SWAP_WEAPONS), 1);
+  applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 1);
   const core = context.state.profession.core;
   assert.equal(core.quickDrawUntil, 6);
   assert.equal(context.procs.deadline('ranger.core.quickDraw'), 10);
@@ -215,7 +216,7 @@ test('a missing required Ranger scalar fails instead of using a local default', 
     emit() {}
   };
   assert.throws(
-    () => applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(ID.SWAP_WEAPONS), 1),
+    () => applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 1),
     /Invalid balance data: .*field=durationMultiplier/
   );
 });

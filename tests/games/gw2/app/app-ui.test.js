@@ -1,10 +1,10 @@
+import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import {
-  DEFAULT_TARGET_ARMOR,
   normalizeTargetArmor,
   PRIMARY_ATTRIBUTES,
   STACKING_TARGET_CONDITIONS,
@@ -231,7 +231,7 @@ test('selecting an elite shifts the remaining core lines above it', () => {
 });
 
 test('target armor presets use base by default and allow custom values', () => {
-  assert.equal(DEFAULT_TARGET_ARMOR, 2597);
+  assert.equal(STANDARD_TARGET_ARMOR, 2597);
   assert.deepEqual(TARGET_ARMOR_OPTIONS, [
     { value: 2597, label: 'Base' },
     { value: 1910, label: 'Vale Guardian / Keep Construct' },
@@ -243,7 +243,7 @@ test('target armor presets use base by default and allow custom values', () => {
   assert.equal(normalizeTargetArmor(1910), 1910);
   assert.equal(normalizeTargetArmor('2184'), 2184);
   assert.equal(normalizeTargetArmor(3210), 3210);
-  assert.equal(normalizeTargetArmor('not armor'), DEFAULT_TARGET_ARMOR);
+  assert.equal(normalizeTargetArmor('not armor'), STANDARD_TARGET_ARMOR);
 });
 
 test('proc display groups only consecutive occurrences of the same proc', () => {

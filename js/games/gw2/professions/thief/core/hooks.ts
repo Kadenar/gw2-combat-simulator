@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -218,7 +219,7 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     const skill = cast.skill as ThiefSkill;
     pruneSkillFlips(runtime.profession.core.availableFlips, runtime.time);
     spendThiefCoreResources(runtime, cast);
-    if (skill.id === ID.DODGE) startThiefDodge(runtime, cast);
+    if (skill.id === SHARED_SKILL_IDS.DODGE) startThiefDodge(runtime, cast);
     if (skill.stealthAttack) beginThiefStealthAttack(runtime, cast);
   },
   onCastComplete(runtime, cast) {

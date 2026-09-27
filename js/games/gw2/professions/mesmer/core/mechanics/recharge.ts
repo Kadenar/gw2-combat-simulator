@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
@@ -6,7 +7,7 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
@@ -37,7 +38,7 @@ const traitRecharge = compileRechargeRules<MesmerRuntimeState>([
  * Mesmer-adjusted recharge duration.
  */
 export function mesmerRechargeWork(context: MesmerRuntime, skill: MesmerSkill, sharedDuration: number): number {
-  if (skill.id === ID.SWAP_WEAPONS) {
+  if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
     return sharedDuration === 0 ? 0 : Number(skill.cooldown || 0);
   }
 

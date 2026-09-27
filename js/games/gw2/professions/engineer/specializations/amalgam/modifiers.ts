@@ -1,3 +1,4 @@
+import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import type { EngineerModifierContext } from '#gw2/professions/engineer/types.js';
 import {
   requireBalanceProfileFromContext,
@@ -10,8 +11,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   activeBoonStacks,
-  activeEngineerSpecializationState,
-  eventSkill
+  activeEngineerSpecializationState
 } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { applyEngineerSharpshooterConditionDamage } from '#gw2/professions/engineer/core/modifiers.js';
 

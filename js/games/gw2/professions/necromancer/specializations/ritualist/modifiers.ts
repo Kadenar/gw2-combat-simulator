@@ -1,3 +1,4 @@
+import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
   requireBalanceProfileFromContext,
@@ -11,7 +12,6 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   cloneNecromancerAttributes,
-  necromancerEventSkill,
   necromancerRuntimeSpecializationState
 } from '#gw2/professions/necromancer/core/modifiers.js';
 
@@ -39,10 +39,7 @@ const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     amount: (context, _target, parameters) =>
       Number(context.event?.metadata?.activeSpirits || 0) * parameters.damagePerSpirit,
     when: (context) =>
-      Boolean(
-        necromancerEventSkill(context)?.id === ID.ESSENCE_BLAST &&
-        Number(context.event?.metadata?.activeSpirits || 0) > 0
-      )
+      Boolean(eventSkill(context)?.id === ID.ESSENCE_BLAST && Number(context.event?.metadata?.activeSpirits || 0) > 0)
   },
   {
     id: 'necromancer.lingering-spirits',

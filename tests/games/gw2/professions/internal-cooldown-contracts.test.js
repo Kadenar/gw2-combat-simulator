@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -33,7 +34,7 @@ import {
   soulbeastEventHandlers
 } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { createSoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
-import { REVENANT_LEGEND_IDS, REVENANT_TRAIT_IDS, REVENANT_SKILL_IDS } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_LEGEND_IDS, REVENANT_TRAIT_IDS } from '#gw2/professions/revenant/data/ids.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
@@ -67,7 +68,7 @@ test('Revenant Brutality claims at swap completion and honors the exclusive ICD 
           catalog: (catalog) =>
             withSkill(
               revenantCooldown(REVENANT_TRAIT_IDS.BRUTALITY, duration)(catalog),
-              REVENANT_SKILL_IDS.SWAP_WEAPONS,
+              SHARED_SKILL_IDS.SWAP_WEAPONS,
               {
                 cooldown: 0
               }

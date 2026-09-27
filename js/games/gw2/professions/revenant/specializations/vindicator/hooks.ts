@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -216,7 +217,7 @@ function invokeAlliance(runtime: RevenantRuntime): void {
 export const vindicatorHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   // The landing-only Dodge input uses the selected dodge's fixed animation.
   castDurationMs: (runtime, skill, duration) =>
-    skill.id === ID.DODGE ? Math.max(0, Number(selectedDodge(runtime)?.castTimeMs || 0)) : duration,
+    skill.id === SHARED_SKILL_IDS.DODGE ? Math.max(0, Number(selectedDodge(runtime)?.castTimeMs || 0)) : duration,
   // Energy Meld variants share the same selected trait reduction.
   rechargeRules: [
     {
@@ -228,7 +229,7 @@ export const vindicatorHooks: Partial<RuntimeProfession<RevenantRuntimeState>> =
   modifyEffects: (_runtime, cast, effects) => (cast.skill.id === VINDICATOR_JUMP_SKILL.id ? [] : effects),
   onCastStart(runtime, cast) {
     // Landing-only inputs begin at the landing animation; full jumps land after their airborne time.
-    if (cast.skill.id === ID.DODGE) scheduleLanding(runtime, cast, cast.start);
+    if (cast.skill.id === SHARED_SKILL_IDS.DODGE) scheduleLanding(runtime, cast, cast.start);
     else if (cast.skill.id === VINDICATOR_JUMP_SKILL.id && !cast.cancelled)
       scheduleLanding(runtime, cast, cast.start + VINDICATOR_AIRBORNE_MS / 1000);
   },

@@ -8,7 +8,7 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import {
-  eventSkill as gw2EventSkill,
+  eventSkill,
   hasSelectedSkill,
   targetConditionActive,
   targetConditionCount,
@@ -29,7 +29,7 @@ import {
 } from '#gw2/professions/ranger/core/traits/pet-modifiers.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats, Gw2NumericStatKey } from '#gw2/platform/combat/query/combat-query.js';
-import type { RangerSkill } from '#gw2/professions/ranger/types.js';
+
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
@@ -37,9 +37,6 @@ function weaponSetIncludes(context: Gw2ModifierContext, weaponSet: number, names
   const weapons = gw2ConfiguredWeaponSet(context.config, weaponSet);
   return weapons.some((weapon) => names.includes(String(weapon || '')));
 }
-
-// Keeps Ranger-specific skill typing while using the shared modifier-context lookup precedence.
-const eventSkill = (context: Gw2ModifierContext): RangerSkill | undefined => gw2EventSkill<RangerSkill>(context);
 
 function openingStrikeReady(context: Gw2ModifierContext): boolean {
   const core = readProfessionCoreState<{
@@ -367,7 +364,7 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
       ),
     // Double only this skill's strike when Cripple, Slow, or Immobilize is active.
     when: (context) =>
-      gw2EventSkill(context)?.id === ID.STALKERS_STRIKE &&
+      eventSkill(context)?.id === ID.STALKERS_STRIKE &&
       stalkersStrikeTargetImpaired(context.config, context.time, context.runtime)
   },
   {

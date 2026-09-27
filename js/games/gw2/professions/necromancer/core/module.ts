@@ -1,3 +1,5 @@
+import { projectNecromancerPlanningState } from '#gw2/professions/necromancer/core/state.js';
+
 import { necromancerCoreHooks } from '#gw2/professions/necromancer/core/hooks.js';
 
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
@@ -5,7 +7,6 @@ import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/m
 import { necromancerCoreModifiers } from '#gw2/professions/necromancer/core/modifiers.js';
 
 import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import { projectNecromancerPlanningState } from '#gw2/professions/necromancer/family-state.js';
 import { bindNecromancerCoreUi } from '#gw2/professions/necromancer/core/presentation.js';
 import {
   NECROMANCER_CORE_BASE_SKILL_MECHANICS,

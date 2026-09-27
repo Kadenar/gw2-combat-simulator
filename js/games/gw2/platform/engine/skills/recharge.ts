@@ -1,3 +1,4 @@
+import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { boonIntervalsFromWindows, type BoonWindow } from '#gw2/platform/combat/boons.js';
 
@@ -5,12 +6,6 @@ import { boonIntervalsFromWindows, type BoonWindow } from '#gw2/platform/combat/
 export interface RechargeProgress {
   startedAt: number;
   work: number;
-}
-
-export interface RechargeInterval {
-  readonly start: number;
-  readonly end: number;
-  readonly rate: number;
 }
 
 type Gw2RechargeSkill = Pick<Skill, 'ammo' | 'ammoRecharge' | 'cooldown'>;
@@ -52,7 +47,7 @@ export function* gw2RechargeIntervals(
   skill: Skill,
   start: number,
   end: number
-): Iterable<RechargeInterval> {
+): Iterable<RateInterval> {
   if (end <= start) return;
   if (skill.rechargeBuffAudience !== 'summon' || skill.rechargeIgnoresAlacrity) {
     yield { start, end, rate: gw2RechargeRate(skill, playerAlacrityRechargeRate) };
@@ -69,7 +64,7 @@ export function* gw2RechargeIntervals(
 }
 
 /** Preserve earned recharge work when a received boon starts or expires. */
-export function projectRecharge(progress: RechargeProgress, intervals: Iterable<RechargeInterval>): number {
+export function projectRecharge(progress: RechargeProgress, intervals: Iterable<RateInterval>): number {
   let work = Math.max(0, progress.work);
   if (!work) return progress.startedAt;
   for (const interval of intervals) {

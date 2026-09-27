@@ -1,3 +1,4 @@
+import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 /**
  * Log-derived damage and timing constants for the Glyph of Elementals summons.
  *
@@ -11,7 +12,7 @@ export const ELEMENTAL_LIGHTNING_JOLT_PROFILE = Object.freeze({
   weaponStrengthProfileId: 'nonweapon.unequipped',
   weaponStrength: 690.5,
   damagePerCoefficient: 2500,
-  basePower: (2500 * 2597) / 690.5
+  basePower: (2500 * STANDARD_TARGET_ARMOR) / 690.5
 });
 
 /** Fire Elemental profile */

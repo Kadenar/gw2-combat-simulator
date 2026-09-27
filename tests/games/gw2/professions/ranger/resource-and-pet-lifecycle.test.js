@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
@@ -52,7 +53,7 @@ test('Ranger endurance and Dodge readiness are invariant under wait partitions',
   }
 
   const results = [[4000], [1000, 1000, 2000]].map((waits) =>
-    runRanger([ID.DODGE, ID.DODGE, ...waits.map(wait), ID.DODGE], config, {
+    runRanger([SHARED_SKILL_IDS.DODGE, SHARED_SKILL_IDS.DODGE, ...waits.map(wait), SHARED_SKILL_IDS.DODGE], config, {
       initialize(runtime) {
         boon(runtime, 'vigor', 0, 2);
       }

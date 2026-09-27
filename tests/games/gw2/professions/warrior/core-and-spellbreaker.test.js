@@ -17,7 +17,6 @@ import {
 } from '#gw2/professions/warrior/build/build.js';
 import { warriorNativeModules, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { warriorCoreModule } from '#gw2/professions/warrior/core/module.js';
-import { WARRIOR_WEAPON_STOW } from '#gw2/professions/warrior/core/skills/actions.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/core/profiles.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
@@ -85,9 +84,9 @@ test('Dual Wielding uses only measured cast durations with an eligible offhand',
 });
 
 test('Warrior catalog normalizes authored skills and reviewed aliases', () => {
-  assert.equal(warriorCatalog.skillsById.get(ID.WEAPON_STOW).name, 'Weapon Stow');
-  // Catalog normalization preserves the authored icon; browser tests verify Vite resolves the artwork.
-  assert.equal(warriorCatalog.skillsById.get(ID.WEAPON_STOW).icon, WARRIOR_WEAPON_STOW.icon);
+  // Weapon stow occupies a wait in rotations and must not return as a selectable skill.
+  assert.equal(warriorCatalog.skillsByName.has('Weapon Stow'), false);
+  assert.equal(warriorCatalog.skillsById.has(-6), false);
   assert.equal(warriorCatalog.skillsByName.get('Path to Victory').id, ID.PATH_TO_VICTORY_ID_71932);
   assert.equal(warriorCatalog.skillsByName.get("Harrier's Toss").id, ID.HARRIERS_TOSS);
   assert.equal(

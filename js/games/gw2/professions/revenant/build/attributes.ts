@@ -36,18 +36,16 @@ const BUILD_ATTRIBUTE_NAMES = Object.freeze({
 // ordered conversions into the shared build-time attribute result.
 export function applyRevenantBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  { build, disabledTrait = null, balanceContext }: Gw2BuildAttributeRuleContext
+  context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const revenantBuild = build as RevenantBuild;
+  const revenantBuild = context.build as RevenantBuild;
 
-  const { activeTraits, hasTrait } = createBuildAttributeContext({
-    specializations: revenantBuild.specializations || [],
-    disabledTrait,
+  const { activeTraits, hasTrait, profileContext } = createBuildAttributeContext(
+    context,
+    revenantCatalog,
     getActiveTraits
-  });
+  );
 
-  // Attribute amounts follow the selected patch while effect ordering and eligibility remain unchanged.
-  const profileContext = balanceContext ?? { catalog: revenantCatalog };
   const traitDurations: Gw2NumericAttributes = {};
   const traitCriticalChance = hasTrait(TRAIT.BRUTAL_MOMENTUM)
     ? 100 *

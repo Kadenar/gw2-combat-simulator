@@ -1,3 +1,5 @@
+import { projectAntiquaryPlanningState } from '#gw2/professions/thief/specializations/antiquary/state.js';
+
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
 import { antiquaryModifiers } from '#gw2/professions/thief/specializations/antiquary/modifiers.js';
@@ -13,7 +15,7 @@ export const antiquaryModule = defineNativeModule({
     skillMechanics: ANTIQUARY_SKILL_MECHANICS,
     balanceProfiles: ANTIQUARY_BALANCE_PROFILES
   }),
-  state: { create: antiquaryState.create },
+  state: { create: antiquaryState.create, project: projectAntiquaryPlanningState },
   modifiers: antiquaryModifiers,
   hooks: antiquaryHooks,
   presentation: antiquaryUi

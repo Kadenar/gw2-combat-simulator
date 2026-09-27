@@ -19,27 +19,17 @@ import type {
 } from '#gw2/platform/builds/types.js';
 import type { ThiefBuild } from '#gw2/professions/thief/types.js';
 
-function wields(build: ThiefBuild, weapon: string, weaponSet: number): boolean {
-  const weapons = weaponSet === 2 ? build.alternateWeapons : build.weapons;
-
-  return (weapons || []).includes(weapon);
-}
-
 export function applyThiefBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  { build, selectedSkills = [], weaponSet = 1, disabledTrait = null, balanceContext }: Gw2BuildAttributeRuleContext
+  context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const thiefBuild = build as ThiefBuild;
+  const thiefBuild = context.build as ThiefBuild;
 
-  const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
-    specializations: thiefBuild.specializations || [],
-    selectedSkills,
-    disabledTrait,
+  const { activeTraits, hasTrait, hasSelectedSkill, profileContext, weapons } = createBuildAttributeContext(
+    context,
+    thiefCatalog,
     getActiveTraits
-  });
-
-  // Build previews and simulation tooltips use the same selected patch values.
-  const profileContext = balanceContext ?? { catalog: thiefCatalog };
+  );
 
   const traitDurations: Gw2NumericAttributes = {};
 
@@ -65,7 +55,7 @@ export function applyThiefBuildAttributeRules(
       to: 'Power',
       amount: balanceProfileNumber(
         daggerTrainingProfile,
-        wields(thiefBuild, 'Dagger', weaponSet) ? 'weaponAttributeBonus' : 'attributeBonus'
+        weapons.includes('Dagger') ? 'weaponAttributeBonus' : 'attributeBonus'
       ),
       feedsConversions: true,
       enabled: hasTrait(TRAIT.DAGGER_TRAINING)
@@ -108,7 +98,7 @@ export function applyThiefBuildAttributeRules(
       to: 'Power',
       amount: balanceProfileNumber(
         staffMasterProfile,
-        wields(thiefBuild, 'Staff', weaponSet) ? 'weaponAttributeBonus' : 'attributeBonus'
+        weapons.includes('Staff') ? 'weaponAttributeBonus' : 'attributeBonus'
       ),
       feedsConversions: true,
       enabled: hasTrait(TRAIT.STAFF_MASTER)
@@ -119,7 +109,7 @@ export function applyThiefBuildAttributeRules(
       to: 'Power',
       amount: balanceProfileNumber(
         swindlersEquilibriumProfile,
-        wields(thiefBuild, 'Sword', weaponSet) ? 'weaponAttributeBonus' : 'attributeBonus'
+        weapons.includes('Sword') ? 'weaponAttributeBonus' : 'attributeBonus'
       ),
       feedsConversions: true,
       enabled: hasTrait(TRAIT.SWINDLERS_EQUILIBRIUM)
@@ -146,9 +136,7 @@ export function applyThiefBuildAttributeRules(
       to: 'Condition Damage',
       amount:
         balanceProfileNumber(secondOpinionProfile, 'attributeBonus') +
-        (wields(thiefBuild, 'Scepter', weaponSet)
-          ? balanceProfileNumber(secondOpinionProfile, 'attributePerStack')
-          : 0),
+        (weapons.includes('Scepter') ? balanceProfileNumber(secondOpinionProfile, 'attributePerStack') : 0),
       feedsConversions: true,
       enabled: hasTrait(TRAIT.SECOND_OPINION)
     },

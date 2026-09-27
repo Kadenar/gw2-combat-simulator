@@ -2,9 +2,7 @@
 // Committed constants keep mechanic references stable across metadata loads.
 
 export const REVENANT_SKILL_IDS = Object.freeze({
-  SWAP_WEAPONS: -3,
   SWAP_LEGENDS: -4,
-  DODGE: -5,
   VENGEFUL_HAMMERS: 26557, // Vengeful Hammers
   FACET_OF_STRENGTH: 26644, // Facet of Strength
   MANIFEST_TOXIN: 26666, // Manifest Toxin

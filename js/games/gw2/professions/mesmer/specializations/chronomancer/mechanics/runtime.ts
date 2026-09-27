@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -22,7 +23,7 @@ import {
 import { mesmerProfiledShatters, mesmerProfiledTraitDamage } from '#gw2/professions/mesmer/core/profiles.js';
 import type { MesmerContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/types.js';
 
-const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set<number>([ID.SWAP_WEAPONS]);
+const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set<number>([SHARED_SKILL_IDS.SWAP_WEAPONS]);
 
 /** Returns the controller installed only by the Chronomancer runtime. */
 export function chronomancerControllerFor(runtime: MesmerMechanics): MesmerContinuumController {

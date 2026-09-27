@@ -6,7 +6,6 @@ test('local artwork aliases resolve to loadable images', async ({ page }) => {
   const failures = await page.evaluate(async () => {
     const { professionRegistry } = await import('/js/games/gw2/profession-registry.ts');
     const tutorials = await import('/js/games/gw2/app/page/tutorial.ts');
-    const { WARRIOR_WEAPON_STOW } = await import('/js/games/gw2/professions/warrior/core/skills/actions.ts');
     const sources = professionRegistry.flatMap(({ specializationArtwork = [] }) =>
       specializationArtwork.flatMap(({ conceptArt, image }) => [conceptArt, image])
     );
@@ -16,7 +15,6 @@ test('local artwork aliases resolve to loadable images', async ({ page }) => {
       tutorials.ANALYSIS_TUTORIAL_GIF_URL,
       tutorials.OPTIMIZER_TUTORIAL_GIF_URL
     );
-    sources.push(WARRIOR_WEAPON_STOW.icon);
     for (const stylesheet of ['/css/profession-ui.css', '/css/rotation-palette.css']) {
       const response = await fetch(`${stylesheet}?direct`);
       if (!response.ok) throw new Error(`Cannot load ${stylesheet}: ${response.status}`);

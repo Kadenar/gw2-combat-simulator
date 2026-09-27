@@ -1,3 +1,4 @@
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { mirageHooks } from '#gw2/professions/mesmer/specializations/mirage/hooks.js';
 import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import assert from 'node:assert/strict';
@@ -5,7 +6,6 @@ import test from 'node:test';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
-import { projectMesmerPlanningState } from '#gw2/professions/mesmer/family-state.js';
 import { initializeMirageRuntime } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
 import { mirageAvailability } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import { mirageUi } from '#gw2/professions/mesmer/specializations/mirage/presentation.js';
@@ -192,7 +192,7 @@ test('Mirror availability, palette, cleanup, and one-time pickup agree on exact 
     assert.equal(availability.ready, active);
     if (at < 0.301) assert.equal(availability.retryAt, 0.301);
     if (at >= 8.301) assert.equal(availability.retryAt, null);
-    const projected = projectMesmerPlanningState({
+    const projected = projectObservedState(mesmerProfession, {
       ...context,
       config: context.config,
       catalog: context.catalog
@@ -238,7 +238,8 @@ test('player ambush availability and projection preserve the final live microsec
     assert.equal(mirageAvailability(context, skill).ready, at < 1.801);
     assert.equal(
       Boolean(
-        projectMesmerPlanningState({ ...context, config: context.config, catalog: context.catalog }).availableAmbush
+        projectObservedState(mesmerProfession, { ...context, config: context.config, catalog: context.catalog })
+          .availableAmbush
       ),
       at < 1.801
     );

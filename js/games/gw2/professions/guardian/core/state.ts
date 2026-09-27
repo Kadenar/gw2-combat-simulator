@@ -1,3 +1,8 @@
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import { projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
+import type { GuardianState } from '#gw2/professions/guardian/types.js';
+import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
 import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
@@ -93,3 +98,24 @@ export const GUARDIAN_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
   keys: GUARDIAN_CORE_PUBLIC_END_STATE_KEYS,
   defaults: {}
 });
+
+/** Detaches canonical combat state and expires public windows at the observation time. */
+export function snapshotGuardianState(state: unknown, at: number): GuardianState {
+  const snapshot = snapshotProfessionState<GuardianState>(state);
+  // Snapshots can be captured before a flip's expiry task runs; never expose an expired flip to the palette.
+  snapshot.availableFlips = Object.fromEntries(
+    Object.entries(snapshot.availableFlips || {}).filter(([, window]) => skillFlipVisible(window, at))
+  );
+  snapshot.symbolicAvengerExpirations = activeSymbolicAvengerExpirations(snapshot, at);
+  return snapshot;
+}
+
+/** Publishes detached, current public values without mutating the live module state. */
+export function projectGuardianPlanningState(input: Gw2PlanningStateInput) {
+  const state = snapshotGuardianState(input.profession, input.time);
+  return projectPublicProfessionState(
+    state,
+    GUARDIAN_CORE_PUBLIC_STATE_PROJECTION.keys,
+    GUARDIAN_CORE_PUBLIC_STATE_PROJECTION.defaults
+  );
+}

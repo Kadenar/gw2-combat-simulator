@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 /**
  * Elementalist catalog generation.
  *
@@ -99,7 +100,7 @@ function apiSkill(name: string): Skill | undefined {
 
 // Every declared skill in canonical id order; ids without an owning module are skipped.
 const ELEMENTALIST_DECLARED_SKILLS: readonly Skill[] = Object.freeze(
-  Object.values(ID).flatMap((id) => {
+  [...Object.values(ID), SHARED_SKILL_IDS.DODGE].flatMap((id) => {
     const declaration = ELEMENTALIST_SKILL_MECHANICS[id];
 
     return declaration

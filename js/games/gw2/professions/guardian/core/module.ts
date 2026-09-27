@@ -1,3 +1,5 @@
+import { projectGuardianPlanningState } from '#gw2/professions/guardian/core/state.js';
+
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { guardianCoreModifiers } from '#gw2/professions/guardian/core/modifiers.js';
@@ -7,7 +9,6 @@ import {
   GUARDIAN_CORE_EXTRA_SKILLS
 } from '#gw2/professions/guardian/core/skills/index.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
-import { projectGuardianPlanningState } from '#gw2/professions/guardian/family-state.js';
 import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
 import { GUARDIAN_CORE_BALANCE_PROFILES } from '#gw2/professions/guardian/core/profiles.js';
 

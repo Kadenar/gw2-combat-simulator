@@ -216,33 +216,31 @@ function scheduleImpact(
   );
 }
 
+/** Starts an autonomous single-hit attack; secondary profiles also arm their own recharge. */
+function startSingleImpactAttack(
+  context: ElementalistRuntime,
+  at: number,
+  profile:
+    | typeof FIRE_ELEMENTAL_EVTC_PROFILE.fireball
+    | typeof FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst
+    | typeof EARTH_ELEMENTAL_EVTC_PROFILE.punch
+    | typeof EARTH_ELEMENTAL_EVTC_PROFILE.enervatingPunch,
+  name: string,
+  impact: 'fireball' | 'flame-burst' | 'punch' | 'enervating-punch'
+): void {
+  const rate = actionRate(context, at);
+  const elemental = professionCoreState(context).summonedElemental;
+  const action = beginSummonAction(context, at, profile.skillId, name, profile.animationEnd / rate);
+  if ('cooldown' in profile)
+    elemental.secondaryAttackReadyAt = at + profile.animationEnd / rate + profile.cooldown / rechargeRate(context, at);
+  scheduleImpact(context, at + profile.impact / rate, impact, action);
+  elemental.busyUntil = at + profile.recovery / rate;
+}
+
 // --- Attack starters -------------------------------------------------------
 // Each starter follows the same shape: read the EVTC-derived timing profile, scale
 // offsets by the quickness action rate, emit the action, queue its impact(s), mark
 // the elemental busy until the shared actor loop can select another attack.
-
-// Fire auto-attack: single projectile hit.
-function startFireball(context: ElementalistRuntime, at: number): void {
-  const profile = FIRE_ELEMENTAL_EVTC_PROFILE.fireball;
-  const rate = actionRate(context, at);
-  const action = beginSummonAction(context, at, profile.skillId, 'Fireball', profile.animationEnd / rate);
-  scheduleImpact(context, at + profile.impact / rate, 'fireball', action);
-  const nextAt = at + profile.recovery / rate;
-  professionCoreState(context).summonedElemental.busyUntil = nextAt;
-}
-
-// Fire secondary: hit + party Might; sets its own cooldown (alacrity-scaled) before
-// it can be chosen again over the Fireball auto.
-function startFlameBurst(context: ElementalistRuntime, at: number): void {
-  const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst;
-  const rate = actionRate(context, at);
-  const elemental = professionCoreState(context).summonedElemental;
-  const action = beginSummonAction(context, at, profile.skillId, 'Flame Burst', profile.animationEnd / rate);
-  elemental.secondaryAttackReadyAt = at + profile.animationEnd / rate + profile.cooldown / rechargeRate(context, at);
-  scheduleImpact(context, at + profile.impact / rate, 'flame-burst', action);
-  const nextAt = at + profile.recovery / rate;
-  elemental.busyUntil = nextAt;
-}
 
 // Fire player command (flip skill): three projectiles + a final explosion hit.
 // Recovery is longer on the first-ever command vs subsequent ones (EVTC-observed).
@@ -260,28 +258,6 @@ function startFlameBarrage(context: ElementalistRuntime, at: number): void {
   });
   scheduleImpact(context, at + profile.explosionImpact / rate, 'flame-barrage-explosion', action, 4, -19);
   const nextAt = at + profile.animationEnd / rate + postCommandRecovery;
-  elemental.busyUntil = nextAt;
-}
-
-// Earth auto-attack: single melee hit.
-function startPunch(context: ElementalistRuntime, at: number): void {
-  const profile = EARTH_ELEMENTAL_EVTC_PROFILE.punch;
-  const rate = actionRate(context, at);
-  const action = beginSummonAction(context, at, profile.skillId, 'Punch', profile.animationEnd / rate);
-  scheduleImpact(context, at + profile.impact / rate, 'punch', action);
-  const nextAt = at + profile.recovery / rate;
-  professionCoreState(context).summonedElemental.busyUntil = nextAt;
-}
-
-// Earth secondary: hit + Weakness; cooldown-gated (alacrity-scaled) like Flame Burst.
-function startEnervatingPunch(context: ElementalistRuntime, at: number): void {
-  const profile = EARTH_ELEMENTAL_EVTC_PROFILE.enervatingPunch;
-  const rate = actionRate(context, at);
-  const elemental = professionCoreState(context).summonedElemental;
-  const action = beginSummonAction(context, at, profile.skillId, 'Enervating Punch', profile.animationEnd / rate);
-  elemental.secondaryAttackReadyAt = at + profile.animationEnd / rate + profile.cooldown / rechargeRate(context, at);
-  scheduleImpact(context, at + profile.impact / rate, 'enervating-punch', action);
-  const nextAt = at + profile.recovery / rate;
   elemental.busyUntil = nextAt;
 }
 
@@ -570,14 +546,20 @@ function stepElemental(
 
   if (elemental.element === 'Earth') {
     if (elemental.secondaryAttackReadyAt <= at + EPSILON) {
-      startEnervatingPunch(context, at);
+      startSingleImpactAttack(
+        context,
+        at,
+        EARTH_ELEMENTAL_EVTC_PROFILE.enervatingPunch,
+        'Enervating Punch',
+        'enervating-punch'
+      );
     } else {
-      startPunch(context, at);
+      startSingleImpactAttack(context, at, EARTH_ELEMENTAL_EVTC_PROFILE.punch, 'Punch', 'punch');
     }
   } else if (elemental.secondaryAttackReadyAt <= at + EPSILON) {
-    startFlameBurst(context, at);
+    startSingleImpactAttack(context, at, FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst, 'Flame Burst', 'flame-burst');
   } else {
-    startFireball(context, at);
+    startSingleImpactAttack(context, at, FIRE_ELEMENTAL_EVTC_PROFILE.fireball, 'Fireball', 'fireball');
   }
 
   return elemental.busyUntil < elemental.activeUntil ? { at: elemental.busyUntil, state } : null;

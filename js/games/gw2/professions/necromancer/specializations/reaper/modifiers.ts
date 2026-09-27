@@ -1,3 +1,4 @@
+import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
   requireBalanceProfileFromContext,
@@ -13,7 +14,6 @@ import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/dat
 import {
   cloneNecromancerAttributes,
   necromancerActiveShroud,
-  necromancerEventSkill,
   necromancerTargetChilled
 } from '#gw2/professions/necromancer/core/modifiers.js';
 import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/reaper/profiles.js';
@@ -42,7 +42,7 @@ export const reaperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       Boolean(
         // Shout doubling belongs to the player's skill packet, not merely an effect that inherits player modifiers.
-        isGw2PlayerActorEvent(context.event) && necromancerEventSkill(context)?.categories?.includes('Shout')
+        isGw2PlayerActorEvent(context.event) && eventSkill(context)?.categories?.includes('Shout')
       )
   },
   {

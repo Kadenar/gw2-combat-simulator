@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
@@ -271,7 +272,7 @@ function completeDeadeyeCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
   }
 
   // Silent Scope: a dodge above the malice threshold grants one out-of-stealth stealth attack.
-  if (skill.id === ID.DODGE && hasTrait(runtime, TRAIT.SILENT_SCOPE)) {
+  if (skill.id === SHARED_SKILL_IDS.DODGE && hasTrait(runtime, TRAIT.SILENT_SCOPE)) {
     const silentScope = requireBalanceProfileFromContext(runtime, PROFILE.silentScope);
     if (state.malice > balanceProfileNumber(silentScope, 'threshold')) {
       state.stealthAttackCharges = 1;

@@ -1,8 +1,10 @@
+import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
+import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { warriorBoonActive, warriorEventSkill } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
+import { warriorBoonActive } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 export const warriorDefenseModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -24,8 +26,8 @@ export const warriorDefenseModifierRules: readonly Gw2ModifierRule[] = Object.fr
       ['Hammer', 'Mace'].includes(
         String(
           context.event?.skillWeapon ||
-            warriorEventSkill(context)?.skillWeapon ||
-            warriorEventSkill(context)?.weapon ||
+            eventSkill<WarriorSkill>(context)?.skillWeapon ||
+            eventSkill<WarriorSkill>(context)?.weapon ||
             ''
         )
       ) &&

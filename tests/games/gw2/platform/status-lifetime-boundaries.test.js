@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
@@ -12,7 +13,7 @@ import { ENGINEER_TRAIT_IDS as HT } from '#gw2/professions/engineer/data/ids.js'
 import { GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
 import { MESMER_SKILL_IDS as M, MESMER_TRAIT_IDS as MT } from '#gw2/professions/mesmer/data/ids.js';
 import { NECROMANCER_SKILL_IDS as N } from '#gw2/professions/necromancer/data/ids.js';
-import { REVENANT_SKILL_IDS as R, REVENANT_TRAIT_IDS as RT } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_TRAIT_IDS as RT } from '#gw2/professions/revenant/data/ids.js';
 import { grantCatalystElementalEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import {
   applyCatalystEmpowerment,
@@ -353,7 +354,7 @@ test('Reavers Curse requires an arm, includes the final landing, and cannot be c
         initialize(runtime) {
           // Two same-time landings prove the first consumes the charge.
           for (const activationId of ['landing-1', 'landing-2'])
-            runtime.schedule('revenant.vindicator-landing', at, { skillId: R.DODGE, activationId });
+            runtime.schedule('revenant.vindicator-landing', at, { skillId: SHARED_SKILL_IDS.DODGE, activationId });
         }
       });
       const [first, second] = ['landing-1', 'landing-2'].map(

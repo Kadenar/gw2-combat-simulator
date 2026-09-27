@@ -1,6 +1,5 @@
 import { createDiscreteResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
-  composePublicStateProjections,
   definePublicStateDefaults,
   defineProfessionSpecializationState,
   professionCoreState,
@@ -97,16 +96,16 @@ defineProfessionSpecializationState('PrimitiveState', () => 1);
 const firebrandProjection = definePublicStateDefaults({
   tomePages: createDiscreteResourceClock(5)
 } satisfies Partial<GuardianFirebrandState>);
-const familyProjection = composePublicStateProjections([{ keys: ['activeTome'], defaults: {} }, firebrandProjection]);
+
 export type PublicProjectionKeyAssertions = [
   Assert<Rejects<typeof firebrandProjection.defaults, 'activeTome'>>,
-  Assert<(typeof familyProjection.keys)[number] extends 'activeTome' | 'tomePages' ? true : false>
+  Assert<(typeof firebrandProjection.keys)[number] extends 'tomePages' ? true : false>
 ];
 definePublicStateDefaults({
   // @ts-expect-error Misspelled public fields are not owned by Firebrand.
   tomePagez: 5
 } satisfies Partial<GuardianFirebrandState>);
-const misspelledProjection = composePublicStateProjections([definePublicStateDefaults({ tomePagez: 5 })]);
+const misspelledProjection = definePublicStateDefaults({ tomePagez: 5 });
 declare const firebrandState: GuardianFirebrandState;
-// @ts-expect-error Composing descriptors must not widen invalid keys into accepted state fields.
+// @ts-expect-error Projection descriptors must not widen invalid keys into accepted state fields.
 projectPublicProfessionState(firebrandState, misspelledProjection.keys, misspelledProjection.defaults);

@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { weaponFlipBlock } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -307,7 +308,7 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog>): RangerUiS
           displayMode: 'bar',
           shortLabel: 'End',
           statusLabel: 'Current',
-          paletteSkillId: ID.DODGE
+          paletteSkillId: SHARED_SKILL_IDS.DODGE
         }
       ];
     },

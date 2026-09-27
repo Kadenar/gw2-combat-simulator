@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -253,7 +254,7 @@ function activateAssassinsSignet(runtime: ThiefRuntime): void {
 /** Utility, stance, and swap transitions owned by Core at the committed completion. */
 export function completeThiefCoreActions(runtime: ThiefRuntime, cast: RuntimeCast, committed: boolean): void {
   const skill = cast.skill;
-  if (skill.id === ID.SWAP_WEAPONS) {
+  if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
     completeThiefWeaponSwap(runtime);
     return;
   }

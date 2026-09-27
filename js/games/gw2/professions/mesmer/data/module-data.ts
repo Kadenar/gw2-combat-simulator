@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
@@ -40,7 +41,7 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
     ID.SPLIT_SURGE,
     ID.CHAOS_VORTEX
   ],
-  Troubadour: [ID.TROUBADOUR_BLADECALL, ID.DODGE_TROUBADOUR]
+  Troubadour: [ID.TROUBADOUR_BLADECALL, SHARED_SKILL_IDS.DODGE]
 });
 
 const WEAPON_DATA = defineProfessionWeapons({

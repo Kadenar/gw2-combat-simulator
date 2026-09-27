@@ -1,3 +1,4 @@
+import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import {
@@ -117,7 +118,7 @@ export function createRuntimeResources<T extends object>(runtime: Gw2Runtime<T>,
       amount(value);
       if (value === 0) return;
       const { state } = get(key);
-      if (resourceAt(state, runtime.time) + 1e-9 < value) throw new RangeError(`Insufficient ${key}.`);
+      if (!resourceAtLeast(resourceAt(state, runtime.time), value)) throw new RangeError(`Insufficient ${key}.`);
       advanceResource(state, runtime.time);
       state.value = Math.max(0, state.value - value);
       if ('nextAt' in state && value > 0) {

@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -186,7 +187,7 @@ function engineerCorePaletteSkillAvailability(
   }
 
   // The synthetic swap action exists only to return from a kit to baseline weapons.
-  if (skill.id === -3) {
+  if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
     return {
       available: Boolean(state.activeKit),
       message: state.activeKit ? '' : 'Engineers can use weapon swap only to leave an active kit'
@@ -325,7 +326,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog>): Enginee
         statusLabel: 'Current',
         // Keep the conditional Tools endurance meter with the Dodge action that
         // spends it, matching the shared palette placement used by professions.
-        paletteSkillId: ID.DODGE
+        paletteSkillId: SHARED_SKILL_IDS.DODGE
       };
       return [endurance];
     },

@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -125,7 +126,7 @@ test('Hilt Bash refreshes either Maul ID only after completing its cast', () => 
 test('Enduring Swing grants 15 capped endurance on completion and none when interrupted', () => {
   for (const interrupted of [false, true]) {
     const result = simulate('Core', [
-      ID.DODGE,
+      SHARED_SKILL_IDS.DODGE,
       ID.SLASH_ID_12474,
       ID.SLICE,
       { type: 'cast', skillId: ID.ENDURING_SWING, ...(interrupted ? { interruptAfterMs: 50 } : {}) }

@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -111,7 +112,7 @@ function movementTraits(runtime: ThiefRuntime): void {
 /** Completion-time trait state: dodge, initiative-spend, and movement traits. */
 export function completeThiefCastTraits(runtime: ThiefRuntime, cast: RuntimeCast, committed: boolean): void {
   if (!committed) return;
-  if (cast.skill.id === ID.DODGE) upperHand(runtime);
+  if (cast.skill.id === SHARED_SKILL_IDS.DODGE) upperHand(runtime);
   leadAttacks(runtime, cast);
   if ((cast.skill as ThiefSkill).movementSkill) movementTraits(runtime);
 }

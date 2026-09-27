@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { WILLBENDER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { willbenderModifiers } from '#gw2/professions/guardian/specializations/willbender/modifiers.js';
@@ -16,7 +18,7 @@ export const willbenderModule = defineNativeModule({
 
     balanceProfiles: WILLBENDER_BALANCE_PROFILES
   }),
-  state: { create: willbenderState.create },
+  state: { create: willbenderState.create, project: createPublicStateProjector(WILLBENDER_PUBLIC_STATE_PROJECTION) },
   modifiers: willbenderModifiers,
   hooks: willbenderHooks,
   presentation: bindWillbenderUi

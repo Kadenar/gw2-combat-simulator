@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
@@ -97,7 +98,7 @@ test('Daredevil emits only current profile effects, including patched condition 
       assert.equal(packet.condition, 'Poisoned');
       assert.equal(packet.stacks, 3);
       assert.equal(packet.duration, 7);
-      assert.equal(packet.skillId, ID.DODGE);
+      assert.equal(packet.skillId, SHARED_SKILL_IDS.DODGE);
       assert.equal(packet.skillName, 'Impaling Lotus');
       assert.equal(packet.actorType, 'player');
     }

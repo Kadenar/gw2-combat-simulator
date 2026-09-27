@@ -1,5 +1,7 @@
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
+import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
@@ -550,23 +552,34 @@ test('cancelled Inspiring Imagery creates neither a field nor boons', () => {
   assert.equal(result.planningState.profession.availableFlips[ID.ABSTRACTION], undefined);
 });
 
-test('The Prestige has a 40ms quickness activation and explodes 3s later', () => {
-  const result = simulateMesmer(
-    ['The Prestige', { name: '__wait', waitMs: 3100 }],
-    defaultSimulationConfig({
-      specialization: 'Mirage',
-      primaryWeapon: 'Axe',
-      secondaryWeapon: 'Torch',
-      initialResource: 0
-    })
-  );
-  const cast = result.steps.find((step) => step.skill === 'The Prestige');
-  const strike = result.events.find((event) => event.type === 'damage' && event.skillName === 'The Prestige');
+// The delayed explosion uses its authored cast-start offset and keeps Burning on the same impact.
+test('The Prestige schedules its delayed strike and Burning together', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Mirage',
+    primaryWeapon: 'Axe',
+    secondaryWeapon: 'Torch',
+    initialResource: 0
+  });
+  const native = mesmerProfession.runtimeFor(config);
+  const skill = native.catalog.skillsById.get(ID.THE_PRESTIGE);
+  const result = observeGw2Runtime({
+    profession: {
+      ...native,
+      catalog: withSkill(native.catalog, skill.id, {
+        effects: skill.effects.map((effect) =>
+          effect.type === 'strike' || effect.type === 'condition' ? { ...effect, atMs: 1200 } : effect
+        )
+      })
+    },
+    config,
+    rotation: [skill.name, { type: 'wait', durationMs: 1600 }]
+  });
+  const cast = result.steps[0];
+  const strike = result.events.find((event) => event.type === 'damage' && event.skillId === skill.id);
   const burning = result.events.find(
-    (event) => event.type === 'condition' && event.skillName === 'The Prestige' && event.condition === 'Burning'
+    (event) => event.type === 'condition' && event.skillId === skill.id && event.condition === 'Burning'
   );
-
-  assert.equal(cast.end - cast.start, 40);
-  assert.equal(strike.at * 1000 - cast.start, 3000);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(Math.round(strike.at * 1000 - cast.start), 1200);
   assert.equal(burning.at, strike.at);
 });

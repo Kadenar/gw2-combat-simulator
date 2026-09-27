@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   tooltipFactorChange,
@@ -293,7 +294,7 @@ const familyTooltips = {
 const familySkillIds: Record<keyof typeof familyTooltips, readonly SkillId[]> = {
   'engineer.kit-equip': [ID.BOMB_KIT, ID.ELITE_MORTAR_KIT, ID.ELIXIR_GUN, ID.FLAMETHROWER, ID.GRENADE_KIT, ID.MED_KIT],
   'engineer.kit-stow': [
-    ID.SWAP_WEAPONS,
+    SHARED_SKILL_IDS.SWAP_WEAPONS,
     ID.STOW_BOMB_KIT,
     ID.STOW_ELITE_MORTAR_KIT,
     ID.STOW_ELIXIR_GUN,
@@ -312,7 +313,7 @@ const familySkillIds: Record<keyof typeof familyTooltips, readonly SkillId[]> = 
   ],
   'engineer.mine-field': [ID.MINE_FIELD],
   'engineer.gleam-saber': [ID.GLEAM_SABER_NON_HOLOSMITH, ID.GLEAM_SABER],
-  'engineer.dodge': [ID.DODGE],
+  'engineer.dodge': [SHARED_SKILL_IDS.DODGE],
   'engineer.photon-forge-enter': [ID.ENGAGE_PHOTON_FORGE],
   'engineer.photon-forge-exit': [ID.DEACTIVATE_PHOTON_FORGE, ID.DEACTIVATE_PHOTON_FORGE_HOT],
   'engineer.heat': [

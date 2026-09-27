@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { EVOKER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { evokerHooks } from '#gw2/professions/elementalist/specializations/evoker/hooks.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
@@ -18,7 +20,7 @@ export const evokerModule = defineNativeModule({
     skillMechanics: EVOKER_SKILL_MECHANICS,
     balanceProfiles: EVOKER_BALANCE_PROFILES
   }),
-  state: { create: evokerState.create },
+  state: { create: evokerState.create, project: createPublicStateProjector(EVOKER_PUBLIC_STATE_PROJECTION) },
   modifiers: evokerModifiers,
   hooks: evokerHooks,
   presentation: evokerUi

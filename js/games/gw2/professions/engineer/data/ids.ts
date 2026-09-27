@@ -2,8 +2,6 @@
 // Committed constants keep mechanic references stable across metadata loads.
 
 export const ENGINEER_SKILL_IDS = Object.freeze({
-  SWAP_WEAPONS: -3,
-  DODGE: -5,
   STOW_ELITE_MORTAR_KIT: -301,
   EVOLVE_BASE: 76642,
   EVOLVE_DOUBLE_HELIX: 76651,

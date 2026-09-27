@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { MECHANIST_PUBLIC_STATE_PROJECTION } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
 import { mechanistModifiers } from '#gw2/professions/engineer/specializations/mechanist/modifiers.js';
@@ -15,7 +17,7 @@ export const mechanistModule = defineNativeModule({
     skillMechanics: MECHANIST_SKILL_MECHANICS,
     balanceProfiles: MECHANIST_BALANCE_PROFILES
   }),
-  state: { create: mechanistState.create },
+  state: { create: mechanistState.create, project: createPublicStateProjector(MECHANIST_PUBLIC_STATE_PROJECTION) },
   modifiers: mechanistModifiers,
   hooks: mechanistHooks,
   presentation: mechanistUi

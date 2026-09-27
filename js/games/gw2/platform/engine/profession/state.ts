@@ -1,3 +1,4 @@
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
 import type { DynamicFields, UnvalidatedFields } from '#kernel/core/unvalidated.js';
 /**
  * Profession state ownership helpers. Keeps Core and active-specialization
@@ -61,23 +62,11 @@ export function readProfessionSpecializationState<TState extends object = Dynami
   return specialization.state as Partial<TState>;
 }
 
-/** Declares inactive public fallbacks, never live state initialization or private runtime fields. */
+/** Declares public fields and display defaults for the owning module, separate from live state initialization. */
 export function definePublicStateDefaults<TDefaults extends object>(defaults: TDefaults) {
   return Object.freeze({
     keys: Object.freeze(Object.keys(defaults) as Extract<keyof TDefaults, string>[]),
     defaults: Object.freeze(defaults)
-  });
-}
-
-/** Composes slice metadata in order, retaining duplicate keys and letting later defaults win. */
-export function composePublicStateProjections<
-  const TSlices extends readonly { readonly keys: readonly string[]; readonly defaults: object }[]
->(slices: TSlices) {
-  return Object.freeze({
-    keys: Object.freeze(slices.flatMap((slice) => slice.keys) as TSlices[number]['keys'][number][]),
-    defaults: Object.freeze(Object.assign({}, ...slices.map((slice) => slice.defaults))) as Readonly<
-      TSlices[number]['defaults']
-    >
   });
 }
 
@@ -212,4 +201,17 @@ export function defineProfessionSpecializationState<
       ) as TState;
     }
   });
+}
+
+/** Projects only a module's declared public fields; inactive modules contribute no fields or defaults. */
+export function createPublicStateProjector<const TKey extends string>(projection: {
+  readonly keys: readonly TKey[];
+  readonly defaults: Readonly<Partial<Record<TKey, unknown>>>;
+}): (input: Gw2PlanningStateInput) => Record<TKey, unknown> {
+  return ({ profession }) =>
+    projectPublicProfessionState(
+      flattenProfessionState<Record<TKey, unknown>>(profession),
+      projection.keys,
+      projection.defaults
+    );
 }

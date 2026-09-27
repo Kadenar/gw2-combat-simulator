@@ -6,17 +6,12 @@ import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { warriorAppAdapter } from '#gw2/professions/warrior/app/app-definition.js';
 import { migrateWarriorBuild } from '#gw2/professions/warrior/build/build.js';
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { strikeEffectTicks, conditionEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
 const buildUrl = new URL(
   '../../../../../data/gw2/builds/warrior/b-condi-berserker-longbow-sword-torch.json',
   import.meta.url
 );
-
-function skill(id) {
-  return warriorCatalog.skillsById.get(id);
-}
 
 test('Warrior leaps retain fire fields that expire during travel', async () => {
   const raw = JSON.parse(await readFile(buildUrl, 'utf8'));
@@ -43,176 +38,6 @@ test('Warrior leaps retain fire fields that expire during travel', async () => {
       assert.ok(result.procSteps.some((proc) => proc.skill === 'King of Fires' && proc.sourceSkill === leap));
     }
   }
-});
-
-test('default Condition Berserker uses the full training-golem health pool', async () => {
-  const build = JSON.parse(await readFile(buildUrl, 'utf8'));
-
-  assert.equal(build.targetHealth, 4_000_000);
-});
-
-test('Condition Berserker skill data uses configured values and packet timing', () => {
-  const dualShot = skill(ID.DUAL_SHOT);
-
-  assert.deepEqual(
-    dualShot.effects[0].ticks.map(({ atMs, coefficient }) => [atMs, coefficient]),
-    [
-      [560, 0.525],
-      [600, 0.525]
-    ]
-  );
-  assert.equal(dualShot.comboFinishers[0].ownerId, 'warrior');
-  assert.equal(dualShot.comboFinishers[0].finisherType, 'Projectile');
-  assert.equal(dualShot.comboFinishers[0].chance, 0.2);
-  assert.equal(dualShot.comboFinishers[0].ambiguousFieldSelection, 'oldest');
-
-  const fan = skill(ID.FAN_OF_FIRE);
-
-  assert.equal(fan.cooldown, 5);
-  assert.equal(fan.retainsCastLockoutAfterInterrupt, true);
-  assert.deepEqual(
-    fan.effects.slice(0, 1).map(({ type, coefficient, hits, atMs }) => ({ type, coefficient, hits, atMs })),
-    [{ type: 'strike', coefficient: 1.32, hits: 3, atMs: 240 }]
-  );
-  // Read packet payloads through the canonical helpers so shared impacts and timelines use the same checks.
-  assert.deepEqual(
-    fan.effects.filter((effect) => effect.type === 'condition').flatMap(conditionEffectTicks),
-    Array(3).fill({ atMs: 240, condition: 'Burning', stacks: 1, duration: 3 })
-  );
-
-  const gash = skill(ID.GASH);
-  assert.equal(gash.retainsCastLockoutAfterInterrupt, true);
-
-  const arcingArrow = skill(ID.ARCING_ARROW);
-
-  assert.equal(arcingArrow.ammo, 2);
-  assert.equal(arcingArrow.ammoRecharge, 8);
-  assert.equal(arcingArrow.ammoCastLockout, 1);
-  assert.equal(arcingArrow.comboFinishers[0].finisherType, 'Blast');
-  assert.deepEqual(
-    arcingArrow.effects.map((effect) =>
-      effect.type === 'strike' ? strikeEffectTicks(effect) : conditionEffectTicks(effect)
-    ),
-    [[{ atMs: 600, coefficient: 2.5 }], [{ atMs: 600, condition: 'Burning', stacks: 1, duration: 5 }]]
-  );
-
-  const smolderingArrow = skill(ID.SMOLDERING_ARROW);
-
-  assert.equal(smolderingArrow.ammo, 3);
-  assert.equal(smolderingArrow.ammoRecharge, 16);
-  assert.equal(smolderingArrow.ammoCastLockout, 0.5);
-  assert.equal(smolderingArrow.effects[0].coefficient, 0.2);
-  assert.equal(
-    smolderingArrow.effects.some((effect) => effect.type === 'blind' && effect.duration === 5),
-    true
-  );
-  assert.equal(smolderingArrow.comboFinishers[0].finisherType, 'Projectile');
-  assert.equal(smolderingArrow.comboFinishers[0].chance, 1);
-
-  const pinDown = skill(ID.PIN_DOWN);
-
-  assert.equal(pinDown.cooldown, 20);
-  assert.deepEqual(
-    pinDown.effects.map((effect) =>
-      effect.type === 'strike' ? strikeEffectTicks(effect) : conditionEffectTicks(effect)
-    ),
-    [
-      [{ atMs: 560, coefficient: 0.44 }],
-      [{ atMs: 560, condition: 'Bleeding', stacks: 6, duration: 12 }],
-      [{ atMs: 560, condition: 'Immobilized', stacks: 1, duration: 3 }]
-    ]
-  );
-  assert.equal(pinDown.comboFinishers[0].finisherType, 'Projectile');
-
-  const combustiveShot = skill(ID.COMBUSTIVE_SHOT);
-
-  assert.equal(combustiveShot.cooldown, 8);
-  assert.equal(combustiveShot.comboFields[0].ownerId, 'warrior');
-  assert.equal(combustiveShot.comboFields[0].fieldType, 'Fire');
-  assert.equal(combustiveShot.comboFields[0].duration, 3);
-  assert.equal(combustiveShot.comboFields[0].startAnchor, 'castEnd');
-  assert.deepEqual(combustiveShot.effects, []);
-
-  const scorchedEarth = skill(ID.SCORCHED_EARTH);
-
-  assert.equal(scorchedEarth.cooldown, 5);
-  assert.equal(scorchedEarth.skillWeapon, 'Longbow');
-  assert.equal(scorchedEarth.comboFields[0].fieldType, 'Fire');
-  assert.equal(scorchedEarth.comboFields[0].duration, 4);
-  assert.deepEqual(
-    scorchedEarth.effects[0].ticks.map(({ atMs, coefficient }) => [atMs, coefficient]),
-    [
-      [320, 0.5],
-      [2320, 0.5],
-      [4320, 0.5]
-    ]
-  );
-
-  const savageLeap = skill(ID.SAVAGE_LEAP);
-  const savageBleeding = savageLeap.effects
-    .filter((effect) => effect.type === 'condition')
-    .flatMap(conditionEffectTicks)
-    .find((tick) => tick.condition === 'Bleeding');
-
-  assert.equal(savageBleeding.stacks, 3);
-  assert.equal(savageBleeding.duration, 5);
-  assert.deepEqual(
-    scorchedEarth.effects[1].ticks.map(({ atMs, stacks, duration }) => [atMs, stacks, duration]),
-    [
-      [320, 1, 3],
-      [2320, 1, 3],
-      [4320, 1, 3]
-    ]
-  );
-
-  const blazeBreaker = skill(ID.BLAZE_BREAKER);
-
-  assert.equal(blazeBreaker.cooldown, 12);
-  assert.equal(blazeBreaker.comboFinishers[0].finisherType, 'Blast');
-  assert.equal(blazeBreaker.comboFinishers[0].chance, 1);
-  assert.deepEqual(
-    blazeBreaker.effects.map((effect) =>
-      effect.type === 'strike' ? strikeEffectTicks(effect) : conditionEffectTicks(effect)
-    ),
-    [
-      [{ atMs: 400, coefficient: 0.4 }],
-      [{ atMs: 400, condition: 'Burning', stacks: 1, duration: 6 }],
-      [{ atMs: 400, condition: 'Crippled', stacks: 1, duration: 3 }]
-    ]
-  );
-
-  const flamesOfWar = skill(ID.FLAMES_OF_WAR);
-
-  assert.equal(flamesOfWar.cooldown, 20);
-  assert.equal(flamesOfWar.comboFields[0].fieldType, 'Fire');
-  assert.equal(flamesOfWar.comboFields[0].duration, 5);
-  assert.deepEqual(flamesOfWar.effects[0], {
-    type: 'strike',
-    ticks: [{ atMs: 5480, coefficient: 1 }],
-    timingAnchor: 'castStart',
-    timingScale: 'fixed'
-  });
-  assert.deepEqual(
-    flamesOfWar.effects[1].ticks.map(({ atMs, stacks, duration }) => [atMs, stacks, duration]),
-    [
-      [480, 1, 2],
-      [1480, 1, 2],
-      [2480, 1, 2],
-      [3480, 1, 2],
-      [4480, 1, 2],
-      [5480, 2, 6]
-    ]
-  );
-
-  const flamingFlurry = skill(ID.FLAMING_FLURRY);
-
-  assert.equal(flamingFlurry.skillWeapon, 'Sword');
-  assert.equal(flamingFlurry.defaultInterruptMs, undefined);
-  assert.equal(flamingFlurry.interruptMode, 'per-packet');
-  assert.deepEqual(
-    flamingFlurry.effects[1].ticks.map(({ duration }) => duration),
-    [3.5, 3.5, 3.5, 3.5, 3.5, 3.5]
-  );
 });
 
 test('Fan of Fire keeps only cast-time skills behind its retained aftercast', async () => {

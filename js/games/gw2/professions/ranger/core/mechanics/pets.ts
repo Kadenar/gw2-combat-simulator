@@ -1,3 +1,4 @@
+import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import {
   requireBalanceProfileFromContext,
@@ -132,7 +133,7 @@ export function rangerPetCombatMetadata(context?: RangerRuntime | RangerResolver
     ...(context ? { summonOwner: rangerPetCompanionId(context) } : {}),
     summonCriticalChance: (attributes.precision - 1000) / 2100,
     summonCriticalDamage: 1.5 + attributes.ferocity / 1500,
-    summonDamagePerCoefficient: (2880 * attributes.power) / 2597
+    summonDamagePerCoefficient: (2880 * attributes.power) / STANDARD_TARGET_ARMOR
   };
 }
 

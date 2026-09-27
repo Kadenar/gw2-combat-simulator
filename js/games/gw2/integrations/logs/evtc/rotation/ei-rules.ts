@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   MUSHROOM_KINGS_BLESSING_BUFF_ID,
   MUSHROOM_KINGS_BLESSING_SKILL_ID
@@ -331,7 +332,7 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
   {
     profession: 'elementalist',
     specialization: 'weaver',
-    skillId: -5,
+    skillId: SHARED_SKILL_IDS.DODGE,
     signal: -5,
     kind: 'buff-gain',
     rule: 'WeaverHelper.BuffGainCastFinder(FireWaterAttunement)'

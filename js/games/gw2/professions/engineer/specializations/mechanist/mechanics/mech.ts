@@ -1,3 +1,4 @@
+import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
   requireBalanceProfileFromContext,
@@ -26,7 +27,6 @@ export { isEngineerMechCommand } from '#gw2/professions/engineer/specializations
 // equipped weapon strength. The skill-specific native weapon profile is
 // resolved separately from inherited mech attributes and live modifiers.
 const MECH_REFERENCE_POWER = 1500;
-const STANDARD_TARGET_ARMOR = 2597;
 const MECH_TYPE_1_PROFILE_ID = 'summon.weapon-type-1';
 const MECH_TYPE_2_PROFILE_ID = 'summon.weapon-type-2';
 const MECH_TYPE_3_PROFILE_ID = 'summon.weapon-type-3';

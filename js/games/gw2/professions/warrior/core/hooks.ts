@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
@@ -446,7 +447,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
       multiplier: { profile: trait, field: 'rechargeMultiplier' }
     }))
   ],
-  rechargeWork: (_runtime, skill, work) => (skill.id === ID.SWAP_WEAPONS ? Math.min(5, work) : work),
+  rechargeWork: (_runtime, skill, work) => (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS ? Math.min(5, work) : work),
   traitTriggers: [
     // Independent control rewards share accepted-event ownership; resource transactions stay in the hook.
     {
@@ -478,7 +479,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     {
       trait: TRAIT.RECKLESS_DODGE,
       on: 'castComplete',
-      when: (_runtime, cast) => cast.skill.id === ID.DODGE,
+      when: (_runtime, cast) => cast.skill.id === SHARED_SKILL_IDS.DODGE,
       emit: PROFILE.recklessDodge,
       effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
       attribution: { source: 'Warrior', actorType: 'player', name: 'Reckless Dodge', skillWeapon: '' }
@@ -486,7 +487,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     {
       trait: TRAIT.RECKLESS_DODGE,
       on: 'castComplete',
-      when: (_runtime, cast) => cast.skill.id === ID.DODGE,
+      when: (_runtime, cast) => cast.skill.id === SHARED_SKILL_IDS.DODGE,
       emit: PROFILE.recklessDodge,
       effects: (effect) => effect.type === 'boon' && effect.name === 'might',
       attribution: { name: 'Reckless Dodge — Might', priority: 0 }

@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { SOULBEAST_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 import { soulbeastModifiers } from '#gw2/professions/ranger/specializations/soulbeast/modifiers.js';
@@ -14,7 +16,7 @@ export const soulbeastModule = defineNativeModule({
     skillMechanics: SOULBEAST_BASE_SKILL_MECHANICS,
     balanceProfiles: SOULBEAST_BALANCE_PROFILES
   }),
-  state: { create: soulbeastState.create },
+  state: { create: soulbeastState.create, project: createPublicStateProjector(SOULBEAST_PUBLIC_STATE_PROJECTION) },
   modifiers: soulbeastModifiers,
   hooks: soulbeastHooks,
   presentation: bindSoulbeastUi

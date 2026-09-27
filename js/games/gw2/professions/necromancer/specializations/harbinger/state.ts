@@ -1,3 +1,5 @@
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import {
   definePublicStateDefaults,
@@ -91,3 +93,14 @@ export function consumeBlight(state: HarbingerState, stacks: number, at: number)
 }
 
 export const harbingerState = defineProfessionSpecializationState('Harbinger', createHarbingerState);
+
+/** Publishes detached, current public values without mutating the live module state. */
+export function projectHarbingerPlanningState(input: Gw2PlanningStateInput) {
+  const state = snapshotProfessionState<HarbingerState>(input.profession);
+  syncHarbingerState(state);
+  return projectPublicProfessionState(
+    state,
+    HARBINGER_PUBLIC_STATE_PROJECTION.keys,
+    HARBINGER_PUBLIC_STATE_PROJECTION.defaults
+  );
+}

@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import { isElixirSkill } from '#gw2/professions/engineer/core/traits/alchemy.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
@@ -125,7 +126,7 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
   },
   onCastStart(runtime, cast) {
     if (cast.skill.independentCast) applyEngineerToolbeltTraits(runtime, cast.skill, runtime.time);
-    if (cast.skill.id !== ID.DODGE) return;
+    if (cast.skill.id !== SHARED_SKILL_IDS.DODGE) return;
     emitEngineerEvent(runtime, 'engineer.dodge', { at: runtime.time, activationId: cast.id }, cast.skill);
     for (const [trait, name, predicate] of [
       [TRAIT.POWER_WRENCH, 'Power Wrench', (skill: EngineerSkill) => skill.type === 'Elite' || skill.slot === 'Elite'],

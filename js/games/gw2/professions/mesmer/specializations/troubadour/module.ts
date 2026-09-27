@@ -1,3 +1,4 @@
+import { projectTroubadourPlanningState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
@@ -20,7 +21,8 @@ export const troubadourModule = defineNativeModule({
     balanceProfiles: TROUBADOUR_BALANCE_PROFILES
   }),
   state: {
-    create: troubadourState.create
+    create: troubadourState.create,
+    project: projectTroubadourPlanningState
   },
   modifiers: troubadourModifiers,
   hooks: troubadourHooks,

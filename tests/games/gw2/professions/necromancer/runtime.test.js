@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -47,7 +48,7 @@ test('live weapon swaps commit the destination set and its sigils before subsequ
     }
   };
   const result = simulate(
-    [cast(ID.GHASTLY_CLAWS), cast(ID.SWAP_WEAPONS), cast(ID.GHASTLY_CLAWS), cast(ID.GRAVEDIGGER)],
+    [cast(ID.GHASTLY_CLAWS), cast(SHARED_SKILL_IDS.SWAP_WEAPONS), cast(ID.GHASTLY_CLAWS), cast(ID.GRAVEDIGGER)],
     config,
     { profession, combatStartTime: 0 }
   );
@@ -66,7 +67,7 @@ test('live weapon swaps commit the destination set and its sigils before subsequ
 });
 
 test('live swap recharge is free before combat and reserves the relic-adjusted work during combat', () => {
-  const rotation = [cast(ID.SWAP_WEAPONS), cast(ID.SWAP_WEAPONS)];
+  const rotation = [cast(SHARED_SKILL_IDS.SWAP_WEAPONS), cast(SHARED_SKILL_IDS.SWAP_WEAPONS)];
   const setup = simulate(rotation);
   assert.deepEqual(
     setup.steps.map((step) => step.start),
@@ -79,27 +80,27 @@ test('live swap recharge is free before combat and reserves the relic-adjusted w
     combat.steps.map((step) => step.start),
     [0, 7520]
   );
-  assert.equal(observedRuntime(combat).cooldowns.get(ID.SWAP_WEAPONS), 15.02);
+  assert.equal(observedRuntime(combat).cooldowns.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 15.02);
   assert.deepEqual(combat.warnings, []);
-  const oneSwap = simulate([cast(ID.SWAP_WEAPONS)], { ...base, transitionDelays: { weaponSwapMs: 120 } });
+  const oneSwap = simulate([cast(SHARED_SKILL_IDS.SWAP_WEAPONS)], { ...base, transitionDelays: { weaponSwapMs: 120 } });
   assert.equal(oneSwap.planningState.atSeconds, 0.12);
 });
 
 test('cancelled swaps retain the active set and form legality blocks ordinary swaps', () => {
   const native = necromancerProfession.runtimeFor(base);
   const skillsById = new Map(native.catalog.skillsById);
-  skillsById.set(ID.SWAP_WEAPONS, { ...skillsById.get(ID.SWAP_WEAPONS), castTimeMs: 1000 });
+  skillsById.set(SHARED_SKILL_IDS.SWAP_WEAPONS, { ...skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), castTimeMs: 1000 });
   const profession = {
     ...native,
     catalog: { ...native.catalog, skillsById }
   };
-  const cancelled = simulate([{ ...cast(ID.SWAP_WEAPONS), interruptAfterMs: 100 }], base, { profession });
+  const cancelled = simulate([{ ...cast(SHARED_SKILL_IDS.SWAP_WEAPONS), interruptAfterMs: 100 }], base, { profession });
   assert.equal(cancelled.planningState.activeWeaponSet, 1);
   assert.equal(
     cancelled.events.some((event) => event.type === 'weapon_set'),
     false
   );
-  const transformed = simulate([cast(ID.LICH_FORM), cast(ID.SWAP_WEAPONS)]);
+  const transformed = simulate([cast(ID.LICH_FORM), cast(SHARED_SKILL_IDS.SWAP_WEAPONS)]);
   assert.equal(transformed.planningState.activeWeaponSet, 1);
   assert.equal(transformed.steps.at(-1).invalid, true);
 });

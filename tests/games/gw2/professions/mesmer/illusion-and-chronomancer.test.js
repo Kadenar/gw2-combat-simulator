@@ -10,17 +10,11 @@ import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/pa
 import { formatConcurrentTimelineBadge, formatInterruptTimelineBadge } from '#gw2/app/rotation/timeline/model.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { shatterResourceSpends } from '#gw2/app/rotation/timeline/model.js';
-import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
-
-test('Relic of the Claw uses its relic icon in the proc timeline', () => {
-  assert.equal(
-    RELIC_DATA.Claw.icon,
-    'https://render.guildwars2.com/file/19B5DB56E495C70754A8BE3621CADC0FD7402845/3375220.png'
-  );
-});
 
 test('concurrent timeline badges show both delay and cast timestamp', () => {
   assert.equal(formatConcurrentTimelineBadge(100, '2.23s'), '⊙100ms\n2.23s');
@@ -40,73 +34,72 @@ test('queueing a cooling-down icon waits until it is available', () => {
   assert.equal(result.planningState.cooldowns.Bladecall.remaining, 4000);
 });
 
-test('Lingering Thoughts recharges one ammo count every six seconds', () => {
-  const defaults = defaultSimulationConfig();
-  const result = simulateMesmer(
-    [
-      { name: 'Lingering Thoughts', skillId: ID.LINGERING_THOUGHTS },
-      { name: 'Lingering Thoughts', skillId: ID.LINGERING_THOUGHTS },
-      { name: 'Lingering Thoughts', skillId: ID.LINGERING_THOUGHTS }
-    ],
-    defaultSimulationConfig({
-      specialization: 'Mirage',
-      initialResource: 0,
-      primaryWeapon: 'Axe',
-      boons: {
-        ...defaults.boons,
-        quickness: false,
-        alacrity: false
-      }
-    })
-  );
-
+// Controlled recharge data exercises the real profession without pinning the live balance value.
+test('Lingering Thoughts spends available ammo before waiting for serial recharge', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Mirage',
+    initialResource: 0,
+    primaryWeapon: 'Axe',
+    selectedTraitIds: []
+  });
+  const native = mesmerProfession.runtimeFor(config);
+  const result = observeGw2Runtime({
+    profession: {
+      ...native,
+      catalog: withSkill(native.catalog, ID.LINGERING_THOUGHTS, {
+        ammo: 2,
+        ammoRecharge: 5,
+        cooldown: 0,
+        ammoCastLockout: 0,
+        castTimeMs: 400,
+        rechargeAnchor: 'castStart',
+        rechargeOffsetMs: 0
+      })
+    },
+    config,
+    rotation: Array(4).fill({ type: 'cast', skillId: ID.LINGERING_THOUGHTS })
+  });
+  assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.steps.map((step) => step.start),
-    [0, 1120, 5720]
+    [0, 400, 4000, 8000]
   );
-  assert.equal(result.planningState.ammo['Lingering Thoughts'].rechargeWork, 6);
+  assert.equal(result.planningState.ammo['Lingering Thoughts'].charges, 0);
+  assert.equal(result.planningState.ammo['Lingering Thoughts'].rechargeWork, 5);
 });
 
-test('Lingering Thoughts applies its packets and grants its clone 160ms later', () => {
-  const result = simulateMesmer(
-    [
-      { name: 'Lingering Thoughts', skillId: ID.LINGERING_THOUGHTS },
-      { name: '__wait', waitMs: 200 }
-    ],
-    defaultSimulationConfig({
-      specialization: 'Mirage',
-      selectedTraitIds: [],
-      primaryWeapon: 'Axe',
-      secondaryWeapon: 'Torch',
-      initialResource: 0
-    })
-  );
-  const step = result.steps[0];
-  const strikes = result.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.skillName === 'Lingering Thoughts'
-  );
-  const conditions = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.skillName === 'Lingering Thoughts'
-  );
-  const clone = result.events.find((event) => event.type === 'resource' && event.reason === 'Lingering Thoughts');
-
-  assert.equal(step.end - step.start, 920);
-  assert.equal(
-    strikes.reduce((sum, event) => sum + event.coefficient, 0),
-    1.2
-  );
-  assert.equal(
-    strikes.reduce((sum, event) => sum + event.hits, 0),
-    3
-  );
-  assert.deepEqual(
-    conditions.map((event) => [event.condition, event.stacks, event.duration]),
-    [
-      ['Torment', 3, 4],
-      ['Crippled', 3, 1]
+// Damage resolves before the deferred clone; clone timing follows cast completion.
+test('Lingering Thoughts grants its clone after its damage and cast completion', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Mirage',
+    selectedTraitIds: [],
+    primaryWeapon: 'Axe',
+    secondaryWeapon: 'Torch',
+    initialResource: 0
+  });
+  const native = mesmerProfession.runtimeFor(config);
+  const skill = native.catalog.skillsById.get(ID.LINGERING_THOUGHTS);
+  const result = observeGw2Runtime({
+    profession: {
+      ...native,
+      catalog: withSkill(native.catalog, skill.id, {
+        resource: { ...skill.resource, count: 1, atMs: 200 }
+      })
+    },
+    config,
+    rotation: [
+      { type: 'cast', skillId: skill.id },
+      { type: 'wait', durationMs: 400 }
     ]
-  );
-  assert.equal(Math.round((clone.at - step.end / 1000) * 1000), 160);
+  });
+  const step = result.steps[0];
+  const strikes = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === skill.id);
+  const clone = result.events.find((event) => event.type === 'resource' && event.reason === skill.name);
+  assert.deepEqual(result.warnings, []);
+  assert.ok(strikes.length > 0);
+  assert.ok(strikes.every((event) => event.at < clone.at));
+  assert.equal(Math.round(clone.at * 1000 - step.end), 200);
+  assert.equal(result.planningState.profession.resource, 1);
 });
 
 test('Lingering Thoughts creates two Confounding Bolts in an Ethereal field', () => {

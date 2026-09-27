@@ -35,21 +35,17 @@ const BUILD_ATTRIBUTE_NAMES: Readonly<Record<string, string>> = Object.freeze({
 // bonuses before finalizing the selected weapon set's build attributes.
 export function applyRangerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  { build, selectedSkills = [], weaponSet = 1, disabledTrait = null, balanceContext }: Gw2BuildAttributeRuleContext
+  context: Gw2BuildAttributeRuleContext
 ) {
-  const rangerBuild = build as RangerBuild;
+  const rangerBuild = context.build as RangerBuild;
 
-  const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
-    specializations: rangerBuild.specializations || [],
-    selectedSkills,
-    disabledTrait,
+  const { activeTraits, hasTrait, hasSelectedSkill, profileContext, weapons } = createBuildAttributeContext(
+    context,
+    rangerCatalog,
     getActiveTraits
-  });
+  );
 
-  // Attribute amounts follow the selected patch while effect ordering and eligibility remain unchanged.
-  const profileContext = balanceContext ?? { catalog: rangerCatalog };
   const traitDurations: Record<string, number> = {};
-  const weapons = weaponSet === 2 ? rangerBuild.alternateWeapons : rangerBuild.weapons;
 
   const soulbeast = rangerBuild.specializations?.some((specialization) => specialization.name === 'Soulbeast');
 

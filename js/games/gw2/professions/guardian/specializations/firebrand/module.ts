@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { FIREBRAND_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { firebrandModifiers } from '#gw2/professions/guardian/specializations/firebrand/modifiers.js';
@@ -16,7 +18,7 @@ export const firebrandModule = defineNativeModule({
 
     balanceProfiles: FIREBRAND_BALANCE_PROFILES
   }),
-  state: { create: firebrandState.create },
+  state: { create: firebrandState.create, project: createPublicStateProjector(FIREBRAND_PUBLIC_STATE_PROJECTION) },
   modifiers: firebrandModifiers,
   hooks: firebrandHooks,
   presentation: bindFirebrandUi

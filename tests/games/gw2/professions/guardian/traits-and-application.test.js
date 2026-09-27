@@ -1,3 +1,4 @@
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -15,7 +16,7 @@ import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/p
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
 import { guardianCoreModifiers } from '#gw2/professions/guardian/core/modifiers.js';
-import { projectGuardianPlanningState, snapshotGuardianState } from '#gw2/professions/guardian/family-state.js';
+import { snapshotGuardianState } from '#gw2/professions/guardian/core/state.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 
 const guardianCoreUi = bindGuardianCoreUi(guardianCatalog);
@@ -100,7 +101,7 @@ test('Guardian planning projections detach counters from the live state', () => 
   const runtime = observedRuntime(result);
   assert.equal(runtime.profession.core.justiceActiveBurns, 1);
   assert.equal(result.planningState.profession.justiceActiveArmed, false);
-  const projected = projectGuardianPlanningState({ profession: runtime.profession, time: runtime.time });
+  const projected = projectObservedState(guardianProfession, { profession: runtime.profession, time: runtime.time });
   projected.virtueReadyAt.justice = 99;
   runtime.profession.core.justiceActiveBurns = 9;
   assert.notEqual(runtime.profession.core.virtueReadyAt.justice, 99);
@@ -141,7 +142,7 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
     [20, 0]
   ]) {
     assert.equal(rule.amount({ runtime: { profession }, time: at }, rule.target, rule.parameters), stacks * 0.01);
-    const projected = projectGuardianPlanningState({ profession, time: at });
+    const projected = projectObservedState(guardianProfession, { profession, time: at });
     assert.equal(projected.symbolicAvengerExpirations.length, stacks);
     assert.equal(profession.core.symbolicAvengerExpirations.length, 5);
     const items = guardianCoreUi.rotationStateSnapshot({ professionState: projected, atSeconds: at });

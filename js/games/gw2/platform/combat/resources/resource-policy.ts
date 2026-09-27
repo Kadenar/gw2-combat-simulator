@@ -1,3 +1,4 @@
+import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { advanceDiscreteResource, resourceValueAt, resourceAnchor } from '#gw2/platform/combat/resources/clock.js';
@@ -92,8 +93,8 @@ export function resourceRecoveryReadyAt(state: ResourceClock, cost: number, at: 
   const value = resourceAt(state, at);
   const anchor = resourceAnchor(state);
   // Recovery-funded thresholds remain tick aligned even when another event observes sufficient fractional value first.
-  if (value + 1e-9 >= cost) {
-    if (state.rate > 0 && anchor.value + 1e-9 < cost)
+  if (resourceAtLeast(value, cost)) {
+    if (state.rate > 0 && !resourceAtLeast(anchor.value, cost))
       return Math.max(at, gw2CooldownReadyAt(anchor.updatedAt + (cost - anchor.value) / state.rate));
     return at;
   }

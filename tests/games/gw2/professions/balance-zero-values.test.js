@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -13,7 +14,7 @@ import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { GUARDIAN_TRAIT_IDS as GUARDIAN_TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { THIEF_SKILL_IDS as THIEF_ID, THIEF_TRAIT_IDS as THIEF_TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_TRAIT_IDS as THIEF_TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as GUARDIAN_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as NECROMANCER_PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { HARBINGER_BALANCE_PROFILE_IDS as HARBINGER_PROFILE } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
@@ -141,7 +142,7 @@ test('Revenant zero Vigor regeneration multiplier stops endurance regeneration',
 });
 
 test('Thief zero Quick Pockets gain matches a swap without the trait', () => {
-  const rotation = ['Heartseeker', THIEF_ID.SWAP_WEAPONS];
+  const rotation = ['Heartseeker', SHARED_SKILL_IDS.SWAP_WEAPONS];
   const config = {
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Dagger',

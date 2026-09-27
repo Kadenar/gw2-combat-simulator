@@ -1,3 +1,5 @@
+import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
+
 /**
  * Owns Troubadour instrument, Tale, and simulator-action catalog data.
  * Instrument and Tale runtime behavior lives under `mechanics/`.
@@ -276,24 +278,17 @@ export const MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<Ski
 );
 
 export const MESMER_TROUBADOUR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
-  {
-    id: ID.DODGE_TROUBADOUR,
-    name: 'Dodge',
+  createDodgeSkill({
     description: 'Spend 50 endurance to evade. Mayhem reduces Flustering Flute recharge.',
-    icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
-    type: 'Action',
-    slot: 'Action',
     specialization: 'Troubadour',
     castTimeMs: 0,
     resourceCost: 50,
     cost: { resource: 'endurance', spendOn: 'castCommit' },
-    // Mayhem reacts to the completed dodge rather than a Core Mesmer skill-id branch.
     tasks: [
       {
         type: 'mesmer.troubadour.dodge',
         timingAnchor: 'castEnd'
       }
-    ],
-    effects: []
-  }
+    ]
+  })
 ] satisfies readonly MesmerSkill[]);

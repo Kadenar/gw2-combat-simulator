@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { DRUID_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/druid/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 import { druidModifiers } from '#gw2/professions/ranger/specializations/druid/modifiers.js';
@@ -14,7 +16,7 @@ export const druidModule = defineNativeModule({
     skillMechanics: DRUID_BASE_SKILL_MECHANICS,
     balanceProfiles: DRUID_BALANCE_PROFILES
   }),
-  state: { create: druidState.create },
+  state: { create: druidState.create, project: createPublicStateProjector(DRUID_PUBLIC_STATE_PROJECTION) },
   modifiers: druidModifiers,
   hooks: druidHooks,
   presentation: bindDruidUi

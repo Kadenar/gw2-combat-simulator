@@ -1,3 +1,5 @@
+import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
+import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -17,7 +19,6 @@ import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/wa
 import {
   warriorActiveBuffStacks,
   warriorBoonActive,
-  warriorEventSkill,
   warriorWieldingWeapon,
   type WarriorModifierAttributes
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
@@ -165,6 +166,6 @@ export const warriorArmsModifierRules: readonly Gw2ModifierRule[] = Object.freez
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BURST_PRECISION), 'criticalChance'),
     when: (context) =>
       hasTrait(context, TRAIT.BURST_PRECISION) &&
-      (Boolean(warriorEventSkill(context)?.burst) || warriorActiveBuffStacks(context, 'burst-precision', 1) > 0)
+      (Boolean(eventSkill<WarriorSkill>(context)?.burst) || warriorActiveBuffStacks(context, 'burst-precision', 1) > 0)
   }
 ]);

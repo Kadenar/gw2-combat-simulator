@@ -1,45 +1,26 @@
+import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
+
 /**
  * Owns synthetic Core Engineer actions that do not come from the GW2 skill catalog.
  * Runtime behavior remains in the named skill or mechanic handler owners.
  */
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+
 import { ENGINEER_ELITE_MORTAR_KIT_EXTRA_SKILLS } from '#gw2/professions/engineer/core/skills/kits/elite-mortar-kit.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 
 const extraSkills: EngineerSkill[] = [
   ...ENGINEER_ELITE_MORTAR_KIT_EXTRA_SKILLS,
+  createDodgeSkill({
+    cost: { resource: 'endurance', profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } }
+  }),
   {
-    id: ID.DODGE,
-    name: 'Dodge',
-    description: 'Perform a dodge roll.',
-    icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
-    type: 'Action',
-    slot: 'Action',
-    cost: { resource: 'endurance', profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } },
-    // Custom: emits the Engineer dodge state for its dodge traits.
-
-    // Quickness does not shorten the fixed evade animation recorded for ordinary dodge rolls.
-
-    castTimeMs: 800,
-    cooldown: 0,
-    effects: []
-  },
-  {
-    id: ID.SWAP_WEAPONS,
-    name: 'Swap Weapons',
-    description: 'Stow the active engineer kit and return to equipped weapons.',
-    icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
-    type: 'Action',
-    slot: 'Action',
-    // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    kitTransition: 'stow',
-    castTimeMs: 0,
-    cooldown: 0,
-    rechargeIgnoresAlacrity: true,
-    rechargeAnchor: 'castStart',
-    effects: []
+    ...createWeaponSwapSkill({
+      description: 'Stow the active engineer kit and return to equipped weapons.',
+      inputCategory: 'bar-swap',
+      cooldown: 0
+    }),
+    kitTransition: 'stow'
   }
 ];
 

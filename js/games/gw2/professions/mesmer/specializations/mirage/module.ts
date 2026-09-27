@@ -1,3 +1,4 @@
+import { projectMiragePlanningState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import { mirageHooks } from '#gw2/professions/mesmer/specializations/mirage/hooks.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
@@ -18,7 +19,8 @@ export const mirageModule = defineNativeModule({
     balanceProfiles: MIRAGE_BALANCE_PROFILES
   }),
   state: {
-    create: mirageState.create
+    create: mirageState.create,
+    project: projectMiragePlanningState
   },
   modifiers: mirageModifiers,
   hooks: mirageHooks,

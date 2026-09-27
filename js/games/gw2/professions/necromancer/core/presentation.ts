@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
@@ -119,7 +120,7 @@ export function necromancerTransformPaletteGroups(
   groups.push({
     id: 'necromancer-actions',
     label: 'Act',
-    skillIds: [ID.SWAP_WEAPONS],
+    skillIds: [SHARED_SKILL_IDS.SWAP_WEAPONS],
     color: '#7fbd8b'
   });
   return groups;

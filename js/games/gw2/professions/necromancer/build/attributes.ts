@@ -17,22 +17,18 @@ import type {
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
-import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 
 /** Applies Necromancer flat bonuses, ordered conversions, durations, and critical chance at build time. */
 export function applyNecromancerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  { build, selectedSkills = [], disabledTrait = null, balanceContext }: Gw2BuildAttributeRuleContext
+  context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
-    specializations: (build.specializations || []) as ProfessionTraitSelection[],
-    selectedSkills,
-    disabledTrait,
+  const { activeTraits, hasTrait, hasSelectedSkill, profileContext } = createBuildAttributeContext(
+    context,
+    necromancerCatalog,
     getActiveTraits
-  });
+  );
 
-  // Attribute amounts follow the selected patch while effect ordering and eligibility remain unchanged.
-  const profileContext = balanceContext ?? { catalog: necromancerCatalog };
   const traitDurations: Gw2NumericAttributes = {};
 
   const spitefulFortitudeProfile = requireBalanceProfileFromContext(profileContext, TRAIT.SPITEFUL_FORTITUDE);

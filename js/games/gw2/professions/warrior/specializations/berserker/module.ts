@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { BERSERKER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import { BERSERKER_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/berserker/skills/index.js';
@@ -13,7 +15,7 @@ export const berserkerModule = defineNativeModule({
     skillMechanics: BERSERKER_SKILL_MECHANICS,
     balanceProfiles: BERSERKER_BALANCE_PROFILES
   }),
-  state: { create: berserkerState.create },
+  state: { create: berserkerState.create, project: createPublicStateProjector(BERSERKER_PUBLIC_STATE_PROJECTION) },
   modifiers: berserkerModifiers,
   hooks: berserkerHooks,
   presentation: berserkerUi

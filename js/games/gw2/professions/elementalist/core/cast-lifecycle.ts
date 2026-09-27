@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /**
  * Routes Core Elementalist casts to the skill families and persistent mechanics that own their behavior.
@@ -108,7 +109,7 @@ export function elementalistOnCastComplete(context: ElementalistRuntime, cast: R
   applySpecialSkillProgression(context, cast, skill);
   shareAttunementVariantRecharge(context, skill);
   // The runtime has already paid the committed dodge's declared endurance cost.
-  if (Number(skill.id) === ID.DODGE) triggerEvasiveArcana(context, cast, skill);
+  if (Number(skill.id) === SHARED_SKILL_IDS.DODGE) triggerEvasiveArcana(context, cast, skill);
 
   completeArcaneEcho(context, cast, skill);
 

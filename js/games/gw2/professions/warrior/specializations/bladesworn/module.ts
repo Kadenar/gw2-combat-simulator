@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { BLADESWORN_PUBLIC_STATE_PROJECTION } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import {
@@ -25,7 +27,8 @@ export const bladeswornModule = defineNativeModule({
     }
   }),
   state: {
-    create: bladeswornState.create
+    create: bladeswornState.create,
+    project: createPublicStateProjector(BLADESWORN_PUBLIC_STATE_PROJECTION)
   },
   modifiers: bladeswornModifiers,
   hooks: bladeswornHooks,

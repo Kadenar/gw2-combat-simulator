@@ -1,3 +1,5 @@
+import { projectHarbingerPlanningState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
+
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
@@ -16,7 +18,7 @@ export const harbingerModule = defineNativeModule({
     balanceProfiles: HARBINGER_BALANCE_PROFILES
   }),
   // One state factory supplies the live combat owner.
-  state: { create: harbingerState.create },
+  state: { create: harbingerState.create, project: projectHarbingerPlanningState },
   hooks: harbingerHooks,
   modifiers: harbingerModifiers,
   presentation: bindHarbingerUi

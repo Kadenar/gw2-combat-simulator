@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
@@ -32,7 +33,7 @@ test('ambush cast, palette, and display agree at expiry', () => {
 
 test('Let Loose refresh survives the superseded expiry', () => {
   const result = runRanger(
-    [{ type: 'combat-start' }, ID.UNLEASH_RANGER, wait(1000), ID.SWAP_WEAPONS, wait(3000)],
+    [{ type: 'combat-start' }, ID.UNLEASH_RANGER, wait(1000), SHARED_SKILL_IDS.SWAP_WEAPONS, wait(3000)],
     config
   );
   assert.deepEqual(result.warnings, []);

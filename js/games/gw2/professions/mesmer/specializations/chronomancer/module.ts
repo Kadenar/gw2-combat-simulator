@@ -1,3 +1,4 @@
+import { projectChronomancerPlanningState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import { chronomancerHooks } from '#gw2/professions/mesmer/specializations/chronomancer/hooks.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
@@ -20,7 +21,8 @@ export const chronomancerModule = defineNativeModule({
     balanceProfiles: CHRONOMANCER_BALANCE_PROFILES
   }),
   state: {
-    create: chronomancerState.create
+    create: chronomancerState.create,
+    project: projectChronomancerPlanningState
   },
   modifiers: chronomancerModifiers,
   hooks: chronomancerHooks,

@@ -1,8 +1,9 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { THIEF_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/core/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
 import { thiefCoreModifiers } from '#gw2/professions/thief/core/modifiers.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
-import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
 import { THIEF_CORE_EXTRA_SKILLS, THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
 import { THIEF_CORE_BALANCE_PROFILES } from '#gw2/professions/thief/core/profiles.js';
@@ -16,7 +17,7 @@ export const thiefCoreModule = defineNativeModule({
     balanceProfiles: THIEF_CORE_BALANCE_PROFILES,
     extraSkills: THIEF_CORE_EXTRA_SKILLS
   }),
-  state: { create: createThiefCoreState, project: projectThiefPlanningState },
+  state: { create: createThiefCoreState, project: createPublicStateProjector(THIEF_CORE_PUBLIC_STATE_PROJECTION) },
   modifiers: thiefCoreModifiers,
   hooks: thiefCoreHooks,
   presentation: thiefCoreUi

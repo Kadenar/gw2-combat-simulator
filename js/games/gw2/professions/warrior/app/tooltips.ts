@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import {
   tooltipFactorChange,
@@ -327,11 +328,13 @@ export const warriorTooltips: ProfessionTooltips = {
         ]
       };
     },
-    [ID.DODGE]: skillTooltip(
+    [SHARED_SKILL_IDS.DODGE]: skillTooltip(
       'Spend endurance to dodge and trigger applicable dodge traits. Incoming attacks are outside simulation scope.',
       (balanceContext) => [profileFact(balanceContext, CORE.resources, 'resourceCost', 'Endurance cost')]
     ),
-    [ID.SWAP_WEAPONS]: skillTooltip('Swap to your other weapon set and trigger applicable weapon-swap effects.'),
+    [SHARED_SKILL_IDS.SWAP_WEAPONS]: skillTooltip(
+      'Swap to your other weapon set and trigger applicable weapon-swap effects.'
+    ),
 
     // Signet attributes live in mechanic profiles, separate from the active skill packets.
     [ID.SIGNET_OF_MIGHT]: skillTooltip(

@@ -20,19 +20,16 @@ import type { EngineerBuild, EngineerFinalizedAttributeResult } from '#gw2/profe
 /** Applies Engineer trait bonuses and exposes the pre-profession conversion pool used by Amalgam. */
 export function applyEngineerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  { build, disabledTrait = null, balanceContext }: Gw2BuildAttributeRuleContext
+  context: Gw2BuildAttributeRuleContext
 ): EngineerFinalizedAttributeResult {
-  const engineerBuild = build as EngineerBuild;
+  const engineerBuild = context.build as EngineerBuild;
   const { conversionPool: commonConversionPool } = common.commonContext;
 
-  const { activeTraits, hasTrait } = createBuildAttributeContext({
-    specializations: engineerBuild.specializations || [],
-    disabledTrait,
+  const { activeTraits, hasTrait, profileContext } = createBuildAttributeContext(
+    context,
+    engineerCatalog,
     getActiveTraits
-  });
-
-  // Build previews and simulation tooltips use the same selected patch values.
-  const profileContext = balanceContext ?? { catalog: engineerCatalog };
+  );
 
   const traitDurations: Gw2NumericAttributes = {};
 

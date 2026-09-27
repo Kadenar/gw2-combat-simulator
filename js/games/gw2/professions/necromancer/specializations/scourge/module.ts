@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { SCOURGE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
@@ -15,7 +17,7 @@ export const scourgeModule = defineNativeModule({
     skillMechanics: SCOURGE_BASE_SKILL_MECHANICS,
     balanceProfiles: SCOURGE_BALANCE_PROFILES
   }),
-  state: { create: scourgeState.create },
+  state: { create: scourgeState.create, project: createPublicStateProjector(SCOURGE_PUBLIC_STATE_PROJECTION) },
   hooks: scourgeHooks,
   modifiers: scourgeModifiers,
   presentation: bindScourgeUi

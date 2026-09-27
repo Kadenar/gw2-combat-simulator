@@ -22,22 +22,17 @@ import type { GuardianBuild } from '#gw2/professions/guardian/types.js';
 // retaining provenance needed to avoid reapplying panel-visible modifiers.
 export function applyGuardianBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  { build, selectedSkills = [], weaponSet = 1, disabledTrait = null, balanceContext }: Gw2BuildAttributeRuleContext
+  context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const guardianBuild = build as GuardianBuild;
+  const guardianBuild = context.build as GuardianBuild;
 
-  const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
-    specializations: guardianBuild.specializations || [],
-    selectedSkills,
-    disabledTrait,
+  const { activeTraits, hasTrait, hasSelectedSkill, profileContext, weapons } = createBuildAttributeContext(
+    context,
+    guardianCatalog,
     getActiveTraits
-  });
-
-  // Build previews and simulation tooltips use the same selected patch values.
-  const profileContext = balanceContext ?? { catalog: guardianCatalog };
+  );
 
   const traitDurations: Gw2NumericAttributes = {};
-  const weapons = weaponSet === 2 ? guardianBuild.alternateWeapons : guardianBuild.weapons;
   const mainHand = weapons?.[0] || '';
   const offHand = weapons?.[1] || '';
 

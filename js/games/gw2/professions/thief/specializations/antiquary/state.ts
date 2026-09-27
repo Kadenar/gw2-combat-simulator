@@ -1,3 +1,7 @@
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { expireCharges } from '#gw2/platform/combat/resources/charges.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
   definePublicStateDefaults,
@@ -91,3 +95,19 @@ export const ANTIQUARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 } satisfies Partial<AntiquaryState>);
 
 export const antiquaryState = defineProfessionSpecializationState('Antiquary', createAntiquaryState);
+
+/** Publishes detached, current public values without mutating the live module state. */
+export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput) {
+  const state = snapshotProfessionState<AntiquaryState>(input.profession);
+  expireCharges(state.mistburn, input.time);
+  state.combatHighExpirations = purgeExpiredStacks(state.combatHighExpirations, input.time);
+  state.holoUtilityCooldownReductionExpirations = purgeExpiredStacks(
+    state.holoUtilityCooldownReductionExpirations,
+    input.time
+  );
+  return projectPublicProfessionState(
+    state,
+    ANTIQUARY_PUBLIC_STATE_PROJECTION.keys,
+    ANTIQUARY_PUBLIC_STATE_PROJECTION.defaults
+  );
+}

@@ -6,13 +6,12 @@ import {
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import {
   activeBoonStacks,
-  eventSkill as gw2EventSkill,
   playerHealthFraction,
   targetConditionCount,
   targetHealthFraction
 } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { EngineerSimulationEvent, EngineerSkill, EngineerState } from '#gw2/professions/engineer/types.js';
+import type { EngineerSimulationEvent, EngineerState } from '#gw2/professions/engineer/types.js';
 
 /** Narrows the active modifier event to Engineer's extended simulation event shape. */
 export function engineerEvent(context: Gw2ModifierContext): EngineerSimulationEvent | undefined {
@@ -35,11 +34,6 @@ export function engineerSpecializationState(context: Gw2ModifierContext, expecte
 
 /** Re-exports shared boon, health, and target-condition queries for Engineer modifier rules. */
 export { activeBoonStacks, playerHealthFraction, targetConditionCount, targetHealthFraction };
-
-/** Resolves the active event's skill using Engineer-specific metadata. */
-export function eventSkill(context: Gw2ModifierContext): EngineerSkill | undefined {
-  return gw2EventSkill<EngineerSkill>(context);
-}
 
 /** Selects Heavy Metal's critical bonus from the target's current health tier. */
 export function heavyMetalBonus(context: Gw2ModifierContext): number {

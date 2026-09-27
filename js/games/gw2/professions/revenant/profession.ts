@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import {
   createRevenantBuildDefaults,
@@ -23,7 +24,7 @@ export const revenantProfession = defineNativeProfession({
     overrides: [
       {
         id: 'revenant.dodge-resets',
-        interruptingSkillIds: [ID.DODGE],
+        interruptingSkillIds: [SHARED_SKILL_IDS.DODGE],
         decision: 'reset'
       },
       {

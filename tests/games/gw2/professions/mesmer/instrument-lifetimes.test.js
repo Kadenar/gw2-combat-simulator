@@ -1,3 +1,4 @@
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
 import { createRuntimeEndurance } from '#gw2/platform/combat/resources/runtime-resources.js';
 import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
@@ -5,7 +6,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { projectMesmerPlanningState } from '#gw2/professions/mesmer/family-state.js';
 import { initializeTroubadourRuntime } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
 import { completeTroubadourPerformance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import {
@@ -107,7 +107,7 @@ test('instrument commitment, damage bonuses, cleanup, and UI share exact exclusi
     assert.equal(context.events.find((event) => event.type === 'mesmer.instrument').expiresAt, 5.301);
     context.time = at;
     const active = at < 5.301;
-    const projected = projectMesmerPlanningState({
+    const projected = projectObservedState(mesmerProfession, {
       ...context,
       config: context.config,
       catalog: context.catalog

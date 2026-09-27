@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { RANGER_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/core/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 import { rangerCoreModifiers } from '#gw2/professions/ranger/core/modifiers.js';
@@ -9,7 +11,6 @@ import {
 import { RANGER_CORE_BALANCE_PROFILES } from '#gw2/professions/ranger/core/profiles.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { bindRangerCoreUi } from '#gw2/professions/ranger/core/presentation.js';
-import { projectRangerPlanningState } from '#gw2/professions/ranger/family-state.js';
 
 /** The module registers one live mechanic owner beside its existing data and modifier formulas. */
 export const rangerCoreModule = defineNativeModule({
@@ -19,7 +20,7 @@ export const rangerCoreModule = defineNativeModule({
     balanceProfiles: RANGER_CORE_BALANCE_PROFILES,
     extraSkills: RANGER_CORE_EXTRA_SKILLS
   }),
-  state: { create: createRangerCoreState, project: projectRangerPlanningState },
+  state: { create: createRangerCoreState, project: createPublicStateProjector(RANGER_CORE_PUBLIC_STATE_PROJECTION) },
   modifiers: rangerCoreModifiers,
   hooks: rangerCoreHooks,
   presentation: bindRangerCoreUi

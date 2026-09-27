@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { DEADEYE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
 import { deadeyeModifiers } from '#gw2/professions/thief/specializations/deadeye/modifiers.js';
@@ -13,7 +15,7 @@ export const deadeyeModule = defineNativeModule({
     skillMechanics: DEADEYE_SKILL_MECHANICS,
     balanceProfiles: DEADEYE_BALANCE_PROFILES
   }),
-  state: { create: deadeyeState.create },
+  state: { create: deadeyeState.create, project: createPublicStateProjector(DEADEYE_PUBLIC_STATE_PROJECTION) },
   modifiers: deadeyeModifiers,
   hooks: deadeyeHooks,
   presentation: deadeyeUi

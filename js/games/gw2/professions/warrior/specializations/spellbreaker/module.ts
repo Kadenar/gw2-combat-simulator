@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { SPELLBREAKER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import { SPELLBREAKER_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/spellbreaker/skills/index.js';
@@ -14,7 +16,8 @@ export const spellbreakerModule = defineNativeModule({
     balanceProfiles: SPELLBREAKER_BALANCE_PROFILES
   }),
   state: {
-    create: spellbreakerState.create
+    create: spellbreakerState.create,
+    project: createPublicStateProjector(SPELLBREAKER_PUBLIC_STATE_PROJECTION)
   },
   modifiers: spellbreakerModifiers,
   hooks: spellbreakerHooks,

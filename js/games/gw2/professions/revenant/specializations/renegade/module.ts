@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { RENEGADE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
 import { renegadeModifiers } from '#gw2/professions/revenant/specializations/renegade/modifiers.js';
@@ -16,7 +18,7 @@ export const renegadeModule = defineNativeModule({
     extraSkills: RENEGADE_EXTRA_SKILLS,
     balanceProfiles: RENEGADE_BALANCE_PROFILES
   }),
-  state: { create: renegadeState.create },
+  state: { create: renegadeState.create, project: createPublicStateProjector(RENEGADE_PUBLIC_STATE_PROJECTION) },
   modifiers: renegadeModifiers,
   hooks: renegadeHooks,
   presentation: renegadeUi

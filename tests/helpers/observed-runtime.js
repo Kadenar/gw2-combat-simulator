@@ -39,3 +39,10 @@ export function observedRuntime(result) {
   if (!runtime) throw new Error('No runtime observed for this result.');
   return runtime;
 }
+
+/** Supplies a complete planning input for minimal fixtures through the selected runtime contract. */
+export function projectObservedState(family, input) {
+  const config = { ...input.config, specialization: input.profession.specialization.kind };
+  const runtime = family.runtimeFor(config);
+  return runtime.projectPlanningState({ time: 0, activeWeaponSet: 1, catalog: runtime.catalog, ...input, config });
+}

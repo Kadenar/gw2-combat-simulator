@@ -1,3 +1,4 @@
+import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
 import { isEngineerMechEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
@@ -9,7 +10,7 @@ import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { activeBoonStacks, engineerEvent, eventSkill } from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { activeBoonStacks, engineerEvent } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/state.js';

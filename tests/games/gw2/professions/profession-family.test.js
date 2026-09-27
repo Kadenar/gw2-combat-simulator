@@ -648,19 +648,16 @@ test('Necromancer presentation exposes only active specialization resources', ()
   }
 });
 
-test('Necromancer public projection reports neutral inactive specialization resources', () => {
+test('Necromancer public projection omits inactive specialization resources', () => {
   const result = runGw2Runtime({
     profession: necromancerProfession.runtimeFor({ specialization: 'Core' }),
     rotation: [],
     config: { specialization: 'Core' }
   });
 
-  assert.equal(result.planningState.profession.blight, 0);
-  assert.deepEqual(result.planningState.profession.blightExpiries, []);
-  assert.deepEqual(result.planningState.profession.shades, []);
-  assert.deepEqual(result.planningState.profession.activeSpirits, {});
-  assert.equal(result.planningState.profession.soulTwistingAvailable, false);
-  assert.equal(result.planningState.profession.meltdownUntil, 0);
+  // Core publishes no fields owned by inactive specialization modules.
+  for (const key of ['blight', 'blightExpiries', 'shades', 'activeSpirits', 'soulTwistingAvailable', 'meltdownUntil'])
+    assert.equal(Object.hasOwn(result.planningState.profession, key), false, key);
 });
 
 const guardianInactiveStateKeys = Object.freeze({
@@ -806,10 +803,9 @@ test('Guardian presentation and public projection preserve their contracts', () 
     config: { specialization: 'Core' }
   });
 
-  assert.equal(result.planningState.profession.activeTome, '');
-  assert.equal(result.planningState.profession.tomePages.value, 5);
-  assert.equal(result.planningState.profession.radiantForge, false);
-  assert.deepEqual(result.planningState.profession.radiantWeaponsUsed, {});
+  // Core publishes no fields owned by inactive specialization modules.
+  for (const key of ['activeTome', 'tomePages', 'radiantForge', 'radiantWeaponsUsed'])
+    assert.equal(Object.hasOwn(result.planningState.profession, key), false, key);
 });
 
 const mesmerSlices = Object.freeze([
@@ -1047,9 +1043,9 @@ test('Revenant presentation and public projection preserve their contracts', () 
     config: { specialization: 'Core' }
   });
 
-  assert.equal(result.planningState.profession.affinity, 0);
-  assert.equal(result.planningState.profession.bandTogetherReady, false);
-  assert.deepEqual(result.planningState.profession.kallasFervor, []);
+  // Core publishes no fields owned by inactive specialization modules.
+  for (const key of ['affinity', 'bandTogetherReady', 'kallasFervor'])
+    assert.equal(Object.hasOwn(result.planningState.profession, key), false, key);
 });
 
 const engineerSlices = Object.freeze([
@@ -1241,8 +1237,7 @@ test('Engineer presentation and public projection preserve their contracts', () 
     config: { specialization: 'Core' }
   });
 
-  assert.equal(result.planningState.profession.heat, 0);
-  assert.equal(result.planningState.profession.photonForgeActive, false);
-  assert.equal(result.planningState.profession.mech.enabled, false);
-  assert.deepEqual(result.planningState.profession.selectedMorphSkillIds, []);
+  // Core publishes no fields owned by inactive specialization modules.
+  for (const key of ['heat', 'photonForgeActive', 'mech', 'selectedMorphSkillIds'])
+    assert.equal(Object.hasOwn(result.planningState.profession, key), false, key);
 });

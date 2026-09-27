@@ -325,12 +325,15 @@ test('Thief runtimes exclude inactive elite state, catalogs, and registries', ()
   assert.throws(() => thiefProfession.runtimeFor({ specialization: 'Missing' }), /Unknown specialization: Missing/);
 });
 
-test('Thief public projection keeps inactive compatibility fields', () => {
+// Inactive elite modules contribute neither state nor public defaults.
+test('Thief public projection omits inactive specialization fields', () => {
   const result = runThief([]);
-
-  assert.equal(result.planningState.profession.malice, 0);
-  assert.equal(result.planningState.profession.shadowClock, undefined);
-  assert.deepEqual(result.planningState.profession.artifactSlots, []);
-  assert.equal(result.planningState.profession.artifactUsesRemaining, 0);
-  assert.deepEqual(result.planningState.profession.holoUtilityCooldownReductionExpirations, []);
+  for (const key of [
+    'malice',
+    'shadowClock',
+    'artifactSlots',
+    'artifactUsesRemaining',
+    'holoUtilityCooldownReductionExpirations'
+  ])
+    assert.equal(Object.hasOwn(result.planningState.profession, key), false, key);
 });

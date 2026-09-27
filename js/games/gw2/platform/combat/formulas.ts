@@ -4,11 +4,17 @@ import { boundedNumber, clamp } from '#kernel/core/numeric.js';
 
 // Stateless GW2 damage formulas used by timestamp-aware runtime resolution.
 
-const TARGET_ARMOR = 2597;
+/** Standard benchmark armor shared by damage formulas and build defaults. */
+export const STANDARD_TARGET_ARMOR = 2597;
 
 // GW2 strike damage formula before critical hits and outgoing modifiers.
 /** Calculates pre-critical strike damage from coefficient, weapon strength, power, and armor. */
-export function strikeDamage(coefficient: number, weaponStrength: number, power: number, armor = TARGET_ARMOR): number {
+export function strikeDamage(
+  coefficient: number,
+  weaponStrength: number,
+  power: number,
+  armor = STANDARD_TARGET_ARMOR
+): number {
   return (coefficient * weaponStrength * power) / armor;
 }
 

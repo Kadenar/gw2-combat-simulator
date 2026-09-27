@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { UNTAMED_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 import { untamedModifiers } from '#gw2/professions/ranger/specializations/untamed/modifiers.js';
@@ -14,7 +16,7 @@ export const untamedModule = defineNativeModule({
     skillMechanics: UNTAMED_BASE_SKILL_MECHANICS,
     balanceProfiles: UNTAMED_BALANCE_PROFILES
   }),
-  state: { create: untamedState.create },
+  state: { create: untamedState.create, project: createPublicStateProjector(UNTAMED_PUBLIC_STATE_PROJECTION) },
   modifiers: untamedModifiers,
   hooks: untamedHooks,
   presentation: bindUntamedUi

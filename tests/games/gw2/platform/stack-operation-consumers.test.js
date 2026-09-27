@@ -1,9 +1,10 @@
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { grantThiefGroundAxe } from '#gw2/professions/thief/core/mechanics/weapons.js';
-import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { triggerSharpeningStone } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
@@ -59,7 +60,8 @@ test('Holo-Dancer commits spend grant order even when the newest charge expires 
     observedRuntime(runThief(['Prepare Pitfall'], config)).cooldowns.get(skill.id) - result.steps[0].start / 1000;
   assert.ok(Math.abs(reduced - unreduced * 0.2) < 1e-9);
   assert.deepEqual(
-    projectThiefPlanningState({ profession: runtime.profession, time: 5 }).holoUtilityCooldownReductionExpirations,
+    projectObservedState(thiefProfession, { profession: runtime.profession, time: 5 })
+      .holoUtilityCooldownReductionExpirations,
     []
   );
   assert.deepEqual(snapshot.holoUtilityCooldownReductionExpirations, prior);

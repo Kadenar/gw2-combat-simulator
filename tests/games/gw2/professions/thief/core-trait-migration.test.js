@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
@@ -90,7 +91,8 @@ for (const [name, traitId, action, catalog, procs] of [
     'Upper Hand',
     TRAIT.UPPER_HAND,
     'Dodge',
-    (live) => withProfile(withSkill(live, ID.DODGE, { castTimeMs: 0 }), CORE.resources, { resourceCost: 0 }),
+    (live) =>
+      withProfile(withSkill(live, SHARED_SKILL_IDS.DODGE, { castTimeMs: 0 }), CORE.resources, { resourceCost: 0 }),
     null
   ]
 ]) {

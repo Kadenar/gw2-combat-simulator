@@ -1,3 +1,4 @@
+import { projectVirtuosoPlanningState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import { virtuosoHooks } from '#gw2/professions/mesmer/specializations/virtuoso/hooks.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
@@ -14,7 +15,8 @@ export const virtuosoModule = defineNativeModule({
     balanceProfiles: VIRTUOSO_BALANCE_PROFILES
   }),
   state: {
-    create: virtuosoState.create
+    create: virtuosoState.create,
+    project: projectVirtuosoPlanningState
   },
   modifiers: virtuosoModifiers,
   hooks: virtuosoHooks,

@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -105,7 +106,7 @@ export function warriorPaletteGroups(
     {
       id: 'warrior-actions',
       label: 'Act',
-      skillIds: [ID.DODGE, ID.SWAP_WEAPONS],
+      skillIds: [SHARED_SKILL_IDS.DODGE, SHARED_SKILL_IDS.SWAP_WEAPONS],
       color: '#e0ad70'
     }
   ];

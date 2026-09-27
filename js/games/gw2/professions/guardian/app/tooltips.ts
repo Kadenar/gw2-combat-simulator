@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   tooltipFactorChange,
   tooltipSeconds,
@@ -193,7 +194,7 @@ const FAMILY_SKILL_IDS: Readonly<Record<keyof typeof familyTooltips, readonly Sk
     ID.TOME_OF_JUSTICE,
     ID.TOME_OF_RESOLVE
   ],
-  'weapon-swap': [ID.SWAP_WEAPONS],
+  'weapon-swap': [SHARED_SKILL_IDS.SWAP_WEAPONS],
   'willbender-virtue': [ID.CRASHING_COURAGE, ID.FLOWING_RESOLVE, ID.RUSHING_JUSTICE]
 };
 

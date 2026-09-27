@@ -20,8 +20,6 @@ import type {
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
 
-import type { ElementalistBuildSpecialization } from '#gw2/professions/elementalist/build/types.js';
-
 /**
  * The Elementalist's profession-specific half of attribute calculation: it declares the
  * trait and signet effects the shared calculator cannot know about, and returns the
@@ -31,18 +29,15 @@ import type { ElementalistBuildSpecialization } from '#gw2/professions/elemental
 // attributes while preserving trait-duration and provenance metadata.
 export function applyElementalistBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  { build, selectedSkills = [], disabledTrait = null, balanceContext }: Gw2BuildAttributeRuleContext
+  context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  // Attribute amounts follow the selected patch while effect ordering and eligibility remain unchanged.
-  const profileContext = balanceContext ?? { catalog: elementalistCatalog };
   const traitDurations: Gw2NumericAttributes = {};
 
-  const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
-    specializations: (build.specializations || []) as ElementalistBuildSpecialization[],
-    selectedSkills,
-    disabledTrait,
+  const { activeTraits, hasTrait, hasSelectedSkill, profileContext } = createBuildAttributeContext(
+    context,
+    elementalistCatalog,
     getActiveTraits
-  });
+  );
 
   const ferociousWindsProfile = requireBalanceProfileFromContext(profileContext, TRAIT.FEROCIOUS_WINDS);
   const strengthOfStoneProfile = requireBalanceProfileFromContext(profileContext, TRAIT.STRENGTH_OF_STONE);

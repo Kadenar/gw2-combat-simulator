@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
@@ -48,7 +49,6 @@ import { GALESHOT_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specia
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { soulbeastCastAvailability } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { untamedCastAvailability } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
-import { RANGER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/family-state.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
 
 const baseConfig = Object.freeze({
@@ -94,13 +94,20 @@ test('Ranger scheduler snapshots expose flat profession state', () => {
 test('Ranger public state is composed from Core and specialization-owned manifests', () => {
   assert.equal(RANGER_CORE_PUBLIC_END_STATE_KEYS.includes('beastmodeActive'), false);
   assert.equal(RANGER_CORE_PUBLIC_END_STATE_KEYS.includes('astralClock'), false);
-  assert.deepEqual(RANGER_PUBLIC_END_STATE_KEYS, [
-    ...RANGER_CORE_PUBLIC_END_STATE_KEYS,
-    ...DRUID_PUBLIC_STATE_PROJECTION.keys,
-    ...SOULBEAST_PUBLIC_STATE_PROJECTION.keys,
-    ...UNTAMED_PUBLIC_STATE_PROJECTION.keys,
-    ...GALESHOT_PUBLIC_STATE_PROJECTION.keys
-  ]);
+  for (const [specialization, projection] of [
+    ['Druid', DRUID_PUBLIC_STATE_PROJECTION],
+    ['Soulbeast', SOULBEAST_PUBLIC_STATE_PROJECTION],
+    ['Untamed', UNTAMED_PUBLIC_STATE_PROJECTION],
+    ['Galeshot', GALESHOT_PUBLIC_STATE_PROJECTION]
+  ]) {
+    const runtime = rangerProfession.runtimeFor({ specialization });
+    const state = runtime.createState({ specialization });
+    const projected = runtime.projectPlanningState({ profession: state, time: 0 });
+    assert.deepEqual(
+      Object.keys(projected).sort(),
+      [...new Set([...RANGER_CORE_PUBLIC_END_STATE_KEYS, ...projection.keys])].sort()
+    );
+  }
 });
 
 test('Ranger Core source stays specialization-agnostic', async () => {
@@ -130,7 +137,10 @@ test('Ranger catalog preserves runtime references and handlers', () => {
       .every((skill) => skill.independentCast),
     true
   );
-  assert.equal(rangerCatalog.skillsById.get(ID.PET_SWAP).icon, rangerCatalog.skillsById.get(ID.SWAP_WEAPONS).icon);
+  assert.equal(
+    rangerCatalog.skillsById.get(ID.PET_SWAP).icon,
+    rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS).icon
+  );
 });
 
 test('Ranger modules expose isolated balance-profile authoring', () => {
@@ -523,7 +533,7 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
   })[0];
 
   assert.equal(endurance.value, 35);
-  assert.equal(endurance.paletteSkillId, ID.DODGE);
+  assert.equal(endurance.paletteSkillId, SHARED_SKILL_IDS.DODGE);
   const resourceApp = {
     profession: rangerProfession,
     adapter: { eliteSpecialization: () => 'Core' },
@@ -535,7 +545,7 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
     }
   };
 
-  assert.deepEqual(paletteSkillResourceView(resourceApp, ID.DODGE), {
+  assert.deepEqual(paletteSkillResourceView(resourceApp, SHARED_SKILL_IDS.DODGE), {
     id: 'endurance',
     label: 'Current endurance: 35/100',
     value: 35,

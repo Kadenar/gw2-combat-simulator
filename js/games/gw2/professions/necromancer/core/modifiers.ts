@@ -21,7 +21,7 @@ import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2
 
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { NecromancerSkill, NecromancerState } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerState } from '#gw2/professions/necromancer/types.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 
 /** Reads Core Necromancer state from a resolver-side modifier context. */
@@ -35,11 +35,6 @@ export function necromancerRuntimeSpecializationState(
   expectedKind: string
 ): Partial<NecromancerState> {
   return readProfessionSpecializationState<NecromancerState>(context.runtime?.profession, expectedKind) || {};
-}
-
-/** Resolves the active modifier event's Necromancer-specific skill metadata. */
-export function necromancerEventSkill(context: Gw2ModifierContext): NecromancerSkill | undefined {
-  return eventSkill<NecromancerSkill>(context);
 }
 
 /** Returns the active Necromancer shroud identifier, or an empty string outside shroud. */
@@ -180,8 +175,7 @@ const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.5,
     order: 100,
-    when: (context) =>
-      Boolean(necromancerEventSkill(context)?.id === ID.LIFE_SIPHON && targetConditionActive(context, 'Bleeding'))
+    when: (context) => Boolean(eventSkill(context)?.id === ID.LIFE_SIPHON && targetConditionActive(context, 'Bleeding'))
   },
   {
     id: 'necromancer.target-the-weak-critical-chance',
@@ -296,7 +290,7 @@ const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 
 /** Extends eligible scepter condition base durations for Lingering Curse. */
 function modifyNecromancerConditionBaseDuration(context: Gw2ModifierContext, duration: number): number {
-  return necromancerEventSkill(context)?.weapon === 'Scepter' &&
+  return eventSkill(context)?.weapon === 'Scepter' &&
     context.event?.skillId !== ID.DEVOURING_DARKNESS &&
     hasTrait(context, TRAIT.LINGERING_CURSE)
     ? duration *

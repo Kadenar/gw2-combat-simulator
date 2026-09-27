@@ -70,7 +70,7 @@ export interface MesmerPlanningState {
   readonly resource: number;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly clarityRemaining: number;
-  readonly availableAmbush: {
+  readonly availableAmbush?: {
     readonly name: string;
     readonly source: string;
     readonly expiresAt: number;
@@ -80,8 +80,8 @@ export interface MesmerPlanningState {
   readonly activeInstruments?: readonly MesmerProjectedInstrument[];
   readonly availableFlips: Readonly<SkillFlipWindows>;
   readonly autoattackChains: Readonly<Record<string, SkillId>>;
-  readonly continuumActive: boolean;
-  readonly continuumRemaining: number;
+  readonly continuumActive?: boolean;
+  readonly continuumRemaining?: number;
 }
 
 interface MesmerSpecializationSelection {

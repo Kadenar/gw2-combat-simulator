@@ -1,9 +1,9 @@
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianUiSkillIdsByName } from '#gw2/professions/guardian/core/presentation.js';
-import { projectGuardianPlanningState } from '#gw2/professions/guardian/family-state.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
@@ -32,7 +32,7 @@ test('Guardian weapon flips share exact deadlines across availability, snapshots
       const active = at < window.expiresAt;
       assert.equal(native.availability(current, flip).ready, active);
       if (id === ID.ZEALOTS_FLAME) assert.equal(native.availability(current, parent).ready, !active);
-      const projected = projectGuardianPlanningState({ profession: runtime.profession, time: at });
+      const projected = projectObservedState(guardianProfession, { profession: runtime.profession, time: at });
       assert.equal(Object.hasOwn(projected.availableFlips, flip.id), active);
       assert.equal(
         guardianUiSkillIdsByName(guardianCatalog, [parent.name], {

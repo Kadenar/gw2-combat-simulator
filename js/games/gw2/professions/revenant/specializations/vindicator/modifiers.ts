@@ -1,3 +1,4 @@
+import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -13,11 +14,10 @@ import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/m
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 
-// 1e-9 tolerance prevents floating-point drift from falsely reporting endurance as "full" at max.
 function enduranceNotFull(context: Gw2ModifierContext): boolean {
   const state = revenantRuntimeCoreState(context);
   const maximum = REVENANT_MAXIMUM_ENDURANCE;
-  return maximum > 0 && Number(state.endurance || 0) < maximum - 1e-9;
+  return !resourceAtLeast(Number(state.endurance || 0), maximum);
 }
 
 const vindicatorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([

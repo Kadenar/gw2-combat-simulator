@@ -1,3 +1,5 @@
+import { projectParagonPlanningState } from '#gw2/professions/warrior/specializations/paragon/state.js';
+
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import { PARAGON_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
@@ -13,7 +15,7 @@ export const paragonModule = defineNativeModule({
     skillMechanics: PARAGON_SKILL_MECHANICS,
     balanceProfiles: PARAGON_BALANCE_PROFILES
   }),
-  state: { create: paragonState.create },
+  state: { create: paragonState.create, project: projectParagonPlanningState },
   modifiers: paragonModifiers,
   hooks: paragonHooks,
   presentation: paragonUi

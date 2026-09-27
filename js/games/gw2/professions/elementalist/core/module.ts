@@ -1,8 +1,9 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { ELEMENTALIST_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/elementalist/core/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
 import { elementalistCoreModifiers } from '#gw2/professions/elementalist/core/modifiers.js';
-import { projectElementalistPlanningState } from '#gw2/professions/elementalist/family-state.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { bindElementalistCoreUi } from '#gw2/professions/elementalist/core/presentation.js';
 import {
@@ -24,7 +25,7 @@ export const elementalistCoreModule = defineNativeModule({
   }),
   state: {
     create: createElementalistCoreState,
-    project: projectElementalistPlanningState
+    project: createPublicStateProjector(ELEMENTALIST_CORE_PUBLIC_STATE_PROJECTION)
   },
   modifiers: elementalistCoreModifiers,
   hooks: elementalistCoreHooks,

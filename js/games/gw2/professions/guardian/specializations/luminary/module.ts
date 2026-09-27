@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { LUMINARY_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { luminaryModifiers } from '#gw2/professions/guardian/specializations/luminary/modifiers.js';
@@ -19,7 +21,7 @@ export const luminaryModule = defineNativeModule({
     extraSkills: LUMINARY_EXTRA_SKILLS,
     balanceProfiles: LUMINARY_BALANCE_PROFILES
   }),
-  state: { create: luminaryState.create },
+  state: { create: luminaryState.create, project: createPublicStateProjector(LUMINARY_PUBLIC_STATE_PROJECTION) },
   modifiers: luminaryModifiers,
   hooks: luminaryHooks,
   presentation: bindLuminaryUi

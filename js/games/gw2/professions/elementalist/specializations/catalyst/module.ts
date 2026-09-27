@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { CATALYST_PUBLIC_STATE_PROJECTION } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import { catalystHooks } from '#gw2/professions/elementalist/specializations/catalyst/hooks.js';
@@ -19,7 +21,7 @@ export const catalystModule = defineNativeModule({
     skillMechanics: CATALYST_SKILL_MECHANICS,
     balanceProfiles: CATALYST_BALANCE_PROFILES
   }),
-  state: { create: catalystState.create },
+  state: { create: catalystState.create, project: createPublicStateProjector(CATALYST_PUBLIC_STATE_PROJECTION) },
   modifiers: catalystModifiers,
   hooks: catalystHooks,
   presentation: catalystUi

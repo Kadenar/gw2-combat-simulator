@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -319,7 +320,9 @@ for (const { name, trait, extraTraits = [], rotation, config, verify } of traitC
 // Shared emission gives weapon-swap Fury the same causal identity as its activation.
 test('Furious Burst retains activation ordering through the shared emission path', () => {
   const result = simulate('Core', ['Swap Weapons'], { selectedTraitIds: [TRAIT.FURIOUS_BURST] });
-  const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.SWAP_WEAPONS);
+  const action = result.events.find(
+    (event) => event.type === 'action' && event.skillId === SHARED_SKILL_IDS.SWAP_WEAPONS
+  );
   const fury = result.events.find((event) => event.sourceId === TRAIT.FURIOUS_BURST);
   assert.equal(fury.activationId, action.activationId);
   assert.equal(fury.causalOrder, action.causalOrder);

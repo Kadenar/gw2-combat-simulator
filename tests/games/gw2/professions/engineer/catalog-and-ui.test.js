@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { readFile } from 'node:fs/promises';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
@@ -481,7 +482,7 @@ test('Engineer renders Endurance only for Tools and uses a standard bar', () => 
   const endurance = tools.find((view) => view.id === 'endurance');
 
   assert.equal(endurance.displayMode, 'bar');
-  assert.equal(endurance.paletteSkillId, ID.DODGE);
+  assert.equal(endurance.paletteSkillId, SHARED_SKILL_IDS.DODGE);
   assert.equal(Object.hasOwn(endurance, 'pipStyle'), false);
 
   const holosmith = engineerProfession.ui.resourceViews({

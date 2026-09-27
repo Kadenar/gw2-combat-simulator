@@ -1,4 +1,5 @@
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { createWeaponSwapSkill, createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
+
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import { THIEF_MISC_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/misc-skills.js';
@@ -31,36 +32,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
 });
 
 export const THIEF_CORE_EXTRA_SKILLS: readonly ThiefSkill[] = Object.freeze([
-  Object.freeze({
-    id: ID.SWAP_WEAPONS,
-    // Custom: Performs the shared weapon-set transition; see `platform/simulation/runtime.ts`.
-    inputCategory: 'weapon-swap', // Count the explicit bar-changing input in effort summaries.
-    name: 'Swap Weapons',
-    description: 'Swap equipped weapon sets.',
-    icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
-    type: 'Action',
-    slot: 'Action',
-    castTimeMs: 0,
-    cooldown: 10,
-    rechargeIgnoresAlacrity: true,
-    rechargeAnchor: 'castStart',
-    effects: []
-  }),
-  Object.freeze({
-    id: ID.DODGE,
-    // Base Dodge emits no packets; dodge traits and selected landing profiles own their separate effects.
-    cost: { resource: 'endurance' as const, profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } },
-    name: 'Dodge',
-    description: 'Perform the selected thief dodge.',
-    icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
-    type: 'Action',
-    slot: 'Action',
-    castTimeMs: 800,
-    // Dodge commits at 760 ms while keeping the full movement lockout.
-    interruptCommitMs: 760,
-    retainsCastLockoutAfterInterrupt: true,
-
-    cooldown: 0,
-    effects: []
-  })
+  Object.freeze(createWeaponSwapSkill()),
+  Object.freeze(
+    createDodgeSkill({
+      description: 'Perform the selected thief dodge.',
+      cost: { resource: 'endurance' as const, profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } },
+      interruptCommitMs: 760,
+      retainsCastLockoutAfterInterrupt: true
+    })
+  )
 ]);

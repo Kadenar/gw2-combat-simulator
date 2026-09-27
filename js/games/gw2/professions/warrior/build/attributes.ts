@@ -19,26 +19,20 @@ import type {
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
-import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 
 // Apply selected signets, weapon-sensitive traits, duration bonuses, and ordered
 // Warrior conversions to the shared build-time attribute result.
 export function applyWarriorBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  { build, weaponSet, selectedSkills = [], disabledTrait = null, balanceContext }: Gw2BuildAttributeRuleContext
+  context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
-    specializations: (build.specializations || []) as ProfessionTraitSelection[],
-    selectedSkills,
-    disabledTrait,
+  const { activeTraits, hasTrait, hasSelectedSkill, profileContext, weapons } = createBuildAttributeContext(
+    context,
+    warriorCatalog,
     getActiveTraits
-  });
+  );
 
   // Weapon bonuses follow the selected set; base bonuses retain their conversion eligibility.
-  const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
-
-  // Build previews and simulation tooltips use the same selected patch values.
-  const profileContext = balanceContext ?? { catalog: warriorCatalog };
 
   const traitDurations: Gw2NumericAttributes = {};
 
@@ -118,7 +112,9 @@ export function applyWarriorBuildAttributeRules(
       to: 'Condition Damage',
       amount: balanceProfileNumber(deepStrikesProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait(TRAIT.DEEP_STRIKES) && Boolean((build.assumptions as Record<string, unknown> | undefined)?.fury)
+      enabled:
+        hasTrait(TRAIT.DEEP_STRIKES) &&
+        Boolean((context.build.assumptions as Record<string, unknown> | undefined)?.fury)
     },
     {
       kind: 'conversion',

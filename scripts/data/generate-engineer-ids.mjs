@@ -22,13 +22,7 @@ const traits = stableEntries(
 );
 // Synthetic actions have no API identity, and the API names both Evolve variants "Evolve"; semantic IDs distinguish
 // the trait-selected actions.
-const fixedSkillIds = [
-  'SWAP_WEAPONS: -3,',
-  'DODGE: -5,',
-  'STOW_ELITE_MORTAR_KIT: -301,',
-  'EVOLVE_BASE: 76642,',
-  'EVOLVE_DOUBLE_HELIX: 76651,'
-];
+const fixedSkillIds = ['STOW_ELITE_MORTAR_KIT: -301,', 'EVOLVE_BASE: 76642,', 'EVOLVE_DOUBLE_HELIX: 76651,'];
 // A frozen object literal rejects repeated keys, so fail generation instead of emitting shadowed constants.
 function assertUniqueKeys(name, keys) {
   const seen = new Set();

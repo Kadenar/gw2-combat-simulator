@@ -1,3 +1,6 @@
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { cappedResource } from '#gw2/platform/combat/resources/pool.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { NECROMANCER_CORE_BALANCE_PROFILES } from '#gw2/professions/necromancer/core/profiles.js';
 import {
@@ -167,4 +170,15 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     tasteForBloodBuffs: {}
   };
   return state;
+}
+
+/** Publishes detached, current public values without mutating the live module state. */
+export function projectNecromancerPlanningState(input: Gw2PlanningStateInput) {
+  const state = snapshotProfessionState<NecromancerCoreState>(input.profession);
+  state.lifeForce.value = cappedResource(state.lifeForce.value, state.lifeForce.maximum);
+  return projectPublicProfessionState(
+    state,
+    NECROMANCER_CORE_PUBLIC_STATE_PROJECTION.keys,
+    NECROMANCER_CORE_PUBLIC_STATE_PROJECTION.defaults
+  );
 }

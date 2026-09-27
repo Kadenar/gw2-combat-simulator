@@ -1,3 +1,4 @@
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -25,7 +26,6 @@ import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/
 import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
 import { reactToSoulbeastDamage } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
-import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
@@ -221,7 +221,7 @@ test('Mistburn replaces grants, spends on eligible strikes, and excludes its gra
           (runtime) => {
             react(runtime, {});
             observed.atExpiry = charges(runtime);
-            observed.projected = projectThiefPlanningState({
+            observed.projected = projectObservedState(thiefProfession, {
               profession: runtime.profession,
               time: runtime.time
             }).mistburn;
@@ -251,7 +251,7 @@ test('Mistburn projects its grant without aliases or mutations to runtime state'
   const state = context.profession.specialization.state;
   state.mistburn = { charges: 3, expiresAt: 5 };
   context.state.time = 2;
-  const projected = projectThiefPlanningState({ ...context.state });
+  const projected = projectObservedState(thiefProfession, { ...context.state });
   assert.equal(projected.mistburn.charges, 3);
   assert.equal(projected.mistburn.expiresAt, 5);
   for (const internal of [state, snapshotProfessionState(context.profession), projected]) {
@@ -270,13 +270,12 @@ test('Mistburn projects its grant without aliases or mutations to runtime state'
   }
 
   context.state.time = 5;
-  assert.equal(projectThiefPlanningState({ ...context.state }).mistburn.charges, 0);
+  assert.equal(projectObservedState(thiefProfession, { ...context.state }).mistburn.charges, 0);
   assert.equal(state.mistburn.charges, 3, 'projection must not expire the live runtime grant');
   state.mistburn.charges = 0;
   context.state.time = 2;
-  assert.equal(projectThiefPlanningState({ ...context.state }).mistburn.charges, 0);
+  assert.equal(projectObservedState(thiefProfession, { ...context.state }).mistburn.charges, 0);
   const core = contextFor(thiefProfession, 'Core');
-  const inactive = projectThiefPlanningState({ ...core.state });
-  assert.equal(inactive.mistburn.charges, 0);
-  assert.equal(inactive.mistburn.expiresAt, 0);
+  const inactive = projectObservedState(thiefProfession, { ...core.state });
+  assert.equal(Object.hasOwn(inactive, 'mistburn'), false);
 });

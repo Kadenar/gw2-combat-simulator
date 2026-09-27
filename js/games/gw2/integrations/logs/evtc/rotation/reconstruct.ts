@@ -1,5 +1,9 @@
 import type { CastCommand, CooldownResetCommand, RotationCommand } from '#gw2/platform/execution/types.js';
-import { isMushroomKingsBlessing, LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
+import {
+  isMushroomKingsBlessing,
+  isWeaponStow,
+  LOG_OPENER_WARNING
+} from '#gw2/integrations/logs/shared/rotation/model.js';
 import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
 import {
@@ -251,7 +255,9 @@ function buildRotation(
 
 function warningList(actions: readonly EvtcRotationAction[]): string[] {
   const inferred = actions.filter((action) => action.evidence === 'effect' || action.evidence === 'missile');
-  const unsupported = actions.filter((action) => !action.supportedByCatalog && !isMushroomKingsBlessing(action));
+  const unsupported = actions.filter(
+    (action) => !action.supportedByCatalog && !isMushroomKingsBlessing(action) && !isWeaponStow(action)
+  );
   const unfinished = actions.filter((action) => action.status === 'unknown');
   const warnings: string[] = [LOG_OPENER_WARNING];
   if (inferred.length) {

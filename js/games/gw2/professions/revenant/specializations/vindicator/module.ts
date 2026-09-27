@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { VINDICATOR_PUBLIC_STATE_PROJECTION } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
@@ -16,7 +18,7 @@ export const vindicatorModule = defineNativeModule({
     extraSkills: [VINDICATOR_JUMP_SKILL],
     balanceProfiles: VINDICATOR_BALANCE_PROFILES
   }),
-  state: { create: vindicatorState.create },
+  state: { create: vindicatorState.create, project: createPublicStateProjector(VINDICATOR_PUBLIC_STATE_PROJECTION) },
   modifiers: vindicatorModifiers,
   hooks: vindicatorHooks,
   presentation: vindicatorUi

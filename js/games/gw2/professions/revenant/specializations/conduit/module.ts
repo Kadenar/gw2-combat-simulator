@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { CONDUIT_PUBLIC_STATE_PROJECTION } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
 import { conduitModifiers } from '#gw2/professions/revenant/specializations/conduit/modifiers.js';
@@ -14,7 +16,7 @@ export const conduitModule = defineNativeModule({
     skillMechanics: CONDUIT_BASE_SKILL_MECHANICS,
     balanceProfiles: CONDUIT_BALANCE_PROFILES
   }),
-  state: { create: conduitState.create },
+  state: { create: conduitState.create, project: createPublicStateProjector(CONDUIT_PUBLIC_STATE_PROJECTION) },
   modifiers: conduitModifiers,
   hooks: conduitHooks,
   presentation: conduitUi

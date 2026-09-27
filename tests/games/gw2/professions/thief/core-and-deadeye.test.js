@@ -210,12 +210,13 @@ test('Thief catalog retains valid effect schemas and skill metadata', () => {
 // Grouped payloads retain their effect indices so patches can target one packet without changing its neighbors.
 test('Thief shared impacts remain independently patchable beside separate strike timelines', () => {
   const original = thiefCatalog.skillsById.get(ID.SHADOW_STRIKE);
+  const baseline = structuredClone(original);
   const preview = applySkillPatch(thiefCatalog, {
     skills: {
       [ID.SHADOW_STRIKE]: {
         effects: [
-          { effectIndex: 1, coefficient: { from: 1.3125, to: 2 } },
-          { effectIndex: 2, duration: { from: 6, to: 8 } }
+          { effectIndex: 1, coefficient: 2 },
+          { effectIndex: 2, duration: 8 }
         ]
       }
     }
@@ -224,8 +225,7 @@ test('Thief shared impacts remain independently patchable beside separate strike
   assert.deepEqual(patched.effects[0], original.effects[0]);
   assert.deepEqual(patched.effects[1], { ...original.effects[1], coefficient: 2 });
   assert.deepEqual(patched.effects[2], { ...original.effects[2], duration: 8 });
-  assert.equal(original.effects[1].coefficient, 1.3125);
-  assert.equal(original.effects[2].duration, 6);
+  assert.deepEqual(original, baseline);
 });
 
 test('Thief modules expose isolated balance-profile authoring', () => {
@@ -237,24 +237,6 @@ test('Thief modules expose isolated balance-profile authoring', () => {
     true
   );
 
-  const profile = (moduleId, profileId) => {
-    const module = modules.get(moduleId);
-
-    return [...module.balanceProfiles, ...module.skillVariants].find((entry) => entry.id === profileId);
-  };
-
-  assert.equal(profile('Core', THIEF_CORE_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 12);
-  assert.equal(
-    profile('Daredevil', DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining).profile.effects[0].ticks.reduce(
-      (total, tick) => total + tick.coefficient,
-      0
-    ),
-    0.5625
-  );
-  assert.equal(profile('Deadeye', DEADEYE_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 5);
-  assert.equal(profile('Specter', SPECTER_BALANCE_PROFILE_IDS.resources).patchableFields.resourceGain, 1);
-  assert.equal(profile('Antiquary', ANTIQUARY_BALANCE_PROFILE_IDS.scuffle).patchableFields.pulseInterval, 3);
-
   const opaqueModifierRules = [...modules.values()].flatMap((module) =>
     module.modifierRules.filter(
       (rule) =>
@@ -265,46 +247,51 @@ test('Thief modules expose isolated balance-profile authoring', () => {
 
   assert.deepEqual(opaqueModifierRules, []);
 
+  // Patch isolation compares against the loaded baseline rather than a second copy of live balance data.
+  const originalEffects = structuredClone(thiefCatalog.skillsById.get(ID.CALTROPS).effects);
+  const originalMaximum = thiefCatalog.balanceProfilesById.get(THIEF_CORE_BALANCE_PROFILE_IDS.resources).maximumStacks;
   const preview = applyThiefPatch({
     skills: {
       [ID.CALTROPS]: {
-        effects: [{ effectIndex: 0, tickIndex: 'all', duration: { from: 10, to: 12 } }]
+        effects: [{ effectIndex: 0, tickIndex: 'all', duration: 12 }]
       }
     },
     balanceProfiles: {
       [THIEF_CORE_BALANCE_PROFILE_IDS.resources]: {
-        fields: { maximumStacks: { from: 12, to: 13 } }
+        fields: { maximumStacks: 13 }
       },
       [DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining]: {
-        effects: [{ effectIndex: 0, tickIndex: 'all', coefficient: { from: 0.1875, to: 0.2 } }]
+        effects: [{ effectIndex: 0, tickIndex: 'all', coefficient: 0.2 }]
       },
       [DEADEYE_BALANCE_PROFILE_IDS.resources]: {
-        fields: { maximumStacks: { from: 5, to: 6 } }
+        fields: { maximumStacks: 6 }
       },
       [SPECTER_BALANCE_PROFILE_IDS.resources]: {
-        fields: { resourceGain: { from: 1, to: 1.25 } }
+        fields: { resourceGain: 1.25 }
       },
       [ANTIQUARY_BALANCE_PROFILE_IDS.scuffle]: {
-        fields: { pulseInterval: { from: 3, to: 2.5 } }
+        fields: { pulseInterval: 2.5 }
       }
     }
   });
 
   assert.ok(preview.skillsById.get(ID.CALTROPS).effects[0].ticks.every((tick) => tick.duration === 12));
   assert.equal(preview.balanceProfilesById.get(THIEF_CORE_BALANCE_PROFILE_IDS.resources).maximumStacks, 13);
-  assert.ok(
-    Math.abs(
-      preview.balanceProfilesById
-        .get(DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining)
-        .effects[0].ticks.reduce((total, tick) => total + tick.coefficient, 0) - 0.6
-    ) < 1e-12
+  assert.deepEqual(
+    preview.balanceProfilesById
+      .get(DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining)
+      .effects[0].ticks.map((tick) => tick.coefficient),
+    thiefCatalog.balanceProfilesById.get(DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining).effects[0].ticks.map(() => 0.2)
   );
   assert.equal(preview.balanceProfilesById.get(DEADEYE_BALANCE_PROFILE_IDS.resources).maximumStacks, 6);
   assert.equal(preview.balanceProfilesById.get(SPECTER_BALANCE_PROFILE_IDS.resources).resourceGain, 1.25);
   assert.equal(preview.balanceProfilesById.get(ANTIQUARY_BALANCE_PROFILE_IDS.scuffle).pulseInterval, 2.5);
 
-  assert.ok(thiefCatalog.skillsById.get(ID.CALTROPS).effects[0].ticks.every((tick) => tick.duration === 10));
-  assert.equal(thiefCatalog.balanceProfilesById.get(THIEF_CORE_BALANCE_PROFILE_IDS.resources).maximumStacks, 12);
+  assert.deepEqual(thiefCatalog.skillsById.get(ID.CALTROPS).effects, originalEffects);
+  assert.equal(
+    thiefCatalog.balanceProfilesById.get(THIEF_CORE_BALANCE_PROFILE_IDS.resources).maximumStacks,
+    originalMaximum
+  );
 });
 
 test('Thief defaults migrate deterministic assumptions and validate bars', () => {

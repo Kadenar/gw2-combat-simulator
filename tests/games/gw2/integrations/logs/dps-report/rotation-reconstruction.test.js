@@ -12,6 +12,7 @@ import { defineTestProfession } from '#tests/helpers/profession.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import {
+  LOG_OPENER_WARNING,
   MUSHROOM_KINGS_BLESSING_NAME,
   MUSHROOM_KINGS_BLESSING_SKILL_ID
 } from '#gw2/integrations/logs/shared/rotation/model.js';
@@ -162,6 +163,35 @@ test('fetches and validates the raw Elite Insights response', async () => {
 
   assert.match(requested, /^https:\/\/dps\.report\/getJson\?/);
   assert.equal(report.players[0].profession, 'Amalgam');
+});
+
+// Preserve a terminal stow's observed duration without requiring a synthetic skill or a later cast.
+test('dps.report weapon stows become waits for Warrior and other professions', () => {
+  for (const profession of ['Warrior', 'Chronomancer']) {
+    const report = parseDpsReport({
+      players: [
+        {
+          name: 'Fixture',
+          profession,
+          rotation: [
+            { id: 1000, skills: [{ castTime: 0, duration: 400, timeGained: 0 }] },
+            { id: 23285, skills: [{ castTime: 400, duration: 80, timeGained: 0 }] }
+          ]
+        }
+      ],
+      phases: [{ start: 0, end: 1000, name: 'Full Fight', phaseType: 'Encounter' }],
+      skillMap: { s1000: { name: 'Fixture Skill' }, s23285: { name: 'Weapon Stow' } }
+    });
+    const result = reconstructDpsReportRotation(report, {
+      skills: [skill(1000, 'Fixture Skill', { type: 'weapon', castTimeMs: 400 })]
+    });
+    assert.deepEqual(result.rotation, [
+      { type: 'combat-start' },
+      { type: 'cast', skillId: 1000 },
+      { type: 'wait', durationMs: 80 }
+    ]);
+    assert.deepEqual(result.warnings, [LOG_OPENER_WARNING]);
+  }
 });
 
 test('snaps reconstructed dps.report waits to the nearest 40 ms action tick', () => {

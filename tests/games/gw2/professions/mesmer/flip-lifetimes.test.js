@@ -1,3 +1,5 @@
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
@@ -5,7 +7,6 @@ import test from 'node:test';
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
 import { settleMesmerSkillFlips } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
-import { projectMesmerPlanningState } from '#gw2/professions/mesmer/family-state.js';
 import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import { MESMER_CORE_BALANCE_PROFILES } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -82,9 +83,8 @@ test('Mesmer flip creation, availability, projection, and cleanup share exact bo
     // Delayed flips remain listed for inspection, but expired flips must disappear before cleanup runs.
     assert.equal(
       Boolean(
-        projectMesmerPlanningState({ ...context, config: context.config, catalog: context.catalog }).availableFlips[
-          ID.COUNTERSPELL
-        ]
+        projectObservedState(mesmerProfession, { ...context, config: context.config, catalog: context.catalog })
+          .availableFlips[ID.COUNTERSPELL]
       ),
       at < 0.5
     );

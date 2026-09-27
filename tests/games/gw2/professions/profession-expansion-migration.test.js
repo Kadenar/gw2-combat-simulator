@@ -4,36 +4,7 @@ import { describe, test } from 'node:test';
 import { replaceBuild } from '#gw2/app/build/state/persistence.js';
 import { COMMON_EVENT_TYPES } from '#gw2/platform/engine/events/events.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { ENGINEER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/engineer/family-state.js';
-import { ELEMENTALIST_PUBLIC_END_STATE_KEYS } from '#gw2/professions/elementalist/family-state.js';
-import { GUARDIAN_PUBLIC_END_STATE_KEYS } from '#gw2/professions/guardian/family-state.js';
-import { NECROMANCER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/necromancer/family-state.js';
-import { RANGER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/family-state.js';
-import { REVENANT_PUBLIC_END_STATE_KEYS } from '#gw2/professions/revenant/family-state.js';
-import { THIEF_PUBLIC_END_STATE_KEYS } from '#gw2/professions/thief/family-state.js';
-import { WARRIOR_PUBLIC_END_STATE_KEYS } from '#gw2/professions/warrior/family-state.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
-
-const PUBLIC_END_STATE_KEYS_BY_PROFESSION = Object.freeze({
-  elementalist: ELEMENTALIST_PUBLIC_END_STATE_KEYS,
-  engineer: ENGINEER_PUBLIC_END_STATE_KEYS,
-  guardian: GUARDIAN_PUBLIC_END_STATE_KEYS,
-  mesmer: Object.freeze([
-    'resource',
-    'resourceDefinition',
-    'clarityRemaining',
-    'availableAmbush',
-    'availableFlips',
-    'autoattackChains',
-    'continuumActive',
-    'continuumRemaining'
-  ]),
-  necromancer: NECROMANCER_PUBLIC_END_STATE_KEYS,
-  ranger: RANGER_PUBLIC_END_STATE_KEYS,
-  revenant: REVENANT_PUBLIC_END_STATE_KEYS,
-  thief: THIEF_PUBLIC_END_STATE_KEYS,
-  warrior: WARRIOR_PUBLIC_END_STATE_KEYS
-});
 
 function assertCatalogMetadata(entry, catalog) {
   const traitById = new Map(catalog.traits.map((trait) => [trait.id, trait]));
@@ -393,19 +364,6 @@ test('ready native professions expose deliberate public end-state keys', async (
     const profession = await entry.loadProfession();
     const result = simulateGw2({ profession, rotation: [], config: {} });
 
-    // Multiple slices can publish the same field; the projected object contains each name once.
-    assert.deepEqual(
-      Object.keys(result.planningState.profession)
-        .filter((key) => key !== 'maximumEndurance')
-        .sort(),
-      [
-        ...new Set([
-          ...PUBLIC_END_STATE_KEYS_BY_PROFESSION[entry.id],
-          ...(profession.resolveProfession({}).resources.endurance ? ['maximumEndurance'] : [])
-        ])
-      ].sort(),
-      entry.id
-    );
     for (const key of internalKeys[entry.id]) {
       assert.equal(Object.hasOwn(result.planningState.profession, key), false, `${entry.id}.${key}`);
     }

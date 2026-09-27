@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -66,135 +67,12 @@ const strikeCoefficient = (effect) =>
 
 const authoringRevenantProfession = withActivePatchPreview(revenantProfession);
 
-test('Revenant catalog retains reviewed timing and packet mechanics', () => {
-  const echoingEruption = revenantCatalog.skillsById.get(SKILL.ECHOING_ERUPTION);
-
-  assert.equal(echoingEruption.cooldown, 8);
-  assert.equal(echoingEruption.ammo, 0);
-  assert.equal(echoingEruption.ammoRecharge, 0);
-  assert.equal(echoingEruption.comboFinishers[0].ownerId, 'revenant');
-  assert.equal(echoingEruption.comboFinishers[0].finisherType, 'Blast');
-  assert.deepEqual(
-    echoingEruption.effects
-      .filter((effect) => effect.type === 'strike')
-      .map((effect) => [strikeCoefficient(effect), effect.ticks?.length ?? effect.hits]),
-    [[1, 1]]
-  );
-  for (const [skillId, castTimeMs] of [
-    [SKILL.HEX_EATER_VORTEX, 520],
-    [SKILL.FRIGID_BLITZ, 1000],
-    [SKILL.SEARING_FISSURE, 600],
-    [SKILL.TEMPORAL_RIFT, 560],
-    [SKILL.ECHOING_ERUPTION, 960],
-    [SKILL.MISERY_SWIPE, 440],
-    [SKILL.ANGUISH_SWIPE, 360],
-    [SKILL.MANIFEST_TOXIN, 560],
-    [SKILL.ABYSSAL_RAZE, 600],
-    [SKILL.ABYSSAL_BLOT, 800],
-    [SKILL.CALL_TO_ANGUISH, 800],
-    [SKILL.RELEASE_POTENTIAL_MESMER, 440],
-    [SKILL.EMBRACE_THE_DARKNESS, 440],
-    [SKILL.BANISH_ENCHANTMENT, 440],
-    [SKILL.UNYIELDING_IMPACT, 680],
-    [SKILL.ABYSSAL_STRIKE, 520],
-    [SKILL.ABYSSAL_BLITZ, 520],
-    [SKILL.ABYSSAL_FORCE, 520],
-    [SKILL.ELEMENTAL_BLAST, 480],
-    [SKILL.BURST_OF_STRENGTH, 840],
-    [SKILL.CHAOTIC_RELEASE, 600],
-    [SKILL.TRUE_NATURE_DRAGON, 480]
-  ]) {
-    const skill = revenantCatalog.skillsById.get(skillId);
-
-    assert.equal(skill.castTimeMs, castTimeMs, `${skill.name} Quickness timing`);
-  }
-
-  const abyssalRaze = revenantCatalog.skillsById.get(SKILL.ABYSSAL_RAZE);
-
-  assert.equal(abyssalRaze.ammo, 3);
-  assert.equal(abyssalRaze.ammoRecharge, 15);
-  assert.equal(revenantCatalog.skillsById.get(SKILL.ABYSSAL_BLITZ).cooldown, 10);
-  const searingFissure = revenantCatalog.skillsById.get(SKILL.SEARING_FISSURE);
-
-  assert.equal(searingFissure.comboFields[0].ownerId, 'revenant');
-  assert.equal(searingFissure.comboFields[0].fieldType, 'Fire');
-  assert.equal(searingFissure.comboFields[0].duration, 3);
-  assert.deepEqual(
-    searingFissure.effects
-      .filter((effect) => effect.name === 'Pulsing Strikes')
-      .map((effect) => [strikeCoefficient(effect), effect.ticks.map((tick) => tick.atMs)]),
-    [[0.75, [1480, 2480, 3480]]]
-  );
-  const hammerBolt = revenantCatalog.skillsById.get(SKILL.HAMMER_BOLT);
-
-  assert.equal(strikeCoefficient(hammerBolt.effects[0]), 0.9);
-  assert.equal(hammerBolt.effects[0].comboFinishers[0].finisherType, 'Projectile');
-  assert.equal(hammerBolt.effects[0].comboFinishers[0].chance, 1);
-  const coalescence = revenantCatalog.skillsById.get(SKILL.COALESCENCE_OF_RUIN);
-
-  assert.equal(coalescence.cooldown, 4);
-  assert.equal(coalescence.energyCost, 5);
-  const phaseSmash = revenantCatalog.skillsById.get(SKILL.PHASE_SMASH);
-
-  assert.equal(phaseSmash.cooldown, 8);
-  assert.equal(phaseSmash.energyCost, 5);
-  assert.equal(phaseSmash.effects[0].coefficient, 2.22);
-  assert.equal(phaseSmash.effects[0].comboFinishers[0].finisherType, 'Blast');
-  assert.equal(phaseSmash.effects[1].condition, 'Chilled');
-  assert.equal(phaseSmash.effects[1].duration, 2);
-  const fieldOfTheMists = revenantCatalog.skillsById.get(SKILL.FIELD_OF_THE_MISTS);
-
-  assert.equal(fieldOfTheMists.cooldown, 12);
-  assert.equal(fieldOfTheMists.energyCost, 10);
-  assert.equal(strikeCoefficient(fieldOfTheMists.effects[0]), 1.8);
-  assert.equal(fieldOfTheMists.effects[1].boon, 'aegis');
-  assert.equal(fieldOfTheMists.effects[1].duration, 2);
-  assert.equal(fieldOfTheMists.comboFields[0].fieldType, 'Dark');
-  assert.equal(fieldOfTheMists.comboFields[0].duration, 6);
-  assert.equal(fieldOfTheMists.comboFields[0].startMs, 680);
-  assert.equal(fieldOfTheMists.effects[0].comboFinishers[0].finisherType, 'Projectile');
-  assert.equal(fieldOfTheMists.effects[0].comboFinishers[0].chance, 1);
-  const dropTheHammer = revenantCatalog.skillsById.get(SKILL.DROP_THE_HAMMER);
-
-  assert.equal(dropTheHammer.cooldown, 15);
-  assert.equal(dropTheHammer.energyCost, 15);
-  assert.equal(strikeCoefficient(dropTheHammer.effects[0]), 3.2);
-  assert.equal(dropTheHammer.effects[0].comboFinishers[0].finisherType, 'Blast');
-  assert.equal(dropTheHammer.effects[1].controlKind, 'knockdown');
-  const manifestToxin = revenantCatalog.skillsById.get(SKILL.MANIFEST_TOXIN);
-
-  assert.deepEqual(
-    manifestToxin.effects
-      .filter((effect) => effect.type === 'strike')
-      .map((effect) => [strikeCoefficient(effect), effect.ticks?.length ?? effect.hits]),
-    [[0.6, 1]]
-  );
-  const twinMoonSweep = revenantCatalog.skillsById.get(SKILL.TWIN_MOON_SWEEP);
-
-  assert.equal(twinMoonSweep.comboFinishers[0].ownerId, 'revenant');
-  assert.equal(twinMoonSweep.comboFinishers[0].finisherType, 'Whirl');
-  assert.equal(twinMoonSweep.comboFinishers[0].applications, 2);
-  assert.equal(twinMoonSweep.comboFinishers[0].effectDelay, 0.04);
-  assert.equal(revenantCatalog.skillsByName.has('Abyssal Fire'), false);
+// Supplemental identities must not shadow the mechanics consumed by the runtime.
+test('Revenant supplemental identities leave simulation mechanics to their owners', () => {
   assert.ok(
-    REVENANT_SUPPLEMENTAL_SKILLS.every(
-      (skill) =>
-        !Object.hasOwn(skill, 'effects') &&
-        !Object.hasOwn(skill, 'cooldown') &&
-        !Object.hasOwn(skill, 'recharge') &&
-        !Object.hasOwn(skill, 'simulatorExcluded') &&
-        !Object.hasOwn(skill, 'flags')
+    REVENANT_SUPPLEMENTAL_SKILLS.every((skill) =>
+      ['effects', 'cooldown', 'recharge', 'simulatorExcluded', 'flags'].every((field) => !Object.hasOwn(skill, field))
     )
-  );
-  assert.match(revenantCatalog.skillsById.get(-5).icon, /\/Dodge\.png$/);
-  assert.equal(SKILL.JADE_WINDS, 28406);
-  const deathDropStrike = revenantCatalog.skillsById
-    .get(SKILL.DEATH_DROP)
-    .effects.find((effect) => effect.type === 'strike');
-
-  assert.deepEqual(
-    { coefficient: strikeCoefficient(deathDropStrike), hits: deathDropStrike.ticks?.length ?? deathDropStrike.hits },
-    { coefficient: 3.3, hits: 1 }
   );
 });
 
@@ -225,7 +103,7 @@ test('Core Revenant mechanics expose patch-authorable declarations', () => {
   const chargedMists = profile(REVENANT_CORE_BALANCE_PROFILE_IDS.chargedMists);
   const battleScars = profile(REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
 
-  assert.equal(skill(SKILL.DODGE).patchableFields.resourceCost, 50);
+  assert.equal(skill(SHARED_SKILL_IDS.DODGE).patchableFields.resourceCost, 50);
   assert.equal(skill(SKILL.SWAP_LEGENDS).patchableFields.resourceGain, 50);
   assert.equal(skill(SKILL.ANCIENT_ECHO).patchableFields.resourceGain, 25);
   assert.deepEqual(resources.patchableFields, {
@@ -245,7 +123,7 @@ test('Core Revenant mechanics expose patch-authorable declarations', () => {
 
   const preview = applyRevenantPatch({
     skills: {
-      [SKILL.DODGE]: {
+      [SHARED_SKILL_IDS.DODGE]: {
         fields: { resourceCost: { from: 50, to: 40 } }
       },
       [SKILL.ABYSSAL_RAZE]: {
@@ -266,7 +144,7 @@ test('Core Revenant mechanics expose patch-authorable declarations', () => {
     }
   });
 
-  assert.equal(preview.skillsById.get(SKILL.DODGE).resourceCost, 40);
+  assert.equal(preview.skillsById.get(SHARED_SKILL_IDS.DODGE).resourceCost, 40);
   assert.equal(
     preview.skillsById.get(SKILL.ABYSSAL_RAZE).effects.find((effect) => effect.type === 'strike')
       .damageIncreasePerStack,

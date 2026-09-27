@@ -72,11 +72,14 @@ function composeRuntimeDefinition<TProfessionState extends object, TBuild extend
   modules: readonly NamedModule[]
 ): ProfessionDefinition<TProfessionState, TBuild> {
   const genericModules = modules as readonly NamedModule<object>[];
-  const projectPlanningState = singleOwnerValue(
-    genericModules,
-    (module) => module.resources?.projectPlanningState,
-    'resources.projectPlanningState'
-  );
+  // Merge only Core and the selected specialization, in module order, so inactive state stays private.
+  const projectors = genericModules.flatMap(({ module }) => {
+    const project = module.resources?.projectPlanningState;
+    if (project == null) return [];
+    if (typeof project !== 'function') throw new TypeError('resources.projectPlanningState must be a function.');
+    return [project as (input: unknown) => object];
+  });
+  const projectPlanningState = (input: unknown) => Object.assign({}, ...projectors.map((project) => project(input)));
   return {
     id: definition.id,
     name: definition.name,
@@ -88,7 +91,7 @@ function composeRuntimeDefinition<TProfessionState extends object, TBuild extend
       endurance: [...genericModules].reverse().find(({ module }) => module.resources?.endurance)?.module.resources
         ?.endurance,
       createState: (config) => composeStateFragments(genericModules, config) as TProfessionState,
-      ...(projectPlanningState == null ? {} : { projectPlanningState })
+      ...(projectors.length ? { projectPlanningState } : {})
     },
     modifiers: composeModuleModifiers(genericModules)
   };

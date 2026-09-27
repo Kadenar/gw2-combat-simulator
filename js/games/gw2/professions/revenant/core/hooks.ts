@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { EPSILON } from '#kernel/core/clock.js';
@@ -80,7 +81,7 @@ const CUSTOM_EFFECT_SKILL_IDS = new Set<SkillId>([
   ID.ABYSSAL_RAZE,
   ID.ANCIENT_ECHO
 ]);
-const DODGE_IDS = new Set<SkillId>([ID.DODGE, VINDICATOR_JUMP_SKILL.id]);
+const DODGE_IDS = new Set<SkillId>([SHARED_SKILL_IDS.DODGE, VINDICATOR_JUMP_SKILL.id]);
 // Deferred upkeep costs are immutable acceptance facts, spent only if the activation commits.
 const upkeepCosts = new WeakMap<RuntimeCast, number>();
 
@@ -265,7 +266,7 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
     upkeepCosts.delete(cast);
     if (committed && upkeepCost != null) runtime.resourceController.spend('energy', upkeepCost);
     completeRevenantImperialGuard(runtime, cast);
-    if (skill.id === ID.SWAP_WEAPONS && !castWasInterrupted(cast)) {
+    if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS && !castWasInterrupted(cast)) {
       completeRevenantCrushingAbyssSwap(runtime, cast);
       completeRevenantBrutality(runtime, cast);
     }

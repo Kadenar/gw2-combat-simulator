@@ -1,13 +1,3 @@
-import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
-import {
-  composePublicStateProjections,
-  projectPublicProfessionState,
-  snapshotProfessionState
-} from '#gw2/platform/engine/profession/state.js';
-import { REVENANT_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/revenant/core/state.js';
-import { CONDUIT_PUBLIC_STATE_PROJECTION } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import { RENEGADE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/revenant/specializations/renegade/state.js';
-import { VINDICATOR_PUBLIC_STATE_PROJECTION } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import { applyConduitEnergyCostRules } from '#gw2/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
 import { applyVindicatorEnergyCostRules } from '#gw2/professions/revenant/specializations/vindicator/mechanics/energy-cost.js';
@@ -15,27 +5,8 @@ import type {
   RevenantEnergyCostInput,
   RevenantRuntimeState,
   RevenantConfig,
-  RevenantSkill,
-  RevenantState
+  RevenantSkill
 } from '#gw2/professions/revenant/types.js';
-
-// Compose public metadata once; runtime initialization and resolver ownership stay with each slice.
-const REVENANT_PUBLIC_STATE_PROJECTION = composePublicStateProjections([
-  REVENANT_CORE_PUBLIC_STATE_PROJECTION,
-  RENEGADE_PUBLIC_STATE_PROJECTION,
-  VINDICATOR_PUBLIC_STATE_PROJECTION,
-  CONDUIT_PUBLIC_STATE_PROJECTION
-]);
-
-export const REVENANT_PUBLIC_END_STATE_KEYS = REVENANT_PUBLIC_STATE_PROJECTION.keys;
-
-/** Projects the public Revenant state while supplying stable defaults for inactive elite specializations. */
-export function projectRevenantPlanningState({
-  profession
-}: Gw2PlanningStateInput<RevenantRuntimeState>): Partial<RevenantState> {
-  const state = snapshotProfessionState<RevenantState>(profession);
-  return projectPublicProfessionState(state, REVENANT_PUBLIC_END_STATE_KEYS, REVENANT_PUBLIC_STATE_PROJECTION.defaults);
-}
 
 // Family Energy cost composition: Core supplies the base cost and each elite specialization applies its own policy.
 // It lives at the family root because Core modules may not import specialization rules.

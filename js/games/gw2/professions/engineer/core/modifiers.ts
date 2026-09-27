@@ -1,3 +1,5 @@
+import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
   requireBalanceProfileFromContext,
@@ -13,7 +15,6 @@ import {
   activeBoonStacks,
   engineerEvent,
   engineerRuntimeState,
-  eventSkill,
   heavyMetalBonus,
   playerHealthFraction,
   targetConditionCount,
@@ -105,9 +106,10 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
       return (
         isGw2PlayerModifierOwnedEvent(context.event) &&
         hasTrait(context, TRAIT.TAKEDOWN_ROUND) &&
-        // 1e-9 tolerance prevents floating-point rounding from falsely reading "full endurance"
-        Number(state.endurance || 0) <
-          balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks') - 1e-9
+        !resourceAtLeast(
+          Number(state.endurance || 0),
+          balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks')
+        )
       );
     }
   },

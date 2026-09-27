@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { skillFlipVisible, skillFlipReady, weaponFollowUpOpen } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { activeStackCount, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -262,7 +263,7 @@ export const thiefCoreUi = Object.freeze({
         statusLabel: 'Current',
         // Render the endurance meter beneath the Dodge button rather than as a
         // standalone bar, so the resource sits with the action that spends it.
-        paletteSkillId: ID.DODGE
+        paletteSkillId: SHARED_SKILL_IDS.DODGE
       }
     ];
   },

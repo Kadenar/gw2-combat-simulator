@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runThief } from '#tests/helpers/thief-simulation.js';
@@ -66,7 +67,7 @@ test('Uncatchable honors independent authored pulse timing and component removal
     const surviving = removed === 'Bleeding' ? 'Crippled' : 'Bleeding';
     for (const endTimeMs of [1299, 1300]) {
       const result = runThief(
-        [ID.DODGE],
+        [SHARED_SKILL_IDS.DODGE],
         { selectedTraitIds: [TRAIT.UNCATCHABLE] },
         {
           observation: { kind: 'absolute', endTimeMs },
@@ -129,15 +130,19 @@ test('Deadeye trait boons remain behind deferred completion and retain attributi
 // Dodge's declaration owns its base payload; the profession must not silently discard an authored addition.
 test('Core Dodge emits its authored effects without a skill-id suppression hook', () => {
   const result = runThief(
-    [ID.DODGE],
+    [SHARED_SKILL_IDS.DODGE],
     {},
     {
       catalog: (catalog) =>
-        withSkill(catalog, ID.DODGE, { effects: [{ type: 'boon', boon: 'vigor', duration: 3, stacks: 1 }] })
+        withSkill(catalog, SHARED_SKILL_IDS.DODGE, {
+          effects: [{ type: 'boon', boon: 'vigor', duration: 3, stacks: 1 }]
+        })
     }
   );
   assert.deepEqual(result.warnings, []);
-  const buffs = result.resolvedEvents.filter((event) => event.kind === 'vigor' && event.skillId === ID.DODGE);
+  const buffs = result.resolvedEvents.filter(
+    (event) => event.kind === 'vigor' && event.skillId === SHARED_SKILL_IDS.DODGE
+  );
   assert.equal(buffs.length, 1);
   assert.equal(buffs[0].duration, 3);
 });

@@ -1,3 +1,4 @@
+import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -92,8 +93,7 @@ function modifyRenegadeCriticalChance(context: Gw2ModifierContext, chance: numbe
   if (!hasTrait(context, TRAIT.BRUTAL_MOMENTUM)) return chance;
   const state = revenantRuntimeCoreState(context);
   const maximum = REVENANT_MAXIMUM_ENDURANCE;
-  // 1e-9 tolerance handles floating-point endurance values that should be exactly at cap
-  const full = maximum > 0 && Number(state.endurance || 0) >= maximum - 1e-9;
+  const full = resourceAtLeast(Number(state.endurance || 0), maximum);
   const brutalMomentumProfile = requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.brutalMomentum);
   // At full endurance: +33% crit; below full: +10% crit
   return chance + balanceProfileNumber(brutalMomentumProfile, full ? 'fullEnduranceCriticalChance' : 'criticalChance');

@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -100,7 +101,7 @@ export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
     }
 
     if (
-      cast.skill.id === ID.SWAP_WEAPONS &&
+      cast.skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS &&
       runtime.combatActive &&
       hasTrait(runtime, TRAIT.LET_LOOSE) &&
       isInternalCooldownReady(runtime.time, runtime.procs.deadline('ranger.untamed.letLoose'))

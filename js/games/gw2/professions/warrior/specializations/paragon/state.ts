@@ -1,3 +1,5 @@
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
@@ -36,3 +38,17 @@ function createParagonState(): ParagonState {
 }
 
 export const paragonState = defineProfessionSpecializationState('Paragon', createParagonState);
+
+/** Publishes detached, current public values without mutating the live module state. */
+export function projectParagonPlanningState(input: Gw2PlanningStateInput) {
+  const state = snapshotProfessionState<ParagonState>(input.profession);
+  const publicState = {
+    ...state,
+    activeRefrain: state.activeRefrainId == null ? '' : input.catalog.skillsById.get(state.activeRefrainId)?.name || ''
+  };
+  return projectPublicProfessionState(
+    publicState,
+    PARAGON_PUBLIC_STATE_PROJECTION.keys,
+    PARAGON_PUBLIC_STATE_PROJECTION.defaults
+  );
+}

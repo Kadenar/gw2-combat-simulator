@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { HOLOSMITH_PUBLIC_STATE_PROJECTION } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
 import { holosmithModifiers } from '#gw2/professions/engineer/specializations/holosmith/modifiers.js';
@@ -27,7 +29,7 @@ export const holosmithModule = defineNativeModule({
     autoattackChains: { additional: HOLOSMITH_AUTOATTACK_CHAINS }
   }),
   // Heat tasks and impact formulas read the same live specialization state.
-  state: { create: holosmithState.create },
+  state: { create: holosmithState.create, project: createPublicStateProjector(HOLOSMITH_PUBLIC_STATE_PROJECTION) },
   modifiers: holosmithModifiers,
   hooks: holosmithHooks,
   presentation: bindHolosmithUi

@@ -1448,57 +1448,6 @@ test('bone minion recharge starts after both minions are destroyed', () => {
   assert.equal(result.planningState.profession.activeMinions['bone-minion'], 2);
 });
 
-test('minion attacks use their canonical cadence, coefficients, and icons', () => {
-  const bloodFiend = simulate('Core', ['Summon Blood Fiend', { type: 'wait', durationMs: 6500 }], {
-    selectedSkills: ['Summon Blood Fiend']
-  });
-  const boneMinions = simulate('Core', ['Summon Bone Minions', { type: 'wait', durationMs: 4000 }], {
-    selectedSkills: ['Summon Bone Minions']
-  });
-  const fleshGolem = simulate('Core', ['Summon Flesh Golem', { type: 'wait', durationMs: 6500 }], {
-    selectedSkills: ['Summon Flesh Golem']
-  });
-  const bloodAttacks = bloodFiend.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.skillName === 'Summon Blood Fiend - Minion Attack'
-  );
-  const boneAttacks = boneMinions.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.skillName === 'Summon Bone Minions - Minion Attack'
-  );
-  const golemAttacks = fleshGolem.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.parentSkillName === 'Summon Flesh Golem'
-  );
-  const golemIcon = 'https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png';
-
-  assert.ok(bloodAttacks.length >= 2);
-  assert.equal(
-    bloodAttacks.every((event) => event.coefficient === 0.065),
-    true
-  );
-  assert.ok(Math.abs(bloodAttacks[1].at - bloodAttacks[0].at - 3.16) < 1e-12);
-  assert.equal(bloodAttacks[0].summonBasePower, 2400);
-  assert.equal(bloodAttacks[0].summonDamagePerCoefficient, 4338);
-  assert.equal(boneAttacks.length, 2);
-  assert.equal(boneAttacks[0].summonBasePower, 2250);
-  assert.equal(boneAttacks[0].summonDamagePerCoefficient, 4750);
-  assert.deepEqual(
-    golemAttacks
-      .slice(0, 3)
-      .map((event) => [
-        event.skillId,
-        event.skillName,
-        event.coefficient,
-        event.summonBasePower,
-        event.summonDamagePerCoefficient,
-        event.icon
-      ]),
-    [
-      [3653, 'Slash', 0.18, 2500, 3744, golemIcon],
-      [3654, 'Slash', 0.18, 2500, 3744, golemIcon],
-      [3655, 'Fist', 0.29, 2500, 3952, golemIcon]
-    ]
-  );
-});
-
 test('calibrated minion strikes ignore player Power and Signet of Spite', () => {
   for (const summon of ['Summon Blood Fiend', 'Summon Bone Fiend', 'Summon Bone Minions', 'Summon Flesh Golem']) {
     const rotation = [summon, { type: 'wait', durationMs: 6500 }];

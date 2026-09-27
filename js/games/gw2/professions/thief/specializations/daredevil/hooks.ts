@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
@@ -177,7 +178,7 @@ function weakeningStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent): void {
     state.weakeningStrikeExpiresAt <= event.at ||
     event.actorType !== 'player' ||
     !(Number(event.coefficient) > 0) ||
-    event.skillId === ID.DODGE
+    event.skillId === SHARED_SKILL_IDS.DODGE
   )
     return;
   state.weakeningStrikeReady = false;
@@ -205,7 +206,7 @@ function weakeningStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent): void {
 
 function completeDaredevilCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
   if (cast.cancelled) return;
-  if (cast.skill.id === ID.DODGE) completeDaredevilDodge(runtime, cast);
+  if (cast.skill.id === SHARED_SKILL_IDS.DODGE) completeDaredevilDodge(runtime, cast);
   updatePalmStrike(runtime, cast);
   // Endurance Thief follows Core's steal resources.
   if (cast.skill.id === ID.STEAL && hasTrait(runtime, TRAIT.ENDURANCE_THIEF))
@@ -246,7 +247,7 @@ export const daredevilHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
         runtime,
         cost * balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.staffMaster), 'resourceGain')
       );
-    if (skill.id === ID.DODGE && !cast.cancelled) queueDodgePackets(runtime, cast);
+    if (skill.id === SHARED_SKILL_IDS.DODGE && !cast.cancelled) queueDodgePackets(runtime, cast);
   },
   onCastComplete(runtime, cast) {
     deferThiefCompletion(runtime, DAREDEVIL_COMPLETE, cast);

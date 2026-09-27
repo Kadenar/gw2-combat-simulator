@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { mesmerRechargeWork } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
@@ -187,7 +188,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast, sk
     // Cancelled attempts still refund reservations and clear cast-local state, but grant no completion effects.
     if (cast.cancelled) return;
 
-    if (skill.id === ID.SWAP_WEAPONS) return;
+    if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) return;
     const specializationHandled = dispatchSpecializationCompletion(context, cast, skill, at);
 
     if (specializationHandled) {

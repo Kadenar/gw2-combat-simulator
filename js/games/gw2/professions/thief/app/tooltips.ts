@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   tooltipFactorChange,
   tooltipSeconds,
@@ -581,8 +582,8 @@ const familyTooltips = {
 
 /** Family descriptions bind to canonical skill identities; skill-specific entries below take precedence. */
 const FAMILY_SKILL_IDS: Readonly<Record<keyof typeof familyTooltips, readonly SkillId[]>> = {
-  'thief.weapon-swap': [ID.SWAP_WEAPONS],
-  'thief.dodge': [ID.DODGE],
+  'thief.weapon-swap': [SHARED_SKILL_IDS.SWAP_WEAPONS],
+  'thief.dodge': [SHARED_SKILL_IDS.DODGE],
   'thief.steal': [ID.STEAL],
   'thief.stolen-skill': [ID.SOUL_STONE_VENOM, ID.DETONATE_PLASMA, ID.THROW_MAGNETIC_BOMB],
   'thief.stealth-attack': [

@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { revenantProfession, revenantCatalog } from '#gw2/professions/revenant/profession.js';
@@ -86,9 +87,16 @@ for (const [spec, name, legend, config = {}] of [
     );
     const state = result.planningState.profession;
     assert.equal(state.enchantedDaggers.charges, 0);
-    assert.equal(state.razorclawsRage.charges, 0);
-    assert.equal(state.bandTogetherReady, false);
-    assert.equal(state.beguilingHazeCharges, 0);
+    if (spec === 'Renegade') {
+      assert.equal(state.razorclawsRage.charges, 0);
+      assert.equal(state.bandTogetherReady, false);
+    } else {
+      assert.equal(Object.hasOwn(state, 'razorclawsRage'), false);
+      assert.equal(Object.hasOwn(state, 'bandTogetherReady'), false);
+    }
+
+    if (spec === 'Conduit') assert.equal(state.beguilingHazeCharges, 0);
+    else assert.equal(Object.hasOwn(state, 'beguilingHazeCharges'), false);
     assert.equal(state.crushingAbyss.length, 0);
     assert.equal(state.activeUpkeeps.length, 0);
     if (name === 'Ancient Echo') assert.equal(state.energy.value, 50 + result.rotationEndTime * 5);
@@ -488,7 +496,7 @@ test('Enduring Recovery adds to Vigor and funds the next dodge in Core and Vindi
 
     const result = simulate(spec, ['Dodge', 'Dodge', 'Dodge'], { selectedTraitIds: [TRAIT.ENDURING_RECOVERY] });
     assert.deepEqual(result.warnings, []);
-    const dodges = result.steps.filter((step) => step.skillId === SKILL.DODGE);
+    const dodges = result.steps.filter((step) => step.skillId === SHARED_SKILL_IDS.DODGE);
     assert.equal(dodges.length, 3);
     assert.equal(dodges[2].start, 8000);
   }

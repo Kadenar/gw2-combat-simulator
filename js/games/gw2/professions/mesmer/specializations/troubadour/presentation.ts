@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import {
   mesmerMechanicPaletteGroups,
@@ -77,7 +78,7 @@ export const troubadourUi: MesmerUiSlice = Object.freeze({
         pipStyle: 'endurance',
         shortLabel: 'End',
         statusLabel: 'Current',
-        paletteSkillId: ID.DODGE_TROUBADOUR
+        paletteSkillId: SHARED_SKILL_IDS.DODGE
       }
     ];
     if (!activeInstruments.length) return resources;

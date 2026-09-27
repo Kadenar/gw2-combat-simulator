@@ -1,3 +1,5 @@
+import { createWeaponSwapSkill, createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
+
 /**
  * Owns simulator-only Core Revenant action declarations.
  * Their runtime behavior is registered through `core/hooks.ts`.
@@ -6,21 +8,7 @@ import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js'
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 const actions: readonly Skill[] = [
-  {
-    id: ID.SWAP_WEAPONS,
-    // Custom: Performs the shared weapon-set transition; see `platform/simulation/runtime.ts`.
-    inputCategory: 'weapon-swap', // Count the explicit bar-changing input in effort summaries.
-    name: 'Swap Weapons',
-    description: 'Swap equipped weapon sets.',
-    icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
-    type: 'Action',
-    slot: 'Action',
-    castTimeMs: 0,
-    cooldown: 10,
-    rechargeIgnoresAlacrity: true,
-    rechargeAnchor: 'castStart',
-    effects: []
-  },
+  createWeaponSwapSkill(),
   {
     id: ID.SWAP_LEGENDS,
     // Custom: Switches legends and resets energy through `core/hooks.ts`.
@@ -37,20 +25,12 @@ const actions: readonly Skill[] = [
     resourceGain: 50,
     effects: []
   },
-  {
-    id: ID.DODGE,
-    // Custom: emits Revenant dodge state through `core/hooks.ts`.
-    name: 'Dodge',
+  createDodgeSkill({
     description: 'Perform the selected dodge.',
-    icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
-    type: 'Action',
-    slot: 'Action',
     castTimeMs: 0,
-    cooldown: 0,
     resourceCost: 50,
-    cost: { resource: 'endurance' },
-    effects: []
-  }
+    cost: { resource: 'endurance' }
+  })
 ];
 
 export const REVENANT_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze(actions.map((skill) => Object.freeze(skill)));

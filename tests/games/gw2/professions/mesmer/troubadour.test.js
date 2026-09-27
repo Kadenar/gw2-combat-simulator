@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import { canonicalTime } from '#kernel/core/clock.js';
 import test from 'node:test';
@@ -443,7 +444,7 @@ test('Troubadour Dodge spends continuous endurance and waits for regeneration wi
     );
     assert.ok(result.planningState.profession.endurance < 0.11);
     assert.equal(result.planningState.profession.maximumEndurance, 100);
-    assert.equal(result.planningState.ammoBySkillId[ID.DODGE_TROUBADOUR], undefined);
+    assert.equal(result.planningState.ammoBySkillId[SHARED_SKILL_IDS.DODGE], undefined);
     assert.equal(Object.hasOwn(result.planningState.cooldowns, 'Dodge'), false);
   }
 });
@@ -475,7 +476,7 @@ test('Honorable Rogue restores 50 endurance, preserving partial regeneration and
       );
       assert.ok(Math.abs(after.planningState.profession.endurance - expected) < 0.000001);
       assert.equal(Object.hasOwn(after.planningState.cooldowns, 'Dodge'), false);
-      assert.equal(after.planningState.ammoBySkillId[ID.DODGE_TROUBADOUR], undefined);
+      assert.equal(after.planningState.ammoBySkillId[SHARED_SKILL_IDS.DODGE], undefined);
       assert.ok(after.planningState.cooldowns['Tale of the Honorable Rogue'].remaining > 0);
     }
   }
@@ -501,7 +502,7 @@ test('Troubadour uses initial endurance and Energy grants through the shared poo
   assert.equal(view.value, 55);
   assert.equal(view.maximum, 100);
   assert.equal(view.displayMode, 'bar');
-  assert.equal(view.paletteSkillId, ID.DODGE_TROUBADOUR);
+  assert.equal(view.paletteSkillId, SHARED_SKILL_IDS.DODGE);
 });
 
 test('Troubadour instrument note spends retain rotation timeline metadata', () => {

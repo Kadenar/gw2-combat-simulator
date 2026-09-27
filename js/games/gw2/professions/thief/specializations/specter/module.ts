@@ -1,3 +1,5 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { SPECTER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/specializations/specter/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
 import { specterModifiers } from '#gw2/professions/thief/specializations/specter/modifiers.js';
@@ -13,7 +15,7 @@ export const specterModule = defineNativeModule({
     skillMechanics: SPECTER_SKILL_MECHANICS,
     balanceProfiles: SPECTER_BALANCE_PROFILES
   }),
-  state: { create: specterState.create },
+  state: { create: specterState.create, project: createPublicStateProjector(SPECTER_PUBLIC_STATE_PROJECTION) },
   modifiers: specterModifiers,
   hooks: specterHooks,
   presentation: specterUi

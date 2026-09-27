@@ -1,7 +1,8 @@
+import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { clamp } from '#kernel/core/numeric.js';
-import { projectRecharge, type RechargeProgress, type RechargeInterval } from '#gw2/platform/engine/skills/recharge.js';
+import { projectRecharge, type RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 /**
  * Shared cooldown and ammo-charge recharge state machine. Owns the common
  * between-cast lockout and charge bookkeeping (recharge timers, charge
@@ -14,7 +15,7 @@ import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 interface CooldownControllerOptions {
   readonly state: Pick<Gw2Runtime, 'time' | 'ammo' | 'cooldowns' | 'rechargeProgress'>;
   readonly rechargeDuration: (skill: Skill, at: number) => number;
-  readonly rechargeIntervals?: (skill: Skill, start: number, end: number) => Iterable<RechargeInterval>;
+  readonly rechargeIntervals?: (skill: Skill, start: number, end: number) => Iterable<RateInterval>;
   readonly skillFor?: (id: SkillId) => Skill | undefined;
   readonly maximumAmmo?: (skill: Skill) => number;
 }

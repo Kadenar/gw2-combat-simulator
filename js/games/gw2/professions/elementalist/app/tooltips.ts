@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   tooltipFactorChange,
   tooltipSeconds,
@@ -294,7 +295,7 @@ export const elementalistTooltips: ProfessionTooltips = {
         )
       ])
     ),
-    [ID.DODGE]: skillTooltip(
+    [SHARED_SKILL_IDS.DODGE]: skillTooltip(
       'Spend endurance to dodge and trigger Evasive Arcana when selected. Incoming attacks are outside combat simulation scope.',
       (balanceContext) => [profileFact(balanceContext, CORE.resources, 'resourceCost', 'Endurance spent')]
     ),

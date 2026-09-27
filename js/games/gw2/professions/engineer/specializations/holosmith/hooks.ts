@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
@@ -29,7 +30,7 @@ export const holosmithHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = 
   prepareEvent: decorateHolosmithHeatEvent,
   onCastStart(runtime, cast) {
     const skill = cast.skill as HolosmithSkill;
-    if (skill.id === ID.DODGE) triggerThermalReleaseValve(runtime, skill, runtime.time);
+    if (skill.id === SHARED_SKILL_IDS.DODGE) triggerThermalReleaseValve(runtime, skill, runtime.time);
     if (skill.id === ID.CORONA_BURST) applyCoronaBurstHeat(runtime, skill, cast);
     else if (skill.id === ID.PHOTON_BLITZ) applyPhotonBlitzHeat(runtime, skill, cast);
     else if (Number(skill.heatGain) > 0) applyHeat(runtime, skill, cast);

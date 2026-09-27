@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   tooltipFactorChange,
@@ -508,7 +509,7 @@ export const necromancerTooltips: ProfessionTooltips = {
     [ID.DARK_PACT]: darkPactTooltip,
     [ID.LIFE_SIPHON]: lifeSiphonTooltip,
     [ID.DEVOURING_DARKNESS]: devouringDarknessTooltip,
-    [ID.SWAP_WEAPONS]: weaponSwapTooltip,
+    [SHARED_SKILL_IDS.SWAP_WEAPONS]: weaponSwapTooltip,
     // Passive signet packets have separate profile IDs and must accompany the active skill facts.
     [ID.SIGNET_OF_SPITE]: skillTooltip(
       'Passively grants power while its passive is available. Activate to inflict the listed conditions.',

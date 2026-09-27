@@ -1,5 +1,4 @@
 export const NECROMANCER_SKILL_IDS = Object.freeze({
-  SWAP_WEAPONS: -3,
   EXIT_LICH_FORM: -4,
 
   DEATH_SHROUD: 10574,

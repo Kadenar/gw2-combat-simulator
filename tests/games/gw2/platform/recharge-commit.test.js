@@ -1,3 +1,4 @@
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import assert from 'node:assert/strict';
@@ -5,7 +6,6 @@ import test from 'node:test';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
@@ -103,7 +103,7 @@ test('Antiquary preserves charges across queries and consumes FIFO once per util
   const rotation = [{ type: 'wait', durationMs: 1000 }, 'Prepare Thousand Needles', 'Prepare Pitfall'];
   const holo = (runtime) => runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations;
   const projected = (runtime) =>
-    projectThiefPlanningState({ profession: runtime.profession, time: runtime.time })
+    projectObservedState(thiefProfession, { profession: runtime.profession, time: runtime.time })
       .holoUtilityCooldownReductionExpirations;
   const observed = {};
   const recharge = (result) => observedRuntime(result).cooldowns.get(placement.id) - 1;
@@ -176,7 +176,8 @@ test('Holo-Dancer charges survive healing, unavailable utilities, and cancellati
   const needles = thiefProfession.catalog.skillsByName.get('Prepare Thousand Needles');
   const holo = (runtime) => [...runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations];
   const projected = (runtime, time = runtime.time) =>
-    projectThiefPlanningState({ profession: runtime.profession, time }).holoUtilityCooldownReductionExpirations;
+    projectObservedState(thiefProfession, { profession: runtime.profession, time })
+      .holoUtilityCooldownReductionExpirations;
   const observed = [];
   const rotation = [
     'Hide in Shadows',

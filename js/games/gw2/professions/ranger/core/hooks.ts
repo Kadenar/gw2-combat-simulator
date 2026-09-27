@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { triggerStalkersStrike } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
 import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { isPlayerStrike, isPetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
@@ -322,8 +323,8 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       applyRangerPetSwapTraits(runtime, skill);
     }
 
-    if (skill.id === ID.SWAP_WEAPONS) applyRangerWeaponSwapTraits(runtime, skill);
-    if (skill.id === ID.DODGE) applyRangerDodgeTraits(runtime);
+    if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) applyRangerWeaponSwapTraits(runtime, skill);
+    if (skill.id === SHARED_SKILL_IDS.DODGE) applyRangerDodgeTraits(runtime);
     if (skill.id === ID.WE_HEAL_AS_ONE) copyHealingBoons(runtime, cast);
     if (skill.id === ID.WINTERS_BITE) state.winterBiteReady = true;
     if (skill.id === ID.DOUBLE_ARC)

@@ -23,19 +23,16 @@ import type { MesmerBuild } from '#gw2/professions/mesmer/types.js';
 // assumption-dependent critical chance into the shared build attribute result.
 export function applyMesmerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  { build, selectedSkills = [], disabledTrait = null, balanceContext }: Gw2BuildAttributeRuleContext
+  context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const mesmerBuild = build as MesmerBuild;
-  // Attribute amounts follow the selected patch while effect ordering and eligibility remain unchanged.
-  const profileContext = balanceContext ?? { catalog: mesmerCatalog };
+  const mesmerBuild = context.build as MesmerBuild;
   const traitDurations: Gw2NumericAttributes = {};
 
-  const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
-    specializations: mesmerBuild.specializations || [],
-    selectedSkills,
-    disabledTrait,
+  const { activeTraits, hasTrait, hasSelectedSkill, profileContext } = createBuildAttributeContext(
+    context,
+    mesmerCatalog,
     getActiveTraits
-  });
+  );
 
   const assumptions = mesmerBuild.assumptions || {};
 

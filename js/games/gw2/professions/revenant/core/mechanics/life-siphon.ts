@@ -1,3 +1,4 @@
+import { isFlatLifeStealPacket } from '#gw2/platform/resolver/packets.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -10,8 +11,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
 /** Explicit life-steal packets bypass ordinary strike modifiers; labels never decide their Core bonus. */
 export function revenantLifeSiphonBonus(context: RevenantResolverContext, event: Gw2ResolverEvent): number | null {
-  const flatStrike = [event.flatDamage, event.flatStrikeBase, event.flatStrikePowerCoeff].some(Number.isFinite);
-  if (!flatStrike || event.damageKind !== 'life-steal') return null;
+  if (!isFlatLifeStealPacket(event)) return null;
   return hasTrait(context.config, TRAIT.FEROCIOUS_AGGRESSION) &&
     boonActive({ config: context.config, runtime: context, time: event.at, event }, 'fury')
     ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_AGGRESSION), 'damageIncrease')
