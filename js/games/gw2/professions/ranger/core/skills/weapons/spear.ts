@@ -4,6 +4,7 @@ import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
+// Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
 export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.DRAKES_SWIPE]: {
     flipSkillId: null,
@@ -26,6 +27,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
+        projectile: true,
         coefficient: 1.95,
         hits: 1,
         comboFinishers: [{ ownerId: 'ranger', finisherType: 'Projectile', ambiguousFieldSelection: 'oldest' }]
@@ -182,6 +184,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     effects: [
       {
         type: 'strike',
+        projectile: true,
         coefficient: 3.25,
         hits: 1,
         comboFinishers: [

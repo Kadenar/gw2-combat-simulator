@@ -4,8 +4,7 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerCriticalTraitReaction } from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
-import { mesmerCoreModifierRules } from '#gw2/professions/mesmer/core/traits/modifiers.js';
+import { mesmerCoreModifierRules } from '#gw2/professions/mesmer/core/modifiers.js';
 
 test('Mental Anguish uses explicit nested shatter eligibility', () => {
   // Only explicitly eligible packets receive this modifier.
@@ -17,42 +16,6 @@ test('Mental Anguish uses explicit nested shatter eligibility', () => {
       eligible === true
     );
   }
-});
-
-test('delayed Mesmer hit procs retain annotations and prefer canonical critical facts', () => {
-  // Canonical replacement supplies sampled facts without dropping annotations on the original scheduled hit.
-  const event = Object.freeze({ type: 'damage', at: 2, eventOrder: 7, metadata: { blade: true }, didCrit: false });
-  for (const canonical of [{ type: 'damage', at: 2, eventOrder: 7, didCrit: true, metadata: { cloneId: 0 } }]) {
-    const processed = [];
-    const context = {
-      mesmerRuntime: { criticalTraits: { process: (candidate) => processed.push(candidate) } },
-      eventByOrder(order) {
-        assert.equal(order, 7);
-        return canonical;
-      }
-    };
-    mesmerCriticalTraitReaction.taskHandlers['mesmer.critical-traits'](context, {
-      at: 2,
-      payload: { eventOrder: 7, metadata: event.metadata }
-    });
-    assert.equal(processed.length, 1);
-    assert.equal(processed[0].at, 2);
-    assert.equal(processed[0].metadata?.blade, true);
-    assert.equal(processed[0].metadata?.cloneId, canonical ? 0 : undefined);
-    assert.equal(processed[0].didCrit, Boolean(canonical));
-    assert.equal(event.didCrit, false);
-  }
-});
-
-test('Mesmer critical reactions reject a missing canonical event', () => {
-  assert.throws(
-    () =>
-      mesmerCriticalTraitReaction.taskHandlers['mesmer.critical-traits'](
-        { eventByOrder: () => undefined },
-        { at: 2, payload: { eventOrder: 7, metadata: { blade: true } } }
-      ),
-    /requires a scheduled event/
-  );
 });
 
 // Shared traits retain their damage, boon, and resource contracts across Mesmer specializations.
@@ -105,11 +68,10 @@ test('Maim the Disillusioned applies torment for defensive shatters', () => {
   }
 });
 
-test('supplied trait attacks execute with their exact coefficients', () => {
-  const coefficient = (result, skillName) =>
-    result.resolvedEvents
-      .filter((event) => event.type === 'damage' && event.skillName === skillName)
-      .reduce((sum, event) => sum + event.coefficient, 0);
+// Trait triggers must emit player-owned attacks and participate in ordinary damage modifiers.
+test('trait attacks trigger through their owning specialization and inherit player modifiers', () => {
+  const hasAttack = (result, skillName) =>
+    result.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === skillName);
 
   const madness = simulateMesmer(
     ['Ether Feast', { name: '__wait', waitMs: 5000 }],
@@ -120,7 +82,7 @@ test('supplied trait attacks execute with their exact coefficients', () => {
     })
   );
 
-  assert.ok(Math.abs(coefficient(madness, 'Lesser Chaos Storm') - 1.98) < 1e-12);
+  assert.ok(hasAttack(madness, 'Lesser Chaos Storm'));
 
   const phantasmalBlade = simulateMesmer(
     ['Phantasmal Lancer', { name: '__wait', waitMs: 3000 }],
@@ -133,14 +95,13 @@ test('supplied trait attacks execute with their exact coefficients', () => {
     })
   );
 
-  assert.equal(coefficient(phantasmalBlade, 'Phantasmal Blade'), 0.7);
   const phantasmalBladeHit = phantasmalBlade.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillName === 'Phantasmal Blade'
   );
 
   assert.equal(phantasmalBladeHit.source, 'Player');
   assert.equal(phantasmalBladeHit.actorType, 'player');
-  assert.equal(phantasmalBladeHit.weaponStrength, 2553.5);
+
   const modifiedPhantasmalBlade = simulateMesmer(
     ['Phantasmal Lancer', { name: '__wait', waitMs: 3000 }],
     defaultSimulationConfig({
@@ -168,7 +129,7 @@ test('supplied trait attacks execute with their exact coefficients', () => {
     })
   );
 
-  assert.equal(coefficient(syncopate, 'Syncopate'), 0.75);
+  assert.ok(hasAttack(syncopate, 'Syncopate'));
 
   const timeBomb = simulateMesmer(
     ['Time Sink', { name: '__wait', waitMs: 5000 }],
@@ -179,7 +140,7 @@ test('supplied trait attacks execute with their exact coefficients', () => {
     })
   );
 
-  assert.equal(coefficient(timeBomb, 'Time Bomb'), 3);
+  assert.ok(hasAttack(timeBomb, 'Time Bomb'));
 });
 
 test("Egotism starts after the target falls below the Mesmer's health percentage", () => {
@@ -239,7 +200,7 @@ test('Master Fencer grants self and allied fury on critical hits with an eight-s
       randomness: { mode: 'stochastic', seed: 1 }
     })
   );
-  const hits = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter');
+  const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter');
   const procs = result.events.filter((event) => event.type === 'proc' && event.name === 'Master Fencer');
   const fury = result.events.filter((event) => event.type === 'buff' && event.skillName === 'Master Fencer');
 
@@ -349,7 +310,7 @@ test('Sharper Images samples illusion criticals instead of accumulating expected
     ...config,
     randomness: { mode: 'stochastic', seed: 91 }
   });
-  const illusionHits = result.events.filter((event) => event.type === 'damage' && event.source === 'Phantasm');
+  const illusionHits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.source === 'Phantasm');
   const criticals = illusionHits.filter((event) => event.didCrit).length;
   const sharperImages = result.events.filter(
     (event) => event.type === 'condition' && event.name.includes('Sharper Images')

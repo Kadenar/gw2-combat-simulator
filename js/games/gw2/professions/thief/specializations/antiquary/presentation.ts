@@ -19,7 +19,7 @@ import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js
 /** Surfaces Combat High plus artifact effects with duration or consumable charges. */
 function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {
   const state = thiefUiState(context);
-  const at = Math.max(0, Number(context.atSeconds || 0));
+  const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
   // Pincher is spending progress, while Scuffle predicts the next automatic artifact replacement.
   if (
@@ -28,7 +28,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   ) {
     const prodigiousPincherProfile = requireBalanceProfileFromContext(context, PROFILE.prodigiousPincher);
     const threshold = balanceProfileNumber(prodigiousPincherProfile, 'threshold');
-    const spent = Math.max(0, Number(state.initiativeSpentSincePilfer || 0));
+    const spent = Math.max(0, state.initiativeSpentSincePilfer || 0);
     items.push({
       id: 'antiquary-prodigious-pincher',
       label: 'Prodigious Pincher',
@@ -37,7 +37,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     });
   }
 
-  const nextPilferRemaining = Number(state.nextSkrittScufflePilferAt || 0) - at;
+  const nextPilferRemaining = (state.nextSkrittScufflePilferAt || 0) - at;
   if (nextPilferRemaining > 0) {
     items.push({
       id: 'antiquary-skritt-scuffle',
@@ -61,10 +61,10 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   }
 
   const timedEffects: readonly [string, string, number][] = [
-    ['antiquary-exhilarating-ephemera', 'Exhilarating Ephemera', Number(state.antiquaryDamageUntil || 0)],
-    ['antiquary-kryptis-turret', 'Kryptis Turret', Number(state.kryptisDamageUntil || 0)],
-    ['antiquary-forged-surfer-dash', 'Forged Surfer Dash', Number(state.forgedSurferBombDropUntil || 0)],
-    ['antiquary-chak-shield', 'Chak Shield', Number(state.chakInitiativeRefundUntil || 0)]
+    ['antiquary-exhilarating-ephemera', 'Exhilarating Ephemera', state.antiquaryDamageUntil || 0],
+    ['antiquary-kryptis-turret', 'Kryptis Turret', state.kryptisDamageUntil || 0],
+    ['antiquary-forged-surfer-dash', 'Forged Surfer Dash', state.forgedSurferBombDropUntil || 0],
+    ['antiquary-chak-shield', 'Chak Shield', state.chakInitiativeRefundUntil || 0]
   ];
   for (const [id, label, expiresAt] of timedEffects) {
     const remaining = expiresAt - at;
@@ -89,8 +89,8 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     ['antiquary-metal-legion-guitar', 'Metal Legion Guitar', state.stealthAttackCharges, state.stealthAttackExpiresAt],
     ['antiquary-mistburn-mortar', 'Mistburn Mortar', state.mistburn?.charges, state.mistburn?.expiresAt]
   ] as const) {
-    const remaining = Number(expiresAt || 0) - at;
-    const charges = Math.max(0, Math.trunc(Number(chargesValue || 0)));
+    const remaining = (expiresAt || 0) - at;
+    const charges = Math.max(0, Math.trunc(chargesValue || 0));
     if (remaining <= 0 || charges <= 0) continue;
     items.push({
       id,
@@ -156,7 +156,7 @@ export const antiquaryUi = Object.freeze({
   paletteSkillAvailability: (context: ThiefUiContext, skill: ThiefSkill) => {
     const state = thiefUiState(context);
     if (skill.artifactKind) {
-      const hasUse = Number(state.artifactUsesRemaining || 0) > 0;
+      const hasUse = (state.artifactUsesRemaining || 0) > 0;
       const inSlot = Boolean(state.artifactSlots?.some((slot) => slot.skillId === skill.id));
       return {
         available: hasUse && inSlot,

@@ -56,6 +56,7 @@
     "update:elementalist-data": "node scripts/data/update-elementalist-api-data.mjs",
     "update:warrior-data": "node scripts/data/update-warrior-data.mjs",
     "update:ranger-data": "node scripts/data/update-ranger-data.mjs",
+    "generate:engineer-ids": "npm run build:modules && node scripts/data/generate-engineer-ids.mjs",
     "generate:revenant-ids": "npm run build:modules && node scripts/data/generate-revenant-ids.mjs"
   },
   "engines": {

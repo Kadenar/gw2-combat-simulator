@@ -1,3 +1,7 @@
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { expireCharges } from '#gw2/platform/combat/resources/charges.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
   definePublicStateDefaults,
@@ -12,12 +16,7 @@ export interface ThiefArtifactSlot {
   readonly skillId: SkillId;
 }
 
-export interface ThiefBackfireState {
-  readonly activeUntil: number;
-  readonly skillName: string;
-}
-
-export interface ThiefAntiquarySummon {
+interface ThiefAntiquarySummon {
   readonly skillId: SkillId;
   readonly name: string;
   readonly expiresAt: number;
@@ -28,16 +27,14 @@ export interface AntiquaryState extends ThiefStealthAttackChargeState {
   artifactSlots: ThiefArtifactSlot[];
   artifactUsesRemaining: number;
   scoundrelsLuck: number;
-  scoundrelsLuckReadyAt: number;
-  improvisationReadyAt: number;
-  backfireState: Record<string, ThiefBackfireState>;
+
+  backfireState: Record<string, true>;
   initiativeSpentSincePilfer: number;
   activeAntiquarySummons: ThiefAntiquarySummon[];
   nextSkrittScufflePilferAt: number;
   antiquaryDamageUntil: number;
   combatHighExpirations: number[];
   mistburn: ChargeGrant;
-  mistburnGeneration: number;
   kryptisDamageUntil: number;
   chakInitiativeRefundUntil: number;
   holoUtilityCooldownReductionExpirations: number[];
@@ -52,8 +49,7 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
     artifactSlots: [],
     artifactUsesRemaining: 0,
     scoundrelsLuck: 0,
-    scoundrelsLuckReadyAt: 0,
-    improvisationReadyAt: 0,
+
     backfireState: {},
     initiativeSpentSincePilfer: 0,
     activeAntiquarySummons: [],
@@ -63,8 +59,6 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
     stealthAttackCharges: 0,
     stealthAttackExpiresAt: 0,
     mistburn: grantCharges(0, 0),
-    // Snapshot reconciliation uses this identity to preserve charges already spent by the resolver.
-    mistburnGeneration: 0,
     kryptisDamageUntil: 0,
     chakInitiativeRefundUntil: 0,
     holoUtilityCooldownReductionExpirations: [],
@@ -83,8 +77,7 @@ export const ANTIQUARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   artifactUsesRemaining: 0,
   initiativeSpentSincePilfer: 0,
   scoundrelsLuck: 0,
-  scoundrelsLuckReadyAt: 0,
-  improvisationReadyAt: 0,
+
   backfireState: {},
   activeAntiquarySummons: [],
   nextSkrittScufflePilferAt: 0,
@@ -102,3 +95,19 @@ export const ANTIQUARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 } satisfies Partial<AntiquaryState>);
 
 export const antiquaryState = defineProfessionSpecializationState('Antiquary', createAntiquaryState);
+
+/** Publishes detached, current public values without mutating the live module state. */
+export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput) {
+  const state = snapshotProfessionState(input.profession) as AntiquaryState;
+  expireCharges(state.mistburn, input.time);
+  state.combatHighExpirations = purgeExpiredStacks(state.combatHighExpirations, input.time);
+  state.holoUtilityCooldownReductionExpirations = purgeExpiredStacks(
+    state.holoUtilityCooldownReductionExpirations,
+    input.time
+  );
+  return projectPublicProfessionState(
+    state,
+    ANTIQUARY_PUBLIC_STATE_PROJECTION.keys,
+    ANTIQUARY_PUBLIC_STATE_PROJECTION.defaults
+  );
+}

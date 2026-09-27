@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   tooltipFactorChange,
   tooltipSeconds,
@@ -112,31 +113,36 @@ export const elementalistTooltips: ProfessionTooltips = {
         ]
       : [])
   ],
-  handlers: {
-    'elementalist.tempest-shout': skillTooltip(
-      "Apply this shout's effects and trigger applicable shout and aura traits. Tempestuous Aria adds party might."
-    ),
-    'elementalist.primordial-stance': (balanceContext) => ({
-      description:
-        "Pulse strike damage and conditions throughout the stance. Each pulse reads your current primary and secondary attunements: each hand supplies its element's condition, so a shared attunement applies that condition twice. The strike occurs once per pulse.",
-      facts: simulationEffectFacts(
-        tooltipProfile(balanceContext, WEAVER.primordialStance).effects,
-        'per pulse; conditions depend on current attunements'
-      ).facts
-    }),
-    'elementalist.grand-finale': (balanceContext) => ({
-      description:
-        "Consume all active hammer orbs and fire one projectile per orb. Each projectile applies its element's effects. Consuming the orbs cancels their pending attacks.",
-      facts: [
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, CORE.grandFinale).effects,
-          'only for each active orb consumed'
-        ).facts,
-        { name: 'Combo finisher', detail: 'Projectile, per consumed orb' }
-      ]
-    })
-  },
+  // Descriptions bind canonical skill IDs after removal of execution handler registrations.
   skills: {
+    ...Object.fromEntries(
+      [ID.WASH_THE_PAIN_AWAY, ID.FEEL_THE_BURN, ID.AFTERSHOCK].map((id) => [
+        id,
+        skillTooltip(
+          "Apply this shout's effects and trigger applicable shout and aura traits. Tempestuous Aria adds party might."
+        )
+      ])
+    ),
+    ...Object.fromEntries(
+      [ID.PRIMORDIAL_STANCE_FIRE, ID.PRIMORDIAL_STANCE_WATER, ID.PRIMORDIAL_STANCE_AIR, ID.PRIMORDIAL_STANCE_EARTH].map(
+        (id) => [
+          id,
+          (balanceContext) => ({
+            description:
+              "Pulse strike damage and conditions throughout the stance. Each pulse reads your current primary and secondary attunements: each hand supplies its element's condition, so a shared attunement applies that condition twice. The strike occurs once per pulse.",
+            facts: simulationEffectFacts(
+              tooltipProfile(balanceContext, WEAVER.primordialStance).effects,
+              'per pulse; conditions depend on current attunements'
+            ).facts
+          })
+        ]
+      )
+    ),
+    [ID.GRAND_FINALE]: skillTooltip(
+      "Consume all active hammer orbs and fire one projectile per orb. Each projectile applies its element's effects. Consuming the orbs cancels their pending attacks.",
+      () => [{ name: 'Combo finisher', detail: 'Projectile, per consumed orb' }]
+    ),
+
     ...Object.fromEntries(
       [ID.MAGNETIC_AURA, ID.FROST_AURA, ID.SHOCKING_AURA, ID.FIRE_SHIELD].map((id) => [
         id,
@@ -168,7 +174,7 @@ export const elementalistTooltips: ProfessionTooltips = {
               ? simulationEffectFacts(
                   tooltipProfile(balanceContext, TEMPEST.lightningJolt).effects?.map((effect) => ({
                     ...effect,
-                    noCrit: true
+                    canCrit: false
                   })),
                   'additional completion strike; also copied by an active elemental'
                 ).facts
@@ -289,7 +295,7 @@ export const elementalistTooltips: ProfessionTooltips = {
         )
       ])
     ),
-    [ID.DODGE]: skillTooltip(
+    [SHARED_SKILL_IDS.DODGE]: skillTooltip(
       'Spend endurance to dodge and trigger Evasive Arcana when selected. Incoming attacks are outside combat simulation scope.',
       (balanceContext) => [profileFact(balanceContext, CORE.resources, 'resourceCost', 'Endurance spent')]
     ),
@@ -326,7 +332,7 @@ export const elementalistTooltips: ProfessionTooltips = {
         simulationEffectFacts(
           tooltipProfile(balanceContext, CORE.fulgor).effects?.flatMap((effect) =>
             effect.type === 'strike'
-              ? (effect.ticks || []).map((tick) => ({ ...tick, type: 'strike' as const, noCrit: true }))
+              ? (effect.ticks || []).map((tick) => ({ ...tick, type: 'strike' as const, canCrit: false }))
               : []
           ),
           'additional pulses'
@@ -965,9 +971,8 @@ export const elementalistTooltips: ProfessionTooltips = {
     [TRAIT.INVIGORATING_TORRENTS]: traitTooltip('Gaining an aura grants vigor and regeneration.'),
     [TRAIT.TRANSCENDENT_TEMPEST]: traitTooltip(
       'Singularities form sooner. Completing an overload grants a temporary strike- and condition-damage bonus.',
-      (balanceContext, id) => [
+      (balanceContext) => [
         profileFact(balanceContext, TEMPEST.overloads, 'durationMultiplier', 'Base attunement dwell', tooltipSeconds),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Damage-bonus duration', tooltipSeconds),
         modifierFact(balanceContext, 'elementalist.transcendent-tempest-strike', 'amount', 'Strike damage'),
         modifierFact(balanceContext, 'elementalist.transcendent-tempest-condition', 'amount', 'Condition damage')
       ]

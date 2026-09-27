@@ -201,34 +201,23 @@ test('a Celestial helm contributes Vitality and Healing Power before utility con
 });
 
 test('Leviathan Tempering Oil grants three percent of every primary attribute', () => {
-  const sourceStats = {
-    Power: 1001,
-    Precision: 1017,
-    Toughness: 1025,
-    Vitality: 1050,
-    Ferocity: 650,
-    'Condition Damage': 750,
-    Expertise: 850,
-    Concentration: 950,
-    'Healing Power': 550
-  };
-  const build = createDefaultBuild();
-
-  build.rune = '';
-  build.food = '';
-  build.utility = 'Leviathan Tempering Oil';
-  build.jadeBotCore = false;
-  build.infusions = [];
-  const { attributes } = calculateCommonAttributes(build, {
-    data: {
-      BASE_STATS: sourceStats,
-      GEAR_SLOTS: []
-    }
-  });
-
-  for (const [name, source] of Object.entries(sourceStats)) {
+  // Real Celestial gear exercises every primary stat without injecting alternate gear tables.
+  const build = { gear: { Helm: 'Celestial' } };
+  const sourceStats = calculateCommonAttributes(build).attributes;
+  const { attributes } = calculateCommonAttributes({ ...build, utility: 'Leviathan Tempering Oil' });
+  for (const name of [
+    'Power',
+    'Precision',
+    'Toughness',
+    'Vitality',
+    'Ferocity',
+    'Condition Damage',
+    'Expertise',
+    'Concentration',
+    'Healing Power'
+  ]) {
+    const source = sourceStats[name].final;
     const expectedBonus = Math.round(source * 0.03);
-
     assert.equal(attributes[name].utility, expectedBonus, name);
     assert.equal(attributes[name].final, source + expectedBonus, name);
   }

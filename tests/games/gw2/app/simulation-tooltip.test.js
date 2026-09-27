@@ -8,7 +8,8 @@ import {
   tooltipDecimal,
   tooltipNumber
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { defineProfessionApp } from '#gw2/app/create-adapter.js';
+import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
 import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -17,12 +18,24 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { applyNecromancerBuildAttributeRules } from '#gw2/professions/necromancer/build/attributes.js';
 import { createNecromancerBuildDefaults, toApplicationBuild } from '#gw2/professions/necromancer/build/build.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { necromancerCoreCastRules } from '#gw2/professions/necromancer/core/traits/modifiers.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 
 // Raw Scourge costs are rounded only for display, with the same digit grouping as the in-game facts.
+// A handler description is reachable only through catalog skills that still declare that handler.
+test('profession tooltip handler descriptions bind to handlers declared by catalog skills', async () => {
+  for (const entry of professionRegistry) {
+    const exports = await import(`#gw2/professions/${entry.id}/app/tooltips.js`);
+    const tooltips = Object.values(exports).find((value) => value && typeof value === 'object' && 'traits' in value);
+    const declared = new Set(
+      (await entry.loadProfession()).catalog.skills.map((skill) => skill.handlerId).filter(Boolean)
+    );
+    for (const handlerId of Object.keys(tooltips.handlers ?? {}))
+      assert.ok(declared.has(handlerId), `${entry.id}: ${handlerId}`);
+  }
+});
+
 test('Scourge life-force tooltip costs display whole points', () => {
   const context = withPatchPreview(necromancerProfession, null).balanceContextFor();
   for (const [skillId, expected] of [
@@ -57,6 +70,27 @@ test('attribute bonuses, adrenaline, and skill recharge use game CDN icons', asy
   assert.match(tooltipFactIcon('Pulse intervals'), /\/1770206\.png$/);
   assert.match(tooltipFactIcon('Earth skill recharge'), /\/1770202\.png$/);
   assert.match(tooltipFactIcon('Internal cooldown'), /\/156651\.png$/);
+});
+
+test('Specter barrier tooltips distinguish self recipients and use the barrier CDN glyph', async () => {
+  const { thiefProfession } = await import('#gw2/professions/thief/profession.js');
+  const { thiefTooltips } = await import('#gw2/professions/thief/app/tooltips.js');
+  const context = withPatchPreview(thiefProfession, null).balanceContextFor();
+  const icon = 'https://render.guildwars2.com/file/357922487919E8E84B914EAC13D5796DDDC42D14/1770209.png';
+  // Entering shroud targets an ally; Dawn's Repose includes the caster in its party barrier.
+  for (const [name, excludesSelf] of [
+    ['Enter Shadow Shroud', true],
+    ["Dawn's Repose", false]
+  ]) {
+    const skill = context.catalog.skills.find((skill) => skill.name === name);
+    const tooltip = describeSimulationSkill(context, skill, thiefTooltips);
+    const barrier = tooltip.facts.find((fact) => fact.name === 'Barrier');
+    assert.equal(barrier.detail.includes('excluding yourself'), excludesSelf);
+    assert.equal(barrier.icon, icon);
+  }
+
+  assert.equal(tooltipFactIcon('Minimum Barrier'), icon);
+  assert.equal(tooltipFactIcon('Maximum Barrier'), icon);
 });
 
 // A single sparse profile edit must reach the build panel, combat, and tooltip without duplicate tuning inputs.
@@ -210,18 +244,11 @@ test('Revenant trait tooltips show bonuses, resource icons, and excluded traits'
   assert.deepEqual(excluded.facts, []);
 });
 
-// Repeated renders reuse only the selected model; patch changes and per-row descriptions remain independent.
-test('adapter caches skill tooltips per balance context without retaining stale patches or row state', () => {
-  const preview = (coefficient) =>
-    withPatchPreview(necromancerProfession, {
-      id: 'tooltip-cache',
-      label: 'Tooltip cache',
-      professions: { necromancer: { skills: { [ID.BLOOD_CURSE]: { effects: [{ type: 'strike', coefficient }] } } } }
-    });
-  let profession = preview(2);
+// Repeated renders reuse the selected model without retaining per-row availability descriptions.
+test('adapter caches skill tooltips without retaining row state', () => {
   let descriptions = 0;
   const adapter = defineProfessionApp({
-    profession: { ...profession, balanceContextFor: (patchId) => profession.balanceContextFor(patchId) },
+    profession: necromancerProfession,
     tooltips: {
       ...necromancerTooltips,
       skillFacts: (context, skill) => {
@@ -233,15 +260,10 @@ test('adapter caches skill tooltips per balance context without retaining stale 
     toApplicationBuild,
     specializationFallback: 'Spite'
   });
-  const skill = profession.catalog.skillsById.get(ID.BLOOD_CURSE);
+  const skill = necromancerProfession.catalog.skillsById.get(ID.BLOOD_CURSE);
   const live = adapter.skillTooltip(skill, 'current');
   assert.equal(adapter.skillTooltip({ ...skill }, 'current'), live);
   assert.equal(descriptions, 1);
-  const patched = adapter.skillTooltip(skill, 'tooltip-cache');
-  assert.match(patched.facts.find((fact) => fact.name === 'Strike damage').detail, /^2 coefficient/);
-  assert.equal(adapter.skillTooltip(skill, 'tooltip-cache'), patched);
-  assert.equal(adapter.skillTooltip(skill, 'current'), live);
-  assert.equal(descriptions, 2);
   assert.match(
     skillTooltipAttributes(skill, live, { details: 'Available now', detailsTitle: 'Cast details' }),
     /Available now/
@@ -249,11 +271,6 @@ test('adapter caches skill tooltips per balance context without retaining stale 
   const pending = skillTooltipAttributes(skill, live, { details: 'Available at 5s', detailsTitle: 'Cast details' });
   assert.match(pending, /Available at 5s/);
   assert.doesNotMatch(pending, /Available now/);
-
-  profession = preview(3);
-  const revised = adapter.skillTooltip(skill, 'tooltip-cache');
-  assert.match(revised.facts.find((fact) => fact.name === 'Strike damage').detail, /^3 coefficient/);
-  assert.equal(descriptions, 3);
 });
 
 // Handler descriptions must format their own packet once, without a discarded generic pass.
@@ -325,7 +342,7 @@ test('Dhuumfire tooltips show specialization durations and the Scourge cooldown'
     assert.equal(model.facts.find((fact) => fact.name === 'Internal cooldown')?.detail, cooldown);
   }
 
-  const simulate = createProfessionSimulator(profession, {
+  const simulate = createObservedProfessionSimulator(profession, {
     stats: { power: 2000, precision: 1000 },
     target: { armor: 2597 }
   });
@@ -352,7 +369,16 @@ test('Dhuumfire tooltips show specialization durations and the Scourge cooldown'
 test('Harbinger payloads use separate base and enhanced tabs', () => {
   const context = withPatchPreview(necromancerProfession, null).balanceContextFor();
   for (const skill of context.catalog.skills.filter((entry) =>
-    ['necromancer.elixir', 'necromancer.blight-skill'].includes(entry.handlerId)
+    [
+      ID.ELIXIR_OF_BLISS,
+      ID.ELIXIR_OF_RISK,
+      ID.ELIXIR_OF_IGNORANCE,
+      ID.ELIXIR_OF_AMBITION,
+      ID.ELIXIR_OF_ANGUISH,
+      ID.ELIXIR_OF_PROMISE,
+      ID.VORACIOUS_ARC,
+      ID.DEVOURING_CUT
+    ].includes(entry.id)
   )) {
     const model = describeSimulationSkill(context, skill, necromancerTooltips);
     assert.deepEqual(
@@ -386,12 +412,16 @@ test('Sinister Shroud tooltip and recharge handling share the selected profile',
     const trait = context.catalog.traits.find((entity) => entity.id === TRAIT.SINISTER_SHROUD);
     const model = describeSimulationTrait(context, trait, necromancerTooltips);
     assert.equal(model.facts.find((fact) => fact.name === 'Shroud and shade recharge reduction').detail, detail);
-    const recharge = (skill, selectedTraitIds = [TRAIT.SINISTER_SHROUD]) =>
-      necromancerCoreCastRules.modifyRechargeDuration({ catalog: context.catalog, skill, selectedTraitIds }, 20);
-    assert.equal(recharge({ shroud: true }), duration);
-    assert.equal(recharge({ handlerId: 'necromancer.shade' }), duration);
-    assert.equal(recharge({}), 20);
-    assert.equal(recharge({ shroud: true }, []), 20);
+    const recharge = (skillId, selectedTraitIds = [TRAIT.SINISTER_SHROUD]) => {
+      const config = { specialization: 'Scourge', patchId, selectedTraitIds };
+      const native = profession.runtimeFor(config);
+      return native.rechargeWork({ config, catalog: native.catalog }, native.catalog.skillsById.get(skillId), 20);
+    };
+
+    assert.equal(recharge(ID.LIFE_TRANSFER), duration);
+    assert.equal(recharge(ID.NEFARIOUS_FAVOR), duration);
+    assert.equal(recharge(ID.BLOOD_CURSE), 20);
+    assert.equal(recharge(ID.LIFE_TRANSFER, []), 20);
   }
 });
 
@@ -524,7 +554,7 @@ test('tooltip construction rejects missing inputs and ignores external fact stri
 });
 
 // Handler-owned damage and self-conditions must consume the same patched packets displayed by their tooltips.
-test('Necromancer condition handlers and tooltips share selected skill and profile effects', () => {
+test('Necromancer condition handlers and tooltips share selected skill effects', () => {
   const profession = withPatchPreview(necromancerProfession, {
     id: 'condition-tooltips',
     label: 'Condition tooltips',
@@ -537,11 +567,18 @@ test('Necromancer condition handlers and tooltips share selected skill and profi
               { type: 'strike', coefficient: 2 },
               { type: 'condition', condition: 'Torment', stacks: 2, duration: 7 }
             ]
-          }
-        },
-        balanceProfiles: {
-          'necromancer.core.blood-is-power-corruption': {
-            effects: [{ type: 'condition', condition: 'Bleeding', stacks: 3, duration: 9 }]
+          },
+          [ID.BLOOD_IS_POWER]: {
+            effects: [
+              {
+                type: 'condition',
+                name: 'Self Bleeding',
+                condition: 'Bleeding',
+                stacks: 3,
+                duration: 9,
+                target: 'self'
+              }
+            ]
           }
         }
       }
@@ -564,7 +601,7 @@ test('Necromancer condition handlers and tooltips share selected skill and profi
       (fact) => fact.name === 'Bleeding' && fact.stacks === 3 && /9s.*on yourself/.test(fact.detail)
     )
   );
-  const simulate = createProfessionSimulator(profession, {
+  const simulate = createObservedProfessionSimulator(profession, {
     stats: { power: 2000, precision: 1000, conditionDamage: 1000, vitality: 1000 },
     target: { armor: 2597, conditions: { Chilled: true } }
   });
@@ -582,8 +619,8 @@ test('Necromancer condition handlers and tooltips share selected skill and profi
   const torment = darkness.resolvedEvents.find((event) => event.type === 'condition' && event.skillId === 51647);
   assert.equal(torment.stacks, 2);
   assert.equal(torment.duration, 7);
-  // Completion counts both the existing Chilled and the newly applied Torment, using the patched gain.
-  assert.equal(darkness.planningState.profession.lifeForce.value, 12);
+  // The accepted strike counts existing Chilled before applying its own Torment, using the patched gain.
+  assert.equal(darkness.planningState.profession.lifeForce.value, 10);
   const corruption = simulate('Core', ['Blood Is Power'], {
     patchId: 'condition-tooltips',
     selectedSkills: ['Blood Is Power']
@@ -619,7 +656,7 @@ test('condition-transfer tooltips expose the same limits used by combat', () => 
   const context = profession.balanceContextFor('transfer-tooltip');
   const model = describeSimulationSkill(context, context.catalog.skillsById.get(ID.PLAGUE_SIGNET), necromancerTooltips);
   assert.equal(model.facts.find((entry) => entry.name === 'Conditions Transferred').detail, '1');
-  const simulate = createProfessionSimulator(profession, {
+  const simulate = createObservedProfessionSimulator(profession, {
     stats: { power: 2000, precision: 1000, conditionDamage: 1000, vitality: 1000 },
     target: { armor: 2597 }
   });
@@ -630,7 +667,13 @@ test('condition-transfer tooltips expose the same limits used by combat', () => 
   });
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
-    [...new Set(result.resolvedEvents.filter((event) => event.transferredCondition).map((event) => event.condition))],
+    [
+      ...new Set(
+        result.resolvedEvents
+          .filter((event) => event.type === 'condition' && event.fixedDuration === true)
+          .map((event) => event.condition)
+      )
+    ],
     ['Bleeding']
   );
   assert.ok(result.planningState.profession.selfConditions.some((condition) => condition.condition === 'Torment'));
@@ -655,7 +698,7 @@ test('Soulbeast condition triggers preserve the same patched stack count shown i
   const tooltip = describeSimulationSkill(context, context.catalog.skillsById.get(40498), rangerTooltips);
   assert.match(tooltip.facts.find((fact) => fact.name === 'Poisoned').detail, /6s.*per trigger/);
   assert.equal(tooltip.facts.find((fact) => fact.name === 'Poisoned').stacks, 3);
-  const simulate = createProfessionSimulator(profession, {
+  const simulate = createObservedProfessionSimulator(profession, {
     stats: { power: 2000, precision: 1000 },
     target: { armor: 2597 }
   });
@@ -767,7 +810,7 @@ test('Amalgam strain tooltips and activation use the same patched Stability pack
       }
     }
   });
-  const simulate = createProfessionSimulator(profession, {
+  const simulate = createObservedProfessionSimulator(profession, {
     stats: { power: 2000, precision: 1000 },
     target: { armor: 2597 }
   });

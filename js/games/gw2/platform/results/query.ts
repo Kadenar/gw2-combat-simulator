@@ -31,7 +31,7 @@ function resultEffects(result: Gw2SimulationResult | null | undefined, kind: str
     for (const event of events) {
       if (event.type === 'boon_extension') index.extensions.push(event);
       if (event.type !== 'buff') continue;
-      const key = String(event.kind || '').toLowerCase();
+      const key = (event.kind || '').toLowerCase();
       const bucket = index.byKind.get(key) || [];
       bucket.push(event);
       index.byKind.set(key, bucket);
@@ -51,7 +51,7 @@ export function criticalChanceEventAt(
   result: Gw2SimulationResult | null | undefined,
   timeMs: number
 ): Gw2ResolverEvent | null {
-  const seconds = Number(timeMs || 0) / 1000;
+  const seconds = (timeMs || 0) / 1000;
   let after: Gw2ResolverEvent | null = null;
   let afterAt = Infinity;
   let before: Gw2ResolverEvent | null = null;
@@ -64,7 +64,7 @@ export function criticalChanceEventAt(
     if (event.critEligible === false) continue;
     const chance = Number(event.criticalChance);
     if (!Number.isFinite(chance)) continue;
-    const at = Number(event.at || 0);
+    const at = event.at || 0;
     if (at >= seconds) {
       if (at < afterAt) {
         afterAt = at;
@@ -88,8 +88,8 @@ export function timedBuffAt(
   kind: string,
   atSeconds: number
 ): { readonly remaining: number; readonly event: SimulationEvent } | null {
-  const at = canonicalTime(Math.max(0, Number(atSeconds || 0)));
-  kind = String(kind).toLowerCase();
+  const at = canonicalTime(Math.max(0, atSeconds || 0));
+  kind = kind.toLowerCase();
   const { buffs, extensions } = resultEffects(result, kind);
   const applications = extensions.length ? boonApplicationsAt([...buffs, ...extensions], kind, at) : buffs;
   const live = applications.filter((event) => buffMatchesAudience(event, 'all') && event.at <= at);
@@ -114,7 +114,7 @@ export function timedBuffAt(
             application.at,
             'expiresAt' in application
               ? Number(application.expiresAt)
-              : gw2EffectExpiresAt(application.at, Number(application.duration || 0))
+              : gw2EffectExpiresAt(application.at, application.duration || 0)
           )
       )
       .at(-1);
@@ -122,7 +122,7 @@ export function timedBuffAt(
     const expiresAt =
       'expiresAt' in application
         ? Number(application.expiresAt)
-        : gw2EffectExpiresAt(application.at, Number(application.duration || 0));
+        : gw2EffectExpiresAt(application.at, application.duration || 0);
     return { remaining: expiresAt - at, event };
   }
 
@@ -135,8 +135,8 @@ export function timedBuffStacksAt(
   kind: string,
   atSeconds: number
 ): number {
-  const at = canonicalTime(Math.max(0, Number(atSeconds || 0)));
-  kind = String(kind).toLowerCase();
+  const at = canonicalTime(Math.max(0, atSeconds || 0));
+  kind = kind.toLowerCase();
   const { buffs, extensions } = resultEffects(result, kind);
   const applications = extensions.length ? boonApplicationsAt([...buffs, ...extensions], kind, at) : buffs;
   return buffApplicationStacks<SimulationEvent | Gw2TimedBuffApplication>(applications, kind, at, Infinity);

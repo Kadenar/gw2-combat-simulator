@@ -5,7 +5,6 @@ import type {
   PaletteSkillAvailability,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 
@@ -46,7 +45,7 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
     }
 
     // ambushReadyUntil is a deadline; once current time passes it the window is gone.
-    if (Number(context.time || 0) >= Number(state.ambushReadyUntil || 0)) {
+    if ((context.time || 0) >= (state.ambushReadyUntil || 0)) {
       return {
         available: false,
         message: 'Unleash to make an ambush available'
@@ -60,9 +59,9 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
 /** Reports the weapon ambush deadline and each beneficiary's Ferocious Symbiosis stacks. */
 function untamedStateSnapshot(context: RangerUiContext): RotationStateSnapshotItem[] {
   const state = rangerUiState(context);
-  const at = Math.max(0, Number(context.atSeconds || 0));
+  const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
-  const ambushRemaining = Number(state.ambushReadyUntil || 0) - at;
+  const ambushRemaining = (state.ambushReadyUntil || 0) - at;
   if (ambushRemaining > 0) {
     items.push({
       id: 'untamed-ambush-window',
@@ -81,7 +80,7 @@ function untamedStateSnapshot(context: RangerUiContext): RotationStateSnapshotIt
     ],
     ['untamed-ferocious-symbiosis-pet', 'Pet', state.ferociousSymbiosisPetStacks, state.ferociousSymbiosisPetUntil]
   ] as const) {
-    const remaining = Number(expiresAt || 0) - at;
+    const remaining = (expiresAt || 0) - at;
     const stacks = boundedInteger(stacksValue || 0, 0, 0, 5);
     if (remaining <= 0 || stacks <= 0) continue;
     items.push({
@@ -119,9 +118,7 @@ export function bindUntamedUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlic
       }
     ],
     paletteSkillAvailability: availability,
-    rotationStateSnapshot: untamedStateSnapshot,
+    rotationStateSnapshot: untamedStateSnapshot
     // Unleash synchronization is internal state bookkeeping, not a player-facing combat event.
-    eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
-      event.type === 'ranger.untamed-state' ? null : undefined
   });
 }

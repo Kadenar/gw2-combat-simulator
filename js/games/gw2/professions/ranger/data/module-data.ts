@@ -10,12 +10,12 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/ranger/data/ranger-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/ranger/data/traits-data.js';
 import { isRangerHammerVariant } from '#gw2/professions/ranger/data/hammer-variants.js';
-import type { CatalogEntity, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
 const petSkillIds = new Set<SkillId>(RANGER_PET_SKILLS.map((skill) => skill.id));
-const apiSkills = SKILLS as readonly RangerSkill[];
-const petSkills = RANGER_PET_SKILLS as readonly RangerSkill[];
+const apiSkills = SKILLS;
+const petSkills = RANGER_PET_SKILLS;
 const allSkills = [...apiSkills, ...petSkills, ...RANGER_SUPPLEMENTAL_SKILLS];
 
 const simulatorExcludedSkillIds = new Set<SkillId>([ID.EXPLODING_SPORE, ID.WUTHERING_WIND]);
@@ -123,7 +123,7 @@ const WEAPON_DATA = defineProfessionWeapons({
 /** Binds the shared catalog while leaving skill admission to each module's mechanics. */
 export const createRangerModuleData = createProfessionModuleDataFactory<RangerSkill>({
   generatedSkills: generated,
-  traits: TRAITS as readonly CatalogEntity[],
+  traits: TRAITS,
   specializations: SPECIALIZATIONS,
   specializationOnlySkills: SPECIALIZATION_ONLY_SKILLS,
   core: WEAPON_DATA

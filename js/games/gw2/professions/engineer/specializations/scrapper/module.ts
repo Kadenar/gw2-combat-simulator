@@ -1,20 +1,7 @@
-import {
-  afterSkillEffects,
-  onBuffApplied,
-  onComboResolved,
-  onResolvedDamage
-} from '#gw2/platform/profession-definition/mechanics.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
-import {
-  scrapperResolverEventHandlers,
-  scrapperResolverEventReactions
-} from '#gw2/professions/engineer/specializations/scrapper/traits/reactions.js';
-import {
-  scrapperAttributeRules,
-  scrapperCastRules,
-  scrapperSchedulerHooks
-} from '#gw2/professions/engineer/specializations/scrapper/traits/modifiers.js';
+import { scrapperModifiers } from '#gw2/professions/engineer/specializations/scrapper/modifiers.js';
+import { scrapperHooks } from '#gw2/professions/engineer/specializations/scrapper/hooks.js';
 import { SCRAPPER_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/scrapper/skills/index.js';
 import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
 import { SCRAPPER_BALANCE_PROFILES } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
@@ -26,39 +13,9 @@ export const scrapperModule = defineNativeModule({
     skillMechanics: SCRAPPER_SKILL_MECHANICS,
     balanceProfiles: SCRAPPER_BALANCE_PROFILES
   }),
-  // Same factory for both phases; scrapper has no phase-divergent state.
-  state: { scheduler: scrapperState.create, resolver: scrapperState.create },
-  mechanics: {
-    modifiers: scrapperAttributeRules,
-    execution: {
-      castRules: scrapperCastRules,
-      // afterSkillEffects runs after all skill effects are emitted, allowing trait buffs
-      // to observe the completed cast (e.g. superspeed emitted at effectiveEnd).
-      castLifecycle: [afterSkillEffects(scrapperSchedulerHooks.afterCast)],
-      hooks: {
-        onEventScheduled: scrapperSchedulerHooks.onEventScheduled
-      }
-    },
-    resolution: {
-      reactions: [
-        onResolvedDamage({
-          id: 'engineer.scrapper.damage',
-          handler: scrapperResolverEventReactions.damage
-        }),
-        onBuffApplied({
-          id: 'engineer.scrapper.buff',
-          handler: scrapperResolverEventReactions.buff
-        }),
-        onComboResolved({
-          id: 'engineer.scrapper.kinetic-accelerators',
-          handler: scrapperResolverEventReactions.combo
-        })
-      ],
-      hooks: {
-        // Handles the self-scheduled pulse event that keeps Mass Momentum ticking.
-        eventHandlers: scrapperResolverEventHandlers
-      }
-    }
-  },
+  // Scrapper traits share the live state with their actual combo and boon reactions.
+  state: { create: scrapperState.create },
+  modifiers: scrapperModifiers,
+  hooks: scrapperHooks,
   presentation: bindScrapperUi
 });

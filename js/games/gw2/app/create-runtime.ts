@@ -1,11 +1,11 @@
-import { createGw2SimulationConfig, deterministicSimulationConfig } from '#gw2/app/simulation/config.js';
+import { createGw2SimulationConfig, deterministicSimulationConfig } from '#gw2/app/simulation/build-config.js';
 import { createModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/request.js';
 import { calculateContributionComparisons } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
 import {
   DEFAULT_RANDOM_DISTRIBUTION_TRIALS,
   calculateRandomDistribution as calculateDistribution
 } from '#gw2/app/simulation/random-distribution/random-distribution.js';
-import { relicComparisonAvailable } from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
+import { relicComparisonAvailable } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import { cloneRotation } from '#gw2/app/rotation/editing/history.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -26,9 +26,9 @@ import type {
   RandomDistributionRequest,
   RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
-import type { RelicComparisonJobRequest } from '#gw2/app/simulation/relic-comparison/types.js';
+import type { RelicComparisonJobRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
 import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
-import type { ProfessionAttributeData, ProfessionSlotLoadout } from '#gw2/app/build/types.js';
+import type { ProfessionAttributeData } from '#gw2/app/build/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
@@ -79,7 +79,7 @@ export function createProfessionRuntime({
 
   function selectedSkills(app: ProfessionAppState): Skill[] {
     const catalog = app.activeCatalog || profession.catalog;
-    const loadout = profession.ui.slotLoadout ? (profession.ui.slotLoadout as ProfessionSlotLoadout) : null;
+    const loadout = profession.ui.slotLoadout;
     if (loadout) {
       return loadout
         .selectedSkillIds({
@@ -237,6 +237,17 @@ export function createProfessionRuntime({
       return app.results.planningState;
     }
 
+    return rotationPreviewAt(app, index).planningState;
+  }
+
+  /** Prefix and candidate previews use the same engine and inherited combat boundary, without an observation tail. */
+  function rotationPreviewAt(
+    app: ProfessionAppState,
+    insertionIndex: number,
+    appended: readonly RotationCommand[] = []
+  ): Gw2SimulationResult {
+    const rotation = app.build.rotation;
+    const index = clamp(Math.floor(Number(insertionIndex) || 0), 0, rotation.length);
     const config = baselineSimulationConfig(app);
     // A prefix before the marker still uses the full rotation's boundary, including casts that finish across it.
     const combatStartTime =
@@ -245,11 +256,11 @@ export function createProfessionRuntime({
         : undefined;
     return simulateGw2({
       profession,
-      rotation: rotation.slice(0, index),
+      rotation: [...rotation.slice(0, index), ...appended],
       config,
       observationPolicy: { kind: 'rotation' },
       combatStartTime: combatStartTime ?? undefined
-    }).planningState;
+    });
   }
 
   /** Captures a clone-safe baseline job before later edits can mutate the rotation. */
@@ -290,6 +301,7 @@ export function createProfessionRuntime({
     relicComparisonRequest,
     calculateRandomDistribution,
     rotationPlanningStateAt,
+    rotationPreviewAt,
     baselineSimulationRequest,
     calculateBaselineSimulation,
     runSimulation

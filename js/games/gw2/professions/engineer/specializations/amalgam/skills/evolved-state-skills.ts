@@ -23,7 +23,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     description: 'Enter Evolved form. Double Helix replaces this action with the two-charge variant.',
     countsAsToolbeltSkill: true,
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
-    handlerId: 'engineer.evolve',
+
     castTimeMs: 640,
     // Evolve begins recharging on activation, so its cast window contributes to the next use.
     rechargeAnchor: 'castStart',
@@ -38,7 +38,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     description: 'Enter Evolved form with an increased attribute bonus. Requires Double Helix.',
     countsAsToolbeltSkill: true,
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
-    handlerId: 'engineer.evolve',
+
     castTimeMs: 640,
     // Keep the traited identity on the same activation-anchored recharge contract.
     rechargeAnchor: 'castStart',
@@ -160,7 +160,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
   },
   [ID.PLASMATIC_STATE]: {
     // Custom: Activates Plasmatic State and its duration/state event; see `amalgam/mechanics/evolved-form.ts`.
-    handlerId: 'engineer.plasmatic-state',
+
     castTimeMs: PLASMATIC_STATE_CAST_TIME_MS,
     cooldown: 25,
     rechargeAnchor: 'castStart',

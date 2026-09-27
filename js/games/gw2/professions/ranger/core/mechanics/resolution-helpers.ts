@@ -17,9 +17,7 @@ export function stalkersStrikeTargetImpaired(
 }
 
 export function eventSkill(context: RangerResolverContext, event: Gw2ResolverEvent): RangerSkill | undefined {
-  return event.skillId == null
-    ? undefined
-    : (context.helpers.skillsById?.get(event.skillId) as RangerSkill | undefined);
+  return event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
 }
 
 export function isPetStrike(event: Gw2ResolverEvent): boolean {

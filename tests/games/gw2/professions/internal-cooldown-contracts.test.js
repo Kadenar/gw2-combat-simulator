@@ -1,5 +1,7 @@
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -18,8 +20,6 @@ import { reactToAshesHit } from '#gw2/professions/guardian/specializations/fireb
 import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import { applyMaliciousSwarm } from '#gw2/professions/necromancer/core/traits/spite.js';
-import { applyDarkDefense } from '#gw2/professions/necromancer/core/traits/death-magic.js';
 import {
   reactToNecromancerCoreDamage,
   reactToNecromancerBlind
@@ -34,75 +34,115 @@ import {
   soulbeastEventHandlers
 } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { createSoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
-import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
-import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
-import { REVENANT_TRAIT_IDS, REVENANT_SKILL_IDS } from '#gw2/professions/revenant/data/ids.js';
-import { observeRevenantEvent } from '#gw2/professions/revenant/core/mechanics/scheduler-hooks.js';
-import { createRenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
-import { observeRenegadeTraits } from '#gw2/professions/revenant/specializations/renegade/traits/index.js';
-import { thiefCatalog } from '#gw2/professions/thief/profession.js';
-import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
-import { reactToThiefCoreBuff } from '#gw2/professions/thief/core/traits/index.js';
+import { REVENANT_LEGEND_IDS, REVENANT_TRAIT_IDS } from '#gw2/professions/revenant/data/ids.js';
+import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
-import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
-import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
-import { WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/data/ids.js';
-import { createSpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
-import { reactToSpellbreakerDamage } from '#gw2/professions/warrior/specializations/spellbreaker/traits/index.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { WARRIOR_TRAIT_IDS, WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
+import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 
 const READY_AT = 1;
 const AFTER_READY_AT = 1.001;
 
-// The scheduler dispatcher owns strike classification; swap claims use completion time for both event forms.
-for (const [key, trait, event] of [
-  [
-    'brutality',
-    REVENANT_TRAIT_IDS.BRUTALITY,
-    { type: 'action', skillId: REVENANT_SKILL_IDS.SWAP_WEAPONS, at: 0, endsAt: 1 }
-  ],
-  ['brutality', REVENANT_TRAIT_IDS.BRUTALITY, { type: 'sigil_swap', skillId: REVENANT_SKILL_IDS.SWAP_WEAPONS, at: 1 }],
-  [
-    'viciousReprisal',
-    REVENANT_TRAIT_IDS.VICIOUS_REPRISAL,
-    { type: 'damage', actorType: 'player', coefficient: 1, at: 1 }
-  ]
+// Live owners claim from each qualifying completion or landed strike; ICD deadlines stay exclusive at the boundary.
+const wait = (durationMs) => ({ type: 'wait', durationMs });
+const revenantCooldown = (trait, duration) => (catalog) => withProfile(catalog, trait, { cooldown: duration });
+const closeTo = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} !== ${expected}`);
+
+test('Revenant Brutality claims at swap completion and honors the exclusive ICD boundary', () => {
+  for (const duration of [2, 0]) {
+    const run = (selectedTraitIds) =>
+      runRevenant(
+        [
+          wait(1000),
+          'Swap Weapons',
+          ...(duration ? [wait(duration * 1000)] : []),
+          'Swap Weapons',
+          wait(1),
+          'Swap Weapons'
+        ],
+        { selectedTraitIds, primaryWeapon: 'Sword', secondaryWeapon: 'Sword', weaponSet2Primary: 'Hammer' },
+        {
+          // Free weapon swaps isolate Brutality's own cooldown.
+          catalog: (catalog) =>
+            withSkill(
+              revenantCooldown(REVENANT_TRAIT_IDS.BRUTALITY, duration)(catalog),
+              SHARED_SKILL_IDS.SWAP_WEAPONS,
+              {
+                cooldown: 0
+              }
+            )
+        }
+      );
+    assert.deepEqual({ ...observedRuntime(run([])).procs.readyAt }, {});
+    const result = run([REVENANT_TRAIT_IDS.BRUTALITY]);
+    assert.deepEqual(result.warnings, []);
+    // The swap at the exact deadline is blocked; one millisecond later claims again from its own completion.
+    assert.deepEqual(
+      result.events
+        .filter((event) => event.type === 'buff' && event.skillId === REVENANT_TRAIT_IDS.BRUTALITY)
+        .map((event) => event.at),
+      [1, 1 + duration + 0.001]
+    );
+    closeTo(observedRuntime(result).procs.readyAt.brutality, 1 + duration + 0.001 + duration);
+  }
+});
+
+test('Revenant Vicious Reprisal claims only eligible strikes and honors the exclusive ICD boundary', () => {
+  for (const duration of [2, 0]) {
+    const run = (selectedTraitIds, boons = { resolution: true }) =>
+      runRevenant(
+        [wait(Math.round((2 + duration) * 1000))],
+        { selectedTraitIds, boons },
+        {
+          catalog: revenantCooldown(REVENANT_TRAIT_IDS.VICIOUS_REPRISAL, duration),
+          initialize(runtime) {
+            // Summon-owned and zero-coefficient packets are ineligible even while Resolution is active.
+            runtime.emit(revenantHit(0.5, { actorType: 'summon', ownerActorType: 'player' }));
+            runtime.emit(revenantHit(0.5, { coefficient: 0 }));
+            for (const at of [1, 1 + duration, 1 + duration + 0.001]) runtime.emit(revenantHit(at));
+          }
+        }
+      );
+    const might = (result) =>
+      result.events.filter((event) => event.type === 'buff' && event.sourceId === REVENANT_TRAIT_IDS.VICIOUS_REPRISAL);
+    assert.deepEqual({ ...observedRuntime(run([])).procs.readyAt }, {});
+    assert.deepEqual(might(run([REVENANT_TRAIT_IDS.VICIOUS_REPRISAL], {})), []);
+    const result = run([REVENANT_TRAIT_IDS.VICIOUS_REPRISAL]);
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(
+      might(result).map((event) => event.at),
+      [1, 1 + duration + 0.001]
+    );
+    closeTo(observedRuntime(result).procs.readyAt.viciousReprisal, 1 + duration + 0.001 + duration);
+  }
+});
+
+// Heal traits claim from the actual completion timestamp, with the shared strict cooldown boundary.
+for (const [key, trait] of [
+  ['darkDefense', NECROMANCER_TRAIT_IDS.DARK_DEFENSE],
+  [NECROMANCER_TRAIT_IDS.MALICIOUS_SWARM, NECROMANCER_TRAIT_IDS.MALICIOUS_SWARM]
 ]) {
-  test(`Revenant ${key} ${event.type} preserves eligibility and completion-time claims`, () => {
-    for (const duration of [2, 0]) {
-      const core = createRevenantCoreState();
-      const { context, events } = professionContext({ id: 'revenant', catalog: revenantCatalog, core });
-      const profiles = new Map(revenantCatalog.balanceProfilesById);
-      profiles.set(trait, { ...profiles.get(trait), cooldown: duration });
-      context.catalog = { ...revenantCatalog, balanceProfilesById: profiles };
-      context.hasBuff = () => false;
-      context.tasks = { schedule() {} };
-      observeRevenantEvent(context, event);
-      assert.deepEqual(core.traitProcReadyAt, {});
-      context.config.selectedTraitIds = [trait];
-      if (key === 'viciousReprisal') {
-        observeRevenantEvent(context, event);
-        assert.deepEqual(core.traitProcReadyAt, {});
-        context.hasBuff = () => true;
-        observeRevenantEvent(context, { ...event, actorType: 'summon' });
-        observeRevenantEvent(context, { ...event, coefficient: 0 });
-        assert.deepEqual(core.traitProcReadyAt, {});
+  test(`Necromancer ${key} claims only after its live completion boundary`, () => {
+    for (const selected of [false, true])
+      for (const completion of [1, 1.000001]) {
+        const config = { specialization: 'Core', selectedTraitIds: selected ? [trait] : [] };
+        const native = necromancerProfession.runtimeFor(config);
+        const result = observeGw2Runtime({
+          config,
+          rotation: [{ type: 'wait', durationMs: completion * 1000 - 680 }, 'Well of Blood'],
+          profession: {
+            ...native,
+            initialize(runtime) {
+              native.initialize(runtime);
+              runtime.procs.readyAt[key] = 1;
+            }
+          }
+        });
+        assert.equal(observedRuntime(result).procs.readyAt[key] > 1, selected && completion > 1);
+        assert.deepEqual(result.warnings, []);
       }
-
-      const emit = context.emitDerived.bind(context);
-      context.emitDerived = (cause, output) => {
-        assert.equal(core.traitProcReadyAt[key], output.at + duration);
-        return emit(cause, output);
-      };
-
-      observeRevenantEvent(context, event);
-      assert.equal(events.length, 1);
-      for (const at of [1 + duration, 1 + duration + 0.000001]) {
-        observeRevenantEvent(context, { ...event, at, ...(event.endsAt == null ? {} : { endsAt: at }) });
-      }
-
-      assert.equal(events.length, 2);
-      assert.equal(core.traitProcReadyAt[key], 1 + duration + 0.000001 + duration);
-    }
   });
 }
 
@@ -111,18 +151,6 @@ for (const [key, trait, invoke, literalDuration] of [
   ['siphonedPower', NECROMANCER_TRAIT_IDS.SIPHONED_POWER, reactToNecromancerCoreDamage],
   ['chillOfDeath', NECROMANCER_TRAIT_IDS.CHILL_OF_DEATH, reactToNecromancerCoreDamage],
   ['chillingDarkness', NECROMANCER_TRAIT_IDS.CHILLING_DARKNESS, reactToNecromancerBlind],
-  [
-    'darkDefense',
-    NECROMANCER_TRAIT_IDS.DARK_DEFENSE,
-    (c) => applyDarkDefense(c, { id: 1, name: 'Heal', type: 'Heal' }),
-    5
-  ],
-  [
-    'maliciousSwarm',
-    NECROMANCER_TRAIT_IDS.MALICIOUS_SWARM,
-    (c) => applyMaliciousSwarm(c, { id: 1, name: 'Heal', type: 'Heal' }),
-    15
-  ],
   ['dhuumfire', NECROMANCER_TRAIT_IDS.DHUUMFIRE, reactToNecromancerCoreDamage]
 ]) {
   test(`Necromancer ${key} preserves scoped claims and exact boundaries`, () => {
@@ -141,7 +169,7 @@ for (const [key, trait, invoke, literalDuration] of [
       let effects = 0;
       const bypass = key === 'dhuumfire' && duration === 0;
       const emitted = (event) => {
-        assert.equal(core.traitProcReadyAt[key], bypass ? undefined : event.at + duration);
+        assert.equal(context.procs.readyAt[key], bypass ? undefined : event.at + duration);
         effects += 1;
       };
 
@@ -160,7 +188,7 @@ for (const [key, trait, invoke, literalDuration] of [
       };
 
       opportunity(1);
-      assert.deepEqual(core.traitProcReadyAt, {});
+      assert.deepEqual({ ...context.procs.readyAt }, {});
       context.traits.add(trait);
       opportunity(1);
       assert.ok(effects > 0);
@@ -169,7 +197,7 @@ for (const [key, trait, invoke, literalDuration] of [
       assert.equal(effects, bypass ? count * 2 : count);
       opportunity(1 + duration + 0.000001);
       assert.ok(effects > count);
-      assert.deepEqual(createNecromancerCoreState().traitProcReadyAt, {});
+      assert.equal('traitProcReadyAt' in createNecromancerCoreState(), false);
     }
   });
 }
@@ -180,6 +208,7 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
   const procs = [];
   const conditions = [];
   const context = {
+    procs: createProcRegistry(() => context),
     profession: { id },
     catalog,
     config,
@@ -213,39 +242,39 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
 
 test('Elementalist control traits stay blocked at the exact ICD boundary', () => {
   const state = catalystState.create();
-  state.viciousEmpowermentReadyAt = READY_AT;
   const { context, procs } = professionContext({
     id: 'elementalist',
     catalog: elementalistCatalog,
     core: createElementalistCoreState(),
     specialization: state,
     kind: 'Catalyst',
-    traits: ['Vicious Empowerment']
+    traits: [ELEMENTALIST_TRAIT_IDS.VICIOUS_EMPOWERMENT]
   });
+  context.procs.readyAt['elementalist.catalyst.viciousEmpowerment'] = READY_AT;
   const event = { type: 'control', actorType: 'player', at: READY_AT, skillName: 'Boundary Control' };
 
   applyViciousEmpowerment(context, event);
-  assert.equal(state.viciousEmpowermentReadyAt, READY_AT);
+  assert.equal(context.procs.deadline('elementalist.catalyst.viciousEmpowerment'), READY_AT);
   assert.equal(procs.length, 0);
 
   applyViciousEmpowerment(context, { ...event, at: AFTER_READY_AT });
-  assert.ok(state.viciousEmpowermentReadyAt > AFTER_READY_AT);
+  assert.ok(context.procs.deadline('elementalist.catalyst.viciousEmpowerment') > AFTER_READY_AT);
   assert.equal(procs.length, 1);
 });
 
 test('Engineer condition traits stay blocked at the exact ICD boundary', () => {
   const core = createEngineerCoreState();
-  core.traitProcReadyAt.hematicFocus = READY_AT;
   const config = { selectedTraitIds: [ENGINEER_TRAIT_IDS.HEMATIC_FOCUS] };
   const { context } = professionContext({ id: 'engineer', catalog: engineerCatalog, core, config });
+  context.procs.readyAt.hematicFocus = READY_AT;
   const event = { type: 'condition', condition: 'Bleeding', actorType: 'player', at: READY_AT };
 
   reactToEngineerCondition(context, event);
-  assert.equal(core.traitProcReadyAt.hematicFocus, READY_AT);
+  assert.equal(context.procs.readyAt.hematicFocus, READY_AT);
   assert.equal(context.queue.length, 0);
 
   reactToEngineerCondition(context, { ...event, at: AFTER_READY_AT });
-  assert.ok(core.traitProcReadyAt.hematicFocus > AFTER_READY_AT);
+  assert.ok(context.procs.readyAt.hematicFocus > AFTER_READY_AT);
   assert.equal(context.queue.length, 1);
 });
 
@@ -254,9 +283,7 @@ test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and in
   for (const kind of ['one-wolf-pack', 'vulture-stance']) {
     for (const ally of [false, true]) {
       const state = createSoulbeastState();
-      const field = kind === 'one-wolf-pack' ? 'oneWolfPackReadyAt' : 'vultureStanceReadyAt';
-      state[field] = READY_AT;
-      state.alliedStanceReadyAt[`${kind}:1`] = READY_AT;
+      const field = kind === 'one-wolf-pack' ? 'ranger.soulbeast.oneWolfPack' : 'ranger.soulbeast.vultureStance';
       const { context } = professionContext({
         id: 'ranger',
         catalog: rangerCatalog,
@@ -264,6 +291,8 @@ test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and in
         specialization: state,
         kind: 'Soulbeast'
       });
+      context.procs.readyAt[field] = READY_AT;
+      context.procs.readyAt[`ranger.soulbeast.alliedStance:${kind}:1`] = READY_AT;
       context.boons.set(kind, [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]);
       const react = ally ? soulbeastEventHandlers['ranger.shared-stance-hit'] : reactToSoulbeastDamage;
       const event = {
@@ -282,13 +311,15 @@ test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and in
       const triggerAt = inclusive ? READY_AT : 1.04;
       react(context, { ...event, at: triggerAt });
       assert.ok(context.queue.length > 0);
-      const deadline = ally ? state.alliedStanceReadyAt[`${kind}:1`] : state[field];
+      const deadline = ally
+        ? context.procs.readyAt[`ranger.soulbeast.alliedStance:${kind}:1`]
+        : context.procs.readyAt[field];
       assert.equal(deadline, triggerAt + (kind === 'one-wolf-pack' ? 1 : 0.25));
       if (ally) {
         const queued = context.queue.length;
         react(context, { ...event, at: 1.04, metadata: { triggeredByAlly: 2 } });
         assert.ok(context.queue.length > queued);
-        assert.equal(state[field], READY_AT);
+        assert.equal(context.procs.readyAt[field], READY_AT);
       }
     }
   }
@@ -296,7 +327,6 @@ test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and in
 
 test('Ranger boon traits stay blocked at the exact ICD boundary', () => {
   const state = createSoulbeastState();
-  state.essenceOfSpeedReadyAt = READY_AT;
   const config = { selectedTraitIds: [RANGER_TRAIT_IDS.ESSENCE_OF_SPEED] };
   const { context } = professionContext({
     id: 'ranger',
@@ -306,89 +336,116 @@ test('Ranger boon traits stay blocked at the exact ICD boundary', () => {
     kind: 'Soulbeast',
     config
   });
+  context.procs.readyAt['ranger.soulbeast.essenceOfSpeed'] = READY_AT;
   const event = { type: 'buff', kind: 'quickness', at: READY_AT, resolvedAudience: { includesSelf: true } };
 
   reactToSoulbeastBuff(context, event);
-  assert.equal(state.essenceOfSpeedReadyAt, READY_AT);
+  assert.equal(context.procs.deadline('ranger.soulbeast.essenceOfSpeed'), READY_AT);
   assert.equal(context.queue.length, 0);
 
   reactToSoulbeastBuff(context, { ...event, at: AFTER_READY_AT });
-  assert.ok(state.essenceOfSpeedReadyAt > AFTER_READY_AT);
+  assert.ok(context.procs.deadline('ranger.soulbeast.essenceOfSpeed') > AFTER_READY_AT);
   assert.equal(context.queue.length, 1);
 });
 
 test('Revenant boon traits stay blocked at the exact ICD boundary', () => {
-  const state = createRenegadeState();
-  state.bloodFuryReadyAt = READY_AT;
-  const config = { selectedTraitIds: [REVENANT_TRAIT_IDS.BLOOD_FURY] };
-  const { context } = professionContext({
-    id: 'revenant',
-    catalog: revenantCatalog,
-    core: createRevenantCoreState(),
-    specialization: state,
-    kind: 'Renegade',
-    config
-  });
-  const event = { type: 'buff', kind: 'fury', at: READY_AT };
-
-  observeRenegadeTraits(context, event);
-  assert.equal(state.bloodFuryReadyAt, READY_AT);
-  assert.equal(state.kallasFervor.length, 0);
-
-  observeRenegadeTraits(context, { ...event, at: AFTER_READY_AT });
-  assert.ok(state.bloodFuryReadyAt > AFTER_READY_AT);
-  assert.equal(state.kallasFervor.length, 1);
-});
-
-test('Thief boon traits stay blocked at the exact ICD boundary', () => {
-  const core = createThiefCoreState();
-  core.traitProcReadyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] = READY_AT;
-  const config = { selectedTraitIds: [THIEF_TRAIT_IDS.ASSASSINS_FURY] };
-  const { context } = professionContext({ id: 'thief', catalog: thiefCatalog, core, config });
-  const event = {
-    type: 'buff',
-    kind: 'fury',
-    at: READY_AT,
-    resolvedAudience: {
-      includesSelf: true,
-      includesSummons: false,
-      alliedPlayerCount: 0,
-      companionIds: [],
-      recipientCount: 1
+  const result = runRevenant(
+    [wait(2000)],
+    {
+      specialization: 'Renegade',
+      selectedLegends: [REVENANT_LEGEND_IDS.RENEGADE, REVENANT_LEGEND_IDS.ASSASSIN],
+      startingLegend: REVENANT_LEGEND_IDS.RENEGADE,
+      selectedTraitIds: [REVENANT_TRAIT_IDS.BLOOD_FURY]
+    },
+    {
+      initialize(runtime) {
+        runtime.procs.readyAt['revenant.renegade.bloodFury'] = READY_AT;
+        for (const at of [READY_AT, AFTER_READY_AT])
+          runtime.emit({
+            type: 'buff',
+            kind: 'fury',
+            at,
+            duration: 1,
+            stacks: 1,
+            source: 'fixture',
+            sourceId: 'fixture',
+            actorType: 'player'
+          });
+      }
     }
-  };
-
-  reactToThiefCoreBuff(context, event);
-  assert.equal(core.traitProcReadyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY], READY_AT);
-  assert.equal(context.queue.length, 0);
-
-  reactToThiefCoreBuff(context, { ...event, at: AFTER_READY_AT });
-  assert.ok(core.traitProcReadyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] > AFTER_READY_AT);
-  assert.equal(context.queue.length, 1);
+  );
+  assert.deepEqual(
+    result.events
+      .filter((event) => event.type === 'buff' && event.sourceId === REVENANT_TRAIT_IDS.BLOOD_FURY)
+      .map((event) => event.at),
+    [AFTER_READY_AT]
+  );
+  assert.ok(observedRuntime(result).procs.deadline('revenant.renegade.bloodFury') > AFTER_READY_AT);
 });
 
+// Exercise the compiled trigger at real resolver times, including the exclusive cooldown boundary.
+test('Thief boon traits stay blocked at the exact ICD boundary', () => {
+  const result = runThief(
+    [wait(1100)],
+    { selectedTraitIds: [THIEF_TRAIT_IDS.ASSASSINS_FURY] },
+    {
+      initialize(runtime) {
+        runtime.procs.readyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] = READY_AT;
+        for (const at of [READY_AT, AFTER_READY_AT])
+          runtime.emit({
+            type: 'buff',
+            kind: 'fury',
+            at,
+            duration: 1,
+            stacks: 1,
+            source: 'fixture',
+            sourceId: 'fixture',
+            actorType: 'player'
+          });
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.events.filter((event) => event.sourceId === THIEF_TRAIT_IDS.ASSASSINS_FURY).map((event) => event.at),
+    [AFTER_READY_AT]
+  );
+  assert.ok(observedRuntime(result).procs.readyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] > AFTER_READY_AT);
+});
+
+// Actual burst impacts share the exclusive trait gate, independently of their skill recharge.
 test('Warrior burst traits stay blocked at the exact ICD boundary', () => {
-  const state = createSpellbreakerState();
-  state.magebaneTetherReadyAt = READY_AT;
-  const { context, procs } = professionContext({
-    id: 'warrior',
-    catalog: warriorCatalog,
-    core: createWarriorCoreState(),
-    specialization: state,
-    kind: 'Spellbreaker',
-    traits: [WARRIOR_TRAIT_IDS.MAGEBANE_TETHER]
-  });
-  context.query = { timeline: createGw2TimelineIndex() };
-  context.helpers = { skillsById: new Map([[900001, { id: 900001, name: 'Boundary Burst', burst: true }]]) };
-  const event = { type: 'damage', actorType: 'player', coefficient: 1, skillId: 900001, at: READY_AT };
-
-  reactToSpellbreakerDamage(context, event);
-  assert.equal(state.magebaneTetherReadyAt, READY_AT);
-  assert.equal(procs.length, 0);
-
-  reactToSpellbreakerDamage(context, { ...event, at: AFTER_READY_AT });
-  assert.ok(state.magebaneTetherReadyAt > AFTER_READY_AT);
-  assert.equal(procs.length, 1);
+  for (const at of [READY_AT, AFTER_READY_AT]) {
+    const config = { specialization: 'Spellbreaker', selectedTraitIds: [WARRIOR_TRAIT_IDS.MAGEBANE_TETHER] };
+    const native = warriorProfession.runtimeFor(config);
+    const result = observeGw2Runtime({
+      config,
+      rotation: [{ type: 'wait', durationMs: at * 1000 }],
+      profession: {
+        ...native,
+        initialize(runtime) {
+          native.initialize(runtime);
+          runtime.profession.specialization.state.magebaneTetherReadyAt = READY_AT;
+          runtime.emit({
+            type: 'damage',
+            at,
+            actorType: 'player',
+            source: 'warrior',
+            sourceId: WARRIOR_SKILL_IDS.BREACHING_STRIKE,
+            skillId: WARRIOR_SKILL_IDS.BREACHING_STRIKE,
+            coefficient: 1,
+            weaponStrengthProfileId: 'weapon.dagger'
+          });
+        }
+      }
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.procSteps.filter((proc) => proc.skill === 'Magebane Tether').length, at === READY_AT ? 0 : 1);
+    assert.equal(
+      observedRuntime(result).profession.specialization.state.magebaneTetherReadyAt > READY_AT,
+      at > READY_AT
+    );
+  }
 });
 
 test('Guardian charge procs stay blocked at the exact ICD boundary', () => {
@@ -416,28 +473,38 @@ test('Guardian charge procs stay blocked at the exact ICD boundary', () => {
 });
 
 test('Necromancer condition traits stay blocked at the exact ICD boundary', () => {
-  const { context } = createScheduler({
-    profession: necromancerProfession,
-    config: {
-      specialization: 'Scourge',
-      initialResource: 0,
-      selectedTraitIds: [NECROMANCER_TRAIT_IDS.NOURISHING_ASHES]
-    }
-  });
-  const state = context.state.profession.specialization.state;
-  state.nourishingAshesReadyAt = READY_AT;
+  const config = {
+    specialization: 'Scourge',
+    initialResource: 0,
+    selectedTraitIds: [NECROMANCER_TRAIT_IDS.NOURISHING_ASHES]
+  };
+  const native = necromancerProfession.runtimeFor(config);
   for (const at of [READY_AT, AFTER_READY_AT]) {
-    context.emit({
-      type: 'condition',
-      condition: 'Burning',
-      stacks: 1,
-      duration: 1,
-      at,
-      source: 'test',
-      sourceId: 'burning',
-      actorType: 'player'
+    const result = observeGw2Runtime({
+      config,
+      rotation: [{ type: 'combat-start' }, { type: 'wait', durationMs: at * 1000 }],
+      profession: {
+        ...native,
+        initialize(runtime) {
+          native.initialize(runtime);
+          runtime.procs.readyAt['necromancer.scourge.nourishingAshes'] = READY_AT;
+          runtime.emit({
+            type: 'condition',
+            condition: 'Burning',
+            stacks: 1,
+            duration: 1,
+            at,
+            source: 'test',
+            sourceId: 'burning',
+            actorType: 'player'
+          });
+        }
+      }
     });
-    context.advanceTo(at);
-    assert.equal(state.nourishingAshesReadyAt > READY_AT, at === AFTER_READY_AT);
+    assert.equal(
+      observedRuntime(result).procs.deadline('necromancer.scourge.nourishingAshes') > READY_AT,
+      at === AFTER_READY_AT
+    );
+    assert.deepEqual(result.warnings, []);
   }
 });

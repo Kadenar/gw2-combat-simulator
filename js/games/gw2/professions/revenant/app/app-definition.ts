@@ -1,9 +1,8 @@
 // Browser-facing Revenant composition. It adds attribute calculation, runtime
 // config mapping, persistence metadata, and shared-shell adapter behavior to
-// the engine contract exported by ../definition.js.
+// the engine contract exported by ../profession.ts.
 
-import { preferOffhand } from '#gw2/app/create-adapter.js';
-import { definePatchedProfessionApp } from '#gw2/app/create-patched-adapter.js';
+import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
 import { applyRevenantBuildAttributeRules } from '#gw2/professions/revenant/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/revenant/build/build.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
@@ -11,7 +10,7 @@ import { revenantTooltips } from '#gw2/professions/revenant/app/tooltips.js';
 import type { RevenantCanonicalBuild } from '#gw2/professions/revenant/types.js';
 
 // Exposes Revenant only through the shared browser application contract.
-export const revenantAppAdapter = definePatchedProfessionApp({
+export const revenantAppAdapter = defineProfessionApp({
   tooltips: revenantTooltips,
   profession: revenantProfession,
   applyBuildAttributeRules: applyRevenantBuildAttributeRules,

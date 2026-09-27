@@ -1,22 +1,54 @@
 import {
   requireBalanceProfileFromContext,
+  balanceProfileNumber,
   requireEffect,
-  effectNumber,
-  balanceProfileNumber
+  effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 /** Owns imperative Core Necromancer Death Magic trait behavior for ordered dispatcher calls. */
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
+
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { addCarapace } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type {
-  NecromancerCastContext,
   NecromancerResolverContext,
   NecromancerResolverEvent,
-  NecromancerSkill
+  NecromancerRuntime
 } from '#gw2/professions/necromancer/types.js';
+
+/** Completed heals grant Carapace and Protection together under one Dark Defense cooldown. */
+export function applyDarkDefense(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+  if (cast.skill.type !== 'Heal' || !hasTrait(runtime, TRAIT.DARK_DEFENSE)) return;
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.DARK_DEFENSE);
+  if (!runtime.procs.claimCooldown('darkDefense', runtime.time, balanceProfileNumber(profile, 'internalCooldown')))
+    return;
+  addCarapace(
+    runtime.profession.core,
+    balanceProfileNumber(profile, 'resourceGain'),
+    runtime.time,
+    balanceProfileNumber(profile, 'duration')
+  );
+  const boon = requireEffect(profile, 'boon', 'protection');
+  if (!boon) return;
+  const event = {
+    type: 'buff' as const,
+    at: runtime.time,
+    source: 'Trait',
+    sourceId: TRAIT.DARK_DEFENSE,
+    actorType: 'effect' as const,
+    activationId: cast.id,
+    triggeredBy: cast.skill.name,
+    offTarget: cast.command.offTarget,
+    skillName: profile.name,
+    kind: String(boon.boon),
+    stacks: effectNumber(profile, boon, 'stacks'),
+    duration: effectNumber(profile, boon, 'duration')
+  };
+  queueResolverBoon(runtime, event, event);
+}
 
 export function applyCorruptorsFervor(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.actorType === 'summon' || !hasTrait(context, TRAIT.CORRUPTERS_FERVOR)) return;
@@ -26,35 +58,4 @@ export function applyCorruptorsFervor(context: NecromancerResolverContext, event
     event.at,
     balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CORRUPTERS_FERVOR), 'duration')
   );
-}
-
-export function applyDarkDefense(context: NecromancerCastContext, skill: NecromancerSkill): void {
-  const state = professionCoreState(context);
-  if (skill.type !== 'Heal' || !hasTrait(context, TRAIT.DARK_DEFENSE)) return;
-  // Claim only after local eligibility, before conditions, resources or queued strikes.
-  if (
-    !tryConsumeProcCooldown(
-      state.traitProcReadyAt,
-      'darkDefense',
-      context.effectiveEnd,
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DARK_DEFENSE), 'internalCooldown')
-    )
-  )
-    return;
-  addCarapace(
-    state,
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DARK_DEFENSE), 'resourceGain'),
-    context.effectiveEnd,
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DARK_DEFENSE), 'duration')
-  );
-  const profile = requireBalanceProfileFromContext(context, TRAIT.DARK_DEFENSE);
-  const protection = requireEffect(profile, 'boon', 'protection');
-  // Carapace is independent of the boon, so a removed boon keeps the carapace grant.
-  if (!protection) return;
-  emitSkillBuff(context, skill, {
-    at: context.effectiveEnd,
-    kind: String(protection.boon),
-    duration: effectNumber(profile, protection, 'duration'),
-    stacks: effectNumber(profile, protection, 'stacks')
-  });
 }

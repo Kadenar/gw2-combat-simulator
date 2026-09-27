@@ -11,7 +11,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Daredevil',
     elite: true,
     icon: 'https://render.guildwars2.com/file/F1985D4E1CE043D7145E030C0AC4CFDABED73A59/1012025.png',
-    background: 'https://render.guildwars2.com/file/B969F9B27EE82CBF0E4651FD0F760F702CB5FCED/1012101.png',
     minorTraits: [
       {
         id: 1994,
@@ -155,7 +154,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Shadow Arts',
     elite: false,
     icon: 'https://render.guildwars2.com/file/B62E5512754BEB1D0116B1DB3B6FA0ECA4DD630C/1012027.png',
-    background: 'https://render.guildwars2.com/file/6943976957615E2337BE6B38292BAEB23C2BAAB9/1012103.png',
     minorTraits: [
       {
         id: 1294,
@@ -299,7 +297,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Deadly Arts',
     elite: false,
     icon: 'https://render.guildwars2.com/file/38F6FA9A5D04CEC605AF6E5D994119281A38A9FA/1012026.png',
-    background: 'https://render.guildwars2.com/file/2AA7FB65630AD540E204982978DA9601023B540E/1012102.png',
     minorTraits: [
       {
         id: 1279,
@@ -440,7 +437,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Critical Strikes',
     elite: false,
     icon: 'https://render.guildwars2.com/file/1CDB2736E6CAF79A1B549B06CDED717B3418F7B1/1012024.png',
-    background: 'https://render.guildwars2.com/file/29C9C0E8F16ADC18F745CA93CB58BA0C164B5CE1/1012100.png',
     minorTraits: [
       {
         id: 1281,
@@ -583,7 +579,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Trickery',
     elite: false,
     icon: 'https://render.guildwars2.com/file/06BF06CDA7150617C5E075265C1E2F15E84B3D64/1012028.png',
-    background: 'https://render.guildwars2.com/file/00CDEB242E93EA19125E48B556D2069639D03DBF/1012104.png',
     minorTraits: [
       {
         id: 1137,
@@ -722,7 +717,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Acrobatics',
     elite: false,
     icon: 'https://render.guildwars2.com/file/E109FF4E65CD3FA4AAC20E9D219C4D5207E1E461/1012023.png',
-    background: 'https://render.guildwars2.com/file/0CACB74F6E36F80921C6D6F2F0786B6C1CCCDCA4/1012099.png',
     minorTraits: [
       {
         id: 1240,
@@ -863,7 +857,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Deadeye',
     elite: true,
     icon: 'https://render.guildwars2.com/file/F93EF1717238E9ACC1CA330D4416D324AE08585D/1769895.png',
-    background: 'https://render.guildwars2.com/file/09B7D10707C7095C050B34ED68E3E3BB06626C7A/1769904.png',
     minorTraits: [
       {
         id: 2171,
@@ -1008,7 +1001,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Specter',
     elite: true,
     icon: 'https://render.guildwars2.com/file/E915E494C64037C93AB53FB6F2D414B468DBCA48/2503610.png',
-    background: 'https://render.guildwars2.com/file/BF7507EF23027CA6CAD12C586D7D7EAA05962249/2503613.png',
     minorTraits: [
       {
         id: 2184,
@@ -1157,7 +1149,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Antiquary',
     elite: true,
     icon: 'https://render.guildwars2.com/file/569D3C9A9E7121939844809F0D05E81480C8F6F8/3679903.png',
-    background: 'https://render.guildwars2.com/file/32E896AC6766E272C8910B6170394A3575C0D335/3679912.png',
     minorTraits: [
       {
         id: 2403,

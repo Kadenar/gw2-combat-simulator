@@ -1,10 +1,6 @@
 import { buildResolverStrike, buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { activeBoonStacks as queryActiveBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import {
-  enqueueGw2OwnedComboFinisher,
-  type EnqueueGw2OwnedComboFinisherOptions
-} from '#gw2/platform/resolver/combo-resolution.js';
+import type { EnqueueGw2OwnedComboFinisherOptions } from '#gw2/platform/resolver/combo-resolution.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -17,9 +13,10 @@ interface QueueDamageOptions {
   readonly actorType?: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
   readonly at?: number;
-  readonly noCrit?: boolean;
+  readonly canCrit?: boolean;
   readonly explosion?: boolean;
-  readonly comboFinisher?: Omit<EnqueueGw2OwnedComboFinisherOptions, 'at' | 'effectAt'>;
+  // The impact supplies timing, and the shared runtime generates the attempt identity.
+  readonly comboFinisher?: Omit<EnqueueGw2OwnedComboFinisherOptions, 'at' | 'effectAt' | 'attemptId'>;
   readonly weaponStrength?: number;
   readonly weaponStrengthProfileId?: string;
 }
@@ -55,10 +52,10 @@ export function resolverSkill(
   skillId: SkillId | null | undefined
 ): EngineerSkill | undefined {
   if (skillId == null) return;
-  return context.helpers.skillsById?.get(skillId) as EngineerSkill | undefined;
+  return context.helpers.skillsById?.get(skillId);
 }
 
-/** Enqueues one derived Engineer strike and materializes any attached combo finisher. */
+/** Queues one derived strike; the shared runtime attempts its finisher when the strike actually resolves. */
 export function queueDamage(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
@@ -69,14 +66,14 @@ export function queueDamage(
     actorType = 'player',
     ownerActorType,
     at = event.at,
-    noCrit = false,
+    canCrit = true,
     explosion = false,
     comboFinisher,
     weaponStrength,
     weaponStrengthProfileId
   }: QueueDamageOptions
 ): void {
-  const damage = context.queue.enqueue(
+  context.queue.enqueue(
     buildResolverStrike({
       at,
       skillName: name,
@@ -89,9 +86,10 @@ export function queueDamage(
       ...(ownerActorType == null ? {} : { ownerActorType }),
       // skillId only on player events — summon/effect damage should not carry the parent skill ID
       skillId: actorType === 'player' ? event.skillId : undefined,
+      ...(actorType === 'player' ? { activationId: event.activationId, offTarget: event.offTarget } : {}),
       // "Spear" default for player spear skills; non-player damage uses "Unequipped" for weapon lookups
       skillWeapon: actorType === 'player' ? 'Spear' : 'Unequipped',
-      noCrit,
+      canCrit,
       explosion,
       ...(comboFinisher
         ? {
@@ -113,13 +111,6 @@ export function queueDamage(
       triggeredBy: event.skillName
     })
   );
-  if (comboFinisher) {
-    enqueueGw2OwnedComboFinisher(context, damage, {
-      ...comboFinisher,
-      at,
-      effectAt: at
-    });
-  }
 }
 
 /** Enqueues a derived Engineer buff after applying the shared boon-duration rules. */
@@ -171,6 +162,7 @@ export function applyEngineerDerivedCondition(
     source: actorType === 'effect' ? 'Trait' : 'engineer',
     sourceId: sourceId ?? event.skillId ?? event.sourceId,
     actorType,
+    offTarget: event.offTarget,
     // Derived summon conditions retain the triggering companion's concrete identity.
     ...(actorType === 'summon'
       ? { summonOwner: event.summonOwner, independentConditionOwner: event.independentConditionOwner }
@@ -187,13 +179,6 @@ export function applyEngineerDerivedCondition(
   context.applyCondition(application);
 }
 
-/** Returns the lazily initialized Core trait proc state shared by Engineer reactions. */
-export function procState(context: EngineerResolverContext): Record<string, number | boolean> {
-  const state = professionCoreState(context);
-  state.traitProcReadyAt ||= {};
-  return state.traitProcReadyAt;
-}
-
 /** Records a trait proc for result attribution without changing combat state. */
 export function recordTrait(
   context: EngineerResolverContext,
@@ -201,14 +186,14 @@ export function recordTrait(
   event: EngineerResolverEvent,
   icon = ''
 ): void {
-  context.recordProc?.('trait', name, event.at, event.skillName, '', icon);
+  context.recordProc('trait', name, event.at, event.skillName, '', icon);
 }
 
 /** Adapts resolver time and lowercase boon names to the shared permanent-plus-timed stack query. */
 export function activeBoonStacks(context: EngineerResolverContext, kind: string, maximum = 25, at = 0): number {
   return queryActiveBoonStacks(
     { config: context.config, runtime: context, time: at },
-    String(kind || '').toLowerCase(),
+    (kind || '').toLowerCase(),
     maximum
   );
 }

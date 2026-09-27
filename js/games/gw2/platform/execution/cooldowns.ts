@@ -1,42 +1,21 @@
+import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { clamp } from '#kernel/core/numeric.js';
-import { projectRecharge, type RechargeProgress, type RechargeInterval } from '#gw2/platform/engine/skills/recharge.js';
+import { projectRecharge, type RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 /**
  * Shared cooldown and ammo-charge recharge state machine. Owns the common
  * between-cast lockout and charge bookkeeping (recharge timers, charge
  * depletion, recharge reduction) so professions only override maximum ammo and
  * recharge duration instead of reimplementing the mechanics.
  */
-import type { AmmoState, CooldownController, SchedulerState } from '#gw2/platform/execution/types.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { AmmoState, CooldownController } from '#gw2/platform/execution/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
-/** Reduces each matching tracked skill once across cooldown and ammo maps, returning the actual recharge recovered. */
-export function reduceMatchingCooldowns<TSkill extends Skill>(
-  context: {
-    readonly state: Pick<SchedulerState, 'cooldowns' | 'ammo'>;
-    readonly catalog: Pick<CanonicalCatalog<TSkill>, 'skillsById'>;
-    readonly cooldownController: Pick<CooldownController, 'reduceSkillRecharge'>;
-  },
-  predicate: (skill: TSkill) => boolean,
-  seconds: number,
-  at: number
-): number {
-  const ids = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
-  let reducedBy = 0;
-  for (const skillId of ids) {
-    const skill = context.catalog.skillsById.get(skillId);
-    if (skill && predicate(skill)) {
-      reducedBy += context.cooldownController.reduceSkillRecharge(skill, seconds, at);
-    }
-  }
-
-  return reducedBy;
-}
-
-interface CooldownControllerOptions<TProfessionState extends object> {
-  readonly state: SchedulerState<TProfessionState>;
+interface CooldownControllerOptions {
+  readonly state: Pick<Gw2Runtime, 'time' | 'ammo' | 'cooldowns' | 'rechargeProgress'>;
   readonly rechargeDuration: (skill: Skill, at: number) => number;
-  readonly rechargeIntervals?: (skill: Skill, start: number, end: number) => Iterable<RechargeInterval>;
+  readonly rechargeIntervals?: (skill: Skill, start: number, end: number) => Iterable<RateInterval>;
   readonly skillFor?: (id: SkillId) => Skill | undefined;
   readonly maximumAmmo?: (skill: Skill) => number;
 }
@@ -46,27 +25,28 @@ interface CooldownControllerOptions<TProfessionState extends object> {
  * maximum ammo and recharge calculation without duplicating the state machine.
  *
  */
-export function createCooldownController<TProfessionState extends object>({
+export function createCooldownController({
   state,
   rechargeDuration,
   rechargeIntervals = (_skill, start, end) => [{ start, end, rate: 1 }],
   skillFor = () => undefined,
-  maximumAmmo = (skill) => Number(skill.ammo || 0)
-}: CooldownControllerOptions<TProfessionState>): Readonly<CooldownController> {
-  if (!state?.ammo || !state?.cooldowns || !state?.rechargeProgress) {
-    throw new TypeError('Cooldown controller requires scheduler state.');
+  maximumAmmo = (skill) => skill.ammo || 0
+}: CooldownControllerOptions): Readonly<CooldownController> {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Headless JavaScript callers must supply all cooldown stores.
+  if (!state.ammo || !state.cooldowns || !state.rechargeProgress) {
+    throw new TypeError('Cooldown controller requires live runtime state.');
   }
 
   if (typeof rechargeDuration !== 'function') {
     throw new TypeError('Cooldown controller requires rechargeDuration.');
   }
 
-  const rate = (skill: Skill, at: number): number => {
+  const rate = (skill: Skill, at = state.time): number => {
     for (const interval of rechargeIntervals(skill, at, Infinity)) return interval.rate;
     return 1;
   };
 
-  // Integrate only elapsed base-recharge work. A change in rate never retroactively changes completed progress.
+  // Integrate elapsed work so later boon changes never alter progress already earned.
   const remaining = (skill: Skill, progress: RechargeProgress, at: number): number => {
     let work = progress.work;
     for (const interval of rechargeIntervals(skill, progress.startedAt, Math.max(progress.startedAt, at))) {
@@ -112,10 +92,10 @@ export function createCooldownController<TProfessionState extends object>({
 
   const syncAmmoCooldown = (skill: Skill, ammo: AmmoState, at: number): void => {
     // Derive availability from independent deadlines so returning a charge cannot erase a cast lockout.
-    const activeLockout = Number(ammo.lockoutReadyAt || 0);
+    const activeLockout = ammo.lockoutReadyAt || 0;
     const readyAt = Math.max(
       gw2CooldownReadyAt(activeLockout) > at ? activeLockout : 0,
-      ammo.charges === 0 ? Number(ammo.nextRechargeAt || 0) : 0
+      ammo.charges === 0 ? ammo.nextRechargeAt || 0 : 0
     );
     if (gw2CooldownReadyAt(readyAt) > at) {
       state.cooldowns.set(skill.id, readyAt);
@@ -128,13 +108,13 @@ export function createCooldownController<TProfessionState extends object>({
    * Lazily initializes ammo tracking for skills that use charges.
    */
   const ensureAmmo = (skill: Skill, at = state.time): AmmoState | null => {
-    const maximum = Math.max(0, Number(maximumAmmo(skill) || 0));
+    const maximum = Math.max(0, maximumAmmo(skill) || 0);
     if (!maximum) return null;
     if (!state.ammo.has(skill.id)) {
       state.ammo.set(skill.id, {
         charges: maximum,
         maximum,
-        rechargeWork: Math.max(0, Number(rechargeDuration(skill, at) || 0)) * rate(skill, at),
+        rechargeWork: Math.max(0, rechargeDuration(skill, at) || 0) * rate(skill, at),
         nextRechargeAt: null
       });
     }
@@ -194,7 +174,7 @@ export function createCooldownController<TProfessionState extends object>({
     const ammo = refreshAmmo(skill, at);
     if (!ammo) return 0;
     // Restore only available capacity; negative requests or an already-full pool grant nothing.
-    const restored = clamp(Number(count) || 0, 0, ammo.maximum - ammo.charges);
+    const restored = clamp(count || 0, 0, ammo.maximum - ammo.charges);
     if (!restored) return 0;
     ammo.charges += restored;
     if (ammo.charges >= ammo.maximum && whenFull === 'reset') {
@@ -229,7 +209,7 @@ export function createCooldownController<TProfessionState extends object>({
 
   /** Applies game-adjusted recharge progress to ammo or an ordinary cooldown without passing its ready time. */
   const reduceSkillRecharge = (skill: Skill, reduction: number, at = state.time): number => {
-    const requested = Math.max(0, Number(reduction) || 0);
+    const requested = Math.max(0, reduction || 0);
     if (requested <= 0) return 0;
     if (state.ammo.has(skill.id)) {
       return reduceAmmoRecharge(skill, requested, at);
@@ -259,7 +239,7 @@ export function createCooldownController<TProfessionState extends object>({
     if (!ammo) return;
     const progress = { startedAt: at, work: Math.max(0, work) };
     const projected = project(skill, progress);
-    const previous = ammo.lockoutProgress ? project(skill, ammo.lockoutProgress) : Number(ammo.lockoutReadyAt || 0);
+    const previous = ammo.lockoutProgress ? project(skill, ammo.lockoutProgress) : ammo.lockoutReadyAt || 0;
     // Extending a lockout preserves work already accrued on the longer timer.
     if (projected >= previous) ammo.lockoutProgress = progress;
     ammo.lockoutReadyAt = Math.max(previous, projected);

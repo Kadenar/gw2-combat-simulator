@@ -14,12 +14,12 @@ export const VINDICATOR_JUMP_SKILL: Skill = Object.freeze({
   type: 'Action',
   slot: 'Action',
   specialization: 'Vindicator',
-  handlerId: 'revenant.vindicator-jump',
   castTimeMs: VINDICATOR_AIRBORNE_MS + VINDICATOR_LANDING_MS,
   paletteAction: true,
   hotkeyAction: 'dodge',
 
   resourceCost: 50,
+  cost: { resource: 'endurance' as const },
   cooldown: 0,
   effects: []
 });

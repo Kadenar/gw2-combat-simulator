@@ -1,4 +1,5 @@
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { timedBuffAt } from '#gw2/platform/results/query.js';
 import type {
   ElementalistState,
   ElementalistUiContext,
@@ -73,13 +74,13 @@ const PISTOL_BULLETS = Object.freeze([
 // The palette is inspected both mid-rotation (live scheduler state) and after a
 // run (projected end state); accept either shape.
 export function elementalistUiState(context: ElementalistUiContext): Partial<ElementalistState> {
-  const professionState = context.professionState as Partial<ElementalistState> | undefined;
-  const planningState = context.state as { profession?: Partial<ElementalistState> } | undefined;
+  const professionState = context.professionState;
+  const planningState = context.state;
   return professionState || planningState?.profession || {};
 }
 
 function pistolBulletRecord(value: unknown): ElementalistPistolBullets | null {
-  return value && typeof value === 'object' && !Array.isArray(value) ? (value as ElementalistPistolBullets) : null;
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
 }
 
 // Bullets the build starts with, as opposed to what is stocked right now.
@@ -96,7 +97,7 @@ function displayedPistolBullets(context: ElementalistUiContext): ElementalistPis
 function elementalistPistolEquipped(context: ElementalistUiContext): boolean {
   const build = context.build;
   // Preview the live equipment set when available, otherwise the build's chosen starting set.
-  const weaponSet = Number(context.activeWeaponSet || build?.startingWeaponSet || 1);
+  const weaponSet = context.activeWeaponSet || build?.startingWeaponSet || 1;
   const weapons = weaponSet === 2 ? build?.alternateWeapons : build?.weapons;
   return Array.isArray(weapons) && weapons.includes('Pistol');
 }
@@ -173,7 +174,7 @@ function paletteWeaponSkills(
     return ordinarySkills;
   }
 
-  const primaryAttunement = String(state.primaryAttunement || context.build?.startAttunement || 'Fire');
+  const primaryAttunement = state.primaryAttunement || context.build?.startAttunement || 'Fire';
   let replaced = false;
   return ordinarySkills.map((skill) => {
     const replacesActiveAutoattack =
@@ -231,7 +232,7 @@ function elementalistPaletteGroups(
       resourceAnchor: elementalistAttunementResourceAnchor(context)
     }
   ];
-  const conjureEquipped = String(state.conjureEquipped || '');
+  const conjureEquipped = state.conjureEquipped || '';
   const selectedSkills = selectedSkillNameSet(context.build?.selectedSkills || context.config?.selectedSkills);
   // Selected conjures keep a stable bar below utilities even when their bundle is not currently wielded.
   const conjures = new Set(
@@ -264,11 +265,11 @@ function paletteActionSkills(
   skills: readonly Skill[]
 ): Skill[] {
   const state = elementalistUiState(context);
-  const now = Number(context.time || 0);
+  const now = context.time || 0;
   const actionNames = [
     ...(state.conjureEquipped ? ['__drop_bundle'] : []),
     ...Object.entries(state.conjurePickups || {})
-      .filter(([, expiresAt]) => Number.isFinite(expiresAt) && Number(expiresAt) > now)
+      .filter(([, expiresAt]) => Number.isFinite(expiresAt) && expiresAt > now)
       .map(([weapon]) => `__pickup_${weapon}`)
   ];
   return [
@@ -283,7 +284,7 @@ function paletteActionSkills(
 // Live attunement when a run exists, otherwise the build's configured start.
 function currentAttunement(context: ElementalistUiContext): ElementalistAttunement {
   const build = context.build;
-  const value = String(elementalistUiState(context).primaryAttunement || build?.startAttunement || 'Fire');
+  const value = elementalistUiState(context).primaryAttunement || build?.startAttunement || 'Fire';
   return ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement)
     ? (value as ElementalistAttunement)
     : 'Fire';
@@ -294,7 +295,7 @@ function currentAttunement(context: ElementalistUiContext): ElementalistAttuneme
 // Rock Barrier vs Hurl, hammer orbs, pistol bullets, and autoattack chain order.
 function paletteAvailability(context: ElementalistUiContext, skill: Skill): PaletteSkillAvailability {
   const state = elementalistUiState(context);
-  const now = Number(context.time || 0);
+  const now = context.time || 0;
   const transmuteAura = AURA_TRANSMUTE_SKILLS[Number(skill.id)];
   const generatedAura = AURA_TRANSMUTE_SKILLS[Number(skill.nextChainId)];
   if (transmuteAura || generatedAura) {
@@ -325,7 +326,7 @@ function paletteAvailability(context: ElementalistUiContext, skill: Skill): Pale
   }
 
   const hasActiveHammerOrb = Object.values(state.hammerOrbs || {}).some(
-    (expiresAt) => expiresAt != null && Number(expiresAt) >= now
+    (expiresAt) => expiresAt != null && expiresAt >= now
   );
   const hammerElements = HAMMER_ORB_SKILLS[Number(skill.id)] ? [HAMMER_ORB_SKILLS[Number(skill.id)]] : null;
   // Active orb elements share one refreshed 15-second lifetime, while element
@@ -333,7 +334,7 @@ function paletteAvailability(context: ElementalistUiContext, skill: Skill): Pale
   if (
     hammerElements?.some((element) => {
       const expiresAt = state.hammerOrbs?.[element];
-      return expiresAt != null && Number(expiresAt) >= now;
+      return expiresAt != null && expiresAt >= now;
     })
   ) {
     return {
@@ -428,8 +429,7 @@ function eventLogRow(
     event.type === 'combo' ||
     event.type === 'elementalist.fresh-air' ||
     event.type === 'elementalist.evasive-arcana' ||
-    event.type === 'elementalist.attunement-enter' ||
-    event.type === 'elementalist.signet-fire'
+    event.type === 'elementalist.attunement-enter'
   ) {
     return null;
   }
@@ -443,7 +443,7 @@ function timelineWeaponLineTransition(context: ElementalistUiContext): string | 
     return currentAttunement(context);
   }
 
-  const skill = context.skill as Skill | undefined;
+  const skill = context.skill;
   const target = skill ? skill.name.replace(/ Attunement$/, '') : '';
   if (skill?.skillFamily !== 'Attunement' || !ELEMENTALIST_ATTUNEMENTS.includes(target as ElementalistAttunement)) {
     return undefined;
@@ -452,14 +452,16 @@ function timelineWeaponLineTransition(context: ElementalistUiContext): string | 
   return target;
 }
 
-// Summarize hammer orbs; pistol bullets already have dedicated palette controls.
+// Show Fresh Air's ferocity window across specializations alongside hammer orb state.
 function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
   const state = elementalistUiState(context);
+  const freshAir = timedBuffAt(context.result, 'fresh air', context.atSeconds || 0);
   const orbs = Object.entries(state.hammerOrbs || {})
-    .filter(([, expiresAt]) => Number(expiresAt || 0) > 0)
+    .filter(([, expiresAt]) => (expiresAt || 0) > 0)
     .map(([element]) => element)
     .join('/');
   return [
+    ...(freshAir ? [{ id: 'fresh-air', label: 'Fresh Air', value: `${freshAir.remaining.toFixed(1)}s` }] : []),
     {
       id: 'elementalist-hammer-orbs',
       label: 'Orbs',

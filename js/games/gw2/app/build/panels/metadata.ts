@@ -1,3 +1,4 @@
+import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { CONDITION_DURATION_ATTRIBUTES, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
 
 // Build-panel metadata centralizes the attribute, condition, and armor choices shared by renderers.
@@ -43,10 +44,8 @@ export const TARGET_CONDITION_GROUPS = Object.freeze([
 
 export const STACKING_TARGET_CONDITIONS = new Set(['Vulnerability', 'Bleeding', 'Torment', 'Confusion']);
 
-export const DEFAULT_TARGET_ARMOR = 2597;
-
 export const TARGET_ARMOR_OPTIONS = Object.freeze([
-  Object.freeze({ value: DEFAULT_TARGET_ARMOR, label: 'Base' }),
+  Object.freeze({ value: STANDARD_TARGET_ARMOR, label: 'Base' }),
   Object.freeze({ value: 1910, label: 'Vale Guardian / Keep Construct' }),
   Object.freeze({ value: 5346, label: 'McLeod' }),
   Object.freeze({ value: 2460, label: 'Berg' }),
@@ -56,5 +55,5 @@ export const TARGET_ARMOR_OPTIONS = Object.freeze([
 
 export function normalizeTargetArmor(value: number | string): number {
   const armor = Number(value);
-  return Number.isFinite(armor) ? Math.max(1, armor) : DEFAULT_TARGET_ARMOR;
+  return Number.isFinite(armor) ? Math.max(1, armor) : STANDARD_TARGET_ARMOR;
 }

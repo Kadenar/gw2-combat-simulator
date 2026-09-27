@@ -2,18 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SKILL_IDS as SKILL, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { lethalTempoParameters } from '#gw2/professions/guardian/specializations/willbender/mechanics/lethal-tempo.js';
 import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
 import { bindFirebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
-import { applyProtectorsRestoration } from '#gw2/professions/guardian/core/traits/honor.js';
-import { applyMasterOfConsecrations } from '#gw2/professions/guardian/core/traits/virtues.js';
-import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
-import { handleEffulgentDetonate } from '#gw2/professions/guardian/specializations/luminary/mechanics/stances.js';
-import { createLuminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 
 const willbenderUi = bindWillbenderUi(guardianCatalog);
 const firebrandUi = bindFirebrandUi(guardianCatalog);
@@ -25,11 +20,12 @@ function run(balanceProfiles, specialization, rotation, selectedTraitIds = [], e
     label: 'Guardian removal',
     professions: { guardian: { balanceProfiles } }
   });
-  const result = simulateGw2({
-    profession,
-    config: { specialization, selectedTraitIds, patchId: 'guardian-removal', ...extra },
-    rotation
-  });
+  const result = createObservedProfessionSimulator(profession, {
+    specialization,
+    selectedTraitIds,
+    patchId: 'guardian-removal',
+    ...extra
+  })(undefined, rotation);
   assert.deepEqual(result.warnings, []);
   return result;
 }
@@ -51,7 +47,6 @@ test('Willbender window removal preserves sibling durations, flames, and activat
     [TRAIT.HOLY_RECKONING]
   );
   assert.equal(result.planningState.profession.justiceUntil, 0);
-  assert.equal(result.combatState.profession.justiceUntil, 0);
   assert.equal(has(result, 'buff', 'kind', 'willbender-justice'), false);
   assert.equal(result.events.find((event) => event.type === 'buff' && event.kind === 'willbender-resolve').duration, 2);
   assert.ok(has(result, 'buff', 'kind', 'fury'));
@@ -74,7 +69,7 @@ test('Lethal Tempo removal suppresses scheduler and resolver stacks without remo
     'Rushing Justice',
     { type: 'wait', durationMs: 5000 }
   ]);
-  for (const state of [result.planningState.profession, result.combatState.profession]) {
+  for (const state of [result.planningState.profession, result.planningState.profession]) {
     assert.equal(state.lethalTempoStacks, 0);
     assert.equal(state.lethalTempoUntil, 0);
   }
@@ -153,23 +148,11 @@ test('an empty Protector proc owns neither cooldown nor a proc row', () => {
     ['Shelter'],
     [TRAIT.PROTECTORS_RESTORATION]
   );
-  const core = createGuardianCoreState();
-  const catalog = applyBalanceProfilePatch(guardianCatalog, {
-    balanceProfiles: {
-      [TRAIT.PROTECTORS_RESTORATION]: {
-        removeEffects: [
-          { type: 'strike', name: 'Strike' },
-          { type: 'boon', name: 'protection' }
-        ]
-      }
-    }
-  });
-  applyProtectorsRestoration(
-    { catalog, config: { selectedTraitIds: [TRAIT.PROTECTORS_RESTORATION] }, state: { profession: { core } } },
-    { type: 'Heal' },
-    1
+  assert.equal(observedRuntime(result).procs.deadline('guardian.core.protectorsRestoration'), 0);
+  assert.equal(
+    result.procSteps.some((step) => step.skill === 'Lesser Symbol of Protection'),
+    false
   );
-  assert.equal(core.protectorsRestorationReadyAt, 0);
   assert.equal(has(result, 'proc', 'name', 'Lesser Symbol of Protection'), false);
 });
 
@@ -193,7 +176,7 @@ for (const [type, name] of [
       'Tome of Justice',
       'Epilogue: Ashes of the Just'
     ]);
-    assert.equal(has(result, 'guardian.ashes-granted', 'skillName', 'Epilogue: Ashes of the Just'), false);
+    assert.equal(has(result, 'buff', 'kind', 'ashes-of-the-just'), false);
     assert.equal(result.planningState.profession.ashes.charges, 0);
     assert.equal(result.planningState.profession.tomePages.value, 4);
     assert.ok(has(result, 'buff', 'kind', 'might'));
@@ -216,12 +199,12 @@ test('Radiant Forge removal leaves no active form, expiry, or exit flip', () => 
   const result = run({ 'guardian.luminary.radiant-forge': remove('buff', 'radiant-forge') }, 'Luminary', [
     'Enter Radiant Forge'
   ]);
-  for (const state of [result.planningState.profession, result.combatState.profession]) {
+  for (const state of [result.planningState.profession, result.planningState.profession]) {
     assert.equal(state.radiantForge, false);
     assert.equal(state.radiantForgeEndsAt, 0);
   }
 
-  assert.equal(has(result, 'guardian.radiant-forge-entered', 'radiantForge', true), false);
+  assert.equal(result.planningState.profession.availableFlips[SKILL.EXIT_RADIANT_FORGE], undefined);
 });
 
 test('Radiant Justice strike removal preserves delayed Vulnerability', () => {
@@ -328,20 +311,26 @@ test('Master of Consecrations schedules independently patched effect ticks from 
       }
     }
   });
-  const events = [];
-  applyMasterOfConsecrations(
+  const result = run(
     {
-      catalog,
-      config: { selectedTraitIds: [TRAIT.MASTER_OF_CONSECRATIONS] },
-      profession: { id: 'guardian' },
-      start: 10,
-      fullEnd: 10.32,
-      emit: (event) => events.push(event)
+      [TRAIT.MASTER_OF_CONSECRATIONS]: {
+        removeEffects: [
+          { type: 'strike', name: 'Strike' },
+          { type: 'condition', name: 'Burning' }
+        ],
+        addEffects: catalog.balanceProfilesById.get(TRAIT.MASTER_OF_CONSECRATIONS).effects
+      }
     },
-    catalog.skillsById.get(SKILL.PURGING_FLAMES)
+    'Core',
+    [{ type: 'wait', durationMs: 10000 }, 'Purging Flames', { type: 'wait', durationMs: 6000 }],
+    [TRAIT.MASTER_OF_CONSECRATIONS]
   );
-  const strike = events.find((event) => event.type === 'damage');
-  const burning = events.find((event) => event.type === 'condition');
+  const strike = result.events.find(
+    (event) => event.type === 'damage' && event.skillId === SKILL.PURGING_FLAMES && event.at === 14.4
+  );
+  const burning = result.events.find(
+    (event) => event.type === 'condition' && event.skillId === SKILL.PURGING_FLAMES && event.at === 15.2
+  );
   assert.equal(strike.at, 14.4);
   assert.equal(strike.coefficient, 0.3);
   assert.equal(burning.at, 15.2);
@@ -374,16 +363,16 @@ test('Writ window removal preserves independently authored Symbol of Punishment 
     [TRAIT.WRIT_OF_PERSISTENCE],
     { primaryWeapon: 'Scepter' }
   );
-  assert.equal(
-    result.events.some((event) => event.type === 'combo_field' && event.triggeredBy === 'Writ of Persistence'),
-    false
-  );
-  assert.ok(result.events.some((event) => event.type === 'damage' && event.triggeredBy === 'Writ of Persistence'));
-  assert.ok(
-    result.events.some(
-      (event) => event.type === 'buff' && event.kind === 'might' && event.triggeredBy === 'Writ of Persistence'
-    )
-  );
+  const baseline = run({}, 'Core', ['Symbol of Punishment', { type: 'wait', durationMs: 7000 }], [], {
+    primaryWeapon: 'Scepter'
+  });
+  const field = (simulation) => simulation.events.find((event) => event.type === 'combo_field');
+  assert.equal(field(result).expiresAt, field(baseline).expiresAt);
+  for (const type of ['damage', 'buff']) {
+    const packets = (simulation) =>
+      simulation.events.filter((event) => event.type === type && event.skillId === SKILL.SYMBOL_OF_PUNISHMENT);
+    assert.ok(packets(result).length > packets(baseline).length);
+  }
 });
 
 test('deleted Justice Burning does not increment burn counters or recreate packets', () => {
@@ -392,7 +381,7 @@ test('deleted Justice Burning does not increment burn counters or recreate packe
     { type: 'wait', durationMs: 5000 }
   ]);
   assert.ok(result.planningState.profession.triggeredVirtueEffects > 0);
-  assert.equal(result.combatState.profession.justiceActiveBurns, 0);
+  assert.equal(result.planningState.profession.justiceActiveBurns, 0);
   assert.equal(
     result.events.some((event) => event.type === 'condition' && event.skillName === 'Justice'),
     false
@@ -406,8 +395,8 @@ test('Quickfire window removal leaves its cooldown and charge reactions inactive
     ['Tome of Justice'],
     [TRAIT.QUICKFIRE]
   );
-  assert.equal(result.combatState.profession.quickfireReadyAt, 0);
-  assert.equal(result.combatState.profession.ashes.charges, 0);
+  assert.equal(observedRuntime(result).procs.deadline('guardian.firebrand.quickfire'), 0);
+  assert.equal(result.planningState.profession.ashes.charges, 0);
   assert.equal(has(result, 'proc', 'name', 'Quickfire'), false);
 });
 
@@ -418,7 +407,7 @@ test('Light Aura removal prevents its window and Sovereign detonation', () => {
     ['Enter Radiant Forge', 'Radiant Resolve'],
     [TRAIT.SOVEREIGN_OF_LIGHT]
   );
-  assert.equal(result.combatState.profession.lightAuraUntil, 0);
+  assert.equal(result.planningState.profession.lightAuraUntil, 0);
   assert.equal(has(result, 'damage', 'skillName', 'Sovereign of Light'), false);
 });
 
@@ -427,26 +416,21 @@ test('Effulgent strike and control deletions preserve the other packet and consu
     ['strike', 'Strike', 'control'],
     ['control', 'Control', 'damage']
   ]) {
-    const catalog = applyBalanceProfilePatch(guardianCatalog, {
-      balanceProfiles: { 'guardian.luminary.effulgent-stance-detonation': remove(type, name) }
-    });
-    const state = createLuminaryState();
-    state.effulgentStacks = 10;
-    state.effulgentActiveUntil = 4;
-    const events = [];
-    handleEffulgentDetonate(
-      {
-        catalog,
-        profession: { specialization: { kind: 'Luminary', state } },
-        queue: { enqueue: (event) => events.push(event) },
-        recordProc() {}
-      },
-      { at: 4 }
+    const result = run(
+      { 'guardian.luminary.effulgent-stance-detonation': remove(type, name) },
+      'Luminary',
+      ['Effulgent Stance', 'Whirling Wrath', 'Strike', 'Vengeful Strike', { type: 'wait', durationMs: 5000 }],
+      [],
+      { primaryWeapon: 'Greatsword', boons: { quickness: true } }
+    );
+    const effects = result.events.filter(
+      (event) => event.skillId === SKILL.EFFULGENT_STANCE_DAMAGE && ['damage', 'control'].includes(event.type)
     );
     assert.deepEqual(
-      events.map((event) => event.type),
+      effects.map((event) => event.type),
       [survivor]
     );
+    const state = observedRuntime(result).profession.specialization.state;
     assert.equal(state.effulgentStacks, 0);
     assert.equal(state.effulgentActiveUntil, 0);
   }

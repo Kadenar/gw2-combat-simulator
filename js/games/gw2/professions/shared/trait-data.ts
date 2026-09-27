@@ -4,26 +4,26 @@ export interface ProfessionTraitSelection {
   readonly disabledMinorTraits?: readonly number[];
 }
 
-export interface ProfessionTraitSpecialization<TTrait> {
+interface ProfessionTraitSpecialization<TTrait> {
   readonly name: string;
   readonly minorTraits: readonly TTrait[];
   readonly majorTraits: readonly (readonly TTrait[])[];
 }
 
-export interface TraitMapContext {
+interface TraitMapContext {
   readonly specialization: string;
   readonly kind: 'minor' | 'major';
   readonly tier: number;
   readonly position: number;
 }
 
-export interface ProfessionTraitData<TTrait> {
+interface ProfessionTraitData<TTrait> {
   readonly traits: readonly TTrait[];
 
   getActiveTraits(selections?: readonly ProfessionTraitSelection[] | null): TTrait[];
 }
 
-export interface ProfessionTraitDataOptions<TSourceTrait, TTrait> {
+interface ProfessionTraitDataOptions<TSourceTrait, TTrait> {
   readonly mapTrait: (trait: TSourceTrait, context: TraitMapContext) => TTrait;
 }
 
@@ -37,9 +37,7 @@ export interface ProfessionTraitDataOptions<TSourceTrait, TTrait> {
  * active-trait resolution.
  */
 function parseTraitChoices(value?: string | null): readonly number[] {
-  return String(value || '')
-    .split('-')
-    .map(Number);
+  return (value || '').split('-').map(Number);
 }
 
 /**
@@ -110,7 +108,7 @@ export function createProfessionTraitData<TSourceTrait, TTrait = TSourceTrait>(
     const active: TTrait[] = [];
 
     for (const selection of selections || []) {
-      const specialization = mappedSpecializations.find((candidate) => candidate.name === selection?.name);
+      const specialization = mappedSpecializations.find((candidate) => candidate.name === selection.name);
 
       if (!specialization) continue;
 

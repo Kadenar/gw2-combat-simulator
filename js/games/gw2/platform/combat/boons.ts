@@ -51,7 +51,7 @@ const DURATION_STACKING_BOON_CAPS = new Map(
   )
 );
 
-export interface StandardBoonPresentation {
+interface StandardBoonPresentation {
   readonly name: string;
   readonly maximumStacks?: number;
   readonly maximumDuration?: number;
@@ -104,9 +104,9 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
     if (!includes(application)) continue;
     const expiresAt =
       application.expiresAt ??
-      gw2EffectExpiresAt(application.at, duration ? duration(application) : Number(application.duration || 0));
+      gw2EffectExpiresAt(application.at, duration ? duration(application) : application.duration || 0);
     if (isTimeInWindow(time, application.at, expiresAt)) {
-      stacks += Number(application.stacks || 1);
+      stacks += application.stacks || 1;
     }
   }
 
@@ -115,8 +115,16 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
 
 /** Round final boon grants and extension amounts after bonuses, preserving application times and generic buffs. */
 export function normalizeBoonDuration<
-  T extends { readonly type: string; readonly kind?: unknown; readonly duration?: unknown }
+  T extends {
+    readonly type: string;
+    readonly kind?: unknown;
+    readonly duration?: unknown;
+    readonly maximumDuration?: unknown;
+  }
 >(event: T): T {
+  // Per-grant limits apply after scaling to generic statuses as well as standard boons.
+  if (event.type === 'buff' && event.duration != null && event.maximumDuration != null)
+    event = { ...event, duration: Math.min(Number(event.duration), Number(event.maximumDuration)) };
   if (
     event.duration == null ||
     !(event.type === 'boon_extension' || (event.type === 'buff' && isStandardBoon(event.kind)))
@@ -133,15 +141,15 @@ export function recordBuffApplication(
 ): Gw2TimedBuffApplication[] {
   event = normalizeBoonDuration(event);
   if (!event.resolvedAudience) throw new TypeError('Prepared buff events require resolvedAudience.');
-  const kind = String(event.kind || '').toLowerCase();
+  const kind = (event.kind || '').toLowerCase();
   const applications = boons.get(kind) || [];
   const at = canonicalTime(event.at);
-  const duration = Math.max(0, Number(event.duration || 0));
+  const duration = Math.max(0, event.duration || 0);
   applications.push({
     at,
     expiresAt: gw2EffectExpiresAt(at, duration),
     ...(isDurationStackingBoon(kind) ? { duration } : {}),
-    stacks: Math.max(1, Number(event.stacks || 1)),
+    stacks: Math.max(1, event.stacks || 1),
     source: event.source,
     resolvedAudience: event.resolvedAudience
   });
@@ -183,13 +191,13 @@ function addDurationStack<T extends DurationStackApplication>(
 ): number {
   if (application.extension && remaining <= 0) return remaining;
   const applicationDuration = duration
-    ? Number(duration(application))
+    ? duration(application)
     : application.duration == null
       ? Number(application.expiresAt) - appliedAt
       : Number(application.duration);
   const stacks = application.stacks == null ? 1 : Math.max(0, Number(application.stacks));
   remaining = normalizeDurationPool(
-    Math.min(Math.max(0, Number(maximum)), remaining + Math.max(0, applicationDuration) * stacks)
+    Math.min(Math.max(0, maximum), remaining + Math.max(0, applicationDuration) * stacks)
   );
   return remaining > 0 ? normalizeDurationPool(gw2EffectExpiresAt(appliedAt, remaining) - appliedAt) : remaining;
 }
@@ -354,7 +362,7 @@ export function* boonIntervals(
 /** Apply extensions at their own timestamp, keeping past observations and other recipients unchanged. */
 export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>, event: SimulationEvent): void {
   event = normalizeBoonDuration(canonicalEvent(event));
-  const duration = Number(event.duration || 0);
+  const duration = event.duration || 0;
   if (!(duration > 0)) return;
   for (const [kind, applications] of boons) {
     if (!isStandardBoon(kind) || (event.kind && event.kind !== kind) || event.excludedKind === kind) continue;
@@ -363,16 +371,16 @@ export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>
       const previous = applications.filter((application) => application.at <= event.at);
       const wildcardSummons = previous.some(
         (application) =>
-          application.resolvedAudience.includesSummons && !application.resolvedAudience.companionIds?.length
+          application.resolvedAudience.includesSummons && !application.resolvedAudience.companionIds.length
       );
       const companionIds = wildcardSummons
         ? []
-        : [...new Set(previous.flatMap((application) => application.resolvedAudience.companionIds || []))];
+        : [...new Set(previous.flatMap((application) => application.resolvedAudience.companionIds))];
       const includesSelf = previous.some((application) => application.resolvedAudience.includesSelf);
       const includesSummons = previous.some((application) => application.resolvedAudience.includesSummons);
       const alliedPlayerCount = Math.max(
         0,
-        ...previous.map((application) => Number(application.resolvedAudience.alliedPlayerCount || 0))
+        ...previous.map((application) => application.resolvedAudience.alliedPlayerCount || 0)
       );
       applications.push({
         at: event.at,
@@ -473,9 +481,9 @@ export const MIGHT_ATTRIBUTE_BONUS_PER_STACK = 30;
 export function gw2BoonDurationMultiplier(boon: string, stats: Gw2Stats, sigils: Gw2SigilSet = {}): number {
   const canonicalBoon = boon.charAt(0).toUpperCase() + boon.slice(1).toLowerCase();
   const bonus =
-    Number(stats.concentration || 0) / 1500 +
-    Number(stats.boonDurationBonus || 0) / 100 +
-    Number(stats.boonDurationBonuses?.[boon] || stats.boonDurationBonuses?.[canonicalBoon] || 0) / 100 +
-    Number(sigils.boonDurationBonus || 0) / 100;
-  return clamp(1 + bonus, 1, 2) + Math.max(0, Number(stats.uncappedBoonDurationBonus || 0)) / 100;
+    (stats.concentration || 0) / 1500 +
+    (stats.boonDurationBonus || 0) / 100 +
+    (stats.boonDurationBonuses?.[boon] || stats.boonDurationBonuses?.[canonicalBoon] || 0) / 100 +
+    (sigils.boonDurationBonus || 0) / 100;
+  return clamp(1 + bonus, 1, 2) + Math.max(0, stats.uncappedBoonDurationBonus || 0) / 100;
 }

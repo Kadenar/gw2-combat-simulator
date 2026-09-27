@@ -13,8 +13,8 @@ import { createCommonBuildDefaults } from '#gw2/professions/shared/build-default
  * Firebrand tome pages.
  */
 
-export const GUARDIAN_BUILD_SCHEMA_VERSION = 3;
-export const GUARDIAN_PROFESSION_ID = 'guardian';
+const GUARDIAN_BUILD_SCHEMA_VERSION = 3;
+const GUARDIAN_PROFESSION_ID = 'guardian';
 
 export function createGuardianBuildDefaults(): GuardianCanonicalBuild {
   return {
@@ -88,7 +88,7 @@ const guardianBuildCodec = createProfessionBuildCodec<GuardianCanonicalBuild>({
   },
   normalizeExtra(build) {
     const { initialResource: _discardedInitialResource, ...current } = build;
-    return current as GuardianCanonicalBuild;
+    return current;
   }
 });
 

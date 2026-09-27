@@ -1,16 +1,13 @@
+import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { BLADESWORN_PUBLIC_STATE_PROJECTION } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import {
   BLADESWORN_SHARP_AS_THE_WIND_SKILLS,
   BLADESWORN_SKILL_MECHANICS
 } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
-import { bladeswornSkillHandlers } from '#gw2/professions/warrior/specializations/bladesworn/execution/index.js';
-import {
-  bladeswornAttributeRules,
-  bladeswornCastRules,
-  bladeswornSchedulerHooks,
-  bladeswornSkillMechanicHandlers
-} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger-rules.js';
+import { bladeswornModifiers } from '#gw2/professions/warrior/specializations/bladesworn/modifiers.js';
+import { bladeswornHooks } from '#gw2/professions/warrior/specializations/bladesworn/hooks.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import { bladeswornUi } from '#gw2/professions/warrior/specializations/bladesworn/presentation.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
@@ -30,17 +27,10 @@ export const bladeswornModule = defineNativeModule({
     }
   }),
   state: {
-    scheduler: bladeswornState.create,
-    resolver: bladeswornState.create
+    create: bladeswornState.create,
+    project: createPublicStateProjector(BLADESWORN_PUBLIC_STATE_PROJECTION)
   },
-  mechanics: {
-    modifiers: bladeswornAttributeRules,
-    execution: {
-      skillHandlers: bladeswornSkillHandlers,
-      castRules: bladeswornCastRules,
-      skillMechanicHandlers: bladeswornSkillMechanicHandlers,
-      hooks: bladeswornSchedulerHooks
-    }
-  },
+  modifiers: bladeswornModifiers,
+  hooks: bladeswornHooks,
   presentation: bladeswornUi
 });

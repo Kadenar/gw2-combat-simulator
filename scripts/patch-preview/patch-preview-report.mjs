@@ -5,7 +5,7 @@
  *   node scripts/patch-preview/patch-preview-report.mjs
  */
 
-import { loadProfession } from '#gw2/app/profession-registry.js';
+import { loadProfession } from '#gw2/profession-registry.js';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 
@@ -40,8 +40,11 @@ for (const [professionId, patch] of Object.entries(activePatchPreview.profession
 
   profession.catalogFor?.(activePatchPreview.id);
 
-  for (const specialization of ['Core', ...(profession.specializationIds || [])]) {
-    profession.resolveRuntime({
+  for (const specialization of [
+    'Core',
+    ...(profession.nativeDefinition.modules.slice(1).map((module) => module.id) || [])
+  ]) {
+    profession.resolveProfession({
       specialization,
       patchId: activePatchPreview.id
     });

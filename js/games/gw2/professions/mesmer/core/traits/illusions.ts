@@ -1,3 +1,4 @@
+import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 /** Owns imperative Core Mesmer Illusions trait effects. */
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import {
@@ -6,52 +7,19 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { missesTarget } from '#gw2/platform/combat/state/targets.js';
-import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { MesmerRuntime, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerMechanics, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 
 import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
 
-type CryOfPainContext = Pick<MesmerRuntime, 'traits' | 'balanceProfile'>;
-
-/** Applies Fragmentation conditions once per native impact, inheriting hit timing and cancellation. */
-export function triggerMasterOfFragmentation(context: MesmerSchedulerContext, event: SimulationEvent): void {
-  if (
-    !context.mesmerRuntime?.traits.has(TRAIT.MASTER_OF_FRAGMENTATION) ||
-    event.type !== 'damage' ||
-    !isGw2PlayerActorEvent(event) ||
-    event.sourceId !== event.skillId ||
-    missesTarget(event)
-  )
-    return;
-  const drum = event.skillId === ID.DEAFENING_DRUM;
-  if (
-    !drum &&
-    ![ID.CRY_OF_FRUSTRATION, ID.REWINDER, ID.BLADESONG_SORROW, ID.FLUSTERING_FLUTE].some((id) => id === event.skillId)
-  )
-    return;
-  const masterOfFragmentationProfile = requireBalanceProfileFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION);
-  const effect = requireEffect(masterOfFragmentationProfile, 'condition', drum ? 'Weakness' : 'Cripple');
-  if (!effect) return;
-  emitSkillCondition(context, {
-    cause: event,
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.MASTER_OF_FRAGMENTATION,
-    skillId: event.skillId,
-    skillName: event.skillName,
-    condition: drum ? 'Weakness' : 'Cripple',
-    duration: Number(effect.duration),
-    stacks: Number(effect.stacks)
-  });
-}
+type CryOfPainContext = Pick<MesmerMechanics, 'traits' | 'balanceProfile'>;
 
 /** Adds The Pledge only to the skill's player Burning, inheriting its timing and excluding summon or trait procs. */
-export function triggerThePledge(context: MesmerSchedulerContext, event: SimulationEvent): void {
+export function triggerThePledge(context: MesmerRuntime, event: SimulationEvent): void {
   if (
-    !context.mesmerRuntime?.traits.has(TRAIT.THE_PLEDGE) ||
+    !mesmerMechanicsFor(context).traits.has(TRAIT.THE_PLEDGE) ||
     event.type !== 'condition' ||
     event.condition !== 'Burning' ||
     !isGw2PlayerActorEvent(event) ||
@@ -65,17 +33,20 @@ export function triggerThePledge(context: MesmerSchedulerContext, event: Simulat
   // Separate Burning applications preserve the total, including any fractional final stack.
   const stacks = Number(effect.stacks);
   for (let index = 0; index < Math.ceil(stacks); index += 1) {
-    emitSkillCondition(context, {
-      cause: event,
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.THE_PLEDGE,
-      skillId: event.skillId,
-      skillName: event.skillName,
-      condition: 'Burning',
-      duration: Number(effect.duration),
-      stacks: Math.min(1, stacks - index)
-    });
+    context.emitDerived(
+      event,
+      buildResolverCondition({
+        actorType: 'player',
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.THE_PLEDGE,
+        skillId: event.skillId,
+        skillName: event.skillName,
+        condition: 'Burning',
+        duration: Number(effect.duration),
+        stacks: Math.min(1, stacks - index)
+      })
+    );
   }
 }
 
@@ -92,7 +63,7 @@ export function applyCryOfPain(
 
 /** Emits Compounding Power stacks and its proc record at the owning lifecycle position. */
 export function triggerCompoundingPower(
-  context: Readonly<Pick<MesmerRuntime, 'traits' | 'addEvent' | 'addTraitProc' | 'balanceProfile'>>,
+  context: Readonly<Pick<MesmerMechanics, 'traits' | 'addEvent' | 'addTraitProc' | 'balanceProfile'>>,
   at: number,
   count: number,
   sourceSkill: string,
@@ -117,7 +88,7 @@ export function triggerCompoundingPower(
 
 /** Applies Maim the Disillusioned to the first-strike groups reported by the shatter resolver. */
 export function triggerMaimTheDisillusioned(
-  context: Readonly<Pick<MesmerRuntime, 'traits' | 'addCondition' | 'addTraitProc' | 'balanceProfile'>>,
+  context: Readonly<Pick<MesmerMechanics, 'traits' | 'addCondition' | 'addTraitProc' | 'balanceProfile'>>,
   resolution: MesmerShatterResolution
 ): void {
   if (!resolution.traitHits.length || !context.traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) return;

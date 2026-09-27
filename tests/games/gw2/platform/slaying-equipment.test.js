@@ -6,7 +6,7 @@ import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { aggregateSigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
-import { sigilOptionLabel, utilityOptionLabel } from '#gw2/app/build/equipment-option-labels.js';
+import { sigilOptionLabel, utilityOptionLabel } from '#gw2/app/shared/equipment/labels.js';
 
 // Minimal queries isolate equipment stacking from saved rotations and profession balance.
 test('slaying bonuses multiply strikes outside the shared additive bucket and follow the active weapon set', () => {

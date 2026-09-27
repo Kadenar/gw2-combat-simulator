@@ -7,9 +7,9 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 /** Defines the Elixir Gun equip action and packet-level palette mechanics, including fields and finishers. */
 export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
   [ID.ELIXIR_GUN]: {
-    // Custom: Equips the kit and updates bundle/weapon state; see `core/mechanics/kits.ts`.
+    // Custom: Equips the kit and updates bundle/weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'engineer.kit-equip',
+    kitTransition: 'equip',
     castTimeMs: 0,
     cooldown: 0,
     effects: [],
@@ -187,9 +187,9 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
     kit: 'Elixir Gun'
   },
   [ID.STOW_ELIXIR_GUN]: {
-    // Custom: Stows the active kit and restores weapon state; see `core/mechanics/kits.ts`.
+    // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'engineer.kit-stow',
+    kitTransition: 'stow',
     paletteFlip: false,
     castTimeMs: 0,
     cooldown: 0,

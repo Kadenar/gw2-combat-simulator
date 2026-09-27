@@ -1,3 +1,4 @@
+import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS } from '#gw2/platform/simulation/randomness.js';
 import { DEFAULT_PERMANENT_COMBO_FIELD_ASSUMPTIONS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
@@ -6,7 +7,6 @@ import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 
 const DEFAULT_TARGET_HEALTH = 4_000_000;
 const DEFAULT_TARGET_STARTING_HEALTH_PERCENT = 100;
-const DEFAULT_TARGET_ARMOR = 2597;
 const DEFAULT_STARTING_WEAPON_SET = 1;
 
 /**
@@ -20,7 +20,7 @@ const DEFAULT_STARTING_WEAPON_SET = 1;
  * Ranger:
  *   normalizeProfessionAssumptions({}, RANGER_ASSUMPTION_CONTROLS)
  */
-export type ProfessionAssumptionOverrides = Readonly<Record<string, unknown>>;
+type ProfessionAssumptionOverrides = Readonly<Record<string, unknown>>;
 
 /**
  * Creates the simulation assumptions shared by all profession build defaults.
@@ -57,7 +57,7 @@ function createDefaultSimulationAssumptions(overrides: ProfessionAssumptionOverr
   };
 }
 
-export interface CommonBuildDefaultsOptions {
+interface CommonBuildDefaultsOptions {
   /**
    * Profession-specific assumptions merged into the common assumptions.
    */
@@ -67,7 +67,7 @@ export interface CommonBuildDefaultsOptions {
   readonly targetArmor?: number;
 }
 
-export interface CommonBuildDefaults {
+interface CommonBuildDefaults {
   readonly assumptions: ProfessionBuildAssumptions;
   readonly startingWeaponSet: number;
   readonly targetHealth: number;
@@ -88,7 +88,7 @@ export function createCommonBuildDefaults({
   assumptions = {},
   startingWeaponSet = DEFAULT_STARTING_WEAPON_SET,
   targetHealth = DEFAULT_TARGET_HEALTH,
-  targetArmor = DEFAULT_TARGET_ARMOR
+  targetArmor = STANDARD_TARGET_ARMOR
 }: CommonBuildDefaultsOptions = {}): CommonBuildDefaults {
   return {
     assumptions: createDefaultSimulationAssumptions(assumptions),

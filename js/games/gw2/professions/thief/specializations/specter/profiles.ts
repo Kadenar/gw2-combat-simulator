@@ -38,7 +38,8 @@ export const SPECTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     name: "Dawn's Repose - Barrier",
     profileKind: 'skill-variant',
     parentId: ID.DAWNS_REPOSE,
-    maximumTargets: 4,
+    // The caster occupies one of the five barrier recipient slots.
+    maximumTargets: 5,
     effects: [{ type: 'buff', name: 'barrier', kind: 'barrier', stacks: 1, duration: 5 }]
   },
   trait(SPECTER_BALANCE_PROFILE_IDS.amplifiedSiphoning, 'Amplified Siphoning', { resourceGain: 10 }),

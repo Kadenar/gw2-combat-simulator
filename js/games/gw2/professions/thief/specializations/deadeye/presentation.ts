@@ -1,17 +1,18 @@
 import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
+import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/stolen-skills.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
 import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
-function deadeyeStolenSkillIds(context: ThiefUiContext = {}): number[] {
+function deadeyeStolenSkillIds(context: ThiefUiContext = {}): SkillId[] {
   const paletteTraits = context.traits;
   const fireForEffectSelected =
     hasTrait(context.config || {}, TRAIT.FIRE_FOR_EFFECT) ||
     (paletteTraits != null &&
       typeof (paletteTraits as ReadonlySet<string | number>).has === 'function' &&
-      hasTrait(paletteTraits as ReadonlySet<string | number>, TRAIT.FIRE_FOR_EFFECT));
+      hasTrait(paletteTraits, TRAIT.FIRE_FOR_EFFECT));
   // Runtime configuration and the live palette expose traits through different contracts; honor either source.
   return fireForEffectSelected ? [ID.STEAL_TIME] : [...DEADEYE_STOLEN_SKILL_IDS];
 }
@@ -48,8 +49,8 @@ export const deadeyeUi = Object.freeze({
         singular: 'malice',
         plural: 'malice',
         // Default to 5 when state is not yet initialized; maximumMalice becomes 7 when Maleficent Seven is equipped
-        maximum: Number(state.maximumMalice || 5),
-        value: Number(state.malice || 0),
+        maximum: state.maximumMalice || 5,
+        value: state.malice || 0,
         canStart: false,
         step: 1,
         displayMode: 'pips',
@@ -60,7 +61,7 @@ export const deadeyeUi = Object.freeze({
     ];
   },
   paletteSkillAvailability: (context: ThiefUiContext, skill: ThiefSkill) => {
-    const result = deadeyeCastAvailability(thiefUiState(context).availableFlips, skill, Number(context.time || 0));
+    const result = deadeyeCastAvailability(thiefUiState(context).availableFlips, skill, context.time || 0);
     return {
       available: result.ready,
       message: result.ready ? '' : result.reason

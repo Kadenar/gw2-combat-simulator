@@ -17,11 +17,11 @@ export const visionary = defineRelic({
     // Like Bloodstone, stacks cannot accumulate while Vloxx's Vision is active.
     if (windows.some((window) => isTimeInWindow(event.at, window.from, window.until))) return;
     if (event.finisherType === 'Whirl') {
-      if (!isInternalCooldownReady(event.at, Number(state.whirlReadyAt || 0))) return;
+      if (!isInternalCooldownReady(event.at, state.whirlReadyAt || 0)) return;
       state.whirlReadyAt = event.at + VISIONARY_WHIRL_INTERNAL_COOLDOWN;
     }
 
-    const stacks = Number(state.stacks || 0) + 1;
+    const stacks = (state.stacks || 0) + 1;
     if (stacks < VISIONARY_STACKS_NEEDED) {
       state.stacks = stacks;
       ctx.recordProc(
@@ -45,7 +45,7 @@ export const visionary = defineRelic({
   },
   // Windows are retained so out-of-order condition tick queries still see the buff active at their own time.
   outgoingDamageBonus(_ctx, state, _damageType, at) {
-    const windows = (state.windows as { from: number; until: number }[] | undefined) || [];
+    const windows = state.windows || [];
     return windows.some((window) => isTimeInWindow(at, window.from, window.until)) ? VISIONARY_DAMAGE_BONUS : 0;
   }
 });

@@ -20,7 +20,6 @@ import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 const GW2_REACTION_ORDER = Object.freeze({
   EARLY_COMMON: -200,
   COMMON: -100,
-  PROFESSION: 0,
   LATE_COMMON: 100,
   FINAL_COMMON: 200
 });
@@ -56,11 +55,11 @@ function conditionHelpers(context: Gw2ResolverRuntime, details: Record<string, u
 }
 
 function criticalFoodProc(ctx: Gw2ResolverRuntime): CriticalFoodProc | undefined {
-  const proc = FOOD_DATA[String(ctx.config.food || '')]?.proc as CriticalFoodProc | undefined;
+  const proc = FOOD_DATA[ctx.config.food || '']?.proc as CriticalFoodProc | undefined;
   return proc?.type === 'critStrike' ? proc : undefined;
 }
 
-/** Apply the same decision as prediction, using only surviving resolver hits and local state. */
+/** Accepted hits claim critical sigils from the shared sampled outcome and live ICD map. */
 function createResolvedCriticalSigilEffects(
   ctx: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
@@ -74,7 +73,7 @@ function createResolvedCriticalSigilEffects(
     critical,
     ctx.sigil
   );
-  ctx.sigilDiagnostics?.record('resolution', event, critical.chance, decision);
+  ctx.sigilDiagnostics?.record(event, gw2SigilSet(ctx.config, ctx.activeWeaponSet).names || [], critical, decision);
   const sourceSkill = event.skillName || '';
   for (const { name, readyAt } of decision.procs) {
     const proc = SIGIL_PROC_LOOKUP[name];
@@ -84,7 +83,7 @@ function createResolvedCriticalSigilEffects(
       at: event.at,
       sigilCauseEventOrder: event.eventOrder
     } as Gw2ResolverEvent);
-    ctx.recordProc('sigil', `Sigil of ${name}`, event.at, sourceSkill, '', String(proc.icon || ''));
+    ctx.recordProc('sigil', `Sigil of ${name}`, event.at, sourceSkill, '', proc.icon || '');
   }
 }
 
@@ -97,7 +96,7 @@ function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEve
     at: event.at,
     skillName: proc.name,
     source: 'Food',
-    sourceId: `food.${String(proc.name || 'proc').toLowerCase()}`,
+    sourceId: `food.${(proc.name || 'proc').toLowerCase()}`,
     actorType: 'effect',
     ownerActorType: 'player',
     triggeredBy: event.skillName
@@ -112,7 +111,7 @@ function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEve
       kind: name.toLowerCase(),
       stacks: conditionalEffect.stacks,
       duration: gw2ResolverBoonDuration(ctx, event, name, conditionalEffect.duration)
-    } as Gw2ResolverEvent;
+    };
   } else if (conditionalEffect?.type === 'condition') {
     foodEvent = {
       ...commonEvent,
@@ -121,7 +120,7 @@ function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEve
       condition: conditionalEffect.name,
       stacks: conditionalEffect.stacks,
       duration: conditionalEffect.duration
-    } as Gw2ResolverEvent;
+    };
   } else {
     // Nourishment is a flat life-siphon strike, so it bypasses coefficient and critical scaling but stays strike damage.
     foodEvent = {
@@ -130,12 +129,12 @@ function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEve
       name: proc.name,
       coefficient: 0,
       flatDamage: proc.flatDamage,
-      lifeSiphon: true,
+      damageKind: 'life-steal',
       hits: 1,
       hitIndex: 1,
       totalHits: 1,
-      noCrit: true
-    } as Gw2ResolverEvent;
+      canCrit: false
+    };
   }
 
   ctx.queue.enqueue(foodEvent);
@@ -145,7 +144,7 @@ function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEve
     event.at,
     event.skillName,
     '',
-    String(FOOD_DATA[String(ctx.config.food || '')]?.icon || NOURISHMENT_ICON)
+    String(FOOD_DATA[ctx.config.food || '']?.icon || NOURISHMENT_ICON)
   );
 }
 
@@ -159,7 +158,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       when: (ctx, event) =>
         isGw2PlayerActorEvent(event) && Number(event.coefficient) > 0 && criticalFoodProc(ctx) != null,
       internalCooldown: {
-        duration: (ctx) => Number(criticalFoodProc(ctx)?.icdMs || 0) / 1000,
+        duration: (ctx) => (criticalFoodProc(ctx)?.icdMs || 0) / 1000,
         readyAt: (ctx) => ctx.food.readyAt,
         setReadyAt: (ctx, readyAt) => {
           ctx.food.readyAt = readyAt;
@@ -192,11 +191,8 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         id: 'sigil.severance',
         order: GW2_REACTION_ORDER.EARLY_COMMON,
         handler(ctx, event) {
-          if (String(event.kind || '').toLowerCase() !== 'sigil-severance') return;
-          ctx.sigil.severanceUntil = Math.max(
-            ctx.sigil.severanceUntil,
-            event.at + Math.max(0, Number(event.duration || 0))
-          );
+          if ((event.kind || '').toLowerCase() !== 'sigil-severance') return;
+          ctx.sigil.severanceUntil = Math.max(ctx.sigil.severanceUntil, event.at + Math.max(0, event.duration || 0));
         }
       },
       {
@@ -238,8 +234,15 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       {
         id: 'relic.after-hit',
         order: GW2_REACTION_ORDER.FINAL_COMMON,
-        handler(ctx, event) {
-          invokeRelicHook(ctx, 'afterHit', event, skillForEvent(ctx.helpers, event));
+        handler(ctx, event, details = {}) {
+          // Eligibility uses the resolved profile even when the authored packet inherited its weapon strength.
+          const profile = (details as NativeResolvedDamageDetails).hitContext?.weaponStrength?.profileId;
+          invokeRelicHook(
+            ctx,
+            'afterHit',
+            profile ? { ...event, weaponStrengthProfileId: profile } : event,
+            skillForEvent(ctx.helpers, event)
+          );
         }
       }
     ],

@@ -5,6 +5,15 @@ import { isTimeInWindow } from '#kernel/core/clock.js';
 
 const HOSTILE_TARGET_EVENT_TYPES = new Set(['damage', 'condition', 'condition_tick', 'control', 'blind']);
 
+/** Accepted player/summon target actions establish combat before their first damage payout. */
+export function isCombatEntryEvent(event: { readonly type: string; readonly actorType?: string }): boolean {
+  return (
+    event.type === 'combat_start' ||
+    (['damage', 'condition', 'control', 'blind'].includes(event.type) &&
+      ['player', 'summon'].includes(String(event.actorType)))
+  );
+}
+
 /** Identifies enemy-facing packets, which targeting options may suppress or delay independently of self effects. */
 export function isHostileTargetEvent(event: { readonly type: string }): boolean {
   return HOSTILE_TARGET_EVENT_TYPES.has(event.type);
@@ -59,16 +68,7 @@ export const GW2_DAMAGING_CONDITIONS = Object.freeze([
 ] as const);
 const DAMAGING_CONDITION_SET = new Set<string>(GW2_DAMAGING_CONDITIONS);
 
-const CANONICAL_CONDITION_STATE_MAPS = new WeakSet<ReadonlyMap<string, unknown>>();
-
 export const CANONICAL_TARGET_CONDITIONS = Object.freeze([...new Set(Object.values(CONDITION_ALIASES))].sort());
-
-/** Creates an internally owned condition map whose keys are canonicalized before insertion. */
-export function createCanonicalTargetConditionStateMap<T>(): Map<string, T> {
-  const state = new Map<string, T>();
-  CANONICAL_CONDITION_STATE_MAPS.add(state);
-  return state;
-}
 
 /**
  * Normalizes simulator and wiki condition spellings to the canonical runtime
@@ -154,11 +154,11 @@ export function permanentTargetConditionStacks(config: Gw2Config, name: string):
 }
 
 function activeRuntimeStackWeight(stack: Gw2RuntimeConditionStack, at: number): number {
-  const appliedAt = Number(stack?.appliedAt ?? -Infinity);
-  const expiresAt = Number(stack?.expiresAt ?? Infinity);
-  const removedAt = Number(stack?.removedAt ?? Infinity);
+  const appliedAt = stack.appliedAt ?? -Infinity;
+  const expiresAt = stack.expiresAt ?? Infinity;
+  const removedAt = stack.removedAt ?? Infinity;
   return isTimeInWindow(at, appliedAt, Math.min(expiresAt, removedAt))
-    ? Math.max(0, Number(stack?.weight ?? stack?.stacks ?? 0))
+    ? Math.max(0, stack.weight ?? stack.stacks ?? 0)
     : 0;
 }
 
@@ -175,20 +175,9 @@ export function runtimeTargetConditionStacks(
 ): number {
   if (!(runtime?.conditionState instanceof Map)) return 0;
   const canonicalName = canonicalTargetConditionName(name);
-  if (CANONICAL_CONDITION_STATE_MAPS.has(runtime.conditionState)) {
-    const entry = runtime.conditionState.get(canonicalName);
-    return (entry?.stacks || []).reduce((sum, stack) => sum + activeRuntimeStackWeight(stack, at), 0);
-  }
-
-  // Externally supplied and legacy maps may contain aliases or duplicate
-  // spellings, so retain the complete compatibility scan for unmarked maps.
-  let total = 0;
-  for (const [condition, entry] of runtime.conditionState) {
-    if (canonicalTargetConditionName(condition) !== canonicalName) continue;
-    total += (entry?.stacks || []).reduce((sum, stack) => sum + activeRuntimeStackWeight(stack, at), 0);
-  }
-
-  return total;
+  // Runtime writers store canonical condition names, so queries need only one lookup.
+  const entry = runtime.conditionState.get(canonicalName);
+  return (entry?.stacks || []).reduce((sum, stack) => sum + activeRuntimeStackWeight(stack, at), 0);
 }
 
 /**
@@ -201,7 +190,7 @@ export function targetConditionStacks(
   at: number,
   runtime: Gw2RuntimeStateLike | null = null
 ): number {
-  return permanentTargetConditionStacks(config, name) + runtimeTargetConditionStacks(runtime, name, Number(at || 0));
+  return permanentTargetConditionStacks(config, name) + runtimeTargetConditionStacks(runtime, name, at || 0);
 }
 
 /** Reports whether permanent assumptions or runtime state give the target a condition. */
@@ -222,14 +211,9 @@ export interface Gw2TargetConfig {
   readonly moving?: boolean;
   /** A defiant golem never rotates, so it also stands in for flanking and behind-the-target bonuses. */
   readonly defiant?: boolean;
-  readonly distance?: number;
-  readonly nearby?: boolean;
   /** Whether the target is casting; drives interrupt and activation-dependent rules. */
   readonly activatingSkills?: boolean;
   readonly confusionActivationsPerSecond?: number;
-  readonly disabled?: boolean;
-  readonly controlled?: boolean;
-  readonly defianceBroken?: boolean;
 }
 
 export interface Gw2RuntimeConditionStack {

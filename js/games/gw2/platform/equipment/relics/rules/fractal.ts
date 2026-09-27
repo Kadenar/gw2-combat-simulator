@@ -6,9 +6,9 @@ export const fractal = defineRelic({
   createState: () => ({ readyAt: 0 }),
   condition(ctx, state, application, { activeConditionStackCount, applyCondition }) {
     if (
-      application?.condition !== 'Bleeding' ||
+      application.condition !== 'Bleeding' ||
       !isInternalCooldownReady(application.at, state.readyAt) ||
-      activeConditionStackCount(ctx, 'Bleeding', application.at) - Number(application.stacks || 0) < 6
+      activeConditionStackCount(ctx, 'Bleeding', application.at) - (application.stacks || 0) < 6
     ) {
       return;
     }

@@ -1,4 +1,4 @@
-/** Shares Lethal Tempo's stack and expiry rules while scheduler and resolver retain independent state. */
+/** Lethal Tempo stack and expiry rules shared by the live Willbender owner and its modifier queries. */
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -12,7 +12,7 @@ import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 
-/** Decodes the trait-dependent window once for independent scheduler and resolver state transitions. */
+/** Decodes the trait-dependent window so gains and modifier queries share one stack cap and duration. */
 export function lethalTempoParameters(context: unknown) {
   const tyrantsMomentum = hasTrait(context, TRAIT.TYRANTS_MOMENTUM);
   const profileId = tyrantsMomentum ? PROFILE.tyrantsMomentum : PROFILE.lethalTempo;

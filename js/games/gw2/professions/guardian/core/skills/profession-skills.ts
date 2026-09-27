@@ -5,20 +5,14 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 export const GUARDIAN_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.JUSTICE]: {
     castTimeMs: 0,
-    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
-    handlerId: 'guardian.virtue',
     effects: []
   },
   [ID.COURAGE]: {
     castTimeMs: 0,
-    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
-    handlerId: 'guardian.virtue',
     effects: []
   },
   [ID.RESOLVE]: {
     castTimeMs: 0,
-    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
-    handlerId: 'guardian.virtue',
     effects: []
   }
 });

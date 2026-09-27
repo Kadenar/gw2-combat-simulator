@@ -6,32 +6,26 @@ import {
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import {
   activeBoonStacks,
-  eventSkill as gw2EventSkill,
   playerHealthFraction,
   targetConditionCount,
   targetHealthFraction
 } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { EngineerSimulationEvent, EngineerSkill, EngineerState } from '#gw2/professions/engineer/types.js';
+import type { EngineerSimulationEvent, EngineerState } from '#gw2/professions/engineer/types.js';
 
 /** Narrows the active modifier event to Engineer's extended simulation event shape. */
 export function engineerEvent(context: Gw2ModifierContext): EngineerSimulationEvent | undefined {
-  return (context.event || undefined) as EngineerSimulationEvent | undefined;
+  return context.event || undefined;
 }
 
-/** Reads Core Engineer state from a resolver-side modifier context. */
+/** Reads Core state from the live simulation or the isolated attribute preview. */
 export function engineerRuntimeState(context: Gw2ModifierContext): Partial<EngineerState> {
-  return readProfessionCoreState<EngineerState>(context.runtime?.profession);
-}
-
-/** Reads Core Engineer state from a scheduler-side modifier context. */
-export function engineerSchedulerState(context: Gw2ModifierContext): Partial<EngineerState> {
   return readProfessionCoreState<EngineerState>(
-    (context.state as { readonly profession?: unknown } | undefined)?.profession
+    context.runtime?.profession ?? (context.state as { readonly profession?: unknown } | undefined)?.profession
   );
 }
 
-/** Reads the expected specialization state from either scheduler or resolver modifier contexts. */
+/** Reads the active specialization in simulation or attribute preview. */
 export function engineerSpecializationState(context: Gw2ModifierContext, expectedKind: string): Partial<EngineerState> {
   const state =
     context.runtime?.profession ?? (context.state as { readonly profession?: unknown } | undefined)?.profession;
@@ -40,11 +34,6 @@ export function engineerSpecializationState(context: Gw2ModifierContext, expecte
 
 /** Re-exports shared boon, health, and target-condition queries for Engineer modifier rules. */
 export { activeBoonStacks, playerHealthFraction, targetConditionCount, targetHealthFraction };
-
-/** Resolves the active event's skill using Engineer-specific metadata. */
-export function eventSkill(context: Gw2ModifierContext): EngineerSkill | undefined {
-  return gw2EventSkill<EngineerSkill>(context);
-}
 
 /** Selects Heavy Metal's critical bonus from the target's current health tier. */
 export function heavyMetalBonus(context: Gw2ModifierContext): number {
@@ -66,5 +55,5 @@ export function activeEngineerSpecializationState(
   field: keyof EngineerState
 ): boolean {
   const state = engineerSpecializationState(context, expectedKind);
-  return Number(state?.[field] || 0) > context.time;
+  return Number(state[field] || 0) > context.time;
 }

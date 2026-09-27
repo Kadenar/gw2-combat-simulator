@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
@@ -13,8 +14,7 @@ import {
   MESMER_DUPLICATE_SKILL_NAMES
 } from '#gw2/professions/mesmer/data/duplicate-skill-names.js';
 import { TRAITS } from '#gw2/professions/mesmer/data/traits-data.js';
-import { prepareMesmerSkillForCatalog } from '#gw2/professions/mesmer/data/skill-preparation.js';
-import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NativeCatalogOptions } from '#gw2/platform/profession-definition/module-types.js';
 
 const allSkills: readonly Skill[] = [...SKILLS, ...MESMER_SUPPLEMENTAL_SKILLS];
@@ -41,7 +41,7 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
     ID.SPLIT_SURGE,
     ID.CHAOS_VORTEX
   ],
-  Troubadour: [ID.TROUBADOUR_BLADECALL, ID.DODGE_TROUBADOUR]
+  Troubadour: [ID.TROUBADOUR_BLADECALL, SHARED_SKILL_IDS.DODGE]
 });
 
 const WEAPON_DATA = defineProfessionWeapons({
@@ -83,10 +83,10 @@ function prepareMechanics(
     Object.fromEntries(
       Object.entries(mechanics).map(([id, skill]) => [
         id,
-        prepareMesmerSkillForCatalog({
+        {
           ...skill,
           id: Number(id)
-        })
+        }
       ])
     )
   );
@@ -94,7 +94,7 @@ function prepareMechanics(
 
 const createModuleData = createProfessionModuleDataFactory({
   generatedSkills: generated,
-  traits: TRAITS as readonly CatalogEntity[],
+  traits: TRAITS,
   specializations: SPECIALIZATIONS,
   specializationOnlySkills: SPECIALIZATION_ONLY_SKILLS,
   core: WEAPON_DATA
@@ -108,7 +108,7 @@ export function createMesmerModuleData(
 ) {
   const flipParentsWithAmmoChild = new Set<number>(
     Object.entries(supplementalSkillMechanics)
-      .filter(([, skill]) => Number(skill.ammo || 0) > 0)
+      .filter(([, skill]) => (skill.ammo || 0) > 0)
       .flatMap(([id]) => {
         const parentId = flipParentById.get(Number(id));
 
@@ -137,11 +137,9 @@ export function createMesmerModuleData(
       ...supplementalSkillMechanics
     }),
     skillOverrides,
-    extraSkills: extraSkills.map((skill) =>
-      prepareMesmerSkillForCatalog({
-        ...skill,
-        id: Number(skill.id)
-      })
-    )
+    extraSkills: extraSkills.map((skill) => ({
+      ...skill,
+      id: Number(skill.id)
+    }))
   });
 }

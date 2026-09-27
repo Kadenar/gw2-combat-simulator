@@ -33,16 +33,15 @@ const GW2_BUILD_TEMPLATE_WEAPON_NAMES: Readonly<Record<number, string>> = Object
   265: 'Spear'
 });
 
-export interface DecodedGw2BuildTemplateSpecialization {
+interface DecodedGw2BuildTemplateSpecialization {
   readonly id: number;
   readonly traits: string;
 }
 
-export interface DecodedGw2BuildTemplate {
+interface DecodedGw2BuildTemplate {
   readonly professionCode: number;
   readonly specializations: readonly DecodedGw2BuildTemplateSpecialization[];
   readonly skillPaletteIds: readonly number[];
-  readonly professionData: readonly number[];
   readonly weaponTypeIds: readonly number[];
   readonly skillOverrides: readonly number[];
 }
@@ -60,7 +59,7 @@ export interface ResolvedGw2BuildTemplate {
 
 export type Gw2BuildTemplateWeaponSet = readonly [string, string];
 
-export interface Gw2BuildTemplateProfessionIdentity {
+interface Gw2BuildTemplateProfessionIdentity {
   readonly code: number;
   readonly id: string;
   readonly name: string;
@@ -76,7 +75,7 @@ function traits(byte: number): string {
 
 /** Decodes the stable binary contract behind a GW2 `[&...=]` build chat link. */
 export function decodeGw2BuildTemplate(chatCode: string): DecodedGw2BuildTemplate {
-  const match = /^\[&([A-Za-z0-9+/]+={0,2})\]$/.exec(String(chatCode).trim());
+  const match = /^\[&([A-Za-z0-9+/]+={0,2})\]$/.exec(chatCode.trim());
   if (!match) {
     throw new Error('Build template must be a Guild Wars 2 [&...=] chat code.');
   }
@@ -106,7 +105,6 @@ export function decodeGw2BuildTemplate(chatCode: string): DecodedGw2BuildTemplat
     });
   });
   const skillPaletteIds = Array.from({ length: 10 }, (_, index) => uint16(view, 8 + index * 2));
-  const professionData = [...bytes.slice(28, FIXED_LENGTH)];
   let offset = FIXED_LENGTH;
   const weaponTypeIds: number[] = [];
   const skillOverrides: number[] = [];
@@ -142,7 +140,6 @@ export function decodeGw2BuildTemplate(chatCode: string): DecodedGw2BuildTemplat
     professionCode: bytes[1],
     specializations: Object.freeze(specializations),
     skillPaletteIds: Object.freeze(skillPaletteIds),
-    professionData: Object.freeze(professionData),
     weaponTypeIds: Object.freeze(weaponTypeIds),
     skillOverrides: Object.freeze(skillOverrides)
   });

@@ -1,7 +1,5 @@
 import { createGameWorkerEndpoint } from '#app/game/worker-harness.js';
 import { calculateBaselineSimulation } from '#gw2/app/simulation/baseline/baseline-simulation.js';
-import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
-import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import type { BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/simulation/types.js';
 
@@ -21,13 +19,6 @@ interface BaselineWarmupMessage {
 
 // The worker owns the expensive simulation while the shared endpoint preserves job identity.
 createGameWorkerEndpoint<Gw2ProfessionSource, BaselineSimulationWorkerMessage | BaselineWarmupMessage>({
-  async loadDriver({ gameId, contentId }) {
-    if (gameId !== 'gw2') return null;
-    // Ordinary baselines need only the profession engine; authored previews retain their adapter composition.
-    return activePatchPreview
-      ? ((await loadProfessionAppAdapter(contentId))?.profession ?? null)
-      : loadProfession(contentId);
-  },
   calculate(profession, message) {
     // Loading the driver is enough for warmup; never simulate or publish a placeholder rotation.
     if (message.warmup) return {};

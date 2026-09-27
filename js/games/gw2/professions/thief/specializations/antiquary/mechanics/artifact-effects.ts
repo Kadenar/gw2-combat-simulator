@@ -77,7 +77,7 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, event: ThiefRe
 }
 
 function applyAntiquaryDamageReactions(context: ThiefResolverContext, event: ThiefResolverEvent): void {
-  // Both Antiquary strike follow-ups use immediate resolver application so
+  // Both Antiquary strike follow-ups apply immediately at the landed strike so
   // charge consumption and condition reactions share one causal timestamp.
   applyMeticulousSunCrystal(context, event);
   applyMistburnCharge(context, event);

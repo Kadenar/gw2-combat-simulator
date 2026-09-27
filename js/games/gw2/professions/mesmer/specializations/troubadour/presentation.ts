@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import {
   mesmerMechanicPaletteGroups,
@@ -38,11 +39,11 @@ function troubadourEventLogRow(
   _context: MesmerUiContext,
   event: MesmerResolverEvent
 ): ProfessionEventLogDescriptor | undefined {
-  if (event?.type !== 'mesmer.instrument') return undefined;
+  if (event.type !== 'mesmer.instrument') return undefined;
   return {
     type: 'trigger',
     description:
-      `INSTRUMENT ${event.instrument}` + `${event.expiresAt ? ` until ${Number(event.expiresAt).toFixed(3)}s` : ''}`,
+      `INSTRUMENT ${event.instrument}` + (event.expiresAt ? ` until ${Number(event.expiresAt).toFixed(3)}s` : ''),
     className: 'trigger',
     order: 55,
     flags: []
@@ -70,14 +71,14 @@ export const troubadourUi: MesmerUiSlice = Object.freeze({
         singular: 'endurance',
         plural: 'endurance',
         maximum: context.resources!.endurance!.maximum,
-        value: Number(mesmerUiState(context).endurance ?? 100),
+        value: mesmerUiState(context).endurance ?? 100,
         canStart: false,
         step: 1,
         displayMode: 'bar' as const,
         pipStyle: 'endurance',
         shortLabel: 'End',
         statusLabel: 'Current',
-        paletteSkillId: ID.DODGE_TROUBADOUR
+        paletteSkillId: SHARED_SKILL_IDS.DODGE
       }
     ];
     if (!activeInstruments.length) return resources;

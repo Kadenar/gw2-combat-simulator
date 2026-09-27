@@ -1,9 +1,8 @@
-/**
- * Cast-availability folding. Combines the per-constraint availability outcomes
- * a skill accumulates into a single verdict, so the scheduler learns whether a
- * cast is ready, permanently blocked, or must wait until a retry timestamp.
- */
+/** Cast availability distinguishes permanent denials from commands that can retry at a known time. */
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export const CAST_READY: AvailabilityResult = Object.freeze({ ready: true });
 
@@ -22,26 +21,34 @@ export function retryCast(retryAt: number, code: string, reason: string): Availa
 }
 
 /**
- * Folds a sequence of normalized availability outcomes into one result. A
- * non-retryable denial (retryAt == null) is final; otherwise every constraint
- * must be ready and the caller waits for the latest retry timestamp. Ready
- * outcomes are ignored. Callers validate untyped extension results before
- * folding them.
+ * Creates the common skill-scoped denial with a consistent warning. A null retry time rejects this rotation command;
+ * a finite retry time asks the scheduler to try the same command later.
  */
-export function foldAvailability(results: Iterable<AvailabilityResult>): AvailabilityResult {
-  let combined: AvailabilityResult = CAST_READY;
-  for (const result of results) {
-    if (result.ready !== false) continue;
-    if (result.retryAt == null) return result;
-    const retryAt = Number(result.retryAt);
-    if (!Number.isFinite(retryAt)) {
-      throw new TypeError('Cast availability retryAt must be finite or null.');
-    }
+export function denySkillCast(
+  skill: Pick<Skill, 'name'>,
+  code: string,
+  cause: string,
+  retryAt: number | null = null
+): AvailabilityResult {
+  const reason = `${skill.name} is unavailable — ${cause}`;
+  return retryAt === null ? denyCast(code, reason) : retryCast(retryAt, code, reason);
+}
 
-    if (combined.ready || retryAt > Number(combined.retryAt ?? -Infinity)) {
-      combined = { ...result, retryAt };
-    }
+/** Rejects unequipped slot skills before state gates; flips inherit their root's selection. */
+export function selectedSlotSkillAvailability(
+  context: { readonly config: Gw2Config; readonly catalog: CanonicalCatalog },
+  skill: Skill
+): AvailabilityResult | null {
+  // An omitted loadout permits sandbox casts; an explicitly empty loadout equips nothing.
+  if (context.config.selectedSkills == null || !['Heal', 'Utility', 'Elite'].includes(skill.type || '')) return null;
+  let root = skill;
+  while (root.flipParentId != null) {
+    const parent = context.catalog.skillsById.get(root.flipParentId);
+    if (!parent) break;
+    root = parent;
   }
 
-  return combined;
+  return selectedSkillNameSet(context.config.selectedSkills).has(root.name)
+    ? null
+    : denySkillCast(skill, 'gw2.slot-not-equipped', 'the skill is not equipped.');
 }

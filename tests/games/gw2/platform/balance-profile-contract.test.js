@@ -276,11 +276,11 @@ test('full previews and selected runtimes preserve removals without leaking acro
       id: 'fixture',
       name: 'Fixture',
       modules: [
-        defineNativeModule({ id: 'Core', data: {}, state: { scheduler: () => ({}) } }),
+        defineNativeModule({ id: 'Core', data: {}, state: { create: () => ({}) } }),
         defineNativeModule({
           id: 'Elite',
           data: { generatedSkills: [skill], balanceProfiles: [profile, { ...profile, id: 2, name: 'Unedited' }] },
-          state: { scheduler: () => ({}) }
+          state: { create: () => ({}) }
         })
       ]
     }),
@@ -297,7 +297,7 @@ test('full previews and selected runtimes preserve removals without leaking acro
   );
   for (const catalog of [
     family.catalogFor('preview'),
-    family.resolveRuntime({ specialization: 'Elite', patchId: 'preview' }).catalog
+    family.resolveProfession({ specialization: 'Elite', patchId: 'preview' }).catalog
   ]) {
     for (const kind of ['skill', 'balance-profile']) {
       const owner = ownerOf(catalog, kind);
@@ -323,12 +323,12 @@ test('full previews and selected runtimes preserve removals without leaking acro
     }
   }
 
-  for (const catalog of [family.catalogFor(), family.resolveRuntime({ specialization: 'Elite' }).catalog]) {
+  for (const catalog of [family.catalogFor(), family.resolveProfession({ specialization: 'Elite' }).catalog]) {
     assert.deepEqual(requireEffect(ownerOf(catalog, 'skill'), 'condition', 'First'), first);
     assert.deepEqual(requireEffect(ownerOf(catalog, 'balance-profile'), 'condition', 'First'), first);
   }
 
-  const core = family.resolveRuntime({ specialization: 'Core', patchId: 'preview' });
+  const core = family.resolveProfession({ specialization: 'Core', patchId: 'preview' });
   assert.equal(core.catalog.skillsById.has(1), false);
   assert.equal(core.catalog.balanceProfilesById.has(1), false);
   for (const section of ['skills', 'balanceProfiles']) {

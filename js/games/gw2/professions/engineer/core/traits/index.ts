@@ -1,14 +1,14 @@
 /** Public Core Engineer trait dispatcher preserving cross-line reaction order. */
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type {
-  EngineerCastContext,
+  EngineerRuntime,
   EngineerResolverContext,
   EngineerResolverEvent,
   EngineerSkill
 } from '#gw2/professions/engineer/types.js';
-import { applyHgh, observeEngineerHghEvent } from '#gw2/professions/engineer/core/traits/alchemy.js';
+import { applyHghAcidBomb, prepareEngineerHghEvent } from '#gw2/professions/engineer/core/traits/alchemy.js';
 import {
   engineerCoreCriticalHitDefinitions,
   applyHematicFocus,
@@ -36,7 +36,7 @@ export {
   applyEngineerToolbeltTraits,
   engineerCoreCriticalHitDefinitions,
   isEngineerToolbeltSkill,
-  observeEngineerHghEvent
+  prepareEngineerHghEvent
 };
 
 function isHealingSkill(skill: EngineerSkill | undefined): boolean {
@@ -44,32 +44,29 @@ function isHealingSkill(skill: EngineerSkill | undefined): boolean {
 }
 
 /** Dispatches completed casts without regrouping the cross-line gameplay order. */
-export function applyEngineerCastTraits(context: EngineerCastContext, skill: EngineerSkill): void {
-  const at = context.effectiveEnd;
+export function applyEngineerCastTraits(context: EngineerRuntime, cast: RuntimeCast): void {
+  const skill = cast.skill;
+  const at = context.time;
   if (isHealingSkill(skill)) applyGrenadier(context, skill, at);
   applyStreamlinedKits(context, skill, at);
   // Issuing a mech command uses the tool-belt slot immediately while its animation runs independently.
-  applyEngineerToolbeltTraits(context, skill, skill.independentCast ? context.start : at);
-  applyHgh(context, skill, at);
+  if (!skill.independentCast) applyEngineerToolbeltTraits(context, skill, at);
+  applyHghAcidBomb(context, cast);
 }
 
 // Keep shared explosion classification here so every later Explosives reaction consumes the same result.
 function isExplosion(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
   if (event.explosion || event.damageKind === 'explosion') return true;
   const skill = resolverSkill(context, event.skillId ?? event.sourceId);
-  return Boolean(
-    skill?.categories?.some((category) => String(category).toLowerCase() === 'explosion') ||
+  return (
+    skill?.categories?.some((category) => category.toLowerCase() === 'explosion') ||
     skill?.kit === 'Grenade Kit' ||
     skill?.id === ID.DEVASTATOR
   );
 }
 
 /** Dispatches damage reactions in their established causal order. */
-export function reactToEngineerDamage(
-  context: EngineerResolverContext,
-  event: EngineerResolverEvent,
-  _details: NativeResolvedDamageDetails = {}
-): void {
+export function reactToEngineerDamage(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
   recordStaticDischargeProc(context, event);
   applyExplosiveEntrance(context, event);

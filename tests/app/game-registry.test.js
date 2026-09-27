@@ -42,7 +42,7 @@ test('bootstrap requires both explicit IDs even when legacy profession markup is
 
 test('the GW2 game plug-in exposes the existing lazy profession registry', async () => {
   const [{ professionRegistry }, { gw2Plugin }] = await Promise.all([
-    import('#gw2/app/profession-registry.js'),
+    import('#gw2/profession-registry.js'),
     import('#gw2/plugin.js')
   ]);
 
@@ -51,14 +51,20 @@ test('the GW2 game plug-in exposes the existing lazy profession registry', async
     professionRegistry.map(({ id, name, route }) => ({ id, name, route }))
   );
   const content = await loadGameContent('gw2', 'warrior');
-  const adapter = await loadGameWorkerDriver({ gameId: 'gw2', contentId: 'warrior' });
+  const adapter = await professionRegistry.find(({ id }) => id === 'warrior').loadAppAdapter();
+  const profession = await loadGameWorkerDriver({ gameId: 'gw2', contentId: 'warrior' });
   assert.equal(content.gameId, 'gw2');
   assert.deepEqual(
     adapter.buildEditor.sections.map(({ id }) => id),
     ['gear', 'traits', 'attributes', 'skills', 'assumptions']
   );
   assert.equal(typeof adapter.presentation.createViewModel, 'function');
-  assert.equal(typeof adapter.capabilities.keybindImport.parse, 'function');
+  // Worker drivers expose the engine directly; browser-only composition belongs to the app loader.
+  assert.equal(profession.id, 'warrior');
+  assert.equal(typeof profession.resolveProfession, 'function');
+  assert.equal(typeof profession.catalogFor, 'function');
+  assert.equal('buildEditor' in profession, false);
+  assert.equal(await loadGameWorkerDriver({ gameId: 'gw2', contentId: 'warrior' }), profession);
   assert.equal(await loadGameWorkerDriver({ gameId: 'unknown', contentId: 'warrior' }), null);
   assert.equal(await loadGameWorkerDriver({ gameId: 'gw2', contentId: 'unknown' }), null);
   assert.equal(await loadGameContent('gw2', 'unknown'), null);

@@ -14,7 +14,7 @@ export interface RevenantUpkeepState {
   empoweredNextPulse: boolean;
 }
 
-export interface RevenantSelfCondition {
+interface RevenantSelfCondition {
   readonly condition: string;
   readonly stacks: number;
   readonly at: number;
@@ -43,8 +43,14 @@ export interface RevenantCoreState {
   selfConditions: RevenantSelfCondition[];
   selfConditionCount: number;
   // Brutality, Vicious Reprisal and Impossible Odds store only numeric deadlines here.
-  traitProcReadyAt: Record<string, number>;
+
+  /** Live wake generations let a rate change or combat anchor replace pending work without replaying state. */
+  energyWakeGeneration: number;
+  assassinsPresenceGeneration: number;
 }
+
+/** Revenant endurance capacity; live recovery and endurance-conditioned traits share this bound. */
+export const REVENANT_MAXIMUM_ENDURANCE = 100;
 
 // Initialize bounded energy and endurance plus complete legend, upkeep, flip,
 // weapon-chain, and trait bookkeeping.
@@ -81,8 +87,10 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
     nextThrillOfCombatAt: null,
     exposeDefensesUsed: false,
     selfConditions: [],
-    selfConditionCount: Math.max(0, Math.trunc(Number(config.selfConditionCount || 0))),
-    traitProcReadyAt: {}
+    selfConditionCount: Math.max(0, Math.trunc(config.selfConditionCount || 0)),
+
+    energyWakeGeneration: 0,
+    assassinsPresenceGeneration: 0
   };
 }
 

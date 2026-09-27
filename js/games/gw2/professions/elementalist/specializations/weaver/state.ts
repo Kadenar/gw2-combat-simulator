@@ -18,7 +18,6 @@ export interface WeaverState {
   weaveSelfVisited: string[];
   perfectWeaveUntil: number;
   ferventStanceUntil: number;
-  superiorElementsReadyAt: number;
 }
 
 /**
@@ -38,8 +37,7 @@ export const weaverState = defineProfessionSpecializationState(
     weaveSelfUntil: 0,
     weaveSelfVisited: [],
     perfectWeaveUntil: 0,
-    ferventStanceUntil: 0,
-    superiorElementsReadyAt: 0
+    ferventStanceUntil: 0
   })
 );
 

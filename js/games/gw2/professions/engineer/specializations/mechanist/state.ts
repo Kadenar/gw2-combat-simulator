@@ -17,7 +17,7 @@ import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 
-export interface EngineerMechAttributes {
+interface EngineerMechAttributes {
   power: number;
   precision: number;
   toughness: number;
@@ -29,7 +29,7 @@ export interface EngineerMechAttributes {
   healingPower: number;
 }
 
-export interface EngineerMechState {
+interface EngineerMechState {
   enabled: boolean;
   active: boolean;
   commandSkillIds: SkillId[];
@@ -87,7 +87,7 @@ export function selectedMechCommands(traits: EngineerConfig | ReadonlySet<SkillI
 
 /** Reads a non-negative player attribute while supplying its baseline when absent. */
 function playerAttribute(stats: Partial<Gw2Stats>, key: keyof EngineerMechAttributes, fallback = 0): number {
-  return Math.max(0, Number(stats?.[key] ?? fallback));
+  return Math.max(0, stats[key] ?? fallback);
 }
 
 /** Calculates the jade mech's inherited combat attributes for the selected trait configuration. */

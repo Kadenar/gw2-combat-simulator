@@ -1,4 +1,4 @@
-export const ELEMENTALIST_SKILL_IDS: Readonly<Record<string, number>> = Object.freeze({
+export const ELEMENTALIST_SKILL_IDS = Object.freeze({
   FIRE_ATTUNEMENT: 5492,
   WATER_ATTUNEMENT: 5493,
   AIR_ATTUNEMENT: 5494,
@@ -276,7 +276,6 @@ export const ELEMENTALIST_SKILL_IDS: Readonly<Record<string, number>> = Object.f
   ECHOING_EROSION: 72062,
   ENERVATING_EARTH: 72023,
   GLYPH_OF_ELEMENTALS: 25488,
-  DODGE: -5,
   FLAME_BURST_TRAIT: 5794,
   CLEANSING_WAVE_TRAIT: 5793,
   BLINDING_FLASH_TRAIT: 5792,
@@ -298,7 +297,7 @@ export const ELEMENTALIST_SKILL_IDS: Readonly<Record<string, number>> = Object.f
   PICK_UP_FIERY_GREATSWORD: -34
 });
 
-export const ELEMENTALIST_TRAIT_IDS: Readonly<Record<string, number>> = Object.freeze({
+export const ELEMENTALIST_TRAIT_IDS = Object.freeze({
   SOOTHING_MIST: 350,
   HEALING_RIPPLE: 351,
   AQUAMANCERS_TRAINING: 1676,

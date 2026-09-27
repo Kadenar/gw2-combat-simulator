@@ -10,9 +10,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
   [ID.CHAOS_STORM]: {
     // Once the field's opening impact lands, cancelling the aftercast preserves its remaining pulses.
     interruptCommitMs: CHAOS_STORM_PULSES_MS[0],
-    mechanicTriggers: [
-      { type: 'mesmer.core.chaos-storm-poison', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }
-    ],
+    tasks: [{ type: 'mesmer.core.chaos-storm-poison', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }],
     mesmerMechanic: {
       // Each selected pulse applies one complete stack; the mechanic alternates two and three selections per cast.
       chaosStormPoison: {

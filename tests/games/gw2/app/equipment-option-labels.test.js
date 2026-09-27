@@ -8,7 +8,7 @@ import {
   runeOptionLabel,
   sigilOptionLabel,
   utilityOptionLabel
-} from '#gw2/app/build/equipment-option-labels.js';
+} from '#gw2/app/shared/equipment/labels.js';
 import { FOOD_GROUPS } from '#gw2/platform/equipment/consumables/food.js';
 import { UTILITY_GROUPS } from '#gw2/platform/equipment/consumables/utilities.js';
 import { RUNE_GROUPS } from '#gw2/platform/equipment/gear/runes.js';

@@ -2,15 +2,9 @@
  * Profession module composition. Validates independently owned Core and
  * specialization fragments and combines their catalogs, hooks, and state.
  */
-import type {
-  BalanceProfile,
-  CatalogEntity,
-  CanonicalCatalog,
-  Skill,
-  SkillId
-} from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionModuleDefinition, ProfessionHook } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerConfig } from '#gw2/platform/execution/types.js';
+import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { toEntries } from '#kernel/core/collections.js';
@@ -51,8 +45,8 @@ export function defineProfessionModule<TProfessionState extends object = object>
 }
 
 function mergeUniqueEntries<T>(
-  modules: readonly NamedModule<object>[],
-  values: (module: ProfessionModuleDefinition<any>) => readonly T[],
+  modules: readonly NamedModule[],
+  values: (module: ProfessionModuleDefinition) => readonly T[],
   keyFor: (value: T) => string | number,
   label: string
 ): T[] {
@@ -74,33 +68,31 @@ function mergeUniqueEntries<T>(
   return result;
 }
 
-export function composeModuleCatalog(modules: readonly NamedModule<object>[]): Readonly<CanonicalCatalog> {
+export function composeModuleCatalog(modules: readonly NamedModule[]): Readonly<CanonicalCatalog> {
   const skills = mergeUniqueEntries(
     modules,
     (entry) => entry.catalog?.skills || [],
     (skill) => skill.id,
     'skill id'
-  ) as Skill[];
+  );
   const balanceProfiles = mergeUniqueEntries(
     modules,
     (entry) => entry.catalog?.balanceProfiles || [],
     (profile) => profile.id,
     'balance profile id'
-  ) as BalanceProfile[];
+  );
   const traits = mergeUniqueEntries(
     modules,
     (entry) => entry.catalog?.traits || [],
     (trait) => trait.id,
     'trait id'
-  ) as CatalogEntity[];
+  );
   const specializations = mergeUniqueEntries(
     modules,
     (entry) => entry.catalog?.specializations || [],
     (specialization) => specialization.id,
     'specialization id'
-  ) as CatalogEntity[];
-  const handlers = new Map<string, unknown>();
-  const handlerOwners = new Map<string, string>();
+  );
   const weapons = new Set<string>();
   const weaponHands = new Map<string, string>();
   const additionalChains: SkillId[][] = [];
@@ -110,23 +102,13 @@ export function composeModuleCatalog(modules: readonly NamedModule<object>[]): R
 
   for (const entry of modules) {
     const fragment = entry.module.catalog || {};
-    for (const [id, handler] of toEntries(fragment.skillHandlers)) {
-      const previous = handlerOwners.get(id);
-      if (previous) {
-        throw new TypeError(`Duplicate skill handler ${id} in ${previous} and ${entry.name}.`);
-      }
-
-      handlerOwners.set(id, entry.name);
-      handlers.set(id, handler);
-    }
-
     for (const weapon of fragment.weapons || []) weapons.add(weapon);
     for (const [weapon, hand] of toEntries(fragment.weaponHands)) {
       if (weaponHands.has(weapon)) {
         throw new TypeError(`Duplicate weapon-hand entry ${weapon} in ${entry.name}.`);
       }
 
-      weaponHands.set(weapon, String(hand));
+      weaponHands.set(weapon, hand);
     }
 
     for (const chain of fragment.autoattackChains?.additional || []) {
@@ -153,7 +135,6 @@ export function composeModuleCatalog(modules: readonly NamedModule<object>[]): R
   const catalog = createCanonicalCatalog({
     generated: skills,
     balanceProfiles,
-    skillHandlers: handlers,
     traits,
     specializations,
     weapons: [...weapons],
@@ -177,17 +158,12 @@ export function composeModuleCatalog(modules: readonly NamedModule<object>[]): R
   return catalog;
 }
 
-function hookValues<
-  TContainer extends 'attributeRules' | 'castRules' | 'schedulerHooks',
-  TName extends Exclude<
-    keyof NonNullable<ProfessionModuleDefinition[TContainer]>,
-    'modifierRules' | 'compileModifierRules' | 'taskHandlers' | 'skillMechanicHandlers'
-  > &
-    string
->(modules: readonly NamedModule<object>[], container: TContainer, name: TName): ProfessionHook[] {
+function hookValues(
+  modules: readonly NamedModule[],
+  name: Exclude<keyof NonNullable<ProfessionModuleDefinition['modifiers']>, 'modifierRules' | 'compileModifierRules'>
+): ProfessionHook[] {
   return modules.flatMap((entry) => {
-    const source = entry.module[container] as
-      Pick<NonNullable<ProfessionModuleDefinition[TContainer]>, TName> | undefined;
+    const source = entry.module.modifiers;
     const value = source?.[name];
     return (value == null ? [] : Array.isArray(value) ? value : [value]) as ProfessionHook[];
   });
@@ -195,75 +171,22 @@ function hookValues<
 
 /** Retains only the requested hook slots; runtime normalization still validates each contributed handler. */
 export function composeHookContainer<
-  TContainer extends 'attributeRules' | 'castRules' | 'schedulerHooks',
   TName extends Exclude<
-    keyof NonNullable<ProfessionModuleDefinition[TContainer]>,
-    'modifierRules' | 'compileModifierRules' | 'taskHandlers' | 'skillMechanicHandlers'
-  > &
-    string
->(
-  modules: readonly NamedModule<object>[],
-  container: TContainer,
-  names: readonly TName[]
-): Partial<Record<TName, ProfessionHook[]>> {
+    keyof NonNullable<ProfessionModuleDefinition['modifiers']>,
+    'modifierRules' | 'compileModifierRules'
+  >
+>(modules: readonly NamedModule[], names: readonly TName[]): Partial<Record<TName, ProfessionHook[]>> {
   return Object.fromEntries(
     names.flatMap((name) => {
-      const values = hookValues(modules, container, name);
+      const values = hookValues(modules, name);
       return values.length ? [[name, values]] : [];
     })
   ) as Partial<Record<TName, ProfessionHook[]>>;
 }
 
-export function mergeHandlerRegistries(
-  modules: readonly NamedModule<object>[],
-  select: (
-    module: ProfessionModuleDefinition<any>
-  ) => Readonly<Record<string, (...args: never[]) => unknown>> | null | undefined,
-  label: string
-): Readonly<Record<string, (...args: never[]) => unknown>> {
-  const result: Record<string, (...args: never[]) => unknown> = {};
-  const owners = new Map<string, string>();
-  for (const entry of modules) {
-    for (const [id, handler] of Object.entries(select(entry.module) || {})) {
-      const previous = owners.get(id);
-      if (previous) {
-        throw new TypeError(`Duplicate ${label} ${id} in ${previous} and ${entry.name}.`);
-      }
-
-      owners.set(id, entry.name);
-      result[id] = handler;
-    }
-  }
-
-  return Object.freeze(result);
-}
-
-export function composeEventReactions(modules: readonly NamedModule<object>[]): Readonly<Record<string, unknown>> {
-  const eventTypes = new Set<string>();
-  for (const entry of modules) {
-    for (const eventType of Object.keys(entry.module.resolverHooks?.eventReactions || {})) {
-      eventTypes.add(eventType);
-    }
-  }
-
-  return Object.freeze(
-    Object.fromEntries(
-      [...eventTypes].map((eventType) => [
-        eventType,
-        modules.flatMap((entry) => {
-          const value = entry.module.resolverHooks?.eventReactions?.[eventType];
-          return value == null ? [] : Array.isArray(value) ? value : [value];
-        })
-      ])
-    )
-  );
-}
-
-function createStateFragment(entry: NamedModule<object>, config: Readonly<SchedulerConfig>, resolver: boolean): object {
+function createStateFragment(entry: NamedModule, config: Readonly<ProfessionConfig>): object {
   const resources = entry.module.resources;
-  const factory = resolver
-    ? resources?.createResolverState || resources?.createProfessionState
-    : resources?.createProfessionState;
+  const factory = resources?.createState;
   const fragment = factory?.(config) || {};
   if (!fragment || typeof fragment !== 'object' || Array.isArray(fragment)) {
     throw new TypeError(`${entry.name} state factory must return an object.`);
@@ -275,13 +198,13 @@ function createStateFragment(entry: NamedModule<object>, config: Readonly<Schedu
 function createComposedState(core: object, specializationKind: string, specializationState: object): object {
   for (const property of Reflect.ownKeys(core)) {
     if (property === 'core' || property === 'specialization') {
-      throw new TypeError(`Core state fragment uses reserved key ${String(property)}.`);
+      throw new TypeError(`Core state fragment uses reserved key ${property}.`);
     }
   }
 
   for (const property of Reflect.ownKeys(specializationState)) {
     if (property === 'core' || property === 'specialization') {
-      throw new TypeError(`${specializationKind} state fragment uses reserved key ${String(property)}.`);
+      throw new TypeError(`${specializationKind} state fragment uses reserved key ${property}.`);
     }
 
     if (Reflect.has(core, property)) {
@@ -298,24 +221,20 @@ function createComposedState(core: object, specializationKind: string, specializ
   };
 }
 
-export function composeStateFragments(
-  modules: readonly NamedModule<object>[],
-  config: Readonly<SchedulerConfig>,
-  resolver: boolean
-): object {
-  const core = createStateFragment(modules[0], config, resolver);
+export function composeStateFragments(modules: readonly NamedModule[], config: Readonly<ProfessionConfig>): object {
+  const core = createStateFragment(modules[0], config);
   const specialization = modules[1];
   return createComposedState(
     core,
     specialization?.name || 'Core',
-    specialization ? createStateFragment(specialization, config, resolver) : {}
+    specialization ? createStateFragment(specialization, config) : {}
   );
 }
 
 /** Rejects conflicting owners of a scalar module contribution before composing the runtime. */
 export function singleOwnerValue(
-  modules: readonly NamedModule<object>[],
-  select: (module: ProfessionModuleDefinition<any>) => unknown,
+  modules: readonly NamedModule[],
+  select: (module: ProfessionModuleDefinition) => unknown,
   label: string
 ): unknown {
   const owners = modules.filter((entry) => select(entry.module) != null);

@@ -32,7 +32,7 @@ function virtuosoPaletteSkillAvailability(context: MesmerUiContext, skill: Skill
   }
 
   const state = context.professionState || context.state?.profession || {};
-  const available = Number(state.resource ?? Infinity) >= 1;
+  const available = (state.resource ?? Infinity) >= 1;
   return {
     available,
     message: available ? '' : 'Requires at least 1 blade'

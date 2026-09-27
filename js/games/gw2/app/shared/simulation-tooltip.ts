@@ -217,11 +217,7 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
         effect.flatStrikePowerCoeff != null ? `${tooltipDecimal(effect.flatStrikePowerCoeff)} × power` : '',
         effect.flatStrikeMultiplier != null ? `${tooltipDecimal(effect.flatStrikeMultiplier)}× flat damage` : '',
         hits > 1 ? `${hits} hits` : '',
-        effect.noCrit || effect.canCrit === false
-          ? 'cannot critically strike'
-          : effect.forceCrit
-            ? 'always critically strikes'
-            : ''
+        effect.canCrit === false ? 'cannot critically strike' : effect.forceCrit ? 'always critically strikes' : ''
       ]
         .filter(Boolean)
         .join(' · ');
@@ -362,8 +358,7 @@ export function describeSimulationSkill(
   skill: Skill,
   presentation: ProfessionTooltips
 ): SimulationTooltip {
-  const describe =
-    presentation.skills?.[skill.id] || (skill.handlerId ? presentation.handlers?.[skill.handlerId] : undefined);
+  const describe = presentation.skills?.[skill.id];
   // Custom descriptions own their packets; only format generic effects when no override handles the skill.
   let model: SimulationTooltip;
   if (describe) model = describe(context, skill);
@@ -372,7 +367,7 @@ export function describeSimulationSkill(
     model = {
       ...effects,
       description: ordinarySkillDescription(skill),
-      incomplete: effects.incomplete || Boolean(skill.handlerId || skill.mechanicTriggers?.length)
+      incomplete: effects.incomplete
     };
   }
 

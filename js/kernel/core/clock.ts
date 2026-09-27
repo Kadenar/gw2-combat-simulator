@@ -46,9 +46,9 @@ export const ACTION_SAFETY_LIMIT = 100_000;
  * A proc at exactly readyAt is blocked; only a later timestamp may trigger it.
  */
 export function isInternalCooldownReady(at: number, readyAt = 0): boolean {
-  const triggerAt = canonicalTime(Number(at));
+  const triggerAt = canonicalTime(at);
   // Equipment also uses infinite deadlines as unarmed/permanently blocked sentinels.
-  const blockedThrough = Number.isFinite(Number(readyAt)) ? canonicalTime(Number(readyAt)) : Number(readyAt);
+  const blockedThrough = Number.isFinite(readyAt) ? canonicalTime(readyAt) : readyAt;
   // Existing state models use 0 to mean that the ICD has never been armed.
   return blockedThrough === 0 ? triggerAt >= 0 : triggerAt > blockedThrough;
 }

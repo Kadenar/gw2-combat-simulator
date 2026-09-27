@@ -1,9 +1,8 @@
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import { ACTION_ICONS, PLACEHOLDER_ICON } from '#gw2/app/shared/icons.js';
-import { skillTimingAnalyses, stateTimingAnalysis } from '#gw2/app/rotation/timeline/timing/model.js';
+import { skillTimingAnalyses } from '#gw2/app/rotation/timeline/timing/model.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 const TIMING_DETAIL_INITIAL_USES = 12;
@@ -15,92 +14,11 @@ function timingCheckOwner(app: ProfessionAppState): object {
   return app.workspace?.tabs.find((tab) => tab.id === app.workspace?.activeTabId) || app;
 }
 
-const STATE_TIMING_CHECK_IDS = Object.freeze({
-  photonForge: 'state:engineer.photon-forge',
-  radiantForge: 'state:guardian.radiant-forge',
-  shroud: 'state:necromancer.shroud',
-  gunsaber: 'state:warrior.gunsaber'
-} as const satisfies Record<string, SkillId>);
-
-interface StateTimingCheckDefinition {
-  readonly id: SkillId;
-  readonly label: string;
-  readonly availableFor: (skill: Skill) => boolean;
-  readonly eventActive: (app: ProfessionAppState, event: SimulationEvent) => boolean | null;
-}
-
-function snapshotState(event: SimulationEvent): Readonly<Record<string, unknown>> | null {
-  return event.state && typeof event.state === 'object' && !Array.isArray(event.state)
-    ? (event.state as Readonly<Record<string, unknown>>)
-    : null;
-}
-
-function eventMatchesSkill(app: ProfessionAppState, event: SimulationEvent, name: string): boolean {
-  const skillId = app.skillByName.get(name)?.id;
-  return skillId != null && (event.skillId === skillId || event.sourceId === skillId);
-}
-
-/** Defines transient duration checks from the authoritative profession transitions already emitted by simulation. */
-const STATE_TIMING_CHECKS: readonly StateTimingCheckDefinition[] = Object.freeze([
-  {
-    id: STATE_TIMING_CHECK_IDS.photonForge,
-    label: 'Time in Photon Forge',
-    availableFor: (skill) =>
-      ['Engage Photon Forge', 'Deactivate Photon Forge'].includes(skill.name) || skill.forgeSkill === true,
-    eventActive: (_app, event) => {
-      const state = event.type === 'engineer.state' ? snapshotState(event) : null;
-      return typeof state?.photonForgeActive === 'boolean' ? state.photonForgeActive : null;
-    }
-  },
-  {
-    id: STATE_TIMING_CHECK_IDS.radiantForge,
-    label: 'Time in Radiant Forge',
-    availableFor: (skill) => ['Enter Radiant Forge', 'Exit Radiant Forge'].includes(skill.name),
-    eventActive: (_app, event) =>
-      event.type === 'guardian.radiant-forge-entered'
-        ? true
-        : event.type === 'guardian.radiant-forge-exited'
-          ? false
-          : null
-  },
-  {
-    id: STATE_TIMING_CHECK_IDS.shroud,
-    label: 'Time in Shroud',
-    availableFor: (skill) => Boolean(skill.shroudEntry || skill.shroudExit),
-    eventActive: (_app, event) => {
-      const state = event.type === 'necromancer.state' ? snapshotState(event) : null;
-      if (!state || !Object.hasOwn(state, 'activeShroud')) return null;
-      const activeShroud = String(state.activeShroud || '');
-      return Boolean(activeShroud && activeShroud !== 'lich');
-    }
-  },
-  {
-    id: STATE_TIMING_CHECK_IDS.gunsaber,
-    label: 'Time in Gunsaber',
-    availableFor: (skill) =>
-      ['Unsheathe Gunsaber', 'Sheathe Gunsaber', 'Dragon Trigger'].includes(skill.name) || skill.gunsaberSkill === true,
-    eventActive: (app, event) => {
-      if (event.type !== 'sigil_swap' || event.source !== 'warrior') return null;
-      if (eventMatchesSkill(app, event, 'Unsheathe Gunsaber') || eventMatchesSkill(app, event, 'Dragon Trigger')) {
-        return true;
-      }
-
-      return eventMatchesSkill(app, event, 'Sheathe Gunsaber') ? false : null;
-    }
-  }
-]);
-
-function stateTimingCheck(skillId: SkillId): StateTimingCheckDefinition | undefined {
-  return STATE_TIMING_CHECKS.find((definition) => definition.id === skillId);
-}
-
 function timingCheckIds(app: ProfessionAppState): SkillId[] {
   return timingCheckSelections.get(timingCheckOwner(app)) || [];
 }
 
 function timingSkillLabel(app: ProfessionAppState, skillId: SkillId): string {
-  const stateCheck = stateTimingCheck(skillId);
-  if (stateCheck) return stateCheck.label;
   const skill = app.skillById.get(skillId);
   return String(skill?.displayName || skill?.name || skillId);
 }
@@ -143,7 +61,6 @@ interface TimingCheckPickerOption {
 
 const WEAPON_BAR_TIMING_CATEGORIES = [1, 2, 3, 4, 5].map((slot) => `Weapon bar · Slot ${slot}`);
 const TIMING_CHECK_CATEGORY_ORDER = [
-  'State durations',
   ...WEAPON_BAR_TIMING_CATEGORIES,
   'Other weapon skills',
   'Profession skills',
@@ -177,24 +94,12 @@ function timingCheckSkillCategory(skill: Skill): string {
 }
 
 function timingCheckPickerOptions(app: ProfessionAppState): TimingCheckPickerOption[] {
-  const skills = timingCheckPickerSkills(app);
-  const options = skills.map((skill) => ({
+  const options = timingCheckPickerSkills(app).map((skill) => ({
     id: skill.id,
     label: String(skill.displayName || skill.name),
     icon: skill.icon || ACTION_ICONS[skill.name] || PLACEHOLDER_ICON,
     category: timingCheckSkillCategory(skill)
   }));
-
-  for (const definition of STATE_TIMING_CHECKS) {
-    const representative = skills.find(definition.availableFor);
-    if (!representative) continue;
-    options.push({
-      id: definition.id,
-      label: definition.label,
-      icon: representative.icon || ACTION_ICONS[representative.name] || PLACEHOLDER_ICON,
-      category: 'State durations'
-    });
-  }
 
   return options.sort(
     (left, right) =>
@@ -358,56 +263,6 @@ function renderSkillTimingDetail(
   </details>`;
 }
 
-/** Converts state snapshots and transition events into one compact enter-to-exit duration table. */
-function renderStateTimingDetail(
-  app: ProfessionAppState,
-  definition: StateTimingCheckDefinition,
-  result: ProfessionAppResult | null,
-  combatReferenceMs: number,
-  open: boolean
-): string {
-  const transitions = (result?.events || []).flatMap((event) => {
-    const active = definition.eventActive(app, event);
-    return active == null || !Number.isFinite(Number(event.at)) ? [] : [{ atMs: Number(event.at) * 1000, active }];
-  });
-  const analysis = stateTimingAnalysis(transitions, Number(result?.rotationEndTime || 0) * 1000);
-  const hiddenStays = Math.max(0, analysis.occurrences.length - TIMING_DETAIL_INITIAL_USES);
-  const rows = analysis.occurrences.length
-    ? analysis.occurrences
-        .map(
-          (occurrence, index) => `<tr${index >= TIMING_DETAIL_INITIAL_USES ? ' hidden' : ''}>
-            <th scope="row">#${index + 1}</th>
-            <td>${formatTimelineTime(occurrence.startMs, combatReferenceMs, 3)}</td>
-            <td${occurrence.endedAtTimelineEnd ? ' title="Timeline end"' : ''}>${formatTimelineTime(
-              occurrence.endMs,
-              combatReferenceMs,
-              3
-            )}</td>
-            <td>${timingIntervalLabel(occurrence.durationMs)}</td>
-          </tr>`
-        )
-        .join('')
-    : '<tr><td colspan="4" class="timing-details-empty">No active stays</td></tr>';
-  return `<details class="timing-skill-details" data-timing-skill-id="${esc(String(definition.id))}"${
-    open ? ' open' : ''
-  }>
-    <summary>
-      <strong>${esc(definition.label)}</strong>
-      <span>${analysis.useCount} stay${analysis.useCount === 1 ? '' : 's'}</span>
-      <span>Avg ${timingIntervalLabel(analysis.averageDurationMs)}</span>
-      <span>Shortest ${timingIntervalLabel(analysis.shortestDurationMs)}</span>
-      <span>Longest ${timingIntervalLabel(analysis.longestDurationMs)}</span>
-    </summary>
-    <div class="timing-skill-detail-body">
-      <table>
-        <thead><tr><th>Stay</th><th>Enter</th><th>Exit</th><th>Duration</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-      ${timingShowAllButton(hiddenStays, 'stay')}
-    </div>
-  </details>`;
-}
-
 function renderTimingDetails(app: ProfessionAppState, result: ProfessionAppResult | null): void {
   if (typeof document === 'undefined') return;
   const root = document.getElementById('rotation-timing-details');
@@ -430,13 +285,9 @@ function renderTimingDetails(app: ProfessionAppState, result: ProfessionAppResul
     <summary>Timing Details (${selectedIds.length} check${selectedIds.length === 1 ? '' : 's'})</summary>
     <div class="timing-details-list">
       ${selectedIds
-        .map((skillId) => {
-          const definition = stateTimingCheck(skillId);
-          const open = openCheckIds.has(String(skillId));
-          return definition
-            ? renderStateTimingDetail(app, definition, result, combatReferenceMs, open)
-            : renderSkillTimingDetail(app, skillId, result, combatReferenceMs, open);
-        })
+        .map((skillId) =>
+          renderSkillTimingDetail(app, skillId, result, combatReferenceMs, openCheckIds.has(String(skillId)))
+        )
         .join('')}
     </div>
   </details>`;

@@ -6,6 +6,7 @@ import {
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 export const RANGER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
+  cripplingAnguishQuickness: 'ranger.pet.crippling-anguish-quickness',
   resources: 'ranger.core.resources',
   attackOfOpportunity: 'ranger.core.attack-of-opportunity',
   poisonousStrikes: 'ranger.core.poisonous-strikes',
@@ -50,6 +51,15 @@ export const RANGER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // The observed quickness-specific pet recharge remains independently patchable.
+  variant(
+    RANGER_CORE_BALANCE_PROFILE_IDS.cripplingAnguishQuickness,
+    ID.CRIPPLING_ANGUISH_PET,
+    'Crippling Anguish - Quickness Recharge',
+    { cooldown: 12 }
+  ),
+  // Enduring Swing's completed-chain endurance reward is independent of its strike packet.
+  variant(ID.ENDURING_SWING, 'Enduring Swing', { resourceGain: 15, effects: [] }),
   {
     id: RANGER_CORE_BALANCE_PROFILE_IDS.resources,
     name: 'Ranger Endurance',
@@ -135,10 +145,28 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.wellspring, 'Wellspring', {
     attributeConversion: 0.07,
-    effects: [{ name: 'regeneration', type: 'boon', boon: 'regeneration', duration: 6, stacks: 1 }]
+    effects: [
+      {
+        name: 'regeneration',
+        type: 'boon',
+        boon: 'regeneration',
+        duration: 6,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
+    ]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.windborneNotes, 'Windborne Notes', {
-    effects: [{ name: 'regeneration', type: 'boon', boon: 'regeneration', duration: 6, stacks: 1 }]
+    effects: [
+      {
+        name: 'regeneration',
+        type: 'boon',
+        boon: 'regeneration',
+        duration: 6,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
+    ]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.rejuvenation, 'Rejuvenation', {
     internalCooldown: 20,
@@ -261,7 +289,8 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.carnivore, 'Carnivore', {
     internalCooldown: 0.25,
-    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.05, hits: 1 }]
+    // Life stealing cannot crit and uses its own damage category.
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.05, hits: 1, canCrit: false, damageKind: 'life-steal' }]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.naturalVigor, 'Natural Vigor', {
     vigorRegenerationMultiplier: 0.25

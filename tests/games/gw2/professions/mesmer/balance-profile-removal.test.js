@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { mesmerProfession, mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createDefaultConfig } from '#tests/helpers/mesmer-simulation.js';
@@ -22,7 +22,7 @@ function run(balanceProfiles, specialization, rotation, config = {}) {
     label: 'Mesmer removal',
     professions: { mesmer: { balanceProfiles } }
   });
-  const result = simulateGw2({
+  const result = runMesmer({
     profession,
     config: { ...createDefaultConfig(), specialization, initialResource: 0, patchId: 'mesmer-removal', ...config },
     rotation
@@ -170,7 +170,7 @@ test('removed Split Surge strike preserves independent repeated boon and Vulnera
     }
   });
   const statusFacts = (catalog) =>
-    mesmerTooltips.handlers['mesmer.ambush']({ catalog }, catalog.skillsById.get(ID.SPLIT_SURGE)).facts.filter(
+    mesmerTooltips.skills[ID.SPLIT_SURGE]({ catalog }, catalog.skillsById.get(ID.SPLIT_SURGE)).facts.filter(
       ({ name }) => name === 'Might' || name === 'Vulnerability'
     );
   assert.ok(statusFacts(catalog).length > 0);

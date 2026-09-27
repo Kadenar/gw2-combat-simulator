@@ -1,73 +1,28 @@
 import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
-import { onResolvedDamage, onResolvedControl } from '#gw2/platform/profession-definition/mechanics.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/index.js';
+import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/shared.js';
 import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/professions/guardian/types.js';
-import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
-
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 
-function handleTetherApplied(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  // Falls back to event.at (no tether window) when tetherUntil was not emitted,
-  // rather than NaN-poisoning all subsequent tether comparisons.
-  dragonhunterState.from(context).tetherUntil = canonicalTime(Number(event.tetherUntil || event.at));
-}
-
-function handleTetherBroken(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  // Setting tetherUntil = event.at (not 0) preserves any damage packets
-  // that land exactly at the break timestamp before the tether expires.
-  dragonhunterState.from(context).tetherUntil = event.at;
-}
-
-function handleJusticePulse(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  const tetherProfile = requireBalanceProfileFromContext(context, PROFILE.tether);
-  const burning = requireEffect(tetherProfile, 'condition', 'Burning');
-  if (!burning) return;
-  // Justice pulses are pre-emitted for the full tether window at cast time, so
-  // each must be re-validated at resolve time in case Hunter's Verdict broke the
-  // tether early. Pulses exactly at the break timestamp still land.
-  if (dragonhunterState.from(context).tetherUntil < event.at) {
-    return;
-  }
-
-  context.queue.enqueue(
-    buildResolverCondition({
-      at: event.at,
-      source: 'guardian',
-      sourceId: ID.SPEAR_OF_JUSTICE,
-      actorType: 'player',
-      skillId: ID.SPEAR_OF_JUSTICE,
-      skillName: 'Spear of Justice',
-      name: 'Spear of Justice — Active Burning',
-      condition: String(burning.condition),
-      stacks: effectNumber(tetherProfile, burning, 'stacks'),
-      duration: effectNumber(tetherProfile, burning, 'duration'),
-      applicationIndex: event.applicationIndex,
-      totalApplications: event.totalApplications
-    })
-  );
-}
-
-function reactToDragonhunterJusticeHit(
+export function reactToDragonhunterJusticeHit(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
   dependencies: Pick<NativeResolvedDamageDetails, 'hitContext'> = {}
 ): void {
   const core = professionCoreState(context);
-  const passiveBefore = Number(core.justicePassiveBurns || 0);
+  const passiveBefore = core.justicePassiveBurns || 0;
   reactToJusticeHitWithOptions(context, event, dependencies, {
     retainsPassive: false,
     skillId: ID.SPEAR_OF_JUSTICE,
@@ -76,7 +31,7 @@ function reactToDragonhunterJusticeHit(
 
   // Passive Crippled only fires when the passive burn counter actually incremented,
   // i.e. a new passive Justice proc occurred on this hit (not an active proc).
-  if (Number(core.justicePassiveBurns || 0) > passiveBefore) {
+  if ((core.justicePassiveBurns || 0) > passiveBefore) {
     const tetherProfile = requireBalanceProfileFromContext(context, PROFILE.tether);
     const crippled = requireEffect(tetherProfile, 'condition', 'Crippled (passive)');
     if (crippled) {
@@ -85,6 +40,9 @@ function reactToDragonhunterJusticeHit(
           at: event.at,
           source: 'guardian',
           sourceId: ID.SPEAR_OF_JUSTICE,
+          // The passive condition belongs to the accepted hit, including delayed impacts.
+          activationId: event.activationId,
+          causalOrder: event.causalOrder ?? event.eventOrder,
           actorType: 'player',
           skillId: ID.SPEAR_OF_JUSTICE,
           skillName: 'Spear of Justice',
@@ -96,40 +54,9 @@ function reactToDragonhunterJusticeHit(
       );
     }
   }
-
-  if (
-    !hasTrait(context, GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER) ||
-    dragonhunterState.from(context).tetherUntil <= event.at ||
-    !isGw2PlayerActorEvent(event) ||
-    !(Number(event.coefficient || 0) > 0)
-  ) {
-    return;
-  }
-
-  // priority: 5 ensures this Vulnerability condition sorts after zero-priority damage
-  // events at the same timestamp so modifiers can pick it up on the next resolve tick.
-  const bigGameHunterProfile = requireBalanceProfileFromContext(context, PROFILE.bigGameHunter);
-  const vulnerability = requireEffect(bigGameHunterProfile, 'condition', 'Vulnerability');
-  if (!vulnerability) return;
-  context.queue.enqueue(
-    buildResolverCondition({
-      at: event.at,
-      priority: 5,
-      source: 'guardian',
-      sourceId: GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER,
-      actorType: 'effect',
-      skillId: GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER,
-      skillName: 'Big Game Hunter',
-      condition: 'Vulnerability',
-      stacks: effectNumber(bigGameHunterProfile, vulnerability, 'stacks'),
-      duration: effectNumber(bigGameHunterProfile, vulnerability, 'duration'),
-      triggeredBy: event.skillName
-    })
-  );
 }
 
-function reactToDragonhunterControl(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  const state = dragonhunterState.from(context);
+export function reactToDragonhunterControl(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.DULLED_SENSES)) {
     const dulledSensesProfile = requireBalanceProfileFromContext(context, PROFILE.dulledSenses);
     const crippled = requireEffect(dulledSensesProfile, 'condition', 'Crippled');
@@ -141,6 +68,8 @@ function reactToDragonhunterControl(context: GuardianResolverContext, event: Gua
           at: event.at,
           source: 'guardian',
           sourceId: GUARDIAN_TRAIT_IDS.DULLED_SENSES,
+          activationId: event.activationId,
+          causalOrder: event.causalOrder ?? event.eventOrder,
           actorType: 'effect',
           skillId: GUARDIAN_TRAIT_IDS.DULLED_SENSES,
           skillName: 'Dulled Senses',
@@ -155,7 +84,7 @@ function reactToDragonhunterControl(context: GuardianResolverContext, event: Gua
 
   if (
     !hasTrait(context, GUARDIAN_TRAIT_IDS.HEAVY_LIGHT) ||
-    !isInternalCooldownReady(event.at, state.heavyLightReadyAt)
+    !isInternalCooldownReady(event.at, context.procs.deadline('guardian.dragonhunter.heavyLight'))
   ) {
     return;
   }
@@ -165,7 +94,8 @@ function reactToDragonhunterControl(context: GuardianResolverContext, event: Gua
   const heavyLightProfile = requireBalanceProfileFromContext(context, PROFILE.heavyLight);
   const stability = requireEffect(heavyLightProfile, 'boon', 'stability');
   if (!stability) return;
-  state.heavyLightReadyAt = event.at + balanceProfileNumber(heavyLightProfile, 'internalCooldown');
+  context.procs.readyAt['guardian.dragonhunter.heavyLight'] =
+    event.at + balanceProfileNumber(heavyLightProfile, 'internalCooldown');
   queueResolverBoon(
     context,
     event,
@@ -174,6 +104,8 @@ function reactToDragonhunterControl(context: GuardianResolverContext, event: Gua
       priority: 5,
       source: 'guardian',
       sourceId: GUARDIAN_TRAIT_IDS.HEAVY_LIGHT,
+      activationId: event.activationId,
+      causalOrder: event.causalOrder ?? event.eventOrder,
       actorType: 'player',
       skillId: GUARDIAN_TRAIT_IDS.HEAVY_LIGHT,
       skillName: 'Heavy Light',
@@ -191,23 +123,3 @@ function reactToDragonhunterControl(context: GuardianResolverContext, event: Gua
     guardianTraitIcon(GUARDIAN_TRAIT_IDS.HEAVY_LIGHT)
   );
 }
-
-export const dragonhunterEventHandlers = Object.freeze({
-  'guardian.dragonhunter-tethered': handleTetherApplied,
-  'guardian.dragonhunter-tether-broken': handleTetherBroken,
-  'guardian.dragonhunter-justice-pulse': handleJusticePulse
-});
-
-// Tag reactions here so module composition preserves their stage and registration order.
-export const dragonhunterEventReactions = Object.freeze([
-  onResolvedDamage({
-    id: 'guardian.dragonhunter.justice',
-    order: 20,
-    handler: reactToDragonhunterJusticeHit
-  }),
-  onResolvedControl({
-    id: 'guardian.dragonhunter.control',
-    order: 20,
-    handler: reactToDragonhunterControl
-  })
-]);

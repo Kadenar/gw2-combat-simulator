@@ -1,228 +1,134 @@
-import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
-import { thiefEndurance, thiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { advanceThiefCoreResources } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
-import { handleThiefState } from '#gw2/professions/thief/family-state.js';
-import { completeThiefDodge } from '#gw2/professions/thief/core/execution/dodge.js';
-
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
+import { reactThiefCoreCondition, reactThiefCoreDamage } from '#gw2/professions/thief/core/traits/index.js';
 import {
-  applyStealCompletionTraits,
-  emitStealTraitEffects,
-  reactToThiefCoreBuff,
-  reactToThiefCoreCondition,
-  reactToThiefCoreDamage,
-  thiefCoreCriticalReactions,
-  updateThiefTraitCastState
-} from '#gw2/professions/thief/core/traits/index.js';
+  noQuarterCriticalReaction,
+  unrelentingStrikesCriticalReaction
+} from '#gw2/professions/thief/core/traits/critical-strikes.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
-import { thiefCriticalBoonReaction } from '#gw2/professions/thief/core/traits/critical-strikes.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 
-test('Thief boon predictions and resolution share pre-hit Fury, same-time ordering, and expiry', () => {
+const wait = (durationMs) => ({ type: 'wait', durationMs });
+
+test('Thief critical boons read pre-hit Fury with same-time ordering and expiry', () => {
   // Two same-time hits distinguish the hit granting Fury from the next hit permitted to extend it.
   for (const initialFury of [false, true]) {
     const observed = [];
-    const reactions = Object.values(thiefCoreCriticalReactions)
-      .filter((reaction) => ['thief.unrelenting-strikes', 'thief.no-quarter'].includes(reaction.id))
-      .map(onResolvedCriticalHit);
-    const profession = defineProfession({
-      id: 'thief-boon-parity',
-      name: 'Thief boon parity',
-      catalog: thiefCatalog,
-      resources: { createProfessionState: (config) => ({ core: createThiefCoreState(config) }) },
-      schedulerHooks: {
-        initialize(context) {
-          context.schedulerPolicy.requireCriticalFacts();
-          const owner = { source: 'fixture', sourceId: 'strike', actorType: 'player' };
-          if (initialFury) context.emit({ ...owner, type: 'buff', at: 0, kind: 'fury', stacks: 1, duration: 2 });
-          for (const at of [1, 1, initialFury ? 8 : 7])
-            context.emit({ ...owner, type: 'damage', at, coefficient: 1, weaponStrength: 1000 });
-        },
-        onEventScheduled: thiefCriticalBoonReaction.onEventScheduled.handler,
-        taskHandlers: { ...thiefCriticalBoonReaction.taskHandlers }
+    const result = runThief(
+      [wait(8500)],
+      {
+        selectedTraitIds: [TRAIT.UNRELENTING_STRIKES, TRAIT.NO_QUARTER],
+        stats: { power: 1000, precision: 4000 }
       },
-      resolverHooks: {
-        eventReactions: {
-          'damage.resolved': (context, event, details) => {
-            observed.push(details.hitContext.critical.furyActive);
-            for (const reaction of reactions) reaction.handler(context, event, details);
+      {
+        initialize(runtime) {
+          const owner = { source: 'fixture', sourceId: 'strike', actorType: 'player' };
+          if (initialFury) runtime.emit({ ...owner, type: 'buff', at: 0, kind: 'fury', stacks: 1, duration: 2 });
+          for (const at of [1, 1, initialFury ? 8 : 7]) runtime.emit(thiefHit(at));
+        },
+        extend: (native) => ({
+          reactions: {
+            ...native.reactions,
+            'damage.resolved'(runtime, event, details) {
+              if (event.source === 'fixture') observed.push(details.hitContext.critical.furyActive);
+              return native.reactions['damage.resolved'](runtime, event, details);
+            }
           }
-        }
+        })
       }
-    });
-    const config = {
-      selectedTraitIds: [TRAIT.UNRELENTING_STRIKES, TRAIT.NO_QUARTER],
-      stats: { power: 1000, precision: 4000 }
-    };
-    const rotation = [{ type: 'wait', durationMs: 8500 }];
-    const scheduled = createScheduler({ profession, config, schedulerPolicy: createGw2SchedulerPolicy(config) }).run(
-      rotation
     );
-    const result = simulateGw2({ profession, config, rotation });
+    assert.deepEqual(result.warnings, []);
     assert.deepEqual(observed, [initialFury, true, false]);
-    for (const traitId of config.selectedTraitIds) {
-      assert.equal(
-        scheduled.state.profession.core.traitProcReadyAt[traitId],
-        result.combatState.profession.core.traitProcReadyAt[traitId]
-      );
-      assert.equal(
-        scheduled.state.profession.core.traitProcProgress[traitId],
-        result.combatState.profession.core.traitProcProgress[traitId]
-      );
-    }
   }
 });
 
-const STEAL = thiefCatalog.skillsById.get(ID.STEAL);
+/** Repeats an instant action at 1 s, at its internal-cooldown boundary, and just after it. */
+function internalCooldownClaims(traitId, action, duration, catalog) {
+  const readyAt = [];
+  const result = runThief(
+    [wait(1000), action, wait(duration * 1000), action, wait(1), action, wait(1)],
+    { selectedTraitIds: traitId == null ? [] : [traitId], initialEndurance: 100 },
+    {
+      catalog: (live) => withProfile(catalog(live), traitId ?? CORE.upperHand, { internalCooldown: duration }),
+      initialize(runtime) {
+        runtime.procs.readyAt.unrelated = 99;
+      },
+      probes: [1.0005, 1 + duration + 0.0005, 1 + duration + 0.0015].map((at) => [
+        at,
+        (runtime) => readyAt.push({ ...runtime.procs.readyAt })
+      ])
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  return { result, readyAt };
+}
 
-test('Hidden Thief checkpoints stay detached and preserve resolver-owned proc deadlines', () => {
-  // Scheduler claims must not overwrite the resolver map when a later checkpoint arrives.
-  const scheduler = traitContext([TRAIT.HIDDEN_THIEF]);
-  emitStealTraitEffects(scheduler.context);
-  const snapshot = snapshotProfessionState(scheduler.context.state.profession);
-  const resolver = traitContext([TRAIT.SHADOW_SIPHONING]);
-  Object.assign(resolver.context.profession, resolver.context.state.profession);
-  resolver.core.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] = 10;
-  handleThiefState(resolver.context, { at: 1, state: snapshot });
-  assert.deepEqual(resolver.core.traitProcReadyAt, { [TRAIT.SHADOW_SIPHONING]: 10 });
-  scheduler.context.effectiveEnd = 4;
-  emitStealTraitEffects(scheduler.context);
-  assert.equal(scheduler.core.traitProcReadyAt[TRAIT.HIDDEN_THIEF], 6);
-  assert.equal(snapshot.traitProcReadyAt[TRAIT.HIDDEN_THIEF], 3);
-});
-
-// Exercise owner-local claims through their real dispatchers, including synchronous re-entry.
-for (const [name, traitId, invoke, output] of [
-  ['Hidden Thief', TRAIT.HIDDEN_THIEF, (c) => emitStealTraitEffects(c), 'emit'],
+// Owner-local claims are scoped to their trait, strict at the boundary, and honor a zero override.
+for (const [name, traitId, action, catalog, procs] of [
+  [
+    'Hidden Thief',
+    TRAIT.HIDDEN_THIEF,
+    'Steal',
+    (live) => withSkill(live, ID.STEAL, { cooldown: 0 }),
+    (result) =>
+      result.events.filter((event) => event.sourceId === TRAIT.HIDDEN_THIEF && event.condition === 'Blindness').length
+  ],
   [
     'Upper Hand',
     TRAIT.UPPER_HAND,
-    (c) => {
-      c.state.time = c.effectiveEnd;
-      completeThiefDodge(c);
-    },
-    'emit'
-  ],
-  [
-    'Lotus Poison',
-    TRAIT.LOTUS_POISON,
-    (c) =>
-      reactToThiefCoreCondition(c, {
-        type: 'condition',
-        at: c.effectiveEnd,
-        actorType: 'player',
-        condition: 'Poisoned'
-      }),
-    'queue'
-  ],
-  [
-    'Panic Strike',
-    TRAIT.PANIC_STRIKE,
-    (c) => reactToThiefCoreDamage(c, { type: 'damage', at: c.effectiveEnd, actorType: 'player', coefficient: 1 }),
-    'applyCondition'
-  ],
-  [
-    "Assassin's Fury",
-    TRAIT.ASSASSINS_FURY,
-    (c) =>
-      reactToThiefCoreBuff(c, {
-        type: 'buff',
-        at: c.effectiveEnd,
-        kind: 'fury',
-        resolvedAudience: { includesSelf: true }
-      }),
-    'queue'
+    'Dodge',
+    (live) =>
+      withProfile(withSkill(live, SHARED_SKILL_IDS.DODGE, { castTimeMs: 0 }), CORE.resources, { resourceCost: 0 }),
+    null
   ]
 ]) {
   test(`${name} preserves eligibility, scoped claims, strict boundaries and zero overrides`, () => {
     for (const duration of [2, 0]) {
-      const { context, core } = traitContext([]);
-      const profiles = new Map(thiefCatalog.balanceProfilesById);
-      profiles.set(traitId, { ...profiles.get(traitId), internalCooldown: duration });
-      context.catalog = { ...thiefCatalog, balanceProfilesById: profiles };
-      core.traitProcReadyAt.unrelated = 99;
-      invoke(context);
-      assert.deepEqual(core.traitProcReadyAt, { unrelated: 99 });
-      context.config.selectedTraitIds = [traitId];
-      const owner = output === 'queue' ? context.queue : context;
-      const method = output === 'queue' ? 'enqueue' : output;
-      const original = owner[method].bind(owner);
-      let emissions = 0;
-      let reenter = true;
-      owner[method] = (event) => {
-        assert.equal(core.traitProcReadyAt[traitId], context.effectiveEnd + duration);
-        emissions += 1;
-        if (reenter) {
-          reenter = false;
-          const before = emissions;
-          invoke(context);
-          assert.equal(emissions, before);
-        }
+      const unselected = internalCooldownClaims(null, action, duration, catalog);
+      for (const claims of unselected.readyAt) assert.deepEqual(claims, { unrelated: 99 });
 
-        return original(event);
-      };
-
-      invoke(context);
-      assert.ok(emissions > 0);
-      const firstEmissions = emissions;
-      for (const at of [1 + duration, 1 + duration + 0.0000004]) {
-        context.effectiveEnd = at;
-        invoke(context);
-        assert.equal(emissions, firstEmissions);
-      }
-
-      context.effectiveEnd = 1 + duration + 0.000001;
-      invoke(context);
-      assert.ok(emissions > firstEmissions);
-      assert.equal(core.traitProcReadyAt.unrelated, 99);
-      assert.deepEqual(traitContext([traitId]).core.traitProcReadyAt, {});
+      const { result, readyAt } = internalCooldownClaims(traitId, action, duration, catalog);
+      // The first claim holds through the boundary cast; the strictly later cast claims again.
+      assert.equal(readyAt[0][traitId], 1 + duration);
+      assert.equal(readyAt[1][traitId], 1 + duration);
+      assert.equal(readyAt[2][traitId], 1 + duration + 0.001 + duration);
+      for (const claims of readyAt) assert.equal(claims.unrelated, 99);
+      if (procs) assert.equal(procs(result), 2);
     }
   });
 }
 
-/** Builds the smallest shared cast/resolver context needed to exercise Core Thief dispatchers. */
+/** Builds the smallest resolver context needed to exercise Core Thief hit, condition, and boon reactions. */
 function traitContext(selectedTraitIds = [], config = {}) {
   const fullConfig = { ...config, selectedTraitIds };
   const events = [];
   const conditions = [];
   const core = createThiefCoreState(fullConfig);
-  core.enduranceUpdatedAt = 1;
-  core.initiative.updatedAt = 1;
   const context = {
-    profession: {
-      id: 'thief',
-      catalog: thiefCatalog,
-      resources: { endurance: thiefEndurance, initiative: thiefInitiative }
-    },
+    procs: createProcRegistry(() => context),
+    profession: { core, specialization: { kind: 'Core', state: {} } },
     catalog: thiefCatalog,
     config: fullConfig,
-    state: {
-      time: 1,
-      activeWeaponSet: 1,
-      profession: { core, specialization: { kind: 'Core', state: {} } }
-    },
     activeWeaponSet: 1,
-    events,
     queue: new StableEventQueue(),
     boons: new Map(),
     resolved: [],
-    start: 0,
-    fullEnd: 1,
+    time: 1,
     effectiveEnd: 1,
-    reservationId: 'test-cast',
-    skill: STEAL,
     helpers: {
       skillsById: thiefCatalog.skillsById,
       skillsByName: thiefCatalog.skillsByName,
@@ -250,17 +156,84 @@ function traitContext(selectedTraitIds = [], config = {}) {
   return { context, core, events, conditions };
 }
 
+// Resolver reactions claim their cooldown before emitting, so synchronous re-entry cannot proc again.
+for (const [name, traitId, invoke, output] of [
+  [
+    'Lotus Poison',
+    TRAIT.LOTUS_POISON,
+    (c) =>
+      reactThiefCoreCondition(c, {
+        type: 'condition',
+        at: c.effectiveEnd,
+        actorType: 'player',
+        condition: 'Poisoned'
+      }),
+    'queue'
+  ],
+  [
+    'Panic Strike',
+    TRAIT.PANIC_STRIKE,
+    (c) => reactThiefCoreDamage(c, { type: 'damage', at: c.effectiveEnd, actorType: 'player', coefficient: 1 }, {}),
+    'applyCondition'
+  ]
+]) {
+  test(`${name} preserves eligibility, scoped claims, strict boundaries and zero overrides`, () => {
+    for (const duration of [2, 0]) {
+      const { context } = traitContext([]);
+      const profiles = new Map(thiefCatalog.balanceProfilesById);
+      profiles.set(traitId, { ...profiles.get(traitId), internalCooldown: duration });
+      context.catalog = { ...thiefCatalog, balanceProfilesById: profiles };
+      context.procs.readyAt.unrelated = 99;
+      invoke(context);
+      assert.deepEqual({ ...context.procs.readyAt }, { unrelated: 99 });
+      context.config.selectedTraitIds = [traitId];
+      const owner = output === 'queue' ? context.queue : context;
+      const method = output === 'queue' ? 'enqueue' : output;
+      const original = owner[method].bind(owner);
+      let emissions = 0;
+      let reenter = true;
+      owner[method] = (event) => {
+        assert.equal(context.procs.readyAt[traitId], context.effectiveEnd + duration);
+        emissions += 1;
+        if (reenter) {
+          reenter = false;
+          const before = emissions;
+          invoke(context);
+          assert.equal(emissions, before);
+        }
+
+        return original(event);
+      };
+
+      invoke(context);
+      assert.ok(emissions > 0);
+      const firstEmissions = emissions;
+      for (const at of [1 + duration, 1 + duration + 0.0000004]) {
+        context.effectiveEnd = at;
+        invoke(context);
+        assert.equal(emissions, firstEmissions);
+      }
+
+      context.effectiveEnd = 1 + duration + 0.000001;
+      invoke(context);
+      assert.ok(emissions > firstEmissions);
+      assert.equal(context.procs.readyAt.unrelated, 99);
+      assert.deepEqual({ ...traitContext([traitId]).context.procs.readyAt }, {});
+    }
+  });
+}
+
 test('Lotus Poison grants self Might and target Weakness only for the player poisoning a target', () => {
   // Ineligible poison sources cannot consume the cooldown before the player's own poison arrives.
-  const { context, core } = traitContext([TRAIT.LOTUS_POISON]);
+  const { context } = traitContext([TRAIT.LOTUS_POISON]);
   const poison = { type: 'condition', at: 1, actorType: 'player', condition: 'Poisoned', skillName: 'Poison source' };
   for (const overrides of [{ actorType: 'minion' }, { metadata: { triggeredByAlly: 1 } }, { condition: 'Torment' }]) {
-    reactToThiefCoreCondition(context, { ...poison, ...overrides });
+    reactThiefCoreCondition(context, { ...poison, ...overrides });
   }
 
-  assert.deepEqual(core.traitProcReadyAt, {});
+  assert.deepEqual({ ...context.procs.readyAt }, {});
   assert.equal(context.queue.length, 0);
-  reactToThiefCoreCondition(context, poison);
+  reactThiefCoreCondition(context, poison);
   const might = context.queue.dequeue();
   const weakness = context.queue.dequeue();
   assert.equal(might.kind, 'might');
@@ -270,12 +243,19 @@ test('Lotus Poison grants self Might and target Weakness only for the player poi
   assert.equal(weakness.condition, 'Weakness');
   assert.equal(weakness.duration, 4);
   assert.equal(weakness.sourceId, TRAIT.LOTUS_POISON);
-  assert.equal(core.traitProcReadyAt[TRAIT.LOTUS_POISON], 11);
-  for (const at of [1, 10.999, 11]) reactToThiefCoreCondition(context, { ...poison, at });
+  assert.equal(context.procs.readyAt[TRAIT.LOTUS_POISON], 11);
+  for (const at of [1, 10.999, 11]) reactThiefCoreCondition(context, { ...poison, at });
   assert.equal(context.queue.length, 0);
-  reactToThiefCoreCondition(context, { ...poison, at: 11.001 });
+  reactThiefCoreCondition(context, { ...poison, at: 11.001 });
   assert.equal(context.queue.length, 2);
 });
+
+/** A lone committed Steal's trait packets; the steal itself authors none. */
+function stealPackets(selectedTraitIds) {
+  const result = runThief(['Steal'], { selectedTraitIds });
+  assert.deepEqual(result.warnings, []);
+  return result.events.filter((event) => ['damage', 'condition', 'buff', 'control'].includes(event.type));
+}
 
 const stealTraitCases = [
   ["Serpent's Touch", TRAIT.SERPENTS_TOUCH, (events) => events.some((event) => event.condition === 'Poisoned')],
@@ -299,33 +279,35 @@ const stealTraitCases = [
 
 for (const [name, traitId, verify] of stealTraitCases) {
   test(`${name} keeps its steal behavior`, () => {
-    const { context, events } = traitContext([traitId]);
-    emitStealTraitEffects(context);
+    const events = stealPackets([traitId]);
     assert.equal(verify(events), true);
-    assert.ok(events.every((event) => event.at === 1));
+    assert.ok(events.every((event) => event.at === 0));
   });
 }
 
 test('Potent Poison adjusts each moved player poison packet', () => {
-  const serpent = traitContext([TRAIT.SERPENTS_TOUCH, TRAIT.POTENT_POISON]);
-  emitStealTraitEffects(serpent.context);
-  assert.equal(serpent.events.find((event) => event.sourceId === TRAIT.SERPENTS_TOUCH).stacks, 3);
+  const serpent = stealPackets([TRAIT.SERPENTS_TOUCH, TRAIT.POTENT_POISON]);
+  assert.equal(serpent.find((event) => event.sourceId === TRAIT.SERPENTS_TOUCH).stacks, 3);
 
   const ambition = traitContext([TRAIT.DEADLY_AMBITION, TRAIT.POTENT_POISON]);
-  reactToThiefCoreDamage(ambition.context, {
-    type: 'damage',
-    at: 0.2,
-    actorType: 'player',
-    coefficient: 1,
-    skillId: ID.DEATH_BLOSSOM,
-    sourceId: ID.DEATH_BLOSSOM,
-    skillName: 'Death Blossom',
-    activationId: 'dual-test'
-  });
+  reactThiefCoreDamage(
+    ambition.context,
+    {
+      type: 'damage',
+      at: 0.2,
+      actorType: 'player',
+      coefficient: 1,
+      skillId: ID.DEATH_BLOSSOM,
+      sourceId: ID.DEATH_BLOSSOM,
+      skillName: 'Death Blossom',
+      activationId: 'dual-test'
+    },
+    {}
+  );
   assert.equal(ambition.conditions.find((event) => event.sourceId === TRAIT.DEADLY_AMBITION).stacks, 2);
 
   const panic = traitContext([TRAIT.PANIC_STRIKE, TRAIT.POTENT_POISON]);
-  reactToThiefCoreCondition(panic.context, {
+  reactThiefCoreCondition(panic.context, {
     type: 'condition',
     at: 1,
     actorType: 'player',
@@ -338,33 +320,47 @@ test('Potent Poison adjusts each moved player poison packet', () => {
 });
 
 test('Kleptomaniac restores initiative on steal completion', () => {
-  const { context, core, events } = traitContext([TRAIT.KLEPTOMANIAC], { initialInitiative: 0 });
-  applyStealCompletionTraits(context, 1);
-  assert.equal(core.initiative.value, 2);
-  assert.equal(events[0].reason, 'kleptomaniac');
+  for (const [selectedTraitIds, expected] of [
+    [[TRAIT.KLEPTOMANIAC], 2],
+    [[], 0]
+  ]) {
+    const result = runThief(['Steal'], { selectedTraitIds, initialInitiative: 0 });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(observedRuntime(result).resourceController.value('initiative'), expected);
+  }
 });
 
 test('Lead Attacks records one stack per initiative spent', () => {
-  const { context, core } = traitContext([TRAIT.LEAD_ATTACKS]);
-  updateThiefTraitCastState(context, { id: 900002, name: 'Initiative Test', initiativeCost: 3 });
-  assert.equal(core.leadAttacksStacks, 3);
-  assert.deepEqual(core.leadAttackExpirations, [11, 11, 11]);
+  const result = runThief([wait(1000), "Infiltrator's Strike"], {
+    primaryWeapon: 'Sword',
+    selectedTraitIds: [TRAIT.LEAD_ATTACKS]
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(observedRuntime(result).profession.core.leadAttackExpirations, [11, 11, 11]);
 });
 
 test('Lead Attacks replaces oldest stacks across and at the cap while preserving independent expiry', () => {
   // Four grants cross the cap; a fifth arrives at the cap. Both state and chart must retain the new durations.
   for (const grants of [4, 5]) {
-    const { context, core, events } = traitContext([TRAIT.LEAD_ATTACKS]);
-    const skill = { id: 900002, name: 'Initiative Test', initiativeCost: 4 };
-    for (let at = 0; at < grants; at += 1) {
-      advanceThiefCoreResources(context, at);
-      context.effectiveEnd = at;
-      updateThiefTraitCastState(context, skill);
-    }
-
-    assert.equal(core.leadAttacksStacks, 15);
+    const rotation = Array.from({ length: grants }, (_, index) => [
+      ...(index ? [wait(1000)] : []),
+      'Heartseeker'
+    ]).flat();
+    // An instant four-initiative attack with a pool large enough for every grant isolates the stack cap.
+    const result = runThief(
+      rotation,
+      { selectedTraitIds: [TRAIT.LEAD_ATTACKS], initialInitiative: 30 },
+      {
+        catalog: (live) =>
+          withProfile(withSkill(live, ID.HEARTSEEKER, { castTimeMs: 0, initiativeCost: 4 }), CORE.resources, {
+            maximumStacks: 30
+          })
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const expirations = observedRuntime(result).profession.core.leadAttackExpirations;
     assert.deepEqual(
-      core.leadAttackExpirations,
+      expirations,
       Array.from({ length: grants }, (_, at) => Array(4).fill(at + 10))
         .flat()
         .slice(-15)
@@ -374,44 +370,50 @@ test('Lead Attacks replaces oldest stacks across and at the cap while preserving
         rotationEndTime: 14,
         observationEndTime: 14,
         combatEndTime: 14,
-        events: events
-          .filter((event) => event.type === 'buff')
+        events: result.events
+          .filter((event) => event.type === 'buff' && event.kind === 'lead-attacks')
           .map((event) => ({ ...event, resolvedAudience: { includesSelf: true } }))
       },
       1000,
-      thiefCoreUi.effectPresentations(context)
+      thiefCoreUi.effectPresentations({ catalog: thiefCatalog })
     );
     assert.equal(chartValueAt(series.effects['Lead Attacks'], (grants - 1) * 1000), 15);
     const expected = grants === 4 ? [12, 8, 4, 0, 0] : [15, 12, 8, 4, 0];
     for (let index = 0; index < expected.length; index += 1) {
       const at = 10 + index;
-      advanceThiefCoreResources(context, at);
-      assert.equal(core.leadAttacksStacks, expected[index], `state at ${at}s after ${grants} grants`);
+      assert.equal(activeStackCount(expirations, at), expected[index], `state at ${at}s after ${grants} grants`);
       assert.equal(chartValueAt(series.effects['Lead Attacks'], at * 1000), expected[index]);
     }
   }
 });
 
 test('Fluid Strikes snapshots its movement-skill duration', () => {
-  const { context, core, events } = traitContext([TRAIT.FLUID_STRIKES]);
-  updateThiefTraitCastState(context, { id: 900003, name: 'Movement Test', movementSkill: true });
-  assert.equal(core.fluidStrikesUntil, 6);
-  assert.equal(events[0].reason, 'fluid-strikes');
+  const result = runThief([wait(1000), "Infiltrator's Strike"], {
+    primaryWeapon: 'Sword',
+    selectedTraitIds: [TRAIT.FLUID_STRIKES]
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.planningState.profession.fluidStrikesUntil, 6);
 });
 
 test('Hard to Catch restores endurance on movement skills', () => {
-  const { context, core, events } = traitContext([TRAIT.HARD_TO_CATCH]);
-  core.endurance = 0;
-  updateThiefTraitCastState(context, { id: 900004, name: 'Movement Test', movementSkill: true });
-  assert.equal(core.endurance, 8);
-  assert.equal(events[0].reason, 'hard-to-catch');
+  for (const [selectedTraitIds, expected] of [
+    [[TRAIT.HARD_TO_CATCH], 8],
+    [[], 0]
+  ]) {
+    const result = runThief(["Infiltrator's Strike"], {
+      primaryWeapon: 'Sword',
+      selectedTraitIds,
+      initialEndurance: 0
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.endurance, expected);
+  }
 });
 
 test('Deadly Ambition applies once on the first hit of each dual attack', () => {
-  const { context, events, conditions } = traitContext([TRAIT.DEADLY_AMBITION]);
+  const { context, conditions } = traitContext([TRAIT.DEADLY_AMBITION]);
   const skill = thiefCatalog.skillsById.get(ID.DEATH_BLOSSOM);
-  updateThiefTraitCastState(context, skill);
-  assert.equal(events.length, 0);
   // Interleaved activations and later hits must not duplicate an activation's poison.
   for (const [activationId, at, coefficient, actorType] of [
     ['first', 0.1, 0, 'player'],
@@ -420,16 +422,20 @@ test('Deadly Ambition applies once on the first hit of each dual attack', () => 
     ['second', 0.3, 1, 'player'],
     ['first', 0.4, 1, 'player']
   ]) {
-    reactToThiefCoreDamage(context, {
-      type: 'damage',
-      at,
-      coefficient,
-      actorType,
-      activationId,
-      sourceId: skill.id,
-      skillId: skill.id,
-      skillName: skill.name
-    });
+    reactThiefCoreDamage(
+      context,
+      {
+        type: 'damage',
+        at,
+        coefficient,
+        actorType,
+        activationId,
+        sourceId: skill.id,
+        skillId: skill.id,
+        skillName: skill.name
+      },
+      {}
+    );
   }
 
   assert.deepEqual(
@@ -444,8 +450,11 @@ test('Deadly Ambition applies once on the first hit of each dual attack', () => 
 test('Unrelenting Strikes retains its critical threshold reaction', () => {
   const { context } = traitContext([TRAIT.UNRELENTING_STRIKES]);
   const event = { type: 'damage', at: 1, actorType: 'player', coefficient: 1, skillName: 'Critical Test' };
-  const reaction = thiefCoreCriticalReactions.unrelentingStrikes;
-  assert.equal(reaction.when(context, event, { hitContext: { critEligible: true } }), true);
+  const reaction = unrelentingStrikesCriticalReaction;
+  assert.equal(
+    reaction.when(context, event, { hitContext: { critEligible: true, critical: { furyActive: false } } }),
+    true
+  );
   reaction.handler(context, event, {}, { quantity: 1 });
   const fury = context.queue.dequeue();
   assert.equal(fury.kind, 'fury');
@@ -466,7 +475,7 @@ test('No Quarter extends active self Fury for each threshold proc', () => {
     }
   };
   context.boons.set('fury', [fury]);
-  thiefCoreCriticalReactions.noQuarter.handler(
+  noQuarterCriticalReaction.handler(
     context,
     { type: 'damage', at: 1, actorType: 'player', coefficient: 1, skillName: 'Critical Test' },
     {},
@@ -481,8 +490,8 @@ test('No Quarter extends active self Fury for each threshold proc', () => {
 test('Thief critical proc batches reread patched effects and retain live boon scaling', () => {
   // Effects are invocation-local; Unrelenting Strikes still samples concentration separately for each queued boon.
   for (const [id, reaction] of [
-    [TRAIT.UNRELENTING_STRIKES, thiefCoreCriticalReactions.unrelentingStrikes],
-    [TRAIT.NO_QUARTER, thiefCoreCriticalReactions.noQuarter]
+    [TRAIT.UNRELENTING_STRIKES, unrelentingStrikesCriticalReaction],
+    [TRAIT.NO_QUARTER, noQuarterCriticalReaction]
   ]) {
     const { context } = traitContext([id]);
     const profiles = new Map();
@@ -525,7 +534,7 @@ test("No Quarter follows Fury's exact half-open expiration boundary", () => {
         }
       }
     ]);
-    thiefCoreCriticalReactions.noQuarter.handler(
+    noQuarterCriticalReaction.handler(
       context,
       { type: 'damage', at, actorType: 'player', coefficient: 1, skillName: 'Boundary Test' },
       {},
@@ -536,131 +545,142 @@ test("No Quarter follows Fury's exact half-open expiration boundary", () => {
   }
 });
 
+// Resolver-delivered Fury retains the triggering skill when Assassin's Fury emits its Might.
 test("Assassin's Fury queues Might from self Fury", () => {
-  const { context } = traitContext([TRAIT.ASSASSINS_FURY]);
-  reactToThiefCoreBuff(context, {
-    type: 'buff',
-    at: 1,
-    kind: 'fury',
-    skillName: 'Fury Test',
-    resolvedAudience: {
-      includesSelf: true,
-      includesSummons: false,
-      alliedPlayerCount: 0,
-      companionIds: [],
-      recipientCount: 1
+  const result = runThief(
+    [wait(1100)],
+    { selectedTraitIds: [TRAIT.ASSASSINS_FURY] },
+    {
+      initialize(runtime) {
+        runtime.emit({
+          type: 'buff',
+          at: 1,
+          kind: 'fury',
+          duration: 1,
+          stacks: 1,
+          source: 'fixture',
+          sourceId: 'fixture',
+          actorType: 'player',
+          skillName: 'Fury Test'
+        });
+      }
     }
-  });
-  const might = context.queue.dequeue();
+  );
+  assert.deepEqual(result.warnings, []);
+  const might = result.events.find((event) => event.sourceId === TRAIT.ASSASSINS_FURY);
   assert.equal(might.kind, 'might');
   assert.equal(might.stacks, 3);
+  assert.equal(might.triggeredBy, 'Fury Test');
 });
 
 test('Spider Venom remains a base effect and Leeching Venoms stays nested after it', () => {
   const strike = { type: 'damage', at: 1, actorType: 'player', coefficient: 1, skillId: 900006, skillName: 'Strike' };
   const withoutTrait = traitContext();
-  withoutTrait.core.venomChargeBatches[ID.SPIDER_VENOM] = [{ generation: 1, charges: 1, expiresAt: 10 }];
-  reactToThiefCoreDamage(withoutTrait.context, strike);
+  withoutTrait.core.venomChargeBatches[ID.SPIDER_VENOM] = [{ charges: 1, expiresAt: 10 }];
+  reactThiefCoreDamage(withoutTrait.context, strike, {});
   assert.equal(withoutTrait.conditions[0].skillId, ID.SPIDER_VENOM);
   assert.equal(withoutTrait.context.queue.length, 0);
 
   const withTrait = traitContext([TRAIT.LEECHING_VENOMS]);
-  withTrait.core.venomChargeBatches[ID.SPIDER_VENOM] = [{ generation: 1, charges: 1, expiresAt: 10 }];
-  reactToThiefCoreDamage(withTrait.context, strike);
+  withTrait.core.venomChargeBatches[ID.SPIDER_VENOM] = [{ charges: 1, expiresAt: 10 }];
+  reactThiefCoreDamage(withTrait.context, strike, {});
   assert.equal(withTrait.conditions[0].skillId, ID.SPIDER_VENOM);
   assert.equal(withTrait.context.queue.dequeue().sourceId, TRAIT.LEECHING_VENOMS);
 });
 
-// Exercise the real damage dispatcher and snapshot merge so scheduler checkpoints cannot reset the ICD.
-test('Shadow Siphoning gates eligible stealth attacks and preserves resolver cooldowns across snapshots', () => {
-  const stealthAttack = thiefCatalog.skills.find((skill) => skill.stealthAttack);
-  const hit = {
-    type: 'damage',
-    at: 1,
-    actorType: 'player',
-    coefficient: 1,
-    skillId: stealthAttack.id,
-    skillName: stealthAttack.name
-  };
+// Exercise the real damage dispatcher so a re-entrant child opportunity sees the armed cooldown.
+test('Shadow Siphoning uses eligible stealth hits, a strict profile ICD, and authored strike policy', () => {
+  // Real hit reactions include same-time sibling hits and reject effect actors without recursive procs.
+  const stealth = thiefCatalog.skillsById.get(ID.BACKSTAB);
   for (const internalCooldown of [1, 0]) {
-    const { context, core } = traitContext([TRAIT.SHADOW_SIPHONING]);
-    Object.assign(context.profession, context.state.profession);
-    const profiles = new Map(thiefCatalog.balanceProfilesById);
-    profiles.set(TRAIT.SHADOW_SIPHONING, { ...profiles.get(TRAIT.SHADOW_SIPHONING), internalCooldown });
-    context.catalog = { ...thiefCatalog, balanceProfilesById: profiles };
-    for (const event of [
-      { ...hit, actorType: 'summon' },
-      { ...hit, actorType: 'effect' },
-      { ...hit, coefficient: 0 },
-      { ...hit, skillId: STEAL.id, skillName: stealthAttack.name },
-      { ...hit, skillId: -1, skillName: 'Unknown attack' }
-    ])
-      reactToThiefCoreDamage(context, event);
-    context.config.selectedTraitIds = [];
-    reactToThiefCoreDamage(context, hit);
-    assert.deepEqual(core.traitProcReadyAt, {});
-    assert.equal(context.queue.length, 0);
-    context.config.selectedTraitIds = [TRAIT.SHADOW_SIPHONING];
-    const enqueue = context.queue.enqueue.bind(context.queue);
-    context.queue.enqueue = (event) => {
-      assert.equal(core.traitProcReadyAt[TRAIT.SHADOW_SIPHONING], event.at + internalCooldown);
-      // A child opportunity sees the armed ICD, and effect actors remain ineligible.
-      reactToThiefCoreDamage(context, { ...hit, at: event.at });
-      reactToThiefCoreDamage(context, event);
-      return enqueue(event);
-    };
-
-    reactToThiefCoreDamage(context, hit);
-    assert.equal(context.queue.length, 1);
-    const siphon = context.queue.dequeue();
-    assert.equal(siphon.sourceId, TRAIT.SHADOW_SIPHONING);
-    assert.equal(siphon.canCrit, false);
-    assert.equal(siphon.lifeSiphon, true);
-    const snapshot = { traitProcReadyAt: {}, initiative: { value: 7, maximum: 12, updatedAt: 0, rate: 1 } };
-    handleThiefState(context, { at: 1, state: snapshot });
-    assert.equal(core.initiative.value, 7);
-    assert.equal(core.traitProcReadyAt[TRAIT.SHADOW_SIPHONING], 1 + internalCooldown);
-    assert.deepEqual(snapshot.traitProcReadyAt, {});
-    reactToThiefCoreDamage(context, { ...hit, at: 1 + internalCooldown });
-    assert.equal(context.queue.length, 0);
-    // Retain the legacy name fallback when no catalog ID matches.
-    reactToThiefCoreDamage(context, { ...hit, at: 3, skillId: -1 });
-    assert.equal(context.queue.length, 1);
+    const result = runThief(
+      [wait(4000)],
+      { selectedTraitIds: [TRAIT.SHADOW_SIPHONING] },
+      {
+        catalog: (catalog) => withProfile(catalog, TRAIT.SHADOW_SIPHONING, { internalCooldown }),
+        initialize(runtime) {
+          for (const fields of [
+            { actorType: 'summon' },
+            { actorType: 'effect' },
+            { coefficient: 0 },
+            { skillId: ID.DOUBLE_STRIKE, skillName: 'Double Strike' }
+          ])
+            runtime.emit(thiefHit(0.5, { skillId: stealth.id, skillName: stealth.name, ...fields }));
+          for (const at of [1, 1, 1 + internalCooldown, 3])
+            runtime.emit(thiefHit(at, { skillId: stealth.id, skillName: stealth.name }));
+        }
+      }
+    );
+    const packets = result.events.filter((event) => event.sourceId === TRAIT.SHADOW_SIPHONING);
+    assert.deepEqual(
+      packets.map((event) => event.at),
+      [1, 3]
+    );
+    assert.ok(packets.every((event) => event.canCrit === false && event.damageKind === 'life-steal'));
+    assert.equal(observedRuntime(result).procs.deadline(TRAIT.SHADOW_SIPHONING), 3 + internalCooldown);
+    assert.deepEqual(result.warnings, []);
   }
 });
 
 test('Panic Strike applies immobilize then its poison follow-up', () => {
   const { context, conditions } = traitContext([TRAIT.PANIC_STRIKE]);
-  reactToThiefCoreDamage(context, {
-    type: 'damage',
-    at: 1,
-    actorType: 'player',
-    coefficient: 1,
-    skillName: 'Threshold Strike'
-  });
+  reactThiefCoreDamage(
+    context,
+    {
+      type: 'damage',
+      at: 1,
+      actorType: 'player',
+      coefficient: 1,
+      skillName: 'Threshold Strike'
+    },
+    {}
+  );
   assert.equal(conditions[0].condition, 'Immobilized');
-  reactToThiefCoreCondition(context, conditions[0]);
+  reactThiefCoreCondition(context, conditions[0]);
   assert.equal(context.queue.dequeue().condition, 'Poisoned');
 });
 
-test('Cloaked in Shadow siphons from applied Blindness', () => {
-  const { context } = traitContext([TRAIT.CLOAKED_IN_SHADOW]);
-  reactToThiefCoreCondition(context, {
-    type: 'condition',
-    at: 1,
-    actorType: 'player',
-    condition: 'Blindness',
-    skillName: 'Blind Test'
-  });
-  const siphon = context.queue.dequeue();
-  assert.equal(siphon.sourceId, TRAIT.CLOAKED_IN_SHADOW);
-  assert.equal(siphon.lifeSiphon, true);
+test('Cloaked in Shadow emits its authored noncritical packet only for applied Blindness', () => {
+  for (const removed of [false, true]) {
+    const result = runThief(
+      [wait(2000)],
+      { selectedTraitIds: [TRAIT.CLOAKED_IN_SHADOW] },
+      {
+        catalog: (catalog) =>
+          removed
+            ? withProfile(catalog, TRAIT.CLOAKED_IN_SHADOW, {
+                effects: [],
+                removedEffectKeys: [JSON.stringify(['strike', 'Cloaked in Shadow'])]
+              })
+            : catalog,
+        initialize(runtime) {
+          for (const condition of ['Blindness', 'Poisoned'])
+            runtime.emit({
+              type: 'condition',
+              at: 1,
+              source: 'fixture',
+              sourceId: 'blind',
+              actorType: 'player',
+              skillName: 'Blind Test',
+              condition,
+              stacks: 1,
+              duration: 1
+            });
+        }
+      }
+    );
+    const packets = result.events.filter((event) => event.sourceId === TRAIT.CLOAKED_IN_SHADOW);
+    assert.equal(packets.length, removed ? 0 : 1);
+    if (!removed) {
+      assert.equal(packets[0].damageKind, 'life-steal');
+      assert.equal(packets[0].canCrit, false);
+      assert.equal(packets[0].triggeredBy, 'Blind Test');
+    }
+  }
 });
 
 test('steal activation preserves its cross-line event order', () => {
-  const traits = stealTraitCases.map(([, traitId]) => traitId);
-  const { context, events } = traitContext(traits);
-  emitStealTraitEffects(context);
+  const events = stealPackets(stealTraitCases.map(([, traitId]) => traitId));
   assert.deepEqual(
     events.map((event) => event.sourceId),
     [
@@ -680,27 +700,121 @@ test('steal activation preserves its cross-line event order', () => {
   );
 });
 
-test('cast-state updates publish Lead stacks before movement traits and leave poison to hits', () => {
-  const { context, core, events } = traitContext([
-    TRAIT.LEAD_ATTACKS,
-    TRAIT.FLUID_STRIKES,
-    TRAIT.HARD_TO_CATCH,
-    TRAIT.DEADLY_AMBITION
-  ]);
-  core.endurance = 0;
-  updateThiefTraitCastState(context, {
-    id: 900007,
-    name: 'Ordered Cast',
-    initiativeCost: 1,
-    movementSkill: true,
-    categories: ['DualWield']
+test('cast completion grants Lead stacks before movement traits and leaves poison to hits', () => {
+  const result = runThief(["Infiltrator's Strike"], {
+    primaryWeapon: 'Sword',
+    initialEndurance: 0,
+    selectedTraitIds: [TRAIT.LEAD_ATTACKS, TRAIT.FLUID_STRIKES, TRAIT.HARD_TO_CATCH, TRAIT.DEADLY_AMBITION]
   });
-  assert.deepEqual(
-    events.map((event) => event.sourceId),
-    [TRAIT.LEAD_ATTACKS, 'thief.state.lead-attacks', 'thief.state.hard-to-catch']
+  assert.deepEqual(result.warnings, []);
+  const lead = result.events.filter((event) => event.sourceId === TRAIT.LEAD_ATTACKS);
+  assert.equal(lead.length, 1);
+  assert.equal(lead[0].kind, 'lead-attacks');
+  assert.equal(lead[0].duration, 10);
+  assert.equal(lead[0].stacks, 3);
+  assert.equal(result.planningState.profession.fluidStrikesUntil, 5);
+  assert.equal(result.planningState.profession.endurance, 8);
+  // Deadly Ambition's poison follows the activation's first landed strike, never the cast itself.
+  const strikes = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillId === ID.INFILTRATORS_STRIKE && event.actorType === 'player'
   );
-  assert.equal(events[0].kind, 'lead-attacks');
-  assert.equal(events[0].duration, 10);
-  assert.equal(events[0].stacks, 1);
-  assert.equal(events[2].state.fluidStrikesUntil, 6);
+  const poison = result.resolvedEvents.filter((event) => event.sourceId === TRAIT.DEADLY_AMBITION);
+  assert.ok(poison.every((event) => strikes.some((strike) => strike.at === event.at)));
+});
+
+// The declaration retains eligibility, removed-effect guards, and the same exclusive profile deadline.
+test("Assassin's Fury preserves recipient gating, removed effects, and patched ICD boundaries", () => {
+  for (const duration of [2, 0]) {
+    for (const selected of [true, false]) {
+      for (const removed of [true, false]) {
+        const live = applyBalanceProfilePatch(thiefCatalog, {
+          balanceProfiles: {
+            [TRAIT.ASSASSINS_FURY]: {
+              fields: { internalCooldown: duration },
+              ...(removed ? { removeEffects: [{ type: 'boon', name: 'Might' }] } : {})
+            }
+          }
+        });
+        const result = runThief(
+          [{ type: 'wait', durationMs: (2 + duration) * 1000 }],
+          {
+            selectedTraitIds: selected ? [TRAIT.ASSASSINS_FURY] : []
+          },
+          {
+            catalog: () => live,
+            initialize(runtime) {
+              runtime.procs.readyAt.unrelated = 99;
+              for (const at of [1, 1 + duration, 1 + duration + 0.001])
+                runtime.emit({
+                  type: 'buff',
+                  at,
+                  source: 'fixture',
+                  sourceId: 'fury',
+                  actorType: 'player',
+                  skillName: 'Fury Test',
+                  kind: 'fury',
+                  duration: 1,
+                  stacks: 1
+                });
+              runtime.emit({
+                type: 'buff',
+                at: 0.5,
+                source: 'fixture',
+                sourceId: 'ally-fury',
+                actorType: 'player',
+                kind: 'fury',
+                duration: 1,
+                stacks: 1,
+                audience: { recipients: 'party', affectsSelf: false }
+              });
+            }
+          }
+        );
+        const packets = result.events.filter((event) => event.sourceId === TRAIT.ASSASSINS_FURY);
+        assert.deepEqual(
+          packets.map((event) => event.at),
+          selected && !removed ? [1, 1 + duration + 0.001] : []
+        );
+        const runtime = observedRuntime(result);
+        assert.equal(runtime.procs.readyAt.unrelated, 99);
+        assert.equal(
+          runtime.procs.readyAt[TRAIT.ASSASSINS_FURY],
+          selected && !removed ? 1 + duration + 0.001 + duration : undefined
+        );
+        assert.deepEqual(result.warnings, []);
+      }
+    }
+  }
+});
+
+// Shared combo/food packets and trait packets use the same life-steal classification for Lead Attacks.
+test('Lead Attacks boosts canonical flat life steal independently of its display name', () => {
+  const result = runThief(
+    [wait(2000)],
+    { selectedTraitIds: [TRAIT.LEAD_ATTACKS] },
+    {
+      initialize(runtime) {
+        runtime.profession.core.leadAttackExpirations = Array(10).fill(3);
+        for (const [sourceId, damageKind] of [
+          ['siphon', 'life-steal'],
+          ['ordinary', 'strike']
+        ])
+          runtime.emit(
+            thiefHit(1, {
+              sourceId,
+              actorType: 'effect',
+              ownerActorType: 'player',
+              name: 'Unrelated label',
+              coefficient: 0,
+              flatDamage: 1000,
+              canCrit: false,
+              damageKind
+            })
+          );
+      }
+    }
+  );
+  const damage = (id) => result.resolvedEvents.find((event) => event.sourceId === id).damage;
+  assert.equal(damage('siphon'), 1100);
+  assert.equal(damage('ordinary'), 1000);
 });

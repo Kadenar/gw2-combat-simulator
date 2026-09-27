@@ -8,7 +8,7 @@ import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mech
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
-export interface MesmerIllusionResourceController {
+interface MesmerIllusionResourceController {
   schedule(skill: MesmerSkill, at: number, castStart: number, phantasms: readonly MesmerPhantasmExecution[]): void;
 }
 
@@ -47,9 +47,9 @@ export function createIllusionResourceController({
     if (skill.resource?.mode === 'add') {
       const resourceAt =
         skill.resource.timingAnchor === 'castStart'
-          ? castStart + Number(skill.resource.atMs || 0) / 1000
-          : at + Number(skill.resource.atMs || 0) / 1000;
-      queueResources(resourceAt, Number(skill.resource.count || 0), skill.weapon || activePrimaryWeapon(), skill.name, {
+          ? castStart + (skill.resource.atMs || 0) / 1000
+          : at + (skill.resource.atMs || 0) / 1000;
+      queueResources(resourceAt, skill.resource.count || 0, skill.weapon || activePrimaryWeapon(), skill.name, {
         kind: 'skill',
         sourceSkillId: skill.id
       });

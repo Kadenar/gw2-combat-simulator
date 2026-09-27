@@ -7,7 +7,7 @@
         "build": "data/gw2/builds/revenant/b-power-renegade-greatsword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-renegade-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-renegade-greatsword-sword-sword",
-        "benchmarkDps": 43836,
+        "benchmarkDps": 43843,
         "upToDate": true
       },
       {
@@ -31,7 +31,7 @@
         "build": "data/gw2/builds/revenant/b-condi-renegade-shortbow-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-shortbow-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-shortbow-mace-axe",
-        "benchmarkDps": 41072,
+        "benchmarkDps": 41073,
         "upToDate": true
       },
       {
@@ -52,7 +52,7 @@
         "build": "data/gw2/builds/revenant/b-power-quick-herald-greatsword-sword-sword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-quick-herald-greatsword-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-quickness-herald-greatsword-sword-sword",
-        "benchmarkDps": 31909,
+        "benchmarkDps": 31990,
         "upToDate": true
       },
       {
@@ -60,7 +60,7 @@
         "build": "data/gw2/builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-quick-herald-shortbow-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-quickness-herald-shortbow-mace-axe",
-        "benchmarkDps": 31783,
+        "benchmarkDps": 31830,
         "upToDate": true
       }
     ]
@@ -73,14 +73,14 @@
         "build": "data/gw2/builds/revenant/b-power-vindicator-greatsword-energy.json",
         "rotation": "data/gw2/rotations/revenant/r-power-vindicator-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-vindicator-greatsword-sword-sword",
-        "benchmarkDps": 43691,
+        "benchmarkDps": 43666,
         "upToDate": true
       },
       {
         "label": "Power (Greatsword - Sword/Sword - Hydro)",
         "build": "data/gw2/builds/revenant/b-power-vindicator-greatsword-hydro.json",
         "rotation": "data/gw2/rotations/revenant/r-power-vindicator-greatsword-hydro-bench.json",
-        "benchmarkDps": 42681,
+        "benchmarkDps": 42714,
         "upToDate": true
       }
     ]
@@ -93,7 +93,7 @@
         "build": "data/gw2/builds/revenant/b-power-conduit.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-greatsword-sword-sword",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-bench.json",
-        "benchmarkDps": 42408,
+        "benchmarkDps": 42398,
         "upToDate": true
       },
       {
@@ -101,7 +101,7 @@
         "build": "data/gw2/builds/revenant/b-condi-conduit-mistfire.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-conduit-mistfire-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-conduit-mistfire-spear-mace-axe",
-        "benchmarkDps": 39511,
+        "benchmarkDps": 39539,
         "upToDate": true
       }
     ]

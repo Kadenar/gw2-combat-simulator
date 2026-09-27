@@ -19,7 +19,7 @@ export function renderRotationBuilder(app: ProfessionAppState): void {
 export function renderRotationEditor(app: ProfessionAppState): void {
   renderStartResource(app);
   renderPalette(app);
-  mountRotationHotkeys(document.getElementById('rotation-palette'), app.adapter.capabilities.keybindImport);
+  mountRotationHotkeys(document.getElementById('rotation-palette'));
   renderTimeline(app);
   renderRotationStateSnapshot(app);
   renderRotationHistoryControls(app);
@@ -30,7 +30,7 @@ export function renderSimulationOutput(app: ProfessionAppState): void {
   // Resource limits and skill availability all come from the newly committed end state.
   renderStartResource(app);
   renderPalette(app);
-  mountRotationHotkeys(document.getElementById('rotation-palette'), app.adapter.capabilities.keybindImport);
+  mountRotationHotkeys(document.getElementById('rotation-palette'));
   renderTimeline(app);
   renderRotationComparison(app);
   renderRotationStateSnapshot(app);

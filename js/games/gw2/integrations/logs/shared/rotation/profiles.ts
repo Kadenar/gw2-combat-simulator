@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST_ID } from '#gw2/professions/elementalist/data/ids.js';
 
@@ -38,7 +39,7 @@ const sources: readonly RotationProfileSource[] = [
       catalyst: 'Catalyst',
       evoker: 'Evoker'
     },
-    dodgeId: ELEMENTALIST_ID.DODGE,
+    dodgeId: SHARED_SKILL_IDS.DODGE,
     skillIdAliasesBySpecialization: Object.fromEntries(
       ['core', 'tempest', 'weaver', 'catalyst', 'evoker'].map((specialization) => [
         specialization,
@@ -61,7 +62,7 @@ const sources: readonly RotationProfileSource[] = [
     },
     dodgeBySpecialization: {
       mirage: { name: 'Dodge / Mirage Cloak', skillId: -1 },
-      troubadour: { name: 'Dodge', skillId: -5 }
+      troubadour: { name: 'Dodge', skillId: SHARED_SKILL_IDS.DODGE }
     },
     aliases: {
       dodge: 'Dodge / Mirage Cloak'
@@ -182,11 +183,11 @@ export const ROTATION_PROFILES: readonly RotationProfessionProfile[] = Object.fr
           source.dodgeBySpecialization?.[specializationId] ||
           Object.freeze({
             name: 'Dodge',
-            skillId: source.dodgeId ?? -5
+            skillId: source.dodgeId ?? SHARED_SKILL_IDS.DODGE
           }),
         weaponSwap: Object.freeze({
           name: 'Swap Weapons',
-          skillId: -3
+          skillId: SHARED_SKILL_IDS.SWAP_WEAPONS
         }),
         skillNameAliases: aliasesFor(source, specializationId),
         skillIdAliases: Object.freeze({

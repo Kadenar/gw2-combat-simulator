@@ -7,7 +7,7 @@ import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { handleRangerPetSwapped } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { rangerActiveBoonCount, rangerBoonActive } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
-import { soulbeastModifierRules } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
+import { soulbeastModifierRules } from '#gw2/professions/ranger/specializations/soulbeast/modifiers.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 // Use production recipient selection so boon queries honor sharing policy and party caps.

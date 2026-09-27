@@ -36,6 +36,11 @@ export const GUARDIAN_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Critical hits share one cooldown and grant Might to the player and nearby allies.
+  trait(TRAIT.EMPOWERING_MIGHT, 'Empowering Might', {
+    internalCooldown: 1,
+    effects: [{ type: 'boon', name: 'might', boon: 'might', stacks: 1, duration: 8, audience: { recipients: 'party' } }]
+  }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.protectorsRestoration, "Protector's Restoration", {
     internalCooldown: 20,
     effects: [

@@ -31,7 +31,7 @@ export const spellbreakerUi: WarriorUiSlice = Object.freeze({
       });
     }
 
-    const tether = Number(state.magebaneTetherUntil || 0) - at;
+    const tether = (state.magebaneTetherUntil || 0) - at;
     if (tether > 0) {
       items.push({
         id: 'magebane-tether',

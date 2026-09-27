@@ -21,7 +21,7 @@ import type { Gw2ResolvedStats, Gw2NumericStatKey } from '#gw2/platform/combat/q
 
 function activePetFamily(context: RangerModifierContext): string {
   const activePet = readProfessionCoreState<{ activePet?: string }>(context.runtime?.profession).activePet;
-  return rangerPetByName(String(activePet || context.config?.selectedPet || 'Pig')).family;
+  return rangerPetByName(activePet || context.config?.selectedPet || 'Pig').family;
 }
 
 // Apply only companion-specific family bonuses and the pet form of Wellspring's conversion.
@@ -32,7 +32,7 @@ export function modifyRangerPetAttributes(
 ): void {
   if (!rangerPetEvent(context)) return;
   const adjust = (attribute: Gw2NumericStatKey, amount: number): void => {
-    result[attribute] = Number(result[attribute] || 0) + amount;
+    result[attribute] = (result[attribute] || 0) + amount;
   };
 
   const family = activePetFamily(context);
@@ -45,13 +45,13 @@ export function modifyRangerPetAttributes(
   if (!hasTrait(context, TRAIT.WELLSPRING)) return;
   const wellspringProfile = requireBalanceProfileFromContext(context, PROFILE.wellspring);
   const conversion = balanceProfileNumber(wellspringProfile, 'attributeConversion');
-  if (staticRulesApplied) adjust('healingPower', -Number(context.config?.stats?.power || 0) * conversion);
+  if (staticRulesApplied) adjust('healingPower', -(context.config?.stats?.power || 0) * conversion);
   const summonBasePower = Number(context.event?.summonBasePower);
   const petPower =
     Number.isFinite(summonBasePower) && summonBasePower > 0
       ? summonBasePower +
         (context.query?.mightStacksAt(context.time, context.runtime || undefined, context.event || undefined) || 0) * 30
-      : Number(result.power || 0);
+      : result.power || 0;
   adjust('healingPower', petPower * conversion);
 }
 
@@ -74,7 +74,7 @@ export const rangerPetModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     id: 'ranger.bountiful-hunter-pet',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
-    parameters: { baseFactor: 1, damagePerBoon: 0.01 } as Readonly<Record<string, number>>,
+    parameters: { baseFactor: 1, damagePerBoon: 0.01 },
     factor: (context, _target, parameters) =>
       parameters.baseFactor + rangerActiveBoonCount(context, 'pet') * parameters.damagePerBoon,
     when: (context) => rangerPetEvent(context) && hasTrait(context, TRAIT.BOUNTIFUL_HUNTER)

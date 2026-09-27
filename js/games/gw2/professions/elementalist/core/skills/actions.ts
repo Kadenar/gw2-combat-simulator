@@ -1,23 +1,24 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
 /**
  * Owns declarative simulator-only Elementalist actions.
- * Bundle equip state and endurance spending remain with their persistent mechanics.
+ * Bundle equip state remains with its persistent mechanics.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 
-/** Dodge is a fixed-duration rotation action; execution spends endurance after its cast. */
+/** Dodge is a fixed-duration rotation action; it spends endurance only once the roll commits. */
 export const ELEMENTALIST_CORE_ACTION_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.DODGE]: {
-    name: 'Dodge',
-    type: 'Action',
-    slot: 'Action',
+  [SHARED_SKILL_IDS.DODGE]: createDodgeSkill({
     categories: ['Dodge'],
-    castTimeMs: 800,
-
-    cooldown: 0,
-    skillFamily: 'Dodge',
-    effects: []
-  }
+    cost: {
+      resource: 'endurance',
+      profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' },
+      spendOn: 'castCommit'
+    },
+    skillFamily: 'Dodge'
+  })
 });
 
 const CONJURE_ACTION_ICONS = Object.freeze({

@@ -6,7 +6,7 @@ import { initBuildTemplates, updateTemplateSelection } from '#gw2/app/build/pane
 import { renderSkills } from '#gw2/app/build/panels/skills.js';
 import { renderTraits } from '#gw2/app/build/panels/traits.js';
 import { mountRotationDisplayControls } from '#gw2/app/rotation/timeline/display-controls.js';
-import { mountSimulationSettings } from '#gw2/app/simulation/settings.js';
+import { mountSimulationSettings } from '#gw2/app/build/panels/simulation-settings.js';
 import type { BuildEditor } from '#app/shell/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 

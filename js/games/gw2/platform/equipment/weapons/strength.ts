@@ -130,12 +130,12 @@ export function weaponStrengthProfileForName(name: unknown): Readonly<Gw2WeaponS
 
 /** Calculates the midpoint of a weapon-strength profile's range. */
 export function weaponStrengthMidpoint(profile: Gw2WeaponStrengthProfile): number {
-  return (Number(profile.min) + Number(profile.max)) / 2;
+  return (profile.min + profile.max) / 2;
 }
 
 /** Maps a unit-interval sample onto a weapon-strength profile. */
 export function sampleWeaponStrength(profile: Gw2WeaponStrengthProfile, unitIntervalValue: number): number {
-  const sample = Number(unitIntervalValue);
+  const sample = unitIntervalValue;
   if (!(sample >= 0 && sample < 1)) {
     throw new RangeError('Weapon-strength samples must be in [0, 1).');
   }
@@ -171,8 +171,7 @@ export function weaponStrengthProfileIdForEvent(
   }
 
   const professionValue = state?.profession || state || {};
-  const profession =
-    professionValue && typeof professionValue === 'object' ? (professionValue as Record<string, unknown>) : {};
+  const profession = typeof professionValue === 'object' ? (professionValue as Record<string, unknown>) : {};
   if (skill?.radiantForgeSkill) return 'transform.radiant-forge';
   if (skill?.cycloneBowSkill) return 'transform.cyclone-bow';
   // Celestial Avatar replaces the weapon bar and scales its strikes from the transform, not the equipped weapon.
@@ -230,11 +229,11 @@ export function weaponStrengthProfileIdForEvent(
   }
 
   // Slot skills and system actions are explicitly independent of equipped weapons.
-  if (['Action', 'Heal', 'Utility', 'Elite'].includes(String(skill?.type || ''))) {
+  if (['Action', 'Heal', 'Utility', 'Elite'].includes(skill?.type || '')) {
     return 'nonweapon.unequipped';
   }
 
-  if (String(skill?.type || '') === 'Profession') {
+  if ((skill?.type || '') === 'Profession') {
     return 'nonweapon.profession-mechanic';
   }
 

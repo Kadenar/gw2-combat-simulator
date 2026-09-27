@@ -5,6 +5,7 @@ import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/arcane.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 // Exercise authored thresholds with both callers' progress gains; bound emissions so regressions cannot hang the suite.
 for (const { threshold, progress, grants } of [
@@ -20,13 +21,19 @@ for (const { threshold, progress, grants } of [
     const core = { bountifulPowerProgress: 0 };
     const events = [];
     const context = {
-      catalog,
-      traits: new Set(['Bountiful Power']),
-      state: { profession: { core } },
+      helpers: catalog,
+      time: 4,
+      config: {},
+      query: { statsAt: () => ({}) },
+      traits: new Set([TRAIT.BOUNTIFUL_POWER]),
+      profession: { core },
       emit(event) {
         assert.ok(events.length < 8, 'Bountiful Power exceeded the expected grant bound');
         events.push(event);
         return event;
+      },
+      emitProcedural(event) {
+        return this.emit(event);
       }
     };
 

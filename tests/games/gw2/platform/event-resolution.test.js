@@ -3,34 +3,31 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { resolveTestGw2Stream } from '#tests/helpers/gw2-resolver.js';
-import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
-import { resolveGw2Timeline } from '#gw2/platform/resolver/resolve-timeline.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 
 // Repeated resolution starts from resolver state and connects both runtime and condition dispatch to profession hooks.
 test('resolver setup shares reactions and creates fresh profession state for each pass', () => {
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'resolver-setup',
     name: 'Resolver Setup',
     resources: {
-      createProfessionState: () => ({ count: 100 }),
-      createResolverState: () => ({ count: 0 })
+      createState: () => ({ count: 0 })
     },
-    resolverHooks: {
+    hooks: {
       eventHandlers: {
         'fixture.trigger': (context, event) => {
           context.dispatchReaction('control.resolved', event);
           context.applyCondition({ ...event, type: 'condition', condition: 'Weakness', stacks: 1, duration: 1 });
         }
       },
-      eventReactions: {
+      reactions: {
         'control.resolved': (context) => {
           context.profession.count += 1;
         },
@@ -44,17 +41,17 @@ test('resolver setup shares reactions and creates fresh profession state for eac
     profession,
     config: {},
     traits: new Set(),
-    stream: buildScheduledEventStream({
+    ...{
       events: [{ type: 'fixture.trigger', at: 0, source: 'Fixture', sourceId: 'fixture.trigger', actorType: 'player' }],
-      rotationEndTime: 1
-    })
+      endTime: 1
+    }
   };
-  const first = resolveGw2Timeline(options);
-  assert.equal(first.combatState.profession.count, 11);
-  first.combatState.profession.count = 99;
-  const second = resolveGw2Timeline(options);
-  assert.equal(second.combatState.profession.count, 11);
-  assert.notEqual(first.combatState.profession, second.combatState.profession);
+  const first = resolveTestGw2Events(options);
+  assert.equal(first.planningState.profession.count, 11);
+  first.planningState.profession.count = 99;
+  const second = resolveTestGw2Events(options);
+  assert.equal(second.planningState.profession.count, 11);
+  assert.notEqual(first.planningState.profession, second.planningState.profession);
 });
 
 // Generic event resolution preserves recipient, strike, and profession-state contracts.
@@ -130,7 +127,7 @@ test('shared buff handling records allied recipient scope before reactions run',
 });
 
 test('flat and no-crit strikes skip critical queries', () => {
-  const stream = buildScheduledEventStream({
+  const scenario = {
     events: [
       {
         type: 'damage',
@@ -148,18 +145,18 @@ test('flat and no-crit strikes skip critical queries', () => {
         name: 'No-crit strike',
         skillName: 'No-crit strike',
         coefficient: 1,
-        noCrit: true,
+        canCrit: false,
         weaponStrength: 1_000,
         source: 'Player',
         sourceId: 'no-crit-strike',
         actorType: 'player'
       }
     ],
-    rotationEndTime: 1.1
-  });
+    endTime: 1.1
+  };
   let criticalQueries = 0;
-  const result = resolveTestGw2Stream({
-    stream,
+  const result = resolveTestGw2Events({
+    ...scenario,
     config: { sigilSets: [{ names: [] }] },
     traits: new Set(),
     query: {
@@ -209,6 +206,7 @@ test('slot-skill strikes select nonweapon strength generically', () => {
 });
 
 test('resolver profession state changes are chronological and preserve counters', () => {
+  let hitCount = 0;
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -240,37 +238,34 @@ test('resolver profession state changes are chronological and preserve counters'
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'chronology-fixture',
     name: 'Chronology Fixture',
     catalog,
     resources: {
-      createProfessionState: (config) => ({
+      createState: (config) => ({
         active: Boolean(config.initialActive),
         hitCount: 0
       }),
-      createResolverState: (config) => ({
-        active: Boolean(config.initialActive),
-        hitCount: 0
-      }),
-      projectPlanningState: ({ schedulerState }) => ({
-        active: schedulerState.profession.active
+      projectPlanningState: ({ profession }) => ({
+        active: profession.active
       })
     },
-    attributeRules: {
+    modifiers: {
       modifyStrikeDamage(context, value) {
         return context.runtime.profession.active ? value * 2 : value;
       }
     },
-    resolverHooks: {
+    hooks: {
       eventHandlers: {
         'chronology-fixture.state': (context, event) => {
           context.profession.active = event.active;
         }
       },
-      eventReactions: {
+      reactions: {
         'damage.resolved': (context) => {
           context.profession.hitCount += 1;
+          hitCount = context.profession.hitCount;
         }
       }
     }
@@ -283,9 +278,9 @@ test('resolver profession state changes are chronological and preserve counters'
 
   assert.equal(Math.round(hits[1].damage / hits[0].damage), 2);
   assert.equal(Math.round(hits[2].damage / hits[0].damage), 2);
-  assert.equal(result.combatState.profession.hitCount, 3);
-  assert.deepEqual(result.planningState.profession, { active: false });
-  assert.equal(result.combatState.profession.active, true);
+  assert.equal(hitCount, 3);
+  assert.deepEqual(result.planningState.profession, { active: true });
+  assert.equal(result.planningState.profession.active, true);
 
   const configured = simulateGw2({
     profession,
@@ -329,22 +324,24 @@ test('delayed-impact casts land hostile packets later without moving the cast or
   // A reaction timed from the landed hit must follow the hit once, not receive the travel delay a second time.
   const reactingProfession = {
     ...testProfession,
-    resolveRuntime() {
+    runtimeFor(config) {
       return {
-        ...testProfession,
-        onEventScheduled(context, event) {
-          testProfession.onEventScheduled(context, event);
-          if (event.type !== 'damage' || event.name === 'Fixture Reaction') return;
-          context.emitDerived(event, {
-            type: 'damage',
-            at: event.at,
-            source: 'fixture',
-            sourceId: 'fixture.reaction',
-            actorType: 'effect',
-            name: 'Fixture Reaction',
-            skillName: 'Fixture Reaction',
-            coefficient: 0.1
-          });
+        ...testProfession.runtimeFor(config),
+        reactions: {
+          ...testProfession.runtimeFor(config).reactions,
+          'damage.resolved'(context, event) {
+            if (event.type !== 'damage' || event.name === 'Fixture Reaction') return;
+            context.emitDerived(event, {
+              type: 'damage',
+              at: event.at,
+              source: 'fixture',
+              sourceId: 'fixture.reaction',
+              actorType: 'effect',
+              name: 'Fixture Reaction',
+              skillName: 'Fixture Reaction',
+              coefficient: 0.1
+            });
+          }
         }
       };
     }
@@ -420,9 +417,9 @@ test('test profession runs end to end without importing Mesmer', () => {
   });
 
   assert.ok(base.totalDamage > withoutTrait.totalDamage);
-  assert.equal(base.combatState.profession.charge, 1);
-  assert.equal(base.combatState.profession.controlEvents, 1);
-  assert.equal(base.schedulerState.profession.charge, 0);
+  assert.equal(base.planningState.profession.charge, 1);
+  assert.equal(base.planningState.profession.controlEvents, 1);
+  assert.equal(base.planningState.profession.charge, 1);
   assert.equal(
     base.events.every((event) => event.type && Number.isFinite(event.at) && event.source && event.sourceId != null),
     true
@@ -442,11 +439,11 @@ test('resolver modifiers receive stable trait, event, and runtime context', () =
     ]
   });
   let observed = null;
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'context-fixture',
     name: 'Context Fixture',
     catalog,
-    attributeRules: {
+    modifiers: {
       modifyStrikeDamage(context, multiplier) {
         observed = {
           actorType: context.actorType,

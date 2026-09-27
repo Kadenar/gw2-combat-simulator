@@ -28,9 +28,7 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Part
   },
   [ID.DEFIANT_ROAR]: {
     castTimeMs: 333,
-    adrenalineGain: 10,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 10 } }],
     effects: [
       {
         type: 'boon',
@@ -52,9 +50,7 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Part
   },
   [ID.VALIANT_LEAP]: {
     castTimeMs: 500,
-    adrenalineGain: 5,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 5 } }],
     effects: [
       {
         type: 'strike',

@@ -1,14 +1,14 @@
 // Generated from the official Guild Wars 2 /v2/professions palette map.
 // Snapshot: 2026-08-18. Run scripts/data/update-build-template-data.mjs to refresh.
 
-export interface Gw2BuildTemplateProfessionData {
+interface Gw2BuildTemplateProfessionData {
   readonly paletteEntries: readonly (readonly [number, number])[];
 }
 
 /** Resolves build-template profession and palette IDs without a runtime API call. */
 export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<Record<number, Gw2BuildTemplateProfessionData>> = Object.freeze({
   1: {
-    paletteEntries: Object.freeze([
+    paletteEntries: Object.freeze<readonly (readonly [number, number])[]>([
       [1, 12343],
       [2, 12417],
       [3, 12371],
@@ -205,10 +205,10 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<Record<number, Gw2BuildTem
       [7544, 77300],
       [7650, 78873],
       [7700, 79766]
-    ]) as readonly (readonly [number, number])[]
+    ])
   },
   2: {
-    paletteEntries: Object.freeze([
+    paletteEntries: Object.freeze<readonly (readonly [number, number])[]>([
       [1, 12343],
       [2, 12417],
       [3, 12371],
@@ -405,10 +405,10 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<Record<number, Gw2BuildTem
       [7558, 77040],
       [7650, 78873],
       [7700, 79766]
-    ]) as readonly (readonly [number, number])[]
+    ])
   },
   3: {
-    paletteEntries: Object.freeze([
+    paletteEntries: Object.freeze<readonly (readonly [number, number])[]>([
       [1, 12343],
       [2, 12417],
       [3, 12371],
@@ -615,10 +615,10 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<Record<number, Gw2BuildTem
       [7557, 77069],
       [7650, 78873],
       [7700, 79766]
-    ]) as readonly (readonly [number, number])[]
+    ])
   },
   4: {
-    paletteEntries: Object.freeze([
+    paletteEntries: Object.freeze<readonly (readonly [number, number])[]>([
       [1, 12343],
       [2, 12417],
       [3, 12371],
@@ -879,10 +879,10 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<Record<number, Gw2BuildTem
       [7650, 78873],
       [7700, 79766],
       [7730, 44626]
-    ]) as readonly (readonly [number, number])[]
+    ])
   },
   5: {
-    paletteEntries: Object.freeze([
+    paletteEntries: Object.freeze<readonly (readonly [number, number])[]>([
       [1, 12343],
       [2, 12417],
       [3, 12371],
@@ -1075,10 +1075,10 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<Record<number, Gw2BuildTem
       [7564, 76808],
       [7650, 78873],
       [7700, 79766]
-    ]) as readonly (readonly [number, number])[]
+    ])
   },
   6: {
-    paletteEntries: Object.freeze([
+    paletteEntries: Object.freeze<readonly (readonly [number, number])[]>([
       [1, 12343],
       [2, 12417],
       [3, 12371],
@@ -1269,10 +1269,10 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<Record<number, Gw2BuildTem
       [7563, 77190],
       [7650, 78873],
       [7700, 79766]
-    ]) as readonly (readonly [number, number])[]
+    ])
   },
   7: {
-    paletteEntries: Object.freeze([
+    paletteEntries: Object.freeze<readonly (readonly [number, number])[]>([
       [1, 12343],
       [2, 12417],
       [3, 12371],
@@ -1467,10 +1467,10 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<Record<number, Gw2BuildTem
       [7561, 76695],
       [7650, 78873],
       [7700, 79766]
-    ]) as readonly (readonly [number, number])[]
+    ])
   },
   8: {
-    paletteEntries: Object.freeze([
+    paletteEntries: Object.freeze<readonly (readonly [number, number])[]>([
       [1, 12343],
       [2, 12417],
       [3, 12371],
@@ -1664,10 +1664,10 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<Record<number, Gw2BuildTem
       [7566, 76739],
       [7650, 78873],
       [7700, 79766]
-    ]) as readonly (readonly [number, number])[]
+    ])
   },
   9: {
-    paletteEntries: Object.freeze([
+    paletteEntries: Object.freeze<readonly (readonly [number, number])[]>([
       [3, 12371],
       [5, 28409],
       [16, 12389],
@@ -1790,6 +1790,6 @@ export const GW2_BUILD_TEMPLATE_PROFESSIONS: Readonly<Record<number, Gw2BuildTem
       [7523, 76610],
       [7650, 78873],
       [7700, 79766]
-    ]) as readonly (readonly [number, number])[]
+    ])
   }
 });

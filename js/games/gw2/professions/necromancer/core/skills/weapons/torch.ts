@@ -8,18 +8,42 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 600,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 1.2 },
+      {
+        type: 'strike',
+        // Only this selected application owns its accepted-impact reward.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.oppressive-collapse' }
+          }
+        ],
+        coefficient: 1.2
+      },
       { type: 'condition', condition: 'Torment', stacks: 2, duration: 9 },
       { type: 'control', controlKind: 'control' }
-    ]),
-    // Custom: Grants party Might scaled by the target's condition count; see `core/execution/torch.ts`.
-    handlerId: 'necromancer.oppressive-collapse'
+    ])
   },
   [ID.HARROWING_WAVE]: {
     castTimeMs: 440,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 0.8 },
+      {
+        type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
+        coefficient: 0.8
+      },
       { type: 'condition', condition: 'Burning', stacks: 1, duration: 8 },
       { type: 'condition', condition: 'Torment', stacks: 2, duration: 6 }
     ]),

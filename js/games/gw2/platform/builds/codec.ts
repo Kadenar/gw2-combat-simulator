@@ -222,8 +222,9 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
 
   function toApplicationBuild(build: unknown): TBuild {
     const migrated = migrateBuild(build);
-    // Application timings assume permanent Quickness, including when restoring older builds.
+    // Console timing boons stay active when creating or restoring application builds.
     migrated.assumptions.quickness = true;
+    migrated.assumptions.alacrity = true;
     return migrated;
   }
 
@@ -519,7 +520,7 @@ export function normalizeInfusions(value: unknown, fallback: readonly Gw2BuildIn
   const source = Array.isArray(value) ? value : fallback;
   const valid = source.filter((entry) => isPlainObject(entry) && listedName(INFUSION_STATS, entry.stat));
   if (source.length && !valid.length) return normalizeInfusions(fallback, []);
-  // Fold legacy duplicate stats and retain the two largest allocations before dropping unused rows.
+  // Combine duplicate stats and retain the two largest allocations before dropping unused rows.
   const byStat = new Map<string, number>();
   for (const entry of valid) {
     byStat.set(entry.stat, (byStat.get(entry.stat) || 0) + clamp(Math.trunc(Number(entry.count) || 0), 0, 18));

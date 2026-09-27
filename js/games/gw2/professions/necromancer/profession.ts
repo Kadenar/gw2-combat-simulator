@@ -1,4 +1,3 @@
-import { refineNecromancerSchedulerConfig } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
 import { defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import {
   createNecromancerBuildDefaults,
@@ -7,13 +6,13 @@ import {
 } from '#gw2/professions/necromancer/build/build.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerNativeModules } from '#gw2/professions/necromancer/catalog.js';
-import { observeNecromancerAutoattackTransition } from '#gw2/professions/necromancer/core/mechanics/sword-chain.js';
 
 export { necromancerCatalog, necromancerNativeModules } from '#gw2/professions/necromancer/catalog.js';
 
 export const necromancerProfession = defineNativeProfession({
   id: 'necromancer',
   name: 'Necromancer',
+  requireEquippedSlotSkills: true,
   build: {
     createBuildDefaults: createNecromancerBuildDefaults,
     migrateBuild: migrateNecromancerBuild,
@@ -33,15 +32,11 @@ export const necromancerProfession = defineNativeProfession({
         // Entering or leaving shroud resets weapon-chain state even without a direct damage packet.
         id: 'necromancer.form-casts-reset',
         when: ({ interruptingSkill }) =>
-          Boolean(interruptingSkill.shroud) || interruptingSkill.handlerId === 'necromancer.shroud',
+          Boolean(interruptingSkill.shroud || interruptingSkill.shroudEntry || interruptingSkill.shroudExit),
         decision: 'reset'
       }
-    ],
-    onTransition: observeNecromancerAutoattackTransition
-  },
-  simulation: Object.freeze({
-    refineSchedulerConfig: refineNecromancerSchedulerConfig
-  })
+    ]
+  }
 });
 
 export default necromancerProfession;

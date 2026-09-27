@@ -3,6 +3,7 @@ import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
+// Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
 export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.BARRAGE]: {
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -32,6 +33,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
+        projectile: true,
         ticks: [360, 520, 680, 840, 1000, 1160, 1320, 1480, 1640, 1800].map((atMs) => ({ atMs, coefficient: 0.6 })),
         comboFinishers: [
           {
@@ -52,14 +54,14 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
         }))
       }
     ]),
-    castTimeMs: 1800,
-    missileHits: 10
+    castTimeMs: 1800
   },
   [ID.LONG_RANGE_SHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     effects: [
       {
         type: 'strike',
+        projectile: true,
         coefficient: 1.33,
         hits: 1,
         comboFinishers: [
@@ -72,13 +74,13 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
         ]
       }
     ],
-    castTimeMs: 480,
-    missileHits: 1
+    castTimeMs: 480
   },
   [ID.POINT_BLANK_SHOT]: {
     effects: [
       {
         type: 'strike',
+        projectile: true,
         coefficient: 0.8,
         hits: 1,
         comboFinishers: [
@@ -94,13 +96,13 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
         controlKind: 'knockback'
       }
     ],
-    castTimeMs: 360,
-    missileHits: 1
+    castTimeMs: 360
   },
   [ID.HUNTERS_SHOT]: {
     effects: [
       {
         type: 'strike',
+        projectile: true,
         coefficient: 0.4,
         hits: 1,
         comboFinishers: [
@@ -118,7 +120,6 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
         stacks: 1
       }
     ],
-    castTimeMs: 320,
-    missileHits: 1
+    castTimeMs: 320
   }
 });

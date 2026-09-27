@@ -1,3 +1,4 @@
+import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 /** Owns imperative Core Mesmer Chaos trait effects. */
 import {
   requireBalanceProfileFromContext,
@@ -6,17 +7,14 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerState } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 import type {
   MesmerAddDamage,
   MesmerAddTraitProc,
-  MesmerRuntime,
-  MesmerRuntimeState,
-  MesmerSchedulerContext
+  MesmerMechanics,
+  MesmerRuntime
 } from '#gw2/professions/mesmer/types.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 
@@ -24,7 +22,7 @@ import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/i
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 interface MethodOfMadnessContext {
-  readonly state: SchedulerState<MesmerRuntimeState>;
+  readonly state: MesmerRuntime;
   readonly traits: ReadonlySet<number>;
   readonly addDamage: MesmerAddDamage;
   readonly addTraitProc: MesmerAddTraitProc;
@@ -34,23 +32,18 @@ interface MethodOfMadnessContext {
  * Recharges the active weapon set's deterministic phantasm target when a
  * qualifying interrupt lands, evaluating cooldown state at the impact time.
  */
-export function triggerChaoticInterruption(
-  context: MesmerSchedulerContext,
-  event: SimulationEvent,
-  skillName: string
-): void {
-  const runtime = context.mesmerRuntime;
-  if (!runtime?.traits.has(TRAIT.CHAOTIC_INTERRUPTION) || !context.config.target?.activatingSkills) {
+export function triggerChaoticInterruption(context: MesmerRuntime, event: SimulationEvent, skillName: string): void {
+  const runtime = mesmerMechanicsFor(context);
+  if (!runtime.traits.has(TRAIT.CHAOTIC_INTERRUPTION) || !context.config.target?.activatingSkills) {
     return;
   }
 
-  const defiant = Boolean(context.config.target?.defiant);
-  const core = professionCoreState(context);
-  if (defiant && !isInternalCooldownReady(event.at, Number(core.traitReadyAt[TRAIT.CHAOTIC_INTERRUPTION] || 0))) {
+  const defiant = Boolean(context.config.target.defiant);
+  if (defiant && !isInternalCooldownReady(event.at, context.procs.readyAt[TRAIT.CHAOTIC_INTERRUPTION] || 0)) {
     return;
   }
 
-  const set = context.state.activeWeaponSet;
+  const set = context.activeWeaponSet;
   const [configuredMainhand, configuredOffhand] = gw2ConfiguredWeaponSet(context.config, set);
   const [primaryMainhand, primaryOffhand] = gw2ConfiguredWeaponSet(context.config, 1);
   const mainhand = configuredMainhand || primaryMainhand;
@@ -64,16 +57,16 @@ export function triggerChaoticInterruption(
   if (targetId == null) return;
 
   // Only affects weapon skills that are recharging.
-  const readyAt = Number(context.state.cooldowns.get(targetId) || 0);
+  const readyAt = context.cooldowns.get(targetId) || 0;
   if (!(readyAt > event.at + EPSILON)) return;
   const chaoticInterruptionProfile = requireBalanceProfileFromContext(context, TRAIT.CHAOTIC_INTERRUPTION);
   const reduction = balanceProfileNumber(chaoticInterruptionProfile, 'recharge');
-  const target = context.catalog.skillsById.get(targetId);
+  const target = context.helpers.skillsById.get(targetId);
   if (!target) return;
   context.cooldownController.reduceSkillRecharge(target, reduction, event.at);
 
   if (defiant) {
-    core.traitReadyAt[TRAIT.CHAOTIC_INTERRUPTION] =
+    context.procs.readyAt[TRAIT.CHAOTIC_INTERRUPTION] =
       event.at + balanceProfileNumber(chaoticInterruptionProfile, 'internalCooldown');
   }
 
@@ -87,7 +80,7 @@ export function triggerChaoticInterruption(
 
 /** Applies Illusionary Membrane after earlier post-resolution shatter traits. */
 export function triggerIllusionaryMembrane(
-  context: Readonly<Pick<MesmerRuntime, 'traits' | 'addEvent' | 'addTraitProc' | 'balanceProfile'>>,
+  context: Readonly<Pick<MesmerMechanics, 'traits' | 'addEvent' | 'addTraitProc' | 'balanceProfile'>>,
   shatter: MesmerShatter | undefined,
   skillName: string,
   at: number
@@ -103,7 +96,7 @@ export function triggerIllusionaryMembrane(
     priority: 5,
     kind: 'illusionary-membrane',
     stacks: Number(effect.stacks),
-    duration: Number(effect.duration)
+    duration: effect.duration
   });
   context.addTraitProc('Illusionary Membrane', at, skillName);
 }
@@ -116,7 +109,7 @@ export function triggerMethodOfMadness(
   storm: MesmerTraitDamage
 ): void {
   if (!context.traits.has(TRAIT.METHOD_OF_MADNESS)) return;
-  const readyAt = professionCoreState(context.state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] || 0;
+  const readyAt = context.state.procs.readyAt[TRAIT.METHOD_OF_MADNESS] || 0;
   if (!isInternalCooldownReady(at, readyAt)) return;
   // A removed storm has no attack, proc, or attack-owned cooldown.
   if (storm.type !== 'strike') return;
@@ -138,5 +131,5 @@ export function triggerMethodOfMadness(
     }
   );
   context.addTraitProc('Method of Madness', at, skill.name);
-  professionCoreState(context.state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] = at + Number(storm.cooldown || 0);
+  context.state.procs.readyAt[TRAIT.METHOD_OF_MADNESS] = at + (storm.cooldown || 0);
 }

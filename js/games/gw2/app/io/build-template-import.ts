@@ -1,3 +1,4 @@
+import { professionRegistry } from '#gw2/profession-registry.js';
 import { decodeGw2BuildTemplate, resolveGw2BuildTemplate } from '#gw2/platform/builds/templates/codec.js';
 import { replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
 
@@ -11,42 +12,12 @@ interface BuildTemplateProfession {
   readonly route: string;
 }
 
-const BUILD_TEMPLATE_PROFESSIONS: Readonly<Record<string, BuildTemplateProfession>> = Object.freeze({
-  guardian: {
-    code: 1,
-    id: 'guardian',
-    name: 'Guardian',
-    route: 'guardian.html'
-  },
-  warrior: { code: 2, id: 'warrior', name: 'Warrior', route: 'warrior.html' },
-  engineer: {
-    code: 3,
-    id: 'engineer',
-    name: 'Engineer',
-    route: 'engineer.html'
-  },
-  ranger: { code: 4, id: 'ranger', name: 'Ranger', route: 'ranger.html' },
-  thief: { code: 5, id: 'thief', name: 'Thief', route: 'thief.html' },
-  elementalist: {
-    code: 6,
-    id: 'elementalist',
-    name: 'Elementalist',
-    route: 'elementalist.html'
-  },
-  mesmer: { code: 7, id: 'mesmer', name: 'Mesmer', route: 'mesmer.html' },
-  necromancer: {
-    code: 8,
-    id: 'necromancer',
-    name: 'Necromancer',
-    route: 'necromancer.html'
-  },
-  revenant: {
-    code: 9,
-    id: 'revenant',
-    name: 'Revenant',
-    route: 'revenant.html'
-  }
-});
+// Derive import identities from the registry so mismatch links use the same names and routes as navigation.
+const BUILD_TEMPLATE_PROFESSIONS: Readonly<Record<string, BuildTemplateProfession>> = Object.freeze(
+  Object.fromEntries(
+    professionRegistry.map(({ buildTemplateCode: code, id, name, route }) => [id, { code, id, name, route }])
+  )
+);
 const BUILD_TEMPLATE_PROFESSIONS_BY_CODE = new Map(
   Object.values(BUILD_TEMPLATE_PROFESSIONS).map((profession) => [profession.code, profession])
 );

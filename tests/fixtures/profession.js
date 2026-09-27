@@ -1,5 +1,5 @@
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Shared fixture only; its filename keeps Node from reporting this helper as an empty test.
 const catalog = createCanonicalCatalog({
@@ -32,7 +32,7 @@ const catalog = createCanonicalCatalog({
   weapons: ['Sword']
 });
 
-export const testProfession = defineProfession({
+export const testProfession = defineTestProfession({
   id: 'fixture',
   name: 'Fixture',
   catalog,
@@ -57,30 +57,12 @@ export const testProfession = defineProfession({
     })
   },
   resources: {
-    createProfessionState: () => ({ charge: 0, controlEvents: 0 })
+    createState: () => ({ charge: 0, controlEvents: 0 })
   },
-  attributeRules: {
+  modifiers: {
     modifyAttributes: (context, attributes) => ({
       ...attributes,
       power: attributes.power + (context.config.selectedTraitIds?.includes('fixture.power') ? 100 : 0)
-    })
-  },
-  resolverHooks: {
-    eventHandlers: {
-      'fixture.resource': (context, event) => {
-        context.profession.charge = Math.min(5, context.profession.charge + Number(event.amount || 0));
-      }
-    },
-    eventReactions: {
-      'control.resolved': (context) => {
-        context.profession.controlEvents += 1;
-      }
-    }
-  },
-  schedulerHooks: {
-    snapshot: (context) => ({
-      charge: context.state.profession.charge,
-      controlEvents: context.state.profession.controlEvents
     })
   },
   ui: {
@@ -100,5 +82,21 @@ export const testProfession = defineProfession({
         value: context.state?.profession?.charge || 0
       }
     ]
+  },
+  hooks: {
+    eventHandlers: {
+      'fixture.resource': (context, event) => {
+        context.profession.charge = Math.min(5, context.profession.charge + Number(event.amount || 0));
+      }
+    },
+    reactions: {
+      'control.resolved': (context) => {
+        context.profession.controlEvents += 1;
+      }
+    },
+    snapshot: (context) => ({
+      charge: context.profession.charge,
+      controlEvents: context.profession.controlEvents
+    })
   }
 });

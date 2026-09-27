@@ -1,17 +1,12 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import type { SkillMechanicInvocation } from '#gw2/platform/execution/types.js';
-import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /** Alternates two and three whole Poison applications per completed storm, keeping each cast's pulses independent. */
-export function scheduleChaosStormPoison({
-  context,
-  skill,
-  castStart,
-  castEnd,
-  activationId
-}: SkillMechanicInvocation<MesmerRuntimeState>): void {
+export function scheduleChaosStormPoison(context: MesmerRuntime, cast: RuntimeCast): void {
+  const { skill, start: castStart, fullEnd: castEnd, id: activationId } = cast;
   const effect = (skill as MesmerSkill).mesmerMechanic?.chaosStormPoison;
   if (!effect?.ticks?.length) return;
   const parity = professionCoreState(context).chaosStormCasts++ % 2;
@@ -29,6 +24,6 @@ export function scheduleChaosStormPoison({
       skillName: skill.name
     }
   })) {
-    context.emit(application.event);
+    context.emit({ ...application.event, offTarget: cast.command.offTarget });
   }
 }

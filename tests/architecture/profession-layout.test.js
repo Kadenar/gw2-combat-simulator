@@ -10,7 +10,7 @@ const PROFESSIONS = readdirSync(PROFESSIONS_ROOT, { withFileTypes: true })
   .map((entry) => entry.name)
   .sort();
 const ROOT_FILES = new Set(['profession.ts', 'catalog.ts', 'family-state.ts', 'family-presentation.ts', 'types.ts']);
-const REQUIRED_ROOT_FILES = ['profession.ts', 'catalog.ts', 'family-state.ts', 'types.ts'];
+const REQUIRED_ROOT_FILES = ['profession.ts', 'catalog.ts', 'types.ts'];
 const ROOT_FOLDERS = new Set(['app', 'build', 'data', 'core', 'specializations']);
 const TOP_LEVEL_DECLARATION = /^(export )?(const|function|let|class) /gm;
 const MODULE_DECLARATION = /^export const \w+ = defineNativeModule\(/m;

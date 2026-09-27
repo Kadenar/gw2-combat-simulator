@@ -3,19 +3,21 @@ import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
 } from '#gw2/platform/engine/profession/state.js';
-import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
+
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
-export interface NecromancerWeaponSpellState {
+interface NecromancerWeaponSpellState {
+  readonly generation: number;
   readonly skillId?: SkillId;
   readonly skillName?: string;
   readonly appliedAt?: number;
   readonly recipients?: Record<string, ChargeGrant>;
   /** Weapon spells that reach allies at full strength rather than the reduced allied share. */
-  readonly alliesReceiveFullBenefit?: boolean;
 }
 
 export interface RitualistState {
+  weaponSpellGeneration: number;
+  painfulBondGeneration: number;
   activeSpirits: Record<string, boolean>;
   spiritGenerations: Record<string, number>;
   spiritInitialUntil: Record<string, number>;
@@ -24,7 +26,6 @@ export interface RitualistState {
   resummonedSpiritAutoCycle: boolean;
   weaponSpells: Record<string, NecromancerWeaponSpellState>;
   soulTwistingAvailable: boolean;
-  pendingSoulTwistSkill?: SkillId | null;
   painfulBondUntil: number;
   painfulBondPulseAnchorAt: number;
 }
@@ -36,25 +37,24 @@ export const RITUALIST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 } satisfies Partial<RitualistState>);
 
 /** Creates Ritualist's spirit cadence, weapon-spell, and Painful Bond runtime state. */
-export function createRitualistState(): RitualistState {
+function createRitualistState(): RitualistState {
   const state: RitualistState = {
+    weaponSpellGeneration: 0,
+    painfulBondGeneration: 0,
     activeSpirits: {},
     spiritGenerations: {},
     spiritInitialUntil: {},
     spiritBusyUntil: {},
-    // NaN signals "no anchor established yet"; first summon computes it from firstSpiritAttackDelay
+    // NaN signals "no anchor established yet"; the first summon uses the resource profile's initialDelay
     spiritAutoAnchorAt: Number.NaN,
-    // true only between a re-summon and the next anchor computation (uses shorter resummonedSpiritAttackDelay)
+    // A re-summon uses the shorter resummonedSpiritAttackDelayMs profile value when establishing the next anchor.
     resummonedSpiritAutoCycle: false,
     weaponSpells: {},
     soulTwistingAvailable: false,
-    pendingSoulTwistSkill: null,
     painfulBondUntil: 0,
     // NaN signals "no pulse scheduled yet"; first apply event sets the anchor
     painfulBondPulseAnchorAt: Number.NaN
   };
-  // Preserve resolved effect cadence and per-recipient spending across scheduler snapshots.
-  registerNecromancerResolverFields(state, ['painfulBondUntil', 'painfulBondPulseAnchorAt', 'weaponSpells']);
   return state;
 }
 

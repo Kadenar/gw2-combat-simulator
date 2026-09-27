@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { testProfession } from '#tests/fixtures/profession.js';
 import test from 'node:test';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
@@ -15,6 +17,7 @@ for (const reporting of [true, false]) {
       config: {},
       horizon: 3,
       query: {
+        ...createGw2CombatQuery({ profession: testProfession }),
         statsAt: () => ({ conditionDamage: 0 }),
         conditionDurationMultiplier: () => 1,
         conditionMultiplier: () => 1

@@ -45,6 +45,14 @@ export const WARRIOR_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Critical Might is independently patchable and removable without changing Keen Strike's attack.
+  {
+    id: ID.KEEN_STRIKE,
+    name: 'Keen Strike — Critical Might',
+    profileKind: 'skill-variant',
+    parentId: ID.KEEN_STRIKE,
+    effects: [{ name: 'Might', type: 'boon', boon: 'might', stacks: 1, duration: 5 }]
+  },
   {
     id: WARRIOR_CORE_BALANCE_PROFILE_IDS.resources,
     name: 'Warrior Core Resources',
@@ -225,6 +233,7 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     attributeBonus: 10
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.forcefulGreatsword, 'Forceful Greatsword', {
+    rechargeMultiplier: 0.8,
     attributeBonus: 120,
     weaponAttributeBonus: 120,
     // Critical Might has twice the proc chance while wielding a greatsword.
@@ -250,6 +259,10 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
   trait(TRAIT.UNSUSPECTING_FOE, 'Unsuspecting Foe', {
     criticalChance: 0.25
   }),
+  trait(TRAIT.CULL_THE_WEAK, 'Cull the Weak', {
+    internalCooldown: 5,
+    effects: [{ name: 'Weakness', type: 'condition', condition: 'Weakness', duration: 3.5, stacks: 1 }]
+  }),
   // Trait tuning is shared by build calculations, combat, and tooltips.
   trait(TRAIT.VERSATILE_POWER, 'Versatile Power', { rechargeMultiplier: 0.85 }),
   trait(TRAIT.VERSATILE_RAGE, 'Versatile Rage', { resourceGain: 5 }),
@@ -258,6 +271,7 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
   }),
   trait(TRAIT.WOUNDING_PRECISION, 'Wounding Precision', { attributeConversion: 0.07 }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.blademaster, 'Blademaster', {
+    rechargeMultiplier: 0.8,
     attributeBonus: 120
   }),
   {

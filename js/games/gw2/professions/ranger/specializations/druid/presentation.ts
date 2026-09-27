@@ -24,7 +24,7 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
     }
 
     // Runtime snapshots and detached planning projections share the same force clock.
-    if (Number(state.astralClock?.value ?? 0) < 100) {
+    if ((state.astralClock?.value ?? 0) < 100) {
       return { available: false, message: 'Requires full Astral Force' };
     }
   }
@@ -62,12 +62,12 @@ export function bindDruidUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlice 
       }
     ],
     timelineWeaponLineTransition: (context: RangerUiContext) => {
-      const skill = context.skill as RangerSkill | undefined;
-      if (skill?.handlerId === 'ranger.celestial-avatar-enter') {
+      const skill = context.skill;
+      if (skill?.id === ID.CELESTIAL_AVATAR) {
         return 'Celestial Avatar';
       }
 
-      if (skill?.handlerId === 'ranger.celestial-avatar-exit') {
+      if (skill?.id === ID.RELEASE_CELESTIAL_AVATAR) {
         // null signals end of CA section on the timeline without starting a new named line
         return null;
       }
@@ -82,7 +82,7 @@ export function bindDruidUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlice 
           singular: 'astral force',
           plural: 'astral force',
           maximum: 100,
-          value: Number(state.astralClock?.value ?? context.initialAstralForce ?? 100),
+          value: state.astralClock?.value ?? context.initialAstralForce ?? 100,
           startMaximum: 100,
           canStart: true,
           // buildKey links this value to the config field that persists initial force across sessions

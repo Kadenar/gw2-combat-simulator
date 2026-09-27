@@ -1,31 +1,18 @@
-import { advanceProfessionResources } from '#gw2/platform/combat/resources/resource-policy.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
-import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
-import {
-  summonThievesGuild,
-  observeThievesGuildCombatEvent,
-  thievesGuildTaskHandlers
-} from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { thiefCoreAttributeRules, thiefCoreModifierRules } from '#gw2/professions/thief/core/traits/modifiers.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { thiefCoreModifiers, thiefCoreModifierRules } from '#gw2/professions/thief/core/modifiers.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attributes.js';
-import { grantThiefStealth } from '#gw2/professions/thief/core/mechanics/weapon-state.js';
-import { beginStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
-import { advanceThiefCoreResources } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { gainThiefEndurance, gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
+import { beginThiefStealthAttack, grantThiefStealth } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { grantThiefEndurance, grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
-import { reactToThiefCoreDamage } from '#gw2/professions/thief/core/traits/index.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { professionEnduranceReadyAt } from '#gw2/platform/combat/resources/endurance-policy.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 
 const baseConfig = {
   primaryWeapon: 'Dagger',
@@ -42,33 +29,44 @@ const baseConfig = {
   stats: { power: 2000, precision: 1000, ferocity: 0, expertise: 0, conditionDamage: 1000, concentration: 0 },
   target: { armor: 2597, defiant: true }
 };
-const simulate = createProfessionSimulator(thiefProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(thiefProfession, baseConfig);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, `${actual} != ${expected}`);
 
-// Use the real scheduler context so state, event ownership, and balance profiles follow production contracts.
-function scheduler(specialization = 'Core', overrides = {}) {
-  const config = { ...baseConfig, ...overrides, specialization };
-  return createScheduler({ profession: thiefProfession, config, schedulerPolicy: createGw2SchedulerPolicy(config) });
+/** Runs a focused scenario on the registered live owners with this file's shared build. */
+function live(specialization, rotation, overrides = {}, options = {}) {
+  return runThief(rotation, { ...baseConfig, ...overrides, specialization }, options);
 }
 
 test('Basilisk Venom contributes control and retains its 40-second recharge', () => {
-  const scheduled = scheduler('Core', { selectedSkills: ['Basilisk Venom'] });
-  const result = scheduled.run(['Basilisk Venom']);
+  const result = live('Core', ['Basilisk Venom'], { selectedSkills: ['Basilisk Venom'] });
   assert.deepEqual(result.warnings, []);
   const control = result.events.find((event) => event.type === 'control' && event.skillId === ID.BASILISK_VENOM);
   assert.equal(control.controlKind, 'stun');
 
-  near(scheduled.context.state.cooldowns.get(ID.BASILISK_VENOM) - control.at, 40);
+  near(observedRuntime(result).cooldowns.get(ID.BASILISK_VENOM) - control.at, 32);
 });
 
 test("Sniper's Cover spends four initiative and opens a five-second smoke field and follow-up", () => {
   const config = { primaryWeapon: 'Rifle', secondaryWeapon: '' };
-  const result = simulate('Deadeye', ['Kneel', "Sniper's Cover"], config);
+  const spent = [];
+  const result = runThief(
+    ['Kneel', "Sniper's Cover"],
+    { ...config, specialization: 'Deadeye' },
+    {
+      // Read the pool around the composed cast-start hook that spends the activation's initiative.
+      extend: (native) => ({
+        onCastStart(runtime, cast) {
+          const before = runtime.resourceController.value('initiative');
+          native.onCastStart(runtime, cast);
+          if (cast.skill.id === ID.SNIPERS_COVER) spent.push(before - runtime.resourceController.value('initiative'));
+        }
+      })
+    }
+  );
   assert.deepEqual(result.warnings, []);
-  const spentIndex = result.events.findLastIndex((event) => event.reason === 'initiative-spent');
-  const before = result.events.slice(0, spentIndex).findLast((event) => event.type === 'thief.state');
-  near(before.state.initiative.value - result.events[spentIndex].state.initiative.value, 4);
+  assert.equal(spent.length, 1);
+  near(spent[0], 4);
   const field = result.events.find((event) => event.type === 'combo_field' && event.skillId === ID.SNIPERS_COVER);
   assert.equal(field.fieldType, 'Smoke');
   near(field.expiresAt - field.at, 5);
@@ -82,30 +80,29 @@ test("Sniper's Cover spends four initiative and opens a five-second smoke field 
 
 test("Infiltrator's Signet pulses discrete initiative only while ready and restarts after activation or reset", () => {
   const selectedSkills = ["Infiltrator's Signet"];
+  const initiative = (result) => observedRuntime(result).resourceController.value('initiative');
+  const nextPulse = (result) => observedRuntime(result).profession.core.infiltratorsSignetPulseAt;
   // Splitting waits cannot change the pulse, and the normal resource cap still applies.
   for (const rotation of [[wait(10000)], [wait(9999), wait(1)]]) {
-    const scheduled = scheduler('Core', { selectedSkills, initialInitiative: 0 });
-    const result = scheduled.run(rotation);
+    const result = live('Core', rotation, { selectedSkills, initialInitiative: 0 });
     assert.deepEqual(result.warnings, []);
-    assert.equal(scheduled.context.state.profession.core.initiative.value, 11);
-    assert.equal(result.events.find((event) => event.reason === 'infiltrators-signet').at, 10);
+    assert.equal(initiative(result), 11);
+    // The pulse at ten seconds has already run and owns the next one.
+    assert.equal(nextPulse(result), 20);
   }
 
-  const unequipped = scheduler('Core', { selectedSkills: [], initialInitiative: 0 });
-  unequipped.run([wait(10000)]);
-  assert.equal(unequipped.context.state.profession.core.initiative.value, 10);
-  const capped = scheduler('Core', { selectedSkills });
-  capped.run([wait(20000)]);
-  assert.equal(capped.context.state.profession.core.initiative.value, 12);
+  assert.equal(initiative(live('Core', [wait(10000)], { selectedSkills: [], initialInitiative: 0 })), 10);
+  assert.equal(initiative(live('Core', [wait(20000)], { selectedSkills })), 12);
 
-  const active = scheduler('Core', { selectedSkills, initialInitiative: 0 });
-  active.run(["Infiltrator's Signet", wait(10000)]);
-  assert.equal(active.context.state.profession.core.initiative.value, 10);
-  assert.equal(active.context.state.cooldowns.get(ID.INFILTRATORS_SIGNET), 20);
-  assert.equal(active.context.tasks.nextAt('thief.infiltrators-signet'), 30);
-  const reset = scheduler('Core', { selectedSkills, initialInitiative: 0 });
-  reset.run(["Infiltrator's Signet", wait(1000), { type: 'cooldown-reset' }]);
-  assert.equal(reset.context.tasks.nextAt('thief.infiltrators-signet'), 11);
+  const active = live('Core', ["Infiltrator's Signet", wait(10000)], { selectedSkills, initialInitiative: 0 });
+  assert.equal(initiative(active), 10);
+  assert.equal(observedRuntime(active).cooldowns.get(ID.INFILTRATORS_SIGNET), 16);
+  assert.equal(nextPulse(active), 26);
+  const reset = live('Core', ["Infiltrator's Signet", wait(1000), { type: 'cooldown-reset' }], {
+    selectedSkills,
+    initialInitiative: 0
+  });
+  assert.equal(nextPulse(reset), 11);
 
   const step = simulate('Core', ["Infiltrator's Signet", wait(1000)], {
     selectedSkills,
@@ -132,197 +129,184 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
     180
   );
 
-  // Real activation events drive passive suppression, recovery, and cooldown resets for raw and panel stats.
+  // The live cooldown clock drives passive suppression, recovery, and cooldown resets for raw and panel stats.
+  const precision = (runtime, config, attributes) =>
+    thiefCoreModifiers.modifyAttributes(
+      { catalog: thiefCatalog, config, timeline: runtime.query.timeline, time: runtime.time },
+      attributes
+    ).precision;
   for (const specialization of ['Core', 'Daredevil']) {
     for (const initial of [0, 75]) {
-      const scheduled = scheduler(specialization, { selectedSkills });
-      const core = scheduled.context.state.profession.core;
-      core.endurance = initial;
-      const result = scheduled.run(['Signet of Agility']);
-      assert.deepEqual(result.warnings, []);
-      assert.equal(
-        core.endurance,
-        Math.min(scheduled.context.profession.resources.endurance.maximum(scheduled.context), initial + 100)
-      );
-      assert.equal(scheduled.context.state.cooldowns.get(ID.SIGNET_OF_AGILITY), 30);
-      const timeline = createGw2TimelineIndex({ events: result.events, skillsById: thiefCatalog.skillsById });
-      for (const professionStaticRulesApplied of [false, true]) {
-        const config = { selectedSkills, attributeProvenance: { professionStaticRulesApplied } };
-        const attributes = { ...baseConfig.stats, precision: professionStaticRulesApplied ? 1180 : 1000 };
-        assert.equal(
-          thiefCoreAttributeRules.modifyAttributes(
-            { catalog: thiefCatalog, config, timeline: createGw2TimelineIndex(), time: 0 },
-            attributes
-          ).precision,
-          1180
-        );
-        for (const [time, expected] of [
-          [1, 1000],
-          [29.9, 1000],
-          [30, 1180]
-        ]) {
-          assert.equal(
-            thiefCoreAttributeRules.modifyAttributes({ catalog: thiefCatalog, config, timeline, time }, attributes)
-              .precision,
-            expected
-          );
+      const observed = [];
+      const probe = (runtime) => {
+        for (const professionStaticRulesApplied of [false, true]) {
+          const config = { selectedSkills, attributeProvenance: { professionStaticRulesApplied } };
+          const attributes = { ...baseConfig.stats, precision: professionStaticRulesApplied ? 1180 : 1000 };
+          observed.push([runtime.time, professionStaticRulesApplied, precision(runtime, config, attributes)]);
         }
 
-        assert.equal(
-          thiefCoreAttributeRules.modifyAttributes(
-            { config: { selectedSkills: [] }, timeline, time: 1 },
-            baseConfig.stats
-          ).precision,
-          1000
-        );
+        observed.push([runtime.time, 'unselected', precision(runtime, { selectedSkills: [] }, baseConfig.stats)]);
+      };
+
+      const result = live(
+        specialization,
+        ['Signet of Agility', wait(30000)],
+        { selectedSkills, initialEndurance: initial, boons: { vigor: false } },
+        { probes: [0, 1, 29.9, 30].map((at) => [at, probe]) }
+      );
+      assert.deepEqual(result.warnings, []);
+      const runtime = observedRuntime(result);
+      assert.equal(runtime.cooldowns.get(ID.SIGNET_OF_AGILITY), 24);
+      const capacity = thiefProfession.runtimeFor({ specialization }).endurance.maximum(runtime);
+      // The restoration applies at the instant cast's completion, before any regeneration.
+      assert.equal(
+        result.events.find((event) => event.type === 'action' && event.skillId === ID.SIGNET_OF_AGILITY).endsAt,
+        0
+      );
+      assert.ok(result.planningState.profession.endurance >= Math.min(capacity, initial + 100));
+      for (const [time, staticRules, value] of observed) {
+        if (staticRules === 'unselected') assert.equal(value, 1000, `${time}`);
+        else if (time === 0) continue;
+        else assert.equal(value, time >= 24 ? 1180 : 1000, `${specialization} ${time} ${staticRules}`);
       }
     }
   }
 
-  const reset = scheduler('Core', { selectedSkills }).run([
-    'Signet of Agility',
-    wait(1000),
-    { type: 'cooldown-reset' }
-  ]);
-  assert.deepEqual(reset.warnings, []);
-  const timeline = createGw2TimelineIndex({ events: reset.events, skillsById: thiefCatalog.skillsById });
-  assert.equal(
-    thiefCoreAttributeRules.modifyAttributes(
-      { catalog: thiefCatalog, config: { selectedSkills }, timeline, time: 2 },
-      baseConfig.stats
-    ).precision,
-    1180
+  const resetPrecision = [];
+  const reset = live(
+    'Core',
+    ['Signet of Agility', wait(1000), { type: 'cooldown-reset' }, wait(1000)],
+    {
+      selectedSkills
+    },
+    {
+      probes: [[2, (runtime) => resetPrecision.push(precision(runtime, { selectedSkills }, baseConfig.stats))]]
+    }
   );
+  assert.deepEqual(reset.warnings, []);
+  assert.deepEqual(resetPrecision, [1180]);
 });
 
-test('Thief resource grants preserve snapshot identity, deduplication, and passive recovery', () => {
-  // Grants follow passive recovery at the scheduler clock and cannot change earlier snapshots.
-  const { context } = scheduler('Core', { boons: { vigor: false } });
-  const state = context.state.profession.core;
-  Object.assign(state, {
-    initiative: { value: 3, maximum: 12, updatedAt: 1, rate: 1 },
-    endurance: 10,
-    enduranceUpdatedAt: 1
-  });
-  context.advanceTo(2);
-  gainThiefInitiative(context, 2, 2, 'initiative-grant');
-  const initiative = context.events.at(-1);
-  gainThiefInitiative(context, 0, 2, 'initiative-grant');
-  assert.equal(context.events.at(-1), initiative);
-  gainThiefEndurance(context, 7, 2, 'endurance-grant');
-  const endurance = context.events.at(-1);
-  gainThiefEndurance(context, 0, 2, 'endurance-grant');
-  assert.equal(context.events.at(-1), endurance);
-  assert.ok(initiative.eventOrder < endurance.eventOrder);
-  for (const [snapshot, reason] of [
-    [initiative, 'initiative-grant'],
-    [endurance, 'endurance-grant']
+test('Signet of Agility restores endurance up to each elite capacity', () => {
+  for (const [specialization, capacity] of [
+    ['Core', 100],
+    ['Daredevil', 150]
   ]) {
-    assert.equal(snapshot.type, 'thief.state');
-    assert.equal(snapshot.source, 'thief');
-    assert.equal(snapshot.sourceId, `thief.state.${reason}`);
-    assert.equal(snapshot.actorType, 'player');
-    assert.equal(snapshot.reason, reason);
-    assert.equal(snapshot.at, 2);
+    for (const initial of [0, 75]) {
+      const result = live(specialization, ['Signet of Agility'], {
+        selectedSkills: ['Signet of Agility'],
+        initialEndurance: initial
+      });
+      assert.deepEqual(result.warnings, []);
+      assert.equal(result.planningState.profession.endurance, Math.min(capacity, initial + 100));
+    }
   }
+});
 
-  assert.equal(state.enduranceUpdatedAt, 2);
-  advanceThiefCoreResources(context, 2);
-  assert.equal(state.endurance, 22);
-  assert.equal(state.initiative.value, 6);
-  assert.equal(initiative.state.initiative.value, 6);
-  assert.equal(initiative.state.endurance, 15);
-  assert.equal(endurance.state.endurance, 22);
+test('Thief resource grants settle passive recovery at the live clock before applying', () => {
+  const observed = [];
+  const result = live(
+    'Core',
+    [wait(2000)],
+    { initialInitiative: 3, initialEndurance: 10, boons: { vigor: false } },
+    {
+      probes: [
+        [
+          2,
+          (runtime) => {
+            grantThiefInitiative(runtime, 2);
+            grantThiefInitiative(runtime, 0);
+            grantThiefEndurance(runtime, 7);
+            grantThiefEndurance(runtime, 0);
+            observed.push(runtime.resourceController.value('initiative'), runtime.profession.core.endurance);
+            observed.push(runtime.profession.core.enduranceUpdatedAt);
+          }
+        ]
+      ]
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  // Two seconds of recovery (one initiative and five endurance per second) precede each grant.
+  assert.deepEqual(observed, [7, 27, 2]);
 });
 
 test('permanent Vigor bypasses history for Thief advancement and readiness', () => {
   // Both resource entry points must select the fixed-rate path, including capped recovery.
-  const { context } = scheduler('Core', { boons: { vigor: true } });
-  const state = context.state.profession.core;
-  state.endurance = 0;
-  const current = {
-    ...context,
-    events: new Proxy(context.events, {
+  const observed = [];
+  const guarded = (runtime, read) => {
+    const history = runtime.history;
+    runtime.history = new Proxy(history, {
       get(events, key, receiver) {
         if (key === 'filter') assert.fail('Permanent Vigor scanned history');
         return Reflect.get(events, key, receiver);
       }
-    })
-  };
-  near(professionEnduranceReadyAt({ ...current, start: 0 }, 50), 6.68);
-  advanceThiefCoreResources(current, 4);
-  assert.equal(state.endurance, 30);
-  near(professionEnduranceReadyAt({ ...current, start: 4 }, 50), 6.68);
-  advanceThiefCoreResources(current, 100);
-  assert.equal(state.endurance, context.profession.resources.endurance.maximum(context));
-});
-
-test('empty Thief endurance windows still advance initiative, expire temporary state, and emit a snapshot', () => {
-  // An endurance-only no-op must not skip the rest of the resource update.
-  for (const enduranceUpdatedAt of [2, 3]) {
-    const { context } = scheduler('Core', { boons: { vigor: false } });
-    const state = context.state.profession.core;
-    Object.assign(state, {
-      endurance: 10,
-      enduranceUpdatedAt,
-      initiative: { value: 0, maximum: 12, updatedAt: 0, rate: 1 },
-
-      leadAttackExpirations: [1, 4],
-      availableFlips: { [ID.SHADOW_SWAP]: armSkillFlip({}, 0, 0, 2) },
-      activeThievesGuild: { expiresAt: 2 }
     });
-    addVenomCharges(state, ID.SPIDER_VENOM, 0, 2, 2);
-    advanceProfessionResources(context, 2);
-    advanceThiefCoreResources(
-      {
-        ...context,
-        events: new Proxy(context.events, {
-          get(events, key, receiver) {
-            if (key === 'filter') assert.fail('Empty endurance window scanned history');
-            return Reflect.get(events, key, receiver);
-          }
-        })
-      },
-      2
-    );
-    assert.equal(state.endurance, 10);
-    assert.equal(state.enduranceUpdatedAt, enduranceUpdatedAt);
-    assert.equal(state.initiative.value, 2);
-    assert.equal(state.initiative.updatedAt, 2);
-    assert.deepEqual(state.leadAttackExpirations, [4]);
-    assert.equal(state.leadAttacksStacks, 1);
-    assert.deepEqual(state.availableFlips, {});
-    assert.equal(state.activeThievesGuild, null);
-    assert.deepEqual(state.venomChargeBatches[ID.SPIDER_VENOM], []);
-    assert.equal(context.events.at(-1).type, 'thief.state');
-    assert.equal(context.events.at(-1).at, 2);
-  }
+    try {
+      return read();
+    } finally {
+      runtime.history = history;
+    }
+  };
+
+  const result = live(
+    'Core',
+    [wait(100000)],
+    { boons: { vigor: true }, initialEndurance: 0 },
+    {
+      probes: [
+        [0, (runtime) => observed.push(guarded(runtime, () => runtime.endurance.readyAt(50)))],
+        [
+          4,
+          (runtime) =>
+            guarded(runtime, () => {
+              runtime.endurance.advance();
+              observed.push(runtime.profession.core.endurance, runtime.endurance.readyAt(50));
+            })
+        ],
+        [
+          100,
+          (runtime) =>
+            guarded(runtime, () => {
+              runtime.endurance.advance();
+              observed.push(runtime.profession.core.endurance);
+            })
+        ]
+      ]
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  near(observed[0], 6.68);
+  assert.equal(observed[1], 30);
+  near(observed[2], 6.68);
+  assert.equal(observed[3], 100);
 });
 
 test('THF-001: Hidden Killer requires stealth and lingers after either natural expiry or an attack', () => {
-  const { context } = scheduler('Core', { selectedTraitIds: [TRAIT.HIDDEN_KILLER] });
-  const state = context.state.profession.core;
   const rule = thiefCoreModifierRules.find((entry) => entry.id === 'thief.hidden-killer');
-  const active = (time) =>
-    rule.when({
-      config: context.config,
-      runtime: { profession: context.state.profession },
-      event: { actorType: 'player' },
-      time
-    });
-  assert.equal(active(0), false);
-  assert.equal(active(0.5), false);
   const skill = thiefCatalog.skillsById.get(ID.BACKSTAB);
-  grantThiefStealth(context, skill, 1, 3);
-  assert.equal(active(0.5), false);
-  assert.equal(active(1), true);
-  assert.equal(active(4), true);
-  assert.equal(active(7.99), true);
-  assert.equal(active(8), false);
-  beginStealthAttack({ ...context, start: 2 }, skill);
-  assert.equal(state.hiddenKillerUntil, 6);
-  assert.equal(active(5.99), true);
-  assert.equal(active(6), false);
+  const config = { ...baseConfig, specialization: 'Core', selectedTraitIds: [TRAIT.HIDDEN_KILLER] };
+  const run = (attack) =>
+    observedRuntime(
+      live('Core', [wait(2000)], config, {
+        probes: [
+          [1, (runtime) => grantThiefStealth(runtime, skill, 3)],
+          ...(attack ? [[2, (runtime) => beginThiefStealthAttack(runtime, { skill, id: 'test-attack' })]] : [])
+        ]
+      })
+    );
+  const active = (runtime, time) =>
+    rule.when({ config, runtime: { profession: runtime.profession }, event: { actorType: 'player' }, time });
+
+  const natural = run(false);
+  assert.equal(active(natural, 0.5), false);
+  assert.equal(active(natural, 1), true);
+  assert.equal(active(natural, 4), true);
+  assert.equal(active(natural, 7.99), true);
+  assert.equal(active(natural, 8), false);
+  const attacked = run(true);
+  assert.equal(attacked.profession.core.hiddenKillerUntil, 6);
+  assert.equal(active(attacked, 5.99), true);
+  assert.equal(active(attacked, 6), false);
   const opening = simulate('Core', ['Double Strike'], { selectedTraitIds: [TRAIT.HIDDEN_KILLER] });
   assert.ok(
     opening.resolvedEvents.filter((event) => event.type === 'damage').every((event) => event.criticalChance < 1)
@@ -355,24 +339,33 @@ test('THF-003: cancelled activations preserve persistent state while successful 
 
 test('THF-004: one strike consumes every active venom but emits only one player siphon', () => {
   for (const venoms of [[ID.SPIDER_VENOM], [ID.SPIDER_VENOM, ID.SKALE_VENOM, ID.DEVOURER_VENOM]]) {
-    const { context } = scheduler('Core', { selectedTraitIds: [TRAIT.LEECHING_VENOMS] });
-    const state = context.state.profession.core;
-    for (const id of venoms) addVenomCharges(state, id, 0, 2, 24);
-    const queued = [];
-    const conditions = [];
-    reactToThiefCoreDamage(
+    const result = live(
+      'Core',
+      ['Heartseeker'],
+      { selectedTraitIds: [TRAIT.LEECHING_VENOMS] },
       {
-        ...context,
-        helpers: { skillsById: context.catalog.skillsById },
-        applyCondition: (event) => conditions.push(event),
-        queue: { enqueue: (event) => queued.push(event) }
-      },
-      { type: 'damage', at: 1, actorType: 'player', coefficient: 1, skillId: ID.HEARTSEEKER, skillName: 'Heartseeker' }
+        initialize: (runtime) => {
+          for (const id of venoms) addVenomCharges(runtime.profession.core, id, 0, 2, 24);
+        }
+      }
     );
-    assert.equal(queued.filter((event) => event.sourceId === TRAIT.LEECHING_VENOMS).length, 1);
+    assert.deepEqual(result.warnings, []);
+    const strikes = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillId === ID.HEARTSEEKER && event.actorType === 'player'
+    );
+    assert.equal(strikes.length, 1);
+    const siphons = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.sourceId === TRAIT.LEECHING_VENOMS
+    );
+    assert.equal(siphons.length, 1);
+    const batches = observedRuntime(result).profession.core.venomChargeBatches;
     for (const id of venoms) {
-      assert.equal(state.venomChargeBatches[id][0].charges, 1);
-      assert.ok(conditions.some((event) => event.skillId === id));
+      assert.equal(batches[id][0].charges, 1);
+      assert.ok(
+        result.resolvedEvents.some(
+          (event) => event.type === 'condition' && event.skillId === id && event.at === strikes[0].at
+        )
+      );
     }
   }
 });
@@ -418,41 +411,56 @@ test('THF-007: Sun Crystal enhances base Burning once and preserves already-enha
 test('THF-008: endurance and readiness are invariant across Vigor expiry, extensions, and the cap', () => {
   for (const initial of [0, 95]) {
     const run = (targets) => {
-      const { context } = scheduler();
-      context.state.profession.core.endurance = initial;
-      context.emit({
-        type: 'buff',
-        at: 0,
-        source: 'Test',
-        sourceId: 'test.vigor',
-        actorType: 'player',
-        kind: 'vigor',
-        boon: 'vigor',
-        duration: 4,
-        stacks: 1
-      });
-      context.emit({
-        type: 'boon_extension',
-        at: 2,
-        source: 'Test',
-        sourceId: 'test.extension',
-        actorType: 'player',
-        kind: 'vigor',
-        duration: 2
-      });
-      const readyBefore = professionEnduranceReadyAt({ ...context, start: 0 }, 50);
-      for (const target of targets) advanceThiefCoreResources(context, target);
-      return {
-        endurance: context.state.profession.core.endurance,
-        readyBefore,
-        readyAfter: professionEnduranceReadyAt({ ...context, start: targets.at(-1) }, 50)
-      };
+      const observed = {};
+      live(
+        'Core',
+        [wait(10000)],
+        { initialEndurance: initial, boons: { vigor: false } },
+        {
+          initialize(runtime) {
+            runtime.emit({
+              type: 'buff',
+              at: 0,
+              source: 'Test',
+              sourceId: 'test.vigor',
+              actorType: 'player',
+              kind: 'vigor',
+              boon: 'vigor',
+              duration: 4,
+              stacks: 1
+            });
+            runtime.emit({
+              type: 'boon_extension',
+              at: 2,
+              source: 'Test',
+              sourceId: 'test.extension',
+              actorType: 'player',
+              kind: 'vigor',
+              duration: 2
+            });
+          },
+          // Intermediate observations must not change the settled pool or its readiness. Readiness is read once the
+          // extension has applied, since the live clock cannot see a later event.
+          probes: [
+            [2, (runtime) => (observed.readyBefore = runtime.endurance.readyAt(50))],
+            ...targets.map((target) => [
+              target,
+              (runtime) => {
+                runtime.endurance.advance();
+                observed.endurance = runtime.profession.core.endurance;
+                observed.readyAfter = runtime.endurance.readyAt(50);
+              }
+            ])
+          ]
+        }
+      );
+      return observed;
     };
 
     const single = run([10]);
     assert.deepEqual(run([2, 4, 6, 10]), single);
     near(single.endurance, initial ? 100 : 65);
-    near(single.readyBefore, initial ? 0 : 7);
+    near(single.readyBefore, initial ? 2 : 7);
   }
 
   const rotation = ['Dodge', 'Dodge', 'Steal'];
@@ -464,6 +472,18 @@ test('THF-008: endurance and readiness are invariant across Vigor expiry, extens
   near(whole.planningState.profession.endurance, split.planningState.profession.endurance);
 });
 
+/** Seeds a marked, stealthed Deadeye before its first command. */
+function markedDeadeye(malice, marked) {
+  return (runtime) => {
+    Object.assign(runtime.profession.core, { stealthUntil: 10 });
+    Object.assign(runtime.profession.specialization.state, {
+      malice,
+      markedTargetId: marked ? 'primary-target' : null,
+      markExpiresAt: marked ? 30 : 0
+    });
+  };
+}
+
 test('THF-009: malicious sword, staff, axe, and scepter use the consumed malice snapshot', () => {
   for (const [name, weapon] of [
     ['Malicious Tactical Strike', 'Sword'],
@@ -472,25 +492,27 @@ test('THF-009: malicious sword, staff, axe, and scepter use the consumed malice 
     ['Malicious Shadowsquall', 'Scepter']
   ]) {
     for (const malice of [0, 4]) {
-      const scheduled = scheduler('Deadeye', {
-        primaryWeapon: weapon,
-        secondaryWeapon: '',
-        selectedTraitIds: [TRAIT.MALICIOUS_INTENT]
-      });
-      const { core, specialization } = scheduled.context.state.profession;
-      Object.assign(core, { endurance: 0, stealthUntil: 10 });
-      Object.assign(specialization.state, { malice, markedTargetId: 'primary-target', markExpiresAt: 30 });
-      const result = scheduled.run([name]);
+      const result = live(
+        'Deadeye',
+        [name],
+        {
+          primaryWeapon: weapon,
+          secondaryWeapon: '',
+          selectedTraitIds: [TRAIT.MALICIOUS_INTENT],
+          initialEndurance: 0,
+          boons: { vigor: false }
+        },
+        { initialize: markedDeadeye(malice, true) }
+      );
       assert.deepEqual(result.warnings, []);
-      assert.equal(specialization.state.malice, 2);
+      const runtime = observedRuntime(result);
+      assert.equal(runtime.profession.specialization.state.malice, 2);
       if (weapon === 'Sword') {
-        const refund = result.events.find((event) => event.reason === 'malicious-tactical-strike');
-        assert.ok(refund);
-        near(core.endurance, scheduled.context.state.time * 5 + malice * 10);
+        near(runtime.profession.core.endurance, runtime.time * 5 + malice * 10);
       } else if (weapon === 'Staff') {
         const boon = result.events.find((event) => event.type === 'buff' && event.kind === 'quickness');
         near(Number(boon?.duration || 0), malice * 0.75);
-        assert.equal(scheduled.context.hasBuff('quickness', 2), malice > 0);
+        assert.equal(boon != null, malice > 0);
       } else {
         const poison = result.events.find((event) => event.type === 'condition' && event.condition === 'Poisoned');
         near(poison.duration, weapon === 'Axe' ? 1 + malice : 3 * (1 + 0.2 * malice));
@@ -502,20 +524,21 @@ test('THF-009: malicious sword, staff, axe, and scepter use the consumed malice 
 test('THF-009: unmarked and missed attacks grant no malicious sword or staff benefit', () => {
   for (const weapon of ['Sword', 'Staff']) {
     for (const marked of [true, false]) {
-      const scheduled = scheduler('Deadeye', { primaryWeapon: weapon, secondaryWeapon: '' });
-      const { core, specialization } = scheduled.context.state.profession;
-      Object.assign(core, { endurance: 0, stealthUntil: 10 });
-      Object.assign(specialization.state, {
-        malice: 4,
-        markedTargetId: marked ? 'primary-target' : null,
-        markExpiresAt: marked ? 30 : 0
-      });
       const name = weapon === 'Sword' ? 'Malicious Tactical Strike' : 'Malicious Hook Strike';
-      const result = scheduled.run([{ name, offTarget: marked }]);
+      const result = live(
+        'Deadeye',
+        [{ name, offTarget: marked }],
+        { primaryWeapon: weapon, secondaryWeapon: '', initialEndurance: 0, boons: { vigor: false } },
+        { initialize: markedDeadeye(4, marked) }
+      );
       assert.deepEqual(result.warnings, []);
-      assert.equal(specialization.state.malice, 4);
-      assert.equal(scheduled.context.hasBuff('quickness', 0), false);
-      near(core.endurance, scheduled.context.state.time * 5);
+      const runtime = observedRuntime(result);
+      assert.equal(runtime.profession.specialization.state.malice, 4);
+      assert.equal(
+        result.events.some((event) => event.type === 'buff' && event.kind === 'quickness'),
+        false
+      );
+      near(runtime.profession.core.endurance, runtime.time * 5);
     }
   }
 });
@@ -547,21 +570,28 @@ test('THF-010: Leeching Venoms uses its flat Power formula across armor, weapons
 
 test('THF-011: Heartseeker produces a smoke leap only inside a live field', () => {
   for (const expiresAt of [0, 10]) {
-    const scheduled = scheduler();
-    if (expiresAt)
-      scheduled.context.emit({
-        type: 'combo_field',
-        at: 0,
-        expiresAt,
-        source: 'Test',
-        sourceId: 'test.smoke',
-        actorType: 'effect',
-        fieldId: 'test.smoke',
-        fieldType: 'Smoke',
-        ownerId: 'thief',
-        ownerActorType: 'player'
-      });
-    const result = scheduled.run(['Heartseeker']);
+    const result = live(
+      'Core',
+      ['Heartseeker'],
+      {},
+      {
+        initialize(runtime) {
+          if (expiresAt)
+            runtime.emit({
+              type: 'combo_field',
+              at: 0,
+              expiresAt,
+              source: 'Test',
+              sourceId: 'test.smoke',
+              actorType: 'effect',
+              fieldId: 'test.smoke',
+              fieldType: 'Smoke',
+              ownerId: 'thief',
+              ownerActorType: 'player'
+            });
+        }
+      }
+    );
     assert.deepEqual(result.warnings, []);
     const stealth = result.events.filter((event) => event.type === 'buff' && event.kind === 'stealth' && event.comboId);
     assert.equal(stealth.length, expiresAt ? 1 : 0);
@@ -576,110 +606,84 @@ test('THF-012: manual shroud exit waits for entry lockout while forced depletion
   assert.equal(manual.planningState.profession.shadowShroudActive, false);
   const depleted = simulate('Specter', ['Enter Shadow Shroud', wait(1000)], { initialShadowForce: 0.5 });
   assert.deepEqual(depleted.warnings, []);
-  assert.equal(depleted.events.find((event) => event.reason === 'shadow-shroud-depleted').at, 0.28);
+  const exit = depleted.events.find(
+    (event) => event.type === 'weapon_set' && event.shroudSwap && event.sourceId === 'thief.shadow-shroud-depleted'
+  );
+  assert.equal(exit.at, 0.28);
   assert.equal(depleted.planningState.profession.shadowShroudActive, false);
 });
 
+/** A test-authored guild isolates cadence and replacement from the production summon profiles. */
+const guildCatalog = (summonAttack) => (catalog) =>
+  withSkill(catalog, ID.THIEVES_GUILD, {
+    castTimeMs: 0,
+    cooldown: 0,
+    summonAttack: { ...catalog.skillsById.get(ID.THIEVES_GUILD).summonAttack, ...summonAttack }
+  });
+const guildPackets = (result) =>
+  result.events.filter((event) => event.type === 'damage' && event.sourceId === 'thief.thieves-guild');
+
 test('guild summons with empty attacks stay inactive after combat starts', () => {
-  const tasks = createTaskQueue({ handlers: thievesGuildTaskHandlers });
-  const events = [];
-  const original = thiefCatalog.skillsById.get(ID.THIEVES_GUILD);
-  const skill = {
-    ...original,
-    summonAttack: {
-      ...original.summonAttack,
-      summons: [{ name: 'Silent thief', weapon: 'Dagger', attacks: [] }]
-    }
-  };
-  const context = {
-    ...scheduler().context,
-    tasks,
-    events,
-    emit: (event) => events.push(event),
-    catalog: { ...thiefCatalog, skillsById: new Map([[skill.id, skill]]) },
-    start: 0,
-    effectiveEnd: 0,
-    combatStartTime: 0
-  };
-  summonThievesGuild(context, skill);
-  observeThievesGuildCombatEvent(context, { type: 'combat_start', at: 0 });
-  tasks.drainThrough(2, context);
-  assert.equal(
-    events.some((event) => event.type === 'damage'),
-    false
+  const result = live(
+    'Core',
+    ['Thieves Guild', { type: 'combat-start' }, wait(2000)],
+    {},
+    { catalog: guildCatalog({ summons: [{ name: 'Silent thief', weapon: 'Dagger', attacks: [] }] }) }
   );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(guildPackets(result), []);
 });
 
-// Two small authored streams isolate cadence and deferred replacement from the production summon profiles.
 test('guild combat activation starts parallel streams once and replacement retires every old stream', () => {
-  const tasks = createTaskQueue({ handlers: thievesGuildTaskHandlers });
-  const events = [];
-  const original = thiefCatalog.skillsById.get(ID.THIEVES_GUILD);
-  const skill = {
-    ...original,
-    summonAttack: {
-      ...original.summonAttack,
-      duration: 6,
-      summons: [
-        {
-          name: 'Test thief',
-          weapon: 'Dagger',
-          attacks: [
-            { name: 'Fast', coefficientPerHit: 1, initialDelay: 0, interval: 1 },
-            { name: 'Slow', coefficientPerHit: 1, initialDelay: 0.5, interval: 2 }
-          ]
-        }
-      ]
-    }
-  };
-  const context = {
-    ...scheduler().context,
-    tasks,
-    events,
-    emit: (event) => {
-      events.push(event);
-      return event;
-    },
-    catalog: { ...thiefCatalog, skillsById: new Map([[skill.id, skill]]) },
-    start: 0,
-    effectiveEnd: 0,
-    combatStartTime: null
-  };
-  summonThievesGuild(context, skill);
-  tasks.drainThrough(1, context);
-  assert.equal(
-    events.some((event) => event.type === 'damage'),
-    false
-  );
-  context.combatStartTime = 1;
-  observeThievesGuildCombatEvent(context, { type: 'combat_start', at: 1 });
-  observeThievesGuildCombatEvent(context, { type: 'combat_start', at: 1 });
-  tasks.drainThrough(2, context);
-  const packets = () => events.filter((event) => event.type === 'damage');
+  const catalog = guildCatalog({
+    duration: 6,
+    summons: [
+      {
+        name: 'Test thief',
+        weapon: 'Dagger',
+        attacks: [
+          { name: 'Fast', coefficientPerHit: 1, initialDelay: 0, interval: 1 },
+          { name: 'Slow', coefficientPerHit: 1, initialDelay: 0.5, interval: 2 }
+        ]
+      }
+    ]
+  });
+  // No stream starts before the marker; the combat boundary starts each authored attack once.
+  const first = live('Core', ['Thieves Guild', wait(1000), { type: 'combat-start' }, wait(1000)], {}, { catalog });
+  assert.deepEqual(first.warnings, []);
   assert.deepEqual(
-    packets().map((event) => [event.at, event.damageBreakdownName]),
+    guildPackets(first).map((event) => [event.at, event.damageBreakdownName]),
     [
       [1, 'Test thief — Fast'],
       [1.5, 'Test thief — Slow'],
       [2, 'Test thief — Fast']
     ]
   );
-  const oldOwner = context.state.profession.core.activeThievesGuild.ownerId;
-  context.start = context.effectiveEnd = 2.25;
-  summonThievesGuild(context, skill);
-  assert.notEqual(context.state.profession.core.activeThievesGuild.ownerId, oldOwner);
-  tasks.drainThrough(3.5, context);
+
+  const guilds = [];
+  const replaced = live(
+    'Core',
+    ['Thieves Guild', wait(1000), { type: 'combat-start' }, wait(1250), 'Thieves Guild', wait(7000)],
+    {},
+    {
+      catalog,
+      probes: [
+        [2, (runtime) => guilds.push(runtime.profession.core.activeThievesGuild?.ownerId)],
+        [2.3, (runtime) => guilds.push(runtime.profession.core.activeThievesGuild?.ownerId)],
+        [6, (runtime) => guilds.push(runtime.profession.core.activeThievesGuild?.ownerId)],
+        [9, (runtime) => guilds.push(runtime.profession.core.activeThievesGuild)]
+      ]
+    }
+  );
+  assert.deepEqual(replaced.warnings, []);
+  assert.notEqual(guilds[1], guilds[0]);
+  assert.equal(guilds[2], guilds[1], 'old expiry cannot remove the replacement');
+  assert.equal(guilds[3], null);
+  const packets = guildPackets(replaced);
   assert.deepEqual(
-    packets()
-      .filter((event) => event.at > 2)
-      .map((event) => event.at),
+    packets.filter((event) => event.at > 2 && event.at < 3.5).map((event) => event.at),
     [2.25, 2.75, 3.25]
   );
-  assert.equal(new Set(packets().map((event) => event.activationId)).size, packets().length);
-  tasks.drainThrough(6, context);
-  assert.ok(context.state.profession.core.activeThievesGuild, 'old expiry cannot remove the replacement');
-  tasks.drainThrough(9, context);
-  assert.equal(context.state.profession.core.activeThievesGuild, null);
-  assert.equal(tasks.nextAt(), Infinity);
-  assert.ok(packets().every((event) => event.at < 8.25));
+  assert.equal(new Set(packets.map((event) => event.activationId)).size, packets.length);
+  assert.ok(packets.every((event) => event.at < 8.25));
 });

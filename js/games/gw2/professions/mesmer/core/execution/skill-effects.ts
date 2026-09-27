@@ -1,3 +1,4 @@
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns one-shot Core Mesmer state changes tied to individual skill completions.
@@ -9,29 +10,28 @@ import { MESMER_CORE_CLONE_ATTACKS } from '#gw2/professions/mesmer/core/mechanic
 import { applyMesmerClarity, consumeMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
 import { applyMesmerSignetReset } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import { triggerMethodOfMadness } from '#gw2/professions/mesmer/core/traits/index.js';
-import type { CooldownController, SchedulerState } from '#gw2/platform/execution/types.js';
+import type { CooldownController } from '#gw2/platform/execution/types.js';
 import type {
   MesmerAddCondition,
   MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
   MesmerInstrument,
-  MesmerRuntime,
-  MesmerRuntimeState
+  MesmerMechanics
 } from '#gw2/professions/mesmer/types.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
-export interface MesmerSkillSpecialEffectController {
+interface MesmerSkillSpecialEffectController {
   consumeClarity(skill: MesmerSkill, castStart: number): boolean;
   schedule(skill: MesmerSkill, at: number, castStart?: number): void;
   apply(skill: MesmerSkill, at: number, castStart?: number): void;
 }
 
 interface SkillSpecialEffectControllerOptions {
-  readonly state: SchedulerState<MesmerRuntimeState>;
+  readonly state: MesmerRuntime;
   readonly cooldownController: CooldownController;
   readonly traits: ReadonlySet<number>;
   readonly allSkills: readonly MesmerSkill[];
@@ -42,7 +42,7 @@ interface SkillSpecialEffectControllerOptions {
   readonly traitDamage: Readonly<Record<string, MesmerTraitDamage>>;
   readonly shatters: Readonly<Record<number, MesmerShatter>>;
   readonly instruments: Readonly<Record<number, MesmerInstrument>>;
-  readonly balanceProfile: MesmerRuntime['balanceProfile'];
+  readonly balanceProfile: MesmerMechanics['balanceProfile'];
 }
 
 export function createSkillSpecialEffectController({

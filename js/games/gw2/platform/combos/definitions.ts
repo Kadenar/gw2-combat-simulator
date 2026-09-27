@@ -39,7 +39,7 @@ export function comboCombatMetadata(event: Readonly<Record<string, unknown>>): R
   return metadata;
 }
 
-export type ComboOutcome =
+type ComboOutcome =
   | {
       readonly kind: 'aura';
       readonly name: string;
@@ -80,8 +80,6 @@ export type ComboOutcome =
   | {
       readonly kind: 'healing';
       readonly name: string;
-      readonly flatHealing: number;
-      readonly healingPowerCoefficient: number;
     }
   | {
       readonly kind: 'stealth';
@@ -89,7 +87,7 @@ export type ComboOutcome =
       readonly duration: number;
     };
 
-export interface ComboDefinition {
+interface ComboDefinition {
   readonly fieldType: ComboFieldType;
   readonly finisherType: ComboFinisherType;
   readonly outcome: ComboOutcome;
@@ -109,13 +107,8 @@ const condition = (name: string, conditionName: string, stacks: number, duration
   });
 const cleanse = (name: string): ComboOutcome => Object.freeze({ kind: 'cleanse', name, conditions: 1 });
 const stealth = (name: string): ComboOutcome => Object.freeze({ kind: 'stealth', name, duration: 3 });
-const healing = (name: string, flatHealing: number, healingPowerCoefficient: number): ComboOutcome =>
-  Object.freeze({
-    kind: 'healing',
-    name,
-    flatHealing,
-    healingPowerCoefficient
-  });
+// Healing combos retain their identity for proc handling; player health is fixed at full.
+const healing = (name: string): ComboOutcome => Object.freeze({ kind: 'healing', name });
 const lifeSteal = (name: string, flatStrikeBase: number, icon?: string): ComboOutcome =>
   Object.freeze({
     kind: 'life-steal',
@@ -283,12 +276,12 @@ const definitions: readonly ComboDefinition[] = [
   {
     fieldType: 'Water',
     finisherType: 'Blast',
-    outcome: healing('Area Healing', 1320, 0.2)
+    outcome: healing('Area Healing')
   },
   {
     fieldType: 'Water',
     finisherType: 'Leap',
-    outcome: healing('Healing', 1300, 0.5)
+    outcome: healing('Healing')
   },
   {
     fieldType: 'Water',
@@ -372,7 +365,6 @@ interface ComboOutcomeEventBase extends Pick<
   | 'fieldSource'
   | 'fieldOwnerId'
   | 'finisherType'
-  | 'schedulerPrediction'
 > {
   readonly at: number;
   readonly source: string;
@@ -404,8 +396,7 @@ function inheritedComboFields(combo: ComboEvent): ComboOutcomeEventBase {
     fieldSourceId: combo.fieldSourceId,
     fieldSource: combo.fieldSource,
     fieldOwnerId: combo.fieldOwnerId,
-    finisherType: combo.finisherType,
-    schedulerPrediction: combo.schedulerPrediction
+    finisherType: combo.finisherType
   };
 }
 
@@ -472,8 +463,8 @@ export function materializeComboOutcome(combo: ComboEvent): readonly SimulationE
           coefficient: 0,
           flatStrikeBase: outcome.flatStrikeBase,
           flatStrikePowerCoeff: outcome.flatStrikePowerCoeff,
-          noCrit: true,
-          lifeSiphon: true
+          canCrit: false,
+          damageKind: 'life-steal'
         };
       case 'stealth':
         return {

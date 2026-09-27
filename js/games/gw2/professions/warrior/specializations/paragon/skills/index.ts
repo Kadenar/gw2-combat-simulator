@@ -6,29 +6,24 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   [ID.WE_WILL_NEVER_YIELD]: {
     effects: [],
     castTimeMs: 667,
-    categories: ['Command'],
-    // Custom: Applies command mechanics and trait additions around the cast; see `paragon/mechanics/chants-and-commands.ts`.
-    handlerId: 'warrior.command'
+    categories: ['Command']
   },
   [ID.WE_SHALL_RETURN]: {
     cooldown: 20,
     effects: [],
     castTimeMs: 667,
-    categories: ['Command'],
-    // Custom: Applies command mechanics and trait additions around the cast; see `paragon/mechanics/chants-and-commands.ts`.
-    handlerId: 'warrior.command'
+    categories: ['Command']
   },
   [ID.CHANT_OF_RECUPERATION]: {
     effects: [],
     castTimeMs: 167,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
-    categories: ['Burst', 'Chant'],
-    // Custom: Applies chant mechanics and trait additions around the cast; see `paragon/mechanics/chants-and-commands.ts`.
-    handlerId: 'warrior.chant'
+    categories: ['Burst', 'Chant']
   },
   [ID.FIND_THEIR_WEAKNESS]: {
+    // The initial reward precedes echo arming; later rewards remain with echo consumption.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 3 } }],
     cooldown: 15,
     effects: [
       {
@@ -50,9 +45,7 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       }
     ],
     castTimeMs: 333,
-    categories: ['Command'],
-    // Custom: Applies command mechanics and trait additions around the cast; see `paragon/mechanics/chants-and-commands.ts`.
-    handlerId: 'warrior.command'
+    categories: ['Command']
   },
   [ID.ON_YOUR_KNEES]: {
     cooldown: 15,
@@ -76,28 +69,20 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       }
     ],
     castTimeMs: 167,
-    categories: ['Command'],
-    // Custom: Applies command mechanics and trait additions around the cast; see `paragon/mechanics/chants-and-commands.ts`.
-    handlerId: 'warrior.command'
+    categories: ['Command']
   },
   [ID.CHANT_OF_FREEDOM]: {
     effects: [],
     castTimeMs: 167,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
-    categories: ['Burst', 'Chant'],
-    // Custom: Applies chant mechanics and trait additions around the cast; see `paragon/mechanics/chants-and-commands.ts`.
-    handlerId: 'warrior.chant'
+    categories: ['Burst', 'Chant']
   },
   [ID.CHANT_OF_ACTION]: {
     effects: [],
     castTimeMs: 167,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
-    categories: ['Burst', 'Chant'],
-    // Custom: Applies chant mechanics and trait additions around the cast; see `paragon/mechanics/chants-and-commands.ts`.
-    handlerId: 'warrior.chant'
+    categories: ['Burst', 'Chant']
   }
 });

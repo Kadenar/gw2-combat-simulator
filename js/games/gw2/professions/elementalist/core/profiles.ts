@@ -31,7 +31,6 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   elementalExplosion: 'elementalist.core.elemental-explosion-auras',
   rideTheLightning: 'elementalist.core.ride-the-lightning-hit',
   arcaneEcho: 'elementalist.core.arcane-echo-window',
-  grandFinale: 'elementalist.core.grand-finale',
   ragingRicochet: 'elementalist.core.raging-ricochet-bullet',
   searingSalvo: 'elementalist.core.searing-salvo-bullet',
   frozenFusillade: 'elementalist.core.frozen-fusillade-bullet',
@@ -195,19 +194,6 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
   variant(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.arcaneEcho, ID.ARCANE_ECHO, 'Arcane Echo - Cooldown Window', {
     durationMultiplier: 10,
     recharge: 1
-  }),
-  variant(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.grandFinale, ID.GRAND_FINALE, 'Grand Finale - Active Orb Packets', {
-    initialDelay: 0.68,
-    effects: [
-      { type: 'strike', name: 'Fire', coefficient: 1.4, hits: 1 },
-      namedCondition('Fire', 'Burning', 2, 5),
-      { type: 'strike', name: 'Water', coefficient: 1.4, hits: 1 },
-      namedCondition('Water', 'Vulnerability', 6, 10),
-      { type: 'strike', name: 'Air', coefficient: 1.4, hits: 1 },
-      namedCondition('Air', 'Weakness', 1, 5),
-      { type: 'strike', name: 'Earth', coefficient: 1.4, hits: 1 },
-      namedCondition('Earth', 'Bleeding', 4, 5)
-    ]
   }),
   variant(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.ragingRicochet, ID.RAGING_RICOCHET, 'Raging Ricochet - Fire Bullet', {
     effects: [namedBoon('Fire', 'Might', 1, 10)]

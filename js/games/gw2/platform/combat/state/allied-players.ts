@@ -12,7 +12,7 @@ import { boundedInteger, boundedNumber, clamp } from '#kernel/core/numeric.js';
  * Normalized allied party assumptions. Allied strikes only exist as proc
  * triggers; they never contribute their own damage.
  */
-export interface Gw2AlliedPlayerAssumptions {
+interface Gw2AlliedPlayerAssumptions {
   readonly count: number;
   readonly strikesPerSecond: number;
 }
@@ -45,7 +45,7 @@ interface Gw2BoonRecipientEvent {
 /**
  * One deterministic allied strike opportunity within a buff window.
  */
-export interface Gw2AlliedPlayerProc {
+interface Gw2AlliedPlayerProc {
   readonly allyIndex: number;
   readonly procIndex: number;
   readonly at: number;
@@ -192,14 +192,14 @@ export function gw2AlliedPlayerProcTimeline(
   const assumptions = gw2AlliedPlayerAssumptions(config);
   const allyCount = boundedInteger(maximumAllies, 0, 0, assumptions.count);
   if (!allyCount || !assumptions.strikesPerSecond) return [];
-  const interval = Math.max(Number(internalCooldown || 0), 1 / assumptions.strikesPerSecond);
-  const end = canonicalTime(Number(start) + Math.max(0, Number(duration || 0)));
-  const limit = Math.max(0, Math.trunc(Number(maximumPerAlly)));
+  const interval = Math.max(internalCooldown || 0, 1 / assumptions.strikesPerSecond);
+  const end = canonicalTime(start + Math.max(0, duration || 0));
+  const limit = Math.max(0, Math.trunc(maximumPerAlly));
   const events: Gw2AlliedPlayerProc[] = [];
   for (let allyIndex = 1; allyIndex <= allyCount; allyIndex += 1) {
     for (let procIndex = 1; procIndex <= limit; procIndex += 1) {
       // Canonicalize each absolute opportunity without accumulating rounded interval drift.
-      const at = canonicalTime(Number(start) + procIndex * interval);
+      const at = canonicalTime(start + procIndex * interval);
       if (at > end) break;
       events.push({ allyIndex, procIndex, at });
     }

@@ -4,8 +4,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ENCHANTED_DAGGERS]: {
-    // Custom: Arms Enchanted Daggers charges and their strike-triggered healing state; see `mechanics/enchanted-daggers.ts`.
-    handlerId: 'revenant.enchanted-daggers',
+    // Custom: Arms Enchanted Daggers charges and their strike-triggered healing state; see `core/traits/index.ts`.
     castTimeMs: 360,
     cooldown: 30,
     energyCost: 5,
@@ -25,6 +24,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
         atMs: 520,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        damageKind: 'life-steal',
         flatStrikeBase: 1028,
         flatStrikePowerCoeff: 0.06,
         name: 'Enchanted Daggers — Siphon Damage',
@@ -35,7 +35,6 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
   },
   [ID.IMPOSSIBLE_ODDS]: {
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
-    handlerId: 'revenant.upkeep',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 5,

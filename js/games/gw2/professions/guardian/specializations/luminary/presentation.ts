@@ -1,3 +1,4 @@
+import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { timedBuffAt } from '#gw2/platform/results/query.js';
@@ -7,7 +8,7 @@ import {
   guardianUiSkillIdsByName,
   guardianUiSkillsByMode
 } from '#gw2/professions/guardian/core/presentation.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+
 import type {
   PaletteSkillAvailability,
   ProfessionEffectPresentation,
@@ -23,27 +24,20 @@ import type {
 } from '#gw2/professions/guardian/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 
-const LUMINARY_INTERNAL_EVENT_TYPES = new Set([
-  'guardian.effulgent-activated',
-  'guardian.effulgent-detonate',
-  'guardian.luminary.light-aura-detonate',
-  'guardian.luminary.light-aura-grant'
-]);
-
+/** Render actual weapon-bar transitions at their executed boundary. */
 function luminaryEventLogRow(
   _context: GuardianUiContext,
   event: GuardianResolverEvent
-): ProfessionEventLogDescriptor | null | undefined {
-  // null = suppress this event from the log entirely (internal bookkeeping
-  // events that have no meaningful display for the user).
-  if (LUMINARY_INTERNAL_EVENT_TYPES.has(event.type)) return null;
-  // undefined = not handled here; let the default renderer decide.
-  if (event.type !== 'guardian.radiant-forge-entered' && event.type !== 'guardian.radiant-forge-exited')
+): ProfessionEventLogDescriptor | undefined {
+  if (
+    event.type !== 'weapon_set' ||
+    ![GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE, GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE].some((id) => id === event.skillId)
+  )
     return undefined;
-  const entered = event.type.endsWith('-entered');
+  const entered = event.skillId === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE;
   return {
     type: event.type,
-    description: `RADIANT FORGE ${entered ? 'ENTERED' : 'EXITED'}` + `${event.automatic ? ' [automatic]' : ''}`,
+    description: 'RADIANT FORGE ' + (entered ? 'ENTERED' : 'EXITED') + (event.automatic ? ' [automatic]' : ''),
     className: 'resource',
     order: 30,
     flags: []
@@ -65,12 +59,12 @@ function professionState(context: GuardianUiContext): Partial<GuardianState> {
 }
 
 function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
-  const result = context.result as Gw2SimulationResult | null | undefined;
+  const result = context.result;
   const at = guardianSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
   const state = professionState(context);
   // Expose Light Aura while it can still be consumed by Luminary skills.
-  const lightAuraRemaining = Number(state.lightAuraUntil || 0) - at;
+  const lightAuraRemaining = (state.lightAuraUntil || 0) - at;
   if (lightAuraRemaining > 0) {
     items.push({
       id: 'luminary-light-aura',
@@ -80,7 +74,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
     });
   }
 
-  const effulgentRemaining = Number(state.effulgentActiveUntil || 0) - at;
+  const effulgentRemaining = (state.effulgentActiveUntil || 0) - at;
   if (effulgentRemaining > 0) {
     const stacks = boundedInteger(state.effulgentStacks || 0, 0, 0, 10);
     items.push({
@@ -140,7 +134,7 @@ function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
       id: 'guardian-radiant-armaments',
       kind: 'guardian-radiant-armaments',
       name: (event) => {
-        const weapon = RADIANT_ARMAMENT_NAMES[String(event.metadata?.radiantWeapon || '')];
+        const weapon = RADIANT_ARMAMENT_NAMES[event.metadata?.radiantWeapon || ''];
         return weapon ? `Radiant Armaments (${weapon})` : 'Radiant Armaments';
       },
       maximumStacks: 1,

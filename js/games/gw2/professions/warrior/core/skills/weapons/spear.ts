@@ -45,8 +45,6 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
   },
   [ID.MIGHTY_THROW]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    // Custom: Suppresses secondary-target shards in single-target simulations; see `core/execution/index.ts`.
-    handlerId: 'warrior.mighty-throw',
     castTimeMs: 640,
     // Both impact packets count as explosions; shards still require a secondary target.
     effects: [
@@ -65,6 +63,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
         damageKind: 'explosion',
         // Single-target suppression follows this stable packet identity rather than the display label.
         metadata: { packetKind: 'warrior.mighty-throw-shard' },
+        when: () => false, // Shards require a secondary target; this simulation has one target.
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }

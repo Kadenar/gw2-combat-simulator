@@ -4,6 +4,8 @@
  */
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
+import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Both Unleash actions replace the same F5 tile as control passes between pet and ranger.
@@ -53,19 +55,29 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 0,
     cooldown: 1,
     // Both Unleash sides receive the same fixed, Alacrity-independent recharge.
-    mechanicTriggers: [
-      {
-        type: 'ranger.untamed.sync-unleash-cooldown',
-        timingAnchor: 'castEnd'
-      }
-    ],
+
     paletteTileId: UNLEASH_PALETTE_TILE,
     paletteTileOrder: 1,
-    effects: [],
-    // Custom: Transfers Unleash state to the ranger and may open an ambush window; see `untamed/execution/index.ts`.
-    handlerId: 'ranger.unleash-ranger'
+    effects: []
+    // Custom: Transfers Unleash state to the ranger and may open an ambush window; see `untamed/hooks.ts`.
   },
   [ID.EXPLODING_SPORES]: {
+    // Capture Unleash at acceptance, adding the selected live boon to the skill's hostile packets.
+    effectVariants: (
+      [
+        [true, PROFILE.explodingSporesRanger, 'might'],
+        [false, PROFILE.explodingSporesPet, 'protection']
+      ] as const
+    ).map<NonNullable<Skill['effectVariants']>[number]>(([unleashed, profileId, boon]) => ({
+      when: (runtime) => untamedState.from(runtime).rangerUnleashed === unleashed,
+      profileId,
+      transform: (_runtime, cast, effects) => [
+        ...(cast.skill.effects ?? []),
+        ...effects
+          .filter((effect) => effect.type === 'boon' && effect.name === boon)
+          .map((effect) => ({ ...effect, timingAnchor: 'castEnd' as const, atMs: 0 }))
+      ]
+    })),
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -89,9 +101,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         controlKind: 'knockdown'
       }
     ]),
-    castTimeMs: 480,
-    // Custom: Chooses Might or Protection from the captured Unleash state; see `untamed/execution/index.ts`.
-    handlerId: 'ranger.exploding-spores'
+    castTimeMs: 480
   },
   [ID.FORESTS_FORTIFICATION]: {
     effects: [
@@ -133,10 +143,21 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         duration: 8,
         source: 'ranger-pet',
         actorType: 'summon'
+      },
+      {
+        // Capture defiant-target eligibility at acceptance while retaining pet ownership.
+        type: 'condition',
+        when: (runtime) => Boolean(runtime.config.target?.defiant),
+        condition: 'Vulnerability',
+        stacks: 8,
+        duration: 10,
+        source: 'ranger-pet',
+        actorType: 'summon',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        atMs: 0
       }
-    ],
-    // Custom: Applies pet-attributed Vulnerability only to defiant targets; see `untamed/execution/index.ts`.
-    handlerId: 'ranger.venomous-outburst'
+    ]
   },
   [ID.RENDING_VINES]: {
     castTimeMs: 0,
@@ -173,17 +194,11 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 0,
     cooldown: 1,
     // Both Unleash sides receive the same fixed, Alacrity-independent recharge.
-    mechanicTriggers: [
-      {
-        type: 'ranger.untamed.sync-unleash-cooldown',
-        timingAnchor: 'castEnd'
-      }
-    ],
+
     paletteTileId: UNLEASH_PALETTE_TILE,
     paletteTileOrder: 2,
-    effects: [],
-    // Custom: Transfers Unleash state to the pet; see `untamed/execution/index.ts`.
-    handlerId: 'ranger.unleash-pet'
+    effects: []
+    // Custom: Transfers Unleash state to the pet; see `untamed/hooks.ts`.
   },
   [ID.RELENTLESS_WHIRL]: {
     interruptMode: 'per-packet',
@@ -237,9 +252,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         damageKind: 'life-steal'
       }
     ],
-    castTimeMs: 1560,
-    // Custom: Consumes the current unleashed-ambush window; see `untamed/execution/index.ts`.
-    handlerId: 'ranger.unleashed-ambush'
+    castTimeMs: 1560
+    // Custom: Consumes the current unleashed-ambush window; see `untamed/hooks.ts`.
   },
   [ID.DEFT_STRIKE]: {
     effects: [
@@ -284,8 +298,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         damageKind: 'life-steal'
       }
     ],
-    castTimeMs: 960,
-    // Custom: Consumes the current unleashed-ambush window; see `untamed/execution/index.ts`.
-    handlerId: 'ranger.unleashed-ambush'
+    castTimeMs: 960
+    // Custom: Consumes the current unleashed-ambush window; see `untamed/hooks.ts`.
   }
 });

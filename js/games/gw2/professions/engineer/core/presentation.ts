@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -14,7 +15,7 @@ import {
 } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { timedBuffAt } from '#gw2/platform/results/query.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import type {
@@ -50,24 +51,6 @@ const KIT_ORDER = new Map<string, number>([
 
 const SKILL_SLOT_ORDER: readonly string[] = Object.freeze(['Heal', 'Utility1', 'Utility2', 'Utility3', 'Elite']);
 
-// controls which engineer.state events Core spec suppresses from the event log;
-// specialization modules handle filtering of their own state reasons
-const CORE_STATE_REASONS = new Set<string>([
-  'arm-flip',
-  'consume-flip',
-  'equip-kit',
-  'stow-kit',
-  'dodge',
-  'resources',
-  'lightning-rod-active',
-  'conduit-surge',
-  'electric-artillery-consumed',
-  'electric-artillery-ready',
-  'electric-artillery-expired',
-  'kinetic-battery',
-  'deploy-turret'
-]);
-
 /** Flattens Core and active-specialization state for Engineer UI consumers. */
 export function engineerUiState(context: EngineerUiContext = {}): Partial<EngineerState> {
   return flattenProfessionState(context.state?.profession || context.professionState);
@@ -75,7 +58,7 @@ export function engineerUiState(context: EngineerUiContext = {}): Partial<Engine
 
 /** Resolves the active Engineer specialization name from UI, config, or build context. */
 export function engineerUiSpecialization(context: EngineerUiContext = {}): string {
-  return String(context.specialization || context.config?.specialization || context.build?.specialization || 'Core');
+  return context.specialization || context.config?.specialization || context.build?.specialization || 'Core';
 }
 
 /** Normalizes the selected slot-skill loadout into a membership set. */
@@ -96,7 +79,7 @@ function selectedKitNames(catalog: Readonly<CanonicalCatalog>, context: Engineer
   return [
     ...new Set(
       (catalog.skills as readonly EngineerSkill[])
-        .filter((skill) => skill.handlerId === 'engineer.kit-equip' && selectedNames(context).has(skill.name))
+        .filter((skill) => skill.kitTransition === 'equip' && selectedNames(context).has(skill.name))
         .map((skill) => skill.kitName || skill.name)
     )
   ].sort(
@@ -131,7 +114,7 @@ export function hasActiveTrait(context: EngineerUiContext, name: string): boolea
 
 /** Detects the Tools trait line even when programmatic contexts omit build specialization metadata. */
 function usesToolsTraitline(catalog: Readonly<CanonicalCatalog>, context: EngineerUiContext): boolean {
-  if ((context.build?.specializations || []).some((selection) => selection?.name === 'Tools')) return true;
+  if ((context.build?.specializations || []).some((selection) => selection.name === 'Tools')) return true;
   // Programmatic UI contexts may omit build specialization metadata, so infer
   // the Tools line from the canonical trait selection.
   return catalog.traits.some((trait) => trait.specialization === 'Tools' && hasTrait(context, trait.id));
@@ -144,7 +127,7 @@ function toolbeltSkillId(catalog: Readonly<CanonicalCatalog>, parentName: string
   return (
     uniqueSkillsByName(
       catalog.skills.filter(
-        (skill) => skill.toolbeltParentName === parentName && !String(skill.name || '').startsWith('Detonate')
+        (skill) => skill.toolbeltParentName === parentName && !(skill.name || '').startsWith('Detonate')
       )
     )[0]?.id ?? null
   );
@@ -186,8 +169,8 @@ function engineerCorePaletteSkillAvailability(
   // Lightning Rod and Electric Artillery share one contextual profession slot.
   if (skill.name === 'Electric Artillery') {
     return {
-      available: skillFlipReady(state.availableFlips?.[ID.ELECTRIC_ARTILLERY], Number(context.time || 0)),
-      message: skillFlipReady(state.availableFlips?.[ID.ELECTRIC_ARTILLERY], Number(context.time || 0))
+      available: skillFlipReady(state.availableFlips?.[ID.ELECTRIC_ARTILLERY], context.time || 0),
+      message: skillFlipReady(state.availableFlips?.[ID.ELECTRIC_ARTILLERY], context.time || 0)
         ? ''
         : 'Lightning Rod has not finished charging'
     };
@@ -195,7 +178,7 @@ function engineerCorePaletteSkillAvailability(
 
   if (
     skill.name === 'Lightning Rod' &&
-    Number(state.availableFlips?.[ID.ELECTRIC_ARTILLERY]?.expiresAt || 0) > Number(context.time || 0)
+    (state.availableFlips?.[ID.ELECTRIC_ARTILLERY]?.expiresAt || 0) > (context.time || 0)
   ) {
     return {
       available: false,
@@ -204,7 +187,7 @@ function engineerCorePaletteSkillAvailability(
   }
 
   // The synthetic swap action exists only to return from a kit to baseline weapons.
-  if (skill.id === -3) {
+  if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
     return {
       available: Boolean(state.activeKit),
       message: state.activeKit ? '' : 'Engineers can use weapon swap only to leave an active kit'
@@ -216,7 +199,7 @@ function engineerCorePaletteSkillAvailability(
     return { available: false, message: `Equip ${skill.kit} first` };
   }
 
-  if (skill.handlerId === 'engineer.kit-equip' && state.activeKit === (skill.kitName || skill.name)) {
+  if (skill.kitTransition === 'equip' && state.activeKit === (skill.kitName || skill.name)) {
     return {
       available: false,
       message: `Use Stow ${skill.kitName || skill.name} to leave this kit`
@@ -239,8 +222,8 @@ function engineerEventLogRow(
   event: EngineerResolverEvent
 ): ProfessionEventLogDescriptor | null | undefined {
   // Surface charge progress and the fifth-charge activation before suppressing internal snapshots.
-  if (event?.type === 'engineer.state' && event.reason === 'kinetic-battery') {
-    const charges = Number(event.state?.kineticCharges || 0);
+  if (event.type === 'engineer.kinetic-battery') {
+    const charges = Number(event.kineticCharges || 0);
     return {
       type: event.type,
       description: charges ? `Kinetic Charge - ${charges}/5` : 'Kinetic Battery activated - charges reset to 0/5',
@@ -258,19 +241,14 @@ function engineerEventLogRow(
       'engineer.lightning-rod-pulse',
       'engineer.conduit-surge',
       'engineer.electric-artillery'
-    ].includes(event?.type)
+    ].includes(event.type)
   ) {
     // These resolver events materialize skill packets. The ordinary action,
     // damage, and condition rows already present their user-visible effects.
     return null;
   }
 
-  if (
-    event?.type === 'engineer.state' &&
-    (engineerUiSpecialization(context) === 'Core' || CORE_STATE_REASONS.has(String(event.reason)))
-  )
-    // null = suppress; undefined = use platform default row
-    return null;
+  if (event.type === 'engineer.heat' && engineerUiSpecialization(context) !== 'Holosmith') return null;
   return undefined;
 }
 
@@ -319,11 +297,11 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog>): Enginee
     // Tracks kit equip and stow operations as timeline weapon-line transitions.
     timelineWeaponLineTransition: (context: EngineerUiContext) => {
       const skill = context.skill;
-      if (skill?.handlerId === 'engineer.kit-equip') {
+      if (skill?.kitTransition === 'equip') {
         return skill.kitName || skill.name;
       }
 
-      if (skill?.handlerId === 'engineer.kit-stow' || (context.weaponLine && skill?.name === 'Swap Weapons')) {
+      if (skill?.kitTransition === 'stow' || (context.weaponLine && skill?.name === 'Swap Weapons')) {
         return null;
       }
 
@@ -340,7 +318,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog>): Enginee
         singular: 'endurance',
         plural: 'endurance',
         maximum,
-        value: Number(state.endurance ?? maximum),
+        value: state.endurance ?? maximum,
         startMaximum: maximum,
         canStart: false,
         displayMode: 'bar',
@@ -348,7 +326,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog>): Enginee
         statusLabel: 'Current',
         // Keep the conditional Tools endurance meter with the Dodge action that
         // spends it, matching the shared palette placement used by professions.
-        paletteSkillId: ID.DODGE
+        paletteSkillId: SHARED_SKILL_IDS.DODGE
       };
       return [endurance];
     },
@@ -359,15 +337,11 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog>): Enginee
         items.push({
           id: 'engineer-kinetic-charges',
           label: 'Kinetic Charges',
-          value: `${Number(engineerUiState(context).kineticCharges || 0)}/5`
+          value: `${engineerUiState(context).kineticCharges || 0}/5`
         });
       }
 
-      const buff = timedBuffAt(
-        context.result as Gw2SimulationResult | null | undefined,
-        'kinetic-battery',
-        Number(context.atSeconds || 0)
-      );
+      const buff = timedBuffAt(context.result, 'kinetic-battery', context.atSeconds || 0);
       if (buff) {
         items.push({
           id: 'engineer-kinetic-battery',
@@ -385,9 +359,9 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog>): Enginee
       return (
         skill.slotSelectable !== false &&
         // Stow and flip skills live in the palette but are not placed in loadout slots.
-        skill.handlerId !== 'engineer.kit-stow' &&
+        skill.kitTransition !== 'stow' &&
         skill.flipParentId == null &&
-        !String(skill.name || '').startsWith('Detonate')
+        !(skill.name || '').startsWith('Detonate')
       );
     },
     // engineer weapon swap exits a kit, not a true weapon set change — sigil system must know this

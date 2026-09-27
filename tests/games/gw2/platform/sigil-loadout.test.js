@@ -8,7 +8,7 @@ import {
   createOptimizerEvaluator,
   createOptimizerSpace,
   optimizerEquipment
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer.js';
 
 // Check the shared selection rule at every socket so alternate sets cannot bypass exclusivity.
 test('Slaying is limited per set and stacking sigils are limited across both sets', () => {

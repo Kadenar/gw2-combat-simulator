@@ -7,7 +7,7 @@ import {
  *
  * This module lives at the profession root because both the build-time stats
  * calculation in build-attributes.js and the combat-time modifier calculation
- * in attribute-rules.js use it. It does not check whether the trait is active
+ * in build/attributes.ts use it. It does not check whether the trait is active
  * or mutate simulation state; callers own those decisions.
  *
  * Build-time calculation uses one copy of the bonuses. Runtime calculation
@@ -44,10 +44,10 @@ export function bolsteredBondsBonuses(
   selectedLegendIds: readonly string[] = [],
   multiplier = 1
 ): Record<string, number> {
-  if (!Number(multiplier)) return {};
+  if (!multiplier) return {};
   const bonuses: Record<string, number> = {};
   const add = (attribute: string, amount: number): void => {
-    bonuses[attribute] = Number(bonuses[attribute] || 0) + amount * multiplier;
+    bonuses[attribute] = (bonuses[attribute] || 0) + amount * multiplier;
   };
 
   for (const legendId of selectedLegendIds) {

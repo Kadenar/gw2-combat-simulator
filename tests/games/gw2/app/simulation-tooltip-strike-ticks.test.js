@@ -53,7 +53,7 @@ test('flat strike facts preserve tick overrides and group matching formulas', ()
       type: 'strike',
       flatStrikeBase: 100,
       flatStrikePowerCoeff: 0.2,
-      noCrit: true,
+      canCrit: false,
       ticks: [
         { atMs: 0, coefficient: 0 },
         { atMs: 1000, coefficient: 0 },

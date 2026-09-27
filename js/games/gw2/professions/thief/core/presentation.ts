@@ -1,6 +1,7 @@
-import { skillFlipVisible, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { skillFlipVisible, skillFlipReady, weaponFollowUpOpen } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { activeStackCount, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -11,16 +12,16 @@ import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/
 import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
-import { THIEF_PREPARATIONS } from '#gw2/professions/thief/core/mechanics/preparations.js';
+import { THIEF_PREPARATIONS } from '#gw2/professions/thief/core/mechanics/weapons.js';
 import { storedStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
 import type {
   PaletteSkillAvailability,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { ThiefSimulationEvent, ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/professions/thief/types.js';
+import type { ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> {
-  return flattenProfessionState<Partial<ThiefState>>(context.state?.profession || context.professionState);
+  return flattenProfessionState(context.state?.profession || context.professionState);
 }
 
 export function thiefStealPaletteGroups(professionSkillId = ID.STEAL) {
@@ -53,28 +54,27 @@ function corePaletteSkillAvailability(context: ThiefUiContext = {}, skill: Thief
     (candidate) => candidate.prepareId === skill.id || candidate.triggerId === skill.id
   );
   if (trap) {
-    const prepared = skillFlipVisible(state.availableFlips?.[trap.triggerId], Number(context.time || 0));
+    const prepared = skillFlipVisible(state.availableFlips?.[trap.triggerId], context.time || 0);
     if (skill.id === trap.prepareId) {
       return { available: !prepared, message: prepared ? `Activate ${trap.name} before preparing it again` : '' };
     }
 
     if (!prepared) return { available: false, message: `Prepare ${trap.name} first` };
-    const retryAt = Number(state.availableFlips?.[trap.triggerId]?.availableAt || 0);
-    return retryAt > Number(context.time || 0)
+    const retryAt = state.availableFlips?.[trap.triggerId]?.availableAt || 0;
+    return retryAt > (context.time || 0)
       ? { available: false, message: 'The preparation is still arming', retryAt }
       : { available: true, message: '' };
   }
 
   const stealthed =
-    Number(state.stealthStartedAt || 0) <= Number(context.time || 0) &&
-    Number(state.stealthUntil || 0) > Number(context.time || 0) &&
-    Number(state.revealedUntil || 0) <= Number(context.time || 0);
+    (state.stealthStartedAt || 0) <= (context.time || 0) &&
+    (state.stealthUntil || 0) > (context.time || 0) &&
+    (state.revealedUntil || 0) <= (context.time || 0);
   const bonusStealthAttack =
-    Number(state.stealthAttackCharges || 0) > 0 &&
-    Number(state.stealthAttackExpiresAt || 0) > Number(context.time || 0);
+    (state.stealthAttackCharges || 0) > 0 && (state.stealthAttackExpiresAt || 0) > (context.time || 0);
   const spearChainStage = spearChainStageForSkill(skill.id);
   const flipValue = state.availableFlips?.[String(skill.id)];
-  const flipAvailable = skillFlipReady(flipValue, Number(context.time || 0));
+  const flipAvailable = skillFlipReady(flipValue, context.time || 0);
   if (
     skill.slot === 'Profession_2' &&
     (THIEF_STOLEN_SKILL_IDS.includes(skill.id) || (skill.categories || []).includes('stolen skill')) &&
@@ -87,7 +87,7 @@ function corePaletteSkillAvailability(context: ThiefUiContext = {}, skill: Thief
     };
   }
 
-  if (spearChainStage != null && Number(state.spearChainStage || 0) !== spearChainStage) {
+  if (spearChainStage != null && (state.spearChainStage || 0) !== spearChainStage) {
     return {
       available: false,
       message: `Advance the spear chain to stage ${spearChainStage + 1}`
@@ -101,12 +101,7 @@ function corePaletteSkillAvailability(context: ThiefUiContext = {}, skill: Thief
     };
   }
 
-  if (
-    skill.type === 'Weapon' &&
-    skill.flipSkillId != null &&
-    skill.flipSkillId !== skill.nextChainId &&
-    skillFlipReady(state.availableFlips?.[String(skill.flipSkillId)], Number(context.time || 0))
-  ) {
+  if (weaponFollowUpOpen(state.availableFlips, skill, context.time || 0)) {
     return {
       available: false,
       message: 'Use or wait out the active follow-up skill'
@@ -137,48 +132,10 @@ function corePaletteSkillAvailability(context: ThiefUiContext = {}, skill: Thief
   return { available: true, message: '' };
 }
 
-function thiefCoreEventLogRow(context: ThiefUiContext, event: ThiefSimulationEvent) {
-  if (event?.type !== 'thief.state') return undefined;
-  const state = event.state || {};
-  const logState = context.eventLogState as Map<string, { at: number; value: number }> | undefined;
-  // Show resource changes (including endurance) and suppress unchanged regeneration checkpoints.
-  const resources = (['initiative', 'endurance'] as const).flatMap((key) => {
-    const value = Number(key === 'initiative' ? (state.initiative?.value ?? 0) : state.endurance || 0);
-    const at = Number((key === 'initiative' ? state.initiative?.updatedAt : state.enduranceUpdatedAt) ?? event.at);
-    const previous = logState?.get(key);
-    // Completion snapshots may carry resources from cast start; never report those as spending.
-    if (previous && at < previous.at) return [];
-    logState?.set(key, { at, value });
-    const before = previous?.value ?? null;
-    if (before !== null && value.toFixed(1) === before.toFixed(1)) return [];
-    const label = key === 'initiative' ? 'Initiative' : 'Endurance';
-    const change = before === null ? '' : ` (${value > before ? '+' : ''}${(value - before).toFixed(1)})`;
-    return [`${label} ${value.toFixed(1)}${change}`];
-  });
-  const reason = String(event.reason || 'state');
-  // These changes already have named BUFF rows; their snapshots only synchronize engine state.
-  if (
-    !resources.length &&
-    ['resources', 'lead-attacks', 'daredevil-dodge', 'spider-venom', 'skale-venom', 'devourer-venom'].includes(reason)
-  )
-    return null;
-  const label = reason
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-  return {
-    type: event.type,
-    description: `${resources.length ? `RESOURCE ${resources.join(' · ')}` : 'STATE'} [${reason === 'resources' ? 'Regeneration' : label}]`,
-    className: 'resource',
-    order: 30,
-    flags: []
-  };
-}
-
 /** Show active trait stacks and skill bonuses alongside weapon trackers and stealth gates. */
 function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {
   const state = thiefUiState(context);
-  const at = Math.max(0, Number(context.atSeconds || 0));
+  const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
   const axes = purgeExpiredStacks(state.spinningAxeExpirations || [], at);
   if (axes.length || [context.build?.weapons?.[0], context.build?.alternateWeapons?.[0]].includes('Axe')) {
@@ -192,7 +149,8 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     });
   }
 
-  const leadAttacksStacks = Math.max(0, Math.trunc(Number(state.leadAttacksStacks || 0)));
+  // Each initiative-spending grant expires independently, so the count is read at the displayed instant.
+  const leadAttacksStacks = activeStackCount(state.leadAttackExpirations || [], at);
   if (leadAttacksStacks > 0) {
     items.push({
       id: 'thief-lead-attacks',
@@ -216,11 +174,11 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
       "Time remaining on Assassin's Signet's active Power bonus"
     ]
   ] as const) {
-    const remaining = Number(expiresAt || 0) - at;
+    const remaining = (expiresAt || 0) - at;
     if (remaining > 0) items.push({ id, label, value: `${remaining.toFixed(1)}s`, title });
   }
 
-  const revealedRemaining = Number(state.revealedUntil || 0) - at;
+  const revealedRemaining = (state.revealedUntil || 0) - at;
   if (revealedRemaining > 0) {
     return [
       ...items,
@@ -233,7 +191,7 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     ];
   }
 
-  const stealthRemaining = Number(state.stealthStartedAt || 0) <= at ? Number(state.stealthUntil || 0) - at : 0;
+  const stealthRemaining = (state.stealthStartedAt || 0) <= at ? (state.stealthUntil || 0) - at : 0;
   return stealthRemaining > 0
     ? [
         ...items,
@@ -271,21 +229,21 @@ export const thiefCoreUi = Object.freeze({
   resourceViews: (context: ThiefUiContext) => {
     const state = thiefUiState(context);
     const enduranceCapacity = context.resources!.endurance!.maximum;
-    const endurance = Number(state.endurance ?? enduranceCapacity);
+    const endurance = state.endurance ?? enduranceCapacity;
     return [
       {
         id: 'initiative',
         singular: 'initiative',
         plural: 'initiative',
-        maximum: Number(state.initiative?.maximum ?? context.resources?.initiative?.maximum ?? 12),
-        value: Number(state.initiative?.value ?? context.initialInitiative ?? 12),
-        startMaximum: Number(context.resources?.initiative?.maximum ?? state.initiative?.maximum ?? 15),
+        maximum: state.initiative?.maximum ?? context.resources?.initiative?.maximum ?? 12,
+        value: state.initiative?.value ?? context.initialInitiative ?? 12,
+        startMaximum: context.resources?.initiative?.maximum ?? state.initiative?.maximum ?? 15,
         canStart: true,
         buildKey: 'initialInitiative',
         step: 1,
         displayMode: 'pips',
         pipStyle: 'thief-initiative',
-        pipRows: Number(state.initiativePipRows || 2),
+        pipRows: state.initiativePipRows || 2,
         shortLabel: 'Init',
         statusLabel: 'Current'
       },
@@ -304,10 +262,9 @@ export const thiefCoreUi = Object.freeze({
         statusLabel: 'Current',
         // Render the endurance meter beneath the Dodge button rather than as a
         // standalone bar, so the resource sits with the action that spends it.
-        paletteSkillId: ID.DODGE
+        paletteSkillId: SHARED_SKILL_IDS.DODGE
       }
     ];
   },
-  paletteSkillAvailability: corePaletteSkillAvailability,
-  eventLogRow: thiefCoreEventLogRow
+  paletteSkillAvailability: corePaletteSkillAvailability
 });

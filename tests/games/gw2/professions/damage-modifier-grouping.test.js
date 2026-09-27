@@ -7,16 +7,19 @@ import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS as GUARDIAN } from '#gw2/profess
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { MESMER_TRAIT_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { NECROMANCER_TRAIT_IDS as NECROMANCER } from '#gw2/professions/necromancer/data/ids.js';
+import {
+  NECROMANCER_SKILL_IDS as NECROMANCER_SKILLS,
+  NECROMANCER_TRAIT_IDS as NECROMANCER
+} from '#gw2/professions/necromancer/data/ids.js';
 
-const guardianLuminaryRules = guardianProfession.resolveRuntime({
+const guardianLuminaryRules = guardianProfession.resolveProfession({
   specialization: 'Luminary'
 });
 const mesmerRules = (specialization) =>
-  mesmerProfession.resolveRuntime({
+  mesmerProfession.resolveProfession({
     specialization
   });
-const necromancerRules = (specialization) => necromancerProfession.resolveRuntime({ specialization });
+const necromancerRules = (specialization) => necromancerProfession.resolveProfession({ specialization });
 
 function modifierContext({
   traits = [],
@@ -148,7 +151,6 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
       target: {
         health: 100,
 
-        nearby: true,
         conditions: { Chilled: true }
       }
     },
@@ -253,13 +255,12 @@ test('Mesmer active runtimes isolate their additive damage buckets', () => {
   assertClose(mesmerRules('Troubadour').modifyConditionDamage({ ...troubadour, condition: 'Torment' }, 1), 1.42);
 });
 
-test('Superiority Complex accepts Fear or Taunt while generic disabled requires a non-defiant target', () => {
+test('Superiority Complex accepts Fear, Taunt, or low target health without a generic disabled state', () => {
   const defiant = modifierContext({
     traits: [MESMER.SUPERIORITY_COMPLEX],
     config: {
       target: {
         defiant: true,
-        disabled: true,
         health: 100
       }
     }
@@ -269,14 +270,13 @@ test('Superiority Complex accepts Fear or Taunt while generic disabled requires 
     config: {
       target: {
         defiant: false,
-        disabled: true,
         health: 100
       }
     }
   });
 
   assertClose(mesmerRules('Core').modifyCriticalDamage({ catalog: mesmerCatalog, ...defiant }, 2), 2 * 1.15);
-  assertClose(mesmerRules('Core').modifyCriticalDamage({ catalog: mesmerCatalog, ...nonDefiant }, 2), 2 * 1.25);
+  assertClose(mesmerRules('Core').modifyCriticalDamage({ catalog: mesmerCatalog, ...nonDefiant }, 2), 2 * 1.15);
   for (const condition of ['Fear', 'Taunt']) {
     assertClose(
       mesmerRules('Core').modifyCriticalDamage(
@@ -341,7 +341,7 @@ test('Mesmer Deadly Blades does not increase phantasm damage', () => {
   assert.equal(mesmerRules('Virtuoso').modifyConditionDamage({ ...context, condition: 'Bleeding' }, 1), 1.05);
 });
 
-test('Mesmer instrument checks skip other specializations and index events once', () => {
+test('Mesmer instrument checks skip other specializations and observe new history', () => {
   const countedEvents = () => {
     let reads = 0;
     const events = new Proxy(
@@ -431,7 +431,9 @@ test('Mesmer instrument checks skip other specializations and index events once'
   }
 
   assert.equal(first, second);
-  assert.equal(relevant.reads(), relevant.events.length);
+  // A later instrument event must be visible even when this history was queried earlier.
+  relevant.events.push({ type: 'mesmer.instrument', instrument: 'Lute', at: 1, expiresAt: 1 });
+  assert.ok(mesmerRules('Troubadour').modifyStrikeDamage(troubadour, 1) < first);
 });
 
 test('Vicious Expression always applies its boonless-target modifier', () => {
@@ -452,4 +454,30 @@ test('Mesmer strike sigils apply to the player but not illusion sources', () => 
   assert.equal(mesmerRules('Core').modifyStrikeDamage(player, 1), 1.08);
   assert.equal(mesmerRules('Core').modifyStrikeDamage(clone, 1), 1);
   assert.equal(mesmerRules('Core').modifyStrikeDamage(phantasm, 1), 1);
+});
+
+// Range is fixed nearby; these modifiers require no optional target flags.
+test('Mental Focus, Soul Eater, and Reaper shouts always receive nearby bonuses', () => {
+  const context = modifierContext({
+    event: { actorType: 'player' },
+    sigils: { strike: 1, strikeAdd: 0, condition: 1, conditionAdd: 0 }
+  });
+  assertClose(
+    mesmerRules('Virtuoso').modifyStrikeDamage({ ...context, traits: new Set([MESMER.MENTAL_FOCUS]) }, 1),
+    1.05
+  );
+  assertClose(
+    necromancerRules('Reaper').modifyStrikeDamage({ ...context, traits: new Set([NECROMANCER.SOUL_EATER]) }, 1),
+    1.15
+  );
+  const reaper = necromancerRules('Reaper');
+  const shout = reaper.catalog.skillsById.get(NECROMANCER_SKILLS.YOU_ARE_ALL_WEAKLINGS);
+  assert.ok(shout);
+  assertClose(
+    reaper.modifyStrikeDamage(
+      { ...context, catalog: reaper.catalog, profession: reaper, event: { actorType: 'player', skillId: shout.id } },
+      1
+    ),
+    2
+  );
 });

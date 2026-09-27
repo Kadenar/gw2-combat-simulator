@@ -1,16 +1,13 @@
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /** Ordered public dispatcher for Core Elementalist trait behavior. */
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type {
-  ElementalistCastContext as ElementalistLifecycleContext,
-  ElementalistSchedulerContext
-} from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import {
-  combatStarted,
   emitElementalistAura,
   type ElementalistAuraApplication
 } from '#gw2/professions/elementalist/core/mechanics/effects.js';
@@ -22,8 +19,6 @@ import {
   applyOneWithAir,
   applyRagingStorm,
   applyResolverZephyrsBoon,
-  applySchedulerZephyrsBoon,
-  freshAirReaction,
   projectedFreshAirReadyAt,
   triggerElectricDischarge
 } from '#gw2/professions/elementalist/core/traits/air.js';
@@ -40,7 +35,6 @@ import {
 import {
   applyEarthsEmbrace,
   applyResolverElementalShielding,
-  applySchedulerElementalShielding,
   applyStrengthOfStone,
   applyWrittenInStone,
   grantElementalistRockSolid,
@@ -50,8 +44,6 @@ import {
   applyBurningPrecision,
   applyPyromancersPuissance,
   elementalistAuraDuration,
-  extendPersistingFlamesField,
-  extendPersistingFlamesPackets,
   grantPersistingFlames,
   triggerFlameExpulsion,
   triggerSunspot as triggerFireSunspot
@@ -65,8 +57,6 @@ export {
   applyRenewingStamina,
   applyStrengthOfStone,
   elementalistAuraDuration,
-  extendPersistingFlamesField,
-  extendPersistingFlamesPackets,
   grantElementalistRockSolid,
   grantPersistingFlames,
   projectedFreshAirReadyAt,
@@ -78,22 +68,16 @@ export {
 };
 
 /** Applies Smothering Auras, records the aura, then grants Air and Earth aura traits in order. */
-export function applyElementalistAura(
-  context: ElementalistSchedulerContext,
-  application: ElementalistAuraApplication
-): void {
+export function applyElementalistAura(context: ElementalistRuntime, application: ElementalistAuraApplication): void {
   const adjusted = {
     ...application,
     duration: elementalistAuraDuration(context, application.duration)
   };
   emitElementalistAura(context, adjusted);
-  if (!combatStarted(context, application.at)) return;
-  applySchedulerZephyrsBoon(context, application.at, application.skillName, application.sourceId);
-  applySchedulerElementalShielding(context, application.at, application.skillName, application.sourceId);
 }
 
 /** Public Sunspot entry point supplies the shared aura dispatcher before emitting its remaining effects. */
-export function triggerSunspot(context: ElementalistSchedulerContext, at: number, sourceId: Skill['id']): void {
+export function triggerSunspot(context: ElementalistRuntime, at: number, sourceId: Skill['id']): void {
   triggerFireSunspot(context, at, sourceId, applyElementalistAura);
 }
 
@@ -108,7 +92,7 @@ interface ElementalistAttunementTraitDispatch {
 
 // Keep the cross-line attunement contract explicit: Fire exit/entry, Air, Earth, then Arcane.
 export function applyElementalistAttunementTraits(
-  context: ElementalistSchedulerContext,
+  context: ElementalistRuntime,
   dispatch: ElementalistAttunementTraitDispatch
 ): void {
   const { at, skill, previous, target, dualAttunement, shouldTrigger } = dispatch;
@@ -135,27 +119,26 @@ export function applyElementalistAttunementTraits(
 }
 
 // Preserve post-cast interleaving across Fire, Earth, Water, Earth, Air, and Arcane trait lines.
-export function applyGenericPostCast(context: ElementalistLifecycleContext, skill: Skill): void {
-  applyPyromancersPuissance(context, skill);
+export function applyGenericPostCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+  applyPyromancersPuissance(context, cast, skill);
   if (skill.type === 'Heal') {
-    applyEarthsEmbrace(context, skill);
-    applySoothingIce(context, skill, applyElementalistAura);
+    applyEarthsEmbrace(context, cast, skill);
+    applySoothingIce(context, cast, skill, applyElementalistAura);
   }
 
-  applyWrittenInStone(context, skill, applyElementalistAura);
-  applyInscriptionPostCast(context, skill);
-  applyArcaneLightning(context, skill);
+  applyWrittenInStone(context, cast, skill, applyElementalistAura);
+  applyInscriptionPostCast(context, cast, skill);
+  applyArcaneLightning(context, cast, skill);
 }
 
 /** Observes Fresh Air before routing a player control event through Lightning Rod and Elemental Lockdown. */
-export function observeElementalistTraitEvent(context: ElementalistSchedulerContext, event: SimulationEvent): void {
-  freshAirReaction.onEventScheduled.handler(context, event);
+export function observeElementalistTraitEvent(context: ElementalistRuntime, event: SimulationEvent): void {
   if (event.type !== 'control' || event.actorType !== 'player') return;
   applyLightningRod(context, event);
   applyElementalLockdown(context, event);
 }
 
-/** Grants resolver-side aura traits in the same Air-before-Earth order as scheduler applications. */
+/** Grants each actual aura its Air traits before its Earth traits. */
 export function applyElementalistResolverAuraTraits(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   applyResolverZephyrsBoon(context, event);
   applyResolverElementalShielding(context, event);

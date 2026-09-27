@@ -18,12 +18,8 @@ import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import type {
-  ElementalistResolverContext,
-  ElementalistResolverEvent,
-  ElementalistState
-} from '#gw2/professions/elementalist/types.js';
-import { isElementalistAttunement, type ElementalistAuraState } from '#gw2/professions/elementalist/core/state.js';
+import type { ElementalistResolverContext } from '#gw2/professions/elementalist/types.js';
+import { type ElementalistAuraState } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import {
   applyArcanePrecision,
@@ -44,26 +40,6 @@ export {
   refreshElementalistBuffs
 } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
 
-/** Mirrors an attunement event into Core and any specialization-owned secondary attunement state. */
-export function applyElementalistResolverAttunement(
-  context: ElementalistResolverContext,
-  event: ElementalistResolverEvent
-): void {
-  const core = professionCoreState(context);
-  if (isElementalistAttunement(event.to)) core.primaryAttunement = event.to;
-  core.attunementEnteredAt = event.at;
-
-  // Object.hasOwn checks this optional owned field, but does not narrow the specialization union.
-  const specialization = context.profession.specialization.state as Partial<
-    Pick<ElementalistState, 'secondaryAttunement'>
-  >;
-  if (Object.hasOwn(specialization, 'secondaryAttunement')) {
-    specialization.secondaryAttunement = isElementalistAttunement(event.secondaryAttunement)
-      ? event.secondaryAttunement
-      : null;
-  }
-}
-
 /** Queues a resolver-generated aura after applying Smothering Auras exactly once. */
 export function queueElementalistAura(
   context: Gw2ResolverRuntime,
@@ -76,7 +52,7 @@ export function queueElementalistAura(
     type: 'elementalist.aura',
     at: event.at,
     source: skillName,
-    sourceId: event.skillId ?? event.sourceId ?? skillName,
+    sourceId: event.skillId ?? event.sourceId,
     actorType: 'effect',
     skillName,
     aura,
@@ -89,7 +65,7 @@ export function queueElementalistAura(
 export function applyElementalistResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (event.elementalistAuraReactionDispatched === true) return;
   const skillName = resolverSourceSkill(event);
-  const duration = Math.max(0, Number(event.duration || 0));
+  const duration = Math.max(0, event.duration || 0);
   const auraState: ElementalistAuraState = {
     type: String(event.aura || ''),
     appliedAt: event.at,
@@ -100,7 +76,7 @@ export function applyElementalistResolverAura(context: ElementalistResolverConte
   if (context.reporting && event.elementalistResolverGeneratedAura === true) context.resolved.push(event);
   if (context.combatStartTime != null && event.at < context.combatStartTime) return;
 
-  if (event.elementalistResolverGeneratedAura === true || event.type === 'aura') {
+  {
     applyElementalistResolverAuraTraits(context, event);
   }
 
@@ -115,10 +91,10 @@ function criticalTraitEligible(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
   details: NativeResolvedDamageDetails,
-  trait: string
+  traitId: number
 ): boolean {
   return (
-    hasTrait(context, trait) &&
+    hasTrait(context, traitId) &&
     event.actorType === 'player' &&
     Number(event.coefficient) > 0 &&
     details.hitContext?.critEligible === true
@@ -128,13 +104,13 @@ function criticalTraitEligible(
 export const elementalistCoreCriticalReactions = Object.freeze([
   onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.raging-storm',
-    when: (context, event, details) => criticalTraitEligible(context, event, details, 'Raging Storm'),
+    when: (context, event, details) => criticalTraitEligible(context, event, details, TRAIT.RAGING_STORM),
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.ragingStorm), 'internalCooldown'),
-      readyAt: (context) => Number(professionCoreState(context).procReadyAt.ragingStorm || 0),
+      readyAt: (context) => context.procs.readyAt.ragingStorm || 0,
       setReadyAt: (context, readyAt) => {
-        professionCoreState(context).procReadyAt.ragingStorm = readyAt;
+        context.procs.readyAt.ragingStorm = readyAt;
       }
     },
     attribution: { kind: 'trait', id: TRAIT.RAGING_STORM },
@@ -144,13 +120,13 @@ export const elementalistCoreCriticalReactions = Object.freeze([
     id: 'elementalist.arcane-precision',
     chanceOnCriticalHit: (context) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.arcanePrecision), 'procChance'),
-    when: (context, event, details) => criticalTraitEligible(context, event, details, 'Arcane Precision'),
+    when: (context, event, details) => criticalTraitEligible(context, event, details, TRAIT.ARCANE_PRECISION),
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.arcanePrecision), 'internalCooldown'),
-      readyAt: (context) => Number(professionCoreState(context).procReadyAt.arcanePrecision || 0),
+      readyAt: (context) => context.procs.readyAt.arcanePrecision || 0,
       setReadyAt: (context, readyAt) => {
-        professionCoreState(context).procReadyAt.arcanePrecision = readyAt;
+        context.procs.readyAt.arcanePrecision = readyAt;
       }
     },
     randomStream: 'elementalist.arcane-precision',
@@ -159,13 +135,13 @@ export const elementalistCoreCriticalReactions = Object.freeze([
   }),
   onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.renewing-stamina',
-    when: (context, event, details) => criticalTraitEligible(context, event, details, 'Renewing Stamina'),
+    when: (context, event, details) => criticalTraitEligible(context, event, details, TRAIT.RENEWING_STAMINA),
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.renewingStamina), 'internalCooldown'),
-      readyAt: (context) => Number(professionCoreState(context).procReadyAt.renewingStamina || 0),
+      readyAt: (context) => context.procs.readyAt.renewingStamina || 0,
       setReadyAt: (context, readyAt) => {
-        professionCoreState(context).procReadyAt.renewingStamina = readyAt;
+        context.procs.readyAt.renewingStamina = readyAt;
       }
     },
     attribution: { kind: 'trait', id: TRAIT.RENEWING_STAMINA },
@@ -174,13 +150,13 @@ export const elementalistCoreCriticalReactions = Object.freeze([
   onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.burning-precision',
     chanceOnCriticalHit: (context) => procChanceFromContext(context, PROFILE.burningPrecision),
-    when: (context, event, details) => criticalTraitEligible(context, event, details, 'Burning Precision'),
+    when: (context, event, details) => criticalTraitEligible(context, event, details, TRAIT.BURNING_PRECISION),
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.burningPrecision), 'internalCooldown'),
-      readyAt: (context) => Number(professionCoreState(context).procReadyAt.burningPrecision || 0),
+      readyAt: (context) => context.procs.readyAt.burningPrecision || 0,
       setReadyAt: (context, readyAt) => {
-        professionCoreState(context).procReadyAt.burningPrecision = readyAt;
+        context.procs.readyAt.burningPrecision = readyAt;
       }
     },
     randomStream: 'elementalist.burning-precision',
@@ -193,20 +169,16 @@ export const elementalistCoreCriticalReactions = Object.freeze([
 export function applyElementalistResolverBuff(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (event.kind !== 'shattering stone' || !event.resolvedAudience?.includesSelf) return;
   const core = professionCoreState(context);
-  core.shatteringStone = grantCharges(Number(event.stacks || 0), event.at + Number(event.duration || 0));
+  core.shatteringStone = grantCharges(event.stacks || 0, event.at + (event.duration || 0));
 }
 
 /** Applies strike reactions in impact order, regardless of when their packets were scheduled. */
-export function applyElementalistResolvedDamage(
-  context: ElementalistResolverContext,
-  event: Gw2ResolverEvent,
-  _details: NativeResolvedDamageDetails = {}
-): void {
+export function applyElementalistResolvedDamage(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   // Fire-field hits grant stacks even from profession skills; only weapon fields receive duration extensions.
   if (
     event.damageKind === 'field-tick' &&
     context.helpers.skillsById
-      ?.get(event.skillId ?? event.sourceId ?? '')
+      ?.get(event.skillId ?? event.sourceId)
       ?.comboFields?.some((field) => field.fieldType === 'Fire')
   ) {
     grantPersistingFlames(context, event);
@@ -242,12 +214,4 @@ export function applyElementalistResolvedCondition(
   }
 
   if (event.condition === 'Burning') grantPersistingFlames(context, event);
-}
-
-/** Mirrors Signet of Fire's passive-suppression window into resolver state. */
-export function applyElementalistResolverSignetFire(
-  context: ElementalistResolverContext,
-  event: Gw2ResolverEvent
-): void {
-  professionCoreState(context).signetOfFireDisabledUntil = Number(event.disabledUntil || event.at);
 }

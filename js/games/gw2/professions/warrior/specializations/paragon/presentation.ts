@@ -6,7 +6,6 @@ import {
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
 import type { ProfessionResourceView, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const CHANTS = Object.freeze([ID.CHANT_OF_ACTION, ID.CHANT_OF_RECUPERATION, ID.CHANT_OF_FREEDOM]);
@@ -20,7 +19,7 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
       singular: 'motivation',
       plural: 'motivation',
       maximum: 10,
-      value: Number(state.motivation || 0),
+      value: state.motivation || 0,
       canStart: false,
       step: 1,
       displayMode: 'counter',
@@ -34,8 +33,8 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
 /** Shows the refrain currently pulsing while Paragon still has motivation to sustain it. */
 function paragonStateSnapshot(context: WarriorUiContext): RotationStateSnapshotItem[] {
   const state = warriorUiState(context);
-  const refrain = String(state.activeRefrain || '');
-  return refrain && Number(state.motivation || 0) > 0
+  const refrain = state.activeRefrain || '';
+  return refrain && (state.motivation || 0) > 0
     ? [
         {
           id: 'paragon-active-refrain',
@@ -67,9 +66,5 @@ export const paragonUi: WarriorUiSlice = Object.freeze({
   rotationStateSnapshot: paragonStateSnapshot,
   resourceViews: resources,
   paletteSkillAvailability: (context: WarriorUiContext, skill: WarriorSkill) =>
-    warriorBurstPaletteAvailability(context, skill),
-  // null hides the row; undefined defers to default rendering. Paragon-state
-  // events are internal bookkeeping and should not appear in the event log.
-  eventLogRow: (_context: WarriorUiContext, event: SimulationEvent) =>
-    event.type === 'warrior.paragon-state' ? null : undefined
+    warriorBurstPaletteAvailability(context, skill)
 });

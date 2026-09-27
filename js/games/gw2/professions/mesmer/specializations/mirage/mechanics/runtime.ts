@@ -1,27 +1,24 @@
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
-import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { applyMesmerRuntimeManifest, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createMirageActionController } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
-import type { MesmerRuntime, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerMechanics, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import {
   MIRAGE_AMBUSH_PROFILE_IDS,
   mesmerProfiledAmbush
 } from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
 import type { MesmerMirageController } from '#gw2/professions/mesmer/specializations/mirage/types.js';
 
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-
 /** Returns the controller installed only by the Mirage runtime. */
-export function mirageControllerFor(runtime: MesmerRuntime): MesmerMirageController {
+export function mirageControllerFor(runtime: MesmerMechanics): MesmerMirageController {
   if (!runtime.mirage) throw new Error('Mirage runtime is not initialized.');
   return runtime.mirage;
 }
 
-export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
-  const runtime = mesmerRuntimeFor(context);
+export function initializeMirageRuntime(context: MesmerRuntime): void {
+  const runtime = mesmerMechanicsFor(context);
   applyMesmerRuntimeManifest(runtime, {
     ambushAttacks: Object.fromEntries(
       Object.entries(MESMER_MIRAGE_AMBUSH_SKILLS).map(([weapon, attack]) => [
@@ -31,7 +28,7 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
     )
   });
   const mirage = createMirageActionController({
-    state: context.state,
+    state: context,
     config: context.config,
     traits: runtime.traits,
     ambushAttacks: runtime.ambushAttacks,
@@ -44,10 +41,6 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
     activePrimaryWeapon: runtime.activePrimaryWeapon,
     queueResources: runtime.resources.queueResources,
     balanceProfile: runtime.balanceProfile,
-    boonDuration: (sourceSkill, boon, baseDuration) => {
-      const skill = context.catalog.skillsByName.get(sourceSkill) || ({ id: 0, name: sourceSkill } as MesmerSkill);
-      return gw2SchedulerBoonDuration(context, skill, boon, baseDuration);
-    },
     // Dune Cloak shares the scheduler's base-recharge conversion instead of editing tracked timestamps itself.
     reduceSkillRecharge: context.cooldownController.reduceSkillRecharge
   });

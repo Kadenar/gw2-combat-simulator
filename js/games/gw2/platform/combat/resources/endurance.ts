@@ -1,3 +1,4 @@
+import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 /** The shared endurance fields read by, and returned from, standard GW2 endurance arithmetic. */
@@ -7,16 +8,9 @@ import { boonIntervals } from '#gw2/platform/combat/boons.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
-export interface Gw2EnduranceState {
+interface Gw2EnduranceState {
   readonly endurance: number;
   readonly enduranceUpdatedAt: number;
-}
-
-/** A chronological recovery window; professions supply their own boon and trait rate policy. */
-export interface Gw2EnduranceInterval {
-  readonly start: number;
-  readonly end: number;
-  readonly rate: number;
 }
 
 /** Shares self-Vigor history for recovery and readiness while professions retain their rate policy. */
@@ -26,7 +20,7 @@ export function* vigorEnduranceIntervals(
   end: number,
   rateAt: (vigor: boolean, at: number) => number,
   rateBoundaries: readonly number[] = []
-): Generator<Gw2EnduranceInterval> {
+): Generator<RateInterval> {
   // Timed profession bonuses split the same windows used by both recovery and affordability forecasts.
   const boundaries = [...new Set(rateBoundaries.filter((at) => at > start && at < end))].sort((a, b) => a - b);
   let index = 0;
@@ -109,7 +103,7 @@ function enduranceThresholdAt(
 /** Integrates chronological windows without mutating the caller, accruing gaps, or replaying settled time. */
 export function advanceEnduranceIntervals(
   state: Gw2EnduranceState,
-  intervals: Iterable<Gw2EnduranceInterval>,
+  intervals: Iterable<RateInterval>,
   maximumEndurance: number
 ): Gw2EnduranceState {
   let current = { endurance: state.endurance, enduranceUpdatedAt: state.enduranceUpdatedAt };
@@ -131,7 +125,7 @@ export function advanceEnduranceIntervals(
 export function enduranceIntervalsReadyAt(
   state: Gw2EnduranceState,
   cost: number,
-  intervals: Iterable<Gw2EnduranceInterval>,
+  intervals: Iterable<RateInterval>,
   maximumEndurance: number
 ): number | null {
   if (cost - Math.max(0, maximumEndurance) > Math.max(0, EPSILON)) return null;

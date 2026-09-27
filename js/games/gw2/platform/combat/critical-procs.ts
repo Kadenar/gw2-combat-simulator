@@ -1,14 +1,14 @@
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 
-export interface CriticalOpportunity {
+interface CriticalOpportunity {
   readonly sampledCriticals: number;
 }
 
-export interface CriticalProcState {
+interface CriticalProcState {
   readyAt: number;
 }
 
-export interface CriticalProcRequest {
+interface CriticalProcRequest {
   readonly id: string;
   readonly at: number;
   readonly chanceOnCriticalHit?: number;

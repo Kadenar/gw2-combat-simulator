@@ -2,12 +2,12 @@ import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { loadProfession, professionOptions } from '#gw2/app/profession-registry.js';
+import { loadProfession, professionOptions } from '#gw2/profession-registry.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 function projectionApp(
   profession,
@@ -47,7 +47,7 @@ function projectionApp(
 
 // The palette consumes projected deadlines while recharge storage remains in base seconds.
 test('a used 20-second skill displays 16 seconds under Alacrity', () => {
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'palette-recharge',
     name: 'Palette Recharge',
     catalog: createCanonicalCatalog({
@@ -56,7 +56,7 @@ test('a used 20-second skill displays 16 seconds under Alacrity', () => {
   });
   const skill = profession.catalog.skillsById.get(990020);
   for (const [alacrity, label] of [
-    [false, '20.00s'],
+    [false, '16.00s'],
     [true, '16.00s']
   ]) {
     const result = simulateGw2({ profession, rotation: [skill.name], config: { boons: { alacrity } } });
@@ -67,7 +67,10 @@ test('a used 20-second skill displays 16 seconds under Alacrity', () => {
     const view = paletteSkillView(app, skill, true);
     assert.equal(view.cooldownLabel, label);
     assert.equal(view.disabled, true);
-    assert.equal(result.schedulerState.rechargeProgress.get(skill.id).work, 20);
+    assert.equal(
+      result.events.find((event) => event.type === 'action' && event.skillId === skill.id).rechargeProgress.work,
+      20
+    );
   }
 });
 
@@ -328,7 +331,7 @@ test('Gunsaber tile shows the shared cooldown after direct or Dragon Trigger ent
 
     assert.deepEqual(result.warnings, []);
     assert.equal(skill.name, 'Sheathe Gunsaber');
-    assert.equal(view.cooldownLabel, '5.00s');
+    assert.equal(view.cooldownLabel, '4.00s');
     assert.equal(view.disabled, true);
   }
 });

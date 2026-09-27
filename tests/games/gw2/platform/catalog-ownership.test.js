@@ -6,7 +6,7 @@ import {
   createNativeModuleData,
   getNativeCatalogAssembly
 } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
-import { onResolvedCriticalHit, onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
+import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { createProfessionModuleDataFactory } from '#gw2/professions/shared/catalog-data.js';
 
@@ -26,14 +26,14 @@ const coreModule = () =>
   defineNativeModule({
     id: 'Core',
     data: {
-      generatedSkills: [skill(1, 'Core Skill', { handlerId: 'test.core' })],
+      generatedSkills: [skill(1, 'Core Skill')],
       traits: [{ id: 10, name: 'Core Trait', specialization: 'Core Line' }],
       specializations: [{ id: 20, name: 'Core Line', elite: false }],
       weapons: ['Sword'],
       weaponHands: { Sword: 'mh' }
     },
-    state: { scheduler: () => ({ coreValue: 1 }) },
-    mechanics: { execution: { skillHandlers: { 'test.core': replaceHandler } } }
+    state: { create: () => ({ coreValue: 1 }) },
+    hooks: {}
   });
 const eliteModule = () =>
   defineNativeModule({
@@ -41,8 +41,7 @@ const eliteModule = () =>
     data: {
       generatedSkills: [
         skill(2, 'Elite Skill', {
-          specialization: 'Elite',
-          handlerId: 'test.elite'
+          specialization: 'Elite'
         }),
         skill(3, 'Elite Mechanic Weapon', {
           type: 'Weapon',
@@ -52,8 +51,8 @@ const eliteModule = () =>
       traits: [{ id: 11, name: 'Elite Trait', specialization: 'Elite' }],
       specializations: [{ id: 21, name: 'Elite', elite: true }]
     },
-    state: { scheduler: () => ({ eliteValue: 2 }) },
-    mechanics: { execution: { skillHandlers: { 'test.elite': replaceHandler } } }
+    state: { create: () => ({ eliteValue: 2 }) },
+    hooks: {}
   });
 
 test('native module data admits only mechanics-backed metadata and explicit extra skills', () => {
@@ -202,7 +201,7 @@ test('profession catalog binding preserves authored admission, specialization se
     defineNativeModule({
       id: index === 0 ? 'Core' : 'Elite',
       data,
-      state: { scheduler: () => ({}) }
+      state: { create: () => ({}) }
     })
   );
   const assembly = getNativeCatalogAssembly(modules, undefined);
@@ -210,13 +209,22 @@ test('profession catalog binding preserves authored admission, specialization se
     assembly.catalog.skills.map(({ id }) => id),
     [2, 1, 3, 4, 5]
   );
-  assert.equal(assembly.skillOwners.get(2), 'Elite');
+  assert.equal(
+    new Map(
+      [...assembly.fragments].flatMap(([owner, fragment]) => fragment.skills.map((skill) => [skill.id, owner]))
+    ).get(2),
+    'Elite'
+  );
 });
 
 test('module-first assembly derives application and active runtime catalogs', () => {
   const modules = [coreModule(), eliteModule()];
   const catalog = assembleNativeApplicationCatalog(modules);
-  const skillOwners = getNativeCatalogAssembly(modules, undefined).skillOwners;
+  const skillOwners = new Map(
+    [...getNativeCatalogAssembly(modules, undefined).fragments].flatMap(([owner, fragment]) =>
+      fragment.skills.map((skill) => [skill.id, owner])
+    )
+  );
   const family = defineNativeProfession({
     id: 'fixture',
     name: 'Fixture',
@@ -227,19 +235,20 @@ test('module-first assembly derives application and active runtime catalogs', ()
   assert.deepEqual(catalog.skills.map(({ id }) => id).sort(), [1, 2, 3]);
   assert.equal(skillOwners.get(3), 'Core');
   assert.deepEqual(
-    family.resolveRuntime({ specialization: 'Core' }).catalog.skills.map(({ id }) => id),
+    family.resolveProfession({ specialization: 'Core' }).catalog.skills.map(({ id }) => id),
     [1, 3]
   );
   assert.deepEqual(
     family
-      .resolveRuntime({ specialization: 'Elite' })
+      .resolveProfession({ specialization: 'Elite' })
       .catalog.skills.map(({ id }) => id)
       .sort(),
     [1, 2, 3]
   );
-  assert.deepEqual(family.specializationIds, ['Elite']);
-  assert.equal(family.resolveRuntime({ specialization: 'Core' }).catalog.skillHandlers.has('test.elite'), false);
-  assert.equal(family.resolveRuntime({ specialization: 'Elite' }).catalog.skillHandlers.has('test.elite'), true);
+  assert.deepEqual(
+    family.nativeDefinition.modules.slice(1).map((module) => module.id),
+    ['Elite']
+  );
 });
 
 test('module-first assembly rejects duplicate and incomplete contributions', () => {
@@ -252,7 +261,7 @@ test('module-first assembly rejects duplicate and incomplete contributions', () 
         defineNativeModule({
           id: 'Duplicate',
           data: { generatedSkills: [skill(1, 'Duplicate')] },
-          state: { scheduler: () => ({}) }
+          state: { create: () => ({}) }
         })
       ]),
     /Duplicate generated skill id 1/
@@ -264,7 +273,7 @@ test('module-first assembly rejects duplicate and incomplete contributions', () 
         defineNativeModule({
           id: 'DuplicateHand',
           data: { weapons: ['Sword'], weaponHands: { Sword: 'oh' } },
-          state: { scheduler: () => ({}) }
+          state: { create: () => ({}) }
         })
       ]),
     /Duplicate weapon-hand entry Sword/
@@ -276,97 +285,16 @@ test('module-first assembly rejects duplicate and incomplete contributions', () 
         defineNativeModule({
           id: 'UnusedHandler',
           data: {},
-          state: { scheduler: () => ({}) },
-          mechanics: { execution: { skillHandlers: { 'test.unused': replaceHandler } } }
+          state: { create: () => ({}) },
+          execution: { skillHandlers: { 'test.unused': replaceHandler } }
         })
       ]),
-    /Skill handler test\.unused is unused/
+    /Unsupported native module field: execution/
   );
   assert.throws(
     () => defineNativeModule({ id: 'Broken', data: {}, state: {} }),
-    /Broken\.state\.scheduler must be a function/
+    /Broken\.state\.create must be a function/
   );
-});
-
-test('phase-explicit reactions retain stable order', () => {
-  const calls = [];
-  const core = defineNativeModule({
-    id: 'Core',
-    data: {},
-    state: { scheduler: () => ({}) },
-    mechanics: {
-      resolution: {
-        reactions: [
-          onResolvedDamage({
-            id: 'later',
-            order: 20,
-            handler: () => calls.push('later')
-          }),
-          onResolvedDamage({
-            id: 'first',
-            order: -10,
-            handler: () => calls.push('first')
-          }),
-          onResolvedDamage({
-            id: 'middle',
-            order: 0,
-            handler: () => calls.push('middle')
-          })
-        ]
-      }
-    }
-  });
-  const runtime = defineNativeProfession({
-    id: 'ordered',
-    name: 'Ordered',
-    modules: [core]
-  }).resolveRuntime({ specialization: 'Core' });
-
-  runtime.eventReactions['damage.resolved']({}, { type: 'damage', at: 0 }, {});
-  assert.deepEqual(calls, ['first', 'middle', 'later']);
-});
-
-test('phase-scoped module sections compile without duplicating their canonical content definition', () => {
-  const calls = [];
-  const handlers = Object.freeze({ 'test.phase-scoped': replaceHandler });
-  const phaseScopedSkill = skill(101, 'Phase-scoped Skill', { handlerId: 'test.phase-scoped' });
-  const core = defineNativeModule({
-    id: 'Core',
-    data: { generatedSkills: [phaseScopedSkill] },
-    state: { scheduler: () => ({}) },
-    mechanics: {
-      execution: {
-        skillHandlers: handlers,
-        availability: {
-          phase: 'scheduler',
-          hook: 'availability',
-          id: 'test.phase-scoped-availability',
-          order: 0,
-          handler: () => ({ ready: true })
-        }
-      },
-      resolution: {
-        reactions: [
-          onResolvedDamage({
-            id: 'test.phase-scoped-damage',
-            handler: () => calls.push('resolved')
-          })
-        ]
-      }
-    }
-  });
-  const runtime = defineNativeProfession({
-    id: 'phase-scoped',
-    name: 'Phase scoped',
-    modules: [core]
-  }).resolveRuntime({ specialization: 'Core' });
-
-  assert.equal(core.data.handlers, undefined);
-  assert.equal(core.mechanics.execution.skillHandlers, handlers);
-  assert.deepEqual(runtime.skillHandlerFor(runtime.catalog.skillsById.get(101)), replaceHandler);
-  assert.equal(typeof runtime.availability, 'function');
-  runtime.eventReactions['damage.resolved']({}, { type: 'damage', at: 0 }, {});
-  assert.deepEqual(calls, ['resolved']);
 });
 
 test('resolved critical-hit helper shares sampled outcomes and strict ICDs across modes', () => {
@@ -386,7 +314,7 @@ test('resolved critical-hit helper shares sampled outcomes and strict ICDs acros
   const reaction = onResolvedCriticalHit({
     id: 'fixture.critical',
     chanceOnCriticalHit: 0.5,
-    sourceIds: [7],
+    when: (_context, event) => event.sourceId === 7,
     internalCooldown: {
       duration: 1,
       readyAt: () => state.readyAt,
@@ -444,40 +372,47 @@ test('resolved critical-hit helper shares sampled outcomes and strict ICDs acros
     }
   );
   assert.equal(state.procs, 3);
-  assert.equal(reaction.requiresCriticalFacts, true);
 });
 
-test('critical-hit declarations automatically request canonical scheduler facts', () => {
-  const core = defineNativeModule({
-    id: 'Core',
-    data: {},
-    state: { scheduler: () => ({}) },
-    mechanics: {
-      resolution: {
-        reactions: [
-          onResolvedCriticalHit({
-            id: 'fixture.critical-facts',
-            attribution: { kind: 'trait', id: 99 },
-            handler: () => undefined
+// Application catalogs can contain every elite action; only selected modules must supply their handlers.
+test('selected runtime assembly binds profession side-effect handlers', () => {
+  const elite = (hooks) =>
+    defineNativeModule({
+      id: 'Elite',
+      data: {
+        generatedSkills: [
+          skill(2, 'Elite action', {
+            specialization: 'Elite',
+            sideEffects: [{ on: 'castComplete', do: { type: 'fixture.action' } }],
+            effects: [
+              {
+                type: 'strike',
+                coefficient: 1,
+                reactions: [{ on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'fixture.impact' } }]
+              }
+            ]
           })
         ]
-      }
-    }
-  });
-  const runtime = defineNativeProfession({
-    id: 'critical-facts',
-    name: 'Critical Facts',
-    modules: [core]
-  }).resolveRuntime({ specialization: 'Core' });
-  let requests = 0;
+      },
+      state: { create: () => ({}) },
+      hooks
+    });
+  const missing = defineNativeProfession({ id: 'fixture', name: 'Fixture', modules: [coreModule(), elite({})] });
+  assert.doesNotThrow(() => missing.runtimeFor({ specialization: 'Core' }));
+  assert.throws(() => missing.runtimeFor({ specialization: 'Elite' }), /Skill 2.*fixture.action/);
+  const handler = () => {};
 
-  runtime.initialize({
-    schedulerPolicy: {
-      requireCriticalFacts: () => {
-        requests += 1;
-      }
-    }
+  const bound = defineNativeProfession({
+    id: 'fixture',
+    name: 'Fixture',
+    modules: [coreModule(), elite({ sideEffectHandlers: { 'fixture.action': handler, 'fixture.impact': handler } })]
   });
-
-  assert.equal(requests, 1);
+  assert.equal(bound.runtimeFor({ specialization: 'Elite' }).sideEffectHandlers['fixture.action'], handler);
+  assert.equal(bound.runtimeFor({ specialization: 'Elite' }).sideEffectHandlers['fixture.impact'], handler);
+  const missingImpact = defineNativeProfession({
+    id: 'fixture',
+    name: 'Fixture',
+    modules: [coreModule(), elite({ sideEffectHandlers: { 'fixture.action': handler } })]
+  });
+  assert.throws(() => missingImpact.runtimeFor({ specialization: 'Elite' }), /fixture.impact/);
 });

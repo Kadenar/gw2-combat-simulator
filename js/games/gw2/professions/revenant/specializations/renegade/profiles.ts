@@ -43,7 +43,7 @@ export const RENEGADE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     id: RENEGADE_PROFILE_IDS.brutalMomentum,
     name: 'Brutal Momentum',
     profileKind: 'trait',
-    cooldown: 8,
+    internalCooldown: 8,
     effects: [{ name: 'vigor', type: 'boon', boon: 'vigor', duration: 6, stacks: 1 }]
   }),
   renegadeBalanceProfile({
@@ -184,7 +184,7 @@ export const RENEGADE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     icon: 'https://render.guildwars2.com/file/A4D16BE749A19FE8A8B5783EE2BD1DF899156D47/1769999.png',
     categories: ['Trait'],
     skillFamily: 'Trait',
-    cooldown: 8,
+    internalCooldown: 8,
     effects: [
       {
         name: 'fury',

@@ -35,10 +35,6 @@ export interface CatalystState {
   sphereActiveUntil: number;
   sphereExpiry: Record<string, number>;
   shatteringIceUntil: number;
-  shatteringIceReadyAt: number;
-  viciousEmpowermentReadyAt: number;
-  elementalEpitomeReadyAt: Record<string, number>;
-  elementalSynergyReadyAt: Record<string, number>;
 }
 
 /**
@@ -59,11 +55,7 @@ export const catalystState = defineProfessionSpecializationState(
     maximumEnergy: CATALYST_MAXIMUM_ENERGY,
     sphereActiveUntil: 0,
     sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
-    shatteringIceUntil: 0,
-    shatteringIceReadyAt: 0,
-    viciousEmpowermentReadyAt: 0,
-    elementalEpitomeReadyAt: {},
-    elementalSynergyReadyAt: {}
+    shatteringIceUntil: 0
   })
 );
 

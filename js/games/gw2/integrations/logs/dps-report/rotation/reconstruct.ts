@@ -1,5 +1,9 @@
 import type { CastCommand, CooldownResetCommand, RotationCommand } from '#gw2/platform/execution/types.js';
-import { isMushroomKingsBlessing, LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
+import {
+  isMushroomKingsBlessing,
+  isWeaponStow,
+  LOG_OPENER_WARNING
+} from '#gw2/integrations/logs/shared/rotation/model.js';
 import {
   actionKind,
   findNamedRotationSkill,
@@ -259,7 +263,9 @@ function buildRotation(
 
 function warningList(actions: readonly DpsReportRotationAction[]): string[] {
   const warnings = [LOG_OPENER_WARNING];
-  const unsupported = actions.filter((action) => !action.supportedByCatalog && !isMushroomKingsBlessing(action));
+  const unsupported = actions.filter(
+    (action) => !action.supportedByCatalog && !isMushroomKingsBlessing(action) && !isWeaponStow(action)
+  );
   const interrupted = actions.filter((action) => action.status === 'interrupted');
   if (unsupported.length) {
     warnings.push(
@@ -313,8 +319,6 @@ export function reconstructDpsReportWithProfile(
       .sort(compareResolvedActions)
       // Derived packets marked simulatorExcluded are materialized by their parent and must not become replayed inputs.
       .filter((action) => action.skill?.simulatorExcluded !== true)
-      // Unsupported Weapon Stow rows are cancellation artifacts, not replayable actions or intentional idle time.
-      .filter((action) => action.skill != null || normalized(action.rawName) !== 'weapon stow')
   ).sort(compareResolvedActions);
   if (!resolved.length) {
     throw new DpsReportError('NO_ROTATION_ACTIONS', 'The selected player has no reconstructable casts in this phase.');

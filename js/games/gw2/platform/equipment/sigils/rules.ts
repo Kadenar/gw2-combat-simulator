@@ -7,7 +7,7 @@ import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
-export interface Gw2SigilCriticalContribution {
+interface Gw2SigilCriticalContribution {
   readonly chance: number;
   readonly damage: number;
   readonly chanceContributors: readonly Gw2CriticalChanceContributor[];
@@ -24,15 +24,15 @@ export function sigilCriticalContribution(
   runtime: Gw2QueryRuntime | null | undefined,
   at: number
 ): Readonly<Gw2SigilCriticalContribution> {
-  if (!(Number(runtime?.sigil?.severanceUntil || 0) > at)) {
+  if (!((runtime?.sigil?.severanceUntil || 0) > at)) {
     return NO_CRITICAL_CONTRIBUTION;
   }
 
   const severance = SIGIL_DATA.Severance;
-  const chance = Number(severance.procPrecision || 0) / PRECISION_PER_CRITICAL_CHANCE_FRACTION;
+  const chance = (severance.procPrecision || 0) / PRECISION_PER_CRITICAL_CHANCE_FRACTION;
   return {
     chance,
-    damage: Number(severance.procFerocity || 0) / FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
+    damage: (severance.procFerocity || 0) / FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
     chanceContributors: [
       {
         id: 'sigil-severance',
@@ -45,5 +45,5 @@ export function sigilCriticalContribution(
 
 export function gw2SigilSet(config: Gw2Config, weaponSet = 1): Gw2SigilSet {
   // Public weapon sets are one-based; storage is a zero-based array.
-  return config.sigilSets?.[Math.max(1, Number(weaponSet || 1)) - 1] || {};
+  return config.sigilSets?.[Math.max(1, weaponSet || 1) - 1] || {};
 }

@@ -1,6 +1,6 @@
+import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { boonIntervalsFromWindows, type BoonWindow, type Gw2BuffAudience } from '#gw2/platform/combat/boons.js';
+import { boonIntervalsFromWindows, type BoonWindow } from '#gw2/platform/combat/boons.js';
 
 /** Remaining base-recharge seconds anchored to a timestamp, independent of the current recharge rate. */
 export interface RechargeProgress {
@@ -8,17 +8,11 @@ export interface RechargeProgress {
   work: number;
 }
 
-export interface RechargeInterval {
-  readonly start: number;
-  readonly end: number;
-  readonly rate: number;
-}
-
 type Gw2RechargeSkill = Pick<Skill, 'ammo' | 'ammoRecharge' | 'cooldown'>;
 
 function finiteRecharge(value: number | null | undefined): number | null {
   if (value == null) return null;
-  const recharge = Number(value);
+  const recharge = value;
   return Number.isFinite(recharge) ? recharge : null;
 }
 
@@ -31,52 +25,46 @@ export function gw2BaseRecharge(skill: Gw2RechargeSkill): number {
 
 export const GW2_ALACRITY_RECHARGE_RATE = 1.25;
 
-/** Chronomancer's increased rate belongs to the player; summons retain the ordinary rate. */
-function gw2AlacrityRechargeRate(config: Gw2Config, skill: Skill): number {
-  return Number(
-    config.alacrityRechargeRate ||
-      (config.specialization === 'Chronomancer' && skill.rechargeBuffAudience !== 'summon'
-        ? 1.5
-        : GW2_ALACRITY_RECHARGE_RATE)
-  );
+/** Player Alacrity is permanent; summons must actually receive the boon. */
+export function gw2RechargeRate(
+  skill: Skill,
+  playerAlacrityRechargeRate = GW2_ALACRITY_RECHARGE_RATE,
+  summonAlacrity = false
+): number {
+  // Skills such as Weapon Swap declare their Alacrity immunity instead of being recognized by display name.
+  if (skill.rechargeIgnoresAlacrity) return 1;
+  if (skill.rechargeBuffAudience === 'summon') return summonAlacrity ? GW2_ALACRITY_RECHARGE_RATE : 1;
+  // Professions declare their player rate; summon rates and immunity remain shared rules.
+  if (!Number.isFinite(playerAlacrityRechargeRate) || playerAlacrityRechargeRate <= 0)
+    throw new RangeError('Player Alacrity recharge rate must be finite and positive.');
+  return playerAlacrityRechargeRate;
 }
 
-/** Scheduler and resolver integrate the same audience-specific Alacrity history, including extensions. */
+/** Only summon cooldowns integrate received Alacrity grants and expiry. */
 export function* gw2RechargeIntervals(
-  config: Gw2Config,
-  alacrityWindows: (audience: Gw2BuffAudience) => readonly BoonWindow[],
+  playerAlacrityRechargeRate: number,
+  summonAlacrityWindows: () => readonly BoonWindow[],
   skill: Skill,
   start: number,
   end: number
-): Iterable<RechargeInterval> {
+): Iterable<RateInterval> {
   if (end <= start) return;
-  if (skill.name === 'Swap Weapons') {
-    yield { start, end, rate: 1 };
+  if (skill.rechargeBuffAudience !== 'summon' || skill.rechargeIgnoresAlacrity) {
+    yield { start, end, rate: gw2RechargeRate(skill, playerAlacrityRechargeRate) };
     return;
   }
 
-  const audience = skill.rechargeBuffAudience || 'self';
-  // Constant-rate assumptions need no history; other skills reuse their timeline's audience-specific windows.
-  if (audience === 'self' && config.boons?.alacrity) {
-    yield { start, end, rate: gw2AlacrityRechargeRate(config, skill) };
-    return;
-  }
-
-  for (const interval of boonIntervalsFromWindows(
-    alacrityWindows(audience === 'self' ? 'all' : 'summon'),
-    start,
-    end
-  )) {
+  for (const interval of boonIntervalsFromWindows(summonAlacrityWindows(), start, end)) {
     yield {
       start: interval.start,
       end: interval.end,
-      rate: interval.active ? gw2AlacrityRechargeRate(config, skill) : 1
+      rate: gw2RechargeRate(skill, playerAlacrityRechargeRate, interval.active)
     };
   }
 }
 
-/** Projects completion from base work without changing progress already earned at earlier recharge rates. */
-export function projectRecharge(progress: RechargeProgress, intervals: Iterable<RechargeInterval>): number {
+/** Preserve earned recharge work when a received boon starts or expires. */
+export function projectRecharge(progress: RechargeProgress, intervals: Iterable<RateInterval>): number {
   let work = Math.max(0, progress.work);
   if (!work) return progress.startedAt;
   for (const interval of intervals) {

@@ -1,4 +1,4 @@
-import { deterministicSimulationConfig } from '#gw2/app/simulation/config.js';
+import { deterministicSimulationConfig } from '#gw2/app/simulation/build-config.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
 import type { ProfessionAppState, ProfessionRuntimeApi } from '#gw2/app/types.js';

@@ -1,23 +1,78 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/ranger/core/profiles.js';
 import { DRUID_BALANCE_PROFILE_IDS as DRUID } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as SOULBEAST } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
+import { UNTAMED_BALANCE_PROFILE_IDS as UNTAMED } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
-import { createSoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
-import { reactToSoulbeastControl } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const patched = (balanceProfiles) => applyBalanceProfilePatch(rangerCatalog, { balanceProfiles });
+
+// Only the state-selected packet can claim the shared deadline; its removed sibling cannot substitute for it.
+test('Untamed control declarations gate cooldowns on the selected surviving effect', () => {
+  for (const unleashed of [true, false]) {
+    for (const [trait, profile, type, selected, sibling] of [
+      [
+        TRAIT.DEBILITATING_BLOWS,
+        UNTAMED.debilitatingBlows,
+        'condition',
+        unleashed ? 'Poisoned' : 'Slow',
+        unleashed ? 'Slow' : 'Poisoned'
+      ],
+      [
+        TRAIT.ENHANCING_IMPACT,
+        UNTAMED.enhancingImpact,
+        'boon',
+        unleashed ? 'quickness' : 'stability',
+        unleashed ? 'stability' : 'quickness'
+      ]
+    ]) {
+      for (const removed of [selected, sibling]) {
+        const result = runRanger(
+          [wait(1500)],
+          { specialization: 'Untamed', selectedTraitIds: [trait] },
+          {
+            extend: () => ({ catalog: patched({ [profile]: remove(type, removed) }) }),
+            initialize(runtime) {
+              runtime.profession.specialization.state.rangerUnleashed = unleashed;
+              runtime.emit({
+                type: 'control',
+                at: 1,
+                source: 'fixture',
+                sourceId: 'control',
+                actorType: 'player',
+                skillName: 'Test',
+                controlKind: 'daze',
+                duration: 1
+              });
+            }
+          }
+        );
+        const rewards = result.events.filter((event) => event.sourceId === trait);
+        assert.deepEqual(
+          rewards.map((event) => event.condition ?? event.kind),
+          removed === selected ? [] : [selected]
+        );
+        assert.equal(observedRuntime(result).procs.deadline(profile) > 1, removed !== selected);
+        assert.deepEqual(result.warnings, []);
+      }
+    }
+  }
+});
 
 // Small patched rotations exercise removal through the real scheduler and resolver.
 function run(balanceProfiles, specialization, rotation, config = {}) {
@@ -26,7 +81,7 @@ function run(balanceProfiles, specialization, rotation, config = {}) {
     label: 'Ranger removal',
     professions: { ranger: { balanceProfiles } }
   });
-  const result = createProfessionSimulator(profession, {
+  const result = createObservedProfessionSimulator(profession, {
     initialAstralForce: 100,
     selectedPet: 'Jacaranda',
     selectedPet2: 'Carrion Devourer',
@@ -41,7 +96,8 @@ function run(balanceProfiles, specialization, rotation, config = {}) {
 function resolverContext(balanceProfiles, selectedTraitIds, specialization) {
   const config = { specialization: specialization?.kind ?? 'Core', selectedTraitIds };
   const queued = [];
-  return {
+  const context = {
+    procs: createProcRegistry(() => context),
     config,
     catalog: patched(balanceProfiles),
     boons: new Map(),
@@ -51,6 +107,7 @@ function resolverContext(balanceProfiles, selectedTraitIds, specialization) {
     queue: { enqueue: (event) => queued.push(event) },
     profession: { core: createRangerCoreState(config), ...(specialization ? { specialization } : {}) }
   };
+  return context;
 }
 
 test('removing one Eclipse pulse packet never rebinds another Celestial Avatar skill', () => {
@@ -86,6 +143,7 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
   const config = { selectedTraitIds: [TRAIT.QUICK_DRAW] };
   const events = [];
   const context = {
+    procs: createProcRegistry(() => context),
     config,
     catalog: patched({ [CORE.quickDraw]: remove('boon', 'quickness') }),
     combatStartTime: 0,
@@ -93,10 +151,10 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
     state: { time: 1, profession: { core: createRangerCoreState(config) } },
     emit: (event) => events.push(event)
   };
-  applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(ID.SWAP_WEAPONS), 1);
+  applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 1);
   const core = context.state.profession.core;
   assert.equal(core.quickDrawUntil, 6);
-  assert.equal(core.quickDrawReadyAt, 10);
+  assert.equal(context.procs.deadline('ranger.core.quickDraw'), 10);
   assert.deepEqual(events, []);
 });
 
@@ -109,35 +167,39 @@ test('removed Poisonous Strikes poison leaves its charges unspent', () => {
 });
 
 test('Bestial Rage keeps its sibling boon and cooldown, and releases the cooldown when both are removed', () => {
-  const soulbeast = () => ({ kind: 'Soulbeast', state: createSoulbeastState() });
-  const control = { type: 'control', at: 1, actorType: 'player', skillName: 'Test' };
-  const partial = resolverContext(
-    { [SOULBEAST.bestialRage]: remove('boon', 'might') },
-    [TRAIT.BESTIAL_RAGE],
-    soulbeast()
-  );
-  reactToSoulbeastControl(partial, control);
-  assert.deepEqual(
-    partial.queued.map((event) => event.kind),
-    ['fury']
-  );
-  assert.equal(partial.profession.specialization.state.bestialRageReadyAt, 1.25);
-
-  const empty = resolverContext(
-    {
-      [SOULBEAST.bestialRage]: {
-        removeEffects: [
-          { type: 'boon', name: 'might' },
-          { type: 'boon', name: 'fury' }
-        ]
+  for (const both of [false, true]) {
+    const result = runRanger(
+      [wait(1500)],
+      { specialization: 'Soulbeast', selectedTraitIds: [TRAIT.BESTIAL_RAGE] },
+      {
+        extend: () => ({
+          catalog: patched({
+            [SOULBEAST.bestialRage]: {
+              removeEffects: [{ type: 'boon', name: 'might' }, ...(both ? [{ type: 'boon', name: 'fury' }] : [])]
+            }
+          })
+        }),
+        initialize(runtime) {
+          runtime.emit({
+            type: 'control',
+            at: 1,
+            source: 'fixture',
+            sourceId: 'control',
+            actorType: 'player',
+            skillName: 'Test',
+            controlKind: 'daze',
+            duration: 1
+          });
+        }
       }
-    },
-    [TRAIT.BESTIAL_RAGE],
-    soulbeast()
-  );
-  reactToSoulbeastControl(empty, control);
-  assert.deepEqual(empty.queued, []);
-  assert.equal(empty.profession.specialization.state.bestialRageReadyAt, 0);
+    );
+    assert.deepEqual(
+      result.events.filter((event) => event.sourceId === TRAIT.BESTIAL_RAGE).map((event) => event.kind),
+      both ? [] : ['fury']
+    );
+    assert.equal(observedRuntime(result).procs.deadline(SOULBEAST.bestialRage), both ? 0 : 1.25);
+    assert.deepEqual(result.warnings, []);
+  }
 });
 
 test('a missing required Ranger scalar fails instead of using a local default', () => {
@@ -145,6 +207,7 @@ test('a missing required Ranger scalar fails instead of using a local default', 
   delete profile.durationMultiplier;
   const config = { selectedTraitIds: [TRAIT.QUICK_DRAW] };
   const context = {
+    procs: createProcRegistry(() => context),
     config,
     catalog: { balanceProfilesById: new Map([[CORE.quickDraw, profile]]) },
     combatStartTime: 0,
@@ -153,7 +216,7 @@ test('a missing required Ranger scalar fails instead of using a local default', 
     emit() {}
   };
   assert.throws(
-    () => applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(ID.SWAP_WEAPONS), 1),
+    () => applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 1),
     /Invalid balance data: .*field=durationMultiplier/
   );
 });
@@ -177,4 +240,44 @@ test("removed Stalker's Strike impaired Poison keeps the skill's own Poison and 
   assert.equal(poisonStacks(baseline), 5);
   assert.equal(poisonStacks(removed), 3);
   assert.equal(strike(removed), strike(baseline));
+});
+
+// Autonomous recharge reads Pack Alpha normally and the separately authored quickness variant when active.
+test('pet recharge consumes patched Pack Alpha and Crippling Anguish values', () => {
+  for (const quickness of [false, true]) {
+    const result = runRanger(
+      [{ type: 'combat-start' }, wait(6000)],
+      {
+        selectedPet: 'Fanged Iboga',
+        selectedTraitIds: [TRAIT.PACK_ALPHA]
+      },
+      {
+        extend: () => ({
+          catalog: patched({
+            [CORE.packAlpha]: { fields: { rechargeMultiplier: 0.5 } },
+            [CORE.cripplingAnguishQuickness]: { fields: { cooldown: 7 } }
+          })
+        }),
+        initialize(runtime) {
+          if (quickness)
+            runtime.emit({
+              type: 'buff',
+              kind: 'quickness',
+              at: 0,
+              duration: 10,
+              stacks: 1,
+              source: 'fixture',
+              sourceId: 'fixture',
+              actorType: 'player',
+              audience: { recipients: 'summons' }
+            });
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const cast = result.events.find((event) => event.type === 'action' && event.skillId === ID.CRIPPLING_ANGUISH_PET);
+    assert.ok(cast);
+    const deadline = observedRuntime(result).profession.core.petAutoCooldowns[String(ID.CRIPPLING_ANGUISH_PET)];
+    assert.ok(Math.abs(deadline - cast.at - (quickness ? 7 : 10)) < 1e-9);
+  }
 });

@@ -11,11 +11,11 @@ export function isAutoattackSkill(catalog: CanonicalCatalog, skill: Skill): bool
   return skill.autoattack ?? catalog.autoattackChainPositions.has(Number(skill.id));
 }
 
-export interface AutoattackChainState {
+interface AutoattackChainState {
   readonly [root: number]: SkillId | undefined;
 }
 
-export interface ResolvedAutoattackChainStep {
+interface ResolvedAutoattackChainStep {
   readonly position: AutoattackChainPosition;
   readonly expectedSkillId: number;
   readonly matchesExpectedStep: boolean;

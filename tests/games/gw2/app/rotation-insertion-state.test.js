@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
-import { loadProfessionAppAdapter, professionRegistry } from '#gw2/app/profession-registry.js';
+import { loadProfessionAppAdapter, professionRegistry } from '#gw2/profession-registry.js';
 import { palettePlanningState, paletteProfessionState } from '#gw2/app/rotation/context.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -111,7 +111,7 @@ test('precombat insertion previews preserve Flow and the boundary inside an unfi
     assert.deepEqual(result.warnings, []);
     const beforeHit = adapter.rotationPlanningStateAt(app, 2);
     assert.equal(beforeHit.atSeconds, 1);
-    assert.equal(beforeHit.profession.flow, 4);
+    assert.ok(Math.abs(beforeHit.profession.flow - 4) < 1e-9);
     const beforeMarker = adapter.rotationPlanningStateAt(app, 3);
     const afterMarker = adapter.rotationPlanningStateAt(app, 4);
     assert.equal(beforeMarker.atSeconds, afterMarker.atSeconds);
@@ -151,9 +151,12 @@ test('Ranger prefix simulations keep precast traps armed until the inherited bou
     });
   const armed = prefix(1);
   assert.ok(armed.planningState.atSeconds < result.combatStartTime);
-  assert.ok(armed.schedulerState.profession.core.pendingFrostTrapEvents.length > 0);
+  assert.equal(
+    armed.resolvedEvents.some((event) => event.type === 'condition' && event.condition === 'Chilled'),
+    false
+  );
   const triggered = prefix(2);
-  assert.equal(triggered.schedulerState.profession.core.pendingFrostTrapEvents.length, 0);
+  assert.ok(triggered.resolvedEvents.some((event) => event.type === 'condition' && event.condition === 'Chilled'));
 });
 
 test('native insertion previews project weapon set and cooldown state', async () => {

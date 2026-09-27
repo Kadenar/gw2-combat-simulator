@@ -3,11 +3,57 @@ import test from 'node:test';
 
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { renderPaletteMarkup } from '#tests/helpers/palette.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 
 const catalog = elementalistProfession.catalog;
+
+test('Tempest active state shows trait timers at the cursor and hides expired windows', () => {
+  // Real aura grants must extend Aria without changing snapshots before the extension.
+  const result = runNative({
+    lines: [['Fire'], ['Air', '1-1-2'], ['Tempest', '1-1-1']],
+    weapons: ['Dagger', 'Dagger'],
+    startAttunement: 'Water',
+    rotation: [{ type: 'combat-start' }, 'Frost Aura', 1000, 'Air Attunement', 'Shocking Aura', 'Overload Air', 15000]
+  });
+  assert.deepEqual(result.warnings, []);
+  const snapshot = (atSeconds) =>
+    new Map(
+      elementalistProfession.ui
+        .rotationStateSnapshot({
+          catalog,
+          specialization: 'Tempest',
+          result,
+          atSeconds
+        })
+        .map((item) => [item.id, item.value])
+    );
+
+  for (const [kind, id] of [
+    ['fresh air', 'fresh-air'],
+    ['transcendent-tempest', 'transcendent-tempest']
+  ]) {
+    const buff = result.resolvedEvents.find((event) => event.type === 'buff' && event.kind === kind);
+    assert.ok(buff, kind);
+    assert.equal(snapshot(buff.at - 0.001).has(id), false);
+    assert.equal(snapshot(buff.at + 1).get(id), `${(buff.duration - 1).toFixed(1)}s`);
+    assert.equal(snapshot(buff.at + buff.duration).has(id), false);
+  }
+
+  const aria = result.procSteps.filter((proc) => proc.skill === 'Tempestuous Aria');
+  assert.ok(aria.length >= 2);
+  const first = aria[0];
+  const extended = aria[1];
+  assert.equal(first.expiresAt, first.start + 5000);
+  assert.equal(extended.expiresAt, Math.min(first.expiresAt + 5000, extended.start + 10000));
+  assert.equal(snapshot(first.start / 1000).get('tempestuous-aria'), '5.0s');
+  assert.equal(
+    snapshot(extended.start / 1000).get('tempestuous-aria'),
+    `${((extended.expiresAt - extended.start) / 1000).toFixed(1)}s`
+  );
+  assert.equal(snapshot(extended.expiresAt / 1000).has('tempestuous-aria'), false);
+});
 
 function createTempestApp(rotation = [], { tempestTraits = '1-1-2', alacrity = true } = {}) {
   const commands = rotation.map((entry) =>
@@ -47,7 +93,7 @@ function createTempestApp(rotation = [], { tempestTraits = '1-1-2', alacrity = t
   };
 
   elementalistAppAdapter.recalculate(app);
-  app.results = simulateGw2({
+  app.results = runElementalist({
     profession: elementalistProfession,
     rotation: commands,
     config: elementalistAppAdapter.simulationConfig(app)
@@ -119,7 +165,7 @@ test('Tempest overload singularity delays a newly entered attunement but not the
 
   const unbuffedApp = createTempestApp(['Fire Attunement'], { alacrity: false });
 
-  assert.equal(elementalistProfession.ui.paletteSkillAvailability(paletteContext(unbuffedApp), fire).retryAt, 6);
+  assert.equal(elementalistProfession.ui.paletteSkillAvailability(paletteContext(unbuffedApp), fire).retryAt, 4.8);
   const transcendentApp = createTempestApp(['Fire Attunement'], { tempestTraits: '1-1-1' });
 
   assert.equal(elementalistProfession.ui.paletteSkillAvailability(paletteContext(transcendentApp), fire).retryAt, 3.2);

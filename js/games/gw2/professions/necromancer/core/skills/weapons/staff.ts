@@ -9,6 +9,16 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         coefficient: 1,
         hits: 1,
         comboFinishers: [
@@ -21,9 +31,7 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
         ]
       }
     ],
-    lifeForceGain: 4,
-    // Custom: Applies the skill's self-condition and Master of Corruption/Plague Sending rules; see `core/mechanics/conditions.ts`.
-    handlerId: 'necromancer.corruption'
+    lifeForceGain: 4
   },
   [ID.CHILLBLAINS]: {
     castTimeMs: 480,
@@ -68,6 +76,16 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
+        // The selected landed strike owns this skill-specific transaction.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.transfer' }
+          }
+        ],
         coefficient: 1.32,
         hits: 1,
         comboFinishers: [
@@ -78,9 +96,7 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
           }
         ]
       }
-    ],
-    // Custom: Moves a skill-specific number of active self-conditions to the target; see `core/mechanics/conditions.ts`.
-    handlerId: 'necromancer.condition-transfer'
+    ]
   },
   [ID.MARK_OF_BLOOD]: {
     castTimeMs: 480,

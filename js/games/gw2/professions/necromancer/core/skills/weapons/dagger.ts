@@ -8,12 +8,22 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     castTimeMs: 680,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 2.4 },
+      {
+        type: 'strike',
+        // The selected landed strike owns this skill-specific transaction.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.dark-pact' }
+          }
+        ],
+        coefficient: 2.4
+      },
       { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10 }
-    ]),
-    // Dark Pact cannot gain life force: simulated targets have no boons to remove.
-    // Custom: Applies self-bleeding and target immobilize only after the first hit; see `core/mechanics/conditions.ts`.
-    handlerId: 'necromancer.dark-pact'
+    ])
   },
   [ID.NECROTIC_SLASH]: {
     castTimeMs: 360,
@@ -31,6 +41,16 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         ticks: [{ atMs: 160, coefficient: 0.9 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -43,6 +63,16 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         coefficient: 1.3,
         hits: 1
       }
@@ -56,6 +86,16 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'strike',
+        // The selected landed strike owns this skill-specific transaction.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.transfer' }
+          }
+        ],
         coefficient: 1.2,
         hits: 1
       },
@@ -63,9 +103,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
         type: 'blind',
         duration: 6
       }
-    ],
-    // Custom: Moves a skill-specific number of active self-conditions to the target; see `core/mechanics/conditions.ts`.
-    handlerId: 'necromancer.condition-transfer'
+    ]
   },
   [ID.ENFEEBLING_BLOOD]: {
     castTimeMs: 840,
@@ -87,12 +125,20 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'strike',
+        // The selected landed strike owns this skill-specific transaction.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.life-siphon' }
+          }
+        ],
         ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 480 + index * 160, coefficient: 2.7 / 9 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    // Custom: Applies Life Siphon's self-bleeding on its first resolved hit; see `core/mechanics/conditions.ts`.
-    handlerId: 'necromancer.life-siphon'
+    ]
   }
 });

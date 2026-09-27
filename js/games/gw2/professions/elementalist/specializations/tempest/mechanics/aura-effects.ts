@@ -18,6 +18,7 @@ import {
   refreshElementalistBuffs
 } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * Convert resolved auras into Tempest trait boons and effects after the aura has been accepted by
@@ -25,29 +26,33 @@ import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/element
  * Torrents and Elemental Bastion boons for resolver-owned auras, recording each trait that fired as a proc.
  */
 export function applyTempestResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
-  if (hasTrait(context, 'Tempestuous Aria')) {
+  if (hasTrait(context, TRAIT.TEMPESTUOUS_ARIA)) {
     const tempestuousAriaProfile = requireBalanceProfileFromContext(context, PROFILE.tempestuousAria);
     const extension = balanceProfileNumber(tempestuousAriaProfile, 'durationMultiplier');
     const maximum = balanceProfileNumber(tempestuousAriaProfile, 'maximumStacks');
     // Extend the newest live application instead of stacking a second one, clamping the new expiry
     // to the maximum window measured from this aura; with none live, start a fresh application.
     const current = activeElementalistBuffs(context, 'Tempestuous Aria', event.at).at(-1);
+    const expiresAt = current ? Math.min(event.at + maximum, current.expiresAt + extension) : event.at + extension;
     if (current) {
-      refreshElementalistBuffs(context, 'Tempestuous Aria', event.at, (expiresAt) =>
-        expiresAt === current.expiresAt ? Math.min(event.at + maximum, expiresAt + extension) : expiresAt
+      refreshElementalistBuffs(context, 'Tempestuous Aria', event.at, (previousExpiry) =>
+        previousExpiry === current.expiresAt ? expiresAt : previousExpiry
       );
     } else {
       queueElementalistBuff(context, event, 'Tempestuous Aria', 1, extension, resolverSourceSkill(event));
     }
 
-    recordElementalistTraitProc(context, event, 'Tempestuous Aria');
+    // Preserve each extension's deadline so cursor snapshots do not read a stale initial buff duration.
+    context.recordProc('trait', 'Tempestuous Aria', event.at, resolverSourceSkill(event), '', '', null, expiresAt);
   }
 
-  // Scheduled auras already carry their boon grants; Aria's resolver-owned window still updates above.
-  if (event.elementalistResolverGeneratedAura !== true && event.type !== 'aura') return;
-
-  for (const trait of ['Invigorating Torrents', 'Elemental Bastion'] as const) {
-    if (!hasTrait(context, trait)) continue;
+  // Both skill and combo auras grant their trait boons only after actual application. Selection is by trait ID; the
+  // name only chooses the boon profile and labels the recorded proc.
+  for (const [traitId, trait] of [
+    [TRAIT.INVIGORATING_TORRENTS, 'Invigorating Torrents'],
+    [TRAIT.ELEMENTAL_BASTION, 'Elemental Bastion']
+  ] as const) {
+    if (!hasTrait(context, traitId)) continue;
     const boons = tempestAuraBoons(context, trait);
     for (const boon of boons) {
       queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, resolverSourceSkill(event));

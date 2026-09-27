@@ -115,17 +115,15 @@ export function simulationEventLogRows(
     });
   };
 
-  // Keep presenter bookkeeping local to this render so snapshots can report meaningful changes.
-  const professionLogState = new Map<string, unknown>();
-  const pushProfessionRow = (event: SimulationEvent): void => {
+  // Shared events a slice does not present keep their generic fallback row instead of a diagnostic.
+  const pushProfessionRow = (event: SimulationEvent, fallback?: () => void): void => {
     const normalized = normalizeEventLogDescriptor(
       professionUi?.eventLogRow?.(
         {
           result,
           build,
           profession,
-          specialization,
-          eventLogState: professionLogState
+          specialization
         },
         event
       )
@@ -140,6 +138,11 @@ export function simulationEventLogRows(
         activationOrder: activationOrder(event),
         phantasmClone: flags.includes('phantasm-clone')
       });
+      return;
+    }
+
+    if (fallback) {
+      fallback();
       return;
     }
 
@@ -215,7 +218,8 @@ export function simulationEventLogRows(
         );
         break;
       case 'weapon_set':
-        push(event, 'trigger', `WEAPON SET ${event.weaponSet}`, 'trigger');
+        // Slices may name their own bar transitions (tomes, forges); ordinary swaps keep the generic row.
+        pushProfessionRow(event, () => push(event, 'trigger', `WEAPON SET ${event.weaponSet}`, 'trigger'));
         break;
       case 'control':
         push(event, 'trigger', `CONTROL ${event.skillName}`, 'trigger');

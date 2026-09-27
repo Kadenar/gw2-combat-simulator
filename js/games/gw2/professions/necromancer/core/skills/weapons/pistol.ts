@@ -8,7 +8,20 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
     castTimeMs: 600,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 1 },
+      {
+        type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
+        coefficient: 1
+      },
       { type: 'condition', condition: 'Poisoned', stacks: 5, duration: 6 },
       { type: 'control', controlKind: 'control' }
     ]),
@@ -31,6 +44,16 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
       ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
           type: 'strike',
+          // Each landed bullet grants its share; misses and interrupted shots earn nothing.
+          reactions: [
+            {
+              on: 'damage.resolved',
+              actor: 'player',
+              packets: 'each',
+              when: (_runtime, { event }) => Number(event.coefficient) > 0,
+              do: { type: 'necromancer.skill-life-force' }
+            }
+          ],
           ticks: [240, 360, 520, 640, 760, 880].map((atMs) => ({ atMs, coefficient: 0.4 }))
         },
         {
@@ -45,7 +68,7 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
         stacks: 6
       }
     ],
-    lifeForceGain: 9
+    lifeForcePerHit: 1.5
   },
   [ID.VICIOUS_SHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.

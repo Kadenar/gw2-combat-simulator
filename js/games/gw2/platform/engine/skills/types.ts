@@ -1,13 +1,14 @@
+import type { EffectReaction } from '#gw2/platform/simulation/effect-reactions.js';
 /** Defines catalog skills and declarative effects so authored data stays independent of runtime implementations. */
 import type { EffectMetadata, EffectAudience, DamageEvent } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
-import type { SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
+import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { SkillSideEffect } from '#gw2/platform/simulation/side-effects.js';
+import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 
 export type SkillId = string | number;
 
-export type SkillHandlerMode = 'augment' | 'replace';
-
-export type SkillInterruptMode = 'commit' | 'per-packet';
+type SkillInterruptMode = 'commit' | 'per-packet';
 
 export interface StrikeTick {
   readonly atMs: number;
@@ -38,7 +39,12 @@ export interface ConditionTick {
 }
 
 export interface SkillEffectBase {
+  /** Accepted applications invoke only the reactions authored on this particular effect. */
+  readonly reactions?: readonly EffectReaction[];
   readonly type: string;
+  /** Capture acceptance-time eligibility once; impact-time state remains a resolver responsibility. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Catalogs combine callbacks authored against different profession runtimes; dispatch preserves the owning runtime.
+  readonly when?: (runtime: Gw2Runtime<any>, cast: RuntimeCast) => boolean;
   readonly atMs?: number;
   readonly intervalMs?: number;
   readonly timingAnchor?: 'castStart' | 'castEnd';
@@ -90,7 +96,6 @@ export interface StrikeEffect extends SkillEffectBase {
   readonly flatStrikeHealthThreshold?: number;
   readonly flatStrikeThresholdMultiplier?: number;
   readonly canCrit?: boolean;
-  readonly noCrit?: boolean;
   readonly forceCrit?: boolean;
   readonly damageKind?: string;
   readonly projectile?: boolean;
@@ -119,6 +124,8 @@ export interface BlindEffect extends SkillEffectBase {
 
 export interface StatusEffect extends SkillEffectBase {
   readonly type: 'boon' | 'buff';
+  /** Limits each grant after duration bonuses, independently of the buff pool's stacking cap. */
+  readonly maximumDuration?: number;
   readonly boon?: string;
   readonly kind?: string;
   readonly duration: number;
@@ -156,8 +163,6 @@ export interface Skill extends CatalogEntity {
   readonly description?: string;
   readonly icon?: string;
   readonly variantBadge?: string;
-  /** Stable API skill used to enrich an internal simulator-only projection. */
-  readonly apiSkillId?: SkillId;
   /** Stable selectable skill resolved from a build-template palette ID. */
   readonly loadoutSkillId?: SkillId;
   /**
@@ -173,11 +178,6 @@ export interface Skill extends CatalogEntity {
   readonly specialization?: string;
   readonly requiredMainHand?: string;
   readonly requiredOffHand?: string | false;
-  readonly requiresEmptyOffhand?: boolean;
-  readonly weaponSet?: {
-    readonly mainHand?: string;
-    readonly offHand?: string | false;
-  };
   /** Effective player cast duration; independent summons retain their base duration. */
   readonly castTimeMs?: number;
   /** Summon-only measured duration under Quickness. Player skills use castTimeMs. */
@@ -197,6 +197,8 @@ export interface Skill extends CatalogEntity {
   readonly cooldown?: number;
   /** Which actor's active boons determine recharge-rate modifiers. */
   readonly rechargeBuffAudience?: 'self' | 'summon';
+  /** Recharge always runs at the base rate; Alacrity never changes it (for example, Revenant legend swap). */
+  readonly rechargeIgnoresAlacrity?: boolean;
   /**
    * Allows a profession mechanic to activate this skill while its ordinary
    * recharge is still running. The profession remains responsible for
@@ -238,14 +240,13 @@ export interface Skill extends CatalogEntity {
   /** Keep the serial cast lane blocked through the original cast end after the skill commits. */
   readonly retainsCastLockoutAfterInterrupt?: boolean;
   readonly effects?: readonly SkillEffect[];
-  readonly mechanicTriggers?: readonly SkillMechanicTrigger[];
   readonly comboFields?: readonly Readonly<Record<string, unknown>>[];
   readonly comboFinishers?: readonly Readonly<Record<string, unknown>>[];
-  /** Dispatches stateful or phase-specific behavior to the matching entry in the active module's `mechanics.execution.skillHandlers`. */
-  readonly handlerId?: string;
   readonly parentId?: SkillId;
   readonly flipParentId?: SkillId | null;
   readonly flipSkillId?: SkillId | null;
+  /** Seconds a completed parent keeps its follow-up window open; professions supply their default when absent. */
+  readonly flipDuration?: number;
   readonly nextChainId?: SkillId | null;
   /** UI-only family key for skills that occupy one live combat-bar tile. */
   readonly paletteTileId?: SkillId | string;
@@ -258,6 +259,25 @@ export interface Skill extends CatalogEntity {
   readonly resource?: unknown;
   /** Amount of the resource selected by the consuming profession mechanic. */
   readonly resourceGain?: number;
+  /** Patchable amount a declared cost pays when it names no balance-profile field. */
+  readonly resourceCost?: number;
+  readonly cost?: SkillCost;
+  /** Named mechanic work a committed activation schedules; each task receives `{ cast, trigger }`. */
+  readonly tasks?: readonly SkillTask[];
+  /** Ordered mutations executed by the platform at the declared activation phase. */
+  readonly sideEffects?: readonly SkillSideEffect[];
+  /** First matching variant supplies the selected profile's effects before ordinary profession modifiers. */
+  readonly effectVariants?: readonly {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Catalogs combine callbacks authored against different profession runtimes; dispatch preserves the owning runtime.
+    readonly when: (runtime: Gw2Runtime<any>, cast: RuntimeCast) => boolean;
+    readonly profileId: SkillId;
+    readonly transform?: (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Catalogs combine callbacks authored against different profession runtimes; dispatch preserves the owning runtime.
+      runtime: Gw2Runtime<any>,
+      cast: RuntimeCast,
+      effects: readonly SkillEffect[]
+    ) => readonly SkillEffect[];
+  }[];
 }
 
 /**
@@ -293,17 +313,31 @@ export interface BalanceProfile extends CatalogEntity {
   readonly [field: string]: unknown;
 }
 
+/**
+ * What an activation pays. The runtime rejects or waits for an unaffordable cast before any profession gate, then
+ * spends the amount on acceptance or, for `castCommit`, only when the activation completes past its commit point.
+ */
+interface SkillCost {
+  readonly resource: 'endurance' | ResourceKey;
+  /** A balance-profile field that one patch retunes everywhere; otherwise the skill's own `resourceCost` is paid. */
+  readonly profileAmount?: { readonly profileId: SkillId; readonly field: string };
+  readonly spendOn?: 'castStart' | 'castCommit';
+}
+
 export interface SkillLockout {
   readonly group: string;
   readonly durationMs: number;
 }
 
-/** Declarative profession-mechanic callback scheduled relative to a skill cast. */
-export interface SkillMechanicTrigger {
+/**
+ * Authored deadlines for named work owned by the selected profession's live task registry. A committed activation
+ * schedules each one after its completion owners run. `castEnd` is the reserved full end and `castComplete` the
+ * instant the activation actually ended, which differs only when a committed cast is interrupted.
+ */
+export interface SkillTask {
   readonly type: string;
   readonly atMs?: number;
-  readonly timingAnchor?: 'castStart' | 'castEnd';
-  /** Mechanic triggers retain their base-cast-relative timing contract. */
+  readonly timingAnchor?: 'castStart' | 'castEnd' | 'castComplete';
   readonly timingScale?: 'cast' | 'fixed';
   readonly count?: number;
 }
@@ -315,7 +349,7 @@ export interface AutoattackChainPosition {
   readonly next: number | null;
 }
 
-export interface CanonicalCatalog<TSkill extends Skill = Skill, TContext extends object = object> {
+export interface CanonicalCatalog<TSkill extends Skill = Skill> {
   /** Selected patch metadata used by shared validation diagnostics. */
   readonly balanceDataContext?: { readonly professionId: string; readonly patchId: string };
   readonly skills: readonly TSkill[];
@@ -324,7 +358,6 @@ export interface CanonicalCatalog<TSkill extends Skill = Skill, TContext extends
   readonly balanceProfiles: readonly BalanceProfile[];
   readonly balanceProfilesById: ReadonlyMap<SkillId, BalanceProfile>;
   readonly balanceProfilesByName: ReadonlyMap<string, BalanceProfile>;
-  readonly skillHandlers: ReadonlyMap<string, SkillHandlerStrategy<TContext>>;
   readonly autoattackChains: readonly (readonly number[])[];
   readonly autoattackChainPositions: ReadonlyMap<number, AutoattackChainPosition>;
   readonly traits: readonly CatalogEntity[];

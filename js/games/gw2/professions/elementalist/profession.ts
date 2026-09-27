@@ -11,7 +11,6 @@ import {
 } from '#gw2/professions/elementalist/catalog.js';
 import { bindElementalistFamilyUi } from '#gw2/professions/elementalist/family-presentation.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { observeElementalistAutoattackTransition } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 
 export {
   ELEMENTALIST_NATIVE_CATALOG_OPTIONS,
@@ -50,8 +49,7 @@ export const elementalistProfession = defineNativeProfession({
         interruptingSkillIds: [ID.RIDE_THE_LIGHTNING],
         decision: 'preserve'
       }
-    ],
-    onTransition: observeElementalistAutoattackTransition
+    ]
   },
   presentation: bindElementalistFamilyUi,
   catalog: ELEMENTALIST_NATIVE_CATALOG_OPTIONS

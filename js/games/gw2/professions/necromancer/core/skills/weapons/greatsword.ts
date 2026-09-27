@@ -10,6 +10,16 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         coefficient: 1.2,
         hits: 1
       }
@@ -26,13 +36,24 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     effects: impactEffects(
       { atMs: 1440, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
       [
-        { type: 'strike', coefficient: 1.3 },
+        {
+          type: 'strike',
+          // Accepted strikes grant live skill tuning through the percentage resource owner.
+          reactions: [
+            {
+              on: 'damage.resolved',
+              actor: 'player',
+              packets: 'each',
+              when: (_runtime, { event }) => Number(event.coefficient) > 0,
+              do: { type: 'necromancer.skill-life-force' }
+            }
+          ],
+          coefficient: 1.3
+        },
         { type: 'condition', condition: 'Chilled', stacks: 1, duration: 4 },
         { type: 'control', controlKind: 'pull' }
       ]
-    ),
-    // Custom: Checks projectile commitment and grants life force on the committed hit; see `core/execution/greatsword.ts`.
-    handlerId: 'necromancer.grasping-darkness'
+    )
   },
   [ID.NIGHTFALL]: {
     // The field commits at 440 ms; every delayed pulse then survives the interrupted cast.
@@ -43,6 +64,16 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'each',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         // EVTC records four Quickness pulses at 560 ms and fixed one-second intervals.
         ticks: [560, 1560, 2560, 3560].map((atMs) => ({ atMs, coefficient: 4.6 / 4 })),
         comboFields: [{ ownerId: 'necromancer', fieldType: 'Dark', duration: 3 }],
@@ -69,9 +100,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
           intervalTimingScale: 'fixed'
         }
       ])
-    ],
-    // Custom: Checks field commitment and grants life force with each committed pulse; see `core/execution/greatsword.ts`.
-    handlerId: 'necromancer.nightfall'
+    ]
   },
   [ID.CHILLING_SCYTHE]: {
     castTimeMs: 920,
@@ -79,25 +108,38 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     interruptCommitMs: 720,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 1.8 },
+      {
+        type: 'strike',
+        // Only this selected application owns its accepted-impact reward.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          },
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'each',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'rechargeReset', skillIds: [ID.GRAVEDIGGER] }
+          }
+        ],
+        coefficient: 1.8
+      },
       { type: 'condition', condition: 'Chilled', stacks: 1, duration: 2 }
     ]),
-    lifeForceGain: 5,
-    // Custom: Resets Gravedigger after a committed strike; see `core/execution/greatsword.ts`.
-    handlerId: 'necromancer.chilling-scythe'
+    lifeForceGain: 5
   },
   [ID.GRAVEDIGGER]: {
+    // A committed strike samples target health when its full lockout ends, even after an interrupted animation.
+    tasks: [{ type: 'necromancer.gravedigger-reset', timingAnchor: 'castEnd' }],
     castTimeMs: 1080,
     // The strike commits at 840 ms, but cancelling after it lands retains the full skill lockout.
     interruptCommitMs: 840,
     retainsCastLockoutAfterInterrupt: true,
-    // Completing Gravedigger resets its recharge once the target is below half health.
-    mechanicTriggers: [
-      {
-        type: 'necromancer.core.reset-gravedigger-below-half',
-        timingAnchor: 'castEnd'
-      }
-    ],
     effects: [
       {
         type: 'strike',
@@ -120,6 +162,16 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         ticks: [{ atMs: 520, coefficient: 1.4 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -152,7 +204,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         parentSkillName: 'Death Spiral',
         flatStrikeBase: 3517,
         flatStrikePowerCoeff: 0.01,
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal'
       },
       {

@@ -138,7 +138,7 @@ test('Elementalist family and Core factories receive their own assembled catalog
         defineNativeModule({
           id: 'Core',
           data: { extraSkills: skills(icon) },
-          state: { scheduler: () => ({}) },
+          state: { create: () => ({}) },
           presentation: bindElementalistCoreUi
         })
       ],

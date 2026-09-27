@@ -52,7 +52,7 @@ export type MesmerQueueResources = (
   cause?: MesmerResourceCause
 ) => void;
 
-export interface MesmerResourceGain {
+interface MesmerResourceGain {
   readonly at: number;
   readonly cause: MesmerResourceCause;
   readonly createdClones: readonly MesmerClone[];
@@ -76,7 +76,7 @@ export interface MesmerResourceController {
 }
 
 export interface MesmerCriticalTraitDispatcher {
-  process(event: SimulationEvent): void;
+  process(event: SimulationEvent, chance: number): void;
 }
 
 export interface MesmerCloneAttackStep {
@@ -92,22 +92,22 @@ export interface MesmerCloneAttackStep {
   readonly conditions?: readonly MesmerConditionApplication[];
 }
 
-export interface MesmerCloneAttackBase {
+interface MesmerCloneAttackBase {
   readonly weaponStrength: number;
   readonly firstAttackDelay?: number;
 }
 
-export interface MesmerDirectCloneAttack extends MesmerCloneAttackBase, MesmerCloneAttackStep {
+interface MesmerDirectCloneAttack extends MesmerCloneAttackBase, MesmerCloneAttackStep {
   readonly sequence?: undefined;
 }
 
-export interface MesmerSequencedCloneAttack extends MesmerCloneAttackBase {
+interface MesmerSequencedCloneAttack extends MesmerCloneAttackBase {
   readonly sequence: readonly [MesmerCloneAttackStep, ...MesmerCloneAttackStep[]];
 }
 
 export type MesmerCloneAttack = MesmerDirectCloneAttack | MesmerSequencedCloneAttack;
 
-export interface MesmerAttackTimingTick {
+interface MesmerAttackTimingTick {
   readonly atMs: number;
 }
 

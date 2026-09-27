@@ -12,7 +12,7 @@ export const peitha = defineRelic({
   createState: () => ({ readyAt: 0, buffFrom: 0, buffUntil: 0 }),
   // Every profession shares one trigger: a committed player activation of a shadowstep or Deception skill.
   // The trigger stays at activation so the internal cooldown gates on use; the skill supplies the impact delay.
-  materializeAction(ctx, _state, event, skill) {
+  emitActionEffects(ctx, _state, event, skill) {
     if (!isGw2PlayerActorEvent(event)) return;
     if (!skill?.shadowstepSkill && !skill?.categories?.includes('Deception')) return;
     // Cast-end anchors follow variants whose cast length changes per activation; the event stores the total from activation.
@@ -30,18 +30,19 @@ export const peitha = defineRelic({
       peithaImpactDelayMs: anchorOffsetMs + (skill.peithaImpactDelayMs ?? PEITHA_DEFAULT_IMPACT_DELAY_MS)
     });
   },
-  peitha(ctx, state, event, applyCondition) {
+  peitha(ctx, state, event) {
     const triggerAt = event.at;
     if (!isInternalCooldownReady(triggerAt, state.readyAt)) return;
     state.readyAt = triggerAt + 4;
-    const combatStart = Number(ctx.combatStartTime ?? -Infinity);
+    const combatStart = ctx.combatStartTime ?? -Infinity;
     // The trigger carries its skill's launch latency and travel; only impacts that would still land before
     // combat clamp to combat start, so their conditions cannot preload.
     const impactAt = clamp(triggerAt + Math.max(0, Number(event.peithaImpactDelayMs)) / 1000, combatStart, Infinity);
     state.buffFrom = impactAt;
     state.buffUntil = gw2EffectExpiresAt(impactAt, 4);
-    ctx.recordProc('relic', 'Relic of Peitha', impactAt, event.skillName, '', '', null, Number(state.buffUntil));
-    applyCondition(ctx, {
+    ctx.recordProc('relic', 'Relic of Peitha', impactAt, event.skillName, '', '', null, state.buffUntil);
+    // Delayed impacts enter the common queue so duration and condition reactions see impact-time state.
+    ctx.queue.enqueue({
       type: 'condition',
       at: impactAt,
       name: 'Relic of Peitha — Torment',

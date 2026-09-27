@@ -36,20 +36,18 @@ const BUILD_ATTRIBUTE_NAMES = Object.freeze({
 // ordered conversions into the shared build-time attribute result.
 export function applyRevenantBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  { build, disabledTrait = null, balanceContext }: Gw2BuildAttributeRuleContext
+  context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const revenantBuild = build as RevenantBuild;
+  const revenantBuild = context.build as RevenantBuild;
 
-  const { activeTraits, hasTrait } = createBuildAttributeContext({
-    specializations: revenantBuild.specializations || [],
-    disabledTrait,
+  const { activeTraits, hasTrait, profileContext } = createBuildAttributeContext(
+    context,
+    revenantCatalog,
     getActiveTraits
-  });
+  );
 
-  // Attribute amounts follow the selected patch while effect ordering and eligibility remain unchanged.
-  const profileContext = balanceContext ?? { catalog: revenantCatalog };
   const traitDurations: Gw2NumericAttributes = {};
-  const traitCriticalChance = hasTrait('Brutal Momentum')
+  const traitCriticalChance = hasTrait(TRAIT.BRUTAL_MOMENTUM)
     ? 100 *
       balanceProfileNumber(
         requireBalanceProfileFromContext(profileContext, 'revenant.renegade.brutal-momentum'),
@@ -57,16 +55,16 @@ export function applyRevenantBuildAttributeRules(
       )
     : 0;
 
-  if (hasTrait('Pact of Pain')) {
+  if (hasTrait(TRAIT.PACT_OF_PAIN)) {
     const pactOfPainProfile = requireBalanceProfileFromContext(profileContext, TRAIT.PACT_OF_PAIN);
     traitDurations['Condition Duration'] = 100 * balanceProfileNumber(pactOfPainProfile, 'conditionDurationBonus');
   }
 
-  if (hasTrait('Yearning Empowerment')) {
+  if (hasTrait(TRAIT.YEARNING_EMPOWERMENT)) {
     const yearningEmpowermentProfile = requireBalanceProfileFromContext(profileContext, TRAIT.YEARNING_EMPOWERMENT);
     const duration =
       100 * balanceProfileNumber(yearningEmpowermentProfile, 'conditionDurationBonus') +
-      (hasTrait('Numinous Gift')
+      (hasTrait(TRAIT.NUMINOUS_GIFT)
         ? 100 *
           balanceProfileNumber(
             requireBalanceProfileFromContext(profileContext, 'revenant.conduit.numinous-gift'),
@@ -90,7 +88,7 @@ export function applyRevenantBuildAttributeRules(
       to: 'Condition Damage',
       amount: balanceProfileNumber(seethingMaliceProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Seething Malice')
+      enabled: hasTrait(TRAIT.SEETHING_MALICE)
     },
     {
       kind: 'flat',
@@ -98,7 +96,7 @@ export function applyRevenantBuildAttributeRules(
       to: 'Healing Power',
       amount: balanceProfileNumber(lifeAttunementProfile, 'attributeBonus'),
       feedsConversions: true,
-      enabled: hasTrait('Life Attunement')
+      enabled: hasTrait(TRAIT.LIFE_ATTUNEMENT)
     },
     {
       kind: 'flat',
@@ -106,7 +104,7 @@ export function applyRevenantBuildAttributeRules(
       to: 'Concentration',
       amount: balanceProfileNumber(reinforcedPotencyProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Reinforced Potency')
+      enabled: hasTrait(TRAIT.REINFORCED_POTENCY)
     },
     {
       kind: 'flat',
@@ -115,11 +113,11 @@ export function applyRevenantBuildAttributeRules(
       // The fixed full-health assumption always enables Empire Divided's Power bonus.
       amount: balanceProfileNumber(empireDividedProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Empire Divided')
+      enabled: hasTrait(TRAIT.EMPIRE_DIVIDED)
     }
   ];
 
-  if (hasTrait('Bolstered Bonds')) {
+  if (hasTrait(TRAIT.BOLSTERED_BONDS)) {
     for (const [attribute, amount] of Object.entries(
       bolsteredBondsBonuses(profileContext, revenantBuild.selectedLegends)
     )) {
@@ -147,7 +145,7 @@ export function applyRevenantBuildAttributeRules(
       multiplier: balanceProfileNumber(versedInStoneProfile, 'attributeConversion'),
       rounding: 'round',
       input: 'common',
-      enabled: hasTrait('Versed in Stone')
+      enabled: hasTrait(TRAIT.VERSED_IN_STONE)
     },
     {
       kind: 'conversion',
@@ -157,7 +155,7 @@ export function applyRevenantBuildAttributeRules(
       multiplier: balanceProfileNumber(lifeAttunementProfile, 'attributeConversion'),
       rounding: 'round',
       input: 'eligible',
-      enabled: hasTrait('Life Attunement')
+      enabled: hasTrait(TRAIT.LIFE_ATTUNEMENT)
     },
     {
       kind: 'conversion',
@@ -167,7 +165,7 @@ export function applyRevenantBuildAttributeRules(
       multiplier: balanceProfileNumber(heraldElevatedCompassionProfile, 'attributeConversion'),
       rounding: 'round',
       input: 'common',
-      enabled: hasTrait('Elevated Compassion')
+      enabled: hasTrait(TRAIT.ELEVATED_COMPASSION)
     }
   );
 

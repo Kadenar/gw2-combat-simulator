@@ -16,6 +16,28 @@ const cast = (start = 0, end = 400) => [
   event({ time: end, stateChange: 68, skillId: 1000, value: end - start, activation: 5 })
 ];
 
+// Stow is idle time, including at the end of a log where no later cast can recover its duration.
+test('EVTC weapon stows become waits for Warrior and other professions', () => {
+  for (const profession of [2, 7]) {
+    const fixture = log({
+      agents: [{ ...log().agents[0], profession, elite: 0 }],
+      events: [
+        event({ time: 0, stateChange: 1 }),
+        ...cast(),
+        event({ time: 400, stateChange: 67, skillId: 23285, value: 80 }),
+        event({ time: 480, stateChange: 68, skillId: 23285, value: 80, activation: 5 })
+      ]
+    });
+    const result = reconstructEvtcRotation(fixture, catalog);
+    assert.deepEqual(result.rotation, [
+      { type: 'combat-start' },
+      { type: 'cast', skillId: 1000 },
+      { type: 'wait', durationMs: 80 }
+    ]);
+    assert.deepEqual(result.warnings, [LOG_OPENER_WARNING]);
+  }
+});
+
 // Source evidence must survive conversion even when the simulator's timing differs.
 test('EVTC preserves a stop-only pre-log cast and distinguishes recording, combat and replay origins', () => {
   const fixture = log({

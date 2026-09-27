@@ -30,10 +30,10 @@ export const lastTyrant = defineRelic({
     // The explosion's 12s cooldown blocks a new Fury cycle.
     if (!isInternalCooldownReady(application.at, state.readyAt)) return;
 
-    const stacks = Number(state.stacks || 0);
+    const stacks = state.stacks || 0;
     if (stacks < LAST_TYRANT_STACKS_NEEDED) {
       // Fury's 250ms marker expires on the next 40ms tick; an application at expiry can grant a stack.
-      if (application.at < Number(state.stackReadyAt || 0)) return;
+      if (application.at < (state.stackReadyAt || 0)) return;
       state.stacks = stacks + 1;
       state.stackReadyAt = gw2EffectExpiresAt(application.at, LAST_TYRANT_STACK_INTERNAL_COOLDOWN);
       ctx.recordProc(
@@ -45,7 +45,7 @@ export const lastTyrant = defineRelic({
         '',
         null,
         null,
-        { stacks: Number(state.stacks), maximumStacks: LAST_TYRANT_STACKS_NEEDED }
+        { stacks: state.stacks, maximumStacks: LAST_TYRANT_STACKS_NEEDED }
       );
       return;
     }

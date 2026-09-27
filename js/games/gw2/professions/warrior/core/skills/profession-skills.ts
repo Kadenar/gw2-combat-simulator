@@ -1,10 +1,35 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
+import { warriorBurstSpends, warriorBurstTier } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
+import {
+  effectNumber,
+  requireEffect,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.EVISCERATE]: {
+    // Captured adrenaline selects only the strike coefficient; Might and burst ownership stay intact.
+    effectVariants: [PROFILE.eviscerateTier1, PROFILE.eviscerateTier2, PROFILE.eviscerateTier3].map<
+      NonNullable<Skill['effectVariants']>[number]
+    >((profileId, index) => ({
+      profileId,
+      when: (runtime, cast) => warriorBurstTier(runtime, warriorBurstSpends.get(cast)!) === index + 1,
+      transform: (runtime, cast) => {
+        const profile = requireBalanceProfileFromContext(runtime, profileId);
+        const strike = requireEffect(profile, 'strike', 'Strike');
+        return (cast.skill.effects ?? []).flatMap<SkillEffect>((effect) =>
+          effect.type === 'strike'
+            ? strike
+              ? [{ ...effect, coefficient: effectNumber(profile, strike, 'coefficient') }]
+              : []
+            : [effect]
+        );
+      }
+    })),
     // The API omits the burst's weapon; axe critical traits still apply to this strike.
     skillWeapon: 'Axe',
     comboFinishers: [
@@ -17,10 +42,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 8,
     castTimeMs: 0,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'boon',
@@ -40,10 +62,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 8,
     castTimeMs: 480,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -70,10 +89,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 8,
     castTimeMs: 1000,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -108,10 +124,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 8,
     castTimeMs: 1160,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -130,10 +143,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 8,
     castTimeMs: 560,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -156,13 +166,9 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         startAnchor: 'castEnd'
       }
     ],
-    burstFieldDurations: [3, 6, 9],
     castTimeMs: 520,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
-    // Custom: Spends adrenaline and builds tier-scaled field pulses; see `core/execution/index.ts`.
-    handlerId: 'warrior.combustive-shot',
     effects: []
   },
   [ID.BREACHING_STRIKE]: {
@@ -180,10 +186,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 840,
 
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects(
       { atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
@@ -198,10 +201,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.PATH_TO_VICTORY]: {
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     // Numeric variants share the canonical burst's resource and trait contract.
-    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -219,10 +220,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.PATH_TO_VICTORY_ID_71932]: {
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -240,10 +238,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.PATH_TO_VICTORY_ID_71950]: {
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     // Numeric variants share the canonical burst's resource and trait contract.
-    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -261,10 +257,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.HARRIERS_TOSS_ID_73006]: {
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     // Numeric variants share the canonical burst's resource and trait contract.
-    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'condition',
@@ -282,10 +276,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.HARRIERS_TOSS]: {
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -303,10 +294,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.HARRIERS_TOSS_ID_73042]: {
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     // Numeric variants share the canonical burst's resource and trait contract.
-    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'condition',
@@ -326,10 +315,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 500,
     dualWieldCastTimeMs: 400,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {

@@ -19,14 +19,14 @@ export interface DoubleEdgeEditorOptions {
 }
 
 export type ConfigurableDoubleEdgeSkill = Skill & {
-  readonly handlerId: 'thief.double-edge';
+  readonly usableWhileRecharging: true;
 };
 
-/** Type guard: true for skills whose Double Edge outcome is author-configurable. */
+/** Type guard: Double Edge skills are the ones usable while recharging, where the risky recast's outcome is authored. */
 export function hasConfigurableDoubleEdgeOutcome(
   skill: Skill | null | undefined
 ): skill is ConfigurableDoubleEdgeSkill {
-  return skill?.handlerId === 'thief.double-edge';
+  return skill?.usableWhileRecharging === true;
 }
 
 /** Human-readable label for a stored outcome value. */

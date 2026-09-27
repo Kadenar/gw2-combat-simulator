@@ -16,7 +16,7 @@ export const dragonhunter = defineRelic({
     });
   },
   conditionDurationBonus(_ctx, state, at) {
-    return Number(state.buffUntil || 0) > at ? 0.1 : 0;
+    return (state.buffUntil || 0) > at ? 0.1 : 0;
   },
   strikeMultiplier(ctx, state, event) {
     // The trap hit benefits from the debuff it applies; afterHit records the window for subsequent attacks.

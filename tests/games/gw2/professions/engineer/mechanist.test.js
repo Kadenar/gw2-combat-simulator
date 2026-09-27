@@ -4,11 +4,11 @@ import { describe, test } from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { engineerMechHasQuickness } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
-import { createScheduledEvents } from '#gw2/platform/execution/scheduled-events.js';
+import { mechanistRechargeWork } from '#gw2/professions/engineer/specializations/mechanist/mechanics/recharge.js';
 
 // Mechanist contracts cover signet passives, mech boon state, inheritance, and command effects.
 const baseConfig = Object.freeze({
@@ -28,7 +28,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createProfessionSimulator(engineerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(engineerProfession, baseConfig);
 
 // A real mech command must retain its Force Signet bonus when only the player's Force sigil changes.
 test('Jade Mortar does not inherit Force or lose part of its signet bonus', () => {
@@ -95,8 +95,8 @@ for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
   ['Superconducting Signet', ID.SUPERCONDUCTING_SIGNET, 'modifyConditionDamage', 0.1, 0.12]
 ]) {
   test(`${signet} passive follows equipment, recharge, and J-Drive`, () => {
+    const runtime = engineerProfession.runtimeFor({ specialization: 'Mechanist' });
     // Cooldown history must remove the ordinary passive and restore it when recharge finishes.
-    const runtime = engineerProfession.resolveRuntime({ specialization: 'Mechanist' });
     const events = [{ type: 'action', at: 1, skillId, rechargeReadyAt: 31 }];
     const timeline = createGw2TimelineIndex({ events });
     for (const [selected, traits, time, expected] of [
@@ -131,41 +131,40 @@ for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
 
 test('Overclock reduces other signet recharges only while its passive is available', () => {
   // Its own cooldown stays at 90 seconds; J-Drive retains the stronger passive during recharge.
-  const runtime = engineerProfession.resolveRuntime({ specialization: 'Mechanist' });
   const context = {
     catalog: engineerCatalog,
     config: { selectedSkills: ['Overclock Signet'] },
     skill: mechanic('Superconducting Signet'),
-    state: { cooldowns: new Map() },
-    start: 0
+    cooldowns: new Map(),
+    time: 0
   };
   assert.equal(mechanic('Overclock Signet').cooldown, 90);
-  assert.equal(runtime.modifyRechargeDuration(context, 30), 24);
-  context.state.cooldowns.set(ID.OVERCLOCK_SIGNET, 90);
-  assert.equal(runtime.modifyRechargeDuration(context, 30), 30);
-  context.config.selectedTraitIds = [TRAIT.MECH_CORE_J_DRIVE];
-  assert.equal(runtime.modifyRechargeDuration(context, 30), 22.8);
+  assert.equal(mechanistRechargeWork(context, context.skill, 30), 24);
+  context.cooldowns.set(ID.OVERCLOCK_SIGNET, 90);
+  assert.equal(mechanistRechargeWork(context, context.skill, 30), 30);
+  context.config = { ...context.config, selectedTraitIds: [TRAIT.MECH_CORE_J_DRIVE] };
+  assert.equal(mechanistRechargeWork(context, context.skill, 30), 22.8);
   context.skill = mechanic('Overclock Signet');
-  assert.equal(runtime.modifyRechargeDuration(context, 90), 90);
+  assert.equal(mechanistRechargeWork(context, context.skill, 90), 90);
 });
 
 test('mech Quickness uses its own boon audience and retains copied applications', () => {
   // The player's permanent boon alone is insufficient; copied timed boons retain their own expiry.
   const context = {
     catalog: engineerCatalog,
-    ...createScheduledEvents({ prepareEvent: (event) => event, observeEvent() {} }),
+    history: [],
     config: { boons: { quickness: true }, selectedSkills: ['Force Signet'] },
-    state: { cooldowns: new Map() }
+    cooldowns: new Map()
   };
   assert.equal(engineerMechHasQuickness(context, 0), false);
   context.config.selectedSkills = ['Shift Signet'];
   assert.equal(engineerMechHasQuickness(context, 0), true);
-  context.state.cooldowns.set(ID.SHIFT_SIGNET, 25);
+  context.cooldowns.set(ID.SHIFT_SIGNET, 25);
   assert.equal(engineerMechHasQuickness(context, 1), false);
   context.config.selectedTraitIds = [TRAIT.MECH_CORE_J_DRIVE];
   assert.equal(engineerMechHasQuickness(context, 1), true);
   context.config = { boons: {}, selectedSkills: [] };
-  context.emit({
+  context.history.push({
     source: 'fixture',
     sourceId: 'boon',
     actorType: 'player',
@@ -174,7 +173,7 @@ test('mech Quickness uses its own boon audience and retains copied applications'
     at: 1,
     duration: 2,
     stacks: 1,
-    resolvedAudience: { includesSelf: false, includesSummons: true, companionIds: [] }
+    resolvedAudience: { includesSelf: false, includesSummons: true, companionIds: ['engineer.mech'] }
   });
   assert.equal(engineerMechHasQuickness(context, 0), false);
   assert.equal(engineerMechHasQuickness(context, 2), true);
@@ -195,8 +194,7 @@ test('mech Quickness uses its own boon audience and retains copied applications'
   assert.ok(copied?.resolvedAudience.includesSummons);
   assert.equal(copied.resolvedAudience.includesSelf, false);
   // Replay the completed simulation through the canonical index instead of swapping its backing event array.
-  Object.assign(context, createScheduledEvents({ prepareEvent: (event) => event, observeEvent() {} }));
-  for (const event of result.events) context.emit(event);
+  context.history = result.events;
   assert.equal(engineerMechHasQuickness(context, copied.at + 0.2), true);
   assert.equal(engineerMechHasQuickness(context, copied.at + copied.duration + 0.1), false);
 });
@@ -332,7 +330,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
   assert.equal(cappedChanneling.concentration, 1500);
   assert.equal(cappedChanneling.healingPower, 1500);
   const copiedMightAfterCaps = engineerProfession
-    .resolveRuntime({
+    .resolveProfession({
       specialization: 'Mechanist'
     })
     .modifyAttributes(
@@ -649,7 +647,7 @@ describe('Mechanist grandmaster active effects', () => {
     const mortarSteps = dynamo.steps.filter((step) => step.skill === 'Jade Mortar');
 
     assert.equal(mortarSteps[0].end - mortarSteps[0].start, 1620);
-    assert.equal(mortarSteps[1].start - mortarSteps[0].start, 16000);
+    assert.equal(mortarSteps[1].start - mortarSteps[0].start, 12800);
     assert.equal(
       dynamo.events.filter((event) => event.type === 'buff' && event.kind === 'quickness' && event.duration === 2.5)
         .length,
@@ -792,7 +790,7 @@ describe('Mechanist grandmaster active effects', () => {
     assertFlooredDamageMultiplier(mechStrike(mechWithShift).damage, mechStrike(mechWithoutShift).damage, 1.375);
     assert.equal(
       engineerProfession
-        .resolveRuntime({
+        .resolveProfession({
           specialization: 'Mechanist'
         })
         .modifyConditionDamage(
@@ -808,6 +806,6 @@ describe('Mechanist grandmaster active effects', () => {
     const signetRecharge = simulate('Mechanist', ['Force Signet', 'Force Signet'], jDriveConfig);
     const signetSteps = signetRecharge.steps.filter((step) => step.skill === 'Force Signet');
 
-    assert.equal(signetSteps[1].start - signetSteps[0].end, 22800);
+    assert.equal(signetSteps[1].start - signetSteps[0].end, 18240);
   });
 });

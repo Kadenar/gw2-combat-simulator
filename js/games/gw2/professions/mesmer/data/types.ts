@@ -8,12 +8,11 @@ import type {
   StrikeEffect
 } from '#gw2/platform/engine/skills/types.js';
 import type { EffectMetadata } from '#gw2/platform/engine/events/events.js';
-import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 
 export type MesmerSummonKind = 'clone' | 'phantasm';
 
-export interface MesmerSkillResource {
+interface MesmerSkillResource {
   readonly mode?: string;
   readonly count?: number;
   readonly timingAnchor?: 'castStart' | 'castEnd';
@@ -21,7 +20,7 @@ export interface MesmerSkillResource {
   readonly [field: string]: unknown;
 }
 
-export interface MesmerMechanic {
+interface MesmerMechanic {
   readonly chaosStormPoison?: ConditionEffect;
 }
 
@@ -54,6 +53,8 @@ export interface MesmerConditionApplication {
 
 /** Optional fields emitted by Mesmer controllers, beyond the shared event envelope. */
 export interface MesmerEventExtra {
+  /** Captures the accepted cast that owns an immediate or delayed outcome. */
+  readonly activationId?: string;
   readonly metadata?: EffectMetadata;
   readonly skillName?: string;
   readonly detail?: string;
@@ -66,22 +67,17 @@ export interface MesmerEventExtra {
   readonly value?: number;
   readonly resource?: string;
   readonly reason?: string;
-  readonly rotationIndex?: number | null;
   readonly created?: readonly { readonly id: number; readonly weapon: string }[];
   readonly conversionTimes?: readonly number[];
   readonly repeat?: boolean;
   readonly complete?: boolean;
   readonly summonOwner?: string;
   readonly cooldowns?: Readonly<Record<string, number>>;
-  readonly rechargeProgressBySkillId?: Readonly<Record<string, RechargeProgress>>;
-  readonly targetSkillId?: SkillId;
-  readonly targetSkillName?: string;
-  readonly reduction?: number;
   readonly kind?: string;
   readonly duration?: number;
   readonly stacks?: number;
   readonly priority?: number;
-  readonly audience?: { readonly recipients: string; readonly maximumRecipients?: number };
+  readonly audience?: import('#gw2/platform/engine/events/events.js').EffectAudience;
   readonly weaponStrength?: number;
   readonly damageBreakdownName?: string;
   readonly controlKind?: string;
@@ -97,10 +93,10 @@ export interface MesmerEventExtra {
   readonly summonKind?: MesmerSummonKind;
 }
 
-export type MesmerSkillEffect =
+type MesmerSkillEffect =
   MesmerStrikeEffect | MesmerConditionEffect | Exclude<SkillEffect, StrikeEffect | ConditionEffect>;
 
-export type MesmerTrackedHitDamage = Partial<MesmerStrikeEffect> & {
+type MesmerTrackedHitDamage = Partial<MesmerStrikeEffect> & {
   readonly duration: number;
   readonly hitsRequired: number;
   readonly name: string;
@@ -108,6 +104,7 @@ export type MesmerTrackedHitDamage = Partial<MesmerStrikeEffect> & {
 };
 
 export interface MesmerSkill extends Skill {
+  /** Named live tasks preserve authored deadlines without scheduler handlers. */
   /** Additional spear effects require the Clarity consumed by this activation. */
   readonly clarityEffects?: readonly SkillEffect[];
   readonly id: number;
@@ -115,10 +112,8 @@ export interface MesmerSkill extends Skill {
   readonly duration?: number;
   readonly phantasm?: boolean;
   readonly blade?: boolean;
-  readonly applyConditionsOnInterrupt?: boolean;
   readonly armedAtStart?: boolean;
   readonly flipDelay?: number;
-  readonly flipDuration?: number;
   readonly maxCloneEffects?: readonly MesmerConditionEffect[];
   readonly parentCooldownIncrease?: number;
   readonly phantasmSummonProgress?: number;
@@ -127,7 +122,3 @@ export interface MesmerSkill extends Skill {
   readonly resource?: MesmerSkillResource | null;
   readonly mesmerMechanic?: MesmerMechanic;
 }
-
-export type MesmerSkillCatalogFragment = Partial<Skill> & {
-  readonly id: number;
-};

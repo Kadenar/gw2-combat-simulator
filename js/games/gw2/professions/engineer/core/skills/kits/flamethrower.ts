@@ -8,9 +8,9 @@ const NAPALM_TICK_OFFSETS_MS = [280, 440, 560, 680, 840, 960, 1080, 1240, 1360, 
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Flamethrower. */
 export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
   [ID.FLAMETHROWER]: {
-    // Custom: Equips the kit and updates bundle/weapon state; see `core/mechanics/kits.ts`.
+    // Custom: Equips the kit and updates bundle/weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'engineer.kit-equip',
+    kitTransition: 'equip',
     castTimeMs: 0,
     cooldown: 0,
     effects: [],
@@ -119,9 +119,9 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
     kit: 'Flamethrower'
   },
   [ID.STOW_FLAMETHROWER]: {
-    // Custom: Stows the active kit and restores weapon state; see `core/mechanics/kits.ts`.
+    // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'engineer.kit-stow',
+    kitTransition: 'stow',
     paletteFlip: false,
     castTimeMs: 0,
     cooldown: 0,

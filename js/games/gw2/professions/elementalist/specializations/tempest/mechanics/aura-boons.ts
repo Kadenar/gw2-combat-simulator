@@ -15,7 +15,7 @@ export function tempestAuraBoons(context: unknown, trait: 'Invigorating Torrents
       {
         kind: String(effect.boon).toLowerCase(),
         stacks: Number(effect.stacks),
-        duration: Number(effect.duration)
+        duration: effect.duration
       }
     ];
   });

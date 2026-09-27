@@ -1,41 +1,20 @@
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import { EPSILON } from '#kernel/core/clock.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { weaponFlipBlock } from '#gw2/platform/engine/skills/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { RangerCastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { isRangerHammerVariant, normalizeRangerHammerSkillIds } from '#gw2/professions/ranger/data/hammer-variants.js';
 
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import {
   RANGER_SPEAR_STEALTH_FLIP_BY_PARENT,
   rangerSpearStealthAvailable
 } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
-import { professionEnduranceReadyAt } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 // Enforce endurance, pet ownership, selected hammer variants, and timed weapon
 // flips before allowing a core Ranger cast; shared code owns chain ordering.
-export function rangerCoreCastAvailability(context: RangerCastContext, skill: RangerSkill): AvailabilityResult {
-  const selection = selectedSlotSkillAvailability(context, skill);
-  if (selection) return selection;
+export function rangerCoreCastAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult {
   const state = professionCoreState(context);
-  if (skill.id === ID.DODGE) {
-    const cost = balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'resourceCost');
-    return state.endurance + EPSILON >= cost
-      ? { ready: true }
-      : {
-          ready: false,
-          retryAt: professionEnduranceReadyAt(context, cost),
-          code: 'ranger.endurance',
-          reason: `Dodge requires ${cost} endurance.`
-        };
-  }
-
   if (skill.id === ID.PET_SWAP && !state.petActive) {
     return denySkillCast(skill, 'ranger.pet-inactive', 'the active specialization has replaced the pet.');
   }
@@ -47,12 +26,11 @@ export function rangerCoreCastAvailability(context: RangerCastContext, skill: Ra
     return denySkillCast(skill, 'ranger.hammer-variant-not-selected', 'select this Hammer variant first.');
   }
 
-  const flipParent = skill.flipParentId == null ? null : context.catalog.skillsById.get(Number(skill.flipParentId));
   const spearStealthFlipId = RANGER_SPEAR_STEALTH_FLIP_BY_PARENT[Number(skill.id)];
   const isSpearStealthAttack = Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT).includes(Number(skill.id));
   // Spear choices can come from any stealth source; do not misidentify the base attack as their prerequisite.
   if (isSpearStealthAttack || spearStealthFlipId != null) {
-    const available = rangerSpearStealthAvailable(state, context.start);
+    const available = rangerSpearStealthAvailable(state, context.time);
     if (isSpearStealthAttack && !available)
       return denySkillCast(skill, 'ranger.flip-inactive', "use Panther's Prowl or gain stealth first.");
     if (!isSpearStealthAttack && available)
@@ -60,24 +38,18 @@ export function rangerCoreCastAvailability(context: RangerCastContext, skill: Ra
     return { ready: true };
   }
 
-  if (
-    skill.type === 'Weapon' &&
-    !isRangerHammerVariant(skill.id) &&
-    flipParent?.flipSkillId === skill.id &&
-    !skillFlipReady(state.availableFlips[Number(skill.id)], context.start)
-  ) {
-    return denySkillCast(skill, 'ranger.flip-inactive', `use ${flipParent?.name || 'its opening weapon skill'} first.`);
-  }
-
-  if (
-    skill.type === 'Weapon' &&
-    !isRangerHammerVariant(skill.id) &&
-    skill.flipSkillId != null &&
-    skill.flipSkillId !== skill.nextChainId &&
-    skillFlipReady(state.availableFlips[Number(skill.flipSkillId)], context.start)
-  ) {
+  // Hammer variants are loadout choices, not follow-ups, so only other weapon pairs follow the shared slot rule.
+  const flipBlock = isRangerHammerVariant(skill.id)
+    ? null
+    : weaponFlipBlock(state.availableFlips, context.helpers.skillsById, skill, context.time);
+  if (flipBlock?.kind === 'closed')
+    return denySkillCast(
+      skill,
+      'ranger.flip-inactive',
+      `use ${flipBlock.parent.name || 'its opening weapon skill'} first.`
+    );
+  if (flipBlock?.kind === 'open')
     return denySkillCast(skill, 'ranger.flip-active', 'use or wait out the active follow-up skill.');
-  }
 
   if (!skill.petSkill) return { ready: true };
   if (skill.petAutonomousSkill) {

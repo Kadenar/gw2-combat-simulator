@@ -1,8 +1,9 @@
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 /**
  * Owns the ordered Core Mesmer effect-controller pipeline used by replacing handlers.
  * Packet emission and stateful effects remain in their focused sibling modules.
  */
-import type { CooldownController, SchedulerState } from '#gw2/platform/execution/types.js';
+import type { CooldownController } from '#gw2/platform/execution/types.js';
 import { createIllusionResourceController } from '#gw2/professions/mesmer/core/mechanics/illusions/resources.js';
 import { createPhantasmEffectController } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 import { createSkillDamageController } from '#gw2/professions/mesmer/core/execution/packet-emission.js';
@@ -14,8 +15,7 @@ import type {
   MesmerAddEvent,
   MesmerAddTraitProc,
   MesmerInstrument,
-  MesmerRuntime,
-  MesmerRuntimeState
+  MesmerMechanics
 } from '#gw2/professions/mesmer/types.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type {
@@ -33,7 +33,7 @@ import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mech
 import type { MesmerConditionEffect, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 interface SkillEffectControllerOptions {
-  readonly state: SchedulerState<MesmerRuntimeState>;
+  readonly state: MesmerRuntime;
   readonly cooldownController: CooldownController;
   readonly traits: ReadonlySet<number>;
   readonly resourceDefinition: MesmerResourceDefinition;
@@ -49,7 +49,7 @@ interface SkillEffectControllerOptions {
   readonly traitDamage: Readonly<Record<string, MesmerTraitDamage>>;
   readonly shatters?: Readonly<Record<number, MesmerShatter>>;
   readonly instruments?: Readonly<Record<number, MesmerInstrument>>;
-  readonly balanceProfile: MesmerRuntime['balanceProfile'];
+  readonly balanceProfile: MesmerMechanics['balanceProfile'];
 }
 
 /**
@@ -93,15 +93,7 @@ export function createSkillEffectController({
     queueResources,
     phantasms
   });
-  const damage = createSkillDamageController({
-    traits,
-    phantasms,
-    addEvent,
-    addTraitProc,
-    addCondition,
-    addDamage,
-    balanceProfile
-  });
+  const damage = createSkillDamageController({ phantasms, addCondition, addDamage });
   const specialEffects = createSkillSpecialEffectController({
     state,
     cooldownController,
@@ -129,10 +121,8 @@ export function createSkillEffectController({
     const conditions = (skill.effects || []).filter(
       (effect): effect is MesmerConditionEffect => effect.type === 'condition'
     );
-    const damageResult = damage.schedule(skill, at, castStart, playerEffectEnd, conditions, phantasmExecutions);
+    damage.schedule(skill, at, castStart, playerEffectEnd, conditions, phantasmExecutions);
     illusionResources.schedule(skill, at, castStart, phantasmExecutions);
-
-    damage.finish(skill, damageResult);
   };
 
   return {

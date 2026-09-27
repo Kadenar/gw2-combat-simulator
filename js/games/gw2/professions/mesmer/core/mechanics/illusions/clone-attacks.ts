@@ -1,6 +1,4 @@
-import { actorLoop } from '#gw2/platform/profession-definition/mechanics.js';
-import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { MesmerAddCondition, MesmerAddDamage } from '#gw2/professions/mesmer/types.js';
 import type {
@@ -11,7 +9,7 @@ import type {
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 
 interface CloneAttackSchedulerOptions {
-  readonly state: MesmerSchedulerContext['state'];
+  readonly state: MesmerRuntime;
   readonly cloneAttacks: Readonly<Record<string, MesmerCloneAttack>>;
   readonly addDamage: MesmerAddDamage;
   readonly addCondition: MesmerAddCondition;
@@ -32,7 +30,7 @@ export function createCloneAttackScheduler({
 
   const sequenceStep = (clone: MesmerClone, attack: MesmerCloneAttack): MesmerCloneAttackStep => {
     if (!attack.sequence) return attack;
-    const index = Number(clone.attackSequenceIndex || 0) % attack.sequence.length;
+    const index = (clone.attackSequenceIndex || 0) % attack.sequence.length;
     return attack.sequence[index];
   };
 
@@ -41,7 +39,7 @@ export function createCloneAttackScheduler({
     clone.ownerId ||= `mesmer.clone:${clone.id}`;
     clone.attackSequenceIndex = 0;
     const step = sequenceStep(clone, attack);
-    clone.nextAttackAt = clone.createdAt + Number(attack.firstAttackDelay ?? step.interval);
+    clone.nextAttackAt = clone.createdAt + (attack.firstAttackDelay ?? step.interval);
     scheduleTask(clone, clone.nextAttackAt);
     return clone;
   };
@@ -58,7 +56,7 @@ export function createCloneAttackScheduler({
       weapon: clone.weapon,
       blade: false
     };
-    const impactAt = at + Number(step.damageAtMs || 0) / 1000;
+    const impactAt = at + (step.damageAtMs || 0) / 1000;
     addDamage(
       cloneSkill,
       impactAt,
@@ -96,16 +94,16 @@ export function createCloneAttackScheduler({
     }
 
     if (Array.isArray(attack.sequence) && attack.sequence.length > 0) {
-      clone.attackSequenceIndex = (Number(clone.attackSequenceIndex || 0) + 1) % attack.sequence.length;
+      clone.attackSequenceIndex = ((clone.attackSequenceIndex || 0) + 1) % attack.sequence.length;
     }
   };
 
   const handleTask = (cloneId: number, at: number): number | null => {
-    const clone = profession.clones.find((candidate) => candidate.id === Number(cloneId));
+    const clone = profession.clones.find((candidate) => candidate.id === cloneId);
     if (!clone) return null;
     scheduleAttack(clone, at);
     const attack = attackFor(clone);
-    clone.nextAttackAt = at + Number(sequenceStep(clone, attack).interval);
+    clone.nextAttackAt = at + sequenceStep(clone, attack).interval;
     return clone.nextAttackAt;
   };
 
@@ -114,13 +112,3 @@ export function createCloneAttackScheduler({
     initializeClone
   };
 }
-
-/** Clone attacks due at the same timestamp precede resource gains, replacement, and shatter work. */
-export const cloneActions = actorLoop({
-  id: 'mesmer.clone-attack',
-  priority: -50,
-  step(context: MesmerSchedulerContext, at: number, state: { readonly cloneId: number }) {
-    const nextAt = mesmerRuntimeFor(context).cloneAttackScheduler.handleTask(state.cloneId, at);
-    return nextAt == null ? null : { at: nextAt, state };
-  }
-});

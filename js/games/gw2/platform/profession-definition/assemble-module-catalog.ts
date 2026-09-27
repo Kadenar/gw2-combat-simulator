@@ -3,45 +3,26 @@ import {
   type AutoattackChainOptions
 } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { toEntries } from '#kernel/core/collections.js';
-import type {
-  CanonicalCatalog,
-  BalanceProfile,
-  CatalogEntity,
-  Skill,
-  SkillId
-} from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/engine/profession/types.js';
-import type { SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 import type {
   AnyNativeModule,
   NativeCatalogOptions,
-  NativeModuleCatalogData,
-  NativeSkillHandlerRegistry
+  NativeModuleCatalogData
 } from '#gw2/platform/profession-definition/module-types.js';
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 
-export interface NativeModuleDataSelection {
+/** Selects a module from shared input using the same catalog fields as its output. */
+export interface NativeModuleDataSelection extends NativeModuleCatalogData {
   readonly id: string;
-  readonly generatedSkills?: readonly Skill[];
   readonly sharedExtraSkills?: readonly Skill[];
-  readonly skillMechanics?: Readonly<Record<string, Partial<Skill>>>;
-  readonly skillOverrides?: Readonly<Record<string, Partial<Skill>>>;
-  readonly extraSkills?: readonly Skill[];
-  readonly balanceProfiles?: readonly BalanceProfile[];
-  readonly traits?: readonly CatalogEntity[];
-  readonly specializations?: readonly CatalogEntity[];
-  readonly weapons?: readonly string[];
-  readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
-  readonly autoattackChains?: AutoattackChainOptions;
-  readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
-  readonly specializationOnlySkillIds?: readonly SkillId[];
 }
 
 // Resolves which module owns an entity by matching its .specialization field
 // against the elite spec names. Falls back to "Core" when there's no match,
 // so base-game skills and traits always land in the Core module.
 function canonicalModuleName(value: object, specializations: readonly CatalogEntity[]): string {
-  const specialization = String((value as { readonly specialization?: string }).specialization || '').toLowerCase();
+  const specialization = ((value as { readonly specialization?: string }).specialization || '').toLowerCase();
   return specializations.find((entry) => entry.elite && entry.name.toLowerCase() === specialization)?.name || 'Core';
 }
 
@@ -76,7 +57,7 @@ export function createNativeModuleData({
   // Restrict skillOverrides to skills this module actually owns — prevents one
   // module from patching another module's generated skills.
   const localOverrides = Object.fromEntries(
-    Object.entries(skillOverrides).filter(([skillId]) => generatedIds.has(String(skillId)))
+    Object.entries(skillOverrides).filter(([skillId]) => generatedIds.has(skillId))
   );
   return Object.freeze({
     generatedSkills: Object.freeze(generated),
@@ -102,10 +83,9 @@ export function createNativeModuleData({
   });
 }
 
-export interface AssembledNativeCatalog {
+interface AssembledNativeCatalog {
   readonly catalog: Readonly<CanonicalCatalog>;
   readonly fragments: ReadonlyMap<string, Readonly<ProfessionModuleCatalogFragment>>;
-  readonly skillOwners: ReadonlyMap<SkillId, string>;
 }
 
 interface AssemblyCacheEntry {
@@ -215,8 +195,6 @@ function composeNativeCatalog(
   const mechanicsOwners = new Map<string, string>();
   const overrides: Record<string, Partial<Skill>> = {};
   const overrideOwners = new Map<string, string>();
-  const handlers = new Map<string, SkillHandlerStrategy<object>>();
-  const handlerOwners = new Map<string, string>();
   const exclusiveOwners = new Map<string, string>();
   const weapons = new Set<string>();
   const weaponHands = new Map<string, string>();
@@ -243,17 +221,6 @@ function composeNativeCatalog(
 
       overrideOwners.set(skillId, module.id);
       overrides[skillId] = override;
-    }
-
-    const moduleHandlers = module.mechanics?.execution?.skillHandlers as NativeSkillHandlerRegistry<object> | undefined;
-    for (const [handlerId, handler] of toEntries(moduleHandlers)) {
-      const prior = handlerOwners.get(handlerId);
-      if (prior) {
-        throw new TypeError(`Duplicate skill handler ${handlerId} in ${prior} and ${module.id}.`);
-      }
-
-      handlerOwners.set(handlerId, module.id);
-      handlers.set(handlerId, handler);
     }
 
     for (const skillId of module.data.specializationOnlySkillIds || []) {
@@ -287,12 +254,11 @@ function composeNativeCatalog(
   }
 
   const catalog = createCanonicalCatalog({
-    generated: generated.values as Skill[],
+    generated: generated.values,
     mechanics,
     overrides,
-    extraSkills: extras.values as Skill[],
+    extraSkills: extras.values,
     balanceProfiles: balanceProfiles.values,
-    skillHandlers: handlers,
     traits: traits.values,
     specializations: specializations.values,
     weapons: [...weapons],
@@ -322,7 +288,7 @@ function composeNativeCatalog(
   //   6. Core as final fallback
   for (const skill of catalog.skills) {
     const explicit = exclusiveOwners.get(String(skill.id));
-    const specialization = eliteNames.get(String(skill.specialization || '').toLowerCase());
+    const specialization = eliteNames.get((skill.specialization || '').toLowerCase());
     const mechanicOwner = mechanicsOwners.get(String(skill.id));
     const owner =
       explicit ||
@@ -341,28 +307,6 @@ function composeNativeCatalog(
   for (const [skillId, owner] of exclusiveOwners) {
     if (!catalog.skillsById.has(Number(skillId))) {
       throw new TypeError(`${owner} declares unknown specialization-only skill ${skillId}.`);
-    }
-  }
-
-  // Each handler must be owned by the same module as the skills that use it.
-  // Core handlers may serve skills in any module (since Core is the base layer),
-  // but a non-Core handler must not cross into another module's skills.
-  for (const [handlerId, owner] of handlerOwners) {
-    const referencedOwners = new Set(
-      catalog.skills.filter((skill) => skill.handlerId === handlerId).map((skill) => skillOwners.get(skill.id))
-    );
-    if (!referencedOwners.size) {
-      throw new TypeError(`Skill handler ${handlerId} is unused.`);
-    }
-
-    if (
-      (owner === 'Core' && !referencedOwners.has('Core')) ||
-      (owner !== 'Core' && (referencedOwners.size !== 1 || !referencedOwners.has(owner)))
-    ) {
-      throw new TypeError(
-        `Skill handler ${handlerId} is contributed by ${owner}, but its skills ` +
-          `are available in ${[...referencedOwners].join(', ')}.`
-      );
     }
   }
 
@@ -399,7 +343,6 @@ function composeNativeCatalog(
 
   const fragments = new Map<string, Readonly<ProfessionModuleCatalogFragment>>();
   for (const module of modules) {
-    const moduleHandlers = new Map([...handlers].filter(([handlerId]) => handlerOwners.get(handlerId) === module.id));
     const hands = new Map([...weaponHands].filter(([weapon]) => weaponHandOwners.get(weapon) === module.id));
     const chains = chainContributions.get(module.id)!;
     // Module-local selections resolve active specialization collisions; global overrides remain Core-owned.
@@ -414,7 +357,6 @@ function composeNativeCatalog(
         balanceProfiles: Object.freeze(
           catalog.balanceProfiles.filter((profile) => balanceProfiles.owners.get(profile.id) === module.id)
         ),
-        skillHandlers: moduleHandlers,
         traits: Object.freeze(catalog.traits.filter((trait) => traits.owners.get(trait.id) === module.id)),
         specializations: Object.freeze(
           catalog.specializations.filter(
@@ -434,7 +376,7 @@ function composeNativeCatalog(
     );
   }
 
-  return Object.freeze({ catalog, fragments, skillOwners });
+  return Object.freeze({ catalog, fragments });
 }
 
 // Caches assembled catalogs keyed by the first (Core) module so the expensive

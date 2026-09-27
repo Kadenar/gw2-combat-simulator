@@ -124,6 +124,64 @@ export default [
     }
   },
 
+  // Typed internals should use their declared values directly; runtime input normalization is reviewed separately.
+  {
+    files: ['js/kernel/**/*.ts', 'js/games/gw2/platform/**/*.ts', 'js/games/gw2/professions/**/*.ts'],
+    languageOptions: {
+      // Missing dictionary/array entries are possible at runtime; lint must not remove their guards.
+      parserOptions: { project: './tsconfig.lint.json', tsconfigRootDir: import.meta.dirname }
+    },
+    plugins: { '@typescript-eslint': tseslint.plugin },
+    rules: {
+      '@typescript-eslint/no-unnecessary-type-conversion': 'error',
+      '@typescript-eslint/no-unnecessary-condition': ['error', { allowConstantLoopConditions: true }],
+      '@typescript-eslint/no-unnecessary-type-parameters': 'error',
+      '@typescript-eslint/no-explicit-any': 'error',
+      // Retain non-null assertions for owner/catalog invariants; reject only assertions that add no type information.
+      '@typescript-eslint/no-unnecessary-type-assertion': 'error',
+      '@typescript-eslint/no-unnecessary-type-arguments': 'error',
+      '@typescript-eslint/no-redundant-type-constituents': 'error',
+      '@typescript-eslint/no-empty-object-type': 'error',
+      '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'error',
+      '@typescript-eslint/no-unnecessary-template-expression': 'error',
+      '@typescript-eslint/no-useless-default-assignment': 'error'
+    }
+  },
+
+  // Validation and normalization must still reject malformed JavaScript/JSON inputs, regardless of their TS types.
+  {
+    files: [
+      'js/kernel/core/simulation-random.ts',
+      'js/kernel/execution/observation.ts',
+      'js/games/gw2/platform/builds/{codec,assumptions,attributes}.ts',
+      'js/games/gw2/platform/combat/modifiers.ts',
+      'js/games/gw2/platform/combos/{definitions,descriptors}.ts',
+      'js/games/gw2/platform/engine/profession/{family,module}.ts',
+      'js/games/gw2/platform/engine/skills/{canonical-skill-catalog,side-effect-validation}.ts',
+      'js/games/gw2/platform/profession-definition/profession.ts',
+      'js/games/gw2/platform/skills/autoattack-chain-controller.ts',
+      'js/games/gw2/professions/*/build/build.ts'
+    ],
+    rules: { '@typescript-eslint/no-unnecessary-condition': 'off' }
+  },
+  // These entry points normalize untrusted or authored inputs whose runtime values can violate declared types.
+  {
+    files: [
+      'js/kernel/core/simulation-random.ts',
+      'js/kernel/events/queue.ts',
+      'js/kernel/execution/observation.ts',
+      'js/games/gw2/platform/builds/codec.ts',
+      'js/games/gw2/platform/builds/assumptions.ts',
+      'js/games/gw2/platform/builds/attribute-provenance.ts',
+      'js/games/gw2/platform/engine/skills/canonical-skill-catalog.ts',
+      'js/games/gw2/platform/combat/modifiers.ts'
+    ],
+    rules: {
+      '@typescript-eslint/no-unnecessary-type-conversion': 'off',
+      '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off'
+    }
+  },
+
   // Source packages use aliases for consistent TypeScript, Vite, and Node resolution.
   {
     files: [

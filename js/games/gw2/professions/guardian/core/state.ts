@@ -1,10 +1,12 @@
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import { projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
+import type { GuardianState } from '#gw2/professions/guardian/types.js';
+import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
 import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
+import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
-import type { SchedulerContext } from '#gw2/platform/execution/types.js';
 
 export interface GuardianCoreState {
   endurance: number;
@@ -15,19 +17,17 @@ export interface GuardianCoreState {
   justiceActiveBurns: number;
   justicePassiveBurns: number;
   virtueReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
-  lastVirtuePassiveWasReady: boolean;
   autoattackChains: Record<string, SkillId>;
   availableFlips: SkillFlipWindows;
   symbolicAvengerExpirations: number[];
   symbolIgnitionStartsAt: number;
   symbolIgnitionUntil: number;
-  symbolIgnitionReadyAt: number;
-  symbolProjectileIgnitionReadyAt: number;
-  zealotsResolutionReadyAt: number;
+
   resolutionUntil: number;
+  righteousInstinctsGeneration: number;
   furiousFocusReadyAt: number;
-  healersResolutionReadyAt: number;
-  protectorsRestorationReadyAt: number;
+  furiousFocusRecharge: RechargeProgress | null;
+
   spearIlluminatedArmed: boolean;
   spearIlluminatedUntil: number;
   spearLuminanceUntil: number;
@@ -35,9 +35,9 @@ export interface GuardianCoreState {
 
 // Create a complete Guardian core state with bounded resources and initialized
 // virtue, trait, symbol, and flip bookkeeping.
-export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCoreState {
+export function createGuardianCoreState(): GuardianCoreState {
   return {
-    endurance: boundedNumber(config.initialEndurance ?? 100, 100, 0, 100),
+    endurance: 100,
 
     enduranceUpdatedAt: 0,
     justiceActiveArmed: false,
@@ -49,19 +49,17 @@ export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCo
       resolve: 0,
       courage: 0
     },
-    lastVirtuePassiveWasReady: false,
     autoattackChains: {},
     availableFlips: {},
     symbolicAvengerExpirations: [],
     symbolIgnitionStartsAt: -1,
     symbolIgnitionUntil: -1,
-    symbolIgnitionReadyAt: 0,
-    symbolProjectileIgnitionReadyAt: 0,
-    zealotsResolutionReadyAt: 0,
+
     resolutionUntil: 0,
+    righteousInstinctsGeneration: 0,
     furiousFocusReadyAt: 0,
-    healersResolutionReadyAt: 0,
-    protectorsRestorationReadyAt: 0,
+    furiousFocusRecharge: null,
+
     spearIlluminatedArmed: false,
     spearIlluminatedUntil: 0,
     spearLuminanceUntil: 0
@@ -86,10 +84,9 @@ const GUARDIAN_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianCoreState)[] 
   'availableFlips',
   'symbolIgnitionStartsAt',
   'symbolIgnitionUntil',
-  'symbolIgnitionReadyAt',
-  'symbolProjectileIgnitionReadyAt',
+
   'symbolicAvengerExpirations',
-  'zealotsResolutionReadyAt',
+
   'resolutionUntil',
   'spearIlluminatedArmed',
   'spearIlluminatedUntil',
@@ -102,9 +99,23 @@ export const GUARDIAN_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
   defaults: {}
 });
 
-/** Guardian currently tracks grants only; this capability does not add passive dodge simulation. */
-export const guardianEndurance: EndurancePolicy<SchedulerContext<{ core: GuardianCoreState }>> = {
-  state: (context) => context.state.profession.core,
-  maximum: () => 100,
-  regenerationRate: () => 0
-};
+/** Detaches canonical combat state and expires public windows at the observation time. */
+export function snapshotGuardianState(state: unknown, at: number): GuardianState {
+  const snapshot = snapshotProfessionState(state) as GuardianState;
+  // Snapshots can be captured before a flip's expiry task runs; never expose an expired flip to the palette.
+  snapshot.availableFlips = Object.fromEntries(
+    Object.entries(snapshot.availableFlips).filter(([, window]) => skillFlipVisible(window, at))
+  );
+  snapshot.symbolicAvengerExpirations = activeSymbolicAvengerExpirations(snapshot, at);
+  return snapshot;
+}
+
+/** Publishes detached, current public values without mutating the live module state. */
+export function projectGuardianPlanningState(input: Gw2PlanningStateInput) {
+  const state = snapshotGuardianState(input.profession, input.time);
+  return projectPublicProfessionState(
+    state,
+    GUARDIAN_CORE_PUBLIC_STATE_PROJECTION.keys,
+    GUARDIAN_CORE_PUBLIC_STATE_PROJECTION.defaults
+  );
+}

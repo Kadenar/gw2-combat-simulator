@@ -1,0 +1,310 @@
+import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
+import { wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
+import {
+  UTILITY_CONVERSION_RATES,
+  UTILITY_DATA,
+  UTILITY_STRIKE_DAMAGE_BONUSES,
+  UTILITY_STAT_DATA
+} from '#gw2/platform/equipment/consumables/utilities.js';
+import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
+import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
+import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
+import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
+import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment/icons.js';
+import { escapeHtml } from '#ui/shared/html.js';
+import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
+import type { TooltipFact } from '#gw2/platform/engine/skills/types.js';
+
+type NumericValues = Readonly<Record<string, number>>;
+
+/** Expand abbreviated equipment names to their canonical wiki articles and card headings. */
+function equipmentWikiName(kind: string, name: string): string {
+  let wikiName = name;
+  if (/rune/i.test(kind)) {
+    const noArticle = [
+      'Infiltration',
+      'Balthazar',
+      'Perplexity',
+      'Thorns',
+      'Tormenting',
+      'Fireworks',
+      'Strength',
+      'Rage',
+      'Leadership',
+      'Divinity'
+    ];
+    wikiName = `Superior Rune of ${noArticle.includes(name) ? '' : 'the '}${name}`;
+  } else if (/sig/i.test(kind)) {
+    wikiName = `Superior Sigil of ${['Night', 'Stars'].includes(name) ? 'the ' : ''}${name}`;
+  } else if (/relic/i.test(kind)) {
+    const article = [
+      'Director',
+      'Steamshrieker',
+      'Blightbringer',
+      'Aristocracy',
+      'Mirage',
+      'Mist Stranger',
+      'Brawler',
+      'Claw',
+      'Dragonhunter',
+      'Deadeye',
+      'Eagle',
+      'Fractal',
+      'Last Tyrant',
+      'Visionary',
+      'Thief',
+      'Warrior'
+    ];
+    wikiName = `Relic of ${article.includes(name) ? 'the ' : ''}${name}`;
+  } else if (/infusion/i.test(kind)) {
+    wikiName = 'Infusion';
+  }
+
+  return wikiName;
+}
+
+/** Equipment cards share the skill overlay, with item artwork and a separate block for attached upgrades. */
+function equipmentCardAttributes(
+  name: string,
+  description: string,
+  wikiName: string,
+  icon = '',
+  facts: TooltipFact[] = [],
+  upgrades: TooltipFact[] = []
+): string {
+  return `${wikiTooltipAttributes(name, description, wikiName, facts)} data-wiki-equipment="true" data-wiki-icon="${escapeHtml(icon)}" data-wiki-upgrades="${escapeHtml(JSON.stringify(upgrades))}"`;
+}
+
+function attributeFacts(values: NumericValues = {}, percent = false): TooltipFact[] {
+  return Object.entries(values).map(([name, value]) => ({ name, detail: `+${value}${percent ? '%' : ''}` }));
+}
+
+function upgradeDetails(name: string, label: string): string {
+  return label.startsWith(`${name} — `) ? label.slice(name.length + 3) : '';
+}
+
+/** Use catalog bonuses for rune sets and local trigger descriptions for sigils and relics in every picker. */
+export function equipmentTooltipAttributes(kind: string, name: string, description = ''): string {
+  if (!name || name === 'None') return '';
+  const wikiName = equipmentWikiName(kind, name);
+  if (/rune/i.test(kind)) {
+    const rune = runeData[name];
+    return equipmentCardAttributes(`${wikiName} (6/6)`, 'Six-piece set bonuses', wikiName, EQUIPMENT_ICONS[name], [
+      ...attributeFacts(rune?.stats),
+      ...attributeFacts(rune?.durations, true)
+    ]);
+  }
+
+  if (/sig/i.test(kind)) {
+    return equipmentCardAttributes(
+      wikiName,
+      upgradeDetails(name, sigilOptionLabel(name)),
+      wikiName,
+      SIGIL_DATA[name]?.icon
+    );
+  }
+
+  if (/relic/i.test(kind)) {
+    const relic = relicData[name];
+    return equipmentCardAttributes(
+      wikiName,
+      String(relic?.trigger || ''),
+      wikiName,
+      String(relic?.icon || ''),
+      relic?.cooldown ? [{ name: 'Internal cooldown', detail: `${relic.cooldown}s` }] : []
+    );
+  }
+
+  if (/food/i.test(kind)) description ||= foodOptionLabel(name);
+  if (/utility/i.test(kind)) description ||= utilityOptionLabel(name);
+  return wikiTooltipAttributes(name, description, wikiName);
+}
+
+/** Show only the selected slot's attributes; runes are set totals and infusions have no assigned item socket. */
+export function gearTooltipAttributes({
+  name,
+  prefix,
+  slot,
+  icon,
+  rune = '',
+  sigils = []
+}: {
+  name: string;
+  prefix: string;
+  slot: string;
+  icon: string;
+  rune?: string;
+  sigils?: readonly string[];
+}): string {
+  if (!name) return '';
+  const facts = attributeFacts(gearStats[prefix]?.[slot]);
+  const strength = slot.startsWith('Weapon') ? weaponStrengthProfileForName(name) : null;
+  if (strength) facts.unshift({ name: 'Weapon Strength', detail: `${strength.min} – ${strength.max}` });
+  const upgrades: TooltipFact[] = [];
+  if (rune && runeData[rune])
+    upgrades.push({
+      name: `${equipmentWikiName('rune', rune)} (6/6)`,
+      detail: `Six-piece set bonuses\n${upgradeDetails(rune, runeOptionLabel(rune)).replaceAll(', ', '\n')}`,
+      icon: EQUIPMENT_ICONS[rune]
+    });
+  for (const sigil of sigils) {
+    if (SIGIL_DATA[sigil])
+      upgrades.push({
+        name: equipmentWikiName('sigil', sigil),
+        detail: upgradeDetails(sigil, sigilOptionLabel(sigil)),
+        icon: SIGIL_DATA[sigil].icon
+      });
+  }
+
+  return equipmentCardAttributes(`${prefix} ${name}`, '', strength ? name : prefix, icon, facts, upgrades);
+}
+
+type UnknownValues = Readonly<Record<string, unknown>>;
+
+const gearStats = GEAR_STATS as Readonly<Record<string, Readonly<Record<string, NumericValues>>>>;
+const foodData = FOOD_DATA as Readonly<Record<string, UnknownValues>>;
+const relicData = RELIC_DATA as Readonly<Record<string, UnknownValues>>;
+const runeData = RUNE_DATA as Readonly<Record<string, { stats: NumericValues; durations: NumericValues }>>;
+const sigilProcs = SIGIL_PROCS as Readonly<Record<string, UnknownValues>>;
+const utilityData = UTILITY_DATA as Readonly<
+  Record<string, readonly { readonly from: string; readonly to: string; readonly percent?: number }[]>
+>;
+const utilityStatData = UTILITY_STAT_DATA as Readonly<Record<string, NumericValues>>;
+
+function optionLabel(name: string, details: readonly string[]): string {
+  return details.length ? `${name} — ${details.join(', ')}` : name;
+}
+
+function attributeDetails(values: NumericValues | undefined, percent = false): string[] {
+  const entries = Object.entries(values || {});
+  const amounts = new Set(entries.map(([, value]) => value));
+  if (entries.length >= 8 && amounts.size === 1) {
+    return [`+${entries[0][1]}${percent ? '%' : ''} all attributes`];
+  }
+
+  return entries.map(([attribute, value]) => `+${value}${percent ? '%' : ''} ${attribute}`);
+}
+
+/** Adds visible catalog effects to native dropdown labels so choices can be compared without hover text. */
+export function prefixOptionLabel(name: string, slot?: string): string {
+  const stats = gearStats[name]?.[slot || 'Helm'];
+  return optionLabel(name, slot ? attributeDetails(stats) : Object.keys(stats || {}));
+}
+
+export function runeOptionLabel(name: string): string {
+  const rune = runeData[name];
+  return optionLabel(name, [...attributeDetails(rune?.stats), ...attributeDetails(rune?.durations, true)]);
+}
+
+function foodProcDetail(proc: UnknownValues | undefined): string {
+  if (!proc) return '';
+  const chance = `${Math.round(Number(proc.chance || 0) * 100)}% on critical hit`;
+  const cooldown = proc.icdMs ? ` (${Number(proc.icdMs) / 1000}s CD)` : '';
+  if (proc.flatDamage) return `${chance}: ${proc.flatDamage} damage${cooldown}`;
+
+  const effect = (value: unknown): string => {
+    const data = value as UnknownValues | undefined;
+    if (!data) return '';
+    const stacks = Number(data.stacks || 1);
+    return `${stacks > 1 ? `${stacks} ` : ''}${String(data.name || '')}${data.duration ? ` for ${data.duration}s` : ''}`;
+  };
+
+  const day = effect(proc.dayEffect);
+  const night = effect(proc.nightEffect);
+  return day || night ? `${chance}: ${day} by day / ${night} by night${cooldown}` : chance;
+}
+
+export function foodOptionLabel(name: string): string {
+  const food = foodData[name];
+  const proc = foodProcDetail(food?.proc as UnknownValues | undefined);
+  return optionLabel(name, [
+    ...attributeDetails(food?.stats as NumericValues | undefined),
+    ...attributeDetails(food?.durations as NumericValues | undefined, true),
+    ...(proc ? [proc] : [])
+  ]);
+}
+
+export function utilityOptionLabel(name: string): string {
+  // Explain the assumed target match alongside the potion's damage-only effect.
+  const strikeBonus = UTILITY_STRIKE_DAMAGE_BONUSES[name];
+  if (strikeBonus) return optionLabel(name, [`+${strikeBonus}% multiplicative strike damage; matching enemy assumed`]);
+  const conversions = utilityData[name] || [];
+  const firstPercent = conversions[0]?.percent;
+  const uniformSelfConversion =
+    conversions.length > 4 &&
+    firstPercent != null &&
+    conversions.every(({ from, to, percent }) => from === to && percent === firstPercent);
+  const conversionDetails = uniformSelfConversion
+    ? [`+${firstPercent}% all attributes`]
+    : conversions.map(
+        ({ from, to, percent }) =>
+          `+${percent ?? UTILITY_CONVERSION_RATES[from as keyof typeof UTILITY_CONVERSION_RATES]}% of ${from} as ${to}`
+      );
+  return optionLabel(name, [...attributeDetails(utilityStatData[name]), ...conversionDetails]);
+}
+
+const SIGIL_PERCENT_FIELDS: Readonly<Record<string, string>> = {
+  criticalChance: 'critical chance',
+  strikeDamageA: 'strike damage',
+  strikeDamageM: 'multiplicative strike damage (matching enemy assumed)',
+  nightStrikeDamageM: 'strike damage at night',
+  conditionDamageA: 'condition damage',
+  conditionDuration: 'condition duration',
+  bleedingDuration: 'bleeding duration',
+  burningDuration: 'burning duration',
+  poisonDuration: 'poison duration',
+  tormentDuration: 'torment duration',
+  boonDuration: 'boon duration'
+};
+
+function sigilProcDetail(name: string, proc: UnknownValues | undefined): string {
+  if (!proc) return '';
+  const condition = `${Number(proc.stacks || 1) > 1 ? `${proc.stacks} ` : ''}${String(proc.condition || '')}${
+    proc.duration ? ` for ${proc.duration}s` : ''
+  }`;
+  const effect =
+    proc.effect === 'strike'
+      ? `${proc.coefficient} coefficient strike`
+      : proc.effect === 'condition'
+        ? condition
+        : proc.effect === 'next-hit-condition'
+          ? `next hit applies ${condition}`
+          : proc.effect === 'strike-condition'
+            ? `${proc.coefficient} coefficient strike + ${condition}`
+            : proc.effect === 'endurance'
+              ? `+${proc.amount} endurance`
+              : proc.effect === 'severance'
+                ? `+${SIGIL_DATA[name].procPrecision} Precision and +${SIGIL_DATA[name].procFerocity} Ferocity for ${proc.duration}s`
+                : '';
+  const trigger =
+    {
+      crit: 'on critical hit',
+      swap: 'on weapon swap',
+      strike: 'on strike',
+      control: 'after disabling a foe'
+    }[String(proc.trigger)] || '';
+  return `${effect} ${trigger}${proc.cooldown ? ` (${proc.cooldown}s CD)` : ''}`.trim();
+}
+
+export function sigilOptionLabel(name: string): string {
+  const sigil = SIGIL_DATA[name];
+  // Show the assumed persistent bonus so inactive-set stacking sigils explain their contribution.
+  if (sigil?.stackingStats) {
+    const stats = attributeDetails(sigil.stackingStats).join(', ');
+    return optionLabel(name, [`${stats} at 25 stacks; one stacking sigil at a time`]);
+  }
+
+  const passiveDetails = Object.entries(SIGIL_PERCENT_FIELDS).flatMap(([field, label]) =>
+    sigil?.[field] ? [`+${sigil[field]}% ${label}`] : []
+  );
+  const proc = sigilProcDetail(name, sigilProcs[name]);
+  return optionLabel(name, [...passiveDetails, ...(proc ? [proc] : [])]);
+}
+
+export function relicOptionLabel(name: string): string {
+  const relic = relicData[name];
+  const trigger = String(relic?.trigger || '');
+  const cooldown = Number(relic?.cooldown || 0);
+  return optionLabel(name, trigger ? [`${trigger}${cooldown ? ` (${cooldown}s ICD)` : ''}`] : []);
+}

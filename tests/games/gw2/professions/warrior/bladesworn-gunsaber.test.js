@@ -2,31 +2,29 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
 function simulate(rotation) {
-  return simulateGw2({
-    profession: warriorProfession,
-    rotation,
-    config: {
-      specialization: 'Bladesworn',
-      initialResource: 100,
-      stats: {
-        power: 2000,
-        precision: 1500,
-        ferocity: 500,
-        conditionDamage: 1000
-      },
-      target: {
-        armor: 2597,
-        health: 3_970_000,
-        defiant: true,
-        conditions: { Vulnerability: 25 }
-      }
+  const config = {
+    specialization: 'Bladesworn',
+    initialResource: 100,
+    stats: {
+      power: 2000,
+      precision: 1500,
+      ferocity: 500,
+      conditionDamage: 1000
+    },
+    target: {
+      armor: 2597,
+      health: 3_970_000,
+      defiant: true,
+      conditions: { Vulnerability: 25 }
     }
-  });
+  };
+  // Native family state and equipment reactions share one queue.
+  return runGw2Runtime({ profession: warriorProfession.runtimeFor(config), config, rotation });
 }
 
 test('Gunsaber equip and stow count as weapon swaps', () => {
@@ -62,22 +60,22 @@ test('Gunsaber equip and stow put the opposite action on a five-second cooldown'
 
   assert.deepEqual(result.warnings, []);
   for (let index = 2; index < result.steps.length; index += 1) {
-    assert.equal(result.steps[index].start - result.steps[index - 1].end, 5000);
+    assert.equal(result.steps[index].start - result.steps[index - 1].end, 4000);
   }
 
   const unsheathed = simulate(['__combat_start', ID.UNSHEATHE_GUNSABER]);
   const sheathed = simulate(['__combat_start', ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER]);
-  assert.equal(unsheathed.planningState.cooldowns['Sheathe Gunsaber'].remaining, 5000);
-  assert.equal(sheathed.planningState.cooldowns['Unsheathe Gunsaber'].remaining, 5000);
+  assert.equal(unsheathed.planningState.cooldowns['Sheathe Gunsaber'].remaining, 4000);
+  assert.equal(sheathed.planningState.cooldowns['Unsheathe Gunsaber'].remaining, 4000);
 });
 
 test('Dragon Trigger starts Unsheathe recharge only when entering from normal weapons', () => {
   // Existing Gunsaber entry preserves both running and expired cooldowns.
   for (const [beforeTrigger, remaining] of [
-    [[], 5000],
-    [[ID.UNSHEATHE_GUNSABER, { type: 'wait', durationMs: 1000 }], 4000],
+    [[], 4000],
+    [[ID.UNSHEATHE_GUNSABER, { type: 'wait', durationMs: 1000 }], 3000],
     [[ID.UNSHEATHE_GUNSABER, { type: 'wait', durationMs: 6000 }], 0],
-    [[ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, { type: 'wait', durationMs: 1000 }], 5000]
+    [[ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, { type: 'wait', durationMs: 1000 }], 4000]
   ]) {
     const result = simulate(['__combat_start', ...beforeTrigger, ID.DRAGON_TRIGGER]);
     assert.deepEqual(result.warnings, []);

@@ -1,10 +1,7 @@
 /** Measure unique-stat preparation without simulating the enormous Cartesian products it replaces. */
-import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
-import {
-  captureGearOptimizerRequest,
-  createOptimizerSpace
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
-import { groupOptimizerSpace } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
+import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { captureGearOptimizerRequest, createOptimizerSpace } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer.js';
+import { groupOptimizerSpace } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-space.js';
 
 const adapter = await loadProfessionAppAdapter('warrior');
 const build = adapter.toApplicationBuild(adapter.profession.createBuildDefaults());

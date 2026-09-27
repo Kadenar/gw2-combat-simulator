@@ -1,4 +1,5 @@
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { HOLOSMITH_FORGE_TOGGLE_SKILL_IDS } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import {
   engineerToolbeltSkillIds,
   engineerUiSpecialization,
@@ -38,8 +39,8 @@ const HOLOSMITH_PACKET_EVENTS = new Set<string>([
 /** Projects Forge replacement rules and the kit lockout into palette availability. */
 function holosmithPaletteAvailability(context: EngineerUiContext, skill: HolosmithSkill): PaletteSkillAvailability {
   const state = engineerUiState(context);
-  const now = Number(context.time || 0);
-  const kitLockoutUntil = Number(state.kitLockoutUntil || 0);
+  const now = context.time || 0;
+  const kitLockoutUntil = state.kitLockoutUntil || 0;
   // The shared tile projector selects the active Photon Forge transition while
   // this contract remains the sole source of its state availability.
   if (skill.id === ID.ENGAGE_PHOTON_FORGE && state.photonForgeActive) {
@@ -63,7 +64,7 @@ function holosmithPaletteAvailability(context: EngineerUiContext, skill: Holosmi
 
   // Project the Forge kit lockout as a retryable context cooldown so kit tiles
   // show a countdown while remaining click-queueable for their ready time.
-  if (skill.handlerId === 'engineer.kit-equip' && now < kitLockoutUntil) {
+  if (skill.kitTransition === 'equip' && now < kitLockoutUntil) {
     return {
       available: false,
       message: 'Kits are disabled briefly after entering Photon Forge.',
@@ -82,14 +83,14 @@ function holosmithEventLogRow(
   const buildSpecializations = Array.isArray(context.build?.specializations) ? context.build.specializations : [];
   const isHolosmith =
     engineerUiSpecialization(context) === 'Holosmith' ||
-    buildSpecializations.some((specialization) => String(specialization?.name || specialization) === 'Holosmith');
+    buildSpecializations.some((specialization) => String(specialization.name || specialization) === 'Holosmith');
   if (!isHolosmith) return undefined;
-  if (HOLOSMITH_PACKET_EVENTS.has(event?.type)) return null;
-  if (event?.type !== 'engineer.state') return undefined;
+  if (HOLOSMITH_PACKET_EVENTS.has(event.type)) return null;
+  if (event.type !== 'engineer.heat') return undefined;
   if (!HEAT_STATE_REASONS.has(String(event.reason || ''))) return null;
   return {
     type: event.type,
-    description: `${event.reason || 'State'} - ` + `Heat ${Number(event.state?.heat || 0).toFixed(1)}`,
+    description: `${event.reason || 'State'} - ` + `Heat ${Number(event.heat || 0).toFixed(1)}`,
     className: 'resource',
     order: 30,
     flags: []
@@ -102,8 +103,8 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog>): EngineerUi
     eventLogRow: holosmithEventLogRow,
     // Photon Forge changes weapon presentation only while the Holosmith slice is active.
     timelineWeaponLineTransition: (context: EngineerUiContext) => {
-      if (context.skill?.handlerId === 'engineer.photon-forge-enter') return 'Photon Forge';
-      if (context.skill?.handlerId === 'engineer.photon-forge-exit') return null;
+      if (context.skill?.id === ID.ENGAGE_PHOTON_FORGE) return 'Photon Forge';
+      if (context.skill && HOLOSMITH_FORGE_TOGGLE_SKILL_IDS.has(Number(context.skill.id))) return null;
       return undefined;
     },
     paletteGroups: (context: EngineerUiContext) => {
@@ -148,14 +149,14 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog>): EngineerUi
     },
     resourceViews: (context: EngineerUiContext): ProfessionResourceView[] => {
       const state = engineerUiState(context);
-      const maximum = Number(state.maximumHeat || 100);
+      const maximum = state.maximumHeat || 100;
       return [
         {
           id: 'heat',
           singular: 'heat',
           plural: 'heat',
           maximum,
-          value: Number(state.heat ?? context.initialHeat ?? 0),
+          value: state.heat ?? context.initialHeat ?? 0,
           startMaximum: maximum,
           canStart: true,
           buildKey: 'initialHeat',

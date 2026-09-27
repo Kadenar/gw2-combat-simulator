@@ -10,6 +10,7 @@ export const HERALD_DRACONIC_ECHO_PROFILE_ID = 'revenant.draconic-echo';
 export const HERALD_NATURE_ASSASSIN_PROFILE_ID = 'revenant.nature-assassin';
 
 export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  trait(TRAIT.CORE_VALUE, 'Core Value', { duration: 1 }),
   // PvE passive bonuses remain patchable; Elements modifies outgoing damage, not the condition-damage attribute.
   {
     id: HERALD_DRACONIC_ECHO_PROFILE_ID,
@@ -19,8 +20,6 @@ export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     damageBonus: 0.1,
     criticalChanceBonus: 0.1,
     boonDurationBonus: 10,
-    outgoingHealingBonus: 0.1,
-    incomingDamageReduction: 0.1,
     effects: []
   },
   {
@@ -33,6 +32,7 @@ export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
         name: 'Life Siphon',
         type: 'strike',
         coefficient: 0,
+        damageKind: 'life-steal',
         flatStrikeBase: 53,
         flatStrikePowerCoeff: 0.0666,
         actorType: 'effect'
@@ -44,7 +44,7 @@ export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     name: 'Shared Empowerment',
     profileKind: 'trait',
     description: 'Applying a boon to an ally grants nearby allies one stack of might.',
-    cooldown: 1,
+    internalCooldown: 1,
     effects: [
       {
         name: 'might',

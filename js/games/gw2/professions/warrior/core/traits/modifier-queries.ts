@@ -1,12 +1,9 @@
 /** Shares live Warrior modifier queries without coupling trait-line fragments to their composer. */
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { boonActive, eventSkill as gw2EventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { boonActive, eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
-import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 
 export type WarriorModifierAttributes = Gw2MutableStats & {
   power: number;
@@ -18,19 +15,6 @@ export type WarriorModifierAttributes = Gw2MutableStats & {
   healingPower: number;
   concentration: number;
 };
-
-export function warriorEventSkill(context: Gw2ModifierContext): WarriorSkill | undefined {
-  return gw2EventSkill<WarriorSkill>(context);
-}
-
-export function warriorTargetControlled(context: Gw2ModifierContext): boolean {
-  const state = readProfessionCoreState<WarriorCoreState>(context.runtime?.profession);
-  return Boolean(
-    context.config?.target?.controlled ||
-    context.config?.target?.defiant ||
-    Number(state.targetControlledUntil || 0) > context.time
-  );
-}
 
 // Use canonical duration pools while retaining Warrior's config/live-only visibility contract.
 export function warriorBoonActive(context: Gw2ModifierContext, boon: string): boolean {
@@ -55,8 +39,8 @@ export function warriorActiveBoonCount(context: Gw2ModifierContext): number {
 
 // Test both weapon hands at query time, including projected modifier-evaluation swaps.
 export function warriorWieldingWeapon(context: Gw2ModifierContext, weapon: string): boolean {
-  if (warriorEventSkill(context)?.weapon === weapon) return true;
+  if (eventSkill(context)?.weapon === weapon) return true;
   const weaponSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
   const [primary, secondary] = gw2ConfiguredWeaponSet(context.config, weaponSet);
-  return String(primary || '') === weapon || String(secondary || '') === weapon;
+  return (primary || '') === weapon || (secondary || '') === weapon;
 }

@@ -19,7 +19,7 @@ import { type CatalystState } from '#gw2/professions/elementalist/specialization
 const CATALYST_SPHERE_SKILL_IDS = Object.freeze(Object.values(ELEMENTALIST_JADE_SPHERE_SKILL_IDS));
 
 function uiState(context: ElementalistUiContext): Partial<CatalystState> {
-  return (context.professionState as Partial<CatalystState> | undefined) || {};
+  return context.professionState || {};
 }
 
 // Mirrors the scheduler availability rule for the palette: a Jade Sphere needs the
@@ -32,7 +32,7 @@ function catalystPaletteAvailability(context: ElementalistUiContext, skill: Skil
 
   const state = uiState(context);
   const build = context.build;
-  const primaryAttunement = String(context.professionState?.primaryAttunement || build?.startAttunement || 'Fire');
+  const primaryAttunement = context.professionState?.primaryAttunement || build?.startAttunement || 'Fire';
   if (skill.attunement !== primaryAttunement) {
     return { available: false, message: `Requires ${String(skill.attunement)} attunement.` };
   }
@@ -41,7 +41,7 @@ function catalystPaletteAvailability(context: ElementalistUiContext, skill: Skil
   // Palette costs and initial capacity follow the same selected profile as simulation.
   const maximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
   const sphereCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
-  const energy = Number(state.energy ?? build?.initialCatalystEnergy ?? maximum);
+  const energy = state.energy ?? build?.initialCatalystEnergy ?? maximum;
   const available = energy >= sphereCost;
   return {
     available,
@@ -57,15 +57,15 @@ function empoweringAurasAt(context: ElementalistUiContext, at: number): { stacks
   let expiries: number[] = [];
   const events = (context.result as { events?: readonly SimulationEvent[] } | undefined)?.events || [];
   for (const event of events) {
-    const applicationAt = Number(event.at || 0);
+    const applicationAt = event.at || 0;
     if (applicationAt > at) break;
     if (event.type !== 'buff' || event.kind !== 'empowering auras') continue;
     expiries = expiries.filter((expiry) => expiry > applicationAt);
-    const expiresAt = applicationAt + Number(event.duration || 0);
+    const expiresAt = applicationAt + (event.duration || 0);
     // Empowering Auras refreshes every active stack whenever another aura is
     // gained, then adds one stack up to five; replay that refresh contract.
     expiries = expiries.map(() => expiresAt);
-    for (let stack = 0; stack < Math.max(1, Number(event.stacks || 1)) && expiries.length < maximum; stack += 1) {
+    for (let stack = 0; stack < Math.max(1, event.stacks || 1) && expiries.length < maximum; stack += 1) {
       if (expiresAt > applicationAt) expiries.push(expiresAt);
     }
   }
@@ -77,7 +77,7 @@ function empoweringAurasAt(context: ElementalistUiContext, at: number): { stacks
 /** Shows timed Catalyst combat state that changes decisions at the inspected rotation point. */
 function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
   const state = uiState(context);
-  const at = Math.max(0, Number(context.atSeconds || 0));
+  const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
   const empowerment = activeStackCount(state.elementalEmpowermentExpiries || [], at);
   if (empowerment > 0) {
@@ -103,7 +103,7 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
   }
 
   for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
-    const remaining = Number(state.sphereExpiry?.[element] || 0) - at;
+    const remaining = (state.sphereExpiry?.[element] || 0) - at;
     if (remaining <= 0) continue;
     items.push({
       id: `catalyst-${element.toLowerCase()}-sphere`,
@@ -159,7 +159,7 @@ export const catalystUi: ElementalistUiSlice = Object.freeze({
         singular: 'energy',
         plural: 'energy',
         maximum,
-        value: Number(state.energy ?? build?.initialCatalystEnergy ?? maximum),
+        value: state.energy ?? build?.initialCatalystEnergy ?? maximum,
         startMaximum: maximum,
         canStart: true,
         buildKey: 'initialCatalystEnergy',

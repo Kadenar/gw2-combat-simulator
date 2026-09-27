@@ -6,7 +6,7 @@ import {
 export interface GuardianLuminaryState {
   radiantForge: boolean;
   radiantForgeEndsAt: number;
-  radiantForgeEnteredAt: number;
+  forgeActivationId: string | null;
   radiantWeapon: string;
   radiantWeaponsUsed: Record<string, boolean>;
   glaringBurstSwordSlow: boolean;
@@ -16,16 +16,17 @@ export interface GuardianLuminaryState {
   radiantJusticeArmed: boolean;
   radiantResolveArmed: boolean;
   radiantCourageSwordArmed: boolean;
-  radiantCourageShieldArmed: boolean;
   effulgentActiveUntil: number;
   effulgentStacks: number;
+  effulgentActivationId: string | null;
 }
 
-export function createLuminaryState(): GuardianLuminaryState {
+function createLuminaryState(): GuardianLuminaryState {
   return {
     radiantForge: false,
     radiantForgeEndsAt: 0,
-    radiantForgeEnteredAt: 0,
+    // Exact expiry work belongs to one entry, even if the form is replaced before it runs.
+    forgeActivationId: null,
     radiantWeapon: '',
     // Tracks distinct weapon types so zero or one used weapon receives the reduced forge recharge.
     radiantWeaponsUsed: {},
@@ -39,11 +40,11 @@ export function createLuminaryState(): GuardianLuminaryState {
     radiantJusticeArmed: false,
     radiantResolveArmed: false,
     radiantCourageSwordArmed: false,
-    radiantCourageShieldArmed: false,
-    // Resolver handlers activate the stance, count resolved strikes, and consume
-    // the stacks at detonation; the scheduler only emits its boundary events.
+    // Accepted strikes accumulate only inside the current stance's detonation window.
     effulgentActiveUntil: 0,
-    effulgentStacks: 0
+    effulgentStacks: 0,
+    // A replaced stance cannot be consumed by the previous activation's queued detonation.
+    effulgentActivationId: null
   };
 }
 
@@ -59,7 +60,6 @@ export const LUMINARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   radiantJusticeArmed: false,
   radiantResolveArmed: false,
   radiantCourageSwordArmed: false,
-  radiantCourageShieldArmed: false,
   effulgentActiveUntil: 0,
   effulgentStacks: 0
 } satisfies Partial<GuardianLuminaryState>);

@@ -1,13 +1,13 @@
 /**
  * Owns Luminary stance and stance-chain skill fragments.
- * Persistent stance windows and scheduled effects remain in `mechanics/stances.ts`.
+ * Persistent stance windows and scheduled effects remain in `hooks.ts`.
  */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Cast-scaled impacts use the measured Quickness timeline as their source data.
-export const PIERCING_STANCE_IMPACT_MS = 160;
+const PIERCING_STANCE_IMPACT_MS = 160;
 
 export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RESOLUTE_STANCE]: {

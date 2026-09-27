@@ -41,7 +41,7 @@ function assertObject(value: object | null | undefined, label: string): void {
 }
 
 function nativeModuleModifierRules(module: AnyNativeModule): readonly Gw2ModifierRule[] {
-  const modifiers = module.mechanics?.modifiers;
+  const modifiers = module.modifiers;
   if (Array.isArray(modifiers)) {
     return modifiers as readonly Gw2ModifierRule[];
   }
@@ -215,7 +215,7 @@ function modulesWithModifierRules(
   return modules.map((module) => {
     const modifierRules = modifierRulesByModule.get(module.id);
     if (!modifierRules) return module;
-    const existing = module.mechanics?.modifiers;
+    const existing = module.modifiers;
     const modifiers = Array.isArray(existing)
       ? modifierRules
       : Object.freeze({ ...((existing || {}) as object), modifierRules });
@@ -223,7 +223,7 @@ function modulesWithModifierRules(
     // Clone only declaration shells touched by a preview; catalog data and state factories stay shared.
     return Object.freeze({
       ...module,
-      mechanics: Object.freeze({ ...module.mechanics, modifiers })
+      modifiers
     });
   });
 }
@@ -232,12 +232,11 @@ function modulesWithModifierRules(
 export function withPatchPreview<
   const TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
-  TSimulation extends object = object,
   TBuild extends Gw2Build = Gw2Build
 >(
-  family: NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild>,
+  family: NativeProfessionContract<TModules, TPresentation, TBuild>,
   candidatePreview: PatchPreview | null | undefined
-): NativePatchAuthoringContract<TModules, TPresentation, TSimulation, TBuild> {
+): NativePatchAuthoringContract<TModules, TPresentation, TBuild> {
   const definition = family.nativeDefinition;
   const modules = definition.modules as readonly AnyNativeModule[];
   const preview = candidatePreview ? validatePatchPreview(candidatePreview) : null;
@@ -246,13 +245,13 @@ export function withPatchPreview<
   const modifierRules = modules.flatMap((module) => [...nativeModuleModifierRules(module)]);
   const patchAuthoring = createPatchAuthoringMetadata(definition.id, definition.name, modules, assembly.fragments);
   const previewModifierRules = preparePreviewModifierRules(modules, professionPatch?.modifierRules);
-  let previewFamily: NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild> | null = null;
+  let previewFamily: NativeProfessionContract<TModules, TPresentation, TBuild> | null = null;
   const familyForPreview = () => {
     if (!previewModifierRules.targets.length) return family;
     previewFamily ||= defineStableNativeProfession({
       ...definition,
       modules: modulesWithModifierRules(modules, previewModifierRules.byModule) as TModules
-    }) as NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild>;
+    }) as NativeProfessionContract<TModules, TPresentation, TBuild>;
     return previewFamily;
   };
 
@@ -315,11 +314,8 @@ export function withPatchPreview<
     return true;
   };
 
-  const resolveRuntime = (config: Readonly<Gw2Config> = {}) => {
-    const patchId = assertPatchId(String(config.patchId || CURRENT_PATCH_ID));
-    const runtime =
-      patchId === CURRENT_PATCH_ID ? family.resolveRuntime(config) : familyForPreview().resolveRuntime(config);
-    if (patchId === CURRENT_PATCH_ID) return runtime;
+  // Both runtime compilers use the same validated catalog overlay and selected modifier declarations.
+  const overlayRuntime = <T extends { readonly catalog: Readonly<CanonicalCatalog> }>(runtime: T): T => {
     validatedPreviewCatalog();
     const cachedRuntime = runtimeOverlays.get(runtime);
     if (cachedRuntime) return cachedRuntime as typeof runtime;
@@ -340,6 +336,20 @@ export function withPatchPreview<
     return overlay;
   };
 
+  const resolveProfession = (config: Readonly<Gw2Config> = {}) => {
+    const patchId = assertPatchId(String(config.patchId || CURRENT_PATCH_ID));
+    return patchId === CURRENT_PATCH_ID
+      ? family.resolveProfession(config)
+      : overlayRuntime(familyForPreview().resolveProfession(config));
+  };
+
+  const runtimeFor = (config: Readonly<Gw2Config> = {}) => {
+    const patchId = assertPatchId(String(config.patchId || CURRENT_PATCH_ID));
+    return patchId === CURRENT_PATCH_ID
+      ? family.runtimeFor(config)
+      : overlayRuntime(familyForPreview().runtimeFor(config));
+  };
+
   return Object.freeze({
     ...family,
     preview,
@@ -347,7 +357,8 @@ export function withPatchPreview<
     balanceContextFor,
     patchAuthoring,
     validatePatch,
-    resolveRuntime,
+    resolveProfession,
+    runtimeFor,
     previewModifierRuleTargets: previewModifierRules.targets
-  }) as NativePatchAuthoringContract<TModules, TPresentation, TSimulation, TBuild>;
+  }) as NativePatchAuthoringContract<TModules, TPresentation, TBuild>;
 }

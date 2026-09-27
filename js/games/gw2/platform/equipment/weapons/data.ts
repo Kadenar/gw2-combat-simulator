@@ -43,13 +43,11 @@ export const WEAPON_DATA: Readonly<Record<string, Readonly<Gw2WeaponDataEntry>>>
 };
 
 function derivedProfessionWielding(catalog: CanonicalCatalog, weapon: string, fallback: string): string {
-  const explicit = catalog?.weaponHands?.get?.(weapon);
+  const explicit = catalog.weaponHands.get(weapon);
   if (explicit) return explicit;
   if (fallback === '2h' || fallback === '-') return fallback;
 
-  const slots = (catalog?.skills || [])
-    .filter((skill) => skill.weapon === weapon)
-    .map((skill) => String(skill.slot || ''));
+  const slots = catalog.skills.filter((skill) => skill.weapon === weapon).map((skill) => String(skill.slot || ''));
   const mainHand = slots.some((slot) => /^Weapon_[1-3]$/.test(slot));
   const offHand = slots.some((slot) => /^Weapon_[4-5]$/.test(slot));
   if (mainHand && offHand) return 'mh+oh';
@@ -71,7 +69,7 @@ export function createProfessionWeaponData(
 ): Readonly<Record<string, Readonly<Gw2WeaponDataEntry>>> {
   return Object.freeze(
     Object.fromEntries(
-      [...(catalog?.weapons || [])]
+      [...catalog.weapons]
         .filter((name) => weaponData[name])
         .map((name) => {
           const shared = weaponData[name];

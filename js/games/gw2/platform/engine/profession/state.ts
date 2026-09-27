@@ -1,3 +1,4 @@
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
 import type { DynamicFields, UnvalidatedFields } from '#kernel/core/unvalidated.js';
 /**
  * Profession state ownership helpers. Keeps Core and active-specialization
@@ -8,8 +9,8 @@ import type { DynamicFields, UnvalidatedFields } from '#kernel/core/unvalidated.
  * Flattens Core plus the active specialization solely for stable public
  * projections and event snapshots. Runtime mechanics use the nested state.
  */
-export function flattenProfessionState<TState extends object = UnvalidatedFields>(professionState: unknown): TState {
-  if (!professionState || typeof professionState !== 'object') return {} as TState;
+export function flattenProfessionState(professionState: unknown): UnvalidatedFields {
+  if (!professionState || typeof professionState !== 'object') return {};
   const runtime = professionState as UnvalidatedFields;
   const specialization = runtime.specialization as { readonly state?: unknown } | undefined;
   if (
@@ -21,26 +22,15 @@ export function flattenProfessionState<TState extends object = UnvalidatedFields
     return {
       ...(runtime.core as UnvalidatedFields),
       ...(specialization.state as UnvalidatedFields)
-    } as TState;
+    };
   }
 
-  return { ...runtime } as TState;
+  return { ...runtime };
 }
 
-/** Flattens and deeply clones a family runtime at the scheduler/resolver boundary. */
-export function snapshotProfessionState<TState extends object = UnvalidatedFields>(professionState: unknown): TState {
-  return structuredClone(flattenProfessionState<TState>(professionState));
-}
-
-/** Restores flat snapshot fields to the specialization that declares them, otherwise Core. */
-export function restoreFlatProfessionState(coreState: object, specializationState: object, snapshot: unknown): void {
-  if (!snapshot || typeof snapshot !== 'object') return;
-  const core = coreState as DynamicFields;
-  const specialization = specializationState as DynamicFields;
-  for (const [key, value] of Object.entries(snapshot)) {
-    const owner = Object.hasOwn(specialization, key) ? specialization : core;
-    owner[key] = structuredClone(value);
-  }
+/** Flattens and deeply clones a family runtime for detached public observations. */
+export function snapshotProfessionState(professionState: unknown): object {
+  return structuredClone(flattenProfessionState(professionState));
 }
 
 /** Reads only the owned Core runtime slice; public projections are read by their presentation consumers. */
@@ -49,7 +39,7 @@ export function readProfessionCoreState<TCoreState extends object = DynamicField
 ): Partial<TCoreState> {
   if (!professionState || typeof professionState !== 'object') return {};
   const state = professionState as UnvalidatedFields;
-  return state.core && typeof state.core === 'object' ? (state.core as Partial<TCoreState>) : {};
+  return state.core && typeof state.core === 'object' ? state.core : {};
 }
 
 /** Reads one active specialization without exposing another specialization's state shape. */
@@ -69,26 +59,14 @@ export function readProfessionSpecializationState<TState extends object = Dynami
     return undefined;
   }
 
-  return specialization.state as Partial<TState>;
+  return specialization.state;
 }
 
-/** Declares inactive public fallbacks, never live state initialization or private runtime fields. */
+/** Declares public fields and display defaults for the owning module, separate from live state initialization. */
 export function definePublicStateDefaults<TDefaults extends object>(defaults: TDefaults) {
   return Object.freeze({
     keys: Object.freeze(Object.keys(defaults) as Extract<keyof TDefaults, string>[]),
     defaults: Object.freeze(defaults)
-  });
-}
-
-/** Composes slice metadata in order, retaining duplicate keys and letting later defaults win. */
-export function composePublicStateProjections<
-  const TSlices extends readonly { readonly keys: readonly string[]; readonly defaults: object }[]
->(slices: TSlices) {
-  return Object.freeze({
-    keys: Object.freeze(slices.flatMap((slice) => slice.keys) as TSlices[number]['keys'][number][]),
-    defaults: Object.freeze(Object.assign({}, ...slices.map((slice) => slice.defaults))) as Readonly<
-      TSlices[number]['defaults']
-    >
   });
 }
 
@@ -131,20 +109,6 @@ type RuntimeCoreState<TRuntimeState> = TRuntimeState extends {
   ? TCoreState
   : never;
 
-type RuntimeSpecialization<TRuntimeState> = TRuntimeState extends {
-  readonly specialization: infer TSpecialization;
-}
-  ? TSpecialization
-  : never;
-
-type RuntimeSpecializationKind<TRuntimeState> =
-  RuntimeSpecialization<TRuntimeState> extends { readonly kind: infer TKind } ? TKind & string : never;
-
-type RuntimeSpecializationState<TRuntimeState, TKind extends string> =
-  Extract<RuntimeSpecialization<TRuntimeState>, { readonly kind: TKind }> extends { readonly state: infer TState }
-    ? TState
-    : never;
-
 /**
  * Returns the explicitly owned Core state slice for a family runtime.
  */
@@ -166,11 +130,7 @@ export function professionCoreState<TContext>(
  * Returns the active specialization state after validating its discriminant.
  * Module mechanics use this accessor instead of a flat family-state view.
  */
-function specializationStateForKind<
-  TContext,
-  TRuntimeState = ProfessionRuntimeFromContext<TContext>,
-  TKind extends RuntimeSpecializationKind<TRuntimeState> = RuntimeSpecializationKind<TRuntimeState>
->(context: TContext, expectedKind: TKind): RuntimeSpecializationState<TRuntimeState, TKind> {
+function specializationStateForKind(context: unknown, expectedKind: string): object {
   const candidate = context as {
     readonly state?: { readonly profession?: unknown };
     readonly runtime?: { readonly profession?: unknown };
@@ -187,17 +147,17 @@ function specializationStateForKind<
     throw new TypeError(`Expected active specialization ${expectedKind}, received ${active.kind}.`);
   }
 
-  return active.state as RuntimeSpecializationState<TRuntimeState, TKind>;
+  return active.state;
 }
 
-export interface ProfessionSpecializationStateDefinition<
+interface ProfessionSpecializationStateDefinition<
   TKind extends string,
   TState extends object,
   TArguments extends readonly unknown[]
 > {
   readonly kind: TKind;
   readonly create: (...args: TArguments) => TState;
-  readonly from: <TContext>(context: TContext) => TState;
+  readonly from: (context: unknown) => TState;
 }
 
 /**
@@ -216,11 +176,22 @@ export function defineProfessionSpecializationState<
   return Object.freeze({
     kind,
     create,
-    from<TContext>(context: TContext): TState {
-      return specializationStateForKind(
-        context,
-        kind as unknown as RuntimeSpecializationKind<ProfessionRuntimeFromContext<TContext>>
-      ) as TState;
+    from(context: unknown): TState {
+      // The owning factory determines the state type; the shared accessor only checks the active kind.
+      return specializationStateForKind(context, kind) as TState;
     }
   });
+}
+
+/** Projects only a module's declared public fields; inactive modules contribute no fields or defaults. */
+export function createPublicStateProjector<const TKey extends string>(projection: {
+  readonly keys: readonly TKey[];
+  readonly defaults: Readonly<Partial<Record<TKey, unknown>>>;
+}): (input: Gw2PlanningStateInput) => Record<TKey, unknown> {
+  return ({ profession }) =>
+    projectPublicProfessionState(
+      flattenProfessionState(profession) as Record<TKey, unknown>,
+      projection.keys,
+      projection.defaults
+    );
 }

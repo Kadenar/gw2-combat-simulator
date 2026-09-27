@@ -48,7 +48,7 @@ export function resolvedWeaponStrength(
   if (!profileId) {
     // Scaling strikes must resolve through a canonical profile or explicit override so malformed packets fail loudly.
     throw new TypeError(
-      `Coefficient damage event ${String(event.skillId ?? event.sourceId ?? event.skillName ?? event.source ?? 'unknown')} ` +
+      `Coefficient damage event ${String(event.skillId ?? event.sourceId)} ` +
         'requires a resolvable weapon-strength profile or explicit weaponStrength.'
     );
   }

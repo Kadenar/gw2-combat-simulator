@@ -1,7 +1,8 @@
+import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 /** Defines application presentation callbacks independently of the executable profession runtime. */
 import type { SkillId, Skill, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
-import type { RotationCommand, SchedulerConfig } from '#gw2/platform/execution/types.js';
+import type { CastCommand, RotationCommand, ProfessionConfig } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2CanonicalBuild, Gw2BuildResources, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { Gw2SimulationPlanningState, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
@@ -14,7 +15,7 @@ export interface ProfessionEventLogDescriptor {
   readonly flags?: readonly string[];
 }
 
-export interface ProfessionResourceStatusItem {
+interface ProfessionResourceStatusItem {
   readonly id: string;
   readonly label: string;
   readonly valueLabel?: string;
@@ -149,7 +150,7 @@ export interface ProfessionSkillBarGroup {
   readonly layout?: string;
 }
 
-export interface ProfessionSkillBarSelection {
+interface ProfessionSkillBarSelection {
   readonly skillId?: SkillId;
   /** When set, render an option filter using this placeholder. */
   readonly filterPlaceholder?: string;
@@ -160,7 +161,7 @@ export interface ProfessionSkillBarSelection {
   readonly selectionIndex: number;
 }
 
-export interface ProfessionSkillBarSelectionOption {
+interface ProfessionSkillBarSelectionOption {
   readonly value: string;
   readonly label: string;
   readonly icon?: string;
@@ -168,7 +169,7 @@ export interface ProfessionSkillBarSelectionOption {
   readonly skillId?: SkillId;
 }
 
-export interface ProfessionStartControlOption {
+interface ProfessionStartControlOption {
   readonly value: string;
   readonly label: string;
   readonly icon?: string;
@@ -223,12 +224,12 @@ export interface ProfessionEffectPresentation {
  * Build selection every application UI callback receives. Composition reads the specialization to choose Core or the
  * active elite; `professionState` is the end-state projection of the profession that owns the callback.
  */
-export interface ProfessionUiContext<TProfessionState = unknown> {
+interface ProfessionUiContext<TProfessionState = unknown> {
   /** Policy-derived limits supplied by family composition for resource presentation. */
   readonly resources?: Readonly<Partial<Record<ResourceKey | 'endurance', { readonly maximum: number }>>>;
   readonly specialization?: string;
   /** Simulation config selection, used when a resolved runtime's UI is queried outside the application. */
-  readonly config?: SchedulerConfig;
+  readonly config?: ProfessionConfig;
   readonly build?: Gw2CanonicalBuild | null;
   readonly catalog?: CanonicalCatalog | null;
   readonly professionState?: TProfessionState;
@@ -259,20 +260,16 @@ export interface ProfessionResourceViewContext<
 }
 
 /** Result-view callbacks that describe a completed simulation. */
-export interface ProfessionResultUiContext<TProfessionState = unknown> extends ProfessionUiContext<TProfessionState> {
+interface ProfessionResultUiContext<TProfessionState = unknown> extends ProfessionUiContext<TProfessionState> {
   readonly result?: Gw2SimulationResult | null;
   readonly profession?: object | null;
 }
 
-/** Event-log rows; the caller owns time/resource formatting, while `eventLogState` tracks presenter changes per render. */
-export interface ProfessionEventLogContext<
-  TProfessionState = unknown
-> extends ProfessionResultUiContext<TProfessionState> {
-  readonly eventLogState?: Map<string, unknown>;
-}
+/** Event-log rows; the caller owns time and resource formatting. */
+export type ProfessionEventLogContext<TProfessionState = unknown> = ProfessionResultUiContext<TProfessionState>;
 
 /** Rotation state snapshot at the inspected point. */
-export interface ProfessionStateSnapshotContext<
+interface ProfessionStateSnapshotContext<
   TProfessionState = unknown
 > extends ProfessionResultUiContext<TProfessionState> {
   /** Simulation time in seconds of the rotation point being inspected. */
@@ -281,13 +278,13 @@ export interface ProfessionStateSnapshotContext<
 
 /** Charge-release choices for one skill inserted at a rotation index. */
 export interface ProfessionChargeReleaseContext {
-  readonly events?: readonly SimulationEvent[];
-  readonly insertionIndex?: number;
   readonly skill?: Skill;
+  /** Each request executes a fresh prefix, optionally followed by one candidate release. */
+  readonly preview?: (command?: CastCommand) => Pick<Gw2SimulationResult, 'events' | 'steps' | 'planningState'>;
 }
 
 /** Timeline weapon-line tracking: the initial line, or the transition caused by one rotation entry. */
-export interface ProfessionWeaponLineContext<TProfessionState = unknown> extends ProfessionUiContext<TProfessionState> {
+interface ProfessionWeaponLineContext<TProfessionState = unknown> extends ProfessionUiContext<TProfessionState> {
   readonly initial?: boolean;
   readonly entry?: RotationCommand;
   readonly skill?: Skill;
@@ -296,9 +293,7 @@ export interface ProfessionWeaponLineContext<TProfessionState = unknown> extends
 }
 
 /** Profession icon override for one rotation entry; the timeline owns the fallback icon. */
-export interface ProfessionTimelineIconContext<
-  TProfessionState = unknown
-> extends ProfessionUiContext<TProfessionState> {
+interface ProfessionTimelineIconContext<TProfessionState = unknown> extends ProfessionUiContext<TProfessionState> {
   readonly entry?: RotationCommand;
   readonly index?: number;
   readonly rotation?: readonly RotationCommand[];
@@ -368,8 +363,8 @@ export interface ProfessionUiContract<TProfessionState = unknown> {
   readonly resourceViews: (context: ProfessionResourceViewContext<TProfessionState>) => ProfessionResourceView[];
   readonly skillBarGroups: (context: ProfessionPaletteContext<TProfessionState>) => ProfessionSkillBarGroup[];
   readonly startControls: (context: ProfessionUiContext<TProfessionState>) => ProfessionStartControl[];
-  /** Application-owned loadout controller; the engine only carries it to the application adapter. */
-  readonly slotLoadout: object | null;
+  /** Shared loadout contract for build selections, skill bars, and palette projections. */
+  readonly slotLoadout: FixedSlotLoadout<Gw2CanonicalBuild> | null;
   readonly targetHealthThresholds: (context: ProfessionUiContext<TProfessionState>) => number[];
   readonly rotationStateSnapshot: (
     context: ProfessionStateSnapshotContext<TProfessionState>

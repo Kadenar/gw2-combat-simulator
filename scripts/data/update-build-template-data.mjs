@@ -38,12 +38,15 @@ async function main() {
   ];
 
   for (const profession of professions.sort((left, right) => left.code - right.code)) {
-    lines.push(`  ${profession.code}: {`, '    paletteEntries: Object.freeze([');
+    lines.push(
+      `  ${profession.code}: {`,
+      '    paletteEntries: Object.freeze<readonly (readonly [number, number])[]>(['
+    );
     for (const [paletteId, skillId] of profession.skills_by_palette.sort((left, right) => left[0] - right[0])) {
       lines.push(`      [${paletteId}, ${skillId}],`);
     }
 
-    lines.push('    ]) as readonly (readonly [number, number])[],', '  },');
+    lines.push('    ]),', '  },');
   }
 
   lines.push('});', '');

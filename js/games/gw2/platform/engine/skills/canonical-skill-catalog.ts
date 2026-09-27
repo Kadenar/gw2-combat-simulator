@@ -4,10 +4,12 @@
  * overrides, and resolver handlers become one validated immutable lookup.
  */
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
-import { normalizeSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { deriveAutoattackChains, indexAutoattackChains } from '#gw2/platform/engine/skills/autoattack-chains.js';
 import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/engine/effects/contracts.js';
-import { toEntries } from '#kernel/core/collections.js';
+import {
+  validateEffectReactions,
+  validateSideEffectAction
+} from '#gw2/platform/engine/skills/side-effect-validation.js';
 import type {
   AutoattackChainPosition,
   BalanceProfile,
@@ -20,13 +22,210 @@ import type {
   SkillLockout,
   StrikeTick
 } from '#gw2/platform/engine/skills/types.js';
-import type { SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 
 /** Corrects derived catalog chains with authored additions and exclusions shared by module contributions. */
 export interface AutoattackChainOptions {
   readonly additional?: readonly (readonly SkillId[])[];
   readonly excludeSkillIds?: readonly SkillId[];
 }
+
+/** Reject retired or misspelled skill fields at the catalog boundary, including profession-owned authoring. */
+const SKILL_FIELDS = new Set([
+  'adrenalineCost',
+  'affinityOnHit',
+  'ambush',
+  'ammo',
+  'ammoCastLockout',
+  'ammoRecharge',
+  'armedAtStart',
+  'arrowCost',
+  'arrowsRestored',
+  'artifactKind',
+  'attunement',
+  'aura',
+  'autoattack',
+  'backfire',
+  'beastmodeSkill',
+  'blade',
+  'blightGain',
+  'burst',
+  'canCastConcurrently',
+  'castTimeMs',
+  'categories',
+  'celestialAvatarSkill',
+  'chainRoot',
+  'chainStep',
+  'clarityEffects',
+  'clone',
+  'comboFields',
+  'comboFinishers',
+  'commitAtMs',
+  'conditionsTransferred',
+  'consume',
+  'consumes',
+  'controlWindow',
+  'cooldown',
+  'cost',
+  'countsAsToolbeltSkill',
+  'createsClone',
+  'cycloneBowSkill',
+  'damageAtMs',
+  'defaultInterruptMs',
+  'description',
+  'dhuumfireDuration',
+  'displayName',
+  'dragonSlash',
+  'dragonSlashImpactOffsetMs',
+  'dragonSlashMaximumBurningDuration',
+  'dragonSlashMaximumCoefficient',
+  'dragonSlashMinimumBurningDuration',
+  'dragonSlashMinimumCoefficient',
+  'dragonTriggerSkill',
+  'dualWieldCastTimeMs',
+  'dualWieldOpener',
+  'duration',
+  'durationMultiplier',
+  'effectVariants',
+  'effects',
+  'energyCost',
+  'evades',
+  'facet',
+  'flipActivationAtMs',
+  'flipDelay',
+  'flipDuration',
+  'flipParent',
+  'flipParentId',
+  'flipParentName',
+  'flipSkillId',
+  'forgeSkill',
+  'gunsaberSkill',
+  'heatGain',
+  'heatLoss',
+  'hotkeyAction',
+  'icon',
+  'id',
+  'impactDelay',
+  'independentCast',
+  'independentCastCanOverlap',
+  'initialStateOnly',
+  'initiativeCost',
+  'innervateLifeForceGain',
+  'inputCategory',
+  'instrument',
+  'interruptCommitMs',
+  'interruptMode',
+  'kit',
+  'kitName',
+  'kitTransition',
+  'kneelSkill',
+  'legendId',
+  'lifeForceCost',
+  'lifeForceGain',
+  'lifeForceOnHit',
+  'lifeForcePerCondition',
+  'lifeForcePerHit',
+  'lifeForcePerPulse',
+  'loadoutSkillId',
+  'lockouts',
+  'malicious',
+  'manualReleaseCooldown',
+  'maxCloneEffects',
+  'maximumConditions',
+  'maximumStacks',
+  'mechanicSlot',
+  'mesmerMechanic',
+  'minimumShroudLifeForcePercent',
+  'minionKey',
+  'movementSkill',
+  'name',
+  'nextChainId',
+  'overload',
+  'pageCost',
+  'paletteAction',
+  'paletteFlip',
+  'paletteFlipSkillId',
+  'paletteTileId',
+  'paletteTileOrder',
+  'parentCooldownIncrease',
+  'parentId',
+  'patchAuthoringExcluded',
+  'peithaImpactAnchor',
+  'peithaImpactDelayMs',
+  'petAutonomousSkill',
+  'petFamilySkill',
+  'petNames',
+  'petSkill',
+  'phantasm',
+  'phantasmSummonProgress',
+  'player',
+  'preservesStealth',
+  'primalBurst',
+  'pulseInterval',
+  'quicknessCastTimeMs',
+  'radiantForgeSkill',
+  'radiantWeapon',
+  'rechargeAnchor',
+  'rechargeBuffAudience',
+  'rechargeIgnoresAlacrity',
+  'rechargeOffsetMs',
+  'rechargeOnMinionDeath',
+  'rechargeReduction',
+  'removedEffectKeys',
+  'requiredMainHand',
+  'requiredOffHand',
+  'resource',
+  'resourceCost',
+  'resourceGain',
+  'retainsCastLockoutAfterInterrupt',
+  'selfStunMs',
+  'shadowShroudSkill',
+  'shadowShroudTransition',
+  'shadowstepSkill',
+  'shroud',
+  'shroudEntry',
+  'shroudExit',
+  'shroudProfileId',
+  'shroudSlot',
+  'sideEffects',
+  'simulatorExcluded',
+  'skillFamily',
+  'skillWeapon',
+  'slot',
+  'slotSelectable',
+  'spearStealthAttack',
+  'specialization',
+  'starvationCooldown',
+  'stealRechargeMode',
+  'stealTraitSkill',
+  'stealthAttack',
+  'stunbreak',
+  'summonAttack',
+  'summonDuration',
+  'summonInterval',
+  'summons',
+  'tags',
+  'tasks',
+  'tome',
+  'toolbeltParentId',
+  'toolbeltParentName',
+  'trackedHitDamage',
+  'triggerIntervalMs',
+  'type',
+  'unleashedAmbushSkill',
+  'unleashedPetSkill',
+  'upkeepConsumeByLegendId',
+  'upkeepCost',
+  'upkeepPulse',
+  'usableInShroud',
+  'usableWhileRecharging',
+  'variantBadge',
+  'vulnerability',
+  'weapon',
+  'weaponBarChainRootId',
+  'weaponBarChainStep',
+  'windForceApplyMs',
+  'windForceGain'
+]);
 
 interface CanonicalCatalogOptions {
   readonly generated?: readonly Skill[];
@@ -35,7 +234,6 @@ interface CanonicalCatalogOptions {
   readonly extraSkills?: readonly Skill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
   readonly autoattackChains?: AutoattackChainOptions;
-  readonly skillHandlers?: ReadonlyMap<string, unknown> | Readonly<Record<string, unknown>>;
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
   readonly weapons?: readonly string[];
@@ -61,6 +259,8 @@ const QUICKNESS_ACTION_RATE = 1.5;
 // Allowlist used to catch typos in hand-authored effect objects at catalog-build time.
 const EFFECT_FIELDS = new Set([
   'type',
+  'reactions',
+  'when',
   'coefficient',
   'coefficientModifiers',
   'hits',
@@ -70,6 +270,7 @@ const EFFECT_FIELDS = new Set([
   'condition',
   'stacks',
   'duration',
+  'maximumDuration',
   'durationPerAffinity',
   'durationReductionPerAffinity',
   'damageIncreasePerStack',
@@ -110,7 +311,6 @@ const EFFECT_FIELDS = new Set([
   'flatStrikeHealthThreshold',
   'flatStrikeThresholdMultiplier',
   'damageKind',
-  'noCrit',
   'forceCrit',
   'projectile',
   'controlKind',
@@ -195,16 +395,6 @@ export function normalizeSkillEffects(effects: readonly SkillEffect[], label: st
       return normalized;
     })
   );
-}
-
-/**
- * Normalizes handler maps so catalog lookup is always string-keyed regardless
- * of whether the source used a plain object or Map.
- */
-function normalizeSkillHandlers(
-  value: ReadonlyMap<string, unknown> | Readonly<Record<string, unknown>> | null | undefined
-): Map<string, SkillHandlerStrategy> {
-  return new Map(toEntries(value).map(([id, handler]) => [id, normalizeSkillHandler(id, handler)]));
 }
 
 /**
@@ -401,6 +591,9 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
       `Skill effect has unsupported field${unknownFields.length === 1 ? '' : 's'}: ` + unknownFields.join(', ')
     );
   }
+
+  if (normalizedEffect.when != null && typeof normalizedEffect.when !== 'function')
+    throw new TypeError('Skill effect when must be a predicate.');
 
   // Effect ownership must already use the canonical actor vocabulary at catalog assembly.
   if (normalizedEffect.actorType !== undefined && !EFFECT_ACTOR_TYPES.has(normalizedEffect.actorType)) {
@@ -644,6 +837,11 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
 
   if (normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff') {
     requireBalanceNumber(normalizedEffect.duration, 'field=duration');
+    if (normalizedEffect.maximumDuration != null) {
+      requireBalanceNumber(normalizedEffect.maximumDuration, 'field=maximumDuration');
+      if (normalizedEffect.maximumDuration < 0) throw new TypeError('Status maximumDuration must be nonnegative.');
+    }
+
     if (normalizedEffect.stacks !== undefined && !(normalizedEffect.stacks > 0)) {
       throw new TypeError('Boon and buff statuses require positive stacks.');
     }
@@ -715,7 +913,7 @@ function normalizeLockouts(lockouts: unknown, skillId: SkillId): readonly SkillL
 }
 
 /**
- * Builds the immutable catalog consumed by the shared scheduler, resolver, and
+ * Builds the immutable catalog consumed by the shared runtime and
  * app adapters.
  */
 export function createCanonicalCatalog({
@@ -725,7 +923,6 @@ export function createCanonicalCatalog({
   extraSkills = [],
   balanceProfiles = [],
   autoattackChains = {},
-  skillHandlers = {},
   traits = [],
   specializations = [],
   weapons = [],
@@ -763,6 +960,10 @@ export function createCanonicalCatalog({
       ...(overrides[id] || {}),
       ...(extraSkills.find((candidate) => candidate.id === id) || {})
     };
+    for (const field of Object.keys(mergedSource)) {
+      if (!SKILL_FIELDS.has(field)) throw new TypeError(`Skill ${id} has unsupported field: ${field}.`);
+    }
+
     const merged = skillNormalizer ? skillNormalizer(mergedSource) : mergedSource;
     const quicknessCastTimeMs = merged.quicknessCastTimeMs == null ? null : Number(merged.quicknessCastTimeMs);
     if (quicknessCastTimeMs != null && (!(quicknessCastTimeMs >= 0) || !Number.isFinite(quicknessCastTimeMs))) {
@@ -789,6 +990,32 @@ export function createCanonicalCatalog({
     }
 
     const effects = normalizeSkillEffects(merged.effects || [], `skill=${id}`);
+    // Declarative activation phases and variant selectors must be executable before they enter a live catalog.
+    if (!Array.isArray(merged.sideEffects ?? [])) throw new TypeError(`Skill ${id} side effects must be an array.`);
+    for (const sideEffect of merged.sideEffects ?? []) {
+      if (
+        !sideEffect ||
+        !['castStart', 'castCommit', 'castComplete'].includes(sideEffect.on) ||
+        typeof sideEffect.do?.type !== 'string' ||
+        Array.isArray(sideEffect.do) ||
+        (sideEffect.when != null && typeof sideEffect.when !== 'function') ||
+        (sideEffect.order != null && !Number.isFinite(sideEffect.order))
+      )
+        throw new TypeError(`Skill ${id} has an invalid side effect.`);
+    }
+
+    if (!Array.isArray(merged.effectVariants ?? []))
+      throw new TypeError(`Skill ${id} effect variants must be an array.`);
+    for (const variant of merged.effectVariants ?? []) {
+      if (
+        !variant ||
+        typeof variant.when !== 'function' ||
+        variant.profileId == null ||
+        (variant.transform != null && typeof variant.transform !== 'function')
+      )
+        throw new TypeError(`Skill ${id} has an invalid effect variant.`);
+    }
+
     // Every persistent effect needs an explicit launch cutoff, either on itself
     // or inherited from the skill, before future packets may survive an interrupt.
     if (
@@ -828,6 +1055,9 @@ export function createCanonicalCatalog({
     return {
       ...baseSkill,
       effects,
+      ...(merged.sideEffects
+        ? { sideEffects: Object.freeze([...merged.sideEffects].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))) }
+        : {}),
       tags: Object.freeze([...(baseSkill.tags || [])])
     } as Skill;
   });
@@ -903,7 +1133,6 @@ export function createCanonicalCatalog({
     balanceProfilesByName: new Map(profiles.map((profile) => [profile.name, profile])),
     autoattackChains: normalizedAutoattacks.chains,
     autoattackChainPositions: normalizedAutoattacks.positions,
-    skillHandlers: normalizeSkillHandlers(skillHandlers),
     traits: Object.freeze(traits.map((trait) => Object.freeze({ ...trait }))),
     specializations: Object.freeze(specializations.map((specialization) => Object.freeze({ ...specialization }))),
     weapons: new Set(weapons),
@@ -911,6 +1140,15 @@ export function createCanonicalCatalog({
   };
   validateCanonicalCatalog(catalog);
   return Object.freeze(catalog);
+}
+
+/** References can cross module contributions, so validate after the complete catalog exists. */
+function validateSkillDeclarations(catalog: CanonicalCatalog, skill: Skill): void {
+  for (const { do: action } of skill.sideEffects ?? []) validateSideEffectAction(catalog, skill, action);
+  for (const effect of skill.effects ?? []) validateEffectReactions(catalog, skill, effect);
+  for (const variant of skill.effectVariants ?? [])
+    if (!catalog.balanceProfilesById.has(variant.profileId))
+      throw new TypeError(`Skill ${skill.id} effect variant references missing profile ${variant.profileId}.`);
 }
 
 /**
@@ -928,6 +1166,8 @@ function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
     }
   }
 
+  for (const profile of catalog.balanceProfiles)
+    for (const effect of profile.effects ?? []) validateEffectReactions(catalog, profile, effect);
   const ids = new Set();
   for (const skill of catalog?.skills || []) {
     if (skill.id === undefined || skill.id === null || ids.has(skill.id)) {
@@ -936,10 +1176,7 @@ function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
 
     ids.add(skill.id);
     if (!String(skill.name || '')) throw new Error(`Skill ${skill.id} has no name.`);
-    if (skill.handlerId && !catalog.skillHandlers?.has(String(skill.handlerId))) {
-      throw new Error(`Skill ${skill.id} references missing handler ${skill.handlerId}.`);
-    }
-
+    validateSkillDeclarations(catalog, skill);
     for (const reference of [skill.parentId, skill.flipParentId]) {
       if (reference != null && !catalog.skillsById.has(reference)) {
         throw new Error(`Skill ${skill.id} references missing parent ${reference}.`);

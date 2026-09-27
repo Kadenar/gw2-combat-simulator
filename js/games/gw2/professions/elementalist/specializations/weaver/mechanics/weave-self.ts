@@ -1,3 +1,4 @@
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 /**
@@ -8,54 +9,44 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import type {
-  ElementalistCastContext,
-  ElementalistPrecastContext,
-  ElementalistSchedulerContext
-} from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 export const WEAVE_SELF_ACTIVATION_TASK = 'elementalist.weave-self-activation';
 
 /** Schedules Weave Self at its profiled mid-cast activation point. */
-export function startWeaveSelfCast(context: ElementalistCastContext, skill: Skill): void {
+export function startWeaveSelfCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   if (skill.id !== ID.WEAVE_SELF) return;
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const at =
-    context.start + (context.fullEnd - context.start) * balanceProfileNumber(resourcesProfile, 'firstPacketRatio');
-  if (at > context.effectiveEnd + EPSILON) return;
-  context.tasks.schedule({
-    type: WEAVE_SELF_ACTIVATION_TASK,
-    at,
-    ownerId: context.reservationId,
-    payload: { sourceId: skill.id }
-  });
+  const at = cast.start + (cast.fullEnd - cast.start) * balanceProfileNumber(resourcesProfile, 'firstPacketRatio');
+  if (at > cast.effectiveEnd + EPSILON) return;
+  context.schedule(WEAVE_SELF_ACTIVATION_TASK, at, skill.id, { id: cast.id, generation: 0 });
 }
 
 /** Starts Weave Self's recharge at the same partial-cast point as its activation. */
-export function modifyWeaveSelfRechargeStart(context: ElementalistPrecastContext, rechargeStart: number): number {
-  if (context.skill.id !== ID.WEAVE_SELF) return rechargeStart;
+export function modifyWeaveSelfRechargeStart(
+  context: ElementalistRuntime,
+  cast: Pick<RuntimeCast, 'skill' | 'start' | 'fullEnd' | 'effectiveEnd'>,
+  rechargeStart: number
+): number {
+  if (cast.skill.id !== ID.WEAVE_SELF) return rechargeStart;
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  return context.start + (rechargeStart - context.start) * balanceProfileNumber(resourcesProfile, 'firstPacketRatio');
+  return context.time + (rechargeStart - context.time) * balanceProfileNumber(resourcesProfile, 'firstPacketRatio');
 }
 
 /** Opens the Weave Self window and seeds it with the current attunement. */
-export function handleWeaveSelfActivation(
-  context: ElementalistSchedulerContext,
-  task: ScheduledTask<{ readonly sourceId: Skill['id'] }>
-): void {
+export function handleWeaveSelfActivation(context: ElementalistRuntime, data: unknown): void {
   const state = weaverState.from(context);
   const core = professionCoreState(context);
-  const at = task.at;
-  const sourceId = task.payload?.sourceId ?? ID.WEAVE_SELF;
+  const at = context.time;
+  const sourceId = data as Skill['id'];
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   const duration = balanceProfileNumber(resourcesProfile, 'durationMultiplier');
   // Availability and emitted temporary buffs expire on the same combat tick.
@@ -63,7 +54,8 @@ export function handleWeaveSelfActivation(
   state.weaveSelfVisited = [core.primaryAttunement];
   state.perfectWeaveUntil = 0;
   if (core.primaryAttunement !== 'Fire' && core.primaryAttunement !== 'Air') return;
-  emitSkillBuff(context, elementalistEventSkill(context, 'Weave Self', sourceId), {
+  emitElementalistBuff(context, {
+    skill: elementalistEventSkill(context, 'Weave Self', sourceId),
     at,
     source: 'Weave Self',
     sourceId,
@@ -77,7 +69,7 @@ export function handleWeaveSelfActivation(
 
 /** Advances Weave Self for one attunement swap and opens Perfect Weave after all four elements. */
 export function applyWeaveSelfAttunement(
-  context: ElementalistSchedulerContext,
+  context: ElementalistRuntime,
   at: number,
   target: ElementalistAttunement,
   source: string,
@@ -93,7 +85,8 @@ export function applyWeaveSelfAttunement(
   state.weaveSelfVisited = [...visited];
   const remaining = Math.max(0, state.weaveSelfUntil - at);
   if (target === 'Fire' || target === 'Air') {
-    emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
+    emitElementalistBuff(context, {
+      skill: elementalistEventSkill(context, source, sourceId),
       at,
       source,
       sourceId,
@@ -111,7 +104,8 @@ export function applyWeaveSelfAttunement(
   const perfectWeaveDuration = balanceProfileNumber(resourcesProfile, 'recharge');
   state.perfectWeaveUntil = gw2EffectExpiresAt(at, perfectWeaveDuration);
   for (const kind of ['perfect weave', 'weave self fire', 'weave self air']) {
-    emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
+    emitElementalistBuff(context, {
+      skill: elementalistEventSkill(context, source, sourceId),
       at,
       source,
       sourceId,

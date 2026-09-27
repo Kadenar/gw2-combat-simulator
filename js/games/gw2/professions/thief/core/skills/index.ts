@@ -1,4 +1,5 @@
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { createWeaponSwapSkill, createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
+
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import { THIEF_MISC_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/misc-skills.js';
@@ -13,6 +14,7 @@ import { THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS } from '#gw2/professions/thief/c
 import { THIEF_WEAPONS_SPEAR_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/weapons/spear.js';
 import { THIEF_WEAPONS_STAFF_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/weapons/staff.js';
 import { THIEF_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/weapons/sword.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 
 export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   ...THIEF_MISC_SKILL_MECHANICS,
@@ -30,36 +32,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
 });
 
 export const THIEF_CORE_EXTRA_SKILLS: readonly ThiefSkill[] = Object.freeze([
-  Object.freeze({
-    id: ID.SWAP_WEAPONS,
-    // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
-    inputCategory: 'weapon-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'thief.weapon-swap',
-    name: 'Swap Weapons',
-    description: 'Swap equipped weapon sets.',
-    icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
-    type: 'Action',
-    slot: 'Action',
-    castTimeMs: 0,
-    cooldown: 10,
-    rechargeAnchor: 'castStart',
-    effects: []
-  }),
-  Object.freeze({
-    id: ID.DODGE,
-    // Custom: Spends endurance and applies Thief dodge traits; see `core/skills/dodge.ts`.
-    handlerId: 'thief.dodge',
-    name: 'Dodge',
-    description: 'Perform the selected thief dodge.',
-    icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
-    type: 'Action',
-    slot: 'Action',
-    castTimeMs: 800,
-    // Dodge commits at 760 ms while keeping the full movement lockout.
-    interruptCommitMs: 760,
-    retainsCastLockoutAfterInterrupt: true,
-
-    cooldown: 0,
-    effects: []
-  })
+  Object.freeze(createWeaponSwapSkill()),
+  Object.freeze(
+    createDodgeSkill({
+      description: 'Perform the selected thief dodge.',
+      cost: { resource: 'endurance' as const, profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } },
+      interruptCommitMs: 760,
+      retainsCastLockoutAfterInterrupt: true
+    })
+  )
 ]);

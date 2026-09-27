@@ -9,11 +9,11 @@ import type { Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 function mistburnGrant(state: Gw2RelicState, event: SimulationEvent): SimulationEvent | null {
   if (
     event.type !== 'buff' ||
-    String(event.kind || '').toLowerCase() !== 'might' ||
+    (event.kind || '').toLowerCase() !== 'might' ||
     !isGw2PlayerActorEvent(event) ||
     !event.resolvedAudience?.includesSelf ||
     !(Number(event.duration) > 0) ||
-    !(Number(event.stacks ?? 1) > 0) ||
+    !((event.stacks ?? 1) > 0) ||
     !isInternalCooldownReady(event.at, state.readyAt ?? 0)
   )
     return null;
@@ -38,10 +38,6 @@ function mistburnGrant(state: Gw2RelicState, event: SimulationEvent): Simulation
 
 export const mistburn = defineRelic({
   createState: () => ({ readyAt: 0 }),
-  materializeBoon(ctx, state, event) {
-    const grant = mistburnGrant(state, event);
-    if (grant) ctx.emitDerived(event, { ...grant, schedulerBoonPrediction: true });
-  },
   boon(ctx, state, event) {
     const grant = mistburnGrant(state, event);
     if (grant) ctx.queue.enqueue(grant);

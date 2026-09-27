@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
+import { createProcRegistry, tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 
 // Exercise ordinary proc claims independently of profession effects and critical progress.
 test('proc cooldown claims preserve canonical boundaries and isolate keys and owners', () => {
@@ -56,4 +56,22 @@ test('proc cooldowns preserve infinite sentinels and zero-duration behavior', ()
   assert.equal(tryConsumeProcCooldown(state, 'zero', 1, 0), true);
   assert.equal(tryConsumeProcCooldown(state, 'zero', 1, 0), false);
   assert.equal(tryConsumeProcCooldown(state, 'zero', 1.000001, 0), true);
+});
+
+// Resolver callers supply event time explicitly; scoped claims retain independent recipient deadlines.
+test('resolver proc registries read live profiles and isolate scopes and resets', () => {
+  const profile = { id: 'trait', internalCooldown: 2 };
+  const context = { helpers: { balanceProfilesById: new Map([['trait', profile]]) } };
+  const procs = createProcRegistry(() => context);
+  assert.throws(() => procs.claim('trait'), /event time/);
+  assert.equal(procs.claim('trait', 'ally:1', 1), true);
+  assert.equal(procs.claim('trait', 'ally:2', 1), true);
+  assert.equal(procs.claim('trait', 'ally:1', 3), false);
+  profile.internalCooldown = 4;
+  assert.equal(procs.claim('trait', 'ally:1', 3.000001), true);
+  assert.equal(procs.deadline('ally:1'), 7.000001);
+  procs.reset('ally:1');
+  assert.equal(procs.deadline('ally:1'), 0);
+  assert.equal(procs.deadline('ally:2'), 3);
+  assert.equal(createProcRegistry(() => context).deadline('ally:2'), 0);
 });

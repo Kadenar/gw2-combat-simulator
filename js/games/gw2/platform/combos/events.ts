@@ -78,7 +78,7 @@ export function normalizeComboFieldSelectionAnchor(value: unknown): ComboFieldSe
   throw new TypeError(`Invalid combo fieldSelectionAnchor: ${String(value)}.`);
 }
 
-export interface SelectComboFieldOptions {
+interface SelectComboFieldOptions {
   readonly preferredFieldTypes?: readonly ComboFieldType[];
   readonly ambiguousFieldSelection?: 'none' | 'oldest';
 }
@@ -89,18 +89,18 @@ export function selectComboFieldForFinisher(
   options: SelectComboFieldOptions = {}
 ): { readonly field?: ComboFieldEvent; readonly ambiguous: boolean } {
   const ordered = [...fields].sort(
-    (left, right) => left.at - right.at || Number(left.eventOrder || 0) - Number(right.eventOrder || 0)
+    (left, right) => left.at - right.at || (left.eventOrder || 0) - (right.eventOrder || 0)
   );
   // comboBindingPriority > 0 marks an authoritative field (e.g., the specific
   // field placed by a skill that also carries a finisher). When present, only
   // those high-priority fields are candidates — ambient fields are ignored.
   const highestBindingPriority = ordered.reduce(
-    (highest, field) => Math.max(highest, Number(field.comboBindingPriority || 0)),
+    (highest, field) => Math.max(highest, field.comboBindingPriority || 0),
     0
   );
   const candidates =
     highestBindingPriority > 0
-      ? ordered.filter((field) => Number(field.comboBindingPriority || 0) === highestBindingPriority)
+      ? ordered.filter((field) => (field.comboBindingPriority || 0) === highestBindingPriority)
       : ordered;
   const preferredTypes = (options.preferredFieldTypes || []).map(normalizeComboFieldType);
   const preferred = preferredTypes
@@ -143,7 +143,7 @@ function normalizeComboFieldBinding(value: unknown): ComboFieldBinding {
 /** Normalizes and validates GW2-owned semantic events before engine freezing. */
 export function prepareGw2ComboEvent(event: SimulationEventBase): SimulationEventBase {
   if (event.type === 'combo_field') {
-    const at = Number(event.at);
+    const at = event.at;
     const expiresAt = Number(event.expiresAt);
     const comboBindingPriority = event.comboBindingPriority == null ? null : Number(event.comboBindingPriority);
     if (!Number.isFinite(expiresAt) || !(canonicalTime(expiresAt) > canonicalTime(at))) {
@@ -172,7 +172,7 @@ export function prepareGw2ComboEvent(event: SimulationEventBase): SimulationEven
   }
 
   if (event.type === 'combo_finisher') {
-    const at = Number(event.at);
+    const at = event.at;
     const fieldSelectionAt = event.fieldSelectionAt == null ? null : Number(event.fieldSelectionAt);
     if (fieldSelectionAt != null && (!Number.isFinite(fieldSelectionAt) || fieldSelectionAt > at)) {
       throw new TypeError('Combo finisher fieldSelectionAt must be finite and must not follow at.');
@@ -245,11 +245,6 @@ export function prepareGw2ComboEvent(event: SimulationEventBase): SimulationEven
   }
 
   return event;
-}
-
-/** Reports whether an event is a scheduler-only combo prediction. */
-export function isSchedulerComboPrediction(event: Readonly<Record<string, unknown>>): boolean {
-  return event.schedulerPrediction === 'combo-result';
 }
 
 /** Creates isolated mutable state for combo resolution. */
@@ -328,7 +323,7 @@ function boundField(
   }
 
   const binding = event.fieldBinding;
-  if (binding.kind !== 'field-type') return null;
+  // The explicit field-id branch returned above; remaining bindings select by field type.
   const candidates = [...state.fields.values()]
     .filter(
       (field) =>
@@ -346,7 +341,7 @@ function boundField(
   return null;
 }
 
-export interface ResolveComboAttemptOptions {
+interface ResolveComboAttemptOptions {
   readonly roll: (probability: number, stream: string) => boolean;
   readonly warn: (message: string) => void;
 }
@@ -363,8 +358,17 @@ export function resolveComboAttempt(
   state.handledAttemptIds.add(event.attemptId);
   const field = boundField(state, event, warn);
   if (!field) return [];
-  // Seed each attempt identically in both phases and modes so predicted combo effects match resolution.
-  if (!roll(event.chance, `gw2.combo:${event.attemptId}`)) return [];
+  // Attempts retain queue IDs for deduplication; RNG follows the caster and activation so bookkeeping cannot reroll them.
+  // Multiple projectiles from the same activation consume successive draws, including simultaneous packets.
+  const stream = JSON.stringify([
+    event.actorType,
+    event.summonOwner,
+    event.sourceId,
+    event.skillId,
+    event.activationId,
+    event.finisherType
+  ]);
+  if (!roll(event.chance, `gw2.combo:${stream}`)) return [];
 
   const definition = comboDefinition(field.fieldType, event.finisherType);
   return Object.freeze(
@@ -391,7 +395,6 @@ export function resolveComboAttempt(
       fieldSourceId: field.sourceId,
       fieldSource: field.source,
       fieldOwnerId: field.ownerId,
-      fieldOwnerActorType: field.ownerActorType,
       bindingKind: event.fieldBinding.kind,
       applicationCount: event.applications,
       outcome: definition.outcome,

@@ -1,3 +1,4 @@
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -7,11 +8,11 @@ import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
 import { isDpsReportData, parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { dpsReportId, dpsReportJsonUrl, fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import {
+  LOG_OPENER_WARNING,
   MUSHROOM_KINGS_BLESSING_NAME,
   MUSHROOM_KINGS_BLESSING_SKILL_ID
 } from '#gw2/integrations/logs/shared/rotation/model.js';
@@ -80,13 +81,13 @@ function catalogFixture() {
       skill(5812, 'Bomb Kit', {
         type: 'utility',
         castTimeMs: 0,
-        handlerId: 'engineer.kit-equip',
+        kitTransition: 'equip',
         kitName: 'Bomb Kit'
       }),
       skill(6111, 'Stow Bomb Kit', {
         type: 'utility',
         castTimeMs: 0,
-        handlerId: 'engineer.kit-stow',
+        kitTransition: 'stow',
         kit: 'Bomb Kit'
       }),
       skill(6161, 'Throw Mine', { type: 'utility', castTimeMs: 400 }),
@@ -162,6 +163,35 @@ test('fetches and validates the raw Elite Insights response', async () => {
 
   assert.match(requested, /^https:\/\/dps\.report\/getJson\?/);
   assert.equal(report.players[0].profession, 'Amalgam');
+});
+
+// Preserve a terminal stow's observed duration without requiring a synthetic skill or a later cast.
+test('dps.report weapon stows become waits for Warrior and other professions', () => {
+  for (const profession of ['Warrior', 'Chronomancer']) {
+    const report = parseDpsReport({
+      players: [
+        {
+          name: 'Fixture',
+          profession,
+          rotation: [
+            { id: 1000, skills: [{ castTime: 0, duration: 400, timeGained: 0 }] },
+            { id: 23285, skills: [{ castTime: 400, duration: 80, timeGained: 0 }] }
+          ]
+        }
+      ],
+      phases: [{ start: 0, end: 1000, name: 'Full Fight', phaseType: 'Encounter' }],
+      skillMap: { s1000: { name: 'Fixture Skill' }, s23285: { name: 'Weapon Stow' } }
+    });
+    const result = reconstructDpsReportRotation(report, {
+      skills: [skill(1000, 'Fixture Skill', { type: 'weapon', castTimeMs: 400 })]
+    });
+    assert.deepEqual(result.rotation, [
+      { type: 'combat-start' },
+      { type: 'cast', skillId: 1000 },
+      { type: 'wait', durationMs: 80 }
+    ]);
+    assert.deepEqual(result.warnings, [LOG_OPENER_WARNING]);
+  }
 });
 
 test('snaps reconstructed dps.report waits to the nearest 40 ms action tick', () => {
@@ -282,6 +312,7 @@ test('shortened report inputs preserve elapsed time and obey scheduler cancellat
           effects: [
             {
               type: 'strike',
+              weaponStrength: 1000,
               ticks: [
                 { atMs: 200, coefficient: 1 },
                 { atMs: 480, coefficient: 1 }
@@ -310,8 +341,8 @@ test('shortened report inputs preserve elapsed time and obey scheduler cancellat
       skillMap: { s1000: { name: 'Autoattack', autoAttack: true }, s1001: { name: 'Follow-up' } }
     });
     const imported = reconstructDpsReportRotation(report, catalog);
-    const profession = defineProfession({ id: 'import-contract', name: 'Import Contract', catalog });
-    const replay = createScheduler({ profession }).run(imported.rotation);
+    const profession = defineTestProfession({ id: 'import-contract', name: 'Import Contract', catalog });
+    const replay = simulateGw2({ profession, rotation: imported.rotation });
     const expectedDuration = duration === 10 ? 0 : duration;
     const autoattack = replay.steps.find((step) => step.skillId === 1_000);
     const followUp = replay.steps.find((step) => step.skillId === 1_001);
@@ -430,10 +461,11 @@ test('restores an EI-omitted Sun Edge only from its complete sword-chain gap', (
   };
 
   const result = reconstructDpsReportRotation(parseDpsReport(fixture), engineerCatalog);
-  const replay = createScheduler({
+  const replay = simulateGw2({
     profession: engineerProfession,
-    config: { specialization: 'Mechanist' }
-  }).run(result.rotation);
+    config: { specialization: 'Mechanist' },
+    rotation: result.rotation
+  });
 
   // EI can omit the root cast while retaining its exact occupied interval and later chain steps.
   assert.equal(result.actions.find((action) => action.name === 'Sun Edge')?.metadataAccurate, false);

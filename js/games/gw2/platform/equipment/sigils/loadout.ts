@@ -47,7 +47,7 @@ export function normalizeWeaponSigils(
     for (const slotIndex of [0, 1]) {
       normalized[setIndex][slotIndex] = [
         value?.[setIndex]?.[slotIndex],
-        fallback?.[setIndex]?.[slotIndex],
+        fallback[setIndex]?.[slotIndex],
         ...DEFAULT_WEAPON_SIGILS[setIndex],
         ...SIGIL_NAMES
       ].find(
@@ -66,7 +66,7 @@ export function normalizeWeaponSigils(
 export function weaponSigilsForSet(build: Gw2Build, setNumber = 1): string[] {
   const setIndex = setNumber - 1;
   return [0, 1].map((slotIndex) => {
-    const selected = build?.weaponSigils?.[setIndex]?.[slotIndex];
+    const selected = build.weaponSigils?.[setIndex]?.[slotIndex];
     return typeof selected === 'string' && SIGIL_NAMES.includes(selected)
       ? selected
       : DEFAULT_WEAPON_SIGILS[setIndex]?.[slotIndex] || 'Force';
@@ -130,14 +130,14 @@ export function aggregateSigilSet(sigilNames: readonly string[] | null | undefin
   for (const name of new Set(sigilNames || [])) {
     const sigil = SIGIL_DATA[name];
     if (!sigil) continue;
-    effects.criticalChanceBonus += Number(sigil.criticalChance || 0);
-    effects.strikeAdd += Number(sigil.strikeDamageA || 0) / 100;
+    effects.criticalChanceBonus += sigil.criticalChance || 0;
+    effects.strikeAdd += (sigil.strikeDamageA || 0) / 100;
     // Keep multiplicative bonuses outside the additive bucket used by profession modifiers.
-    effects.strikeMultiplier *= 1 + Number(sigil.strikeDamageM || 0) / 100;
-    effects.nightStrikeMultiplier *= 1 + Number(sigil.nightStrikeDamageM || 0) / 100;
-    effects.conditionAdd += Number(sigil.conditionDamageA || 0) / 100;
-    effects.conditionDurationBonus += Number(sigil.conditionDuration || 0);
-    effects.boonDurationBonus += Number(sigil.boonDuration || 0);
+    effects.strikeMultiplier *= 1 + (sigil.strikeDamageM || 0) / 100;
+    effects.nightStrikeMultiplier *= 1 + (sigil.nightStrikeDamageM || 0) / 100;
+    effects.conditionAdd += (sigil.conditionDamageA || 0) / 100;
+    effects.conditionDurationBonus += sigil.conditionDuration || 0;
+    effects.boonDurationBonus += sigil.boonDuration || 0;
     for (const [field, condition] of Object.entries(durationFields)) {
       const bonus = Number(sigil[field] || 0);
       if (bonus) {

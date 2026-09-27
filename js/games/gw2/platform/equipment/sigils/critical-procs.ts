@@ -7,7 +7,7 @@ import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 
 const PROCS = SIGIL_PROCS as Readonly<Record<string, Gw2SigilProc>>;
 
-export interface CriticalSigilIntent {
+interface CriticalSigilIntent {
   readonly name: string;
   readonly readyAt: number;
 }
@@ -36,7 +36,7 @@ export function decideCriticalSigils(
     event.cancelled === true ||
     missesTarget(event) ||
     !(Number(event.coefficient) > 0) ||
-    event.noCrit === true ||
+    event.canCrit === false ||
     Number.isFinite(event.flatDamage) ||
     Number.isFinite(event.flatStrikeBase) ||
     Number.isFinite(event.flatStrikePowerCoeff) ||

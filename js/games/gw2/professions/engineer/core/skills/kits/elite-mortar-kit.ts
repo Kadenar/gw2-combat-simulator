@@ -98,9 +98,9 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     mechanicSlot: 5
   },
   [ID.ELITE_MORTAR_KIT]: {
-    // Custom: Equips the kit and updates bundle/weapon state; see `core/mechanics/kits.ts`.
+    // Custom: Equips the kit and updates bundle/weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'engineer.kit-equip',
+    kitTransition: 'equip',
     castTimeMs: 0,
     cooldown: 0,
     effects: [],
@@ -155,9 +155,9 @@ export const ENGINEER_ELITE_MORTAR_KIT_EXTRA_SKILLS: readonly Skill[] = Object.f
     icon: 'https://render.guildwars2.com/file/' + '7342BF326738A4C5132F42CE0915D3A2184E52FB/60975.png',
     type: 'Elite',
     slot: 'Elite',
-    // Custom: Stows the active kit and restores weapon state; see `core/mechanics/kits.ts`.
+    // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'engineer.kit-stow',
+    kitTransition: 'stow',
     kit: 'Elite Mortar Kit',
     paletteFlip: false,
     slotSelectable: false,

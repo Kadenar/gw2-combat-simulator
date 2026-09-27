@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -9,9 +10,9 @@ import {
   rangerAttackOfOpportunityModifier,
   reactToRangerGreatswordDamage
 } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
-const simulate = createProfessionSimulator(rangerProfession, {
+const simulate = createObservedProfessionSimulator(rangerProfession, {
   primaryWeapon: 'Greatsword',
   selectedPet: 'Tiger',
   selectedTraitIds: [],
@@ -86,7 +87,11 @@ test('Hilt Bash dazes normal targets, stuns defiant targets, and triggers player
       });
     const baseline = run(false);
     const enhanced = run(true);
-    assert.equal(enhanced.events.find((event) => event.type === 'control').controlKind, defiant ? 'Stun' : 'Daze');
+    // The two conditional declarations are mutually exclusive and keep one control reaction.
+    assert.deepEqual(
+      enhanced.events.filter((event) => event.type === 'control').map((event) => event.controlKind),
+      [defiant ? 'Stun' : 'Daze']
+    );
     const poison = (result) =>
       result.resolvedEvents.find((event) => event.type === 'condition' && event.sourceId === TRAIT.DEBILITATING_BLOWS);
     assert.equal(poison(enhanced).actorType, 'effect');
@@ -102,7 +107,7 @@ test('Hilt Bash dazes normal targets, stuns defiant targets, and triggers player
 test('Hilt Bash refreshes either Maul ID only after completing its cast', () => {
   for (const maulId of [ID.MAUL_SOULBEAST, ID.MAUL_BASE]) {
     const normal = simulate('Core', [maulId, maulId]);
-    assert.equal(normal.steps[1].start, Math.ceil((normal.steps[0].end + 4000) / 40) * 40);
+    assert.equal(normal.steps[1].start, Math.ceil((normal.steps[0].end + 3200) / 40) * 40);
     const refreshed = simulate('Core', [maulId, ID.HILT_BASH, maulId]);
     assert.equal(refreshed.steps[2].start, refreshed.steps[1].end);
     const interrupted = simulate('Core', [
@@ -121,7 +126,7 @@ test('Hilt Bash refreshes either Maul ID only after completing its cast', () => 
 test('Enduring Swing grants 15 capped endurance on completion and none when interrupted', () => {
   for (const interrupted of [false, true]) {
     const result = simulate('Core', [
-      ID.DODGE,
+      SHARED_SKILL_IDS.DODGE,
       ID.SLASH_ID_12474,
       ID.SLICE,
       { type: 'cast', skillId: ID.ENDURING_SWING, ...(interrupted ? { interruptAfterMs: 50 } : {}) }
@@ -137,7 +142,11 @@ test('Enduring Swing grants 15 capped endurance on completion and none when inte
 test('Maul grants the active pet 50% on its next strike without changing later strikes', () => {
   const petStrikes = (result) =>
     result.resolvedEvents.filter(
-      (event) => event.type === 'damage' && event.source === 'ranger-pet' && event.at >= result.steps.at(-2).end / 1000
+      (event) =>
+        event.type === 'damage' &&
+        event.source === 'ranger-pet' &&
+        event.at >=
+          result.steps.find((step) => step.skillId === ID.MAUL_BASE || step.skillId === ID.MAUL_SOULBEAST).end / 1000
     );
   // The player variant grants no pet bonus; equal timing and vulnerability isolate the pet variant's charge.
   for (const [specialization, prefix] of [

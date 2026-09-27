@@ -1,3 +1,4 @@
+import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
@@ -8,7 +9,6 @@ import {
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -16,14 +16,14 @@ import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.j
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { eventSkill } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import type { RangerCastContext, RangerResolverContext, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerResolverContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 // Snapshot the Ranger's configured and still-active boons at command completion,
 // then mirror their current duration and stacks to the active companion only.
-export function applyRangerCommandTraits(context: RangerCastContext, skill: RangerSkill): void {
+export function applyRangerCommandTraits(context: RangerRuntime, skill: RangerSkill): void {
   if (!professionCoreState(context).petActive || !hasTrait(context, TRAIT.RESOUNDING_TIMBRE)) return;
 
   const active = new Map<string, { duration: number; stacks: number }>();
@@ -33,14 +33,14 @@ export function applyRangerCommandTraits(context: RangerCastContext, skill: Rang
     if (stacks > 0) active.set(kind, { duration: 3600, stacks });
   }
 
-  for (const event of context.events) {
-    const kind = String(event.kind || '').toLowerCase();
-    const remaining = gw2EffectExpiresAt(Number(event.at), Number(event.duration || 0)) - context.effectiveEnd;
+  for (const event of context.history) {
+    const kind = (event.kind || '').toLowerCase();
+    const remaining = gw2EffectExpiresAt(event.at, event.duration || 0) - context.time;
     if (
       event.type !== 'buff' ||
       !event.resolvedAudience?.includesSelf ||
       !isStandardBoon(kind) ||
-      Number(event.at) > context.effectiveEnd + EPSILON ||
+      event.at > context.time + EPSILON ||
       !(remaining > 0)
     ) {
       continue;
@@ -48,34 +48,39 @@ export function applyRangerCommandTraits(context: RangerCastContext, skill: Rang
 
     const previous = active.get(kind);
     active.set(kind, {
-      duration: Math.max(remaining, Number(previous?.duration || 0)),
+      duration: Math.max(remaining, previous?.duration || 0),
       stacks: Math.min(
         kind === 'might' || kind === 'stability' ? 25 : 1,
-        Number(previous?.stacks || 0) + Math.max(1, Number(event.stacks || 1))
+        (previous?.stacks || 0) + Math.max(1, event.stacks || 1)
       )
     });
   }
 
   for (const [kind, application] of active) {
-    emitSkillBuff(context, {
-      at: context.effectiveEnd,
-      source: 'Trait',
-      sourceId: TRAIT.RESOUNDING_TIMBRE,
-      actorType: 'effect',
-      skillId: TRAIT.RESOUNDING_TIMBRE,
-      skillName: 'Resounding Timbre',
-      name: `Resounding Timbre - ${kind}`,
-      kind,
-      duration: application.duration,
-      stacks: application.stacks,
-      audience: {
-        recipients: 'summons' as const,
-        affectsSelf: false,
-        maximumRecipients: 1,
-        eligibleCompanionIds: [rangerPetCompanionId(context)]
-      },
-      triggeredBy: skill.name
-    });
+    context.emitProcedural(
+      rangerEvent(
+        {
+          at: context.time,
+          source: 'Trait',
+          sourceId: TRAIT.RESOUNDING_TIMBRE,
+          actorType: 'effect',
+          skillId: TRAIT.RESOUNDING_TIMBRE,
+          skillName: 'Resounding Timbre',
+          name: `Resounding Timbre - ${kind}`,
+          kind,
+          duration: application.duration,
+          stacks: application.stacks,
+          audience: {
+            recipients: 'summons' as const,
+            affectsSelf: false,
+            maximumRecipients: 1,
+            eligibleCompanionIds: [rangerPetCompanionId(context)]
+          },
+          triggeredBy: skill.name
+        },
+        'buff'
+      )
+    );
   }
 }
 
@@ -90,7 +95,7 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2
     !skill?.petSkill ||
     skill.petFamilySkill ||
     !hasTrait(context, TRAIT.GO_FOR_THE_THROAT) ||
-    !isInternalCooldownReady(event.at, state.goForTheThroatPetReadyAt)
+    !isInternalCooldownReady(event.at, context.procs.deadline('ranger.core.goForTheThroatPet'))
   ) {
     return;
   }
@@ -99,7 +104,7 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2
   const lesserSicEm = requireEffect(profile, 'buff', 'lesser-sic-em-pet');
   // The pet cooldown gates only the pet buff, so a removed buff leaves it ready.
   if (!lesserSicEm) return;
-  state.goForTheThroatPetReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
+  context.procs.readyAt['ranger.core.goForTheThroatPet'] = event.at + balanceProfileNumber(profile, 'internalCooldown');
   const duration = effectNumber(profile, lesserSicEm, 'duration');
   context.recordProc(
     'trait',

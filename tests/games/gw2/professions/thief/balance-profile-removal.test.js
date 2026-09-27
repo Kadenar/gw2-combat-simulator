@@ -7,9 +7,10 @@ import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/c
 import { SPECTER_BALANCE_PROFILE_IDS as SPECTER } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as ANTIQUARY } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as DEADEYE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { thiefInitiativeRegenerationRate } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { applyMug } from '#gw2/professions/thief/core/traits/deadly-arts.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
 
@@ -20,7 +21,7 @@ function run(balanceProfiles, specialization, rotation, config = {}) {
     label: 'Thief removal',
     professions: { thief: { balanceProfiles } }
   });
-  const simulate = createProfessionSimulator(profession, {
+  const simulate = createObservedProfessionSimulator(profession, {
     patchId: 'thief-removal',
     selectedTraitIds: [],
     selectedSkills: [],
@@ -123,7 +124,7 @@ for (const [type, name] of [
       false
     );
     assert.equal(
-      Object.keys(result.schedulerState.profession.specialization.state.darkSentryReadyAtByAlly).length > 0,
+      Object.keys(observedRuntime(result).procs.readyAt).some((key) => key.startsWith('thief.specter.darkSentry:')),
       type !== 'buff'
     );
   });
@@ -210,8 +211,8 @@ test('removed critical Fury leaves proc progress and cooldown unclaimed', () => 
     selectedTraitIds: [TRAIT.UNRELENTING_STRIKES]
   });
   assert.equal(packet(result, 'buff', TRAIT.UNRELENTING_STRIKES).length, 0);
-  assert.equal(result.combatState.profession.traitProcReadyAt[TRAIT.UNRELENTING_STRIKES], undefined);
-  assert.equal(result.combatState.profession.traitProcProgress[TRAIT.UNRELENTING_STRIKES], undefined);
+  assert.equal(observedRuntime(result).procs.readyAt[TRAIT.UNRELENTING_STRIKES], undefined);
+  assert.equal(observedRuntime(result).profession.core.traitProcProgress[TRAIT.UNRELENTING_STRIKES], undefined);
 });
 
 test('Malicious Sneak Attack removal preserves Bleeding and malice spending', () => {
@@ -329,13 +330,20 @@ test('required Thief tuning fails contextually and accepts a real zero', () => {
       () => thiefInitiativeRegenerationRate({ kneeling: false }, context),
       /profession=thief patch=invalid-thief profile=thief.core.resources field=resourceGain/
     );
-    catalog.balanceProfilesById.set(CORE.mug, {
-      ...thiefCatalog.balanceProfilesById.get(CORE.mug),
-      effects: [{ type: 'strike', name: 'Mug', coefficient: value, hits: 1 }],
-      balanceDataContext
-    });
+    // The live steal reads the selected Mug packet when the steal completes.
     assert.throws(
-      () => applyMug(context, 0),
+      () =>
+        runThief(
+          ['Steal'],
+          { selectedTraitIds: [TRAIT.MUG] },
+          {
+            catalog: (live) =>
+              withProfile(live, CORE.mug, {
+                effects: [{ type: 'strike', name: 'Mug', coefficient: value, hits: 1 }],
+                balanceDataContext
+              })
+          }
+        ),
       /profession=thief patch=invalid-thief balance-profile=.*effect=strike\/Mug/
     );
   }
@@ -350,4 +358,23 @@ test('required Thief tuning fails contextually and accepts a real zero', () => {
     () => thiefInitiativeRegenerationRate({ kneeling: false }, context),
     /missing required profile\/catalog/
   );
+});
+
+// Runtime initialization replaces construction defaults with the selected patch's resource policy.
+test('patched Preparedness and Maleficent Seven capacities initialize before resource use', () => {
+  for (const selectedTraitIds of [[], [TRAIT.PREPAREDNESS, TRAIT.MALEFICENT_SEVEN]]) {
+    const result = run(
+      {
+        [CORE.resources]: { fields: { maximumStacks: 18, minimumStacks: 21 } },
+        [DEADEYE.resources]: { fields: { maximumStacks: 9, minimumStacks: 11 } }
+      },
+      'Deadeye',
+      [],
+      { selectedTraitIds, initialInitiative: 20 }
+    );
+    const runtime = observedRuntime(result);
+    assert.equal(runtime.profession.core.initiative.maximum, selectedTraitIds.length ? 21 : 18);
+    assert.equal(runtime.profession.core.initiative.value, selectedTraitIds.length ? 21 : 18);
+    assert.equal(runtime.profession.specialization.state.maximumMalice, selectedTraitIds.length ? 11 : 9);
+  }
 });

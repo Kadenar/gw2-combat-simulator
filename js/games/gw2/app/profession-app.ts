@@ -1,4 +1,4 @@
-import { bindPageControls } from '#gw2/app/build/page-controls.js';
+import { bindPageControls } from '#gw2/app/page-controls.js';
 import { bindWikiTooltips } from '#gw2/app/shared/tooltip-overlay.js';
 import { normalizeSelectedSkills } from '#gw2/app/build/state/skill-selection.js';
 import { normalizeInfusions } from '#gw2/platform/builds/codec.js';
@@ -13,16 +13,16 @@ import { addRotation } from '#gw2/app/rotation/editing/actions.js';
 import { cloneRotation, recordRotationHistory, resetRotationHistory } from '#gw2/app/rotation/editing/history.js';
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/modifier-contribution-runner.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/random-distribution-runner.js';
-import { GearOptimizerRunner } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-runner.js';
-import { renderGearOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-panel.js';
-import { renderGearOptimizerView } from '#gw2/app/simulation/optimizer-view.js';
-import { renderRelicComparison } from '#gw2/app/simulation/relic-comparison/relic-comparison-panel.js';
+import { GearOptimizerRunner } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-runner.js';
+import { renderGearOptimizer } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-panel.js';
+import { renderGearOptimizerView } from '#gw2/app/optimizer/view.js';
+import { renderRelicComparison } from '#gw2/app/optimizer/relic-comparison/relic-comparison-panel.js';
 import { renderModifierContributions } from '#gw2/app/results/view.js';
-import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison/relic-comparison-runner.js';
+import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/relic-comparison-runner.js';
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
-import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/proc-overlay-preferences.js';
+import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/preferences.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/baseline-simulation-runner.js';
-import { loadSimulationSettings, type SimulationSettings } from '#gw2/app/simulation/settings.js';
+import { loadSimulationSettings, type SimulationSettings } from '#gw2/app/build/panels/simulation-settings.js';
 import { renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/builder.js';
 import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
 import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
@@ -34,19 +34,12 @@ import type {
   ProfessionAppResult,
   ProfessionAppState,
   ProfessionChangeOptions,
-  ProfessionFeatureRunner,
   ProfessionRotationDragState,
   RotationActionOptions
 } from '#gw2/app/types.js';
 import type { BaselineSimulationOutput } from '#gw2/app/simulation/baseline/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
-
-const NOOP_FEATURE: ProfessionFeatureRunner = Object.freeze({
-  isRunning: false,
-  schedule() {},
-  run() {}
-});
 
 export class ProfessionApp implements ProfessionAppState {
   readonly workspace: BuildWorkspace;
@@ -85,10 +78,10 @@ export class ProfessionApp implements ProfessionAppState {
   templateContainer: HTMLElement | null;
   currentTemplate: BuildTemplateSelection | null;
   templateUndoBuild: Gw2CanonicalBuild | null;
-  readonly modifierContributionRunner: ProfessionFeatureRunner;
-  readonly randomDistributionRunner: ProfessionFeatureRunner;
+  readonly modifierContributionRunner: ModifierContributionRunner;
+  readonly randomDistributionRunner: RandomDistributionRunner;
   readonly gearOptimizerRunner: GearOptimizerRunner;
-  readonly relicComparisonRunner: ProfessionFeatureRunner;
+  readonly relicComparisonRunner: RelicComparisonRunner;
   readonly baselineSimulationRunner: BaselineSimulationRunner;
   private initialRenderGeneration: number;
   private deferredRotationRenderRevision: number | null;
@@ -137,15 +130,9 @@ export class ProfessionApp implements ProfessionAppState {
     this.templateContainer = null;
     this.currentTemplate = null;
     this.templateUndoBuild = null;
-    this.modifierContributionRunner = adapter.capabilities.modifierContributions
-      ? new ModifierContributionRunner(this, () => renderModifierContributions(this))
-      : NOOP_FEATURE;
-    this.randomDistributionRunner = adapter.capabilities.randomDistribution
-      ? new RandomDistributionRunner(this)
-      : NOOP_FEATURE;
-    this.relicComparisonRunner = adapter.capabilities.relicComparison
-      ? new RelicComparisonRunner(this, () => renderRelicComparison(this))
-      : NOOP_FEATURE;
+    this.modifierContributionRunner = new ModifierContributionRunner(this, () => renderModifierContributions(this));
+    this.randomDistributionRunner = new RandomDistributionRunner(this);
+    this.relicComparisonRunner = new RelicComparisonRunner(this, () => renderRelicComparison(this));
     this.baselineSimulationRunner = new BaselineSimulationRunner(this);
     this.gearOptimizerRunner = new GearOptimizerRunner(this, () => renderGearOptimizer(this));
     this.initialRenderGeneration = 0;
@@ -153,7 +140,12 @@ export class ProfessionApp implements ProfessionAppState {
   }
 
   async init(): Promise<void> {
-    await this.adapter.capabilities.patchPreview?.mount(this);
+    // Patch-preview controls load only when an authored preview is active, keeping the default startup chunk-free.
+    if (this.profession.preview) {
+      const { mountPatchPreviewControls } = await import('#gw2/integrations/patches/view.js');
+      mountPatchPreviewControls(this);
+    }
+
     this.baselineSimulationRunner.warmup();
     bindPageControls(this);
     // Delegated tooltip listeners and the mutation observer cover every subsequent panel render.
@@ -276,8 +268,7 @@ export class ProfessionApp implements ProfessionAppState {
 
     if (Array.isArray(previousContributions)) this.results.contributions = previousContributions;
     // Each baseline invalidates comparisons, even when Workspace defers their calculation.
-    this.results.modifierContributionsStale =
-      this.adapter.capabilities.modifierContributions === true && this.build.rotation.length > 0;
+    this.results.modifierContributionsStale = this.build.rotation.length > 0;
     this.results.modifierContributionsError = '';
     this.resultRevision = revision;
     this.simulationStatus = 'idle';

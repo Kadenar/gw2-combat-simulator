@@ -1,3 +1,6 @@
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerConfig } from '#gw2/professions/mesmer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -40,7 +43,7 @@ export function activeTroubadourInstrumentsAt(
     if (
       !previous ||
       event.at > previous.at ||
-      (event.at === previous.at && Number(event.eventOrder || 0) >= Number(previous.eventOrder || 0))
+      (event.at === previous.at && (event.eventOrder || 0) >= (previous.eventOrder || 0))
     )
       latest.set(name, event);
   }
@@ -50,4 +53,22 @@ export function activeTroubadourInstrumentsAt(
       .filter(([, event]) => Number(event.expiresAt) > at)
       .map(([name, event]) => [name, Number(event.expiresAt)])
   );
+}
+
+/** Publishes this module's detached public observations at the planning boundary. */
+export function projectTroubadourPlanningState(input: Gw2PlanningStateInput) {
+  const state = snapshotProfessionState(input.profession) as MesmerTroubadourState;
+  const at = canonicalTime(input.time);
+  return {
+    resource: state.numericResource,
+    resourceDefinition: mesmerResourceDefinition('Troubadour', { catalog: input.catalog }),
+    endurance: state.endurance,
+    activeInstruments: Object.entries(state.instruments)
+      .filter(([, expiresAt]) => expiresAt > at)
+      .map(([name, expiresAt]) => ({
+        name,
+        expiresAt: Math.round(expiresAt * 1000),
+        remaining: Math.max(0, Math.round((expiresAt - at) * 1000))
+      }))
+  };
 }

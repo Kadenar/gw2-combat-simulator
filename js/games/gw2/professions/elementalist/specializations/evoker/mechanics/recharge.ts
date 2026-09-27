@@ -8,33 +8,25 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * Spends an armed Elemental Balance window on the next non-autoattack weapon
  * skill, scaling its recharge by the profile multiplier. The window is
  * single-use and is cleared here as soon as one skill consumes it.
  */
-export function commitRechargeDuration(
-  context: ElementalistSchedulerContext & { skill?: Skill },
-  duration: number
-): number {
-  const skill = context.skill;
+export function commitRechargeDuration(context: ElementalistRuntime, skill: Skill, duration: number): number {
   // Weapon_1 excluded — auto-attacks don't benefit from Elemental Balance CDR
-  if (
-    !skill ||
-    skill.type !== 'Weapon' ||
-    String(skill.slot) === 'Weapon_1' ||
-    !hasTrait(context, 'Elemental Balance')
-  ) {
+  if (skill.type !== 'Weapon' || String(skill.slot) === 'Weapon_1' || !hasTrait(context, TRAIT.ELEMENTAL_BALANCE)) {
     return duration;
   }
 
   const state = evokerState.from(context);
-  if (state.elementalBalanceUntil <= context.state.time) {
+  if (state.elementalBalanceUntil <= context.time) {
     return duration;
   }
 

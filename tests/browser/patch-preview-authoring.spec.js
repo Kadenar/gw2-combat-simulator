@@ -24,8 +24,7 @@ for (const mode of ['preview', 'absent', 'invalid']) {
     );
     await page.goto('/composition-test');
     const result = await page.evaluate(async (mode) => {
-      const { definePatchedProfessionApp } = await import('/js/games/gw2/app/create-patched-adapter.ts');
-      const { defineProfessionApp } = await import('/js/games/gw2/app/create-adapter.ts');
+      const { defineProfessionApp } = await import('/js/games/gw2/app/define-profession-app.ts');
       const { defineNativeModule, defineNativeProfession } =
         await import('/js/games/gw2/platform/profession-definition/profession.ts');
       // Reuse the isolated strike scenario from the native patch-preview contract coverage.
@@ -46,37 +45,52 @@ for (const mode of ['preview', 'absent', 'invalid']) {
                 }
               ]
             },
-            state: { scheduler: () => ({}) }
+            state: { create: () => ({}) }
           })
         ]
       });
+      let descriptions = 0;
       const options = {
         profession: native,
+        tooltips: {
+          skillFacts: () => {
+            descriptions += 1;
+            return [];
+          }
+        },
         applyBuildAttributeRules: () => {},
         toApplicationBuild: (build) => build,
         specializationFallback: 'Core'
       };
-      const plain = defineProfessionApp(options);
       if (mode === 'invalid') {
         try {
-          definePatchedProfessionApp(options);
+          defineProfessionApp(options);
         } catch (error) {
-          return { error: error.message, plainIsNative: plain.profession === native };
+          return { error: error.message, nativeHasPreview: 'preview' in native };
         }
 
         return { error: null };
       }
 
-      const adapter = definePatchedProfessionApp(options);
+      const adapter = defineProfessionApp(options);
       const patchId = mode === 'preview' ? 'fixture-preview' : 'current';
       const config = {
         specialization: 'Core',
         stats: { power: 1000, precision: 0, ferocity: 0, conditionDamage: 0, expertise: 0, concentration: 0 },
         target: { armor: 1000 }
       };
-      const current = plain.simulateBuild([1], config);
+      const current = adapter.simulateBuild([1], config);
       const patched = adapter.simulateBuild([1], { ...config, patchId });
+      // Repeated renders reuse a model, while selecting a preview uses its own balance context.
+      const skill = native.catalog.skillsById.get(1);
+      const currentTooltip = adapter.skillTooltip(skill, 'current');
+      const patchedTooltip = adapter.skillTooltip(skill, patchId);
       return {
+        cachedTooltip: adapter.skillTooltip({ ...skill }, patchId) === patchedTooltip,
+        currentTooltipRetained: adapter.skillTooltip(skill, 'current') === currentTooltip,
+        distinctPatchTooltip: currentTooltip !== patchedTooltip,
+        tooltipFacts: patchedTooltip.facts,
+        descriptions,
         coefficient: adapter.profession.catalogFor(patchId).skillsById.get(1).effects[0].coefficient,
         nativeCoefficient: native.catalog.skillsById.get(1).effects[0].coefficient,
         nativeHasPreview: 'preview' in native,
@@ -89,7 +103,7 @@ for (const mode of ['preview', 'absent', 'invalid']) {
 
     if (mode === 'invalid') {
       expect(result.error).toContain('unsupported field constants');
-      expect(result.plainIsNative).toBe(true);
+      expect(result.nativeHasPreview).toBe(false);
       return;
     }
 
@@ -97,6 +111,13 @@ for (const mode of ['preview', 'absent', 'invalid']) {
     expect(result.coefficient).toBe(multiplier);
     expect(result.nativeCoefficient).toBe(1);
     expect(result.nativeHasPreview).toBe(false);
+    expect(result.cachedTooltip).toBe(true);
+    expect(result.currentTooltipRetained).toBe(true);
+    expect(result.distinctPatchTooltip).toBe(mode === 'preview');
+    expect(result.descriptions).toBe(mode === 'preview' ? 2 : 1);
+    expect(result.tooltipFacts.find((fact) => fact.name === 'Strike damage').detail).toMatch(
+      new RegExp(`^${multiplier} coefficient`)
+    );
     expect(result.currentDamage).toBeGreaterThan(0);
     expect(Math.abs(result.patchedDamage - result.currentDamage * multiplier)).toBeLessThan(multiplier);
     expect(result.warnings).toEqual([]);

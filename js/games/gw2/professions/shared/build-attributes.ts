@@ -1,3 +1,6 @@
+import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
+import type { Gw2BuildAttributeRuleContext } from '#gw2/platform/builds/types.js';
 import { finalizeBuildAttributes, resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
 
 import type {
@@ -7,7 +10,7 @@ import type {
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
 
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 /**
  * Minimum trait shape required by the shared build-attribute helpers.
@@ -15,19 +18,8 @@ import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
  * Profession-specific trait types may contain any number of additional fields.
  */
 export interface BuildAttributeTrait {
+  readonly id: SkillId;
   readonly name: string;
-}
-
-/**
- * Options used to construct the common context needed by profession
- * build-attribute rules.
- */
-export interface CreateBuildAttributeContextOptions<TTrait extends BuildAttributeTrait, TSelection> {
-  readonly specializations?: readonly TSelection[] | null;
-  readonly selectedSkills?: readonly Skill[] | null;
-  readonly disabledTrait?: string | null;
-
-  readonly getActiveTraits: (specializations: readonly TSelection[]) => readonly TTrait[];
 }
 
 /**
@@ -35,10 +27,14 @@ export interface CreateBuildAttributeContextOptions<TTrait extends BuildAttribut
  */
 export interface BuildAttributeContext<TTrait extends BuildAttributeTrait> {
   readonly activeTraits: readonly TTrait[];
-  hasTrait(name: string): boolean;
-  hasSelectedSkill(name: string): boolean;
-  hasSelectedSkillId(id: SkillId): boolean;
+  readonly weapons: readonly string[];
+  readonly profileContext: Pick<ProfessionBalanceContext, 'catalog'>;
+  hasTrait(id: SkillId): boolean;
+  hasSelectedSkill(id: SkillId): boolean;
 }
+
+// Catalog IDs may be authored as numbers or numeric strings; compare their canonical text form.
+const sameId = (left: SkillId, right: SkillId): boolean => String(left) === String(right);
 
 /**
  * Resolves active traits and exposes the common trait/skill lookup operations
@@ -47,33 +43,33 @@ export interface BuildAttributeContext<TTrait extends BuildAttributeTrait> {
  * disabledTrait is intentionally filtered here so every downstream lookup sees
  * the same effective trait set.
  */
-export function createBuildAttributeContext<TTrait extends BuildAttributeTrait, TSelection>({
-  specializations = [],
-  selectedSkills = [],
-  disabledTrait = null,
-  getActiveTraits
-}: CreateBuildAttributeContextOptions<TTrait, TSelection>): BuildAttributeContext<TTrait> {
-  const activeTraits = getActiveTraits(specializations || []).filter((trait) => trait.name !== disabledTrait);
+export function createBuildAttributeContext<TTrait extends BuildAttributeTrait>(
+  { build, selectedSkills, disabledTrait, weaponSet, balanceContext }: Gw2BuildAttributeRuleContext,
+  catalog: CanonicalCatalog,
+  getActiveTraits: (specializations: readonly ProfessionTraitSelection[]) => readonly TTrait[]
+): BuildAttributeContext<TTrait> {
+  const activeTraits = getActiveTraits((build.specializations || []) as ProfessionTraitSelection[]).filter(
+    (trait) => trait.name !== disabledTrait
+  );
+  // Resolve patch data and weapon selection once for all profession attribute rules.
+  const profileContext = balanceContext ?? { catalog };
+  const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
 
-  const effectiveSelectedSkills = selectedSkills || [];
-
-  function hasTrait(name: string): boolean {
-    return activeTraits.some((trait) => trait.name === name);
+  // Rules identify traits and skills by stable catalog ID so renamed display names cannot silently disable them.
+  function hasTrait(id: SkillId): boolean {
+    return activeTraits.some((trait) => sameId(trait.id, id));
   }
 
-  function hasSelectedSkill(name: string): boolean {
-    return effectiveSelectedSkills.some((skill) => skill.name === name);
-  }
-
-  function hasSelectedSkillId(id: SkillId): boolean {
-    return effectiveSelectedSkills.some((skill) => skill.id === id);
+  function hasSelectedSkill(id: SkillId): boolean {
+    return selectedSkills.some((skill) => sameId(skill.id, id));
   }
 
   return {
     activeTraits,
+    weapons,
+    profileContext,
     hasTrait,
-    hasSelectedSkill,
-    hasSelectedSkillId
+    hasSelectedSkill
   };
 }
 

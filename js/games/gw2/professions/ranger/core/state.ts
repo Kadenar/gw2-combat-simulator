@@ -19,19 +19,12 @@ export interface RangerCoreState {
   revealedUntil: number;
   autoattackChains: Record<string, SkillId>;
   winterBiteReady: boolean;
-  tailWindReadyAt: number;
-  furiousGripReadyAt: number;
-  quickDrawReadyAt: number;
+
   quickDrawUntil: number;
   trapCrippleActivations: Record<string, boolean>;
   pendingFrostTrapEvents: SimulationEventBase[];
   bloodThirst: ChargeGrant;
-  rejuvenationReadyAt: number;
-  childOfEarthReadyAt: number;
-  clarionBondReadyAt: number;
-  carnivoreReadyAt: number;
-  goForTheThroatPetReadyAt: number;
-  huntersGazeReadyAt: number;
+
   playerOpeningStrikeReady: boolean;
   petOpeningStrikeReady: boolean;
   poisonMasterPetAttackReady: boolean;
@@ -51,7 +44,7 @@ export interface RangerCoreState {
 }
 
 export function selectedRangerPet(config: RangerConfig = {}, slot: 1 | 2 = 1) {
-  const selected = String(slot === 2 ? config.selectedPet2 || 'Lynx' : config.selectedPet || 'Pig');
+  const selected = slot === 2 ? config.selectedPet2 || 'Lynx' : config.selectedPet || 'Pig';
   return RANGER_PETS.find((pet) => pet.name === selected) || RANGER_PETS[0];
 }
 
@@ -78,19 +71,12 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     revealedUntil: 0,
     autoattackChains: {},
     winterBiteReady: false,
-    tailWindReadyAt: 0,
-    furiousGripReadyAt: 0,
-    quickDrawReadyAt: 0,
+
     quickDrawUntil: 0,
     trapCrippleActivations: {},
     pendingFrostTrapEvents: [],
     bloodThirst: grantCharges(0, 0),
-    rejuvenationReadyAt: 0,
-    childOfEarthReadyAt: 0,
-    clarionBondReadyAt: 0,
-    carnivoreReadyAt: 0,
-    goForTheThroatPetReadyAt: 0,
-    huntersGazeReadyAt: 0,
+
     playerOpeningStrikeReady: true,
     petOpeningStrikeReady: true,
     poisonMasterPetAttackReady: false,
@@ -123,15 +109,12 @@ export const RANGER_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
   'revealedUntil',
   'autoattackChains',
   'winterBiteReady',
-  'tailWindReadyAt',
-  'furiousGripReadyAt',
-  'quickDrawReadyAt',
+
   'quickDrawUntil',
   'trapCrippleActivations',
-  'rejuvenationReadyAt',
-  'childOfEarthReadyAt',
+
   'sharpeningStoneExpirations',
-  'clarionBondReadyAt',
+
   'petSwapCount',
   'petAutoNextAt',
   'petAutoBusyUntil',

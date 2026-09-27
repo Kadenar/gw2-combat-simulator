@@ -1,3 +1,4 @@
+import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
@@ -15,6 +16,8 @@ export const RITUALIST_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Creature hooks and ordinary summon modifiers share one trait multiplier.
+  trait(TRAIT.SPIRITS_STRENGTH, "Spirits' Strength", { damageMultiplier: 1.5 }),
   {
     id: RITUALIST_BALANCE_PROFILE_IDS.resources,
     name: 'Ritualist Spirit Cadence',
@@ -163,7 +166,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         flatStrikeBase: 200,
         flatStrikePowerCoeff: 0.4,
         actorType: 'effect',
-        noCrit: true
+        canCrit: false
       }
     ]
   },
@@ -182,7 +185,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         flatStrikeBase: 1200,
         flatStrikePowerCoeff: 0.05,
         actorType: 'effect',
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal'
       },
       {

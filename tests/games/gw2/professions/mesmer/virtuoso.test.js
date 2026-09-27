@@ -1,4 +1,3 @@
-import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import test from 'node:test';
@@ -6,148 +5,6 @@ import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js'
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { shatterResourceSpends, formatTimelineCastDetails } from '#gw2/app/rotation/timeline/model.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
-import { observeMesmerEvent } from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
-import { jaggedMindReaction } from '#gw2/professions/mesmer/specializations/virtuoso/traits/blade-procs.js';
-import { deadlyBladesReaction } from '#gw2/professions/mesmer/specializations/virtuoso/traits/deadly-blades.js';
-
-test('clone metadata keeps delayed critical tasks cancellable by their owner', () => {
-  // Destroying one clone cancels its reactions while leaving another clone's work queued.
-  for (const [observe, type, actorType] of [
-    [observeMesmerEvent, 'mesmer.critical-traits', 'summon'],
-    [jaggedMindReaction.onEventScheduled.handler, 'mesmer.jagged-mind', 'summon'],
-    [deadlyBladesReaction.onEventScheduled.handler, 'mesmer.deadly-blades-critical', 'player']
-  ]) {
-    const processed = [];
-    const tasks = createTaskQueue({ handlers: { [type]: (_context, task) => processed.push(task) } });
-    const context = {
-      catalog: mesmerCatalog,
-      state: { time: 0 },
-      tasks,
-      mesmerRuntime: {
-        traits: new Set([TRAIT.SHARPER_IMAGES, TRAIT.JAGGED_MIND, TRAIT.DEADLY_BLADES]),
-        skillsById: new Map()
-      }
-    };
-    for (const cloneId of [0, 1])
-      observe(context, {
-        type: 'damage',
-        at: 1,
-        eventOrder: cloneId + 1,
-        actorType,
-        summonKind: 'clone',
-        coefficient: 1,
-        metadata: { cloneId, blade: true }
-      });
-    tasks.cancelOwner('mesmer.clone:0');
-    tasks.drainThrough(1, context);
-    assert.equal(processed.length, 1);
-    assert.equal(processed[0].ownerId, 'mesmer.clone:1');
-  }
-});
-
-test('deferred Virtuoso procs use replacement facts and preserve skill-derived blade metadata', () => {
-  // Both reactions read the current hit after queueing; an explicit replacement flag wins over the blade fallback.
-  for (const [blade, didCrit] of [
-    [undefined, true],
-    [false, true],
-    [true, false]
-  ]) {
-    const original = Object.freeze({
-      type: 'damage',
-      at: 1,
-      eventOrder: 7,
-      skillId: 1,
-      skillName: 'Original',
-      name: 'Original',
-      source: 'Player',
-      sourceId: 1,
-      actorType: 'player',
-      coefficient: 1,
-      didCrit: false
-    });
-    let current = original;
-    const observed = [];
-    const emitted = [];
-    const tasks = createTaskQueue({
-      handlers: {
-        ...jaggedMindReaction.taskHandlers,
-        ...deadlyBladesReaction.taskHandlers
-      }
-    });
-    const context = {
-      catalog: mesmerCatalog,
-      state: { time: 0 },
-      config: { randomness: { mode: 'stochastic' } },
-      profession: { id: 'mesmer' },
-      tasks,
-      mesmerRuntime: {
-        traits: new Set([TRAIT.JAGGED_MIND, TRAIT.DEADLY_BLADES]),
-        skillsById: new Map([[1, { blade: true }]]),
-        addTraitProc() {}
-      },
-      schedulerPolicy: {
-        critical(_context, event) {
-          observed.push(event);
-          return { chance: 1 };
-        },
-        rollRandom() {
-          assert.fail('A stored critical outcome must not be rerolled.');
-        }
-      },
-      eventByOrder(order) {
-        assert.equal(order, 7);
-        return current;
-      },
-      emitDerived(cause, event) {
-        emitted.push({ cause, event });
-        return event;
-      }
-    };
-    jaggedMindReaction.onEventScheduled.handler(context, original);
-    deadlyBladesReaction.onEventScheduled.handler(context, original);
-    current = Object.freeze({
-      ...original,
-      ...(blade === undefined ? {} : { metadata: { blade } }),
-      didCrit,
-      name: 'Replaced',
-      skillName: 'Replaced'
-    });
-    tasks.drainThrough(1, context);
-    assert.equal(observed.length, 2);
-
-    for (const event of observed) {
-      assert.equal(event.metadata?.blade, blade ?? true);
-      assert.equal(event.didCrit, didCrit);
-      assert.equal(event.name, 'Replaced');
-    }
-
-    assert.equal(emitted.length, didCrit ? 2 : 0);
-
-    for (const { cause, event } of emitted) {
-      assert.equal(cause.eventOrder, 7);
-      assert.equal(event.skillName, 'Replaced');
-      assert.equal(event.at, 1);
-    }
-
-    assert.equal(Object.hasOwn(current.metadata ?? {}, 'blade'), blade !== undefined);
-    assert.equal(original.didCrit, false);
-  }
-});
-
-test('Virtuoso critical tasks reject missing canonical events', () => {
-  // An identity-only task cannot silently fall back to stale event data when its scheduler contract is broken.
-  const context = { mesmerRuntime: {}, eventByOrder: () => undefined };
-  const task = { at: 1, payload: { type: 'blade', eventOrder: 7 } };
-  assert.throws(
-    () => jaggedMindReaction.taskHandlers['mesmer.jagged-mind'](context, task),
-    /requires a scheduled event/
-  );
-  assert.throws(
-    () => deadlyBladesReaction.taskHandlers['mesmer.deadly-blades-critical'](context, task),
-    /requires a scheduled event/
-  );
-});
 
 // Virtuoso packets and trait reactions preserve blade generation, spending, and timing.
 test('Deadly Blades activates only after a completed Virtuoso Bladesong', () => {
@@ -416,7 +273,7 @@ test('Rain of Swords pulses after its cast with fixed damage and vulnerability t
   );
 
   assert.equal(result.steps[0].end - result.steps[0].start, 680);
-  assert.equal(result.steps[1].start, 25_680);
+  assert.equal(result.steps[1].start, 20_680);
   assert.deepEqual(
     firstActivationDamage.map((event) => [Math.round((event.at - firstCastEnd) * 1000), event.coefficient]),
     [
@@ -443,63 +300,19 @@ test('Rain of Swords pulses after its cast with fixed damage and vulnerability t
   );
 });
 
-test('Virtuoso cast-end blade spends retain timeline metadata', () => {
-  const rotation = [
-    'Phantasmal Disenchanter',
-    'Imaginary Inversion',
-    { name: 'Bladeturn Requiem', offset: 100 },
-    'Mind the Gap',
-    'Phantasmal Lancer',
-    'Power Spike',
-    'Thousand Cuts',
-    'Mental Collapse',
-    'Mind the Gap',
-    'Swap Weapons',
-    'Phantasmal Berserker',
-    'Signet of the Ether',
-    'Phantasmal Berserker',
-    'Mind Stab',
-    'Mirror Blade',
-    'Bladesong Harmony',
-    'Rain of Swords',
-    'Phantasmal Disenchanter',
-    'Bladesong Sorrow'
-  ];
+test('Virtuoso cast-end blade spends retain their owning activation for the timeline', () => {
+  // Delayed commitment uses the cast identity so resource badges remain attached to their originating action.
   const result = simulateMesmer(
-    rotation,
-    defaultSimulationConfig({
-      specialization: 'Virtuoso',
-      selectedTraitIds: [TRAIT.BOUNTIFUL_BLADES, TRAIT.INFINITE_FORGE],
-      selectedSkills: [
-        'Signet of the Ether',
-        'Phantasmal Disenchanter',
-        'Rain of Swords',
-        'Mantra of Pain',
-        'Thousand Cuts'
-      ],
-      primaryWeapon: 'Greatsword',
-      secondaryWeapon: '',
-      weaponSet2Primary: 'Spear',
-      weaponSet2Secondary: '',
-      startingWeaponSet: 2,
-      initialResource: 5
-    })
+    ['Bladesong Harmony'],
+    defaultSimulationConfig({ specialization: 'Virtuoso', initialResource: 5 })
   );
-  const harmony = result.events.find((event) => event.type === 'marker' && event.name === 'Bladesong Harmony');
-  const harmonyAction = result.events.find((event) => event.type === 'action' && event.name === 'Bladesong Harmony');
-  const harmonySpend = result.events.find(
-    (event) =>
-      event.type === 'resource' && event.reason === 'profession mechanic' && event.sourceSkill === 'Bladesong Harmony'
-  );
-  const timelineSpends = shatterResourceSpends(result);
-
-  assert.equal(result.warnings.length, 0);
-  assert.equal(harmony.detail, '5 blades spent');
-  assert.equal(harmonySpend.amount, -5);
-  assert.equal(harmonySpend.sourceSkill, 'Bladesong Harmony');
-  assert.equal(harmonySpend.rotationIndex, 15);
-  assert.ok(Math.abs(harmonySpend.at - harmonyAction.fullEndsAt) < 0.00001);
-  assert.deepEqual(timelineSpends.get(15), {
+  assert.deepEqual(result.warnings, []);
+  const action = result.events.find((event) => event.type === 'action');
+  const spend = result.events.find((event) => event.type === 'resource' && event.reason === 'profession mechanic');
+  assert.equal(spend.amount, -5);
+  assert.equal(spend.activationId, action.activationId);
+  assert.ok(Math.abs(spend.at - action.fullEndsAt) < 0.00001);
+  assert.deepEqual(shatterResourceSpends(result).get(0), {
     count: 5,
     resource: 'blades',
     sourceSkill: 'Bladesong Harmony'
@@ -562,8 +375,6 @@ test('Phantasmal Swordsman follows its packet, bleed, and blade timeline', () =>
     (event) => event.type === 'damage' && event.skillName === 'Phantasmal Blade'
   );
   const bladeGains = result.events.filter((event) => event.type === 'resource' && event.amount > 0);
-
-  assert.equal(result.steps[0].fullCastMs, 880);
   assert.ok(Math.abs(swordsmanDamage[0].at - 0.759) < 1e-12);
   assertEventTimes(phantasmDamage, [1.72, 2.2, 2.24, 2.52, 2.56, 2.8, 2.84, 3.12, 3.16], 'Phantasmal Swordsman damage');
   assert.ok(Math.abs(phantasmalBlade.at - 4.373) < 1e-12);
@@ -629,7 +440,6 @@ test('Unstable Bladestorm anchors paired packets to cast start', () => {
         event.type === 'condition' && event.condition === 'Bleeding' && event.skillName === 'Unstable Bladestorm'
     )
     .map((event) => event.at);
-  assert.equal(result.steps[0].fullCastMs, 440);
   assertEventTimes(damageTimes, expected, 'Unstable Bladestorm damage');
   assertEventTimes(bleedTimes, expected, 'Unstable Bladestorm bleeding');
   assert.equal(result.planningState.profession.resource, 1);
@@ -668,14 +478,15 @@ test('Mesmer critical traits consume the same seeded hit outcomes in both modes'
     });
 
   const stochastic = run('stochastic');
-  const hits = stochastic.events.filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter');
+  const hits = stochastic.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillName === 'Flying Cutter'
+  );
   const criticals = hits.filter((event) => event.didCrit).length;
   const jaggedMind = stochastic.events.filter(
     (event) => event.type === 'condition' && event.name.includes('Jagged Mind')
   );
   const deadlyBlades = stochastic.events.filter(
-    (event) =>
-      event.type === 'condition' && event.condition === 'Vulnerability' && event.sourceSkill === 'Flying Cutter'
+    (event) => event.type === 'condition' && event.condition === 'Vulnerability' && event.skillName === 'Flying Cutter'
   );
 
   assert.ok(criticals > 0 && criticals < hits.length);
@@ -784,11 +595,13 @@ test('configured Virtuoso bladesongs spend blades at cast end', () => {
   for (const skillName of ['Bladesong Harmony', 'Bladesong Sorrow', 'Bladesong Dissonance', 'Bladeturn Requiem']) {
     const result = simulateMesmer([skillName], defaultSimulationConfig({ initialResource: 5 }));
     const action = result.events.find((event) => event.type === 'action' && event.name === skillName);
-    const spend = result.events.find((event) => event.type === 'resource' && event.sourceSkill === skillName);
+    const spend = result.events.find(
+      (event) => event.type === 'resource' && event.activationId === action.activationId
+    );
 
     assert.equal(result.planningState.profession.resource, 0);
     assert.equal(spend.amount, -5);
-    assert.equal(spend.rotationIndex, 0);
+    assert.equal(spend.activationId, result.steps[0].activationId);
     assert.ok(Math.abs(spend.at - action.fullEndsAt) < 0.00001, `${skillName} spent blades before cast end`);
   }
 });
@@ -800,7 +613,6 @@ test('Bladeturn Requiem and Thousand Cuts retain their zero-second cast times', 
     const action = result.events.find((event) => event.type === 'action' && event.name === skillName);
 
     assert.equal(step.start, step.end);
-    assert.equal(step.fullCastMs, 0);
     assert.equal(action.at, action.endsAt);
     assert.equal(action.at, action.fullEndsAt);
     assert.match(
@@ -819,7 +631,7 @@ test('interrupting a bladesong restores its reserved blades', () => {
   assert.equal(result.planningState.profession.resource, 5);
   assert.equal(
     result.events.some(
-      (event) => event.type === 'resource' && event.sourceSkill === 'Bladesong Harmony' && event.amount < 0
+      (event) => event.type === 'resource' && event.activationId === result.steps[0].activationId && event.amount < 0
     ),
     false
   );

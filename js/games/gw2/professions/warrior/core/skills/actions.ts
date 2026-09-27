@@ -1,74 +1,12 @@
+import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 
-// Keep the imported Weapon Stow action visually distinct in the simulator timeline.
-// Resolve the shared icon from the repository asset root so Vite can bundle it with the profession module.
-const WEAPON_STOW_ICON = new URL('@images/warrior/weapon-stow.png', import.meta.url).href;
+export const WARRIOR_DODGE: Skill = Object.freeze(
+  createDodgeSkill({
+    cost: { resource: 'endurance' as const, profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } },
+    rechargeAnchor: 'castStart'
+  })
+);
 
-export const WARRIOR_WEAPON_STOW: Skill = Object.freeze({
-  id: -6,
-  name: 'Weapon Stow',
-  description: 'Stow the active weapon and occupy one action frame.',
-  icon: WEAPON_STOW_ICON,
-  type: 'Action',
-  weapon: '',
-  slot: 'Action',
-  specialization: '',
-  categories: [],
-  cooldown: 0,
-  ammo: 0,
-  ammoRecharge: 0,
-  nextChainId: null,
-  flipSkillId: null,
-  castTimeMs: 80,
-
-  simulatorExcluded: false,
-  effects: []
-});
-
-export const WARRIOR_DODGE: Skill = Object.freeze({
-  id: -5,
-  name: 'Dodge',
-  description: 'Perform a dodge roll.',
-  icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
-  type: 'Action',
-  weapon: '',
-  slot: 'Action',
-  specialization: '',
-  categories: [],
-  cooldown: 0,
-  ammo: 0,
-  ammoRecharge: 0,
-  nextChainId: null,
-  flipSkillId: null,
-  castTimeMs: 800,
-
-  rechargeAnchor: 'castStart',
-  simulatorExcluded: false,
-  // Custom: Spends endurance and applies Reckless Dodge; see `core/execution/index.ts`.
-  handlerId: 'warrior.dodge',
-  effects: []
-});
-
-export const WARRIOR_SWAP_WEAPONS: Skill = Object.freeze({
-  id: -3,
-  name: 'Swap Weapons',
-  description: 'Swap to the other equipped weapon set.',
-  icon: '',
-  type: 'Action',
-  weapon: '',
-  slot: 'Action',
-  specialization: '',
-  categories: [],
-  cooldown: 5,
-  ammo: 0,
-  ammoRecharge: 0,
-  nextChainId: null,
-  flipSkillId: null,
-  castTimeMs: 0,
-  rechargeAnchor: 'castStart',
-  simulatorExcluded: false,
-  // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
-  inputCategory: 'weapon-swap', // Count the explicit bar-changing input in effort summaries.
-  handlerId: 'warrior.weapon-swap',
-  effects: []
-});
+export const WARRIOR_SWAP_WEAPONS: Skill = Object.freeze(createWeaponSwapSkill({ cooldown: 5 }));

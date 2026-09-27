@@ -2,7 +2,10 @@
  * Owns Dragonhunter virtue and trap skill fragments.
  * Runtime virtue and trap behavior remains under `mechanics/` and `execution/virtues.ts`.
  */
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
@@ -12,18 +15,20 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     // The virtue commits at 520 ms, allowing the remaining animation to be cancelled.
     interruptCommitMs: 520,
     cooldown: 20,
-    // Custom: Tracks the tether, decorates its strike, and schedules justice pulses; see `dragonhunter/execution/virtues.ts`.
-    handlerId: 'guardian.dragonhunter-justice',
-    // The completed tether activation exposes Hunter's Verdict for the tether window.
-    mechanicTriggers: [
-      {
-        type: 'guardian.dragonhunter.arm-hunters-verdict',
-        timingAnchor: 'castEnd'
-      }
-    ],
     effects: [
       {
         type: 'strike',
+        // The landed spear owns attachment; the tether controller retains commitment and replacement lifetime.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'each',
+            when: (_runtime, { event, details }) =>
+              Number(event.coefficient) > 0 && Number(details.hitContext?.damage) > 0,
+            do: { type: 'guardian.attach-tether' }
+          }
+        ],
         coefficient: 0.8,
         hits: 1,
         // The spear hits before the remaining virtue animation releases the action lane.
@@ -51,15 +56,32 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   },
   [ID.SHIELD_OF_COURAGE]: {
     castTimeMs: 0,
-    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
-    handlerId: 'guardian.virtue',
     effects: []
   },
   [ID.WINGS_OF_RESOLVE]: {
+    // The added strike and condition keep the weapon wielded at acceptance and the base virtue's effects.
+    effectVariants: [
+      {
+        when: (runtime) => hasTrait(runtime, TRAIT.SOARING_DEVASTATION),
+        profileId: PROFILE.soaringDevastation,
+        transform: (runtime, cast, effects) => [
+          ...(cast.skill.effects ?? []),
+          ...effects
+            .filter((effect) => effect.type === 'strike' || effect.type === 'condition')
+            .map((effect) => ({
+              ...effect,
+              name:
+                effect.type === 'strike'
+                  ? 'Wings of Resolve \u2014 Soaring Devastation'
+                  : 'Soaring Devastation \u2014 Immobilized',
+              weapon: gw2ActivePrimaryWeapon(runtime.config, runtime.activeWeaponSet),
+              timingAnchor: 'castEnd' as const
+            }))
+        ]
+      }
+    ],
     castTimeMs: 0,
     cooldown: 25,
-    // Custom: Runs the core virtue transition plus Dragonhunter virtue traits; see `dragonhunter/execution/virtues.ts`.
-    handlerId: 'guardian.dragonhunter-virtue',
     effects: []
   },
   [ID.DRAGONS_MAW]: {
@@ -123,8 +145,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   [ID.HUNTERS_VERDICT]: {
     castTimeMs: 0,
     cooldown: 40,
-    // Custom: Breaks the active Spear of Justice tether and cancels later pulses; see `dragonhunter/execution/virtues.ts`.
-    handlerId: 'guardian.hunters-verdict',
     effects: [
       {
         type: 'control',

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { resolveProcIcon } from '#gw2/app/shared/icons.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
@@ -15,8 +15,8 @@ const scrapperConfig = Object.freeze({
 });
 
 function simulate(rotation) {
-  return simulateGw2({
-    profession: engineerProfession,
+  return runGw2Runtime({
+    profession: engineerProfession.runtimeFor(scrapperConfig),
     rotation,
     config: scrapperConfig
   });

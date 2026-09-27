@@ -1,4 +1,5 @@
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { isCombatEntryEvent } from '#gw2/platform/combat/state/targets.js';
 import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
 import {
   formatSecondsRemaining,
@@ -12,7 +13,7 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 
 const PROFESSION_SKILLS = Object.freeze([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
@@ -55,7 +56,7 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
 /** Presents gunsaber and Dragon Trigger gates owned by the Bladesworn slice. */
 function availability(context: WarriorUiContext, skill: WarriorSkill): PaletteSkillAvailability {
   const state = warriorUiState(context);
-  // Keep the stow action usable while authoring; the scheduler validates live state.
+  // Keep the stow action usable while authoring; the runtime validates live state.
   if (skill.id === ID.SHEATHE_GUNSABER) return { available: true, message: '' };
   if (skill.gunsaberSkill) {
     if ((skill.dragonSlash || skill.dragonTriggerSkill) && !state.dragonTriggerActive) {
@@ -137,7 +138,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     const state = warriorUiState(context);
     const at = warriorSnapshotAt(context);
     const items: RotationStateSnapshotItem[] = [];
-    const result = context.result as Gw2SimulationResult | null | undefined;
+    const result = context.result;
     // Bladesworn's trait buffs live on the resolved buff timeline, which keeps
     // this snapshot aligned with the damage and ferocity modifier gates.
     const fierceAsFire = Math.min(10, timedBuffStacksAt(result, 'fierce-as-fire', at));
@@ -161,25 +162,25 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     }
 
     const window = (state.overchargedCartridgeWindows || []).find(
-      (candidate) => Number(candidate.startedAt) <= at && Number(candidate.expiresAt) > at
+      (candidate) => candidate.startedAt <= at && candidate.expiresAt > at
     );
     if (window) {
       const name = window.supercharged ? 'Supercharged Cartridges' : 'Overcharged Cartridges';
       items.push({
         id: window.supercharged ? 'supercharged-cartridges' : 'overcharged-cartridges',
         label: name,
-        value: formatSecondsRemaining(Number(window.expiresAt) - at),
-        title: `${name} active (+${Math.round(Number(window.damageBonus || 0) * 100)}% damage)`
+        value: formatSecondsRemaining(window.expiresAt - at),
+        title: `${name} active (+${Math.round((window.damageBonus || 0) * 100)}% damage)`
       });
     }
 
     const positiveFlowSources = (state.flowStabilizerWindows || [])
-      .filter((candidate) => Number(candidate.startedAt) <= at && Number(candidate.expiresAt) > at)
+      .filter((candidate) => candidate.startedAt <= at && candidate.expiresAt > at)
       .map((candidate) => ({
         stacks: 2,
-        expiresAt: Number(candidate.expiresAt)
+        expiresAt: candidate.expiresAt
       }));
-    if (Number(state.traitPositiveFlowStartedAt || 0) <= at && Number(state.traitPositiveFlowUntil || 0) > at) {
+    if ((state.traitPositiveFlowStartedAt || 0) <= at && (state.traitPositiveFlowUntil || 0) > at) {
       positiveFlowSources.push({
         stacks: Number(state.traitPositiveFlowStacks),
         expiresAt: Number(state.traitPositiveFlowUntil)
@@ -187,7 +188,14 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     }
 
     // Keep Flow visible after temporary stacks expire; the base stack starts at the combat boundary.
-    const baseStacks = result?.hasExplicitCombatStart && at < (result.combatStartTime ?? Infinity) ? 0 : 1;
+    const baseStacks = result?.events.some(
+      (event) =>
+        event.at <= at &&
+        (!result.hasExplicitCombatStart || event.at >= (result.combatStartTime ?? Infinity)) &&
+        isCombatEntryEvent(event)
+    )
+      ? 1
+      : 0;
     const stacks = positiveFlowSources.reduce((total, source) => total + source.stacks, baseStacks);
     const remaining = positiveFlowSources.length
       ? Math.min(...positiveFlowSources.map((source) => source.expiresAt)) - at

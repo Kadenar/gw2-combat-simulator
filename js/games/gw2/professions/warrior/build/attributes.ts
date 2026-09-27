@@ -5,7 +5,7 @@ import {
 
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/warrior/core/profiles.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 import { getActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
 import {
@@ -19,26 +19,20 @@ import type {
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
-import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 
 // Apply selected signets, weapon-sensitive traits, duration bonuses, and ordered
 // Warrior conversions to the shared build-time attribute result.
 export function applyWarriorBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  { build, weaponSet, selectedSkills = [], disabledTrait = null, balanceContext }: Gw2BuildAttributeRuleContext
+  context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
-    specializations: (build.specializations || []) as ProfessionTraitSelection[],
-    selectedSkills,
-    disabledTrait,
+  const { activeTraits, hasTrait, hasSelectedSkill, profileContext, weapons } = createBuildAttributeContext(
+    context,
+    warriorCatalog,
     getActiveTraits
-  });
+  );
 
   // Weapon bonuses follow the selected set; base bonuses retain their conversion eligibility.
-  const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
-
-  // Build previews and simulation tooltips use the same selected patch values.
-  const profileContext = balanceContext ?? { catalog: warriorCatalog };
 
   const traitDurations: Gw2NumericAttributes = {};
 
@@ -58,7 +52,7 @@ export function applyWarriorBuildAttributeRules(
       to: 'Power',
       amount: balanceProfileNumber(signetPassivesProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasSelectedSkill('Signet of Might')
+      enabled: hasSelectedSkill(ID.SIGNET_OF_MIGHT)
     },
     {
       kind: 'flat',
@@ -66,7 +60,7 @@ export function applyWarriorBuildAttributeRules(
       to: 'Precision',
       amount: balanceProfileNumber(signetPassivesProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasSelectedSkill('Signet of Fury')
+      enabled: hasSelectedSkill(ID.SIGNET_OF_FURY)
     },
     {
       kind: 'flat',
@@ -74,7 +68,7 @@ export function applyWarriorBuildAttributeRules(
       to: 'Power',
       amount: balanceProfileNumber(forcefulGreatswordProfile, 'attributeBonus'),
       feedsConversions: true,
-      enabled: hasTrait('Forceful Greatsword')
+      enabled: hasTrait(TRAIT.FORCEFUL_GREATSWORD)
     },
     {
       kind: 'flat',
@@ -82,7 +76,7 @@ export function applyWarriorBuildAttributeRules(
       to: 'Power',
       amount: balanceProfileNumber(forcefulGreatswordProfile, 'weaponAttributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Forceful Greatsword') && weapons.includes('Greatsword')
+      enabled: hasTrait(TRAIT.FORCEFUL_GREATSWORD) && weapons.includes('Greatsword')
     },
     {
       kind: 'conversion',
@@ -92,7 +86,7 @@ export function applyWarriorBuildAttributeRules(
       multiplier: balanceProfileNumber(greatFortitudeProfile, 'attributeConversion'),
       rounding: 'none',
       input: 'eligible',
-      enabled: hasTrait('Great Fortitude')
+      enabled: hasTrait(TRAIT.GREAT_FORTITUDE)
     },
     {
       kind: 'conversion',
@@ -102,7 +96,7 @@ export function applyWarriorBuildAttributeRules(
       multiplier: balanceProfileNumber(greatFortitudeProfile, 'attributeConversion'),
       rounding: 'none',
       input: 'eligible',
-      enabled: hasTrait('Great Fortitude')
+      enabled: hasTrait(TRAIT.GREAT_FORTITUDE)
     },
     {
       kind: 'flat',
@@ -110,7 +104,7 @@ export function applyWarriorBuildAttributeRules(
       to: 'Concentration',
       amount: balanceProfileNumber(roaringReveilleProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Roaring Reveille')
+      enabled: hasTrait(TRAIT.ROARING_REVEILLE)
     },
     {
       kind: 'flat',
@@ -118,7 +112,7 @@ export function applyWarriorBuildAttributeRules(
       to: 'Condition Damage',
       amount: balanceProfileNumber(deepStrikesProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Deep Strikes') && Boolean((build.assumptions as Record<string, unknown> | undefined)?.fury)
+      enabled: hasTrait(TRAIT.DEEP_STRIKES) && Boolean(context.build.assumptions?.fury)
     },
     {
       kind: 'conversion',
@@ -128,7 +122,7 @@ export function applyWarriorBuildAttributeRules(
       multiplier: balanceProfileNumber(woundingPrecisionProfile, 'attributeConversion'),
       rounding: 'none',
       input: 'eligible',
-      enabled: hasTrait('Wounding Precision')
+      enabled: hasTrait(TRAIT.WOUNDING_PRECISION)
     },
     {
       kind: 'flat',
@@ -136,7 +130,7 @@ export function applyWarriorBuildAttributeRules(
       to: 'Expertise',
       amount: balanceProfileNumber(blademasterProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Blademaster')
+      enabled: hasTrait(TRAIT.BLADEMASTER)
     },
     {
       kind: 'flat',
@@ -147,7 +141,7 @@ export function applyWarriorBuildAttributeRules(
         weapons.includes('Axe') ? 'weaponAttributeBonus' : 'attributeBonus'
       ),
       feedsConversions: false,
-      enabled: hasTrait('Axe Mastery')
+      enabled: hasTrait(TRAIT.AXE_MASTERY)
     },
     {
       kind: 'flat',
@@ -155,16 +149,16 @@ export function applyWarriorBuildAttributeRules(
       to: 'Concentration',
       amount: balanceProfileNumber(inspiringImplementsProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Inspiring Implements')
+      enabled: hasTrait(TRAIT.INSPIRING_IMPLEMENTS)
     }
   ];
 
-  if (hasTrait('Bloodlust')) {
+  if (hasTrait(TRAIT.BLOODLUST)) {
     const bloodlustProfile = requireBalanceProfileFromContext(profileContext, TRAIT.BLOODLUST);
     traitDurations['Bleeding Duration'] = 100 * balanceProfileNumber(bloodlustProfile, 'conditionDurationBonus');
   }
 
-  if (hasTrait('King of Fires')) {
+  if (hasTrait(TRAIT.KING_OF_FIRES)) {
     const kingOfFiresProfile = requireBalanceProfileFromContext(profileContext, TRAIT.KING_OF_FIRES);
     traitDurations['Burning Duration'] = balanceProfileNumber(kingOfFiresProfile, 'durationMultiplier') * 100;
   }

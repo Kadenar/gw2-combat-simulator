@@ -2,7 +2,7 @@ import type { EngineerSimulationEvent, EngineerSkill } from '#gw2/professions/en
 
 /** Only F1-F3 are mech commands; the summon/recall slot is excluded. */
 export function isEngineerMechCommand(skill: EngineerSkill | undefined): boolean {
-  const slot = Number(skill?.mechanicSlot || 0);
+  const slot = skill?.mechanicSlot || 0;
   return slot >= 1 && slot <= 3;
 }
 

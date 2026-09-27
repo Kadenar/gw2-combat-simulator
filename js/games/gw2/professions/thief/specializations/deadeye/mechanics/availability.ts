@@ -4,7 +4,7 @@ import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 
-/** Scheduler and palette supply their flip deadlines directly so both enforce the same lifetime. */
+/** The live runtime and palette supply their flip deadlines directly so both enforce the same lifetime. */
 export function deadeyeCastAvailability(
   flips: ThiefCoreState['availableFlips'] | undefined,
   skill: ThiefSkill,

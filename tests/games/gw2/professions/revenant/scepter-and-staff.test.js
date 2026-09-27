@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
-const simulate = createProfessionSimulator(revenantProfession, {
+const simulate = createObservedProfessionSimulator(revenantProfession, {
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
   startingLegend: LEGEND.ASSASSIN,
   initialEnergy: 50,
@@ -29,7 +29,7 @@ test('Blossoming Aura keeps a fixed fuse after attachment regardless of cast spe
       [0, 1000, 2000, 3000, 4000]
     );
     assert.equal(damage.at(-1).coefficient, 2.5);
-    assert.equal(result.planningState.cooldowns['Blossoming Aura'].readyAt, 8000);
+    assert.equal(result.planningState.cooldowns['Blossoming Aura'].readyAt, 6400);
     assert.equal(result.planningState.profession.availableFlips[ID.DETONATE_BLOSSOMING_AURA], undefined);
   }
 });
@@ -49,7 +49,7 @@ test('Manual Aura detonation uses the reached tier and cancels future pulses wit
       damage.filter((event) => event.name === 'Final Damage').map((event) => event.coefficient),
       [1 + tier * 0.5]
     );
-    assert.equal(result.planningState.cooldowns['Blossoming Aura'].readyAt, 8000);
+    assert.equal(result.planningState.cooldowns['Blossoming Aura'].readyAt, 6400);
     assert.equal(result.planningState.profession.availableFlips[ID.DETONATE_BLOSSOMING_AURA], undefined);
   }
 });
@@ -61,7 +61,7 @@ test('Aura stays attached and remains manually detonatable across a legend swap'
     auraDamage(result).map((event) => event.name),
     ['Pulsing Damage', 'Final Damage']
   );
-  assert.equal(result.planningState.cooldowns['Blossoming Aura'].readyAt, 8000);
+  assert.equal(result.planningState.cooldowns['Blossoming Aura'].readyAt, 6400);
 });
 
 test('Staff attacks divide their total coefficients per hit and Rejuvenating Assault owns a whirl finisher', () => {

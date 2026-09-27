@@ -8,7 +8,8 @@
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 // Hurricane of Pain uses canonical parallel timelines so every landed strike applies its matching Vulnerability.
 const HURRICANE_OF_PAIN_TICKS = [200, 360, 600, 840, 1080, 1320, 1560, 1800, 2040] as const;
@@ -656,12 +657,9 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
       { type: 'condition', condition: 'Immobilize', stacks: 1, duration: 3, metadata: {} }
     ])
   },
-  // Orb spender, deliberately attunement-agnostic: it is offered in any attunement but availability
-  // requires an active orb matching the current one. The declared single projectile only documents the
-  // per-orb packet shape — at cast time `scheduleGrandFinaleProfile` claims the skill and emits one
-  // projectile finisher plus an element-specific condition for each orb it consumes.
+  // Snapshot each active orb at acceptance so consuming it at completion does not erase its delayed projectile.
+  // Burning keeps separate stack applications for relic triggers; each orb owns its projectile finisher.
   [ID.GRAND_FINALE]: {
-    handlerId: 'elementalist.grand-finale',
     name: 'Grand Finale',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -670,26 +668,35 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     castTimeMs: 680,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 680,
-            coefficient: 1.4,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ]
+    effects: (
+      [
+        ['Fire', 'Burning', 1, 5, 2],
+        ['Water', 'Vulnerability', 6, 10, 1],
+        ['Air', 'Weakness', 1, 5, 1],
+        ['Earth', 'Bleeding', 4, 5, 1]
+      ] as const
+    ).flatMap(([element, condition, stacks, duration, applications]) =>
+      impactEffects({ atMs: 680, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 1.4,
+          comboFinishers: [
+            {
+              ownerId: 'elementalist',
+              finisherType: 'Projectile',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ]
+        },
+        { type: 'condition', condition, stacks, duration, applications, intervalMs: 0 }
+      ]).map<SkillEffect>((effect) => ({
+        ...effect,
+        name: element,
+        when: (runtime: ElementalistRuntime, cast) => {
+          const expiresAt = runtime.profession.core.hammerOrbs[element];
+          return expiresAt != null && expiresAt >= cast.start;
+        }
+      }))
+    )
   }
 });

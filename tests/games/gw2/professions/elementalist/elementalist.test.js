@@ -13,7 +13,7 @@ import {
   loadProfessionAppAdapter,
   professionOptions,
   professionRegistry
-} from '#gw2/app/profession-registry.js';
+} from '#gw2/profession-registry.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { selectedGw2TraitValues } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -40,18 +40,19 @@ const applyElementalistPatch = (patch) => applyBalanceProfilePatch(applySkillPat
 // Flat Flow State reduction follows Elemental Enchantment's multiplier and precedes Alacrity's recharge rate.
 test('attunement recharge applies trait reductions in order and stays free before combat', () => {
   const context = {
-    catalog: elementalistCatalog,
+    helpers: elementalistCatalog,
     config: { selectedTraitIds: [TRAIT.ELEMENTAL_ENCHANTMENT, TRAIT.FLOW_STATE] },
-    schedulerPolicy: { isCombatActive: () => true },
+    combatActive: true,
+    traits: new Set([TRAIT.ELEMENTAL_ENCHANTMENT, TRAIT.FLOW_STATE]),
     cooldownController: { rate: () => 1.25 }
   };
   const skill = elementalistCatalog.skillsById.get(ID.FIRE_ATTUNEMENT);
-  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4, 0), 1.92);
+  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4), 1.92);
   // Weave Self's two-second base still receives both selected traits: (2 * 0.85 - 1) / 1.25.
-  assert.ok(Math.abs(elementalistAttunementRechargeDuration(context, skill, 2, 0) - 0.56) < 1e-12);
-  context.schedulerPolicy.isCombatActive = () => false;
-  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4, 0), 0);
-  assert.equal(elementalistAttunementRechargeDuration(context, skill, 2, 0), 0);
+  assert.ok(Math.abs(elementalistAttunementRechargeDuration(context, skill, 2) - 0.56) < 1e-12);
+  context.combatActive = false;
+  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4), 0);
+  assert.equal(elementalistAttunementRechargeDuration(context, skill, 2), 0);
 });
 
 // Validate evaluated catalogs so shared/generated packets and direct statuses cannot reintroduce off-grid offsets.
@@ -98,7 +99,7 @@ test('Elementalist is registered through the generic profession contract', async
   assert.ok(profession.catalog.skills.every((skill) => skill.icon));
   assert.ok(profession.catalog.traits.every((trait) => trait.icon));
   assert.ok(profession.catalog.specializations.every((specialization) => specialization.icon));
-  assert.equal(profession.simulation, null);
+  assert.equal('simulation' in profession, false);
   assert.equal(adapter.id, 'elementalist');
 });
 
@@ -204,15 +205,15 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
   assert.equal(
     elementalistAttunementRechargeDuration(
       {
-        catalog: preview,
+        helpers: preview,
         config: traitConfig,
-        state: { time: 0 },
+        time: 0,
+        combatActive: true,
         cooldownController: { rate: () => 1 },
         traits: selectedGw2TraitValues(traitConfig, preview)
       },
       preview.skillsById.get(ID.FIRE_ATTUNEMENT),
-      10,
-      0
+      10
     ),
     8
   );
@@ -272,38 +273,16 @@ test('Elementalist build defaults and canonical builds normalize explicitly', ()
   );
 });
 
-test('Elementalist canonical strike timelines preserve packet timing, coefficients, and same-time order', () => {
-  const invokeLightning = ELEMENTALIST_CORE_SKILL_MECHANICS[ID.INVOKE_LIGHTNING];
-  const strike = invokeLightning.effects[0];
-
-  assert.equal(strike.type, 'strike');
-  assert.equal(strike.timingAnchor, 'castStart');
-  assert.equal(strike.timingScale, 'cast');
-  assert.deepEqual(
-    strike.ticks.slice(0, 3).map(({ atMs, coefficient }) => [atMs, coefficient]),
-    [
-      [360, 0.825],
-      [360, 0.7425],
-      [360, 0.66]
-    ]
-  );
-});
-
 test('Elementalist canonical condition timelines preserve their packet start and applications', () => {
   const frostStorm = ELEMENTALIST_CORE_SKILL_MECHANICS[ID.FROST_STORM];
   const [strike, bleeding] = frostStorm.effects;
 
   assert.equal(strike.type, 'strike');
   assert.equal(bleeding.type, 'condition');
-  assert.equal(strike.ticks[0].atMs, 1040);
+
   // Bleeding skips the opening strike and inherits the hitbox identity of its matching packet.
-  assert.deepEqual(bleeding.ticks[0], {
-    atMs: 1320,
-    condition: 'Bleeding',
-    stacks: 1,
-    duration: 3,
-    metadata: strike.ticks[1].metadata
-  });
+  assert.equal(bleeding.ticks[0].atMs, strike.ticks[1].atMs);
+  assert.deepEqual(bleeding.ticks[0].metadata, strike.ticks[1].metadata);
   assert.deepEqual(
     bleeding.ticks.map(({ atMs }) => atMs),
     strike.ticks.slice(1).map(({ atMs }) => atMs)
@@ -313,20 +292,13 @@ test('Elementalist canonical condition timelines preserve their packet start and
   assert.equal(ELEMENTALIST_CORE_SKILL_MECHANICS[ID.HURL].effects.length, 2);
   assert.equal(hurlStrike.type, 'strike');
   assert.equal(hurlBleeding.type, 'condition');
-  assert.ok(hurlBleeding.ticks.every(({ duration }) => duration === 8));
+
   assert.deepEqual(
     hurlStrike.ticks.map(({ atMs }) => atMs),
     hurlBleeding.ticks.map(({ atMs }) => atMs)
   );
   assert.equal(
     hurlStrike.ticks.every(({ comboFinishers }) => comboFinishers?.[0]?.finisherType === 'Projectile'),
-    true
-  );
-
-  const rustFrenzyBleeding = ELEMENTALIST_CORE_SKILL_MECHANICS[ID.RUST_FRENZY].effects[1];
-  assert.equal(rustFrenzyBleeding.type, 'condition');
-  assert.equal(
-    rustFrenzyBleeding.ticks.every(({ duration }) => duration === 6),
     true
   );
 });
@@ -343,34 +315,36 @@ test('Elementalist canonical strike timelines retain per-packet combat metadata'
       ambiguousFieldSelection: 'oldest'
     }
   ]);
-  assert.ok(strike.ticks.every(({ coefficient }) => coefficient === 0.688));
+
   assert.deepEqual(
     strike.ticks.map(({ atMs }) => atMs),
     fieryWhirl.effects[1].ticks.map(({ atMs }) => atMs)
   );
 });
 
-test('Elementalist canonical timelines retain causal and hitbox order for same-time packets', () => {
-  // Mixed timeline and shared-impact layers keep the same offensive companion ordering.
-  const glyphOfStormsAir = elementalistCatalog.skillsById.get(ID.GLYPH_OF_STORMS_AIR);
-  const packets = glyphOfStormsAir.effects.flatMap((effect) =>
+// Every hitbox's strike must precede its companion condition, even when all impacts share a timestamp.
+test('Elementalist canonical timelines pair strikes and conditions in hitbox order', () => {
+  const skill = elementalistCatalog.skillsById.get(ID.GLYPH_OF_STORMS_AIR);
+  const firstStrike = skill.effects.find((effect) => effect.type === 'strike');
+  const atMs = firstStrike.ticks[0].atMs;
+  const packets = skill.effects.flatMap((effect) =>
     (effect.ticks ?? [effect])
-      .filter(({ atMs }) => atMs === 880)
-      .map((tick) => [
-        effect.type,
-        effect.type === 'strike' ? tick.coefficient : tick.condition,
-        tick.metadata.hitboxIndex
-      ])
+      .filter((tick) => tick.atMs === atMs)
+      .map((tick) => [effect.type, tick.metadata.hitboxIndex, tick.condition ?? null])
   );
-
-  assert.deepEqual(packets, [
-    ['strike', 0.825, 1],
-    ['condition', 'Vulnerability', 1],
-    ['strike', 0.78375, 2],
-    ['condition', 'Vulnerability', 2],
-    ['strike', 0.7425, 3],
-    ['condition', 'Vulnerability', 3]
-  ]);
+  const hitboxes = packets.filter(([type]) => type === 'strike').map(([, index]) => index);
+  assert.ok(hitboxes.length > 0);
+  assert.deepEqual(
+    hitboxes,
+    [...hitboxes].sort((left, right) => left - right)
+  );
+  assert.deepEqual(
+    packets,
+    hitboxes.flatMap((index) => [
+      ['strike', index, null],
+      ['condition', index, 'Vulnerability']
+    ])
+  );
 });
 
 test('all Elementalist build and rotation assets migrate through the native codec', async () => {

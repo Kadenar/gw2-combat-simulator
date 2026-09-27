@@ -16,7 +16,7 @@ import {
   skillEffectKey
 } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 
-export type SkillEffectByType<TType extends SkillEffect['type']> = TType extends StrikeEffect['type']
+type SkillEffectByType<TType extends SkillEffect['type']> = TType extends StrikeEffect['type']
   ? StrikeEffect
   : TType extends ConditionEffect['type']
     ? ConditionEffect
@@ -38,7 +38,7 @@ interface BalanceProfileCatalogLike {
 
 type BalanceProfileLookup = (id: SkillId) => BalanceProfile | undefined;
 
-export interface BalanceProfileLookupContext {
+interface BalanceProfileLookupContext {
   readonly config?: { readonly patchId?: string; readonly profession?: string };
   readonly balanceProfile?: BalanceProfileLookup;
   readonly catalog?: BalanceProfileCatalogLike;

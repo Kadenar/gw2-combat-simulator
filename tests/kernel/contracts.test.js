@@ -3,20 +3,17 @@ import test from 'node:test';
 
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
-import { createEventStream } from '#kernel/events/stream.js';
 import { normalizeObservationPolicy, observationEndTime } from '#kernel/execution/observation.js';
 
-test('kernel event streams keep caller identity and queue equal-time events stably', () => {
+test('kernel queue preserves equal-time insertion order', () => {
   const events = [
     { kind: 'fake.action', payload: { id: 1 }, at: 10, priority: 1 },
     { kind: 'fake.action', payload: { id: 2 }, at: 10, priority: 1 },
     { kind: 'fake.action', payload: { id: 3 }, at: 5 }
   ];
-  const stream = createEventStream('fake.events', 2, events);
-  const queue = new StableEventQueue(stream.events);
 
-  assert.equal(stream.kind, 'fake.events');
-  assert.equal(stream.version, 2);
+  const queue = new StableEventQueue(events);
+
   assert.deepEqual([queue.dequeue().payload.id, queue.dequeue().payload.id, queue.dequeue().payload.id], [3, 1, 2]);
 });
 

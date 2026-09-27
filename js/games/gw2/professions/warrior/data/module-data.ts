@@ -8,11 +8,11 @@ import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalo
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/warrior/data/warrior-api-metadata.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/warrior/data/traits-data.js';
-import type { CatalogEntity, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 
 const allSkills: readonly Skill[] = Object.freeze([
-  ...SKILLS.filter((skill) => !/^\(\(/.test(String(skill.name || ''))),
+  ...SKILLS.filter((skill) => !/^\(\(/.test(skill.name || '')),
   ...WARRIOR_SUPPLEMENTAL_SKILLS
 ]);
 
@@ -53,7 +53,7 @@ interface WarriorModuleDataOptions extends ProfessionModuleDataOptions {
 
 const createModuleData = createProfessionModuleDataFactory({
   generatedSkills: generated,
-  traits: TRAITS as readonly CatalogEntity[],
+  traits: TRAITS,
   specializations: SPECIALIZATIONS,
   core: { ...WEAPON_DATA, skillNameOverrides: WARRIOR_NATIVE_CATALOG_OPTIONS.skillNameOverrides }
 });

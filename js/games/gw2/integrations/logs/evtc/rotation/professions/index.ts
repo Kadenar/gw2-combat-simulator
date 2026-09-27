@@ -1,3 +1,4 @@
+import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
 import { recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import { effectEvidence } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
@@ -81,7 +82,7 @@ function engineerKitActions(context: EvtcProfessionReconstructionContext): EvtcR
     );
     const kit = bundle ? String(recordedActionSkill(bundle, context)?.kit ?? '') : '';
     const equip = kit
-      ? context.catalog?.skills.find((s) => s.handlerId === 'engineer.kit-equip' && s.kitName === kit)
+      ? context.catalog?.skills.find((s) => (s as EngineerSkill).kitTransition === 'equip' && s.kitName === kit)
       : undefined;
     return equip && typeof equip.id === 'number'
       ? {

@@ -1,3 +1,5 @@
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import {
   definePublicStateDefaults,
@@ -5,11 +7,13 @@ import {
 } from '#gw2/platform/engine/profession/state.js';
 import { consumeNewestStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 const BLIGHT_DURATION_SECONDS = 25;
 const BLIGHT_MAXIMUM_STACKS = 25;
 
 export interface HarbingerState {
+  blightGeneration: number;
   nextBlightAt?: number;
   blight: number;
   blightExpiries: number[];
@@ -31,6 +35,7 @@ export function createHarbingerState(config: NecromancerConfig = {}): HarbingerS
   // Cap at 19 rather than 20: pre-combat stacks must never immediately trigger Meltdown on the first consumed Blight.
   const initialCascadingCorruptionStacks = boundedInteger(config.initialCascadingCorruptionStacks || 0, 0, 0, 19);
   return {
+    blightGeneration: 0,
     // POSITIVE_INFINITY means "not yet in shroud"; the cursor is set to a real value when Harbinger Shroud is entered.
     nextBlightAt: Number.POSITIVE_INFINITY,
     blight: initialBlight,
@@ -44,7 +49,7 @@ export function createHarbingerState(config: NecromancerConfig = {}): HarbingerS
 /** Keeps Harbinger's capped, expiry-backed Blight representation internally consistent. */
 export function syncHarbingerState(state: HarbingerState): void {
   // Cap refreshes retain their consumption position; sorting by expiry would spend different stacks.
-  state.blightExpiries = (state.blightExpiries || []).slice(-BLIGHT_MAXIMUM_STACKS);
+  state.blightExpiries = state.blightExpiries.slice(-BLIGHT_MAXIMUM_STACKS);
   state.blight = state.blightExpiries.length;
 }
 
@@ -66,7 +71,7 @@ export function addBlight(state: HarbingerState, stacks: number, at: number): nu
   const expiries = state.blightExpiries;
   const count = boundedInteger(stacks, 0, 0, BLIGHT_MAXIMUM_STACKS);
   for (let index = 0; index < count; index += 1) {
-    const expiresAt = at + BLIGHT_DURATION_SECONDS;
+    const expiresAt = canonicalTime(at + BLIGHT_DURATION_SECONDS);
     if (expiries.length < BLIGHT_MAXIMUM_STACKS) expiries.push(expiresAt);
     else expiries[expiries.indexOf(Math.min(...expiries))] = expiresAt;
   }
@@ -88,3 +93,14 @@ export function consumeBlight(state: HarbingerState, stacks: number, at: number)
 }
 
 export const harbingerState = defineProfessionSpecializationState('Harbinger', createHarbingerState);
+
+/** Publishes detached, current public values without mutating the live module state. */
+export function projectHarbingerPlanningState(input: Gw2PlanningStateInput) {
+  const state = snapshotProfessionState(input.profession) as HarbingerState;
+  syncHarbingerState(state);
+  return projectPublicProfessionState(
+    state,
+    HARBINGER_PUBLIC_STATE_PROJECTION.keys,
+    HARBINGER_PUBLIC_STATE_PROJECTION.defaults
+  );
+}

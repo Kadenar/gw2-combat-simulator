@@ -3,9 +3,12 @@ import {
   defineProfessionSpecializationState
 } from '#gw2/platform/engine/profession/state.js';
 import type { GuardianVirtue } from '#gw2/professions/guardian/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 export interface GuardianWillbenderState {
   flameVirtue: GuardianVirtue | null;
+  flameGeneration: number;
+  weaponCastRecharge: Record<string, { skillId: SkillId; rechargeStart: number; rechargeWork: number }>;
   pendingWeaponCooldownReduction: Record<string, number>;
   justiceUntil: number;
   resolveUntil: number;
@@ -19,6 +22,8 @@ export interface GuardianWillbenderState {
 function createWillbenderState(): GuardianWillbenderState {
   return {
     flameVirtue: null,
+    flameGeneration: 0,
+    weaponCastRecharge: {},
     pendingWeaponCooldownReduction: {}, // keyed by reservationId; accumulates in-flight reductions and cleared on cast-complete
     justiceUntil: 0,
     resolveUntil: 0,

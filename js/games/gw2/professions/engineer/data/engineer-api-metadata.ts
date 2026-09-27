@@ -11,7 +11,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Explosives',
     elite: false,
     icon: 'https://render.guildwars2.com/file/7DCC0CC4CE0E550C36F37F65469FF3103E2F2DA5/1011989.png',
-    background: 'https://render.guildwars2.com/file/159455B54672DF9C9BEEC2EB13E05DB07E757E02/1012041.png',
     minorTraits: [
       {
         id: 432,
@@ -152,7 +151,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Tools',
     elite: false,
     icon: 'https://render.guildwars2.com/file/2CBB5AE626A47DF79C9294ECA61D77922A123600/1011993.png',
-    background: 'https://render.guildwars2.com/file/4E906A6B625209A213085FD65DB9A4457726759D/1012044.png',
     minorTraits: [
       {
         id: 1979,
@@ -294,7 +292,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Alchemy',
     elite: false,
     icon: 'https://render.guildwars2.com/file/2AD4CD9B66F349A6CBC006A14848CF531E97396D/1011988.png',
-    background: 'https://render.guildwars2.com/file/A89F18BA0F9A53E662BAE3F39C705559A97B407F/1012040.png',
     minorTraits: [
       {
         id: 468,
@@ -436,7 +433,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Firearms',
     elite: false,
     icon: 'https://render.guildwars2.com/file/67A2C92B59BC94EDD3D857C2DD18E1A02A631F98/1011990.png',
-    background: 'https://render.guildwars2.com/file/2A37FAA50318E4BAE2B193D7A1DF30AAFCE7B139/1012042.png',
     minorTraits: [
       {
         id: 515,
@@ -576,7 +572,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Scrapper',
     elite: true,
     icon: 'https://render.guildwars2.com/file/FEB1B8C559DDB5A04F9C0579F741080259FEF841/1011991.png',
-    background: 'https://render.guildwars2.com/file/011D6BF69FF9A9F6E3DCBA1197BAA9281067FF01/1128516.png',
     minorTraits: [
       {
         id: 1959,
@@ -721,7 +716,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Inventions',
     elite: false,
     icon: 'https://render.guildwars2.com/file/91F9AF48FA1DDEB66A449095A4E1A6E901AE203D/1011992.png',
-    background: 'https://render.guildwars2.com/file/807C3D97D8B6A25E47B49C905B081419A779201D/1012043.png',
     minorTraits: [
       {
         id: 518,
@@ -863,7 +857,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Holosmith',
     elite: true,
     icon: 'https://render.guildwars2.com/file/F41CDEE4603FC0741669A7F2A7E977D36123DF7C/1769889.png',
-    background: 'https://render.guildwars2.com/file/FF0814C6EFA56F9ADA0B3EA7986BADF120F7D11D/1769898.png',
     minorTraits: [
       {
         id: 2158,
@@ -1007,7 +1000,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Mechanist',
     elite: true,
     icon: 'https://render.guildwars2.com/file/F86CDF34404C0B5A01CD0CBB9D7D0DC1D8CC48CF/2503608.png',
-    background: 'https://render.guildwars2.com/file/19C21A9C04620227042E483758962301EFC030D4/2503611.png',
     minorTraits: [
       {
         id: 2291,
@@ -1156,7 +1148,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Amalgam',
     elite: true,
     icon: 'https://render.guildwars2.com/file/67AA599996662C5BA8427FA7BA6FF8B4ED221B0D/3679897.png',
-    background: 'https://render.guildwars2.com/file/094F0711ADF50A3F013F2963C5B03215626C96A8/3679906.png',
     minorTraits: [
       {
         id: 2377,

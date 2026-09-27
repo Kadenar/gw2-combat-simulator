@@ -30,13 +30,13 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   },
   [ID.CRASHING_COURAGE]: {
     castTimeMs: 680,
-    // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/execution/virtues.ts`.
-    handlerId: 'guardian.willbender-virtue',
     // Grant the virtue's defensive boons with its initial strike.
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1,
+        // Virtue strikes use mechanic weapon strength independently of equipped weapons.
+        weapon: 'Profession Mechanic',
         name: 'Crashing Courage — Initial Damage'
       },
       {
@@ -129,21 +129,16 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     castTimeMs: 520,
 
     ammoCastLockout: 0.5,
-    // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/execution/virtues.ts`.
-    handlerId: 'guardian.willbender-virtue',
     effects: []
   },
   [ID.FLASH_COMBO]: {
+    // Only a completed combo arms Repose, whose old occurrence expires before same-time casts.
+    sideEffects: [
+      { on: 'castComplete', do: { type: 'flipArm', skillId: ID.REPOSE, durationSec: 6, expiryPriority: -220 } }
+    ],
     castTimeMs: 680,
     cooldown: 20,
     interruptMode: 'per-packet',
-    // Flash Combo exposes Repose for six seconds after the cast completes.
-    mechanicTriggers: [
-      {
-        type: 'guardian.willbender.arm-repose',
-        timingAnchor: 'castEnd'
-      }
-    ],
     effects: [
       {
         type: 'strike',
@@ -164,13 +159,13 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   [ID.RUSHING_JUSTICE]: {
     castTimeMs: 480,
     rechargeAnchor: 'castStart',
-    // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/execution/virtues.ts`.
-    handlerId: 'guardian.willbender-virtue',
-    // Keep the virtue's impact strike and initial Burning together.
+    // Both impact packets retain the impact identity; the strike uses mechanic weapon strength.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.5,
+        sourceId: ID.RUSHING_JUSTICE_IMPACT,
+        weapon: 'Profession Mechanic',
         name: 'Rushing Justice — Impact Damage'
       },
       {
@@ -178,6 +173,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         condition: 'Burning',
         stacks: 1,
         duration: 4,
+        sourceId: ID.RUSHING_JUSTICE_IMPACT,
         name: 'Rushing Justice — Initial Burning'
       }
     ])

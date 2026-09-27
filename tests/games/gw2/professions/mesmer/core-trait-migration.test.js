@@ -1,4 +1,7 @@
-import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
@@ -11,7 +14,6 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
   // Both sampled misses and hits during the ICD leave its deadline intact.
   for (const duration of [8, 0]) {
     const core = createMesmerCoreState();
-    core.traitReadyAt[TRAIT.MASTER_FENCER] = 2;
     const events = [];
     const context = {
       state: { profession: { core, specialization: { kind: 'Core', state: {} } } },
@@ -20,12 +22,14 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
       balanceProfile: (id) => ({ ...mesmerCatalog.balanceProfilesById.get(id), internalCooldown: duration }),
       boonDuration: (_boon, duration) => duration,
       addTraitProc(_name, at) {
-        assert.equal(core.traitReadyAt[TRAIT.MASTER_FENCER], at + duration);
+        assert.equal(context.state.procs.readyAt[TRAIT.MASTER_FENCER], at + duration);
       },
       emitEvent(_cause, event) {
         events.push(event);
       }
     };
+    context.state.procs = createProcRegistry(() => context);
+    context.state.procs.readyAt[TRAIT.MASTER_FENCER] = 2;
     const opportunity = (at, didCrit = true) =>
       triggerMesmerCriticalTraits(context, { type: 'damage', actorType: 'player', coefficient: 1, at, didCrit }, 0.5);
     opportunity(1);
@@ -33,12 +37,12 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
     opportunity(1);
     assert.equal(events.length, 0);
     opportunity(2);
-    assert.equal(core.traitReadyAt[TRAIT.MASTER_FENCER], 2);
+    assert.equal(context.state.procs.readyAt[TRAIT.MASTER_FENCER], 2);
     opportunity(2.000001, false);
     assert.equal(events.length, 0);
     opportunity(2.000001);
     assert.equal(events.length, 2);
-    assert.equal(core.traitReadyAt[TRAIT.MASTER_FENCER], 2.000001 + duration);
+    assert.equal(context.state.procs.readyAt[TRAIT.MASTER_FENCER], 2.000001 + duration);
     opportunity(2.000001 + duration);
     assert.equal(events.length, 2);
     opportunity(2.000002 + duration);
@@ -123,11 +127,12 @@ test('The Pledge emits no Burning for a torch skill interrupted before its packe
   }
 });
 
-// A completed Mirror Blade keeps both delayed trait packets; interrupted casts and unselected traits cannot add them.
+// Launched Mirror Blade bounces survive shortened recovery; cancellation and unselected traits add nothing.
 test('Bountiful Blades owns two additional Mirror Blade packets and respects interruption', () => {
   for (const [selectedTraitIds, interruptMs, expected] of [
     [[], undefined, 0],
     [[TRAIT.BOUNTIFUL_BLADES], undefined, 2],
+    [[TRAIT.BOUNTIFUL_BLADES], 580, 2],
     [[TRAIT.BOUNTIFUL_BLADES], 300, 0]
   ]) {
     const result = simulateMesmer(
@@ -257,4 +262,130 @@ test('canonical phantasm ownership triggers Sharper Images without Master Fencer
   );
 
   assert.deepEqual(procs, ['Sharper Images']);
+});
+
+// A summon can cause Dazzling, but downstream condition observers must still see a player-owned trait.
+test('Dazzling preserves ownership and live profile edits for eligible control', () => {
+  for (const actorType of ['player', 'summon', 'effect']) {
+    for (const offTarget of [false, true]) {
+      for (const removed of [false, true]) {
+        const config = defaultSimulationConfig({
+          specialization: 'Core',
+          selectedTraitIds: [TRAIT.DAZZLING],
+          target: { conditions: {} }
+        });
+        const native = mesmerProfession.runtimeFor(config);
+        const profile = native.catalog.balanceProfilesById.get(TRAIT.DAZZLING);
+        const observed = [];
+        const result = observeGw2Runtime({
+          config,
+          rotation: [{ type: 'wait', durationMs: 1000 }],
+          profession: {
+            ...native,
+            catalog: withProfile(native.catalog, TRAIT.DAZZLING, {
+              effects: removed ? [] : profile.effects.map((effect) => ({ ...effect, stacks: 7, duration: 3 }))
+            }),
+            initialize(runtime) {
+              native.initialize(runtime);
+              runtime.emit({
+                type: 'control',
+                source: 'Mesmer',
+                sourceId: ID.MAGIC_BULLET,
+                at: 0.1,
+                actorType,
+                offTarget,
+                controlKind: 'stun',
+                skillId: ID.MAGIC_BULLET,
+                skillName: 'Magic Bullet',
+                activationId: 'test.control'
+              });
+            },
+            reactions: {
+              ...native.reactions,
+              'condition.applied'(runtime, event, details) {
+                native.reactions['condition.applied']?.(runtime, event, details);
+                if (event.sourceId === TRAIT.DAZZLING) observed.push(event);
+              }
+            }
+          }
+        });
+        assert.deepEqual(result.warnings, []);
+        assert.equal(observed.length, !removed && !offTarget && actorType !== 'effect' ? 1 : 0);
+        if (observed.length) {
+          const [event] = observed;
+          assert.equal(event.actorType, 'effect');
+          assert.equal(event.ownerActorType, 'player');
+          assert.equal(event.skillId, ID.MAGIC_BULLET);
+          assert.equal(event.skillName, 'Magic Bullet');
+          assert.equal(event.activationId, 'test.control');
+          assert.equal(event.stacks, 7);
+          assert.equal(event.duration, 3);
+        }
+      }
+    }
+  }
+});
+
+// Variant additions retain patched base effects, live profile removal, and the projectile's command targeting.
+test('Bountiful Blades uses live packets with the base projectile impact delay', () => {
+  for (const removed of [false, true]) {
+    for (const offTarget of [false, true]) {
+      const config = defaultSimulationConfig({
+        specialization: 'Core',
+        primaryWeapon: 'Greatsword',
+        secondaryWeapon: '',
+        initialResource: 0,
+        selectedTraitIds: [TRAIT.BOUNTIFUL_BLADES]
+      });
+      const native = mesmerProfession.runtimeFor(config);
+      const catalog = withProfile(
+        withSkill(native.catalog, ID.MIRROR_BLADE, {
+          effects: [
+            {
+              type: 'strike',
+              ticks: [{ atMs: 600, coefficient: 0.75 }],
+              timingAnchor: 'castStart',
+              timingScale: 'fixed'
+            }
+          ]
+        }),
+        TRAIT.BOUNTIFUL_BLADES,
+        {
+          effects: removed
+            ? []
+            : [
+                {
+                  type: 'strike',
+                  name: 'Strike',
+                  ticks: [{ atMs: 1300, coefficient: 0.125 }],
+                  timingAnchor: 'castStart',
+                  timingScale: 'fixed'
+                }
+              ]
+        }
+      );
+      const result = observeGw2Runtime({
+        config,
+        profession: { ...native, catalog },
+        rotation: [
+          { type: 'cast', skillId: ID.MIRROR_BLADE, impactDelayMs: offTarget ? 0 : 250, offTarget },
+          { type: 'wait', durationMs: 1500 }
+        ]
+      });
+      assert.deepEqual(result.warnings, []);
+      const packets = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.MIRROR_BLADE);
+      assert.equal(packets.length, removed ? 1 : 2);
+      assert.equal(packets[0].coefficient, 0.75);
+      assert.equal(packets[0].at, offTarget ? 0.6 : 0.85);
+      if (!removed) {
+        assert.equal(packets[1].coefficient, 0.125);
+        assert.equal(packets[1].at, offTarget ? 1.3 : 1.55);
+        assert.equal(packets[1].sourceId, TRAIT.BOUNTIFUL_BLADES);
+        assert.equal(packets[1].actorType, 'player');
+        assert.equal(packets[1].activationId, packets[0].activationId);
+      }
+
+      assert.ok(packets.every((event) => Boolean(event.offTarget) === offTarget));
+    }
+  }
 });

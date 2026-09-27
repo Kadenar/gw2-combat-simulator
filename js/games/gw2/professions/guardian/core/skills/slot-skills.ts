@@ -1,6 +1,8 @@
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -96,8 +98,6 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
   },
   [ID.RENEWED_FOCUS]: {
     castTimeMs: 1360,
-    // Custom: Refreshes all virtue cooldowns and readiness state; see `core/mechanics/virtues.ts`.
-    handlerId: 'guardian.renewed-focus',
     effects: []
   },
   [ID.SIGNET_OF_RESOLVE]: {
@@ -132,6 +132,26 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ])
   },
   [ID.PURGING_FLAMES]: {
+    // Extend the live base packets from the selected trait profile; the combo-field owner retains its duration.
+    effectVariants: [
+      {
+        when: (runtime) => hasTrait(runtime, TRAIT.MASTER_OF_CONSECRATIONS),
+        profileId: PROFILE.masterOfConsecrations,
+        transform: (_runtime, cast, effects) => [
+          ...(cast.skill.effects ?? []),
+          ...effects
+            .filter((effect) => effect.type === 'strike' || effect.type === 'condition')
+            .map((effect) => {
+              if (!effect.ticks?.length) throw new Error('Master of Consecrations requires explicit packet timelines.');
+              return {
+                ...effect,
+                name: effect.type === 'strike' ? cast.skill.name : `${cast.skill.name} \u2014 Burning`,
+                weapon: 'Unequipped'
+              };
+            })
+        ]
+      }
+    ],
     castTimeMs: 320,
     cooldown: 20,
     comboFields: [

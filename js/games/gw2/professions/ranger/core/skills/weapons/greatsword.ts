@@ -6,7 +6,25 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 const maul: Partial<Skill> = {
   cooldown: 4,
   effects: [
-    { type: 'strike', coefficient: 2.2, hits: 1 },
+    {
+      type: 'strike',
+      coefficient: 2.2,
+      hits: 1,
+      // Queue the recipient's next-attack buff after the current strike's existing charge is consumed.
+      reactions: [
+        {
+          on: 'damage.resolved',
+          actor: 'player',
+          packets: 'each',
+          when: (runtime, { event, skill }) =>
+            Number(event.coefficient) > 0 &&
+            event.source !== 'ranger-pet' &&
+            skill.id === ID.MAUL_BASE &&
+            runtime.profession.core.petActive,
+          do: { type: 'ranger.maul-pet' }
+        }
+      ]
+    },
     { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 }
   ],
   castTimeMs: 840
@@ -24,15 +42,19 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     castTimeMs: 400
   },
   [ID.HILT_BASH]: {
+    // The completed activation refreshes its paired skill through the shared recharge owner.
+    sideEffects: [{ on: 'castComplete', do: { type: 'rechargeReset', skillIds: [ID.MAUL_SOULBEAST, ID.MAUL_BASE] } }],
     cooldown: 20,
-    handlerId: 'ranger.hilt-bash',
+
     effects: [
       {
         type: 'strike',
         coefficient: 2.5,
         hits: 1
       },
-      { type: 'control', controlKind: 'Daze' }
+      // Select one control packet at acceptance without rewriting effects in the Core hook.
+      { type: 'control', controlKind: 'Daze', when: (runtime) => !runtime.config.target?.defiant },
+      { type: 'control', controlKind: 'Stun', when: (runtime) => Boolean(runtime.config.target?.defiant) }
     ],
     castTimeMs: 640
   },
@@ -47,7 +69,17 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     castTimeMs: 600
   },
   [ID.ENDURING_SWING]: {
-    resourceGain: 15,
+    // Only a fully completed chain finisher grants the selected endurance reward.
+    sideEffects: [
+      {
+        on: 'castComplete',
+        do: {
+          type: 'resourceGrant',
+          resource: 'endurance',
+          amount: { profile: ID.ENDURING_SWING, field: 'resourceGain' }
+        }
+      }
+    ],
     effects: [
       {
         type: 'strike',

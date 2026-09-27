@@ -1,7 +1,4 @@
 export const THIEF_SKILL_IDS = Object.freeze({
-  SWAP_WEAPONS: -3,
-  DODGE: -5,
-
   // Generated coverage for every skill in the API metadata snapshot.
   DOUBLE_STRIKE: 13004, // Double Strike
   DEATH_BLOSSOM: 13006, // Death Blossom

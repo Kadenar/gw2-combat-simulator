@@ -13,9 +13,6 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Part
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    waves: 5,
-    totalCoefficient: 2,
-    maximumHitsPerTarget: 1,
     castTimeMs: 480,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [

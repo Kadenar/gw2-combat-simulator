@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ELEMENTALIST_TRAIT_IDS as ELE } from '#gw2/professions/elementalist/data/ids.js';
@@ -16,7 +16,7 @@ import { procChanceFromContext } from '#gw2/platform/engine/skills/balance-profi
 
 // Minimal casts exercise the same patched catalog in scheduler and resolver paths.
 function run(profession, balanceProfiles, specialization, rotation, config = {}, skills = {}) {
-  const result = simulateGw2({
+  const options = {
     profession: withPatchPreview(profession, {
       id: 'removal-contract',
       label: 'Removal contract',
@@ -33,7 +33,8 @@ function run(profession, balanceProfiles, specialization, rotation, config = {},
       target: { armor: 2597, defiant: true, conditions: {} },
       ...config
     }
-  });
+  };
+  const result = runGw2Runtime({ ...options, profession: options.profession.runtimeFor(options.config) });
   assert.deepEqual(result.warnings, []);
   return result;
 }

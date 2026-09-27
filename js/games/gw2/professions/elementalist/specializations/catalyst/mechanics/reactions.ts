@@ -1,13 +1,11 @@
 import { resolverSourceSkill, buildResolverStrike, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 /**
- * Resolver-side Catalyst reactions.
+ * Accepted-impact Catalyst reactions.
  *
- * The scheduler emits the canonical event stream; these handlers read it after
- * resolution to grant Empowering Auras and Elemental Empowerment stacks, run the
+ * These handlers observe actual event outcomes to grant Empowering Auras and Elemental Empowerment stacks, run the
  * combo-finisher traits (Elemental Epitome, Elemental Synergy), pay out Vicious
  * Empowerment, and queue the Shattering Ice packet.
  */
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber,
@@ -19,8 +17,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
-import type { ElementalistResolverContext } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import {
   activeElementalistBuffs,
   queueElementalistAura,
@@ -40,7 +37,10 @@ import {
   elementalEpitomeAura,
   elementalSynergyBoon
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/aura-parameters.js';
-import { elementalistEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+
+// Marks Shattering Ice's own strike so it can never retrigger the proc; the display label stays free to change.
+const SHATTERING_ICE_PACKET = 'elementalist.catalyst.shattering-ice';
 
 /**
  * Convert resolved aura applications into Catalyst aura-stack traits and their
@@ -50,16 +50,15 @@ import { elementalistEndurance } from '#gw2/professions/elementalist/core/mechan
  * Elemental Epitome turns the same aura into an Elemental Empowerment stack, but
  * only once combat has started.
  */
-export function applyCatalystResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
+export function applyCatalystResolverAura(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
   // Scheduled auras already carry their trait grants; only newly resolved auras
   // need new grants here. Both paths still refresh Empowering Auras' duration.
-  const needsGrants = event.elementalistResolverGeneratedAura === true || event.type === 'aura';
-  if (hasTrait(context, 'Empowering Auras')) {
+  if (hasTrait(context, TRAIT.EMPOWERING_AURAS)) {
     const { maximumStacks, duration } = empoweringAurasParameters(context);
     const current = activeElementalistBuffs(context, 'Empowering Auras', event.at);
     refreshElementalistBuffs(context, 'Empowering Auras', event.at, () => event.at + duration);
-    const activeStacks = current.reduce((total, application) => total + Number(application.stacks || 1), 0);
-    if (needsGrants && activeStacks < maximumStacks) {
+    const activeStacks = current.reduce((total, application) => total + (application.stacks || 1), 0);
+    if (activeStacks < maximumStacks) {
       queueElementalistBuff(context, event, 'Empowering Auras', 1, duration, resolverSourceSkill(event));
     }
 
@@ -67,8 +66,7 @@ export function applyCatalystResolverAura(context: ElementalistResolverContext, 
   }
 
   if (
-    !needsGrants ||
-    !hasTrait(context, 'Elemental Epitome') ||
+    !hasTrait(context, TRAIT.ELEMENTAL_EPITOME) ||
     (context.combatStartTime != null && event.at < context.combatStartTime)
   ) {
     return;
@@ -93,15 +91,13 @@ export function applyCatalystResolverAura(context: ElementalistResolverContext, 
  * Elemental Synergy runs on its own per-attunement cooldown and pays out by
  * element: might in Fire, stability in Earth, endurance in Air.
  */
-export function applyCatalystComboTraits(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
+export function applyCatalystComboTraits(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
   const core = professionCoreState(context);
-  const state = catalystState.from(context);
   const attunement = core.primaryAttunement;
   if (
-    hasTrait(context, 'Elemental Epitome') &&
-    tryConsumeProcCooldown(
-      state.elementalEpitomeReadyAt,
-      attunement,
+    hasTrait(context, TRAIT.ELEMENTAL_EPITOME) &&
+    context.procs.claimCooldown(
+      `elementalist.catalyst.elementalEpitome:${attunement}`,
       event.at,
       balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.elementalEpitome), 'internalCooldown')
     )
@@ -114,10 +110,9 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
   }
 
   if (
-    hasTrait(context, 'Elemental Synergy') &&
-    tryConsumeProcCooldown(
-      state.elementalSynergyReadyAt,
-      attunement,
+    hasTrait(context, TRAIT.ELEMENTAL_SYNERGY) &&
+    context.procs.claimCooldown(
+      `elementalist.catalyst.elementalSynergy:${attunement}`,
       event.at,
       balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.elementalSynergy), 'internalCooldown')
     )
@@ -128,15 +123,7 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
     } else if (attunement === 'Air') {
       const elementalSynergyProfile = requireBalanceProfileFromContext(context, PROFILE.elementalSynergy);
 
-      Object.assign(
-        core,
-        grantEndurance(
-          core,
-          balanceProfileNumber(elementalSynergyProfile, 'resourceGain'),
-          event.at,
-          elementalistEndurance.maximum(context)
-        )
-      );
+      context.endurance.grant(balanceProfileNumber(elementalSynergyProfile, 'resourceGain'));
     }
 
     recordElementalistTraitProc(context, event, 'Elemental Synergy');
@@ -162,9 +149,9 @@ function queueCatalystBuff(
  * before combat start.
  */
 export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  const immobilize = ['Immobilize', 'Immobilized'].includes(String(event.condition || ''));
+  const immobilize = ['Immobilize', 'Immobilized'].includes(event.condition || '');
   if (
-    !hasTrait(context, 'Vicious Empowerment') ||
+    !hasTrait(context, TRAIT.VICIOUS_EMPOWERMENT) ||
     event.actorType !== 'player' ||
     (event.type !== 'control' && !immobilize) ||
     (context.combatStartTime != null && event.at < context.combatStartTime)
@@ -172,24 +159,18 @@ export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2R
     return;
   }
 
-  const state = catalystState.from(context);
-  if (!isInternalCooldownReady(event.at, state.viciousEmpowermentReadyAt)) return;
+  if (!isInternalCooldownReady(event.at, context.procs.deadline('elementalist.catalyst.viciousEmpowerment'))) return;
   const viciousEmpowermentProfile = requireBalanceProfileFromContext(context, PROFILE.viciousEmpowerment);
-  state.viciousEmpowermentReadyAt = event.at + balanceProfileNumber(viciousEmpowermentProfile, 'internalCooldown');
+  context.procs.readyAt['elementalist.catalyst.viciousEmpowerment'] =
+    event.at + balanceProfileNumber(viciousEmpowermentProfile, 'internalCooldown');
   const empowerment = requireEffect(viciousEmpowermentProfile, 'buff', 'Empowerment');
   const might = requireEffect(viciousEmpowermentProfile, 'boon', 'Might');
   if (empowerment) {
-    queueCatalystBuff(
-      context,
-      event,
-      'elemental empowerment',
-      Number(empowerment.stacks),
-      Number(empowerment.duration)
-    );
+    queueCatalystBuff(context, event, 'elemental empowerment', Number(empowerment.stacks), empowerment.duration);
   }
 
   if (might) {
-    queueCatalystBuff(context, event, String(might.boon), Number(might.stacks), Number(might.duration));
+    queueCatalystBuff(context, event, String(might.boon), Number(might.stacks), might.duration);
   }
 
   context.recordProc('trait', 'Vicious Empowerment', event.at, event.skillName);
@@ -203,12 +184,12 @@ export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2R
  * proc whenever the buff is reapplied.
  */
 export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  const kind = String(event.kind || '').toLowerCase();
+  const kind = (event.kind || '').toLowerCase();
   if (kind === 'shattering ice' && event.resolvedAudience?.includesSelf) {
     const state = catalystState.from(context);
-    state.shatteringIceUntil = gw2EffectExpiresAt(event.at, Math.max(0, Number(event.duration || 0)));
+    state.shatteringIceUntil = gw2EffectExpiresAt(event.at, Math.max(0, event.duration || 0));
     // Refreshing the buff rearms its first strike; subsequent strikes use the canonical strict ICD.
-    state.shatteringIceReadyAt = 0;
+    context.procs.readyAt['elementalist.catalyst.shatteringIce'] = 0;
     return;
   }
 
@@ -221,8 +202,8 @@ export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2
   grantCatalystElementalEmpowerment(
     state,
     event.at,
-    Number(event.duration || 0),
-    Number(event.stacks || 1),
+    event.duration || 0,
+    event.stacks || 1,
     balanceProfileNumber(elementalEmpowermentProfile, 'maximumStacks')
   );
 }
@@ -238,16 +219,17 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
   const state = catalystState.from(context);
   if (
     (event.actorType !== 'player' && event.actorType !== 'effect') ||
-    event.skillName === 'Shattering Ice Proc' ||
+    event.metadata?.packetKind === SHATTERING_ICE_PACKET ||
     !(Number(event.coefficient) > 0) ||
     state.shatteringIceUntil <= event.at ||
-    !isInternalCooldownReady(event.at, state.shatteringIceReadyAt)
+    !isInternalCooldownReady(event.at, context.procs.deadline('elementalist.catalyst.shatteringIce'))
   ) {
     return;
   }
 
   const shatteringIceProfile = requireBalanceProfileFromContext(context, PROFILE.shatteringIce);
-  state.shatteringIceReadyAt = event.at + balanceProfileNumber(shatteringIceProfile, 'internalCooldown');
+  context.procs.readyAt['elementalist.catalyst.shatteringIce'] =
+    event.at + balanceProfileNumber(shatteringIceProfile, 'internalCooldown');
   const strike = requireEffect(shatteringIceProfile, 'strike', 'Shattering Ice - Triggered Packet');
   const chilled = requireEffect(shatteringIceProfile, 'condition', 'Chilled');
   if (strike) {
@@ -261,7 +243,8 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
         skillName: 'Shattering Ice Proc',
         coefficient: Number(strike.coefficient),
         skillWeapon: 'Unequipped',
-        triggeredBy: event.skillName
+        triggeredBy: event.skillName,
+        metadata: { packetKind: SHATTERING_ICE_PACKET }
       })
     );
   }

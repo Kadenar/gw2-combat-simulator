@@ -46,9 +46,6 @@ async function frame(duration = 2200) {
       overlay.id = 'capture-annotation';
       overlay.style.cssText =
         'position:fixed;inset:0;pointer-events:none;z-index:2147483647;font-family:Arial,sans-serif';
-      const style = document.createElement('style');
-      style.textContent = '.floating-dps { transform: translateY(-90px); }';
-      overlay.append(style);
       const banner = document.createElement('div');
       banner.style.cssText =
         'position:absolute;bottom:0;left:0;right:0;height:90px;box-sizing:border-box;padding:14px 28px;background:#10131ff5;border-top:3px solid #bd95ef;color:#fff;line-height:1.35';

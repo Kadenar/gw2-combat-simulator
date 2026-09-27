@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { mountFloatingDps, updateFloatingDps } from '#app/shell/floating-dps.js';
+import { mountHeaderDps, updateHeaderDps } from '#app/shell/header-dps.js';
 import {
   DEFAULT_ROTATION_WORKSPACE_STATE,
   isSimulationConfigVisible,
@@ -60,10 +60,10 @@ test('rotation DPS summary mounts directly after the timeline', () => {
   });
 });
 
-test('floating DPS mounts once and tracks the latest result', () => {
+test('header DPS mounts once and tracks the latest result', () => {
   const elements = new Map();
-  const footer = {
-    append(node) {
+  const headerActions = {
+    prepend(node) {
       elements.set(node.id, node);
     }
   };
@@ -84,30 +84,23 @@ test('floating DPS mounts once and tracks the latest result', () => {
     }
   });
   const root = {
-    body: {
-      dataset: { profession: 'mesmer' },
-      append(node) {
-        elements.set(node.id, node);
-      }
-    },
     createElement: () => element(),
     getElementById: (id) => elements.get(id) || null,
     querySelector: (selector) => {
-      if (selector === '.landing-footer') return footer;
-      return selector === '.simulation-workspace' ? {} : null;
+      return selector === 'body[data-profession] #app > header .community-actions' ? headerActions : null;
     }
   };
 
-  const indicator = mountFloatingDps(root);
-  mountFloatingDps(root);
-  updateFloatingDps('12,345', root);
+  const indicator = mountHeaderDps(root);
+  mountHeaderDps(root);
+  updateHeaderDps('12,345', root);
 
   assert.equal(elements.size, 1);
-  assert.equal(indicator.querySelector('.floating-dps-label').textContent, 'DPS');
-  assert.equal(indicator.querySelector('.floating-dps-value').textContent, '12,345');
+  assert.equal(indicator.querySelector('.header-dps-label').textContent, 'DPS');
+  assert.equal(indicator.querySelector('.header-dps-value').textContent, '12,345');
   assert.equal(indicator.attributes.get('aria-label'), 'Current rotation DPS: 12,345');
 
-  updateFloatingDps(null, root);
-  assert.equal(indicator.querySelector('.floating-dps-value').textContent, '—');
+  updateHeaderDps(null, root);
+  assert.equal(indicator.querySelector('.header-dps-value').textContent, '—');
   assert.equal(indicator.attributes.get('aria-label'), 'Current rotation DPS unavailable');
 });

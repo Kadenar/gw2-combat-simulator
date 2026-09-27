@@ -1,6 +1,9 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 /** Owns Renegade Citadel order skill fragments. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Each impact applies strike damage and Burning at the same offset after cast completion.
@@ -34,8 +37,7 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ])
   },
   [ID.HEROIC_COMMAND]: {
-    // Custom: Builds Heroic Command boons from live Kalla state and traits; see `renegade/mechanics/kalla-and-band-together.ts`.
-    handlerId: 'revenant.heroic-command',
+    // Custom: Builds Heroic Command boons from live Kalla state and traits; see `renegade/hooks.ts`.
     castTimeMs: 480,
     cooldown: 10,
     energyCost: 10,
@@ -51,8 +53,20 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.ORDERS_FROM_ABOVE]: {
-    // Custom: Builds Orders from Above boons from live Kalla state and traits; see `renegade/mechanics/kalla-and-band-together.ts`.
-    handlerId: 'revenant.orders-from-above',
+    // These trait-selected pulses need no live Fervor state; normal scheduling preserves their fixed cadence.
+    effectVariants: [
+      {
+        when: (runtime) => hasTrait(runtime, TRAIT.RIGHTEOUS_REBEL),
+        profileId: PROFILE.ordersFromAboveRighteousRebel,
+        transform: (runtime, _cast, effects) =>
+          hasTrait(runtime, TRAIT.BOLD_REVERSAL)
+            ? [
+                ...effects,
+                ...(requireBalanceProfileFromContext(runtime, PROFILE.boldReversalRighteousRebel).effects ?? [])
+              ]
+            : effects
+      }
+    ],
     castTimeMs: 0,
     cooldown: 20,
     energyCost: 20,

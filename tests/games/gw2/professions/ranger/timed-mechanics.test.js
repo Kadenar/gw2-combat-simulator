@@ -1,15 +1,13 @@
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { enterAvatar } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar.js';
-import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
-import { galeshotModifierRules } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow-rules.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { galeshotModifiers } from '#gw2/professions/ranger/specializations/galeshot/modifiers.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
-const simulate = createProfessionSimulator(rangerProfession, {
+const simulate = createObservedProfessionSimulator(rangerProfession, {
   initialAstralForce: 100,
   target: { armor: 2597, conditions: {} },
   selectedTraitIds: [TRAIT.NATURAL_MENDER, TRAIT.NATURAL_BALANCE]
@@ -52,27 +50,29 @@ test('manual Avatar exit cancels automatic exit and retains half the remaining f
 });
 
 test('Avatar depletion schedules an earlier exit than the duration limit', () => {
-  const scheduler = createScheduler({
-    profession: rangerProfession,
-    config: { specialization: 'Druid', initialAstralForce: 20, selectedTraitIds: [TRAIT.NATURAL_MENDER] }
-  });
-  // Exercise the resource lifecycle directly; normal cast availability requires full force.
-  enterAvatar(
-    { ...scheduler.context, start: 0, effectiveEnd: 0 },
-    scheduler.context.catalog.skillsById.get(ID.CELESTIAL_AVATAR)
+  const result = runRanger(
+    ['Celestial Avatar', { type: 'wait', durationMs: 10000 }],
+    { specialization: 'Druid', selectedTraitIds: [TRAIT.NATURAL_MENDER] },
+    {
+      extend: (native) => ({
+        onCastComplete(runtime, cast) {
+          native.onCastComplete(runtime, cast);
+          if (cast.skill.id === ID.CELESTIAL_AVATAR) runtime.resourceController.spend('astralForce', 80);
+        }
+      })
+    }
   );
-  scheduler.advanceTo(10);
   assert.deepEqual(
-    scheduler.events.filter(({ type }) => type === 'sigil_swap').map(({ at }) => at),
+    result.events.filter((event) => event.type === 'sigil_swap').map((event) => event.at),
     [0, 3]
   );
-  assert.equal(druidState.from(scheduler.context).astralClock.value, 16);
-  assert.equal(druidState.from(scheduler.context).celestialAvatarActive, false);
+  assert.equal(result.planningState.profession.astralClock.value, 16);
+  assert.equal(result.planningState.profession.celestialAvatarActive, false);
 });
 
 // Check both boon sources and ownership at the actual start/expiry boundaries.
 test('Bird of Prey accepts permanent and timed movement buffs only for player-owned damage', () => {
-  const rule = galeshotModifierRules.find(({ id }) => id === 'ranger.bird-of-prey');
+  const rule = galeshotModifiers.find(({ id }) => id === 'ranger.bird-of-prey');
   const context = {
     config: { selectedTraitIds: [TRAIT.BIRD_OF_PREY] },
     event: { actorType: 'player' },

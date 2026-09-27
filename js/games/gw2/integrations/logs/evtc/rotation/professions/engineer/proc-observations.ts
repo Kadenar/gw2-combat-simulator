@@ -1,5 +1,5 @@
 import type { BalanceProfile, CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
-import { balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, effectNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
@@ -8,6 +8,7 @@ import {
   EVTC_BLEEDING_SKILL_ID,
   EVTC_CRIPPLED_SKILL_ID,
   analyzeCriticalBleedingProcObservation,
+  bleedingDuration,
   countPairedApplications,
   type CriticalBleedingProcObservation,
   expectedConditionDurationsMs,
@@ -18,8 +19,6 @@ import {
   traitBalanceProfile
 } from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
 
-const SHRAPNEL_BLEEDING_BASE_SECONDS = 6;
-const SHRAPNEL_CRIPPLED_BASE_SECONDS = 1;
 const EVENT_FLAGGED_EXPLOSION_NAMES = new Set([
   // Generated rockets receive their explosion flag in the resolver and remain eligible for Shrapnel.
   'aim-assisted rocket',
@@ -82,7 +81,7 @@ function expectedChance(profile: BalanceProfile): number | null {
   return chance > 0 ? chance : null;
 }
 
-/** Counts only paired 6-second Bleeding and 1-second Crippled applications against explosion packets. */
+/** Match paired Shrapnel conditions using the selected profile's durations, including balance edits and removals. */
 export function analyzeEngineerShrapnelObservation(
   log: ParsedEvtc,
   playerAddress: bigint,
@@ -104,8 +103,16 @@ export function analyzeEngineerShrapnelObservation(
   ).length;
   if (!explosionHits) return null;
 
-  const matchedBleedingDurationsMs = expectedConditionDurationsMs(SHRAPNEL_BLEEDING_BASE_SECONDS, 'Bleeding', config);
-  const matchedCrippledDurationsMs = expectedConditionDurationsMs(SHRAPNEL_CRIPPLED_BASE_SECONDS, 'Crippled', config);
+  const crippledEffect = profile.effects?.find(
+    (effect) => effect.type === 'condition' && effect.condition?.toLowerCase() === 'crippled'
+  );
+  const matchedBleedingDurationsMs = expectedConditionDurationsMs(bleedingDuration(profile), 'Bleeding', config);
+  const matchedCrippledDurationsMs = expectedConditionDurationsMs(
+    crippledEffect ? effectNumber(profile, crippledEffect, 'duration') : 0,
+    'Crippled',
+    config
+  );
+  if (!matchedBleedingDurationsMs.length || !matchedCrippledDurationsMs.length) return null;
   const bleeding = matchingConditionApplications(
     log,
     playerAddress,

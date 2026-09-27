@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
 import test from 'node:test';
@@ -84,7 +85,7 @@ test('Elementalist skill mechanics have disjoint module ownership', () => {
     [...owners.keys()].sort((left, right) => Number(left) - Number(right)),
     Object.keys(ELEMENTALIST_SKILL_MECHANICS).sort((left, right) => Number(left) - Number(right))
   );
-  const declaredIds = new Set(Object.values(ELEMENTALIST_SKILL_IDS));
+  const declaredIds = new Set([...Object.values(ELEMENTALIST_SKILL_IDS), SHARED_SKILL_IDS.DODGE]);
 
   for (const skillId of owners.keys()) {
     assert.equal(declaredIds.has(Number(skillId)), true, skillId);

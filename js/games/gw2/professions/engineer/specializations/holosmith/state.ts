@@ -13,8 +13,8 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 export interface HolosmithState {
   heat: number;
   maximumHeat: number;
-  heatUpdatedAt: number;
   passiveHeatAt: number | null;
+  enhancedCapacityMightAt: number;
   photonForgeActive: boolean;
   forgeExitedAt: number | null;
   overheated: boolean;
@@ -22,12 +22,7 @@ export interface HolosmithState {
   kitLockoutUntil: number;
 }
 
-// These fields advance only in the resolver; scheduler snapshots cannot restore them.
-export const HOLOSMITH_RESOLVER_STATE_KEYS = Object.freeze([
-  'solarFocusingLens'
-] as const satisfies readonly (keyof HolosmithState)[]);
-
-// Holosmith owns both its public projection keys and the inactive compatibility values.
+// Holosmith owns both its public projection keys and the inactive display values.
 export const HOLOSMITH_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   heat: 0,
   maximumHeat: 100,
@@ -48,8 +43,8 @@ export function createHolosmithState(config: EngineerConfig = {}): HolosmithStat
   return {
     heat: initialHeat,
     maximumHeat,
-    heatUpdatedAt: 0,
     passiveHeatAt: null,
+    enhancedCapacityMightAt: Infinity,
     photonForgeActive: false,
     // null = forge has never been exited (no cooling yet); 0 = treat as exited at t=0 so
     // the passive cooling schedule starts immediately when initialHeat > 0.

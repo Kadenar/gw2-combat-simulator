@@ -1,6 +1,13 @@
+import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // EVTC-measured Quickness timings keep spear casts aligned with their observed cast-lane occupancy.
@@ -8,8 +15,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ENTANGLING_ASP]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/mechanics/spear-chain.ts`.
-    handlerId: 'thief.spear-chain',
+    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 2,
@@ -38,8 +44,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.SHATTERING_ASSAULT]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/mechanics/spear-chain.ts`.
-    handlerId: 'thief.spear-chain',
+    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 640,
     cooldown: 0,
     initiativeCost: 1,
@@ -61,8 +66,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.DISTRACTING_THROW]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/mechanics/spear-chain.ts`.
-    handlerId: 'thief.spear-chain',
+    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 2,
@@ -98,8 +102,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.UNSUSPECTING_STRIKE]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/mechanics/spear-chain.ts`.
-    handlerId: 'thief.spear-chain',
+    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 3,
@@ -121,6 +124,18 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
       {
         type: 'condition',
         condition: 'Bleeding',
+        // Only the accepted base Bleeding can earn the high-health bonus application.
+        reactions: [
+          {
+            on: 'condition.applied',
+            actor: 'player',
+            packets: 'each',
+            when: (runtime) =>
+              !(Number(runtime.config.target?.health) > 0) ||
+              targetHealthLoss(runtime.config, runtime) / Number(runtime.config.target?.health) < 0.1,
+            do: { type: 'thief.unsuspecting-bleeding' }
+          }
+        ],
         stacks: 1,
         duration: 6,
         actorType: 'player'
@@ -136,8 +151,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
   [ID.ASHEN_ASSAULT]: {
     preservesStealth: true,
     spearStealthAttack: true,
-    // Custom: Selects the stealth spear chain, then consumes stealth on completion; see `core/mechanics/spear-chain.ts`.
-    handlerId: 'thief.spear-stealth-attack',
+    // Custom: Selects the stealth spear chain, then consumes stealth on completion through `core/hooks.ts`.
     castTimeMs: 1200,
     cooldown: 0,
     initiativeCost: 0,
@@ -188,8 +202,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     stealthAttack: true
   },
   [ID.MANTIS_STING]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/mechanics/spear-chain.ts`.
-    handlerId: 'thief.spear-chain',
+    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 400,
     cooldown: 0,
     initiativeCost: 3,
@@ -218,8 +231,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.VAMPIRIC_SLASH]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/mechanics/spear-chain.ts`.
-    handlerId: 'thief.spear-chain',
+    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 1,
@@ -254,8 +266,40 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.FALLING_SPIDER]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/mechanics/spear-chain.ts`.
-    handlerId: 'thief.spear-chain',
+    // Capture the qualifying predecessor at acceptance and transform the live base packets, including patched ticks.
+    effectVariants: [
+      {
+        when: (runtime: ThiefRuntime) =>
+          (runtime.profession.core.spearChainStage || 0) === 2 &&
+          runtime.profession.core.spearPreviousSkillId === ID.ENTANGLING_ASP,
+        profileId: PROFILE.fallingSpiderEmpowered,
+        transform: (runtime, cast) => {
+          const profile = requireBalanceProfileFromContext(runtime, PROFILE.fallingSpiderEmpowered);
+          const factor = balanceProfileNumber(profile, 'damageMultiplier');
+          const extraStacks = balanceProfileNumber(profile, 'resourceGain');
+          const boosted = (condition: unknown) => ['Bleeding', 'Poisoned'].includes(String(condition));
+          return (cast.skill.effects ?? []).map((effect) => {
+            if (effect.type === 'strike')
+              return effect.ticks?.length
+                ? {
+                    ...effect,
+                    ticks: effect.ticks.map((tick) => ({ ...tick, coefficient: tick.coefficient * factor }))
+                  }
+                : { ...effect, coefficient: (effect.coefficient || 0) * factor };
+            if (effect.type !== 'condition') return effect;
+            if (effect.ticks?.length)
+              return {
+                ...effect,
+                ticks: effect.ticks.map((tick) =>
+                  boosted(tick.condition) ? { ...tick, stacks: tick.stacks + extraStacks } : tick
+                )
+              };
+            return boosted(effect.condition) ? { ...effect, stacks: (effect.stacks ?? 1) + extraStacks } : effect;
+          });
+        }
+      }
+    ],
+    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 1,
@@ -292,8 +336,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
   },
   [ID.BARBED_SPEAR]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/mechanics/spear-chain.ts`.
-    handlerId: 'thief.spear-chain',
+    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,

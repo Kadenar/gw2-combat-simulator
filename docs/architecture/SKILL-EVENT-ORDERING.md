@@ -1,20 +1,8 @@
 # Skill event priority and ordering
 
-This document explains how rotations, scheduler tasks, and resolver events are ordered. The simulator does not assign a
-priority score to skills or choose the next skill automatically. Priority is an internal tie-breaker for work that has
-already been placed on the timeline.
-
-## Execution pipeline
-
-```text
-rotation commands
-  -> scheduler and private task queue
-  -> canonical scheduled events
-  -> resolver event queue
-  -> damage, conditions, state changes, and reactions
-```
-
-The scheduler and resolver have separate queues. A priority in one queue has no direct effect on the other.
+Commands, internal tasks, and combat packets execute on one clock and one stable heap. Priority orders already scheduled
+work; it does not select the next skill. `simulateGw2()` invokes this runtime for all application and analysis
+consumers.
 
 ## Rotation order is not event priority
 
@@ -31,9 +19,9 @@ Event priority does not:
 Use the rotation and its timing fields to describe player decisions. Use event priority only to describe causal ordering
 between simultaneous effects.
 
-## Resolver event ordering
+## Shared work ordering
 
-The resolver processes canonical events in this order:
+The runtime processes queued work in this order:
 
 1. canonical integer microsecond timestamp, ascending;
 2. internal phase: Sample, Settle, then Ordinary;
@@ -45,11 +33,10 @@ The resolver processes canonical events in this order:
 A missing priority is treated as `0`. Lower numbers run first, so `-10` runs before `0`, and `0` runs before `10`.
 Priority only changes the order of events with the same timestamp and phase. Authors cannot override phases.
 
-Public events retain seconds, rounded to the nearest microsecond before emission and resolver ingress. Integer keys make
-arithmetic aliases such as `0.56 + 0.04` and `0.6` equal without merging adjacent microseconds. Nonfinite or unsafe
-timestamps are rejected. This is numerical normalization, not a change to authored strike grids or projectile delays.
-Observation cutoffs are inclusive at the canonical instant; delayed completion effects need an explicit observation
-tail.
+Public events retain seconds, rounded to the nearest microsecond before queue ingress. Integer keys make arithmetic
+aliases such as `0.56 + 0.04` and `0.6` equal without merging adjacent microseconds. Nonfinite or unsafe timestamps are
+rejected. This is numerical normalization, not a change to authored strike grids or projectile delays. Observation
+cutoffs are inclusive at the canonical instant; delayed completion effects need an explicit observation tail.
 
 `EPSILON` is only a tolerance for comparisons at numeric boundaries. Never add or subtract it from `at`, `duration`, or
 `expiresAt` to express ordering. Synthetic 0.1 ms gaps create false gameplay time and bypass the queue's ordering
@@ -116,13 +103,9 @@ of reserved event-priority lanes.
 
 ## Causal and insertion order
 
-The scheduler assigns every emitted event a monotonic `eventOrder`. `emitDerived(cause, event)` also assigns a
-fractional `causalOrder` immediately after the root cause. This keeps scheduler-materialized combo results, procs, and
-other derived facts next to their cause when timestamp and priority tie.
-
-Events created during resolution must be added with `context.queue.enqueue(event)`. If such an event does not provide
-explicit causal metadata, the stable queue places it with the event currently being handled. Stable insertion order then
-resolves any remaining tie.
+Emission assigns a monotone `eventOrder`. `runtime.emitDerived(cause, event)` places an effect with its cause; the queue
+also inherits current causal placement for untagged derived work. Stable insertion order breaks ties. New authored
+commands begin new causal roots after due work settles. Internal payloads never appear in public logs.
 
 ### Shared condition pulses
 
@@ -160,32 +143,17 @@ Do not depend on incidental array order. Use:
 
 - a different `at` value for a real time difference;
 - `priority` for a same-time state dependency; and
-- `emitDerived()` or resolver queue inheritance for cause-and-effect adjacency.
+- `emitDerived()` or queue inheritance for cause-and-effect adjacency.
 
-## Scheduler task priority
+## Internal task priority
 
-Scheduler tasks are private bookkeeping work. They update cooldowns, resources, persistent actors, materialized proc
-facts, and other scheduler state before the canonical event stream is handed to the resolver. They never enter the
-resolver event queue.
+Internal tasks share event phases, priority, causal placement, and stable insertion order with combat packets. Cast
+completion uses priority -100 so recharge commits before ordinary completion packets. Named profession tasks choose
+priorities only for a documented dependency. Fields use -1 and finishers/outcomes -0.5 so a hit sees its actual combo
+effects. These are local ordering relationships, not separate queues or reserved public priority lanes.
 
-Tasks are ordered by:
-
-1. canonical timestamp, with distinct microseconds remaining distinct;
-2. ascending priority; and
-3. insertion order.
-
-Task draining never executes beyond its canonical target. Continuous resource retry estimates round upward to the next
-representable ready instant. Mesmer direct clone grants, phantasm conversions, shatter refunds, Harmonize, Tales, and
-Bloodsong resource tasks use their actual completion timestamp; task ordering replaces synthetic delays.
-
-Current platform examples include core cast completion at `-100`, shared trigger and combo materialization at
-`-60 + event.priority / 1_000_000` (missing priority is zero), and ordinary tasks at `0`. Both materializers use
-`gw2MaterializerTaskPriority()` so their event precedence agrees with resolution. These are existing relative
-placements, not a public set of reserved lanes. Profession tasks should choose a priority only when they have a
-demonstrated dependency on same-time work.
-
-Task priority can affect which canonical events are produced and their emission order. Once produced, however, those
-events are independently ordered by resolver event priority.
+Tasks carry detached data and optional owner generations. Cancel obsolete lifetime work explicitly; activation
+attribution alone must not erase a committed projectile. Resource wakes are recalculated when rate or capacity changes.
 
 ## Other fields named order or priority
 
@@ -193,8 +161,8 @@ These mechanisms are independent:
 
 | Field                    | Scope                                    | Direction           |
 | ------------------------ | ---------------------------------------- | ------------------- |
-| Event `priority`         | Same-time resolver events                | Lower runs first    |
-| Task `priority`          | Same-time scheduler tasks                | Lower runs first    |
+| Event `priority`         | Same-time queued events                  | Lower runs first    |
+| Task `priority`          | Same-time internal tasks                 | Lower runs first    |
 | Hook or reaction `order` | Handlers in one lifecycle/reaction phase | Lower runs first    |
 | Modifier-rule `order`    | Rules within one modifier target/formula | Lower applies first |
 | `comboBindingPriority`   | Selecting an authoritative combo field   | Higher wins         |
@@ -210,17 +178,14 @@ Hook order does not move events on the timeline. Modifier order does not determi
 4. Set priority on the emitted event or procedural skill-event options. Ordinary declarative effects use the default
    event priority.
 5. Keep priority relationships local to the owning mechanic and comment what must happen before or after what.
-6. Add resolver-created events with `context.queue.enqueue(event)`, never a raw array push.
+6. Add derived events with `runtime.emitDerived(cause, event)` or the live queue, never a raw array push.
 7. Use hook or reaction `order` when ordering handlers for the same event; do not manufacture another event solely to
    order callbacks.
 8. Test the smallest simultaneous-event scenario that proves the required state or packet order.
 
 ## Implementation references
 
-- `js/kernel/events/queue.ts` owns resolver event comparison and the stable event heap.
-- `js/games/gw2/platform/execution/tasks.ts` owns scheduler task comparison.
-- `js/games/gw2/platform/execution/scheduled-events.ts` assigns `eventOrder`, creates `causalOrder`, and the scheduler
-  sorts the handoff.
-- `js/games/gw2/platform/resolver/event-loop.ts` drains the resolver queue.
-- `tests/games/gw2/platform/engine/event-ordering.test.js` covers event priority, causal order, and stability.
-- `tests/games/gw2/platform/engine/scheduler-temporal.test.js` covers task priority and insertion order.
+- `js/kernel/events/queue.ts` owns stable phased ordering and cancellation.
+- `js/games/gw2/platform/simulation/runtime.ts` owns command acceptance and queue dispatch.
+- `js/games/gw2/platform/simulation/internal-work.ts` validates private payloads and ownership.
+- `tests/games/gw2/platform/engine/event-ordering.test.js` and `live-services.test.js` cover ordering contracts.

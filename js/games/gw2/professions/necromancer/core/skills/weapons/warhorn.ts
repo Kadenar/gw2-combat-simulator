@@ -23,7 +23,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
           name: 'Locust Swarm — Life Siphon',
           flatStrikeBase: 37,
           flatStrikePowerCoeff: 0.012,
-          noCrit: true,
+          canCrit: false,
           damageKind: 'life-steal',
           timingAnchor: 'castStart',
           timingScale: 'fixed'

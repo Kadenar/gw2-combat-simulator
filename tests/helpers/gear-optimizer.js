@@ -4,7 +4,7 @@ import {
   ordinaryEquipmentAt,
   optimizerScore,
   retainOptimizerCandidate
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer.js';
 
 /** Exhaustive detailed simulations provide a small-search correctness reference for the production optimizers. */
 export function runOrdinaryOptimizer(request, adapter) {

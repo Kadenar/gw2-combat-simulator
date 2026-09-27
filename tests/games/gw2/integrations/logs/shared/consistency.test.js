@@ -1,3 +1,4 @@
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -9,7 +10,6 @@ import { elementalistCatalog, elementalistProfession } from '#gw2/professions/el
 import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { EVTC_FIXTURE_PLAYER as PLAYER, event as evtcEvent, log } from '#tests/helpers/evtc-fixture.js';
 
@@ -142,7 +142,7 @@ test('both importers place tied weapon casts on the correct side of an attunemen
           const outgoingTie = skillId === 5508 && swapOffset === 0;
           assert.equal(castIndex < swapIndex, outgoingTie);
           if (outgoingTie) assert.equal(imported.rotation[swapIndex].concurrentOffsetMs, 0);
-          const result = simulateGw2({
+          const result = runElementalist({
             profession: elementalistProfession,
             rotation: imported.rotation,
             config: defaultSimulationConfig({

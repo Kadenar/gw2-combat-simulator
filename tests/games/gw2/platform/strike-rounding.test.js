@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
-import { resolveTestGw2Stream } from '#tests/helpers/gw2-resolver.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { expectedCritMultiplier } from '#gw2/platform/combat/formulas.js';
 
 // Critical units remain fractions/factors, with the existing upper chance cap and no extra lower clamp.
@@ -18,9 +17,9 @@ test('expected critical scaling uses fraction chance and factor damage', () => {
 
 // Use neutral stats and explicit packets to distinguish flooring from nearest rounding without a saved rotation.
 function resolve(events, { power = 1300, multiplier = 1, health = 0, output = 'detailed' } = {}) {
-  return resolveTestGw2Stream({
+  return resolveTestGw2Events({
     output,
-    stream: buildScheduledEventStream({
+    ...{
       events: events.map((event, index) => ({
         type: 'damage',
         at: index,
@@ -30,11 +29,11 @@ function resolve(events, { power = 1300, multiplier = 1, health = 0, output = 'd
         name: 'Rounding',
         coefficient: 0.5,
         weaponStrength: 922.5,
-        noCrit: true,
+        canCrit: false,
         ...event
       })),
-      rotationEndTime: 3
-    }),
+      endTime: 3
+    },
     config: { target: { armor: 2597, health, conditions: {} }, sigilSets: [{ names: [] }] },
     query: {
       statsAt: () => ({ power, conditionDamage: 0 }),
@@ -65,7 +64,7 @@ test('strike damage floors the validated no-modifier Power cases', () => {
 
 test('strike flooring happens after modifiers and applies to flat and summon packets', () => {
   assert.equal(
-    resolve([{ coefficient: 0.0019, weaponStrength: 2597, noCrit: false }], { power: 1000, multiplier: 2 })
+    resolve([{ coefficient: 0.0019, weaponStrength: 2597, canCrit: true }], { power: 1000, multiplier: 2 })
       .strikeDamage,
     5
   );

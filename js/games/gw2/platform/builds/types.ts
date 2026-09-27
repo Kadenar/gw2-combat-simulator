@@ -1,14 +1,13 @@
 /** Owns the builds/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
-import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/weapons/types.js';
 
 export type Gw2NumericAttributes = Record<string, number>;
 
 /** A saved build's fields before migration and validation; every value is unverified input. */
 export type UnvalidatedBuildRecord = Record<string, unknown>;
 
-export type Gw2AttributeEffectRounding = 'none' | 'round' | 'floor';
+type Gw2AttributeEffectRounding = 'none' | 'round' | 'floor';
 
 /** Build assumptions shared by profession definitions and application adapters. */
 /** Custom control keys remain unverified until the registered assumption normalizers read them. */
@@ -27,7 +26,6 @@ export interface ProfessionBuildAssumptions extends UnvalidatedBuildRecord {
   alliedPlayerCount?: number;
   sharePlayerBoonsWithSummons?: boolean;
   targetDefiant?: boolean;
-  targetDistance?: number;
   targetMoving?: boolean;
   targetSkillActivationsPerSecond?: number;
   targetConditions?: Record<string, number | boolean>;
@@ -54,7 +52,7 @@ export interface ProfessionAssumptionControlInput {
   readonly section?: unknown;
 }
 
-export interface ProfessionAssumptionControlBase {
+interface ProfessionAssumptionControlBase {
   readonly key: string;
   readonly label: string;
   readonly defaultValue: unknown;
@@ -90,19 +88,18 @@ interface Gw2AttributeEffectBase {
   readonly enabled?: boolean;
 }
 
-export interface Gw2FlatAttributeEffect extends Gw2AttributeEffectBase {
+interface Gw2FlatAttributeEffect extends Gw2AttributeEffectBase {
   readonly kind: 'flat';
   readonly to: string;
   readonly amount: number;
   readonly feedsConversions: boolean;
 }
 
-export interface Gw2ConversionAttributeEffect extends Gw2AttributeEffectBase {
+interface Gw2ConversionAttributeEffect extends Gw2AttributeEffectBase {
   readonly kind: 'conversion';
   readonly from: string;
   readonly to: string;
   readonly multiplier: number;
-  readonly addend?: number;
   readonly rounding: Gw2AttributeEffectRounding;
   readonly input: 'common' | 'eligible';
 }
@@ -209,31 +206,31 @@ export interface Gw2CanonicalBuild extends Gw2Build {
   rotation: import('#gw2/platform/execution/types.js').RotationCommand[];
 }
 
-export interface Gw2BuildCodecContext {
+interface Gw2BuildCodecContext {
   readonly saved: UnvalidatedBuildRecord;
 }
 
-export interface Gw2BuildExtraFieldBase {
+interface Gw2BuildExtraFieldBase {
   readonly defaultValue?: number | string;
   readonly label?: string;
   readonly validationMessage?: string;
 }
 
-export interface Gw2BoundedNumberBuildField extends Gw2BuildExtraFieldBase {
+interface Gw2BoundedNumberBuildField extends Gw2BuildExtraFieldBase {
   readonly type: 'number';
   readonly defaultValue?: number;
   readonly minimum: number;
   readonly maximum: number;
 }
 
-export interface Gw2BoundedIntegerBuildField extends Gw2BuildExtraFieldBase {
+interface Gw2BoundedIntegerBuildField extends Gw2BuildExtraFieldBase {
   readonly type: 'integer';
   readonly defaultValue?: number;
   readonly minimum: number;
   readonly maximum: number;
 }
 
-export interface Gw2EnumBuildField<TValue extends string = string> extends Gw2BuildExtraFieldBase {
+interface Gw2EnumBuildField<TValue extends string = string> extends Gw2BuildExtraFieldBase {
   readonly type: 'enum';
   readonly defaultValue?: TValue;
   readonly values: readonly TValue[];
@@ -249,7 +246,7 @@ export type Gw2BuildExtraFieldDescriptors<TBuild extends Gw2CanonicalBuild = Gw2
       : never;
 }>;
 
-export interface Gw2SlotLoadoutContext<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
+interface Gw2SlotLoadoutContext<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
   readonly build: TBuild;
   readonly specialization: string;
 }
@@ -284,7 +281,7 @@ export interface Gw2BuildValidationOptions {
   readonly slotLoadout?: Gw2SlotLoadout | null;
 }
 
-export interface Gw2AttributeCommonContext {
+interface Gw2AttributeCommonContext {
   conversionPool: Gw2NumericAttributes;
   runeDurations: Gw2NumericAttributes;
   foodDurations: Gw2NumericAttributes;
@@ -322,56 +319,6 @@ export interface Gw2FinalizedAttributeResult {
   jadeBotCore: boolean;
   specializations: unknown[];
   activeTraits: unknown;
-}
-
-export interface Gw2AttributeData {
-  BASE_STATS?: Readonly<Gw2NumericAttributes>;
-  FOOD_DATA?: Readonly<
-    Record<
-      string,
-      {
-        readonly isConverted?: boolean;
-        readonly stats?: Readonly<Gw2NumericAttributes>;
-        readonly durations?: Readonly<Gw2NumericAttributes>;
-      }
-    >
-  >;
-  GEAR_SLOTS?: readonly string[];
-  GEAR_STATS?: Readonly<Record<string, Readonly<Record<string, Readonly<Gw2NumericAttributes>>>>>;
-  INFUSION_BONUS?: number;
-  JBC_BONUS?: Readonly<Gw2NumericAttributes>;
-  RUNE_DATA?: Readonly<
-    Record<
-      string,
-      {
-        readonly stats?: Readonly<Gw2NumericAttributes>;
-        readonly durations?: Readonly<Gw2NumericAttributes>;
-      }
-    >
-  >;
-  SIGIL_DATA?: Readonly<
-    Record<
-      string,
-      {
-        readonly criticalChance?: number;
-        readonly strikeDamageA?: number;
-        readonly nightStrikeDamageM?: number;
-        readonly conditionDamageA?: number;
-        readonly conditionDuration?: number;
-        readonly bleedingDuration?: number;
-        readonly burningDuration?: number;
-        readonly poisonDuration?: number;
-        readonly tormentDuration?: number;
-        readonly boonDuration?: number;
-      }
-    >
-  >;
-  UTILITY_CONVERSION_RATES?: Readonly<Gw2NumericAttributes>;
-  UTILITY_DATA?: Readonly<
-    Record<string, readonly { readonly from: string; readonly to: string; readonly percent?: number }[]>
-  >;
-  UTILITY_STAT_DATA?: Readonly<Record<string, Readonly<Gw2NumericAttributes>>>;
-  WEAPON_DATA?: Readonly<Record<string, Gw2WeaponDataEntry>>;
 }
 
 export interface Gw2BuildAttributeRuleContext {

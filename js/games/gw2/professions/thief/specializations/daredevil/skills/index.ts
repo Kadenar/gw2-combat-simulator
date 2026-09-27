@@ -1,6 +1,21 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+
+// Brawler's Tenacity grants endurance when an eligible physical skill is accepted.
+const PHYSICAL_ENDURANCE: Skill['sideEffects'] = [
+  {
+    on: 'castStart',
+    when: (runtime) => hasTrait(runtime, TRAIT.BRAWLERS_TENACITY),
+    do: {
+      type: 'resourceGrant',
+      resource: 'endurance',
+      amount: { profile: PROFILE.brawlersTenacity, field: 'resourceGain' }
+    }
+  }
+];
 
 export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.IMPACT_STRIKE]: {
@@ -59,6 +74,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.IMPAIRING_DAGGERS]: {
+    sideEffects: PHYSICAL_ENDURANCE,
     castTimeMs: 480,
     cooldown: 15,
     initiativeCost: 0,
@@ -92,6 +108,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ])
   },
   [ID.CHANNELED_VIGOR]: {
+    sideEffects: PHYSICAL_ENDURANCE,
     castTimeMs: 480,
     // The endurance grant commits at 440 ms, allowing the remaining cast to be interrupted.
     interruptCommitMs: 440,
@@ -101,6 +118,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     effects: []
   },
   [ID.REFLEXIVE_STRIKE]: {
+    sideEffects: PHYSICAL_ENDURANCE,
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,
@@ -121,6 +139,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.DISTRACTING_DAGGERS]: {
+    sideEffects: PHYSICAL_ENDURANCE,
     castTimeMs: 0,
     cooldown: 1,
     ammo: 3,
@@ -142,6 +161,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.BANDITS_DEFENSE]: {
+    sideEffects: PHYSICAL_ENDURANCE,
     castTimeMs: 1000,
     cooldown: 16,
     initiativeCost: 0,
@@ -194,6 +214,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.FIST_FLURRY]: {
+    sideEffects: PHYSICAL_ENDURANCE,
     castTimeMs: 680,
     cooldown: 16,
     initiativeCost: 0,

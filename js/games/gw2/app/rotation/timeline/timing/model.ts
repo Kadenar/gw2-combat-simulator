@@ -1,4 +1,4 @@
-import type { SchedulerStep } from '#gw2/platform/execution/types.js';
+import type { SimulationStep } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
@@ -15,78 +15,10 @@ export interface SkillTimingAnalysis {
   readonly slowestIntervalMs: number | null;
 }
 
-export interface StateTimingTransition {
-  readonly atMs: number;
-  readonly active: boolean;
-}
-
-export interface StateTimingOccurrence {
-  readonly startMs: number;
-  readonly endMs: number;
-  readonly durationMs: number;
-  readonly endedAtTimelineEnd: boolean;
-}
-
-export interface StateTimingAnalysis {
-  readonly occurrences: readonly StateTimingOccurrence[];
-  readonly useCount: number;
-  readonly averageDurationMs: number | null;
-  readonly shortestDurationMs: number | null;
-  readonly longestDurationMs: number | null;
-}
-
-/** Pairs authoritative active/inactive transitions and closes a still-active final stay at the timeline end. */
-export function stateTimingAnalysis(
-  transitions: readonly StateTimingTransition[] = [],
-  timelineEndMs = 0
-): StateTimingAnalysis {
-  const ordered = transitions
-    .filter((transition) => Number.isFinite(Number(transition.atMs)))
-    .map((transition, index) => ({ ...transition, index }))
-    .sort((left, right) => left.atMs - right.atMs || left.index - right.index);
-  const occurrences: StateTimingOccurrence[] = [];
-  let activeSince: number | null = null;
-
-  for (const transition of ordered) {
-    if (transition.active) {
-      if (activeSince == null) activeSince = transition.atMs;
-    } else if (activeSince != null) {
-      occurrences.push({
-        startMs: activeSince,
-        endMs: transition.atMs,
-        durationMs: Math.max(0, transition.atMs - activeSince),
-        endedAtTimelineEnd: false
-      });
-      activeSince = null;
-    }
-  }
-
-  if (activeSince != null) {
-    const endMs = Math.max(activeSince, Number.isFinite(Number(timelineEndMs)) ? Number(timelineEndMs) : activeSince);
-    occurrences.push({
-      startMs: activeSince,
-      endMs,
-      durationMs: endMs - activeSince,
-      endedAtTimelineEnd: true
-    });
-  }
-
-  const durations = occurrences.map((occurrence) => occurrence.durationMs);
-  return {
-    occurrences,
-    useCount: occurrences.length,
-    averageDurationMs: durations.length
-      ? durations.reduce((total, duration) => total + duration, 0) / durations.length
-      : null,
-    shortestDurationMs: durations.length ? Math.min(...durations) : null,
-    longestDurationMs: durations.length ? Math.max(...durations) : null
-  };
-}
-
 /** Groups completed casts by stable ID so every interval is measured only against the same skill. */
 export function skillTimingAnalyses(
   skillIds: readonly SkillId[] = [],
-  steps: readonly SchedulerStep[] = []
+  steps: readonly SimulationStep[] = []
 ): SkillTimingAnalysis[] {
   const seen = new Set<SkillId>();
   return skillIds
@@ -140,7 +72,7 @@ export interface WeaponSetActiveSegment {
 
 /** Produces one stay per real equipped-set activation so repeated manifest rows retain their own durations. */
 export function weaponSetActiveSegments(
-  steps: readonly SchedulerStep[] = [],
+  steps: readonly SimulationStep[] = [],
   {
     startingWeaponSet = 1,
     timelineEndMs = 0,
@@ -191,7 +123,7 @@ export function weaponSetActiveSegments(
 
 /** Sums every stay for each equipped set while keeping aggregate reporting separate from row presentation. */
 export function weaponSetDurationTotals(
-  steps: readonly SchedulerStep[] = [],
+  steps: readonly SimulationStep[] = [],
   options: WeaponSetDurationOptions = {}
 ): ReadonlyMap<number, number> {
   const totals = new Map<number, number>();

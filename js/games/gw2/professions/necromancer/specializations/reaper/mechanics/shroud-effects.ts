@@ -19,7 +19,6 @@ import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/
 import type { BalanceProfile, ConditionEffect } from '#gw2/platform/engine/skills/types.js';
 
 import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/reaper/profiles.js';
-import { reaperState } from '#gw2/professions/necromancer/specializations/reaper/state.js';
 
 // Chilling Nova is gated on the target already being Chilled at the moment of the crit, not just on trait presence.
 const chillingNovaCriticalHit = onResolvedCriticalHit<
@@ -35,9 +34,9 @@ const chillingNovaCriticalHit = onResolvedCriticalHit<
   internalCooldown: {
     duration: (context) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.chillingNova), 'cooldown'),
-    readyAt: (context) => Number(reaperState.from(context).chillingNovaReadyAt || 0),
+    readyAt: (context) => context.procs.deadline('necromancer.reaper.chillingNova') || 0,
     setReadyAt: (context, readyAt) => {
-      reaperState.from(context).chillingNovaReadyAt = readyAt;
+      context.procs.readyAt['necromancer.reaper.chillingNova'] = readyAt;
     }
   },
   attribution: { kind: 'trait', id: TRAIT.CHILLING_NOVA },
@@ -80,8 +79,8 @@ function queueChillingNovaChill(
   );
 }
 
-/** Resolves summon combo finishers and Chilling Nova from one eligible damage packet. */
-function reactToDamage(
+/** Resolves Chilling Nova from actual strikes; combo production belongs to the caller's runtime. */
+export function reactToReaperDamage(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
   details: NativeResolvedDamageDetails = {}
@@ -93,7 +92,6 @@ function reactToDamage(
     if (chill) queueChillingNovaChill(context, event, profile, chill);
   }
 
-  resolveSummonOwnedComboFinisher(context, event);
   chillingNovaCriticalHit.handler(context, event, details);
 }
 
@@ -139,7 +137,14 @@ function reactToControl(context: NecromancerResolverContext, event: NecromancerR
 }
 
 export const reaperResolverEventReactions = Object.freeze({
-  damage: reactToDamage,
+  damage(
+    context: NecromancerResolverContext,
+    event: NecromancerResolverEvent,
+    details: NativeResolvedDamageDetails = {}
+  ) {
+    resolveSummonOwnedComboFinisher(context, event);
+    reactToReaperDamage(context, event, details);
+  },
   condition: reactToCondition,
   control: reactToControl
 });

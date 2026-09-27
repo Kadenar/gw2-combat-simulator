@@ -4,7 +4,7 @@
  * cannot silently shadow each other. Dispatch rejects missing handlers so
  * required events cannot be silently lost.
  */
-export type EventHandler<TContext, TEvent extends { type: string }> = (context: TContext, event: TEvent) => unknown;
+type EventHandler<TContext, TEvent extends { type: string }> = (context: TContext, event: TEvent) => unknown;
 
 /** Explicit shared marker for observable events that require no resolver mutation. */
 export const OBSERVABLE_EVENT_HANDLER: EventHandler<unknown, { type: string }> = () => undefined;
@@ -21,7 +21,7 @@ export class HandlerRegistry<TContext = unknown, TEvent extends { type: string }
    * Registers a handler for one event type.
    */
   register(type: string, handler: EventHandler<TContext, TEvent>): this {
-    const eventType = String(type || '');
+    const eventType = type || '';
     if (!eventType || typeof handler !== 'function') {
       throw new TypeError('Event handler registration requires a type and function.');
     }
@@ -38,7 +38,7 @@ export class HandlerRegistry<TContext = unknown, TEvent extends { type: string }
    * Registers every entry in a plain object map.
    */
   registerAll(handlers: Readonly<Record<string, EventHandler<TContext, TEvent>>>): this {
-    for (const [type, handler] of Object.entries(handlers || {})) {
+    for (const [type, handler] of Object.entries(handlers)) {
       this.register(type, handler);
     }
 

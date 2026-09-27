@@ -1,7 +1,5 @@
 import { createGameWorkerEndpoint } from '#app/game/worker-harness.js';
-import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { calculateRandomDistribution } from '#gw2/app/simulation/random-distribution/random-distribution.js';
-import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/simulation/types.js';
 import type { RandomDistributionJobRequest } from '#gw2/app/simulation/random-distribution/types.js';
@@ -24,13 +22,6 @@ interface RandomDistributionWorkerMessage {
  * the same request ID and either `distribution` or a string `error`.
  */
 createGameWorkerEndpoint<Gw2ProfessionSource, RandomDistributionWorkerMessage>({
-  async loadDriver({ gameId, contentId }) {
-    if (gameId !== 'gw2') return null;
-    // Ordinary RNG jobs need only the engine; authored previews retain their adapter composition.
-    return activePatchPreview
-      ? ((await loadProfessionAppAdapter(contentId))?.profession ?? null)
-      : loadProfession(contentId);
-  },
   calculate(profession, { includeSamples, request }, postUpdate) {
     const distribution = calculateRandomDistribution(
       request,

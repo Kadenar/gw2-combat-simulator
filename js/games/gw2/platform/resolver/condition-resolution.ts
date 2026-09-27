@@ -24,6 +24,8 @@ export function createGw2ConditionResolution({
   config = {}
 }: CreateGw2ConditionResolutionOptions): Readonly<Gw2ConditionResolution> {
   const permanentTargetConditionStacks = createPermanentTargetConditionStacks(config);
+  const environmentWakes = new Map<string, Gw2ResolverEvent>();
+  let bufferWake: Gw2ResolverEvent | undefined;
 
   // First positive damage fixes the shared phase; integer arithmetic avoids drifting off that phase.
   function nextPulseAt(ctx: Gw2ResolverRuntime, after: number): number {
@@ -59,7 +61,7 @@ export function createGw2ConditionResolution({
     if (name === 'Confusion') {
       const formula = CONDITION_FORMULAS.Confusion;
       rate +=
-        Number(ctx.config.target?.confusionActivationsPerSecond || 0) *
+        (ctx.config.target?.confusionActivationsPerSecond || 0) *
         (formula.activationBase + formula.activationScaling * conditionDamage);
     }
 
@@ -98,7 +100,13 @@ export function createGw2ConditionResolution({
 
   function scheduleEnvironment(ctx: Gw2ResolverRuntime, after: number): void {
     for (const { name: condition, stacks } of ctx.environmentConditions.values()) {
-      for (let at = nextPulseAt(ctx, after); at <= ctx.horizon; at = canonicalTime(at + 1)) {
+      // Keep one successor per condition even before rotation end is known; rephasing cancels its predecessor.
+      const previous = environmentWakes.get(condition);
+      if (previous) ctx.queue.cancel(previous);
+      const at = nextPulseAt(ctx, after);
+      if (ctx.horizon != null && at > ctx.horizon) continue;
+      environmentWakes.set(
+        condition,
         ctx.queue.enqueue({
           type: 'condition_tick',
           at,
@@ -109,8 +117,8 @@ export function createGw2ConditionResolution({
           condition,
           stacks,
           fraction: 1
-        });
-      }
+        })
+      );
     }
   }
 
@@ -181,7 +189,7 @@ export function createGw2ConditionResolution({
     if (group.wakeAt === at) return;
     group.wakeAt = at;
     group.wakeToken += 1;
-    if (at > ctx.horizon) return;
+    if (ctx.horizon != null && at > ctx.horizon) return;
     // Shared pulses have no application causal order. Restore inheritance for other derived events.
     const causalOrder = ctx.queue.currentCausalOrder;
     ctx.queue.currentCausalOrder = null;
@@ -223,12 +231,18 @@ export function createGw2ConditionResolution({
       }
     }
 
-    if (!active || (ctx.conditionBufferAt != null && ctx.conditionBufferAt <= at) || at > ctx.horizon) return;
+    if (
+      !active ||
+      (ctx.conditionBufferAt != null && ctx.conditionBufferAt <= at) ||
+      (ctx.horizon != null && at > ctx.horizon)
+    )
+      return;
+    if (bufferWake && bufferWake.at > after) ctx.queue.cancel(bufferWake);
     ctx.conditionBufferAt = at;
     const causalOrder = ctx.queue.currentCausalOrder;
     ctx.queue.currentCausalOrder = null;
     try {
-      ctx.queue.enqueue({
+      bufferWake = ctx.queue.enqueue({
         type: 'condition_buffer',
         at,
         source: 'Condition',
@@ -247,7 +261,7 @@ export function createGw2ConditionResolution({
     const onGrid = (timeKey(at) - timeKey(ctx.firstHitTime ?? 0)) % 1_000_000 === 0;
     // Each pass observes one target state; discard these facts before processing another event or timestamp.
     const sample = {
-      vulnerabilityStacks: ctx.query.vulnerabilityStacksAt?.(at, ctx) ?? 0,
+      vulnerabilityStacks: ctx.query.vulnerabilityStacksAt(at, ctx),
       modifierValues: new Map<object, number | null>()
     };
     for (const state of ctx.conditionState.values()) {
@@ -261,7 +275,7 @@ export function createGw2ConditionResolution({
           const through = Math.min(at, application.naturalExpiresAt);
           const elapsedUs = timeKey(through) - timeKey(application.settledThrough);
           // Expiry remainders sampled before Combat Start cannot fund a later in-combat payout.
-          if (elapsedUs > 0 && (ctx.combatStartTime == null || at >= ctx.combatStartTime)) {
+          if (elapsedUs > 0 && !ctx.combatStartPending && (ctx.combatStartTime == null || at >= ctx.combatStartTime)) {
             // Non-damaging conditions still settle and remain queryable; only their zero-damage arithmetic is skipped.
             if (dealsDamage) {
               const stats = ctx.query.statsAt(at, application, ctx);
@@ -285,12 +299,12 @@ export function createGw2ConditionResolution({
     for (const entry of ctx.environmentConditions.values()) {
       if (!onGrid) continue;
       // The sample ending at Combat Start contains no in-combat interval and must not fund a boundary payout.
-      if (ctx.combatStartTime != null && at <= ctx.combatStartTime) {
+      if (ctx.combatStartPending || (ctx.combatStartTime != null && at <= ctx.combatStartTime)) {
         entry.bufferedRate = 0;
         continue;
       }
 
-      const vulnerability = 1 + Number(sample.vulnerabilityStacks || 0) / 100;
+      const vulnerability = 1 + (sample.vulnerabilityStacks || 0) / 100;
       entry.bufferedRate = (entry.bufferedRate ?? 0) + conditionTickDamage(entry.name, 0) * vulnerability;
     }
   }
@@ -317,7 +331,7 @@ export function createGw2ConditionResolution({
     // are deliberately queried later at each tick.
     const duration = conditionApplicationDuration(ctx.query, name, queryEvent, ctx);
     const expiresAt = canonicalTime(event.at + duration);
-    const stacks = Math.max(0, Number(event.stacks || 0));
+    const stacks = Math.max(0, event.stacks || 0);
     if (!stacks || !duration) return null;
 
     const application = {
@@ -327,10 +341,9 @@ export function createGw2ConditionResolution({
       condition: name,
       stacks,
       effectiveDuration: duration,
-      // activeDuration/expiresAt describe the simulated portion; naturalExpiresAt
-      // preserves the unclipped lifetime for diagnostics and downstream views.
-      activeDuration: Math.max(0, Math.min(ctx.horizon, expiresAt) - event.at),
-      expiresAt: Math.min(ctx.horizon, expiresAt),
+      // Keep the natural lifetime while executing; result finalization clips only the presentation fields.
+      activeDuration: duration,
+      expiresAt,
       naturalExpiresAt: expiresAt,
       settledThrough: event.at,
       bufferedRawDamage: 0,
@@ -396,7 +409,7 @@ export function createGw2ConditionResolution({
     bufferConditions(ctx, event.at);
     pruneGroup(group, event.at);
     group.nextPulseAt = canonicalTime(event.at + 1);
-    const canDamage = ctx.combatStartTime == null || event.at >= ctx.combatStartTime;
+    const canDamage = !ctx.combatStartPending && (ctx.combatStartTime == null || event.at >= ctx.combatStartTime);
     const contributions = [];
     for (const application of group.applications) {
       const fraction = application.bufferedDurationUs / 1_000_000;
@@ -441,9 +454,15 @@ export function createGw2ConditionResolution({
     // Provisional environment wakes become inert when first damage shifts the clock.
     if ((timeKey(event.at) - timeKey(ctx.firstHitTime ?? 0)) % 1_000_000 !== 0) return;
     const condition = ctx.helpers.conditionName(event.condition);
-    const stacks = Math.max(0, Number(event.stacks || 0));
+    const stacks = Math.max(0, event.stacks || 0);
     const entry = ctx.environmentConditions.get(condition);
     if (!entry || !(stacks > 0)) return;
+    environmentWakes.delete(condition);
+    // Each paid or gated pulse advances only its own successor; other conditions retain stable insertion order.
+    const next = nextPulseAt(ctx, event.at);
+    if (ctx.horizon == null || next <= ctx.horizon) {
+      environmentWakes.set(condition, ctx.queue.enqueue({ ...event, at: next }));
+    }
 
     bufferConditions(ctx, event.at);
     const damage = roundHalfToEven((entry.bufferedRate ?? 0) * stacks);
@@ -475,8 +494,8 @@ export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
   readonly condition: string;
   readonly stacks: number;
   readonly effectiveDuration: number;
-  readonly activeDuration: number;
-  readonly expiresAt: number;
+  activeDuration: number;
+  expiresAt: number;
   readonly naturalExpiresAt: number;
   removedAt?: number;
   settledThrough: number;
@@ -491,7 +510,7 @@ export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
   }>;
 };
 
-export interface Gw2ResolverConditionStack extends Gw2RuntimeConditionStack {
+interface Gw2ResolverConditionStack extends Gw2RuntimeConditionStack {
   appliedAt: number;
   expiresAt: number;
   weight: number;
@@ -504,7 +523,7 @@ export interface Gw2ResolverConditionState extends Gw2RuntimeConditionEntry {
 }
 
 /** Owner clocks reference canonical applications so removal and reporting share the same lifetime. */
-export interface Gw2ResolverConditionGroup {
+interface Gw2ResolverConditionGroup {
   readonly owner: string | Gw2ResolvedConditionApplication;
   readonly condition: string;
   nextPulseAt: number;
@@ -514,7 +533,7 @@ export interface Gw2ResolverConditionGroup {
 }
 
 /** Retains each application's exposure and damage for packet rounding and attribution. */
-export interface Gw2ConditionTickContribution {
+interface Gw2ConditionTickContribution {
   readonly application: Gw2ResolvedConditionApplication;
   readonly damage: number;
   readonly rawDamage: number;
@@ -523,7 +542,7 @@ export interface Gw2ConditionTickContribution {
 }
 
 /** An atomic owner packet rounds once and retains each application's raw contribution and allocated integer share. */
-export interface Gw2ConditionTickResult {
+interface Gw2ConditionTickResult {
   readonly condition: string;
   readonly damage: number;
   readonly contributions: readonly Gw2ConditionTickContribution[];
@@ -543,4 +562,14 @@ export interface Gw2ConditionWork {
   readonly application?: Gw2ResolvedConditionApplication;
   readonly conditionGroup?: Gw2ResolverConditionGroup;
   readonly wakeToken?: number;
+}
+
+/** Clip presentation only after combat/observation boundaries are known; live stacks retain their natural lifetime. */
+export function finalizeConditionApplications(ctx: Gw2ResolverRuntime, end: number): void {
+  for (const state of ctx.conditionState.values()) {
+    for (const { application } of state.stacks) {
+      application.expiresAt = Math.min(end, application.naturalExpiresAt, application.removedAt ?? end);
+      application.activeDuration = Math.max(0, application.expiresAt - application.at);
+    }
+  }
 }

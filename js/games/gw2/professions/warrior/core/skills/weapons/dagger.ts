@@ -12,6 +12,22 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
+        // Critical Might consumes the resolver's one sampled outcome; it never rolls again.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'each',
+            when: (_runtime, { event, details }) =>
+              Number(event.coefficient) > 0 &&
+              Boolean(
+                details.hitContext?.critEligible &&
+                details.hitContext.critical.chance > 0 &&
+                details.hitContext.critical.didCrit
+              ),
+            do: { type: 'warrior.critical-might' }
+          }
+        ],
         coefficient: 1.05
       },
       {

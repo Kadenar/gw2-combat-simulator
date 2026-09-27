@@ -12,6 +12,15 @@ export const MUSHROOM_KINGS_BLESSING_SKILL_ID = 46970;
 export const MUSHROOM_KINGS_BLESSING_BUFF_ID = 34523;
 export const MUSHROOM_KINGS_BLESSING_NAME = "Mushroom King's Blessing";
 
+/** Weapon-stow animations intentionally replay as timing waits, so they need no missing-skill warning. */
+export function isWeaponStow(action: {
+  readonly rawSkillId: number;
+  readonly rawName?: string;
+  readonly name?: string;
+}): boolean {
+  return action.rawSkillId === 23285 || (action.rawName ?? action.name)?.trim().toLowerCase() === 'weapon stow';
+}
+
 /** Identifies the training-area cast that log imports translate into the simulator's cooldown-reset marker. */
 export function isMushroomKingsBlessing(action: {
   readonly rawSkillId: number;

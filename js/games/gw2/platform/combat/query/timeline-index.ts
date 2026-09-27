@@ -1,4 +1,5 @@
-import type { BoonWindow, Gw2BuffAudience } from '#gw2/platform/combat/boons.js';
+import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
+import type { Gw2BuffAudience } from '#gw2/platform/combat/boons.js';
 import {
   boonApplicationsAt,
   buffApplicationStacks,
@@ -6,12 +7,17 @@ import {
   isDurationStackingBoon,
   isStandardBoon,
   normalizeBoonDuration,
-  prepareBoonWindows
+  prepareBoonWindows,
+  type BoonWindow
 } from '#gw2/platform/combat/boons.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RechargeInterval, RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
-import { gw2RechargeIntervals, projectRecharge } from '#gw2/platform/engine/skills/recharge.js';
+import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
+import {
+  GW2_ALACRITY_RECHARGE_RATE,
+  gw2RechargeIntervals,
+  projectRecharge
+} from '#gw2/platform/engine/skills/recharge.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -21,11 +27,12 @@ import { insertSorted } from '#kernel/core/collections.js';
 import { eventCausalOrder } from '#kernel/events/queue.js';
 
 interface CreateGw2TimelineIndexOptions {
+  readonly playerAlacrityRechargeRate?: number;
+  readonly skillOnCooldown?: (skillId: import('#gw2/platform/engine/skills/types.js').SkillId, time: number) => boolean;
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
   readonly skillsById?: ReadonlyMap<SkillId, Skill>;
   readonly resolved?: boolean;
-  readonly sigilSet?: (config: Gw2Config, weaponSet: number) => Gw2SigilSet;
 }
 
 type IndexedEvents = Record<'weaponSet' | 'cooldown', SimulationEvent[]>;
@@ -49,11 +56,12 @@ interface CachedBuffStacks {
  * Common timestamp queries over scheduled GW2 events.
  */
 export function createGw2TimelineIndex({
+  playerAlacrityRechargeRate = GW2_ALACRITY_RECHARGE_RATE,
   config = {},
+  skillOnCooldown,
   events = [],
   skillsById,
-  resolved = false,
-  sigilSet = gw2SigilSet
+  resolved = false
 }: CreateGw2TimelineIndexOptions = {}): Readonly<Gw2TimelineIndex> {
   // Timestamp ties follow scheduler causal order so derived events are queried
   // in the same order the resolver consumes them.
@@ -77,9 +85,6 @@ export function createGw2TimelineIndex({
   // retain one argument combination per kind; cache variants if mixed-audience sampling dominates.
   const buffCache = new Map<string, CachedBuffStacks>();
   const cooldownCache = new Map<SkillId, boolean>();
-  // Prepared recharge history survives clock changes and unrelated appends, but belongs only to this phase's timeline.
-  const alacrityHistory: SimulationEvent[] = [];
-  const alacrityWindows = new Map<Gw2BuffAudience, readonly BoonWindow[]>();
   let cachedTime: number | undefined;
   // Sampling repeatedly asks for the same facts; retain only the current time's answers within this timeline.
   const clearQueryCache = (): void => {
@@ -87,22 +92,33 @@ export function createGw2TimelineIndex({
     cooldownCache.clear();
   };
 
+  let alacrityWindows: readonly BoonWindow[] | undefined;
+  // Reuse received summon windows until a boon grant or extension changes them.
+  const summonAlacrityWindows = (): readonly BoonWindow[] => {
+    refreshIndex();
+    return (alacrityWindows ??= prepareBoonWindows(events, 'alacrity', 'summon'));
+  };
+
+  const rechargeIntervals = (skill: Skill, start: number, end: number): Iterable<RateInterval> =>
+    gw2RechargeIntervals(playerAlacrityRechargeRate, summonAlacrityWindows, skill, start, end);
+  const rechargeReadyAt = (skill: Skill, progress: RechargeProgress): number =>
+    projectRecharge(progress, rechargeIntervals(skill, progress.startedAt, Infinity));
+
   let indexedLength = 0;
   let hasExtensions = false;
   const resetIndex = (): void => {
     clearQueryCache();
     for (const values of Object.values(indexed)) values.length = 0;
     indexedBuffs.clear();
+    alacrityWindows = undefined;
     indexedCooldowns.clear();
-    alacrityHistory.length = 0;
-    alacrityWindows.clear();
     indexedLength = 0;
     hasExtensions = false;
   };
 
   const indexBuff = (event: SimulationEvent): void => {
     event = normalizeBoonDuration(event);
-    const kind = String(event.kind || '').toLowerCase();
+    const kind = (event.kind || '').toLowerCase();
     let bucket = indexedBuffs.get(kind);
     if (!bucket) {
       bucket = { all: [], summon: [], summonTrait: [], maximumDuration: 0 };
@@ -124,24 +140,19 @@ export function createGw2TimelineIndex({
   };
 
   const refreshIndex = (): void => {
-    // Appends are indexed incrementally; source replacements must call onEventReplaced.
+    // Index append-only histories incrementally; truncation discards the previous cache.
     if (events.length < indexedLength) resetIndex();
     if (events.length === indexedLength) return;
     clearQueryCache();
     while (indexedLength < events.length) {
       const event = events[indexedLength++];
-      if (
-        (event.type === 'buff' && String(event.kind).toLowerCase() === 'alacrity') ||
-        (event.type === 'boon_extension' &&
-          (!event.kind || event.kind === 'alacrity') &&
-          event.excludedKind !== 'alacrity')
-      ) {
-        alacrityHistory.push(event);
-        alacrityWindows.clear();
+      if (event.type === 'boon_extension') {
+        hasExtensions = true;
+        alacrityWindows = undefined;
       }
 
-      if (event.type === 'boon_extension') hasExtensions = true;
       if (event.type === 'buff') {
+        if (event.kind === 'alacrity') alacrityWindows = undefined;
         indexBuff(event);
       }
 
@@ -163,28 +174,13 @@ export function createGw2TimelineIndex({
   };
 
   const refreshQueryCache = (time: number): void => {
-    // Refresh before reuse so same-time appends, replacements, and backwards queries never see stale history.
+    // Refresh before reuse so same-time appends and backwards queries never see stale history.
     refreshIndex();
     if (cachedTime !== time) {
       clearQueryCache();
       cachedTime = time;
     }
   };
-
-  const getAlacrityWindows = (audience: Gw2BuffAudience): readonly BoonWindow[] => {
-    // Inspect appends before reuse, including emissions whose reentrant observation callbacks have not run yet.
-    refreshIndex();
-    let windows = alacrityWindows.get(audience);
-    if (!windows) {
-      windows = prepareBoonWindows(alacrityHistory, 'alacrity', audience);
-      alacrityWindows.set(audience, windows);
-    }
-
-    return windows;
-  };
-
-  const rechargeIntervals = (skill: Skill, start: number, end: number): Iterable<RechargeInterval> =>
-    gw2RechargeIntervals(config, getAlacrityWindows, skill, start, end);
 
   const calculateBuffStacks = (
     kind: string,
@@ -197,25 +193,25 @@ export function createGw2TimelineIndex({
     time = canonicalTime(time);
     // Reuse chronological extension replay only for histories that contain an extension.
     if (hasExtensions && isStandardBoon(kind)) {
-      const applications = boonApplicationsAt(events, String(kind).toLowerCase(), time, duration);
+      const applications = boonApplicationsAt(events, kind.toLowerCase(), time, duration);
       return buffApplicationStacks(applications, kind, time, maximum, { audience, companionId });
     }
 
-    const bucket = indexedBuffs.get(String(kind || '').toLowerCase());
+    const bucket = indexedBuffs.get((kind || '').toLowerCase());
     const applications =
       audience === 'summon-trait' ? bucket?.summonTrait : audience === 'summon' ? bucket?.summon : bucket?.all;
     if (isDurationStackingBoon(kind)) {
       return buffApplicationStacks(applications || [], kind, time, maximum, {
         audience,
         companionId,
-        duration: (event) => Number(event.duration ?? duration)
+        duration: (event) => event.duration ?? duration
       });
     }
 
     // The longest grant gives a monotonic expiry bound even when individual grants expire out of order.
     // Long grants widen this scan; use an expiry index if mixed lifetimes dominate.
     const history = applications || [];
-    const maximumDuration = Math.max(bucket?.maximumDuration ?? 0, Number(duration) || 0);
+    const maximumDuration = Math.max(bucket?.maximumDuration ?? 0, duration || 0);
     let low = 0;
     let high = history.length;
     while (low < high) {
@@ -227,7 +223,7 @@ export function createGw2TimelineIndex({
     return buffApplicationStacks(history, kind, time, maximum, {
       audience,
       companionId,
-      duration: (event) => Number(event.duration ?? duration),
+      duration: (event) => event.duration ?? duration,
       start: low,
       ordered: true
     });
@@ -281,10 +277,11 @@ export function createGw2TimelineIndex({
     return activeSet;
   };
 
-  const activeSigilSetAt = (time: number): Gw2SigilSet => sigilSet(config, activeWeaponSetAt(time));
+  const activeSigilSetAt = (time: number): Gw2SigilSet => gw2SigilSet(config, activeWeaponSetAt(time));
 
   const skillOnCooldownAt = (skillId: SkillId, time: number): boolean => {
     time = canonicalTime(time);
+    if (skillOnCooldown) return skillOnCooldown(skillId, time);
     refreshQueryCache(time);
     const cached = cooldownCache.get(skillId);
     if (cached !== undefined) return cached;
@@ -316,7 +313,6 @@ export function createGw2TimelineIndex({
         // A snapshot replaces prior knowledge for the requested skill.
         const cooldowns = (event.cooldowns || {}) as Readonly<Record<string, unknown>>;
         readyAt = Number(cooldowns[String(skillId)] || 0);
-        progress = event.rechargeProgressBySkillId?.[String(skillId)];
       } else if (event.type === 'marker' && event.action === 'cooldown-reset') {
         // Training-area resets restore signet passives as soon as the scheduler clears their recharge.
         readyAt = 0;
@@ -326,10 +322,10 @@ export function createGw2TimelineIndex({
     }
 
     if (progress) {
-      // Reintegrate committed work instead of trusting the deadline predicted at cast or rewind time.
+      // Project committed work with the same received-boon history used by scheduling.
       const skill = skillsById?.get(skillId);
       if (!skill) throw new Error(`Missing skill ${skillId} for passive recharge query.`);
-      readyAt = gw2CooldownReadyAt(projectRecharge(progress, rechargeIntervals(skill, progress.startedAt, Infinity)));
+      readyAt = gw2CooldownReadyAt(rechargeReadyAt(skill, progress));
     }
 
     const value = readyAt === Infinity || canonicalTime(readyAt) > time;
@@ -338,18 +334,6 @@ export function createGw2TimelineIndex({
   };
 
   return Object.freeze({
-    onEventReplaced(previous: SimulationEvent, replacement: SimulationEvent): void {
-      // Rebuild lazily for changed history, but ignore unindexed packets such as critical damage facts.
-      if (
-        [previous, replacement].some(
-          (event) =>
-            ['buff', 'boon_extension', 'weapon_set', 'action', 'cooldown_snapshot'].includes(event.type) ||
-            (event.type === 'marker' && event.action === 'cooldown-reset')
-        )
-      ) {
-        resetIndex();
-      }
-    },
     buffStacksAt,
     timedStacks,
     timedActive,
@@ -358,18 +342,13 @@ export function createGw2TimelineIndex({
     activeSigilSetAt,
     skillOnCooldownAt,
     rechargeIntervals,
-    rechargeReadyAt(skill: Skill, progress: RechargeProgress): number {
-      // Resolver history contains only executed events, independently of optional reporting.
-      return projectRecharge(progress, rechargeIntervals(skill, progress.startedAt, Infinity));
-    }
+    rechargeReadyAt
   });
 }
 
 export interface Gw2TimelineIndex {
-  rechargeIntervals(skill: Skill, start: number, end: number): Iterable<RechargeInterval>;
+  rechargeIntervals(skill: Skill, start: number, end: number): Iterable<RateInterval>;
   rechargeReadyAt(skill: Skill, progress: RechargeProgress): number;
-  /** Invalidates indexed history after the source owner replaces an event. */
-  onEventReplaced(previous: SimulationEvent, replacement: SimulationEvent): void;
   buffStacksAt(
     kind: string,
     time: number,

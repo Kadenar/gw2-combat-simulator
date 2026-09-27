@@ -28,7 +28,6 @@ export const TROUBADOUR_BALANCE_PROFILE_IDS = Object.freeze({
   harmonize: TRAIT.HARMONIZE,
   mayhem: TRAIT.MAYHEM,
   raconteur: TRAIT.RACONTEUR,
-  syncopate: TRAIT.SYNCOPATE,
   shredding: TRAIT.SHREDDING,
   lifeOfTheParty: TRAIT.LIFE_OF_THE_PARTY,
   fortissimo: TRAIT.FORTISSIMO,

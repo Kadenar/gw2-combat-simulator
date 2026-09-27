@@ -1,5 +1,5 @@
-import { getProfessionEntry } from '#gw2/app/profession-registry.js';
-import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS, INFUSION_ICONS } from '#gw2/app/shared/equipment-icons.js';
+import { getProfessionEntry } from '#gw2/profession-registry.js';
+import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS, INFUSION_ICONS } from '#gw2/app/shared/equipment/icons.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { FOOD_GROUPS } from '#gw2/platform/equipment/consumables/food.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
@@ -14,7 +14,7 @@ import {
   enhanceDetailedSelect,
   setEquipmentTooltip,
   positionGearPopover
-} from '#gw2/app/build/equipment-picker.js';
+} from '#gw2/app/shared/equipment/picker.js';
 import { RUNE_GROUPS } from '#gw2/platform/equipment/gear/runes.js';
 import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
 import { UTILITY_GROUPS } from '#gw2/platform/equipment/consumables/utilities.js';
@@ -31,7 +31,7 @@ import {
   runeOptionLabel,
   sigilOptionLabel,
   utilityOptionLabel
-} from '#gw2/app/build/equipment-option-labels.js';
+} from '#gw2/app/shared/equipment/labels.js';
 
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { clamp } from '#kernel/core/numeric.js';

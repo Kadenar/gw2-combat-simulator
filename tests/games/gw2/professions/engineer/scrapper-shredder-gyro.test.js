@@ -1,8 +1,9 @@
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
 const baseConfig = Object.freeze({
   specialization: 'Scrapper',
@@ -12,38 +13,46 @@ const baseConfig = Object.freeze({
 });
 
 function simulate(quickness) {
-  return simulateGw2({
-    profession: engineerProfession,
+  const config = { ...baseConfig, boons: { quickness } };
+  const native = engineerProfession.runtimeFor(config);
+  const skill = native.catalog.skillsByName.get('Shredder Gyro');
+  return runGw2Runtime({
+    profession: {
+      ...native,
+      catalog: withSkill(native.catalog, skill.id, {
+        castTimeMs: 400,
+        effects: skill.effects.map((effect) =>
+          effect.type === 'strike'
+            ? {
+                ...effect,
+                ticks: [
+                  { atMs: 120, coefficient: 0.2 },
+                  { atMs: 520, coefficient: 0.3 }
+                ]
+              }
+            : effect
+        )
+      })
+    },
     rotation: ['Shredder Gyro'],
-    config: { ...baseConfig, boons: { quickness } },
-    observationPolicy: { kind: 'tail', durationMs: 7000 }
+    config,
+    observation: { kind: 'tail', durationMs: 1000 }
   });
 }
 
-test('Shredder Gyro uses its measured coefficient and fixed damage cadence', () => {
-  const skill = engineerCatalog.skillsByName.get('Shredder Gyro');
-  const strike = skill.effects.find((effect) => effect.type === 'strike');
-
-  assert.equal(skill.castTimeMs, 520);
-  // Authored tick packets define the deployed gyro's total coefficient and cadence.
-  assert.ok(Math.abs(strike.ticks.reduce((total, tick) => total + tick.coefficient, 0) - 4.8) < 1e-12);
-  assert.equal(strike.ticks.length, 12);
-  assert.equal(strike.ticks[0].atMs, 360);
-  assert.equal(strike.ticks[1].atMs - strike.ticks[0].atMs, 520);
-  assert.equal(strike.timingAnchor, 'castEnd');
-  assert.equal(strike.timingScale, 'fixed');
-
-  // The EVTC packet cadence belongs to the deployed gyro and therefore stays fixed regardless of player boon presence.
+// Controlled pulses verify cast-end anchoring and fixed deployment timing without copying live calibration.
+test('Shredder Gyro resolves deployed pulses independently of player boons', () => {
   for (const quickness of [true, false]) {
     const result = simulate(quickness);
     const step = result.steps.find((candidate) => candidate.skill === 'Shredder Gyro');
     const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Shredder Gyro');
-
-    assert.equal(hits.length, 12);
-    assert.ok(hits.every((event) => Math.abs(event.coefficient - 0.4) < 1e-12));
+    assert.deepEqual(result.warnings, []);
     assert.deepEqual(
-      hits.map((event) => Math.round(event.at * 1000 - step.end)),
-      [360, 880, 1400, 1920, 2440, 2960, 3480, 4000, 4520, 5040, 5560, 6080]
+      hits.map((event) => [Math.round(event.at * 1000 - step.end), event.coefficient]),
+      [
+        [120, 0.2],
+        [520, 0.3]
+      ]
     );
   }
 });

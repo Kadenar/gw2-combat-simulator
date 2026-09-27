@@ -1,19 +1,17 @@
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 
-/** One recipient's finite grant. Optional generation supports replaying scheduler grants without replaying spending. */
+/** One recipient's finite grant, consumed and expired directly by its owning mechanic. */
 export interface ChargeGrant {
   charges: number;
   expiresAt: number;
   readyAt?: number;
-  generation?: number;
 }
 
 export interface ChargePool {
-  generation: number;
-  grants: Record<string, (ChargeGrant & { generation: number })[]>;
+  grants: Record<string, ChargeGrant[]>;
 }
 
-/** Appends an independently expiring recipient grant, capping only new charges and assigning its replay identity. */
+/** Appends an independently expiring recipient grant, capping only new charges without refreshing earlier expiry. */
 export function grantChargePool(
   pool: ChargePool,
   recipient: string,
@@ -26,7 +24,7 @@ export function grantChargePool(
   pool.grants[recipient] = grants;
   const added = Math.max(0, Math.min(charges, cap - grants.reduce((sum, grant) => sum + grant.charges, 0)));
   if (!added) return;
-  const grant = { ...grantCharges(added, at + duration), generation: ++pool.generation };
+  const grant = grantCharges(added, at + duration);
   pool.grants[recipient] = activeChargeGrants([...grants, grant], at);
 }
 
@@ -71,14 +69,4 @@ export function expireCharges(grant: ChargeGrant, at: number, inclusiveExpiry = 
 /** Independently expiring grants consume the earliest expiry first, with stable order for equal deadlines. */
 export function activeChargeGrants<T extends ChargeGrant>(grants: readonly T[], at: number): T[] {
   return grants.filter((grant) => grant.charges > 0 && grant.expiresAt > at).sort((a, b) => a.expiresAt - b.expiresAt);
-}
-
-/** Replays only unseen grants, so later scheduler snapshots cannot restore resolver-consumed charges. */
-export function replayChargeGrants<T extends ChargeGrant & { generation: number }>(
-  current: readonly T[],
-  incoming: readonly T[],
-  generation: number,
-  at: number
-): T[] {
-  return activeChargeGrants([...current, ...incoming.filter((grant) => grant.generation > generation)], at);
 }

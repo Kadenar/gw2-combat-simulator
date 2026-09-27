@@ -1,5 +1,5 @@
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
-import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -22,29 +22,24 @@ import type { GuardianBuild } from '#gw2/professions/guardian/types.js';
 // retaining provenance needed to avoid reapplying panel-visible modifiers.
 export function applyGuardianBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  { build, selectedSkills = [], weaponSet = 1, disabledTrait = null, balanceContext }: Gw2BuildAttributeRuleContext
+  context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const guardianBuild = build as GuardianBuild;
+  const guardianBuild = context.build as GuardianBuild;
 
-  const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
-    specializations: guardianBuild.specializations || [],
-    selectedSkills,
-    disabledTrait,
+  const { activeTraits, hasTrait, hasSelectedSkill, profileContext, weapons } = createBuildAttributeContext(
+    context,
+    guardianCatalog,
     getActiveTraits
-  });
-
-  // Build previews and simulation tooltips use the same selected patch values.
-  const profileContext = balanceContext ?? { catalog: guardianCatalog };
+  );
 
   const traitDurations: Gw2NumericAttributes = {};
-  const weapons = weaponSet === 2 ? guardianBuild.alternateWeapons : guardianBuild.weapons;
-  const mainHand = weapons?.[0] || '';
-  const offHand = weapons?.[1] || '';
+  const mainHand = weapons[0] || '';
+  const offHand = weapons[1] || '';
 
   const oneHandedMainHand =
     mainHand !== '' && !['Greatsword', 'Hammer', 'Longbow', 'Spear', 'Staff'].includes(mainHand);
 
-  const signetMultiplier = hasTrait('Perfect Inscriptions')
+  const signetMultiplier = hasTrait(TRAIT.PERFECT_INSCRIPTIONS)
     ? balanceProfileNumber(
         requireBalanceProfileFromContext(profileContext, TRAIT.PERFECT_INSCRIPTIONS),
         'attributeMultiplier'
@@ -81,7 +76,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Precision',
       amount: balanceProfileNumber(rightHandStrengthProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Right-Hand Strength')
+      enabled: hasTrait(TRAIT.RIGHT_HAND_STRENGTH)
     },
     {
       kind: 'flat',
@@ -89,7 +84,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Power',
       amount: balanceProfileNumber(rightHandStrengthProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Right-Hand Strength') && oneHandedMainHand
+      enabled: hasTrait(TRAIT.RIGHT_HAND_STRENGTH) && oneHandedMainHand
     },
     {
       kind: 'flat',
@@ -100,7 +95,7 @@ export function applyGuardianBuildAttributeRules(
         mainHand === 'Greatsword' ? 'weaponAttributeBonus' : 'attributeBonus'
       ),
       feedsConversions: false,
-      enabled: hasTrait('Zealous Blade')
+      enabled: hasTrait(TRAIT.ZEALOUS_BLADE)
     },
     {
       kind: 'flat',
@@ -108,7 +103,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Ferocity',
       amount: balanceProfileNumber(radiantPowerProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Radiant Power')
+      enabled: hasTrait(TRAIT.RADIANT_POWER)
     },
     {
       kind: 'flat',
@@ -116,7 +111,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Toughness',
       amount: balanceProfileNumber(stalwartDefenderProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Stalwart Defender') && offHand === 'Shield'
+      enabled: hasTrait(TRAIT.STALWART_DEFENDER) && offHand === 'Shield'
     },
     {
       kind: 'flat',
@@ -124,7 +119,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Concentration',
       amount: balanceProfileNumber(honorableStaffProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Honorable Staff')
+      enabled: hasTrait(TRAIT.HONORABLE_STAFF)
     },
     {
       kind: 'flat',
@@ -132,7 +127,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Vitality',
       amount: balanceProfileNumber(defendersDogmaProfile, 'attributeBonus'),
       feedsConversions: true,
-      enabled: hasTrait("Defender's Dogma")
+      enabled: hasTrait(TRAIT.DEFENDERS_DOGMA)
     },
     {
       kind: 'flat',
@@ -140,7 +135,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Vitality',
       amount: balanceProfileNumber(forceOfWillProfile, 'attributeBonus'),
       feedsConversions: true,
-      enabled: hasTrait('Force of Will')
+      enabled: hasTrait(TRAIT.FORCE_OF_WILL)
     },
     {
       kind: 'flat',
@@ -148,7 +143,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Condition Damage',
       amount: balanceProfileNumber(imbuedHasteProfile, 'attributeBonus'),
       feedsConversions: true,
-      enabled: hasTrait('Imbued Haste') && quickness
+      enabled: hasTrait(TRAIT.IMBUED_HASTE) && quickness
     },
     {
       kind: 'flat',
@@ -156,7 +151,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Healing Power',
       amount: balanceProfileNumber(imbuedHasteProfile, 'attributeBonus'),
       feedsConversions: true,
-      enabled: hasTrait('Imbued Haste') && quickness
+      enabled: hasTrait(TRAIT.IMBUED_HASTE) && quickness
     },
     {
       kind: 'flat',
@@ -164,7 +159,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Vitality',
       amount: balanceProfileNumber(imbuedHasteProfile, 'attributeBonus'),
       feedsConversions: true,
-      enabled: hasTrait('Imbued Haste') && quickness
+      enabled: hasTrait(TRAIT.IMBUED_HASTE) && quickness
     },
     {
       kind: 'flat',
@@ -172,7 +167,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Condition Damage',
       amount: balanceProfileNumber(searingPactProfile, 'attributeBonus'),
       feedsConversions: true,
-      enabled: hasTrait('Searing Pact')
+      enabled: hasTrait(TRAIT.SEARING_PACT)
     },
     {
       kind: 'flat',
@@ -180,7 +175,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Power',
       amount: balanceProfileNumber(powerForPowerProfile, 'attributeBonus'),
       feedsConversions: true,
-      enabled: hasTrait('Power for Power')
+      enabled: hasTrait(TRAIT.POWER_FOR_POWER)
     },
     {
       kind: 'flat',
@@ -188,7 +183,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Vitality',
       amount: balanceProfileNumber(conceitedCurateProfile, 'attributeBonus'),
       feedsConversions: true,
-      enabled: hasTrait('Conceited Curate')
+      enabled: hasTrait(TRAIT.CONCEITED_CURATE)
     },
     {
       kind: 'flat',
@@ -196,7 +191,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Vitality',
       amount: balanceProfileNumber(lightsGiftProfile, 'attributeBonus'),
       feedsConversions: true,
-      enabled: hasTrait("Light's Gift")
+      enabled: hasTrait(TRAIT.LIGHTS_GIFT)
     },
     {
       kind: 'conversion',
@@ -206,7 +201,7 @@ export function applyGuardianBuildAttributeRules(
       multiplier: balanceProfileNumber(kindledZealProfile, 'attributeConversion'),
       rounding: 'round',
       input: 'eligible',
-      enabled: hasTrait('Kindled Zeal')
+      enabled: hasTrait(TRAIT.KINDLED_ZEAL)
     },
     {
       kind: 'flat',
@@ -214,7 +209,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Power',
       amount: balanceProfileNumber(baneSignetPassiveProfile, 'attributeBonus') * signetMultiplier,
       feedsConversions: false,
-      enabled: hasSelectedSkill('Bane Signet')
+      enabled: hasSelectedSkill(ID.BANE_SIGNET)
     },
     {
       kind: 'flat',
@@ -222,7 +217,7 @@ export function applyGuardianBuildAttributeRules(
       to: 'Condition Damage',
       amount: balanceProfileNumber(signetOfWrathPassiveProfile, 'attributeBonus') * signetMultiplier,
       feedsConversions: false,
-      enabled: hasSelectedSkill('Signet of Wrath')
+      enabled: hasSelectedSkill(ID.SIGNET_OF_WRATH)
     },
     {
       kind: 'conversion',
@@ -232,11 +227,11 @@ export function applyGuardianBuildAttributeRules(
       multiplier: balanceProfileNumber(powerOfTheVirtuousProfile, 'attributeConversion'),
       rounding: 'round',
       input: 'eligible',
-      enabled: hasTrait('Power of the Virtuous')
+      enabled: hasTrait(TRAIT.POWER_OF_THE_VIRTUOUS)
     }
   ];
 
-  if (hasTrait('Radiant Fire')) {
+  if (hasTrait(TRAIT.RADIANT_FIRE)) {
     const radiantFireProfile = requireBalanceProfileFromContext(profileContext, TRAIT.RADIANT_FIRE);
     traitDurations['Burning Duration'] = 100 * balanceProfileNumber(radiantFireProfile, 'conditionDurationBonus');
   }

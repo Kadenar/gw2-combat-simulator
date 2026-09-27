@@ -9,7 +9,7 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/engineer/data/engineer
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { TRAITS } from '#gw2/professions/engineer/data/traits-data.js';
-import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 
 const ENGINEER_SKILL_ICON_OVERRIDES = new Map<string, string>([
@@ -68,10 +68,10 @@ const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
 ]);
 
 const CORE_SWORD_SKILL_IDS = new Set<SkillId>([
-  ID.SUN_EDGE_ID_70514,
-  ID.SUN_RIPPER_ID_69906,
-  ID.GLEAM_SABER_ID_70771,
-  ID.RADIANT_ARC_ID_69565,
+  ID.SUN_EDGE_NON_HOLOSMITH,
+  ID.SUN_RIPPER_NON_HOLOSMITH,
+  ID.GLEAM_SABER_NON_HOLOSMITH,
+  ID.RADIANT_ARC_NON_HOLOSMITH,
   ID.REFRACTION_CUTTER_NON_HOLOSMITH
 ]);
 
@@ -193,9 +193,8 @@ function normalizeMechanics(
         return [
           id,
           {
-            ...linkedMechanic,
+            ...linkedMechanic
             // Custom: Activates the selected morph, strain, and form-specific effects; see `amalgam/mechanics/evolved-form.ts`.
-            handlerId: 'engineer.amalgam-morph'
           }
         ];
       })
@@ -206,7 +205,7 @@ function normalizeMechanics(
 const createModuleData = createProfessionModuleDataFactory({
   generatedSkills: generated,
   sharedExtraSkills: supplemental,
-  traits: TRAITS as readonly CatalogEntity[],
+  traits: TRAITS,
   specializations: SPECIALIZATIONS,
   specializationOnlySkills: SPECIALIZATION_ONLY_SKILLS,
   core: WEAPON_DATA

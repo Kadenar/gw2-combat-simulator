@@ -10,7 +10,7 @@ import { MECHANIST_COMMAND_DURATIONS } from '#gw2/professions/engineer/specializ
 // F1-F3 commands execute on the mech's own serial cast lane so their animations
 // can overlap the engineer without allowing non-instant mech commands to overlap.
 function mechCommand(fragment: Partial<Skill>): Partial<Skill> {
-  const instant = Number(fragment.castTimeMs || 0) === 0 && fragment.quicknessCastTimeMs == null;
+  const instant = (fragment.castTimeMs || 0) === 0 && fragment.quicknessCastTimeMs == null;
   return {
     ...fragment,
     // Mech commands retain the Tools interactions of the replaced tool-belt slots.

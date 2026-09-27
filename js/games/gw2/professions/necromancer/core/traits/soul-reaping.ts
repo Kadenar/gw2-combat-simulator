@@ -1,27 +1,53 @@
 /** Owns imperative Core Necromancer Soul Reaping trait behavior for ordered dispatcher calls. */
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { gainNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+
 import {
   applyTraitCondition,
   applyTraitVulnerability
 } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
+import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import type {
-  NecromancerCastContext,
   NecromancerResolverContext,
   NecromancerResolverEvent,
+  NecromancerRuntime,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
+
+/** The first accepted player strike of a mark contributes to the shared percentage grant. */
+export function soulMarksLifeForce(
+  runtime: NecromancerRuntime,
+  skill: NecromancerSkill,
+  event: NecromancerResolverEvent
+): number {
+  return Number(event.hitIndex ?? 1) === 1 && skill.categories?.includes('Mark') && hasTrait(runtime, TRAIT.SOUL_MARKS)
+    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SOUL_MARKS), 'lifeForceGain')
+    : 0;
+}
+
+/** Accepted non-summon fear grants life force under one cooldown; missed and travelling packets grant nothing. */
+export function applyFearOfDeath(runtime: NecromancerRuntime, event: NecromancerResolverEvent): void {
+  if (
+    event.controlKind !== 'fear' ||
+    event.actorType === 'summon' ||
+    !hasTrait(runtime, TRAIT.FEAR_OF_DEATH) ||
+    !isInternalCooldownReady(runtime.time, runtime.procs.deadline('necromancer.core.fearOfDeath'))
+  )
+    return;
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.FEAR_OF_DEATH);
+  runtime.procs.readyAt['necromancer.core.fearOfDeath'] =
+    runtime.time + balanceProfileNumber(profile, 'internalCooldown');
+  grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
+}
 
 export function applyDhuumfire(
   context: NecromancerResolverContext,
@@ -32,14 +58,11 @@ export function applyDhuumfire(
   if (!hasTrait(context, TRAIT.DHUUMFIRE) || !shroudSkillOne) return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.dhuumfire);
   const effect = requireEffect(profile, 'condition', 'Burning');
-  const interval = Number(event.metadata?.dhuumfireInterval || 0);
+  const interval = event.metadata?.dhuumfireInterval || 0;
   // Zero or absent intervals bypass the claim so same-time applications remain unrestricted; the claim gates only
   // Burning, so a removed packet leaves it ready.
   if (!effect) return;
-  if (
-    interval > 0 &&
-    !tryConsumeProcCooldown(professionCoreState(context).traitProcReadyAt, 'dhuumfire', event.at, interval)
-  ) {
+  if (interval > 0 && !context.procs.claimCooldown('dhuumfire', event.at, interval)) {
     return;
   }
 
@@ -48,7 +71,7 @@ export function applyDhuumfire(
     traitId: TRAIT.DHUUMFIRE,
     condition: String(effect.condition),
     stacks: effectNumber(profile, effect, 'stacks'),
-    duration: Number(event.metadata?.dhuumfireDuration ?? skillDuration ?? effect?.duration ?? 3)
+    duration: Number(event.metadata?.dhuumfireDuration ?? skillDuration ?? effect.duration ?? 3)
   });
 }
 
@@ -68,25 +91,4 @@ export function applyUnyieldingBlast(
     stacks: effectNumber(profile, effect, 'stacks'),
     duration: effectNumber(profile, effect, 'duration')
   });
-}
-
-/** Grants Fear of Death life force only after a completed fear-producing cast and its ICD. */
-export function applyFearOfDeath(context: NecromancerCastContext, skill: NecromancerSkill): void {
-  const state = professionCoreState(context);
-  const control = (skill.effects || []).find((effect) => effect.type === 'control');
-  if (
-    control?.controlKind !== 'fear' ||
-    !hasTrait(context, TRAIT.FEAR_OF_DEATH) ||
-    !isInternalCooldownReady(context.effectiveEnd, Number(state.fearOfDeathReadyAt || 0))
-  )
-    return;
-  gainNecromancerLifeForce(
-    context,
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEAR_OF_DEATH), 'lifeForceGain'),
-    context.effectiveEnd,
-    'fear-of-death'
-  );
-  state.fearOfDeathReadyAt =
-    context.effectiveEnd +
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEAR_OF_DEATH), 'internalCooldown');
 }

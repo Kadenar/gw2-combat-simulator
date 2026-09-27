@@ -12,6 +12,7 @@ export { rangerCatalog, rangerNativeModules } from '#gw2/professions/ranger/cata
 export const rangerProfession = defineNativeProfession({
   id: 'ranger',
   name: 'Ranger',
+  requireEquippedSlotSkills: true,
   build: {
     createBuildDefaults: createRangerBuildDefaults,
     migrateBuild: migrateRangerBuild,

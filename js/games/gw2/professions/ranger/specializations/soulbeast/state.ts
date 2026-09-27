@@ -4,18 +4,14 @@ import {
 } from '#gw2/platform/engine/profession/state.js';
 import { selectedRangerPet } from '#gw2/professions/ranger/core/state.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
 export interface SoulbeastState {
+  pendingSharedStances: Gw2ResolverEvent[];
   beastmodeActive: boolean;
   archetype: string;
   oneWolfPackUntil: number;
-  oneWolfPackReadyAt: number;
-  goForTheEyesReadyAt: number;
-  goForTheThroatReadyAt: number;
-  bestialRageReadyAt: number;
-  essenceOfSpeedReadyAt: number;
-  vultureStanceReadyAt: number;
-  alliedStanceReadyAt: Record<string, number>;
+
   beastAbilityActivations: Record<string, boolean>;
 }
 
@@ -23,24 +19,18 @@ export interface SoulbeastState {
 export const SOULBEAST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   beastmodeActive: false,
   archetype: '',
-  oneWolfPackUntil: 0,
-  oneWolfPackReadyAt: 0
+  oneWolfPackUntil: 0
 } satisfies Partial<RangerState>);
 
 export function createSoulbeastState(config: RangerConfig = {}): SoulbeastState {
   const pet = selectedRangerPet(config);
   return {
+    pendingSharedStances: [],
     // Soulbeast starts merged — the rotation begins in Beastmode by default.
     beastmodeActive: true,
     archetype: pet?.archetype || '',
     oneWolfPackUntil: 0,
-    oneWolfPackReadyAt: 0,
-    goForTheEyesReadyAt: 0,
-    goForTheThroatReadyAt: 0,
-    bestialRageReadyAt: 0,
-    essenceOfSpeedReadyAt: 0,
-    vultureStanceReadyAt: 0,
-    alliedStanceReadyAt: {},
+
     // Tracks per-activation-id whether the beast-ability first-hit proc already fired, preventing multi-hit skills from triggering trait effects more than once per cast.
     beastAbilityActivations: {}
   };

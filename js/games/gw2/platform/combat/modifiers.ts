@@ -1,5 +1,5 @@
 import type { SkillId, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
-import type { SchedulerState } from '#gw2/platform/execution/types.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type {
   Gw2CombatQuery,
@@ -252,7 +252,7 @@ function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonl
   return Object.freeze({
     ...normalized,
     [field]: resolver
-  }) as Readonly<Gw2NormalizedModifierRule>;
+  });
 }
 
 /**
@@ -545,7 +545,7 @@ export function compileGw2ModifierRules(rules: readonly Gw2ModifierRule[]): Read
   return createModifierHooks({ rules });
 }
 
-export type Gw2ModifierTarget =
+type Gw2ModifierTarget =
   | 'criticalChance'
   | 'criticalDamage'
   | 'strikeDamage'
@@ -558,9 +558,9 @@ export type Gw2ModifierTarget =
   | 'attributeHealingPower'
   | 'attributeVitality';
 
-export type Gw2DamageModifierTarget = 'strikeDamage' | 'conditionDamage';
+type Gw2DamageModifierTarget = 'strikeDamage' | 'conditionDamage';
 
-export type Gw2ModifierOperation = 'add' | 'damage-additive' | 'multiply';
+type Gw2ModifierOperation = 'add' | 'damage-additive' | 'multiply';
 
 /** Modifier queries retain scheduler state and source identity when no event is available. */
 export interface Gw2ModifierContext {
@@ -570,7 +570,7 @@ export interface Gw2ModifierContext {
   readonly sourceId?: SkillId | null;
   readonly actorType?: SimulationEvent['actorType'] | null;
   readonly profession?: { readonly catalog?: CanonicalCatalog };
-  readonly state?: Partial<SchedulerState> & { readonly boons?: Map<string, Gw2TimedBuffApplication[]> };
+  readonly state?: Partial<Gw2Runtime> & { readonly boons?: Map<string, Gw2TimedBuffApplication[]> };
 
   readonly config?: Gw2Config;
   readonly time: number;
@@ -586,7 +586,7 @@ export interface Gw2ModifierContext {
   readonly conditionSample?: Gw2ConditionSample;
 }
 
-export type Gw2ModifierNumericResolver = (
+type Gw2ModifierNumericResolver = (
   context: Gw2ModifierContext,
   target: Gw2ModifierTarget,
   parameters: Readonly<Record<string, number>>
@@ -607,7 +607,7 @@ export interface Gw2ModifierRule {
   readonly order?: number;
 }
 
-export interface Gw2NormalizedModifierRule {
+interface Gw2NormalizedModifierRule {
   readonly id: string;
   readonly label: string | null;
   readonly targets: readonly Gw2ModifierTarget[];
@@ -621,13 +621,13 @@ export interface Gw2NormalizedModifierRule {
   readonly conditionSampleInvariant: boolean;
 }
 
-export type Gw2IncludeSigilPolicy = boolean | ((context: Gw2ModifierContext) => boolean);
+type Gw2IncludeSigilPolicy = boolean | ((context: Gw2ModifierContext) => boolean);
 
-export interface Gw2DamageBucketPolicy {
+interface Gw2DamageBucketPolicy {
   readonly includeSigil: Gw2IncludeSigilPolicy;
 }
 
-export type Gw2DamageBucketPolicies = Partial<
+type Gw2DamageBucketPolicies = Partial<
   Record<Gw2DamageModifierTarget, { readonly includeSigil?: Gw2IncludeSigilPolicy }>
 >;
 
@@ -642,12 +642,9 @@ export type Gw2ModifierHook = ((context: Gw2ModifierContext, initialValue: numbe
   readonly acceptsDamageInputs?: true;
 };
 
-export type Gw2AttributeModifierHook = (
-  context: Gw2ModifierContext,
-  initialValue: Gw2ResolvedStats
-) => Gw2ResolvedStats;
+type Gw2AttributeModifierHook = (context: Gw2ModifierContext, initialValue: Gw2ResolvedStats) => Gw2ResolvedStats;
 
-export interface Gw2ModifierHooks {
+interface Gw2ModifierHooks {
   readonly modifyAttributes: Gw2AttributeModifierHook;
   readonly modifyCriticalChance: Gw2ModifierHook;
   readonly modifyCriticalDamage: Gw2ModifierHook;

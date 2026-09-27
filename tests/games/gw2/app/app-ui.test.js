@@ -1,10 +1,10 @@
+import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import {
-  DEFAULT_TARGET_ARMOR,
   normalizeTargetArmor,
   PRIMARY_ATTRIBUTES,
   STACKING_TARGET_CONDITIONS,
@@ -18,7 +18,7 @@ import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/st
 import { applyBuildFileImport, previewBuildFileImport } from '#gw2/app/io/build-file-import.js';
 import { loadManifestBuilds } from '#gw2/app/io/rotation-import-dialog.js';
 import { groupedOptions, option } from '#gw2/app/shared/html.js';
-import { loadProfessionAppAdapter, professionOptions, professionRegistry } from '#gw2/app/profession-registry.js';
+import { loadProfessionAppAdapter, professionOptions, professionRegistry } from '#gw2/profession-registry.js';
 import {
   displayedSkillTiles,
   displayedWeaponSkills,
@@ -231,7 +231,7 @@ test('selecting an elite shifts the remaining core lines above it', () => {
 });
 
 test('target armor presets use base by default and allow custom values', () => {
-  assert.equal(DEFAULT_TARGET_ARMOR, 2597);
+  assert.equal(STANDARD_TARGET_ARMOR, 2597);
   assert.deepEqual(TARGET_ARMOR_OPTIONS, [
     { value: 2597, label: 'Base' },
     { value: 1910, label: 'Vale Guardian / Keep Construct' },
@@ -243,7 +243,7 @@ test('target armor presets use base by default and allow custom values', () => {
   assert.equal(normalizeTargetArmor(1910), 1910);
   assert.equal(normalizeTargetArmor('2184'), 2184);
   assert.equal(normalizeTargetArmor(3210), 3210);
-  assert.equal(normalizeTargetArmor('not armor'), DEFAULT_TARGET_ARMOR);
+  assert.equal(normalizeTargetArmor('not armor'), STANDARD_TARGET_ARMOR);
 });
 
 test('proc display groups only consecutive occurrences of the same proc', () => {
@@ -522,68 +522,54 @@ test('palette additions insert at an armed cursor and advance it', () => {
   ]);
 });
 
-test('Dragon Slash release projections respect Flow and traited charge caps', () => {
-  const skill = {
-    id: 1,
-    name: 'Dragon Slash—Force',
-    dragonSlashMinimumCoefficient: 1.16,
-    dragonSlashMaximumCoefficient: 20.4
-  };
-  const entry = {
-    type: 'resource',
-    at: 1,
-    source: 'Warrior',
-    sourceId: 2,
-    reason: 'dragon trigger entry',
-    rotationIndex: 0,
-    value: 10,
-    maximumFlow: 100,
-    maximumCharges: 5,
-    chargesPerInterval: 1,
-    flowPerInterval: 10,
-    nextChargeAt: 1.24,
-    deadline: 3.5,
-    flowRateSegments: []
-  };
-  const projection = dragonChargeReleaseProjection({
-    events: [entry],
-    insertionIndex: 1,
-    skill
-  });
-
+test('Dragon Slash editor choices execute prefix candidates through the application adapter', async () => {
+  const adapter = await loadProfessionAppAdapter('warrior');
+  const build = createDefaultBuild(adapter);
+  build.weapons = ['Sword', 'Pistol'];
+  build.initialResource = 100;
+  build.specializations = [{ name: 'Bladesworn', traits: '1-2-2' }];
+  const skills = adapter.profession.catalog.skillsByName;
+  const skill = skills.get('Dragon Slash—Force');
+  build.rotation = [
+    { type: 'cast', skillId: skills.get('Dragon Trigger').id },
+    { type: 'wait', durationMs: 1000 },
+    { type: 'combat-start' }
+  ];
+  const app = { adapter, build, skillByName: skills, attributeWeaponSet: 1, results: null };
+  adapter.recalculate(app);
+  const preview = (command) => adapter.rotationPreviewAt(app, 1, command ? [command] : []);
+  const prefix = preview();
+  assert.equal(prefix.planningState.atSeconds, 0);
+  assert.equal(prefix.combatStartTime, 1);
+  const projection = dragonChargeReleaseProjection({ skill, preview });
   assert.equal(projection.unavailableMessage, undefined);
-  assert.deepEqual(
-    projection.rows.map((row) => row.charges),
-    [1, 2, 3, 4, 5]
+  assert.ok(projection.rows.length > 0);
+  const row = projection.rows.at(-1);
+  const actual = preview({ type: 'cast', skillId: skill.id, releaseAtCharges: row.charges });
+  assert.deepEqual(actual.warnings, []);
+  const release = actual.events.find(
+    (event) => event.reason === 'profession mechanic' && event.resource === 'dragon charges'
   );
-  assert.equal(projection.rows[0].disabled, false);
-  // Entry pays for the first charge; the remaining Flow funds exactly one additional interval.
-  assert.equal(projection.rows[0].flowAfter, 10);
-  assert.equal(projection.rows[1].disabled, false);
-  assert.equal(projection.rows[1].flowAfter, 0);
-  assert.equal(projection.rows[2].disabled, true);
-  assert.match(projection.rows[2].reason, /Insufficient Flow/);
-  assert.equal(projection.rows.at(-1).coefficient, 20.4);
+  assert.equal(row.at, release.at);
+  assert.equal(row.flowAfter, release.flowAfter);
+  assert.equal(row.coefficient, release.coefficient);
   assert.equal(
-    dragonChargeReleaseProjection({
-      events: [],
-      insertionIndex: 1,
-      skill
-    }).unavailableMessage,
+    dragonChargeReleaseProjection({ skill, preview: () => adapter.rotationPreviewAt(app, 0) }).unavailableMessage,
     'Enter Dragon Trigger before using this skill.'
   );
 });
 
 test('Dragon Slash resource spends preserve charge outcome details', () => {
   const spends = shatterResourceSpends({
+    steps: [{ ri: 4, activationId: 'slash', skill: 'Dragon Slash—Force' }],
     events: [
       {
         type: 'resource',
         reason: 'profession mechanic',
-        rotationIndex: 4,
+        activationId: 'slash',
         amount: -4,
         resource: 'dragon charges',
-        sourceSkill: 'Dragon Slash—Force',
+        skillName: 'Dragon Slash—Force',
         requestedCharges: 3,
         maximumCharges: 10,
         chargesReached: 4,
@@ -680,10 +666,21 @@ test('shared app options escape labels and preserve selection state', () => {
 });
 
 test('gear prefixes and sigils are sorted into Power and Condition groups', () => {
+  // Prefixes without Condition Damage belong to Power, including defensive and support stat combinations.
   assert.deepEqual(PREFIX_GROUPS, [
     {
       label: 'Power',
-      items: ["Assassin's", "Berserker's", "Diviner's", "Dragon's", "Zealot's"]
+      items: [
+        "Assassin's",
+        "Berserker's",
+        "Demolisher's",
+        "Diviner's",
+        "Dragon's",
+        "Harrier's",
+        "Knight's",
+        'Marauder',
+        "Zealot's"
+      ]
     },
     {
       label: 'Condition',

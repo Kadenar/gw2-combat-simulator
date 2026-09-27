@@ -18,7 +18,7 @@ import { ammoDisplayView, type AmmoDisplayView } from '#ui/rotation/ammo-display
 
 import { paletteSkillResourceView, type PaletteResourceView } from '#gw2/app/rotation/palette/resource-view.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { ProfessionSlotLoadoutContext } from '#gw2/app/build/types.js';
+import type { SlotLoadoutContext } from '#gw2/platform/builds/slot-loadout.js';
 import type {
   PaletteSkillAvailability,
   ProfessionPaletteContext,
@@ -647,7 +647,12 @@ export interface PaletteGroupView {
 }
 
 export type RenderedPaletteGroup = ProfessionPaletteGroup & { skills: Skill[] };
-export type PaletteContext = ProfessionSlotLoadoutContext & ProfessionPaletteContext;
+export type PaletteContext = SlotLoadoutContext &
+  ProfessionPaletteContext & {
+    readonly build: ProfessionAppState['build'];
+    readonly catalog: ProfessionAppState['activeCatalog'];
+    readonly specialization: string;
+  };
 
 /** Builds the current context once for every palette render or interaction projection. */
 export function createPaletteContext(app: ProfessionAppState): PaletteContext {

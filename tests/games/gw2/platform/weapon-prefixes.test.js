@@ -6,12 +6,47 @@ import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
+import { resolveProfessionContract } from '#gw2/platform/engine/profession/family.js';
 import { createGw2CombatQuery, gw2StatsForWeaponSet } from '#gw2/platform/combat/query/combat-query.js';
+import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
+import { PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
 
 // Attribute assertions use the same calculator composed into the Mesmer adapter.
 const calculateAttributes = createCalculateAttributes(applyMesmerBuildAttributeRules);
 const defaults = () => createDefaultBuild(mesmerAppAdapter);
+
+test('new prefixes load in every gear slot and use ascended attribute budgets', () => {
+  // Each new stat combination must survive loading on both weapon sets and retain every slot's budget.
+  for (const [prefix, reference, attributes] of [
+    [
+      'Marauder',
+      "Diviner's",
+      { Power: 'Power', Precision: 'Concentration', Vitality: 'Precision', Ferocity: 'Ferocity' }
+    ],
+    [
+      "Demolisher's",
+      "Diviner's",
+      { Power: 'Power', Precision: 'Concentration', Toughness: 'Precision', Ferocity: 'Ferocity' }
+    ],
+    ["Knight's", "Berserker's", { Toughness: 'Power', Power: 'Precision', Precision: 'Ferocity' }],
+    ["Harrier's", "Berserker's", { Power: 'Power', 'Healing Power': 'Precision', Concentration: 'Ferocity' }]
+  ]) {
+    assert.ok(PREFIXES.includes(prefix));
+    const build = defaults();
+    for (const slot of Object.keys(build.gear)) build.gear[slot] = prefix;
+    build.alternateWeaponPrefixes = [prefix, prefix];
+    const loaded = replaceBuild(build, mesmerAppAdapter);
+    assert.deepEqual(loaded.gear, build.gear);
+    assert.deepEqual(loaded.alternateWeaponPrefixes, [prefix, prefix]);
+    assert.equal(mesmerProfession.validateBuild(loaded).valid, true);
+    for (const [slot, stats] of Object.entries(GEAR_STATS[reference])) {
+      assert.deepEqual(
+        GEAR_STATS[prefix][slot],
+        Object.fromEntries(Object.entries(attributes).map(([attribute, source]) => [attribute, stats[source]]))
+      );
+    }
+  }
+});
 
 test('legacy weapon prefixes migrate onto the alternate weapon set', () => {
   const build = replaceBuild(
@@ -84,7 +119,7 @@ test('runtime stats follow chronological weapon-set swaps', () => {
   };
   const config = mesmerAppAdapter.simulationConfig(app);
   const query = createGw2CombatQuery({
-    profession: resolveProfessionRuntime(mesmerProfession, config),
+    profession: resolveProfessionContract(mesmerProfession, config),
     config,
     events: [{ type: 'weapon_set', at: 1, weaponSet: 2 }]
   });

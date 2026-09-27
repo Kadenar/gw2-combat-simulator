@@ -23,7 +23,6 @@ import { clamp } from '#kernel/core/numeric.js';
 
 const PERMANENT_BOONS: readonly (readonly [string, string])[] = [
   ['fury', 'Fury'],
-  ['alacrity', 'Alacrity'],
   ['protection', 'Protection'],
   ['resolution', 'Resolution'],
   ['regeneration', 'Regeneration'],
@@ -87,10 +86,14 @@ export function renderAssumptions(app: ProfessionAppState): void {
         key
       })
     ),
-    // Explain the fixed timing assumption without exposing an editable boon control.
+    // Explain fixed console boons without exposing editable controls.
     `<span class="boon-control" tabindex="0" ${wikiTooltipAttributes('Quickness', 'Skill timings are calibrated with permanent quickness.')}>
       <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS.Quickness)}" alt="">
       Quickness — always active
+    </span>`,
+    `<span class="boon-control" tabindex="0" ${wikiTooltipAttributes('Alacrity', 'Skill cooldowns assume permanent alacrity.')}>
+      <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS.Alacrity)}" alt="">
+      Alacrity — always active
     </span>`
   ].join('');
   const conditionGroups = TARGET_CONDITION_GROUPS.map((group) => {

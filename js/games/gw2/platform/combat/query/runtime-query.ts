@@ -8,7 +8,6 @@ import {
 import { remainingTargetHealthBelow, remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { boundedNumber, clamp } from '#kernel/core/numeric.js';
 
 interface RuntimeSkillEvent {
@@ -18,18 +17,18 @@ interface RuntimeSkillEvent {
   };
 }
 
-interface RuntimeSkillCatalog<TSkill extends Skill> {
+interface RuntimeSkillCatalog {
   readonly catalog?: {
-    readonly skillsById?: ReadonlyMap<SkillId, TSkill>;
+    readonly skillsById?: ReadonlyMap<SkillId, Skill>;
   };
 }
 
 /** Resolves the current event's catalog skill across every supported modifier-context skill-id path. */
-export function eventSkill<TSkill extends Skill>(context: Gw2ModifierContext): TSkill | undefined {
+export function eventSkill(context: Gw2ModifierContext): Skill | undefined {
   const event = context.event as RuntimeSkillEvent | null | undefined;
-  const skillId = event?.skillId ?? event?.application?.skillId ?? (context.skillId as SkillId | null | undefined);
+  const skillId = event?.skillId ?? event?.application?.skillId ?? context.skillId;
   if (skillId == null) return undefined;
-  const profession = context.profession as RuntimeSkillCatalog<TSkill> | undefined;
+  const profession = context.profession as RuntimeSkillCatalog | undefined;
   return profession?.catalog?.skillsById?.get(skillId);
 }
 
@@ -69,11 +68,10 @@ export function boonActive(context: Gw2ModifierContext, boon: string): boolean {
 /** Counts only player applications so summon copies cannot extend duration or add intensity/custom stacks. */
 export function activeBoonStacks(context: Gw2ModifierContext, boon: string, maximum = 25): number {
   const permanent = context.config?.boons?.[boon];
-  const base = permanent === true ? 1 : Number(permanent || 0);
+  const base = permanent === true ? 1 : permanent || 0;
   // Configured duration presence needs no history, but must still respect the caller's output cap.
   if (base > 0 && isDurationStackingBoon(boon)) return clamp(1, 0, maximum);
-  const schedulerState = context.state as { readonly boons?: Map<string, Gw2TimedBuffApplication[]> } | undefined;
-  const boons = context.runtime?.boons ?? schedulerState?.boons;
+  const boons = context.runtime?.boons;
   const applications = boons?.get(boon) || [];
   const dynamic = buffApplicationStacks(applications, boon, context.time, Infinity);
   return clamp((isDurationStackingBoon(boon) ? 0 : base) + dynamic, 0, maximum);
@@ -81,11 +79,9 @@ export function activeBoonStacks(context: Gw2ModifierContext, boon: string, maxi
 
 /** Gives an installed query adapter precedence while retaining config/runtime condition fallback for partial contexts. */
 export function targetConditionActive(context: Gw2ModifierContext, condition: string): boolean {
-  return Boolean(
-    context.query?.targetHasCondition
-      ? context.query.targetHasCondition(condition, context.time, context.runtime)
-      : targetHasCondition(context.config || {}, condition, context.time, context.runtime)
-  );
+  return context.query?.targetHasCondition
+    ? context.query.targetHasCondition(condition, context.time, context.runtime)
+    : targetHasCondition(context.config || {}, condition, context.time, context.runtime);
 }
 
 /** Counts distinct configured or live target conditions through the canonical combat query when available. */
@@ -93,16 +89,16 @@ export function targetConditionCount(context: Gw2ModifierContext): number {
   const names = new Set([
     ...CANONICAL_TARGET_CONDITIONS,
     ...Object.keys(context.config?.target?.conditions || {}).map(canonicalTargetConditionName),
-    ...[...(context.runtime?.conditionState?.keys?.() || [])].map(canonicalTargetConditionName)
+    ...[...(context.runtime?.conditionState?.keys() || [])].map(canonicalTargetConditionName)
   ]);
   return [...names].filter((condition) => targetConditionActive(context, condition)).length;
 }
 
 /** Reads target Vulnerability through the shared combat-query stack calculation. */
 export function vulnerabilityStacks(context: Gw2ModifierContext): number {
-  return Number(
-    context.query?.targetConditionStacks?.('Vulnerability', context.time, context.runtime) ??
-      context.query?.vulnerabilityStacksAt?.(context.time, context.runtime) ??
-      0
+  return (
+    context.query?.targetConditionStacks('Vulnerability', context.time, context.runtime) ??
+    context.query?.vulnerabilityStacksAt(context.time, context.runtime) ??
+    0
   );
 }

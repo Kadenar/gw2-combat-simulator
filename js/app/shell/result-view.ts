@@ -1,5 +1,5 @@
 import { mountSimulationView, type SimulationViewModel } from '#ui/results/simulation-view.js';
-import { updateFloatingDps } from '#app/shell/floating-dps.js';
+import { updateHeaderDps } from '#app/shell/header-dps.js';
 
 export interface SimulationRenderState {
   readonly inputRevision: number;
@@ -27,7 +27,7 @@ export function renderSimulationViewModel(viewModel: SimulationViewModel, state:
     summary.setAttribute('aria-busy', String(stale));
   }
 
-  updateFloatingDps(viewModel.floatingDps);
+  updateHeaderDps(viewModel.headerDps);
   mountSimulationView(summary, viewModel.summary);
 
   const element = document.getElementById('rotation-results');

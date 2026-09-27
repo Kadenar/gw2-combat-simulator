@@ -1,7 +1,7 @@
 import type { CriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { Gw2CombatQuery, Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
-import { createCanonicalTargetConditionStateMap } from '#gw2/platform/combat/state/targets.js';
 import { createGw2ComboRuntimeState } from '#gw2/platform/combos/events.js';
 import type { Gw2ComboRuntimeState } from '#gw2/platform/combos/types.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
@@ -63,10 +63,11 @@ export function createGw2ResolverRuntimeState({
     conditions: new Map(),
     environmentDamage: 0,
     environmentConditions: new Map(),
-    conditionState: createCanonicalTargetConditionStateMap(),
+    conditionState: new Map(),
     resolved: [],
     procSteps: [],
     procKeys: new Set(),
+    procs: createProcRegistry(() => runtime),
     boons: new Map(),
     totals: {
       strike: 0,
@@ -150,7 +151,7 @@ export function createGw2ResolverRuntimeState({
       const identityId = skillId ?? sourceId;
       // Summon subtype prevents clone and phantasm entries from sharing one identity bucket.
       const actorIdentity = source?.summonKind
-        ? `${source.actorType ?? ''}:${source.summonKind}`
+        ? `${source.actorType}:${source.summonKind}`
         : (source?.actorType ?? source?.source ?? '');
       const key = source ? `${String(identityId)}|${actorIdentity}|${parentSkill}|${name}` : name;
       const current: Gw2DamageBreakdownEntry = this.breakdown.get(key) || {
@@ -175,7 +176,7 @@ export function createGw2ResolverRuntimeState({
         current.skillId = source.skillId;
       }
 
-      if (current.sourceId == null && sourceId != null) {
+      if (current.sourceId == null) {
         current.sourceId = sourceId;
       }
 
@@ -196,7 +197,7 @@ export function createGw2ResolverRuntimeState({
       current.hits += hits;
       // Both modes report the seeded critical outcomes used by proc reactions.
       if (type === 'strikeDamage' && critical) {
-        const eligible = Number(hits) || 0;
+        const eligible = hits || 0;
         current.critEligibleHits = (current.critEligibleHits || 0) + eligible;
         const critShare = critical.didCrit === true ? eligible : 0;
         current.critHits = (current.critHits || 0) + critShare;
@@ -222,12 +223,14 @@ export function createGw2ResolverRuntimeState({
 // Resolution consumes kernel randomness and generic records without execution dependencies.
 
 export interface Gw2ResolverRuntime {
+  readonly procs: ReturnType<typeof createProcRegistry>;
   readonly sigilDiagnostics?: CriticalSigilDiagnostics;
   readonly reporting: boolean;
   readonly damageDiagnostics: boolean;
   config: Gw2Config;
   traits: ReadonlySet<string | number>;
-  horizon: number;
+  /** Unknown until the live cursor and its occupied lanes finish. */
+  horizon: number | null;
   query: Readonly<Gw2CombatQuery>;
   helpers: Gw2ResolverHelpers;
   queue: Gw2EventQueue;
@@ -248,6 +251,7 @@ export interface Gw2ResolverRuntime {
   lastHitTime: number | null;
   deathTime: number | null;
   combatStartTime?: number | null;
+  combatStartPending?: boolean;
   activeWeaponSet: number;
   combo: Gw2ComboRuntimeState;
   relic: Gw2RelicRuntime;
@@ -256,6 +260,7 @@ export interface Gw2ResolverRuntime {
   sigil: {
     severanceUntil: number;
     readyAt: Map<string, number>;
+    doomPending?: boolean;
   };
   food: { readyAt: number };
   random: Readonly<SimulationRandom>;
@@ -289,13 +294,13 @@ export interface Gw2ResolverRuntime {
   markDamageTime(at: number): void;
 }
 
-export interface CreateGw2ResolverRuntimeStateOptions {
+interface CreateGw2ResolverRuntimeStateOptions {
   readonly sigilDiagnostics?: CriticalSigilDiagnostics;
   readonly damageDiagnostics?: boolean;
   readonly reporting?: boolean;
   readonly config: Gw2Config;
   readonly traits?: ReadonlySet<string | number>;
-  readonly horizon: number;
+  readonly horizon: number | null;
   readonly query: Readonly<Gw2CombatQuery>;
   readonly helpers: Gw2ResolverHelpers;
   readonly queue: Gw2EventQueue;

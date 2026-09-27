@@ -1,10 +1,10 @@
 /** Keep Engineer public projections and derived-condition flags closed to unknown fields. */
-import type { projectEngineerPlanningState } from '#gw2/professions/engineer/family-state.js';
+import type { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
 import type { applyEngineerDerivedCondition } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
 
 type Assert<T extends true> = T;
-type PlanningState = ReturnType<typeof projectEngineerPlanningState>;
+type PlanningState = ReturnType<NonNullable<typeof engineerCoreModule.state.project>>;
 type ConditionFlags = NonNullable<Parameters<typeof applyEngineerDerivedCondition>[2]['metadata']>;
 
 export type EngineerRecordAssertions = [

@@ -76,7 +76,7 @@ export const REAPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
         flatStrikeBase: 276,
         flatStrikePowerCoeff: 0.02,
         actorType: 'effect',
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal'
       }
     ]

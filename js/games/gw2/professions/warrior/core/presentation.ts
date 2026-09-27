@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -18,8 +19,7 @@ import type {
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
-import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
+
 import type { WarriorSkill, WarriorState, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
@@ -40,7 +40,7 @@ const WARRIOR_REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Objec
 });
 
 export function warriorUiState(context: WarriorUiContext = {}): Partial<WarriorState> {
-  return flattenProfessionState(context.state?.profession || context.professionState) as Partial<WarriorState>;
+  return flattenProfessionState(context.state?.profession || context.professionState);
 }
 
 function warriorUiSpecialization(context: WarriorUiContext = {}): string {
@@ -49,7 +49,7 @@ function warriorUiSpecialization(context: WarriorUiContext = {}): string {
 
 /** Simulation time (seconds) of the rotation point being inspected. */
 export function warriorSnapshotAt(context: WarriorUiContext = {}): number {
-  return Math.max(0, Number(context.atSeconds || 0));
+  return Math.max(0, context.atSeconds || 0);
 }
 
 /** Formats a remaining duration for the active-state bar (e.g. `4.2s`). */
@@ -61,10 +61,10 @@ export function formatSecondsRemaining(seconds: number): string {
 // runtime state, falling back safely when a saved selection is empty.
 function selectedPrimaryWeapon(context: WarriorUiContext, weaponSet: 1 | 2): string {
   if (context.build) {
-    return String(weaponSet === 1 ? context.build.weapons?.[0] || '' : context.build.alternateWeapons?.[0] || '');
+    return weaponSet === 1 ? context.build.weapons?.[0] || '' : context.build.alternateWeapons?.[0] || '';
   }
 
-  return String(gw2PrimaryWeapon(context.config, weaponSet) || '');
+  return gw2PrimaryWeapon(context.config, weaponSet) || '';
 }
 
 function weaponSetBurstSkillId(
@@ -105,7 +105,7 @@ export function warriorPaletteGroups(
     {
       id: 'warrior-actions',
       label: 'Act',
-      skillIds: [ID.DODGE, ID.SWAP_WEAPONS],
+      skillIds: [SHARED_SKILL_IDS.DODGE, SHARED_SKILL_IDS.SWAP_WEAPONS],
       color: '#e0ad70'
     }
   ];
@@ -117,7 +117,7 @@ export function warriorAdrenalineResourceViews(
   startingMaximum = 30
 ): ProfessionResourceView[] {
   const state = warriorUiState(context);
-  const maximum = Number(state.maximumAdrenaline ?? startingMaximum);
+  const maximum = state.maximumAdrenaline ?? startingMaximum;
   return [
     {
       id: 'adrenaline',
@@ -162,7 +162,7 @@ export function warriorBurstPaletteAvailability(
 
 /** True when the build has the Arms trait Signet Mastery selected. */
 function hasSignetMasteryTrait(context: WarriorUiContext): boolean {
-  return getActiveTraits((context.build?.specializations || []) as ProfessionTraitSelection[]).some(
+  return getActiveTraits(context.build?.specializations || []).some(
     (trait) => Number(trait.id) === TRAIT.SIGNET_MASTERY
   );
 }
@@ -172,7 +172,7 @@ function hasSignetMasteryTrait(context: WarriorUiContext): boolean {
  * timeline as their modifiers so the bar never drifts from the simulation.
  */
 function warriorCoreStateSnapshot(context: WarriorUiContext): RotationStateSnapshotItem[] {
-  const result = context.result as Gw2SimulationResult | null | undefined;
+  const result = context.result;
   const at = warriorSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
   const peakPerformance = timedBuffAt(result, 'peak-performance', at);

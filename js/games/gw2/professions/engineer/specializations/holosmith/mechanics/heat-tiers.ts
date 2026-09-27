@@ -8,24 +8,25 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   EngineerConfig,
   EngineerResolverEvent,
-  EngineerSchedulerContext,
+  EngineerRuntime,
   EngineerSimulationEvent
 } from '#gw2/professions/engineer/types.js';
 
-export type HolosmithHeatTier = 'base' | 'high' | 'enhanced';
+type HolosmithHeatTier = 'base' | 'high' | 'enhanced';
 
-export interface HolosmithHeatSnapshot {
+interface HolosmithHeatSnapshot {
   readonly heat: number;
   readonly enhancedCapacitySelected: boolean;
 }
 
 // Holosmith event metadata stays local to the specialization while its packets
-// still travel through the profession-neutral scheduler and resolver queues.
-export interface HolosmithEventMetadata {
+// travel through the shared live queue.
+interface HolosmithEventMetadata {
   readonly extraBlades?: number;
   readonly holosmithActivationHeat?: number;
   readonly holosmithConditionBaseDurationFactor?: number;
@@ -35,17 +36,17 @@ export interface HolosmithEventMetadata {
   readonly solarFocusingLens?: boolean;
 }
 
-export type HolosmithSimulationEvent = EngineerSimulationEvent & HolosmithEventMetadata;
+type HolosmithSimulationEvent = EngineerSimulationEvent & HolosmithEventMetadata;
 export type HolosmithResolverEvent = EngineerResolverEvent & HolosmithEventMetadata;
 
 /** Safely exposes Holosmith metadata fields carried by an otherwise generic event. */
 export function holosmithEventMetadata(event: unknown): HolosmithEventMetadata {
-  return (event && typeof event === 'object' ? event : {}) as HolosmithEventMetadata;
+  return event && typeof event === 'object' ? event : {};
 }
 
+// Only Holosmith skill variants receive heat scaling; Core sword variants never do.
 const HEAT_STRIKE_PROFILES: ReadonlyMap<string, SkillId> = new Map([
   [String(ID.SUN_EDGE), PROFILE.swordHeatTier],
-  [String(ID.SUN_EDGE_ID_70514), PROFILE.swordHeatTier],
   [String(ID.SUN_RIPPER), PROFILE.swordHeatTier],
   [String(ID.GLEAM_SABER), PROFILE.swordHeatTier],
   [String(ID.BLADE_BURST), PROFILE.bladeBurstHeatTier],
@@ -56,7 +57,7 @@ const HEAT_STRIKE_PROFILES: ReadonlyMap<string, SkillId> = new Map([
 function snapshotHolosmithHeat(context: unknown): HolosmithHeatSnapshot {
   const source = context as { readonly config?: EngineerConfig };
   return Object.freeze({
-    heat: Number(holosmithState.from(context).heat || 0),
+    heat: holosmithState.from(context).heat || 0,
     enhancedCapacitySelected: hasTrait(source.config || {}, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
   });
 }
@@ -65,7 +66,7 @@ function snapshotHolosmithHeat(context: unknown): HolosmithHeatSnapshot {
 export function holosmithHeatSnapshotFromEvent(event: unknown): HolosmithHeatSnapshot {
   const metadata = holosmithEventMetadata(event);
   return Object.freeze({
-    heat: Number(metadata.holosmithActivationHeat || 0),
+    heat: metadata.holosmithActivationHeat || 0,
     enhancedCapacitySelected: metadata.holosmithEnhancedCapacitySelected === true
   });
 }
@@ -107,13 +108,13 @@ export function holosmithEventStrikeFactor(context: unknown, event: unknown, fal
 }
 
 /** Maps eligible direct strike packets to the balance profile that owns their heat scaling. */
-function strikeProfileForEvent(event: EngineerSimulationEvent): SkillId | undefined {
+function strikeProfileForEvent(event: SimulationEventBase): SkillId | undefined {
   const skillId = event.skillId ?? event.sourceId;
   return HEAT_STRIKE_PROFILES.get(String(skillId));
 }
 
 /** Decorates delayed effects with activation heat and direct strikes with their heat-scaling profile. */
-export function decorateHolosmithHeatEvent(context: EngineerSchedulerContext, event: EngineerSimulationEvent): void {
+export function decorateHolosmithHeatEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
   const holosmithEvent = event as HolosmithSimulationEvent;
   const snapshot = snapshotHolosmithHeat(context);
   const activation = {
@@ -126,22 +127,14 @@ export function decorateHolosmithHeatEvent(context: EngineerSchedulerContext, ev
     const tier = holosmithHeatTier(snapshot);
     const field = tier === 'enhanced' ? 'enhancedDuration' : tier === 'high' ? 'highDuration' : 'baseDuration';
     const radiantArcHeatTierProfile = requireBalanceProfileFromContext(context, PROFILE.radiantArcHeatTier);
-    context.replaceEvent(event, {
-      ...activation,
-      duration: balanceProfileNumber(radiantArcHeatTierProfile, field)
-    });
-    return;
+    return { ...event, ...activation, duration: balanceProfileNumber(radiantArcHeatTierProfile, field) };
   }
 
   if (event.type === 'engineer.refraction-cutter-extra-blades') {
     const tier = holosmithHeatTier(snapshot);
     const field = tier === 'enhanced' ? 'enhancedExtraBlades' : tier === 'high' ? 'highExtraBlades' : 'baseExtraBlades';
     const refractionCutterHeatTierProfile = requireBalanceProfileFromContext(context, PROFILE.refractionCutterHeatTier);
-    context.replaceEvent(event, {
-      ...activation,
-      extraBlades: balanceProfileNumber(refractionCutterHeatTierProfile, field)
-    });
-    return;
+    return { ...event, ...activation, extraBlades: balanceProfileNumber(refractionCutterHeatTierProfile, field) };
   }
 
   if (
@@ -149,15 +142,12 @@ export function decorateHolosmithHeatEvent(context: EngineerSchedulerContext, ev
     event.type === 'engineer.launch-wall' ||
     event.type === 'engineer.prime-light-beam-field'
   ) {
-    context.replaceEvent(event, activation);
-    return;
+    return { ...event, ...activation };
   }
 
   // Direct player strikes defer their factor lookup until modifier resolution.
-  if (event.type !== 'damage' || event.actorType !== 'player') return;
+  if (event.type !== 'damage' || event.actorType !== 'player') return event;
   const profileId = strikeProfileForEvent(holosmithEvent);
-  if (profileId == null) return;
-  context.replaceEvent(holosmithEvent, {
-    holosmithStrikeProfileId: profileId
-  });
+  if (profileId == null) return event;
+  return { ...holosmithEvent, holosmithStrikeProfileId: profileId };
 }

@@ -13,6 +13,7 @@ export { mesmerCatalog, mesmerNativeModules } from '#gw2/professions/mesmer/cata
 export const mesmerProfession = defineNativeProfession({
   id: 'mesmer',
   name: 'Mesmer',
+  requireEquippedSlotSkills: true,
   catalog: MESMER_NATIVE_CATALOG_OPTIONS,
   build: {
     createBuildDefaults: createMesmerBuildDefaults,
@@ -40,7 +41,7 @@ export const mesmerProfession = defineNativeProfession({
         id: 'mesmer.long-nonweapon-casts-reset',
         when: ({ interruptingSkill }) =>
           interruptingSkill.type !== 'Weapon' &&
-          Number(interruptingSkill.castTimeMs ?? 0) > 400 &&
+          (interruptingSkill.castTimeMs ?? 0) > 400 &&
           interruptingSkill.rechargeAnchor !== 'castStart',
         decision: 'reset'
       }

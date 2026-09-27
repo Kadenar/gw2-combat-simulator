@@ -42,7 +42,8 @@ export function rangerActiveBoonCount(context: Gw2ModifierContext, audience: 'pl
 }
 
 export function rangerTargetImpaired(context: Gw2ModifierContext): boolean {
-  if (context.config?.target?.defiant || context.config?.target?.disabled || context.config?.target?.defianceBroken) {
+  // Defiance and modeled conditions qualify; generic disable windows are not simulated.
+  if (context.config?.target?.defiant) {
     return true;
   }
 

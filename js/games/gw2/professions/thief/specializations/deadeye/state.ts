@@ -1,3 +1,5 @@
+import { DEADEYE_RESOURCE_PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
+import { balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import {
   definePublicStateDefaults,
@@ -26,8 +28,11 @@ function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
     // Bumped each time Deadeye's Mark is applied; the expiry task checks this to ignore stale scheduled expirations
     markGeneration: 0,
     malice: 0,
-    // Maleficent Seven raises the cap from 5 to 7 and must be known at construction time
-    maximumMalice: hasTrait(traits, TRAIT.MALEFICENT_SEVEN) ? 7 : 5,
+    // State-only previews use authored defaults; initialization applies the selected patch.
+    maximumMalice: balanceProfileNumber(
+      DEADEYE_RESOURCE_PROFILE,
+      hasTrait(traits, TRAIT.MALEFICENT_SEVEN) ? 'minimumStacks' : 'maximumStacks'
+    ),
     // Tracks which activationIds have already had their malice effect applied to prevent multi-hit double-counting
     maliceResolvedActivations: {},
     // Prevents Maleficent Seven from firing more than once per mark application at full malice
@@ -45,7 +50,7 @@ export const DEADEYE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   markExpiresAt: 0,
   markGeneration: 0,
   malice: 0,
-  maximumMalice: 5,
+  maximumMalice: balanceProfileNumber(DEADEYE_RESOURCE_PROFILE, 'maximumStacks'),
   deadeyeRelicUntil: 0,
   stealthAttackCharges: 0,
   stealthAttackExpiresAt: 0,

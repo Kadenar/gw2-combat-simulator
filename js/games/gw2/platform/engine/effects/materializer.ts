@@ -7,6 +7,39 @@
 import type { EffectMetadata, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { Skill, SkillEffect, SkillId, StrikeEffect, StrikeTick } from '#gw2/platform/engine/skills/types.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
+
+/** Projects authored timing onto a runtime cast, preserving fixed intervals and the declared anchor. */
+export function scaleCastBoundTiming(
+  context: { start: number; fullEnd: number },
+  skill: Skill,
+  effect: SkillEffect
+): SkillEffect {
+  if (effect.timingScale !== 'cast' || !(Number(skill.castTimeMs) > 0)) return effect;
+  const adjustedCastMs = Math.max(0, context.fullEnd - context.start) * 1000;
+  const firstTickAtMs = Array.isArray(effect.ticks) ? Number(effect.ticks[0]?.atMs || 0) : 0;
+  // Return a copy because skill metadata is shared by every simulation run.
+  return {
+    ...effect,
+    ...(Array.isArray(effect.ticks)
+      ? {
+          ticks: effect.ticks.map((tick) => ({
+            ...tick,
+            atMs:
+              effect.intervalTimingScale === 'fixed'
+                ? projectCastRelativeEffectTimingMs(skill, adjustedCastMs, firstTickAtMs) +
+                  Number(tick.atMs) -
+                  firstTickAtMs
+                : projectCastRelativeEffectTimingMs(skill, adjustedCastMs, Number(tick.atMs))
+          }))
+        }
+      : {}),
+    ...(effect.atMs == null ? {} : { atMs: projectCastRelativeEffectTimingMs(skill, adjustedCastMs, effect.atMs) }),
+    ...(effect.intervalMs == null || effect.intervalTimingScale === 'fixed'
+      ? {}
+      : { intervalMs: projectCastRelativeEffectTimingMs(skill, adjustedCastMs, effect.intervalMs) })
+  } as SkillEffect;
+}
 
 export interface EffectEventBase {
   readonly metadata?: EffectMetadata;
@@ -22,19 +55,19 @@ export interface EffectEventBase {
   readonly activationId?: string;
 }
 
-export interface MaterializedEffectApplication {
+interface MaterializedEffectApplication {
   readonly at: number;
   readonly event: SimulationEventBase;
 }
 
-export interface MaterializeSkillEffectOptions {
+interface MaterializeSkillEffectOptions {
+  readonly reactionGroup?: number;
   readonly skill: Skill;
   readonly effect: SkillEffect;
   readonly start: number;
   readonly fullEnd: number;
   readonly baseEvent: EffectEventBase;
   readonly skillWeaponFallback?: string;
-  readonly statusDuration?: number;
 }
 
 /** Preserves authored annotations as one nested runtime object, with tick values overriding effect and base defaults. */
@@ -50,10 +83,10 @@ function nestedEffectMetadata(
 /** Copies the strike formula fields that the numeric resolver consumes from each packet. */
 function strikeEventFields(source: StrikeEffect | StrikeTick) {
   return {
-    ...(source.name != null ? { name: String(source.name) } : {}),
+    ...(source.name != null ? { name: source.name } : {}),
     // Explicit packet labels let the breakdown separate effects while retaining their casting skill.
     ...(source.damageBreakdownName != null ? { damageBreakdownName: String(source.damageBreakdownName) } : {}),
-    ...(source.weaponStrength != null ? { weaponStrength: Number(source.weaponStrength) } : {}),
+    ...(source.weaponStrength != null ? { weaponStrength: source.weaponStrength } : {}),
     ...(source.independentSummonStrike != null ? { independentSummonStrike: source.independentSummonStrike } : {}),
     ...(source.summonUsesProfessionModifiers != null
       ? { summonUsesProfessionModifiers: source.summonUsesProfessionModifiers }
@@ -73,7 +106,7 @@ function strikeEventFields(source: StrikeEffect | StrikeTick) {
       ? { flatStrikeThresholdMultiplier: Number(source.flatStrikeThresholdMultiplier) }
       : {}),
     ...(source.damageKind != null ? { damageKind: source.damageKind } : {}),
-    ...(source.noCrit != null ? { noCrit: source.noCrit } : {}),
+    ...(source.canCrit != null ? { canCrit: source.canCrit } : {}),
     ...(source.forceCrit != null ? { forceCrit: source.forceCrit } : {}),
     ...(source.projectile != null ? { projectile: source.projectile } : {})
   };
@@ -86,7 +119,7 @@ export function effectFirstAt(start: number, fullEnd: number, effect: SkillEffec
     return origin + Number(effect.ticks[0].atMs) / 1000;
   }
 
-  if (effect.atMs != null) return origin + Number(effect.atMs) / 1000;
+  if (effect.atMs != null) return origin + effect.atMs / 1000;
   return fullEnd;
 }
 
@@ -101,7 +134,7 @@ export function materializeSkillEffectApplications({
   fullEnd,
   baseEvent,
   skillWeaponFallback = '',
-  statusDuration
+  reactionGroup
 }: MaterializeSkillEffectOptions): readonly MaterializedEffectApplication[] {
   const firstAt = effectFirstAt(start, fullEnd, effect);
   const applications: MaterializedEffectApplication[] = [];
@@ -110,17 +143,17 @@ export function materializeSkillEffectApplications({
   // Summon subtype follows every packet so ownership and clone/phantasm identity remain separate.
   const effectBaseEvent = {
     ...baseEvent,
-    ...(effect.summonKind != null ? { summonKind: String(effect.summonKind) } : {}),
-    ...(effect.summonOwner != null ? { summonOwner: String(effect.summonOwner) } : {}),
-    ...(effect.skillName != null ? { skillName: String(effect.skillName) } : {}),
-    ...(effect.parentSkillName != null ? { parentSkillName: String(effect.parentSkillName) } : {}),
-    ...(effect.icon != null ? { icon: String(effect.icon) } : {})
+    ...(effect.summonKind != null ? { summonKind: effect.summonKind } : {}),
+    ...(effect.summonOwner != null ? { summonOwner: effect.summonOwner } : {}),
+    ...(effect.skillName != null ? { skillName: effect.skillName } : {}),
+    ...(effect.parentSkillName != null ? { parentSkillName: effect.parentSkillName } : {}),
+    ...(effect.icon != null ? { icon: effect.icon } : {})
   };
 
   if (effect.type === 'strike') {
     const ticks = Array.isArray(effect.ticks) ? effect.ticks : null;
-    const hits = ticks?.length || Math.max(1, Math.trunc(Number(effect.hits || 1)));
-    const equalCoefficient = Number(effect.coefficient || 0) / hits;
+    const hits = ticks?.length || Math.max(1, Math.trunc(effect.hits || 1));
+    const equalCoefficient = (effect.coefficient || 0) / hits;
     const origin = effect.timingAnchor === 'castStart' ? start : fullEnd;
     for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
       const tick = ticks?.[hitIndex - 1];
@@ -154,8 +187,8 @@ export function materializeSkillEffectApplications({
   } else if (effect.type === 'condition') {
     // Both authoring forms share packet construction; untimed repetitions still begin at cast completion.
     const ticks = Array.isArray(effect.ticks) ? effect.ticks : null;
-    const count = ticks?.length ?? Math.max(1, Math.trunc(Number(effect.applications || 1)));
-    const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
+    const count = ticks?.length ?? Math.max(1, Math.trunc(effect.applications || 1));
+    const interval = Math.max(0, effect.intervalMs || 0) / 1000;
     const origin = effect.timingAnchor === 'castStart' ? start : fullEnd;
     for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
       const tick = ticks?.[applicationIndex - 1];
@@ -186,8 +219,8 @@ export function materializeSkillEffectApplications({
       });
     }
   } else if (effect.type === 'control' || effect.type === 'blind') {
-    const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
-    const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
+    const count = Math.max(1, Math.trunc(effect.applications || 1));
+    const interval = Math.max(0, effect.intervalMs || 0) / 1000;
     for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
       const at = firstAt + (applicationIndex - 1) * interval;
       applications.push({
@@ -198,7 +231,7 @@ export function materializeSkillEffectApplications({
           type: effect.type,
           ...(effect.controlKind != null ? { controlKind: effect.controlKind } : {}),
           // Controls are instantaneous proc facts; only blindness retains an authored duration.
-          ...(effect.type === 'blind' && effect.duration != null ? { duration: Number(effect.duration) } : {}),
+          ...(effect.type === 'blind' && effect.duration != null ? { duration: effect.duration } : {}),
           applicationIndex,
           totalApplications: count,
           ...nestedEffectMetadata(baseEvent.metadata, effect.metadata),
@@ -208,8 +241,8 @@ export function materializeSkillEffectApplications({
       });
     }
   } else if (effect.type === 'boon' || effect.type === 'buff') {
-    const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
-    const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
+    const count = Math.max(1, Math.trunc(effect.applications || 1));
+    const interval = Math.max(0, effect.intervalMs || 0) / 1000;
     for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
       const at = firstAt + (applicationIndex - 1) * interval;
       applications.push({
@@ -220,9 +253,10 @@ export function materializeSkillEffectApplications({
           // Boons and generic positive statuses share the timed-buff runtime
           // event; the authored type still controls GW2 boon-duration scaling.
           type: 'buff',
-          kind: String(effect.boon || effect.kind || effect.name || '').toLowerCase(),
-          stacks: Math.max(1, Number(effect.stacks || 1)),
-          duration: Math.max(0, Number(statusDuration ?? effect.duration ?? 0)),
+          kind: (effect.boon || effect.kind || effect.name || '').toLowerCase(),
+          stacks: Math.max(1, effect.stacks || 1),
+          duration: Math.max(0, effect.duration),
+          ...(effect.maximumDuration == null ? {} : { maximumDuration: effect.maximumDuration }),
           ...(count > 1 ? { applicationIndex, totalApplications: count } : {}),
           ...(effect.audience ? { audience: effect.audience } : {}),
           ...nestedEffectMetadata(baseEvent.metadata, effect.metadata),
@@ -231,9 +265,11 @@ export function materializeSkillEffectApplications({
         }
       });
     }
+    // StatusEffect groups boon/buff discriminants, so TypeScript still needs this check to narrow the custom payload.
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   } else if (effect.type === 'custom') {
-    const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
-    const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
+    const count = Math.max(1, Math.trunc(effect.applications || 1));
+    const interval = Math.max(0, effect.intervalMs || 0) / 1000;
     for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
       const at = firstAt + (applicationIndex - 1) * interval;
       applications.push({
@@ -253,5 +289,11 @@ export function materializeSkillEffectApplications({
     }
   }
 
+  // Packet identity is authored before interruption and targeting filter out any applications.
+  if (reactionGroup !== undefined)
+    return applications.map((application, index) => ({
+      ...application,
+      event: { ...application.event, effectReaction: { group: reactionGroup, packet: index + 1 } }
+    }));
   return applications;
 }

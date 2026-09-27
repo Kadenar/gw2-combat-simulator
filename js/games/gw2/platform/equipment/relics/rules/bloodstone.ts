@@ -13,10 +13,10 @@ export const bloodstone = defineRelic({
     // The shared combo reaction now reaches leap finishers for Steamshrieker; Bloodstone remains blast-only.
     if (event.finisherType !== 'Blast') return;
     // Volatility cannot accumulate while Fervor is active.
-    if (Number(state.buffUntil || 0) > event.at) return;
-    if (Number(state.expiresAt || 0) <= event.at) state.stacks = 0;
+    if ((state.buffUntil || 0) > event.at) return;
+    if ((state.expiresAt || 0) <= event.at) state.stacks = 0;
 
-    const currentStacks = Number(state.stacks || 0);
+    const currentStacks = state.stacks || 0;
     if (currentStacks < 3) {
       state.stacks = currentStacks + 1;
       state.expiresAt = gw2EffectExpiresAt(event.at, 10);
@@ -36,7 +36,7 @@ export const bloodstone = defineRelic({
       'Bloodstone Fervor',
       '',
       null,
-      Number(state.buffUntil)
+      state.buffUntil
     );
     const explosionAt = event.at + 0.68;
     ctx.queue.enqueue({

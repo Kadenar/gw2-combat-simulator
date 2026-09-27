@@ -34,6 +34,7 @@ export const REVENANT_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  trait(TRAIT.FEROCIOUS_AGGRESSION, 'Ferocious Aggression', { damageIncrease: 0.1 }),
   // Serene Rejuvenation supports Centaur boon applications; outgoing healing remains outside scope.
   {
     id: TRAIT.SERENE_REJUVENATION,
@@ -131,6 +132,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         type: 'strike',
         coefficient: 0,
         hits: 1,
+        damageKind: 'life-steal',
         flatStrikeBase: 117,
         flatStrikePowerCoeff: 0.006,
         name: 'Battle Scars — Life Siphon',

@@ -6,7 +6,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianUiSkillIdsByName, guardianUiSkillsByMode } from '#gw2/professions/guardian/core/presentation.js';
 import type {
   PaletteSkillAvailability,
@@ -20,36 +20,28 @@ import type {
   GuardianUiContext,
   GuardianUiSlice
 } from '#gw2/professions/guardian/types.js';
-
+/** Render actual weapon-bar transitions at their executed boundary. */
 function firebrandEventLogRow(
   _context: GuardianUiContext,
   event: GuardianResolverEvent
-): ProfessionEventLogDescriptor | null | undefined {
-  // null suppresses the row entirely; these internal bookkeeping events have no
-  // meaningful log representation and would clutter the event timeline.
-  if (['guardian.ashes-expired', 'guardian.ashes-granted', 'guardian.firebrand-virtue-activated'].includes(event.type))
-    return null;
-  const base = {
+): ProfessionEventLogDescriptor | undefined {
+  if (
+    event.type !== 'weapon_set' ||
+    ![
+      GUARDIAN_SKILL_IDS.TOME_OF_JUSTICE,
+      GUARDIAN_SKILL_IDS.TOME_OF_RESOLVE,
+      GUARDIAN_SKILL_IDS.TOME_OF_COURAGE,
+      GUARDIAN_SKILL_IDS.STOW_TOME
+    ].some((id) => id === event.skillId)
+  )
+    return undefined;
+  return {
     type: event.type,
+    description: event.skillId === GUARDIAN_SKILL_IDS.STOW_TOME ? 'TOME STOWED' : 'TOME EQUIPPED ' + event.skillName,
     className: 'resource',
     order: 30,
     flags: []
   };
-  if (event.type === 'guardian.tome-stowed') {
-    return { ...base, description: 'TOME STOWED' };
-  }
-
-  if (event.type === 'guardian.tome-page-used') {
-    const cost = Math.max(1, Number(event.pageCost ?? 1));
-    return {
-      ...base,
-      description:
-        `TOME PAGE USED ${event.skillName || event.tome || 'Unknown'} ` +
-        `(-${cost}) -> ${Number(event.pagesRemaining || 0)} remaining`
-    };
-  }
-
-  return undefined;
 }
 
 const TOME_F_KEY_NAMES = Object.freeze(['Tome of Justice', 'Tome of Resolve', 'Tome of Courage']);
@@ -66,10 +58,10 @@ function professionState(context: GuardianUiContext): Partial<GuardianState> {
 
 function dormantTomeClasses(context: GuardianUiContext): string {
   const readyAt = professionState(context).tomeDormantReadyAt;
-  const at = Number(context.time ?? context.simulationTime ?? 0);
+  const at = context.time ?? context.simulationTime ?? 0;
   // Project dormancy onto the existing Tome group so CSS can tint only the
   // affected opener while the skill remains available to equip.
-  return TOME_DORMANCY_LABELS.filter(([virtue]) => Number(readyAt?.[virtue] || 0) > at)
+  return TOME_DORMANCY_LABELS.filter(([virtue]) => (readyAt?.[virtue] || 0) > at)
     .map(([virtue]) => `tome-${virtue}-dormant`)
     .join(' ');
 }
@@ -79,7 +71,7 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog>): GuardianUi
   return Object.freeze({
     eventLogRow: firebrandEventLogRow,
     timelineWeaponLineTransition: (context: GuardianUiContext) => {
-      const skill = context.skill as GuardianSkill | undefined;
+      const skill = context.skill;
       if (/^Tome of (Justice|Resolve|Courage)$/.test(skill?.name || '')) {
         // Returning undefined means "no transition" (already in this tome);
         // returning the skill name triggers the timeline lane switch.
@@ -89,7 +81,7 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog>): GuardianUi
       if (skill?.name === 'Stow Tome') {
         // null signals "end of a named weapon line" to the timeline renderer;
         // undefined means there was no active tome line to close.
-        return /^Tome of /.test(String(context.weaponLine || '')) ? null : undefined;
+        return /^Tome of /.test(context.weaponLine || '') ? null : undefined;
       }
 
       return undefined;
@@ -141,8 +133,8 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog>): GuardianUi
         };
       }
 
-      const pageCost = Number(skill.pageCost ?? 1);
-      if (skill.tome && Number(state.tomePages?.value || 0) < pageCost) {
+      const pageCost = skill.pageCost ?? 1;
+      if (skill.tome && (state.tomePages?.value || 0) < pageCost) {
         return {
           available: false,
           message: `Requires ${pageCost} tome pages`
@@ -173,11 +165,11 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog>): GuardianUi
           ),
           'maximumStacks'
         );
-      const simulationTime = Number(context.simulationTime || 0);
+      const simulationTime = context.simulationTime || 0;
       const readyAt = state.tomeDormantReadyAt || { justice: 0, resolve: 0, courage: 0 };
       // Keep passive readiness visible without adding three more resource bars.
       const virtueStatuses = TOME_DORMANCY_LABELS.map(([virtue, label]) => {
-        const remaining = Math.max(0, Number(readyAt[virtue] || 0) - simulationTime);
+        const remaining = Math.max(0, (readyAt[virtue] || 0) - simulationTime);
         const valueLabel = remaining > 0 ? `Dormant ${remaining.toFixed(1)}s` : 'Ready';
         return { id: virtue, label, valueLabel, title: `${label}: ${valueLabel}` };
       });
@@ -187,7 +179,7 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog>): GuardianUi
           singular: 'page',
           plural: 'pages',
           maximum,
-          value: Number(state.tomePages?.value ?? maximum),
+          value: state.tomePages?.value ?? maximum,
           // Pages regen passively; the user cannot manually start regeneration.
           canStart: false,
           shortLabel: 'Pgs',

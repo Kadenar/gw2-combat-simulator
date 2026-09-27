@@ -3,7 +3,7 @@ import test from 'node:test';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 const wait = (waitMs) => ({ name: '__wait', waitMs });
@@ -209,8 +209,8 @@ test('effect-driven relics agree in detailed and score execution across observat
         config: config({ relic }),
         observationPolicy: { kind: 'tail', durationMs }
       };
-      const detailed = simulateGw2(options);
-      const score = simulateGw2({ ...options, output: 'score' });
+      const detailed = runMesmer(options);
+      const score = runMesmer({ ...options, output: 'score' });
       assert.equal(score.totalDamage, detailed.totalDamage);
       assert.equal(score.dps, detailed.dps);
       const endTimeMs = Math.max(...detailed.steps.map((step) => step.end)) + durationMs;

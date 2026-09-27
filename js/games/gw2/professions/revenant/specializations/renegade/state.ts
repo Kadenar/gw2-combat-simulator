@@ -11,11 +11,8 @@ export interface RenegadeState {
   kallasFervor: RevenantTimedStack[];
   kallasFervorMaximumStacks: number;
   razorclawsRage: ChargeGrant;
-  endlessEnmityReadyAt: number;
-  bloodFuryReadyAt: number;
-  /** Scheduler-owned deadline for Brutal Momentum's Vigor reaction. */
-  brutalMomentumReadyAt: number;
-  soulcleaveReadyAt: number;
+
+  /** Deadline for Brutal Momentum's Vigor reaction to applied Fury. */
 }
 
 export const RENEGADE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
@@ -29,7 +26,7 @@ export const RENEGADE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   }
 } satisfies Partial<RenegadeState>);
 
-export function createRenegadeState(): RenegadeState {
+function createRenegadeState(): RenegadeState {
   return {
     // bandTogetherReady + bandTogetherExpiresAt together form the one-use enhancement window; both must be checked because the flag alone doesn't expire itself
     bandTogetherReady: false,
@@ -43,11 +40,7 @@ export function createRenegadeState(): RenegadeState {
       expiresAt: 0,
       // readyAt enforces the per-hit internal cooldown between Razorclaw bleeds
       readyAt: 0
-    },
-    endlessEnmityReadyAt: 0,
-    bloodFuryReadyAt: 0,
-    brutalMomentumReadyAt: 0,
-    soulcleaveReadyAt: 0
+    }
   };
 }
 

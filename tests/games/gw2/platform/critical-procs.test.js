@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
-import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
 
 test('critical procs consume sampled facts and independent secondary rolls', () => {
   const streams = [];
@@ -48,23 +47,4 @@ test('critical ICDs block through the canonical deadline without spending second
   assert.equal(rolls, 1);
   assert.equal(state.readyAt, 5.000001 + 3);
   assert.ok(advanceCriticalProc(criticalOpportunity(1, true), { ...request, at: 0 }, { readyAt: 0 }));
-});
-
-test('scheduler procs use the canonical critical outcome and ignore rejected hits', () => {
-  const streams = [];
-  const context = {
-    schedulerPolicy: {
-      critical: () => ({ chance: 0.75 }),
-      rollRandom: (_chance, stream) => {
-        streams.push(stream);
-        return true;
-      }
-    }
-  };
-  const event = { type: 'damage', at: 2, coefficient: 1, didCrit: true };
-  const request = { id: 'fixture', chanceOnCriticalHit: 0.5 };
-  assert.deepEqual(advanceScheduledCriticalProc(context, event, request), { quantity: 1 });
-  for (const changes of [{ cancelled: true }, { type: 'marker' }, { offTarget: true }])
-    assert.equal(advanceScheduledCriticalProc(context, { ...event, ...changes, didCrit: undefined }, request), null);
-  assert.deepEqual(streams, ['fixture']);
 });

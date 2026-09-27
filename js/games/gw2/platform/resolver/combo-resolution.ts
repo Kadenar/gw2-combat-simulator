@@ -41,7 +41,7 @@ export function enqueueGw2OwnedComboFinisher(
   event: Gw2ResolverEvent,
   options: EnqueueGw2OwnedComboFinisherOptions
 ): void {
-  const at = Number(options.at ?? event.at);
+  const at = options.at ?? event.at;
   // Filter at the resolver timestamp; the shared selector owns field ordering.
   const fields = [...context.combo.fields.values()].filter(
     (field) => field.ownerId === options.ownerId && isComboFieldActiveAt(field, at)
@@ -52,7 +52,7 @@ export function enqueueGw2OwnedComboFinisher(
     ...comboCombatMetadata(event),
     type: 'combo_finisher',
     at,
-    effectAt: Number(options.effectAt ?? at),
+    effectAt: options.effectAt ?? at,
     source: event.source,
     sourceId: event.sourceId,
     actorType: event.actorType,
@@ -65,8 +65,8 @@ export function enqueueGw2OwnedComboFinisher(
     fieldBinding: field ? { kind: 'field-id', fieldId: field.fieldId } : { kind: 'none' },
     warnOnUnbound: ambiguous && !field,
     chance: boundedNumber(options.chance ?? 1, 1, 0, 1),
-    applications: Math.max(1, Math.trunc(Number(options.applications ?? 1))),
-    successfulCombos: Math.max(1, Math.trunc(Number(options.successfulCombos ?? 1)))
+    applications: Math.max(1, Math.trunc(options.applications ?? 1)),
+    successfulCombos: Math.max(1, Math.trunc(options.successfulCombos ?? 1))
   });
 }
 
@@ -89,16 +89,16 @@ export function createGw2ComboResolution({
         }
       });
       for (const combo of combos) {
-        context.queue.enqueue(combo as Gw2ResolverEvent);
+        context.queue.enqueue(combo);
         for (const outcome of materializeComboOutcome(combo)) {
           if (outcome.type === 'buff' && outcome.fixedDuration !== true) {
             context.queue.enqueue({
               ...outcome,
               duration: gw2ResolverBoonDuration(
                 context,
-                combo as Gw2ResolverEvent,
-                String(outcome.kind || outcome.name || ''),
-                Number(outcome.duration || 0)
+                combo,
+                outcome.kind || outcome.name || '',
+                outcome.duration || 0
               )
             } as Gw2ResolverEvent);
           } else {

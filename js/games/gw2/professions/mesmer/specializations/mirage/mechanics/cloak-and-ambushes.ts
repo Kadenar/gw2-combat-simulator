@@ -1,10 +1,10 @@
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { canonicalTime, EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Mirage-owned cloak, ambush, and deception behavior. */
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { BalanceProfile, ConditionEffect, StatusEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { SchedulerState } from '#gw2/platform/execution/types.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -17,9 +17,7 @@ import type {
   MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerAmbushAttack,
-  MesmerConfig,
-  MesmerRuntimeState
+  MesmerAmbushAttack
 } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerMirageCloakOptions,
@@ -33,10 +31,13 @@ import type {
 
 import type { MesmerConditionApplication, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 interface MirageActionControllerOptions {
-  readonly state: SchedulerState<MesmerRuntimeState>;
-  readonly config: MesmerConfig;
+  readonly state: MesmerRuntime;
+  readonly config: MesmerRuntime['config'];
   readonly traits: ReadonlySet<number>;
   readonly ambushAttacks: Readonly<Record<string, MesmerAmbushAttack>>;
   readonly cloneAttacks: Readonly<Record<string, MesmerCloneAttack>>;
@@ -48,7 +49,6 @@ interface MirageActionControllerOptions {
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
   readonly queueResources: MesmerQueueResources;
   readonly balanceProfile: (id: SkillId) => BalanceProfile | undefined;
-  readonly boonDuration: (sourceSkill: string, boon: string, baseDuration: number) => number;
   readonly reduceSkillRecharge: (skill: MesmerSkill, reduction: number, at: number) => number;
 }
 
@@ -69,7 +69,6 @@ export function createMirageActionController({
   activePrimaryWeapon,
   queueResources,
   balanceProfile,
-  boonDuration,
   reduceSkillRecharge
 }: MirageActionControllerOptions): MesmerMirageController {
   // The selected effect already owns its identity and validated balance values.
@@ -88,9 +87,10 @@ export function createMirageActionController({
     for (let index = 0; index < Math.max(0, count); index += 1) {
       mirageState.from(state).mirrors.push({
         availableAt: at,
-        expiresAt: canonicalTime(at + Number(mirror.duration)),
+        expiresAt: canonicalTime(at + mirror.duration),
         source
       });
+      state.schedule('mesmer.mirror-expire', canonicalTime(at + mirror.duration), undefined);
     }
   };
 
@@ -108,9 +108,9 @@ export function createMirageActionController({
       at,
       source: actorType === 'summon' ? 'Clone' : 'Player',
       actorType,
-      kind: String(boon.name || '').toLowerCase(),
+      kind: (boon.name || '').toLowerCase(),
       stacks: Number(boon.stacks),
-      duration: boonDuration(sourceSkill, boon.name, Number(boon.duration)),
+      duration: Number(boon.duration),
       skillName: sourceSkill,
       sourceSkill,
       audience: {
@@ -159,7 +159,7 @@ export function createMirageActionController({
         blade: false
       };
       // Explicit summon ownership keeps clone ambush packets independent of their display labels.
-      const impactAt = at + Number(ambush.clone.castTimeMs || 0) / 1000;
+      const impactAt = at + (ambush.clone.castTimeMs || 0) / 1000;
       // Clone ambushes use the weapon's authored control and retain summon ownership.
       const skill = skillsById.get(ambush.id);
       for (const effect of skill?.effects || []) {
@@ -268,8 +268,7 @@ export function createMirageActionController({
       duration = balanceProfileNumber(
         requireBalanceProfileFromContext(balanceProfile, PROFILE.mechanics),
         'durationMultiplier'
-      ),
-      grantCloneCloak = true
+      )
     }: MesmerMirageCloakOptions = {}
   ) => {
     if (config.specialization !== 'Mirage') return;
@@ -302,7 +301,7 @@ export function createMirageActionController({
     }
 
     reduceDuneCloakShatters(at, source);
-    if (grantCloneCloak && traits.has(TRAIT.INFINITE_HORIZON)) {
+    if (traits.has(TRAIT.INFINITE_HORIZON)) {
       mirageState.from(state).cloneAmbushUntil = canonicalTime(at + duration);
       executeCloneAmbushes(at, professionCoreState(state).clones);
     }
@@ -322,7 +321,7 @@ export function createMirageActionController({
       weapon,
       blade: false
     };
-    const impactAt = ambush.player.damageAtMs == null ? at : castStart + Number(ambush.player.damageAtMs) / 1000;
+    const impactAt = ambush.player.damageAtMs == null ? at : castStart + ambush.player.damageAtMs / 1000;
     // Packetized ambushes resolve each hit and its repeated statuses at the measured beam timestamps.
     const statusAtMs = ambush.player.ticks?.map((tick) => tick.atMs) ?? ambush.player.statusAtMs;
     const impactTimes = statusAtMs?.length ? statusAtMs.map((atMs) => castStart + atMs / 1000) : [impactAt];
@@ -481,3 +480,64 @@ export function createMirageActionController({
     pickUpMirror
   };
 }
+
+/** Gates mirror pickups on an available mirror and ambushes on an active or queued ambush window. */
+export function mirageAvailability(context: MesmerRuntime, skill: MesmerSkill): AvailabilityResult {
+  if (skill.id === ID.PICK_UP_MIRAGE_MIRROR) {
+    const mirrors = mirageState.from(context).mirrors;
+    if (mirrors.some((mirror) => isTimeInWindow(context.time, mirror.availableAt, mirror.expiresAt))) {
+      return { ready: true };
+    }
+
+    // A queued mirror-creation trigger is a valid retry boundary even though
+    // the mirror does not enter specialization state until that task executes.
+    const retryAt = Math.min(
+      ...mirageState.from(context).pendingMirrorAts,
+      ...mirrors.filter((mirror) => mirror.expiresAt > context.time).map((mirror) => mirror.availableAt)
+    );
+    return {
+      ready: false,
+      retryAt: Number.isFinite(retryAt) ? retryAt : null,
+      code: 'mesmer.mirage-mirror',
+      reason: 'No Mirage Mirror is available to pick up.'
+    };
+  }
+
+  if (!skill.ambush) return { ready: true };
+  const runtime = mesmerMechanicsFor(context);
+  const activeAmbush = runtime.ambushAttacks[runtime.activePrimaryWeapon()];
+  const state = mirageState.from(context);
+  // An ambush selected during the preceding cast remains queued through its lockout. A later wait or cooldown
+  // cannot extend that queue: the preceding cast must still occupy the lane at this action's start.
+  const queuedAmbush = context.history
+    .filter((event) => event.type === 'action')
+    .some(
+      (action) =>
+        action.actorType === 'player' &&
+        action.at < state.ambushUntil &&
+        action.at < context.time - EPSILON &&
+        Number(action.castLockoutEndsAt ?? action.endsAt) >= context.time - EPSILON
+    );
+  if (
+    activeAmbush &&
+    activeAmbush.name === skill.name &&
+    state.ambushSource &&
+    (state.ambushUntil > context.time || queuedAmbush)
+  ) {
+    return { ready: true };
+  }
+
+  return {
+    ready: false,
+    retryAt: null,
+    code: 'mesmer.ambush',
+    reason: `${skill.name} has no active Mirage Cloak ambush window.`
+  };
+}
+
+/** Binds shared endurance operations to this module's live pool and balance rules. */
+export const mirageEndurance: EndurancePolicy<MesmerRuntime> = {
+  state: (context) => mirageState.from(context),
+  maximum: () => 100,
+  regenerationRate: (_context, vigor) => (vigor ? 7.5 : 5)
+};

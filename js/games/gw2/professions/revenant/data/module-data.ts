@@ -8,7 +8,7 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/revenant/data/revenant
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/professions/revenant/data/revenant-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/revenant/data/traits-data.js';
-import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.HEALING_ORB,
@@ -99,7 +99,7 @@ const WEAPON_DATA = defineProfessionWeapons({
 export const createRevenantModuleData = createProfessionModuleDataFactory({
   generatedSkills: generated,
   sharedExtraSkills: supplemental,
-  traits: TRAITS as readonly CatalogEntity[],
+  traits: TRAITS,
   specializations: SPECIALIZATIONS,
   specializationOnlySkills: SPECIALIZATION_ONLY_SKILLS,
   core: WEAPON_DATA

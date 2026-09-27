@@ -1,16 +1,28 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  composePublicStateProjections,
   definePublicStateDefaults,
-  restoreFlatProfessionState,
+  defineProfessionSpecializationState,
   snapshotProfessionState,
   readProfessionCoreState,
   readProfessionSpecializationState,
   projectPublicProfessionState
 } from '#gw2/platform/engine/profession/state.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { testProfession } from '#tests/fixtures/profession.js';
+
+// The shared accessor preserves the owning state identity and rejects a different active specialization.
+test('specialization accessors retain factory state and validate the active kind', () => {
+  const definition = defineProfessionSpecializationState('Example', (charge) => ({ charge }));
+  const state = definition.create(2);
+  const profession = { core: {}, specialization: { kind: 'Example', state } };
+  for (const context of [{ profession }, { state: { profession } }, { runtime: { profession } }]) {
+    assert.equal(definition.from(context), state);
+  }
+
+  assert.throws(
+    () => definition.from({ profession: { ...profession, specialization: { kind: 'Other', state } } }),
+    /Expected active specialization Example, received Other/
+  );
+});
 
 // Shared profession state preserves isolated runtime fields and detached public snapshots.
 test('profession snapshots flatten and deeply clone active runtime state', () => {
@@ -23,30 +35,6 @@ test('profession snapshots flatten and deeply clone active runtime state', () =>
   assert.deepEqual(snapshot, { resource: 10, nested: { value: 1 }, eliteResource: 2 });
   snapshot.nested.value = 9;
   assert.equal(runtime.core.nested.value, 1);
-});
-
-test('flat snapshot restoration routes declared specialization keys and clones values', () => {
-  const core = { resource: 1 };
-  const specialization = { eliteResource: 2, nested: {} };
-  const incoming = { resource: 3, eliteResource: 4, nested: { value: 5 } };
-
-  restoreFlatProfessionState(core, specialization, incoming);
-  assert.deepEqual(core, { resource: 3 });
-  assert.deepEqual(specialization, { eliteResource: 4, nested: { value: 5 } });
-  incoming.nested.value = 8;
-  assert.equal(specialization.nested.value, 5);
-});
-
-test('generic scheduler state contains no profession-specific fields', () => {
-  const state = createScheduler({ profession: testProfession }).state;
-
-  assert.deepEqual(
-    Object.keys(state).sort(),
-    ['activeWeaponSet', 'ammo', 'cooldowns', 'lockouts', 'profession', 'rechargeProgress', 'skillUses', 'time'].sort()
-  );
-  assert.deepEqual(state.profession, { charge: 0, controlEvents: 0 });
-  assert.equal(Object.hasOwn(state, 'clones'), false);
-  assert.equal(Object.hasOwn(state, 'numericResource'), false);
 });
 
 test('profession-state reads require nested ownership and cannot cross specialization kinds', () => {
@@ -65,22 +53,18 @@ test('profession-state reads require nested ownership and cannot cross specializ
   assert.deepEqual(readProfessionCoreState(null), {});
 });
 
-test('public descriptors preserve field order, fallback precedence, and detached projected values', () => {
-  // Explicit fields need no fallback; overlapping slices retain their original key and merge order.
+test('public descriptors preserve field order, explicit values, and detached projected values', () => {
+  // Explicit state values take precedence over display defaults, including explicit undefined.
   const fallback = definePublicStateDefaults({
     active: { stacks: 0 },
     explicit: 'fallback',
     inactive: [{ stacks: 1 }]
   });
-  const projection = composePublicStateProjections([
-    { keys: ['core'], defaults: {} },
-    fallback,
-    definePublicStateDefaults({ explicit: 'later fallback' })
-  ]);
-  assert.deepEqual(projection.keys, ['core', 'active', 'explicit', 'inactive', 'explicit']);
-  assert.equal(projection.defaults.explicit, 'later fallback');
+  const projection = { keys: ['core', ...fallback.keys], defaults: fallback.defaults };
+  assert.deepEqual(projection.keys, ['core', 'active', 'explicit', 'inactive']);
+  assert.equal(projection.defaults.explicit, 'fallback');
   const absent = projectPublicProfessionState({}, projection.keys, projection.defaults);
-  assert.equal(absent.explicit, 'later fallback');
+  assert.equal(absent.explicit, 'fallback');
   assert.equal(Object.hasOwn(absent, 'core'), true);
   assert.equal(absent.core, undefined);
 

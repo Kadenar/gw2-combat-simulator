@@ -2,8 +2,7 @@
 // config mapping, persistence metadata, and shared-shell adapter behavior to
 // the engine contract exported by ../profession.js.
 
-import { preferOffhand } from '#gw2/app/create-adapter.js';
-import { definePatchedProfessionApp } from '#gw2/app/create-patched-adapter.js';
+import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
 import { applyEngineerBuildAttributeRules } from '#gw2/professions/engineer/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -11,7 +10,7 @@ import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
 import type { EngineerCanonicalBuild, EngineerFinalizedAttributeResult } from '#gw2/professions/engineer/types.js';
 
 // Exposes Engineer only through the shared browser application contract.
-export const engineerAppAdapter = definePatchedProfessionApp({
+export const engineerAppAdapter = defineProfessionApp({
   tooltips: engineerTooltips,
   profession: engineerProfession,
   applyBuildAttributeRules: applyEngineerBuildAttributeRules,
@@ -26,7 +25,7 @@ export const engineerAppAdapter = definePatchedProfessionApp({
     buildConfigExtras: (app, { attributeData }) => {
       const build = app.build as EngineerCanonicalBuild;
       const evolveAttributePool = (attributeData as EngineerFinalizedAttributeResult).amalgamEvolveAttributePool;
-      const amalgam = build.specializations?.some((specialization) => specialization.name === 'Amalgam');
+      const amalgam = build.specializations.some((specialization) => specialization.name === 'Amalgam');
       return {
         ...(amalgam
           ? {

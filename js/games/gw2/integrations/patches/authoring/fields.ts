@@ -55,6 +55,7 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   'weaponAttributeBonus',
 
   // Stacks, durations, targeting, and proc gates.
+  'stackMultiplier', // scales authored boon stacks without changing their duration
   'maximumStacks',
   'conditionsTransferred',
   'minimumStacks',
@@ -188,6 +189,7 @@ export const PATCHABLE_EFFECT_NUMERIC_FIELDS = Object.freeze([
   'hits',
   'stacks',
   'duration',
+  'maximumDuration',
   'applications',
   'intervalMs',
   'flatDamage',
@@ -262,13 +264,15 @@ export function skillPatchableNumericFields(skill: Readonly<Skill | BalanceProfi
   );
 }
 
-/** Recursively removes runtime-only timing fields before catalog data crosses the authoring API boundary. */
+/** Runtime predicates and activation declarations stay in the executable catalog, never in editor JSON. */
 function withoutRuntimeOnlyAuthoringFields(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(withoutRuntimeOnlyAuthoringFields);
   if (!value || typeof value !== 'object') return structuredClone(value);
   return Object.fromEntries(
     Object.entries(value as Readonly<Record<string, unknown>>).flatMap(([field, nested]) =>
-      AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS.has(field) ? [] : [[field, withoutRuntimeOnlyAuthoringFields(nested)]]
+      AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS.has(field) || ['sideEffects', 'effectVariants', 'when'].includes(field)
+        ? []
+        : [[field, withoutRuntimeOnlyAuthoringFields(nested)]]
     )
   );
 }
@@ -304,6 +308,7 @@ export function balanceProfileHasAuthorableControls(profile: Readonly<BalancePro
 function balanceProfileEffectAuthoringReference(record: Readonly<Record<string, unknown>>): MutableRecord {
   return Object.fromEntries(
     Object.entries(record).flatMap(([field, value]) => {
+      if (field === 'when') return [];
       if (field === 'ticks' && Array.isArray(value)) {
         return [[field, value.map((tick) => balanceProfileEffectAuthoringReference(tick as Readonly<MutableRecord>))]];
       }

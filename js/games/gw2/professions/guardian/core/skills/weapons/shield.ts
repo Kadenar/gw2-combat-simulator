@@ -15,6 +15,8 @@ export const GUARDIAN_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.SHIELD_OF_ABSORPTION]: {
     castTimeMs: 520,
+    // Detonation stays available while the dome lasts.
+    flipDuration: 4,
     effects: []
   },
   [ID.SHIELD_OF_ABSORPTION_ID_9224]: {

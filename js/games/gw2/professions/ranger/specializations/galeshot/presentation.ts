@@ -13,7 +13,6 @@ import type {
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 
 const BOW_SKILLS = Object.freeze([
@@ -29,8 +28,8 @@ const GALESHOT_PALETTE_STACK = 'ranger-galeshot';
 
 /** Shows Mistral only while its Galeshot damage window remains active. */
 function galeshotStateSnapshot(context: RangerUiContext): RotationStateSnapshotItem[] {
-  const expiresAt = Number(rangerUiState(context).mistralUntil || 0);
-  const remaining = expiresAt - Math.max(0, Number(context.atSeconds || 0));
+  const expiresAt = rangerUiState(context).mistralUntil || 0;
+  const remaining = expiresAt - Math.max(0, context.atSeconds || 0);
   // The final missile may trigger at equality; zero remains the unarmed sentinel.
   return expiresAt > 0 && remaining >= 0
     ? [
@@ -51,7 +50,7 @@ function visibleBowSkills(context: RangerUiContext) {
 }
 
 // Mirror Galeshot's runtime resource, replacement, and temporary weapon-bar gates
-// in the palette without mutating scheduler state.
+// in the palette without mutating live state.
 function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
   const state = rangerUiState(context);
   if (skill.id === ID.DISMISS_CYCLONE_BOW && !state.cycloneBowActive) {
@@ -66,15 +65,15 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
     return { available: false, message: 'Summon the Cyclone Bow first' };
   }
 
-  if (Number(skill.arrowCost || 0) > Number(state.arrows?.value || 0)) {
+  if ((skill.arrowCost || 0) > (state.arrows?.value || 0)) {
     return { available: false, message: `Requires ${skill.arrowCost} arrows` };
   }
 
-  if (skill.id === ID.HAWKEYE && Number(state.windForce || 0) < 5) {
+  if (skill.id === ID.HAWKEYE && (state.windForce || 0) < 5) {
     return { available: false, message: 'Requires 5 Wind Force' };
   }
 
-  if (skill.id === ID.KEEN_SHOT && Number(state.windForce || 0) >= 5) {
+  if (skill.id === ID.KEEN_SHOT && (state.windForce || 0) >= 5) {
     return { available: false, message: 'Replaced by Hawkeye' };
   }
 
@@ -101,8 +100,6 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog>): RangerUiSli
   return Object.freeze({
     // null = suppress the row entirely; undefined = fall through to default rendering.
     // State-sync events are internal bookkeeping and should not appear in the log.
-    eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
-      event.type === 'ranger.galeshot-state' ? null : undefined,
     paletteGroups: (context: RangerUiContext): ProfessionPaletteGroup[] => [
       rangerPetPaletteGroup(catalog, context, { stackId: GALESHOT_PALETTE_STACK }),
       {
@@ -129,12 +126,12 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog>): RangerUiSli
       }
     ],
     timelineWeaponLineTransition: (context: RangerUiContext) => {
-      const skill = context.skill as RangerSkill | undefined;
-      if (skill?.handlerId === 'ranger.cyclone-bow-enter') {
+      const skill = context.skill;
+      if (skill?.id === ID.SUMMON_CYCLONE_BOW) {
         return 'Cyclone Bow';
       }
 
-      if (skill?.handlerId === 'ranger.cyclone-bow-exit') {
+      if (skill?.id === ID.DISMISS_CYCLONE_BOW) {
         return null;
       }
 
@@ -155,7 +152,7 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog>): RangerUiSli
           singular: 'arrow',
           plural: 'arrows',
           maximum,
-          value: Number(state.arrows?.value ?? context.initialArrows ?? maximum),
+          value: state.arrows?.value ?? context.initialArrows ?? maximum,
           startMaximum: maximum,
           canStart: true,
           buildKey: 'initialArrows',
@@ -171,7 +168,7 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog>): RangerUiSli
           singular: 'Wind Force',
           plural: 'Wind Force',
           maximum: 5,
-          value: Number(state.windForce || 0),
+          value: state.windForce || 0,
           startMaximum: 5,
           canStart: false,
           displayMode: 'pips',

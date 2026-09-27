@@ -1,15 +1,16 @@
+import type { EffectReactionRef } from '#gw2/platform/simulation/effect-reactions.js';
 import { ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
-import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { timeKey } from '#kernel/core/clock.js';
 
 /**
- * Canonical event schema shared by the platform scheduler and resolver.
+ * Canonical event schema shared by the unified runtime and reports.
  * Professions may add custom types, but every event crossing the boundary must
  * still satisfy this base shape.
  */
 
-export const EVENT_SCHEMA_VERSION = 1 as const;
+const EVENT_SCHEMA_VERSION = 1 as const;
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
@@ -89,7 +90,7 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
     throw new Error('Event schemaVersion is invalid.');
   }
 
-  // Every producer must declare ownership before an event crosses the scheduler/resolver boundary.
+  // Every producer must declare ownership before an event enters the live queue.
   if (!ACTOR_TYPES.has(event.actorType as SimulationActorType)) {
     throw new Error('Event actorType is invalid. A valid actorType is required.');
   }
@@ -151,23 +152,9 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
   return candidate as SimulationEvent;
 }
 
-/**
- * Validates and freezes an event before it enters a scheduled event stream.
- */
-export function createEvent(event: unknown): Readonly<SimulationEvent> {
-  const normalized = Object.fromEntries(
-    Object.entries({
-      schemaVersion: EVENT_SCHEMA_VERSION,
-      ...assertSimulationEvent(event),
-      at: canonicalTime((event as SimulationEvent).at)
-    }).filter(([, value]) => value !== undefined)
-  );
-  return Object.freeze(normalized as unknown as SimulationEvent);
-}
-
 /** Defines emitted events and recipient metadata shared by scheduling, resolution, and presentation. */
 
-export type EffectRecipientScope = 'self' | 'party' | 'summons';
+type EffectRecipientScope = 'self' | 'party' | 'summons';
 
 /** Selects the canonical recipient group for one positive effect. */
 export interface EffectAudience {
@@ -202,15 +189,20 @@ export interface EffectMetadata {
   readonly activeSpirits?: number;
   readonly affinityOnHit?: boolean;
   readonly anguishConditionalDamage?: boolean;
-  readonly blightEmpowered?: boolean;
   readonly dhuumfireDuration?: number;
   readonly dhuumfireInterval?: number;
   readonly engineerMech?: boolean;
-  readonly evtcSkillId?: SkillId;
   readonly hitboxIndex?: number;
   readonly largeHitboxOnly?: boolean;
   readonly legendId?: string;
   readonly necromancerBlight?: number;
+  /** Immutable burst inputs captured before resource spending; later hits cannot change the selected tier. */
+  readonly warriorAdrenalineSpent?: number;
+  readonly warriorBurstTier?: number;
+  /** Shares Devouring Darkness's pre-application observation between its independent impact packets. */
+  readonly necromancerConditionCount?: number;
+  /** Addle retains only its activation-time shard gate while later impacts use live resource state. */
+  readonly necromancerAddleImmobilize?: boolean;
   readonly necromancerShroudSkillOne?: boolean;
   readonly packetKind?: string;
   readonly radiantWeapon?: string;
@@ -221,11 +213,13 @@ export interface EffectMetadata {
 }
 
 /** Derive the shared vocabulary while keeping damage and condition payloads discriminated. */
-export type CommonSimulationEventType = Exclude<(typeof COMMON_EVENT_TYPES)[number], 'damage' | 'condition'>;
+type CommonSimulationEventType = Exclude<(typeof COMMON_EVENT_TYPES)[number], 'damage' | 'condition'>;
 
-export type CustomSimulationEventType = `${string}.${string}`;
+type CustomSimulationEventType = `${string}.${string}`;
 
 export interface SimulationEventBase<TType extends string = string> {
+  /** Internal authored-effect provenance; never inferred from display skill attribution. */
+  readonly effectReaction?: EffectReactionRef;
   readonly schemaVersion?: 1;
   readonly type: TType;
   readonly at: number;
@@ -253,16 +247,15 @@ export interface SimulationEventBase<TType extends string = string> {
   /** The action's skill grants an evade window, independently of ordinary dodge actions. */
   readonly evades?: boolean;
   readonly activationId?: string;
-  /** Monotone identity assigned when the scheduler emits the event. */
+  /** Monotone identity assigned when the runtime emits the event. */
   readonly eventOrder?: number;
   /** Same-timestamp position of an event derived from another scheduled event. */
   readonly causalOrder?: number;
   readonly weaponStrengthProfileId?: string;
   readonly weaponStrength?: number;
   readonly cooldownReduction?: number;
-  /** Committed base work lets passive effects follow subsequent Alacrity changes. */
+  /** Committed base work keeps passive cooldown queries aligned with scheduling and rewinds. */
   readonly rechargeProgress?: RechargeProgress;
-  readonly rechargeProgressBySkillId?: Readonly<Record<string, RechargeProgress>>;
   readonly audience?: EffectAudience;
   readonly resolvedAudience?: ResolvedEffectAudience;
   readonly metadata?: EffectMetadata;
@@ -309,9 +302,6 @@ export interface ConditionEventFields {
   readonly duration: number;
   /** Transferred conditions retain their remaining lifetime without applying duration modifiers again. */
   readonly fixedDuration?: boolean;
-  readonly transferredCondition?: boolean;
-  readonly transferredFromSkillId?: SkillId;
-  readonly nonDamaging?: boolean;
   readonly offTarget?: boolean;
   readonly persistsAfterInterrupt?: boolean;
   readonly applicationIndex?: number;
@@ -328,35 +318,34 @@ export interface ConditionEventFields {
   readonly independentConditionOwner?: boolean;
 }
 
-export type ConditionEvent = SimulationEventBase<'condition'> & ConditionEventFields;
+type ConditionEvent = SimulationEventBase<'condition'> & ConditionEventFields;
 
 /** Named core payloads preserve permissive external inputs while making ordinary effect work discoverable. */
-export interface BuffEvent extends SimulationEventBase<'buff'> {
+interface BuffEvent extends SimulationEventBase<'buff'> {
   readonly fixedDuration?: boolean;
-  readonly schedulerBoonPrediction?: boolean;
 }
 
-export interface BoonExtensionEvent extends SimulationEventBase<'boon_extension'> {
+interface BoonExtensionEvent extends SimulationEventBase<'boon_extension'> {
   readonly duration: number;
   readonly extensionAudience?: 'self' | 'all';
   readonly excludedKind?: string;
 }
 
-export type WeaponSetEvent = SimulationEventBase<'weapon_set'>;
+type WeaponSetEvent = SimulationEventBase<'weapon_set'>;
 
 /** Relic of Peitha trigger at activation; the impact delay comes from the triggering skill. */
-export interface PeithaEvent extends SimulationEventBase<'peitha'> {
+interface PeithaEvent extends SimulationEventBase<'peitha'> {
   readonly peithaImpactDelayMs: number;
 }
 
 /** Environment ticks and direct condition packets carry data only; mutable owner wakes belong to condition resolution. */
-export interface ConditionTickEvent extends SimulationEventBase<'condition_tick'> {
+interface ConditionTickEvent extends SimulationEventBase<'condition_tick'> {
   readonly condition?: string;
   readonly fraction?: number;
   readonly damage?: number;
 }
 
-export type CommonSimulationEvent =
+type CommonSimulationEvent =
   | BuffEvent
   | BoonExtensionEvent
   | WeaponSetEvent
@@ -366,7 +355,7 @@ export type CommonSimulationEvent =
       Exclude<CommonSimulationEventType, 'buff' | 'boon_extension' | 'weapon_set' | 'condition_tick' | 'peitha'>
     >;
 
-export type CustomSimulationEvent = SimulationEventBase<CustomSimulationEventType>;
+type CustomSimulationEvent = SimulationEventBase<CustomSimulationEventType>;
 
 export type SimulationEvent = DamageEvent | ConditionEvent | CommonSimulationEvent | CustomSimulationEvent;
 

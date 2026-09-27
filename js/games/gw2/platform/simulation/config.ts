@@ -47,7 +47,6 @@ export interface Gw2Config {
   readonly hitboxSize?: string;
   readonly professionAssumptions?: Readonly<ProfessionBuildAssumptions>;
   readonly attributeProvenance?: Partial<Gw2AttributeProvenance>;
-  readonly alacrityRechargeRate?: number;
   readonly target?: Gw2TargetConfig;
   readonly modifiers?: {
     readonly strike?: number;

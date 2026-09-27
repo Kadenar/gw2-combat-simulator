@@ -1,3 +1,4 @@
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -10,6 +11,23 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
+        // Only this selected application owns its accepted-impact reward.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          },
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.soul-shards', amount: 2 }
+          }
+        ],
         coefficient: 3.8,
         comboFinishers: [
           {
@@ -24,9 +42,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
       { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3 },
       { type: 'buff', kind: 'extirpation', duration: 4, stacks: 3 }
     ]),
-    lifeForceGain: 12,
-    // Custom: Adds Soul Shards on the first committed hit; see `core/execution/spear.ts`.
-    handlerId: 'necromancer.extirpate'
+    lifeForceGain: 12
   },
   [ID.DARK_SLASH]: {
     interruptCommitMs: 560,
@@ -45,14 +61,66 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
+        // Only this selected application owns its accepted-impact reward.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          },
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: {
+              type: 'emitProfile',
+              profileId: PROFILE.addleDaze,
+              attribution: { source: 'necromancer', sourceId: ID.ADDLE, actorType: 'player' }
+            }
+          },
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) =>
+              Number(event.coefficient) > 0 && Boolean(event.metadata?.necromancerAddleImmobilize),
+            do: {
+              type: 'emitProfile',
+              profileId: PROFILE.addleImmobilize,
+              attribution: { source: 'necromancer', sourceId: ID.ADDLE, actorType: 'player' }
+            }
+          },
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (runtime, { event }) =>
+              Number(event.coefficient) > 0 &&
+              Boolean(runtime.config.target?.defiant || runtime.config.target?.activatingSkills),
+            do: [
+              { type: 'necromancer.life-force', amount: 10 },
+              { type: 'necromancer.soul-shards', amount: 4 }
+            ]
+          },
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (runtime, { event }) =>
+              Number(event.coefficient) > 0 &&
+              !Boolean(runtime.config.target?.defiant || runtime.config.target?.activatingSkills),
+            do: { type: 'necromancer.soul-shards', amount: 2 }
+          }
+        ],
         ticks: [{ atMs: 240, coefficient: 1.9 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
     ],
-    lifeForceGain: 10,
-    // Custom: Applies the shard-gated immobilize, defiance bonus, life force, and Soul Shards; see `core/execution/spear.ts`.
-    handlerId: 'necromancer.addle'
+    lifeForceGain: 10
   },
   [ID.DEADLY_SLICE]: {
     interruptCommitMs: 480,
@@ -60,25 +128,51 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
+        // Only this selected application owns its accepted-impact reward.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.soul-shards', amount: 1 }
+          }
+        ],
         ticks: [{ atMs: 400, coefficient: 1.4 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
       }
-    ],
-    // Custom: Adds one Soul Shard after the attack; see `core/execution/spear.ts`.
-    handlerId: 'necromancer.deadly-slice'
+    ]
   },
   [ID.SINISTER_STAB]: {
     castTimeMs: 560,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 1.8 },
+      {
+        type: 'strike',
+        // Only this selected application owns its accepted-impact reward.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          },
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.soul-shards', amount: 1 }
+          }
+        ],
+        coefficient: 1.8
+      },
       { type: 'condition', condition: 'Chilled', stacks: 1, duration: 2 }
     ]),
-    lifeForceGain: 5,
-    // Custom: Adds one Soul Shard after the attack; see `core/execution/spear.ts`.
-    handlerId: 'necromancer.sinister-stab'
+    lifeForceGain: 5
   },
   [ID.PERFORATE]: {
     interruptMode: 'per-packet',
@@ -87,6 +181,16 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
+        // Only this selected application owns its accepted-impact reward.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'each',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.perforate' }
+          }
+        ],
         ticks: [
           {
             atMs: 400,
@@ -127,9 +231,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
           }
         ]
       }
-    ],
-    // Custom: Snapshots/consumes Soul Shards and emits one shard hit per eligible packet; see `core/execution/spear.ts`.
-    handlerId: 'necromancer.perforate'
+    ]
   },
   [ID.ISOLATE]: {
     castTimeMs: 480,
@@ -144,8 +246,11 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.DISTRESS]: {
     castTimeMs: 0,
-    effects: [],
-    // Custom: Consumes the flip, refreshes Perforate, and grants Soul Shards; see `core/execution/spear.ts`.
-    handlerId: 'necromancer.distress'
+    // Completing Distress refreshes Perforate before its profession-owned shard grant.
+    sideEffects: [
+      { on: 'castComplete', do: { type: 'rechargeReset', skillIds: [ID.PERFORATE] } },
+      { on: 'castComplete', do: { type: 'necromancer.soul-shards', amount: 6 } }
+    ],
+    effects: []
   }
 });

@@ -7,7 +7,7 @@ import {
   gw2PrimaryWeapon
 } from '#gw2/platform/equipment/weapons/loadout.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 
@@ -35,14 +35,14 @@ test('profession weapon eligibility is shared with headless simulation', () => {
           weapons: ['Sword'],
           weaponHands: { Sword: 'mh' }
         },
-        state: { scheduler: () => ({}) }
+        state: { create: () => ({}) }
       }),
-      defineNativeModule({ id: 'Elite', data: {}, state: { scheduler: () => ({}) } })
+      defineNativeModule({ id: 'Elite', data: {}, state: { create: () => ({}) } })
     ]
   });
   assert.equal(family.weaponSkillMatchesSet, weaponSkillMatchesSet);
   for (const specialization of ['Core', 'Elite']) {
-    const runtime = family.resolveRuntime({ specialization });
+    const runtime = family.resolveProfession({ specialization });
     assert.equal(runtime.weaponSkillMatchesSet, weaponSkillMatchesSet);
     assert.equal(runtime.ui, undefined);
     const result = simulateGw2({
@@ -60,7 +60,7 @@ test('profession weapon eligibility is shared with headless simulation', () => {
   }
 
   assert.throws(
-    () => defineProfession({ id: 'invalid', name: 'Invalid', weaponSkillMatchesSet: true }),
+    () => defineTestProfession({ id: 'invalid', name: 'Invalid', weaponSkillMatchesSet: true }),
     /weaponSkillMatchesSet must be a function/
   );
 });
@@ -115,7 +115,7 @@ test('GW2 declarative policy enforces active weapons and skill weapon strength',
     weapons: ['Greatsword', 'Sword'],
     weaponHands: { Greatsword: '2h', Sword: 'mh' }
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'weapon-policy-fixture',
     name: 'Weapon Policy Fixture',
     catalog

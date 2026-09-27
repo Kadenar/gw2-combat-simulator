@@ -7,6 +7,9 @@ import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface DruidState {
+  pendingHitTimes: number[];
+  naturalMenderAt: number;
+  avatarDepletionAt: number;
   astralClock: ResourceClock;
   celestialAvatarActive: boolean;
   celestialAvatarEndsAt: number;
@@ -22,6 +25,9 @@ export const DRUID_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 /** The resource clock exclusively owns force, capacity, and advancement time. */
 export function createDruidState(config: RangerConfig = {}): DruidState {
   return {
+    pendingHitTimes: [],
+    naturalMenderAt: Infinity,
+    avatarDepletionAt: Infinity,
     astralClock: {
       value: boundedNumber(config.initialAstralForce ?? 100, 100, 0, 100),
       maximum: 100,

@@ -24,7 +24,7 @@ function primordialStance(attunement: ElementalistAttunement): Partial<Skill> {
     ammo: 2,
     ammoRecharge: 20,
     skillFamily: 'Stance',
-    handlerId: 'elementalist.primordial-stance',
+
     effects: [
       {
         type: 'strike',
@@ -59,6 +59,10 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     castTimeMs: 640,
     cooldown: 20,
     resourceGain: 50,
+    // Committed activations restore endurance using this skill's editable amount.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'resourceGrant', resource: 'endurance', amount: { skillField: 'resourceGain' } } }
+    ],
     skillFamily: 'Stance',
     effects: []
   },
@@ -91,10 +95,10 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     nextChainId: ID.WEAVE_SELF,
     skillFamily: 'Stance',
     // Tailored Victory consumes the Perfect Weave flip window when it completes.
-    mechanicTriggers: [
+    tasks: [
       {
         type: 'elementalist.weaver.consume-perfect-weave',
-        timingAnchor: 'castEnd'
+        timingAnchor: 'castComplete'
       }
     ],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -124,10 +128,10 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     cooldown: 20,
     skillFamily: 'Stance',
     // Fervent Stance arms its dual-attack might window after completion.
-    mechanicTriggers: [
+    tasks: [
       {
         type: 'elementalist.weaver.arm-fervent-stance',
-        timingAnchor: 'castEnd'
+        timingAnchor: 'castComplete'
       }
     ],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [

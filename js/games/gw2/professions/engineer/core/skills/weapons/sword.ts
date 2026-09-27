@@ -5,7 +5,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /** Defines non-Holosmith Engineer sword timing, damage, conditions, boons, and combo behavior. */
 export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.RADIANT_ARC_ID_69565]: {
+  [ID.RADIANT_ARC_NON_HOLOSMITH]: {
     castTimeMs: 840,
     cooldown: 14,
     comboFinishers: [
@@ -38,7 +38,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       }
     ]
   },
-  [ID.SUN_RIPPER_ID_69906]: {
+  [ID.SUN_RIPPER_NON_HOLOSMITH]: {
     castTimeMs: 480,
     cooldown: 0,
     // Share one impact timing while preserving independent payloads and declaration order.
@@ -59,7 +59,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       }
     ])
   },
-  [ID.SUN_EDGE_ID_70514]: {
+  [ID.SUN_EDGE_NON_HOLOSMITH]: {
     castTimeMs: 440,
     cooldown: 0,
     // Share one impact timing while preserving independent payloads and declaration order.
@@ -80,9 +80,9 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       }
     ])
   },
-  [ID.GLEAM_SABER_ID_70771]: {
-    // Custom: Recharges the other sword skills after the cast; see `core/execution/sword.ts`.
-    handlerId: 'engineer.gleam-saber',
+  [ID.GLEAM_SABER_NON_HOLOSMITH]: {
+    // A committed finisher reduces live sword recharge, including shortened casts.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.sword-recharge', amount: 1 } }],
     castTimeMs: 720,
     // Commit the strike and recharge at 600 ms while retaining the full cast lockout.
     interruptCommitMs: 600,

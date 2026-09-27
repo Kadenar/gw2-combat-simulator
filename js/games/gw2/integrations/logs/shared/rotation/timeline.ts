@@ -109,8 +109,8 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     // Shroud attacks require entry first and exit last, regardless of log grouping or event order.
     const shroudRank = (entry: (typeof entries)[number]): number | null => {
       const skill = entry.type === 'action' ? entry.action.skill : null;
-      if (skill?.shroudEntry || skill?.handlerId === 'thief.shadow-shroud-enter') return 0;
-      if (skill?.shroudExit || skill?.handlerId === 'thief.shadow-shroud-exit') return 2;
+      if (skill?.shroudEntry || skill?.shadowShroudTransition === 'enter') return 0;
+      if (skill?.shroudExit || skill?.shadowShroudTransition === 'exit') return 2;
       return skill?.shroud || skill?.shadowShroudSkill ? 1 : null;
     };
 

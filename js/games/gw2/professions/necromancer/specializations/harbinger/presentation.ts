@@ -41,7 +41,7 @@ function harbingerStateSnapshot(context: NecromancerUiContext): RotationStateSna
   }
 
   // Meltdown is a short post-proc damage window, so expose only its remaining active duration.
-  const meltdownRemaining = Number(state.meltdownUntil || 0) - Math.max(0, Number(context.atSeconds || 0));
+  const meltdownRemaining = (state.meltdownUntil || 0) - Math.max(0, context.atSeconds || 0);
   if (meltdownRemaining > 0) {
     items.push({
       id: 'harbinger-meltdown',
@@ -54,7 +54,7 @@ function harbingerStateSnapshot(context: NecromancerUiContext): RotationStateSna
   return items;
 }
 
-/** Recorded state supplies exact shroud and Meltdown windows; Blight grants replace their previous count. */
+/** Executed transitions and buffs supply shroud, Blight, and Meltdown windows. */
 const HARBINGER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
   {
     id: 'harbinger-blight',
@@ -68,19 +68,15 @@ const HARBINGER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = 
     kind: 'harbinger-shroud',
     name: 'Harbinger Shroud',
     stateFromEvent: (event) =>
-      event.type === 'necromancer.state'
-        ? { stacks: Number((event.state as { activeShroud?: string })?.activeShroud === 'harbinger') }
+      event.type === 'weapon_set' && event.shroudSwap
+        ? { stacks: Number(event.sourceId === 'necromancer.shroud-enter') }
         : null
   },
   {
     id: 'meltdown',
     kind: 'meltdown',
     name: 'Meltdown',
-    stateFromEvent: (event) => {
-      if (event.type !== 'necromancer.state' && event.type !== 'necromancer.blight') return null;
-      const expiresAt = Number((event.state as { meltdownUntil?: number })?.meltdownUntil || 0);
-      return { stacks: Number(expiresAt > event.at), expiresAt };
-    }
+    replacementGroup: 'meltdown'
   }
 ]);
 

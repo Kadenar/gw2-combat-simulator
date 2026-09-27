@@ -1,6 +1,6 @@
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -11,9 +11,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.SUMMON_BONE_FIEND]: {
     castTimeMs: 360,
     effects: [],
-    rechargeOnMinionDeath: true,
-    // Custom: Summons/replaces the minion and starts its autonomous attack tasks; see `core/mechanics/minions.ts`.
-    handlerId: 'necromancer.minion'
+    rechargeOnMinionDeath: true
   },
   [ID.PUTRID_EXPLOSION]: {
     castTimeMs: 360,
@@ -28,29 +26,45 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 5,
         actorType: 'summon'
       }
-    ],
-    // Custom: Requires the minion, executes its command, and manages the command flip; see `core/mechanics/minions.ts`.
-    handlerId: 'necromancer.minion-command'
+    ]
   },
   [ID.SUMMON_BONE_MINIONS]: {
     castTimeMs: 360,
     effects: [],
-    rechargeOnMinionDeath: true,
-    // Custom: Summons/replaces the minion and starts its autonomous attack tasks; see `core/mechanics/minions.ts`.
-    handlerId: 'necromancer.minion'
+    rechargeOnMinionDeath: true
   },
   [ID.BLOOD_IS_POWER]: {
     castTimeMs: 880,
-    // Blood Is Power cannot cancel its remaining aftercast, so importers and the scheduler retain the full cast lane.
+    // Blood Is Power cannot cancel its remaining aftercast, so importers and live execution retain the full cast lane.
     interruptCommitMs: 600,
     retainsCastLockoutAfterInterrupt: true,
     // Share this impact's timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 0.5 },
-      { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 15 }
-    ]),
-    // Custom: Applies the skill's self-condition and Master of Corruption/Plague Sending rules; see `core/mechanics/conditions.ts`.
-    handlerId: 'necromancer.corruption'
+    effects: [
+      ...impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.5 },
+        { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 15 }
+      ]),
+      // Corruption completion owns self-conditions and boons independently of hostile impacts.
+      { name: 'Self Bleeding', type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10, target: 'self' },
+      {
+        name: 'Self Torment',
+        type: 'condition',
+        condition: 'Torment',
+        stacks: 2,
+        duration: 10,
+        target: 'self',
+        requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
+        packetLabel: 'additional with Master of Corruption'
+      },
+      {
+        name: 'might',
+        type: 'boon',
+        boon: 'might',
+        stacks: 5,
+        duration: 20,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
+    ]
   },
   // Wells use their EVTC-observed Quickness packet schedule for every damage and condition pulse.
   [ID.WELL_OF_CORRUPTION]: {
@@ -58,6 +72,16 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         ticks: [320, 1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, coefficient: 0.5 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -88,133 +112,143 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.SUMMON_BLOOD_FIEND]: {
     castTimeMs: 680,
-    effects: [],
-    // Custom: Summons/replaces the minion and starts its autonomous attack tasks; see `core/mechanics/minions.ts`.
-    handlerId: 'necromancer.minion'
+    effects: []
   },
   [ID.CONSUME_CONDITIONS]: {
     castTimeMs: 680,
-    effects: [],
-    // Custom: Applies the skill's self-condition and Master of Corruption/Plague Sending rules; see `core/mechanics/conditions.ts`.
-    handlerId: 'necromancer.corruption'
+    effects: [
+      // Corruption completion owns self-conditions and boons independently of hostile impacts.
+      {
+        name: 'Self Vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
+        stacks: 5,
+        duration: 4,
+        target: 'self'
+      },
+      {
+        name: 'Master of Corruption Vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
+        stacks: 5,
+        duration: 4,
+        target: 'self',
+        requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
+        packetLabel: 'additional with Master of Corruption'
+      }
+    ]
   },
   [ID.PLAGUELANDS]: {
     castTimeMs: 920,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 3.51 / 9 }))
-      },
-      {
-        type: 'condition',
-        ticks: Array.from({ length: 9 }, (_, index) => ({
-          atMs: 1000 + index * 1000,
-          condition: 'Bleeding',
-          stacks: 1,
-          duration: 8
-        }))
-      },
-      {
-        type: 'condition',
-        ticks: Array.from({ length: 8 }, (_, index) => ({
-          atMs: 2000 + index * 1000,
-          condition: 'Poisoned',
-          stacks: 1,
-          duration: 5
-        }))
-      },
-      {
-        type: 'condition',
-        ticks: Array.from({ length: 7 }, (_, index) => ({
-          atMs: 3000 + index * 1000,
-          condition: 'Torment',
-          stacks: 1,
-          duration: 5
-        }))
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 4000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 5000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 6000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 7000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 8000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 9000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
-      },
-      {
-        type: 'condition',
-        ticks: Array.from({ length: 5 }, (_, index) => ({
-          atMs: 5000 + index * 1000,
-          condition: 'Crippled',
-          stacks: 1,
-          duration: 2
-        }))
-      },
-      {
-        type: 'condition',
-        ticks: Array.from({ length: 4 }, (_, index) => ({
-          atMs: 6000 + index * 1000,
-          condition: 'Weakness',
-          stacks: 1,
+    effects: [
+      ...impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 3.51 / 9 }))
+        },
+        {
+          type: 'condition',
+          ticks: Array.from({ length: 9 }, (_, index) => ({
+            atMs: 1000 + index * 1000,
+            condition: 'Bleeding',
+            stacks: 1,
+            duration: 8
+          }))
+        },
+        {
+          type: 'condition',
+          ticks: Array.from({ length: 8 }, (_, index) => ({
+            atMs: 2000 + index * 1000,
+            condition: 'Poisoned',
+            stacks: 1,
+            duration: 5
+          }))
+        },
+        {
+          type: 'condition',
+          ticks: Array.from({ length: 7 }, (_, index) => ({
+            atMs: 3000 + index * 1000,
+            condition: 'Torment',
+            stacks: 1,
+            duration: 5
+          }))
+        },
+        {
+          type: 'condition',
+          // Vulnerability starts on pulse four and repeats through the final pulse.
+          ticks: Array.from({ length: 6 }, (_, index) => ({
+            atMs: 4000 + index * 1000,
+            condition: 'Vulnerability',
+            stacks: 1,
+            duration: 8
+          }))
+        },
+        {
+          type: 'condition',
+          ticks: Array.from({ length: 5 }, (_, index) => ({
+            atMs: 5000 + index * 1000,
+            condition: 'Crippled',
+            stacks: 1,
+            duration: 2
+          }))
+        },
+        {
+          type: 'condition',
+          ticks: Array.from({ length: 4 }, (_, index) => ({
+            atMs: 6000 + index * 1000,
+            condition: 'Weakness',
+            stacks: 1,
+            duration: 3
+          }))
+        },
+        {
+          type: 'blind',
+          applications: 3,
+          atMs: 7000,
+          intervalMs: 1000,
           duration: 3
-        }))
-      },
+        },
+        {
+          type: 'condition',
+          ticks: Array.from({ length: 2 }, (_, index) => ({
+            atMs: 8000 + index * 1000,
+            condition: 'Chilled',
+            stacks: 1,
+            duration: 2
+          }))
+        },
+        {
+          type: 'condition',
+          ticks: [{ atMs: 9000, condition: 'Burning', stacks: 1, duration: 10 }]
+        }
+      ]),
+      // Corruption completion owns self-conditions and boons independently of hostile impacts.
+      { name: 'Self Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 10, target: 'self' },
       {
-        type: 'blind',
-        applications: 3,
-        atMs: 7000,
-        intervalMs: 1000,
-        duration: 3
-      },
-      {
+        name: 'Self Poisoned',
         type: 'condition',
-        ticks: Array.from({ length: 2 }, (_, index) => ({
-          atMs: 8000 + index * 1000,
-          condition: 'Chilled',
-          stacks: 1,
-          duration: 2
-        }))
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 9000, condition: 'Burning', stacks: 1, duration: 10 }]
+        condition: 'Poisoned',
+        stacks: 1,
+        duration: 4,
+        target: 'self',
+        requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
+        packetLabel: 'additional with Master of Corruption'
       }
-    ]),
-    // Custom: Applies the skill's self-condition and Master of Corruption/Plague Sending rules; see `core/mechanics/conditions.ts`.
-    handlerId: 'necromancer.corruption'
+    ]
   },
   [ID.LICH_FORM]: {
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     castTimeMs: 680,
     effects: [],
     // Life force is granted once when the transform ends, by its manual or timed exit.
-    cooldown: 120,
-    // Custom: Enters or exits Lich Form and updates transform state; see `core/mechanics/shroud.ts`.
-    handlerId: 'necromancer.lich'
+    cooldown: 120
   },
   [ID.PLAGUE_SIGNET]: {
     castTimeMs: 0,
     // The handler and tooltip share the maximum number of distinct self-condition types transferred.
     conditionsTransferred: 5,
-    effects: [],
-    // Custom: Moves a skill-specific number of active self-conditions to the target; see `core/mechanics/conditions.ts`.
-    handlerId: 'necromancer.condition-transfer'
+    effects: []
   },
   [ID.RIGOR_MORTIS]: {
     castTimeMs: 0,
@@ -261,24 +295,18 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingScale: 'fixed',
         actorType: 'summon'
       }
-    ],
-    // Custom: Requires the minion, executes its command, and manages the command flip; see `core/mechanics/minions.ts`.
-    handlerId: 'necromancer.minion-command'
+    ]
   },
   [ID.TASTE_OF_DEATH]: {
     castTimeMs: 680,
     minionKey: 'blood-fiend',
     consumes: 1,
-    effects: [],
-    // Custom: Requires the minion, executes its command, and manages the command flip; see `core/mechanics/minions.ts`.
-    handlerId: 'necromancer.minion-command'
+    effects: []
   },
   [ID.SUMMON_SHADOW_FIEND]: {
     castTimeMs: 360,
     effects: [],
-    rechargeOnMinionDeath: true,
-    // Custom: Summons/replaces the minion and starts its autonomous attack tasks; see `core/mechanics/minions.ts`.
-    handlerId: 'necromancer.minion'
+    rechargeOnMinionDeath: true
   },
   [ID.HAUNT]: {
     castTimeMs: 0,
@@ -302,9 +330,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 5,
         actorType: 'summon'
       }
-    ],
-    // Custom: Requires the minion, executes its command, and manages the command flip; see `core/mechanics/minions.ts`.
-    handlerId: 'necromancer.minion-command'
+    ]
   },
   [ID.WELL_OF_DARKNESS]: {
     castTimeMs: 480,
@@ -350,6 +376,16 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       {
         type: 'condition',
+        // Only this selected application owns its accepted-impact reward.
+        reactions: [
+          {
+            on: 'condition.applied',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => event.sourceId === event.skillId,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         condition: 'Chilled',
         stacks: 1,
         duration: 4
@@ -374,9 +410,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.SUMMON_FLESH_GOLEM]: {
     castTimeMs: 680,
     effects: [],
-    rechargeOnMinionDeath: true,
-    // Custom: Summons/replaces the minion and starts its autonomous attack tasks; see `core/mechanics/minions.ts`.
-    handlerId: 'necromancer.minion'
+    rechargeOnMinionDeath: true
   },
   [ID.CHARGE]: {
     castTimeMs: 680,
@@ -388,9 +422,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         actorType: 'summon',
         controlKind: 'knockdown'
       }
-    ],
-    // Custom: Requires the minion, executes its command, and manages the command flip; see `core/mechanics/minions.ts`.
-    handlerId: 'necromancer.minion-command'
+    ]
   },
   [ID.CORROSIVE_POISON_CLOUD]: {
     castTimeMs: 600,
@@ -400,10 +432,20 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         condition: 'Poisoned',
         stacks: 4,
         duration: 2
+      },
+      // Corruption completion owns self-conditions and boons independently of hostile impacts.
+      { name: 'Self Weakness', type: 'condition', condition: 'Weakness', stacks: 1, duration: 6, target: 'self' },
+      {
+        name: 'Self Crippled',
+        type: 'condition',
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 2,
+        target: 'self',
+        requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
+        packetLabel: 'additional with Master of Corruption'
       }
-    ],
-    // Custom: Applies the skill's self-condition and Master of Corruption/Plague Sending rules; see `core/mechanics/conditions.ts`.
-    handlerId: 'necromancer.corruption'
+    ]
   },
   [ID.SIGNET_OF_VAMPIRISM]: {
     castTimeMs: 880,
@@ -420,7 +462,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingScale: 'fixed',
         actorType: 'effect',
         name: 'Signet of Vampirism - Vampiric Mark',
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal'
       }
     ]

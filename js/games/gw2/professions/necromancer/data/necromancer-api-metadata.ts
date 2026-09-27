@@ -11,7 +11,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Spite',
     elite: false,
     icon: 'https://render.guildwars2.com/file/2D34377B04051FFDCDB553C7DCDABCD5DFBB68D7/1012011.png',
-    background: 'https://render.guildwars2.com/file/DDF39DBD61CCC1BCDD03B271080869251D097041/1012073.png',
     minorTraits: [
       {
         id: 913,
@@ -152,7 +151,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Curses',
     elite: false,
     icon: 'https://render.guildwars2.com/file/C8E1A81601C3D5AC10285505E9F730621C3357CD/1012007.png',
-    background: 'https://render.guildwars2.com/file/71E7075E1AC9460AA507A630B54D1395DA465B2D/1012065.png',
     minorTraits: [
       {
         id: 802,
@@ -294,7 +292,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Death Magic',
     elite: false,
     icon: 'https://render.guildwars2.com/file/16663C1CDF532AB0DCC0CB08951DD2F49351D5D4/1012008.png',
-    background: 'https://render.guildwars2.com/file/B3F92D581B0A036CABB51590E6E560B21708391F/1012067.png',
     minorTraits: [
       {
         id: 856,
@@ -440,7 +437,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Blood Magic',
     elite: false,
     icon: 'https://render.guildwars2.com/file/D1D9C63AD9CC05FC1B19970556B0C1E0ADD77905/1012006.png',
-    background: 'https://render.guildwars2.com/file/47F5CA90475E566650EF540BA82CA69C1C0332B1/1012063.png',
     minorTraits: [
       {
         id: 792,
@@ -581,7 +577,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Soul Reaping',
     elite: false,
     icon: 'https://render.guildwars2.com/file/A5A95CB5FADD99F59E07400907F0782B659574A9/1012010.png',
-    background: 'https://render.guildwars2.com/file/0956926B4A5109E07EFAB556E5DBEDCBC2B67C3B/1012071.png',
     minorTraits: [
       {
         id: 887,
@@ -719,7 +714,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Reaper',
     elite: true,
     icon: 'https://render.guildwars2.com/file/530A582BD864B73AF5CC6C44F9C61954322D9A15/1012009.png',
-    background: 'https://render.guildwars2.com/file/3717FBED4FDCD060925205DD09B15C0598E062F4/1012069.png',
     minorTraits: [
       {
         id: 1905,
@@ -861,7 +855,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Scourge',
     elite: true,
     icon: 'https://render.guildwars2.com/file/1407ADE7787A6BF6E457F5FA6DFA1062A5FA93FD/1769892.png',
-    background: 'https://render.guildwars2.com/file/DEE244AB7045EE31941E222AE4A06A94DCB4360E/1769901.png',
     minorTraits: [
       {
         id: 2147,
@@ -1003,7 +996,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Harbinger',
     elite: true,
     icon: 'https://render.guildwars2.com/file/75B05DF5ED51D0153838EC134CEFCFC80D97DA0E/2479304.png',
-    background: 'https://render.guildwars2.com/file/0B3EEFCC210D5A2C9D91F5F4D4D5AE965B4A6420/2479307.png',
     minorTraits: [
       {
         id: 2183,
@@ -1147,7 +1139,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Ritualist',
     elite: true,
     icon: 'https://render.guildwars2.com/file/9064C22D08E4A7686FFB0256DDF42B97055EB144/3679900.png',
-    background: 'https://render.guildwars2.com/file/B2050637E3F0091CB62E7EB5230F68CF35E8E2CD/3679909.png',
     minorTraits: [
       {
         id: 2338,

@@ -84,7 +84,10 @@ export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     activeDamageIncrease: 0.18,
     effects: []
   },
+  // J-Drive improves the selected Overclock passive and keeps it active while recharging.
+  trait(TRAIT.MECH_CORE_J_DRIVE, 'Mech Core: J-Drive', { rechargeMultiplier: 0.76, effects: [] }),
   {
+    rechargeMultiplier: 0.8,
     id: MECHANIST_BALANCE_PROFILE_IDS.overclock,
     name: 'Jade Buster Cannon',
     profileKind: 'skill-variant',

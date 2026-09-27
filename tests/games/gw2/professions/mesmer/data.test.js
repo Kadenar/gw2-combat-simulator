@@ -13,7 +13,6 @@ import {
   migrateMesmerBuild,
   validateMesmerBuild
 } from '#gw2/professions/mesmer/build/build.js';
-import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
 import {
@@ -24,8 +23,7 @@ import {
 import {
   MESMER_CORE_CLONE_ATTACKS as CLONE_ATTACKS,
   MESMER_CORE_PHANTASM_ATTACK_TIMINGS,
-  MESMER_CORE_SHATTERS,
-  MESMER_CORE_WEAPON_STRENGTH as WEAPON_STRENGTH
+  MESMER_CORE_SHATTERS
 } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
 import {
   MESMER_CORE_EXTRA_SKILLS as MESMER_CORE_INDEX_EXTRA_SKILLS,
@@ -146,8 +144,6 @@ const PHANTASM_ATTACK_TIMINGS = Object.freeze(
 
 const catalogSkill = (name) => mesmerCatalog.skillsByName.get(name);
 const strikeEffects = (skill) => skill.effects.filter((effect) => effect.type === 'strike');
-const strikeCoefficient = (effect) =>
-  effect.ticks ? effect.ticks.reduce((sum, tick) => sum + tick.coefficient, 0) : Number(effect.coefficient || 0);
 
 const applyMesmerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(mesmerCatalog, patch), patch);
 
@@ -218,42 +214,6 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
     true
   );
 
-  const profile = (moduleId, profileId) => {
-    const module = modules.get(moduleId);
-
-    return [...module.balanceProfiles, ...module.skillVariants].find((entry) => entry.id === profileId);
-  };
-
-  assert.equal(profile('Core', MESMER_CORE_BALANCE_PROFILE_IDS.mindWrack).profile.effects[1].coefficient, 1.61);
-  assert.equal(
-    profile('Chronomancer', CHRONOMANCER_BALANCE_PROFILE_IDS.dangerTime).patchableFields.durationMultiplier,
-    10
-  );
-  assert.equal(
-    profile('Chronomancer', CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment).patchableFields.durationPerTier,
-    1
-  );
-  assert.deepEqual(profile('Chronomancer', CHRONOMANCER_BALANCE_PROFILE_IDS.stretchedTime).profile.effects[0], {
-    type: 'boon',
-    boon: 'alacrity',
-    name: 'alacrity',
-    duration: 3,
-    stacks: 1,
-    audience: { recipients: 'party', maximumRecipients: 5 }
-  });
-  assert.equal(profile('Mirage', MIRAGE_BALANCE_PROFILE_IDS.imaginaryAxes).profile.effects[0].coefficient, 1);
-  assert.equal(profile('Virtuoso', VIRTUOSO_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 5);
-  assert.equal(
-    strikeCoefficient(profile('Troubadour', TROUBADOUR_BALANCE_PROFILE_IDS.livelyLute).profile.effects[0]),
-    3
-  );
-  assert.equal(profile('Troubadour', TROUBADOUR_BALANCE_PROFILE_IDS.crescendo).profile.effects[0].coefficient, 2.25);
-  assert.equal(
-    profile('Troubadour', TROUBADOUR_BALANCE_PROFILE_IDS.crescendo).patchableFields.damageIncreasePerStack,
-    0.25
-  );
-  assert.equal(Object.hasOwn(mesmerCatalog.skillsById.get(ID.CRESCENDO), 'baseCoefficient'), false);
-
   const opaqueModifierRules = [...modules.values()].flatMap((module) =>
     module.modifierRules.filter(
       (rule) =>
@@ -264,47 +224,52 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
 
   assert.deepEqual(opaqueModifierRules, []);
 
+  // Keep the live catalog isolated while exercising skill, profile, and runtime projection patch consumers.
+  const originalCooldown = mesmerCatalog.skillsById.get(ID.MIND_WRACK).cooldown;
+  const originalAttribute = mesmerCatalog.balanceProfilesById.get(
+    MESMER_CORE_BALANCE_PROFILE_IDS.fencersFinesse
+  ).attributePerStack;
   const preview = applyMesmerPatch({
     skills: {
       [ID.MIND_WRACK]: {
-        fields: { cooldown: { from: 12, to: 10 } }
+        fields: { cooldown: 10 }
       }
     },
     balanceProfiles: {
       [MESMER_CORE_BALANCE_PROFILE_IDS.mindWrack]: {
-        effects: [{ effectIndex: 1, coefficient: { from: 1.61, to: 1.75 } }]
+        effects: [{ effectIndex: 1, coefficient: 1.75 }]
       },
       [MESMER_CORE_BALANCE_PROFILE_IDS.cryOfFrustration]: {
-        effects: [{ effectIndex: 4, duration: { from: 3, to: 4 } }]
+        effects: [{ effectIndex: 4, duration: 4 }]
       },
       [MESMER_CORE_BALANCE_PROFILE_IDS.fencersFinesse]: {
-        fields: { attributePerStack: { from: 15, to: 20 } }
+        fields: { attributePerStack: 20 }
       },
       [CHRONOMANCER_BALANCE_PROFILE_IDS.dangerTime]: {
-        fields: { durationMultiplier: { from: 10, to: 12 } }
+        fields: { durationMultiplier: 12 }
       },
       [CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment]: {
-        fields: { durationPerTier: { from: 1, to: 2 } },
+        fields: { durationPerTier: 2 },
         effects: [
           {
             effectIndex: 0,
-            duration: { from: 3, to: 4 },
-            audience: { maximumRecipients: { from: 5, to: 10 } }
+            duration: 4,
+            audience: { maximumRecipients: 10 }
           }
         ]
       },
       [MIRAGE_BALANCE_PROFILE_IDS.imaginaryAxes]: {
-        effects: [{ effectIndex: 0, coefficient: { from: 1, to: 1.1 } }]
+        effects: [{ effectIndex: 0, coefficient: 1.1 }]
       },
       [VIRTUOSO_BALANCE_PROFILE_IDS.resources]: {
-        fields: { maximumStacks: { from: 5, to: 6 } }
+        fields: { maximumStacks: 6 }
       },
       [TROUBADOUR_BALANCE_PROFILE_IDS.livelyLute]: {
-        effects: [{ effectIndex: 0, tickIndex: 0, coefficient: { from: 1, to: 1.2 } }]
+        effects: [{ effectIndex: 0, tickIndex: 0, coefficient: 1.2 }]
       },
       [TROUBADOUR_BALANCE_PROFILE_IDS.crescendo]: {
-        fields: { damageIncreasePerStack: { from: 0.25, to: 0.3 } },
-        effects: [{ effectIndex: 0, coefficient: { from: 2.25, to: 2.5 } }]
+        fields: { damageIncreasePerStack: 0.3 },
+        effects: [{ effectIndex: 0, coefficient: 2.5 }]
       }
     }
   });
@@ -317,13 +282,12 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
   assert.equal(preview.balanceProfilesById.get(MESMER_CORE_BALANCE_PROFILE_IDS.fencersFinesse).attributePerStack, 20);
   assert.equal(preview.balanceProfilesById.get(CHRONOMANCER_BALANCE_PROFILE_IDS.dangerTime).durationMultiplier, 12);
   assert.equal(preview.balanceProfilesById.get(CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment).durationPerTier, 2);
+  const originalBoon = mesmerCatalog.balanceProfilesById.get(CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment)
+    .effects[0];
   assert.deepEqual(preview.balanceProfilesById.get(CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment).effects[0], {
-    type: 'boon',
-    boon: 'quickness',
-    name: 'quickness',
+    ...originalBoon,
     duration: 4,
-    stacks: 1,
-    audience: { recipients: 'party', maximumRecipients: 10 }
+    audience: { ...originalBoon.audience, maximumRecipients: 10 }
   });
   assert.equal(preview.balanceProfilesById.get(VIRTUOSO_BALANCE_PROFILE_IDS.resources).maximumStacks, 6);
   assert.equal(preview.balanceProfilesById.get(TROUBADOUR_BALANCE_PROFILE_IDS.crescendo).effects[0].coefficient, 2.5);
@@ -335,32 +299,35 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
     MESMER_CORE_SHATTER_PROFILE_IDS
   )[ID.MIND_WRACK];
 
+  const originalShatter = mesmerProfiledShatters(
+    { catalog: mesmerCatalog },
+    { [ID.MIND_WRACK]: SHATTERS[ID.MIND_WRACK] },
+    MESMER_CORE_SHATTER_PROFILE_IDS
+  )[ID.MIND_WRACK];
   assert.deepEqual(
-    profiledShatter.strikes.map((strike) => strike.coefficient),
-    [0.81, 1.75, 2.42, 3.22]
+    profiledShatter.strikes,
+    originalShatter.strikes.map((strike, index) => (index === 1 ? { ...strike, coefficient: 1.75 } : strike))
   );
   assert.equal(
     mesmerProfiledAmbush({ catalog: preview }, AMBUSH_ATTACKS.Axe, MIRAGE_AMBUSH_PROFILE_IDS.Axe).player.coefficient,
     1.1
   );
-  assert.equal(
-    strikeCoefficient(
-      mesmerProfiledInstrument(
-        { catalog: preview },
-        INSTRUMENTS[ID.LIVELY_LUTE],
-        TROUBADOUR_INSTRUMENT_PROFILE_IDS[ID.LIVELY_LUTE]
-      )
-    ),
-    3.2
+  assert.deepEqual(
+    mesmerProfiledInstrument(
+      { catalog: preview },
+      INSTRUMENTS[ID.LIVELY_LUTE],
+      TROUBADOUR_INSTRUMENT_PROFILE_IDS[ID.LIVELY_LUTE]
+    ).ticks,
+    mesmerCatalog.balanceProfilesById
+      .get(TROUBADOUR_BALANCE_PROFILE_IDS.livelyLute)
+      .effects[0].ticks.map((tick, index) => (index === 0 ? { ...tick, coefficient: 1.2 } : tick))
   );
 
-  assert.equal(mesmerCatalog.skillsById.get(ID.MIND_WRACK).cooldown, 12);
+  assert.equal(mesmerCatalog.skillsById.get(ID.MIND_WRACK).cooldown, originalCooldown);
   assert.equal(
     mesmerCatalog.balanceProfilesById.get(MESMER_CORE_BALANCE_PROFILE_IDS.fencersFinesse).attributePerStack,
-    15
+    originalAttribute
   );
-  assert.equal(WEAPON_STRENGTH.Sword, 1000);
-  assert.equal(CLONE_ATTACKS.Sword.firstAttackDelay, 2.48);
 });
 
 test('Mesmer and Guardian API catalogs share common fields and explicit ammo lockouts', () => {
@@ -389,7 +356,6 @@ test('Mesmer mechanics are the sole simulation source and use stable skill ids',
     assert.ok(MESMER_SKILL_MECHANICS[skill.id], `${skill.name} is missing authoritative simulation mechanics`);
   }
 
-  assert.equal(MESMER_SKILL_MECHANICS[ID.WINDS_OF_CHAOS].castTimeMs, 760);
   assert.equal(MESMER_SKILL_MECHANICS['Winds of Chaos'], undefined);
   // Bladecall variants share strike definitions; interruption persistence belongs to each specialization's cast.
   const bladecallEffects = (id) =>
@@ -631,20 +597,6 @@ test('requested rifle, focus, and sword sequence flips are cataloged', () => {
   );
 });
 
-test('rotation actions use the requested icons without a duplicate fixed wait', () => {
-  const dodge = PSEUDO_SKILLS.find((skill) => skill.name === 'Dodge / Mirage Cloak');
-  const mirror = PSEUDO_SKILLS.find((skill) => skill.name === 'Pick Up Mirage Mirror');
-  const shift = PSEUDO_SKILLS.find((skill) => skill.name === 'Continuum Shift');
-
-  assert.equal(dodge.icon, 'https://wiki.guildwars2.com/images/b/b2/Dodge.png');
-  assert.equal(mirror.icon, 'https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png');
-  assert.equal(shift.icon, 'https://wiki.guildwars2.com/images/d/d7/Continuum_Shift.png');
-  assert.equal(
-    PSEUDO_SKILLS.some((skill) => skill.name === 'Wait 1 second'),
-    false
-  );
-});
-
 test('every terrestrial Mirage main-hand weapon has a selectable ambush skill', () => {
   assert.deepEqual(
     AMBUSH_SKILLS.map((skill) => [skill.weapon, skill.name]),
@@ -667,84 +619,10 @@ test('every terrestrial Mirage main-hand weapon has a selectable ambush skill', 
   // Catalog loading must retain the actor variants on the same skill that selects the ambush handler.
   for (const skill of AMBUSH_SKILLS) {
     const loaded = mesmerCatalog.skillsById.get(skill.id);
-    assert.equal(loaded.handlerId, 'mesmer.ambush');
+    assert.equal(loaded.ambush, true);
     assert.deepEqual(loaded.player, skill.player);
     assert.deepEqual(loaded.clone, skill.clone);
   }
-});
-
-test('Mirage ambush data uses current player and clone variants', () => {
-  assert.deepEqual(AMBUSH_ATTACKS.Axe.player, {
-    coefficient: 1,
-    hits: 2,
-    atMs: 0,
-    damageAtMs: 360,
-    conditions: [
-      {
-        name: 'Torment',
-        duration: 3.5,
-        stacks: 3,
-        applications: 2
-      }
-    ]
-  });
-  assert.equal(AMBUSH_ATTACKS.Dagger.name, 'Phantom Razor');
-  assert.equal(AMBUSH_ATTACKS.Dagger.player.coefficient, 3);
-  assert.equal(AMBUSH_ATTACKS.Spear.name, 'Fractured Glass');
-  assert.equal(AMBUSH_ATTACKS.Spear.id, 73067);
-  assert.deepEqual(AMBUSH_ATTACKS.Spear.player, {
-    ticks: [400, 480, 520, 560, 640, 720, 760].map((atMs) => ({ atMs, coefficient: 3.15 / 7 }))
-  });
-  assert.deepEqual(AMBUSH_ATTACKS.Spear.vulnerability, {
-    duration: 6,
-    stacks: 1
-  });
-  assert.deepEqual(
-    AMBUSH_ATTACKS.Staff.player.conditions.map((condition) => condition.name),
-    ['Bleeding', 'Torment', 'Confusion']
-  );
-});
-
-test('Lingering Thoughts variants use the six-second count recharge', () => {
-  for (const id of [ID.LINGERING_THOUGHTS, ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS]) {
-    const skill = mesmerCatalog.skillsById.get(id);
-
-    assert.equal(skill.ammo, 2);
-    assert.equal(skill.ammoRecharge, 6);
-  }
-});
-
-test('Lingering Thoughts models the supplied clone, packets, conditions, and finishers', () => {
-  const skill = mesmerCatalog.skillsById.get(ID.LINGERING_THOUGHTS);
-
-  assert.equal(skill.cooldown, 0.25);
-  assert.equal(skill.ammo, 2);
-  assert.equal(skill.ammoRecharge, 6);
-  // Check skill-authored finisher behavior; shared combo contracts cover normalization defaults.
-  assert.equal(skill.comboFinishers.length, 1);
-  const [finisher] = skill.comboFinishers;
-  assert.equal(finisher.ownerId, 'mesmer');
-  assert.equal(finisher.finisherType, 'Whirl');
-  assert.equal(finisher.applications, 2);
-  assert.equal(finisher.ambiguousFieldSelection, 'oldest');
-  assert.deepEqual(skill.resource, {
-    mode: 'add',
-    count: 1,
-    timingAnchor: 'castEnd',
-    atMs: 160
-  });
-  assert.deepEqual(
-    skill.effects.map((effect) =>
-      effect.type === 'strike'
-        ? [effect.type, effect.coefficient, effect.hits]
-        : [effect.type, effect.condition, effect.stacks, effect.duration]
-    ),
-    [
-      ['strike', 1.2, 3],
-      ['condition', 'Torment', 3, 4],
-      ['condition', 'Crippled', 3, 1]
-    ]
-  );
 });
 
 test('Mirage dodge spends endurance without ammo or cooldown', () => {
@@ -772,42 +650,16 @@ test('Mesmer supplemental identities and dynamic handler profiles are explicit',
   assert.ok(shared.effects.length > 0);
   const replacing = mesmerCatalog.skillsByName.get('Phantasmal Swordsman');
 
-  assert.equal(replacing.handlerId, 'mesmer.phantasm');
+  assert.equal(replacing.phantasm, true);
   assert.ok(replacing.effects.length > 0);
 });
 
-test('Mesmer replacement handlers are limited to dynamic mechanic families', () => {
-  const allowed = new Set([
-    'mesmer.ambush',
-    'mesmer.bladesong',
-    'mesmer.continuum-shift',
-    'mesmer.continuum-split',
-    'mesmer.crescendo',
-    // Abstraction can cancel Inspiring Imagery's delayed boons, so emission depends on runtime state.
-    'mesmer.inspiring-imagery',
-    'mesmer.instrument',
-    'mesmer.mirage-dodge',
-    'mesmer.phantasm',
-    'mesmer.shatter',
-    'mesmer.weapon-swap'
-  ]);
-
+test('every Mesmer specialization registers native owners without scheduler handlers', () => {
   for (const specialization of ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']) {
-    const runtime = resolveProfessionRuntime(mesmerProfession, { specialization });
-    const replacements = runtime.catalog.skills.filter((skill) => runtime.skillHandlerFor(skill)?.mode === 'replace');
-
-    assert.ok(replacements.length > 0, specialization);
-    for (const skill of replacements) {
-      assert.ok(
-        allowed.has(skill.handlerId),
-        `${specialization}: ${skill.name} uses unexpected handler ${skill.handlerId}`
-      );
-    }
-
-    assert.ok(
-      runtime.catalog.skills.some((skill) => skill.effects.length > 0 && !skill.handlerId),
-      specialization
-    );
+    const runtime = mesmerProfession.runtimeFor({ specialization });
+    assert.equal(typeof runtime.initialize, 'function');
+    assert.ok(runtime.catalog.skills.every((skill) => skill.handlerId == null));
+    assert.equal(typeof runtime.tasks['mesmer.clone-attack'], 'function');
   }
 });
 

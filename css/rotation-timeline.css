@@ -170,47 +170,6 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-timing-details-wra
   background: var(--bg-panel-alt);
 }
 
-/* Keep the primary result readable and profession-themed while the user scrolls or switches simulator views. */
-.floating-dps {
-  position: absolute;
-  right: max(14px, env(safe-area-inset-right));
-  bottom: calc(100% + 12px);
-  z-index: 900;
-  display: flex;
-  min-width: 116px;
-  padding: 8px 12px 9px;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-  color: var(--text-dim);
-  background: color-mix(in srgb, var(--bg-panel-alt) 94%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border-light));
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
-  pointer-events: none;
-  backdrop-filter: blur(8px);
-}
-
-.floating-dps.floating-dps-viewport {
-  position: fixed;
-  bottom: max(14px, env(safe-area-inset-bottom));
-}
-
-.floating-dps-label {
-  padding-bottom: 2px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.floating-dps-value {
-  color: var(--accent);
-  font-size: 21px;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
 .rotation-timeline.drag-over-empty {
   border-color: var(--accent);
   box-shadow: inset 0 0 0 1px var(--accent);

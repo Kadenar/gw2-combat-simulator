@@ -1,175 +1,140 @@
-import { skillFlipReady, consumeSkillFlip, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
-/**
- * Owns Firebrand mantra preparation, charge, flip, and recharge state.
- * Declarative mantra fragments live in `skills/mantra-skills.ts`.
- */
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
+import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { castCompleted, gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { MANTRAS, type MantraDefinition } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type {
-  GuardianCastContext,
-  GuardianPrecastContext,
-  GuardianSchedulerContext,
-  GuardianSkill
-} from '#gw2/professions/guardian/types.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-const MANTRA_BY_ROOT_ID = new Map(MANTRAS.map((definition) => [definition.rootId, definition]));
-const MANTRA_BY_NORMAL_ID = new Map(MANTRAS.map((definition) => [definition.normalId, definition]));
-const MANTRA_BY_FINAL_ID = new Map(MANTRAS.map((definition) => [definition.finalId, definition]));
+type Runtime = Gw2Runtime<GuardianRuntimeState>;
+export const FIREBRAND_MANTRA_WAKE = 'guardian.firebrand.mantra';
+const owner = (definition: MantraDefinition, generation: number) => ({ id: `mantra:${definition.rootId}`, generation });
 
-function selectedMantras(context: GuardianSchedulerContext): readonly MantraDefinition[] {
-  const names = selectedSkillNameSet(context.config.selectedSkills);
-  // No configured list means "all mantras are equipped"; default to the full set.
-  if (names.size === 0) return MANTRAS;
-  return MANTRAS.filter((definition) => names.has(definition.rootName));
-}
-
-function mantraFlipActive(
-  context: GuardianPrecastContext | GuardianSchedulerContext,
-  definition: MantraDefinition
-): boolean {
-  const flips = professionCoreState(context).availableFlips;
-  const at = context.state.time;
-  return skillFlipReady(flips[definition.normalId], at) || skillFlipReady(flips[definition.finalId], at);
-}
-
-function armMantra(context: GuardianSchedulerContext, definition: MantraDefinition, at: number): void {
-  const normal = context.catalog.skillsById.get(definition.normalId);
-  if (!normal) return;
-  const core = professionCoreState(context);
-  // Always start fresh at the normal-charge flip, never at the final-charge
-  // flip, so ensureAmmo initialises the charge count from the skill data.
-  consumeSkillFlip(core.availableFlips, definition.finalId);
-  armSkillFlip(core.availableFlips, definition.normalId, at);
-  // Wipe any in-flight ammo/cooldown before ensureAmmo so it doesn't treat
-  // this as a "refill" and add to an existing count.
-  context.state.ammo.delete(normal.id);
-  context.cooldownController.clear(normal.id);
-  context.cooldownController.ensureAmmo(normal, at);
-  // Remove the root prepare skill's cooldown so it shows as castable again
-  // immediately after the auto-rearm, and record when it was last armed so
-  // advanceFirebrandMantras can detect future rearm triggers.
-  context.cooldownController.clear(definition.rootId);
-  firebrandState.from(context).mantraRechargeReadyAt[definition.rootId] = at;
-}
-
-function syncMantraFlip(context: GuardianSchedulerContext, definition: MantraDefinition, at: number): void {
-  const normal = context.catalog.skillsById.get(definition.normalId);
-  // Guard: if ammo was never set this mantra is in full-recharge mode;
-  // skip so we don't accidentally surface the final-charge flip early.
-  if (!normal || !context.state.ammo.has(normal.id)) return;
-  const ammo = context.cooldownController.refreshAmmo(normal, at);
-  if (!ammo) return;
-  const flips = professionCoreState(context).availableFlips;
-  // The final-charge variant is a separate skill ID; the flip registry drives
-  // which button the player sees, so exactly one of the two must be set.
-  if (ammo.charges > 1) {
-    consumeSkillFlip(flips, definition.finalId);
-    if (!flips[definition.normalId]) armSkillFlip(flips, definition.normalId, at);
-  } else if (ammo.charges === 1) {
-    consumeSkillFlip(flips, definition.normalId);
-    if (!flips[definition.finalId]) armSkillFlip(flips, definition.finalId, at);
-  }
-}
-
-function startFullRecharge(context: GuardianSchedulerContext, definition: MantraDefinition, at: number): void {
-  const root = context.catalog.skillsById.get(definition.rootId);
-  const normal = context.catalog.skillsById.get(definition.normalId);
-  if (!root || !normal) return;
-  const flips = professionCoreState(context).availableFlips;
-  // Hide both charge variants until the root prepare skill finishes recharging.
-  consumeSkillFlip(flips, definition.normalId);
+/** Preparation replaces the charge pool once; subsequent recovery uses the shared ammo controller. */
+function arm(runtime: Runtime, definition: MantraDefinition): void {
+  const normal = runtime.helpers.skillsById.get(definition.normalId)!;
+  const flips = runtime.profession.core.availableFlips;
   consumeSkillFlip(flips, definition.finalId);
-  context.state.ammo.delete(normal.id);
-  context.cooldownController.clear(normal.id);
-  const readyAt = context.cooldownController.startRecharge(root, at);
-  // Put the root on cooldown so advanceFirebrandMantras knows when to auto-arm.
-  firebrandState.from(context).mantraRechargeReadyAt[root.id] = readyAt;
+  armSkillFlip(flips, definition.normalId, runtime.time);
+  runtime.ammo.delete(normal.id);
+  runtime.cooldownController.clear(normal.id);
+  runtime.cooldownController.ensureAmmo(normal, runtime.time);
+  runtime.cooldownController.clear(definition.rootId);
+  firebrandState.from(runtime).mantraRechargeReadyAt[definition.rootId] = runtime.time;
 }
 
-/** Starts selected PvE Firebrand mantras in their automatically prepared form. */
-export function initializeFirebrandMantras(context: GuardianSchedulerContext): void {
-  for (const definition of selectedMantras(context)) {
-    armMantra(context, definition, context.state.time);
-  }
-}
-
-/** Refreshes individual charges and automatically prepares a fully recharged mantra. */
-export function advanceFirebrandMantras(context: GuardianSchedulerContext, target: number): void {
-  for (const definition of MANTRAS) {
-    const readyAt = gw2CooldownReadyAt(Number(context.state.cooldowns.get(definition.rootId) || 0));
-    // readyAt === 0 means "already armed at sim start", not "due now"; skip it.
-    // The cooldowns guard prevents double-arming if advance is called twice for
-    // the same tick.
-    if (readyAt > 0 && readyAt <= target && context.state.cooldowns.has(definition.rootId)) {
-      armMantra(context, definition, readyAt);
+/** Exactly one pending wake owns each mantra's next charge or full rearm; rate changes replace that wake. */
+function sync(runtime: Runtime, definition: MantraDefinition): void {
+  const state = firebrandState.from(runtime);
+  const previous = state.mantraWakeGenerations[definition.rootId] ?? 0;
+  runtime.cancelOwner(owner(definition, previous));
+  const generation = previous + 1;
+  state.mantraWakeGenerations[definition.rootId] = generation;
+  const normal = runtime.helpers.skillsById.get(definition.normalId)!;
+  let next = Infinity;
+  if (
+    runtime.cooldowns.has(definition.rootId) ||
+    state.mantraRechargeReadyAt[definition.rootId] > runtime.time ||
+    !runtime.ammo.has(normal.id)
+  ) {
+    const readyAt = gw2CooldownReadyAt(runtime.cooldowns.get(definition.rootId) ?? 0);
+    if (readyAt <= runtime.time) arm(runtime, definition);
+    else {
+      // Shared readiness can provision an ammo pool while probing; root recharge still owns its eligibility.
+      runtime.ammo.delete(normal.id);
+      state.mantraRechargeReadyAt[definition.rootId] = readyAt;
+      next = readyAt;
     }
+  }
 
-    syncMantraFlip(context, definition, target);
+  if (runtime.ammo.has(normal.id)) {
+    const ammo = runtime.cooldownController.refreshAmmo(normal, runtime.time)!;
+    const flips = runtime.profession.core.availableFlips;
+    const current = ammo.charges > 1 ? definition.normalId : definition.finalId;
+    consumeSkillFlip(flips, current === definition.normalId ? definition.finalId : definition.normalId);
+    if (!skillFlipReady(flips[current], runtime.time)) armSkillFlip(flips, current, runtime.time);
+    next = gw2CooldownReadyAt(ammo.nextRechargeAt ?? Infinity);
+  }
+
+  if (Number.isFinite(next) && next > runtime.time)
+    runtime.schedule(FIREBRAND_MANTRA_WAKE, next, definition.rootId, owner(definition, generation));
+}
+
+/** Only equipped PvE mantras start prepared; an omitted selection retains the catalog's all-skills sandbox. */
+export function initializeFirebrandMantras(runtime: Runtime): void {
+  const selected = selectedSkillNameSet(runtime.config.selectedSkills);
+  for (const definition of MANTRAS) {
+    if (selected.size && !selected.has(definition.rootName)) continue;
+    arm(runtime, definition);
+    sync(runtime, definition);
   }
 }
 
-/** Gates preparation, normal charges, and the distinct final-charge flip. */
-export function firebrandMantraAvailability(context: GuardianPrecastContext, skill: GuardianSkill): AvailabilityResult {
-  const root = MANTRA_BY_ROOT_ID.get(Number(skill.id));
-  if (root) {
-    return mantraFlipActive(context, root)
+/** Alacrity and explicit resets settle the real recharge maps before reprojecting visible flips and wakes. */
+export function refreshFirebrandMantras(runtime: Runtime): void {
+  runtime.cooldownController.refresh(runtime.time);
+  for (const definition of MANTRAS)
+    if (Object.hasOwn(firebrandState.from(runtime).mantraRechargeReadyAt, definition.rootId)) sync(runtime, definition);
+}
+
+export function firebrandMantraWake(runtime: Runtime, rootId: unknown): void {
+  if (rootId == null) {
+    refreshFirebrandMantras(runtime);
+    return;
+  }
+
+  const definition = MANTRAS.find((entry) => entry.rootId === rootId);
+  if (definition) {
+    runtime.cooldownController.refresh(runtime.time);
+    sync(runtime, definition);
+  }
+}
+
+/** Preparation and final variants consult the one normal-charge pool, including its shared cast lockout. */
+export function firebrandMantraAvailability(runtime: Runtime, skill: Skill) {
+  const definition = MANTRAS.find(({ rootId, normalId, finalId }) =>
+    [rootId, normalId, finalId].includes(Number(skill.id))
+  );
+  if (!definition) return CAST_READY;
+  const flips = runtime.profession.core.availableFlips;
+  if (skill.id === definition.rootId)
+    return skillFlipReady(flips[definition.normalId], runtime.time) ||
+      skillFlipReady(flips[definition.finalId], runtime.time)
       ? denyCast('guardian.mantra-prepared', `${skill.name} is already prepared.`)
       : CAST_READY;
-  }
+  const preparedAt = gw2CooldownReadyAt(runtime.cooldowns.get(definition.rootId) ?? 0);
+  if (preparedAt > runtime.time)
+    return retryCast(preparedAt, 'guardian.mantra-charge', `${skill.name} is waiting for preparation.`);
+  const chargeAt = gw2CooldownReadyAt(runtime.cooldowns.get(definition.normalId) ?? 0);
+  if (skill.id === definition.finalId && chargeAt > runtime.time)
+    return retryCast(chargeAt, 'guardian.mantra-charge', `${skill.name} is waiting for its charge cooldown.`);
+  return skillFlipReady(flips[skill.id], runtime.time)
+    ? CAST_READY
+    : denyCast('guardian.mantra-charge', `${skill.name} is not the currently prepared charge.`);
+}
 
-  const normal = MANTRA_BY_NORMAL_ID.get(Number(skill.id));
-  const final = MANTRA_BY_FINAL_ID.get(Number(skill.id));
-  const definition = normal || final;
-  if (!definition) return CAST_READY;
-  const expectedId = normal ? definition.normalId : definition.finalId;
-  const preparedAt = gw2CooldownReadyAt(Number(context.state.cooldowns.get(definition.rootId) || 0));
-  // preparedAt > start means the mantra is currently in full-recharge (not yet
-  // armed), so give the scheduler a concrete retry time rather than blocking
-  // forever with retryAt: null.
-  if (preparedAt > context.start) {
-    return retryCast(
-      preparedAt,
-      'guardian.mantra-charge',
-      `${skill.name} is unavailable until ${definition.rootName} is prepared.`
+/** The last charge retires its ammo pool and starts root recharge; no predicted rearm mutates current state. */
+export function completeFirebrandMantra(runtime: Runtime, cast: RuntimeCast): void {
+  if (!castCompleted(cast)) return;
+  const definition = MANTRAS.find(({ rootId, normalId, finalId }) =>
+    [rootId, normalId, finalId].includes(Number(cast.skill.id))
+  );
+  if (!definition) return;
+  if (cast.skill.id === definition.rootId) arm(runtime, definition);
+  else if (cast.skill.id === definition.finalId) {
+    const flips = runtime.profession.core.availableFlips;
+    consumeSkillFlip(flips, definition.normalId);
+    consumeSkillFlip(flips, definition.finalId);
+    runtime.ammo.delete(definition.normalId);
+    runtime.cooldownController.clear(definition.normalId);
+    const root = runtime.helpers.skillsById.get(definition.rootId)!;
+    firebrandState.from(runtime).mantraRechargeReadyAt[definition.rootId] = runtime.cooldownController.startRecharge(
+      root,
+      runtime.time
     );
   }
 
-  // The final flip shares the normal charge's Alacrity-scaled ammo cooldown.
-  const chargeReadyAt = gw2CooldownReadyAt(Number(context.state.cooldowns.get(definition.normalId) || 0));
-  if (final && chargeReadyAt > context.start) {
-    return retryCast(chargeReadyAt, 'guardian.mantra-charge', `${skill.name} is waiting for its charge cooldown.`);
-  }
-
-  // The flip being absent means this specific charge variant (normal vs. final)
-  // is not the one currently available; no retry time because the scheduler
-  // already controls which flip is live.
-  if (skillFlipReady(professionCoreState(context).availableFlips[expectedId], context.start)) return CAST_READY;
-  return denyCast('guardian.mantra-charge', `${skill.name} is unavailable until ${definition.rootName} is prepared.`);
-}
-
-/** Commits mantra preparation, charge flipping, and final-charge recharge. */
-export function completeFirebrandMantra(context: GuardianCastContext, skill: GuardianSkill): void {
-  // Interrupted casts must not consume a charge or start a recharge; early-out
-  // when the cast was cut short before its natural end.
-  if (castWasInterrupted(context)) return;
-  const root = MANTRA_BY_ROOT_ID.get(Number(skill.id));
-  if (root) {
-    armMantra(context, root, context.effectiveEnd);
-    return;
-  }
-
-  const normal = MANTRA_BY_NORMAL_ID.get(Number(skill.id));
-  if (normal) {
-    syncMantraFlip(context, normal, context.effectiveEnd);
-    return;
-  }
-
-  const final = MANTRA_BY_FINAL_ID.get(Number(skill.id));
-  if (final) startFullRecharge(context, final, context.effectiveEnd);
+  sync(runtime, definition);
 }

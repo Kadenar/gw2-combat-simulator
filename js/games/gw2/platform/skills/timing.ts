@@ -8,7 +8,7 @@ export const GW2_QUICKNESS_ACTION_RATE = 1.5;
 export const GW2_ACTION_TICK_MS = 40;
 
 /** The cast-end pair every cast lifecycle context carries, regardless of profession. */
-export interface Gw2CastEndTimes {
+interface Gw2CastEndTimes {
   readonly fullEnd: number;
   readonly effectiveEnd: number;
 }
@@ -59,8 +59,8 @@ export function gw2EffectExpiresAt(at: number, duration: number): number {
  * rounded to the next action tick.
  */
 export function summonQuicknessCastTimeMs(skill: Skill | null, fallbackBaseMs?: number): number {
-  const baseMs = Math.max(0, Number(fallbackBaseMs ?? skill?.castTimeMs ?? 0));
-  const explicitMs = Math.max(0, Number(skill?.quicknessCastTimeMs ?? 0));
+  const baseMs = Math.max(0, fallbackBaseMs ?? skill?.castTimeMs ?? 0);
+  const explicitMs = Math.max(0, skill?.quicknessCastTimeMs ?? 0);
   if (explicitMs > 0) return explicitMs;
   return quantizeGw2ActionDurationUp(baseMs / GW2_QUICKNESS_ACTION_RATE);
 }
@@ -69,14 +69,14 @@ export function summonQuicknessCastTimeMs(skill: Skill | null, fallbackBaseMs?: 
 export function referenceCastTimeMs(skill: Skill | null): number {
   return skill?.independentCast || skill?.quicknessCastTimeMs != null
     ? summonQuicknessCastTimeMs(skill)
-    : Math.max(0, Number(skill?.castTimeMs ?? 0));
+    : Math.max(0, skill?.castTimeMs ?? 0);
 }
 
 /** Projects an authored effect timeline onto a skill variant's actual cast length. */
 export function castRelativeEffectTimingScale(skill: Skill, runtimeCastMs: number): number {
   const referenceMs = referenceCastTimeMs(skill);
   if (!(referenceMs > 0)) return 1;
-  const runtimeMs = Math.max(0, Number(runtimeCastMs));
+  const runtimeMs = Math.max(0, runtimeCastMs);
   // Keep the measured runtime ratio even at nominal 1:1 speed. Its tiny
   // clock-rounding residue preserves event ordering at exact packet boundaries.
   return runtimeMs / referenceMs;
@@ -88,14 +88,14 @@ export function castRelativeEffectTimingScale(skill: Skill, runtimeCastMs: numbe
  */
 export function projectCastRelativeEffectTimingMs(skill: Skill, runtimeCastMs: number, authoredMs: number): number {
   if (!skill.independentCast && skill.quicknessCastTimeMs == null) {
-    return Number(authoredMs) * castRelativeEffectTimingScale(skill, runtimeCastMs);
+    return authoredMs * castRelativeEffectTimingScale(skill, runtimeCastMs);
   }
 
-  const baseMs = Math.max(0, Number(skill.castTimeMs || 0));
+  const baseMs = Math.max(0, skill.castTimeMs || 0);
   const referenceMs = referenceCastTimeMs(skill);
-  if (!(baseMs > 0) || !(referenceMs > 0)) return Number(authoredMs);
-  const baseTimelineMs = (Number(authoredMs) * baseMs) / referenceMs;
-  return baseTimelineMs * (Math.max(0, Number(runtimeCastMs)) / baseMs);
+  if (!(baseMs > 0) || !(referenceMs > 0)) return authoredMs;
+  const baseTimelineMs = (authoredMs * baseMs) / referenceMs;
+  return baseTimelineMs * (Math.max(0, runtimeCastMs) / baseMs);
 }
 
 /** Final effect durations use half-even whole milliseconds; expiration stays relative to the application time. */

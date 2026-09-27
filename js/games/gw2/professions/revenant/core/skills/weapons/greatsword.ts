@@ -104,8 +104,6 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     // Keep the 40 ms dash and the 600/400 ms follow-up on 40 ms action frames.
 
     castTimeMs: 440,
-    dashTimeMs: 40,
-    hitDelayMs: 400,
     cooldown: 8,
     rechargeAnchor: 'castStart',
     // Recharge begins when the dash completes, while the follow-up strike is still casting.

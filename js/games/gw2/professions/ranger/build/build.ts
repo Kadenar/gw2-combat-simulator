@@ -114,7 +114,6 @@ const rangerBuildCodec = createProfessionBuildCodec<RangerCanonicalBuild>({
       selectedPet: _legacySelectedPet,
       soulbeastArchetype: _legacySoulbeastArchetype,
       playerHealthPercent: _legacyPlayerHealthPercent,
-      targetDistance: _legacyTargetDistance,
       astralForceHealingEventsPerSecond: _fakeAstralForceHealingRate,
       ...supportedAssumptions
     } = build.assumptions;

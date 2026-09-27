@@ -26,15 +26,6 @@ const COMMON_BOOLEAN_ASSUMPTION_DEFAULTS: Readonly<Record<string, boolean>> = Ob
  */
 export const STANDARD_POSITION_ASSUMPTION_CONTROLS: ReadonlyArray<ProfessionAssumptionControl> = Object.freeze([
   Object.freeze({
-    key: 'targetDistance',
-    label: 'Target distance',
-    type: 'number',
-    defaultValue: 130,
-    minimum: 0,
-    maximum: 2000,
-    step: 10
-  }),
-  Object.freeze({
     key: 'targetDefiant',
     label: 'Defiant target',
     type: 'boolean',
@@ -195,6 +186,8 @@ export function normalizeProfessionAssumptions(
   // Drop legacy health inputs so saved builds cannot imply support for low-health scenarios.
   delete result.playerHealthPercent;
   delete result.playerHealthFraction;
+  // Targets are always nearby; discard obsolete range settings instead of preserving a nonfunctional control.
+  delete result.targetDistance;
   for (const control of controls) {
     const value = assumptions[control.key] ?? control.defaultValue;
     if (control.type === 'boolean') {

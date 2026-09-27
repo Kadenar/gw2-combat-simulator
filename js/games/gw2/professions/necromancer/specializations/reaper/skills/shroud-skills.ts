@@ -1,6 +1,6 @@
 /**
  * Owns Reaper Shroud entry, exit, and weapon skill fragments.
- * Persistent shroud state remains in `mechanics/reaper-shroud.ts`.
+ * Shroud attribute modifiers live in `modifiers.ts`; shroud state and reactions live in `hooks.ts` and `mechanics/shroud-effects.ts`.
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -45,15 +45,16 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     cooldown: 0
   },
   [ID.INFUSING_TERROR]: {
+    // A completed cast arms the authored follow-up duration through the common flip owner.
+    sideEffects: [{ on: 'castComplete', do: { type: 'flipArm', skillId: ID.TERRIFY } }],
     castTimeMs: 0,
+    flipDuration: 6,
     effects: [],
     type: 'Profession',
     slot: 'Weapon_3',
     shroud: 'reaper',
     shroudSlot: 3,
-    specialization: 'Reaper',
-    // Custom: Arms or consumes the skill's timed follow-up flip; see `core/execution/index.ts`.
-    handlerId: 'necromancer.flip'
+    specialization: 'Reaper'
   },
   [ID.LIFE_REAP]: {
     interruptCommitMs: 360,
@@ -62,6 +63,16 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         ticks: [{ atMs: 280, coefficient: 1.8 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -157,9 +168,8 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     shroudEntry: 'reaper',
     shroudProfileId: PROFILE.resources,
     minimumShroudLifeForcePercent: 10,
-    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'necromancer.shroud'
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
+    inputCategory: 'bar-swap'
   },
   [ID.DEATHS_CHARGE]: {
     castTimeMs: 1200,
@@ -198,8 +208,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     cooldown: 0,
     specialization: 'Reaper',
     shroudExit: 'reaper',
-    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'necromancer.shroud'
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
+    inputCategory: 'bar-swap'
   }
 });

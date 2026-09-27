@@ -6,8 +6,8 @@ import { createBuildTab } from '#gw2/app/build/state/workspace.js';
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/modifier-contribution-runner.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/baseline-simulation-runner.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/random-distribution-runner.js';
-import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison/relic-comparison-runner.js';
-import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
+import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/relic-comparison-runner.js';
+import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 
 const STRIKE_ROTATION = [{ type: 'cast', skillId: 'Strike' }];
 
@@ -58,7 +58,6 @@ test('rotation-only changes paint the builder once with their matching result', 
     modifierContributionRunner: { schedule() {} },
     relicComparisonRunner: { schedule() {} },
     adapter: {
-      capabilities: { modifierContributions: true },
       renderRotationBuilder(renderedApp) {
         renderedResults.push(renderedApp.results.id);
       }
@@ -390,7 +389,7 @@ test('comparison reference commits only while comparison is still active', (t) =
     randomDistributionRunner: { schedule() {} },
     modifierContributionRunner: { schedule() {} },
     relicComparisonRunner: { schedule() {} },
-    adapter: { capabilities: { modifierContributions: true }, renderRotationBuilder() {} }
+    adapter: { renderRotationBuilder() {} }
   });
 
   app.publishBaselineSimulation(

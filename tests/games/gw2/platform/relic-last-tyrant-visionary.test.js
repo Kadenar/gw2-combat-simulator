@@ -170,7 +170,7 @@ test('profiled Burning procs preserve fractional totals and source attribution w
     const events = [];
     const context = {
       profession: { id: 'elementalist' },
-      catalog: {
+      helpers: {
         skillsById: new Map(),
         skillsByName: new Map(),
         balanceProfilesById: new Map([
@@ -182,7 +182,8 @@ test('profiled Burning procs preserve fractional totals and source attribution w
           ]
         ])
       },
-      emit: (event) => events.push(event)
+      emit: (event) => events.push(event),
+      emitProcedural: (event) => events.push(event)
     };
     emitProfiledCondition(context, 3, 'fixture', 'Fire', 'Fixture Proc', 123, 'Fixture Skill');
     assert.deepEqual(

@@ -12,6 +12,7 @@ export { warriorCatalog, warriorNativeModules } from '#gw2/professions/warrior/c
 export const warriorProfession = defineNativeProfession({
   id: 'warrior',
   name: 'Warrior',
+  requireEquippedSlotSkills: true,
   build: {
     createBuildDefaults: createWarriorBuildDefaults,
     migrateBuild: migrateWarriorBuild,

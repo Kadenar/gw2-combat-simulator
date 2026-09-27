@@ -43,7 +43,7 @@ function mirageEffectPresentations(context: MesmerUiContext): ProfessionEffectPr
 function miragePaletteSkillAvailability(context: MesmerUiContext, skill: Skill): PaletteSkillAvailability {
   if (skill.id !== ID.PICK_UP_MIRAGE_MIRROR) return { available: true, message: '' };
   const state = context.professionState || context.state?.profession || {};
-  const available = Number(state.availableMirrors || 0) > 0;
+  const available = (state.availableMirrors || 0) > 0;
   return {
     available,
     message: available ? '' : 'No Mirage Mirror is active on the ground.'
@@ -65,7 +65,7 @@ export const mirageUi: MesmerUiSlice = Object.freeze({
       singular: 'endurance',
       plural: 'endurance',
       maximum: context.resources!.endurance!.maximum,
-      value: Number(mesmerUiState(context).endurance ?? 100),
+      value: mesmerUiState(context).endurance ?? 100,
       canStart: false,
       step: 1,
       displayMode: 'bar',

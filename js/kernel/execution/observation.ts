@@ -11,9 +11,7 @@ export type ObservationPolicy =
   | { readonly kind: 'absolute'; readonly endTimeMs: number };
 
 /** Validates and freezes the caller-owned resolver observation policy. */
-export function normalizeObservationPolicy(
-  policy: ObservationPolicy | null | undefined = undefined
-): ObservationPolicy {
+export function normalizeObservationPolicy(policy?: ObservationPolicy | null): ObservationPolicy {
   if (policy == null) return Object.freeze({ kind: 'rotation' });
   if (typeof policy !== 'object' || Array.isArray(policy)) {
     throw new TypeError('Observation policy must be an object.');

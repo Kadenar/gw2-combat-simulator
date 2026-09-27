@@ -1,12 +1,24 @@
+import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/state.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 /** Owns Conduit Release Potential skill variants. */
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 
+/** Capture equipped-legend eligibility at acceptance; full affinity unlocks every Dervish component. */
+const releaseLegend = (legend: string) => (runtime: RevenantRuntime) =>
+  runtime.profession.core.selectedLegendIds.includes(legend) ||
+  effectiveConduitAffinity(runtime) >=
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.affinity), 'minimumStacks');
+
 export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RELEASE_POTENTIAL_MONK]: {
-    // Custom: Selects and materializes the affinity-specific release profile; see `execution/release-potential.ts`.
-    handlerId: 'revenant.release-potential',
+    // The shared scheduler materializes these packets; conditional legend components declare their own gates.
     castTimeMs: 360,
     cooldown: 10,
     energyCost: 0,
@@ -16,8 +28,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.RELEASE_POTENTIAL_MESMER]: {
-    // Custom: Selects and materializes the affinity-specific release profile; see `execution/release-potential.ts`.
-    handlerId: 'revenant.release-potential',
+    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/hooks.ts`.
     castTimeMs: 440,
     cooldown: 10,
     energyCost: 0,
@@ -55,8 +66,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.RELEASE_POTENTIAL_DERVISH]: {
-    // Custom: Selects and materializes the affinity-specific release profile; see `execution/release-potential.ts`.
-    handlerId: 'revenant.release-potential',
+    // The shared scheduler materializes these packets; conditional legend components declare their own gates.
     castTimeMs: 680,
     // Dervish commits its impact before the remaining animation can be cancelled.
     interruptCommitMs: 560,
@@ -69,6 +79,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         coefficient: 1.98,
         hits: 1,
         name: 'Release Potential: Dervish',
+        weaponStrengthProfileId: 'weapon.sword',
         actorType: 'player'
       },
       {
@@ -77,27 +88,29 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         stacks: 3,
         duration: 6,
         actorType: 'player',
-        metadata: { legendId: LEGEND.DEMON }
+        metadata: { legendId: LEGEND.DEMON },
+        when: releaseLegend(LEGEND.DEMON)
       },
       {
         type: 'boon',
         boon: 'might',
         stacks: 10,
         duration: 8,
-        metadata: { legendId: LEGEND.CENTAUR }
+        metadata: { legendId: LEGEND.CENTAUR },
+        when: releaseLegend(LEGEND.CENTAUR)
       },
       {
         type: 'boon',
         boon: 'fury',
         stacks: 1,
         duration: 8,
-        metadata: { legendId: LEGEND.CENTAUR }
+        metadata: { legendId: LEGEND.CENTAUR },
+        when: releaseLegend(LEGEND.CENTAUR)
       }
     ])
   },
   [ID.RELEASE_POTENTIAL_ASSASSIN]: {
-    // Custom: Selects and materializes the affinity-specific release profile; see `execution/release-potential.ts`.
-    handlerId: 'revenant.release-potential',
+    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/hooks.ts`.
     // Assassin releases the cast lane at 720 ms; the final strike follows at 800 ms.
     castTimeMs: 720,
     cooldown: 10,
@@ -136,8 +149,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.RELEASE_POTENTIAL_WARRIOR]: {
-    // Custom: Selects and materializes the affinity-specific release profile; see `execution/release-potential.ts`.
-    handlerId: 'revenant.release-potential',
+    // The shared scheduler materializes these packets; conditional legend components declare their own gates.
     castTimeMs: 520,
     cooldown: 10,
     energyCost: 0,

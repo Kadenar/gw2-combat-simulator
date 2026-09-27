@@ -19,7 +19,6 @@ export interface Gw2ApiTrait extends CatalogEntity {
 export interface Gw2ApiSpecialization extends CatalogEntity {
   readonly elite: boolean;
   readonly icon: string;
-  readonly background: string;
   readonly minorTraits: readonly Gw2ApiTrait[];
   readonly majorTraits: readonly (readonly Gw2ApiTrait[])[];
 }

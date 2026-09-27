@@ -12,19 +12,10 @@ import {
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import type {
   ProfessionEffectPresentation,
-  ProfessionEventLogDescriptor,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { GuardianResolverEvent, GuardianUiContext, GuardianUiSlice } from '#gw2/professions/guardian/types.js';
+import type { GuardianUiContext, GuardianUiSlice } from '#gw2/professions/guardian/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
-
-function willbenderEventLogRow(
-  _context: GuardianUiContext,
-  event: GuardianResolverEvent
-): ProfessionEventLogDescriptor | null | undefined {
-  if (event.type.startsWith('guardian.willbender-')) return null; // null = explicitly suppress; internal scheduler events should not appear in the log
-  return undefined; // undefined = defer to the default renderer for all other event types
-}
 
 const VIRTUE_NAMES = Object.freeze(['Rushing Justice', 'Flowing Resolve', 'Crashing Courage']);
 
@@ -34,9 +25,9 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
   const at = guardianSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
   for (const [id, label, expiresAt] of [
-    ['willbender-rushing-justice', 'Rushing Justice', Number(state.justiceUntil || 0)],
-    ['willbender-flowing-resolve', 'Flowing Resolve', Number(state.resolveUntil || 0)],
-    ['willbender-crashing-courage', 'Crashing Courage', Number(state.courageUntil || 0)]
+    ['willbender-rushing-justice', 'Rushing Justice', state.justiceUntil || 0],
+    ['willbender-flowing-resolve', 'Flowing Resolve', state.resolveUntil || 0],
+    ['willbender-crashing-courage', 'Crashing Courage', state.courageUntil || 0]
   ] as const) {
     const remaining = expiresAt - at;
     // The final instant still accepts virtue hits, but an unarmed zero deadline is never active.
@@ -44,12 +35,12 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
     items.push({ id, label, value: formatSecondsRemaining(remaining), title: `${label} active window` });
   }
 
-  const lethalRemaining = Number(state.lethalTempoUntil || 0) - at;
+  const lethalRemaining = (state.lethalTempoUntil || 0) - at;
   const lethalTempoProfile = requireBalanceProfileFromContext(context, PROFILE.lethalTempo);
   const maximum = balanceProfileNumber(lethalTempoProfile, 'maximumStacks');
   const lethalStacks = boundedInteger(state.lethalTempoStacks || 0, 0, 0, maximum);
   // Lethal Tempo remains available for damage and refreshes on its final tick.
-  if (Number(state.lethalTempoUntil || 0) > 0 && lethalRemaining >= 0 && lethalStacks > 0) {
+  if ((state.lethalTempoUntil || 0) > 0 && lethalRemaining >= 0 && lethalStacks > 0) {
     items.push({
       id: 'willbender-lethal-tempo',
       label: 'Lethal Tempo',
@@ -90,7 +81,6 @@ function willbenderEffectPresentations(context: GuardianUiContext): ProfessionEf
 export function bindWillbenderUi(catalog: Readonly<CanonicalCatalog>): GuardianUiSlice {
   return Object.freeze({
     effectPresentations: willbenderEffectPresentations,
-    eventLogRow: willbenderEventLogRow,
     rotationStateSnapshot: willbenderStateSnapshot,
     paletteGroups: (context: GuardianUiContext) => [
       {

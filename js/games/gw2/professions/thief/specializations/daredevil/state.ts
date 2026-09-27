@@ -12,8 +12,6 @@ export interface DaredevilState {
   boundingDamageUntil: number;
   lotusConditionDamageUntil: number;
   weakeningStrikeReady: boolean;
-  /** Distinguish fresh dodge grants from snapshots of an already consumed proc. */
-  weakeningStrikeGeneration: number;
   weakeningStrikeExpiresAt: number;
 }
 
@@ -38,18 +36,16 @@ export function createDaredevilState(config: ThiefConfig = {}): DaredevilState {
     boundingDamageUntil: 0,
     lotusConditionDamageUntil: 0,
     weakeningStrikeReady: false,
-    weakeningStrikeGeneration: 0,
     weakeningStrikeExpiresAt: 0
   };
 }
 
-// Public fallbacks omit the private grant generation; live state and snapshots retain it for reconciliation.
+// Only active Daredevil state contributes dodge windows to public projections.
 export const DAREDEVIL_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   selectedDodge: 'Dodge',
   boundingDamageUntil: 0,
   lotusConditionDamageUntil: 0,
   weakeningStrikeReady: false,
-
   weakeningStrikeExpiresAt: 0
 } satisfies Partial<DaredevilState>);
 

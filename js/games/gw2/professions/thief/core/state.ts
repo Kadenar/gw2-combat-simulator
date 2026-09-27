@@ -1,3 +1,5 @@
+import { THIEF_CORE_RESOURCE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import { balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
@@ -8,7 +10,7 @@ import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
-export interface ThievesGuildState {
+interface ThievesGuildState {
   /** Combat activation starts the parallel streams once per summon. */
   started: boolean;
   readonly ownerId: string;
@@ -29,10 +31,8 @@ export interface ThiefCoreState {
   endurance: number;
 
   enduranceUpdatedAt: number;
-  leadAttacksStacks: number;
   leadAttackExpirations: number[];
   fluidStrikesUntil: number;
-  quickPocketsReadyAt: number;
   spearChainStage: number;
   spearPreviousSkillId: SkillId | null;
   spearLastWasFinisher: boolean;
@@ -40,14 +40,19 @@ export interface ThiefCoreState {
   spinningAxeExpirations: number[];
   venomChargeBatches: ChargePool['grants'];
   venomAllyLastProcAt: Record<string, number>;
-  venomGeneration: number;
   activeThievesGuild: ThievesGuildState | null;
   assassinsSignetActiveUntil: number;
   assassinsSignetPassiveDisabledUntil: number;
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   traitProcProgress: Record<string, number>;
-  traitProcReadyAt: Record<string, number>;
+
+  /** The pending Infiltrator's Signet pulse instant; earlier queued pulses retire themselves. */
+  infiltratorsSignetPulseAt: number | null;
+  /** The instant a landed strike last broke stealth, claimable by one same-instant stealth attack. */
+  strikeBrokeStealthAt: number | null;
+  /** The pending scepter continuation expiry; a newer chain step replaces it. */
+  scepterChainExpiresAt: number | null;
 }
 
 export function selectedThiefTraits(config: ThiefConfig = {}): Set<string | number> {
@@ -59,12 +64,23 @@ export function selectedThiefTraits(config: ThiefConfig = {}): Set<string | numb
 // preparation, weapon-chain, stolen-skill, and trait bookkeeping.
 export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
   const traits = selectedThiefTraits(config);
-  const maximumInitiative = hasTrait(traits, TRAIT.PREPAREDNESS) ? 15 : 12;
+  // Current-patch previews use the same authored capacity as the live resource policy.
+  const maximumInitiative = balanceProfileNumber(
+    THIEF_CORE_RESOURCE_PROFILE,
+    hasTrait(traits, TRAIT.PREPAREDNESS) ? 'minimumStacks' : 'maximumStacks'
+  );
   return {
     initiative: {
-      ...createResourceClock(boundedNumber(config.initialInitiative, 12, 0, maximumInitiative)),
+      ...createResourceClock(
+        boundedNumber(
+          config.initialInitiative,
+          balanceProfileNumber(THIEF_CORE_RESOURCE_PROFILE, 'maximumStacks'),
+          0,
+          maximumInitiative
+        )
+      ),
       maximum: maximumInitiative,
-      rate: 1
+      rate: balanceProfileNumber(THIEF_CORE_RESOURCE_PROFILE, 'resourceGain')
     },
     stealthStartedAt: 0,
     stealthUntil: 0,
@@ -77,10 +93,8 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     endurance: 100,
 
     enduranceUpdatedAt: 0,
-    leadAttacksStacks: 0,
     leadAttackExpirations: [],
     fluidStrikesUntil: 0,
-    quickPocketsReadyAt: 0,
     spearChainStage: 0,
     spearPreviousSkillId: null,
     spearLastWasFinisher: false,
@@ -88,14 +102,16 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     spinningAxeExpirations: [],
     venomChargeBatches: {},
     venomAllyLastProcAt: {},
-    venomGeneration: 0,
     activeThievesGuild: null,
     assassinsSignetActiveUntil: 0,
     assassinsSignetPassiveDisabledUntil: 0,
     availableFlips: {},
     autoattackChains: {},
     traitProcProgress: {},
-    traitProcReadyAt: {}
+
+    infiltratorsSignetPulseAt: null,
+    strikeBrokeStealthAt: null,
+    scepterChainExpiresAt: null
   };
 }
 
@@ -111,9 +127,8 @@ const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[] = Obje
   'kneeling',
   'endurance',
 
-  'leadAttacksStacks',
+  'leadAttackExpirations',
   'fluidStrikesUntil',
-  'quickPocketsReadyAt',
   'spearChainStage',
   'spearPreviousSkillId',
   'spearLastWasFinisher',

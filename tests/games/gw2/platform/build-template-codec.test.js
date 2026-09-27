@@ -44,7 +44,6 @@ test('GW2 build templates resolve Elementalist palette IDs to stable catalog ski
   const glyph = elementalistCatalog.skillsByName.get('Glyph of Storms (Fire)');
 
   assert.equal(glyph.id, 5736);
-  assert.equal(glyph.apiSkillId ?? glyph.id, 5736);
   assert.equal(glyph.loadoutSkillId, 5734);
 });
 

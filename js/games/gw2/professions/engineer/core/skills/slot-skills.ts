@@ -1,6 +1,7 @@
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
 // Cleansing Burst isn't linked to Healing Turret by the GW2 API's own flip-chain data, so the heal
 // slot needs a shared UI-only tile to keep showing whichever of the three is currently armed.
@@ -10,8 +11,8 @@ const HEALING_TURRET_PALETTE_TILE = 'engineer-healing-turret';
 export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.HEALING_TURRET]: {
     // Custom: Arms Detonate Healing Turret, fires the automatic Cleansing Burst pulse, and starts the
-    // 10s overcharge window; see `core/mechanics/healing-turret.ts`.
-    handlerId: 'engineer.arm-flip',
+    // 10s overcharge window; see `core/mechanics/weapons.ts`.
+
     paletteFlipSkillId: ID.DETONATE_HEALING_TURRET,
     paletteTileId: HEALING_TURRET_PALETTE_TILE,
     paletteTileOrder: 1,
@@ -45,8 +46,8 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.DETONATE_HEALING_TURRET]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/execution/index.ts`.
-    handlerId: 'engineer.consume-flip',
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/hooks.ts`.
+
     flipParentName: 'Healing Turret',
     paletteTileId: HEALING_TURRET_PALETTE_TILE,
     paletteTileOrder: 2,
@@ -71,8 +72,8 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.CLEANSING_BURST]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/execution/index.ts`.
-    handlerId: 'engineer.consume-flip',
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/hooks.ts`.
+
     flipParentName: 'Healing Turret',
     paletteTileId: HEALING_TURRET_PALETTE_TILE,
     paletteTileOrder: 3,
@@ -96,16 +97,38 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.THROW_MINE]: {
-    // Custom: Arms this skill's follow-up palette flip; see `core/execution/index.ts`.
-    handlerId: 'engineer.arm-flip',
+    // Custom: Arms this skill's follow-up palette flip; see `core/hooks.ts`.
+
     paletteFlipSkillId: ID.DETONATE,
     castTimeMs: 360,
     cooldown: 12,
     rechargeAnchor: 'castStart'
   },
   [ID.DETONATE]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/execution/index.ts`.
-    handlerId: 'engineer.consume-flip',
+    // Gadgeteer adds one independent mine blast without duplicating the control packet.
+    effectVariants: [
+      {
+        profileId: TRAIT.GADGETEER,
+        when: (runtime) => hasTrait(runtime, TRAIT.GADGETEER),
+        transform: (_runtime, cast) =>
+          (cast.skill.effects ?? []).flatMap<SkillEffect>((effect) =>
+            effect.type === 'strike'
+              ? [
+                  effect,
+                  {
+                    ...effect,
+                    comboFinishers: effect.comboFinishers?.map((finisher) => ({
+                      ...finisher,
+                      attemptGroup: 'gadgeteer-mine'
+                    }))
+                  }
+                ]
+              : [effect]
+          )
+      }
+    ],
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/hooks.ts`.
+
     flipParentName: 'Throw Mine',
     castTimeMs: 0,
     cooldown: 0,

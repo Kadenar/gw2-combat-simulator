@@ -66,7 +66,7 @@ export interface SimulationViewModel {
   readonly summary: SimulationViewSection;
   readonly workspace: SimulationViewSection | null;
   readonly analysis: SimulationViewSection | null;
-  readonly floatingDps?: string | null;
+  readonly headerDps?: string | null;
   readonly analysisEmptyHtml?: string;
   readonly onAnalysisEmpty?: (container: HTMLElement) => void;
   readonly afterAnalysisRender?: (container: HTMLElement) => void;

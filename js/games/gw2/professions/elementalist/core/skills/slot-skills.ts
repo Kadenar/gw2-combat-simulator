@@ -6,7 +6,7 @@
  * Glyph of Elementals summons.
  *
  * These are pure data fragments — no behavior. Stateful behavior is owned by the corresponding
- * mechanic subsystem, while `mechanicTriggers` names handlers in `core/execution/index.ts`.
+ * mechanic subsystem, while `tasks` names handlers in `core/execution/index.ts`.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
@@ -449,9 +449,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     ])
   },
   // --- Signets ------------------------------------------------------------------
-  // Only the active is authored here. Signet of Fire is the one signet whose passive is
-  // simulated (a precision bonus), so its cast fires a mechanic trigger to switch that passive
-  // off for the recharge; Signet of Earth's passive has no damage-model effect.
+  // Active effects are authored here; the attribute modifier reads recharge for Signet of Fire's passive precision.
   [ID.SIGNET_OF_FIRE]: {
     name: 'Signet of Fire',
     type: 'Utility',
@@ -460,13 +458,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     castTimeMs: 520,
     cooldown: 12,
     skillFamily: 'Signet',
-    // Activating the signet disables its passive until recharge unless Written in Stone preserves it.
-    mechanicTriggers: [
-      {
-        type: 'elementalist.core.disable-signet-of-fire-passive',
-        timingAnchor: 'castEnd'
-      }
-    ],
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5 },
       // Apply each Burning stack separately so same-impact relic checks observe every application.

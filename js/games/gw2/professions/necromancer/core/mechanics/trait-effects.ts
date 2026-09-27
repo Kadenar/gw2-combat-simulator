@@ -17,7 +17,7 @@ interface TraitCoefficientDefinition {
   readonly name: string;
   readonly traitId: SkillId;
   readonly coefficient: number;
-  readonly noCrit?: boolean;
+  readonly canCrit?: boolean;
   readonly damageKind?: string;
   readonly icon?: string;
 }
@@ -53,14 +53,14 @@ export function applyTraitCondition(
   // chained condition reactions preserve their causal timestamp ordering.
   context.applyCondition(application);
 
-  context.recordProc?.('trait', name, event.at, event.skillName);
+  context.recordProc('trait', name, event.at, event.skillName);
 }
 
 /** Queues a coefficient-based trait strike and records matching proc attribution. */
 export function queueTraitCoefficientDamage(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  { name, traitId, coefficient, noCrit = true, damageKind, icon }: TraitCoefficientDefinition
+  { name, traitId, coefficient, canCrit = false, damageKind, icon }: TraitCoefficientDefinition
 ): void {
   context.queue.enqueue(
     buildResolverStrike({
@@ -72,7 +72,7 @@ export function queueTraitCoefficientDamage(
       sourceId: traitId,
       actorType: 'effect',
       skillWeapon: 'Unequipped',
-      noCrit,
+      canCrit,
       ...(damageKind ? { damageKind } : {}),
       ...(icon ? { icon } : {}),
       ...(event.summonOwner ? { summonOwner: event.summonOwner } : {}),
@@ -81,7 +81,7 @@ export function queueTraitCoefficientDamage(
   );
   // Proc markers need the derived effect's artwork because their display name
   // does not necessarily match either the granting trait or triggering skill.
-  context.recordProc?.('trait', name, event.at, event.skillName, '', icon);
+  context.recordProc('trait', name, event.at, event.skillName, '', icon);
 }
 
 /** Applies a trait-owned Vulnerability packet and records matching proc attribution. */
@@ -104,15 +104,12 @@ export function applyTraitVulnerability(
       triggeredBy: event.skillName
     })
   );
-  context.recordProc?.('trait', name, event.at, event.skillName);
+  context.recordProc('trait', name, event.at, event.skillName);
 }
 
 /** Reads permanent and timed Chilled target state at the requested timestamp. */
 export function targetIsChilled(context: NecromancerResolverContext, at: number): boolean {
-  if (
-    context.config.target?.conditions?.Chilled === true ||
-    Number(context.config.target?.conditions?.Chilled || 0) > 0
-  )
+  if (context.config.target?.conditions?.Chilled === true || (context.config.target?.conditions?.Chilled || 0) > 0)
     return true;
-  return Number(professionCoreState(context).targetChilledUntil || 0) > at;
+  return (professionCoreState(context).targetChilledUntil || 0) > at;
 }

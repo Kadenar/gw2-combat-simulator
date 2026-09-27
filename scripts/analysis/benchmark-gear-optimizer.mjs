@@ -3,16 +3,16 @@ import { readFile } from 'node:fs/promises';
 import { cpus, totalmem } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { performance, PerformanceObserver } from 'node:perf_hooks';
-import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
+import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { createGroupedOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
+import { createGroupedOptimizer } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-space.js';
 import {
   captureGearOptimizerRequest,
   createOptimizerSpace,
   createOptimizerEvaluator,
   ordinaryEquipmentAt,
   optimizerScore
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer.js';
 
 const professions = process.argv.slice(2);
 const gc = [];
@@ -39,15 +39,15 @@ for (const profession of professions.length
   const timings = [];
   const scoreTimings = [];
   let result;
-  let schedulingPasses = 0;
+  let executions = 0;
   for (let run = -3; run < 10; run++) {
     const start = performance.now();
     const equipment = ordinaryEquipmentAt(space, 0n);
     const generated = performance.now();
     const config = evaluator.prepare(equipment);
     const prepared = performance.now();
-    const phases = { scheduling: 0, resolution: 0, reporting: 0, refinement: 0 };
-    schedulingPasses = 0;
+    const phases = { preparation: 0, execution: 0, reporting: 0 };
+    executions = 0;
     result = simulateGw2({
       profession: adapter.profession,
       rotation: build.rotation,
@@ -55,7 +55,7 @@ for (const profession of professions.length
       observationPolicy: request.observationPolicy,
       onPhase(phase, duration) {
         phases[phase] += duration;
-        if (phase === 'scheduling') schedulingPasses++;
+        if (phase === 'execution') executions++;
       }
     });
     const simulated = performance.now();
@@ -65,7 +65,7 @@ for (const profession of professions.length
       timings.push({
         ...phases,
         generation: generated - start,
-        preparation: prepared - generated,
+        buildPreparation: prepared - generated,
         simulation: simulated - prepared,
         serialization: serialized - simulated,
         total: serialized - start
@@ -119,10 +119,9 @@ for (const profession of professions.length
     medianMs: Object.fromEntries(
       [
         'generation',
+        'buildPreparation',
         'preparation',
-        'scheduling',
-        'resolution',
-        'refinement',
+        'execution',
         'reporting',
         'simulation',
         'serialization',
@@ -143,7 +142,7 @@ for (const profession of professions.length
     rotationEndTime: result.rotationEndTime,
     events: result.resolvedEvents.length,
     ticks: result.resolvedEvents.reduce((sum, event) => sum + (event.damageTicks?.length || 0), 0),
-    schedulingPasses,
+    executions,
     warnings: result.warnings
   });
 }

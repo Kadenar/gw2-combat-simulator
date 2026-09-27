@@ -70,12 +70,8 @@ export interface RotationHotkeyImportResult {
   readonly skippedActions: readonly RotationHotkeyAction[];
 }
 
-/** Optional game-owned parser shown by the otherwise shared hotkey editor. */
-export interface RotationHotkeyImport {
-  readonly label: string;
-  readonly accept: string;
-  parse(source: string): RotationHotkeyImportResult | Promise<RotationHotkeyImportResult>;
-}
+/** Accepted GW2 keybind export types; the XML parser itself loads only after a file is chosen. */
+const KEYBIND_IMPORT_ACCEPT = '.xml,application/xml,text/xml';
 
 type HotkeyStorage = Pick<Storage, 'getItem' | 'setItem'>;
 
@@ -87,7 +83,6 @@ interface RotationHotkeyController {
   active: boolean;
   button: HTMLButtonElement | null;
   dialog: HTMLDialogElement | null;
-  keybindImport?: RotationHotkeyImport;
 }
 
 const actionIds = new Set<string>(ROTATION_HOTKEY_ACTIONS.map((action) => action.id));
@@ -506,20 +501,12 @@ function ensureDialog(controller: RotationHotkeyController): void {
       <input type="checkbox" data-hotkey-enabled />
       <span>Enable rotation hotkeys</span>
     </label>
-    ${
-      controller.keybindImport
-        ? `<input type="file" accept="${escapeHtml(controller.keybindImport.accept)}" data-hotkey-import-file hidden />`
-        : ''
-    }
+    <input type="file" accept="${KEYBIND_IMPORT_ACCEPT}" data-hotkey-import-file hidden />
     <div class="rotation-hotkey-groups">${hotkeyFieldsHtml()}</div>
     <p class="rotation-hotkey-import-status" role="status" hidden></p>
     <p class="rotation-hotkey-error" role="alert" hidden></p>
     <div class="rotation-hotkey-actions app-dialog-actions">
-      ${
-        controller.keybindImport
-          ? `<button type="button" class="btn btn-io" data-hotkey-import>${escapeHtml(controller.keybindImport.label)}</button>`
-          : ''
-      }
+      <button type="button" class="btn btn-io" data-hotkey-import>Import GW2 XML</button>
       <button type="button" class="btn btn-undo" data-hotkey-reset>Reset defaults</button>
       <button type="button" class="btn" data-dialog-close>Cancel</button>
       <button type="button" class="btn btn-run" data-hotkey-save>Save</button>
@@ -582,7 +569,7 @@ function ensureDialog(controller: RotationHotkeyController): void {
   dialog.querySelector('[data-hotkey-import]')?.addEventListener('click', () => importInput?.click());
   importInput?.addEventListener('change', async () => {
     const file = importInput.files?.[0];
-    if (!file || !controller.keybindImport) return;
+    if (!file) return;
     const error = dialog.querySelector<HTMLElement>('.rotation-hotkey-error');
     const previousStatus = dialog.querySelector<HTMLElement>('.rotation-hotkey-import-status');
     if (error) {
@@ -596,7 +583,8 @@ function ensureDialog(controller: RotationHotkeyController): void {
     }
 
     try {
-      const result = await controller.keybindImport.parse(await file.text());
+      const { parseGw2HotkeyBindingsXml } = await import('#gw2/integrations/keybinds/parser.js');
+      const result = parseGw2HotkeyBindingsXml(await file.text());
       if (!result.importedActions.length) {
         throw new Error('No supported combat skill bindings were found in this file.');
       }
@@ -701,7 +689,7 @@ function ensureControls(controller: RotationHotkeyController): void {
 }
 
 /** Mounts document-level keyboard and side-mouse handlers and refreshes palette badges. */
-export function mountRotationHotkeys(root: HTMLElement | null, keybindImport?: RotationHotkeyImport): void {
+export function mountRotationHotkeys(root: HTMLElement | null): void {
   if (!root) return;
   const document = root.ownerDocument;
   const scope = root.closest<HTMLElement>('.rotation-panel') || root;
@@ -714,8 +702,7 @@ export function mountRotationHotkeys(root: HTMLElement | null, keybindImport?: R
       enabled: loadRotationHotkeysEnabled(),
       active: false,
       button: null,
-      dialog: null,
-      keybindImport
+      dialog: null
     };
     controllers.set(document, controller);
     document.addEventListener('pointerdown', (event) => {
@@ -755,7 +742,6 @@ export function mountRotationHotkeys(root: HTMLElement | null, keybindImport?: R
   } else {
     controller.root = root;
     controller.scope = scope;
-    controller.keybindImport = keybindImport;
   }
 
   ensureDocumentStyles(document, 'rotation-hotkey-styles', ROTATION_HOTKEY_STYLES);

@@ -1,3 +1,5 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
@@ -18,12 +20,12 @@ const VINDICATOR_DODGE_AUTO_ICON =
 function activeAutoattack(context: RevenantUiContext): Skill | null {
   // activeAutoattack may be a raw ID string rather than a Skill object; guard ensures we only return a full object.
   const skill = context.activeAutoattack;
-  return skill && typeof skill === 'object' ? (skill as Skill) : null;
+  return skill && typeof skill === 'object' ? skill : null;
 }
 
 function vindicatorDodgeAutoPaletteSkill(context: RevenantUiContext): Skill | null {
   // Guard specialization first: this helper is called from shared palette code that doesn't know the spec.
-  if (String(context.specialization || '') !== 'Vindicator') return null;
+  if ((context.specialization || '') !== 'Vindicator') return null;
   // No auto-attack means there's nothing to pair a dodge with; suppress the synthetic entry.
   if (!activeAutoattack(context)) return null;
   return {
@@ -51,7 +53,7 @@ export function vindicatorDodgeAutoRotationEntries(context: RevenantUiContext, o
       type: 'cast',
       skillId: autoattack.id,
       // Pay endurance at takeoff, then place the auto inside the jump using its relative offset.
-      concurrentOffsetMs: Math.max(0, Math.round(Number(offsetMs) || 0))
+      concurrentOffsetMs: Math.max(0, Math.round(offsetMs || 0))
     }
   ];
 }
@@ -61,7 +63,7 @@ function vindicatorPaletteActionSkills(context: RevenantUiContext, skills: reado
   const ordinarySkills = skills
     .filter((skill) => skill.name !== VINDICATOR_DODGE_AUTO_ACTION && skill.id !== VINDICATOR_JUMP_SKILL.id)
     // Manual reconstruction uses the full jump; legacy landing-only commands remain loadable by ID.
-    .map((skill) => (skill.id === SKILL.DODGE ? VINDICATOR_JUMP_SKILL : skill));
+    .map((skill) => (skill.id === SHARED_SKILL_IDS.DODGE ? VINDICATOR_JUMP_SKILL : skill));
   const dodgeAuto = vindicatorDodgeAutoPaletteSkill(context);
   if (!dodgeAuto) return ordinarySkills;
   const dodgeIndex = ordinarySkills.findIndex((skill) => skill.id === VINDICATOR_JUMP_SKILL.id);
@@ -80,8 +82,8 @@ function resolveVindicatorPaletteAction(
 
 /** Shows the armed Reaver's Curse window until the next dodge consumes it. */
 function vindicatorStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
-  const expiresAt = Number(revenantUiState(context).reaversCurseUntil || 0);
-  const remaining = expiresAt - Math.max(0, Number(context.atSeconds || 0));
+  const expiresAt = revenantUiState(context).reaversCurseUntil || 0;
+  const remaining = expiresAt - Math.max(0, context.atSeconds || 0);
   // A landing exactly at expiry can still consume the armed charge.
   return expiresAt > 0 && remaining >= 0
     ? [
@@ -114,8 +116,9 @@ export const vindicatorUi: RevenantUiSlice = Object.freeze({
         id: 'endurance',
         singular: 'endurance',
         plural: 'endurance',
-        maximum: context.resources!.endurance!.maximum,
-        value: Number(state.endurance ?? 100),
+        // Capacity is the shared Revenant bound used by live recovery.
+        maximum: REVENANT_MAXIMUM_ENDURANCE,
+        value: state.endurance ?? 100,
         canStart: false,
         step: 1,
         displayMode: 'bar',

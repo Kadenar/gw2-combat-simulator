@@ -7,20 +7,20 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import { gw2AlliedEffectRecipients, gw2BuffApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { TRAITS as NECROMANCER_TRAITS } from '#gw2/professions/necromancer/data/traits-data.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import type {
-  NecromancerCastContext,
   NecromancerResolverContext,
   NecromancerResolverEvent,
-  NecromancerSkill
+  NecromancerRuntime
 } from '#gw2/professions/necromancer/types.js';
 
 interface TraitDamageDefinition {
@@ -49,7 +49,7 @@ function queueBloodMagicLifeSteal(
       sourceId: traitId,
       actorType: 'effect',
       skillWeapon: 'Unequipped',
-      noCrit: true,
+      canCrit: false,
       damageKind: 'life-steal',
       ...(icon ? { icon } : {}),
       ...(event.summonOwner ? { summonOwner: event.summonOwner } : {}),
@@ -57,12 +57,12 @@ function queueBloodMagicLifeSteal(
     })
   );
   // Mirror the scheduled packet in result-level trait attribution.
-  context.recordProc?.('trait', name, event.at, event.skillName, '', icon);
+  context.recordProc('trait', name, event.at, event.skillName, '', icon);
 }
 
 // Both packet variants explicitly use the granting trait's artwork so the
 // minion variant cannot fall back to the icon of the attack that triggered it.
-const VAMPIRIC_ICON = String(NECROMANCER_TRAITS.find((trait) => trait.id === TRAIT.VAMPIRIC)?.icon || '');
+const VAMPIRIC_ICON = NECROMANCER_TRAITS.find((trait) => trait.id === TRAIT.VAMPIRIC)?.icon || '';
 
 /** Applies Vampiric to qualifying player, minion, and Ritualist spirit strikes. */
 export function applyVampiric(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
@@ -95,7 +95,7 @@ function vampiricPresenceActorKey(context: NecromancerResolverContext, event: Ne
     maximumRecipients: 5,
     eligibleCompanionIds: necromancerActiveMinionCompanionIds(context)
   });
-  const owner = String(event.summonOwner || '');
+  const owner = event.summonOwner || '';
   if (owner && recipients.companionIds.includes(owner)) return owner;
   if (!owner && recipients.companionIds.length > 0) {
     return `summon:${String(event.sourceId || event.skillId || event.skillName || 'unknown')}`;
@@ -121,14 +121,14 @@ function queueVampiricPresence(
   if (!effect) return;
   const readyAt =
     actorKey === 'self'
-      ? Number(state.vampiricPresenceReadyAt || 0)
-      : Number(state.traitProcReadyAt[`vampiricPresence:${actorKey}`] || 0);
+      ? context.procs.deadline('necromancer.core.vampiricPresence') || 0
+      : context.procs.readyAt[`vampiricPresence:${actorKey}`] || 0;
   if (!intervalAlreadyApplied && !isInternalCooldownReady(event.at, readyAt)) return;
 
   if (!intervalAlreadyApplied) {
     const nextAt = event.at + balanceProfileNumber(profile, 'cooldown');
-    if (actorKey === 'self') state.vampiricPresenceReadyAt = nextAt;
-    else state.traitProcReadyAt[`vampiricPresence:${actorKey}`] = nextAt;
+    if (actorKey === 'self') context.procs.readyAt['necromancer.core.vampiricPresence'] = nextAt;
+    else context.procs.readyAt[`vampiricPresence:${actorKey}`] = nextAt;
   }
 
   // Both player and allied-recipient paths converge on the same attributed packet.
@@ -196,17 +196,15 @@ function addTasteForBloodApplication(
   );
   applications.push({
     at: event.at,
-    expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
-    stacks: Math.max(1, Number(event.stacks ?? 1))
+    expiresAt: event.at + Math.max(0, event.duration || 0),
+    stacks: Math.max(1, event.stacks ?? 1)
   });
   buffs[recipient] = applications;
 }
 
 // Trait-derived Taste for Blood packets and proc markers keep Overflowing
 // Thirst artwork so attribution matches the mechanic that granted the stacks.
-const OVERFLOWING_THIRST_ICON = String(
-  NECROMANCER_TRAITS.find((trait) => trait.id === TRAIT.OVERFLOWING_THIRST)?.icon || ''
-);
+const OVERFLOWING_THIRST_ICON = NECROMANCER_TRAITS.find((trait) => trait.id === TRAIT.OVERFLOWING_THIRST)?.icon || '';
 
 /**
  * Consumes a recipient charge as Taste for Blood's power-only life-steal packet. Charges exist only to deliver the
@@ -235,7 +233,7 @@ function consumeTasteForBlood(
 export function reactToTasteForBloodGrant(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (!hasTrait(context, TRAIT.OVERFLOWING_THIRST)) return;
   if (event.resolvedAudience?.includesSelf) addTasteForBloodApplication(context, event, 'self');
-  for (let allyIndex = 1; allyIndex <= Number(event.resolvedAudience?.alliedPlayerCount || 0); allyIndex += 1) {
+  for (let allyIndex = 1; allyIndex <= (event.resolvedAudience?.alliedPlayerCount || 0); allyIndex += 1) {
     addTasteForBloodApplication(context, event, alliedTasteForBloodRecipient(allyIndex));
   }
 
@@ -262,7 +260,7 @@ export function applyOverflowingThirstDamage(
     event.actorType === 'player'
       ? 'self'
       : event.actorType === 'summon' && event.summonOwner
-        ? companionTasteForBloodRecipient(String(event.summonOwner))
+        ? companionTasteForBloodRecipient(event.summonOwner)
         : null;
   if (hasTrait(context, TRAIT.OVERFLOWING_THIRST) && recipient) consumeTasteForBlood(context, event, recipient);
 }
@@ -275,108 +273,29 @@ const TASTE_FOR_BLOOD_STACKS_BY_SKILL = new Map<number, number>([
   [ID.ENFEEBLING_BLOOD, 3]
 ]);
 
-/** Grants Taste for Blood before the activating dagger skill can spend those party stacks. */
-export function applyOverflowingThirst(context: NecromancerCastContext, skill: NecromancerSkill): void {
-  if (!hasTrait(context, TRAIT.OVERFLOWING_THIRST)) return;
-  const stacks = TASTE_FOR_BLOOD_STACKS_BY_SKILL.get(Number(skill.id));
-  if (!stacks) return;
-
-  const profile = requireBalanceProfileFromContext(context, PROFILE.overflowingThirst);
+/** Dagger activations deliver party charges before player, minion, and allied hits spend their individual pools. */
+export function applyOverflowingThirstCast(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+  const stacks = TASTE_FOR_BLOOD_STACKS_BY_SKILL.get(Number(cast.skill.id)) ?? 0;
+  if (!stacks || !hasTrait(runtime, TRAIT.OVERFLOWING_THIRST)) return;
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.overflowingThirst);
   const buff = requireEffect(profile, 'buff', 'taste-for-blood');
-  // The stacks are the buff, so a removed buff grants no charges.
   if (!buff) return;
-  const duration = effectNumber(profile, buff, 'duration');
-  // Resolve the exact self, allied-player, and active-minion recipients for this grant.
-  const selected = gw2BuffApplicationRecipients(context.config, {
+  runtime.emit({
+    type: 'buff',
+    at: runtime.time,
+    source: 'Trait',
+    sourceId: TRAIT.OVERFLOWING_THIRST,
+    actorType: 'player',
+    skillId: cast.skill.id,
+    skillName: cast.skill.name,
+    activationId: cast.id,
+    kind: String(buff.kind),
+    duration: effectNumber(profile, buff, 'duration'),
+    stacks,
     audience: {
       recipients: 'party',
       maximumRecipients: 5,
-      eligibleCompanionIds: necromancerActiveMinionCompanionIds(context)
+      eligibleCompanionIds: necromancerActiveMinionCompanionIds(runtime)
     }
   });
-  const audience = {
-    recipients: 'party' as const,
-    maximumRecipients: 5,
-    eligibleCompanionIds: selected.companionIds
-  };
-  // Emit both the visible buff and the profession event that seeds per-recipient charge pools.
-  emitSkillBuff(context, skill, {
-    at: context.start,
-    kind: String(buff.kind),
-    duration,
-    stacks,
-    audience
-  });
-  context.emit({
-    type: 'necromancer.taste-for-blood-grant',
-    at: context.start,
-    source: 'Trait',
-    sourceId: TRAIT.OVERFLOWING_THIRST,
-    actorType: 'effect',
-    skillId: skill.id,
-    skillName: skill.name,
-    duration,
-    stacks,
-    resolvedAudience: selected
-  });
-}
-
-/** Applies Transfusion's Lesser Chilblains package after a shroud-slot-four cast. */
-export function applyTransfusion(context: NecromancerCastContext, skill: NecromancerSkill): void {
-  if (skill.shroudSlot !== 4 || !hasTrait(context, TRAIT.TRANSFUSION)) return;
-  const profile = requireBalanceProfileFromContext(context, TRAIT.TRANSFUSION);
-  // The strike, Poison, and Chill are independent packets; removing one keeps the others.
-  const strike = requireEffect(profile, 'strike', 'Strike');
-  const poison = requireEffect(profile, 'condition', 'Poisoned');
-  const chill = requireEffect(profile, 'condition', 'Chilled');
-  const lesserChilblainsIcon = String(context.catalog.skillsById.get(ID.CHILLBLAINS)?.icon || '');
-  if (strike)
-    emitSkillDamage(context, skill, {
-      at: context.effectiveEnd,
-      name: 'Lesser Chilblains',
-      source: 'Trait',
-      sourceId: TRAIT.TRANSFUSION,
-      actorType: 'effect',
-      skillId: ID.LESSER_CHILBLAINS,
-      skillName: 'Lesser Chilblains',
-      parentSkillName: skill.name,
-      triggeredBy: skill.name,
-      coefficient: effectNumber(profile, strike, 'coefficient'),
-      skillWeapon: 'Unequipped',
-      icon: lesserChilblainsIcon
-    });
-  if (poison)
-    emitSkillCondition(context, {
-      skill,
-      at: context.effectiveEnd,
-      source: 'Trait',
-      sourceId: TRAIT.TRANSFUSION,
-      actorType: 'effect',
-      skillId: ID.LESSER_CHILBLAINS,
-      skillName: 'Lesser Chilblains',
-      parentSkillName: skill.name,
-      triggeredBy: skill.name,
-      name: 'Lesser Chilblains - Poisoned',
-      condition: String(poison.condition),
-      stacks: effectNumber(profile, poison, 'stacks'),
-      duration: effectNumber(profile, poison, 'duration'),
-      icon: lesserChilblainsIcon
-    });
-  // Queue unscaled Chill after the strike and poison so shared condition reactions own its application.
-  if (chill)
-    emitSkillCondition(context, {
-      skill,
-      condition: String(chill.condition),
-      stacks: effectNumber(profile, chill, 'stacks'),
-      name: 'Lesser Chilblains — Chilled',
-      at: context.effectiveEnd,
-      source: 'Trait',
-      sourceId: TRAIT.TRANSFUSION,
-      actorType: 'effect',
-      skillId: ID.LESSER_CHILBLAINS,
-      skillName: 'Lesser Chilblains',
-      parentSkillName: skill.name,
-      triggeredBy: skill.name,
-      duration: effectNumber(profile, chill, 'duration')
-    });
 }

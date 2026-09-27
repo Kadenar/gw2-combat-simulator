@@ -1,3 +1,4 @@
+import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 import type { ProfessionTooltips, SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
@@ -30,7 +31,7 @@ import type {
   RandomDistributionRequest,
   RandomDistributionOptions
 } from '#gw2/app/simulation/random-distribution/types.js';
-import type { RelicComparisonJobRequest } from '#gw2/app/simulation/relic-comparison/types.js';
+import type { RelicComparisonJobRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
 import type {
   Gw2CanonicalBuild,
   Gw2CalculateAttributes,
@@ -44,12 +45,10 @@ import type {
   BuildTemplatePreset,
   BuildTemplateSelection,
   ProfessionIsSkillAvailable,
-  ProfessionDefaultOffhand,
-  ProfessionSlotLoadout
+  ProfessionDefaultOffhand
 } from '#gw2/app/build/types.js';
-import type { RelicComparisonModel } from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
+import type { RelicComparisonModel } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { RotationHotkeyImport } from '#gw2/app/rotation/hotkeys.js';
 import type { BuildEditor, SimulationPresentation } from '#app/shell/types.js';
 
 export type ProfessionAppContract = Gw2ProfessionSource & {
@@ -77,7 +76,7 @@ export interface RotationComparisonState {
 }
 
 export interface ProfessionAppState {
-  gearOptimizerRunner?: import('#gw2/app/simulation/gear-optimizer/gear-optimizer-runner.js').GearOptimizerRunner;
+  gearOptimizerRunner?: import('#gw2/app/optimizer/gear-optimizer/gear-optimizer-runner.js').GearOptimizerRunner;
   workspace?: import('#gw2/app/build/state/workspace.js').BuildWorkspace;
   activateBuildTab?(id: string): void;
   readonly gameId: string;
@@ -88,7 +87,7 @@ export interface ProfessionAppState {
   patchId: string;
   patchComparison: PatchComparison | null;
   build: Gw2CanonicalBuild;
-  simulationSettings?: import('#gw2/app/simulation/settings.js').SimulationSettings;
+  simulationSettings?: import('#gw2/app/build/panels/simulation-settings.js').SimulationSettings;
   skills: Skill[];
   skillByName: ReadonlyMap<string, Skill>;
   skillById: ReadonlyMap<SkillId, Skill>;
@@ -237,6 +236,12 @@ export interface ProfessionRuntimeApi {
     options?: RandomDistributionOptions
   ): RandomDistributionSummary;
   rotationPlanningStateAt(app: ProfessionAppState, insertionIndex: number): Gw2SimulationResult['planningState'];
+  /** Simulates a prefix and optional candidate commands with the original combat-start boundary. */
+  rotationPreviewAt(
+    app: ProfessionAppState,
+    insertionIndex: number,
+    appended?: readonly RotationCommand[]
+  ): Gw2SimulationResult;
   baselineSimulationRequest(app: ProfessionAppState): BaselineSimulationRequest;
   calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput;
   runSimulation(app: ProfessionAppState): Gw2SimulationResult;
@@ -247,17 +252,6 @@ export interface ProfessionFeatureRunner {
   cancel?(): void;
   schedule(run?: boolean): void;
   run?(value?: string, extra?: number): void;
-}
-
-export interface Gw2AppCapabilities {
-  readonly modifierContributions?: true;
-  readonly randomDistribution?: true;
-  readonly relicComparison?: true;
-  readonly patchPreview?: {
-    mount(app: ProfessionAppState): void | Promise<void>;
-    render(container: HTMLElement, app: ProfessionAppState): void | Promise<void>;
-  };
-  readonly keybindImport?: RotationHotkeyImport;
 }
 
 export interface Gw2AppAdapter extends ProfessionRuntimeApi {
@@ -283,8 +277,7 @@ export interface Gw2AppAdapter extends ProfessionRuntimeApi {
   readonly renderRotationBuilder: (app: ProfessionAppState) => void;
   readonly buildEditor: BuildEditor<ProfessionAppState>;
   readonly presentation: SimulationPresentation<ProfessionAppState>;
-  readonly capabilities: Gw2AppCapabilities;
-  readonly slotLoadout: ProfessionSlotLoadout | null;
+  readonly slotLoadout: FixedSlotLoadout<Gw2CanonicalBuild> | null;
   readonly assumptionControls: readonly ProfessionAssumptionControl[];
   readonly weaponSkillMatchesSet: Gw2WeaponSkillMatcher;
 }
