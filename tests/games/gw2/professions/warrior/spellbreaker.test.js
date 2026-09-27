@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
@@ -179,4 +180,72 @@ test('Insight and Tether use the same live owner in detailed and score execution
   assert.equal(score.totalDamage, detailed.totalDamage);
   assert.deepEqual(state(score).attackerInsightExpiries, state(detailed).attackerInsightExpiries);
   assert.equal(state(score).magebaneTetherUntil, state(detailed).magebaneTetherUntil);
+});
+
+// No Escape is queued before the hook, but resolves after Insight has committed; misses never grant either reward.
+test('No Escape keeps Insight ordering, actor eligibility, and live profile payloads', () => {
+  for (const [actorType, controlKind, offTarget, removed] of [
+    ['player', 'daze', false, false],
+    ['player', 'stun', false, false],
+    ['player', 'knockback', false, false],
+    ['summon', 'stun', false, false],
+    ['player', 'stun', true, false],
+    ['player', 'stun', false, true]
+  ]) {
+    const observed = [];
+    const source = {
+      runtimeFor(config) {
+        const native = warriorProfession.runtimeFor(config);
+        const profile = native.catalog.balanceProfilesById.get(PROFILE.noEscape);
+        return {
+          ...native,
+          catalog: withProfile(native.catalog, PROFILE.noEscape, {
+            effects: removed ? [] : profile.effects.map((effect) => ({ ...effect, duration: 3 }))
+          }),
+          initialize(runtime) {
+            native.initialize(runtime);
+            runtime.emit({
+              type: 'control',
+              at: 0,
+              source: 'Warrior',
+              sourceId: ID.DISRUPTING_STAB,
+              skillId: ID.DISRUPTING_STAB,
+              skillName: 'Disrupting Stab',
+              activationId: 'test.control',
+              actorType,
+              controlKind,
+              offTarget
+            });
+          },
+          reactions: {
+            ...native.reactions,
+            'condition.applied'(runtime, event, details) {
+              native.reactions['condition.applied']?.(runtime, event, details);
+              if (event.sourceId === TRAIT.NO_ESCAPE)
+                observed.push([event, runtime.profession.specialization.state.attackerInsightExpiries.length]);
+            }
+          }
+        };
+      }
+    };
+    const result = run([wait(100)], { selectedTraitIds: [TRAIT.NO_ESCAPE, TRAIT.ATTACKERS_INSIGHT] }, source);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(
+      observed.length,
+      actorType === 'player' && controlKind !== 'knockback' && !offTarget && !removed ? 1 : 0
+    );
+    if (observed.length) {
+      const [[event, insight]] = observed;
+      assert.equal(insight, 1);
+      assert.equal(event.actorType, 'effect');
+      assert.equal(event.activationId, 'test.control');
+      assert.equal(event.skillId, ID.DISRUPTING_STAB);
+      assert.equal(event.duration, 3);
+      const control = result.events.find((candidate) => candidate.type === 'control');
+      assert.equal(event.parentEventOrder, control.eventOrder);
+      assert.ok(event.eventOrder > control.eventOrder);
+    }
+
+    if (removed) assert.equal(state(result).attackerInsightExpiries.length, 1);
+  }
 });

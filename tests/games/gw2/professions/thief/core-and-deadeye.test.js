@@ -24,6 +24,8 @@ import { deadeyeUi } from '#gw2/professions/thief/specializations/deadeye/presen
 import { SPECTER_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/stolen-skills.js';
+import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 
@@ -1707,4 +1709,47 @@ test('initiative availability waits for a signet grant with zero regeneration', 
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(result.steps[0].start, 10000);
+});
+
+// Every stolen skill snapshots eligibility before malice changes; party packets do not replace canonical stealth entry.
+test('Deadeye stolen effects capture malice and preserve party audience and Revealed gating', () => {
+  for (const skillId of DEADEYE_STOLEN_SKILL_IDS) {
+    for (const malice of [2, 3]) {
+      for (const revealed of [false, true]) {
+        const result = runThief(
+          [{ type: 'cast', skillId }],
+          { specialization: 'Deadeye' },
+          {
+            initialize(runtime) {
+              storeThiefStolenSkillChoices(runtime, [skillId]);
+              runtime.profession.specialization.state.malice = malice;
+              runtime.profession.core.revealedUntil = revealed ? 10 : 0;
+            },
+            probes: [
+              [
+                0.05,
+                (runtime) => {
+                  runtime.profession.specialization.state.malice = malice === 3 ? 0 : 3;
+                }
+              ]
+            ]
+          }
+        );
+        assert.deepEqual(result.warnings, []);
+        const packets = result.events.filter((event) => event.skillId === skillId);
+        assert.equal(
+          packets.some((event) => event.type === 'buff' && event.kind === 'stealth'),
+          malice === 3
+        );
+        assert.equal(result.planningState.profession.stealthUntil > 0, malice === 3 && !revealed);
+        assert.equal(result.planningState.profession.storedStolenSkillCount, 0);
+        const authored = thiefCatalog.skillsById.get(skillId).effects.filter((effect) => effect.type === 'boon');
+        for (const effect of authored) {
+          const boon = packets.find((event) => event.type === 'buff' && event.kind === effect.boon.toLowerCase());
+          assert.ok(boon);
+          assert.deepEqual(boon.audience, { recipients: 'party', maximumRecipients: 5 });
+        }
+      }
+    }
+  }
 });

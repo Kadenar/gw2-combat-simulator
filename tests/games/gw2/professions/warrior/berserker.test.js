@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
@@ -203,5 +204,72 @@ test('removing King of Fires strike preserves Burning while removing its aura pr
       result.resolvedEvents.some((event) => event.type === 'condition' && event.sourceId === TRAIT.KING_OF_FIRES),
       type === 'strike'
     );
+  }
+});
+
+// Profile removal suppresses only Burning; mode extension commits before it resolves and aura detonation follows it.
+test('Last Blaze preserves completion, profile edits, and mode-before-condition ordering', () => {
+  for (const [removed, cancelled, offTarget] of [
+    [false, false, false],
+    [true, false, false],
+    [false, true, false],
+    [false, false, true]
+  ]) {
+    const observed = [];
+    const source = {
+      runtimeFor(config) {
+        const native = warriorProfession.runtimeFor(config);
+        const profile = native.catalog.balanceProfilesById.get(PROFILE.lastBlaze);
+        return {
+          ...native,
+          catalog: withProfile(native.catalog, PROFILE.lastBlaze, {
+            effects: removed ? [] : profile.effects.map((effect) => ({ ...effect, stacks: 2, duration: 3 }))
+          }),
+          initialize(runtime) {
+            native.initialize(runtime);
+            Object.assign(runtime.profession.specialization.state, {
+              berserkActive: true,
+              berserkUntil: 10,
+              fireAuraUntil: 10
+            });
+          },
+          reactions: {
+            ...native.reactions,
+            'condition.applied'(runtime, event, details) {
+              native.reactions['condition.applied']?.(runtime, event, details);
+              if (event.sourceId === TRAIT.LAST_BLAZE)
+                observed.push([
+                  event,
+                  runtime.profession.specialization.state.berserkUntil,
+                  runtime.profession.specialization.state.fireAuraUntil
+                ]);
+            }
+          }
+        };
+      }
+    };
+    const result = run(
+      [{ name: 'Blood Reckoning', offTarget, ...(cancelled ? { interruptAfterMs: 1 } : {}) }],
+      { selectedSkills: ['Blood Reckoning'], selectedTraitIds: [TRAIT.LAST_BLAZE, TRAIT.KING_OF_FIRES] },
+      source
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(observed.length, !removed && !cancelled ? 1 : 0);
+    assert.equal(state(result).berserkUntil > 10, !cancelled);
+    if (observed.length) {
+      const [[event, until, auraUntil]] = observed;
+      assert.equal(until, state(result).berserkUntil);
+      assert.equal(auraUntil, 10);
+      assert.equal(event.actorType, 'effect');
+      assert.equal(event.ownerActorType, 'player');
+      assert.equal(event.skillId, ID.BLOOD_RECKONING);
+      assert.equal(event.name, 'Last Blaze \u2014 Burning');
+      assert.equal(event.stacks, 2);
+      assert.equal(event.duration, 3);
+      const detonation = result.events.find(
+        (candidate) => candidate.type === 'damage' && candidate.sourceId === TRAIT.KING_OF_FIRES
+      );
+      assert.ok(detonation.eventOrder > event.eventOrder);
+    }
   }
 });

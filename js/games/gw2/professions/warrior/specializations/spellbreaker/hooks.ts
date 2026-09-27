@@ -1,12 +1,8 @@
 import { canonicalTime } from '#kernel/core/clock.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import {
   balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
@@ -42,31 +38,23 @@ export const spellbreakerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> 
     );
     core.adrenaline = Math.min(core.adrenaline, core.maximumAdrenaline);
   },
+  // Queue No Escape from accepted player control; Insight still updates before the condition resolves.
+  traitTriggers: [
+    {
+      on: 'control.resolved',
+      trait: TRAIT.NO_ESCAPE,
+      emit: PROFILE.noEscape,
+      when: (_runtime, event) =>
+        event.actorType === 'player' && ['daze', 'stun'].includes(String(event.controlKind).toLowerCase()),
+      effects: (effect) => effect.type === 'condition' && effect.name === 'Immobilized',
+      attribution: { source: 'Trait', sourceId: TRAIT.NO_ESCAPE, actorType: 'effect', name: 'No Escape - Immobilized' }
+    }
+  ],
   reactions: {
     'control.resolved'(runtime, event) {
       if (event.actorType !== 'player') return;
       reactToSpellbreakerControl(runtime, event);
       scheduleInsightExpiry(runtime);
-      if (!hasTrait(runtime, TRAIT.NO_ESCAPE) || !['daze', 'stun'].includes(String(event.controlKind).toLowerCase()))
-        return;
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.noEscape);
-      const effect = requireEffect(profile, 'condition', 'Immobilized');
-      if (effect)
-        runtime.emitDerived(
-          event,
-          buildResolverCondition({
-            at: runtime.time,
-            source: 'Trait',
-            sourceId: TRAIT.NO_ESCAPE,
-            actorType: 'effect',
-            skillId: event.skillId,
-            skillName: event.skillName,
-            name: 'No Escape - Immobilized',
-            condition: 'Immobilized',
-            stacks: effectNumber(profile, effect, 'stacks'),
-            duration: effectNumber(profile, effect, 'duration')
-          })
-        );
     },
     'damage.resolved'(runtime, event) {
       const state = spellbreakerState.from(runtime);

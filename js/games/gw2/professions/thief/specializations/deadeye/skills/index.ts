@@ -1,3 +1,4 @@
+import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -5,66 +6,102 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.STEAL_WARMTH]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
+    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    // Sample Malice at acceptance; authored boons share their impact with the party.
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Warmth', actorType: 'player' },
-      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
-      { type: 'boon', boon: 'vigor', duration: 10, stacks: 1 },
+      {
+        type: 'buff',
+        kind: 'stealth',
+        duration: 3,
+        stacks: 1,
+        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+      },
+      { type: 'boon', boon: 'vigor', duration: 10, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } },
       { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3, actorType: 'player' }
     ])
   },
   [ID.STEAL_RESISTANCE]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
+    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    // Sample Malice at acceptance; authored boons share their impact with the party.
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Resistance', actorType: 'player' },
-      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
-      { type: 'boon', boon: 'resistance', duration: 5, stacks: 1 },
+      {
+        type: 'buff',
+        kind: 'stealth',
+        duration: 3,
+        stacks: 1,
+        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+      },
+      {
+        type: 'boon',
+        boon: 'resistance',
+        duration: 5,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      },
       { type: 'condition', condition: 'Torment', stacks: 3, duration: 8, actorType: 'player' }
     ])
   },
   [ID.STEAL_PRECISION]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
+    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    // Sample Malice at acceptance; authored boons share their impact with the party.
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Precision', actorType: 'player' },
-      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
-      { type: 'boon', boon: 'fury', duration: 8, stacks: 1 },
+      {
+        type: 'buff',
+        kind: 'stealth',
+        duration: 3,
+        stacks: 1,
+        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+      },
+      { type: 'boon', boon: 'fury', duration: 8, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } },
       { type: 'blind', actorType: 'player', duration: 6 }
     ])
   },
   [ID.STEAL_HEALTH]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
+    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    // Sample Malice at acceptance; authored boons share their impact with the party.
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Health', actorType: 'player' },
-      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
+      {
+        type: 'buff',
+        kind: 'stealth',
+        duration: 3,
+        stacks: 1,
+        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+      },
       { type: 'condition', condition: 'Bleeding', stacks: 5, duration: 8, actorType: 'player' }
     ])
   },
   [ID.STEAL_STRENGTH]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
+    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    // Sample Malice at acceptance; authored boons share their impact with the party.
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Strength', actorType: 'player' },
-      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
-      { type: 'boon', boon: 'might', duration: 12, stacks: 5 },
+      {
+        type: 'buff',
+        kind: 'stealth',
+        duration: 3,
+        stacks: 1,
+        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+      },
+      { type: 'boon', boon: 'might', duration: 12, stacks: 5, audience: { recipients: 'party', maximumRecipients: 5 } },
       { type: 'condition', condition: 'Weakness', stacks: 1, duration: 8, actorType: 'player' }
     ])
   },
@@ -131,11 +168,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: []
   },
   [ID.STEAL_TIME]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
+    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
     castTimeMs: 280,
     cooldown: 0.5,
     initiativeCost: 0,
-    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    // Sample Malice at acceptance; authored boons share their impact with the party.
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -145,21 +182,45 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         actorType: 'player',
         weaponStrengthProfileId: 'nonweapon.profession-mechanic'
       },
-      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
-      { type: 'boon', boon: 'quickness', duration: 5, stacks: 1 },
+      {
+        type: 'buff',
+        kind: 'stealth',
+        duration: 3,
+        stacks: 1,
+        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+      },
+      {
+        type: 'boon',
+        boon: 'quickness',
+        duration: 5,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      },
       { type: 'condition', condition: 'Slow', stacks: 1, duration: 3, actorType: 'player' }
     ])
   },
   [ID.STEAL_DURABILITY]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
+    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    // Sample Malice at acceptance; authored boons share their impact with the party.
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Durability', actorType: 'player' },
-      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
-      { type: 'boon', boon: 'protection', duration: 5, stacks: 1 },
+      {
+        type: 'buff',
+        kind: 'stealth',
+        duration: 3,
+        stacks: 1,
+        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+      },
+      {
+        type: 'boon',
+        boon: 'protection',
+        duration: 5,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      },
       { type: 'condition', condition: 'Vulnerability', stacks: 10, duration: 5, actorType: 'player' }
     ])
   },
@@ -173,15 +234,21 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: []
   },
   [ID.STEAL_DEFENSES]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
+    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    // Sample Malice at acceptance; authored boons share their impact with the party.
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Defenses', actorType: 'player' },
-      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
-      { type: 'boon', boon: 'aegis', duration: 5, stacks: 1 },
+      {
+        type: 'buff',
+        kind: 'stealth',
+        duration: 3,
+        stacks: 1,
+        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+      },
+      { type: 'boon', boon: 'aegis', duration: 5, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } },
       { type: 'condition', condition: 'Poisoned', stacks: 2, duration: 8, actorType: 'player' }
     ])
   },
@@ -205,14 +272,20 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.STEAL_MOBILITY]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
+    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    // Sample Malice at acceptance; authored boons share their impact with the party.
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Mobility', actorType: 'player' },
-      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
+      {
+        type: 'buff',
+        kind: 'stealth',
+        duration: 3,
+        stacks: 1,
+        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+      },
       { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1.5, actorType: 'player' }
     ])
   },

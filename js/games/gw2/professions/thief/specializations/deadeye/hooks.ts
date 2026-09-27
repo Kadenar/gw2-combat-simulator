@@ -174,15 +174,7 @@ function expireDeadeyesMark(runtime: ThiefRuntime, data: unknown): void {
 function maliciousEffects(runtime: ThiefRuntime, cast: RuntimeCast, effects: readonly SkillEffect[]) {
   const facts = castFacts.get(cast);
   const skill = cast.skill as ThiefSkill;
-  if (!facts) return effects;
-  if (STOLEN_SKILLS.has(skill.id))
-    return effects.flatMap((effect): SkillEffect[] => {
-      // Below three malice a stolen skill's own stealth grant is suppressed.
-      if (effect.type === 'buff' && effect.kind === 'stealth' && !facts.grantsStealth) return [];
-      // Stolen skill boons are shared with the party.
-      if (effect.type === 'boon') return [{ ...effect, audience: { recipients: 'party', maximumRecipients: 5 } }];
-      return [effect];
-    });
+  if (!facts || STOLEN_SKILLS.has(skill.id)) return effects;
   const malice = facts.markedMalice;
   return effects.flatMap((effect): SkillEffect[] => {
     // Malice lengthens the Poison whether it is authored on the effect or on its timed ticks.

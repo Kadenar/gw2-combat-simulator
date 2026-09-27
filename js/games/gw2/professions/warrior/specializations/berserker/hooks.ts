@@ -207,33 +207,28 @@ export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
   onCastStart(runtime, cast) {
     if (cast.skill.id === ID.BERSERK) runtime.profession.core.adrenaline -= Number(cast.skill.adrenalineCost ?? 0);
   },
+  // Queue the profile's Burning on full completion; mode extension remains with its state owner.
+  traitTriggers: [
+    {
+      on: 'castComplete',
+      trait: TRAIT.LAST_BLAZE,
+      emit: PROFILE.lastBlaze,
+      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Rage')),
+      effects: (effect) => effect.type === 'condition' && effect.name === 'Burning',
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.LAST_BLAZE,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        name: 'Last Blaze — Burning'
+      }
+    }
+  ],
   onCastComplete(runtime, cast) {
     if (!castCompleted(cast)) return;
     completeBerserk(runtime, cast);
     if (cast.skill.id === ID.BLOOD_RECKONING)
       for (const skill of runtime.helpers.skills) if (skill.primalBurst) runtime.cooldownController.clear(skill.id);
-    if (cast.skill.categories?.includes('Rage') && hasTrait(runtime, TRAIT.LAST_BLAZE)) {
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.lastBlaze);
-      const burning = requireEffect(profile, 'condition', 'Burning');
-      if (burning)
-        runtime.emit(
-          buildResolverCondition({
-            at: runtime.time,
-            activationId: cast.id,
-            source: 'Trait',
-            sourceId: TRAIT.LAST_BLAZE,
-            actorType: 'effect',
-            ownerActorType: 'player',
-            skillId: cast.skill.id,
-            skillName: cast.skill.name,
-            name: 'Last Blaze — Burning',
-            condition: 'Burning',
-            stacks: effectNumber(profile, burning, 'stacks'),
-            duration: effectNumber(profile, burning, 'duration')
-          })
-        );
-    }
-
     if (cast.skill.primalBurst && hasTrait(runtime, TRAIT.HEAT_THE_SOUL))
       traitBoons(runtime, cast, TRAIT.HEAT_THE_SOUL, true);
     if (isBerserkerSkill(cast.skill) && hasTrait(runtime, TRAIT.KING_OF_FIRES)) {
