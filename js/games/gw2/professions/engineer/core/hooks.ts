@@ -93,9 +93,11 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
   rechargeRules: engineerRechargeRules,
   sideEffectHandlers: {
     // Both sword finishers declare the reward while live cooldown selection and proc reporting share one owner.
-    'engineer.sword-recharge'(runtime, cast, action) {
+    'engineer.sword-recharge'(runtime, context, action) {
       if (action.type !== 'engineer.sword-recharge' || action.amount == null)
         throw new TypeError('Sword recharge reductions require an amount.');
+      if (context.kind !== 'cast') throw new TypeError('Sword recharge requires a cast trigger.');
+      const { cast } = context;
       reduceRecharge(
         runtime,
         cast,

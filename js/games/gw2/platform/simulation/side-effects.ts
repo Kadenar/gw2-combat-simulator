@@ -1,3 +1,4 @@
+import type { ResolvedEffectTrigger } from '#gw2/platform/simulation/effect-reactions.js';
 import type { EffectEventBase } from '#gw2/platform/engine/effects/materializer.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
@@ -30,6 +31,11 @@ export type SideEffectAction =
   | { readonly type: 'emitProfile'; readonly profileId: SkillId; readonly attribution?: Partial<EffectEventBase> }
   | { readonly type: `${string}.${string}`; readonly amount?: ProfileAmount };
 
+/** Actions receive their actual trigger; impact work never fabricates a cast reservation. */
+export type ActionContext =
+  | { readonly kind: 'cast'; readonly skill: Skill; readonly cast: RuntimeCast }
+  | { readonly kind: 'effect'; readonly skill: Skill; readonly trigger: ResolvedEffectTrigger };
+
 export interface SkillSideEffect {
   readonly on: 'castStart' | 'castCommit' | 'castComplete';
   readonly order?: number;
@@ -53,10 +59,10 @@ export function sideEffectAmount(runtime: Gw2Runtime, amount: ResourceGrantAmoun
 /** The platform owns ordinary pool and packet mutations; named profession verbs retain state-machine ownership. */
 export function applySideEffect(
   runtime: Gw2Runtime,
-  cast: RuntimeCast,
+  context: ActionContext,
   action: SideEffectAction,
   handlers: Readonly<
-    Record<string, (runtime: Gw2Runtime<any>, cast: RuntimeCast, action: SideEffectAction) => void>
+    Record<string, (runtime: Gw2Runtime<any>, context: ActionContext, action: SideEffectAction) => void>
   > = {}
 ): void {
   switch (action.type) {
@@ -75,15 +81,16 @@ export function applySideEffect(
     }
 
     case 'resourceGrant': {
-      const amount = sideEffectAmount(runtime, action.amount, cast.skill);
+      const amount = sideEffectAmount(runtime, action.amount, context.skill);
       if (action.resource === 'endurance') runtime.endurance.grant(amount);
       else runtime.resourceController.grant(action.resource, amount);
       return;
     }
 
     case 'flipArm':
+      if (context.kind !== 'cast') throw new TypeError('flipArm requires a cast trigger.');
       runtime.armFlip(action.skillId, {
-        expiresAt: runtime.time + sideEffectAmount(runtime, action.durationSec ?? Number(cast.skill.flipDuration)),
+        expiresAt: runtime.time + sideEffectAmount(runtime, action.durationSec ?? Number(context.skill.flipDuration)),
         // Some follow-ups must expire before same-time cast work, matching their previous lifecycle owner.
         expiryPriority: action.expiryPriority
       });
@@ -91,13 +98,14 @@ export function applySideEffect(
     case 'emitProfile':
       emitEffects(runtime, {
         owner: requireBalanceProfileFromContext(runtime, action.profileId),
+        cause: context.kind === 'effect' ? context.trigger.event : undefined,
         baseEvent: {
           source: 'Trait',
           sourceId: action.profileId,
           actorType: 'effect',
-          skillId: cast.skill.id,
-          skillName: cast.skill.name,
-          activationId: cast.id,
+          skillId: context.kind === 'cast' ? context.skill.id : context.trigger.event.skillId,
+          skillName: context.kind === 'cast' ? context.skill.name : context.trigger.event.skillName,
+          activationId: context.kind === 'cast' ? context.cast.id : context.trigger.event.activationId,
           ...action.attribution
         }
       });
@@ -105,7 +113,7 @@ export function applySideEffect(
     default: {
       const handler = handlers[action.type];
       if (!handler) throw new TypeError(`No side-effect handler registered for ${action.type}.`);
-      handler(runtime, cast, action);
+      handler(runtime, context, action);
     }
   }
 }
@@ -120,6 +128,6 @@ export function applySkillSideEffects(
   if ((on === 'castCommit' && cast.cancelled) || (on === 'castComplete' && !castCompleted(cast))) return;
   for (const effect of cast.skill.sideEffects ?? []) {
     if (effect.on === on && (!effect.when || effect.when(runtime, cast)))
-      applySideEffect(runtime, cast, effect.do, handlers);
+      applySideEffect(runtime, { kind: 'cast', skill: cast.skill, cast }, effect.do, handlers);
   }
 }

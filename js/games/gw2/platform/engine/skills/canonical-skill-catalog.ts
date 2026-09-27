@@ -6,7 +6,10 @@
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { deriveAutoattackChains, indexAutoattackChains } from '#gw2/platform/engine/skills/autoattack-chains.js';
 import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/engine/effects/contracts.js';
-import { RESOURCE_KEYS } from '#gw2/platform/combat/resources/resource-policy.js';
+import {
+  validateEffectReactions,
+  validateSideEffectAction
+} from '#gw2/platform/engine/skills/side-effect-validation.js';
 import type {
   AutoattackChainPosition,
   BalanceProfile,
@@ -58,6 +61,7 @@ const QUICKNESS_ACTION_RATE = 1.5;
 // Allowlist used to catch typos in hand-authored effect objects at catalog-build time.
 const EFFECT_FIELDS = new Set([
   'type',
+  'reactions',
   'when',
   'coefficient',
   'coefficientModifiers',
@@ -937,79 +941,10 @@ export function createCanonicalCatalog({
   return Object.freeze(catalog);
 }
 
-/** Validate literal and selected-profile amounts without coercion before a declaration can mutate runtime state. */
-function validateSideEffectAmount(catalog: CanonicalCatalog, amount: unknown, label: string, skill?: Skill): void {
-  let value = amount;
-  if (amount && typeof amount === 'object' && !Array.isArray(amount)) {
-    const reference = amount as { profile?: SkillId; field?: string; skillField?: string };
-    if ('skillField' in reference) {
-      // Only resource grants supply the current skill; other action amounts retain profile/literal semantics.
-      if (
-        !skill ||
-        typeof reference.skillField !== 'string' ||
-        !Object.hasOwn(skill, reference.skillField) ||
-        Object.keys(reference).length !== 1
-      )
-        throw new TypeError(`${label} requires an existing numeric skill field.`);
-      value = skill[reference.skillField];
-    } else {
-      const profile = reference.profile == null ? undefined : catalog.balanceProfilesById.get(reference.profile);
-      if (!profile || typeof reference.field !== 'string' || !Object.hasOwn(profile, reference.field))
-        throw new TypeError(`${label} requires an existing balance profile field.`);
-      value = profile[reference.field];
-    }
-  }
-
-  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
-    throw new TypeError(`${label} must be finite and non-negative.`);
-}
-
-/** References can cross module contributions, so validate actions only after all catalog indexes exist. */
+/** References can cross module contributions, so validate after the complete catalog exists. */
 function validateSkillDeclarations(catalog: CanonicalCatalog, skill: Skill): void {
-  for (const { do: action } of skill.sideEffects ?? []) {
-    const label = `Skill ${skill.id} side effect ${action.type}`;
-    switch (action.type) {
-      case 'rechargeReset':
-      case 'ammoRestore':
-        if (!Array.isArray(action.skillIds)) throw new TypeError(`${label} requires a skillIds array.`);
-        for (const id of action.skillIds) {
-          const target = catalog.skillsById.get(id);
-          if (!target) throw new TypeError(`${label} references missing skill ${id}.`);
-          if (action.type === 'ammoRestore' && !(Number(target.ammo) > 0))
-            throw new TypeError(`${label} requires an ammo skill: ${id}.`);
-        }
-
-        if (action.type === 'ammoRestore') validateSideEffectAmount(catalog, action.count, `${label} count`);
-        break;
-      case 'resourceGrant':
-        if (action.resource !== 'endurance' && !RESOURCE_KEYS.includes(action.resource))
-          throw new TypeError(`${label} references unknown resource ${action.resource}.`);
-        validateSideEffectAmount(catalog, action.amount, `${label} amount`, skill);
-        break;
-      case 'flipArm':
-        if (action.expiryPriority !== undefined) requireBalanceNumber(action.expiryPriority, `${label} expiryPriority`);
-        if (!catalog.skillsById.has(action.skillId))
-          throw new TypeError(`${label} references missing skill ${action.skillId}.`);
-        validateSideEffectAmount(
-          catalog,
-          action.durationSec === undefined ? skill.flipDuration : action.durationSec,
-          `${label} duration`
-        );
-        break;
-      case 'emitProfile':
-        if (!catalog.balanceProfilesById.has(action.profileId))
-          throw new TypeError(`${label} references missing profile ${action.profileId}.`);
-        if (action.attribution != null && (typeof action.attribution !== 'object' || Array.isArray(action.attribution)))
-          throw new TypeError(`${label} attribution must be an object.`);
-        break;
-      default:
-        // Namespaced profession actions are bound to handlers when the selected runtime modules are assembled.
-        if (!/^[\w-]+(?:\.[\w-]+)+$/.test(action.type))
-          throw new TypeError(`${label} is not a built-in or namespaced action.`);
-        if (action.amount !== undefined) validateSideEffectAmount(catalog, action.amount, `${label} amount`);
-    }
-  }
-
+  for (const { do: action } of skill.sideEffects ?? []) validateSideEffectAction(catalog, skill, action);
+  for (const effect of skill.effects ?? []) validateEffectReactions(catalog, skill, effect);
   for (const variant of skill.effectVariants ?? [])
     if (!catalog.balanceProfilesById.has(variant.profileId))
       throw new TypeError(`Skill ${skill.id} effect variant references missing profile ${variant.profileId}.`);
@@ -1030,6 +965,8 @@ function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
     }
   }
 
+  for (const profile of catalog.balanceProfiles)
+    for (const effect of profile.effects ?? []) validateEffectReactions(catalog, profile as Skill, effect);
   const ids = new Set();
   for (const skill of catalog?.skills || []) {
     if (skill.id === undefined || skill.id === null || ids.has(skill.id)) {

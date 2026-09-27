@@ -1,3 +1,4 @@
+import type { EffectReactionRef } from '#gw2/platform/simulation/effect-reactions.js';
 import { ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
@@ -219,6 +220,8 @@ export type CommonSimulationEventType = Exclude<(typeof COMMON_EVENT_TYPES)[numb
 export type CustomSimulationEventType = `${string}.${string}`;
 
 export interface SimulationEventBase<TType extends string = string> {
+  /** Internal authored-effect provenance; never inferred from display skill attribution. */
+  readonly effectReaction?: EffectReactionRef;
   readonly schemaVersion?: 1;
   readonly type: TType;
   readonly at: number;

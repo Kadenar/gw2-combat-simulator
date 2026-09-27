@@ -63,6 +63,7 @@ export interface MaterializedEffectApplication {
 }
 
 export interface MaterializeSkillEffectOptions {
+  readonly reactionGroup?: number;
   readonly skill: Skill;
   readonly effect: SkillEffect;
   readonly start: number;
@@ -136,7 +137,8 @@ export function materializeSkillEffectApplications({
   fullEnd,
   baseEvent,
   skillWeaponFallback = '',
-  statusDuration
+  statusDuration,
+  reactionGroup
 }: MaterializeSkillEffectOptions): readonly MaterializedEffectApplication[] {
   const firstAt = effectFirstAt(start, fullEnd, effect);
   const applications: MaterializedEffectApplication[] = [];
@@ -289,5 +291,11 @@ export function materializeSkillEffectApplications({
     }
   }
 
+  // Packet identity is authored before interruption and targeting filter out any applications.
+  if (reactionGroup !== undefined)
+    return applications.map((application, index) => ({
+      ...application,
+      event: { ...application.event, effectReaction: { group: reactionGroup, packet: index + 1 } }
+    }));
   return applications;
 }

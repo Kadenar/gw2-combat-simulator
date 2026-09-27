@@ -1,3 +1,4 @@
+import type { createEffectReactions } from '#gw2/platform/simulation/effect-reactions.js';
 import type { Gw2QueryProfession } from '#gw2/platform/combat/query/combat-query.js';
 import type { ResourceKey, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
@@ -23,7 +24,7 @@ import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { InternalWork, WorkOwner } from '#gw2/platform/simulation/internal-work.js';
 import type { SkillFlipWindow } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { SideEffectAction } from '#gw2/platform/simulation/side-effects.js';
+import type { ActionContext, SideEffectAction } from '#gw2/platform/simulation/side-effects.js';
 import type { RechargeRule, TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type {
   AutoattackChainOverride,
@@ -87,6 +88,7 @@ export type RuntimeWork =
   | InternalWork<'runtime.flip-expiry', { skillId: SkillId; identity: number | string }>
   | InternalWork<'runtime.procedural', { event: SimulationEventBase; fixedDuration?: boolean }>
   | InternalWork<'runtime.complete', { reservationId: string }>
+  | InternalWork<'runtime.skill-task', { cast: Omit<RuntimeCast, 'skill'>; skillId: SkillId; trigger: SkillTask }>
   | InternalWork<'runtime.task', { name: string; data: unknown }>;
 
 /** The single mutable context contains both command control and actual combat state. */
@@ -104,6 +106,7 @@ export interface Gw2Runtime<T extends object = object> extends Gw2ResolverRuntim
   readonly ammo: Map<SkillId, AmmoState>;
   readonly lockouts: Map<string, number>;
   readonly inFlight: Map<SkillId, Set<string>>;
+  readonly effectReactions: ReturnType<typeof createEffectReactions>;
   readonly cooldownController: CooldownController;
   readonly history: Gw2ResolverEvent[];
   readonly steps: SimulationStep[];
@@ -165,7 +168,7 @@ export interface RuntimeProfession<T extends object> extends Gw2QueryProfession 
   onCastCommit?(runtime: Gw2Runtime<T>, cast: RuntimeCast): void;
   onCastComplete?(runtime: Gw2Runtime<T>, cast: RuntimeCast): void;
   readonly sideEffectHandlers?: Readonly<
-    Record<string, (runtime: Gw2Runtime<T>, cast: RuntimeCast, action: SideEffectAction) => void>
+    Record<string, (runtime: Gw2Runtime<T>, context: ActionContext, action: SideEffectAction) => void>
   >;
   readonly autoattackChainOverrides?: readonly AutoattackChainOverride[];
   onAutoattackChainTransition?(

@@ -371,7 +371,14 @@ test('selected runtime assembly binds profession side-effect handlers', () => {
         generatedSkills: [
           skill(2, 'Elite action', {
             specialization: 'Elite',
-            sideEffects: [{ on: 'castComplete', do: { type: 'fixture.action' } }]
+            sideEffects: [{ on: 'castComplete', do: { type: 'fixture.action' } }],
+            effects: [
+              {
+                type: 'strike',
+                coefficient: 1,
+                reactions: [{ on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'fixture.impact' } }]
+              }
+            ]
           })
         ]
       },
@@ -386,7 +393,14 @@ test('selected runtime assembly binds profession side-effect handlers', () => {
   const bound = defineNativeProfession({
     id: 'fixture',
     name: 'Fixture',
-    modules: [coreModule(), elite({ sideEffectHandlers: { 'fixture.action': handler } })]
+    modules: [coreModule(), elite({ sideEffectHandlers: { 'fixture.action': handler, 'fixture.impact': handler } })]
   });
   assert.equal(bound.runtimeFor({ specialization: 'Elite' }).sideEffectHandlers['fixture.action'], handler);
+  assert.equal(bound.runtimeFor({ specialization: 'Elite' }).sideEffectHandlers['fixture.impact'], handler);
+  const missingImpact = defineNativeProfession({
+    id: 'fixture',
+    name: 'Fixture',
+    modules: [coreModule(), elite({ sideEffectHandlers: { 'fixture.action': handler } })]
+  });
+  assert.throws(() => missingImpact.runtimeFor({ specialization: 'Elite' }), /fixture.impact/);
 });

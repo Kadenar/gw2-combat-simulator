@@ -1,3 +1,4 @@
+import type { EffectReaction } from '#gw2/platform/simulation/effect-reactions.js';
 /** Defines catalog skills and declarative effects so authored data stays independent of runtime implementations. */
 import type { EffectMetadata, EffectAudience, DamageEvent } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
@@ -38,6 +39,8 @@ export interface ConditionTick {
 }
 
 export interface SkillEffectBase {
+  /** Accepted applications invoke only the reactions authored on this particular effect. */
+  readonly reactions?: readonly EffectReaction[];
   readonly type: string;
   /** Capture acceptance-time eligibility once; impact-time state remains a resolver responsibility. */
   readonly when?: (runtime: Gw2Runtime<any>, cast: RuntimeCast) => boolean;

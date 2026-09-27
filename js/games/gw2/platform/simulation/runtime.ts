@@ -1,3 +1,4 @@
+import { createEffectReactions, type EffectReactionStage } from '#gw2/platform/simulation/effect-reactions.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
 import { ACTION_SAFETY_LIMIT, canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
@@ -94,6 +95,21 @@ import type { CastCommand } from '#gw2/platform/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 
+/** Derived copies cannot reuse the parent's declaration, including after serialization or deferral. */
+function withoutInheritedReaction(event: SimulationEventBase, cause?: Gw2ResolverEvent | null): SimulationEventBase {
+  if (
+    event.effectReaction &&
+    cause?.effectReaction &&
+    event.effectReaction.group === cause.effectReaction.group &&
+    event.effectReaction.packet === cause.effectReaction.packet
+  ) {
+    const { effectReaction: _inherited, ...derived } = event;
+    return derived;
+  }
+
+  return event;
+}
+
 /** One cursor, queue, profession instance and RNG own gameplay in both reporting modes. */
 export function runGw2Runtime<T extends object>({
   profession,
@@ -155,11 +171,27 @@ export function runGw2Runtime<T extends object>({
 
   // Bind hooks to the same context used by commands. No hook receives a predicted or restored state.
   const contributions = createGw2EquipmentReactionContributions();
+  const effectReactions = createEffectReactions(profession.catalog, profession.sideEffectHandlers);
+  // Skill-owned actions run immediately before the composed profession reactions, through the same acceptance gates.
+  function effectReactionContribution(stage: EffectReactionStage) {
+    return {
+      id: `skill.${stage}`,
+      order: -1,
+      handler: (_context: unknown, event: Gw2ResolverEvent, details: Record<string, unknown> = {}) =>
+        effectReactions.dispatch(runtime, stage, event, details)
+    };
+  }
+
   const actualReactions = createGw2ResolverReactionRegistry({
     contributions: {
       ...contributions,
+      'condition.applied': [
+        ...(contributions['condition.applied'] ?? []),
+        effectReactionContribution('condition.applied')
+      ],
       'damage.resolved': [
         ...(contributions['damage.resolved'] ?? []),
+        effectReactionContribution('damage.resolved'),
         {
           id: 'sigil.actual-strike',
           order: -300,
@@ -171,6 +203,7 @@ export function runGw2Runtime<T extends object>({
       ],
       'control.resolved': [
         ...(contributions['control.resolved'] ?? []),
+        effectReactionContribution('control.resolved'),
         {
           id: 'sigil.actual-control',
           order: -300,
@@ -223,6 +256,7 @@ export function runGw2Runtime<T extends object>({
     skillFor: (id) => profession.catalog.skillsById.get(id)
   });
   runtime = Object.assign(base, {
+    effectReactions,
     profession: base.profession as T,
     ...clocks,
     inputReadyAt: 0,
@@ -251,6 +285,7 @@ export function runGw2Runtime<T extends object>({
       return conditions.applyCondition(runtime, event);
     },
     emitDerived(cause: Gw2ResolverEvent, event: SimulationEventBase) {
+      event = withoutInheritedReaction(event, cause);
       return runtime.emit({
         // Causality orders a proc beside its trigger; its independent activation owns a separate weapon-strength roll.
         activationId:
@@ -265,6 +300,7 @@ export function runGw2Runtime<T extends object>({
     emitProcedural(event: SimulationEventBase, options: ProceduralEmissionOptions = {}) {
       const at = canonicalTime(Number(event.at));
       const { cause } = options;
+      event = withoutInheritedReaction(event, cause);
       // A future buff waits for its own instant so its duration samples live stats there; a future owner-bound packet
       // waits so retiring the owner cancels it. The work inherits the current causal placement, like any other task.
       if (at > runtime.time && (event.type === 'buff' || options.owner)) {
@@ -419,6 +455,8 @@ export function runGw2Runtime<T extends object>({
   /** Authored skill tasks become live work at their deadlines; cast-scaled offsets follow the reserved duration. */
   function scheduleSkillTasks(cast: RuntimeCast): void {
     for (const trigger of cast.skill.tasks ?? []) {
+      if (!profession.tasks?.[trigger.type])
+        throw new TypeError(`No profession task handler registered for ${trigger.type}.`);
       const castTimeMs = Number(cast.skill.castTimeMs);
       const scale =
         trigger.timingScale === 'cast' && castTimeMs > 0 ? ((cast.fullEnd - cast.start) * 1000) / castTimeMs : 1;
@@ -429,7 +467,16 @@ export function runGw2Runtime<T extends object>({
             ? cast.effectiveEnd
             : cast.fullEnd;
       const at = Math.max(runtime.time, origin + (Number(trigger.atMs ?? 0) * scale) / 1000);
-      runtime.schedule(trigger.type, at, { cast, trigger } satisfies SkillTaskData);
+      // Catalog declarations can contain functions; queued tasks retain only the skill identity and reservation data.
+      const { skill, ...reservation } = cast;
+      enqueueWork(
+        makeWork({
+          type: 'runtime.skill-task',
+          at,
+          priority: 0,
+          payload: { cast: reservation, skillId: skill.id, trigger }
+        })
+      );
     }
   }
 
@@ -440,6 +487,16 @@ export function runGw2Runtime<T extends object>({
     return flips;
   }
 
+  internal.register('runtime.skill-task', (_context, work) => {
+    if (work.type !== 'runtime.skill-task') return;
+    const { cast, skillId, trigger } = work.payload;
+    const handler = profession.tasks?.[trigger.type];
+    if (!handler) throw new TypeError(`No profession task handler registered for ${trigger.type}.`);
+    handler(runtime, {
+      cast: { ...cast, skill: profession.catalog.skillsById.get(skillId)! },
+      trigger
+    } satisfies SkillTaskData);
+  });
   internal.register('runtime.flip-expiry', (_context, work) => {
     if (work.type === 'runtime.flip-expiry')
       expireSkillFlip(flipWindows(), work.payload.skillId, runtime.time, work.payload.identity);
@@ -722,6 +779,7 @@ export function runGw2Runtime<T extends object>({
       for (const application of materializeSkillEffectApplications({
         skill,
         effect: scaleCastBoundTiming(cast, skill, effect),
+        reactionGroup: effectReactions.register(skill, effect),
         start,
         fullEnd,
         baseEvent: {

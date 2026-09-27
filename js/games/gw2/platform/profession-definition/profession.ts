@@ -1,3 +1,4 @@
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { defineProfessionFamily } from '#gw2/platform/engine/profession/family.js';
 import { composeStateFragments } from '#gw2/platform/engine/profession/module.js';
@@ -378,11 +379,17 @@ export function defineNativeProfession<
         return work;
       }
     };
-    // Bind profession verbs only after Core and the selected elite handlers have been composed.
-    for (const skill of runtime.catalog.skills)
-      for (const { do: action } of skill.sideEffects ?? [])
+    // Bind actions on base and profile effects after Core and elite handlers have been composed.
+    for (const owner of [...runtime.catalog.skills, ...runtime.catalog.balanceProfiles]) {
+      const actions = [
+        ...((owner as Skill).sideEffects ?? []).map((rule) => rule.do),
+        ...(owner.effects ?? []).flatMap((effect) => (effect.reactions ?? []).flatMap((rule) => rule.do))
+      ];
+      for (const action of actions)
         if (action.type.includes('.') && typeof runtime.sideEffectHandlers?.[action.type] !== 'function')
-          throw new TypeError(`Skill ${skill.id} has no side-effect handler registered for ${action.type}.`);
+          throw new TypeError(`Skill ${owner.id} has no side-effect handler registered for ${action.type}.`);
+    }
+
     runtimes.set(specialization, runtime);
     return runtime;
   }

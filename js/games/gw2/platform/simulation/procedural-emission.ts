@@ -68,6 +68,8 @@ export function emitEffects<T extends object>(runtime: Gw2Runtime<T>, options: E
     for (const { event } of materializeSkillEffectApplications({
       skill: options.owner as Skill,
       effect,
+      reactionGroup:
+        effect.reactions === undefined ? undefined : runtime.effectReactions.register(options.owner as Skill, effect),
       start: at,
       fullEnd: options.fullEnd ?? at,
       baseEvent: typeof options.baseEvent === 'function' ? options.baseEvent(effect) : options.baseEvent,
