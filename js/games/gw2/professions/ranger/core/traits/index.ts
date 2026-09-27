@@ -3,7 +3,7 @@ import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   requireBalanceProfileFromContext,
@@ -52,16 +52,11 @@ export function applyRangerBeastSkillTraits(
   skill: RangerSkill,
   triggerPoisonMaster: boolean
 ): void {
-  if (
-    hasTrait(context, TRAIT.REJUVENATION) &&
-    isInternalCooldownReady(context.time, context.procs.deadline('ranger.core.rejuvenation'))
-  ) {
+  if (hasTrait(context, TRAIT.REJUVENATION)) {
     const profile = requireBalanceProfileFromContext(context, PROFILE.rejuvenation);
     const effect = requireEffect(profile, 'boon', 'regeneration');
     // The cooldown gates only regeneration, so a removed boon leaves the trait ready.
-    if (effect) {
-      context.procs.readyAt['ranger.core.rejuvenation'] =
-        context.time + balanceProfileNumber(profile, 'internalCooldown');
+    if (effect && context.procs.claim(PROFILE.rejuvenation, 'ranger.core.rejuvenation', context.time)) {
       const kind = String(effect.boon);
       context.emitProcedural(
         rangerEvent(
@@ -157,11 +152,10 @@ export function applyRangerPetSwapTraits(context: RangerRuntime, skill: RangerSk
 
   if (
     hasTrait(context, TRAIT.CLARION_BOND) &&
-    isInternalCooldownReady(context.time, context.procs.deadline('ranger.core.clarionBond'))
+    context.procs.claim(PROFILE.clarionBond, 'ranger.core.clarionBond', context.time)
   ) {
     const profile = requireBalanceProfileFromContext(context, PROFILE.clarionBond);
     // The blast finisher is part of the lesser warhorn package, so the cooldown survives removed boons.
-    context.procs.readyAt['ranger.core.clarionBond'] = context.time + balanceProfileNumber(profile, 'internalCooldown');
     emitEffects(context, {
       owner: profile,
       effects: profile.effects?.filter((effect) => effect.type === 'boon'),

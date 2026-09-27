@@ -653,7 +653,8 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = 
   },
   onCastStart(runtime, cast) {
     const state = bladeswornState.from(runtime);
-    if (cast.skill.id === ID.TACTICAL_RELOAD && !cast.cancelled) runtime.schedule(RELOAD_COMPLETE, cast.fullEnd, cast);
+    if (cast.skill.id === ID.TACTICAL_RELOAD && !cast.cancelled)
+      runtime.scheduleForCast(RELOAD_COMPLETE, cast.fullEnd, cast);
     if (cast.ammo) {
       const ammo = runtime.ammo.get(cast.skill.id)!;
       const artillery = cast.skill.id === ID.ARTILLERY_SLASH || cast.skill.id === ID.SHARP_ARTILLERY_SLASH;
@@ -665,7 +666,11 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = 
     }
 
     if (cast.skill.id === ID.OVERCHARGED_CARTRIDGES && !cast.cancelled)
-      runtime.schedule(CARTRIDGE_ACTIVATE, canonicalTime(cast.start + (cast.fullEnd - cast.start) * (420 / 900)), cast);
+      runtime.scheduleForCast(
+        CARTRIDGE_ACTIVATE,
+        canonicalTime(cast.start + (cast.fullEnd - cast.start) * (420 / 900)),
+        cast
+      );
     if (cast.skill.dragonSlash) {
       const maximum = maximumDragonCharges(runtime);
       const release = {
@@ -758,11 +763,11 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = 
     }
   },
   tasks: {
-    [RELOAD_COMPLETE](runtime, cast) {
-      tacticalReload(runtime, cast as RuntimeCast);
+    [RELOAD_COMPLETE](runtime, data) {
+      tacticalReload(runtime, (data as { cast: RuntimeCast }).cast);
     },
-    [CARTRIDGE_ACTIVATE](runtime, cast) {
-      activateCartridges(runtime, cast as RuntimeCast);
+    [CARTRIDGE_ACTIVATE](runtime, data) {
+      activateCartridges(runtime, (data as { cast: RuntimeCast }).cast);
     },
     [FLOW_TICK]: flowTick,
     [CHARGE_TICK]: chargeTick,

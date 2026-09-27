@@ -28,12 +28,11 @@ import type {
 
 /** Schedules Grenadier's lesser barrage from an eligible healing cast after its internal cooldown. */
 export function applyGrenadier(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  if (!hasTrait(context.config, TRAIT.GRENADIER) || !isInternalCooldownReady(at, context.procs.readyAt.grenadier || 0))
-    return;
+  if (!hasTrait(context.config, TRAIT.GRENADIER)) return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.grenadier);
   const effect = requireEffect(profile, 'strike', 'Grenadier');
-  if (!effect) return;
-  context.procs.readyAt.grenadier = at + balanceProfileNumber(profile, 'internalCooldown');
+  // A removed barrage leaves the trait ready; claim before emitting any surviving strikes.
+  if (!effect || !context.procs.claim(PROFILE.grenadier, 'grenadier', at)) return;
   emitEffects(context, {
     owner: profile,
     effects: [effect],

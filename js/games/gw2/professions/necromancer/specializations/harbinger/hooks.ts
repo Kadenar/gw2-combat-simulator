@@ -199,7 +199,7 @@ function commit(runtime: NecromancerRuntime, cast: RuntimeCast, impactAt: number
       );
     }
 
-    runtime.schedule(IMPACT, impactAt, { cast, empowered, blight });
+    runtime.scheduleForCast(IMPACT, impactAt, cast, { empowered, blight });
   } else {
     const profile = empowered
       ? requireBalanceProfileFromContext(runtime, HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)])
@@ -278,13 +278,13 @@ export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
         : cast.fullEnd;
       // The thrown elixir's self Blight and boons remain local; only hostile packets carry target travel below.
       const at = canonicalTime(cast.start + 0.36);
-      runtime.schedule(COMMIT, at, { cast, impactAt: Math.max(at, canonicalTime(impactAt)) });
+      runtime.scheduleForCast(COMMIT, at, cast, { impactAt: Math.max(at, canonicalTime(impactAt)) });
     } else if ([ID.VORACIOUS_ARC, ID.DEVOURING_CUT].some((id) => id === Number(cast.skill.id))) {
       const progress = cast.skill.id === ID.DEVOURING_CUT ? 0.75 : 20 / 21;
       const at = canonicalTime(
         cast.start + quantizeGw2ActionTimingMs((cast.fullEnd - cast.start) * progress * 1000) / 1000
       );
-      if (at <= cast.effectiveEnd) runtime.schedule(COMMIT, at, { cast, impactAt: at });
+      if (at <= cast.effectiveEnd) runtime.scheduleForCast(COMMIT, at, cast, { impactAt: at });
     }
   },
   modifyEffects(_runtime, cast, effects) {

@@ -7,7 +7,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -31,11 +31,10 @@ export function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSk
   if (
     skill.kitTransition !== 'equip' ||
     !hasTrait(context.config, TRAIT.STREAMLINED_KITS) ||
-    !isInternalCooldownReady(at, context.procs.readyAt.streamlinedKits || 0)
+    !context.procs.claim(PROFILE.streamlinedKits, 'streamlinedKits', at)
   )
     return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.streamlinedKits);
-  context.procs.readyAt.streamlinedKits = at + balanceProfileNumber(profile, 'internalCooldown');
   emitEffects(context, {
     owner: profile,
     effects: profile.effects?.filter(

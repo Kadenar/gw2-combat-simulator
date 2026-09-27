@@ -39,10 +39,6 @@ export function triggerChaoticInterruption(context: MesmerRuntime, event: Simula
   }
 
   const defiant = Boolean(context.config.target.defiant);
-  if (defiant && !isInternalCooldownReady(event.at, context.procs.readyAt[TRAIT.CHAOTIC_INTERRUPTION] || 0)) {
-    return;
-  }
-
   const set = context.activeWeaponSet;
   const [configuredMainhand, configuredOffhand] = gw2ConfiguredWeaponSet(context.config, set);
   const [primaryMainhand, primaryOffhand] = gw2ConfiguredWeaponSet(context.config, 1);
@@ -63,12 +59,9 @@ export function triggerChaoticInterruption(context: MesmerRuntime, event: Simula
   const reduction = balanceProfileNumber(chaoticInterruptionProfile, 'recharge');
   const target = context.helpers.skillsById.get(targetId);
   if (!target) return;
+  // Only a defiant target consumes an interval, after a recharging weapon skill has been selected.
+  if (defiant && !context.procs.claim(TRAIT.CHAOTIC_INTERRUPTION, TRAIT.CHAOTIC_INTERRUPTION, event.at)) return;
   context.cooldownController.reduceSkillRecharge(target, reduction, event.at);
-
-  if (defiant) {
-    context.procs.readyAt[TRAIT.CHAOTIC_INTERRUPTION] =
-      event.at + balanceProfileNumber(chaoticInterruptionProfile, 'internalCooldown');
-  }
 
   runtime.addTraitProc(
     'Chaotic Interruption',

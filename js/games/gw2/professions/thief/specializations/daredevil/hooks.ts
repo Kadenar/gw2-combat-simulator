@@ -11,7 +11,7 @@ import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { deferThiefCompletion, emitThiefBuff, takeThiefCompletion } from '#gw2/professions/thief/core/events.js';
+import { deferThiefCompletion, emitThiefBuff } from '#gw2/professions/thief/core/events.js';
 import { grantThiefEndurance, thiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
@@ -224,8 +224,8 @@ export const daredevilHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   },
   tasks: {
     [DAREDEVIL_COMPLETE](runtime, data) {
-      const cast = takeThiefCompletion(runtime, DAREDEVIL_COMPLETE, data);
-      if (cast) completeDaredevilCast(runtime, cast);
+      const { cast } = data as { cast: RuntimeCast };
+      completeDaredevilCast(runtime, cast);
     }
   }
 };

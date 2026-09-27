@@ -88,7 +88,10 @@ export type RuntimeWork =
   | InternalWork<'runtime.flip-expiry', { skillId: SkillId; identity: number | string }>
   | InternalWork<'runtime.procedural', { event: SimulationEventBase; fixedDuration?: boolean }>
   | InternalWork<'runtime.complete', { reservationId: string }>
-  | InternalWork<'runtime.skill-task', { cast: Omit<RuntimeCast, 'skill'>; skillId: SkillId; trigger: SkillTask }>
+  | InternalWork<
+      'runtime.cast-task',
+      { name: string; cast: Omit<RuntimeCast, 'skill'>; skillId: SkillId; data: Record<string, unknown> }
+    >
   | InternalWork<'runtime.task', { name: string; data: unknown }>;
 
 /** The single mutable context contains both command control and actual combat state. */
@@ -128,6 +131,15 @@ export interface Gw2Runtime<T extends object = object> extends Gw2ResolverRuntim
   /** True once combat has started: always without an explicit marker, otherwise from the executed marker onward. */
   combatStartedAt(at?: number): boolean;
   schedule(name: string, at: number, data?: unknown, owner?: WorkOwner, priority?: number): number;
+  /** Snapshots cast data without cloning executable skill declarations; handlers receive `{ ...data, cast }`. */
+  scheduleForCast(
+    name: string,
+    at: number,
+    cast: RuntimeCast,
+    data?: Record<string, unknown>,
+    owner?: WorkOwner,
+    priority?: number
+  ): number;
   cancelOwner(owner: WorkOwner): void;
 }
 

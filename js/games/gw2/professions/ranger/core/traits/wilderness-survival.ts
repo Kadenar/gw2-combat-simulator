@@ -3,7 +3,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 /** Owns Core Ranger Wilderness Survival condition and control-triggered trait behavior. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   requireBalanceProfileFromContext,
@@ -19,12 +19,7 @@ import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ran
 // On an eligible heal, consume Child of Earth's ICD and emit the initial
 // immobilize followed by the profile-defined Muddy Terrain condition pulses.
 export function emitChildOfEarth(context: RangerRuntime, skill: RangerSkill): void {
-  if (
-    !hasTrait(context, TRAIT.CHILD_OF_EARTH) ||
-    !isInternalCooldownReady(context.time, context.procs.deadline('ranger.core.childOfEarth'))
-  ) {
-    return;
-  }
+  if (!hasTrait(context, TRAIT.CHILD_OF_EARTH)) return;
 
   const profile = requireBalanceProfileFromContext(context, PROFILE.childOfEarth);
   const immobilized = requireEffect(profile, 'condition', 'Immobilized');
@@ -34,7 +29,7 @@ export function emitChildOfEarth(context: RangerRuntime, skill: RangerSkill): vo
   );
   // The cooldown gates the lesser field; with every packet removed there is nothing to gate.
   if (!immobilized && !pulses.length) return;
-  context.procs.readyAt['ranger.core.childOfEarth'] = context.time + balanceProfileNumber(profile, 'internalCooldown');
+  if (!context.procs.claim(PROFILE.childOfEarth, 'ranger.core.childOfEarth', context.time)) return;
   const at = context.time;
   if (immobilized)
     context.emit(

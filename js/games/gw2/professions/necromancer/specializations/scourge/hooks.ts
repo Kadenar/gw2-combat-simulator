@@ -1,4 +1,4 @@
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -104,7 +104,7 @@ function emitShroudEffects(runtime: NecromancerRuntime, cast: RuntimeCast, effec
       },
       skillWeaponFallback: 'Unequipped'
     })) {
-      if (event.type === 'buff') runtime.schedule(BARRIER, event.at, { cast, event });
+      if (event.type === 'buff') runtime.scheduleForCast(BARRIER, event.at, cast, { event });
       // Keep authored profile-slot labels out of the public strike name.
       else emitPacket(runtime, cast, event.type === 'damage' ? { ...event, name: cast.skill.name } : event);
     }
@@ -295,7 +295,7 @@ export const scourgeHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> =
   modifyEffects: (_runtime, cast, effects) => (SHADE_SKILLS.has(Number(cast.skill.id)) ? [] : effects),
   onCastStart(runtime, cast) {
     if (cast.skill.id === ID.MANIFEST_SAND_SHADE && !cast.cancelled)
-      runtime.schedule(MANIFEST, canonicalTime(cast.start + ((cast.fullEnd - cast.start) * 11) / 12), cast);
+      runtime.scheduleForCast(MANIFEST, canonicalTime(cast.start + ((cast.fullEnd - cast.start) * 11) / 12), cast);
   },
   onCastCommit: completeShade,
   tasks: {
@@ -304,7 +304,7 @@ export const scourgeHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> =
       refreshShadeExpiry(runtime);
     },
     [MANIFEST](runtime, data) {
-      shadeStrike(runtime, data as RuntimeCast);
+      shadeStrike(runtime, (data as { cast: RuntimeCast }).cast);
     },
     [BARRIER](runtime, data) {
       const { cast, event } = data as { cast: RuntimeCast; event: Gw2ResolverEvent };
@@ -316,16 +316,17 @@ export const scourgeHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> =
   reactions: {
     'condition.applied'(runtime, event) {
       scourgeResolverEventReactions.condition(runtime, event);
+      if (event.condition !== 'Burning' || !hasTrait(runtime, TRAIT.NOURISHING_ASHES)) return;
+      const profile = requireBalanceProfileFromContext(runtime, PROFILE.nourishingAshes);
+      // A qualifying Burning application claims before its life-force reward.
       if (
-        event.condition !== 'Burning' ||
-        !hasTrait(runtime, TRAIT.NOURISHING_ASHES) ||
-        !isInternalCooldownReady(runtime.time, runtime.procs.deadline('necromancer.scourge.nourishingAshes'))
+        !runtime.procs.claimCooldown(
+          'necromancer.scourge.nourishingAshes',
+          runtime.time,
+          balanceProfileNumber(profile, 'cooldown')
+        )
       )
         return;
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.nourishingAshes);
-      runtime.procs.readyAt['necromancer.scourge.nourishingAshes'] = canonicalTime(
-        runtime.time + balanceProfileNumber(profile, 'cooldown')
-      );
       grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
     }
   }

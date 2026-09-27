@@ -344,8 +344,8 @@ export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> =
     const flameAt = canonicalTime(
       virtue === 'resolve' ? cast.start : virtue === 'justice' ? Math.max(at, cast.effectiveEnd - 0.04) : at
     );
-    runtime.schedule(ACTIVATE, at, { cast, virtue });
-    runtime.schedule(FLAMES, flameAt, { cast, virtue }, undefined, -10);
+    runtime.scheduleForCast(ACTIVATE, at, cast, { virtue });
+    runtime.scheduleForCast(FLAMES, flameAt, cast, { virtue }, undefined, -10);
   },
   onCastCommit(runtime, cast) {
     const state = willbenderState.from(runtime);

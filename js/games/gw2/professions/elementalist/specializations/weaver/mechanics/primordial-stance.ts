@@ -34,7 +34,7 @@ export function schedulePrimordialStance(context: ElementalistRuntime, cast: Run
   }
 
   for (const at of [...tickTimes].sort((a, b) => a - b))
-    context.schedule('elementalist.primordial-stance', at, cast, { id: cast.id, generation: 0 });
+    context.scheduleForCast('elementalist.primordial-stance', at, cast, {}, { id: cast.id, generation: 0 });
 }
 
 /** Resolves one Primordial Stance pulse against the attunements live at its timestamp. */
@@ -82,7 +82,7 @@ function emitPrimordialStancePulse(
 
 /** Every pulse retains the cast targeting policy but reads the current hand pair. */
 export function primordialStancePulse(runtime: ElementalistRuntime, data: unknown): void {
-  const cast = data as RuntimeCast;
+  const { cast } = data as { cast: RuntimeCast };
   withElementalistCast(runtime, cast, () =>
     emitPrimordialStancePulse(runtime, runtime.time, { sourceId: cast.skill.id })
   );

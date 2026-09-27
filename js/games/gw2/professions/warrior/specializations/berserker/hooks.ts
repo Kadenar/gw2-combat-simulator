@@ -1,5 +1,5 @@
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import {
@@ -265,13 +265,11 @@ export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
       if (
         !hit.critEligible ||
         !hit.critical.didCrit ||
-        !isInternalCooldownReady(runtime.time, runtime.procs.deadline('warrior.berserker.kingOfFires'))
+        !runtime.procs.claim(PROFILE.kingOfFires, 'warrior.berserker.kingOfFires', runtime.time)
       )
         return;
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.kingOfFires);
-      runtime.procs.readyAt['warrior.berserker.kingOfFires'] = canonicalTime(
-        runtime.time + balanceProfileNumber(profile, 'internalCooldown')
-      );
+      // The qualifying critical hit owns the interval even when its optional aura packet is removed.
       const aura = requireEffect(profile, 'buff', 'fire-aura');
       if (!aura) return;
       const duration = effectNumber(profile, aura, 'duration');

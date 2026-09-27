@@ -3,7 +3,7 @@ import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolve
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 /** Owns Core Ranger Marksmanship opening-strike and target-health trait behavior. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   requireBalanceProfileFromContext,
@@ -74,7 +74,6 @@ export function consumeOpeningStrike(context: RangerResolverContext, event: Gw2R
 // qualifying player strike, using the resolver's cumulative damage state.
 export function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!isPlayerStrike(event) || !hasTrait(context, TRAIT.HUNTERS_GAZE)) return;
-  if (!isInternalCooldownReady(event.at, context.procs.deadline('ranger.core.huntersGaze'))) return;
   const health = targetHealthFraction(context);
   const profile = requireBalanceProfileFromContext(context, PROFILE.huntersGaze);
   const might = requireEffect(profile, 'boon', 'might');
@@ -89,8 +88,8 @@ export function triggerHuntersGaze(context: RangerResolverContext, event: Gw2Res
         : health < 0.75
           ? Math.max(0, maximumStacks - 2)
           : 0;
-  if (!stacks) return;
-  context.procs.readyAt['ranger.core.huntersGaze'] = event.at + balanceProfileNumber(profile, 'internalCooldown');
+  // Target health must yield actual Might stacks before this hit claims the interval.
+  if (!stacks || !context.procs.claim(PROFILE.huntersGaze, 'ranger.core.huntersGaze', event.at)) return;
   context.recordProc(
     'trait',
     "Hunter's Gaze",

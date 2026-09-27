@@ -24,7 +24,7 @@ export const engineerSpearSideEffectHandlers: RuntimeProfession<EngineerRuntimeS
     const readyAt = cast.start + 4.2;
     armSkillFlip(state.availableFlips, ID.ELECTRIC_ARTILLERY, readyAt, readyAt + 8);
     for (let index = 0; index < 8; index++)
-      runtime.schedule('engineer.rod-pulse', at + 0.16 + index * 0.5, { cast, index }, owner);
+      runtime.scheduleForCast('engineer.rod-pulse', at + 0.16 + index * 0.5, cast, { index }, owner);
     runtime.schedule('engineer.rod-expire', readyAt + 8, undefined, owner);
   },
   'engineer.conduit-surge'(runtime, context) {

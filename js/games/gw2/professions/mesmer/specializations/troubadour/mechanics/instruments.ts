@@ -298,7 +298,7 @@ export function scheduleTroubadourPerformance(context: MesmerRuntime, cast: Runt
       }
     } else {
       // Instrument state is read when the strike occurs, after intervening accepted performances.
-      context.schedule('mesmer.crescendo', cast.start + Number(skill.damageAtMs || 0) / 1000, cast);
+      context.scheduleForCast('mesmer.crescendo', cast.start + Number(skill.damageAtMs || 0) / 1000, cast);
     }
   });
 }

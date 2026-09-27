@@ -177,7 +177,7 @@ export function startLuminaryEffects(runtime: Runtime, cast: RuntimeCast): void 
   }
 
   if (skill.id === ID.PIERCING_STANCE || skill.id === ID.DARING_ADVANCE)
-    runtime.schedule(STANCE, impact, cast, undefined, skill.id === ID.PIERCING_STANCE ? -30 : 0);
+    runtime.scheduleForCast(STANCE, impact, cast, {}, undefined, skill.id === ID.PIERCING_STANCE ? -30 : 0);
   if (skill.id === ID.EFFULGENT_STANCE) {
     const state = luminaryState.from(runtime);
     state.effulgentActiveUntil = canonicalTime(cast.start + 4);
@@ -203,7 +203,7 @@ export const luminaryEffectTasks = {
   [AURA_GRANT]: (runtime: Runtime, data: unknown) => grantLuminaryAura(runtime, data as Gw2ResolverEvent),
   [AURA_DETONATE]: (runtime: Runtime, data: unknown) => detonate(runtime, data as Gw2ResolverEvent),
   [STANCE](runtime: Runtime, data: unknown) {
-    const cast = data as RuntimeCast;
+    const { cast } = data as { cast: RuntimeCast };
     const state = luminaryState.from(runtime);
     const piercing = cast.skill.id === ID.PIERCING_STANCE;
     const duration = 8 + (piercing ? Math.max(0, state.piercingStanceUntil - runtime.time) : 0);

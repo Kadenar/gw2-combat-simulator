@@ -6,7 +6,7 @@ import {
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -119,17 +119,13 @@ function queueVampiricPresence(
   const effect = requireEffect(profile, 'strike', inShroud ? 'shroud' : 'base');
   // The recipient interval gates only the selected siphon, so a removed packet leaves it ready.
   if (!effect) return;
-  const readyAt =
-    actorKey === 'self'
-      ? context.procs.deadline('necromancer.core.vampiricPresence') || 0
-      : context.procs.readyAt[`vampiricPresence:${actorKey}`] || 0;
-  if (!intervalAlreadyApplied && !isInternalCooldownReady(event.at, readyAt)) return;
-
-  if (!intervalAlreadyApplied) {
-    const nextAt = event.at + balanceProfileNumber(profile, 'cooldown');
-    if (actorKey === 'self') context.procs.readyAt['necromancer.core.vampiricPresence'] = nextAt;
-    else context.procs.readyAt[`vampiricPresence:${actorKey}`] = nextAt;
-  }
+  const cooldownKey = actorKey === 'self' ? 'necromancer.core.vampiricPresence' : `vampiricPresence:${actorKey}`;
+  // Pre-materialized allied procs already paid their interval; other recipients claim independently.
+  if (
+    !intervalAlreadyApplied &&
+    !context.procs.claimCooldown(cooldownKey, event.at, balanceProfileNumber(profile, 'cooldown'))
+  )
+    return;
 
   // Both player and allied-recipient paths converge on the same attributed packet.
   queueBloodMagicLifeSteal(context, event, {

@@ -84,8 +84,7 @@ import type {
   ProceduralEmissionOptions,
   RuntimeCast,
   RuntimeProfession,
-  RuntimeWork,
-  SkillTaskData
+  RuntimeWork
 } from '#gw2/platform/simulation/runtime-state.js';
 import type { CastCommand } from '#gw2/platform/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -390,6 +389,28 @@ export function runGw2Runtime<T extends object>({
       if (!profession.tasks?.[name]) throw new TypeError(`No task handler registered for ${name}.`);
       return enqueueWork(makeWork({ type: 'runtime.task', at, priority, payload: { name, data }, owner })).id;
     },
+    scheduleForCast(
+      name: string,
+      at: number,
+      cast: RuntimeCast,
+      data: Record<string, unknown> = {},
+      owner?: { id: string; generation: number },
+      priority = 0
+    ) {
+      if (!profession.tasks?.[name]) throw new TypeError(`No task handler registered for ${name}.`);
+      // Only reservation data crosses the clone boundary; callbacks stay on the catalog skill.
+      const { skill, ...reservation } = cast;
+      if (!profession.catalog.skillsById.has(skill.id)) throw new TypeError(`Unknown cast task skill ${skill.id}.`);
+      return enqueueWork(
+        makeWork({
+          type: 'runtime.cast-task',
+          at,
+          priority,
+          payload: { name, cast: reservation, skillId: skill.id, data },
+          owner
+        })
+      ).id;
+    },
     cancelOwner(owner: { id: string; generation: number }) {
       queue.cancelWhere(
         (event) =>
@@ -449,8 +470,6 @@ export function runGw2Runtime<T extends object>({
   /** Authored skill tasks become live work at their deadlines; cast-scaled offsets follow the reserved duration. */
   function scheduleSkillTasks(cast: RuntimeCast): void {
     for (const trigger of cast.skill.tasks ?? []) {
-      if (!profession.tasks?.[trigger.type])
-        throw new TypeError(`No profession task handler registered for ${trigger.type}.`);
       const castTimeMs = Number(cast.skill.castTimeMs);
       const scale =
         trigger.timingScale === 'cast' && castTimeMs > 0 ? ((cast.fullEnd - cast.start) * 1000) / castTimeMs : 1;
@@ -461,16 +480,7 @@ export function runGw2Runtime<T extends object>({
             ? cast.effectiveEnd
             : cast.fullEnd;
       const at = Math.max(runtime.time, origin + ((trigger.atMs ?? 0) * scale) / 1000);
-      // Catalog declarations can contain functions; queued tasks retain only the skill identity and reservation data.
-      const { skill, ...reservation } = cast;
-      enqueueWork(
-        makeWork({
-          type: 'runtime.skill-task',
-          at,
-          priority: 0,
-          payload: { cast: reservation, skillId: skill.id, trigger }
-        })
-      );
+      runtime.scheduleForCast(trigger.type, at, cast, { trigger });
     }
   }
 
@@ -481,15 +491,13 @@ export function runGw2Runtime<T extends object>({
     return flips;
   }
 
-  internal.register('runtime.skill-task', (_context, work) => {
-    if (work.type !== 'runtime.skill-task') return;
-    const { cast, skillId, trigger } = work.payload;
-    const handler = profession.tasks?.[trigger.type];
-    if (!handler) throw new TypeError(`No profession task handler registered for ${trigger.type}.`);
-    handler(runtime, {
-      cast: { ...cast, skill: profession.catalog.skillsById.get(skillId)! },
-      trigger
-    } satisfies SkillTaskData);
+  internal.register('runtime.cast-task', (_context, work) => {
+    if (work.type !== 'runtime.cast-task') return;
+    const { name, cast, skillId, data } = work.payload;
+    profession.tasks![name](runtime, {
+      ...data,
+      cast: { ...cast, skill: profession.catalog.skillsById.get(skillId)! }
+    });
   });
   internal.register('runtime.flip-expiry', (_context, work) => {
     if (work.type === 'runtime.flip-expiry')

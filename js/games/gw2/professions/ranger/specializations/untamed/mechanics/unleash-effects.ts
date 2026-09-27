@@ -2,7 +2,7 @@ import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   requireBalanceProfileFromContext,
@@ -24,23 +24,20 @@ function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2Res
   const profile = requireBalanceProfileFromContext(context, PROFILE.ferociousSymbiosis);
   const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
   const duration = balanceProfileNumber(profile, 'durationMultiplier');
-  const internalCooldown = balanceProfileNumber(profile, 'internalCooldown');
   if (isPlayerStrike(event)) {
-    if (!isInternalCooldownReady(event.at, context.procs.deadline('ranger.untamed.ferociousSymbiosisPet'))) return;
+    if (!context.procs.claim(PROFILE.ferociousSymbiosis, 'ranger.untamed.ferociousSymbiosisPet', event.at)) return;
     // A player hit builds Pet stacks (cross-buff: player hits power the pet).
     state.ferociousSymbiosisPetStacks =
       event.at < state.ferociousSymbiosisPetUntil ? Math.min(maximumStacks, state.ferociousSymbiosisPetStacks + 1) : 1;
     state.ferociousSymbiosisPetUntil = event.at + duration;
-    context.procs.readyAt['ranger.untamed.ferociousSymbiosisPet'] = event.at + internalCooldown;
   } else if (isPetStrike(event)) {
-    if (!isInternalCooldownReady(event.at, context.procs.deadline('ranger.untamed.ferociousSymbiosisPlayer'))) return;
+    if (!context.procs.claim(PROFILE.ferociousSymbiosis, 'ranger.untamed.ferociousSymbiosisPlayer', event.at)) return;
     // A pet hit builds Player stacks (cross-buff: pet hits power the player).
     state.ferociousSymbiosisPlayerStacks =
       event.at < state.ferociousSymbiosisPlayerUntil
         ? Math.min(maximumStacks, state.ferociousSymbiosisPlayerStacks + 1)
         : 1;
     state.ferociousSymbiosisPlayerUntil = event.at + duration;
-    context.procs.readyAt['ranger.untamed.ferociousSymbiosisPlayer'] = event.at + internalCooldown;
   }
 }
 

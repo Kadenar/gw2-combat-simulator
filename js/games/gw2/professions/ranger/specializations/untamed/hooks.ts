@@ -1,7 +1,7 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   requireBalanceProfileFromContext,
@@ -89,10 +89,8 @@ export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       runtime.cooldownController.setReadyAt(ID.UNLEASH_PET, readyAt);
       if (
         state.rangerUnleashed &&
-        isInternalCooldownReady(runtime.time, runtime.procs.deadline('ranger.untamed.unleashedPower'))
+        runtime.procs.claim(PROFILE.resources, 'ranger.untamed.unleashedPower', runtime.time)
       ) {
-        runtime.procs.readyAt['ranger.untamed.unleashedPower'] =
-          runtime.time + balanceProfileNumber(profile, 'internalCooldown');
         grantAmbush(runtime);
       }
     }
@@ -101,11 +99,9 @@ export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       cast.skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS &&
       runtime.combatActive &&
       hasTrait(runtime, TRAIT.LET_LOOSE) &&
-      isInternalCooldownReady(runtime.time, runtime.procs.deadline('ranger.untamed.letLoose'))
+      runtime.procs.claim(PROFILE.letLoose, 'ranger.untamed.letLoose', runtime.time)
     ) {
-      runtime.procs.readyAt['ranger.untamed.letLoose'] =
-        runtime.time +
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.letLoose), 'internalCooldown');
+      // Let Loose claims its own interval, then rearms Unleashed Power independently.
       runtime.procs.readyAt['ranger.untamed.unleashedPower'] = 0;
       if (state.rangerUnleashed) grantAmbush(runtime);
     }

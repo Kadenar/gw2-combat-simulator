@@ -1,7 +1,7 @@
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { applySideEffect, sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
@@ -136,12 +136,9 @@ function firstBurstHit(runtime: WarriorRuntime, event: Gw2ResolverEvent): boolea
     );
   if (
     hasTrait(runtime, TRAIT.MARCHING_ORDERS) &&
-    isInternalCooldownReady(runtime.time, runtime.procs.deadline('warrior.core.soldierFocus'))
+    runtime.procs.claim(PROFILE.marchingOrders, 'warrior.core.soldierFocus', runtime.time)
   ) {
-    runtime.procs.readyAt['warrior.core.soldierFocus'] = canonicalTime(
-      runtime.time +
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.marchingOrders), 'internalCooldown')
-    );
+    // All Soldier's Focus rewards share the claim; Martial Cadence still owns its explicit swap resets.
     const audience = { recipients: 'party' as const };
     traitEffects(runtime, event, TRAIT.MARCHING_ORDERS, { audience });
     if (hasTrait(runtime, TRAIT.SOLDIERS_COMFORT)) traitEffects(runtime, event, TRAIT.SOLDIERS_COMFORT, { audience });

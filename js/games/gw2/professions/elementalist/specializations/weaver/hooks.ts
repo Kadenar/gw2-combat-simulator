@@ -20,7 +20,7 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
-import { EPSILON, canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, canonicalTime } from '#kernel/core/clock.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -296,16 +296,12 @@ function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast, skill: Sk
     }
   }
 
-  // Superior Elements applies Weakness on dual attacks behind its own internal
-  // cooldown, tracked in Weaver state.
+  // Dual attacks claim Superior Elements at completion, before attempting its Weakness packet.
   if (
     hasTrait(context, TRAIT.SUPERIOR_ELEMENTS) &&
     dualAttunements &&
-    isInternalCooldownReady(at, context.procs.deadline('elementalist.weaver.superiorElements'))
+    context.procs.claim(PROFILE.superiorElements, 'elementalist.weaver.superiorElements', at)
   ) {
-    const superiorElementsProfile = requireBalanceProfileFromContext(context, PROFILE.superiorElements);
-    context.procs.readyAt['elementalist.weaver.superiorElements'] =
-      at + balanceProfileNumber(superiorElementsProfile, 'internalCooldown');
     emitProfiledCondition(context, at, PROFILE.superiorElements, 'Weakness', skill.name, skill.id);
   }
 

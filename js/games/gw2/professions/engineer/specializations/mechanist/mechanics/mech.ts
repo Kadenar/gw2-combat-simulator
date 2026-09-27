@@ -7,7 +7,7 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -302,10 +302,9 @@ export function applyEngineerMechCastTraits(context: EngineerRuntime, skill: Eng
     skill.type === 'Weapon' &&
     !skill.kit &&
     skill.slot === 'Weapon_3' &&
-    isInternalCooldownReady(at, context.procs.readyAt.rocketPunch || 0)
+    context.procs.claim(PROFILE.rocketPunch, 'rocketPunch', at)
   ) {
-    const rocketPunchProfile = requireBalanceProfileFromContext(context, PROFILE.rocketPunch);
-    context.procs.readyAt.rocketPunch = at + balanceProfileNumber(rocketPunchProfile, 'internalCooldown');
+    // The weapon trigger owns the interval even when Rocket Punch's optional strike is removed.
     emitRocketPunch(context, skill, at);
   }
 }

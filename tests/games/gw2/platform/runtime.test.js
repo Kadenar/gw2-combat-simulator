@@ -514,6 +514,64 @@ test('registered internal work detaches payloads and owner cancellation cannot c
   );
 });
 
+test('cast tasks detach snapshots, retain catalog callbacks, and preserve priority and owner lifetimes', () => {
+  // Deferred work survives cast completion without cloning executable declarations or sharing mutable payloads.
+  const seen = [];
+  let accepted;
+  const taskCatalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 990021,
+        name: 'Callback skill',
+        weapon: 'Sword',
+        castTimeMs: 1000,
+        effects: [{ type: 'strike', coefficient: 1, when: () => true }],
+        tasks: [{ type: 'authored', atMs: 500, timingAnchor: 'castEnd' }]
+      }
+    ]
+  });
+  const inspect = (runtime, data) => {
+    assert.equal(data.cast.skill, taskCatalog.skillsById.get(990021));
+    assert.equal(data.cast.skill.effects[0].when(), true);
+    assert.notEqual(data.cast, accepted);
+    assert.notEqual(data.cast.command, accepted.command);
+    assert.equal(data.cast.id, accepted.id);
+    assert.equal(data.cast.command.impactDelayMs, 250);
+    assert.equal(data.cast.fullEnd, 1);
+    seen.push([data.label ?? data.trigger.type, runtime.time]);
+  };
+
+  const result = run([cast(990021, { impactDelayMs: 250 }), wait(1000)], {
+    profession: fixture({
+      catalog: taskCatalog,
+      onCastStart(runtime, activation) {
+        accepted = activation;
+        const data = { label: 'early' };
+        const owner = { id: 'cast-task', generation: 0 };
+        runtime.scheduleForCast('inspect', 1.5, activation, data, owner, -10);
+        runtime.scheduleForCast('inspect', 1.5, activation, { label: 'cancelled' }, { ...owner, generation: 1 });
+        runtime.scheduleForCast('inspect', 1.5, activation, { label: 'late' }, undefined, 20);
+        data.label = 'mutated';
+        owner.generation = 2;
+        runtime.cancelOwner({ id: 'cast-task', generation: 1 });
+        assert.throws(() => runtime.scheduleForCast('missing', 1.5, activation), /No task handler/);
+        assert.throws(() => runtime.scheduleForCast('inspect', 1.5, activation, { callback() {} }), /serializable/);
+        assert.throws(
+          () => runtime.scheduleForCast('inspect', 1.5, { ...activation, skill: { id: 'missing' } }),
+          /Unknown cast task skill/
+        );
+      },
+      tasks: { inspect, authored: inspect }
+    })
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(seen, [
+    ['early', 1.5],
+    ['authored', 1.5],
+    ['late', 1.5]
+  ]);
+});
+
 test('authored waits still block explicit instant overlaps, whose effects precede the following command', () => {
   const result = run([wait(1000), cast(990004, { concurrentOffsetMs: 0 }), cast(990002)], {
     profession: fixture({

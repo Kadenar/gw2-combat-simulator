@@ -44,7 +44,7 @@ export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
   },
   tasks: {
     'mesmer.crescendo'(runtime, data) {
-      const cast = data as RuntimeCast;
+      const { cast } = data as { cast: RuntimeCast };
       withMesmerCastEmission(runtime, cast, cast.skill as MesmerSkill, () =>
         resolveCrescendo(runtime, cast, cast.skill as MesmerSkill, cast.fullEnd)
       );

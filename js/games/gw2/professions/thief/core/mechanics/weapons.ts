@@ -1,6 +1,6 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { permanentTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
@@ -231,11 +231,10 @@ function completeThiefWeaponSwap(runtime: ThiefRuntime): void {
   if (
     !runtime.combatStartedAt() ||
     !hasTrait(runtime, TRAIT.QUICK_POCKETS) ||
-    !isInternalCooldownReady(runtime.time, runtime.procs.deadline('thief.core.quickPockets') || 0)
+    !runtime.procs.claim(PROFILE.quickPockets, 'thief.core.quickPockets', runtime.time)
   )
     return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.quickPockets);
-  runtime.procs.readyAt['thief.core.quickPockets'] = runtime.time + balanceProfileNumber(profile, 'internalCooldown');
   grantThiefInitiative(runtime, balanceProfileNumber(profile, 'resourceGain'));
 }
 

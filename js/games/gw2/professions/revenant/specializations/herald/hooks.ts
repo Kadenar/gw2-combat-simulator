@@ -1,4 +1,4 @@
-import { canonicalTime, EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
@@ -243,17 +243,19 @@ function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   const state = heraldState.from(runtime);
   const active = activeRevenantUpkeep(runtime, ID.FACET_OF_NATURE);
   const legend = active ? core.activeLegendId : state.lingeringFacets[ID.FACET_OF_NATURE]?.legendId;
-  if (
-    legend !== LEGEND.ASSASSIN ||
-    !heraldFacetPassiveActive(core, state, ID.FACET_OF_NATURE, runtime.time) ||
-    !isInternalCooldownReady(runtime.time, runtime.procs.deadline('revenant.herald.natureSiphon'))
-  )
-    return;
+  if (legend !== LEGEND.ASSASSIN || !heraldFacetPassiveActive(core, state, ID.FACET_OF_NATURE, runtime.time)) return;
   const profile = requireBalanceProfileFromContext(runtime, HERALD_NATURE_ASSASSIN_PROFILE_ID);
   const strike = requireEffect(profile, 'strike', 'Life Siphon');
   // The cooldown gates only the siphon, so a removed strike leaves it ready.
   if (!strike) return;
-  runtime.procs.readyAt['revenant.herald.natureSiphon'] = runtime.time + balanceProfileNumber(profile, 'cooldown');
+  if (
+    !runtime.procs.claimCooldown(
+      'revenant.herald.natureSiphon',
+      runtime.time,
+      balanceProfileNumber(profile, 'cooldown')
+    )
+  )
+    return;
   runtime.emitDerived(
     event,
     buildResolverStrike({

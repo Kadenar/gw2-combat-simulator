@@ -213,20 +213,13 @@ export function reactToFirebrandBuff(runtime: Runtime, event: Gw2ResolverEvent):
       );
   }
 
-  if (
-    event.kind !== 'quickness' ||
-    !hasTrait(runtime, TRAIT.QUICKFIRE) ||
-    !isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.firebrand.quickfire'))
-  )
-    return;
+  if (event.kind !== 'quickness' || !hasTrait(runtime, TRAIT.QUICKFIRE)) return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.quickfire);
   const buff = requireEffect(profile, 'buff', 'ashes-of-the-just');
   const ashes = requireBalanceProfileFromContext(runtime, PROFILE.ashes);
   const burn = requireEffect(ashes, 'condition', 'Burning');
-  if (!buff || !burn) return;
-  runtime.procs.readyAt['guardian.firebrand.quickfire'] = canonicalTime(
-    runtime.time + balanceProfileNumber(profile, 'internalCooldown')
-  );
+  // Both the charge and its Burning packet must survive before Quickfire claims an interval.
+  if (!buff || !burn || !runtime.procs.claim(PROFILE.quickfire, 'guardian.firebrand.quickfire', runtime.time)) return;
   const expiresAt = gw2EffectExpiresAt(runtime.time, effectNumber(profile, buff, 'duration'));
   if (allies > 0) alliedAshes(runtime, event, 1, expiresAt - runtime.time, true);
   else {

@@ -283,16 +283,11 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
     if (weakness) queueProfileCondition(context, event, profile, weakness, TRAIT.WILTING_STRIKE, 'Wilting Strike');
   }
 
-  if (
-    hasTrait(context, TRAIT.GO_FOR_THE_EYES) &&
-    isInternalCooldownReady(event.at, context.procs.deadline('ranger.soulbeast.goForTheEyes'))
-  ) {
+  if (hasTrait(context, TRAIT.GO_FOR_THE_EYES)) {
     const profile = requireBalanceProfileFromContext(context, PROFILE.goForTheEyes);
     const blind = requireEffect(profile, 'blind', 'Blind');
     // The cooldown gates only the blind, so a removed blind leaves it ready.
-    if (blind) {
-      context.procs.readyAt['ranger.soulbeast.goForTheEyes'] =
-        event.at + balanceProfileNumber(profile, 'internalCooldown');
+    if (blind && context.procs.claim(PROFILE.goForTheEyes, 'ranger.soulbeast.goForTheEyes', event.at)) {
       context.queue.enqueue({
         type: 'blind',
         at: event.at,
@@ -307,16 +302,11 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
     }
   }
 
-  if (
-    hasTrait(context, TRAIT.GO_FOR_THE_THROAT) &&
-    isInternalCooldownReady(event.at, context.procs.deadline('ranger.soulbeast.goForTheThroat'))
-  ) {
+  if (hasTrait(context, TRAIT.GO_FOR_THE_THROAT)) {
     const profile = requireBalanceProfileFromContext(context, CORE_PROFILE.goForTheThroat);
     // Merged Soulbeasts receive only the player's buff; the pet variant has no recipient here.
     const lesserSicEm = requireEffect(profile, 'buff', 'lesser-sic-em');
-    if (lesserSicEm) {
-      context.procs.readyAt['ranger.soulbeast.goForTheThroat'] =
-        event.at + balanceProfileNumber(profile, 'internalCooldown');
+    if (lesserSicEm && context.procs.claim(CORE_PROFILE.goForTheThroat, 'ranger.soulbeast.goForTheThroat', event.at)) {
       const duration = effectNumber(profile, lesserSicEm, 'duration');
       context.recordProc(
         'trait',
@@ -340,14 +330,12 @@ function essenceOfSpeedExtension(context: RangerResolverContext, event: Gw2Resol
     event.kind !== 'quickness' ||
     !event.resolvedAudience?.includesSelf ||
     !hasTrait(context, TRAIT.ESSENCE_OF_SPEED) ||
-    !isInternalCooldownReady(event.at, context.procs.deadline('ranger.soulbeast.essenceOfSpeed'))
+    !context.procs.claim(PROFILE.essenceOfSpeed, 'ranger.soulbeast.essenceOfSpeed', event.at)
   ) {
     return null;
   }
 
   const profile = requireBalanceProfileFromContext(context, PROFILE.essenceOfSpeed);
-  context.procs.readyAt['ranger.soulbeast.essenceOfSpeed'] =
-    event.at + balanceProfileNumber(profile, 'internalCooldown');
   return {
     type: 'boon_extension',
     at: event.at,

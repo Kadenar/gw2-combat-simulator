@@ -24,7 +24,7 @@ import {
   effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitElementalistBuff, emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON } from '#kernel/core/clock.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -259,12 +259,10 @@ function onAttunementEvent(context: ElementalistRuntime, event: SimulationEvent)
     return;
   }
 
-  // Latent Stamina: vigor on attuning to water, throttled by its own internal cooldown stamp.
+  // Attuning to Water claims Latent Stamina's interval even when its optional vigor packet is removed.
   if (event.type === 'elementalist.attunement' && event.to === 'Water' && hasTrait(context, TRAIT.LATENT_STAMINA)) {
-    if (isInternalCooldownReady(event.at, context.procs.deadline('elementalist.tempest.latentStamina'))) {
+    if (context.procs.claim(PROFILE.latentStamina, 'elementalist.tempest.latentStamina', event.at)) {
       const latentStaminaProfile = requireBalanceProfileFromContext(context, PROFILE.latentStamina);
-      context.procs.readyAt['elementalist.tempest.latentStamina'] =
-        event.at + balanceProfileNumber(latentStaminaProfile, 'internalCooldown');
       const vigor = requireEffect(latentStaminaProfile, 'boon', 'Vigor');
       const sourceId = event.skillId ?? event.sourceId;
       if (vigor) {

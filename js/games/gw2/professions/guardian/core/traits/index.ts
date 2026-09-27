@@ -296,16 +296,11 @@ export function completeGuardianHealTraits(runtime: Runtime, cast: RuntimeCast):
     skillName: cast.skill.name,
     activationId: cast.id
   };
-  if (
-    hasTrait(runtime, TRAIT.HEALERS_RESOLUTION) &&
-    isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.core.healersResolution'))
-  ) {
+  if (hasTrait(runtime, TRAIT.HEALERS_RESOLUTION)) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.healersResolution);
     const effect = requireEffect(profile, 'boon', 'resolution');
-    if (effect) {
-      runtime.procs.readyAt['guardian.core.healersResolution'] = canonicalTime(
-        runtime.time + balanceProfileNumber(profile, 'internalCooldown')
-      );
+    // Only a surviving Resolution packet consumes this trait's interval.
+    if (effect && runtime.procs.claim(PROFILE.healersResolution, 'guardian.core.healersResolution', runtime.time)) {
       emitGuardianBoon(runtime, {
         ...cause,
         type: 'buff',
@@ -500,9 +495,7 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
   const projectile = event.projectile === true || burningBolt;
   const cooldownKey = projectile ? 'guardian.core.symbolProjectileIgnition' : 'guardian.core.symbolIgnition';
   // Match gw2combat's end-of-tick cooldown removal: the deadline itself is still blocked.
-  if (!isInternalCooldownReady(event.at, context.procs.deadline(cooldownKey))) return;
-
-  context.procs.readyAt[cooldownKey] = event.at + balanceProfileNumber(symbolOfIgnitionProfile, 'internalCooldown');
+  if (!context.procs.claim(PROFILE.symbolOfIgnition, cooldownKey, event.at)) return;
   context.queue.enqueue(
     buildResolverCondition({
       at: event.at,

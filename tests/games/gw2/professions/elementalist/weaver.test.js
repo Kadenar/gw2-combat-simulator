@@ -145,7 +145,7 @@ test('Primordial Stance schedules unique authored pulse times without emitting p
     const cast = { skill, id: 'stance', command: {}, start: 10, fullEnd: 10, effectiveEnd: 10 };
     const scheduled = [];
     schedulePrimordialStance(
-      { schedule: (type, at, data, owner) => scheduled.push({ type, at, data, owner }) },
+      { scheduleForCast: (type, at, cast, data, owner) => scheduled.push({ type, at, cast, data, owner }) },
       cast,
       skill
     );
@@ -153,7 +153,7 @@ test('Primordial Stance schedules unique authored pulse times without emitting p
       scheduled.map((task) => task.at),
       [11.25, 13]
     );
-    assert.ok(scheduled.every((task) => task.owner.id === cast.id && task.data === cast));
+    assert.ok(scheduled.every((task) => task.owner.id === cast.id && task.cast === cast));
   }
 });
 
@@ -224,9 +224,11 @@ test('Primordial Stance does not restore removed profile effects through fallbac
     emit: () => assert.fail('Removed profile effects must not emit')
   };
   primordialStancePulse(context, {
-    skill: elementalistCatalog.skillsById.get(ID.PRIMORDIAL_STANCE_FIRE),
-    id: 'stance',
-    command: {}
+    cast: {
+      skill: elementalistCatalog.skillsById.get(ID.PRIMORDIAL_STANCE_FIRE),
+      id: 'stance',
+      command: {}
+    }
   });
 });
 

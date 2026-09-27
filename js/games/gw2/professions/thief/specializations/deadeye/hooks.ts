@@ -13,7 +13,7 @@ import {
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { deferThiefCompletion, emitThiefCondition, takeThiefCompletion } from '#gw2/professions/thief/core/events.js';
+import { deferThiefCompletion, emitThiefCondition } from '#gw2/professions/thief/core/events.js';
 import { grantThiefEndurance, grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { grantThiefStealth } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import {
@@ -228,11 +228,9 @@ function maliceTorment(runtime: ThiefRuntime, cast: RuntimeCast, profileId: Skil
 }
 
 /** Deadeye completion transitions in their established order after Core's. */
-function completeDeadeyeCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
+function completeDeadeyeCast(runtime: ThiefRuntime, cast: RuntimeCast, facts: DeadeyeCastFacts | undefined): void {
   const skill = cast.skill as ThiefSkill;
   const state = deadeyeState.from(runtime);
-  const facts = castFacts.get(cast);
-  castFacts.delete(cast);
   if (skill.id === ID.DEADEYES_MARK) completeDeadeyesMark(runtime, cast);
   else if (skill.id === ID.MALICIOUS_SNEAK_ATTACK && !castWasInterrupted(cast))
     maliceTorment(runtime, cast, PROFILE.maliciousSneakAttack, facts?.malice ?? 0, false);
@@ -380,7 +378,9 @@ export const deadeyeHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   },
   modifyEffects: maliciousEffects,
   onCastCommit(runtime, cast) {
-    deferThiefCompletion(runtime, DEADEYE_COMPLETE, cast);
+    // Completion carries the accepted malice and stealth facts across the detached cast-task boundary.
+    deferThiefCompletion(runtime, DEADEYE_COMPLETE, cast, { facts: castFacts.get(cast) });
+    castFacts.delete(cast);
   },
   reactions: {
     'damage.resolving'(runtime, event) {
@@ -393,8 +393,8 @@ export const deadeyeHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   },
   tasks: {
     [DEADEYE_COMPLETE](runtime, data) {
-      const cast = takeThiefCompletion(runtime, DEADEYE_COMPLETE, data);
-      if (cast) completeDeadeyeCast(runtime, cast);
+      const { cast, facts } = data as { cast: RuntimeCast; facts: DeadeyeCastFacts | undefined };
+      completeDeadeyeCast(runtime, cast, facts);
     },
     [DEADEYE_MARK_EXPIRY]: expireDeadeyesMark
   }

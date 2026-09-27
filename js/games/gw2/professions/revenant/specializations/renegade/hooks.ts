@@ -284,10 +284,9 @@ function soulcleavePlayer(runtime: RevenantRuntime, event: Gw2ResolverEvent): vo
     !proc ||
     event.skillId === soulcleave.id ||
     !activeRevenantUpkeep(runtime, soulcleave.id) ||
-    !isInternalCooldownReady(runtime.time, runtime.procs.deadline('revenant.renegade.soulcleave') || 0)
+    !runtime.procs.claimCooldown('revenant.renegade.soulcleave', runtime.time, Math.max(0, proc.cooldown || 0))
   )
     return;
-  runtime.procs.readyAt['revenant.renegade.soulcleave'] = runtime.time + Math.max(0, proc.cooldown || 0);
   for (const effect of proc.effects ?? [])
     for (const { event: packet } of materializeSkillEffectApplications({
       skill: proc,
@@ -346,13 +345,17 @@ function soulcleaveAllies(runtime: RevenantRuntime, data: unknown): void {
 /** Received Fury advances Blood Fury's Fervor on its own cooldown. */
 function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   if ((event.kind || '').toLowerCase() !== 'fury') return;
-  if (
-    hasTrait(runtime, TRAIT.BLOOD_FURY) &&
-    isInternalCooldownReady(runtime.time, runtime.procs.deadline('revenant.renegade.bloodFury') || 0)
-  ) {
+  if (hasTrait(runtime, TRAIT.BLOOD_FURY)) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.bloodFury);
-    runtime.procs.readyAt['revenant.renegade.bloodFury'] =
-      runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
+    // The Fury trigger claims its interval even if Fervor is already capped.
+    if (
+      !runtime.procs.claimCooldown(
+        'revenant.renegade.bloodFury',
+        runtime.time,
+        Math.max(0, balanceProfileNumber(profile, 'cooldown'))
+      )
+    )
+      return;
     grantKallasFervor(runtime, { sourceId: TRAIT.BLOOD_FURY, sourceName: 'Blood Fury', cause: event });
   }
 }

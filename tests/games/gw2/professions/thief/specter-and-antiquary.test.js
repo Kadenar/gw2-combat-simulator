@@ -24,6 +24,23 @@ import { applyAlliedLeechingVenoms } from '#gw2/professions/thief/core/traits/sh
 // Forced exits carry the depletion owner so they are distinct from an authored Exit Shadow Shroud.
 const DEPLETED = 'thief.shadow-shroud-depleted';
 
+test('Antiquary completion preserves rolled initiative and the consumed artifact family', () => {
+  // Cast tasks must carry acceptance-time rewards after the original cast identity and artifact slot are gone.
+  const coins = runThief(['Canach-Coin Toss'], {
+    specialization: 'Antiquary',
+    initialInitiative: 0,
+    selectedSkills: ['Canach-Coin Toss']
+  });
+  assert.deepEqual(coins.warnings, []);
+  assert.equal(coins.planningState.profession.initiative.value, 5);
+  const artifact = runThief(['Skritt Swipe', 'Mistburn Mortar'], {
+    specialization: 'Antiquary',
+    selectedTraitIds: [TRAIT.POSSESSIVE_HOARDER]
+  });
+  assert.deepEqual(artifact.warnings, []);
+  assert.ok(artifact.events.some((event) => event.name === 'Possessive Hoarder' && event.kind === 'might'));
+});
+
 test('allied Leeching Venoms triggers only for the first packet of an allied venom proc', () => {
   // Ally zero and later condition packets cannot duplicate the venom's life-steal reaction.
   for (const [skillId, triggeredByAlly, venomProcEffectIndex, eligible] of [

@@ -7,7 +7,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 import {
@@ -40,12 +40,10 @@ export function applyFearOfDeath(runtime: NecromancerRuntime, event: Necromancer
     event.controlKind !== 'fear' ||
     event.actorType === 'summon' ||
     !hasTrait(runtime, TRAIT.FEAR_OF_DEATH) ||
-    !isInternalCooldownReady(runtime.time, runtime.procs.deadline('necromancer.core.fearOfDeath'))
+    !runtime.procs.claim(TRAIT.FEAR_OF_DEATH, 'necromancer.core.fearOfDeath', runtime.time)
   )
     return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.FEAR_OF_DEATH);
-  runtime.procs.readyAt['necromancer.core.fearOfDeath'] =
-    runtime.time + balanceProfileNumber(profile, 'internalCooldown');
   grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
 }
 

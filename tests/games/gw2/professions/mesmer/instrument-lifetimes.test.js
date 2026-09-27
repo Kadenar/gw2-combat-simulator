@@ -146,12 +146,14 @@ test('shorter instrument replays replace their own window without reviving old b
   context.start = 7.301;
   const skill = { ...context.catalog.skillsById.get(ID.CRESCENDO), damageAtMs: 0 };
   troubadourHooks.tasks['mesmer.crescendo'](context, {
-    skill,
-    start: 7.301,
-    fullEnd: 7.301,
-    effectiveEnd: 7.301,
-    command: {},
-    id: 'crescendo'
+    cast: {
+      skill,
+      start: 7.301,
+      fullEnd: 7.301,
+      effectiveEnd: 7.301,
+      command: {},
+      id: 'crescendo'
+    }
   });
   assert.equal(context.events.find((event) => event.skillId === ID.CRESCENDO).coefficient, 2.25 * 1.25);
 });

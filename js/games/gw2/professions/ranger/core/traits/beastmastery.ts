@@ -6,11 +6,10 @@ import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
-  effectNumber,
-  balanceProfileNumber
+  effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   GW2_STANDARD_BOONS,
@@ -95,8 +94,7 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2
     event.skillId !== beastSkillId ||
     !skill?.petSkill ||
     skill.petFamilySkill ||
-    !hasTrait(context, TRAIT.GO_FOR_THE_THROAT) ||
-    !isInternalCooldownReady(event.at, context.procs.deadline('ranger.core.goForTheThroatPet'))
+    !hasTrait(context, TRAIT.GO_FOR_THE_THROAT)
   ) {
     return;
   }
@@ -104,8 +102,7 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2
   const profile = requireBalanceProfileFromContext(context, PROFILE.goForTheThroat);
   const lesserSicEm = requireEffect(profile, 'buff', 'lesser-sic-em-pet');
   // The pet cooldown gates only the pet buff, so a removed buff leaves it ready.
-  if (!lesserSicEm) return;
-  context.procs.readyAt['ranger.core.goForTheThroatPet'] = event.at + balanceProfileNumber(profile, 'internalCooldown');
+  if (!lesserSicEm || !context.procs.claim(PROFILE.goForTheThroat, 'ranger.core.goForTheThroatPet', event.at)) return;
   const duration = effectNumber(profile, lesserSicEm, 'duration');
   context.recordProc(
     'trait',

@@ -11,7 +11,7 @@ import {
   balanceProfileNumber,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -159,10 +159,9 @@ export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2R
     return;
   }
 
-  if (!isInternalCooldownReady(event.at, context.procs.deadline('elementalist.catalyst.viciousEmpowerment'))) return;
+  // The trait claims its interval independently of its optional buff packets.
+  if (!context.procs.claim(PROFILE.viciousEmpowerment, 'elementalist.catalyst.viciousEmpowerment', event.at)) return;
   const viciousEmpowermentProfile = requireBalanceProfileFromContext(context, PROFILE.viciousEmpowerment);
-  context.procs.readyAt['elementalist.catalyst.viciousEmpowerment'] =
-    event.at + balanceProfileNumber(viciousEmpowermentProfile, 'internalCooldown');
   const empowerment = requireEffect(viciousEmpowermentProfile, 'buff', 'Empowerment');
   const might = requireEffect(viciousEmpowermentProfile, 'boon', 'Might');
   if (empowerment) {
@@ -222,14 +221,12 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
     event.metadata?.packetKind === SHATTERING_ICE_PACKET ||
     !(Number(event.coefficient) > 0) ||
     state.shatteringIceUntil <= event.at ||
-    !isInternalCooldownReady(event.at, context.procs.deadline('elementalist.catalyst.shatteringIce'))
+    !context.procs.claim(PROFILE.shatteringIce, 'elementalist.catalyst.shatteringIce', event.at)
   ) {
     return;
   }
 
   const shatteringIceProfile = requireBalanceProfileFromContext(context, PROFILE.shatteringIce);
-  context.procs.readyAt['elementalist.catalyst.shatteringIce'] =
-    event.at + balanceProfileNumber(shatteringIceProfile, 'internalCooldown');
   const strike = requireEffect(shatteringIceProfile, 'strike', 'Shattering Ice - Triggered Packet');
   const chilled = requireEffect(shatteringIceProfile, 'condition', 'Chilled');
   if (strike) {

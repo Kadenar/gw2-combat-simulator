@@ -1,4 +1,4 @@
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
 import {
@@ -308,12 +308,9 @@ export const paragonHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
     if (
       cast.skill.inputCategory === 'weapon-swap' &&
       hasTrait(runtime, TRAIT.INSPIRING_IMPLEMENTS) &&
-      isInternalCooldownReady(runtime.time, runtime.procs.deadline('warrior.paragon.inspiringImplements'))
+      runtime.procs.claim(PROFILE.inspiringImplements, 'warrior.paragon.inspiringImplements', runtime.time)
     ) {
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.inspiringImplements);
-      runtime.procs.readyAt['warrior.paragon.inspiringImplements'] = canonicalTime(
-        runtime.time + balanceProfileNumber(profile, 'internalCooldown')
-      );
       grantWarriorAdrenaline(runtime, balanceProfileNumber(profile, 'resourceGain'));
       gainMotivation(runtime, balanceProfileNumber(profile, 'minimumStacks'));
     }

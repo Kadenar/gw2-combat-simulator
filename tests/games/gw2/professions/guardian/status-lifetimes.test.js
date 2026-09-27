@@ -33,8 +33,9 @@ test('Empowered Armaments extends only its live remainder and shares the display
         { ...config, selectedTraitIds: [TRAIT.EMPOWERED_ARMAMENTS] },
         (runtime) => {
           const equip = { skill: guardianCatalog.skillsById.get(ID.DAZZLING_HAMMER), id: 'fixture-equip' };
-          runtime.schedule('guardian.luminary.equip-traits', 0.001, equip);
-          for (let index = 0; index < extra + 1; index++) runtime.schedule('guardian.luminary.equip-traits', at, equip);
+          runtime.scheduleForCast('guardian.luminary.equip-traits', 0.001, equip);
+          for (let index = 0; index < extra + 1; index++)
+            runtime.scheduleForCast('guardian.luminary.equip-traits', at, equip);
         }
       );
     const result = run(0);

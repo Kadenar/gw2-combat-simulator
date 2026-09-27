@@ -13,7 +13,7 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
-import { deferThiefCompletion, takeThiefCompletion } from '#gw2/professions/thief/core/events.js';
+import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import {
   completeThiefCoreResources,
   grantThiefInitiative,
@@ -301,8 +301,8 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   },
   tasks: {
     [THIEF_CORE_COMPLETE](runtime, data) {
-      const cast = takeThiefCompletion(runtime, THIEF_CORE_COMPLETE, data);
-      if (cast) completeThiefCast(runtime, cast);
+      const { cast } = data as { cast: RuntimeCast };
+      completeThiefCast(runtime, cast);
     },
     [THIEF_INFILTRATORS_SIGNET_PULSE]: thiefInfiltratorsSignetPulse,
     [THIEF_SCEPTER_CHAIN_EXPIRY]: expireThiefScepterChain,

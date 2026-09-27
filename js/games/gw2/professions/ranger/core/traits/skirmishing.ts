@@ -2,7 +2,7 @@ import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 /** Owns Core Ranger Skirmishing dodge, weapon-swap, and critical-hit trait behavior. */
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   requireBalanceProfileFromContext,
@@ -59,16 +59,11 @@ export function applyRangerDodgeTraits(context: RangerRuntime, at = context.time
 export function applyRangerWeaponSwapTraits(context: RangerRuntime, skill: RangerSkill, at = context.time): void {
   const state = professionCoreState(context);
   const inCombat = context.combatStartTime != null && at >= context.combatStartTime;
-  if (
-    inCombat &&
-    hasTrait({ config: context.config }, TRAIT.TAIL_WIND) &&
-    isInternalCooldownReady(at, context.procs.deadline('ranger.core.tailWind'))
-  ) {
+  if (inCombat && hasTrait({ config: context.config }, TRAIT.TAIL_WIND)) {
     const profile = requireBalanceProfileFromContext(context, PROFILE.tailWind);
     const effect = requireEffect(profile, 'boon', 'swiftness');
     // The cooldown gates only swiftness, so a removed boon leaves it ready.
-    if (effect) {
-      context.procs.readyAt['ranger.core.tailWind'] = at + balanceProfileNumber(profile, 'internalCooldown');
+    if (effect && context.procs.claim(PROFILE.tailWind, 'ranger.core.tailWind', at)) {
       context.emitProcedural(
         rangerEvent(
           {
@@ -91,12 +86,11 @@ export function applyRangerWeaponSwapTraits(context: RangerRuntime, skill: Range
   if (
     inCombat &&
     hasTrait({ config: context.config }, TRAIT.QUICK_DRAW) &&
-    isInternalCooldownReady(at, context.procs.deadline('ranger.core.quickDraw'))
+    context.procs.claim(PROFILE.quickDraw, 'ranger.core.quickDraw', at)
   ) {
     const profile = requireBalanceProfileFromContext(context, PROFILE.quickDraw);
     const effect = requireEffect(profile, 'boon', 'quickness');
     // The recharge window is trait-owned, so it and its cooldown survive a removed quickness packet.
-    context.procs.readyAt['ranger.core.quickDraw'] = at + balanceProfileNumber(profile, 'internalCooldown');
     state.quickDrawUntil = at + balanceProfileNumber(profile, 'durationMultiplier');
     if (effect)
       context.emitProcedural(
@@ -117,16 +111,11 @@ export function applyRangerWeaponSwapTraits(context: RangerRuntime, skill: Range
       );
   }
 
-  if (
-    inCombat &&
-    hasTrait({ config: context.config }, TRAIT.FURIOUS_GRIP) &&
-    isInternalCooldownReady(at, context.procs.deadline('ranger.core.furiousGrip'))
-  ) {
+  if (inCombat && hasTrait({ config: context.config }, TRAIT.FURIOUS_GRIP)) {
     const profile = requireBalanceProfileFromContext(context, PROFILE.furiousGrip);
     const effect = requireEffect(profile, 'boon', 'fury');
     // The cooldown gates only fury, so a removed boon leaves it ready.
-    if (effect) {
-      context.procs.readyAt['ranger.core.furiousGrip'] = at + balanceProfileNumber(profile, 'internalCooldown');
+    if (effect && context.procs.claim(PROFILE.furiousGrip, 'ranger.core.furiousGrip', at)) {
       context.emitProcedural(
         rangerEvent(
           {

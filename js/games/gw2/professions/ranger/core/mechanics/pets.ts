@@ -301,7 +301,7 @@ export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast)
     startedAt: start,
     work: cast.rechargeWork
   });
-  context.schedule(PET_COMMAND_START_TASK, start, { cast, busyUntil: start + recovery }, owner(context));
+  context.scheduleForCast(PET_COMMAND_START_TASK, start, cast, { busyUntil: start + recovery }, owner(context));
 }
 
 export const rangerPetTasks = {

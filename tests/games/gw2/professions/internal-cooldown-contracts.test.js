@@ -41,6 +41,17 @@ import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_TRAIT_IDS, WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
+import { MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
+import { triggerIneptitudeFromInterrupt } from '#gw2/professions/mesmer/core/traits/dueling.js';
+import {
+  applyVampiricPresence,
+  reactToVampiricPresenceAlliedHit
+} from '#gw2/professions/necromancer/core/traits/blood-magic.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/core/profiles.js';
+import { scourgeResolverEventReactions } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-effects.js';
+import { SCOURGE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
+import { specterHooks } from '#gw2/professions/thief/specializations/specter/hooks.js';
 
 const READY_AT = 1;
 const AFTER_READY_AT = 1.001;
@@ -507,4 +518,136 @@ test('Necromancer condition traits stay blocked at the exact ICD boundary', () =
     );
     assert.deepEqual(result.warnings, []);
   }
+});
+
+// Defiant interrupts claim before nested condition reactions; ordinary interrupts never consume an ICD.
+test('Ineptitude claims only surviving effects on defiant targets at the event timestamp', () => {
+  const trait = MESMER_TRAIT_IDS.INEPTITUDE;
+  const key = 'mesmer.core.ineptitude';
+  for (const defiant of [false, true]) {
+    for (const duration of [0, 2]) {
+      const catalog = withProfile(mesmerCatalog, trait, { internalCooldown: duration });
+      const { context, conditions } = professionContext({
+        id: 'mesmer',
+        catalog,
+        core: {},
+        traits: [trait],
+        config: { target: { defiant } }
+      });
+      context.time = 99;
+      const event = { type: 'control', actorType: 'player', at: 1, skillName: 'Interrupt' };
+      context.catalog = withProfile(catalog, trait, {
+        effects: [],
+        removedEffectKeys: [JSON.stringify(['condition', 'Confusion'])]
+      });
+      triggerIneptitudeFromInterrupt(context, event);
+      assert.deepEqual({ ...context.procs.readyAt }, {});
+      assert.equal(conditions.length, 0);
+      context.catalog = catalog;
+      context.applyCondition = (condition) => {
+        conditions.push(condition);
+        assert.equal(context.procs.readyAt[key], defiant ? condition.at + duration : undefined);
+        if (defiant && conditions.length === 1) triggerIneptitudeFromInterrupt(context, event);
+      };
+
+      triggerIneptitudeFromInterrupt(context, event);
+      assert.equal(conditions.length, 1);
+      triggerIneptitudeFromInterrupt(context, { ...event, at: 1 + duration });
+      assert.equal(conditions.length, defiant ? 1 : 2);
+      triggerIneptitudeFromInterrupt(context, { ...event, at: 1 + duration + 0.000001 });
+      assert.equal(conditions.length, defiant ? 2 : 3);
+    }
+  }
+});
+
+// Non-ICD profile fields keep their own duration, and removed effects must leave the proc ready.
+test('Demonic Lore claims its cooldown field only for a surviving Burning packet', () => {
+  const id = SCOURGE_BALANCE_PROFILE_IDS.demonicLore;
+  const catalog = withProfile(necromancerCatalog, id, { cooldown: 2, internalCooldown: 99 });
+  const { context, conditions } = professionContext({
+    id: 'necromancer',
+    catalog,
+    core: createNecromancerCoreState(),
+    traits: [NECROMANCER_TRAIT_IDS.DEMONIC_LORE]
+  });
+  const key = 'necromancer.scourge.demonicLore';
+  const event = { type: 'condition', condition: 'Torment', at: 1, actorType: 'player' };
+  context.catalog = withProfile(catalog, id, {
+    effects: [],
+    removedEffectKeys: [JSON.stringify(['condition', 'Burning'])]
+  });
+  scourgeResolverEventReactions.condition(context, event);
+  assert.deepEqual({ ...context.procs.readyAt }, {});
+  context.catalog = catalog;
+  context.applyCondition = (condition) => {
+    assert.equal(context.procs.deadline(key), condition.at + 2);
+    conditions.push(condition);
+    if (conditions.length === 1) scourgeResolverEventReactions.condition(context, event);
+  };
+
+  scourgeResolverEventReactions.condition(context, event);
+  assert.equal(conditions.length, 1);
+  scourgeResolverEventReactions.condition(context, { ...event, at: 3 });
+  assert.equal(conditions.length, 1);
+  scourgeResolverEventReactions.condition(context, { ...event, at: 3.000001 });
+  assert.equal(conditions.length, 2);
+});
+
+// Summons have independent claims; spirit hits share the player's interval and pre-timed allied hits bypass it.
+test('Vampiric Presence preserves recipient scopes and the pre-applied interval bypass', () => {
+  const core = createNecromancerCoreState();
+  core.activeMinions.fixture = 2;
+  const catalog = withProfile(necromancerCatalog, NECROMANCER_CORE_BALANCE_PROFILE_IDS.vampiricPresence, {
+    cooldown: 2
+  });
+  const { context } = professionContext({
+    id: 'necromancer',
+    catalog,
+    core,
+    traits: [NECROMANCER_TRAIT_IDS.VAMPIRIC_PRESENCE],
+    config: { allies: { count: 0 } }
+  });
+  const event = { type: 'damage', actorType: 'player', coefficient: 1, at: 1 };
+  applyVampiricPresence(context, event);
+  applyVampiricPresence(context, { ...event, actorType: 'summon', summonKind: 'spirit' });
+  assert.equal(context.queue.length, 1);
+  for (const index of [0, 1, 0]) {
+    applyVampiricPresence(context, { ...event, actorType: 'summon', summonOwner: `minion:fixture:${index}` });
+  }
+
+  assert.equal(context.queue.length, 3);
+  assert.deepEqual(
+    { ...context.procs.readyAt },
+    {
+      'necromancer.core.vampiricPresence': 3,
+      'vampiricPresence:minion:fixture:0': 3,
+      'vampiricPresence:minion:fixture:1': 3
+    }
+  );
+  context.procs.readyAt['vampiricPresence:ally:1'] = 10;
+  reactToVampiricPresenceAlliedHit(context, { ...event, allyIndex: 1 });
+  assert.equal(context.queue.length, 4);
+  assert.equal(context.procs.readyAt['vampiricPresence:ally:1'], 10);
+});
+
+// Repeated and invalid recipient IDs cannot consume another ally's independent interval.
+test('Dark Sentry claims each eligible ally once and retains strict recipient deadlines', () => {
+  const runtime = observedRuntime(
+    runThief([], { specialization: 'Specter', allies: { count: 2, strikesPerSecond: 0 } })
+  );
+  const invoke = specterHooks.tasks['thief.specter-dark-sentry'];
+  runtime.time = 1;
+  runtime.procs.readyAt['thief.specter.darkSentry:1'] = 1;
+  invoke(runtime, { allyIndices: [0, 1, 2, 2, 3, 1.5] });
+  assert.equal(runtime.procs.deadline('thief.specter.darkSentry:1'), 1);
+  const secondDeadline = runtime.procs.deadline('thief.specter.darkSentry:2');
+  assert.ok(secondDeadline > 1);
+  assert.deepEqual(Object.keys(runtime.procs.readyAt).sort(), [
+    'thief.specter.darkSentry:1',
+    'thief.specter.darkSentry:2'
+  ]);
+  runtime.time = 1.000001;
+  invoke(runtime, { allyIndices: [1, 2] });
+  assert.ok(runtime.procs.deadline('thief.specter.darkSentry:1') > 1.000001);
+  assert.equal(runtime.procs.deadline('thief.specter.darkSentry:2'), secondDeadline);
 });

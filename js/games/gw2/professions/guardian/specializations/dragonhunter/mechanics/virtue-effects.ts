@@ -3,10 +3,9 @@ import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
-  effectNumber,
-  balanceProfileNumber
+  effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -82,20 +81,14 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
     }
   }
 
-  if (
-    !hasTrait(context, GUARDIAN_TRAIT_IDS.HEAVY_LIGHT) ||
-    !isInternalCooldownReady(event.at, context.procs.deadline('guardian.dragonhunter.heavyLight'))
-  ) {
-    return;
-  }
+  if (!hasTrait(context, GUARDIAN_TRAIT_IDS.HEAVY_LIGHT)) return;
 
   // 1-second internal cooldown on Heavy Light stability; not exposed by the trait's game tooltip.
 
   const heavyLightProfile = requireBalanceProfileFromContext(context, PROFILE.heavyLight);
   const stability = requireEffect(heavyLightProfile, 'boon', 'stability');
-  if (!stability) return;
-  context.procs.readyAt['guardian.dragonhunter.heavyLight'] =
-    event.at + balanceProfileNumber(heavyLightProfile, 'internalCooldown');
+  // Removing Stability leaves Heavy Light's interval unclaimed.
+  if (!stability || !context.procs.claim(PROFILE.heavyLight, 'guardian.dragonhunter.heavyLight', event.at)) return;
   queueResolverBoon(
     context,
     event,

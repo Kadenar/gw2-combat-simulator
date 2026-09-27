@@ -134,7 +134,7 @@ function enterForge(runtime: Runtime, cast: RuntimeCast): void {
 
 /** Equip rewards use their real delayed boundary; future boons cannot pre-fill the current state or cooldowns. */
 function equipTraits(runtime: Runtime, data: unknown): void {
-  const cast = data as RuntimeCast;
+  const { cast } = data as { cast: RuntimeCast };
   const cause = guardianCastCause(runtime, cast);
   const state = luminaryState.from(runtime);
   if (hasTrait(runtime, TRAIT.RESPLENDENT_WEAPONRY)) {
@@ -195,7 +195,7 @@ function hammerImpact(runtime: Runtime, data: unknown): void {
   const state = luminaryState.from(runtime);
   if (!state.radiantJusticeArmed) return;
   state.radiantJusticeArmed = false;
-  const cast = data as RuntimeCast;
+  const { cast } = data as { cast: RuntimeCast };
   const cause = guardianCastCause(runtime, cast);
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.radiantJusticeImpact);
   const strike = requireEffect(profile, 'strike', 'Strike');
@@ -379,15 +379,22 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
     }
 
     const impact = luminaryImpactAt(cast);
-    if (cast.skill.id === ID.DAZZLING_HAMMER) runtime.schedule(HAMMER, impact, cast);
+    if (cast.skill.id === ID.DAZZLING_HAMMER) runtime.scheduleForCast(HAMMER, impact, cast);
     if (cast.skill.id === ID.GLEAMING_BLADE && state.radiantCourageSwordArmed) {
       state.radiantCourageSwordArmed = false;
-      runtime.schedule(BOON, impact, { cast, kind: 'guardian-radiant-courage-sword', duration: 0.001 }, undefined, -10);
+      runtime.scheduleForCast(
+        BOON,
+        impact,
+        cast,
+        { kind: 'guardian-radiant-courage-sword', duration: 0.001 },
+        undefined,
+        -10
+      );
     }
 
     if (cast.skill.id === ID.LUMINOUS_STAFF && state.radiantResolveArmed) {
       state.radiantResolveArmed = false;
-      runtime.schedule(BOON, impact, { cast, kind: 'regeneration', duration: 4, party: true });
+      runtime.scheduleForCast(BOON, impact, cast, { kind: 'regeneration', duration: 4, party: true });
     }
   },
   onCastCommit(runtime, cast) {
@@ -411,7 +418,7 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
 
       if (cast.skill.flipSkillId != null) armSkillFlip(flips, cast.skill.flipSkillId, runtime.time);
       runtime.emit({ ...guardianCastCause(runtime, cast), type: 'sigil_swap', weaponSet: runtime.activeWeaponSet });
-      runtime.schedule(EQUIP, canonicalTime(runtime.time + 0.001), cast);
+      runtime.scheduleForCast(EQUIP, canonicalTime(runtime.time + 0.001), cast);
     } else if (cast.skill.radiantForgeSkill && cast.skill.flipParentId != null)
       consumeSkillFlip(runtime.profession.core.availableFlips, cast.skill.id);
     if (!VIRTUES.includes(Number(cast.skill.id))) return;

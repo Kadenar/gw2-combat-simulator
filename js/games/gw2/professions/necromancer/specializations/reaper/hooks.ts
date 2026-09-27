@@ -1,4 +1,3 @@
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import {
@@ -53,13 +52,18 @@ export const reaperHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = 
 
       if (
         hasTrait(runtime, TRAIT.CHILLING_VICTORY) &&
-        runtime.query.targetHasCondition('Chilled', runtime.time, runtime) &&
-        isInternalCooldownReady(runtime.time, runtime.procs.deadline('necromancer.reaper.chillingVictory'))
+        runtime.query.targetHasCondition('Chilled', runtime.time, runtime)
       ) {
         const profile = requireBalanceProfileFromContext(runtime, PROFILE.chillingVictory);
-        runtime.procs.readyAt['necromancer.reaper.chillingVictory'] =
-          runtime.time + balanceProfileNumber(profile, 'cooldown');
-        grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
+        // Chilled player hits claim the profile's cooldown before granting life force.
+        if (
+          runtime.procs.claimCooldown(
+            'necromancer.reaper.chillingVictory',
+            runtime.time,
+            balanceProfileNumber(profile, 'cooldown')
+          )
+        )
+          grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
       }
     },
     'condition.applied': reaperResolverEventReactions.condition,

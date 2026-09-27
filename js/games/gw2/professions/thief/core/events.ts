@@ -12,26 +12,15 @@ export type ThiefRuntime = Gw2Runtime<ThiefRuntimeState>;
 
 /** After the cast's own priority-zero packets at the completion instant. */
 const THIEF_COMPLETION_PRIORITY = 20;
-const pendingCompletions = new WeakMap<object, Map<string, RuntimeCast>>();
 
-/**
- * Thief completion transitions apply after the cast's own same-instant packets, so a finishing hit resolves against
- * the state that existed while the skill was still executing. The cast is retained by identity until its task runs.
- */
-export function deferThiefCompletion(runtime: ThiefRuntime, task: string, cast: RuntimeCast): void {
-  let pending = pendingCompletions.get(runtime);
-  if (!pending) pendingCompletions.set(runtime, (pending = new Map()));
-  pending.set(`${task}:${cast.id}`, cast);
-  runtime.schedule(task, runtime.time, { castId: cast.id }, undefined, THIEF_COMPLETION_PRIORITY);
-}
-
-/** Returns the cast a deferred completion task was scheduled for, releasing its retention. */
-export function takeThiefCompletion(runtime: ThiefRuntime, task: string, data: unknown): RuntimeCast | undefined {
-  const pending = pendingCompletions.get(runtime);
-  const key = `${task}:${(data as { castId: string }).castId}`;
-  const cast = pending?.get(key);
-  pending?.delete(key);
-  return cast;
+/** Finishing hits resolve before Thief completion transitions at the same instant. */
+export function deferThiefCompletion(
+  runtime: ThiefRuntime,
+  task: string,
+  cast: RuntimeCast,
+  data: Record<string, unknown> = {}
+): void {
+  runtime.scheduleForCast(task, runtime.time, cast, data, undefined, THIEF_COMPLETION_PRIORITY);
 }
 
 /** Resolves a Thief catalog skill by id from the live catalog. */

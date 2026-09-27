@@ -1,4 +1,4 @@
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON } from '#kernel/core/clock.js';
 import { resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
 import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -14,12 +14,7 @@ import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import {
-  deferThiefCompletion,
-  emitThiefBuff,
-  emitThiefCondition,
-  takeThiefCompletion
-} from '#gw2/professions/thief/core/events.js';
+import { deferThiefCompletion, emitThiefBuff, emitThiefCondition } from '#gw2/professions/thief/core/events.js';
 import { completeThiefSteal, emitThiefStealTraits } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
@@ -94,23 +89,20 @@ function shadowDepleted(runtime: ThiefRuntime): void {
 /** Barrier on allies arms Dark Sentry's per-ally venom and its queued allied Torment. */
 function darkSentry(runtime: ThiefRuntime, data: unknown): void {
   const party = gw2AlliedPlayerAssumptions(runtime.config);
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.darkSentry);
+  const venom = requireEffect(profile, 'buff', 'rot-wallow-venom');
+  if (!venom) return;
+  // Claim only validated, distinct allies after confirming that venom can be granted.
   const allies = [
     ...new Set(
       ((data as { allyIndices?: readonly number[] }).allyIndices ?? [])
         .map(Number)
         .filter((ally) => Number.isInteger(ally) && ally >= 1 && ally <= party.count)
     )
-  ].filter((ally) =>
-    isInternalCooldownReady(runtime.time, runtime.procs.readyAt[`thief.specter.darkSentry:${ally}`] || 0)
-  );
+  ].filter((ally) => runtime.procs.claim(PROFILE.darkSentry, `thief.specter.darkSentry:${ally}`, runtime.time));
   if (!allies.length) return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.darkSentry);
-  const venom = requireEffect(profile, 'buff', 'rot-wallow-venom');
-  if (!venom) return;
   const torment = requireEffect(profile, 'condition', 'Torment');
-  const readyAt = runtime.time + balanceProfileNumber(profile, 'internalCooldown');
   const venomDuration = effectNumber(profile, venom, 'duration');
-  for (const ally of allies) runtime.procs.readyAt[`thief.specter.darkSentry:${ally}`] = readyAt;
   emitThiefBuff(runtime, null, {
     at: runtime.time,
     source: 'Trait',
@@ -315,8 +307,8 @@ export const specterHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   reactions: { 'condition.applied': larcenousTorment },
   tasks: {
     [SPECTER_COMPLETE](runtime, data) {
-      const cast = takeThiefCompletion(runtime, SPECTER_COMPLETE, data);
-      if (cast) completeSpecterCast(runtime, cast);
+      const { cast } = data as { cast: RuntimeCast };
+      completeSpecterCast(runtime, cast);
     },
     [SHADOW_DEPLETED]: shadowDepleted,
     [DARK_SENTRY]: darkSentry

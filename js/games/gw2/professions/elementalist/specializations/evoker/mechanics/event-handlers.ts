@@ -5,7 +5,7 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -21,20 +21,19 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
 export function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = evokerState.from(context);
   applyEvokerAttunementRechargePolicy(context, event, state);
-  // The proc deadline limits Fire Familiar Might grants to one per internal cooldown.
-  if (
-    event.type === 'condition' &&
-    event.condition === 'Burning' &&
-    state.element === 'Fire' &&
-    isInternalCooldownReady(event.at, context.procs.deadline('elementalist.evoker.ignitePassive'))
-  ) {
+  // A surviving Fire Familiar Might packet claims Ignite's pulse interval at the accepted event time.
+  if (event.type === 'condition' && event.condition === 'Burning' && state.element === 'Fire') {
     const evocationProfile = requireBalanceProfileFromContext(context, PROFILE.evocation);
     const might = requireEffect(evocationProfile, 'boon', 'Fire Familiar');
     const sourceId = event.skillId ?? event.sourceId;
-    if (might) {
-      const igniteProfile = requireBalanceProfileFromContext(context, PROFILE.ignite);
-      context.procs.readyAt['elementalist.evoker.ignitePassive'] =
-        event.at + balanceProfileNumber(igniteProfile, 'pulseInterval');
+    if (
+      might &&
+      context.procs.claimCooldown(
+        'elementalist.evoker.ignitePassive',
+        event.at,
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.ignite), 'pulseInterval')
+      )
+    ) {
       emitElementalistBuff(context, {
         skill: elementalistEventSkill(context, 'Fire Familiar', sourceId),
         at: event.at,

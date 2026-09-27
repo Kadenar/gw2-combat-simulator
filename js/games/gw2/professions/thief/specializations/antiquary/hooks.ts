@@ -1,4 +1,4 @@
-import { canonicalTime, EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { consumeOldestStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -21,8 +21,7 @@ import {
   deferThiefCompletion,
   emitThiefBuff,
   emitThiefCondition,
-  emitThiefDamage,
-  takeThiefCompletion
+  emitThiefDamage
 } from '#gw2/professions/thief/core/events.js';
 import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { emitThiefStealTraits } from '#gw2/professions/thief/core/mechanics/steal.js';
@@ -60,13 +59,11 @@ function grantScoundrelsLuck(runtime: ThiefRuntime): void {
   const state = antiquaryState.from(runtime);
   if (
     !hasTrait(runtime, TRAIT.SCOUNDRELS_LUCK) ||
-    !isInternalCooldownReady(runtime.time, runtime.procs.deadline('thief.antiquary.scoundrelsLuck') || 0)
+    !runtime.procs.claim(PROFILE.scoundrelsLuck, 'thief.antiquary.scoundrelsLuck', runtime.time)
   )
     return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.scoundrelsLuck);
   state.scoundrelsLuck = balanceProfileNumber(profile, 'maximumStacks');
-  runtime.procs.readyAt['thief.antiquary.scoundrelsLuck'] =
-    runtime.time + balanceProfileNumber(profile, 'internalCooldown');
 }
 
 /** Combat High replaces its stacks with staggered expiries, losing one stack per interval. */
@@ -88,7 +85,8 @@ function grantCombatHigh(runtime: ThiefRuntime): void {
 /** Improvisation shortens every selected, still-recharging utility once per internal cooldown. */
 function reduceUtilityRecharges(runtime: ThiefRuntime): void {
   if (!hasTrait(runtime, TRAIT.IMPROVISATION)) return;
-  if (!isInternalCooldownReady(runtime.time, runtime.procs.deadline('thief.antiquary.improvisation') || 0)) return;
+  // An eligible pilfer claims the interval even when no selected utility is recharging.
+  if (!runtime.procs.claim(CORE_PROFILE.improvisation, 'thief.antiquary.improvisation', runtime.time)) return;
   const profile = requireBalanceProfileFromContext(runtime, CORE_PROFILE.improvisation);
   const multiplier = balanceProfileNumber(profile, 'rechargeMultiplier');
   for (const name of selectedSkillNameSet(runtime.config.selectedSkills)) {
@@ -96,9 +94,6 @@ function reduceUtilityRecharges(runtime: ThiefRuntime): void {
     if (skill?.type === 'Utility')
       runtime.cooldownController.reduceSkillRecharge(skill, gw2BaseRecharge(skill) * (1 - multiplier), runtime.time);
   }
-
-  runtime.procs.readyAt['thief.antiquary.improvisation'] =
-    runtime.time + balanceProfileNumber(profile, 'internalCooldown');
 }
 
 /**
@@ -189,10 +184,9 @@ function spendArtifact(runtime: ThiefRuntime, cast: RuntimeCast): void {
 }
 
 /** The used artifact's family traits and identity window apply at completion, followed by Repeat Ransacker. */
-function completeArtifact(runtime: ThiefRuntime, cast: RuntimeCast): void {
+function completeArtifact(runtime: ThiefRuntime, cast: RuntimeCast, slot: ThiefArtifactSlot | undefined): void {
   const state = antiquaryState.from(runtime);
   const skill = cast.skill as ThiefSkill;
-  const slot = artifactSlotsUsed.get(cast);
   if (hasTrait(runtime, TRAIT.ENTERPRISING_ARISTOCRAT))
     grantThiefInitiative(
       runtime,
@@ -387,7 +381,12 @@ function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast): voi
     pilferArtifacts(runtime, 'initiative');
 }
 
-function completeAntiquaryCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
+function completeAntiquaryCast(
+  runtime: ThiefRuntime,
+  cast: RuntimeCast,
+  slot: ThiefArtifactSlot | undefined,
+  coins: number | undefined
+): void {
   const skill = cast.skill as ThiefSkill;
   if (skill.id === ID.SKRITT_SWIPE) {
     emitThiefStealTraits(runtime, cast);
@@ -401,12 +400,11 @@ function completeAntiquaryCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
 
   // Artifact, Reshuffle, and Double Edge completions keep the accepted use even when the cast is cut short.
   if (skill.artifactKind) {
-    completeArtifact(runtime, cast);
+    completeArtifact(runtime, cast, slot);
     if (skill.id === ID.FORGED_SURFER_DASH) startForgedSurfer(runtime, skill);
   }
 
   if (skill.id === ID.RESHUFFLE) antiquaryState.from(runtime).artifactSlots = allArtifactChoices();
-  const coins = coinInitiative.get(cast);
   if (coins != null) grantThiefInitiative(runtime, coins);
   if (skill.id === ID.SKRITT_SCUFFLE) completeSkrittScuffle(runtime, skill);
 }
@@ -465,7 +463,13 @@ export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
       : effects;
   },
   onCastCommit(runtime, cast) {
-    deferThiefCompletion(runtime, ANTIQUARY_COMPLETE, cast);
+    // Preserve the consumed artifact and rolled coin reward independently of the queued cast snapshot's identity.
+    deferThiefCompletion(runtime, ANTIQUARY_COMPLETE, cast, {
+      slot: artifactSlotsUsed.get(cast),
+      coins: coinInitiative.get(cast)
+    });
+    artifactSlotsUsed.delete(cast);
+    coinInitiative.delete(cast);
   },
   reactions: {
     'damage.resolved'(runtime, event) {
@@ -474,8 +478,12 @@ export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   },
   tasks: {
     [ANTIQUARY_COMPLETE](runtime, data) {
-      const cast = takeThiefCompletion(runtime, ANTIQUARY_COMPLETE, data);
-      if (cast) completeAntiquaryCast(runtime, cast);
+      const { cast, slot, coins } = data as {
+        cast: RuntimeCast;
+        slot: ThiefArtifactSlot | undefined;
+        coins: number | undefined;
+      };
+      completeAntiquaryCast(runtime, cast, slot, coins);
     },
     [FORGED_SURFER]: forgedSurfer,
     [SKRITT_SCUFFLE]: skrittScufflePilfer

@@ -6,7 +6,7 @@ import {
   requireEffect,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -79,11 +79,8 @@ export function triggerIneptitudeFromInterrupt(context: MesmerResolverContext, e
   // A removed Confusion packet owns no interrupt cooldown.
   if (!requireEffect(ineptitudeProfile, 'condition', 'Confusion')) return;
   const defiant = Boolean(context.config.target?.defiant);
-  if (defiant && !isInternalCooldownReady(event.at, context.procs.deadline('mesmer.core.ineptitude'))) return;
-  if (defiant) {
-    context.procs.readyAt['mesmer.core.ineptitude'] =
-      event.at + balanceProfileNumber(ineptitudeProfile, 'internalCooldown');
-  }
+  // Non-defiant interrupts remain unlimited; defiant targets claim before Confusion can react.
+  if (defiant && !context.procs.claim(TRAIT.INEPTITUDE, 'mesmer.core.ineptitude', event.at)) return;
 
   applyIneptitudeConfusion(context, { ...event, count: defiant ? 1 : event.count }, 'interrupt → blind → confusion');
 }

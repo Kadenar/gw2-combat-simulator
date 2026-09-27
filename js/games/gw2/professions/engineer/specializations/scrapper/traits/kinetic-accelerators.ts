@@ -1,10 +1,5 @@
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber,
-  requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
 import type { EngineerResolverContext } from '#gw2/professions/engineer/types.js';
@@ -19,11 +14,9 @@ export function kineticAcceleratorBoons(context: EngineerResolverContext, event:
   )
     return [];
   if (event.finisherType === 'Whirl') {
-    if (!isInternalCooldownReady(event.at, context.procs.deadline('engineer.scrapper.kineticAcceleratorsWhirl')))
+    // Only Whirl finishers claim an interval; Blast and Leap remain independent.
+    if (!context.procs.claim(PROFILE.kineticAccelerators, 'engineer.scrapper.kineticAcceleratorsWhirl', event.at))
       return [];
-    const kineticAcceleratorsProfile = requireBalanceProfileFromContext(context, PROFILE.kineticAccelerators);
-    context.procs.readyAt['engineer.scrapper.kineticAcceleratorsWhirl'] =
-      event.at + balanceProfileNumber(kineticAcceleratorsProfile, 'internalCooldown');
   }
 
   return ['quickness', 'might'].flatMap((kind) => {
