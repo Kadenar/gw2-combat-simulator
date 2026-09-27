@@ -41,7 +41,7 @@ import {
 } from '#gw2/professions/engineer/core/mechanics/weapons.js';
 
 const critical = engineerCoreCriticalHitDefinitions.map(onResolvedCriticalHit);
-const customSpear = new Set([ID.LIGHTNING_ROD, ID.CONDUIT_SURGE, ID.ELECTRIC_ARTILLERY]);
+const customSpear = new Set<number>([ID.LIGHTNING_ROD, ID.CONDUIT_SURGE, ID.ELECTRIC_ARTILLERY]);
 
 /** Recharge reductions operate on live remaining work, including ammo recharge, and report only effective changes. */
 function reduceRecharge(

@@ -8,6 +8,9 @@ import type { EngineerRuntime, EngineerRuntimeState } from '#gw2/professions/eng
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 
+// Deploying, detonating, or bursting the Healing Turret all restart the one deployed turret lifetime.
+const HEALING_TURRET_SKILL_IDS = new Set<number>([ID.HEALING_TURRET, ID.DETONATE_HEALING_TURRET, ID.CLEANSING_BURST]);
+
 /** Spear lifetimes retire pending pulses together; launched Artillery retains its release-time charges. */
 export function completeEngineerSpear(runtime: EngineerRuntime, cast: RuntimeCast): void {
   const state = runtime.profession.core;
@@ -65,7 +68,7 @@ export function completeEngineerSpear(runtime: EngineerRuntime, cast: RuntimeCas
 export function completeEngineerTurret(runtime: EngineerRuntime, cast: RuntimeCast): void {
   const state = runtime.profession.core;
   const at = runtime.time;
-  if (![ID.HEALING_TURRET, ID.DETONATE_HEALING_TURRET, ID.CLEANSING_BURST].includes(Number(cast.skill.id))) return;
+  if (!HEALING_TURRET_SKILL_IDS.has(Number(cast.skill.id))) return;
   runtime.cancelOwner({ id: 'engineer.turret', generation: state.healingTurretGeneration });
   const owner = { id: 'engineer.turret', generation: ++state.healingTurretGeneration };
   if (cast.skill.id === ID.DETONATE_HEALING_TURRET) {

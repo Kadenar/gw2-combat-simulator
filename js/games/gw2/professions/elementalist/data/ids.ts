@@ -1,4 +1,4 @@
-export const ELEMENTALIST_SKILL_IDS: Readonly<Record<string, number>> = Object.freeze({
+export const ELEMENTALIST_SKILL_IDS = Object.freeze({
   FIRE_ATTUNEMENT: 5492,
   WATER_ATTUNEMENT: 5493,
   AIR_ATTUNEMENT: 5494,
@@ -298,7 +298,7 @@ export const ELEMENTALIST_SKILL_IDS: Readonly<Record<string, number>> = Object.f
   PICK_UP_FIERY_GREATSWORD: -34
 });
 
-export const ELEMENTALIST_TRAIT_IDS: Readonly<Record<string, number>> = Object.freeze({
+export const ELEMENTALIST_TRAIT_IDS = Object.freeze({
   SOOTHING_MIST: 350,
   HEALING_RIPPLE: 351,
   AQUAMANCERS_TRAINING: 1676,

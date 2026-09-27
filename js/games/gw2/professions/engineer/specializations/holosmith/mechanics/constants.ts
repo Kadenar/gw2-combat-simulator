@@ -1,14 +1,14 @@
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** Forge toggles are excluded from ordinary tool-belt lockouts and have dedicated availability rules. */
-export const HOLOSMITH_FORGE_TOGGLE_SKILL_IDS = new Set([
+export const HOLOSMITH_FORGE_TOGGLE_SKILL_IDS = new Set<number>([
   ID.ENGAGE_PHOTON_FORGE,
   ID.DEACTIVATE_PHOTON_FORGE,
   ID.DEACTIVATE_PHOTON_FORGE_HOT
 ]);
 
 /** Crystal Configuration: Storm selects these stable autoattack replacements. */
-export const HOLOSMITH_STORM_AUTOATTACK_SKILL_IDS = new Set([
+export const HOLOSMITH_STORM_AUTOATTACK_SKILL_IDS = new Set<number>([
   ID.LIGHT_STRIKE_STORM,
   ID.BRIGHT_SLASH_STORM,
   ID.FLASH_CUTTER_STORM

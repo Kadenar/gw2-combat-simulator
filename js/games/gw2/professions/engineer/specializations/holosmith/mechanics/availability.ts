@@ -10,7 +10,7 @@ import {
   HOLOSMITH_STORM_AUTOATTACK_SKILL_IDS
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 
-const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set([
+const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set<number>([
   ID.RADIANT_ARC_NON_HOLOSMITH,
   ID.SUN_RIPPER_NON_HOLOSMITH,
   ID.SUN_EDGE_NON_HOLOSMITH,

@@ -69,7 +69,7 @@ import {
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
 
 const WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS = 4;
-const PRIMORDIAL_STANCES = new Set([
+const PRIMORDIAL_STANCES = new Set<number>([
   ID.PRIMORDIAL_STANCE_FIRE,
   ID.PRIMORDIAL_STANCE_WATER,
   ID.PRIMORDIAL_STANCE_AIR,

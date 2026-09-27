@@ -50,6 +50,8 @@ import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/element
 
 // Overloads that count for a full spear etching; Overload Water is not one of them.
 const FULL_ETCHING_CHARGE_SKILLS = new Set<number>([ID.OVERLOAD_FIRE, ID.OVERLOAD_AIR, ID.OVERLOAD_EARTH]);
+// Every attunement's overload is attributed to the profession mechanic rather than the held weapon.
+const OVERLOAD_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_OVERLOAD_SKILL_IDS));
 
 /**
  * Shout after-effects hook: grants Tempestuous Aria's party might when a Tempest shout finishes.
@@ -258,7 +260,7 @@ function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: 
 
 // Attribute every overload-sourced event to the profession mechanic rather than a held weapon.
 function prepareEvent(_context: ElementalistRuntime, event: SimulationEventBase): SimulationEventBase {
-  return Object.values(ELEMENTALIST_OVERLOAD_SKILL_IDS).includes(Number(event.skillId ?? event.sourceId))
+  return OVERLOAD_SKILL_IDS.has(Number(event.skillId ?? event.sourceId))
     ? { ...event, skillWeapon: 'Profession mechanic' }
     : event;
 }
