@@ -24,6 +24,7 @@ export const GUARDIAN_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 10,
+    rechargeIgnoresAlacrity: true,
     // Custom: Performs the shared weapon-set transition; see `platform/simulation/runtime.ts`.
     inputCategory: 'weapon-swap',
     effects: []

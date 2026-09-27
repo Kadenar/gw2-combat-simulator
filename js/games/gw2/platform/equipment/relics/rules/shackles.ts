@@ -58,13 +58,8 @@ export const shackles = defineRelic({
     });
   },
   damageResolved(ctx, _state, event) {
-    if (
-      event?.type !== 'damage' ||
-      event.sourceId !== 'relic.shackles' ||
-      event.skillName !== 'Relic of the Shackles'
-    ) {
-      return;
-    }
+    // The relic emits exactly one damage packet under its source ID, so the ID alone identifies it.
+    if (event?.type !== 'damage' || event.sourceId !== 'relic.shackles') return;
 
     ctx.recordProc('relic', 'Relic of the Shackles', event.at, event.triggeredBy, 'damage');
   }

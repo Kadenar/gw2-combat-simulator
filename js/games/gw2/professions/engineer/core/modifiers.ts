@@ -8,7 +8,7 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetConditionActive, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   activeBoonStacks,
   engineerEvent,
@@ -126,7 +126,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
     amount: 0.1,
-    when: (context) => context.event?.skillName === 'Flame Jet' && targetConditionActive(context, 'Burning')
+    when: (context) => context.event?.skillId === ID.FLAME_JET && targetConditionActive(context, 'Burning')
   },
   {
     id: 'engineer.high-caliber',

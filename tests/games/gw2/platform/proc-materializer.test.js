@@ -310,6 +310,7 @@ test('missed attacks leave consecutive swaps out of combat', () => {
           type: 'Action',
           castTimeMs: 0,
           cooldown: 10,
+          rechargeIgnoresAlacrity: true,
           effects: []
         }
       ]

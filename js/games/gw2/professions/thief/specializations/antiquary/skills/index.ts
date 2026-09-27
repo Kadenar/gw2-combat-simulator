@@ -23,6 +23,8 @@ const METAL_LEGION_GUITAR_SKILL: Partial<Skill> = {
       type: 'strike',
       ticks: [{ atMs: 0, coefficient: 2.5 }],
       name: 'Final Smash',
+      // Meticulous Custodian keys its separate final-hit factor on this packet identity, not the display label.
+      metadata: { packetKind: 'thief.metal-legion-guitar-final-smash' },
       actorType: 'player',
       timingAnchor: 'castEnd',
       timingScale: 'fixed'

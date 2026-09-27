@@ -42,6 +42,7 @@ export const THIEF_CORE_EXTRA_SKILLS: readonly ThiefSkill[] = Object.freeze([
     slot: 'Action',
     castTimeMs: 0,
     cooldown: 10,
+    rechargeIgnoresAlacrity: true,
     rechargeAnchor: 'castStart',
     effects: []
   }),

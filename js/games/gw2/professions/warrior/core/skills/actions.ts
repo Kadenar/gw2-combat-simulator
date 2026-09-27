@@ -60,6 +60,7 @@ export const WARRIOR_SWAP_WEAPONS: Skill = Object.freeze({
   specialization: '',
   categories: [],
   cooldown: 5,
+  rechargeIgnoresAlacrity: true,
   ammo: 0,
   ammoRecharge: 0,
   nextChainId: null,

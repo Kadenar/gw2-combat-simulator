@@ -37,6 +37,7 @@ const extraSkills: EngineerSkill[] = [
     kitTransition: 'stow',
     castTimeMs: 0,
     cooldown: 0,
+    rechargeIgnoresAlacrity: true,
     rechargeAnchor: 'castStart',
     effects: []
   }

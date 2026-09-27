@@ -17,6 +17,7 @@ const actions: readonly Skill[] = [
     slot: 'Action',
     castTimeMs: 0,
     cooldown: 10,
+    rechargeIgnoresAlacrity: true,
     rechargeAnchor: 'castStart',
     effects: []
   },

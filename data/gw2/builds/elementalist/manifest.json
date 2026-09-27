@@ -22,7 +22,7 @@
         "label": "Condition (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-weaver-pistol.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-pistol.json",
-        "benchmarkDps": 45743,
+        "benchmarkDps": 45722,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-pistol-warhorn"
       },
@@ -38,7 +38,7 @@
         "label": "Condition (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-weaver-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-scepter.json",
-        "benchmarkDps": 43939,
+        "benchmarkDps": 43934,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-scepter-warhorn"
       }
@@ -51,7 +51,7 @@
         "label": "Celestial Alacrity (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-cele-alac-tempest.json",
         "rotation": "data/gw2/rotations/elementalist/r-cele-alac-tempest.json",
-        "benchmarkDps": 20696,
+        "benchmarkDps": 20716,
         "upToDate": true
       },
       {
@@ -113,7 +113,7 @@
         "label": "Condition (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-tempest-pistol-warhorn.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-tempest-pistol-warhorn.json",
-        "benchmarkDps": 41670,
+        "benchmarkDps": 41566,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-tempest-pistol-warhorn"
       },
@@ -129,7 +129,7 @@
         "label": "Condition Alacrity (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-alac-tempest-pistol.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-tempest-pistol.json",
-        "benchmarkDps": 32649,
+        "benchmarkDps": 32642,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-tempest-pistol-warhorn"
       },
@@ -213,7 +213,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-catalyst-pistol.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-catalyst-pistol-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-condi-catalyst-pistol.json",
-        "benchmarkDps": 37305,
+        "benchmarkDps": 37487,
         "upToDate": true
       },
       {
@@ -286,14 +286,14 @@
         "label": "Condition Fox - (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-evoker-pistol-warhorn.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-evoker-pistol-warhorn.json",
-        "benchmarkDps": 43088,
+        "benchmarkDps": 43070,
         "upToDate": true
       },
       {
         "label": "Condition Fox - (Pistol/Focus)",
         "build": "data/gw2/builds/elementalist/b-condi-evoker-pistol-focus.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-evoker-pistol-focus.json",
-        "benchmarkDps": 43304,
+        "benchmarkDps": 43290,
         "upToDate": true
       },
       {
@@ -317,7 +317,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-alac-evoker-pistol-warhorn.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-evoker-pistol-warhorn",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-evoker-pistol-warhorn.json",
-        "benchmarkDps": 38323,
+        "benchmarkDps": 38392,
         "upToDate": true
       },
       {
@@ -325,7 +325,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-alac-evoker-pistol-warhorn-elemental-balance.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-evoker-pistol-warhorn-elemental-balance",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-evoker-pistol-warhorn-elemental-balance.json",
-        "benchmarkDps": 40447,
+        "benchmarkDps": 40420,
         "upToDate": true
       },
       {

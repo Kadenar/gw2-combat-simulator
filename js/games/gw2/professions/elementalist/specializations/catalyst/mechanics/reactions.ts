@@ -39,6 +39,9 @@ import {
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/aura-parameters.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
+// Marks Shattering Ice's own strike so it can never retrigger the proc; the display label stays free to change.
+const SHATTERING_ICE_PACKET = 'elementalist.catalyst.shattering-ice';
+
 /**
  * Convert resolved aura applications into Catalyst aura-stack traits and their
  * profile-defined capped durations.
@@ -222,7 +225,7 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
   const state = catalystState.from(context);
   if (
     (event.actorType !== 'player' && event.actorType !== 'effect') ||
-    event.skillName === 'Shattering Ice Proc' ||
+    event.metadata?.packetKind === SHATTERING_ICE_PACKET ||
     !(Number(event.coefficient) > 0) ||
     state.shatteringIceUntil <= event.at ||
     !isInternalCooldownReady(event.at, context.procs.deadline('elementalist.catalyst.shatteringIce'))
@@ -246,7 +249,8 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
         skillName: 'Shattering Ice Proc',
         coefficient: Number(strike.coefficient),
         skillWeapon: 'Unequipped',
-        triggeredBy: event.skillName
+        triggeredBy: event.skillName,
+        metadata: { packetKind: SHATTERING_ICE_PACKET }
       })
     );
   }

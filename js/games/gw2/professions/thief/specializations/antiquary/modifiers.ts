@@ -25,7 +25,9 @@ function meticulousArtifactStrikeFactor(
 ): number {
   const event = context.event;
   if (event?.skillId === ID.METAL_LEGION_GUITAR) {
-    return event.name === 'Final Smash' ? parameters.guitarFinalFactor : parameters.guitarFactor;
+    return event.metadata?.packetKind === 'thief.metal-legion-guitar-final-smash'
+      ? parameters.guitarFinalFactor
+      : parameters.guitarFactor;
   }
 
   if (event?.skillId === ID.MISTBURN_MORTAR) return parameters.mortarFactor;

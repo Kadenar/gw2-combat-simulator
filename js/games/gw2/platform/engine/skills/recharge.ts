@@ -33,7 +33,8 @@ export const GW2_ALACRITY_RECHARGE_RATE = 1.25;
 
 /** Player Alacrity is permanent; summons must actually receive the boon. */
 export function gw2RechargeRate(config: Gw2Config, skill: Skill, summonAlacrity = false): number {
-  if (skill.name === 'Swap Weapons' || skill.rechargeIgnoresAlacrity) return 1;
+  // Skills such as Weapon Swap declare their Alacrity immunity instead of being recognized by display name.
+  if (skill.rechargeIgnoresAlacrity) return 1;
   if (skill.rechargeBuffAudience === 'summon') return summonAlacrity ? GW2_ALACRITY_RECHARGE_RATE : 1;
   return config.specialization === 'Chronomancer' ? 1.5 : GW2_ALACRITY_RECHARGE_RATE;
 }
@@ -47,7 +48,7 @@ export function* gw2RechargeIntervals(
   end: number
 ): Iterable<RechargeInterval> {
   if (end <= start) return;
-  if (skill.rechargeBuffAudience !== 'summon' || skill.rechargeIgnoresAlacrity || skill.name === 'Swap Weapons') {
+  if (skill.rechargeBuffAudience !== 'summon' || skill.rechargeIgnoresAlacrity) {
     yield { start, end, rate: gw2RechargeRate(config, skill) };
     return;
   }

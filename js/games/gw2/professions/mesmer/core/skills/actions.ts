@@ -19,6 +19,7 @@ export const MESMER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 10,
+    rechargeIgnoresAlacrity: true,
     effects: []
   }
 ] satisfies readonly MesmerSkill[]);

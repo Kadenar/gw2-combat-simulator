@@ -331,6 +331,7 @@ test('Shattering Ice is proc-only and accepts player-owned effect and field atta
     at: 3.002,
     actorType: 'effect',
     skillName: 'Shattering Ice Proc',
+    metadata: { packetKind: 'elementalist.catalyst.shattering-ice' },
     coefficient: 0.6
   });
 

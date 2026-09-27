@@ -179,7 +179,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
       parameters.baseFactor +
       Number(context.query?.vulnerabilityStacksAt(context.time, context.runtime) || 0) * parameters.damagePerStack,
     order: 100,
-    when: (context) => context.event?.skillName === 'Mind Stab'
+    when: (context) => context.event?.skillId === ID.MIND_STAB
   },
   {
     id: 'mesmer.fragility',

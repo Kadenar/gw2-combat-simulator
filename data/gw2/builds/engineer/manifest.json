@@ -49,7 +49,7 @@
         "label": "Condition Alacrity (Pistol / Pistol - Tools)",
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-pistol-pistol-tools.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-pistol-pistol-tools-bench.json",
-        "benchmarkDps": 37555,
+        "benchmarkDps": 37535,
         "upToDate": true
       },
       {
@@ -70,7 +70,7 @@
         "build": "data/gw2/builds/engineer/b-condi-holosmith-pistol-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-holosmith-pistol-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-holosmith-pistol-pistol",
-        "benchmarkDps": 42759,
+        "benchmarkDps": 42753,
         "upToDate": true
       },
       {

@@ -29,7 +29,7 @@ test('Chronomancer recharge applies its increased rate only to player skills', (
   const progress = { startedAt: 0, work: 10 };
   assert.equal(timeline.rechargeReadyAt(skill, progress), 10 / 1.5);
   assert.equal(timeline.rechargeReadyAt({ ...skill, rechargeBuffAudience: 'summon' }, progress), 10);
-  assert.equal(timeline.rechargeReadyAt({ ...skill, name: 'Swap Weapons' }, progress), 10);
+  assert.equal(timeline.rechargeReadyAt({ ...skill, rechargeIgnoresAlacrity: true }, progress), 10);
 });
 
 // Passive cooldown checks use permanent Alacrity regardless of transient grants.
