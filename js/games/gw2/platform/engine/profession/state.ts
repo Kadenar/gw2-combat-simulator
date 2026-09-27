@@ -179,7 +179,7 @@ function specializationStateForKind<
   return active.state as RuntimeSpecializationState<TRuntimeState, TKind>;
 }
 
-export interface ProfessionSpecializationStateDefinition<
+interface ProfessionSpecializationStateDefinition<
   TKind extends string,
   TState extends object,
   TArguments extends readonly unknown[]

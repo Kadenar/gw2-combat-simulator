@@ -24,7 +24,7 @@ import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatt
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
-export interface MesmerSkillSpecialEffectController {
+interface MesmerSkillSpecialEffectController {
   consumeClarity(skill: MesmerSkill, castStart: number): boolean;
   schedule(skill: MesmerSkill, at: number, castStart?: number): void;
   apply(skill: MesmerSkill, at: number, castStart?: number): void;

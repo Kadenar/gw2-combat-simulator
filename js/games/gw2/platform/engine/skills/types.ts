@@ -8,7 +8,7 @@ import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-s
 
 export type SkillId = string | number;
 
-export type SkillInterruptMode = 'commit' | 'per-packet';
+type SkillInterruptMode = 'commit' | 'per-packet';
 
 export interface StrikeTick {
   readonly atMs: number;
@@ -314,7 +314,7 @@ export interface BalanceProfile extends CatalogEntity {
  * What an activation pays. The runtime rejects or waits for an unaffordable cast before any profession gate, then
  * spends the amount on acceptance or, for `castCommit`, only when the activation completes past its commit point.
  */
-export interface SkillCost {
+interface SkillCost {
   readonly resource: 'endurance' | ResourceKey;
   /** A balance-profile field that one patch retunes everywhere; otherwise the skill's own `resourceCost` is paid. */
   readonly profileAmount?: { readonly profileId: SkillId; readonly field: string };

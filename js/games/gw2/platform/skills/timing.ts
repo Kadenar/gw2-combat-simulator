@@ -8,7 +8,7 @@ export const GW2_QUICKNESS_ACTION_RATE = 1.5;
 export const GW2_ACTION_TICK_MS = 40;
 
 /** The cast-end pair every cast lifecycle context carries, regardless of profession. */
-export interface Gw2CastEndTimes {
+interface Gw2CastEndTimes {
   readonly fullEnd: number;
   readonly effectiveEnd: number;
 }

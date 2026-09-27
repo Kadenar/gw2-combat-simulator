@@ -56,11 +56,6 @@ import {
   type ElementalKind
 } from '#gw2/professions/elementalist/core/mechanics/elementals/attacks.js';
 
-export {
-  EARTH_ELEMENTAL_EVTC_PROFILE,
-  FIRE_ELEMENTAL_EVTC_PROFILE
-} from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
-
 // Impact packets retain both generations so replacing an actor or action invalidates its pending hits.
 interface ElementalImpactTaskPayload {
   readonly summonGeneration: number;
@@ -73,8 +68,6 @@ interface ElementalImpactTaskPayload {
 // Re-summoning cancels pending impact packets separately from the shared actor lifetime.
 const ELEMENTAL_IMPACT_TASK = 'elementalist.elemental-impact';
 const ELEMENTAL_TASK_OWNER = 'elementalist.summoned-elemental';
-
-export { FLAME_BARRAGE_ID, STOMP_ID } from '#gw2/professions/elementalist/core/mechanics/elementals/attacks.js';
 
 function ready(): AvailabilityResult {
   return { ready: true };
@@ -648,7 +641,6 @@ function startElemental(context: ElementalistRuntime, at: number): void {
 // the command flip. Optionally starts the attack loop immediately.
 function summonElemental(
   context: ElementalistRuntime,
-  _skill: Skill,
   at: number,
   startImmediately: boolean,
   element: ElementalKind
@@ -695,7 +687,7 @@ function summonElemental(
 export function completeElementalistGlyphCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   const element = elementalForGlyph(skill);
   if (!element) return;
-  summonElemental(context, skill, cast.effectiveEnd, context.combatActive, element);
+  summonElemental(context, cast.effectiveEnd, context.combatActive, element);
 }
 
 /**
@@ -746,7 +738,7 @@ export function ensureElementalistElemental(context: ElementalistRuntime, skill?
     (!skill || !elementalForGlyph(skill))
   ) {
     const glyph = glyphSkillForElement(context, selected);
-    if (glyph) summonElemental(context, glyph, context.time, context.combatActive, selected);
+    if (glyph) summonElemental(context, context.time, context.combatActive, selected);
   }
 
   if (context.combatActive) startElemental(context, context.time);

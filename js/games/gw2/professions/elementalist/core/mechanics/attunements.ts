@@ -38,7 +38,7 @@ export interface ElementalistAttunementTraitTrigger {
  * Specialization-supplied overrides for a single attunement swap: the secondary
  * attunement to report, a replacement recharge policy, and a trait-effect veto.
  */
-export interface ElementalistAttunementTransition {
+interface ElementalistAttunementTransition {
   readonly secondaryAttunement?: ElementalistAttunement | null;
   readonly rechargeDuration?: number;
   readonly shouldTriggerAttunementTrait?: (trigger: ElementalistAttunementTraitTrigger) => boolean;
@@ -96,10 +96,8 @@ export function onAttunementComplete(
   );
   // Preserve chain progress for the attunement being left; a cast still in flight
   // is only held as pending until it commits.
-  state.autoattackCarryover = progressedAutoattackCarryover(context, cast, state, previous);
-  state.pendingAutoattackCarryover = state.autoattackCarryover
-    ? null
-    : inFlightAutoattackCarryover(context, cast, previous);
+  state.autoattackCarryover = progressedAutoattackCarryover(context, state, previous);
+  state.pendingAutoattackCarryover = state.autoattackCarryover ? null : inFlightAutoattackCarryover(context, previous);
   // Specializations may supply their own transition and recharge policy while Core keeps shared entry effects here.
   const dualAttunement = transition.rechargeDuration != null;
   if (dualAttunement) {

@@ -5,7 +5,7 @@ import { createGw2BuildCodec } from '#gw2/platform/builds/codec.js';
 import type { Gw2BuildCodec, Gw2BuildCodecOptions, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { ProfessionAssumptionControl, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 
-export interface ProfessionBuildCodecOptions<TBuild extends Gw2CanonicalBuild> extends Gw2BuildCodecOptions<TBuild> {
+interface ProfessionBuildCodecOptions<TBuild extends Gw2CanonicalBuild> extends Gw2BuildCodecOptions<TBuild> {
   readonly assumptionControls?: readonly ProfessionAssumptionControl[];
 }
 

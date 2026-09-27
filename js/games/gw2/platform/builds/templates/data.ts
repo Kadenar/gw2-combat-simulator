@@ -1,7 +1,7 @@
 // Generated from the official Guild Wars 2 /v2/professions palette map.
 // Snapshot: 2026-08-18. Run scripts/data/update-build-template-data.mjs to refresh.
 
-export interface Gw2BuildTemplateProfessionData {
+interface Gw2BuildTemplateProfessionData {
   readonly paletteEntries: readonly (readonly [number, number])[];
 }
 

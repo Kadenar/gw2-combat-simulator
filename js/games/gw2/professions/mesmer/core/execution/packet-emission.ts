@@ -12,7 +12,7 @@ import type {
 
 import type { MesmerConditionEffect, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 
-export interface MesmerSkillDamageController {
+interface MesmerSkillDamageController {
   schedule(
     skill: MesmerSkill,
     at: number,

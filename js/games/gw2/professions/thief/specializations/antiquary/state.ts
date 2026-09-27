@@ -12,7 +12,7 @@ export interface ThiefArtifactSlot {
   readonly skillId: SkillId;
 }
 
-export interface ThiefAntiquarySummon {
+interface ThiefAntiquarySummon {
   readonly skillId: SkillId;
   readonly name: string;
   readonly expiresAt: number;

@@ -46,6 +46,6 @@ export const heraldUi: RevenantUiSlice = Object.freeze({
     ];
   },
   paletteSkillAvailability: heraldPaletteAvailability,
-  // Herald has no custom resource bar; it reuses the core Energy bar declared in revenantCoreUi.
+  // Herald has no custom resource bar; it reuses the Energy bar declared in core/presentation.ts.
   resourceViews: () => []
 });

@@ -222,7 +222,7 @@ export function reactToGaleshotControl(context: RangerRuntime, event: Gw2Resolve
 
 function isBeastSkill(skill: RangerSkill): boolean {
   return Boolean(
-    // petFamilySkills are passive and never cast by the player, so they don't
+    // Pet family skills are passive and never cast by the player, so they don't
     // count. BEASTMODE / LEAVE_BEASTMODE are the mode-switch commands, not
     // actual pet abilities, so they're excluded as well.
     (skill.petSkill && !skill.petFamilySkill) ||

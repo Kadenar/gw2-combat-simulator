@@ -21,8 +21,8 @@ import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js'
  * one legal, uniquely named morph in each of F2, F3, and F4.
  */
 
-export const ENGINEER_BUILD_SCHEMA_VERSION = 3;
-export const ENGINEER_PROFESSION_ID = 'engineer';
+const ENGINEER_BUILD_SCHEMA_VERSION = 3;
+const ENGINEER_PROFESSION_ID = 'engineer';
 
 const DEFAULT_MORPHS = Object.freeze([77103, 77203, 76954]);
 const AMALGAM_MORPHS = new Set(

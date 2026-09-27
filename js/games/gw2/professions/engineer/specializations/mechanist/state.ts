@@ -17,7 +17,7 @@ import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 
-export interface EngineerMechAttributes {
+interface EngineerMechAttributes {
   power: number;
   precision: number;
   toughness: number;
@@ -29,7 +29,7 @@ export interface EngineerMechAttributes {
   healingPower: number;
 }
 
-export interface EngineerMechState {
+interface EngineerMechState {
   enabled: boolean;
   active: boolean;
   commandSkillIds: SkillId[];

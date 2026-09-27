@@ -294,7 +294,7 @@ export interface Gw2ResolverRuntime {
   markDamageTime(at: number): void;
 }
 
-export interface CreateGw2ResolverRuntimeStateOptions {
+interface CreateGw2ResolverRuntimeStateOptions {
   readonly sigilDiagnostics?: CriticalSigilDiagnostics;
   readonly damageDiagnostics?: boolean;
   readonly reporting?: boolean;

@@ -94,7 +94,7 @@ function resourceProfile(runtime: RevenantRuntime) {
 }
 
 /** Capacity is distinct from the precombat recovery ceiling, which never discards larger grants. */
-export const revenantEnergy: ResourcePolicy<RevenantRuntime> = {
+const revenantEnergy: ResourcePolicy<RevenantRuntime> = {
   kind: 'continuous',
   state: (runtime) => runtime.profession.core.energy,
   maximum: () => 100,
@@ -121,7 +121,7 @@ export function revenantEnduranceRate(runtime: RevenantRuntime, vigor: boolean):
   );
 }
 
-export const revenantEndurance: EndurancePolicy<RevenantRuntime> = {
+const revenantEndurance: EndurancePolicy<RevenantRuntime> = {
   state: (runtime) => runtime.profession.core,
   maximum: () => REVENANT_MAXIMUM_ENDURANCE,
   regenerationRate: (runtime, vigor) => revenantEnduranceRate(runtime, vigor)

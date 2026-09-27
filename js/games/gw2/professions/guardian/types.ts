@@ -81,7 +81,6 @@ export type GuardianVirtue = 'justice' | 'resolve' | 'courage';
 /** Guardian-specific annotations on executed combat and weapon-bar facts. */
 export type GuardianResolverEvent = Gw2ResolverEvent & {
   readonly applicationIndex?: number;
-  readonly totalApplications?: number;
   readonly automatic?: boolean;
   readonly isSymbol?: boolean;
 };

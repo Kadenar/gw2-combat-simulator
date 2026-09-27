@@ -35,7 +35,7 @@ export function withElementalistCast(runtime: ElementalistRuntime, cast: Runtime
 }
 
 /** Procedural packets inherit the owning cast's activation and targeting while a lifecycle callback runs. */
-export function emitElementalistPacket(
+function emitElementalistPacket(
   runtime: ElementalistRuntime,
   event: SimulationEventBase,
   cause?: Gw2ResolverEvent

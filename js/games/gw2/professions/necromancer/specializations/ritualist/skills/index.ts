@@ -97,7 +97,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     cooldown: 0,
     specialization: 'Ritualist',
     shroudExit: 'ritualist',
-    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
     inputCategory: 'bar-swap'
   },
   [ID.WANDERLUST]: {
@@ -158,7 +158,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     shroudEntry: 'ritualist',
     shroudProfileId: PROFILE.resources,
     minimumShroudLifeForcePercent: 10,
-    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
     inputCategory: 'bar-swap'
   },
   [ID.RESILIENT_WEAPON]: {

@@ -168,7 +168,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     shroudEntry: 'reaper',
     shroudProfileId: PROFILE.resources,
     minimumShroudLifeForcePercent: 10,
-    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
     inputCategory: 'bar-swap'
   },
   [ID.DEATHS_CHARGE]: {
@@ -208,7 +208,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     cooldown: 0,
     specialization: 'Reaper',
     shroudExit: 'reaper',
-    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
     inputCategory: 'bar-swap'
   }
 });

@@ -16,7 +16,7 @@ const extraSkills: Skill[] = [
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 10,
-    // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
+    // Custom: Performs the shared weapon-set transition; see `platform/simulation/runtime.ts`.
     inputCategory: 'weapon-swap',
     effects: []
   },

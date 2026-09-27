@@ -15,7 +15,7 @@ export interface ProfessionEventLogDescriptor {
   readonly flags?: readonly string[];
 }
 
-export interface ProfessionResourceStatusItem {
+interface ProfessionResourceStatusItem {
   readonly id: string;
   readonly label: string;
   readonly valueLabel?: string;
@@ -150,7 +150,7 @@ export interface ProfessionSkillBarGroup {
   readonly layout?: string;
 }
 
-export interface ProfessionSkillBarSelection {
+interface ProfessionSkillBarSelection {
   readonly skillId?: SkillId;
   /** When set, render an option filter using this placeholder. */
   readonly filterPlaceholder?: string;
@@ -161,7 +161,7 @@ export interface ProfessionSkillBarSelection {
   readonly selectionIndex: number;
 }
 
-export interface ProfessionSkillBarSelectionOption {
+interface ProfessionSkillBarSelectionOption {
   readonly value: string;
   readonly label: string;
   readonly icon?: string;
@@ -169,7 +169,7 @@ export interface ProfessionSkillBarSelectionOption {
   readonly skillId?: SkillId;
 }
 
-export interface ProfessionStartControlOption {
+interface ProfessionStartControlOption {
   readonly value: string;
   readonly label: string;
   readonly icon?: string;
@@ -224,7 +224,7 @@ export interface ProfessionEffectPresentation {
  * Build selection every application UI callback receives. Composition reads the specialization to choose Core or the
  * active elite; `professionState` is the end-state projection of the profession that owns the callback.
  */
-export interface ProfessionUiContext<TProfessionState = unknown> {
+interface ProfessionUiContext<TProfessionState = unknown> {
   /** Policy-derived limits supplied by family composition for resource presentation. */
   readonly resources?: Readonly<Partial<Record<ResourceKey | 'endurance', { readonly maximum: number }>>>;
   readonly specialization?: string;
@@ -260,7 +260,7 @@ export interface ProfessionResourceViewContext<
 }
 
 /** Result-view callbacks that describe a completed simulation. */
-export interface ProfessionResultUiContext<TProfessionState = unknown> extends ProfessionUiContext<TProfessionState> {
+interface ProfessionResultUiContext<TProfessionState = unknown> extends ProfessionUiContext<TProfessionState> {
   readonly result?: Gw2SimulationResult | null;
   readonly profession?: object | null;
 }
@@ -271,7 +271,7 @@ export interface ProfessionEventLogContext<
 > extends ProfessionResultUiContext<TProfessionState> {}
 
 /** Rotation state snapshot at the inspected point. */
-export interface ProfessionStateSnapshotContext<
+interface ProfessionStateSnapshotContext<
   TProfessionState = unknown
 > extends ProfessionResultUiContext<TProfessionState> {
   /** Simulation time in seconds of the rotation point being inspected. */
@@ -286,7 +286,7 @@ export interface ProfessionChargeReleaseContext {
 }
 
 /** Timeline weapon-line tracking: the initial line, or the transition caused by one rotation entry. */
-export interface ProfessionWeaponLineContext<TProfessionState = unknown> extends ProfessionUiContext<TProfessionState> {
+interface ProfessionWeaponLineContext<TProfessionState = unknown> extends ProfessionUiContext<TProfessionState> {
   readonly initial?: boolean;
   readonly entry?: RotationCommand;
   readonly skill?: Skill;
@@ -295,9 +295,7 @@ export interface ProfessionWeaponLineContext<TProfessionState = unknown> extends
 }
 
 /** Profession icon override for one rotation entry; the timeline owns the fallback icon. */
-export interface ProfessionTimelineIconContext<
-  TProfessionState = unknown
-> extends ProfessionUiContext<TProfessionState> {
+interface ProfessionTimelineIconContext<TProfessionState = unknown> extends ProfessionUiContext<TProfessionState> {
   readonly entry?: RotationCommand;
   readonly index?: number;
   readonly rotation?: readonly RotationCommand[];

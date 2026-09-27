@@ -78,7 +78,7 @@ export function normalizeComboFieldSelectionAnchor(value: unknown): ComboFieldSe
   throw new TypeError(`Invalid combo fieldSelectionAnchor: ${String(value)}.`);
 }
 
-export interface SelectComboFieldOptions {
+interface SelectComboFieldOptions {
   readonly preferredFieldTypes?: readonly ComboFieldType[];
   readonly ambiguousFieldSelection?: 'none' | 'oldest';
 }
@@ -341,7 +341,7 @@ function boundField(
   return null;
 }
 
-export interface ResolveComboAttemptOptions {
+interface ResolveComboAttemptOptions {
   readonly roll: (probability: number, stream: string) => boolean;
   readonly warn: (message: string) => void;
 }
@@ -395,7 +395,6 @@ export function resolveComboAttempt(
       fieldSourceId: field.sourceId,
       fieldSource: field.source,
       fieldOwnerId: field.ownerId,
-      fieldOwnerActorType: field.ownerActorType,
       bindingKind: event.fieldBinding.kind,
       applicationCount: event.applications,
       outcome: definition.outcome,

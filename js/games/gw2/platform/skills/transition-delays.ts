@@ -10,7 +10,7 @@ export const TRANSITION_DELAY_KEYS = [
   'shroudEntryMs',
   'shroudExitMs'
 ] as const;
-export type TransitionDelayKind = (typeof TRANSITION_DELAY_KEYS)[number];
+type TransitionDelayKind = (typeof TRANSITION_DELAY_KEYS)[number];
 export type TransitionDelays = Record<TransitionDelayKind, number>;
 export const TRANSITION_LOCKOUT_EVENT = 'gw2.transition-lockout';
 
@@ -26,7 +26,7 @@ export function normalizeTransitionDelays(value: unknown): TransitionDelays {
 }
 
 /** Record actual bar-transition recovery separately from casts, recharge, and sigil-swap triggers. */
-export function emitTransitionLockout(
+function emitTransitionLockout(
   context: {
     readonly config?: Gw2Config;
     readonly action?: SimulationEvent | null;

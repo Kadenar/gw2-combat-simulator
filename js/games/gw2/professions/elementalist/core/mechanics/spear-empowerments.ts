@@ -57,11 +57,7 @@ export function empowerElementalistSpearPacket(
 }
 
 /** Consumes a released etching or advances every armed etching after a completed cast. */
-export function completeElementalistSpearProgression(
-  context: ElementalistRuntime,
-  _cast: RuntimeCast,
-  skill: Skill
-): void {
+export function completeElementalistSpearProgression(context: ElementalistRuntime, skill: Skill): void {
   const state = professionCoreState(context);
   const chain = etchingChain(skill.id);
   if (chain && skill.id === chain.etchingId && skillWeapon(skill) === 'Spear') {

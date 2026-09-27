@@ -84,7 +84,7 @@ export interface MesmerPlanningState {
   readonly continuumRemaining: number;
 }
 
-export interface MesmerSpecializationSelection {
+interface MesmerSpecializationSelection {
   readonly name: string;
   readonly traits?: string;
 }
@@ -208,7 +208,7 @@ export type MesmerShatterResolver = (
   request: MesmerShatterResolverRequest
 ) => readonly MesmerShatterTraitHit[];
 
-export type MesmerSkillCompletionHandler = (
+type MesmerSkillCompletionHandler = (
   context: MesmerRuntime,
   cast: RuntimeCast,
   skill: MesmerSkill,

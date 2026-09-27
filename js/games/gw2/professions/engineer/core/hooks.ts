@@ -186,7 +186,7 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
   reactions: {
     'damage.resolved'(runtime, event, details) {
       for (const reaction of critical) reaction.handler(runtime, event, details as NativeResolvedDamageDetails);
-      reactToEngineerDamage(runtime, event, details as NativeResolvedDamageDetails);
+      reactToEngineerDamage(runtime, event);
     },
     'condition.applied': reactToEngineerCondition
   }

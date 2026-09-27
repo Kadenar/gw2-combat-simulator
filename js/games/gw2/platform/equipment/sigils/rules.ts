@@ -7,7 +7,7 @@ import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
-export interface Gw2SigilCriticalContribution {
+interface Gw2SigilCriticalContribution {
   readonly chance: number;
   readonly damage: number;
   readonly chanceContributors: readonly Gw2CriticalChanceContributor[];

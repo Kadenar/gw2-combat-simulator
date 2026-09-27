@@ -7,13 +7,13 @@ import { boonIntervals } from '#gw2/platform/combat/boons.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
-export interface Gw2EnduranceState {
+interface Gw2EnduranceState {
   readonly endurance: number;
   readonly enduranceUpdatedAt: number;
 }
 
 /** A chronological recovery window; professions supply their own boon and trait rate policy. */
-export interface Gw2EnduranceInterval {
+interface Gw2EnduranceInterval {
   readonly start: number;
   readonly end: number;
   readonly rate: number;

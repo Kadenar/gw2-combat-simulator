@@ -347,10 +347,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
 
 // Essence of Speed reacts to each quickness application and extends all other boons by 2 s, with a 5 s ICD.
 // Quickness itself is excluded from the extension to prevent runaway stacking.
-export function essenceOfSpeedExtension(
-  context: RangerResolverContext,
-  event: Gw2ResolverEvent
-): Gw2ResolverEvent | null {
+function essenceOfSpeedExtension(context: RangerResolverContext, event: Gw2ResolverEvent): Gw2ResolverEvent | null {
   if (
     event.kind !== 'quickness' ||
     !event.resolvedAudience?.includesSelf ||

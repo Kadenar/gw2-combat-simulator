@@ -2,7 +2,6 @@
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type {
   EngineerRuntime,
   EngineerResolverContext,
@@ -67,11 +66,7 @@ function isExplosion(context: EngineerResolverContext, event: EngineerResolverEv
 }
 
 /** Dispatches damage reactions in their established causal order. */
-export function reactToEngineerDamage(
-  context: EngineerResolverContext,
-  event: EngineerResolverEvent,
-  _details: NativeResolvedDamageDetails = {}
-): void {
+export function reactToEngineerDamage(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
   recordStaticDischargeProc(context, event);
   applyExplosiveEntrance(context, event);

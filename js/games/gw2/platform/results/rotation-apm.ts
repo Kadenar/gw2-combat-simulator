@@ -18,7 +18,7 @@ export interface RotationApm {
   readonly peak10s: RotationApmPeak | null;
 }
 
-export interface RotationApmPeak {
+interface RotationApmPeak {
   readonly startSeconds: number;
   readonly endSeconds: number;
   readonly actionCount: number;

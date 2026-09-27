@@ -21,7 +21,7 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
 export function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = evokerState.from(context);
   applyEvokerAttunementRechargePolicy(context, event, state);
-  // ignitePassiveReadyAt gates the Fire familiar's Might proc to an ICD; without it every burning tick would trigger
+  // The proc deadline limits Fire Familiar Might grants to one per internal cooldown.
   if (
     event.type === 'condition' &&
     event.condition === 'Burning' &&

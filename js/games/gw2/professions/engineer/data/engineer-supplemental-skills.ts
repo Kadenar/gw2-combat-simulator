@@ -4,7 +4,7 @@
  * Combat coefficients, costs, timing, and effects belong in owner-local skills.ts files.
  * Specialization labels use canonical names so shared build eligibility matches toolbelt skills.
  */
-export interface EngineerSupplementalSkill {
+interface EngineerSupplementalSkill {
   readonly id: number;
   readonly name: string;
   readonly description: string;

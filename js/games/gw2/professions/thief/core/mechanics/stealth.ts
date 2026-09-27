@@ -16,7 +16,7 @@ import type { ThiefSkill, ThiefStealthAttackChargeState } from '#gw2/professions
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
 /** Optional stealth-attack charges live on the active specialization when it grants them. */
-export function thiefStealthAttackCharges(runtime: ThiefRuntime): Partial<ThiefStealthAttackChargeState> {
+function thiefStealthAttackCharges(runtime: ThiefRuntime): Partial<ThiefStealthAttackChargeState> {
   return runtime.profession.specialization.state as Partial<ThiefStealthAttackChargeState>;
 }
 

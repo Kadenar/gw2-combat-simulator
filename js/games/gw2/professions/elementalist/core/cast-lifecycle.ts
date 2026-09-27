@@ -83,7 +83,7 @@ function applySpecialSkillProgression(context: ElementalistRuntime, cast: Runtim
     state.activeAuras = state.activeAuras.filter((candidate) => candidate.type !== aura || candidate.expiresAt <= at);
   }
 
-  completeElementalistSpearProgression(context, cast, skill);
+  completeElementalistSpearProgression(context, skill);
 }
 
 /**
@@ -106,7 +106,7 @@ export function elementalistOnCastComplete(context: ElementalistRuntime, cast: R
 
   applyConjureState(context, cast, skill);
   applySpecialSkillProgression(context, cast, skill);
-  shareAttunementVariantRecharge(context, cast, skill);
+  shareAttunementVariantRecharge(context, skill);
   // The runtime has already paid the committed dodge's declared endurance cost.
   if (Number(skill.id) === ID.DODGE) triggerEvasiveArcana(context, cast, skill);
 

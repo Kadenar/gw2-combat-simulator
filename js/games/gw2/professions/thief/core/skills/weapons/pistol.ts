@@ -91,7 +91,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
       {
         type: 'strike',
         ticks: [80, 200, 280, 400, 480, 600, 680, 760].map((atMs) => ({
-          // TODO: Need to get actual packet timing
+          // TODO: Validate these packet offsets against a combat log.
           atMs,
           coefficient: 3.36 / 8
         })),

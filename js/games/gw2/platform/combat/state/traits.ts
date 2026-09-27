@@ -5,7 +5,7 @@ function includesTrait(values: readonly (string | number)[] | undefined, traitId
   return Boolean(values?.some((value) => value === traitId || String(value) === key));
 }
 
-export interface Gw2TraitLookupConfig {
+interface Gw2TraitLookupConfig {
   readonly selectedTraitIds?: readonly (string | number)[] | null;
 }
 

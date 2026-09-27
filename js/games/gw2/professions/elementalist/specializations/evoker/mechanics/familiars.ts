@@ -330,15 +330,11 @@ function settleFamiliarChargeState(context: ElementalistRuntime, cast: RuntimeCa
   }
 }
 
-function releaseDeferredWeaponChargeGains(
-  context: ElementalistRuntime,
-  cast: RuntimeCast,
-  completesActiveFamiliar: boolean
-): void {
+function releaseDeferredWeaponChargeGains(context: ElementalistRuntime, completesActiveFamiliar: boolean): void {
   // the blocking familiar cast is over: release the grants deferred past its charge reset
   if (completesActiveFamiliar) {
     const state = evokerState.from(context);
-    flushPendingWeaponChargeGains(context, cast, state);
+    flushPendingWeaponChargeGains(context, state);
     state.activeFamiliarCast = null;
   }
 }
@@ -452,7 +448,7 @@ export function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, 
   applyFamiliarTraitProcs(context, cast, skill);
   applyFamiliarSkillEffects(context, cast, skill);
   settleFamiliarChargeState(context, cast, skill);
-  releaseDeferredWeaponChargeGains(context, cast, completesActiveFamiliar);
+  releaseDeferredWeaponChargeGains(context, completesActiveFamiliar);
   applyMeditationEffects(context, cast, skill);
   applySpecializedElementsTrait(context, cast, skill);
 }

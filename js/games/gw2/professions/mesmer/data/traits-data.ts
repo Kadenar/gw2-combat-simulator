@@ -6,7 +6,7 @@ const MINOR_TIERS = ['Minor Adept', 'Minor Master', 'Minor Grandmaster'];
 
 const MAJOR_TIERS = ['Major Adept', 'Major Master', 'Major Grandmaster'];
 
-export interface MesmerTraitRecord {
+interface MesmerTraitRecord {
   readonly [key: string]: unknown;
   readonly id: number | string;
   readonly tier: string;

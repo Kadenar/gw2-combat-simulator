@@ -34,11 +34,7 @@ export function activeHammerOrbElements(state: ElementalistCoreState, at: number
 }
 
 /** Core compatibility rule for spending an orb: only one matching the current primary attunement counts. */
-export function hammerOrbMatchesAttunement(
-  _context: ElementalistRuntime,
-  state: ElementalistCoreState,
-  element: ElementalistAttunement
-): boolean {
+export function hammerOrbMatchesAttunement(state: ElementalistCoreState, element: ElementalistAttunement): boolean {
   return element === state.primaryAttunement;
 }
 

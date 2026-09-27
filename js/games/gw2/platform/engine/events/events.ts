@@ -10,7 +10,7 @@ import { timeKey } from '#kernel/core/clock.js';
  * still satisfy this base shape.
  */
 
-export const EVENT_SCHEMA_VERSION = 1 as const;
+const EVENT_SCHEMA_VERSION = 1 as const;
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
@@ -154,7 +154,7 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
 
 /** Defines emitted events and recipient metadata shared by scheduling, resolution, and presentation. */
 
-export type EffectRecipientScope = 'self' | 'party' | 'summons';
+type EffectRecipientScope = 'self' | 'party' | 'summons';
 
 /** Selects the canonical recipient group for one positive effect. */
 export interface EffectAudience {
@@ -213,9 +213,9 @@ export interface EffectMetadata {
 }
 
 /** Derive the shared vocabulary while keeping damage and condition payloads discriminated. */
-export type CommonSimulationEventType = Exclude<(typeof COMMON_EVENT_TYPES)[number], 'damage' | 'condition'>;
+type CommonSimulationEventType = Exclude<(typeof COMMON_EVENT_TYPES)[number], 'damage' | 'condition'>;
 
-export type CustomSimulationEventType = `${string}.${string}`;
+type CustomSimulationEventType = `${string}.${string}`;
 
 export interface SimulationEventBase<TType extends string = string> {
   /** Internal authored-effect provenance; never inferred from display skill attribution. */
@@ -318,34 +318,34 @@ export interface ConditionEventFields {
   readonly independentConditionOwner?: boolean;
 }
 
-export type ConditionEvent = SimulationEventBase<'condition'> & ConditionEventFields;
+type ConditionEvent = SimulationEventBase<'condition'> & ConditionEventFields;
 
 /** Named core payloads preserve permissive external inputs while making ordinary effect work discoverable. */
-export interface BuffEvent extends SimulationEventBase<'buff'> {
+interface BuffEvent extends SimulationEventBase<'buff'> {
   readonly fixedDuration?: boolean;
 }
 
-export interface BoonExtensionEvent extends SimulationEventBase<'boon_extension'> {
+interface BoonExtensionEvent extends SimulationEventBase<'boon_extension'> {
   readonly duration: number;
   readonly extensionAudience?: 'self' | 'all';
   readonly excludedKind?: string;
 }
 
-export type WeaponSetEvent = SimulationEventBase<'weapon_set'>;
+type WeaponSetEvent = SimulationEventBase<'weapon_set'>;
 
 /** Relic of Peitha trigger at activation; the impact delay comes from the triggering skill. */
-export interface PeithaEvent extends SimulationEventBase<'peitha'> {
+interface PeithaEvent extends SimulationEventBase<'peitha'> {
   readonly peithaImpactDelayMs: number;
 }
 
 /** Environment ticks and direct condition packets carry data only; mutable owner wakes belong to condition resolution. */
-export interface ConditionTickEvent extends SimulationEventBase<'condition_tick'> {
+interface ConditionTickEvent extends SimulationEventBase<'condition_tick'> {
   readonly condition?: string;
   readonly fraction?: number;
   readonly damage?: number;
 }
 
-export type CommonSimulationEvent =
+type CommonSimulationEvent =
   | BuffEvent
   | BoonExtensionEvent
   | WeaponSetEvent
@@ -355,7 +355,7 @@ export type CommonSimulationEvent =
       Exclude<CommonSimulationEventType, 'buff' | 'boon_extension' | 'weapon_set' | 'condition_tick' | 'peitha'>
     >;
 
-export type CustomSimulationEvent = SimulationEventBase<CustomSimulationEventType>;
+type CustomSimulationEvent = SimulationEventBase<CustomSimulationEventType>;
 
 export type SimulationEvent = DamageEvent | ConditionEvent | CommonSimulationEvent | CustomSimulationEvent;
 

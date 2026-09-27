@@ -67,7 +67,7 @@ export interface Gw2ConditionBreakdownEntry {
   stackSeconds: number;
 }
 
-export interface Gw2EnvironmentConditionTick {
+interface Gw2EnvironmentConditionTick {
   readonly at: number;
   readonly damage: number;
 }
@@ -107,7 +107,7 @@ export interface Gw2ResolverHelpers {
 
 export type Gw2EventQueue = StableEventQueue<Gw2ResolverEvent>;
 
-export type Gw2ResolverEventHandler = (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => unknown;
+type Gw2ResolverEventHandler = (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => unknown;
 
 export type Gw2ResolverEventHandlers = Readonly<Record<string, Gw2ResolverEventHandler>>;
 
@@ -131,7 +131,7 @@ export type Gw2ResolverStage =
 
 export type Gw2ResolverReactions = Readonly<Partial<Record<Gw2ResolverStage, Gw2ResolverReaction>>>;
 
-export interface Gw2ResolverReactionHook {
+interface Gw2ResolverReactionHook {
   readonly id: string;
   readonly order: number;
   readonly handler: Gw2ResolverReaction;

@@ -3,7 +3,7 @@ import type { CriticalSigilDecision } from '#gw2/platform/equipment/sigils/criti
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 
-export type SigilSuppressionReason = 'target-death' | 'observation-end' | 'precombat' | 'miss';
+type SigilSuppressionReason = 'target-death' | 'observation-end' | 'precombat' | 'miss';
 export interface CriticalSigilDiagnostic {
   readonly causeEventOrder: number | null;
   readonly at: number;

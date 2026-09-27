@@ -12,7 +12,7 @@ import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js'
 
 export type MesmerSummonKind = 'clone' | 'phantasm';
 
-export interface MesmerSkillResource {
+interface MesmerSkillResource {
   readonly mode?: string;
   readonly count?: number;
   readonly timingAnchor?: 'castStart' | 'castEnd';
@@ -20,7 +20,7 @@ export interface MesmerSkillResource {
   readonly [field: string]: unknown;
 }
 
-export interface MesmerMechanic {
+interface MesmerMechanic {
   readonly chaosStormPoison?: ConditionEffect;
 }
 
@@ -93,10 +93,10 @@ export interface MesmerEventExtra {
   readonly summonKind?: MesmerSummonKind;
 }
 
-export type MesmerSkillEffect =
+type MesmerSkillEffect =
   MesmerStrikeEffect | MesmerConditionEffect | Exclude<SkillEffect, StrikeEffect | ConditionEffect>;
 
-export type MesmerTrackedHitDamage = Partial<MesmerStrikeEffect> & {
+type MesmerTrackedHitDamage = Partial<MesmerStrikeEffect> & {
   readonly duration: number;
   readonly hitsRequired: number;
   readonly name: string;

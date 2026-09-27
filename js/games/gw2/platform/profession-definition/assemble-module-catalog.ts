@@ -83,7 +83,7 @@ export function createNativeModuleData({
   });
 }
 
-export interface AssembledNativeCatalog {
+interface AssembledNativeCatalog {
   readonly catalog: Readonly<CanonicalCatalog>;
   readonly fragments: ReadonlyMap<string, Readonly<ProfessionModuleCatalogFragment>>;
 }

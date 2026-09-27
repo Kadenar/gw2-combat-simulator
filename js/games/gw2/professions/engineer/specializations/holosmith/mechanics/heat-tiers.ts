@@ -17,16 +17,16 @@ import type {
   EngineerSimulationEvent
 } from '#gw2/professions/engineer/types.js';
 
-export type HolosmithHeatTier = 'base' | 'high' | 'enhanced';
+type HolosmithHeatTier = 'base' | 'high' | 'enhanced';
 
-export interface HolosmithHeatSnapshot {
+interface HolosmithHeatSnapshot {
   readonly heat: number;
   readonly enhancedCapacitySelected: boolean;
 }
 
 // Holosmith event metadata stays local to the specialization while its packets
 // travel through the shared live queue.
-export interface HolosmithEventMetadata {
+interface HolosmithEventMetadata {
   readonly extraBlades?: number;
   readonly holosmithActivationHeat?: number;
   readonly holosmithConditionBaseDurationFactor?: number;
@@ -36,7 +36,7 @@ export interface HolosmithEventMetadata {
   readonly solarFocusingLens?: boolean;
 }
 
-export type HolosmithSimulationEvent = EngineerSimulationEvent & HolosmithEventMetadata;
+type HolosmithSimulationEvent = EngineerSimulationEvent & HolosmithEventMetadata;
 export type HolosmithResolverEvent = EngineerResolverEvent & HolosmithEventMetadata;
 
 /** Safely exposes Holosmith metadata fields carried by an otherwise generic event. */

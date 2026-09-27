@@ -51,9 +51,9 @@ export function createProfessionModuleDataFactory<TSkill extends Skill = Skill>(
   };
 }
 
-export type ProfessionWeaponHand = 'mh' | 'oh' | 'mh+oh' | '2h';
+type ProfessionWeaponHand = 'mh' | 'oh' | 'mh+oh' | '2h';
 
-export interface ProfessionWeaponData {
+interface ProfessionWeaponData {
   readonly weapons: readonly string[];
   readonly weaponHands: Readonly<Record<string, ProfessionWeaponHand>>;
 }
@@ -76,7 +76,7 @@ export function defineProfessionWeapons<const TWeaponHands extends Readonly<Reco
   });
 }
 
-export interface FlipSkillLike {
+interface FlipSkillLike {
   readonly id: SkillId;
   readonly flipSkillId?: SkillId | null;
   readonly nextChainId?: SkillId | null;
@@ -92,7 +92,7 @@ export function normalizeGeneratedSkill<TSkill extends Skill>(skill: TSkill, fli
   };
 }
 
-export interface CreateFlipParentMapOptions<TSkill extends FlipSkillLike> {
+interface CreateFlipParentMapOptions<TSkill extends FlipSkillLike> {
   /**
    * Optional profession-specific filter.
    *

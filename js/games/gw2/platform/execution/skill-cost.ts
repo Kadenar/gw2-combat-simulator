@@ -13,7 +13,7 @@ import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 
 /** Resolves the declared amount from the selected balance data at the moment it is read. */
-export function skillCostAmount<T extends object>(runtime: Gw2Runtime<T>, skill: Skill): number {
+function skillCostAmount<T extends object>(runtime: Gw2Runtime<T>, skill: Skill): number {
   const source = skill.cost!.profileAmount;
   return source
     ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, source.profileId), source.field)

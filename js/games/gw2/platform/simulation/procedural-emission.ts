@@ -11,7 +11,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 
 /** A procedural strike whose total coefficient is divided across its hits. */
-export interface ProceduralStrike {
+interface ProceduralStrike {
   readonly at: number;
   readonly coefficient: number;
   readonly hits?: number;
@@ -40,7 +40,7 @@ export function proceduralSkillWeapon(skill: Pick<Skill, 'skillWeapon' | 'type' 
   return skill.skillWeapon ?? (skill.type === 'Weapon' ? String(skill.weapon || '') : 'Unequipped');
 }
 
-export interface EmitEffectsOptions {
+interface EmitEffectsOptions {
   /** The skill or balance profile whose effects are expanded; it names and times the packets. */
   readonly owner: Skill | BalanceProfile;
   /** Defaults to the owner's authored effects. */

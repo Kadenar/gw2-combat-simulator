@@ -89,7 +89,7 @@ export function followUpOf(skillsById: ReadonlyMap<SkillId, Skill>, skill: Skill
 }
 
 /** Why the weapon follow-up rule blocks a skill: its window is closed, or its follow-up's window has replaced it. */
-export type WeaponFlipBlock = { readonly kind: 'closed'; readonly parent: Skill } | { readonly kind: 'open' };
+type WeaponFlipBlock = { readonly kind: 'closed'; readonly parent: Skill } | { readonly kind: 'open' };
 
 /**
  * The one bar-slot rule for weapon follow-ups: a follow-up that replaces its parent is castable only while its window

@@ -18,7 +18,7 @@ export const SPELLBREAKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   magebaneTetherReadyAt: 0
 } satisfies Partial<SpellbreakerState>);
 
-export function createSpellbreakerState(): SpellbreakerState {
+function createSpellbreakerState(): SpellbreakerState {
   return {
     // Array of individual expiry timestamps rather than a stack count so each
     // stack can expire independently at the time it was gained.

@@ -2,7 +2,7 @@ import type { MesmerConfig } from '#gw2/professions/mesmer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
-export interface MesmerContinuumAmmo {
+interface MesmerContinuumAmmo {
   charges: number;
   maximum: number;
   rechargeWork: number;
@@ -12,7 +12,7 @@ export interface MesmerContinuumAmmo {
   pendingLockoutWork?: number;
 }
 
-export interface MesmerContinuumSnapshot {
+interface MesmerContinuumSnapshot {
   splitId: SkillId;
   splitReady: number | undefined;
   openAt: number;

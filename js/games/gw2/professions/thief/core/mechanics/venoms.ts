@@ -8,14 +8,14 @@ import type { BalanceProfile, ConditionEffect, SkillId } from '#gw2/platform/eng
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 
-export interface VenomDefinition {
+interface VenomDefinition {
   readonly skillId: SkillId;
   readonly skillName: string;
   readonly kind: string;
   readonly profileId: SkillId;
 }
 
-export const VENOMS: readonly VenomDefinition[] = Object.freeze([
+const VENOMS: readonly VenomDefinition[] = Object.freeze([
   {
     skillId: ID.SPIDER_VENOM,
     skillName: 'Spider Venom',
@@ -45,7 +45,7 @@ export function conditionEffects(profile: BalanceProfile): readonly ConditionEff
 }
 
 /** Keep each grant's expiry and spend older charges before newer applications. */
-export function refreshVenomCharges(state: ThiefCoreState, at: number): void {
+function refreshVenomCharges(state: ThiefCoreState, at: number): void {
   for (const [skillId, batches] of Object.entries(state.venomChargeBatches)) {
     state.venomChargeBatches[skillId] = activeChargeGrants(batches, at);
   }

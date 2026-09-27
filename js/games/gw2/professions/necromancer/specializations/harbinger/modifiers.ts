@@ -97,7 +97,7 @@ const harbingerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: 'damage-additive',
     amount: 0.1,
-    // 10% bonus applies only during the 10 s Meltdown window; meltdownUntil is set/cleared in applyCascadingCorruption.
+    // The bonus applies only during the Meltdown window managed by Harbinger hooks.
     when: (context) =>
       hasTrait(context, TRAIT.CASCADING_CORRUPTION) &&
       Number(necromancerRuntimeSpecializationState(context, 'Harbinger').meltdownUntil || 0) > context.time

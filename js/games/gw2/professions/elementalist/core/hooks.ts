@@ -165,7 +165,7 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
       const damage = details as NativeResolvedDamageDetails;
       applyFreshAirCritical(runtime, event, damage.hitContext!.critical);
       for (const reaction of elementalistCoreCriticalReactions) reaction.handler(runtime, event, damage);
-      applyElementalistResolvedDamage(runtime, event, damage);
+      applyElementalistResolvedDamage(runtime, event);
     },
     'condition.applied': applyElementalistResolvedCondition,
     'buff.applied': applyElementalistResolverBuff,

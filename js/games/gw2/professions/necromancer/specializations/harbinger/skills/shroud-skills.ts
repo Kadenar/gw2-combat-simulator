@@ -30,7 +30,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     cooldown: 0,
     specialization: 'Harbinger',
     shroudExit: 'harbinger',
-    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
     inputCategory: 'bar-swap'
   },
   [ID.VITAL_DRAW]: {
@@ -75,7 +75,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     shroudEntry: 'harbinger',
     shroudProfileId: PROFILE.resources,
     minimumShroudLifeForcePercent: 0,
-    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
     inputCategory: 'bar-swap'
   },
   [ID.TAINTED_BOLTS]: {

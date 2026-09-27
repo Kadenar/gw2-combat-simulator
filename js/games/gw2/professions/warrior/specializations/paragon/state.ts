@@ -23,7 +23,7 @@ export const PARAGON_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   activeRefrain: ''
 } satisfies Partial<WarriorState>);
 
-export function createParagonState(): ParagonState {
+function createParagonState(): ParagonState {
   return {
     motivation: 0,
     maximumMotivation: 10,

@@ -26,7 +26,7 @@ export const RENEGADE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   }
 } satisfies Partial<RenegadeState>);
 
-export function createRenegadeState(): RenegadeState {
+function createRenegadeState(): RenegadeState {
   return {
     // bandTogetherReady + bandTogetherExpiresAt together form the one-use enhancement window; both must be checked because the flag alone doesn't expire itself
     bandTogetherReady: false,

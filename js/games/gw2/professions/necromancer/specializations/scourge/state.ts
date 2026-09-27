@@ -15,7 +15,7 @@ export const SCOURGE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 } satisfies Partial<ScourgeState>);
 
 /** Creates Scourge's timed shade and trait-cooldown runtime state. */
-export function createScourgeState(): ScourgeState {
+function createScourgeState(): ScourgeState {
   const state: ScourgeState = {
     shadeGeneration: 0,
     // Each entry is an absolute expiry timestamp; the array length is the active shade count

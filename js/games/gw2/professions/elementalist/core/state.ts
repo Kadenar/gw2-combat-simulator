@@ -31,7 +31,7 @@ export interface ElementalistAuraState {
  * The single summoned elemental's lifecycle. Generation counters let stale
  * scheduled actions be discarded when the elemental is resummoned.
  */
-export interface ElementalistSummonedElementalState {
+interface ElementalistSummonedElementalState {
   element: ElementalistAttunement | null;
   summonGeneration: number;
   actionGeneration: number;

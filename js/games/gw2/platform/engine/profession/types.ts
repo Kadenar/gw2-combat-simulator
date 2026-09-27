@@ -32,7 +32,7 @@ export type ProfessionHook =
     };
 
 /** A hook slot accepts one hook or an ordered list of them. */
-export type ProfessionHookEntry = ProfessionHook | readonly ProfessionHook[];
+type ProfessionHookEntry = ProfessionHook | readonly ProfessionHook[];
 
 /** Attribute-phase rules a module contributes, plus its declarative modifier fragments. */
 export interface ProfessionModifierDefinition {

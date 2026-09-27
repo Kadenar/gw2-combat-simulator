@@ -1,6 +1,6 @@
 // Browser-facing Mesmer composition. It adds attribute calculation, runtime
 // config mapping, persistence metadata, and shared-shell adapter behavior to
-// the engine contract exported by ../definition.js.
+// the engine contract exported by ../profession.ts.
 
 import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
 import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';

@@ -7,7 +7,7 @@ export type Gw2NumericAttributes = Record<string, number>;
 /** A saved build's fields before migration and validation; every value is unverified input. */
 export type UnvalidatedBuildRecord = Record<string, unknown>;
 
-export type Gw2AttributeEffectRounding = 'none' | 'round' | 'floor';
+type Gw2AttributeEffectRounding = 'none' | 'round' | 'floor';
 
 /** Build assumptions shared by profession definitions and application adapters. */
 /** Custom control keys remain unverified until the registered assumption normalizers read them. */
@@ -52,7 +52,7 @@ export interface ProfessionAssumptionControlInput {
   readonly section?: unknown;
 }
 
-export interface ProfessionAssumptionControlBase {
+interface ProfessionAssumptionControlBase {
   readonly key: string;
   readonly label: string;
   readonly defaultValue: unknown;
@@ -88,14 +88,14 @@ interface Gw2AttributeEffectBase {
   readonly enabled?: boolean;
 }
 
-export interface Gw2FlatAttributeEffect extends Gw2AttributeEffectBase {
+interface Gw2FlatAttributeEffect extends Gw2AttributeEffectBase {
   readonly kind: 'flat';
   readonly to: string;
   readonly amount: number;
   readonly feedsConversions: boolean;
 }
 
-export interface Gw2ConversionAttributeEffect extends Gw2AttributeEffectBase {
+interface Gw2ConversionAttributeEffect extends Gw2AttributeEffectBase {
   readonly kind: 'conversion';
   readonly from: string;
   readonly to: string;
@@ -206,31 +206,31 @@ export interface Gw2CanonicalBuild extends Gw2Build {
   rotation: import('#gw2/platform/execution/types.js').RotationCommand[];
 }
 
-export interface Gw2BuildCodecContext {
+interface Gw2BuildCodecContext {
   readonly saved: UnvalidatedBuildRecord;
 }
 
-export interface Gw2BuildExtraFieldBase {
+interface Gw2BuildExtraFieldBase {
   readonly defaultValue?: number | string;
   readonly label?: string;
   readonly validationMessage?: string;
 }
 
-export interface Gw2BoundedNumberBuildField extends Gw2BuildExtraFieldBase {
+interface Gw2BoundedNumberBuildField extends Gw2BuildExtraFieldBase {
   readonly type: 'number';
   readonly defaultValue?: number;
   readonly minimum: number;
   readonly maximum: number;
 }
 
-export interface Gw2BoundedIntegerBuildField extends Gw2BuildExtraFieldBase {
+interface Gw2BoundedIntegerBuildField extends Gw2BuildExtraFieldBase {
   readonly type: 'integer';
   readonly defaultValue?: number;
   readonly minimum: number;
   readonly maximum: number;
 }
 
-export interface Gw2EnumBuildField<TValue extends string = string> extends Gw2BuildExtraFieldBase {
+interface Gw2EnumBuildField<TValue extends string = string> extends Gw2BuildExtraFieldBase {
   readonly type: 'enum';
   readonly defaultValue?: TValue;
   readonly values: readonly TValue[];
@@ -246,7 +246,7 @@ export type Gw2BuildExtraFieldDescriptors<TBuild extends Gw2CanonicalBuild = Gw2
       : never;
 }>;
 
-export interface Gw2SlotLoadoutContext<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
+interface Gw2SlotLoadoutContext<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
   readonly build: TBuild;
   readonly specialization: string;
 }
@@ -281,7 +281,7 @@ export interface Gw2BuildValidationOptions {
   readonly slotLoadout?: Gw2SlotLoadout | null;
 }
 
-export interface Gw2AttributeCommonContext {
+interface Gw2AttributeCommonContext {
   conversionPool: Gw2NumericAttributes;
   runeDurations: Gw2NumericAttributes;
   foodDurations: Gw2NumericAttributes;

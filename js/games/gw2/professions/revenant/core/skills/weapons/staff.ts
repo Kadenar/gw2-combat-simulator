@@ -14,7 +14,7 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         type: 'strike',
         ticks: Array.from({ length: 9 }, (_, index) => ({
-          atMs: quantizeGw2ActionTimingMs(75.48 + index * 75.48), // TODO: Need to get proper timing
+          atMs: quantizeGw2ActionTimingMs(75.48 + index * 75.48), // TODO: Validate these estimated packet offsets against a combat log.
           coefficient: 3.24 / 9
         })),
         name: 'Surge of the Mists',

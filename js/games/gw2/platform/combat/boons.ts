@@ -51,7 +51,7 @@ const DURATION_STACKING_BOON_CAPS = new Map(
   )
 );
 
-export interface StandardBoonPresentation {
+interface StandardBoonPresentation {
   readonly name: string;
   readonly maximumStacks?: number;
   readonly maximumDuration?: number;

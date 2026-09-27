@@ -47,7 +47,7 @@ export function mesmerConditionFromProfile(
  * runtime on initialization. Every field is optional so a specialization only
  * supplies the tables it actually defines.
  */
-export interface MesmerRuntimeManifest {
+interface MesmerRuntimeManifest {
   readonly shatters?: Readonly<Record<number, MesmerShatter>>;
   readonly shatterResolvers?: Readonly<Record<string, MesmerShatterResolver>>;
   readonly shatterResolvedHandlers?: readonly MesmerShatterResolvedHandler[];

@@ -1,6 +1,6 @@
 import { createProfessionAssumptionControls } from '#gw2/platform/builds/assumptions.js';
 
-export const THIEF_ANTIQUARY_SELECTION_CONTROLS = Object.freeze([
+const THIEF_ANTIQUARY_SELECTION_CONTROLS = Object.freeze([
   {
     key: 'forgedSurferBombsHit',
     label: 'Forged Surfer bombs hit',

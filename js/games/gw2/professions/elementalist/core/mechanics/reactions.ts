@@ -173,11 +173,7 @@ export function applyElementalistResolverBuff(context: ElementalistResolverConte
 }
 
 /** Applies strike reactions in impact order, regardless of when their packets were scheduled. */
-export function applyElementalistResolvedDamage(
-  context: ElementalistResolverContext,
-  event: Gw2ResolverEvent,
-  _details: NativeResolvedDamageDetails = {}
-): void {
+export function applyElementalistResolvedDamage(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   // Fire-field hits grant stacks even from profession skills; only weapon fields receive duration extensions.
   if (
     event.damageKind === 'field-tick' &&

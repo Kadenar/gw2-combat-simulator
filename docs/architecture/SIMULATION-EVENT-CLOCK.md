@@ -180,7 +180,7 @@ The runtime distinguishes the entered rotation from the period resolved for dela
 `rotationEndTime` is the canonical maximum of the current runtime time, the serial lane, and every outstanding cast
 reservation. Final input recovery is included. It does not automatically extend to every delayed damage packet.
 
-`resolutionEndTime` is selected by the observation policy:
+`observationEndTime` is selected by the observation policy:
 
 | Policy                            | Resolution end                           |
 | --------------------------------- | ---------------------------------------- |
@@ -275,7 +275,7 @@ An event at `0.600001` remains a later event.
 
 ### Horizon
 
-For `resolutionEndTime = 2.000000`:
+For `observationEndTime = 2.000000`:
 
 ```text
 event.at = 2.000000  processed

@@ -3,7 +3,7 @@ import { defineProfessionSpecializationState } from '#gw2/platform/engine/profes
 export type ReaperState = Record<string, never>;
 
 /** Reaper retains its specialization identity while the shared registry owns its proc deadlines. */
-export function createReaperState(): ReaperState {
+function createReaperState(): ReaperState {
   return {};
 }
 

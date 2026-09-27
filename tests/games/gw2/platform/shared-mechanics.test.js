@@ -1,7 +1,5 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { StableEventQueue } from '#kernel/events/queue.js';
-import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import {
   activeChargeGrants,
   consumeCharge,
@@ -10,96 +8,6 @@ import {
   grantChargePool
 } from '#gw2/platform/combat/resources/charges.js';
 import { advanceDiscreteResource, resourceValueAt } from '#gw2/platform/combat/resources/clock.js';
-
-// Use the real queue so generation, cancellation, priority, and insertion-order checks exercise dispatch together.
-function harness(definition, beforeTask = () => {}) {
-  const context = { state: { time: 0 }, events: [] };
-  const pending = new StableEventQueue();
-  let order = 0;
-  const cancelled = new Set();
-  const queue = {
-    schedule(task) {
-      const id = String(++order);
-      pending.enqueue({ ...task, id });
-      return id;
-    },
-    cancel(id) {
-      cancelled.add(id);
-    },
-    nextAt() {
-      return pending.peek()?.at ?? Infinity;
-    },
-    drainThrough(at, ctx) {
-      while (pending.peek()?.at <= at) {
-        const task = pending.dequeue();
-        if (cancelled.has(task.id)) continue;
-        beforeTask(task.at);
-        ctx.state.time = task.at;
-        definition.taskHandlers[task.type](ctx, task);
-      }
-    }
-  };
-  context.tasks = queue;
-  return { context, queue, through: (at) => queue.drainThrough(at, context) };
-}
-
-test('finite effects select live state, retain captured values, and invalidate an early-consumed occurrence', () => {
-  const sequence = timedEffect({
-    id: 'finite',
-    interval: () => 3,
-    effectsAt(context, at, captured) {
-      context.events.push([at, context.state.attunement, captured.source]);
-    }
-  });
-  const { context, through } = harness(sequence);
-  const captured = { source: 'command' };
-  const id = sequence.start(context, { at: 3, count: 2, captured });
-  captured.source = 'changed';
-  context.state.attunement = 'Fire';
-  sequence.consume(context, id, 1);
-  context.state.attunement = 'Air';
-  through(3);
-  assert.deepEqual(context.events, [[1, 'Fire', 'command']]);
-  through(4);
-  assert.deepEqual(context.events, [
-    [1, 'Fire', 'command'],
-    [4, 'Air', 'command']
-  ]);
-  assert.equal(sequence.nextAt(context), Infinity);
-});
-
-test('replacement retires old pulses and recurrence stops at the requested observation boundary', () => {
-  const sequence = timedEffect({
-    id: 'recurring',
-    interval: () => 2,
-    effectsAt(context, at, captured) {
-      context.events.push([at, captured.source]);
-    }
-  });
-  const { context, through, queue } = harness(sequence);
-  sequence.start(context, { key: 'upkeep', at: 1, captured: { source: 'old' } });
-  const current = sequence.start(context, { key: 'upkeep', at: 2, captured: { source: 'new' } });
-  through(5);
-  assert.deepEqual(context.events, [
-    [2, 'new'],
-    [4, 'new']
-  ]);
-  assert.equal(queue.nextAt(), 6);
-  sequence.cancel(context, current);
-  through(10);
-  assert.equal(context.events.length, 2);
-});
-
-test('timed definitions reject malformed times and nonpositive recurrence without retiring a valid lifetime', () => {
-  const sequence = timedEffect({ id: 'validation', interval: () => 0, effectsAt() {} });
-  const { context } = harness(sequence);
-  sequence.start(context, { key: 'valid', times: [2], captured: {} });
-  for (const times of [[NaN], [Infinity], [3, 2]])
-    assert.throws(() => sequence.start(context, { key: 'valid', times, captured: {} }));
-  assert.throws(() => sequence.start(context, { at: 1, captured: {} }), /positive/);
-  assert.throws(() => sequence.start(context, { key: 'valid', times: [4], captured: { callback() {} } }));
-  assert.equal(sequence.nextAt(context, 'valid'), 2);
-});
 
 test('charge refresh survives old expiry, preserves ICD, and keeps independent recipient grants isolated', () => {
   let grant = grantCharges(2, 5);

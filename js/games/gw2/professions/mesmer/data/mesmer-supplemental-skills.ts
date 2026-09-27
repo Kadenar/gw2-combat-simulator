@@ -4,7 +4,7 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
  * Positive-ID Mesmer skills absent from the checked-in API snapshot. This
  * module owns identity and presentation only.
  */
-export interface MesmerSupplementalSkill {
+interface MesmerSupplementalSkill {
   readonly id: number;
   readonly name: string;
   readonly description: string;

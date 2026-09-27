@@ -19,7 +19,6 @@ import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ran
 import {
   applyRangerDodgeTraits,
   applyRangerWeaponSwapTraits,
-  rangerCoreCriticalReactions,
   rangerCoreProfiledCriticalReaction
 } from '#gw2/professions/ranger/core/traits/skirmishing.js';
 import { emitChildOfEarth } from '#gw2/professions/ranger/core/traits/wilderness-survival.js';
@@ -29,7 +28,6 @@ import { applyRangerCommandTraits } from '#gw2/professions/ranger/core/traits/be
 export {
   applyRangerDodgeTraits,
   applyRangerWeaponSwapTraits,
-  rangerCoreCriticalReactions,
   rangerCoreProfiledCriticalReaction,
   reactToRangerCoreBuff
 };

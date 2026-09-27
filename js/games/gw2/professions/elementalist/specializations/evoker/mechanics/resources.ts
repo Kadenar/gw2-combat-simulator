@@ -111,7 +111,6 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pic
 // commits one grant, clamped to capacity, and reports it with a delta so the log shows the change
 function applyWeaponSkillChargeGain(
   context: ElementalistRuntime,
-  _cast: RuntimeCast,
   state: EvokerState,
   chargeGain: EvokerState['pendingWeaponChargeGains'][number]
 ): void {
@@ -166,17 +165,13 @@ export function grantWeaponSkillCharges(
     return;
   }
 
-  applyWeaponSkillChargeGain(context, cast, state, chargeGain);
+  applyWeaponSkillChargeGain(context, state, chargeGain);
 }
 
 /** Replays every deferred grant once the familiar cast that blocked them has settled. */
-export function flushPendingWeaponChargeGains(
-  context: ElementalistRuntime,
-  cast: RuntimeCast,
-  state: EvokerState
-): void {
+export function flushPendingWeaponChargeGains(context: ElementalistRuntime, state: EvokerState): void {
   for (const chargeGain of state.pendingWeaponChargeGains) {
-    applyWeaponSkillChargeGain(context, cast, state, chargeGain);
+    applyWeaponSkillChargeGain(context, state, chargeGain);
   }
 
   state.pendingWeaponChargeGains = [];

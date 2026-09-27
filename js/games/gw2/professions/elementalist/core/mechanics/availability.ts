@@ -187,7 +187,7 @@ export function elementalistCoreAvailability(context: ElementalistRuntime, skill
   // Grand Finale needs at least one floating orb matching the current attunement.
   if (Number(skill.id) === ID.GRAND_FINALE) {
     const compatible = activeHammerOrbElements(state, context.time).some((element) =>
-      hammerOrbMatchesAttunement(context, state, element)
+      hammerOrbMatchesAttunement(state, element)
     );
     if (!compatible) {
       return unavailable(

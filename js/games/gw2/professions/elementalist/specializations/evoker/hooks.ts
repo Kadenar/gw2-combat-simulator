@@ -51,7 +51,7 @@ export const evokerHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
       state.pendingWeaponCompletions = state.pendingWeaponCompletions.filter((entry) => entry.activationId !== cast.id);
       if (state.activeFamiliarCast?.reservationId === cast.id) {
         // Interrupting the familiar releases completed weapon grants without applying its charge reset.
-        flushPendingWeaponChargeGains(runtime, cast, state);
+        flushPendingWeaponChargeGains(runtime, state);
         state.activeFamiliarCast = null;
       }
 

@@ -21,7 +21,7 @@ export interface GuardianLuminaryState {
   effulgentActivationId: string | null;
 }
 
-export function createLuminaryState(): GuardianLuminaryState {
+function createLuminaryState(): GuardianLuminaryState {
   return {
     radiantForge: false,
     radiantForgeEndsAt: 0,

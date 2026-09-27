@@ -8,8 +8,6 @@ import {
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 
-export { timedEffect } from '#gw2/platform/engine/effects/timed-effects.js';
-
 function resolvedReaction<
   TContext extends Gw2ResolverRuntime,
   TEvent extends Gw2ResolverEvent,

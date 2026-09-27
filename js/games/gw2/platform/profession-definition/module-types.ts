@@ -42,11 +42,7 @@ export interface NativeModuleCatalogData {
   readonly sharedExtraSkillOrder?: ReadonlyMap<SkillId, number>;
 }
 
-export interface NativeStateDefinition<
-  TState extends object,
-  TProjectOptions extends object,
-  TProjectedState extends object
-> {
+interface NativeStateDefinition<TState extends object, TProjectOptions extends object, TProjectedState extends object> {
   readonly create: (config: Readonly<ProfessionConfig>) => TState;
   readonly project?: (options: TProjectOptions) => TProjectedState;
 }
@@ -57,7 +53,7 @@ export interface NativeResolvedDamageDetails {
 }
 
 /** Runtime callbacks a module contributes; the platform composes Core and the selected specialization in order. */
-export type NativeModuleHooks = Partial<
+type NativeModuleHooks = Partial<
   Omit<RuntimeProfession<never>, 'id' | 'catalog' | 'createState' | 'projectPlanningState'>
 >;
 

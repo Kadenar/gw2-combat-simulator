@@ -29,7 +29,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     shroudEntry: 'death',
     shroudProfileId: PROFILE.shroud,
     minimumShroudLifeForcePercent: 10,
-    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
     inputCategory: 'bar-swap'
   },
   [ID.END_DEATH_SHROUD]: {
@@ -37,7 +37,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     effects: [],
     cooldown: 0,
     shroudExit: 'death',
-    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
+    // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
     inputCategory: 'bar-swap'
   },
   [ID.DOOM]: {

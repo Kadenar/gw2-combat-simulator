@@ -39,7 +39,7 @@ export function revenantConduitFormIsActive(
   return state?.conduitForm === form && Number(state.cosmicWisdomUntil || 0) > Number(at || 0);
 }
 
-export function createConduitState(): ConduitState {
+function createConduitState(): ConduitState {
   return {
     affinity: 0,
     affinityMaximum: 5,

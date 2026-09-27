@@ -15,15 +15,15 @@
 import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** Absolute expiry timestamps, one per live application. */
-export type Gw2TimedStackExpiries = readonly number[];
+type Gw2TimedStackExpiries = readonly number[];
 
-export interface Gw2TimedStackGrant {
+interface Gw2TimedStackGrant {
   readonly expiries: number[];
   /** Applications that actually landed, which is what a caller reports as the granted stack count. */
   readonly added: number;
 }
 
-export interface Gw2TimedStackConsumption {
+interface Gw2TimedStackConsumption {
   readonly expiries: number[];
   /** Applications actually removed, which can fall short of the request when too few were live. */
   readonly consumed: number;
@@ -101,9 +101,9 @@ export function consumeNewestStacks(
  * - `newest-grant` keeps survivor insertion order, appends the grant, and evicts from the front, so an
  *   older application is dropped even when its deadline outlasts the incoming one.
  */
-export type Gw2TimedStackRetention = 'latest-expiry' | 'newest-grant';
+type Gw2TimedStackRetention = 'latest-expiry' | 'newest-grant';
 
-export interface Gw2TimedStackGrantOptions {
+interface Gw2TimedStackGrantOptions {
   readonly at: number;
   /** Absolute deadline, so this helper never decides exact versus tick-aligned expiry for its caller. */
   readonly expiresAt: number;

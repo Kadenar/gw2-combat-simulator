@@ -33,12 +33,12 @@ const GW2_BUILD_TEMPLATE_WEAPON_NAMES: Readonly<Record<number, string>> = Object
   265: 'Spear'
 });
 
-export interface DecodedGw2BuildTemplateSpecialization {
+interface DecodedGw2BuildTemplateSpecialization {
   readonly id: number;
   readonly traits: string;
 }
 
-export interface DecodedGw2BuildTemplate {
+interface DecodedGw2BuildTemplate {
   readonly professionCode: number;
   readonly specializations: readonly DecodedGw2BuildTemplateSpecialization[];
   readonly skillPaletteIds: readonly number[];
@@ -59,7 +59,7 @@ export interface ResolvedGw2BuildTemplate {
 
 export type Gw2BuildTemplateWeaponSet = readonly [string, string];
 
-export interface Gw2BuildTemplateProfessionIdentity {
+interface Gw2BuildTemplateProfessionIdentity {
   readonly code: number;
   readonly id: string;
   readonly name: string;

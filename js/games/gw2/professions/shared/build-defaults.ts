@@ -20,7 +20,7 @@ const DEFAULT_STARTING_WEAPON_SET = 1;
  * Ranger:
  *   normalizeProfessionAssumptions({}, RANGER_ASSUMPTION_CONTROLS)
  */
-export type ProfessionAssumptionOverrides = Readonly<Record<string, unknown>>;
+type ProfessionAssumptionOverrides = Readonly<Record<string, unknown>>;
 
 /**
  * Creates the simulation assumptions shared by all profession build defaults.
@@ -57,7 +57,7 @@ function createDefaultSimulationAssumptions(overrides: ProfessionAssumptionOverr
   };
 }
 
-export interface CommonBuildDefaultsOptions {
+interface CommonBuildDefaultsOptions {
   /**
    * Profession-specific assumptions merged into the common assumptions.
    */
@@ -67,7 +67,7 @@ export interface CommonBuildDefaultsOptions {
   readonly targetArmor?: number;
 }
 
-export interface CommonBuildDefaults {
+interface CommonBuildDefaults {
   readonly assumptions: ProfessionBuildAssumptions;
   readonly startingWeaponSet: number;
   readonly targetHealth: number;

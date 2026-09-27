@@ -57,12 +57,12 @@ export interface EffectEventBase {
   readonly activationId?: string;
 }
 
-export interface MaterializedEffectApplication {
+interface MaterializedEffectApplication {
   readonly at: number;
   readonly event: SimulationEventBase;
 }
 
-export interface MaterializeSkillEffectOptions {
+interface MaterializeSkillEffectOptions {
   readonly reactionGroup?: number;
   readonly skill: Skill;
   readonly effect: SkillEffect;

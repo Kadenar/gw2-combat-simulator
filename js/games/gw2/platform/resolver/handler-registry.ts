@@ -4,7 +4,7 @@
  * cannot silently shadow each other. Dispatch rejects missing handlers so
  * required events cannot be silently lost.
  */
-export type EventHandler<TContext, TEvent extends { type: string }> = (context: TContext, event: TEvent) => unknown;
+type EventHandler<TContext, TEvent extends { type: string }> = (context: TContext, event: TEvent) => unknown;
 
 /** Explicit shared marker for observable events that require no resolver mutation. */
 export const OBSERVABLE_EVENT_HANDLER: EventHandler<unknown, { type: string }> = () => undefined;

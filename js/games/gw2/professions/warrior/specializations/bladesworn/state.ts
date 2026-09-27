@@ -52,7 +52,7 @@ export const BLADESWORN_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   overchargedCartridgeWindows: []
 } satisfies Partial<BladeswornState>);
 
-export function createBladeswornState(config: Gw2Config = {}): BladeswornState {
+function createBladeswornState(config: Gw2Config = {}): BladeswornState {
   return {
     flow: boundedNumber(config.initialResource ?? 0, 0, 0, 100),
     maximumFlow: 100,

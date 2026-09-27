@@ -25,7 +25,7 @@ import type { RevenantConfig, RevenantState } from '#gw2/professions/revenant/ty
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
-export interface RevenantModifierContext extends Gw2ModifierContext {
+interface RevenantModifierContext extends Gw2ModifierContext {
   readonly config?: RevenantConfig;
 }
 

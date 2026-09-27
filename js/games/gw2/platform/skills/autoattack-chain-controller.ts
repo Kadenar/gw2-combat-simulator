@@ -13,7 +13,7 @@ interface AutoattackChainCoreState {
   readonly autoattackChains?: Record<string, SkillId>;
 }
 
-export interface AutoattackChainContext {
+interface AutoattackChainContext {
   readonly chainRootId: SkillId;
   readonly interruptingSkill: Skill;
 }

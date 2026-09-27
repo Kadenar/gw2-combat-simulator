@@ -58,7 +58,7 @@ const OVERLOAD_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_OVERLOAD_S
  * Shout after-effects hook: grants Tempestuous Aria's party might when a Tempest shout finishes.
  * This is the shout half of the trait; its damage buff is refreshed by auras in the resolver.
  */
-export function applyTempestShoutTraits(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+function applyTempestShoutTraits(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   if (!hasTrait(context, TRAIT.TEMPESTUOUS_ARIA)) return;
   // Keep the party reward at this committed shout's completion while reusing named profile emission.
   emitProfiledBuff(

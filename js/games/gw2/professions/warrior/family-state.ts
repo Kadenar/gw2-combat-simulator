@@ -14,7 +14,7 @@ import { PARAGON_PUBLIC_STATE_PROJECTION } from '#gw2/professions/warrior/specia
 import { SPELLBREAKER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 
 /** Aggregates Core and active-specialization state at the Warrior family boundary. */
-export function snapshotWarriorState(state: unknown, skillsById: CanonicalCatalog['skillsById']): WarriorState {
+function snapshotWarriorState(state: unknown, skillsById: CanonicalCatalog['skillsById']): WarriorState {
   const snapshot = snapshotProfessionState<WarriorState>(state);
   // Keep public/UI labels derived from the current catalog, never used as mechanic identity.
   snapshot.activeRefrain = snapshot.activeRefrainId == null ? '' : skillsById.get(snapshot.activeRefrainId)?.name || '';

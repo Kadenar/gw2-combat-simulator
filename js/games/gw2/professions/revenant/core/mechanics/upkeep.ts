@@ -30,7 +30,7 @@ interface UpkeepPulse {
 }
 
 /** Each activation owns its recurring work; a later activation of the same skill has a new generation. */
-export function revenantUpkeepOwner(skillId: SkillId, startsAt: number) {
+function revenantUpkeepOwner(skillId: SkillId, startsAt: number) {
   return { id: `revenant.upkeep:${skillId}`, generation: timeKey(startsAt) };
 }
 

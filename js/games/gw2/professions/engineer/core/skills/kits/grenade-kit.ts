@@ -9,7 +9,7 @@ const GRENADE_THROW_INTERRUPT_COMMIT_MS = 360;
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Grenade Kit. */
 export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
   [ID.GRENADE_KIT]: {
-    // Custom: Equips the kit and updates bundle/weapon state; see `core/mechanics/kits.ts`.
+    // Custom: Equips the kit and updates bundle/weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     kitTransition: 'equip',
     castTimeMs: 0,
@@ -164,7 +164,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     kit: 'Grenade Kit'
   },
   [ID.STOW_GRENADE_KIT]: {
-    // Custom: Stows the active kit and restores weapon state; see `core/mechanics/kits.ts`.
+    // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     kitTransition: 'stow',
     paletteFlip: false,

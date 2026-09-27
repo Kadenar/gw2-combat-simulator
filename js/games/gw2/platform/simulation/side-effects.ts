@@ -12,7 +12,7 @@ import { castCompleted } from '#gw2/platform/skills/timing.js';
 
 export type ProfileAmount = number | { readonly profile: SkillId; readonly field: string };
 // Resource grants may read the accepted skill's live tuning without duplicating it in a balance profile.
-export type ResourceGrantAmount = ProfileAmount | { readonly skillField: string };
+type ResourceGrantAmount = ProfileAmount | { readonly skillField: string };
 
 export type SideEffectAction =
   | { readonly type: 'rechargeReset'; readonly skillIds: readonly SkillId[] }

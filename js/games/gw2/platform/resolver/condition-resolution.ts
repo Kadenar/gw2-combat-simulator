@@ -510,7 +510,7 @@ export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
   }>;
 };
 
-export interface Gw2ResolverConditionStack extends Gw2RuntimeConditionStack {
+interface Gw2ResolverConditionStack extends Gw2RuntimeConditionStack {
   appliedAt: number;
   expiresAt: number;
   weight: number;
@@ -523,7 +523,7 @@ export interface Gw2ResolverConditionState extends Gw2RuntimeConditionEntry {
 }
 
 /** Owner clocks reference canonical applications so removal and reporting share the same lifetime. */
-export interface Gw2ResolverConditionGroup {
+interface Gw2ResolverConditionGroup {
   readonly owner: string | Gw2ResolvedConditionApplication;
   readonly condition: string;
   nextPulseAt: number;
@@ -533,7 +533,7 @@ export interface Gw2ResolverConditionGroup {
 }
 
 /** Retains each application's exposure and damage for packet rounding and attribution. */
-export interface Gw2ConditionTickContribution {
+interface Gw2ConditionTickContribution {
   readonly application: Gw2ResolvedConditionApplication;
   readonly damage: number;
   readonly rawDamage: number;
@@ -542,7 +542,7 @@ export interface Gw2ConditionTickContribution {
 }
 
 /** An atomic owner packet rounds once and retains each application's raw contribution and allocated integer share. */
-export interface Gw2ConditionTickResult {
+interface Gw2ConditionTickResult {
   readonly condition: string;
   readonly damage: number;
   readonly contributions: readonly Gw2ConditionTickContribution[];

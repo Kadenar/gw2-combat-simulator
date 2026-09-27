@@ -1,7 +1,7 @@
 import type { MesmerConfig } from '#gw2/professions/mesmer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 
-export interface MesmerMirageMirror {
+interface MesmerMirageMirror {
   availableAt: number;
   expiresAt: number;
   source: string;

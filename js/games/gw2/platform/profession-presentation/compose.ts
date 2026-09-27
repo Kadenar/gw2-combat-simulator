@@ -41,7 +41,7 @@ interface UiSelectionCandidate {
 
 type UiSlice = Partial<ProfessionUiContract>;
 
-export interface ProfessionFamilyUiDefinition {
+interface ProfessionFamilyUiDefinition {
   readonly resourcesFor?: (
     specialization: string
   ) => Pick<ProfessionResourceDefinition, 'endurance'> & ResourcePolicies;

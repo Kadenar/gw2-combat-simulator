@@ -12,7 +12,7 @@ import { boundedInteger, boundedNumber, clamp } from '#kernel/core/numeric.js';
  * Normalized allied party assumptions. Allied strikes only exist as proc
  * triggers; they never contribute their own damage.
  */
-export interface Gw2AlliedPlayerAssumptions {
+interface Gw2AlliedPlayerAssumptions {
   readonly count: number;
   readonly strikesPerSecond: number;
 }
@@ -45,7 +45,7 @@ interface Gw2BoonRecipientEvent {
 /**
  * One deterministic allied strike opportunity within a buff window.
  */
-export interface Gw2AlliedPlayerProc {
+interface Gw2AlliedPlayerProc {
   readonly allyIndex: number;
   readonly procIndex: number;
   readonly at: number;

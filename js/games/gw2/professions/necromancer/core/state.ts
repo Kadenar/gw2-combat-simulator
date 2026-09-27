@@ -22,7 +22,7 @@ export interface NecromancerSelfCondition {
   readonly expiresAt: number;
 }
 
-export interface NecromancerTasteForBloodApplication {
+interface NecromancerTasteForBloodApplication {
   readonly at: number;
   readonly expiresAt: number;
   stacks: number;

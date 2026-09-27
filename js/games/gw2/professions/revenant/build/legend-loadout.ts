@@ -9,7 +9,7 @@ import type { SlotLoadoutContext } from '#gw2/platform/builds/slot-loadout.js';
 import type { Gw2SlotLoadout } from '#gw2/platform/builds/types.js';
 import type { RevenantCanonicalBuild } from '#gw2/professions/revenant/types.js';
 
-export interface RevenantLegend {
+interface RevenantLegend {
   readonly id: string;
   readonly name: string;
   readonly compactName: string;

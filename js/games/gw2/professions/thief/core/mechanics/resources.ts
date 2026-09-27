@@ -50,7 +50,7 @@ export const thiefInitiative: ResourcePolicy<ThiefRuntime> = {
 };
 
 /** Vigor multiplies regeneration up to the selected cap; specializations may replace only the capacity. */
-export function thiefEnduranceRate(runtime: ThiefRuntime, vigor: boolean): number {
+function thiefEnduranceRate(runtime: ThiefRuntime, vigor: boolean): number {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
   return Math.min(
     balanceProfileNumber(profile, 'threshold'),

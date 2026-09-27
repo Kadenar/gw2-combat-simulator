@@ -32,7 +32,7 @@ export interface ThiefCanonicalBuild extends Gw2CanonicalBuild {
   initialShadowForce: number;
 }
 
-export type ThiefDeterministicChoices = {
+type ThiefDeterministicChoices = {
   readonly forgedSurferBombsHit?: number;
 };
 
@@ -91,7 +91,7 @@ export interface ThiefSummonDefinition {
   readonly attacks?: readonly ThiefSummonStrike[];
 }
 
-export interface ThiefSummonAttack {
+interface ThiefSummonAttack {
   readonly basePower: number;
   readonly criticalChance: number;
   readonly criticalDamage: number;

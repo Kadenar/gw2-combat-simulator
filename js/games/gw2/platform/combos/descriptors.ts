@@ -11,7 +11,7 @@ import {
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Normalizes canonical combo descriptors without observing combat state or predicting outcomes. */
-export interface OwnedFieldDescriptor extends UnvalidatedFields {
+interface OwnedFieldDescriptor extends UnvalidatedFields {
   readonly ownerId: string;
   readonly fieldType: ComboFieldType;
   readonly startMs: number;
@@ -21,7 +21,7 @@ export interface OwnedFieldDescriptor extends UnvalidatedFields {
   readonly ownerActorType?: SimulationActorType;
 }
 
-export interface OwnedFinisherDescriptor extends UnvalidatedFields {
+interface OwnedFinisherDescriptor extends UnvalidatedFields {
   readonly ownerId: string;
   readonly finisherType: ComboFinisherType;
   readonly fieldSelectionAnchor?: ComboFieldSelectionAnchor;

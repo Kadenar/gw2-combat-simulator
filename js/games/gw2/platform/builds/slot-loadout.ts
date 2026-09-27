@@ -21,7 +21,7 @@ import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
  * @module fixed-slot-loadout
  */
 
-export interface SlotLoadoutEntryInput {
+interface SlotLoadoutEntryInput {
   readonly id: unknown;
   readonly name?: unknown;
   readonly compactName?: unknown;
@@ -30,7 +30,7 @@ export interface SlotLoadoutEntryInput {
   readonly specialization?: unknown;
 }
 
-export interface SlotLoadoutEntry {
+interface SlotLoadoutEntry {
   readonly id: string;
   readonly name: string;
   readonly compactName: string;
@@ -56,7 +56,7 @@ export interface SlotLoadoutContext {
   activeLoadoutId?: string;
 }
 
-export interface SlotLoadoutSelectorOption {
+interface SlotLoadoutSelectorOption {
   value: string;
   label: string;
   icon: string;
@@ -79,7 +79,7 @@ export interface SlotLoadoutBar {
   skillIds: number[];
 }
 
-export interface SlotLoadoutView {
+interface SlotLoadoutView {
   id: string;
   label: string;
   selectionControl: string;
@@ -90,7 +90,7 @@ export interface SlotLoadoutView {
   bars: SlotLoadoutBar[];
 }
 
-export interface SlotLoadoutPaletteGroup {
+interface SlotLoadoutPaletteGroup {
   id: string;
   label: string;
   skillIds: number[];
@@ -100,7 +100,7 @@ export interface SlotLoadoutPaletteGroup {
   resourceAnchor?: boolean;
 }
 
-export interface CreateFixedSlotLoadoutOptions<TBuild extends object = Record<string, unknown>> {
+interface CreateFixedSlotLoadoutOptions<TBuild extends object = Record<string, unknown>> {
   id?: string;
   label?: string;
   entryLabel?: string;

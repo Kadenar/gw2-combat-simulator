@@ -7,7 +7,7 @@ import type { Gw2ProcStep, Gw2ResolverHelpers } from '#gw2/platform/resolver/typ
 import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
 
 /** Minimal configuration surface consumed by relic rules. */
-export interface Gw2RelicConfig {
+interface Gw2RelicConfig {
   readonly relic?: string;
   readonly precastRelics?: readonly string[];
   readonly initialThornsStacks?: number;
@@ -44,7 +44,7 @@ export interface Gw2RelicRuntimeContext {
   readonly relic?: Gw2RelicRuntime;
 }
 
-export interface Gw2RelicEmissionContext {
+interface Gw2RelicEmissionContext {
   readonly combatStartTime?: number | null;
   readonly hasExplicitCombatStart?: boolean;
   emitDerived(cause: SimulationEvent, event: Gw2EventDraft): SimulationEvent;
@@ -125,7 +125,7 @@ export type Gw2EventDraft = {
   readonly peithaImpactDelayMs?: number;
 };
 
-export type Gw2ApplyCondition = (context: Gw2RelicContext, event: Gw2EventDraft) => unknown;
+type Gw2ApplyCondition = (context: Gw2RelicContext, event: Gw2EventDraft) => unknown;
 
 export interface Gw2ConditionHelpers {
   activeConditionStackCount(context: Gw2RelicContext, condition: string, at: number): number;

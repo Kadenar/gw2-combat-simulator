@@ -19,10 +19,7 @@ import { applyDhuumfire, applyUnyieldingBlast } from '#gw2/professions/necromanc
 import {
   applyOverflowingThirstDamage,
   applyVampiric,
-  applyVampiricPresence,
-  reactToTasteForBloodAlliedHit,
-  reactToTasteForBloodGrant,
-  reactToVampiricPresenceAlliedHit
+  applyVampiricPresence
 } from '#gw2/professions/necromancer/core/traits/blood-magic.js';
 import { applyCorruptorsFervor } from '#gw2/professions/necromancer/core/traits/death-magic.js';
 
@@ -32,12 +29,6 @@ export {
   queueTraitCoefficientDamage,
   targetIsChilled
 } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
-export {
-  necromancerBarbedPrecisionReaction,
-  reactToTasteForBloodAlliedHit,
-  reactToTasteForBloodGrant,
-  reactToVampiricPresenceAlliedHit
-};
 
 /** Applies all Core Necromancer traits triggered by one resolved player or summon strike. */
 export function reactToNecromancerCoreDamage(

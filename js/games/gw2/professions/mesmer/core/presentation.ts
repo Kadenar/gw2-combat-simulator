@@ -24,7 +24,7 @@ import type {
 } from '#gw2/professions/mesmer/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
-export interface MesmerUiResourceDefinition {
+interface MesmerUiResourceDefinition {
   readonly id: 'blades' | 'notes' | 'clones';
   readonly singular: string;
   readonly plural: string;

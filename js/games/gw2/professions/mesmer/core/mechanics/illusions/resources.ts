@@ -8,7 +8,7 @@ import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mech
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
-export interface MesmerIllusionResourceController {
+interface MesmerIllusionResourceController {
   schedule(skill: MesmerSkill, at: number, castStart: number, phantasms: readonly MesmerPhantasmExecution[]): void;
 }
 

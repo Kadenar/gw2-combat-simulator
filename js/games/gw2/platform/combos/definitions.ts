@@ -39,7 +39,7 @@ export function comboCombatMetadata(event: Readonly<Record<string, unknown>>): R
   return metadata;
 }
 
-export type ComboOutcome =
+type ComboOutcome =
   | {
       readonly kind: 'aura';
       readonly name: string;
@@ -87,7 +87,7 @@ export type ComboOutcome =
       readonly duration: number;
     };
 
-export interface ComboDefinition {
+interface ComboDefinition {
   readonly fieldType: ComboFieldType;
   readonly finisherType: ComboFinisherType;
   readonly outcome: ComboOutcome;

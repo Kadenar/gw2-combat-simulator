@@ -21,7 +21,7 @@ export const HERALD_MECHANICS = freeze({
     [LEGEND.CENTAUR]: ID.TRUE_NATURE_CENTAUR,
     [LEGEND.DEMON]: ID.TRUE_NATURE_DEMON
   }),
-  // Reverse lookup used by consumeRevenantFacet to find the parent upkeep skill that must be torn down; all True Nature variants map back to the same FACET_OF_NATURE upkeep.
+  // Reverse lookup used when consuming a facet to find the parent upkeep skill that must be torn down; all True Nature variants map back to the same FACET_OF_NATURE upkeep.
   facetSkillByConsumeId: freeze({
     [ID.INFUSE_LIGHT]: ID.FACET_OF_LIGHT,
     [ID.BURST_OF_STRENGTH]: ID.FACET_OF_STRENGTH,

@@ -1,6 +1,6 @@
 import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
 
-export type BalanceProfileFields = Readonly<Record<string, unknown>>;
+type BalanceProfileFields = Readonly<Record<string, unknown>>;
 
 /** Defines trait balance data with the catalog metadata shared by every profession. */
 export function defineTraitProfile(id: SkillId, name: string, fields: BalanceProfileFields = {}): BalanceProfile {

@@ -32,7 +32,7 @@ const extraSkills: EngineerSkill[] = [
     icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
     type: 'Action',
     slot: 'Action',
-    // Custom: Stows the active kit and restores weapon state; see `../mechanics/kits.ts`.
+    // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     kitTransition: 'stow',
     castTimeMs: 0,

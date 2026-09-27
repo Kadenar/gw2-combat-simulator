@@ -1,6 +1,6 @@
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
-export type Gw2ConfiguredWeaponSet = readonly [string | undefined, string | undefined];
+type Gw2ConfiguredWeaponSet = readonly [string | undefined, string | undefined];
 
 /** Reads the exact configured main-hand and off-hand for a caller-selected weapon set. */
 export function gw2ConfiguredWeaponSet(config: Gw2Config | null | undefined, set: number): Gw2ConfiguredWeaponSet {

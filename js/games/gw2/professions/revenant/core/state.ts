@@ -14,7 +14,7 @@ export interface RevenantUpkeepState {
   empoweredNextPulse: boolean;
 }
 
-export interface RevenantSelfCondition {
+interface RevenantSelfCondition {
   readonly condition: string;
   readonly stacks: number;
   readonly at: number;

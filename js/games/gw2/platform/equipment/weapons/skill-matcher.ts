@@ -46,7 +46,7 @@ export function defaultWeaponSkillMatchesSet(
 }
 
 /** Evaluates a weapon skill against a set using the supplied matcher or the default policy. */
-export function weaponSkillMatchesSet(
+function weaponSkillMatchesSet(
   matcher: Gw2WeaponSkillMatcher | null | undefined,
   skill: Skill,
   weaponSet: readonly (string | undefined)[],

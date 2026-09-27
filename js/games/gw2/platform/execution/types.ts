@@ -94,7 +94,7 @@ export interface WaitCommand {
   readonly durationMs: number;
 }
 
-export interface CombatStartCommand {
+interface CombatStartCommand {
   readonly type: 'combat-start';
   readonly concurrentOffsetMs?: number;
 }

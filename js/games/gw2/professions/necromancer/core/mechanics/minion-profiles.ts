@@ -44,8 +44,7 @@ export interface MinionDefinition {
   readonly alternateAttacks?: readonly MinionAttack[];
 }
 
-export interface MinionCommandDefinition {
-  readonly minion: string;
+interface MinionCommandDefinition {
   readonly coefficient?: number;
   readonly condition?: readonly (string | number)[];
   readonly conditions?: readonly (readonly (string | number)[])[];
@@ -155,7 +154,6 @@ export function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefi
     );
   const controlEffect = effects.find((effect) => effect.type === 'control' || effect.type === 'blind');
   return {
-    minion: String(skill.minionKey || ''),
     coefficient: Number(strike?.coefficient || 0),
     conditions,
     control: String(

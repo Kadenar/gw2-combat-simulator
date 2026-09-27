@@ -13,7 +13,7 @@ import type { RitualistState } from '#gw2/professions/necromancer/specialization
 import type { ScourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
-export interface NecromancerBuild extends Gw2Build {
+interface NecromancerBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
   selectedSkills?: Record<string, string>;
 }
@@ -69,10 +69,8 @@ export type NecromancerResolverEvent = Gw2ResolverEvent & {
   readonly summonCriticalChance?: number;
   readonly summonCriticalDamage?: number;
   readonly mode?: string;
-  readonly playerStacks?: number;
   readonly allyStacks?: number;
   readonly spell?: string;
-  readonly procIndex?: number;
   readonly controlKind?: string;
   readonly effectiveDuration?: number;
 };

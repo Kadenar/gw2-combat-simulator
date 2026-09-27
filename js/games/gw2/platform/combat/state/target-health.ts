@@ -1,7 +1,7 @@
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { clamp } from '#kernel/core/numeric.js';
 
-export interface Gw2TargetDamageState {
+interface Gw2TargetDamageState {
   readonly totals?: {
     readonly strike?: number;
     readonly condition?: number;

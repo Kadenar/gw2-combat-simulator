@@ -71,7 +71,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
   ),
   [ID.EXIT_RADIANT_FORGE]: {
     castTimeMs: 0,
-    // Custom: Enters or exits Radiant Forge and updates forge resources; see `luminary/mechanics/radiant-forge.ts`.
+    // Custom: Enters or exits Radiant Forge and updates forge resources; see `luminary/hooks.ts`.
     inputCategory: 'bar-swap',
     effects: []
   },
@@ -149,7 +149,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
   },
   [ID.ENTER_RADIANT_FORGE]: {
     castTimeMs: 0,
-    // Custom: Enters or exits Radiant Forge and updates forge resources; see `luminary/mechanics/radiant-forge.ts`.
+    // Custom: Enters or exits Radiant Forge and updates forge resources; see `luminary/hooks.ts`.
     inputCategory: 'bar-swap',
     effects: []
   },

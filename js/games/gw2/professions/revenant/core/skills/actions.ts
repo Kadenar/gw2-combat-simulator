@@ -8,7 +8,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 const actions: readonly Skill[] = [
   {
     id: ID.SWAP_WEAPONS,
-    // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
+    // Custom: Performs the shared weapon-set transition; see `platform/simulation/runtime.ts`.
     inputCategory: 'weapon-swap', // Count the explicit bar-changing input in effort summaries.
     name: 'Swap Weapons',
     description: 'Swap equipped weapon sets.',

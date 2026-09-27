@@ -1,6 +1,6 @@
 // Browser-facing Revenant composition. It adds attribute calculation, runtime
 // config mapping, persistence metadata, and shared-shell adapter behavior to
-// the engine contract exported by ../definition.js.
+// the engine contract exported by ../profession.ts.
 
 import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
 import { applyRevenantBuildAttributeRules } from '#gw2/professions/revenant/build/attributes.js';

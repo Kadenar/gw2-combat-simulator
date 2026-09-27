@@ -46,7 +46,7 @@ export function isSelectedSlotSkill(skill: Skill, selected: ReadonlySet<string>)
 
 // Attunement variants are alternate faces of one utility slot, so copy both
 // cooldown and ammo state to every variant after any one face is used.
-export function shareAttunementVariantRecharge(context: ElementalistRuntime, _cast: RuntimeCast, skill: Skill): void {
+export function shareAttunementVariantRecharge(context: ElementalistRuntime, skill: Skill): void {
   if (!['Heal', 'Utility', 'Elite'].includes(String(skill.type)) || !skill.attunement) {
     return;
   }
@@ -108,7 +108,6 @@ export function activeSecondaryAttunement(context: ElementalistRuntime): Element
 /** Captures the mid-chain autoattack of the attunement being left so its progress survives the swap. */
 export function progressedAutoattackCarryover(
   context: ElementalistRuntime,
-  _cast: RuntimeCast,
   state: ElementalistCoreState,
   attunement: ElementalistAttunement
 ): ElementalistCoreState['autoattackCarryover'] {
@@ -130,7 +129,6 @@ export function progressedAutoattackCarryover(
 /** Captures an autoattack still casting through the swap; it only becomes carryover once that cast commits. */
 export function inFlightAutoattackCarryover(
   context: ElementalistRuntime,
-  _cast: RuntimeCast,
   attunement: ElementalistAttunement
 ): ElementalistCoreState['pendingAutoattackCarryover'] {
   for (const skillId of context.inFlight.keys()) {
