@@ -14,7 +14,4 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
   ...LUMINARY_VIRTUE_SKILL_MECHANICS
 });
 
-export {
-  LUMINARY_EXTRA_SKILLS,
-  LUMINARY_INITIAL_STATE_SKILL_IDS
-} from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
+export { LUMINARY_EXTRA_SKILLS } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';

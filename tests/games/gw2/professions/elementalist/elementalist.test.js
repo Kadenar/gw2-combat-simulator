@@ -15,7 +15,7 @@ import {
   professionRegistry
 } from '#gw2/profession-registry.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { selectedGw2TraitValues } from '#gw2/platform/combat/state/traits.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import {
   ELEMENTALIST_BUILD_SCHEMA_VERSION,
   createElementalistBuildDefaults,
@@ -30,12 +30,31 @@ import {
 import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/index.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/core/profiles.js';
 import { elementalistAttunementRechargeDuration } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
+import { elementalistRechargeWork } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
 import { TEMPEST_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 
 const applyElementalistPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(elementalistCatalog, patch), patch);
+
+// Training reductions must recognize numeric trait IDs without depending on catalog-name aliases.
+test('elemental training reduces only matching weapon recharge with ID-only trait sets', () => {
+  for (const [attunement, traitId] of [
+    ['Fire', TRAIT.PYROMANCERS_TRAINING],
+    ['Air', TRAIT.AEROMANCERS_TRAINING],
+    ['Earth', TRAIT.GEOMANCERS_TRAINING],
+    ['Water', TRAIT.AQUAMANCERS_TRAINING]
+  ]) {
+    const context = { helpers: elementalistCatalog, traits: new Set([traitId]) };
+    const skill = { id: 'fixture.weapon', type: 'Weapon', attunement };
+    assert.equal(elementalistRechargeWork(context, skill, 10), 8, attunement);
+    assert.equal(elementalistRechargeWork(context, { ...skill, attunement: 'None' }, 10), 10);
+    assert.equal(elementalistRechargeWork(context, { ...skill, type: 'Utility' }, 10), 10);
+    context.traits.clear();
+    assert.equal(elementalistRechargeWork(context, skill, 10), 10);
+  }
+});
 
 // Flat Flow State reduction follows Elemental Enchantment's multiplier and precedes Alacrity's recharge rate.
 test('attunement recharge applies trait reductions in order and stays free before combat', () => {
@@ -194,8 +213,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
     ),
     100
   );
-  // Mirror the production simulation boundary by deriving internal name aliases
-  // from the canonical selected trait IDs before invoking lifecycle logic.
+  // Mirror the simulation boundary by normalizing selected IDs before invoking lifecycle logic.
   const traitConfig = {
     selectedTraitIds: [TRAIT.ELEMENTAL_ENCHANTMENT],
     boons: {}
@@ -208,7 +226,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
         time: 0,
         combatActive: true,
         cooldownController: { rate: () => 1 },
-        traits: selectedGw2TraitValues(traitConfig, preview)
+        traits: normalizeSelectedTraitIds(traitConfig.selectedTraitIds)
       },
       preview.skillsById.get(ID.FIRE_ATTUNEMENT),
       10

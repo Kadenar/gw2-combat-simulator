@@ -304,7 +304,7 @@ export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> 
   // Overload-start boons retain the triggering overload as source, including on interrupted channels.
   traitTriggers: [
     {
-      trait: 'Transcendent Tempest',
+      trait: TRAIT.TRANSCENDENT_TEMPEST,
       emit: PROFILE.transcendentTempest,
       on: 'castCommit',
       when: (_runtime, cast) => Boolean(cast.skill.overload),
@@ -321,11 +321,11 @@ export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> 
     },
     ...(
       [
-        ['Hardy Conduit', PROFILE.hardyConduit, ['Protection']],
-        ['Harmonious Conduit', PROFILE.harmoniousConduit, ['Swiftness', 'Stability']]
+        [TRAIT.HARDY_CONDUIT, 'Hardy Conduit', PROFILE.hardyConduit, ['Protection']],
+        [TRAIT.HARMONIOUS_CONDUIT, 'Harmonious Conduit', PROFILE.harmoniousConduit, ['Swiftness', 'Stability']]
       ] as const
-    ).map<Extract<TraitTrigger<ElementalistRuntimeState>, { on: 'castStart' }>>(([name, profile, effects]) => ({
-      trait: name,
+    ).map<Extract<TraitTrigger<ElementalistRuntimeState>, { on: 'castStart' }>>(([trait, name, profile, effects]) => ({
+      trait,
       on: 'castStart',
       when: (_runtime, cast) => Boolean(cast.skill.overload),
       emit: profile,
@@ -347,7 +347,7 @@ export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> 
   // Overload-only trait tuning uses the same live recharge rules as other professions.
   rechargeRules: [
     {
-      trait: 'Elemental Enchantment',
+      trait: TRAIT.ELEMENTAL_ENCHANTMENT,
       when: (_context, skill) => Boolean(skill.overload),
       multiplier: { profile: CORE_PROFILE.elementalEnchantment, field: 'rechargeMultiplier' }
     }

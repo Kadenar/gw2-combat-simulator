@@ -137,7 +137,8 @@ export function renderSkills(app: ProfessionAppState): void {
     specialization: spec,
     catalog: app.activeCatalog,
     professionState: app.results?.planningState?.profession,
-    traits: new Set((app.attributeData?.activeTraits || []).flatMap((trait) => [trait.id, trait.name]))
+    // Build selectors share the simulation's ID-only trait membership.
+    traits: new Set((app.attributeData?.activeTraits || []).map((trait) => trait.id))
   };
   // Profession contracts now expose only editable build selectors here.
   const inspectionGroups = app.profession.ui.skillBarGroups?.(context) || [];

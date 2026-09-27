@@ -11,8 +11,7 @@ import type {
   ProfessionModifierDefinition,
   ProfessionFamilyContract,
   ProfessionFamilyDefinition,
-  ProfessionModuleDefinition,
-  ProfessionSource
+  ProfessionModuleDefinition
 } from '#gw2/platform/engine/profession/types.js';
 import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
 import { MODIFIER_HOOK_NAMES, assertDefinition, defineProfession } from '#gw2/platform/engine/profession/contract.js';
@@ -193,22 +192,17 @@ export function defineProfessionFamily<TProfessionState extends object = object,
   });
 }
 
-/**
- * Resolves family contracts for the supplied configuration. Already-resolved
- * runtime contracts pass through unchanged.
- */
+/** Selects the family's runtime for the supplied configuration; callers must supply a family contract. */
 export function resolveProfessionContract<
   TProfessionState extends object = object,
   TRuntime extends NormalizedProfessionContract<TProfessionState> = NormalizedProfessionContract<TProfessionState>
 >(
-  profession: ProfessionSource<TProfessionState, TRuntime>,
+  profession: ProfessionFamilyContract<TProfessionState, TRuntime>,
   config: Readonly<ProfessionConfig> = {}
 ): Readonly<TRuntime> {
-  if (!profession || typeof profession !== 'object') {
-    throw new TypeError('A profession contract is required.');
+  if (!profession || typeof profession !== 'object' || typeof profession.resolveProfession !== 'function') {
+    throw new TypeError('A profession family contract is required.');
   }
 
-  return typeof (profession as ProfessionFamilyContract<TProfessionState, TRuntime>).resolveProfession === 'function'
-    ? (profession as ProfessionFamilyContract<TProfessionState, TRuntime>).resolveProfession(config)
-    : (profession as Readonly<TRuntime>);
+  return profession.resolveProfession(config);
 }

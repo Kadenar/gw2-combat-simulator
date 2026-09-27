@@ -35,6 +35,3 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Skill
   ...MESMER_WEAPONS_SWORD_SKILL_MECHANICS,
   ...MESMER_WEAPONS_TORCH_SKILL_MECHANICS
 });
-
-export { MESMER_CORE_EXTRA_SKILLS } from '#gw2/professions/mesmer/core/skills/actions.js';
-export { MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/supplemental-skills.js';

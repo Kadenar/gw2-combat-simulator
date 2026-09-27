@@ -4,6 +4,7 @@ import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profes
 import { onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { resolveProfessionContract } from '#gw2/platform/engine/profession/family.js';
 
 // Flat declarations must compile once per stage, preserving priorities, ties, and stage-scoped IDs.
 test('mixed-stage reaction arrays retain dispatch ownership and stable order after compilation', () => {
@@ -48,7 +49,10 @@ test('native runtime compilation defers presentation until the application reque
       })
     ]
   });
-  const runtime = profession.resolveProfession({});
+  const runtime = resolveProfessionContract(profession);
+  // Resolution requires a family so an already-resolved runtime cannot bypass specialization selection.
+  assert.throws(() => resolveProfessionContract(runtime), /profession family contract is required/);
+  assert.throws(() => resolveProfessionContract(null), /profession family contract is required/);
   assert.equal(Object.hasOwn(runtime, 'ui'), false);
   assert.equal(Object.hasOwn(runtime, 'migrateBuild'), false);
   assert.deepEqual(simulateGw2({ profession, rotation: [] }).warnings, []);

@@ -146,9 +146,3 @@ export interface ProfessionFamilyContract<
 > extends ProfessionApplicationContract<TBuild> {
   readonly resolveProfession: (config: Readonly<ProfessionConfig>) => Readonly<TRuntime>;
 }
-
-export type ProfessionSource<
-  TProfessionState extends object = object,
-  TRuntime extends NormalizedProfessionContract<TProfessionState> = NormalizedProfessionContract<TProfessionState>,
-  TBuild extends object = object
-> = TRuntime | ProfessionFamilyContract<TProfessionState, TRuntime, TBuild>;

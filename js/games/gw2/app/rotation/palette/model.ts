@@ -666,8 +666,8 @@ export function createPaletteContext(app: ProfessionAppState): PaletteContext {
     time: Number(planningState?.atSeconds || 0),
     build: app.build,
     activeAutoattack: currentAutoattackSkill(app),
-    // Expose resolved traits so profession replacements only appear when their trait is selected.
-    traits: new Set((app.attributeData?.activeTraits || []).flatMap((trait) => [trait.id, trait.name]))
+    // Expose selected IDs so profession replacements use the same membership contract as simulation.
+    traits: new Set((app.attributeData?.activeTraits || []).map((trait) => trait.id))
   };
 }
 

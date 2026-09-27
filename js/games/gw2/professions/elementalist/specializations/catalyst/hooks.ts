@@ -329,7 +329,7 @@ export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState>>
   // Sphere recharge uses the selected Core trait profile.
   rechargeRules: [
     {
-      trait: 'Elemental Enchantment',
+      trait: TRAIT.ELEMENTAL_ENCHANTMENT,
       when: (_runtime, skill) => skill.skillFamily === 'Jade Sphere',
       multiplier: { profile: CORE_PROFILE.elementalEnchantment, field: 'rechargeMultiplier' }
     }

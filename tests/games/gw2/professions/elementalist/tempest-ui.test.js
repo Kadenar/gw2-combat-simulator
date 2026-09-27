@@ -110,7 +110,7 @@ function paletteContext(app) {
     cooldowns: app.results.planningState.cooldowns,
     time: app.results.planningState.atSeconds,
     build: app.build,
-    traits: new Set(app.attributeData.activeTraits.flatMap((trait) => [trait.id, trait.name]))
+    traits: new Set(app.attributeData.activeTraits.map((trait) => trait.id))
   };
 }
 

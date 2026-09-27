@@ -1,9 +1,4 @@
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { CatalogEntity, SkillId } from '#gw2/platform/engine/skills/types.js';
-
-function includesTrait(values: readonly (string | number)[] | undefined, traitId: SkillId, key: string): boolean {
-  return Boolean(values?.some((value) => value === traitId || String(value) === key));
-}
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 interface Gw2TraitLookupConfig {
   readonly selectedTraitIds?: readonly (string | number)[] | null;
@@ -12,12 +7,13 @@ interface Gw2TraitLookupConfig {
 export interface Gw2TraitLookupContext extends Gw2TraitLookupConfig {
   readonly traits?: ReadonlySet<string | number> | null;
   readonly config?: Gw2TraitLookupConfig | null;
-  readonly catalog?: { readonly traits?: readonly CatalogEntity[] | null } | null;
 }
 
 /** Normalizes selected trait IDs once so runtime membership checks use stable numeric IDs where possible. */
 export function normalizeSelectedTraitIds(values?: readonly SkillId[] | null): Set<SkillId> {
-  return new Set((values || []).map((value) => (Number.isFinite(Number(value)) ? Number(value) : value)));
+  return new Set(
+    (Array.isArray(values) ? values : []).map((value) => (Number.isFinite(Number(value)) ? Number(value) : value))
+  );
 }
 
 function lookupContext(value: unknown): Gw2TraitLookupContext | null {
@@ -30,13 +26,6 @@ function traitSet(value: unknown): ReadonlySet<string | number> | null {
   }
 
   return value as ReadonlySet<string | number>;
-}
-
-function configuredTraitId(context: Gw2TraitLookupContext, traitId: SkillId): SkillId {
-  if (typeof traitId !== 'string' || Number.isFinite(Number(traitId))) return traitId;
-
-  const traits = Array.isArray(context.catalog?.traits) ? context.catalog.traits : [];
-  return traits.find((trait) => trait.name === traitId)?.id ?? traitId;
 }
 
 function setIncludesTrait(traits: ReadonlySet<string | number>, traitId: SkillId): boolean {
@@ -63,40 +52,11 @@ export function hasTrait(value: unknown, traitId: SkillId): boolean {
     return setIncludesTrait(traits, traitId);
   }
 
-  // Sources without a normalized trait set resolve internal name-based rules
-  // through the catalog before checking canonical IDs.
-  const selectedTraitId = configuredTraitId(context, traitId);
+  // Raw configurations compare stable IDs directly; display names never resolve through the catalog.
   const selectedTraitIds = Array.isArray(context.selectedTraitIds)
     ? context.selectedTraitIds
     : Array.isArray(context.config?.selectedTraitIds)
       ? context.config.selectedTraitIds
       : undefined;
-  return includesTrait(selectedTraitIds, selectedTraitId, String(selectedTraitId));
-}
-
-interface TraitCatalog {
-  readonly traits?: readonly CatalogEntity[];
-}
-
-/**
- * Carries both stable ids and names for every selected profession trait.
- */
-// Expands canonical trait IDs to both ID and name forms so existing internal
-// consumers can migrate independently without duplicating catalog lookups.
-export function selectedGw2TraitValues(config: Gw2Config = {}, catalog: TraitCatalog = {}): Set<string | number> {
-  const values = new Set<string | number>(Array.isArray(config.selectedTraitIds) ? config.selectedTraitIds : []);
-  const byId = new Map<number, CatalogEntity>();
-  for (const trait of catalog.traits || []) {
-    byId.set(Number(trait.id), trait);
-  }
-
-  for (const value of [...values]) {
-    const trait = byId.get(Number(value));
-    if (trait) {
-      values.add(Number(trait.id));
-      values.add(trait.name);
-    }
-  }
-
-  return values;
+  return selectedTraitIds?.some((value) => String(value) === String(traitId)) ?? false;
 }

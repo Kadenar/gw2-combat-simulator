@@ -13,7 +13,7 @@ import {
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
-import { selectedGw2TraitValues } from '#gw2/platform/combat/state/traits.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -155,15 +155,13 @@ test('combat lookups normalize once per query without stale cross-query state', 
     selectedTraitIds: [123],
     target: { conditions: { poison: 1 } }
   };
-  const traits = selectedGw2TraitValues(config, {
-    traits: [{ id: 123, name: 'Fixture Trait' }]
-  });
+  const traits = normalizeSelectedTraitIds(config.selectedTraitIds);
 
   assert.equal(hasTrait({ config, traits }, 123), true);
   assert.equal(hasTrait({ config, traits }, '123'), true);
   assert.equal(hasTrait({ config, traits }, 456), false);
   assert.equal(hasTrait({ config }, '123'), true);
-  assert.equal(hasTrait({ config, catalog: { traits: [{ id: 123, name: 'Fixture Trait' }] } }, 'Fixture Trait'), true);
+  assert.equal(hasTrait({ config, catalog: { traits: [{ id: 123, name: 'Fixture Trait' }] } }, 'Fixture Trait'), false);
 
   const first = createGw2CombatQuery({ profession: queryProfession, config });
 

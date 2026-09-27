@@ -1,10 +1,6 @@
 import type { CriticalSigilDiagnostic } from '#gw2/platform/equipment/sigils/diagnostics.js';
 /** Owns the simulation/types.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type {
-  NormalizedProfessionContract,
-  ProfessionApplicationContract,
-  ProfessionSource
-} from '#gw2/platform/engine/profession/types.js';
+import type { NormalizedProfessionContract, ProfessionFamilyContract } from '#gw2/platform/engine/profession/types.js';
 import type { SimulationStep } from '#gw2/platform/execution/types.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
@@ -31,10 +27,13 @@ export interface Gw2ProfessionContract<
 
 /** Joins the application surface to a runtime source whose GW2 resolver callbacks remain type checked. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- The application registry holds multiple profession state types; concrete sources retain their generic state.
-export type Gw2ProfessionSource<TProfessionState extends object = any> = ProfessionApplicationContract<Gw2Build> &
-  ProfessionSource<TProfessionState, Gw2ProfessionContract<TProfessionState>, Gw2Build> & {
-    runtimeFor(config: Gw2Config): RuntimeProfession<TProfessionState>;
-  };
+export type Gw2ProfessionSource<TProfessionState extends object = any> = ProfessionFamilyContract<
+  TProfessionState,
+  Gw2ProfessionContract<TProfessionState>,
+  Gw2Build
+> & {
+  runtimeFor(config: Gw2Config): RuntimeProfession<TProfessionState>;
+};
 
 export interface Gw2SimulationPlanningState {
   /** Observed planning boundary in seconds; includes authoring continuation after target death. */

@@ -9,7 +9,7 @@ import type { EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engine
 function mechanistCommandSkills(context: EngineerUiContext): SkillId[] {
   const activeTraits = getActiveTraits(context.build?.specializations || []);
   return activeTraits.length
-    ? selectedMechCommands(new Set(activeTraits.flatMap((trait) => [trait.id, trait.name])))
+    ? selectedMechCommands(new Set(activeTraits.map((trait) => trait.id)))
     : [...(engineerUiState(context).mech?.commandSkillIds || [])];
 }
 

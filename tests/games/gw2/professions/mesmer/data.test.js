@@ -25,11 +25,7 @@ import {
   MESMER_CORE_PHANTASM_ATTACK_TIMINGS,
   MESMER_CORE_SHATTERS
 } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
-import {
-  MESMER_CORE_EXTRA_SKILLS as MESMER_CORE_INDEX_EXTRA_SKILLS,
-  MESMER_CORE_SKILL_MECHANICS,
-  MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS as MESMER_CORE_INDEX_SUPPLEMENTAL_SKILL_MECHANICS
-} from '#gw2/professions/mesmer/core/skills/index.js';
+import { MESMER_CORE_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { MESMER_CORE_EXTRA_SKILLS } from '#gw2/professions/mesmer/core/skills/actions.js';
 import { MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/supplemental-skills.js';
 import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
@@ -198,11 +194,6 @@ test('Mesmer authored damage and resource offsets use ordered action ticks', () 
     repeatPhantasms: MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
     instruments: INSTRUMENTS
   });
-});
-
-test('Core Mesmer catalog extras retain named ownership', () => {
-  assert.equal(MESMER_CORE_INDEX_EXTRA_SKILLS, MESMER_CORE_EXTRA_SKILLS);
-  assert.equal(MESMER_CORE_INDEX_SUPPLEMENTAL_SKILL_MECHANICS, MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS);
 });
 
 test('Mesmer modules expose isolated balance-profile authoring', () => {

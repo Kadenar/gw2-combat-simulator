@@ -425,7 +425,7 @@ export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
       multiplier: { profile: PROFILE.purblindingPlasma, field: 'rechargeMultiplier' }
     },
     {
-      trait: 'Flow State',
+      trait: TRAIT.FLOW_STATE,
       when: (_context, skill) => String(skill.slot) === 'Weapon_3' && Boolean(weaverDualAttunements(skill)),
       multiplier: { profile: PROFILE.flowState, field: 'rechargeMultiplier' }
     }

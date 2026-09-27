@@ -11,7 +11,10 @@ import { compileRechargeRules } from '#gw2/platform/profession-definition/trigge
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 
 import type { ElementalistRuntime, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 
@@ -23,10 +26,10 @@ const weaponRecharge = compileRechargeRules<ElementalistRuntimeState>([
   },
   ...(
     [
-      ['Fire', "Pyromancer's Training", PROFILE.pyromancersTraining],
-      ['Air', "Aeromancer's Training", PROFILE.aeromancersTraining],
-      ['Earth', "Geomancer's Training", PROFILE.geomancersTraining],
-      ['Water', "Aquamancer's Training", PROFILE.aquamancersTraining]
+      ['Fire', TRAIT.PYROMANCERS_TRAINING, PROFILE.pyromancersTraining],
+      ['Air', TRAIT.AEROMANCERS_TRAINING, PROFILE.aeromancersTraining],
+      ['Earth', TRAIT.GEOMANCERS_TRAINING, PROFILE.geomancersTraining],
+      ['Water', TRAIT.AQUAMANCERS_TRAINING, PROFILE.aquamancersTraining]
     ] as const
   ).map(([attunement, trait, profile]) => ({
     trait,

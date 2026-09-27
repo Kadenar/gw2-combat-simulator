@@ -1,4 +1,4 @@
-import { selectedGw2TraitValues } from '#gw2/platform/combat/state/traits.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2BuffAudience, Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { buffApplicationStacks, MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import {
@@ -102,7 +102,7 @@ export function createGw2CombatQuery({
   skillOnCooldown,
   events = [],
   resolvedTimelineEvents,
-  traits = selectedGw2TraitValues(config, profession?.catalog),
+  traits = normalizeSelectedTraitIds(config.selectedTraitIds),
   conditionDurationBonus,
   attributePreviewPlayerHealthFraction
 }: CreateGw2CombatQueryOptions = {}): Readonly<Gw2CombatQuery> {

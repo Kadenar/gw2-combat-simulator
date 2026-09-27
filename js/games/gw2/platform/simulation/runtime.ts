@@ -19,7 +19,7 @@ import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-
 import { weaponStrengthProfileIdForEvent } from '#gw2/platform/equipment/weapons/strength.js';
 import { createRelicRuntime, invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import { relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
-import { selectedGw2TraitValues } from '#gw2/platform/combat/state/traits.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { bindRuntimeCombo, produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import { permanentComboFieldAssumption } from '#gw2/platform/combos/permanent-field-assumption.js';
@@ -227,7 +227,7 @@ export function runGw2Runtime<T extends object>({
   const conditions = createGw2ConditionResolution({ config, reactions });
   const base = createGw2ResolverRuntimeState({
     config,
-    traits: selectedGw2TraitValues(config, profession.catalog),
+    traits: normalizeSelectedTraitIds(config.selectedTraitIds),
     reporting: output === 'detailed',
     damageDiagnostics,
     sigilDiagnostics,
