@@ -2,7 +2,7 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { getActiveTraits } from '#gw2/professions/mesmer/data/traits-data.js';
 
@@ -30,7 +30,7 @@ export function applyMesmerBuildAttributeRules(
   const profileContext = balanceContext ?? { catalog: mesmerCatalog };
   const traitDurations: Gw2NumericAttributes = {};
 
-  const { activeTraits, hasTrait, hasSelectedSkill, hasSelectedSkillId } = createBuildAttributeContext({
+  const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
     specializations: mesmerBuild.specializations || [],
     selectedSkills,
     disabledTrait,
@@ -59,7 +59,7 @@ export function applyMesmerBuildAttributeRules(
       multiplier: balanceProfileNumber(quietIntensityProfile, 'vitalityConversion'),
       rounding: 'round',
       input: 'common',
-      enabled: hasTrait('Quiet Intensity')
+      enabled: hasTrait(TRAIT.QUIET_INTENSITY)
     },
     {
       kind: 'flat',
@@ -67,7 +67,7 @@ export function applyMesmerBuildAttributeRules(
       to: 'Expertise',
       amount: balanceProfileNumber(chaoticPersistenceProfile, 'expertiseBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Chaotic Persistence') && assumptions.regeneration !== false
+      enabled: hasTrait(TRAIT.CHAOTIC_PERSISTENCE) && assumptions.regeneration !== false
     },
     {
       kind: 'flat',
@@ -75,7 +75,7 @@ export function applyMesmerBuildAttributeRules(
       to: 'Concentration',
       amount: balanceProfileNumber(chaoticPersistenceProfile, 'concentrationBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Chaotic Persistence') && assumptions.regeneration !== false
+      enabled: hasTrait(TRAIT.CHAOTIC_PERSISTENCE) && assumptions.regeneration !== false
     },
     {
       kind: 'flat',
@@ -83,7 +83,7 @@ export function applyMesmerBuildAttributeRules(
       to: 'Expertise',
       amount: balanceProfileNumber(sharpeningSorrowProfile, 'expertiseBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Sharpening Sorrow') && assumptions.fury !== false
+      enabled: hasTrait(TRAIT.SHARPENING_SORROW) && assumptions.fury !== false
     },
     {
       kind: 'flat',
@@ -91,7 +91,7 @@ export function applyMesmerBuildAttributeRules(
       to: 'Condition Damage',
       amount: balanceProfileNumber(signetOfDominationPassiveProfile, 'conditionDamageBonus'),
       feedsConversions: false,
-      enabled: hasSelectedSkillId(10232) || hasSelectedSkill('Signet of Domination')
+      enabled: hasSelectedSkill(ID.SIGNET_OF_DOMINATION)
     },
     {
       kind: 'flat',
@@ -99,14 +99,14 @@ export function applyMesmerBuildAttributeRules(
       to: 'Expertise',
       amount: balanceProfileNumber(signetOfMidnightPassiveProfile, 'expertiseBonus'),
       feedsConversions: false,
-      enabled: hasSelectedSkillId(10234) || hasSelectedSkill('Signet of Midnight')
+      enabled: hasSelectedSkill(ID.SIGNET_OF_MIDNIGHT)
     }
   ];
 
   let traitCriticalChance = 0;
 
   // Duration bonuses come from profiles, not metadata annotations.
-  if (hasTrait('Malicious Sorcery'))
+  if (hasTrait(TRAIT.MALICIOUS_SORCERY))
     traitDurations['Confusion Duration'] =
       100 *
       balanceProfileNumber(
@@ -114,11 +114,11 @@ export function applyMesmerBuildAttributeRules(
         'durationMultiplier'
       );
 
-  if (hasTrait('Quiet Intensity') && assumptions.fury !== false) {
+  if (hasTrait(TRAIT.QUIET_INTENSITY) && assumptions.fury !== false) {
     traitCriticalChance += 100 * balanceProfileNumber(quietIntensityProfile, 'criticalChance');
   }
 
-  if (hasTrait('Flow of Time') && assumptions.alacrity !== false) {
+  if (hasTrait(TRAIT.FLOW_OF_TIME) && assumptions.alacrity !== false) {
     const flowOfTimeProfile = requireBalanceProfileFromContext(profileContext, TRAIT.FLOW_OF_TIME);
     traitCriticalChance += 100 * balanceProfileNumber(flowOfTimeProfile, 'criticalChance');
   }

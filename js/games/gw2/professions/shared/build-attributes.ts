@@ -15,6 +15,7 @@ import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
  * Profession-specific trait types may contain any number of additional fields.
  */
 export interface BuildAttributeTrait {
+  readonly id: SkillId;
   readonly name: string;
 }
 
@@ -35,10 +36,12 @@ export interface CreateBuildAttributeContextOptions<TTrait extends BuildAttribut
  */
 export interface BuildAttributeContext<TTrait extends BuildAttributeTrait> {
   readonly activeTraits: readonly TTrait[];
-  hasTrait(name: string): boolean;
-  hasSelectedSkill(name: string): boolean;
-  hasSelectedSkillId(id: SkillId): boolean;
+  hasTrait(id: SkillId): boolean;
+  hasSelectedSkill(id: SkillId): boolean;
 }
+
+// Catalog IDs may be authored as numbers or numeric strings; compare their canonical text form.
+const sameId = (left: SkillId, right: SkillId): boolean => String(left) === String(right);
 
 /**
  * Resolves active traits and exposes the common trait/skill lookup operations
@@ -57,23 +60,19 @@ export function createBuildAttributeContext<TTrait extends BuildAttributeTrait, 
 
   const effectiveSelectedSkills = selectedSkills || [];
 
-  function hasTrait(name: string): boolean {
-    return activeTraits.some((trait) => trait.name === name);
+  // Rules identify traits and skills by stable catalog ID so renamed display names cannot silently disable them.
+  function hasTrait(id: SkillId): boolean {
+    return activeTraits.some((trait) => sameId(trait.id, id));
   }
 
-  function hasSelectedSkill(name: string): boolean {
-    return effectiveSelectedSkills.some((skill) => skill.name === name);
-  }
-
-  function hasSelectedSkillId(id: SkillId): boolean {
-    return effectiveSelectedSkills.some((skill) => skill.id === id);
+  function hasSelectedSkill(id: SkillId): boolean {
+    return effectiveSelectedSkills.some((skill) => sameId(skill.id, id));
   }
 
   return {
     activeTraits,
     hasTrait,
-    hasSelectedSkill,
-    hasSelectedSkillId
+    hasSelectedSkill
   };
 }
 

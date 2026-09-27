@@ -2,7 +2,7 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { soulbeastArchetypeAttributes } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
 import { getActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';
@@ -65,7 +65,7 @@ export function applyRangerBuildAttributeRules(
         weapons?.includes('Sword') ? 'weaponAttributeBonus' : 'attributeBonus'
       ),
       feedsConversions: false,
-      enabled: hasTrait("Strider's Strength")
+      enabled: hasTrait(TRAIT.STRIDERS_STRENGTH)
     },
     {
       kind: 'flat',
@@ -76,11 +76,11 @@ export function applyRangerBuildAttributeRules(
         weapons?.includes('Axe') ? 'weaponAttributeBonus' : 'attributeBonus'
       ),
       feedsConversions: false,
-      enabled: hasTrait('Honed Axes')
+      enabled: hasTrait(TRAIT.HONED_AXES)
     }
   ];
 
-  if (soulbeast && hasTrait('Pack Alpha')) {
+  if (soulbeast && hasTrait(TRAIT.PACK_ALPHA)) {
     for (const attribute of PACK_ALPHA_ATTRIBUTES) {
       const packAlphaProfile = requireBalanceProfileFromContext(profileContext, TRAIT.PACK_ALPHA);
       attributeEffects.push({
@@ -110,7 +110,7 @@ export function applyRangerBuildAttributeRules(
       to: 'Ferocity',
       amount: balanceProfileNumber(petsProwessProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: soulbeast && hasTrait("Pet's Prowess")
+      enabled: soulbeast && hasTrait(TRAIT.PETS_PROWESS)
     },
     {
       kind: 'flat',
@@ -118,7 +118,7 @@ export function applyRangerBuildAttributeRules(
       to: 'Condition Damage',
       amount: balanceProfileNumber(ambidexterityProfile, favoredWeapon ? 'weaponAttributeBonus' : 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Ambidexterity')
+      enabled: hasTrait(TRAIT.AMBIDEXTERITY)
     },
     {
       kind: 'flat',
@@ -126,7 +126,7 @@ export function applyRangerBuildAttributeRules(
       to: 'Expertise',
       amount: balanceProfileNumber(arachnophobiaProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Arachnophobia')
+      enabled: hasTrait(TRAIT.ARACHNOPHOBIA)
     },
     {
       kind: 'flat',
@@ -134,7 +134,7 @@ export function applyRangerBuildAttributeRules(
       to: 'Concentration',
       amount: balanceProfileNumber(lingeringMagicProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Lingering Magic')
+      enabled: hasTrait(TRAIT.LINGERING_MAGIC)
     },
     {
       kind: 'flat',
@@ -142,7 +142,7 @@ export function applyRangerBuildAttributeRules(
       to: 'Vitality',
       amount: balanceProfileNumber(naturalFortitudeProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Natural Fortitude')
+      enabled: hasTrait(TRAIT.NATURAL_FORTITUDE)
     },
     {
       kind: 'conversion',
@@ -152,7 +152,7 @@ export function applyRangerBuildAttributeRules(
       multiplier: balanceProfileNumber(wellspringProfile, 'attributeConversion'),
       rounding: 'none',
       input: 'common',
-      enabled: hasTrait('Wellspring')
+      enabled: hasTrait(TRAIT.WELLSPRING)
     },
     {
       kind: 'flat',
@@ -160,7 +160,7 @@ export function applyRangerBuildAttributeRules(
       to: 'Ferocity',
       amount: balanceProfileNumber(viciousQuarryProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Vicious Quarry') && rangerBuild.assumptions?.fury !== false
+      enabled: hasTrait(TRAIT.VICIOUS_QUARRY) && rangerBuild.assumptions?.fury !== false
     },
     {
       kind: 'flat',
@@ -168,7 +168,7 @@ export function applyRangerBuildAttributeRules(
       to: 'Ferocity',
       amount: balanceProfileNumber(signetOfTheWildProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasSelectedSkill('Signet of the Wild')
+      enabled: hasSelectedSkill(ID.SIGNET_OF_THE_WILD)
     }
   );
 

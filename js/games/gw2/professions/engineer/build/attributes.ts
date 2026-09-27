@@ -52,7 +52,7 @@ export function applyEngineerBuildAttributeRules(
       to: 'Condition Damage',
       amount: balanceProfileNumber(chemicalRoundsProfile, 'attributeBonus'),
       feedsConversions: true,
-      enabled: hasTrait('Chemical Rounds')
+      enabled: hasTrait(TRAIT.CHEMICAL_ROUNDS)
     },
     {
       kind: 'flat',
@@ -60,7 +60,7 @@ export function applyEngineerBuildAttributeRules(
       to: 'Expertise',
       amount: balanceProfileNumber(thermalVisionProfile, 'attributeBonus'),
       feedsConversions: true,
-      enabled: hasTrait('Thermal Vision')
+      enabled: hasTrait(TRAIT.THERMAL_VISION)
     },
     {
       kind: 'flat',
@@ -68,7 +68,7 @@ export function applyEngineerBuildAttributeRules(
       to: 'Concentration',
       amount: balanceProfileNumber(compoundingChemicalsProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Compounding Chemicals')
+      enabled: hasTrait(TRAIT.COMPOUNDING_CHEMICALS)
     },
     {
       kind: 'flat',
@@ -76,7 +76,7 @@ export function applyEngineerBuildAttributeRules(
       to: 'Vitality',
       amount: balanceProfileNumber(hybridVigorProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Hybrid Vigor')
+      enabled: hasTrait(TRAIT.HYBRID_VIGOR)
     },
     {
       kind: 'conversion',
@@ -86,7 +86,7 @@ export function applyEngineerBuildAttributeRules(
       multiplier: balanceProfileNumber(blastShieldProfile, 'attributeConversion'),
       rounding: 'none',
       input: 'eligible',
-      enabled: hasTrait('Blast Shield')
+      enabled: hasTrait(TRAIT.BLAST_SHIELD)
     },
     {
       kind: 'flat',
@@ -94,7 +94,7 @@ export function applyEngineerBuildAttributeRules(
       to: 'Power',
       amount: balanceProfileNumber(energyAmplifierProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Energy Amplifier') && engineerBuild.assumptions?.regeneration !== false
+      enabled: hasTrait(TRAIT.ENERGY_AMPLIFIER) && engineerBuild.assumptions?.regeneration !== false
     },
     {
       kind: 'flat',
@@ -102,7 +102,7 @@ export function applyEngineerBuildAttributeRules(
       to: 'Healing Power',
       amount: balanceProfileNumber(energyAmplifierProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('Energy Amplifier') && engineerBuild.assumptions?.regeneration !== false
+      enabled: hasTrait(TRAIT.ENERGY_AMPLIFIER) && engineerBuild.assumptions?.regeneration !== false
     },
     {
       kind: 'flat',
@@ -110,7 +110,7 @@ export function applyEngineerBuildAttributeRules(
       to: 'Ferocity',
       amount: balanceProfileNumber(noScopeProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasTrait('No Scope') && engineerBuild.assumptions?.fury !== false
+      enabled: hasTrait(TRAIT.NO_SCOPE) && engineerBuild.assumptions?.fury !== false
     },
     {
       kind: 'conversion',
@@ -120,22 +120,22 @@ export function applyEngineerBuildAttributeRules(
       multiplier: balanceProfileNumber(kineticAcceleratorsProfile, 'attributeConversion'),
       rounding: 'round',
       input: 'eligible',
-      enabled: hasTrait('Kinetic Accelerators')
+      enabled: hasTrait(TRAIT.KINETIC_ACCELERATORS)
     }
   ];
 
   // Surface static condition-duration traits in the panel so the same finalized values can seed simulation stats.
-  if (hasTrait('Serrated Steel')) {
+  if (hasTrait(TRAIT.SERRATED_STEEL)) {
     const serratedSteelProfile = requireBalanceProfileFromContext(profileContext, TRAIT.SERRATED_STEEL);
     traitDurations['Bleeding Duration'] = 100 * balanceProfileNumber(serratedSteelProfile, 'durationMultiplier');
   }
 
-  if (hasTrait('Incendiary Powder')) {
+  if (hasTrait(TRAIT.INCENDIARY_POWDER)) {
     const incendiaryPowderProfile = requireBalanceProfileFromContext(profileContext, TRAIT.INCENDIARY_POWDER);
     traitDurations['Burning Duration'] = 100 * balanceProfileNumber(incendiaryPowderProfile, 'durationMultiplier');
   }
 
-  if (hasTrait('Carbolic Composition')) {
+  if (hasTrait(TRAIT.CARBOLIC_COMPOSITION)) {
     const carbolicCompositionProfile = requireBalanceProfileFromContext(profileContext, TRAIT.CARBOLIC_COMPOSITION);
     traitDurations['Poison Duration'] =
       100 * balanceProfileNumber(carbolicCompositionProfile, 'conditionDurationBonus');
