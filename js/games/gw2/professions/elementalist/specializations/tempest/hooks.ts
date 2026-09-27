@@ -145,20 +145,7 @@ function afterCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill
     .slice(0, balanceProfileNumber(lucidSingularityProfile, 'maximumStacks'));
   hits.forEach((event, index: number) => {
     const effectName = index === hits.length - 1 ? 'Final Alacrity' : 'Pulse Alacrity';
-    const lucidSingularityProfile = requireBalanceProfileFromContext(context, PROFILE.lucidSingularity);
-    const alacrity = requireEffect(lucidSingularityProfile, 'boon', effectName);
-    if (!alacrity) return;
-    emitElementalistBuff(context, {
-      skill: skill,
-      at: event.at,
-      source: 'Lucid Singularity',
-      sourceId: skill.id,
-      actorType: 'player',
-      kind: String(alacrity.boon).toLowerCase(),
-      stacks: Number(alacrity.stacks),
-      duration: alacrity.duration,
-      skillName: 'Lucid Singularity'
-    });
+    emitProfiledBuff(context, event.at, PROFILE.lucidSingularity, effectName, 'Lucid Singularity', skill.id);
   });
 }
 

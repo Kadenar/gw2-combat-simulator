@@ -1,3 +1,4 @@
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { canonicalTime, EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
@@ -342,76 +343,28 @@ function acceptDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast): ThiefDouble
 }
 
 /** The cannon backfire hits nearby foes after its delay; the self-hit is outside the outgoing-only model. */
-function emitCannonBackfire(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.cannonBackfire);
-  const strike = requireEffect(profile, 'strike', 'Stone Summit Cannon - Backfire');
-  const burning = requireEffect(profile, 'condition', 'Burning');
-  const at = cast.effectiveEnd + balanceProfileNumber(profile, 'initialDelay');
-  const common = {
-    sourceId: ID.STONE_SUMMIT_CANNON,
-    skillId: ID.STONE_SUMMIT_CANNON,
-    skillName: 'Stone Summit Cannon'
-  };
-  if (strike)
-    emitThiefDamage(runtime, null, {
-      ...common,
-      at,
-      name: 'Stone Summit Cannon — Backfire',
-      coefficient: effectNumber(profile, strike, 'coefficient'),
-      hits: effectNumber(profile, strike, 'hits')
-    });
-  if (!burning) return;
-  // Separate Burning applications preserve the total, including any fractional final stack.
-  const stacks = effectNumber(profile, burning, 'stacks');
-  for (let index = 0; index < Math.ceil(stacks); index += 1)
-    emitThiefCondition(runtime, null, {
-      ...common,
-      at,
-      name: 'Stone Summit Cannon — Backfire',
-      condition: String(burning.condition),
-      stacks: Math.min(1, stacks - index),
-      duration: effectNumber(profile, burning, 'duration')
-    });
-}
-
-/** The successful cannon shot's strike and Burning keep independent authored timing from the cast's end. */
-function emitCannonSuccess(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.cannonSuccess);
-  const strike = requireEffect(profile, 'strike', 'Stone Summit Cannon - Success');
-  const burning = requireEffect(profile, 'condition', 'Burning');
-  const common = {
-    sourceId: ID.STONE_SUMMIT_CANNON,
-    skillId: ID.STONE_SUMMIT_CANNON,
-    skillName: 'Stone Summit Cannon'
-  };
-  if (strike) {
-    if (!strike.ticks?.length)
-      throw new TypeError(
-        `Invalid balance data: profile=${PROFILE.cannonSuccess} effect=strike/${strike.name} field=ticks patch=${runtime.config.patchId} requires strike ticks`
-      );
-    for (const [index, tick] of strike.ticks.entries())
-      emitThiefDamage(runtime, null, {
-        ...common,
-        at: cast.effectiveEnd + tick.atMs / 1000,
-        name: 'Stone Summit Cannon',
-        coefficient: tick.coefficient,
-        hitIndex: index + 1,
-        totalHits: strike.ticks.length
-      });
-  }
-
-  if (!burning) return;
-  const initial = effectNumber(profile, burning, 'atMs');
-  const interval = effectNumber(profile, burning, 'intervalMs');
-  for (let index = 0; index < effectNumber(profile, burning, 'applications'); index += 1)
-    emitThiefCondition(runtime, null, {
-      ...common,
-      at: cast.effectiveEnd + (initial + index * interval) / 1000,
-      name: 'Stone Summit Cannon — Burning',
-      condition: String(burning.condition),
-      stacks: effectNumber(profile, burning, 'stacks'),
-      duration: effectNumber(profile, burning, 'duration')
-    });
+function emitCannonEffects(runtime: ThiefRuntime, cast: RuntimeCast, backfire: boolean): void {
+  const profile = requireBalanceProfileFromContext(runtime, backfire ? PROFILE.cannonBackfire : PROFILE.cannonSuccess);
+  // Double Edge still fires on a cancelled acceptance; shared expansion retains every authored offset and repeat.
+  emitEffects(runtime, {
+    owner: profile,
+    at: cast.effectiveEnd + (backfire ? balanceProfileNumber(profile, 'initialDelay') : 0),
+    baseEvent: {
+      source: 'thief',
+      sourceId: ID.STONE_SUMMIT_CANNON,
+      actorType: 'player',
+      skillId: ID.STONE_SUMMIT_CANNON,
+      skillName: 'Stone Summit Cannon'
+    },
+    transform: (event) => ({
+      ...event,
+      name: backfire
+        ? 'Stone Summit Cannon — Backfire'
+        : event.type === 'condition'
+          ? 'Stone Summit Cannon — Burning'
+          : 'Stone Summit Cannon'
+    })
+  });
 }
 
 /** Canach coins alternate heads and tails across uses; a backfire pays only for heads. */
@@ -440,8 +393,7 @@ function startDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast): void {
     // The backfire variant stays visible until the running recharge ends.
     state.backfireState[skill.id] = true;
   else delete state.backfireState[skill.id];
-  if (skill.id === ID.STONE_SUMMIT_CANNON)
-    (outcome === 'backfire' ? emitCannonBackfire : emitCannonSuccess)(runtime, cast);
+  if (skill.id === ID.STONE_SUMMIT_CANNON) emitCannonEffects(runtime, cast, outcome === 'backfire');
   if (skill.id === ID.CANACH_COIN_TOSS) coinInitiative.set(cast, tossCanachCoins(runtime, outcome === 'backfire'));
 }
 

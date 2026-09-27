@@ -119,7 +119,15 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     initialDelay: 2,
     effects: [
       { type: 'strike', name: 'Stone Summit Cannon - Backfire', coefficient: 3, hits: 1 },
-      { type: 'condition', name: 'Burning', condition: 'Burning', stacks: 3, duration: 4 }
+      {
+        type: 'condition',
+        name: 'Burning',
+        condition: 'Burning',
+        stacks: 1,
+        duration: 4,
+        applications: 3,
+        intervalMs: 0
+      }
     ]
   },
   {

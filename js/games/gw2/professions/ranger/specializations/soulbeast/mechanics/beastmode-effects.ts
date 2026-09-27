@@ -1,6 +1,7 @@
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { grantMaulAttackOfOpportunity } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { buildResolverBuff, buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -37,44 +38,6 @@ export function activeSoulbeastBuff(context: RangerResolverContext, kind: string
       application.at <= at &&
       application.expiresAt > at &&
       application.stacks > 0
-  );
-}
-
-/** Fresh standard boons use live duration scaling; personal stance buffs retain their authored duration. */
-export function queueSoulbeastBuff(
-  context: RangerResolverContext,
-  event: Gw2ResolverEvent,
-  kind: string,
-  duration: number,
-  stacks: number,
-  name: string,
-  sourceId: number
-): void {
-  queueResolverBoon(
-    context,
-    event,
-    buildResolverBuff({
-      at: event.at,
-      source: 'Trait',
-      sourceId,
-      actorType: 'effect',
-      skillId: sourceId,
-      skillName: name,
-      kind,
-      duration,
-      stacks,
-      triggeredBy: event.skillName,
-      audience: event.metadata?.triggeredByAlly
-        ? {
-            recipients: 'party',
-            alliedPlayerIndex: event.metadata.triggeredByAlly,
-            affectsSelf: false,
-            maximumRecipients: 1,
-            eligibleCompanionIds: []
-          }
-        : undefined,
-      metadata: event.metadata?.triggeredByAlly ? { triggeredByAlly: event.metadata.triggeredByAlly } : undefined
-    })
   );
 }
 
@@ -126,15 +89,40 @@ function queueProfileBuff(
   name: string,
   sourceId: number
 ): void {
-  queueSoulbeastBuff(
-    context,
-    event,
-    String(effect.boon ?? effect.kind),
-    effectNumber(profile, effect, 'duration'),
-    effectNumber(profile, effect, 'stacks'),
-    name,
-    sourceId
-  );
+  for (const { event: packet } of materializeSkillEffectApplications({
+    skill: profile,
+    effect,
+    start: event.at,
+    fullEnd: event.at,
+    baseEvent: {
+      source: 'Trait',
+      sourceId,
+      actorType: 'effect',
+      skillId: sourceId,
+      skillName: name,
+      triggeredBy: event.skillName
+    }
+  }))
+    queueResolverBoon(context, event, {
+      ...packet,
+      type: 'buff',
+      name,
+      kind: String(packet.kind),
+      duration: Number(packet.duration),
+      audience: event.metadata?.triggeredByAlly
+        ? {
+            recipients: 'party',
+            alliedPlayerIndex: event.metadata.triggeredByAlly,
+            affectsSelf: false,
+            maximumRecipients: 1,
+            eligibleCompanionIds: []
+          }
+        : undefined,
+      metadata: {
+        ...packet.metadata,
+        ...(event.metadata?.triggeredByAlly ? { triggeredByAlly: event.metadata.triggeredByAlly } : {})
+      }
+    });
 }
 
 /** Consumes Poisonous Strikes from player hits only while Soulbeast replaces its pet in Beastmode. */

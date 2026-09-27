@@ -1,3 +1,4 @@
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { canonicalTime, EPSILON, isInternalCooldownReady, timeKey } from '#kernel/core/clock.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
@@ -183,26 +184,25 @@ function swapGunsaber(runtime: Runtime, cast: RuntimeCast, active: boolean): voi
 function triggerTraitBuffs(runtime: Runtime, cast: RuntimeCast, trait: number, stacks?: number): void {
   if (!hasTrait(runtime, trait)) return;
   const profile = requireBalanceProfileFromContext(runtime, trait);
-  for (const effect of profile.effects ?? []) {
-    if (effect.type !== 'boon' && effect.type !== 'buff') continue;
-    const kind = String(effect.boon ?? effect.kind);
-    const event = {
-      type: 'buff' as const,
-      at: runtime.time,
+  emitEffects(runtime, {
+    owner: profile,
+    effects: profile.effects?.filter((effect) => effect.type === 'boon' || effect.type === 'buff'),
+    baseEvent: {
       source: 'Trait',
       sourceId: trait,
-      actorType: 'effect' as const,
+      actorType: 'effect',
       skillId: cast.skill.id,
       skillName: cast.skill.name,
-      activationId: cast.id,
+      activationId: cast.id
+    },
+    transform: (event) => ({
+      ...event,
       name: profile.name,
-      kind,
-      stacks: stacks ?? effectNumber(profile, effect, 'stacks'),
+      stacks: stacks ?? event.stacks,
       priority: trait === TRAIT.BURST_MASTERY || trait === TRAIT.BERSERKERS_POWER ? 5 : 0,
-      ...(trait === TRAIT.DARING_DRAGON ? { audience: { recipients: 'party' as const } } : {})
-    };
-    runtime.emitProcedural({ ...event, duration: effectNumber(profile, effect, 'duration') });
-  }
+      ...(trait === TRAIT.DARING_DRAGON ? { audience: { recipients: 'party' } } : {})
+    })
+  });
 }
 
 /** Charge windows own their next actual tick; release or replacement invalidates all remaining wakes by activation ID. */

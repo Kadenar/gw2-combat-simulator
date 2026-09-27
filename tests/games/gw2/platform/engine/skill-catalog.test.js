@@ -142,6 +142,7 @@ test('catalogs validate side-effect payloads, amounts, and variant references', 
     { type: 'flipArm', skillId: 2, durationSec: 1 },
     { type: 'flipArm', skillId: 2, durationSec: 1, expiryPriority: -220 },
     { type: 'emitProfile', profileId: 'test.profile' },
+    { type: 'emitProfile', profileId: 'test.profile', effects: () => true },
     { type: 'test.action', amount: 0 }
   ])
     assert.doesNotThrow(() => load(declaration(action)));
@@ -170,6 +171,7 @@ test('catalogs validate side-effect payloads, amounts, and variant references', 
     })),
     { type: 'emitProfile', profileId: 'missing' },
     { type: 'emitProfile', profileId: 'test.profile', attribution: [] },
+    { type: 'emitProfile', profileId: 'test.profile', effects: 'stability' },
     { type: 'typo' }
   ])
     assert.throws(() => load(declaration(action)), TypeError);

@@ -64,6 +64,7 @@ export function emitProfiledBuff(
   for (const { event } of materializeSkillEffectApplications({
     skill: profile,
     effect,
+    reactionGroup: effect.reactions === undefined ? undefined : context.effectReactions.register(profile, effect),
     start: at,
     fullEnd: at,
     baseEvent: { source, sourceId, actorType: 'player', skillId: skill.id, skillName: source }
@@ -92,26 +93,34 @@ export function emitProfiledCondition(
   const profile = requireBalanceProfileFromContext(context, profileId);
   const effect = requireEffect(profile, 'condition', effectName);
   if (!effect) return false;
-  const condition = String(effect.condition);
-  const stacks = Number(effect.stacks);
-  // One-time Burning procs expose each stack to relics; other conditions keep their original packet.
-  const applications = condition === 'Burning' ? Math.ceil(stacks) : 1;
-  for (let index = 0; index < applications; index += 1) {
-    emitElementalistCondition(context, {
-      skill: elementalistEventSkill(context, source, sourceId),
-      at,
-      source,
-      sourceId,
-      condition,
-      stacks: condition === 'Burning' ? Math.min(1, stacks - index) : stacks,
-      duration: Number(effect.duration),
-      skillName: source,
-      // Preserve an explicit trigger so resolved condition ticks can be attributed to their originating skill.
-      triggeredBy
-    });
+  // Keep cast ownership and per-stack Burning reactions while sharing authored timing and repetition.
+  let emitted = false;
+  const skill = elementalistEventSkill(context, source, sourceId);
+  for (const { event } of materializeSkillEffectApplications({
+    skill: profile,
+    effect,
+    reactionGroup: effect.reactions === undefined ? undefined : context.effectReactions.register(profile, effect),
+    start: at,
+    fullEnd: at,
+    baseEvent: { source, sourceId, actorType: 'player', skillId: skill.id, skillName: source, triggeredBy }
+  })) {
+    const condition = String(event.condition);
+    const stacks = Number(event.stacks);
+    const count = condition === 'Burning' ? Math.ceil(stacks) : 1;
+    for (let index = 0; index < count; index++) {
+      emitElementalistCondition(context, {
+        ...event,
+        skill,
+        name: `${source} — ${condition}`,
+        condition,
+        stacks: condition === 'Burning' ? Math.min(1, stacks - index) : stacks,
+        duration: Number(event.duration)
+      });
+      emitted = true;
+    }
   }
 
-  return applications > 0;
+  return emitted;
 }
 
 // Emit a consistently attributed proc marker for skill- and trait-owned

@@ -1,3 +1,5 @@
+import { guardianBoonDuration } from '#gw2/professions/guardian/core/traits/index.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -10,7 +12,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { emitGuardianBoon, triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/index.js';
+import { triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/index.js';
 import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/shared.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -58,14 +60,16 @@ function boon(
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   const effect = requireEffect(profile, 'boon', kind);
   if (!effect) return false;
-  emitGuardianBoon(runtime, {
-    ...cause,
-    type: 'buff',
-    at: runtime.time,
-    kind,
-    duration: effectNumber(profile, effect, 'duration'),
-    stacks: effectNumber(profile, effect, 'stacks'),
-    audience: { recipients: party ? 'party' : 'self' }
+  emitEffects(runtime, {
+    owner: profile,
+    effects: [effect],
+    baseEvent: cause,
+    transform: (event) => ({
+      ...cause,
+      ...event,
+      duration: guardianBoonDuration(runtime, event),
+      audience: { recipients: party ? 'party' : 'self' }
+    })
   });
   return true;
 }

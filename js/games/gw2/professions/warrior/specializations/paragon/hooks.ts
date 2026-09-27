@@ -3,9 +3,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
 import {
   balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
@@ -15,7 +13,7 @@ import {
   PARAGON_COMMAND_ECHO_PROFILES
 } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile, Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
 
@@ -31,23 +29,26 @@ function gainMotivation(runtime: Runtime, amount: number): void {
 }
 
 /** Opening packets, refrain pulses, and echoes share actual application-time duration and party ownership. */
-function boon(runtime: Runtime, skill: Skill, kind: string, duration: number, stacks = 1, activationId?: string): void {
-  const event = {
-    type: 'buff' as const,
-    at: runtime.time,
-    source: 'Paragon',
-    sourceId: skill.id,
-    actorType: 'player' as const,
-    skillId: skill.id,
-    skillName: skill.name,
-    activationId,
-    name: `${skill.name} — ${kind}`,
-    kind,
-    stacks,
-    duration,
-    audience: { recipients: 'party' as const }
-  };
-  runtime.emitProcedural(event);
+function boon(
+  runtime: Runtime,
+  skill: Skill,
+  profile: BalanceProfile,
+  effects: readonly SkillEffect[],
+  activationId?: string
+): void {
+  emitEffects(runtime, {
+    owner: profile,
+    effects,
+    baseEvent: {
+      source: 'Paragon',
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      activationId
+    },
+    transform: (event) => ({ ...event, name: skill.name + ' — ' + event.kind, audience: { recipients: 'party' } })
+  });
 }
 
 /** Replacing even the same chant invalidates the old pulse before arming a new cadence. */
@@ -159,18 +160,13 @@ function activateChant(runtime: Runtime, cast: RuntimeCast): void {
       : cast.skill.id === ID.CHANT_OF_RECUPERATION
         ? ['vigor']
         : ['stability'];
-  for (const kind of kinds) {
-    const effect = requireEffect(profile, 'boon', kind);
-    if (effect)
-      boon(
-        runtime,
-        cast.skill,
-        kind,
-        effectNumber(profile, effect, 'duration'),
-        effectNumber(profile, effect, 'stacks'),
-        cast.id
-      );
-  }
+  boon(
+    runtime,
+    cast.skill,
+    profile,
+    (profile.effects ?? []).filter((effect) => effect.type === 'boon' && kinds.includes(String(effect.boon))),
+    cast.id
+  );
 
   if (!hasTrait(runtime, TRAIT.FEVERISH_PULSE)) return;
   const feverish = requireBalanceProfileFromContext(runtime, PROFILE.feverishPulse);
@@ -184,16 +180,13 @@ function activateChant(runtime: Runtime, cast: RuntimeCast): void {
       );
   }
 
-  const alacrity = requireEffect(feverish, 'boon', 'alacrity');
-  if (alacrity)
-    boon(
-      runtime,
-      cast.skill,
-      'alacrity',
-      effectNumber(feverish, alacrity, 'duration'),
-      effectNumber(feverish, alacrity, 'stacks'),
-      cast.id
-    );
+  boon(
+    runtime,
+    cast.skill,
+    feverish,
+    (feverish.effects ?? []).filter((effect) => effect.type === 'boon' && effect.boon === 'alacrity'),
+    cast.id
+  );
 }
 
 /** A consumed echo invalidates its old wake and starts any remaining repeat from the actual consumption time. */

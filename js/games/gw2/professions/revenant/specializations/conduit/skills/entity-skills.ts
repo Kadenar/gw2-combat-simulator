@@ -3,8 +3,16 @@
  * Cast behavior is routed through `conduit/hooks.ts`.
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { effectFirstAt } from '#gw2/platform/engine/effects/materializer.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
+import {
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_SKILL_IDS as ID,
+  REVENANT_TRAIT_IDS as TRAIT
+} from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
 // Both API identities represent the same skill, so one fragment keeps their simulation behavior synchronized.
 const BEGUILING_HAZE_SKILL: Partial<Skill> = {
@@ -34,11 +42,33 @@ const BEGUILING_HAZE_SKILL: Partial<Skill> = {
 
 // Both API identities represent the same skill, so one fragment keeps their simulation behavior synchronized.
 const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
-  // Custom: Materializes affinity-dependent strikes and state changes; see `conduit/hooks.ts`.
   castTimeMs: 920,
   cooldown: 3,
   energyCost: 25,
   affinityOnHit: true,
+  // Shared Wisdom adds its live profile's Might at the first surviving base impact, independently of hitting a target.
+  effectVariants: [
+    {
+      when: (runtime) => hasTrait(runtime, TRAIT.SHARED_WISDOM),
+      profileId: PROFILE.sharedWisdom,
+      transform: (_runtime, cast, effects) => {
+        const first = cast.skill.effects?.find((effect) => !effect.metadata?.legendId);
+        const impact = first ? effectFirstAt(cast.start, cast.fullEnd, first) : cast.fullEnd;
+        return [
+          ...(cast.skill.effects ?? []),
+          ...effects
+            .filter((effect) => effect.type === 'boon' && effect.name === 'twin-moon-sweep')
+            .map((effect) => ({
+              ...effect,
+              name: 'Shared Wisdom — Might',
+              atMs: (effectFirstAt(impact, impact, effect) - cast.start) * 1000,
+              timingAnchor: 'castStart' as const,
+              timingScale: 'fixed' as const
+            }))
+        ];
+      }
+    }
+  ],
   comboFinishers: [
     {
       ownerId: 'revenant',
@@ -86,7 +116,8 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
       type: 'condition',
       ticks: [{ atMs: 880, condition: 'Immobilized', stacks: 1, duration: 2 }],
       actorType: 'player',
-      metadata: { legendId: LEGEND.ASSASSIN }
+      metadata: { legendId: LEGEND.ASSASSIN },
+      when: (runtime: RevenantRuntime) => runtime.profession.core.selectedLegendIds.includes(LEGEND.ASSASSIN)
     },
     {
       type: 'strike',
@@ -95,7 +126,8 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
       atMs: 1400,
       name: 'Twin Moon Sweep — Shatter',
       actorType: 'player',
-      metadata: { legendId: LEGEND.DEMON }
+      metadata: { legendId: LEGEND.DEMON },
+      when: (runtime: RevenantRuntime) => runtime.profession.core.selectedLegendIds.includes(LEGEND.DEMON)
     },
     {
       type: 'condition',
@@ -106,7 +138,8 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
         duration: 3
       })),
       actorType: 'player',
-      metadata: { legendId: LEGEND.DEMON }
+      metadata: { legendId: LEGEND.DEMON },
+      when: (runtime: RevenantRuntime) => runtime.profession.core.selectedLegendIds.includes(LEGEND.DEMON)
     }
   ]),
   legendId: 'LegendaryEntity'
@@ -150,14 +183,27 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     legendId: 'LegendaryEntity'
   },
   [ID.GLADIATORS_DEFENSE]: {
-    // Custom: Materializes affinity-dependent packets and defense state; see `conduit/hooks.ts`.
-    // The stunbreak commits before the remaining animation, which the default input cancels.
+    // The default input cancels the remaining animation after the committed impact.
     castTimeMs: 240,
     interruptCommitMs: 40,
     defaultInterruptMs: 40,
     cooldown: 5,
     energyCost: 10,
-    effects: [
+    // Shared Wisdom grants only this skill's Stability on a successful cast, using the live trait profile.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (runtime) => hasTrait(runtime, TRAIT.SHARED_WISDOM),
+        do: {
+          type: 'emitProfile',
+          profileId: PROFILE.sharedWisdom,
+          effects: (effect) => effect.type === 'boon' && effect.name === 'gladiators-defense',
+          attribution: { source: 'revenant', sourceId: ID.GLADIATORS_DEFENSE, actorType: 'player' }
+        }
+      }
+    ],
+    // Explicit impact timing lets the ordinary scheduler retain the packets when the animation is cancelled.
+    effects: impactEffects({ atMs: 40, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.5,
@@ -174,7 +220,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       },
       { type: 'boon', boon: 'resolution', duration: 3, stacks: 1 },
       { type: 'boon', boon: 'resistance', duration: 3, stacks: 1 }
-    ],
+    ]),
     legendId: 'LegendaryEntity'
   },
   [ID.LEGENDARY_ENTITY_STANCE]: {

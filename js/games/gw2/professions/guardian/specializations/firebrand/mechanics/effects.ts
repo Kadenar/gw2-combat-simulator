@@ -1,3 +1,5 @@
+import { guardianBoonDuration } from '#gw2/professions/guardian/core/traits/index.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
@@ -38,6 +40,7 @@ function attribution(event: Gw2ResolverEvent) {
   };
 }
 
+/** Expand the trait's surviving boons in authored order, preserving trigger lineage and recipients. */
 function traitBoons(
   runtime: Runtime,
   trait: number,
@@ -47,19 +50,17 @@ function traitBoons(
 ): boolean {
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   const effects = (profile.effects ?? []).filter((effect) => effect.type === 'boon');
-  for (const effect of effects)
-    emitGuardianBoon(runtime, {
-      ...attribution(event),
-      type: 'buff',
-      at: runtime.time,
-      sourceId: trait,
-      skillId: trait,
-      skillName: profile.name,
-      kind: String(effect.boon),
-      duration: effectNumber(profile, effect, 'duration'),
-      stacks: effectNumber(profile, effect, 'stacks'),
+  emitEffects(runtime, {
+    owner: profile,
+    effects,
+    baseEvent: { ...attribution(event), sourceId: trait, skillId: trait, skillName: profile.name },
+    transform: (packet) => ({
+      ...packet,
+      duration: guardianBoonDuration(runtime, packet),
+      causalOrder: event.causalOrder ?? event.eventOrder,
       audience: { recipients: party ? 'party' : 'self' }
-    });
+    })
+  });
   if (effects.length) recordGuardianTraitProc(runtime, trait, profile.name, runtime.time, event.skillName, 'Boons');
   return effects.length > 0;
 }

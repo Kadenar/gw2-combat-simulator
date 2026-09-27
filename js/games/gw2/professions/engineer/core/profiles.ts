@@ -102,7 +102,8 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
   },
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.grenadier, 'Grenadier', {
     internalCooldown: 20,
-    effects: [{ name: 'Grenadier', type: 'strike', coefficient: 0.5, hits: 6, atMs: 0 }]
+    // The canonical coefficient is the total across all six half-coefficient grenades.
+    effects: [{ name: 'Grenadier', type: 'strike', coefficient: 3, hits: 6, atMs: 0 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.streamlinedKits, 'Streamlined Kits', {
     internalCooldown: 20,

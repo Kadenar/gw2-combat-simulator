@@ -1,9 +1,9 @@
 /** Owns imperative Core Engineer Tools effects while keeping hook registration in the public dispatcher. */
+/** Owns imperative Core Engineer Tools effects while keeping hook registration in the public dispatcher. */
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber,
-  requireEffect,
-  effectNumber
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
@@ -34,52 +34,34 @@ export function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSk
     !isInternalCooldownReady(at, context.procs.readyAt.streamlinedKits || 0)
   )
     return;
-  const streamlinedKitsProfile = requireBalanceProfileFromContext(context, PROFILE.streamlinedKits);
-  context.procs.readyAt.streamlinedKits = at + balanceProfileNumber(streamlinedKitsProfile, 'internalCooldown');
-  // Every eligible kit entry grants the shared swiftness effect.
-  const streamlinedKitsSwiftness = requireEffect(streamlinedKitsProfile, 'boon', 'swiftness');
-  if (streamlinedKitsSwiftness) {
-    emitEngineerEvent(
-      context,
-      'buff',
-      {
-        at,
-        source: 'Trait',
-        sourceId: TRAIT.STREAMLINED_KITS,
-        actorType: 'player',
-        name: 'Streamlined Kits — swiftness',
-        kind: String(streamlinedKitsSwiftness.boon).toLowerCase(),
-        duration: streamlinedKitsSwiftness.duration,
-        stacks: Number(streamlinedKitsSwiftness.stacks)
-      },
-      skill
-    );
-  }
-
-  // Grenade Kit additionally drops the trait's mine strike on entry.
-  if (skill.id === ID.GRENADE_KIT) {
-    const streamlinedKitsStrike = requireEffect(streamlinedKitsProfile, 'strike', 'Streamlined Kits');
-    if (streamlinedKitsStrike) {
-      emitEngineerEvent(context, 'damage', {
-        at,
-        source: 'Trait',
-        sourceId: TRAIT.STREAMLINED_KITS,
-        actorType: 'effect',
-        ownerActorType: 'player',
-        skillId: skill.id,
-        skillName: 'Drop Mine',
-        parentSkillName: skill.name,
-        name: 'Drop Mine',
-        coefficient: effectNumber(streamlinedKitsProfile, streamlinedKitsStrike, 'coefficient'),
-        hits: 1,
-        hitIndex: 1,
-        totalHits: 1,
-        skillWeapon: 'Unequipped',
-        explosion: true,
-        triggeredBy: skill.name
-      });
-    }
-  }
+  const profile = requireBalanceProfileFromContext(context, PROFILE.streamlinedKits);
+  context.procs.readyAt.streamlinedKits = at + balanceProfileNumber(profile, 'internalCooldown');
+  emitEffects(context, {
+    owner: profile,
+    effects: profile.effects?.filter(
+      (effect) => effect.type === 'boon' || (skill.id === ID.GRENADE_KIT && effect.type === 'strike')
+    ),
+    at,
+    baseEvent: (effect) => ({
+      source: 'Trait',
+      sourceId: TRAIT.STREAMLINED_KITS,
+      actorType: effect.type === 'strike' ? 'effect' : 'player',
+      ...(effect.type === 'strike' ? { ownerActorType: 'player' } : {}),
+      skillId: skill.id,
+      skillName: effect.type === 'strike' ? 'Drop Mine' : skill.name
+    }),
+    transform: (event) =>
+      event.type === 'damage'
+        ? {
+            ...event,
+            parentSkillName: skill.name,
+            name: 'Drop Mine',
+            skillWeapon: 'Unequipped',
+            explosion: true,
+            triggeredBy: skill.name
+          }
+        : { ...event, name: 'Streamlined Kits — ' + event.kind }
+  });
 }
 
 /** Materializes Vigor at the toolbelt dispatch boundary, including independent mech-command acceptance. */
@@ -107,99 +89,54 @@ function applyOptimizedActivation(context: EngineerRuntime, skill: EngineerSkill
 /** Queues Static Discharge from a completed toolbelt cast. */
 function applyStaticDischarge(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.STATIC_DISCHARGE)) return;
-  const staticDischargeProfile = requireBalanceProfileFromContext(context, PROFILE.staticDischarge);
-  const staticDischargeStrike = requireEffect(staticDischargeProfile, 'strike', 'Static Discharge');
-  if (staticDischargeStrike) {
-    emitEngineerEvent(context, 'damage', {
-      at,
+  const profile = requireBalanceProfileFromContext(context, PROFILE.staticDischarge);
+  emitEffects(context, {
+    owner: profile,
+    at,
+    baseEvent: {
       source: 'Trait',
       sourceId: TRAIT.STATIC_DISCHARGE,
       actorType: 'effect',
       ownerActorType: 'player',
       skillId: ID.STATIC_DISCHARGE_TRAIT_SKILL,
       skillName: 'Static Discharge',
+      triggeredBy: skill.name
+    },
+    transform: (event) => ({
+      ...event,
       parentSkillName: skill.name,
       icon: context.helpers.skillsById.get(ID.STATIC_DISCHARGE_TRAIT_SKILL)?.icon || '',
       name: 'Static Discharge',
-      coefficient: effectNumber(staticDischargeProfile, staticDischargeStrike, 'coefficient'),
-      hits: 1,
-      hitIndex: 1,
-      totalHits: 1,
-      // Static Discharge uses the unequipped weapon-strength profile, not its tooltip weapon.
       skillWeapon: 'Unequipped',
-      staticDischarge: true,
-      triggeredBy: skill.name
-    });
-  }
+      staticDischarge: true
+    })
+  });
 }
 
 /** Advances Kinetic Battery and reports charge progress after its fifth-cast buff package. */
 function applyKineticBattery(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.KINETIC_BATTERY)) return;
   const state = professionCoreState(context);
-  const kineticBatteryProfile = requireBalanceProfileFromContext(context, PROFILE.kineticBattery);
-  const maximumCharges = balanceProfileNumber(kineticBatteryProfile, 'maximumStacks');
+  const profile = requireBalanceProfileFromContext(context, PROFILE.kineticBattery);
+  const maximumCharges = balanceProfileNumber(profile, 'maximumStacks');
   state.kineticCharges = Math.min(maximumCharges, (state.kineticCharges || 0) + 1);
-  // Grant the speed and damage package and reset charges every fifth toolbelt cast.
   if (state.kineticCharges >= maximumCharges) {
     state.kineticCharges = 0;
-    const kineticBatteryBuff = requireEffect(kineticBatteryProfile, 'buff', 'kinetic-battery');
-    if (kineticBatteryBuff) {
-      const buffDuration = kineticBatteryBuff.duration;
-      emitEngineerEvent(
-        context,
-        'buff',
-        {
-          at,
-          source: 'Trait',
-          sourceId: TRAIT.KINETIC_BATTERY,
-          actorType: 'player',
-          name: 'Kinetic Battery',
-          kind: 'kinetic-battery',
-          duration: buffDuration,
-          stacks: 1
-        },
-        skill
-      );
-    }
-
-    const kineticBatteryQuickness = requireEffect(kineticBatteryProfile, 'boon', 'quickness');
-    if (kineticBatteryQuickness) {
-      emitEngineerEvent(
-        context,
-        'buff',
-        {
-          at,
-          source: 'Trait',
-          sourceId: TRAIT.KINETIC_BATTERY,
-          actorType: 'player',
-          name: 'Kinetic Battery — quickness',
-          kind: String(kineticBatteryQuickness.boon).toLowerCase(),
-          duration: kineticBatteryQuickness.duration,
-          stacks: Number(kineticBatteryQuickness.stacks)
-        },
-        skill
-      );
-    }
-
-    const kineticBatterySuperspeed = requireEffect(kineticBatteryProfile, 'buff', 'superspeed');
-    if (kineticBatterySuperspeed) {
-      emitEngineerEvent(
-        context,
-        'buff',
-        {
-          at,
-          source: 'Trait',
-          sourceId: TRAIT.KINETIC_BATTERY,
-          actorType: 'player',
-          name: 'Kinetic Battery — superspeed',
-          kind: 'superspeed',
-          duration: kineticBatterySuperspeed.duration,
-          stacks: Number(kineticBatterySuperspeed.stacks)
-        },
-        skill
-      );
-    }
+    emitEffects(context, {
+      owner: profile,
+      at,
+      baseEvent: {
+        source: 'Trait',
+        sourceId: TRAIT.KINETIC_BATTERY,
+        actorType: 'player',
+        skillId: skill.id,
+        skillName: skill.name
+      },
+      transform: (event) => ({
+        ...event,
+        name: event.kind === 'kinetic-battery' ? 'Kinetic Battery' : 'Kinetic Battery — ' + event.kind
+      })
+    });
   }
 
   emitEngineerEvent(context, 'engineer.kinetic-battery', { at, kineticCharges: state.kineticCharges });

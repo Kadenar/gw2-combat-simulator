@@ -495,12 +495,8 @@ export const engineerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.GRENADIER]: (balanceContext, entity) => {
       const profile = tooltipProfile(balanceContext, entity.id);
-      // This handler emits one full coefficient per grenade; it does not use aggregate-hit strike semantics.
-      const effects = (profile.effects || []).map((effect) =>
-        effect.type === 'strike'
-          ? { ...effect, coefficient: tooltipNumber(effect, 'coefficient') * tooltipNumber(effect, 'hits') }
-          : effect
-      );
+      // Grenadier uses the same total-coefficient contract as every materialized strike.
+      const effects = profile.effects || [];
       return {
         ...simulationEffectFacts(effects),
         description: 'Using a healing skill triggers Lesser Grenade Barrage.',

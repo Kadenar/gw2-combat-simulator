@@ -1,3 +1,4 @@
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
@@ -130,52 +131,28 @@ export function applyRangerBeastSkillTraits(
 // including its condition and blast finisher, at the swap completion time.
 export function applyRangerPetSwapTraits(context: RangerRuntime, skill: RangerSkill): void {
   const at = context.time;
-  const partyBoons: Array<{
-    sourceId: number;
-    sourceName: string;
-    kind: string;
-    duration: number;
-    stacks: number;
-  }> = [];
   const inCombat = context.combatStartTime != null && context.time >= context.combatStartTime;
   if (inCombat && hasTrait(context, TRAIT.SPIRITED_ARRIVAL)) {
     const profile = requireBalanceProfileFromContext(context, PROFILE.spiritedArrival);
-    for (const name of ['might', 'fury']) {
-      const effect = requireEffect(profile, 'boon', name);
-      if (!effect) continue;
-      partyBoons.push({
+    emitEffects(context, {
+      owner: profile,
+      effects: profile.effects?.filter((effect) => effect.type === 'boon'),
+      at,
+      baseEvent: {
+        source: 'Trait',
         sourceId: TRAIT.SPIRITED_ARRIVAL,
-        sourceName: 'Spirited Arrival',
-        kind: String(effect.boon),
-        duration: effectNumber(profile, effect, 'duration'),
-        stacks: effectNumber(profile, effect, 'stacks')
-      });
-    }
-
-    for (const boon of partyBoons) {
-      context.emitProcedural(
-        rangerEvent(
-          {
-            at,
-            source: 'Trait',
-            sourceId: boon.sourceId,
-            actorType: 'effect',
-            skillId: boon.sourceId,
-            skillName: boon.sourceName,
-            name: `${boon.sourceName} - ${boon.kind}`,
-            kind: boon.kind,
-            boon: boon.kind,
-            duration: boon.duration,
-            stacks: boon.stacks,
-            audience: { recipients: 'party' as const, maximumRecipients: 5 },
-            triggeredBy: skill.name
-          },
-          'buff'
-        )
-      );
-    }
-
-    partyBoons.length = 0;
+        actorType: 'effect',
+        skillId: TRAIT.SPIRITED_ARRIVAL,
+        skillName: 'Spirited Arrival',
+        triggeredBy: skill.name
+      },
+      transform: (event) => ({
+        ...event,
+        name: 'Spirited Arrival - ' + event.kind,
+        boon: event.kind,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      })
+    });
   }
 
   if (
@@ -185,41 +162,25 @@ export function applyRangerPetSwapTraits(context: RangerRuntime, skill: RangerSk
     const profile = requireBalanceProfileFromContext(context, PROFILE.clarionBond);
     // The blast finisher is part of the lesser warhorn package, so the cooldown survives removed boons.
     context.procs.readyAt['ranger.core.clarionBond'] = context.time + balanceProfileNumber(profile, 'internalCooldown');
-    for (const name of ['fury', 'might', 'swiftness']) {
-      const effect = requireEffect(profile, 'boon', name);
-      if (!effect) continue;
-      partyBoons.push({
+    emitEffects(context, {
+      owner: profile,
+      effects: profile.effects?.filter((effect) => effect.type === 'boon'),
+      at,
+      baseEvent: {
+        source: 'Trait',
         sourceId: TRAIT.CLARION_BOND,
-        sourceName: 'Clarion Bond',
-        kind: String(effect.boon),
-        duration: effectNumber(profile, effect, 'duration'),
-        stacks: effectNumber(profile, effect, 'stacks')
-      });
-    }
-
-    // Emit Clarion Bond's boons before its condition and combo marker to preserve event ordering.
-    for (const boon of partyBoons) {
-      context.emitProcedural(
-        rangerEvent(
-          {
-            at,
-            source: 'Trait',
-            sourceId: boon.sourceId,
-            actorType: 'effect',
-            skillId: boon.sourceId,
-            skillName: boon.sourceName,
-            name: `${boon.sourceName} - ${boon.kind}`,
-            kind: boon.kind,
-            boon: boon.kind,
-            duration: boon.duration,
-            stacks: boon.stacks,
-            audience: { recipients: 'party' as const, maximumRecipients: 5 },
-            triggeredBy: skill.name
-          },
-          'buff'
-        )
-      );
-    }
+        actorType: 'effect',
+        skillId: TRAIT.CLARION_BOND,
+        skillName: 'Clarion Bond',
+        triggeredBy: skill.name
+      },
+      transform: (event) => ({
+        ...event,
+        name: 'Clarion Bond - ' + event.kind,
+        boon: event.kind,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      })
+    });
 
     const weakness = requireEffect(profile, 'condition', 'Weakness');
     if (weakness)

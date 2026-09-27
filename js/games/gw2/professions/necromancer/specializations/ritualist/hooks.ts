@@ -11,7 +11,6 @@ import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
@@ -33,7 +32,7 @@ import {
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { NecromancerRuntime, NecromancerRuntimeState } from '#gw2/professions/necromancer/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId, Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
 const AUTO = 'ritualist.spirit-auto';
 const PACKET = 'ritualist.spirit-packet';
@@ -93,22 +92,22 @@ function spiritFields(key: string, attackType: string) {
 }
 
 /** Boons choose current recipients and attributes when the spirit or Innervate actually completes. */
-function boon(runtime: NecromancerRuntime, cast: RuntimeCast, kind: string, duration: number, stacks: number): void {
-  const event = {
-    ...attribution(cast),
-    at: runtime.time,
-    source: 'necromancer',
-    type: 'buff' as const,
-    kind,
-    duration,
-    stacks,
-    audience: {
-      recipients: 'party' as const,
-      maximumRecipients: 5,
-      eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime)
-    }
-  };
-  queueResolverBoon(runtime, event, event);
+function boon(runtime: NecromancerRuntime, cast: RuntimeCast, profile: Skill, effects: readonly SkillEffect[]): void {
+  emitEffects(runtime, {
+    owner: profile,
+    effects,
+    baseEvent: { ...attribution(cast), source: 'necromancer' },
+    transform: (event) => ({
+      ...event,
+      icon: cast.skill.icon,
+      offTarget: cast.command.offTarget,
+      audience: {
+        recipients: 'party',
+        maximumRecipients: 5,
+        eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime)
+      }
+    })
+  });
 }
 
 /** Finite player attacks are committed payloads; autonomous attacks alone retain spirit lifetime and busy-state checks. */
@@ -222,8 +221,7 @@ function summon(runtime: NecromancerRuntime, cast: RuntimeCast, spirit: Spirit):
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.empoweringSpirits);
     for (const kind of ['quickness', key === 'anguish' ? 'might' : key === 'wanderlust' ? 'fury' : 'resolution']) {
       const effect = requireEffect(profile, 'boon', kind);
-      if (effect)
-        boon(runtime, cast, kind, effectNumber(profile, effect, 'duration'), effectNumber(profile, effect, 'stacks'));
+      if (effect) boon(runtime, cast, profile, [effect]);
     }
   }
 
@@ -425,7 +423,7 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
     if (innervate) grantNecromancerLifeForce(runtime, Number(cast.skill.innervateLifeForceGain ?? 0));
     if (spirit || innervate)
       for (const effect of cast.skill.effects ?? []) {
-        if (effect.type === 'boon') boon(runtime, cast, String(effect.boon), effect.duration, Number(effect.stacks));
+        if (effect.type === 'boon') boon(runtime, cast, cast.skill, [effect]);
         else if (innervate)
           for (const { event } of materializeSkillEffectApplications({
             skill: cast.skill,

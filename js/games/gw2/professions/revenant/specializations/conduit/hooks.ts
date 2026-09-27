@@ -1,14 +1,12 @@
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  conditionEffectTicks,
-  effectFirstAtMs,
-  strikeEffectCoefficient,
-  strikeEffectTicks
-} from '#gw2/platform/engine/effects/authoring.js';
+import { conditionEffectTicks, strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -16,7 +14,6 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
@@ -40,8 +37,7 @@ import {
   BEGUILING_HAZE_SKILL_IDS,
   TWIN_MOON_SKILL_IDS
 } from '#gw2/professions/revenant/specializations/conduit/skill-groups.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -54,10 +50,8 @@ const MESMER_RELEASE = 'revenant.release-mesmer-conditions';
 const RELEASE_POTENTIAL_IDS = new Set<SkillId>(Object.values(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND));
 const CUSTOM_EFFECT_SKILL_IDS = new Set<SkillId>([
   ...BEGUILING_HAZE_SKILL_IDS,
-  ...TWIN_MOON_SKILL_IDS,
   ID.RELEASE_POTENTIAL_MESMER,
   ID.RELEASE_POTENTIAL_ASSASSIN,
-  ID.GLADIATORS_DEFENSE,
   ID.HEX_EATER_VORTEX
 ]);
 // A cast started in Dervish form keeps its scythe through form expiry or a concurrent legend swap.
@@ -97,109 +91,50 @@ function skillWeapon(runtime: RevenantRuntime, skill: Skill): string {
   return skill.weapon || (skill.type === 'Profession' ? (gw2PrimaryWeapon(runtime.config, set) ?? '') : 'Unequipped');
 }
 
-function effectAt(cast: RuntimeCast, effect: SkillEffect | undefined, atMs?: number): number {
-  const origin = effect?.timingAnchor === 'castEnd' ? cast.fullEnd : cast.start;
-  const packetAtMs =
-    atMs ?? (effect?.type === 'strike' || effect?.type === 'condition' ? effectFirstAtMs(effect) : effect?.atMs);
-  return canonicalTime(origin + Math.max(0, packetAtMs || 0) / 1000);
-}
-
-function firstConditionTick(effect: SkillEffect | undefined, condition?: string) {
-  if (effect?.type !== 'condition') return undefined;
-  return conditionEffectTicks(effect).find((tick) => condition == null || tick.condition === condition);
-}
-
-function strike(
-  runtime: RevenantRuntime,
-  cast: RuntimeCast | null,
-  skill: Skill,
-  fields: { at: number; coefficient: number } & Partial<SimulationEventBase>,
-  cause?: Gw2ResolverEvent
-): void {
-  const event = buildResolverStrike({
-    source: 'revenant',
-    sourceId: skill.id,
-    actorType: 'player' as const,
-    skillId: skill.id,
-    skillName: skill.name,
-    name: skill.name,
-    ...(cast ? { activationId: cast.id } : {}),
-    ...fields
-  });
-  if (cause) runtime.emitDerived(cause, event);
-  else runtime.emit(event);
-}
-
-function condition(
-  runtime: RevenantRuntime,
-  cast: RuntimeCast | null,
-  skill: Skill,
-  fields: { at: number; condition: string; stacks: number; duration: number } & Partial<SimulationEventBase>
-): void {
-  runtime.emit(
-    buildResolverCondition({
-      source: 'revenant',
-      sourceId: skill.id,
-      actorType: 'player' as const,
-      skillId: skill.id,
-      skillName: skill.name,
-      ...(cast ? { activationId: cast.id } : {}),
-      ...fields
-    })
-  );
-}
-
-function boon(
-  runtime: RevenantRuntime,
-  cast: RuntimeCast | null,
-  skill: Skill,
-  fields: { at: number; kind: string; duration: number; stacks: number } & Partial<SimulationEventBase>
-): void {
-  runtime.emitProcedural({
-    type: 'buff',
-    source: 'revenant',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    ...(cast ? { activationId: cast.id } : {}),
-    ...fields
-  });
-}
-
 /** Numinous Gift grants its base and equipped-legend boons to the caster or, with Found Purpose, to allies. */
 function numinousGift(runtime: RevenantRuntime, cast: RuntimeCast, allies = false): void {
   if (runtime.config.specialization !== 'Conduit') return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.numinousGift);
-  const legends = runtime.profession.core.selectedLegendIds;
-  for (const effect of profile.effects ?? []) {
-    if (effect.type !== 'boon' || !effect.boon) continue;
-    const legendId = effect.metadata?.legendId || '';
-    if (legendId && !legends.includes(legendId)) continue;
-    boon(runtime, cast, cast.skill, {
-      at: runtime.time,
-      name: `${cast.skill.name} — ${effect.boon}`,
-      kind: effect.boon,
-      duration: effectNumber(profile, effect, 'duration'),
-      stacks: effectNumber(profile, effect, 'stacks'),
+  emitEffects(runtime, {
+    owner: profile,
+    effects: profile.effects?.filter(
+      (effect) => effect.type === 'boon' && (!effect.metadata?.legendId || hasLegend(runtime, effect.metadata.legendId))
+    ),
+    baseEvent: {
+      source: 'revenant',
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id
+    },
+    transform: (event) => ({
+      ...event,
+      name: cast.skill.name + ' \u2014 ' + event.kind,
       audience: { recipients: allies ? 'party' : 'self' }
-    });
-  }
+    })
+  });
 }
 
 /** One entity-specific Shared Wisdom boon accompanies the cast's completion. */
 function completionSharedWisdom(runtime: RevenantRuntime, cast: RuntimeCast, trigger: string): void {
   if (!hasTrait(runtime, TRAIT.SHARED_WISDOM)) return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.sharedWisdom);
-  // Each boon is keyed by its triggering entity, so removing one never rebinds another entity's grant.
   const shared = requireEffect(profile, 'boon', trigger);
   if (!shared) return;
-  boon(runtime, cast, cast.skill, {
+  emitEffects(runtime, {
+    owner: profile,
+    effects: [shared],
     at: cast.effectiveEnd,
-    name: `${cast.skill.name} — ${shared.boon}`,
-    kind: String(shared.boon),
-    duration: effectNumber(profile, shared, 'duration'),
-    stacks: effectNumber(profile, shared, 'stacks')
+    baseEvent: {
+      source: 'revenant',
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id
+    },
+    transform: (event) => ({ ...event, name: cast.skill.name + ' \u2014 ' + event.kind })
   });
 }
 
@@ -209,43 +144,52 @@ function lesserDaggers(runtime: RevenantRuntime, source: Skill, cause?: Gw2Resol
   if (!skill) throw new Error('Missing Lesser Enchanted Daggers skill declaration.');
   const hit = requireEffect(skill, 'strike', 'Lesser Enchanted Daggers');
   if (!hit) return;
-  strike(
-    runtime,
-    null,
-    skill,
-    {
-      at: runtime.time,
-      // Form procs inherit player damage bonuses without recursively triggering on-hit attacks.
+  // Form procs retain player modifiers without recursively triggering player on-hit attacks.
+  emitEffects(runtime, {
+    owner: skill,
+    effects: [hit],
+    baseEvent: {
+      source: 'revenant',
+      sourceId: skill.id,
       actorType: 'effect',
       ownerActorType: 'player',
-      name: 'Lesser Enchanted Daggers',
-      coefficient: strikeEffectCoefficient(hit),
-      skillWeapon: 'Unequipped',
-      triggeredBy: source.name,
-      icon: skill.icon || ''
+      skillId: skill.id,
+      skillName: skill.name,
+      triggeredBy: source.name
     },
-    cause
-  );
+    cause,
+    transform: (event) => ({
+      ...event,
+      name: 'Lesser Enchanted Daggers',
+      skillWeapon: 'Unequipped',
+      icon: skill.icon || ''
+    })
+  });
 }
 
 function dervishAttack(runtime: RevenantRuntime, cast: RuntimeCast, at: number, elite = false): void {
   const skillId = elite ? ID.FORM_OF_THE_DERVISH_ATTACK_ELITE : ID.FORM_OF_THE_DERVISH_ATTACK;
   const attack = runtime.helpers.skillsById.get(skillId);
-  if (!attack) throw new Error(`Missing Form of the Dervish attack skill ${skillId}.`);
+  if (!attack) throw new Error('Missing Form of the Dervish attack skill ' + skillId + '.');
   const name = elite ? 'Form of the Dervish (Attack - Elite)' : 'Form of the Dervish (Attack)';
   const hit = requireEffect(attack, 'strike', name);
-  // A removed scythe strike leaves no attack to emit.
   if (!hit) return;
-  strike(runtime, cast, attack, {
+  // A removed scythe leaves no attack; surviving hits keep their authored sequence.
+  emitEffects(runtime, {
+    owner: attack,
+    effects: [hit],
     at,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    skillName: 'Form of the Dervish',
-    name,
-    coefficient: strikeEffectCoefficient(hit),
-    skillWeapon: 'Unequipped',
-    triggeredBy: cast.skill.name,
-    icon: attack.icon || ''
+    baseEvent: {
+      source: 'revenant',
+      sourceId: attack.id,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillId: attack.id,
+      skillName: 'Form of the Dervish',
+      activationId: cast.id,
+      triggeredBy: cast.skill.name
+    },
+    transform: (event) => ({ ...event, name, skillWeapon: 'Unequipped', icon: attack.icon || '' })
   });
 }
 
@@ -257,14 +201,26 @@ function beguilingHaze(runtime: RevenantRuntime, cast: RuntimeCast): void {
   else hazeMainCasts.add(cast);
   const owner = followUp ? requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeFollowUp) : cast.skill;
   const hit = requireEffect(owner, 'strike', followUp ? 'Beguiling Haze — Follow-Up' : 'Beguiling Haze');
-  // A removed strike emits no hit, while the follow-up charge and Shared Wisdom keep their own behavior.
-  const tick = hit ? strikeEffectTicks(hit)[0] : undefined;
-  if (tick)
-    strike(runtime, cast, cast.skill, {
-      at: canonicalTime(cast.start + Math.max(0, tick.atMs || 0) / 1000),
-      coefficient: tick.coefficient,
-      name: followUp ? 'Beguiling Haze — Follow-Up' : 'Beguiling Haze',
-      skillWeapon: skillWeapon(runtime, cast.skill)
+  // Charge state and Shared Wisdom survive independently of any removed strike.
+  if (hit)
+    emitEffects(runtime, {
+      owner,
+      effects: [hit],
+      at: cast.start,
+      fullEnd: cast.fullEnd,
+      baseEvent: {
+        source: 'revenant',
+        sourceId: cast.skill.id,
+        actorType: 'player',
+        skillId: cast.skill.id,
+        skillName: cast.skill.name,
+        activationId: cast.id
+      },
+      transform: (event) => ({
+        ...event,
+        name: followUp ? 'Beguiling Haze \u2014 Follow-Up' : 'Beguiling Haze',
+        skillWeapon: skillWeapon(runtime, cast.skill)
+      })
     });
   completionSharedWisdom(runtime, cast, 'beguiling-haze');
 }
@@ -313,9 +269,10 @@ function hexEaterVortex(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const effects = cast.skill.effects ?? [];
   const hit = effects.find((effect) => effect.type === 'strike');
   const torment = effects.find((effect) => effect.type === 'condition');
-  const strikeTicks = hit?.type === 'strike' ? (hit.ticks ?? []) : [];
-  const tormentTicks = torment?.type === 'condition' ? (torment.ticks ?? []) : [];
-  const maximum = Math.min(strikeTicks.length, tormentTicks.length);
+  const maximum = Math.max(
+    hit?.type === 'strike' ? strikeEffectTicks(hit).length : 0,
+    torment?.type === 'condition' ? conditionEffectTicks(torment).length : 0
+  );
   // Self conditions still active at the cast's end are the ones the vortex removes.
   core.selfConditions = core.selfConditions.filter((application) => (application.expiresAt || 0) > at);
   const active = Math.max(0, core.selfConditionCount || 0) + core.selfConditions.length;
@@ -328,257 +285,118 @@ function hexEaterVortex(runtime: RevenantRuntime, cast: RuntimeCast): void {
     core.selfConditions.splice(0, removed - configured);
   }
 
-  for (let index = 0; index < projectiles; index += 1) {
-    const projectileAt = canonicalTime(cast.start + (strikeTicks[index].atMs || 0) / 1000);
-    strike(runtime, cast, cast.skill, {
-      at: projectileAt,
-      coefficient: strikeTicks[index].coefficient || 0,
-      name: `Hex-Eater Vortex — Projectile ${index + 1}`,
-      hitIndex: index + 1,
-      totalHits: projectiles,
-      skillWeapon: skillWeapon(runtime, cast.skill)
+  if (projectiles > 0)
+    emitEffects(runtime, {
+      owner: cast.skill,
+      effects: effects.map((effect) =>
+        effect.type === 'strike'
+          ? { ...effect, ticks: strikeEffectTicks(effect).slice(0, projectiles) }
+          : effect.type === 'condition'
+            ? { ...effect, ticks: conditionEffectTicks(effect).slice(0, projectiles) }
+            : effect
+      ),
+      at: cast.start,
+      fullEnd: cast.fullEnd,
+      baseEvent: {
+        source: 'revenant',
+        sourceId: cast.skill.id,
+        actorType: 'player',
+        skillId: cast.skill.id,
+        skillName: cast.skill.name,
+        activationId: cast.id
+      },
+      transform: (event) => ({
+        ...event,
+        name: 'Hex-Eater Vortex — Projectile ' + (event.hitIndex ?? event.applicationIndex),
+        ...(event.type === 'damage' ? { skillWeapon: skillWeapon(runtime, cast.skill) } : {})
+      })
     });
-    condition(runtime, cast, cast.skill, {
-      at: projectileAt,
-      condition: tormentTicks[index].condition || 'Torment',
-      stacks: tormentTicks[index].stacks,
-      duration: tormentTicks[index].duration || 0,
-      name: `Hex-Eater Vortex — Projectile ${index + 1}`
-    });
-  }
 
   completionSharedWisdom(runtime, cast, 'hex-eater-vortex');
 }
 
-/** Gladiator's Defense resolves its strike, conditions, and boons at the cast's end. */
-function gladiatorsDefense(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const at = cast.effectiveEnd;
-  const skill = cast.skill;
-  const hit = skill.effects?.find((effect) => effect.type === 'strike');
-  if (hit?.type === 'strike')
-    strike(runtime, cast, skill, {
-      at,
-      coefficient: strikeEffectCoefficient(hit),
-      skillWeapon: skillWeapon(runtime, skill)
-    });
-  for (const effect of skill.effects ?? []) {
-    if (effect.type === 'condition')
-      for (const tick of conditionEffectTicks(effect))
-        condition(runtime, cast, skill, {
-          at,
-          condition: tick.condition,
-          stacks: tick.stacks,
-          duration: tick.duration || 0
-        });
-    else if (effect.type === 'boon' && effect.boon)
-      boon(runtime, cast, skill, {
-        at,
-        name: `${skill.name} — ${effect.boon}`,
-        kind: effect.boon,
-        duration: effect.duration || 0,
-        stacks: effect.stacks ?? 1
-      });
-  }
-
-  completionSharedWisdom(runtime, cast, 'gladiators-defense');
-}
-
-/** Twin Moon Sweep's two attackers, packets, and equipped-legend resonances belong to its committed impact. */
-function twinMoonSweep(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill;
-  const effects = skill.effects ?? [];
-  const mains = effects.filter((effect) => effect.type === 'strike' && !effect.metadata?.legendId);
-  const bleeding = effects.find(
-    (effect) => effect.type === 'condition' && firstConditionTick(effect, 'Bleeding') && !effect.metadata?.legendId
-  );
-  const bleedingTicks = bleeding?.type === 'condition' ? conditionEffectTicks(bleeding) : [];
-  const might = effects.find((effect) => effect.type === 'boon' && effect.boon === 'might');
-  const at = effectAt(cast, bleeding || might || mains[0]);
-  const packets = Math.max(0, bleedingTicks.length || (might?.applications ?? mains.length));
-  const coefficient = (effect: SkillEffect | undefined) =>
-    effect?.type === 'strike' ? strikeEffectCoefficient(effect) : 0;
-  const weapon = skillWeapon(runtime, skill);
-  // Only the player hit carries affinityOnHit, so the cast's affinity gain happens once.
-  strike(runtime, cast, skill, {
-    at,
-    coefficient: coefficient(mains[0]),
-    name: 'Twin Moon Sweep — Player',
-    hitIndex: 1,
-    totalHits: mains.length,
-    skillWeapon: weapon,
-    metadata: { affinityOnHit: true }
-  });
-  strike(runtime, cast, skill, {
-    at,
-    coefficient: coefficient(mains[1]),
-    name: 'Twin Moon Sweep — Fragment',
-    hitIndex: 2,
-    totalHits: mains.length,
-    skillWeapon: weapon
-  });
-  for (let index = 0; index < packets; index += 1) {
-    const tick = bleedingTicks[index] || bleedingTicks[0];
-    condition(runtime, cast, skill, {
-      at,
-      condition: tick?.condition || 'Bleeding',
-      stacks: tick?.stacks ?? 1,
-      duration: tick?.duration || 0,
-      name: `Twin Moon Sweep — Bleeding ${index + 1}`
-    });
-    boon(runtime, cast, skill, {
-      at,
-      name: `Twin Moon Sweep — Might ${index + 1}`,
-      kind: String(might?.boon || 'might'),
-      duration: Number(might?.duration || 0),
-      stacks: Number(might?.stacks ?? 1)
-    });
-  }
-
-  if (hasLegend(runtime, LEGEND.ASSASSIN)) {
-    const immobilized = firstConditionTick(
-      effects.find((effect) => effect.type === 'condition' && effect.metadata?.legendId === LEGEND.ASSASSIN),
-      'Immobilized'
-    );
-    condition(runtime, cast, skill, {
-      at,
-      condition: immobilized?.condition || 'Immobilized',
-      stacks: immobilized?.stacks ?? 1,
-      duration: immobilized?.duration || 0
-    });
-  }
-
-  if (hasLegend(runtime, LEGEND.DEMON)) {
-    const shatter = effects.find((effect) => effect.type === 'strike' && effect.metadata?.legendId === LEGEND.DEMON);
-    const confusion = effects.find(
-      (effect) => effect.type === 'condition' && effect.metadata?.legendId === LEGEND.DEMON
-    );
-    const shatterTicks = shatter?.type === 'strike' ? strikeEffectTicks(shatter) : [];
-    for (const [index, tick] of shatterTicks.entries())
-      strike(runtime, cast, skill, {
-        at: effectAt(cast, shatter, tick.atMs),
-        coefficient: tick.coefficient || 0,
-        name: `Twin Moon Sweep — Shatter ${index + 1}`,
-        hitIndex: index + 1,
-        totalHits: shatterTicks.length,
-        skillWeapon: weapon
-      });
-    for (const [index, tick] of (confusion?.type === 'condition' ? conditionEffectTicks(confusion) : []).entries())
-      condition(runtime, cast, skill, {
-        at: effectAt(cast, confusion, tick.atMs),
-        condition: tick.condition || 'Confusion',
-        stacks: tick.stacks,
-        duration: tick.duration || 0,
-        name: `Twin Moon Sweep — Confusion ${index + 1}`
-      });
-  }
-
-  if (!hasTrait(runtime, TRAIT.SHARED_WISDOM)) return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.sharedWisdom);
-  const shared = requireEffect(profile, 'boon', 'twin-moon-sweep');
-  for (let index = 0; shared && index < Math.max(0, effectNumber(profile, shared, 'applications')); index += 1)
-    boon(runtime, cast, skill, {
-      at,
-      name: `Shared Wisdom — Might ${index + 1}`,
-      kind: String(shared.boon),
-      duration: effectNumber(profile, shared, 'duration'),
-      stacks: effectNumber(profile, shared, 'stacks')
-    });
-}
-
 /** Release Potential resolves the active legend's variant from current affinity and equipped legends. */
 function releasePotential(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill;
+  const mesmer = cast.skill.id === ID.RELEASE_POTENTIAL_MESMER;
+  if (!mesmer && cast.skill.id !== ID.RELEASE_POTENTIAL_ASSASSIN) return;
   const affinity = effectiveConduitAffinity(runtime);
-  const effects = skill.effects ?? [];
-  const hit = effects.find((effect) => effect.type === 'strike');
-  const conditions = effects.filter((effect) => effect.type === 'condition');
-  const weapon = skillWeapon(runtime, skill);
-  const coefficient = hit?.type === 'strike' ? strikeEffectCoefficient(hit) : 0;
-  switch (skill.id) {
-    case ID.RELEASE_POTENTIAL_MESMER: {
-      const impact = effectAt(cast, hit);
-      strike(runtime, cast, skill, { at: impact, coefficient, skillWeapon: weapon });
-      // Enemy and self Torment read affinity at impact, including swaps during the windup.
-      runtime.schedule(MESMER_RELEASE, impact, { activationId: cast.id });
-      const control = effects.find((effect) => effect.type === 'control');
-      runtime.emit({
-        type: 'control',
-        at: effectAt(cast, control),
-        source: 'revenant',
-        sourceId: skill.id,
-        actorType: 'player',
-        skillId: skill.id,
-        skillName: skill.name,
-        activationId: cast.id,
-        controlKind: String(control?.type === 'control' ? control.controlKind : 'daze')
-      });
-      break;
-    }
-
-    case ID.RELEASE_POTENTIAL_ASSASSIN: {
-      const ticks = hit?.type === 'strike' ? strikeEffectTicks(hit) : [];
-      for (const [index, tick] of ticks.entries())
-        strike(runtime, cast, skill, {
-          at: canonicalTime(cast.start + (tick.atMs || 0) / 1000),
-          coefficient: tick.coefficient || 0,
-          hitIndex: index + 1,
-          totalHits: ticks.length,
-          skillWeapon: weapon,
-          // Assassin shockwaves use profession-mechanic strength independently of the equipped weapon.
-          weaponStrengthProfileId: 'nonweapon.profession-mechanic'
+  emitEffects(runtime, {
+    owner: cast.skill,
+    effects: cast.skill.effects?.filter((effect) => !mesmer || effect.type !== 'condition'),
+    at: cast.start,
+    fullEnd: cast.fullEnd,
+    baseEvent: {
+      source: 'revenant',
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id
+    },
+    transform: (event, effect) => ({
+      ...event,
+      ...(event.type === 'damage'
+        ? {
+            skillWeapon: skillWeapon(runtime, cast.skill),
+            ...(!mesmer ? { weaponStrengthProfileId: 'nonweapon.profession-mechanic' } : {})
+          }
+        : {}),
+      ...(event.type === 'condition'
+        ? { duration: Number(event.duration) * (1 + affinity * Number(effect.durationPerAffinity || 0)) }
+        : {})
+    })
+  });
+  if (mesmer) {
+    // Affinity is sampled at each actual condition application, independently of a surviving strike.
+    for (const effect of cast.skill.effects ?? []) {
+      if (effect.type !== 'condition') continue;
+      for (const { event } of materializeSkillEffectApplications({
+        skill: cast.skill,
+        effect,
+        start: cast.start,
+        fullEnd: cast.fullEnd,
+        reactionGroup:
+          effect.reactions === undefined ? undefined : runtime.effectReactions.register(cast.skill, effect),
+        baseEvent: {
+          source: 'revenant',
+          sourceId: cast.skill.id,
+          actorType: 'player',
+          skillId: cast.skill.id,
+          skillName: cast.skill.name,
+          activationId: cast.id
+        }
+      }))
+        runtime.schedule(MESMER_RELEASE, event.at, {
+          event,
+          durationPerAffinity: effect.durationPerAffinity ?? 0,
+          durationReductionPerAffinity: effect.durationReductionPerAffinity ?? 0
         });
-      // Conditions land with the final hit and share the affinity-scaled duration formula.
-      for (const effect of conditions)
-        for (const tick of conditionEffectTicks(effect))
-          condition(runtime, cast, skill, {
-            at: effectAt(cast, effect, tick.atMs),
-            condition: tick.condition,
-            stacks: tick.stacks,
-            duration: (tick.duration || 0) * (1 + affinity * Number(effect.durationPerAffinity || 0))
-          });
-      break;
     }
-
-    default:
-      break;
   }
 }
 
 /** Mesmer release Torment scales with impact-time affinity; one simulated enemy applies self-Torment once. */
 function mesmerRelease(runtime: RevenantRuntime, data: unknown): void {
-  const skill = runtime.helpers.skillsById.get(ID.RELEASE_POTENTIAL_MESMER);
-  if (!skill) return;
-  const { activationId } = data as { activationId: string };
+  const { event, durationPerAffinity, durationReductionPerAffinity } = data as {
+    event: SimulationEventBase;
+    durationPerAffinity: number;
+    durationReductionPerAffinity: number;
+  };
   const affinity = effectiveConduitAffinity(runtime);
-  const conditions = skill.effects?.filter((effect) => effect.type === 'condition') ?? [];
-  const torment = conditions.find((effect) => effect.target !== 'self');
-  const self = conditions.find((effect) => effect.target === 'self');
-  const tormentTick = firstConditionTick(torment, 'Torment');
-  const selfTick = firstConditionTick(self, 'Torment');
-  runtime.emit(
-    buildResolverCondition({
-      at: runtime.time,
-      source: 'revenant',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      activationId,
-      condition: tormentTick?.condition || 'Torment',
-      stacks: tormentTick?.stacks ?? 1,
-      duration: (tormentTick?.duration || 0) * (1 + affinity * Number(torment?.durationPerAffinity || 0))
-    })
-  );
-  const selfDuration =
-    (selfTick?.duration || 0) * Math.max(0, 1 - affinity * Number(self?.durationReductionPerAffinity || 0));
-  runtime.profession.core.selfConditions.push({
-    condition: selfTick?.condition || 'Torment',
-    stacks: selfTick?.stacks ?? 1,
-    at: runtime.time,
-    expiresAt: runtime.time + selfDuration,
-    sourceId: skill.id,
-    skillName: skill.name
-  });
+  if (event.target === 'self') {
+    const duration = Number(event.duration) * Math.max(0, 1 - affinity * durationReductionPerAffinity);
+    runtime.profession.core.selfConditions.push({
+      condition: String(event.condition),
+      stacks: Number(event.stacks),
+      at: event.at,
+      expiresAt: event.at + duration,
+      sourceId: event.sourceId,
+      skillName: String(event.skillName)
+    });
+    return;
+  }
+
+  runtime.emitProcedural({ ...event, duration: Number(event.duration) * (1 + affinity * durationPerAffinity) });
 }
 
 function scheduleFormExpiry(runtime: RevenantRuntime): void {
@@ -624,29 +442,24 @@ function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const state = conduit(runtime);
   if (hasTrait(runtime, TRAIT.MISTFIRE)) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.mistfire);
-    // The activation strike and Burning are independent packets; either survives the other's removal.
-    const hit = requireEffect(profile, 'strike', 'Mistfire');
-    const burning = requireEffect(profile, 'condition', 'Burning');
-    const mistfire = { id: TRAIT.MISTFIRE, name: 'Mistfire' } as Skill;
-    if (hit)
-      strike(runtime, cast, mistfire, {
-        at: runtime.time,
+    emitEffects(runtime, {
+      owner: profile,
+      effects: profile.effects?.filter((effect) => effect.type === 'strike' || effect.type === 'condition'),
+      baseEvent: {
+        source: 'revenant',
+        sourceId: TRAIT.MISTFIRE,
         actorType: 'effect',
         ownerActorType: 'player',
-        name: 'Mistfire',
-        coefficient: strikeEffectCoefficient(hit),
+        skillId: TRAIT.MISTFIRE,
+        skillName: 'Mistfire',
+        activationId: cast.id
+      },
+      transform: (event) => ({
+        ...event,
+        name: event.type === 'damage' ? 'Mistfire' : 'Mistfire — Burning',
         skillWeapon: 'Unequipped'
-      });
-    if (burning)
-      condition(runtime, cast, mistfire, {
-        at: runtime.time,
-        actorType: 'effect',
-        ownerActorType: 'player',
-        name: 'Mistfire — Burning',
-        condition: String(burning.condition),
-        stacks: effectNumber(profile, burning, 'stacks'),
-        duration: effectNumber(profile, burning, 'duration')
-      });
+      })
+    });
   }
 
   const window = requireEffect(cast.skill, 'buff', 'cosmic-wisdom');
@@ -845,13 +658,9 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     costAffinity(runtime, cast);
     if (skill.legendId === LEGEND.ENTITY && revenantConduitFormIsActive(conduit(runtime), 'Dervish', cast.start))
       dervishCasts.add(cast);
-    // Gladiator's Defense triggers its scythe with the instant stunbreak.
-    if (skill.id === ID.GLADIATORS_DEFENSE && dervishCasts.has(cast)) dervishAttack(runtime, cast, cast.start);
-    if (skill.id === ID.GLADIATORS_DEFENSE) gladiatorsDefense(runtime, cast);
-    else if (skill.id === ID.HEX_EATER_VORTEX) hexEaterVortex(runtime, cast);
+    if (skill.id === ID.HEX_EATER_VORTEX) hexEaterVortex(runtime, cast);
     if (cast.cancelled) return;
     if (BEGUILING_HAZE_SKILL_IDS.has(skill.id)) beguilingHaze(runtime, cast);
-    else if (TWIN_MOON_SKILL_IDS.has(skill.id)) twinMoonSweep(runtime, cast);
     else if (RELEASE_POTENTIAL_IDS.has(skill.id)) releasePotential(runtime, cast);
   },
   onCastCommit(runtime, cast) {
@@ -860,27 +669,16 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
       completeBeguilingHaze(runtime, cast);
     }
 
-    // Cosmic Wisdom form procs follow the cast; Gladiator's Defense already struck at its stunbreak.
+    // Cosmic Wisdom form procs follow successful casts through the common completion path.
     if (skill.legendId === LEGEND.ASSASSIN) lesserDaggers(runtime, skill);
-    if (dervishCasts.has(cast) && skill.id !== ID.GLADIATORS_DEFENSE) {
+    if (dervishCasts.has(cast)) {
       dervishAttack(runtime, cast, runtime.time);
       if (TWIN_MOON_SKILL_IDS.has(skill.id)) dervishAttack(runtime, cast, runtime.time, true);
     }
 
     dervishCasts.delete(cast);
     // Shared Wisdom Swiftness belongs only to Entity legend skills.
-    if (skill.legendId === LEGEND.ENTITY && hasTrait(runtime, TRAIT.SHARED_WISDOM)) {
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.sharedWisdom);
-      const shared = requireEffect(profile, 'boon', 'entity-skill');
-      if (shared)
-        boon(runtime, cast, skill, {
-          at: runtime.time,
-          name: `${skill.name} — ${shared.boon}`,
-          kind: String(shared.boon),
-          duration: effectNumber(profile, shared, 'duration'),
-          stacks: effectNumber(profile, shared, 'stacks')
-        });
-    }
+    if (skill.legendId === LEGEND.ENTITY) completionSharedWisdom(runtime, cast, 'entity-skill');
 
     if (skill.id === ID.COSMIC_WISDOM) cosmicWisdom(runtime, cast);
     else if (skill.id === ID.SWAP_LEGENDS) swapLegend(runtime, cast);

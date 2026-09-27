@@ -1,3 +1,4 @@
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { canonicalTime, EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { addTimedStacks, consumeNewestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -17,7 +18,7 @@ import {
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
 import { emitRevenantProfile, revenantBoonActive } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
-import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -31,27 +32,20 @@ interface TraitBuff {
   readonly skillId: SkillId;
   readonly skillName: string;
   readonly name?: string;
-  readonly kind: string;
-  readonly duration: number;
-  readonly stacks: number;
   readonly audience?: SkillEffect['audience'];
   readonly activationId?: string;
   readonly actorType?: 'player' | 'effect';
 }
 
 /** Trait boons apply at the current instant, retaining their trigger's attribution when one exists. */
-function traitBuff(runtime: RevenantRuntime, fields: TraitBuff, cause?: Gw2ResolverEvent | null): void {
+function traitBuff(runtime: RevenantRuntime, profile: Skill, effect: SkillEffect, fields: TraitBuff): void {
   const { actorType = 'player', ...rest } = fields;
-  runtime.emitProcedural(
-    {
-      type: 'buff',
-      at: runtime.time,
-      source: 'revenant',
-      actorType,
-      ...rest
-    },
-    { cause }
-  );
+  emitEffects(runtime, {
+    owner: profile,
+    effects: [effect],
+    baseEvent: { source: 'revenant', actorType, ...rest },
+    transform: (event) => ({ ...event, ...rest })
+  });
 }
 
 /** Invocation and legend packages share one profile materialization at the current instant. */
@@ -154,14 +148,11 @@ export function completeRevenantCastTraits(runtime: RevenantRuntime, cast: Runti
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.notoriety);
     const boon = requireEffect(profile, 'boon', 'might');
     if (boon)
-      traitBuff(runtime, {
+      traitBuff(runtime, profile, boon, {
         sourceId: TRAIT.NOTORIETY,
         skillId: skill.id,
         skillName: skill.name,
         name: 'Notoriety — might',
-        kind: String(boon.boon),
-        duration: effectNumber(profile, boon, 'duration'),
-        stacks: effectNumber(profile, boon, 'stacks'),
         activationId: cast.id
       });
   }
@@ -218,14 +209,11 @@ export function completeRevenantBrutality(runtime: RevenantRuntime, cast: Runtim
   // The cooldown gates only quickness, so a removed boon leaves it ready.
   if (!boon) return;
   if (!runtime.procs.claimCooldown('brutality', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
-  traitBuff(runtime, {
+  traitBuff(runtime, profile, boon, {
     sourceId: TRAIT.BRUTALITY,
     skillId: TRAIT.BRUTALITY,
     skillName: 'Brutality',
     name: 'Brutality — quickness',
-    kind: String(boon.boon),
-    duration: effectNumber(profile, boon, 'duration'),
-    stacks: effectNumber(profile, boon, 'stacks'),
     activationId: cast.id
   });
 }
@@ -289,9 +277,12 @@ function thrillOfCombat(runtime: RevenantRuntime, event: Gw2ResolverEvent): void
 
   core.nextThrillOfCombatAt = next + elapsed * interval;
   if (!granted) return;
-  traitBuff(
-    runtime,
+  runtime.emitProcedural(
     {
+      type: 'buff',
+      at: runtime.time,
+      source: 'revenant',
+      actorType: 'player',
       sourceId: TRAIT.THRILL_OF_COMBAT,
       skillId: TRAIT.THRILL_OF_COMBAT,
       skillName: 'Thrill of Combat',
@@ -300,7 +291,7 @@ function thrillOfCombat(runtime: RevenantRuntime, event: Gw2ResolverEvent): void
       duration,
       stacks: granted
     },
-    event
+    { cause: event }
   );
 }
 
@@ -462,18 +453,20 @@ export function completeRevenantEnchantedDaggers(runtime: RevenantRuntime, cast:
 /** A committed Ancient Echo selects the active legend's self package and refunds Energy. */
 export function completeRevenantAncientEcho(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const legendId = runtime.profession.core.activeLegendId;
-  for (const effect of cast.skill.effects ?? []) {
-    if (effect.metadata?.legendId !== legendId || (effect.type !== 'boon' && effect.type !== 'buff')) continue;
-    traitBuff(runtime, {
+  emitEffects(runtime, {
+    owner: cast.skill,
+    effects: cast.skill.effects?.filter(
+      (effect) => effect.metadata?.legendId === legendId && (effect.type === 'boon' || effect.type === 'buff')
+    ),
+    baseEvent: {
+      source: 'revenant',
       sourceId: cast.skill.id,
+      actorType: 'player',
       skillId: cast.skill.id,
       skillName: cast.skill.name,
-      kind: String(effect.boon || effect.kind),
-      duration: effect.duration,
-      stacks: effect.stacks ?? 1,
       activationId: cast.id
-    });
-  }
+    }
+  });
 
   runtime.resourceController.grant('energy', cast.skill.resourceGain || 0);
 }
@@ -503,13 +496,10 @@ export function revenantAssassinsPresencePulse(runtime: RevenantRuntime): void {
   const boon = requireEffect(profile, 'boon', 'fury');
   // The pulse cadence is trait-owned and continues; only the removed Fury packet is skipped.
   if (!boon) return;
-  traitBuff(runtime, {
+  traitBuff(runtime, profile, boon, {
     sourceId: TRAIT.ASSASSINS_PRESENCE,
     skillId: TRAIT.ASSASSINS_PRESENCE,
     skillName: profile.name,
-    kind: String(boon.boon),
-    duration: effectNumber(profile, boon, 'duration'),
-    stacks: effectNumber(profile, boon, 'stacks'),
     audience: { recipients: 'party', maximumRecipients: 5 }
   });
 }

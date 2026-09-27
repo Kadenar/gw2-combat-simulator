@@ -12,6 +12,7 @@ import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/spec
 import { HERALD_SHARED_EMPOWERMENT_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/mechanics/life-siphon.js';
@@ -129,14 +130,116 @@ test('Shared Wisdom boons stay bound to their triggering entity after a sibling 
       { catalog }
     )
       .events.filter((event) => event.type === 'buff' && event.skillId === ID.GLADIATORS_DEFENSE)
-      .map((event) => event.kind);
+      .map((event) => event.kind)
+      .sort();
   const native = buffs([]);
+  assert.deepEqual(native, ['resistance', 'resolution']);
   assert.deepEqual(
     buffs([TRAIT.SHARED_WISDOM], patched({ [CONDUIT.sharedWisdom]: remove('boon', 'beguiling-haze') })).filter(
       (kind) => !native.includes(kind)
     ),
-    ['swiftness', 'stability']
+    ['stability', 'swiftness']
   );
+  assert.deepEqual(
+    buffs([TRAIT.SHARED_WISDOM], patched({ [CONDUIT.sharedWisdom]: remove('boon', 'gladiators-defense') })),
+    ['resistance', 'resolution', 'swiftness']
+  );
+});
+
+test("Gladiator's Defense uses live Stability tuning only for successful casts", () => {
+  // The declaration selects one trait reward; cancellation suppresses it and the ordinary skill packets.
+  for (const cancelled of [false, true]) {
+    const result = runRevenant(
+      [{ name: "Gladiator's Defense", ...(cancelled ? { interruptMs: 0 } : {}) }],
+      {
+        specialization: 'Conduit',
+        selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
+        startingLegend: LEGEND.ENTITY,
+        selectedTraitIds: [TRAIT.SHARED_WISDOM],
+        initialEnergy: 100
+      },
+      {
+        catalog: patched({
+          [CONDUIT.sharedWisdom]: { effects: [{ type: 'boon', name: 'gladiators-defense', stacks: 2 }] }
+        })
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const packets = result.events.filter((event) => event.skillId === ID.GLADIATORS_DEFENSE);
+    assert.deepEqual(
+      packets.filter((event) => event.type === 'buff' && event.kind === 'stability').map((event) => event.stacks),
+      cancelled ? [] : [2]
+    );
+    assert.equal(
+      packets.some((event) => event.type === 'damage'),
+      !cancelled
+    );
+    assert.equal(
+      packets.some((event) => event.type === 'condition' && event.condition === 'Weakness'),
+      !cancelled
+    );
+  }
+});
+
+test('Twin Moon Sweep selects patchable Shared Wisdom Might independently of target hits', () => {
+  // Both identities share the variant; removed base strikes must not remove the independently authored trait boon.
+  for (const skillId of [ID.TWIN_MOON_SWEEP, ID.TWIN_MOON_SWEEP_ID_77001]) {
+    for (const mode of ['selected', 'unselected', 'removed', 'cancelled']) {
+      const result = runRevenant(
+        [
+          { skillId, offTarget: true, ...(mode === 'cancelled' ? { interruptMs: 0 } : {}) },
+          { type: 'wait', durationMs: 1000 }
+        ],
+        {
+          specialization: 'Conduit',
+          selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
+          startingLegend: LEGEND.ENTITY,
+          selectedTraitIds: mode === 'unselected' ? [] : [TRAIT.SHARED_WISDOM],
+          initialEnergy: 100
+        },
+        {
+          catalog: (catalog) =>
+            withSkill(
+              patched({
+                [CONDUIT.sharedWisdom]:
+                  mode === 'removed'
+                    ? remove('boon', 'twin-moon-sweep')
+                    : {
+                        effects: [
+                          {
+                            type: 'boon',
+                            name: 'twin-moon-sweep',
+                            stacks: 7,
+                            applications: 3,
+                            intervalMs: 100
+                          }
+                        ]
+                      }
+              })(catalog),
+              skillId,
+              {
+                effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 1, atMs: 300, timingAnchor: 'castStart' }]
+              }
+            )
+        }
+      );
+      const might = result.events.filter(
+        (event) => event.type === 'buff' && event.metadata?.trigger === 'twin-moon-sweep'
+      );
+      assert.deepEqual(result.warnings, []);
+      assert.deepEqual(
+        might.map((event) => [event.at, event.stacks]),
+        mode === 'selected'
+          ? [
+              [0.3, 7],
+              [0.4, 7],
+              [0.5, 7]
+            ]
+          : []
+      );
+      assert.equal(observedRuntime(result).profession.specialization.state.affinity, 0);
+    }
+  }
 });
 
 test('a missing required Revenant profile fails in the selected catalog', () => {

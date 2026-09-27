@@ -1,19 +1,15 @@
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  conditionEffectTicks,
-  effectFirstAtMs,
-  strikeEffectCoefficient,
-  strikeEffectTicks
-} from '#gw2/platform/engine/effects/authoring.js';
+import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import {
@@ -53,6 +49,7 @@ function scheduleLanding(runtime: RevenantRuntime, cast: RuntimeCast, origin: nu
   if (!profile || !effect) return;
   const offset = effect.type === 'strike' ? effectFirstAtMs(effect) : effect.atMs;
   runtime.schedule(LANDING, canonicalTime(origin + Math.max(0, offset || 0) / 1000), {
+    origin,
     skillId: cast.skill.id,
     activationId: cast.id
   });
@@ -60,7 +57,7 @@ function scheduleLanding(runtime: RevenantRuntime, cast: RuntimeCast, origin: nu
 
 /** Landing consumes an armed Reaver's Curse, strikes with the Forerunner window it lands in, then renews it. */
 function land(runtime: RevenantRuntime, data: unknown): void {
-  const { skillId, activationId } = data as { skillId: SkillId; activationId: string };
+  const { skillId, activationId, origin } = data as { skillId: SkillId; activationId: string; origin: number };
   const state = vindicatorState.from(runtime);
   const profile = selectedDodge(runtime);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'strike' || candidate.type === 'boon');
@@ -71,32 +68,36 @@ function land(runtime: RevenantRuntime, data: unknown): void {
   if (reaversCurse) state.reaversCurseUntil = 0;
   if (effect.type === 'strike' && strikeEffectCoefficient(effect) > 0) {
     const previousForerunnerUntil = state.forerunnerOfDeathUntil || 0;
-    const hits = strikeEffectTicks(effect).length;
-    const coefficient =
-      strikeEffectCoefficient(effect) *
-      (reaversCurse
-        ? Math.max(
-            0,
-            balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.reaversCurse), 'damageMultiplier')
-          )
-        : 1);
-    for (let hit = 0; hit < hits; hit += 1)
-      runtime.emit(
-        buildResolverStrike({
-          at: runtime.time,
-          source: 'revenant',
-          sourceId: skillId,
-          actorType: 'player',
-          skillId,
-          skillName: profile.name,
-          activationId,
-          name: profile.name,
-          coefficient: coefficient / hits,
-          skillWeapon: 'Unequipped',
-          // The strike benefits from the window it lands in; its own renewal follows below.
-          forerunnerOfDeathActive: previousForerunnerUntil > runtime.time
-        })
-      );
+    emitEffects(runtime, {
+      owner: profile,
+      effects: profile.effects?.filter((effect) => effect.type === 'strike'),
+      at: origin,
+      baseEvent: {
+        source: 'revenant',
+        sourceId: skillId,
+        actorType: 'player',
+        skillId,
+        skillName: profile.name,
+        activationId
+      },
+      transform: (event) => ({
+        ...event,
+        name: profile.name,
+        coefficient:
+          Number(event.coefficient) *
+          (reaversCurse
+            ? Math.max(
+                0,
+                balanceProfileNumber(
+                  requireBalanceProfileFromContext(runtime, PROFILE.reaversCurse),
+                  'damageMultiplier'
+                )
+              )
+            : 1),
+        skillWeapon: 'Unequipped',
+        forerunnerOfDeathActive: previousForerunnerUntil > runtime.time
+      })
+    });
     if (profile.id === ID.DEATH_DROP && hasTrait(runtime, TRAIT.FORERUNNER_OF_DEATH)) {
       const forerunner = requireBalanceProfileFromContext(runtime, PROFILE.forerunnerOfDeath);
       const window = requireEffect(forerunner, 'buff', 'forerunner-of-death');
@@ -125,40 +126,21 @@ function land(runtime: RevenantRuntime, data: unknown): void {
     }
   }
 
-  // Every declared condition and boon accompanies the landing.
-  for (const secondary of profile.effects ?? []) {
-    if (secondary.type === 'boon')
-      runtime.emitProcedural({
-        type: 'buff',
-        at: runtime.time,
-        source: 'revenant',
-        sourceId: profile.id,
-        actorType: 'player',
-        skillId: profile.id,
-        skillName: profile.name,
-        activationId,
-        kind: secondary.boon || '',
-        duration: secondary.duration,
-        stacks: secondary.stacks ?? 1,
-        ...(secondary.audience ? { audience: secondary.audience } : {})
-      });
-    else if (secondary.type === 'condition')
-      for (const tick of conditionEffectTicks(secondary))
-        runtime.emit(
-          buildResolverCondition({
-            at: runtime.time,
-            source: 'revenant',
-            sourceId: profile.id,
-            actorType: 'player',
-            skillId: profile.id,
-            skillName: profile.name,
-            activationId,
-            condition: tick.condition,
-            duration: tick.duration,
-            stacks: tick.stacks
-          })
-        );
-  }
+  // Secondary effects retain their own timing and applications, independent of the strike timeline.
+  emitEffects(runtime, {
+    owner: profile,
+    effects: profile.effects?.filter((effect) => effect.type === 'boon' || effect.type === 'condition'),
+    at: origin,
+    fullEnd: runtime.time,
+    baseEvent: {
+      source: 'revenant',
+      sourceId: profile.id,
+      actorType: 'player',
+      skillId: profile.id,
+      skillName: profile.name,
+      activationId
+    }
+  });
 }
 
 /** Energy Meld arms Reaver's Curse, refunds in-combat Energy, and grants Song of Arboreum's Vigor. */

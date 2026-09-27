@@ -1,3 +1,4 @@
+import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -5,7 +6,6 @@ import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { scaleCastBoundTiming, materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { BRAVE_STRIDE_MOVEMENT_SKILL_IDS, reactToWarriorBuff } from '#gw2/professions/warrior/core/traits/strength.js';
@@ -39,13 +39,19 @@ function traitEffects(
   runtime: WarriorRuntime,
   event: Gw2ResolverEvent,
   trait: number,
-  overrides: Pick<Gw2ResolverEvent, 'stacks' | 'duration' | 'audience'> = {},
-  quantity = 1
+  overrides: Partial<
+    Pick<
+      Gw2ResolverEvent,
+      'stacks' | 'duration' | 'audience' | 'priority' | 'name' | 'skillName' | 'triggeredBy' | 'metadata'
+    >
+  > = {},
+  quantity = 1,
+  effects?: readonly SkillEffect[]
 ): void {
   const profile = requireBalanceProfileFromContext(runtime, trait);
   emitEffects(runtime, {
     owner: profile,
-    effects: profile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+    effects: effects ?? profile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
     baseEvent: {
       source: 'Trait',
       sourceId: trait,
@@ -178,22 +184,18 @@ function criticalTraits(
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.bloodlust);
       const bleeding = requireEffect(profile, 'condition', 'Bleeding');
       if (bleeding)
-        runtime.emitDerived(
+        traitEffects(
+          runtime,
           event,
-          buildResolverCondition({
-            at: runtime.time,
-            priority: 5,
-            source: 'Trait',
-            sourceId: TRAIT.BLOODLUST,
-            actorType: 'effect',
-            skillId: event.skillId,
+          TRAIT.BLOODLUST,
+          {
+            name: 'Bloodlust \u2014 Bleeding',
             skillName: 'Bloodlust',
             triggeredBy: event.skillName,
-            metadata: { procCount: proc.quantity },
-            condition: 'Bleeding',
-            stacks: proc.quantity * effectNumber(profile, bleeding, 'stacks'),
-            duration: effectNumber(profile, bleeding, 'duration')
-          })
+            metadata: { procCount: proc.quantity }
+          },
+          proc.quantity,
+          [bleeding]
         );
     }
   }
@@ -210,22 +212,7 @@ function criticalTraits(
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.sunderingBurst);
     const effect = requireEffect(profile, 'condition', criticals > 0 ? 'Critical burst' : 'Burst');
     if (effect)
-      runtime.emitDerived(
-        event,
-        buildResolverCondition({
-          at: runtime.time,
-          priority: 5,
-          source: 'Trait',
-          sourceId: TRAIT.SUNDERING_BURST,
-          actorType: 'effect',
-          skillId: event.skillId,
-          skillName: event.skillName,
-          name: 'Sundering Burst — Vulnerability',
-          condition: 'Vulnerability',
-          stacks: effectNumber(profile, effect, 'stacks'),
-          duration: effectNumber(profile, effect, 'duration')
-        })
-      );
+      traitEffects(runtime, event, TRAIT.SUNDERING_BURST, { name: 'Sundering Burst — Vulnerability' }, 1, [effect]);
   }
 
   if (criticals > 0 && hasTrait(runtime, TRAIT.AXE_MASTERY)) {
@@ -352,19 +339,14 @@ function empowerPulse(runtime: WarriorRuntime): void {
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   const might = requireEffect(profile, 'boon', 'might');
   if (!hasTrait(runtime, TRAIT.EMPOWER_ALLIES) || interval <= 0 || !might) return;
-  const event = {
-    type: 'buff' as const,
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: TRAIT.EMPOWER_ALLIES,
-    actorType: 'effect' as const,
-    name: 'Empower Allies',
-    kind: 'might',
-    stacks: effectNumber(profile, might, 'stacks'),
-    duration: effectNumber(profile, might, 'duration'),
-    audience: { recipients: 'party' as const }
-  };
-  runtime.emitProcedural(event);
+  traitEffects(
+    runtime,
+    { type: 'buff', at: runtime.time, source: 'Trait', sourceId: TRAIT.EMPOWER_ALLIES, actorType: 'effect' },
+    TRAIT.EMPOWER_ALLIES,
+    { priority: 0, audience: { recipients: 'party' } },
+    1,
+    [might]
+  );
   runtime.schedule(EMPOWER_PULSE, canonicalTime(runtime.time + interval), null, undefined, -210);
 }
 

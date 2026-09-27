@@ -1,7 +1,7 @@
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
-import { assertSimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import {
   balanceProfileNumber,
@@ -9,12 +9,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import {
-  effectFirstAt,
-  materializeSkillEffectApplications,
-  scaleCastBoundTiming
-} from '#gw2/platform/engine/effects/materializer.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
+import { effectFirstAt, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerLifeForceCostMultiplier } from '#gw2/professions/necromancer/core/state.js';
@@ -68,48 +63,38 @@ function publishBlight(runtime: NecromancerRuntime): void {
 }
 
 /** Selected packets share the materializer and actual boon recipients; target rejection remains in the common queue. */
-function emitEffects(
+function emitHarbingerEffects(
   runtime: NecromancerRuntime,
   skill: Skill,
   effects: readonly SkillEffect[],
   cast?: RuntimeCast,
   metadata?: EffectMetadata
 ): void {
-  for (const effect of effects) {
-    for (const { event } of materializeSkillEffectApplications({
-      skill,
-      effect,
-      start: runtime.time,
-      fullEnd: runtime.time,
-      baseEvent: {
-        source: effect.source ?? (skill.type === 'Trait' ? 'Trait' : 'necromancer'),
-        sourceId: effect.sourceId ?? skill.id,
-        skillId: skill.id,
-        skillName: skill.name,
-        actorType: effect.actorType ?? (skill.type === 'Trait' ? 'effect' : 'player'),
-        // A triggered trait owns one activation distinct from its originating weapon or shroud cast.
-        activationId: cast && skill.id !== cast.skill.id ? `${cast.id}:effect:${skill.id}` : cast?.id,
-        metadata
-      },
-      skillWeaponFallback: 'Unequipped'
-    })) {
-      const packet = assertSimulationEvent({
-        ...event,
-        parentSkillName: cast && cast.skill.id !== skill.id ? cast.skill.name : undefined,
-        // Profile effect labels identify authoring slots; combat rows identify the skill that delivered the strike.
-        ...(event.type === 'damage' ? { name: skill.name } : {}),
-        ...(event.type === 'condition' ? { name: `${skill.name} — ${event.condition}` } : {}),
-        offTarget: cast?.command.offTarget,
-        at: canonicalTime(
-          event.at +
-            (skill.id === cast?.skill.id && isHostileTargetEvent(event) ? (cast.command.impactDelayMs ?? 0) / 1000 : 0)
-        )
-      });
-      if (packet.type === 'buff')
-        queueResolverBoon(runtime, packet, { ...packet, kind: String(packet.kind), duration: Number(packet.duration) });
-      else runtime.emit(packet);
-    }
-  }
+  emitEffects(runtime, {
+    owner: skill,
+    effects,
+    baseEvent: (effect) => ({
+      source: effect.source ?? (skill.type === 'Trait' ? 'Trait' : 'necromancer'),
+      sourceId: effect.sourceId ?? skill.id,
+      skillId: skill.id,
+      skillName: skill.name,
+      actorType: effect.actorType ?? (skill.type === 'Trait' ? 'effect' : 'player'),
+      activationId: cast && skill.id !== cast.skill.id ? cast.id + ':effect:' + skill.id : cast?.id,
+      metadata
+    }),
+    skillWeaponFallback: 'Unequipped',
+    transform: (event) => ({
+      ...event,
+      parentSkillName: cast && cast.skill.id !== skill.id ? cast.skill.name : undefined,
+      ...(event.type === 'damage' ? { name: skill.name } : {}),
+      ...(event.type === 'condition' ? { name: skill.name + ' — ' + event.condition } : {}),
+      offTarget: cast?.command.offTarget,
+      at: canonicalTime(
+        event.at +
+          (skill.id === cast?.skill.id && isHostileTargetEvent(event) ? (cast.command.impactDelayMs ?? 0) / 1000 : 0)
+      )
+    })
+  });
 }
 
 function party(runtime: NecromancerRuntime) {
@@ -124,12 +109,11 @@ function party(runtime: NecromancerRuntime) {
 function deathlyHaste(runtime: NecromancerRuntime, skill: Skill): void {
   if (!hasTrait(runtime, TRAIT.DEATHLY_HASTE)) return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.deathlyHaste);
-  emitEffects(
+  emitHarbingerEffects(
     runtime,
     skill,
     (profile.effects ?? []).map((effect) => ({
       ...effect,
-      atMs: 0,
       audience: party(runtime),
       source: skill.id === ID.DARK_BARRAGE ? 'Trait' : 'necromancer',
       sourceId: skill.id === ID.DARK_BARRAGE ? TRAIT.DEATHLY_HASTE : skill.id
@@ -176,7 +160,7 @@ function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast): boolean {
           actorType: 'effect',
           activationId: cast.id
         });
-        emitEffects(
+        emitHarbingerEffects(
           runtime,
           { id: ID.CASCADING_CORRUPTION, name: 'Cascading Corruption', type: 'Trait' },
           [meltdown, strike, torment]
@@ -203,7 +187,7 @@ function commit(runtime: NecromancerRuntime, cast: RuntimeCast, impactAt: number
   if (cast.skill.categories?.includes('Elixir')) {
     if (hasTrait(runtime, TRAIT.BOLSTERING_BREW)) {
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.bolsteringBrew);
-      emitEffects(
+      emitHarbingerEffects(
         runtime,
         cast.skill,
         (profile.effects ?? []).map((effect) => ({
@@ -220,7 +204,7 @@ function commit(runtime: NecromancerRuntime, cast: RuntimeCast, impactAt: number
     const profile = empowered
       ? requireBalanceProfileFromContext(runtime, HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)])
       : cast.skill;
-    emitEffects(runtime, cast.skill, profile.effects ?? [], cast, {
+    emitHarbingerEffects(runtime, cast.skill, profile.effects ?? [], cast, {
       necromancerBlight: blight
     });
     if (cast.skill.id !== ID.DEVOURING_CUT)
@@ -263,7 +247,11 @@ export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
           );
         deathlyHaste(runtime, skill);
         if (hasTrait(runtime, TRAIT.IMPLACABLE_FOE))
-          emitEffects(runtime, skill, requireBalanceProfileFromContext(runtime, PROFILE.implacableFoe).effects ?? []);
+          emitHarbingerEffects(
+            runtime,
+            skill,
+            requireBalanceProfileFromContext(runtime, PROFILE.implacableFoe).effects ?? []
+          );
         refreshBlight(runtime);
       },
       onExit() {
@@ -334,7 +322,7 @@ export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
       );
       addBlight(harbingerState.from(runtime), balanceProfileNumber(profile, 'blightGain'), runtime.time);
       publishBlight(runtime);
-      emitEffects(
+      emitHarbingerEffects(
         runtime,
         cast.skill,
         ((empowered ? profile : cast.skill).effects ?? []).map((effect) => ({

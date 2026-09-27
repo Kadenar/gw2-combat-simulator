@@ -1,3 +1,4 @@
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 /** Owns imperative Core Engineer Explosives trait effects without registering their reactions. */
 import {
   procChanceFromContext,
@@ -6,7 +7,6 @@ import {
   balanceProfileNumber,
   effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -30,33 +30,31 @@ import type {
 export function applyGrenadier(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.GRENADIER) || !isInternalCooldownReady(at, context.procs.readyAt.grenadier || 0))
     return;
-  const grenadierProfile = requireBalanceProfileFromContext(context, PROFILE.grenadier);
-  const grenadier = requireEffect(grenadierProfile, 'strike', 'Grenadier');
-  if (!grenadier) return;
-  context.procs.readyAt.grenadier = at + balanceProfileNumber(grenadierProfile, 'internalCooldown');
-  const hits = Number(grenadier.hits);
-  const coefficient = effectNumber(grenadierProfile, grenadier, 'coefficient');
-  // Emit distinct packets so per-hit reactions and attribution retain the barrage sequence.
-  for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
-    emitEngineerEvent(context, 'damage', {
-      at,
+  const profile = requireBalanceProfileFromContext(context, PROFILE.grenadier);
+  const effect = requireEffect(profile, 'strike', 'Grenadier');
+  if (!effect) return;
+  context.procs.readyAt.grenadier = at + balanceProfileNumber(profile, 'internalCooldown');
+  emitEffects(context, {
+    owner: profile,
+    effects: [effect],
+    at,
+    baseEvent: {
       source: 'Trait',
       sourceId: TRAIT.GRENADIER,
       actorType: 'effect',
       ownerActorType: 'player',
       skillId: skill.id,
       skillName: 'Lesser Grenade Barrage',
+      triggeredBy: skill.name
+    },
+    transform: (event) => ({
+      ...event,
       parentSkillName: skill.name,
       name: 'Lesser Grenade Barrage',
-      coefficient,
-      hits: 1,
-      hitIndex,
-      totalHits: hits,
       skillWeapon: 'Unequipped',
-      explosion: true,
-      triggeredBy: skill.name
-    });
-  }
+      explosion: true
+    })
+  });
 }
 
 /** Rearms Explosive Entrance after a resolved Engineer dodge. */

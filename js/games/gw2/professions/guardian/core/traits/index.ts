@@ -212,6 +212,11 @@ export function triggerGuardianFuriousFocus(
 
 /** Guardian boons carry Virtue of Resolution's longer Resolution; the runtime defers and scales them like any boon. */
 export function emitGuardianBoon(runtime: Runtime, event: SimulationEventBase): void {
+  runtime.emitProcedural({ ...event, at: canonicalTime(event.at), duration: guardianBoonDuration(runtime, event) });
+}
+
+/** Procedural and materialized boons share Virtue of Resolution before ordinary boon-duration scaling. */
+export function guardianBoonDuration(runtime: Runtime, event: SimulationEventBase): number {
   const multiplier =
     String(event.kind) === 'resolution' && hasTrait(runtime, TRAIT.VIRTUE_OF_RESOLUTION)
       ? balanceProfileNumber(
@@ -219,11 +224,7 @@ export function emitGuardianBoon(runtime: Runtime, event: SimulationEventBase): 
           'durationMultiplier'
         )
       : 1;
-  runtime.emitProcedural({
-    ...event,
-    at: canonicalTime(event.at),
-    ...(multiplier === 1 ? {} : { duration: Number(event.duration) * multiplier })
-  });
+  return Number(event.duration) * multiplier;
 }
 
 /** A triggered symbol owns a distinct activation and schedules only its surviving selected components. */

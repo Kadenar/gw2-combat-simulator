@@ -1,13 +1,11 @@
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -19,37 +17,6 @@ import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
 
 const AMBUSH_SKILL_IDS = new Set<number>([ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);
-
-/** Queue fresh boons with shared duration scaling while preserving the trait's recipient selection. */
-function queueTraitBuff(
-  context: RangerResolverContext,
-  event: Gw2ResolverEvent,
-  kind: string,
-  duration: number,
-  stacks: number,
-  sourceId: number,
-  name: string,
-  party = false
-): void {
-  queueResolverBoon(
-    context,
-    event,
-    buildResolverBuff({
-      at: event.at,
-      source: 'Trait',
-      sourceId,
-      actorType: 'effect',
-      skillId: sourceId,
-      skillName: name,
-      name: `${name} - ${kind}`,
-      kind,
-      duration,
-      stacks,
-      ...(party ? { audience: { recipients: 'party' as const, maximumRecipients: 5 } } : {}),
-      triggeredBy: event.skillName
-    })
-  );
-}
 
 function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, TRAIT.FEROCIOUS_SYMBIOSIS)) return;
@@ -93,20 +60,31 @@ function triggerLetLoose(context: RangerResolverContext, event: Gw2ResolverEvent
   if (activations[event.activationId]) return;
   activations[event.activationId] = true;
   const profile = requireBalanceProfileFromContext(context, PROFILE.letLoose);
-  // Each named boon is independent, so removing one keeps its sibling bound to its own values.
-  for (const name of ['quickness', 'might']) {
-    const effect = requireEffect(profile, 'boon', name);
-    if (!effect) continue;
-    queueTraitBuff(
-      context,
-      event,
-      String(effect.boon),
-      effectNumber(profile, effect, 'duration'),
-      effectNumber(profile, effect, 'stacks'),
-      TRAIT.LET_LOOSE,
-      'Let Loose',
-      true
-    );
+  // Expand each surviving boon once per accepted ambush, preserving the party audience.
+  for (const effect of profile.effects ?? []) {
+    if (effect.type !== 'boon') continue;
+    for (const { event: packet } of materializeSkillEffectApplications({
+      skill: profile,
+      effect,
+      start: event.at,
+      fullEnd: event.at,
+      baseEvent: {
+        source: 'Trait',
+        sourceId: TRAIT.LET_LOOSE,
+        actorType: 'effect',
+        skillId: TRAIT.LET_LOOSE,
+        skillName: 'Let Loose',
+        triggeredBy: event.skillName
+      }
+    }))
+      queueResolverBoon(context, event, {
+        ...packet,
+        type: 'buff',
+        kind: String(packet.kind),
+        duration: Number(packet.duration),
+        name: 'Let Loose - ' + packet.kind,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      });
   }
 }
 

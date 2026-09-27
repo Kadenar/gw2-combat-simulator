@@ -20,7 +20,6 @@ import {
 } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { queueCondition } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { queueSoulbeastBuff } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 
 const trigger = {
@@ -161,10 +160,46 @@ test('derived boons scale once using live stats while preserving fixed durations
     },
     queue: { enqueue: (event) => packets.push(event) }
   };
-  queueSoulbeastBuff(context, trigger, 'might', 4, 1, 'Vulture Stance', 10);
+  queueResolverBoon(
+    context,
+    trigger,
+    buildResolverBuff({
+      at: 1,
+      source: 'Trait',
+      sourceId: 10,
+      actorType: 'effect',
+      kind: 'might',
+      duration: 4,
+      stacks: 1
+    })
+  );
   concentration = 1500;
-  queueSoulbeastBuff(context, trigger, 'might', 4, 1, 'Vulture Stance', 10);
-  queueSoulbeastBuff(context, trigger, 'twice-as-vicious', 4, 1, 'Twice as Vicious', 11);
+  queueResolverBoon(
+    context,
+    trigger,
+    buildResolverBuff({
+      at: 1,
+      source: 'Trait',
+      sourceId: 10,
+      actorType: 'effect',
+      kind: 'might',
+      duration: 4,
+      stacks: 1
+    })
+  );
+  queueResolverBoon(
+    context,
+    trigger,
+    buildResolverBuff({
+      at: 1,
+      source: 'Trait',
+      sourceId: 11,
+      actorType: 'effect',
+      kind: 'twice-as-vicious',
+      duration: 4,
+      stacks: 1
+    })
+  );
   const fixed = buildResolverBuff({
     at: 1,
     source: 'fixture',

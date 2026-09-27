@@ -1,3 +1,4 @@
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
@@ -27,30 +28,27 @@ function isBerserkerSkill(skill: WarriorSkill): boolean {
 /** Selected entry and burst boons remain independent, with current duration modifiers and explicit recipients. */
 function traitBoons(runtime: Runtime, cast: RuntimeCast, trait: number, party = false): void {
   const profile = requireBalanceProfileFromContext(runtime, trait);
-  for (const effect of profile.effects ?? []) {
-    if (effect.type !== 'boon') continue;
-    const kind = String(effect.boon);
-    const duration =
-      trait === TRAIT.HEAT_THE_SOUL && kind === 'quickness' && cast.skill.id === ID.DECAPITATE
-        ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.smashBrawler), 'resourceGain')
-        : effectNumber(profile, effect, 'duration');
-    const event = {
-      type: 'buff' as const,
-      at: runtime.time,
+  emitEffects(runtime, {
+    owner: profile,
+    effects: profile.effects?.filter((effect) => effect.type === 'boon'),
+    baseEvent: {
       source: 'Trait',
       sourceId: trait,
-      actorType: 'effect' as const,
+      actorType: 'effect',
       activationId: cast.id,
       skillId: cast.skill.id,
-      skillName: cast.skill.name,
+      skillName: cast.skill.name
+    },
+    transform: (event) => ({
+      ...event,
       name: profile.name,
-      kind,
-      stacks: effectNumber(profile, effect, 'stacks'),
-      duration,
-      audience: { recipients: party ? ('party' as const) : ('self' as const) }
-    };
-    runtime.emitProcedural(event);
-  }
+      duration:
+        trait === TRAIT.HEAT_THE_SOUL && event.kind === 'quickness' && cast.skill.id === ID.DECAPITATE
+          ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.smashBrawler), 'resourceGain')
+          : event.duration,
+      audience: { recipients: party ? 'party' : 'self' }
+    })
+  });
 }
 
 /** The status and expiry task share one deadline; older wakes cannot close a refreshed mode. */

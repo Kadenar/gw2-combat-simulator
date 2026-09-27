@@ -1,6 +1,6 @@
 import type { ResolvedEffectTrigger } from '#gw2/platform/simulation/effect-reactions.js';
 import type { EffectEventBase } from '#gw2/platform/engine/effects/materializer.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import {
@@ -27,7 +27,13 @@ export type SideEffectAction =
       readonly durationSec?: ProfileAmount;
       readonly expiryPriority?: number;
     }
-  | { readonly type: 'emitProfile'; readonly profileId: SkillId; readonly attribution?: Partial<EffectEventBase> }
+  | {
+      readonly type: 'emitProfile';
+      readonly profileId: SkillId;
+      /** Select the trigger's own effects from a shared profile without duplicating its balance data. */
+      readonly effects?: (effect: SkillEffect) => boolean;
+      readonly attribution?: Partial<EffectEventBase>;
+    }
   | { readonly type: `${string}.${string}`; readonly amount?: ProfileAmount };
 
 /** Actions receive their actual trigger; impact work never fabricates a cast reservation. */
@@ -95,9 +101,11 @@ export function applySideEffect(
         expiryPriority: action.expiryPriority
       });
       return;
-    case 'emitProfile':
+    case 'emitProfile': {
+      const profile = requireBalanceProfileFromContext(runtime, action.profileId);
       emitEffects(runtime, {
-        owner: requireBalanceProfileFromContext(runtime, action.profileId),
+        owner: profile,
+        effects: action.effects ? (profile.effects ?? []).filter(action.effects) : undefined,
         cause: context.kind === 'effect' ? context.trigger.event : undefined,
         baseEvent: {
           source: 'Trait',
@@ -110,6 +118,8 @@ export function applySideEffect(
         }
       });
       return;
+    }
+
     default: {
       const handler = handlers[action.type];
       if (!handler) throw new TypeError(`No side-effect handler registered for ${action.type}.`);

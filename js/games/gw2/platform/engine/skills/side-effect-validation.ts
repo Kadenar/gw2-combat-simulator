@@ -69,6 +69,9 @@ export function validateSideEffectAction(catalog: CanonicalCatalog, skill: Skill
     case 'emitProfile':
       if (!catalog.balanceProfilesById.has(action.profileId))
         throw new TypeError(`${label} references missing profile ${action.profileId}.`);
+      // Profile selection must be callable before runtime emission can apply any rewards.
+      if (action.effects != null && typeof action.effects !== 'function')
+        throw new TypeError(`${label} effects must be a predicate.`);
       if (action.attribution != null && (typeof action.attribution !== 'object' || Array.isArray(action.attribution)))
         throw new TypeError(`${label} attribution must be an object.`);
       break;

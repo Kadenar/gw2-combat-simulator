@@ -1,3 +1,5 @@
+import { guardianBoonDuration } from '#gw2/professions/guardian/core/traits/index.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -14,7 +16,7 @@ import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resol
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { emitGuardianBoon, triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/index.js';
+import { triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/index.js';
 import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/shared.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
@@ -59,22 +61,25 @@ function boon(
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   const effect = requireEffect(profile, 'boon', name);
   if (!effect) return;
-  emitGuardianBoon(runtime, {
-    type: 'buff',
-    at: runtime.time,
-    source: 'guardian',
-    sourceId,
-    actorType: 'player',
-    skillId: sourceId,
-    skillName: profile.name,
-    name: `${profile.name} — ${name}`,
-    activationId: event.activationId,
-    causalOrder: event.causalOrder ?? event.eventOrder,
-    triggeredBy: event.skillName,
-    kind: String(effect.boon),
-    stacks: effectNumber(profile, effect, 'stacks'),
-    duration: effectNumber(profile, effect, 'duration'),
-    audience: { recipients: party ? 'party' : 'self' }
+  emitEffects(runtime, {
+    owner: profile,
+    effects: [effect],
+    baseEvent: {
+      source: 'guardian',
+      sourceId,
+      actorType: 'player',
+      skillId: sourceId,
+      skillName: profile.name,
+      activationId: event.activationId,
+      triggeredBy: event.skillName
+    },
+    transform: (packet) => ({
+      ...packet,
+      duration: guardianBoonDuration(runtime, packet),
+      name: profile.name + ' — ' + name,
+      causalOrder: event.causalOrder ?? event.eventOrder,
+      audience: { recipients: party ? 'party' : 'self' }
+    })
   });
 }
 
