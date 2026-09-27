@@ -28,6 +28,7 @@ import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
@@ -191,38 +192,6 @@ function completeSiphon(runtime: ThiefRuntime, cast: RuntimeCast): void {
   completeThiefSteal(runtime, []);
 }
 
-/** Shade Step's party boon is bound to the shroud skill's identity. */
-function shadeStep(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  if (!hasTrait(runtime, TRAIT.SHADESTEP)) return;
-  const boonName =
-    cast.skill.id === ID.GRASPING_SHADOWS
-      ? 'alacrity'
-      : cast.skill.id === ID.DAWNS_REPOSE
-        ? 'protection'
-        : cast.skill.id === ID.MIND_SHOCK
-          ? 'aegis'
-          : null;
-  if (!boonName) return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.shadeStep);
-  const effect = requireEffect(profile, 'boon', boonName);
-  if (!effect) return;
-  const boon = String(effect.boon);
-  emitThiefBuff(runtime, null, {
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: TRAIT.SHADESTEP,
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id,
-    name: `Shade Step - ${boon}`,
-    kind: boon,
-    boon,
-    duration: effectNumber(profile, effect, 'duration'),
-    stacks: effectNumber(profile, effect, 'stacks'),
-    audience: { recipients: 'party' }
-  });
-}
-
 function completeSpecterCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const skill = cast.skill as ThiefSkill;
   const state = specterState.from(runtime);
@@ -234,7 +203,6 @@ function completeSpecterCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
     grantBarrier(runtime, cast, PROFILE.enterShadowShroud, 'Enter Shadow Shroud - Barrier');
   } else if (skill.id === ID.EXIT_SHADOW_SHROUD) setShadowShroud(runtime, false, skill);
   else if (skill.shadowShroudSkill && !castWasInterrupted(cast)) {
-    shadeStep(runtime, cast);
     if (skill.id === ID.DAWNS_REPOSE)
       grantBarrier(runtime, cast, PROFILE.dawnsReposeBarrier, "Dawn's Repose - Barrier");
   }
@@ -310,6 +278,22 @@ function larcenousTorment(runtime: ThiefRuntime, application: Gw2ResolverEvent):
 
 /** Specter hooks: Shadow Force and its shroud, Siphon, shroud skill traits, Dark Sentry, and Larcenous Torment. */
 export const specterHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
+  // Each committed shroud skill grants only its own party boon, before deferred completion mechanics.
+  traitTriggers: (
+    [
+      [ID.GRASPING_SHADOWS, 'alacrity'],
+      [ID.DAWNS_REPOSE, 'protection'],
+      [ID.MIND_SHOCK, 'aegis']
+    ] as const
+  ).map<TraitTrigger<ThiefRuntimeState>>(([skillId, boon]) => ({
+    trait: TRAIT.SHADESTEP,
+    emit: PROFILE.shadeStep,
+    on: 'castCommit',
+    when: (_runtime, cast) =>
+      cast.skill.id === skillId && Boolean(cast.skill.shadowShroudSkill) && !castWasInterrupted(cast),
+    effects: (effect) => effect.type === 'boon' && effect.name === boon,
+    attribution: { actorType: 'player', name: `Shade Step - ${boon}`, audience: { recipients: 'party' } }
+  })),
   resources: { shadowForce },
   availability: specterAvailability,
   onCastStart(runtime, cast) {

@@ -143,12 +143,9 @@ function land(runtime: RevenantRuntime, data: unknown): void {
   });
 }
 
-/** Energy Meld arms Reaver's Curse, refunds in-combat Energy, and grants Song of Arboreum's Vigor. */
-function energyMeld(runtime: RevenantRuntime, cast: RuntimeCast): void {
+/** Energy Meld arms Reaver's Curse and refunds in-combat Energy independently of its boon reward. */
+function energyMeld(runtime: RevenantRuntime): void {
   const state = vindicatorState.from(runtime);
-  const song = hasTrait(runtime, TRAIT.SONG_OF_ARBOREUM)
-    ? requireBalanceProfileFromContext(runtime, PROFILE.songOfArboreum)
-    : undefined;
   if (hasTrait(runtime, TRAIT.REAVERS_CURSE)) {
     const curse = requireBalanceProfileFromContext(runtime, PROFILE.reaversCurse);
     const effect = requireEffect(curse, 'buff', 'reavers-curse');
@@ -166,22 +163,6 @@ function energyMeld(runtime: RevenantRuntime, cast: RuntimeCast): void {
         balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.angsiyansTrust), 'resourceGain')
       )
     );
-  const vigor = song && requireEffect(song, 'boon', 'vigor');
-  if (song && vigor)
-    runtime.emitProcedural({
-      type: 'buff',
-      at: runtime.time,
-      source: 'revenant',
-      sourceId: TRAIT.SONG_OF_ARBOREUM,
-      actorType: 'player',
-      skillId: cast.skill.id,
-      skillName: cast.skill.name,
-      activationId: cast.id,
-      name: `${cast.skill.name} — ${String(vigor.boon)}`,
-      kind: String(vigor.boon),
-      duration: effectNumber(song, vigor, 'duration'),
-      stacks: effectNumber(song, vigor, 'stacks')
-    });
 }
 
 /** Swapping into Alliance in combat applies Spirit Boon and Song of the Mists, which also restores endurance. */
@@ -197,6 +178,21 @@ function invokeAlliance(runtime: RevenantRuntime): void {
 
 /** Vindicator owns its dodge landings, Energy Meld, and Alliance invocation on the shared live state. */
 export const vindicatorHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
+  // Both Energy Meld variants grant the same Vigor without coupling it to resource or armed-window changes.
+  traitTriggers: [
+    {
+      trait: TRAIT.SONG_OF_ARBOREUM,
+      emit: PROFILE.songOfArboreum,
+      on: 'castCommit',
+      when: (_runtime, cast) => ENERGY_MELD_IDS.has(cast.skill.id),
+      effects: (effect) => effect.type === 'boon' && effect.name === 'vigor',
+      attribution: (_runtime, cast) => ({
+        source: 'revenant',
+        actorType: 'player',
+        name: `${cast.skill.name} — vigor`
+      })
+    }
+  ],
   // The landing-only Dodge input uses the selected dodge's fixed animation.
   castDurationMs: (runtime, skill, duration) =>
     skill.id === SHARED_SKILL_IDS.DODGE ? Math.max(0, selectedDodge(runtime)?.castTimeMs || 0) : duration,
@@ -218,7 +214,7 @@ export const vindicatorHooks: Partial<RuntimeProfession<RevenantRuntimeState>> =
   onCastCommit(runtime, cast) {
     // Airborne autos may advance the chain; landing resets it before the next serial input.
     if (cast.skill.id === VINDICATOR_JUMP_SKILL.id) resetAutoattackChains(runtime);
-    if (ENERGY_MELD_IDS.has(cast.skill.id)) energyMeld(runtime, cast);
+    if (ENERGY_MELD_IDS.has(cast.skill.id)) energyMeld(runtime);
     if (cast.skill.id === ID.SWAP_LEGENDS) invokeAlliance(runtime);
   },
   onCastCancel(runtime, cast) {

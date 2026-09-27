@@ -179,14 +179,6 @@ function activateChant(runtime: Runtime, cast: RuntimeCast): void {
         runtime.time
       );
   }
-
-  boon(
-    runtime,
-    cast.skill,
-    feverish,
-    (feverish.effects ?? []).filter((effect) => effect.type === 'boon' && effect.boon === 'alacrity'),
-    cast.id
-  );
 }
 
 /** A consumed echo invalidates its old wake and starts any remaining repeat from the actual consumption time. */
@@ -256,6 +248,23 @@ function activateCommand(runtime: Runtime, cast: RuntimeCast): void {
 
 /** Paragon mutates live state at combat entry, committed casts, swaps, and queued pulses without replay events. */
 export const paragonHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
+  // Chant Alacrity is independent of the imperative refrain and recharge-reduction state.
+  traitTriggers: [
+    {
+      trait: TRAIT.FEVERISH_PULSE,
+      emit: PROFILE.feverishPulse,
+      on: 'castCommit',
+      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Chant')),
+      effects: (effect) => effect.type === 'boon' && effect.boon === 'alacrity',
+      attribution: (_runtime, cast) => ({
+        source: 'Paragon',
+        sourceId: cast.skill.id,
+        actorType: 'player',
+        name: `${cast.skill.name} — alacrity`,
+        audience: { recipients: 'party' }
+      })
+    }
+  ],
   initialize(runtime) {
     const state = paragonState.from(runtime);
     state.maximumMotivation = balanceProfileNumber(

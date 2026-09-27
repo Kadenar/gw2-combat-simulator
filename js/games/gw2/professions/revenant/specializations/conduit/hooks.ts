@@ -37,7 +37,7 @@ import {
   BEGUILING_HAZE_SKILL_IDS,
   TWIN_MOON_SKILL_IDS
 } from '#gw2/professions/revenant/specializations/conduit/skill-groups.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -48,12 +48,6 @@ const UPKEEP_AFFINITY = 'revenant.conduit-upkeep-affinity';
 const UPKEEP_DAGGERS = 'revenant.conduit-upkeep-daggers';
 const MESMER_RELEASE = 'revenant.release-mesmer-conditions';
 const RELEASE_POTENTIAL_IDS = new Set<SkillId>(Object.values(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND));
-const CUSTOM_EFFECT_SKILL_IDS = new Set<SkillId>([
-  ...BEGUILING_HAZE_SKILL_IDS,
-  ID.RELEASE_POTENTIAL_MESMER,
-  ID.RELEASE_POTENTIAL_ASSASSIN,
-  ID.HEX_EATER_VORTEX
-]);
 // A cast started in Dervish form keeps its scythe through form expiry or a concurrent legend swap.
 const dervishCasts = new WeakSet<RuntimeCast>();
 // A main Beguiling Haze arms follow-ups at its completion; follow-up casts never do.
@@ -193,38 +187,6 @@ function dervishAttack(runtime: RevenantRuntime, cast: RuntimeCast, at: number, 
   });
 }
 
-/** Beguiling Haze consumes a follow-up charge, or records a main cast that arms follow-ups on completion. */
-function beguilingHaze(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const state = conduit(runtime);
-  const followUp = (state.beguilingHazeCharges || 0) > 0;
-  if (followUp) state.beguilingHazeCharges -= 1;
-  else hazeMainCasts.add(cast);
-  const owner = followUp ? requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeFollowUp) : cast.skill;
-  const hit = requireEffect(owner, 'strike', followUp ? 'Beguiling Haze — Follow-Up' : 'Beguiling Haze');
-  // Charge state and Shared Wisdom survive independently of any removed strike.
-  if (hit)
-    emitEffects(runtime, {
-      owner,
-      effects: [hit],
-      at: cast.start,
-      fullEnd: cast.fullEnd,
-      baseEvent: {
-        source: 'revenant',
-        sourceId: cast.skill.id,
-        actorType: 'player',
-        skillId: cast.skill.id,
-        skillName: cast.skill.name,
-        activationId: cast.id
-      },
-      transform: (event) => ({
-        ...event,
-        name: followUp ? 'Beguiling Haze \u2014 Follow-Up' : 'Beguiling Haze',
-        skillWeapon: skillWeapon(runtime, cast.skill)
-      })
-    });
-  completionSharedWisdom(runtime, cast, 'beguiling-haze');
-}
-
 /** A completed main cast arms the follow-up charges on the shared ammo pool, retaining its main recharge. */
 function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const skill = cast.skill;
@@ -262,41 +224,67 @@ function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCast): voi
   }
 }
 
-/** Hex-Eater Vortex fires one projectile per removed self-condition, or its full salvo with Demon equipped. */
-function hexEaterVortex(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const core = runtime.profession.core;
-  const at = cast.effectiveEnd;
-  const effects = cast.skill.effects ?? [];
-  const hit = effects.find((effect) => effect.type === 'strike');
-  const torment = effects.find((effect) => effect.type === 'condition');
-  const maximum = Math.max(
-    hit?.type === 'strike' ? strikeEffectTicks(hit).length : 0,
-    torment?.type === 'condition' ? conditionEffectTicks(torment).length : 0
-  );
-  // Self conditions still active at the cast's end are the ones the vortex removes.
-  core.selfConditions = core.selfConditions.filter((application) => (application.expiresAt || 0) > at);
-  const active = Math.max(0, core.selfConditionCount || 0) + core.selfConditions.length;
-  const projectiles = hasLegend(runtime, LEGEND.DEMON) ? maximum : Math.min(maximum, active);
-  const removed = Math.min(maximum, active);
-  if (removed > 0) {
-    // Static configured conditions deplete first, then runtime conditions oldest-first.
-    const configured = Math.min(removed, core.selfConditionCount || 0);
-    core.selfConditionCount -= configured;
-    core.selfConditions.splice(0, removed - configured);
+const hexEaterCleanses = new WeakMap<
+  RuntimeCast,
+  {
+    configured: number;
+    conditions: RevenantRuntime['profession']['core']['selfConditions'];
   }
+>();
 
-  if (projectiles > 0)
-    emitEffects(runtime, {
-      owner: cast.skill,
-      effects: effects.map((effect) =>
-        effect.type === 'strike'
-          ? { ...effect, ticks: strikeEffectTicks(effect).slice(0, projectiles) }
-          : effect.type === 'condition'
-            ? { ...effect, ticks: conditionEffectTicks(effect).slice(0, projectiles) }
-            : effect
-      ),
-      at: cast.start,
+/** Select projectiles now; defer removal of the selected conditions until commitment. */
+function hexEaterEffects(
+  runtime: RevenantRuntime,
+  cast: RuntimeCast,
+  effects: readonly SkillEffect[]
+): readonly SkillEffect[] {
+  if (cast.cancelled) return [];
+  const core = runtime.profession.core;
+  const maximum = Math.max(
+    0,
+    ...effects.map((effect) =>
+      effect.type === 'strike'
+        ? strikeEffectTicks(effect).length
+        : effect.type === 'condition'
+          ? conditionEffectTicks(effect).length
+          : 0
+    )
+  );
+  const configured = Math.min(maximum, core.selfConditionCount);
+  const conditions = core.selfConditions
+    .filter((condition) => condition.expiresAt > cast.effectiveEnd)
+    .slice(0, maximum - configured);
+  hexEaterCleanses.set(cast, { configured, conditions });
+
+  const projectiles = hasLegend(runtime, LEGEND.DEMON) ? maximum : configured + conditions.length;
+  if (projectiles === 0) return [];
+
+  // Omit empty components so the materializer cannot synthesize a fallback hit.
+  return effects.flatMap((effect): SkillEffect[] => {
+    if (effect.type === 'strike') {
+      const ticks = strikeEffectTicks(effect).slice(0, projectiles);
+      return ticks.length ? [{ ...effect, ticks }] : [];
+    }
+
+    if (effect.type === 'condition') {
+      const ticks = conditionEffectTicks(effect).slice(0, projectiles);
+      return ticks.length ? [{ ...effect, ticks }] : [];
+    }
+
+    return [effect];
+  });
+}
+
+/** Schedule affinity-sensitive Mesmer conditions independently of its ordinary strike and daze. */
+function scheduleMesmerReleaseConditions(runtime: RevenantRuntime, cast: RuntimeCast): void {
+  for (const effect of cast.skill.effects ?? []) {
+    if (effect.type !== 'condition') continue;
+    for (const { event } of materializeSkillEffectApplications({
+      skill: cast.skill,
+      effect,
+      start: cast.start,
       fullEnd: cast.fullEnd,
+      reactionGroup: effect.reactions === undefined ? undefined : runtime.effectReactions.register(cast.skill, effect),
       baseEvent: {
         source: 'revenant',
         sourceId: cast.skill.id,
@@ -304,74 +292,13 @@ function hexEaterVortex(runtime: RevenantRuntime, cast: RuntimeCast): void {
         skillId: cast.skill.id,
         skillName: cast.skill.name,
         activationId: cast.id
-      },
-      transform: (event) => ({
-        ...event,
-        name: 'Hex-Eater Vortex — Projectile ' + (event.hitIndex ?? event.applicationIndex),
-        ...(event.type === 'damage' ? { skillWeapon: skillWeapon(runtime, cast.skill) } : {})
-      })
-    });
-
-  completionSharedWisdom(runtime, cast, 'hex-eater-vortex');
-}
-
-/** Release Potential resolves the active legend's variant from current affinity and equipped legends. */
-function releasePotential(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const mesmer = cast.skill.id === ID.RELEASE_POTENTIAL_MESMER;
-  if (!mesmer && cast.skill.id !== ID.RELEASE_POTENTIAL_ASSASSIN) return;
-  const affinity = effectiveConduitAffinity(runtime);
-  emitEffects(runtime, {
-    owner: cast.skill,
-    effects: cast.skill.effects?.filter((effect) => !mesmer || effect.type !== 'condition'),
-    at: cast.start,
-    fullEnd: cast.fullEnd,
-    baseEvent: {
-      source: 'revenant',
-      sourceId: cast.skill.id,
-      actorType: 'player',
-      skillId: cast.skill.id,
-      skillName: cast.skill.name,
-      activationId: cast.id
-    },
-    transform: (event, effect) => ({
-      ...event,
-      ...(event.type === 'damage'
-        ? {
-            skillWeapon: skillWeapon(runtime, cast.skill),
-            ...(!mesmer ? { weaponStrengthProfileId: 'nonweapon.profession-mechanic' } : {})
-          }
-        : {}),
-      ...(event.type === 'condition'
-        ? { duration: Number(event.duration) * (1 + affinity * Number(effect.durationPerAffinity || 0)) }
-        : {})
-    })
-  });
-  if (mesmer) {
-    // Affinity is sampled at each actual condition application, independently of a surviving strike.
-    for (const effect of cast.skill.effects ?? []) {
-      if (effect.type !== 'condition') continue;
-      for (const { event } of materializeSkillEffectApplications({
-        skill: cast.skill,
-        effect,
-        start: cast.start,
-        fullEnd: cast.fullEnd,
-        reactionGroup:
-          effect.reactions === undefined ? undefined : runtime.effectReactions.register(cast.skill, effect),
-        baseEvent: {
-          source: 'revenant',
-          sourceId: cast.skill.id,
-          actorType: 'player',
-          skillId: cast.skill.id,
-          skillName: cast.skill.name,
-          activationId: cast.id
-        }
-      }))
-        runtime.schedule(MESMER_RELEASE, event.at, {
-          event,
-          durationPerAffinity: effect.durationPerAffinity ?? 0,
-          durationReductionPerAffinity: effect.durationReductionPerAffinity ?? 0
-        });
-    }
+      }
+    }))
+      runtime.schedule(MESMER_RELEASE, event.at, {
+        event,
+        durationPerAffinity: effect.durationPerAffinity ?? 0,
+        durationReductionPerAffinity: effect.durationReductionPerAffinity ?? 0
+      });
   }
 }
 
@@ -645,23 +572,40 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     return conduitRecharge(runtime, skill, work);
   },
   modifyEffects(runtime, cast, effects) {
-    if (CUSTOM_EFFECT_SKILL_IDS.has(cast.skill.id)) return [];
-    // Declarative releases keep the same active-weapon attribution as their former procedural packets.
-    return RELEASE_POTENTIAL_IDS.has(cast.skill.id)
-      ? effects.map((effect) =>
-          effect.type === 'strike' ? { ...effect, weapon: skillWeapon(runtime, cast.skill) } : effect
-        )
-      : effects;
+    if (cast.skill.id === ID.HEX_EATER_VORTEX) return hexEaterEffects(runtime, cast, effects);
+    if (BEGUILING_HAZE_SKILL_IDS.has(cast.skill.id)) {
+      if (cast.cancelled) return [];
+      // Variant selection has already captured the last follow-up before its charge is spent.
+      const state = conduit(runtime);
+      if (state.beguilingHazeCharges > 0) state.beguilingHazeCharges -= 1;
+      else hazeMainCasts.add(cast);
+    }
+
+    if (!RELEASE_POTENTIAL_IDS.has(cast.skill.id)) return effects;
+    const assassin = cast.skill.id === ID.RELEASE_POTENTIAL_ASSASSIN;
+    const affinity = assassin ? effectiveConduitAffinity(runtime) : 0;
+    // Releases retain active-weapon attribution; only Assassin snapshots condition duration at acceptance.
+    return effects.flatMap((effect): SkillEffect[] => {
+      if (effect.type === 'strike') return [{ ...effect, weapon: skillWeapon(runtime, cast.skill) }];
+      if (effect.type === 'condition') {
+        if (cast.skill.id === ID.RELEASE_POTENTIAL_MESMER) return [];
+        if (assassin) {
+          const multiplier = 1 + affinity * Number(effect.durationPerAffinity || 0);
+          const ticks = conditionEffectTicks(effect).map((tick) => ({ ...tick, duration: tick.duration * multiplier }));
+          return ticks.length ? [{ ...effect, ticks }] : [];
+        }
+      }
+
+      return [effect];
+    });
   },
   onCastStart(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
     costAffinity(runtime, cast);
     if (skill.legendId === LEGEND.ENTITY && revenantConduitFormIsActive(conduit(runtime), 'Dervish', cast.start))
       dervishCasts.add(cast);
-    if (skill.id === ID.HEX_EATER_VORTEX) hexEaterVortex(runtime, cast);
     if (cast.cancelled) return;
-    if (BEGUILING_HAZE_SKILL_IDS.has(skill.id)) beguilingHaze(runtime, cast);
-    else if (RELEASE_POTENTIAL_IDS.has(skill.id)) releasePotential(runtime, cast);
+    if (skill.id === ID.RELEASE_POTENTIAL_MESMER) scheduleMesmerReleaseConditions(runtime, cast);
   },
   onCastCommit(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
@@ -687,6 +631,21 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
       runtime.schedule(UPKEEP_AFFINITY, canonicalTime(runtime.time + 3), data, undefined, -200);
       if (skill.id === ID.IMPOSSIBLE_ODDS)
         runtime.schedule(UPKEEP_DAGGERS, canonicalTime(runtime.time + 1), data, undefined, -190);
+    }
+  },
+  sideEffectHandlers: {
+    'revenant.hex-eater-cleanse'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Hex-Eater cleanse requires a cast.');
+      const selected = hexEaterCleanses.get(context.cast);
+      if (!selected) return;
+
+      // Remove the original selection, preserving conditions acquired during casting.
+      const core = runtime.profession.core;
+      core.selfConditionCount = Math.max(0, core.selfConditionCount - selected.configured);
+      core.selfConditions = core.selfConditions.filter(
+        (condition) => condition.expiresAt > runtime.time && !selected.conditions.includes(condition)
+      );
+      hexEaterCleanses.delete(context.cast);
     }
   },
   onCooldownReset(runtime) {

@@ -169,21 +169,8 @@ function availability(context: ElementalistRuntime, skill: Skill): AvailabilityR
     : denySkillCast(skill, 'elementalist.weaver-perfect-weave', `requires Perfect Weave.`);
 }
 
-// React to accepted events: Elemental Pursuit on player control effects, and
-// on every attunement swap keep the hands in sync, advance Weave Self, and fire
-// the swap-triggered Weaver traits.
+// On every attunement swap keep the hands in sync, advance Weave Self, and fire the swap-triggered Weaver traits.
 function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): void {
-  if (event.type === 'control' && event.actorType === 'player' && hasTrait(context, TRAIT.ELEMENTAL_PURSUIT)) {
-    emitProfiledBuff(
-      context,
-      event.at,
-      PROFILE.elementalPursuit,
-      'Swiftness',
-      'Elemental Pursuit',
-      event.skillId ?? event.sourceId
-    );
-  }
-
   // Unravel emits its own attunement event from onCastCommit and handles the
   // whole transition there, so it is skipped here.
   if (
@@ -459,7 +446,25 @@ export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
     withElementalistCast(runtime, cast, () => onCastCommit(runtime, cast, cast.skill));
   },
 
-  reactions: { 'control.resolved': onAcceptedEvent },
+  // Accepted player control grants Swiftness; attunement transitions keep their separate observer.
+  traitTriggers: [
+    {
+      trait: TRAIT.ELEMENTAL_PURSUIT,
+      emit: PROFILE.elementalPursuit,
+      on: 'control.resolved',
+      when: (_runtime, event) => event.type === 'control' && event.actorType === 'player',
+      effects: (effect) => effect.type === 'boon' && effect.name === 'Swiftness',
+      attribution: (runtime, event) => ({
+        source: 'Elemental Pursuit',
+        sourceId: event.skillId ?? event.sourceId,
+        skillId: elementalistEventSkill(runtime, 'Elemental Pursuit', event.skillId ?? event.sourceId).id,
+        skillName: 'Elemental Pursuit',
+        actorType: 'player',
+        name: 'Elemental Pursuit',
+        priority: 0
+      })
+    }
+  ],
   tasks: {
     [WEAVE_SELF_ACTIVATION_TASK]: handleWeaveSelfActivation,
     'elementalist.primordial-stance': primordialStancePulse,

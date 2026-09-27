@@ -134,6 +134,20 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
   },
   // Vulnerability follows actual player damage during an existing tether; its lifecycle remains with Justice.
   traitTriggers: [
+    // Trap rewards need no virtue state and retain the triggering skill's ownership.
+    {
+      trait: TRAIT.HUNTERS_PREMONITION,
+      emit: PROFILE.huntersPremonition,
+      on: 'castCommit',
+      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Trap')),
+      effects: (effect) => effect.type === 'boon' && effect.name === 'aegis',
+      attribution: (_runtime, cast) => ({
+        source: 'guardian',
+        sourceId: cast.skill.id,
+        actorType: 'player',
+        name: undefined
+      })
+    },
     {
       trait: TRAIT.BIG_GAME_HUNTER,
       emit: PROFILE.bigGameHunter,
@@ -184,25 +198,6 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
     if (cast.skill.id === ID.HUNTERS_VERDICT) {
       dragonhunterState.from(runtime).tetherUntil = 0;
       consumeSkillFlip(runtime.profession.core.availableFlips, ID.HUNTERS_VERDICT);
-    }
-
-    if (cast.skill.categories?.includes('Trap') && hasTrait(runtime, TRAIT.HUNTERS_PREMONITION)) {
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.huntersPremonition);
-      const aegis = requireEffect(profile, 'boon', 'aegis');
-      if (aegis)
-        emitGuardianBoon(runtime, {
-          type: 'buff',
-          at: runtime.time,
-          source: 'guardian',
-          sourceId: cast.skill.id,
-          actorType: 'player',
-          skillId: cast.skill.id,
-          skillName: cast.skill.name,
-          activationId: cast.id,
-          kind: 'aegis',
-          duration: effectNumber(profile, aegis, 'duration'),
-          stacks: effectNumber(profile, aegis, 'stacks')
-        });
     }
 
     if (cast.skill.slot === 'Elite' && hasTrait(runtime, TRAIT.HUNTERS_DETERMINATION)) {

@@ -6,6 +6,7 @@ import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { effectFirstAt } from '#gw2/platform/engine/effects/materializer.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
+import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -16,7 +17,25 @@ import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
 // Both API identities represent the same skill, so one fragment keeps their simulation behavior synchronized.
 const BEGUILING_HAZE_SKILL: Partial<Skill> = {
-  // Custom: Selects initial/follow-up packets and charge state from affinity; see `conduit/hooks.ts`.
+  // Select the follow-up before Conduit consumes its charge; the shared scheduler owns either strike.
+  effectVariants: [
+    {
+      when: (runtime: RevenantRuntime) => conduitState.from(runtime).beguilingHazeCharges > 0,
+      profileId: PROFILE.beguilingHazeFollowUp
+    }
+  ],
+  sideEffects: [
+    {
+      on: 'castCommit',
+      when: (runtime) => hasTrait(runtime, TRAIT.SHARED_WISDOM),
+      do: {
+        type: 'emitProfile',
+        profileId: PROFILE.sharedWisdom,
+        effects: (effect) => effect.type === 'boon' && effect.name === 'beguiling-haze',
+        attribution: { source: 'revenant', sourceId: TRAIT.SHARED_WISDOM, actorType: 'player' }
+      }
+    }
+  ],
   // Relic of Peitha impacts 320 ms after the strike, which lands 40 ms before either variant's cast end.
   shadowstepSkill: true,
   peithaImpactAnchor: 'castEnd',
@@ -152,10 +171,27 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   [ID.TWIN_MOON_SWEEP_ID_77001]: TWIN_MOON_SWEEP_SKILL,
   [ID.BEGUILING_HAZE]: BEGUILING_HAZE_SKILL,
   [ID.HEX_EATER_VORTEX]: {
-    // Custom: Materializes affinity-dependent pulses and charge consumption; see `conduit/hooks.ts`.
+    // Conduit selects the projectile count; the shared scheduler owns their authored impacts.
     castTimeMs: 520,
     cooldown: 5,
     energyCost: 15,
+    // Only a successful cast cleanses its selected conditions and grants Shared Wisdom's Resolution.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: { type: 'revenant.hex-eater-cleanse' }
+      },
+      {
+        on: 'castCommit',
+        when: (runtime) => hasTrait(runtime, TRAIT.SHARED_WISDOM),
+        do: {
+          type: 'emitProfile',
+          profileId: PROFILE.sharedWisdom,
+          effects: (effect) => effect.type === 'boon' && effect.name === 'hex-eater-vortex',
+          attribution: { source: 'revenant', sourceId: ID.HEX_EATER_VORTEX, actorType: 'player' }
+        }
+      }
+    ],
     // Keep each projectile's strike and Torment on the same fixed impact tick.
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [

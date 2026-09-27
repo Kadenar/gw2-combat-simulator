@@ -28,7 +28,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.RELEASE_POTENTIAL_MESMER]: {
-    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/hooks.ts`.
+    // Strike and daze use ordinary scheduling; Conduit evaluates the conditions' affinity at impact.
     castTimeMs: 440,
     cooldown: 10,
     energyCost: 0,
@@ -110,7 +110,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.RELEASE_POTENTIAL_ASSASSIN]: {
-    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/hooks.ts`.
+    // Conduit snapshots condition-duration scaling; the shared scheduler owns all release packets.
     // Assassin releases the cast lane at 720 ms; the final strike follows at 800 ms.
     castTimeMs: 720,
     cooldown: 10,
@@ -120,6 +120,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         name: 'Release Potential: Assassin',
         actorType: 'player',
+        weaponStrengthProfileId: 'nonweapon.profession-mechanic',
         ticks: [160, 480, 800].map((atMs) => ({
           atMs,
           coefficient: 0.6

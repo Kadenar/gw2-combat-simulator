@@ -199,8 +199,7 @@ function triggerTraitBuffs(runtime: Runtime, cast: RuntimeCast, trait: number, s
       ...event,
       name: profile.name,
       stacks: stacks ?? event.stacks,
-      priority: trait === TRAIT.BURST_MASTERY || trait === TRAIT.BERSERKERS_POWER ? 5 : 0,
-      ...(trait === TRAIT.DARING_DRAGON ? { audience: { recipients: 'party' } } : {})
+      priority: trait === TRAIT.BURST_MASTERY || trait === TRAIT.BERSERKERS_POWER ? 5 : 0
     })
   });
 }
@@ -277,7 +276,6 @@ function enterDragonTrigger(runtime: Runtime, cast: RuntimeCast): void {
     nextChargeAt: state.nextDragonChargeAt,
     deadline: state.dragonTriggerChargeDeadline
   });
-  triggerTraitBuffs(runtime, cast, TRAIT.DRAGONSCALE_DEFENSE);
 }
 
 function chargeTick(runtime: Runtime, identity: unknown): void {
@@ -567,6 +565,25 @@ function tacticalReload(runtime: Runtime, cast: RuntimeCast): void {
 
 /** Native declarations own actual resources, bar transitions, completed ammunition rewards, and accepted explosions. */
 export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
+  // Entry rewards use the committed skill; slash rewards require the release captured at cast start.
+  traitTriggers: [
+    {
+      trait: TRAIT.DRAGONSCALE_DEFENSE,
+      emit: TRAIT.DRAGONSCALE_DEFENSE,
+      on: 'castCommit',
+      when: (_runtime, cast) => cast.skill.id === ID.DRAGON_TRIGGER,
+      effects: (effect) => effect.type === 'boon' || effect.type === 'buff',
+      attribution: { priority: 0 }
+    },
+    {
+      trait: TRAIT.DARING_DRAGON,
+      emit: TRAIT.DARING_DRAGON,
+      on: 'castCommit',
+      when: (_runtime, cast) => releases.has(cast),
+      effects: (effect) => effect.type === 'boon' || effect.type === 'buff',
+      attribution: { priority: 0, audience: { recipients: 'party' } }
+    }
+  ],
   modifySkillId: resolveSharpAsTheWindSkillId,
   reserveRecharge: (_runtime, skill, work) => (skill.id === ID.DRAGON_TRIGGER ? 0 : work),
   // Like weapon swaps, Gunsaber transitions recharge instantly until combat begins.
@@ -726,7 +743,6 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = 
         TRAIT.BERSERKERS_POWER,
         dragonChargesToAdrenalineSpent(release.charges) / 10 + 1
       );
-      triggerTraitBuffs(runtime, cast, TRAIT.DARING_DRAGON);
     }
 
     if (cast.skill.gunsaberSkill && !runtime.helpers.autoattackChainPositions.has(Number(cast.skill.id)))
