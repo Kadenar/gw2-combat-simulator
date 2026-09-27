@@ -1,6 +1,7 @@
 import { withSkill, withProfile } from '#tests/helpers/catalog-overrides.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { MODIFIER_HOOK_NAMES } from '#gw2/platform/engine/profession/contract.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { followUpOf, weaponFlipBlock, weaponFollowUpOpen } from '#gw2/platform/engine/skills/skill-flips.js';
 import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
@@ -125,17 +126,8 @@ const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 function fixture(hooks = {}) {
   return {
-    ...Object.fromEntries(
-      [
-        'modifyAttributes',
-        'modifyCriticalChance',
-        'modifyCriticalDamage',
-        'modifyStrikeDamage',
-        'modifyConditionDamage',
-        'modifyConditionDuration',
-        'modifyConditionBaseDuration'
-      ].map((key) => [key, testProfession[key]])
-    ),
+    // Use the canonical list so fixtures retain every required modifier as the contract evolves.
+    ...Object.fromEntries(MODIFIER_HOOK_NAMES.map((key) => [key, testProfession[key]])),
     id: 'kernel-fixture',
     catalog,
     createState: () => ({

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { MODIFIER_HOOK_NAMES } from '#gw2/platform/engine/profession/contract.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { createEffectReactions } from '#gw2/platform/simulation/effect-reactions.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
@@ -41,17 +42,8 @@ function run(
     config: { stats: { power: 1000, precision: 1000 }, target: { armor: 1000, conditions: {} }, ...config },
     rotation,
     profession: {
-      ...Object.fromEntries(
-        [
-          'modifyAttributes',
-          'modifyCriticalChance',
-          'modifyCriticalDamage',
-          'modifyStrikeDamage',
-          'modifyConditionDamage',
-          'modifyConditionDuration',
-          'modifyConditionBaseDuration'
-        ].map((key) => [key, testProfession[key]])
-      ),
+      // Use the canonical list so fixtures retain every required modifier as the contract evolves.
+      ...Object.fromEntries(MODIFIER_HOOK_NAMES.map((key) => [key, testProfession[key]])),
       id: 'fixture',
       catalog: catalogFor(effects, skill, profiles),
       createState: () => ({ energy: { value: 0, maximum: 100, updatedAt: 0, rate: 0 } }),

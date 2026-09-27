@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { MODIFIER_HOOK_NAMES } from '#gw2/platform/engine/profession/contract.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
@@ -81,17 +82,8 @@ const config = {
 };
 function fixture(hooks = {}) {
   return {
-    ...Object.fromEntries(
-      [
-        'modifyAttributes',
-        'modifyCriticalChance',
-        'modifyCriticalDamage',
-        'modifyStrikeDamage',
-        'modifyConditionDamage',
-        'modifyConditionDuration',
-        'modifyConditionBaseDuration'
-      ].map((key) => [key, testProfession[key]])
-    ),
+    // Use the canonical list so fixtures retain every required modifier as the contract evolves.
+    ...Object.fromEntries(MODIFIER_HOOK_NAMES.map((key) => [key, testProfession[key]])),
     id: 'live-fixture',
     catalog,
     createState: () => ({
