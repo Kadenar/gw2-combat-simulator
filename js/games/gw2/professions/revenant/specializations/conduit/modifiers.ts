@@ -26,8 +26,10 @@ import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/m
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 
 function affinity(context: Gw2ModifierContext): number {
-  // Kinetic Insight adds a flat +2 bonus to affinity for modifier calculations without changing actual state.
-  const bonus = hasTrait(context, TRAIT.KINETIC_INSIGHT) ? 2 : 0;
+  // Kinetic Insight adds its patched affinity bonus for modifier calculations without changing actual state.
+  const bonus = hasTrait(context, TRAIT.KINETIC_INSIGHT)
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.KINETIC_INSIGHT), 'resourceGain')
+    : 0;
   return Math.min(
     Math.max(1, Number(revenantRuntimeSpecializationState(context, 'Conduit').affinityMaximum || 5)),
     Number(revenantRuntimeSpecializationState(context, 'Conduit').affinity || 0) + bonus

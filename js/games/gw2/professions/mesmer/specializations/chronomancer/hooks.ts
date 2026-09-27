@@ -13,6 +13,8 @@ import { chronomancerState } from '#gw2/professions/mesmer/specializations/chron
 
 /** Continuum restores its deliberate checkpoint once; accepted control owns Danger Time. */
 export const chronomancerHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
+  // Chronomancer strengthens permanent player Alacrity without changing summon recharge or base work.
+  playerAlacrityRechargeRate: 1.5,
   initialize: initializeChronomancerRuntime,
   availability: chronomancerAvailability,
   onCastComplete: completeChronomancerTimeBomb,

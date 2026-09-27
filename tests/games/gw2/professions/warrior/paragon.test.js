@@ -242,3 +242,27 @@ test('removed opening packets and disabled cadences retain chant state without q
     false
   );
 });
+
+// One pulse isolates patchable tier scaling and boon duration from the chant's opening application.
+test('Action refrain reads patched Might and Enduring Refrain values', () => {
+  const source = withPatchPreview(warriorProfession, {
+    id: 'refrain-values',
+    label: 'Refrain values',
+    professions: {
+      warrior: {
+        balanceProfiles: {
+          [PROFILE.refrain]: { effects: [{ type: 'boon', name: 'might', duration: { from: 8, to: 11 } }] },
+          [PROFILE.enduringRefrain]: { fields: { stackMultiplier: 3 } }
+        }
+      }
+    }
+  });
+  const result = run(
+    ['Chant of Action', wait(3000)],
+    { patchId: 'refrain-values', selectedTraitIds: [TRAIT.ENDURING_REFRAIN] },
+    source
+  );
+  const pulse = result.events.filter((event) => event.kind === 'might' && event.skillId === ID.CHANT_OF_ACTION).at(-1);
+  assert.equal(pulse.stacks, 6);
+  assert.equal(pulse.duration, 11);
+});

@@ -82,7 +82,20 @@ function pulseRefrain(runtime: Runtime): void {
         : 1;
   let cost = 1;
   if (skill.id === ID.CHANT_OF_ACTION) {
-    boon(runtime, skill, 'might', 8, level * (hasTrait(runtime, TRAIT.ENDURING_REFRAIN) ? 2 : 1));
+    // Refrain pulses share patchable boon duration and tier scaling with their tooltip.
+    const refrain = requireBalanceProfileFromContext(runtime, PROFILE.refrain);
+    const might = requireEffect(refrain, 'boon', 'might');
+    const multiplier = hasTrait(runtime, TRAIT.ENDURING_REFRAIN)
+      ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.enduringRefrain), 'stackMultiplier')
+      : 1;
+    if (might)
+      boon(
+        runtime,
+        skill,
+        String(might.boon),
+        effectNumber(refrain, might, 'duration'),
+        effectNumber(refrain, might, 'stacks') * level * multiplier
+      );
     if (level >= 2) boon(runtime, skill, 'fury', 5);
   } else if (skill.id === ID.CHANT_OF_RECUPERATION) {
     cost = level === 3 ? 3 : 2;

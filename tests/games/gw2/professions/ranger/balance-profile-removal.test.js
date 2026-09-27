@@ -240,3 +240,43 @@ test("removed Stalker's Strike impaired Poison keeps the skill's own Poison and 
   assert.equal(poisonStacks(removed), 3);
   assert.equal(strike(removed), strike(baseline));
 });
+
+// Autonomous recharge reads Pack Alpha normally and the separately authored quickness variant when active.
+test('pet recharge consumes patched Pack Alpha and Crippling Anguish values', () => {
+  for (const quickness of [false, true]) {
+    const result = runRanger(
+      [{ type: 'combat-start' }, wait(6000)],
+      {
+        selectedPet: 'Fanged Iboga',
+        selectedTraitIds: [TRAIT.PACK_ALPHA]
+      },
+      {
+        extend: () => ({
+          catalog: patched({
+            [CORE.packAlpha]: { fields: { rechargeMultiplier: 0.5 } },
+            [CORE.cripplingAnguishQuickness]: { fields: { cooldown: 7 } }
+          })
+        }),
+        initialize(runtime) {
+          if (quickness)
+            runtime.emit({
+              type: 'buff',
+              kind: 'quickness',
+              at: 0,
+              duration: 10,
+              stacks: 1,
+              source: 'fixture',
+              sourceId: 'fixture',
+              actorType: 'player',
+              audience: { recipients: 'summons' }
+            });
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const cast = result.events.find((event) => event.type === 'action' && event.skillId === ID.CRIPPLING_ANGUISH_PET);
+    assert.ok(cast);
+    const deadline = observedRuntime(result).profession.core.petAutoCooldowns[String(ID.CRIPPLING_ANGUISH_PET)];
+    assert.ok(Math.abs(deadline - cast.at - (quickness ? 7 : 10)) < 1e-9);
+  }
+});

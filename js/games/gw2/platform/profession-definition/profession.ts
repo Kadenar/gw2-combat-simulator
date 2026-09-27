@@ -242,6 +242,8 @@ export function defineNativeProfession<
       createState: source.createState,
       resources: Object.assign({}, ...hooks.map((hook) => hook.resources)),
       endurance: [...hooks].reverse().find((hook) => hook.endurance)?.endurance,
+      playerAlacrityRechargeRate: [...hooks].reverse().find((hook) => hook.playerAlacrityRechargeRate != null)
+        ?.playerAlacrityRechargeRate,
       autoattackChainOverrides: definition.autoattackChains?.overrides,
       weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
       initialize(context) {

@@ -69,7 +69,8 @@ const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'necromancer.spirits-strength',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
-    factor: 1.5,
+    factor: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SPIRITS_STRENGTH), 'damageMultiplier'),
     // order: 100 ensures this multiplicative trait applies after all additive stacking (Lingering Spirits, Anguish conditional, etc.)
     order: 100,
     when: (context) =>

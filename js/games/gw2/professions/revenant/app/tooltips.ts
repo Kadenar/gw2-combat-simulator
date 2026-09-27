@@ -578,9 +578,9 @@ export const revenantTooltips: ProfessionTooltips = {
   traits: {
     [TRAIT.INVOKERS_RAGE]: traitTooltip('Invoking a legend grants fury.'),
     [TRAIT.FEROCIOUS_AGGRESSION]: traitTooltip(
-      'Player-owned strike and condition damage increases while you have fury.',
+      'Player-owned strike, condition, and life-steal damage increases while you have fury.',
       (balanceContext) => [
-        modifierFact(balanceContext, 'revenant.ferocious-aggression', 'amount', 'Strike and condition damage with fury')
+        profileFact(balanceContext, TRAIT.FEROCIOUS_AGGRESSION, 'damageIncrease', 'Damage with fury', tooltipPercent)
       ]
     ),
     [TRAIT.CONTAINED_TEMPER]: outsideScopeTooltip,
@@ -852,9 +852,10 @@ export const revenantTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.ELDERS_RESPITE]: outsideScopeTooltip,
-    [TRAIT.CORE_VALUE]: traitTooltip("Facet of Nature's boon-extension effect extends boons further.", () => [
-      { name: 'Additional boon extension', detail: tooltipSeconds(1) }
-    ]),
+    [TRAIT.CORE_VALUE]: traitTooltip(
+      "Facet of Nature's boon-extension effect extends boons further.",
+      (balanceContext, id) => [profileFact(balanceContext, id, 'duration', 'Additional boon extension', tooltipSeconds)]
+    ),
     [TRAIT.RISING_MOMENTUM]: outsideScopeTooltip,
     [TRAIT.SHARED_EMPOWERMENT]: profileTooltip(
       'revenant.shared-empowerment',
@@ -1110,7 +1111,13 @@ export const revenantTooltips: ProfessionTooltips = {
       'Swapping legends in combat grants affinity after the swap resets it.',
       (balanceContext, id) => [profileFact(balanceContext, id, 'resourceGain', 'Affinity gained')]
     ),
-    [TRAIT.KINETIC_INSIGHT]: traitTooltip('Release Potential recharges faster.'),
+    [TRAIT.KINETIC_INSIGHT]: traitTooltip(
+      'Release Potential recharges faster. Affinity scaling includes a virtual bonus without increasing stored affinity.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'rechargeMultiplier', 'Release Potential recharge', tooltipFactorChange),
+        profileFact(balanceContext, id, 'resourceGain', 'Virtual affinity bonus')
+      ]
+    ),
     [TRAIT.EXPANDED_CONSCIOUSNESS]: profileTooltip(
       CONDUIT.expandedConsciousness,
       'Reaching maximum affinity grants energy.',

@@ -13,6 +13,12 @@ import test from 'node:test';
 
 import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { tempestHooks } from '#gw2/professions/elementalist/specializations/tempest/hooks.js';
+import { tempestUi } from '#gw2/professions/elementalist/specializations/tempest/presentation.js';
+import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+
 const repoUrl = (path) => new URL(`../../../../../${path}`, import.meta.url);
 
 // Overload and attunement hold the same remaining work as actual Alacrity applications change.
@@ -216,4 +222,28 @@ test('Overload Air grants separate non-critical Lightning Jolts to the player an
   assert.equal(elementalJolt.summonUsesProfessionModifiers, false);
   assert.ok(elementalJolt.at > playerJolt.at);
   assert.ok(triggeringElementalStrike);
+});
+
+// Runtime and palette share the normal gate and the patched trait-adjusted singularity delay.
+test('patched overload dwell agrees between availability and palette', () => {
+  const catalog = applyBalanceProfilePatch(elementalistProfession.catalog, {
+    balanceProfiles: { [PROFILE.overloads]: { fields: { durationMultiplier: 5 } } }
+  });
+  const state = { primaryAttunement: 'Fire', attunementEnteredAt: 2 };
+  const skill = catalog.skillsById.get(ELEMENTALIST_OVERLOAD_SKILL_IDS.Fire);
+  for (const selectedTraitIds of [[], [TRAIT.TRANSCENDENT_TEMPEST]]) {
+    const context = {
+      catalog,
+      config: { specialization: 'Tempest', selectedTraitIds },
+      profession: { core: state },
+      professionState: state,
+      time: 3
+    };
+    const runtime = tempestHooks.availability(context, skill);
+    const palette = tempestUi.paletteSkillAvailability(context, skill);
+    assert.equal(runtime.ready, false);
+    assert.equal(palette.available, false);
+    assert.equal(runtime.retryAt, selectedTraitIds.length ? 6 : 6.8);
+    assert.equal(palette.retryAt, runtime.retryAt);
+  }
 });

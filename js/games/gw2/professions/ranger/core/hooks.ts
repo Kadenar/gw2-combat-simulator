@@ -26,7 +26,7 @@ import {
   applyRangerPetSwapTraits,
   applyRangerWeaponSwapTraits,
   completeRangerTraits,
-  rangerCoreProfiledCriticalReaction,
+  rangerCoreCriticalReactions,
   reactToRangerCoreBuff
 } from '#gw2/professions/ranger/core/traits/index.js';
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
@@ -56,7 +56,7 @@ import { isRangerHammerVariant } from '#gw2/professions/ranger/data/hammer-varia
 import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 
 const spearAttacks = new Set(Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT));
-const critical = onResolvedCriticalHit(rangerCoreProfiledCriticalReaction);
+const critical = onResolvedCriticalHit(rangerCoreCriticalReactions);
 
 /** Charges are granted only at their actual activation boundary and consumed by resolved-hit owners. */
 function grantSkillCharges(runtime: RangerRuntime, cast: RuntimeCast, type: string, profileId: number | string): void {

@@ -57,7 +57,7 @@ function createConduitState(): ConduitState {
 
 export const conduitState = defineProfessionSpecializationState('Conduit', createConduitState);
 
-/** Kinetic Insight adds a virtual +2 affinity for scaling without changing the stored value. */
+/** Kinetic Insight adds its patched virtual affinity bonus for scaling without changing the stored value. */
 export function effectiveConduitAffinity(runtime: RevenantRuntime): number {
   const maximum = Math.max(
     1,
@@ -65,6 +65,9 @@ export function effectiveConduitAffinity(runtime: RevenantRuntime): number {
   );
   return Math.min(
     maximum,
-    Number(conduitState.from(runtime).affinity || 0) + (hasTrait(runtime, TRAIT.KINETIC_INSIGHT) ? 2 : 0)
+    Number(conduitState.from(runtime).affinity || 0) +
+      (hasTrait(runtime, TRAIT.KINETIC_INSIGHT)
+        ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.KINETIC_INSIGHT), 'resourceGain')
+        : 0)
   );
 }

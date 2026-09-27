@@ -109,3 +109,22 @@ test('a missing required Necromancer scalar fails instead of using a local defau
     /Invalid balance data: .*field=duration/
   );
 });
+
+// Independent minion packets must use the same patched creature bonuses as ordinary summon strikes.
+test('minion strike multipliers read Necromantic Corruption and Spirits Strength profiles', () => {
+  const result = run(
+    {
+      [TRAIT.NECROMANTIC_CORRUPTION]: { fields: { damageMultiplier: 1.4 } },
+      [TRAIT.SPIRITS_STRENGTH]: { fields: { damageMultiplier: 1.8 } }
+    },
+    'Ritualist',
+    ['Summon Bone Fiend', { type: 'wait', durationMs: 4000 }],
+    {
+      selectedSkills: ['Summon Bone Fiend'],
+      selectedTraitIds: [TRAIT.NECROMANTIC_CORRUPTION, TRAIT.SPIRITS_STRENGTH]
+    }
+  );
+  const attack = result.events.find((event) => event.type === 'damage' && event.independentSummonStrike);
+  assert.ok(attack);
+  assert.equal(attack.summonStrikeMultiplier, 1.4 * 1.8);
+});

@@ -4,6 +4,7 @@ import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js
 
 export const PARAGON_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'warrior.paragon.motivation',
+  refrain: 'warrior.paragon.refrain',
   chants: 'warrior.paragon.chants',
   commands: 'warrior.paragon.command-echoes',
   strengtheningStanzas: TRAIT.STRENGTHENING_STANZAS,
@@ -18,6 +19,12 @@ export const PARAGON_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const PARAGON_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  {
+    id: PARAGON_BALANCE_PROFILE_IDS.refrain,
+    name: 'Chant of Action - Refrain',
+    profileKind: 'mechanic',
+    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 1, duration: 8 }]
+  },
   {
     id: PARAGON_BALANCE_PROFILE_IDS.resources,
     name: 'Paragon Motivation',
@@ -69,6 +76,7 @@ export const PARAGON_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     resourceGain: 1
   }),
   trait(PARAGON_BALANCE_PROFILE_IDS.enduringRefrain, 'Enduring Refrain', {
+    stackMultiplier: 2,
     resourceGain: 1
   }),
   trait(PARAGON_BALANCE_PROFILE_IDS.feverishPulse, 'Feverish Pulse', {

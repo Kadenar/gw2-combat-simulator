@@ -381,7 +381,9 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
         );
     });
     registerNecromancerCreatureStrikeMultiplier(runtime, 'ritualist.spirits-strength', () =>
-      hasTrait(runtime, TRAIT.SPIRITS_STRENGTH) ? 1.5 : 1
+      hasTrait(runtime, TRAIT.SPIRITS_STRENGTH)
+        ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SPIRITS_STRENGTH), 'damageMultiplier')
+        : 1
     );
   },
   availability(runtime, skill) {

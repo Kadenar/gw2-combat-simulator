@@ -68,6 +68,8 @@ const MINION_PROJECTILE_FINISHER = Object.freeze({
 });
 
 export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Independent minions and shared strike modifiers read the same patched multiplier.
+  trait(TRAIT.NECROMANTIC_CORRUPTION, 'Necromantic Corruption', { damageMultiplier: 1.25 }),
   // Addle's landed strike selects these packets; its acceptance snapshot gates only Immobilized.
   variant(NECROMANCER_CORE_BALANCE_PROFILE_IDS.addleDaze, ID.ADDLE, 'Addle Daze', {
     effects: [{ type: 'control', name: 'Daze', controlKind: 'daze' }]

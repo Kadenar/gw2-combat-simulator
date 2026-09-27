@@ -16,18 +16,21 @@ export const DEADEYE_BALANCE_PROFILE_IDS = Object.freeze({
   premeditation: TRAIT.PREMEDITATION
 });
 
+/** Canonical defaults also seed state-only previews; runtime initialization applies the selected patch. */
+export const DEADEYE_RESOURCE_PROFILE: BalanceProfile = {
+  id: DEADEYE_BALANCE_PROFILE_IDS.resources,
+  name: 'Deadeye Malice and Mark',
+  profileKind: 'mechanic',
+  maximumStacks: 5,
+  minimumStacks: 7,
+  resourceGain: 1,
+  playerStacks: 1,
+  durationMultiplier: 30,
+  effects: []
+};
+
 export const DEADEYE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
-  {
-    id: DEADEYE_BALANCE_PROFILE_IDS.resources,
-    name: 'Deadeye Malice and Mark',
-    profileKind: 'mechanic',
-    maximumStacks: 5,
-    minimumStacks: 7,
-    resourceGain: 1,
-    playerStacks: 1,
-    durationMultiplier: 30,
-    effects: []
-  },
+  DEADEYE_RESOURCE_PROFILE,
   {
     id: DEADEYE_BALANCE_PROFILE_IDS.maliciousSneakAttack,
     name: 'Malicious Sneak Attack - Torment Scaling',

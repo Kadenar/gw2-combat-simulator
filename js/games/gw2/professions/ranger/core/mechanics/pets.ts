@@ -344,8 +344,14 @@ export const rangerPetTasks = {
       const rate = !profile.ignoresAlacrity && petBuff(context, 'alacrity') ? GW2_ALACRITY_RECHARGE_RATE : 1;
       const cooldown =
         selected.id === ID.CRIPPLING_ANGUISH_PET && quickness
-          ? 12
-          : Number(selected.cooldown) * (hasTrait(context, TRAIT.PACK_ALPHA) ? 0.8 : 1);
+          ? balanceProfileNumber(
+              requireBalanceProfileFromContext(context, PROFILE.cripplingAnguishQuickness),
+              'cooldown'
+            )
+          : Number(selected.cooldown) *
+            (hasTrait(context, TRAIT.PACK_ALPHA)
+              ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.packAlpha), 'rechargeMultiplier')
+              : 1);
       state.petAutoCooldowns[String(selected.id)] = context.time + cooldown / rate;
       state.petAutoActivationUses[String(selected.id)] =
         Number(state.petAutoActivationUses[String(selected.id)] || 0) + 1;

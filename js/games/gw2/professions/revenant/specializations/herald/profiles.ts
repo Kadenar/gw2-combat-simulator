@@ -10,6 +10,7 @@ export const HERALD_DRACONIC_ECHO_PROFILE_ID = 'revenant.draconic-echo';
 export const HERALD_NATURE_ASSASSIN_PROFILE_ID = 'revenant.nature-assassin';
 
 export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  trait(TRAIT.CORE_VALUE, 'Core Value', { duration: 1 }),
   // PvE passive bonuses remain patchable; Elements modifies outgoing damage, not the condition-damage attribute.
   {
     id: HERALD_DRACONIC_ECHO_PROFILE_ID,

@@ -1,3 +1,5 @@
+import { THIEF_CORE_RESOURCE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import { balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
@@ -62,12 +64,23 @@ export function selectedThiefTraits(config: ThiefConfig = {}): Set<string | numb
 // preparation, weapon-chain, stolen-skill, and trait bookkeeping.
 export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
   const traits = selectedThiefTraits(config);
-  const maximumInitiative = hasTrait(traits, TRAIT.PREPAREDNESS) ? 15 : 12;
+  // Current-patch previews use the same authored capacity as the live resource policy.
+  const maximumInitiative = balanceProfileNumber(
+    THIEF_CORE_RESOURCE_PROFILE,
+    hasTrait(traits, TRAIT.PREPAREDNESS) ? 'minimumStacks' : 'maximumStacks'
+  );
   return {
     initiative: {
-      ...createResourceClock(boundedNumber(config.initialInitiative, 12, 0, maximumInitiative)),
+      ...createResourceClock(
+        boundedNumber(
+          config.initialInitiative,
+          balanceProfileNumber(THIEF_CORE_RESOURCE_PROFILE, 'maximumStacks'),
+          0,
+          maximumInitiative
+        )
+      ),
       maximum: maximumInitiative,
-      rate: 1
+      rate: balanceProfileNumber(THIEF_CORE_RESOURCE_PROFILE, 'resourceGain')
     },
     stealthStartedAt: 0,
     stealthUntil: 0,

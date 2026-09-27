@@ -19,18 +19,13 @@ import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ran
 import {
   applyRangerDodgeTraits,
   applyRangerWeaponSwapTraits,
-  rangerCoreProfiledCriticalReaction
+  rangerCoreCriticalReactions
 } from '#gw2/professions/ranger/core/traits/skirmishing.js';
 import { emitChildOfEarth } from '#gw2/professions/ranger/core/traits/wilderness-survival.js';
 import { reactToRangerCoreBuff } from '#gw2/professions/ranger/core/traits/marksmanship.js';
 import { applyRangerCommandTraits } from '#gw2/professions/ranger/core/traits/beastmastery.js';
 
-export {
-  applyRangerDodgeTraits,
-  applyRangerWeaponSwapTraits,
-  rangerCoreProfiledCriticalReaction,
-  reactToRangerCoreBuff
-};
+export { applyRangerDodgeTraits, applyRangerWeaponSwapTraits, rangerCoreCriticalReactions, reactToRangerCoreBuff };
 
 function isBeastSkill(skill: RangerSkill): boolean {
   return Boolean(skill.petSkill && !skill.petFamilySkill);

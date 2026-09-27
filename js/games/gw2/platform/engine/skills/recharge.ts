@@ -1,5 +1,4 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { boonIntervalsFromWindows, type BoonWindow } from '#gw2/platform/combat/boons.js';
 
 /** Remaining base-recharge seconds anchored to a timestamp, independent of the current recharge rate. */
@@ -32,16 +31,23 @@ export function gw2BaseRecharge(skill: Gw2RechargeSkill): number {
 export const GW2_ALACRITY_RECHARGE_RATE = 1.25;
 
 /** Player Alacrity is permanent; summons must actually receive the boon. */
-export function gw2RechargeRate(config: Gw2Config, skill: Skill, summonAlacrity = false): number {
+export function gw2RechargeRate(
+  skill: Skill,
+  playerAlacrityRechargeRate = GW2_ALACRITY_RECHARGE_RATE,
+  summonAlacrity = false
+): number {
   // Skills such as Weapon Swap declare their Alacrity immunity instead of being recognized by display name.
   if (skill.rechargeIgnoresAlacrity) return 1;
   if (skill.rechargeBuffAudience === 'summon') return summonAlacrity ? GW2_ALACRITY_RECHARGE_RATE : 1;
-  return config.specialization === 'Chronomancer' ? 1.5 : GW2_ALACRITY_RECHARGE_RATE;
+  // Professions declare their player rate; summon rates and immunity remain shared rules.
+  if (!Number.isFinite(playerAlacrityRechargeRate) || playerAlacrityRechargeRate <= 0)
+    throw new RangeError('Player Alacrity recharge rate must be finite and positive.');
+  return playerAlacrityRechargeRate;
 }
 
 /** Only summon cooldowns integrate received Alacrity grants and expiry. */
 export function* gw2RechargeIntervals(
-  config: Gw2Config,
+  playerAlacrityRechargeRate: number,
   summonAlacrityWindows: () => readonly BoonWindow[],
   skill: Skill,
   start: number,
@@ -49,12 +55,16 @@ export function* gw2RechargeIntervals(
 ): Iterable<RechargeInterval> {
   if (end <= start) return;
   if (skill.rechargeBuffAudience !== 'summon' || skill.rechargeIgnoresAlacrity) {
-    yield { start, end, rate: gw2RechargeRate(config, skill) };
+    yield { start, end, rate: gw2RechargeRate(skill, playerAlacrityRechargeRate) };
     return;
   }
 
   for (const interval of boonIntervalsFromWindows(summonAlacrityWindows(), start, end)) {
-    yield { start: interval.start, end: interval.end, rate: gw2RechargeRate(config, skill, interval.active) };
+    yield {
+      start: interval.start,
+      end: interval.end,
+      rate: gw2RechargeRate(skill, playerAlacrityRechargeRate, interval.active)
+    };
   }
 }
 

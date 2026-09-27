@@ -210,7 +210,7 @@ function compassionPulse(runtime: RevenantRuntime): void {
   scheduleCompassion(runtime, runtime.procs.deadline('revenant.herald.elevatedCompassion'));
 }
 
-/** True Nature (Dragon) extends boons when its authored proc lands; Core Value adds a flat second. */
+/** True Nature (Dragon) extends boons when its authored proc lands; Core Value adds its patched extension. */
 function trueNatureDragon(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const proc = cast.skill.effects?.find(
     (effect) =>
@@ -219,7 +219,11 @@ function trueNatureDragon(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const authored =
     proc?.type === 'custom' ? (proc.event as { name?: string; duration?: number; audience?: EffectAudience }) : null;
   if (!authored) return;
-  const extension = Math.max(0, Number(authored.duration || 0)) + (hasTrait(runtime, TRAIT.CORE_VALUE) ? 1 : 0);
+  const extension =
+    Math.max(0, Number(authored.duration || 0)) +
+    (hasTrait(runtime, TRAIT.CORE_VALUE)
+      ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.CORE_VALUE), 'duration')
+      : 0);
   if (extension <= 0) return;
   runtime.emit({
     type: 'boon_extension',

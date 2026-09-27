@@ -264,7 +264,8 @@ const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'necromancer.necromantic-corruption',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
-    factor: 1.25,
+    factor: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.NECROMANTIC_CORRUPTION), 'damageMultiplier'),
     order: 100,
     when: (context) =>
       Boolean(context.event?.summonKind === 'minion' && hasTrait(context, TRAIT.NECROMANTIC_CORRUPTION))

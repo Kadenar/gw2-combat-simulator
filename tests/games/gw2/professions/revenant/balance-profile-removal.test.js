@@ -13,6 +13,10 @@ import { HERALD_SHARED_EMPOWERMENT_PROFILE_ID } from '#gw2/professions/revenant/
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 
+import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/mechanics/life-siphon.js';
+import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/state.js';
+
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const patched = (balanceProfiles) => (catalog) => applyBalanceProfilePatch(catalog, { balanceProfiles });
 const RENEGADE_CONFIG = Object.freeze({
@@ -147,4 +151,46 @@ test('a missing required Revenant profile fails in the selected catalog', () => 
       ),
     /Invalid balance data: .*missing required profile/
   );
+});
+
+// Flat siphons and ordinary damage share the trait profile even though they resolve through different paths.
+test('Ferocious Aggression uses its patched value for life steal and ordinary damage', () => {
+  const config = { selectedTraitIds: [TRAIT.FEROCIOUS_AGGRESSION], boons: { fury: true } };
+  const catalog = patched({ [TRAIT.FEROCIOUS_AGGRESSION]: { fields: { damageIncrease: 0.3 } } })(revenantCatalog);
+  const context = { config, catalog, time: 0, event: { at: 0, actorType: 'player' } };
+  assert.equal(revenantLifeSiphonBonus(context, { at: 0, flatStrikeBase: 100, damageKind: 'life-steal' }), 0.3);
+  assert.equal(revenantProfession.resolveProfession(config).modifyStrikeDamage(context, 100), 130);
+  assert.equal(revenantProfession.resolveProfession(config).modifyConditionDamage(context, 100), 130);
+});
+
+test('Kinetic Insight patches virtual affinity without changing stored affinity', () => {
+  let affinity;
+  const result = runRevenant(
+    [],
+    { specialization: 'Conduit', selectedTraitIds: [TRAIT.KINETIC_INSIGHT] },
+    {
+      catalog: patched({ [TRAIT.KINETIC_INSIGHT]: { fields: { resourceGain: 3 } } }),
+      initialize(runtime) {
+        runtime.profession.specialization.state.affinity = 1;
+        affinity = effectiveConduitAffinity(runtime);
+      }
+    }
+  );
+  assert.equal(affinity, 4);
+  assert.equal(observedRuntime(result).profession.specialization.state.affinity, 1);
+});
+
+test('Core Value adds its patched extension to Dragon True Nature', () => {
+  const result = runRevenant(
+    ['Facet of Nature', ID.TRUE_NATURE_DRAGON],
+    {
+      specialization: 'Herald',
+      selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.DRAGON,
+      selectedTraitIds: [TRAIT.CORE_VALUE]
+    },
+    { catalog: patched({ [TRAIT.CORE_VALUE]: { fields: { duration: 4 } } }) }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.events.find((event) => event.type === 'boon_extension').duration, 6);
 });

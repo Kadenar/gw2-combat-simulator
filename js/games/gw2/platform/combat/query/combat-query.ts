@@ -46,7 +46,10 @@ export type Gw2QueryProfession = Pick<
   | 'modifyConditionDamage'
   | 'modifyConditionDuration'
   | 'modifyConditionBaseDuration'
->;
+> & {
+  /** Selected modules own player Alacrity strength; all cooldown queries use this same rate. */
+  readonly playerAlacrityRechargeRate?: number;
+};
 
 interface CreateGw2CombatQueryOptions {
   readonly profession?: Gw2QueryProfession;
@@ -110,6 +113,7 @@ export function createGw2CombatQuery({
   const configuredTargetConditionStacks = createPermanentTargetConditionStacks(config);
   const timeline = createGw2TimelineIndex({
     config,
+    playerAlacrityRechargeRate: profession.playerAlacrityRechargeRate,
     skillsById: profession.catalog.skillsById,
     skillOnCooldown,
     events: resolvedTimelineEvents ?? events,

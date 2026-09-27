@@ -26,10 +26,14 @@ const revenantModifiers = Object.freeze({
     return revenantProfession.resolveProfession(context?.config || {}).modifyCriticalChance(context, value);
   },
   modifyStrikeDamage(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).modifyStrikeDamage(context, value);
+    return revenantProfession
+      .resolveProfession(context?.config || {})
+      .modifyStrikeDamage({ catalog: revenantCatalog, ...context }, value);
   },
   modifyConditionDamage(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDamage(context, value);
+    return revenantProfession
+      .resolveProfession(context?.config || {})
+      .modifyConditionDamage({ catalog: revenantCatalog, ...context }, value);
   },
   modifyConditionDuration(context, value) {
     return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDuration(context, value);

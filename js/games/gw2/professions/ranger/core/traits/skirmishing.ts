@@ -150,7 +150,8 @@ export function applyRangerWeaponSwapTraits(context: RangerRuntime, skill: Range
 export const rangerCoreCriticalReactions = Object.freeze({
   id: 'ranger.sharpened-edges',
   order: 20,
-  chanceOnCriticalHit: 0.33,
+  chanceOnCriticalHit: (context: RangerResolverContext) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.sharpenedEdges), 'criticalChance'),
   actorTypes: ['player', 'summon'] as const,
   when(context: RangerResolverContext, event: Gw2ResolverEvent): boolean {
     return hasTrait(context, TRAIT.SHARPENED_EDGES) && (event.actorType === 'player' || event.source === 'ranger-pet');
@@ -170,10 +171,4 @@ export const rangerCoreCriticalReactions = Object.freeze({
       queueBleeding(context, event, duration, TRAIT.SHARPENED_EDGES, 'Sharpened Edges', stacks);
     }
   }
-} satisfies RangerCriticalHitDefinition);
-
-export const rangerCoreProfiledCriticalReaction = Object.freeze({
-  ...rangerCoreCriticalReactions,
-  chanceOnCriticalHit: (context: RangerResolverContext) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.sharpenedEdges), 'criticalChance')
 } satisfies RangerCriticalHitDefinition);

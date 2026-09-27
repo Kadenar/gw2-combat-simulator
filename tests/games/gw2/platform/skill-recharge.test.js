@@ -331,6 +331,7 @@ test('summon recharge requires shared player Alacrity and accounts for its expir
         const profession = defineTestProfession({
           id: 'summon-recharge',
           name: 'Summon recharge',
+          hooks: { playerAlacrityRechargeRate: 1.5 },
           catalog: createCanonicalCatalog({ generated: [skill] })
         });
         const result = simulateGw2({
@@ -375,5 +376,28 @@ test('summon recharge requires shared player Alacrity and accounts for its expir
         assert.deepEqual(result.warnings, []);
       }
     }
+  }
+});
+
+// Ordinary cooldowns and serial ammo both consume the module rate through the shared query.
+test('declared player recharge rate reaches cooldown and ammo scheduling', () => {
+  for (const ammo of [false, true]) {
+    const skill = {
+      id: 990050,
+      name: 'Recharge',
+      castTimeMs: 0,
+      cooldown: 12,
+      effects: [],
+      ...(ammo ? { ammo: 2, ammoRecharge: 12 } : {})
+    };
+    const profession = defineTestProfession({
+      id: 'declared-recharge',
+      name: 'Declared recharge',
+      catalog: createCanonicalCatalog({ generated: [skill] }),
+      hooks: { playerAlacrityRechargeRate: 1.5 }
+    });
+    const result = simulateGw2({ profession, rotation: [skill.id, ...(ammo ? [skill.id] : []), skill.id] });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.events.findLast((event) => event.type === 'action').at, 8);
   }
 });

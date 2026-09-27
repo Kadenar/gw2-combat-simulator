@@ -326,6 +326,18 @@ export const rangerTooltips: ProfessionTooltips = {
       : [])
   ],
   skills: {
+    [ID.CRIPPLING_ANGUISH_PET]: skillTooltip(
+      'The pet applies confusion and torment. Quickness uses a separate autonomous recharge.',
+      (balanceContext) => [
+        profileFact(
+          balanceContext,
+          CORE.cripplingAnguishQuickness,
+          'cooldown',
+          'Pet recharge with quickness before Alacrity',
+          tooltipSeconds
+        )
+      ]
+    ),
     ...Object.fromEntries(
       Object.entries(familySkillIds).flatMap(([family, ids]) =>
         ids.map((id) => [id, familyTooltips[family as keyof typeof familyTooltips]])

@@ -711,10 +711,10 @@ export const necromancerTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.NECROMANTIC_CORRUPTION]: traitTooltip('Your minions deal increased strike damage.', (balanceContext) => [
-      modifierFact(
+      profileFact(
         balanceContext,
-        'necromancer.necromantic-corruption',
-        'factor',
+        TRAIT.NECROMANTIC_CORRUPTION,
+        'damageMultiplier',
         'Minion strike damage',
         tooltipFactorChange
       )
@@ -1074,10 +1074,10 @@ export const necromancerTooltips: ProfessionTooltips = {
     [TRAIT.SPIRITS_STRENGTH]: traitTooltip(
       'Increase autonomous creature damage. Innervate attacks are excluded.',
       (balanceContext) => [
-        modifierFact(
+        profileFact(
           balanceContext,
-          'necromancer.spirits-strength',
-          'factor',
+          TRAIT.SPIRITS_STRENGTH,
+          'damageMultiplier',
           'Creature strike damage',
           tooltipFactorChange
         )

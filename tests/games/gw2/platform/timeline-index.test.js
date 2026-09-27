@@ -23,8 +23,9 @@ test('player recharge never samples Alacrity grants or expiry', () => {
   }
 });
 
-test('Chronomancer recharge applies its increased rate only to player skills', () => {
-  const timeline = createGw2TimelineIndex({ config: { specialization: 'Chronomancer' } });
+// The platform consumes the module's declared rate without identifying its specialization.
+test('declared recharge rate applies only to player skills', () => {
+  const timeline = createGw2TimelineIndex({ playerAlacrityRechargeRate: 1.5 });
   const skill = { id: 1, name: 'Recharge' };
   const progress = { startedAt: 0, work: 10 };
   assert.equal(timeline.rechargeReadyAt(skill, progress), 10 / 1.5);

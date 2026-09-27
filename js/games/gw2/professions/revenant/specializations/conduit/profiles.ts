@@ -23,7 +23,7 @@ export const CONDUIT_BALANCE_PROFILE_IDS = Object.freeze({
 
 export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   // Release recharge remains patchable independently of form-specific base recharge.
-  trait(TRAIT.KINETIC_INSIGHT, 'Kinetic Insight', { rechargeMultiplier: 0.8, effects: [] }),
+  trait(TRAIT.KINETIC_INSIGHT, 'Kinetic Insight', { rechargeMultiplier: 0.8, resourceGain: 2, effects: [] }),
   {
     id: CONDUIT_BALANCE_PROFILE_IDS.affinity,
     name: 'Affinity',

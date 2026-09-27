@@ -48,6 +48,22 @@ export const THIEF_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   improvisation: TRAIT.IMPROVISATION
 });
 
+/** Canonical defaults also seed state-only previews; runtime initialization applies the selected patch. */
+export const THIEF_CORE_RESOURCE_PROFILE: BalanceProfile = {
+  id: THIEF_CORE_BALANCE_PROFILE_IDS.resources,
+  name: 'Thief Core Resources',
+  profileKind: 'mechanic',
+  maximumStacks: 12,
+  minimumStacks: 15,
+  resourceGain: 1,
+  kneelingInitiativeRegenerationBonus: 1 / 3,
+  resourceCost: 50,
+  enduranceRegenerationPerSecond: 5,
+  vigorRegenerationMultiplier: 1.5,
+  threshold: 10,
+  effects: []
+};
+
 export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   // Both activation and passive stats follow the selected balance profile.
   {
@@ -58,20 +74,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     resourceGain: 100,
     effects: []
   },
-  {
-    id: THIEF_CORE_BALANCE_PROFILE_IDS.resources,
-    name: 'Thief Core Resources',
-    profileKind: 'mechanic',
-    maximumStacks: 12,
-    minimumStacks: 15,
-    resourceGain: 1,
-    kneelingInitiativeRegenerationBonus: 1 / 3,
-    resourceCost: 50,
-    enduranceRegenerationPerSecond: 5,
-    vigorRegenerationMultiplier: 1.5,
-    threshold: 10,
-    effects: []
-  },
+  THIEF_CORE_RESOURCE_PROFILE,
   {
     id: THIEF_CORE_BALANCE_PROFILE_IDS.unloadRefund,
     name: 'Unload Initiative Refund',

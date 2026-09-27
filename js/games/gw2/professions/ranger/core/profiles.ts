@@ -6,6 +6,7 @@ import {
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 export const RANGER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
+  cripplingAnguishQuickness: 'ranger.pet.crippling-anguish-quickness',
   resources: 'ranger.core.resources',
   attackOfOpportunity: 'ranger.core.attack-of-opportunity',
   poisonousStrikes: 'ranger.core.poisonous-strikes',
@@ -50,6 +51,13 @@ export const RANGER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // The observed quickness-specific pet recharge remains independently patchable.
+  variant(
+    RANGER_CORE_BALANCE_PROFILE_IDS.cripplingAnguishQuickness,
+    ID.CRIPPLING_ANGUISH_PET,
+    'Crippling Anguish - Quickness Recharge',
+    { cooldown: 12 }
+  ),
   // Enduring Swing's completed-chain endurance reward is independent of its strike packet.
   variant(ID.ENDURING_SWING, 'Enduring Swing', { resourceGain: 15, effects: [] }),
   {

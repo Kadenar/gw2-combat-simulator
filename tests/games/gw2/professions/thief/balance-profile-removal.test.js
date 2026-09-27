@@ -359,3 +359,22 @@ test('required Thief tuning fails contextually and accepts a real zero', () => {
     /missing required profile\/catalog/
   );
 });
+
+// Runtime initialization replaces construction defaults with the selected patch's resource policy.
+test('patched Preparedness and Maleficent Seven capacities initialize before resource use', () => {
+  for (const selectedTraitIds of [[], [TRAIT.PREPAREDNESS, TRAIT.MALEFICENT_SEVEN]]) {
+    const result = run(
+      {
+        [CORE.resources]: { fields: { maximumStacks: 18, minimumStacks: 21 } },
+        [DEADEYE.resources]: { fields: { maximumStacks: 9, minimumStacks: 11 } }
+      },
+      'Deadeye',
+      [],
+      { selectedTraitIds, initialInitiative: 20 }
+    );
+    const runtime = observedRuntime(result);
+    assert.equal(runtime.profession.core.initiative.maximum, selectedTraitIds.length ? 21 : 18);
+    assert.equal(runtime.profession.core.initiative.value, selectedTraitIds.length ? 21 : 18);
+    assert.equal(runtime.profession.specialization.state.maximumMalice, selectedTraitIds.length ? 11 : 9);
+  }
+});

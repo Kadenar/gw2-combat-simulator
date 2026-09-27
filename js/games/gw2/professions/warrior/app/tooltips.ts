@@ -55,6 +55,9 @@ const chantTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
         opening.map((effect) => ({ ...effect, audience: { recipients: 'party' as const } })),
         'on activation'
       ).facts,
+      ...(action
+        ? simulationEffectFacts(tooltipProfile(balanceContext, PARAGON.refrain).effects, 'per refrain tier').facts
+        : []),
       profileFact(balanceContext, PARAGON.chants, 'resourceGain', 'Base Motivation gained'),
       profileFact(balanceContext, PARAGON.resources, 'pulseInterval', 'Refrain pulse interval', tooltipSeconds),
       profileFact(balanceContext, PARAGON.resources, 'minimumStacks', 'Motivation required for tier two'),
@@ -945,7 +948,10 @@ export const warriorTooltips: ProfessionTooltips = {
     ),
     [TRAIT.ENDURING_REFRAIN]: traitTooltip(
       'Chants grant additional motivation. Chant of Action refrain pulses grant additional might according to the motivation tier.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'resourceGain', 'Additional motivation')]
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'resourceGain', 'Additional motivation'),
+        profileFact(balanceContext, id, 'stackMultiplier', 'Refrain might multiplier', (value) => `${value}×`)
+      ]
     )
   }
 };

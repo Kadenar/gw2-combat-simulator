@@ -1,5 +1,9 @@
 import { NECROMANCER_MINION_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/core/profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
@@ -156,7 +160,12 @@ function emitAttack(
         summonCriticalChance: definition.criticalChance,
         summonCriticalDamage: definition.criticalDamage,
         summonStrikeMultiplier:
-          (hasTrait(runtime, TRAIT.NECROMANTIC_CORRUPTION) ? 1.25 : 1) * necromancerCreatureStrikeMultiplier(runtime),
+          (hasTrait(runtime, TRAIT.NECROMANTIC_CORRUPTION)
+            ? balanceProfileNumber(
+                requireBalanceProfileFromContext(runtime, TRAIT.NECROMANTIC_CORRUPTION),
+                'damageMultiplier'
+              )
+            : 1) * necromancerCreatureStrikeMultiplier(runtime),
         independentSummonStrike: true
       })
     );

@@ -573,8 +573,13 @@ test('Poison Master remains player-scaled and Poisonous Strikes inherits its att
   );
 });
 
-test('Sharpened Edges procs for player and pet critical hits at 33%', () => {
-  assert.equal(rangerCoreCriticalReactions.chanceOnCriticalHit, 0.33);
+test('Sharpened Edges reads its patched player and pet critical proc chance', () => {
+  // The same declaration must pick up balance edits without retaining a literal chance.
+  const profile = { id: TRAIT.SHARPENED_EDGES, criticalChance: 0.33 };
+  const context = { catalog: { balanceProfilesById: new Map([[TRAIT.SHARPENED_EDGES, profile]]) } };
+  assert.equal(rangerCoreCriticalReactions.chanceOnCriticalHit(context), 0.33);
+  profile.criticalChance = 0.75;
+  assert.equal(rangerCoreCriticalReactions.chanceOnCriticalHit(context), 0.75);
   assert.deepEqual(rangerCoreCriticalReactions.actorTypes, ['player', 'summon']);
 });
 

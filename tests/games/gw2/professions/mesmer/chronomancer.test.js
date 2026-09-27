@@ -8,12 +8,12 @@ import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
 import { gw2RechargeRate } from '#gw2/platform/engine/skills/recharge.js';
+import { chronomancerHooks } from '#gw2/professions/mesmer/specializations/chronomancer/hooks.js';
 
 // Rewound cooldowns keep their saved work at the permanent Chronomancer recharge rate.
 test('Continuum snapshots restore recharge work at the permanent Chronomancer rate', () => {
   const skill = { id: 980000, name: 'Signet', cooldown: 10 };
   const skillsById = new Map([[skill.id, skill]]);
-  const config = { specialization: 'Chronomancer' };
   const state = {
     time: 0,
     ammo: new Map(),
@@ -25,7 +25,9 @@ test('Continuum snapshots restore recharge work at the permanent Chronomancer ra
     state,
     rechargeDuration: () => 10,
     skillFor: (id) => skillsById.get(id),
-    rechargeIntervals: (skill, start, end) => [{ start, end, rate: gw2RechargeRate(config, skill) }]
+    rechargeIntervals: (skill, start, end) => [
+      { start, end, rate: gw2RechargeRate(skill, chronomancerHooks.playerAlacrityRechargeRate) }
+    ]
   });
   const continuum = createContinuumController({
     state,

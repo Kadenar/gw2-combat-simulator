@@ -12,7 +12,11 @@ import {
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RechargeProgress, RechargeInterval } from '#gw2/platform/engine/skills/recharge.js';
-import { gw2RechargeIntervals, projectRecharge } from '#gw2/platform/engine/skills/recharge.js';
+import {
+  GW2_ALACRITY_RECHARGE_RATE,
+  gw2RechargeIntervals,
+  projectRecharge
+} from '#gw2/platform/engine/skills/recharge.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -22,6 +26,7 @@ import { insertSorted } from '#kernel/core/collections.js';
 import { eventCausalOrder } from '#kernel/events/queue.js';
 
 interface CreateGw2TimelineIndexOptions {
+  readonly playerAlacrityRechargeRate?: number;
   readonly skillOnCooldown?: (skillId: import('#gw2/platform/engine/skills/types.js').SkillId, time: number) => boolean;
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
@@ -50,6 +55,7 @@ interface CachedBuffStacks {
  * Common timestamp queries over scheduled GW2 events.
  */
 export function createGw2TimelineIndex({
+  playerAlacrityRechargeRate = GW2_ALACRITY_RECHARGE_RATE,
   config = {},
   skillOnCooldown,
   events = [],
@@ -93,7 +99,7 @@ export function createGw2TimelineIndex({
   };
 
   const rechargeIntervals = (skill: Skill, start: number, end: number): Iterable<RechargeInterval> =>
-    gw2RechargeIntervals(config, summonAlacrityWindows, skill, start, end);
+    gw2RechargeIntervals(playerAlacrityRechargeRate, summonAlacrityWindows, skill, start, end);
   const rechargeReadyAt = (skill: Skill, progress: RechargeProgress): number =>
     projectRecharge(progress, rechargeIntervals(skill, progress.startedAt, Infinity));
 

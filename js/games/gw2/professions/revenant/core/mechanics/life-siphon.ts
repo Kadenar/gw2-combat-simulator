@@ -1,3 +1,7 @@
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -10,7 +14,7 @@ export function revenantLifeSiphonBonus(context: RevenantResolverContext, event:
   if (!flatStrike || event.damageKind !== 'life-steal') return null;
   return hasTrait(context.config, TRAIT.FEROCIOUS_AGGRESSION) &&
     boonActive({ config: context.config, runtime: context, time: event.at, event }, 'fury')
-    ? 0.1
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_AGGRESSION), 'damageIncrease')
     : 0;
 }
 

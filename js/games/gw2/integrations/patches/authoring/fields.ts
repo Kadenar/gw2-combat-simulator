@@ -55,6 +55,7 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   'weaponAttributeBonus',
 
   // Stacks, durations, targeting, and proc gates.
+  'stackMultiplier', // scales authored boon stacks without changing their duration
   'maximumStacks',
   'conditionsTransferred',
   'minimumStacks',

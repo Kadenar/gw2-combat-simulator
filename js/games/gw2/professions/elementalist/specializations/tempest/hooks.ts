@@ -1,3 +1,4 @@
+import { tempestOverloadDwell } from '#gw2/professions/elementalist/specializations/tempest/mechanics/overload-dwell.js';
 import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
@@ -97,12 +98,8 @@ function availability(context: ElementalistRuntime, skill: Skill): AvailabilityR
     return denySkillCast(skill, 'elementalist.tempest-attunement', `requires ${String(skill.attunement)} attunement.`);
   }
 
-  const overloadsProfile = requireBalanceProfileFromContext(context, PROFILE.overloads);
   // Transcendent Tempest shortens the dwell, and alacrity speeds the singularity's formation.
-  const dwell =
-    (hasTrait(context, TRAIT.TRANSCENDENT_TEMPEST)
-      ? balanceProfileNumber(overloadsProfile, 'durationMultiplier')
-      : balanceProfileNumber(overloadsProfile, 'initialDelay')) / 1.25;
+  const dwell = tempestOverloadDwell(context);
   // The configured starting attunement carries a negative entry stamp and needs no dwell.
   const startingAttunementReady = state.attunementEnteredAt < 0;
   const readyAt = startingAttunementReady ? context.time : state.attunementEnteredAt + dwell;

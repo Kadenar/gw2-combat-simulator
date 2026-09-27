@@ -67,7 +67,8 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'revenant.ferocious-aggression',
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: 'damage-additive',
-    amount: 0.1,
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_AGGRESSION), 'damageIncrease'),
     // Grant the bonus only while permanent or simulated Fury affects the player.
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
