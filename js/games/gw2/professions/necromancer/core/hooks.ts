@@ -1,7 +1,7 @@
 import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';
 import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { canonicalTime, isTimeInWindow, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { modifyNecromancerRechargeStart } from '#gw2/professions/necromancer/core/mechanics/recharge.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
@@ -35,14 +35,14 @@ import type {
 } from '#gw2/professions/necromancer/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { addCarapace } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import {
-  addCarapace,
-  necromancerActiveMinionCompanionIds
-} from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import {
-  necromancerTasteForBloodStacks,
+  applyOverflowingThirstCast,
   reactToTasteForBloodGrant
 } from '#gw2/professions/necromancer/core/traits/blood-magic.js';
+import { applyDarkDefense } from '#gw2/professions/necromancer/core/traits/death-magic.js';
+import { applyFearOfDeath, soulMarksLifeForce } from '#gw2/professions/necromancer/core/traits/soul-reaping.js';
+import { spitefulFortitudeLifeForce } from '#gw2/professions/necromancer/core/traits/spite.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import {
@@ -282,56 +282,8 @@ function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   }
 
   if (event.actorType !== 'player') return;
-  // Skill grants are authored on their packets; broad trait rewards remain shared.
-  let amount = 0;
-  if (Number(event.hitIndex ?? 1) === 1 && skill.categories?.includes('Mark') && hasTrait(runtime, TRAIT.SOUL_MARKS))
-    amount += balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SOUL_MARKS), 'lifeForceGain');
-  if (hasTrait(runtime, TRAIT.SPITEFUL_FORTITUDE) && remainingTargetHealthBelow(runtime.config, runtime, 0.5)) {
-    amount += balanceProfileNumber(
-      requireBalanceProfileFromContext(runtime, PROFILE.spitefulFortitude),
-      'lifeForceGain'
-    );
-  }
-
-  grantNecromancerLifeForce(runtime, amount);
-}
-
-/** Completed heals grant Dark Defense Carapace and Protection together under one cooldown. */
-function completionTraits(runtime: NecromancerRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill;
-  const state = runtime.profession.core;
-  const cause = {
-    at: runtime.time,
-    source: 'Trait',
-    actorType: 'effect' as const,
-    activationId: cast.id,
-    triggeredBy: skill.name,
-    offTarget: cast.command.offTarget
-  };
-  if (skill.type === 'Heal' && hasTrait(runtime, TRAIT.DARK_DEFENSE)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.DARK_DEFENSE);
-    if (runtime.procs.claimCooldown('darkDefense', runtime.time, balanceProfileNumber(profile, 'internalCooldown'))) {
-      addCarapace(
-        state,
-        balanceProfileNumber(profile, 'resourceGain'),
-        runtime.time,
-        balanceProfileNumber(profile, 'duration')
-      );
-      const boon = requireEffect(profile, 'boon', 'protection');
-      if (boon) {
-        const event = {
-          ...cause,
-          type: 'buff' as const,
-          sourceId: TRAIT.DARK_DEFENSE,
-          skillName: profile.name,
-          kind: String(boon.boon),
-          stacks: effectNumber(profile, boon, 'stacks'),
-          duration: effectNumber(profile, boon, 'duration')
-        };
-        queueResolverBoon(runtime, event, event);
-      }
-    }
-  }
+  // Combine trait rewards before the shared conversion and pool refresh, ahead of condition transfers.
+  grantNecromancerLifeForce(runtime, soulMarksLifeForce(runtime, skill, event) + spitefulFortitudeLifeForce(runtime));
 }
 
 function complete(runtime: NecromancerRuntime, cast: RuntimeCast): void {
@@ -385,7 +337,7 @@ function complete(runtime: NecromancerRuntime, cast: RuntimeCast): void {
     shroudEntryEffects(runtime, cast);
     transition(runtime, true, skill);
   } else if (skill.shroudExit) exitNecromancerShroud(runtime);
-  completionTraits(runtime, cast);
+  applyDarkDefense(runtime, cast);
 }
 
 /** Core mechanics share one live queue and resource owner with the active specialization. */
@@ -409,10 +361,6 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
     },
     'necromancer.skill-life-force'(runtime, context) {
       if (context.kind === 'effect') grantNecromancerSkillLifeForce(runtime, context.skill, context.trigger.event);
-    },
-    // Named actions preserve percentage conversions and coupled weapon transactions.
-    'necromancer.condition-life-force'(runtime, context) {
-      grantNecromancerLifeForce(runtime, Number(context.skill.lifeForceGain ?? 0));
     },
     // Declarations own amounts and eligibility; this handler applies the shared percentage conversion.
     'necromancer.life-force'(runtime, _context, action) {
@@ -517,31 +465,7 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
     scheduleNecromancerConditions(runtime, cast);
     const cost = normalizedNecromancerLifeForceCost(runtime.profession.core, Number(cast.skill.lifeForceCost ?? 0));
     if (cost) runtime.resourceController.spend('lifeForce', cost);
-    // Delivered party buffs seed the same per-recipient pools consumed by actual player, minion, and allied hits.
-    const stacks = necromancerTasteForBloodStacks(Number(cast.skill.id));
-    if (stacks && hasTrait(runtime, TRAIT.OVERFLOWING_THIRST)) {
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.overflowingThirst);
-      const buff = requireEffect(profile, 'buff', 'taste-for-blood');
-      if (buff)
-        runtime.emit({
-          type: 'buff',
-          at: runtime.time,
-          source: 'Trait',
-          sourceId: TRAIT.OVERFLOWING_THIRST,
-          actorType: 'player',
-          skillId: cast.skill.id,
-          skillName: cast.skill.name,
-          activationId: cast.id,
-          kind: String(buff.kind),
-          duration: effectNumber(profile, buff, 'duration'),
-          stacks,
-          audience: {
-            recipients: 'party',
-            maximumRecipients: 5,
-            eligibleCompanionIds: necromancerActiveMinionCompanionIds(runtime)
-          }
-        });
-    }
+    applyOverflowingThirstCast(runtime, cast);
   },
   // Cast-derived attribution remains local to the declaration; balance profiles own all packets.
   traitTriggers: [
@@ -632,19 +556,7 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
       reactToNecromancerCoreCondition(runtime, event);
     },
     'control.resolved'(runtime, event) {
-      // Fear of Death belongs to an accepted fear application, so misses and pending travel grant nothing.
-      if (
-        event.controlKind === 'fear' &&
-        event.actorType !== 'summon' &&
-        hasTrait(runtime, TRAIT.FEAR_OF_DEATH) &&
-        isInternalCooldownReady(runtime.time, runtime.procs.deadline('necromancer.core.fearOfDeath'))
-      ) {
-        const profile = requireBalanceProfileFromContext(runtime, TRAIT.FEAR_OF_DEATH);
-        runtime.procs.readyAt['necromancer.core.fearOfDeath'] =
-          runtime.time + balanceProfileNumber(profile, 'internalCooldown');
-        grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
-      }
-
+      applyFearOfDeath(runtime, event);
       reactToNecromancerCoreControl(runtime, event);
     },
     'blind.resolved': reactToNecromancerBlind

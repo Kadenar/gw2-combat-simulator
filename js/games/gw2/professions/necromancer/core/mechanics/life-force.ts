@@ -23,7 +23,7 @@ export function grantNecromancerLifeForce(runtime: NecromancerRuntime, percent: 
   );
 }
 
-/** A selected strike owns its live per-hit and first-hit tuning; target counts can be snapshotted by its emitter. */
+/** Selected strikes and conditions grant live skill tuning; target counts can be snapshotted by their emitter. */
 export function grantNecromancerSkillLifeForce(
   runtime: NecromancerRuntime,
   skill: Skill,

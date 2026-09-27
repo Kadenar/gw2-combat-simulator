@@ -2,10 +2,12 @@
 import {
   requireBalanceProfileFromContext,
   requireEffect,
-  effectNumber
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 import {
@@ -13,7 +15,39 @@ import {
   applyTraitVulnerability
 } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
+import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import type {
+  NecromancerResolverContext,
+  NecromancerResolverEvent,
+  NecromancerRuntime,
+  NecromancerSkill
+} from '#gw2/professions/necromancer/types.js';
+
+/** The first accepted player strike of a mark contributes to the shared percentage grant. */
+export function soulMarksLifeForce(
+  runtime: NecromancerRuntime,
+  skill: NecromancerSkill,
+  event: NecromancerResolverEvent
+): number {
+  return Number(event.hitIndex ?? 1) === 1 && skill.categories?.includes('Mark') && hasTrait(runtime, TRAIT.SOUL_MARKS)
+    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SOUL_MARKS), 'lifeForceGain')
+    : 0;
+}
+
+/** Accepted non-summon fear grants life force under one cooldown; missed and travelling packets grant nothing. */
+export function applyFearOfDeath(runtime: NecromancerRuntime, event: NecromancerResolverEvent): void {
+  if (
+    event.controlKind !== 'fear' ||
+    event.actorType === 'summon' ||
+    !hasTrait(runtime, TRAIT.FEAR_OF_DEATH) ||
+    !isInternalCooldownReady(runtime.time, runtime.procs.deadline('necromancer.core.fearOfDeath'))
+  )
+    return;
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.FEAR_OF_DEATH);
+  runtime.procs.readyAt['necromancer.core.fearOfDeath'] =
+    runtime.time + balanceProfileNumber(profile, 'internalCooldown');
+  grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
+}
 
 export function applyDhuumfire(
   context: NecromancerResolverContext,

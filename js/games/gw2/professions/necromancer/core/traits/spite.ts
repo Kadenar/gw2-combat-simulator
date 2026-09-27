@@ -15,7 +15,18 @@ import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/dat
 import { queueTraitCoefficientDamage } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 
-import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
+import type {
+  NecromancerResolverContext,
+  NecromancerResolverEvent,
+  NecromancerRuntime
+} from '#gw2/professions/necromancer/types.js';
+
+/** The accepted player strike reads post-hit target health before its shared percentage grant. */
+export function spitefulFortitudeLifeForce(runtime: NecromancerRuntime): number {
+  return hasTrait(runtime, TRAIT.SPITEFUL_FORTITUDE) && targetBelowHalfHealth(runtime)
+    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.spitefulFortitude), 'lifeForceGain')
+    : 0;
+}
 
 /** Reports whether the target is strictly below half health, using the shared threshold contract. */
 function targetBelowHalfHealth(context: NecromancerResolverContext): boolean {

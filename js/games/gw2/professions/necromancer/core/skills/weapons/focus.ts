@@ -33,7 +33,7 @@ export const NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, 
             actor: 'player',
             packets: 'first',
             when: (_runtime, { event }) => event.sourceId === event.skillId,
-            do: { type: 'necromancer.condition-life-force' }
+            do: { type: 'necromancer.skill-life-force' }
           }
         ],
         condition: 'Vulnerability',

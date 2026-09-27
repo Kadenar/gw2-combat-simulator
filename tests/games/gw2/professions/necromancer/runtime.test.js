@@ -203,6 +203,11 @@ test('condition-only hands grant spendable life force at their accepted target a
     const skill = native.catalog.skillsById.get(skillId);
     const landed = simulate([cast(skillId)]);
     assert.equal(landed.planningState.profession.lifeForce.value, skill.lifeForceGain);
+    // Condition reactions share the strike grant owner and apply Gluttony exactly once.
+    const gluttony = simulate([cast(skillId)], { ...base, selectedTraitIds: [TRAIT.GLUTTONY] });
+    const multiplier = native.catalog.balanceProfilesById.get(TRAIT.GLUTTONY).lifeForceGainMultiplier;
+    assert.ok(Math.abs(gluttony.planningState.profession.lifeForce.value - skill.lifeForceGain * multiplier) < 1e-8);
+    assert.deepEqual(gluttony.warnings, []);
     for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }])
       assert.equal(simulate([{ ...cast(skillId), ...flags }]).planningState.profession.lifeForce.value, 0);
     const profession = {

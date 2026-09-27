@@ -11,12 +11,17 @@ import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-pla
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { TRAITS as NECROMANCER_TRAITS } from '#gw2/professions/necromancer/data/traits-data.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
+import type {
+  NecromancerResolverContext,
+  NecromancerResolverEvent,
+  NecromancerRuntime
+} from '#gw2/professions/necromancer/types.js';
 
 interface TraitDamageDefinition {
   readonly name: string;
@@ -270,7 +275,29 @@ const TASTE_FOR_BLOOD_STACKS_BY_SKILL = new Map<number, number>([
   [ID.ENFEEBLING_BLOOD, 3]
 ]);
 
-/** Dagger activations select their authored charge entitlement before hits spend it. */
-export function necromancerTasteForBloodStacks(skillId: number): number {
-  return TASTE_FOR_BLOOD_STACKS_BY_SKILL.get(skillId) ?? 0;
+/** Dagger activations deliver party charges before player, minion, and allied hits spend their individual pools. */
+export function applyOverflowingThirstCast(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+  const stacks = TASTE_FOR_BLOOD_STACKS_BY_SKILL.get(Number(cast.skill.id)) ?? 0;
+  if (!stacks || !hasTrait(runtime, TRAIT.OVERFLOWING_THIRST)) return;
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.overflowingThirst);
+  const buff = requireEffect(profile, 'buff', 'taste-for-blood');
+  if (!buff) return;
+  runtime.emit({
+    type: 'buff',
+    at: runtime.time,
+    source: 'Trait',
+    sourceId: TRAIT.OVERFLOWING_THIRST,
+    actorType: 'player',
+    skillId: cast.skill.id,
+    skillName: cast.skill.name,
+    activationId: cast.id,
+    kind: String(buff.kind),
+    duration: effectNumber(profile, buff, 'duration'),
+    stacks,
+    audience: {
+      recipients: 'party',
+      maximumRecipients: 5,
+      eligibleCompanionIds: necromancerActiveMinionCompanionIds(runtime)
+    }
+  });
 }
