@@ -6,6 +6,7 @@ import {
   effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -81,27 +82,25 @@ export function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSk
   }
 }
 
-/** Grants Optimized Activation vigor for a completed toolbelt cast. */
+/** Materializes Vigor at the toolbelt dispatch boundary, including independent mech-command acceptance. */
 function applyOptimizedActivation(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.OPTIMIZED_ACTIVATION)) return;
   const optimizedActivationProfile = requireBalanceProfileFromContext(context, PROFILE.optimizedActivation);
   const optimizedActivationVigor = requireEffect(optimizedActivationProfile, 'boon', 'vigor');
   if (optimizedActivationVigor) {
-    emitEngineerEvent(
-      context,
-      'buff',
-      {
-        at,
+    emitEffects(context, {
+      owner: optimizedActivationProfile,
+      effects: [optimizedActivationVigor],
+      at,
+      baseEvent: {
         source: 'Trait',
         sourceId: TRAIT.OPTIMIZED_ACTIVATION,
         actorType: 'player',
-        name: 'Optimized Activation — vigor',
-        kind: String(optimizedActivationVigor.boon).toLowerCase(),
-        duration: optimizedActivationVigor.duration,
-        stacks: Number(optimizedActivationVigor.stacks)
+        skillId: skill.id,
+        skillName: skill.name
       },
-      skill
-    );
+      transform: (event) => ({ ...event, name: 'Optimized Activation — vigor' })
+    });
   }
 }
 

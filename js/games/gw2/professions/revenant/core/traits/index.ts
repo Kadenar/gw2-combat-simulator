@@ -135,8 +135,9 @@ function isLegendaryStanceSkill(skill: RevenantSkill): boolean {
   return skill.type === 'Profession';
 }
 
-/** Completed heals, stances, and Centaur toggles grant their selected trait rewards at completion. */
+/** Committed casts grant completion rewards even when shortened; cancelled reservations grant nothing. */
 export function completeRevenantCastTraits(runtime: RevenantRuntime, cast: RuntimeCast, committed: boolean): void {
+  if (!committed) return;
   const skill = cast.skill as RevenantSkill;
   if (skill.slot === 'Heal' && hasTrait(runtime, TRAIT.BATTLE_SCARRED)) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.battleScarred);
@@ -167,7 +168,7 @@ export function completeRevenantCastTraits(runtime: RevenantRuntime, cast: Runti
   }
 
   // Grant only the boon belonging to the committed Centaur skill; toggling off the shield grants nothing.
-  if (!committed || !hasTrait(runtime, TRAIT.SERENE_REJUVENATION)) return;
+  if (!hasTrait(runtime, TRAIT.SERENE_REJUVENATION)) return;
   const skillId = skill.id === ID.PROTECTIVE_SOLACE_ID_29310 ? ID.PROTECTIVE_SOLACE : skill.id;
   if (skillId === ID.PROTECTIVE_SOLACE && !activeRevenantUpkeep(runtime, skill.id)) return;
   emitRevenantInvocationProfile(
@@ -342,19 +343,12 @@ function viciousReprisal(runtime: RevenantRuntime, event: Gw2ResolverEvent): voi
   // The cooldown gates only might, so a removed boon leaves it ready.
   if (!boon) return;
   if (!runtime.procs.claimCooldown('viciousReprisal', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
-  traitBuff(
-    runtime,
-    {
-      sourceId: TRAIT.VICIOUS_REPRISAL,
-      skillId: TRAIT.VICIOUS_REPRISAL,
-      skillName: 'Vicious Reprisal',
-      name: 'Vicious Reprisal — might',
-      kind: String(boon.boon),
-      duration: effectNumber(profile, boon, 'duration'),
-      stacks: effectNumber(profile, boon, 'stacks')
-    },
-    event
-  );
+  // Keep its position among resolved-hit traits while sharing profile expansion and causal placement.
+  emitRevenantProfile(runtime, profile, {
+    sourceId: TRAIT.VICIOUS_REPRISAL,
+    effects: [{ ...boon, name: 'Vicious Reprisal — might' }],
+    cause: event
+  });
 }
 
 /** Expose Defenses applies its opening Vulnerability on the first landed in-combat strike. */

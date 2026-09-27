@@ -261,6 +261,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 500
   },
   [ID.STRENGTH_OF_THE_PACK]: {
+    categories: ['Command'],
     effects: [
       {
         type: 'buff',
@@ -391,6 +392,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 500
   },
   [ID.PROTECT_ME]: {
+    categories: ['Command'],
     effects: [
       {
         type: 'boon',
@@ -402,6 +404,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 333
   },
   [ID.GUARD]: {
+    categories: ['Command'],
     effects: [
       {
         type: 'boon',
@@ -413,6 +416,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 333
   },
   [ID.SIC_EM]: {
+    categories: ['Command'],
     castTimeMs: 0,
     effects: []
     // Custom: Applies the pet-only Sic Em damage window when a pet is active; see `core/hooks.ts`.
@@ -439,6 +443,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 500
   },
   [ID.WE_HEAL_AS_ONE]: {
+    categories: ['Command'],
     // The replacement handler leaves these durations for the completion hook to copy active boons.
     effects: [
       { type: 'boon', boon: 'aegis', duration: 5 },

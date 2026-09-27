@@ -6,6 +6,9 @@ import { createObservedProfessionSimulator } from '#tests/helpers/observed-runti
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/index.js';
+import { runEngineer } from '#tests/helpers/engineer-simulation.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
@@ -26,6 +29,48 @@ function simulate(rotation, config = {}) {
 }
 
 const wait = { type: 'wait', durationMs: 100 };
+
+// The profile owns offsets and repetitions; ordinary toolbelts still trigger at their completion boundary.
+test('Optimized Activation materializes delayed repeated Vigor and respects effect removal', () => {
+  for (const effects of [
+    [],
+    [
+      {
+        type: 'boon',
+        name: 'vigor',
+        boon: 'vigor',
+        duration: 4,
+        stacks: 1,
+        atMs: 500,
+        applications: 2,
+        intervalMs: 200
+      }
+    ]
+  ]) {
+    const result = runEngineer(
+      ['Regenerating Mist', { type: 'wait', durationMs: 1500 }],
+      {
+        ...baseConfig,
+        selectedTraitIds: [TRAIT.OPTIMIZED_ACTIVATION]
+      },
+      {
+        extend: (native) => ({
+          catalog: effects.length
+            ? withProfile(native.catalog, TRAIT.OPTIMIZED_ACTIVATION, { effects })
+            : applyBalanceProfilePatch(native.catalog, {
+                balanceProfiles: { [TRAIT.OPTIMIZED_ACTIVATION]: { removeEffects: [{ type: 'boon', all: true }] } }
+              })
+        })
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const boons = result.events.filter((event) => event.sourceId === TRAIT.OPTIMIZED_ACTIVATION);
+    assert.deepEqual(
+      boons.map((event) => event.at),
+      effects.length ? [0.8, 1] : []
+    );
+  }
+});
 
 const traitCases = [
   {

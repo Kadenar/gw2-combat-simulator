@@ -180,6 +180,10 @@ const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => 
     facts: [
       ...simulationEffectFacts(selected.effects, 'on summon').facts,
       ...simulationEffectFacts(profile.effects?.slice(0, id === ID.WANDERLUST ? 3 : 2)).facts,
+      ...simulationEffectFacts(
+        profile.effects?.filter((effect) => effect.type === 'condition'),
+        'opening conditions'
+      ).facts,
       profileFact(
         balanceContext,
         RITUALIST.resources,

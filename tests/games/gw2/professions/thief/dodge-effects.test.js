@@ -78,7 +78,10 @@ test('trait conditions carry their own attribution instead of the triggering ski
 });
 
 test('Daredevil emits only current profile effects, including patched condition offsets', () => {
-  for (const effects of [[], [{ type: 'condition', condition: 'Poisoned', atMs: 400, duration: 7, stacks: 3 }]]) {
+  for (const effects of [
+    [],
+    [{ type: 'condition', condition: 'Poisoned', atMs: 400, duration: 7, stacks: 3, applications: 3, intervalMs: 200 }]
+  ]) {
     const result = runThief(
       ['Dodge'],
       { specialization: 'Daredevil', selectedDodge: 'Lotus Training' },
@@ -91,8 +94,12 @@ test('Daredevil emits only current profile effects, including patched condition 
     const packets = result.events.filter(
       (event) => (event.type === 'damage' || event.type === 'condition') && event.sourceId === TRAIT.LOTUS_TRAINING
     );
-    assert.equal(packets.length, effects.length);
+    assert.equal(packets.length, effects.length ? 3 : 0);
     if (effects.length) {
+      assert.deepEqual(
+        packets.map((packet) => packet.at),
+        [0.4, 0.6, 0.8]
+      );
       const [packet] = packets;
       assert.equal(packet.at, 0.4);
       assert.equal(packet.condition, 'Poisoned');

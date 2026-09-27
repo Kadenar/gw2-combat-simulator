@@ -6,7 +6,8 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
+import { scaleCastBoundTiming, materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { BRAVE_STRIDE_MOVEMENT_SKILL_IDS, reactToWarriorBuff } from '#gw2/professions/warrior/core/traits/strength.js';
 import { reactToWarriorDamage } from '#gw2/professions/warrior/core/traits/arms.js';
 import { consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
@@ -43,27 +44,25 @@ function traitEffects(
   quantity = 1
 ): void {
   const profile = requireBalanceProfileFromContext(runtime, trait);
-  for (const effect of profile.effects ?? []) {
-    if (effect.type !== 'boon' && effect.type !== 'buff' && effect.type !== 'condition') continue;
-    const fields = {
-      at: runtime.time,
-      priority: 5,
+  emitEffects(runtime, {
+    owner: profile,
+    effects: profile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+    baseEvent: {
       source: 'Trait',
       sourceId: trait,
-      actorType: 'effect' as const,
+      actorType: 'effect',
       skillId: event.skillId,
-      skillName: event.skillName,
+      skillName: event.skillName
+    },
+    cause: event,
+    transform: (packet) => ({
+      ...packet,
+      priority: 5,
       name: profile.name,
-      stacks: quantity * effectNumber(profile, effect, 'stacks'),
-      duration: effectNumber(profile, effect, 'duration'),
+      stacks: quantity * Number(packet.stacks),
       ...overrides
-    };
-    if (effect.type === 'condition') {
-      runtime.emitDerived(event, buildResolverCondition({ ...fields, condition: String(effect.condition) }));
-    } else {
-      runtime.emitProcedural({ ...fields, type: 'buff', kind: String(effect.boon || effect.kind) }, { cause: event });
-    }
-  }
+    })
+  });
 }
 
 /** A selected trait claims its own deadline only after its trigger has actually been accepted. */
@@ -271,24 +270,26 @@ function castTraitBuff(
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   const effect = requireEffect(profile, type, kind);
   if (!effect) return;
-  const event = {
-    type: 'buff' as const,
-    at,
-    priority,
-    source: 'Trait',
-    sourceId: trait,
-    actorType: 'effect' as const,
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id,
-    name,
-    kind,
-    stacks: effectNumber(profile, effect, 'stacks'),
-    duration: effectNumber(profile, effect, 'duration')
-  };
-  // A modifier opening at a future impact is queued now, so it precedes the same-instant hits it modifies.
-  if (at > runtime.time) runtime.emit(event);
-  else runtime.emitProcedural(event);
+  // Shared expansion preserves authored repeats while this owner retains modifier-before-impact ordering.
+  for (const { event } of materializeSkillEffectApplications({
+    skill: profile,
+    effect,
+    start: at,
+    fullEnd: at,
+    baseEvent: {
+      source: 'Trait',
+      sourceId: trait,
+      actorType: 'effect',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id
+    }
+  })) {
+    const packet = { ...event, name, priority };
+    // A modifier opening at a future impact is queued now, so it precedes the same-instant hits it modifies.
+    if (event.at > runtime.time) runtime.emit(packet);
+    else runtime.emitProcedural(packet);
+  }
 }
 
 /** Acceptance rewards survive later cancellation; Kick opens its modifier at the first authored impact. */

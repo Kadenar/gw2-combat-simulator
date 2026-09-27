@@ -268,25 +268,33 @@ test('Guardian mantra flips inherit selection from the root slot skill', () => {
 
 test('Virtue of Resolution extends delivered boons once without creating extra symbol reactions', () => {
   // Compare identical symbol casts so only the selected duration modifier changes.
-  const run = (selectedTraitIds) =>
-    createObservedProfessionSimulator(guardianProfession, {
-      ...config,
-      primaryWeapon: 'Greatsword',
-      selectedTraitIds
-    })(undefined, ['Symbol of Resolution', { type: 'wait', durationMs: 6000 }]);
-  const baseline = run([GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE]);
-  const traited = run([GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE]);
-  const resolution = (result) => result.events.filter((event) => event.type === 'buff' && event.kind === 'resolution');
-  assert.ok(resolution(baseline).length > 0);
-  assert.deepEqual(
-    resolution(traited).map((event) => event.duration),
-    resolution(baseline).map((event) => event.duration * 1.25)
-  );
-  const exposure = (result) =>
-    result.resolvedEvents.filter(
-      (event) => event.type === 'condition' && event.sourceId === GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE
+  for (const [specialization, rotation] of [
+    ['Core', ['Symbol of Resolution']],
+    ['Luminary', ['Enter Radiant Forge', 'Luminous Staff']],
+    ['Luminary', ['Enter Radiant Forge', 'Radiant Bulwark', 'Glaring Burst']]
+  ]) {
+    const run = (selectedTraitIds) =>
+      createObservedProfessionSimulator(guardianProfession, {
+        ...config,
+        primaryWeapon: 'Greatsword',
+        selectedTraitIds
+      })(specialization, [...rotation, { type: 'wait', durationMs: 6000 }]);
+    const baseline = run([GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE]);
+    const traited = run([GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE]);
+    const resolution = (result) =>
+      result.events.filter((event) => event.type === 'buff' && event.kind === 'resolution');
+    assert.ok(resolution(baseline).length > 0);
+    assert.deepEqual(
+      resolution(traited).map((event) => event.duration),
+      resolution(baseline).map((event) => event.duration * 1.25)
     );
-  assert.equal(exposure(traited).length, exposure(baseline).length);
+    const exposure = (result) =>
+      result.resolvedEvents.filter(
+        (event) => event.type === 'condition' && event.sourceId === GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE
+      );
+    assert.equal(exposure(traited).length, exposure(baseline).length);
+    assert.deepEqual(traited.warnings, []);
+  }
 });
 
 test('Guardian modules expose isolated balance-profile authoring', () => {

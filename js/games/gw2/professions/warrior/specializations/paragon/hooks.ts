@@ -8,10 +8,13 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
+import {
+  PARAGON_BALANCE_PROFILE_IDS as PROFILE,
+  PARAGON_COMMAND_ECHO_PROFILES
+} from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
@@ -81,31 +84,43 @@ function pulseRefrain(runtime: Runtime): void {
         ? 2
         : 1;
   let cost = 1;
+  const kinds: string[] = [];
   if (skill.id === ID.CHANT_OF_ACTION) {
-    // Refrain pulses share patchable boon duration and tier scaling with their tooltip.
-    const refrain = requireBalanceProfileFromContext(runtime, PROFILE.refrain);
-    const might = requireEffect(refrain, 'boon', 'might');
-    const multiplier = hasTrait(runtime, TRAIT.ENDURING_REFRAIN)
-      ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.enduringRefrain), 'stackMultiplier')
-      : 1;
-    if (might)
-      boon(
-        runtime,
-        skill,
-        String(might.boon),
-        effectNumber(refrain, might, 'duration'),
-        effectNumber(refrain, might, 'stacks') * level * multiplier
-      );
-    if (level >= 2) boon(runtime, skill, 'fury', 5);
+    kinds.push('might');
+    if (level >= 2) kinds.push('fury');
   } else if (skill.id === ID.CHANT_OF_RECUPERATION) {
     cost = level === 3 ? 3 : 2;
-    if (level === 3) boon(runtime, skill, 'regeneration', 3);
+    if (level === 3) kinds.push('regeneration');
   } else if (skill.id === ID.CHANT_OF_FREEDOM) {
     cost = level;
-    boon(runtime, skill, 'swiftness', 3);
-    if (level >= 2) boon(runtime, skill, 'resolution', 3);
-    if (level === 3) boon(runtime, skill, 'protection', 3);
+    kinds.push('swiftness');
+    if (level >= 2) kinds.push('resolution');
+    if (level === 3) kinds.push('protection');
   }
+
+  const refrain = requireBalanceProfileFromContext(runtime, PROFILE.refrain);
+  // Select the tier before spending; only Might scales its stacks with the tier and Enduring Refrain.
+  emitEffects(runtime, {
+    owner: refrain,
+    effects: refrain.effects?.filter((effect) => effect.type === 'boon' && kinds.includes(String(effect.boon))),
+    baseEvent: { source: 'Paragon', sourceId: skill.id, actorType: 'player', skillId: skill.id, skillName: skill.name },
+    transform: (event) => ({
+      ...event,
+      name: `${skill.name} — ${event.kind}`,
+      audience: { recipients: 'party' },
+      stacks:
+        event.kind === 'might'
+          ? Number(event.stacks) *
+            level *
+            (hasTrait(runtime, TRAIT.ENDURING_REFRAIN)
+              ? balanceProfileNumber(
+                  requireBalanceProfileFromContext(runtime, PROFILE.enduringRefrain),
+                  'stackMultiplier'
+                )
+              : 1)
+          : event.stacks
+    })
+  });
 
   const spent = Math.min(cost, state.motivation);
   state.motivation -= spent;
@@ -190,30 +205,28 @@ function consumeEcho(runtime: Runtime, activationId: string): void {
   const ownerId = `${ECHO}.${activationId}`;
   runtime.cancelOwner({ id: ownerId, generation: echo.generation });
   const skill = runtime.helpers.skillsById.get(echo.skillId)!;
-  if (skill.id === ID.FIND_THEIR_WEAKNESS) {
-    boon(runtime, skill, 'might', 10, 7, activationId);
-    grantWarriorAdrenaline(runtime, 3);
-  } else if (skill.id === ID.ON_YOUR_KNEES) {
-    const event = {
-      at: runtime.time,
-      source: 'Paragon',
-      sourceId: skill.id,
-      actorType: 'player' as const,
-      skillId: skill.id,
-      skillName: skill.name,
-      activationId
-    };
-    runtime.emit(buildResolverStrike({ ...event, name: `${skill.name} — Echo Damage`, coefficient: 1.5, hits: 1 }));
-    runtime.emit(
-      buildResolverCondition({
+  const profileId = PARAGON_COMMAND_ECHO_PROFILES[Number(skill.id)];
+  if (profileId) {
+    const payload = requireBalanceProfileFromContext(runtime, profileId);
+    emitEffects(runtime, {
+      owner: payload,
+      baseEvent: {
+        source: 'Paragon',
+        sourceId: skill.id,
+        actorType: 'player',
+        skillId: skill.id,
+        skillName: skill.name,
+        activationId
+      },
+      transform: (event) => ({
         ...event,
-        name: `${skill.name} — Echo Immobilized`,
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 2
+        name: `${skill.name} — ${event.type === 'buff' ? event.kind : event.name}`,
+        ...(event.type === 'buff' ? { audience: { recipients: 'party' } } : {})
       })
-    );
-  } else if (skill.id === ID.WE_SHALL_RETURN) grantWarriorAdrenaline(runtime, 10);
+    });
+    grantWarriorAdrenaline(runtime, balanceProfileNumber(payload, 'resourceGain'));
+  }
+
   echo.remaining--;
   const interval = balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.commands), 'pulseInterval');
   if (echo.remaining <= 0 || interval <= 0) {

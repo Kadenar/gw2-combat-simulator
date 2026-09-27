@@ -29,8 +29,6 @@ import {
 import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import { scheduleSharedStance } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 
-const commands = new Set<number>([ID.STRENGTH_OF_THE_PACK, ID.PROTECT_ME, ID.GUARD, ID.SIC_EM, ID.WE_HEAL_AS_ONE]);
-
 /** Merge, stance grants, and hit reactions mutate their sole state slice at the owning cast boundary. */
 export const soulbeastHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
   // Control rewards retain the triggering recipient; poison siphons remain noncritical profile strikes.
@@ -149,7 +147,7 @@ export const soulbeastHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
     const skill = cast.skill;
     if (skill.id === ID.PET_SWAP) state.archetype = rangerPetByName(runtime.profession.core.activePet).archetype;
     if (!state.beastmodeActive) return;
-    if (commands.has(Number(skill.id)) && hasTrait(runtime, TRAIT.RESOUNDING_TIMBRE))
+    if (skill.categories?.includes('Command') && hasTrait(runtime, TRAIT.RESOUNDING_TIMBRE))
       runtime.emit(
         rangerEvent(
           {

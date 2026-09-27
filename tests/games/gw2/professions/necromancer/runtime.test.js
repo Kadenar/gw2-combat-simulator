@@ -1159,6 +1159,38 @@ test('a delivered entry boon triggers Blighters Boon once for the whole applicat
   assert.equal(result.planningState.profession.lifeForce.value, 11);
 });
 
+// Boon rewards follow actual self recipients and exclude personal statuses on the shared buff stage.
+test('Blighters Boon excludes Soul Barbs and boons delivered only to allies', () => {
+  const config = { ...base, initialResource: 10, selectedTraitIds: [TRAIT.BLIGHTERS_BOON, TRAIT.SOUL_BARBS] };
+  const shroud = simulate([cast(ID.REAPERS_SHROUD)], config);
+  assert.ok(shroud.events.some((event) => event.kind === 'necromancer-soul-barbs'));
+  assert.equal(shroud.planningState.profession.lifeForce.value, 10);
+  for (const affectsSelf of [false, true]) {
+    const native = necromancerProfession.runtimeFor(config);
+    const result = simulate([wait(1)], config, {
+      profession: {
+        ...native,
+        initialize(runtime) {
+          native.initialize(runtime);
+          runtime.emit({
+            type: 'buff',
+            at: 0,
+            source: 'Trait',
+            sourceId: TRAIT.AWAKEN_THE_PAIN,
+            actorType: 'player',
+            kind: 'might',
+            duration: 2,
+            stacks: 5,
+            audience: { recipients: 'party', affectsSelf, maximumRecipients: 5 }
+          });
+        }
+      }
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.lifeForce.value, affectsSelf ? 11 : 10);
+  }
+});
+
 // Shared emission preserves independent removal, duration scaling, and the established form before reactions run.
 test('shroud entry profiles retain conditions without their strike and deliver boons after entering the form', () => {
   const config = {

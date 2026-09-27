@@ -36,7 +36,8 @@ function isBeastSkill(skill: RangerSkill): boolean {
 export function completeRangerTraits(context: RangerRuntime, skill: RangerSkill): void {
   if (skill.type === 'Heal') emitChildOfEarth(context, skill);
 
-  if ((skill.description || '').startsWith('Command.')) {
+  // Trait consumers share the authored category, independent of tooltip wording.
+  if (skill.categories?.includes('Command')) {
     applyRangerCommandTraits(context, skill);
   }
 

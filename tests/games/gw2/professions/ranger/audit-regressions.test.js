@@ -1,4 +1,5 @@
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -20,6 +21,62 @@ const simulate = createObservedProfessionSimulator(rangerProfession, config);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const copied = (result) =>
   result.events.filter((event) => event.type === 'buff' && event.skillId === ID.WE_HEAL_AS_ONE);
+
+// Commands copy the executed self pool, including duration stacking and permanent assumptions, to the active pet.
+test('Resounding Timbre copies live boon pools and rejects other recipients and expired grants', () => {
+  let petId;
+  const result = runRanger(
+    [wait(3000), ID.SIC_EM],
+    {
+      ...config,
+      selectedTraitIds: [TRAIT.RESOUNDING_TIMBRE],
+      boons: { protection: true }
+    },
+    {
+      extend: (native) => ({
+        catalog: withSkill(native.catalog, ID.SIC_EM, { description: 'Renamed command description.' })
+      }),
+      initialize(runtime) {
+        petId = rangerPetCompanionId(runtime);
+        for (const [kind, duration, stacks, audience] of [
+          ['fury', 2, 1],
+          ['fury', 2, 1],
+          ['might', 6, 2],
+          ['might', 8, 3],
+          ['vigor', 1, 1],
+          ['regeneration', 10, 1, { recipients: 'party', affectsSelf: false }]
+        ])
+          runtime.emit({
+            type: 'buff',
+            at: 0,
+            source: 'test',
+            sourceId: 'test-boon',
+            actorType: 'effect',
+            kind,
+            duration,
+            stacks,
+            audience
+          });
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const boons = result.events.filter((event) => event.sourceId === TRAIT.RESOUNDING_TIMBRE);
+  assert.deepEqual(
+    boons.map((event) => [event.kind, event.stacks]),
+    [
+      ['fury', 1],
+      ['might', 5],
+      ['protection', 1]
+    ]
+  );
+  assert.equal(boons[0].duration, 1);
+  assert.equal(boons[1].duration, 5);
+  for (const event of boons) {
+    assert.equal(event.resolvedAudience.includesSelf, false);
+    assert.deepEqual(event.resolvedAudience.companionIds, [petId]);
+  }
+});
 
 test('Splitblade shares an impact without merging hit or condition application indices', () => {
   // Five simultaneous projectiles retain separate hit identities before the single Bleeding application.

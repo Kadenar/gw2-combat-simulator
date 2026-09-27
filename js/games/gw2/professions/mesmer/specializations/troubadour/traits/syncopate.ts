@@ -20,45 +20,49 @@ export const SYNCOPATE_PROFILE = defineTraitProfile(TRAIT.SYNCOPATE, 'Syncopate'
   ]
 });
 
-/** Resolves Syncopate from Troubadour control and Method of Madness proc events. */
+/** Resolves Syncopate from accepted Troubadour control events. */
 export function observeSyncopateEvent(context: MesmerRuntime, event: SimulationEvent): void {
+  if (event.type !== 'control') return;
   const runtime = mesmerMechanicsFor(context);
   if (!runtime.traits.has(TRAIT.SYNCOPATE)) return;
   const syncopateProfile = requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE);
   const damage = requireEffect(syncopateProfile, 'strike', 'Immediate wave');
   if (!damage) return;
 
-  if (event.type === 'control') {
-    const skillName = event.skillName || event.name || 'Control effect';
-    runtime.addDamage(
-      { id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false },
-      event.at,
-      {
-        ...damage,
-        name: undefined,
-        summonKind: undefined,
-        source: 'Trait',
-        actorType: 'player',
-        // A proc caused by a surviving delayed disable inherits that packet's interruption protection.
-        persistsAfterInterrupt: event.persistsAfterInterrupt === true,
-        weapon: 'utility',
-        weaponStrengthProfileId: 'nonweapon.unequipped'
-      },
-      { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: 'player' }
-    );
-    runtime.addTraitProc('Syncopate', event.at, skillName);
-    return;
-  }
+  const skillName = event.skillName || event.name || 'Control effect';
+  runtime.addDamage(
+    { id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false },
+    event.at,
+    {
+      ...damage,
+      name: undefined,
+      summonKind: undefined,
+      source: 'Trait',
+      actorType: 'player',
+      // A proc caused by a surviving delayed disable inherits that packet's interruption protection.
+      persistsAfterInterrupt: event.persistsAfterInterrupt === true,
+      weapon: 'utility',
+      weaponStrengthProfileId: 'nonweapon.unequipped'
+    },
+    { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: 'player' }
+  );
+  runtime.addTraitProc('Syncopate', event.at, skillName);
+}
 
-  if (event.type !== 'proc' || event.sourceId !== 'Method of Madness') return;
-  runtime.addDamage({ id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false }, event.at, {
+/** The committed heal triggers its immediate wave even when diagnostic proc output is suppressed. */
+export function triggerMethodOfMadnessSyncopate(context: MesmerRuntime): void {
+  const runtime = mesmerMechanicsFor(context);
+  if (!runtime.traits.has(TRAIT.SYNCOPATE)) return;
+  const damage = requireEffect(requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE), 'strike', 'Immediate wave');
+  if (!damage) return;
+  runtime.addDamage({ id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false }, context.time, {
     ...damage,
     name: undefined,
     summonKind: undefined,
     source: 'Player',
     weapon: 'utility'
   });
-  runtime.addTraitProc('Syncopate', event.at, 'Lesser Chaos Storm');
+  runtime.addTraitProc('Syncopate', context.time, 'Lesser Chaos Storm');
 }
 
 /** Adds the delayed wave and its daze to player and afterimage Drum impacts when Syncopate is selected. */

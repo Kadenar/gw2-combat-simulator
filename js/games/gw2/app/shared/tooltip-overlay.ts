@@ -279,7 +279,8 @@ export function bindWikiTooltips(): void {
         return;
       }
 
-      if (element.dataset.wikiDelay) close();
+      // Retire the old card before scheduling its replacement so a queued scroll cannot cancel the new hover.
+      close();
       openTimer = setTimeout(
         () => {
           if (element.isConnected && element.matches(':hover')) show(element);

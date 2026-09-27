@@ -19,7 +19,10 @@ import {
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/warrior/core/profiles.js';
 import { BERSERKER_BALANCE_PROFILE_IDS as BERSERKER } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as BLADESWORN } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
-import { PARAGON_BALANCE_PROFILE_IDS as PARAGON } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
+import {
+  PARAGON_BALANCE_PROFILE_IDS as PARAGON,
+  PARAGON_COMMAND_ECHO_PROFILES
+} from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 /** Shared skill descriptions retain each selected variant's own effects and balance profiles. */
@@ -33,7 +36,18 @@ const commandTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
           : entity.id === ID.WE_SHALL_RETURN
             ? 'The echo grants adrenaline; revival is outside simulation scope.'
             : 'The defensive echo has no direct damage in the simulator.'),
-    (context) => [profileFact(context, PARAGON.commands, 'pulseInterval', 'Delay before echo', tooltipSeconds)]
+    (context) => {
+      const id = PARAGON_COMMAND_ECHO_PROFILES[Number(entity.id)];
+      return [
+        profileFact(context, PARAGON.commands, 'pulseInterval', 'Delay before echo', tooltipSeconds),
+        ...(id
+          ? [
+              ...simulationEffectFacts(tooltipProfile(context, id).effects, 'on echo').facts,
+              profileFact(context, id, 'resourceGain', 'Adrenaline gained on echo')
+            ]
+          : [])
+      ];
+    }
   )(balanceContext, entity);
 
 const chantTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
@@ -56,9 +70,19 @@ const chantTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
         opening.map((effect) => ({ ...effect, audience: { recipients: 'party' as const } })),
         'on activation'
       ).facts,
-      ...(action
-        ? simulationEffectFacts(tooltipProfile(balanceContext, PARAGON.refrain).effects, 'per refrain tier').facts
-        : []),
+      ...simulationEffectFacts(
+        tooltipProfile(balanceContext, PARAGON.refrain).effects?.filter(
+          (effect) =>
+            effect.type === 'boon' &&
+            (action
+              ? ['might', 'fury']
+              : recovery
+                ? ['regeneration']
+                : ['swiftness', 'resolution', 'protection']
+            ).includes(String(effect.boon))
+        ),
+        'on eligible refrain tier (Might per tier)'
+      ).facts,
       profileFact(balanceContext, PARAGON.chants, 'resourceGain', 'Base Motivation gained'),
       profileFact(balanceContext, PARAGON.resources, 'pulseInterval', 'Refrain pulse interval', tooltipSeconds),
       profileFact(balanceContext, PARAGON.resources, 'minimumStacks', 'Motivation required for tier two'),

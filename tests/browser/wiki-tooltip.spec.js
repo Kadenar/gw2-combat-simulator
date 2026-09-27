@@ -133,6 +133,12 @@ test('rotation skill overlays are delayed and never block clicking', async ({ pa
 
 // Moving directly between adjacent icons must replace the card despite the old icon's pending dismissal.
 test('hover hands the overlay from one item to the next', async ({ page }) => {
+  // Scrolling an adjacent icon into view can deliver scroll after pointerover, while its card is still pending.
+  await page.evaluate(() => {
+    document.addEventListener('pointerover', (event) => {
+      if (event.target.closest('.spec-trait-major')) document.dispatchEvent(new Event('scroll'));
+    });
+  });
   const traits = page.locator('.spec-trait-major');
   const heading = page.locator('#wiki-tooltip strong');
   for (const index of [0, 1, 2, 0]) {
@@ -142,8 +148,12 @@ test('hover hands the overlay from one item to the next', async ({ page }) => {
     await expect(heading).toHaveText(await trait.getAttribute('aria-label'));
   }
 
+  // Scrolling still dismisses an already-open card.
+  await page.evaluate(() => document.dispatchEvent(new Event('scroll')));
+  await expect(heading).toBeHidden();
   const skill = page.locator('#skill-bar .sbar-icon').first();
   await skill.hover();
+  await expect(heading).toBeVisible();
   await expect(heading).toHaveText(await skill.getAttribute('data-wiki-name'));
 });
 

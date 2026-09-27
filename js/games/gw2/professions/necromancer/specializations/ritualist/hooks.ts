@@ -9,7 +9,8 @@ import {
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
-import { buildResolverStrike, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { castCompleted } from '#gw2/platform/skills/timing.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
@@ -228,15 +229,17 @@ function summon(runtime: NecromancerRuntime, cast: RuntimeCast, spirit: Spirit):
   }
 
   if (key === 'anguish') {
-    for (const [condition, stacks, duration] of [
-      ['Crippled', 1, 4],
-      ['Vulnerability', 8, 10]
-    ] as const)
-      queuePacket(
-        runtime,
-        key,
-        buildResolverCondition({ ...attribution(cast), at: runtime.time, condition, stacks, duration })
-      );
+    const opening = requireBalanceProfileFromContext(runtime, PROFILE.anguish);
+    emitEffects(runtime, {
+      owner: opening,
+      effects: opening.effects?.filter((effect) => effect.type === 'condition'),
+      baseEvent: attribution(cast),
+      transform: (event) => ({
+        ...event,
+        name: `${cast.skill.name} — ${event.condition}`,
+        offTarget: cast.command.offTarget
+      })
+    });
     strikes(runtime, cast, spirit, spirit.summonTicks, 'initial');
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.painfulBond);
     const effect = requireEffect(profile, 'buff', 'necromancer-painful-bond');
@@ -257,28 +260,20 @@ function summon(runtime: NecromancerRuntime, cast: RuntimeCast, spirit: Spirit):
   } else if (key === 'wanderlust') {
     strikes(runtime, cast, spirit, spirit.lingeringTicks, 'initial');
     const first = spirit.lingeringTicks[0];
-    if (first)
-      for (const [index, [condition, stacks, duration]] of (
-        [
-          ['Chilled', 1, 2],
-          ['Vulnerability', 4, 6],
-          ['Weakness', 1, 4],
-          ['Slow', 1, 2]
-        ] as const
-      ).entries()) {
-        queuePacket(
-          runtime,
-          key,
-          buildResolverCondition({
-            ...attribution(cast),
-            ...spiritFields(key, 'initial'),
-            at: canonicalTime(runtime.time + first.atMs / 1000 + index + (cast.command.impactDelayMs ?? 0) / 1000),
-            condition,
-            stacks,
-            duration
-          })
-        );
-      }
+    if (first) {
+      const opening = requireBalanceProfileFromContext(runtime, PROFILE.wanderlust);
+      emitEffects(runtime, {
+        owner: opening,
+        effects: opening.effects?.filter((effect) => effect.type === 'condition'),
+        at: canonicalTime(runtime.time + first.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000),
+        baseEvent: { ...attribution(cast), ...spiritFields(key, 'initial') },
+        transform: (event) => ({
+          ...event,
+          name: `${cast.skill.name} — ${event.condition}`,
+          offTarget: cast.command.offTarget
+        })
+      });
+    }
   }
 
   const resources = requireBalanceProfileFromContext(runtime, PROFILE.resources);

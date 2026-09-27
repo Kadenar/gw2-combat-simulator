@@ -10,15 +10,21 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
+import {
+  GW2_STANDARD_BOONS,
+  buffApplicationStacks,
+  buffMatchesAudience,
+  isDurationStackingBoon,
+  remainingDurationStackSeconds,
+  durationStackingBoonCapSeconds
+} from '#gw2/platform/combat/boons.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { eventSkill } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import type { RangerRuntime, RangerResolverContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 // Snapshot the Ranger's configured and still-active boons at command completion,
@@ -26,37 +32,32 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 export function applyRangerCommandTraits(context: RangerRuntime, skill: RangerSkill): void {
   if (!professionCoreState(context).petActive || !hasTrait(context, TRAIT.RESOUNDING_TIMBRE)) return;
 
-  const active = new Map<string, { duration: number; stacks: number }>();
   for (const kind of GW2_STANDARD_BOONS) {
     const configured = context.config.boons?.[kind];
-    const stacks = kind === 'might' ? boundedNumber(configured, 0, 0, 25) : configured ? 1 : 0;
-    if (stacks > 0) active.set(kind, { duration: 3600, stacks });
-  }
-
-  for (const event of context.history) {
-    const kind = (event.kind || '').toLowerCase();
-    const remaining = gw2EffectExpiresAt(event.at, event.duration || 0) - context.time;
-    if (
-      event.type !== 'buff' ||
-      !event.resolvedAudience?.includesSelf ||
-      !isStandardBoon(kind) ||
-      event.at > context.time + EPSILON ||
-      !(remaining > 0)
-    ) {
-      continue;
-    }
-
-    const previous = active.get(kind);
-    active.set(kind, {
-      duration: Math.max(remaining, previous?.duration || 0),
-      stacks: Math.min(
-        kind === 'might' || kind === 'stability' ? 25 : 1,
-        (previous?.stacks || 0) + Math.max(1, event.stacks || 1)
-      )
-    });
-  }
-
-  for (const [kind, application] of active) {
+    const permanent = kind === 'might' ? boundedNumber(configured, 0, 0, 25) : configured ? 1 : 0;
+    const applications = context.boons.get(kind) ?? [];
+    const maximum = kind === 'might' || kind === 'stability' ? 25 : 1;
+    const stacks = Math.min(
+      maximum,
+      permanent + buffApplicationStacks(applications, kind, context.time, maximum, { ordered: true })
+    );
+    if (!stacks) continue;
+    // Duration boons copy their accumulated pool; intensity boons retain their longest live expiry.
+    const duration =
+      permanent > 0
+        ? 3600
+        : isDurationStackingBoon(kind)
+          ? remainingDurationStackSeconds(applications, context.time, {
+              includes: (application) => buffMatchesAudience(application, 'all'),
+              maximum: durationStackingBoonCapSeconds(kind),
+              ordered: true
+            })
+          : Math.max(
+              0,
+              ...applications
+                .filter((application) => application.at <= context.time && buffMatchesAudience(application, 'all'))
+                .map((application) => application.expiresAt - context.time)
+            );
     context.emitProcedural(
       rangerEvent(
         {
@@ -68,8 +69,8 @@ export function applyRangerCommandTraits(context: RangerRuntime, skill: RangerSk
           skillName: 'Resounding Timbre',
           name: `Resounding Timbre - ${kind}`,
           kind,
-          duration: application.duration,
-          stacks: application.stacks,
+          duration,
+          stacks,
           audience: {
             recipients: 'summons' as const,
             affectsSelf: false,

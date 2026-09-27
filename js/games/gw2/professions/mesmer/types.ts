@@ -135,6 +135,7 @@ export interface MesmerMechanics {
   shatterResolvers: Record<string, MesmerShatterResolver>;
   shatterResolvedHandlers: MesmerShatterResolvedHandler[];
   skillCompletionHandlers: MesmerSkillCompletionHandler[];
+  methodOfMadnessCommitted?: (at: number) => void;
   instruments: Record<number, MesmerInstrument>;
   balanceProfile: (id: SkillId) => BalanceProfile | undefined;
   activePrimaryWeapon: MesmerActivePrimaryWeapon;

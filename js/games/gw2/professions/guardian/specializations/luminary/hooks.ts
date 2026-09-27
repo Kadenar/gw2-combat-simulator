@@ -21,7 +21,11 @@ import {
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { emitGuardianBoon, triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/index.js';
+import {
+  emitGuardianBoon,
+  guardianResolutionEffects,
+  triggerGuardianFuriousFocus
+} from '#gw2/professions/guardian/core/traits/index.js';
 import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/shared.js';
 import { guardianRechargeWork } from '#gw2/professions/guardian/core/mechanics/recharge.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -313,24 +317,28 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
     return label ? `Variant: ${label}` : undefined;
   },
   modifyEffects(runtime, cast, effects) {
-    if (cast.skill.id === ID.GLARING_BURST) return cast.cancelled ? [] : burstEffects(runtime, cast);
+    if (cast.skill.id === ID.GLARING_BURST)
+      return cast.cancelled ? [] : guardianResolutionEffects(runtime, burstEffects(runtime, cast));
     if (cast.skill.id !== ID.LUMINOUS_STAFF) return effects;
     // Symbol pulses grant their self boon even when the hostile pulse misses.
     return [
       ...effects,
-      ...effects.flatMap((effect): SkillEffect[] =>
-        effect.type !== 'strike'
-          ? []
-          : strikeEffectTicks(effect).map((tick) => ({
-              type: 'boon',
-              boon: 'resolution',
-              stacks: 1,
-              duration: 1,
-              atMs: tick.atMs,
-              timingAnchor: effect.timingAnchor,
-              timingScale: effect.timingScale,
-              persistsAfterInterrupt: effect.persistsAfterInterrupt
-            }))
+      ...guardianResolutionEffects(
+        runtime,
+        effects.flatMap((effect): SkillEffect[] =>
+          effect.type !== 'strike'
+            ? []
+            : strikeEffectTicks(effect).map((tick) => ({
+                type: 'boon',
+                boon: 'resolution',
+                stacks: 1,
+                duration: 1,
+                atMs: tick.atMs,
+                timingAnchor: effect.timingAnchor,
+                timingScale: effect.timingScale,
+                persistsAfterInterrupt: effect.persistsAfterInterrupt
+              }))
+        )
       )
     ];
   },

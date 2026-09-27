@@ -16,6 +16,35 @@ const cast = (skillId) => ({ type: 'cast', skillId });
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const state = (result) => observedRuntime(result).profession.specialization.state;
 
+// Editing a delayed condition cannot remove a sibling condition or stop the spirit's autonomous lifetime.
+test('Ritualist opening conditions use selected profiles independently of their sibling attacks', () => {
+  for (const [skillId, profileId, removed, retained] of [
+    [ID.ANGUISH, PROFILE.anguish, 'Crippled', 'Vulnerability'],
+    [ID.WANDERLUST, PROFILE.wanderlust, 'Chilled', 'Weakness']
+  ]) {
+    const result = run([cast(ID.RITUALISTS_SHROUD), cast(skillId), wait(13000)], {
+      balanceProfiles: {
+        [profileId]: {
+          removeEffects: [{ type: 'condition', name: removed }],
+          effects: [{ type: 'condition', name: retained, duration: 9 }]
+        }
+      }
+    });
+    assert.deepEqual(result.warnings, []);
+    const conditions = result.events.filter((event) => event.type === 'condition' && event.skillId === skillId);
+    assert.equal(
+      conditions.some((event) => event.condition === removed),
+      false
+    );
+    assert.equal(conditions.find((event) => event.condition === retained).duration, 9);
+    assert.ok(
+      result.events.some(
+        (event) => event.type === 'damage' && event.skillId === skillId && event.actorType === 'summon'
+      )
+    );
+  }
+});
+
 // The same compiled native family supplies the live state, traits, and selected effect-removal profiles.
 function run(
   rotation,

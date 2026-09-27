@@ -22,6 +22,7 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
+import { withSkill, withProfile } from '#tests/helpers/catalog-overrides.js';
 import {
   legalRevenantLegendIds,
   REVENANT_CORE_LEGEND_IDS,
@@ -955,6 +956,61 @@ test('Core Revenant completion traits apply Battle Scarred before Notoriety', ()
       [result.steps[0].end / 1000, TRAIT.BATTLE_SCARRED],
       [result.steps[0].end / 1000, TRAIT.NOTORIETY]
     ]
+  );
+});
+
+// Completion rewards require commitment, while a shortened committed cast keeps the same rewards.
+test('Battle Scarred and Notoriety reject cancelled casts and accept shortened committed casts', () => {
+  for (const [interruptAfterMs, accepted] of [
+    [100, false],
+    [600, true],
+    [undefined, true]
+  ]) {
+    const result = runRevenant(
+      [{ type: 'cast', skillId: SKILL.ENCHANTED_DAGGERS, interruptAfterMs }],
+      {
+        selectedTraitIds: [TRAIT.BATTLE_SCARRED, TRAIT.NOTORIETY]
+      },
+      {
+        catalog: (catalog) => withSkill(catalog, SKILL.ENCHANTED_DAGGERS, { castTimeMs: 1000, interruptCommitMs: 500 })
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const rewards = result.events.filter((event) => [TRAIT.BATTLE_SCARRED, TRAIT.NOTORIETY].includes(event.sourceId));
+    assert.deepEqual(
+      rewards.map((event) => event.sourceId),
+      accepted ? [TRAIT.BATTLE_SCARRED, TRAIT.NOTORIETY] : []
+    );
+    for (const reward of rewards) assert.equal(reward.at, result.steps[0].end / 1000);
+  }
+});
+
+// One eligible strike claims the ICD once while its profile expands into multiple delayed grants.
+test('Vicious Reprisal preserves its hit gate and expands authored repetitions', () => {
+  const result = runRevenant(
+    [{ type: 'wait', durationMs: 2000 }],
+    {
+      selectedTraitIds: [TRAIT.VICIOUS_REPRISAL],
+      boons: { resolution: true }
+    },
+    {
+      catalog: (catalog) =>
+        withProfile(catalog, TRAIT.VICIOUS_REPRISAL, {
+          effects: catalog.balanceProfilesById
+            .get(TRAIT.VICIOUS_REPRISAL)
+            .effects.map((effect) => ({ ...effect, atMs: 500, applications: 2, intervalMs: 200 }))
+        }),
+      initialize(runtime) {
+        runtime.emit(revenantHit(0.1));
+        runtime.emit(revenantHit(0.2));
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const boons = result.events.filter((event) => event.sourceId === TRAIT.VICIOUS_REPRISAL);
+  assert.deepEqual(
+    boons.map((event) => event.at),
+    [0.6, 0.8]
   );
 });
 

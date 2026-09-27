@@ -13,6 +13,39 @@ import { elementalistProfession } from '#gw2/professions/elementalist/profession
 import { elementalistCoreModifierRules } from '#gw2/professions/elementalist/core/modifiers.js';
 import { weaverModifierRules } from '#gw2/professions/elementalist/specializations/weaver/modifiers.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
+
+// Shared expansion preserves completion attribution while honoring authored offsets and repeated boon grants.
+test('Gale Song and Bolstered Elements expand their selected boon profile at completion', () => {
+  for (const [specialization, trait, name] of [
+    ['Tempest', TRAIT.GALE_SONG, 'Glyph of Elemental Harmony'],
+    ['Weaver', TRAIT.BOLSTERED_ELEMENTS, 'Primordial Stance (Fire)']
+  ]) {
+    const config = { specialization, selectedSkills: [name], selectedTraitIds: [trait], target: { armor: 2597 } };
+    const result = runElementalist({
+      config,
+      rotation: [name, { type: 'wait', durationMs: 2000 }],
+      profession: {
+        ...elementalistProfession,
+        runtimeFor(config) {
+          const native = elementalistProfession.runtimeFor(config);
+          const effects = native.catalog.balanceProfilesById
+            .get(trait)
+            .effects.map((effect) => ({ ...effect, atMs: 500, applications: 2, intervalMs: 200 }));
+          return { ...native, catalog: withProfile(native.catalog, trait, { effects }) };
+        }
+      }
+    });
+    assert.deepEqual(result.warnings, []);
+    const action = result.events.find((event) => event.type === 'action' && event.skillName === name);
+    const boons = result.events.filter((event) => event.kind === 'protection');
+    assert.deepEqual(
+      boons.map((event) => Math.round((event.at - action.endsAt) * 1000)),
+      [500, 700]
+    );
+    assert.ok(boons.every((event) => event.activationId === action.activationId));
+  }
+});
 
 // Attribute assertions use the same calculator composed into the Elementalist adapter.
 const calculateAttributes = createCalculateAttributes(applyElementalistBuildAttributeRules);

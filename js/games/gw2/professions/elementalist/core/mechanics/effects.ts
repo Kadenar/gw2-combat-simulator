@@ -7,6 +7,7 @@
  */
 import { emitElementalistBuff, emitElementalistCondition } from '#gw2/professions/elementalist/core/events.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import type { ElementalistAuraState, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
@@ -45,7 +46,7 @@ export function elementalistEventSkill(context: ElementalistRuntime, source: str
   );
 }
 
-/** Emit only the surviving named boon, using the selected profile's validated values. */
+/** Expand the surviving named boon at its existing lifecycle position, retaining cast ownership and priority. */
 export function emitProfiledBuff(
   context: ElementalistRuntime,
   at: number,
@@ -59,21 +60,23 @@ export function emitProfiledBuff(
   const profile = requireBalanceProfileFromContext(context, profileId);
   const effect = requireEffect(profile, 'boon', effectName);
   if (!effect) return;
-  const kind = String(effect.boon).toLowerCase();
-
-  emitElementalistBuff(context, {
-    skill: elementalistEventSkill(context, source, sourceId),
-    at,
-    source,
-    sourceId,
-    actorType: 'player',
-    kind,
-    stacks: Number(effect.stacks),
-    duration: effect.duration,
-    skillName: source,
-    priority,
-    ...(recipients === 'party' ? { audience: { recipients: 'party' as const, maximumRecipients: 5 } } : {})
-  });
+  const skill = elementalistEventSkill(context, source, sourceId);
+  for (const { event } of materializeSkillEffectApplications({
+    skill: profile,
+    effect,
+    start: at,
+    fullEnd: at,
+    baseEvent: { source, sourceId, actorType: 'player', skillId: skill.id, skillName: source }
+  }))
+    emitElementalistBuff(context, {
+      ...event,
+      skill,
+      name: source,
+      kind: String(event.kind),
+      duration: Number(event.duration),
+      priority,
+      ...(recipients === 'party' ? { audience: { recipients: 'party' as const, maximumRecipients: 5 } } : {})
+    });
 }
 
 /** A removed condition emits nothing; surviving Burning still exposes each stack to relics. */

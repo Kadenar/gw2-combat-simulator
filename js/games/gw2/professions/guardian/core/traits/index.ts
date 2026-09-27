@@ -140,9 +140,6 @@ export function guardianTraitEffects(
     }
   }
 
-  const multiplier = hasTrait(runtime, TRAIT.VIRTUE_OF_RESOLUTION)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.virtueOfResolution), 'durationMultiplier')
-    : 1;
   const selected = [...effects, ...extra];
   // A symbol's self boon belongs to each pulse even when its hostile packet misses the target.
   if (skill.id === ID.SYMBOL_OF_RESOLUTION)
@@ -161,7 +158,15 @@ export function guardianTraitEffects(
         });
     }
 
-  return selected.map((effect) =>
+  return guardianResolutionEffects(runtime, selected);
+}
+
+/** Core and elite-created effects receive the same Resolution adjustment exactly once. */
+export function guardianResolutionEffects(runtime: Runtime, effects: readonly SkillEffect[]): readonly SkillEffect[] {
+  const multiplier = hasTrait(runtime, TRAIT.VIRTUE_OF_RESOLUTION)
+    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.virtueOfResolution), 'durationMultiplier')
+    : 1;
+  return effects.map((effect) =>
     effect.type === 'boon' && String(effect.boon ?? effect.name).toLowerCase() === 'resolution'
       ? { ...effect, duration: effect.duration * multiplier }
       : effect

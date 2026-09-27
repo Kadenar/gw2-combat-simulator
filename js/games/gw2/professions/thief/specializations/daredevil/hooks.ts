@@ -9,14 +9,9 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import {
-  deferThiefCompletion,
-  emitThiefBuff,
-  emitThiefCondition,
-  emitThiefDamage,
-  takeThiefCompletion
-} from '#gw2/professions/thief/core/events.js';
+import { deferThiefCompletion, emitThiefBuff, takeThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import { grantThiefEndurance, thiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
@@ -55,59 +50,32 @@ function queueDodgePackets(runtime: ThiefRuntime, cast: RuntimeCast): void {
   if (!profile) return;
   const skill = cast.skill as ThiefSkill;
   const name = dodgeSkillName(runtime);
-  const common = {
-    source: 'Trait',
-    sourceId: profile.id,
-    skillId: skill.id,
-    skillName: name,
-    // Dodge damage uses the triggered skill's art while retaining its trait attribution.
-    icon: runtime.helpers.skillsByName.get(name)?.icon,
-    activationId: cast.id,
-    name
-  };
-  for (const effect of profile.effects || []) {
-    const at = effect.atMs == null ? cast.effectiveEnd : cast.start + effect.atMs / 1000;
-    if (effect.type === 'strike') {
-      const ticks = effect.ticks ?? [];
-      if (ticks.length)
-        for (const [index, tick] of ticks.entries())
-          emitThiefDamage(runtime, null, {
-            ...common,
-            source: 'thief',
-            at: cast.start + tick.atMs / 1000,
-            coefficient: tick.coefficient,
-            hitIndex: index + 1,
-            totalHits: ticks.length,
-            skillWeapon: 'Unequipped'
-          });
-      else
-        emitThiefDamage(runtime, null, {
-          ...common,
-          source: 'thief',
-          at,
-          coefficient: effectNumber(profile, effect, 'coefficient'),
-          skillWeapon: 'Unequipped'
-        });
-    } else if (effect.type === 'condition')
-      emitThiefCondition(runtime, null, {
-        ...common,
-        at,
-        name: `${name} — ${effect.condition}`,
-        condition: String(effect.condition),
-        stacks: effectNumber(profile, effect, 'stacks'),
-        duration: effectNumber(profile, effect, 'duration')
-      });
-    else if (effect.type === 'boon')
-      emitThiefBuff(runtime, skill, {
-        ...common,
-        at,
-        name: `${name} — ${effect.boon}`,
-        boon: effect.boon,
-        kind: String(effect.boon).toLowerCase(),
-        stacks: effectNumber(profile, effect, 'stacks'),
-        duration: effectNumber(profile, effect, 'duration')
-      });
-  }
+  emitEffects(runtime, {
+    owner: profile,
+    // Dodge offsets default to acceptance; effects without offsets still land at completion.
+    effects: profile.effects?.map((effect) => ({ timingAnchor: 'castStart', ...effect })),
+    at: cast.start,
+    fullEnd: cast.effectiveEnd,
+    skillWeaponFallback: 'Unequipped',
+    baseEvent: (effect) => ({
+      source: effect.type === 'strike' ? 'thief' : 'Trait',
+      sourceId: profile.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: name,
+      activationId: cast.id
+    }),
+    transform: (event, effect) => ({
+      ...event,
+      icon: runtime.helpers.skillsByName.get(name)?.icon,
+      name:
+        effect.type === 'condition'
+          ? `${name} — ${effect.condition}`
+          : effect.type === 'boon'
+            ? `${name} — ${effect.boon}`
+            : name
+    })
+  });
 }
 
 /**

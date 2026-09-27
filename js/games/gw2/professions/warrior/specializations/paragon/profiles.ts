@@ -1,12 +1,15 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 export const PARAGON_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'warrior.paragon.motivation',
   refrain: 'warrior.paragon.refrain',
   chants: 'warrior.paragon.chants',
   commands: 'warrior.paragon.command-echoes',
+  findTheirWeaknessEcho: 'warrior.paragon.find-their-weakness-echo',
+  onYourKneesEcho: 'warrior.paragon.on-your-knees-echo',
+  weShallReturnEcho: 'warrior.paragon.we-shall-return-echo',
   strengtheningStanzas: TRAIT.STRENGTHENING_STANZAS,
   briskPacing: TRAIT.BRISK_PACING,
   inspiringImplements: TRAIT.INSPIRING_IMPLEMENTS,
@@ -18,12 +21,26 @@ export const PARAGON_BALANCE_PROFILE_IDS = Object.freeze({
   reverberation: TRAIT.REVERBERATION
 });
 
+/** Echo payloads are separate from command entry effects and share identities with their tooltips. */
+export const PARAGON_COMMAND_ECHO_PROFILES: Readonly<Partial<Record<number, string>>> = Object.freeze({
+  [ID.FIND_THEIR_WEAKNESS]: PARAGON_BALANCE_PROFILE_IDS.findTheirWeaknessEcho,
+  [ID.ON_YOUR_KNEES]: PARAGON_BALANCE_PROFILE_IDS.onYourKneesEcho,
+  [ID.WE_SHALL_RETURN]: PARAGON_BALANCE_PROFILE_IDS.weShallReturnEcho
+});
+
 export const PARAGON_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   {
     id: PARAGON_BALANCE_PROFILE_IDS.refrain,
-    name: 'Chant of Action - Refrain',
+    name: 'Paragon Refrains',
     profileKind: 'mechanic',
-    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 1, duration: 8 }]
+    effects: [
+      { name: 'might', type: 'boon', boon: 'might', stacks: 1, duration: 8 },
+      { name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 5 },
+      { name: 'regeneration', type: 'boon', boon: 'regeneration', stacks: 1, duration: 3 },
+      { name: 'swiftness', type: 'boon', boon: 'swiftness', stacks: 1, duration: 3 },
+      { name: 'resolution', type: 'boon', boon: 'resolution', stacks: 1, duration: 3 },
+      { name: 'protection', type: 'boon', boon: 'protection', stacks: 1, duration: 3 }
+    ]
   },
   {
     id: PARAGON_BALANCE_PROFILE_IDS.resources,
@@ -46,6 +63,30 @@ export const PARAGON_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
       { name: 'vigor', type: 'boon', boon: 'vigor', stacks: 1, duration: 5 },
       { name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 3 }
     ]
+  },
+  {
+    id: PARAGON_BALANCE_PROFILE_IDS.findTheirWeaknessEcho,
+    name: 'Find Their Weakness - Echo',
+    profileKind: 'mechanic',
+    resourceGain: 3,
+    effects: [{ type: 'boon', name: 'might', boon: 'might', duration: 10, stacks: 7 }]
+  },
+  {
+    id: PARAGON_BALANCE_PROFILE_IDS.onYourKneesEcho,
+    name: 'On Your Knees - Echo',
+    profileKind: 'mechanic',
+    resourceGain: 0,
+    effects: [
+      { type: 'strike', name: 'Echo Damage', coefficient: 1.5, hits: 1 },
+      { type: 'condition', name: 'Echo Immobilized', condition: 'Immobilized', duration: 2, stacks: 1 }
+    ]
+  },
+  {
+    id: PARAGON_BALANCE_PROFILE_IDS.weShallReturnEcho,
+    name: 'We Shall Return - Echo',
+    profileKind: 'mechanic',
+    resourceGain: 10,
+    effects: []
   },
   {
     id: PARAGON_BALANCE_PROFILE_IDS.commands,

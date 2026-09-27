@@ -131,5 +131,7 @@ export function triggerMethodOfMadness(
     }
   );
   context.addTraitProc('Method of Madness', at, skill.name);
+  // Elite consequences follow the accepted mechanic, independently of its diagnostic marker.
+  mesmerMechanicsFor(context.state).methodOfMadnessCommitted?.(at);
   context.state.procs.readyAt[TRAIT.METHOD_OF_MADNESS] = at + (storm.cooldown || 0);
 }

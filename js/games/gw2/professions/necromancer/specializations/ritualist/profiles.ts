@@ -72,7 +72,10 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         duration: 2,
         actorType: 'player',
         name: 'Summon Spirits - Anguish'
-      }
+      },
+      // Opening conditions are independently patchable and removable from the barrage.
+      { type: 'condition', name: 'Crippled', condition: 'Crippled', stacks: 1, duration: 4 },
+      { type: 'condition', name: 'Vulnerability', condition: 'Vulnerability', stacks: 8, duration: 10 }
     ]
   },
   {
@@ -120,7 +123,12 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         duration: 1.8,
         actorType: 'player',
         name: 'Summon Spirits - Wanderlust'
-      }
+      },
+      // Offsets follow the field's first impact, including its travel delay.
+      { type: 'condition', name: 'Chilled', condition: 'Chilled', stacks: 1, duration: 2, atMs: 0 },
+      { type: 'condition', name: 'Vulnerability', condition: 'Vulnerability', stacks: 4, duration: 6, atMs: 1000 },
+      { type: 'condition', name: 'Weakness', condition: 'Weakness', stacks: 1, duration: 4, atMs: 2000 },
+      { type: 'condition', name: 'Slow', condition: 'Slow', stacks: 1, duration: 2, atMs: 3000 }
     ]
   },
   {

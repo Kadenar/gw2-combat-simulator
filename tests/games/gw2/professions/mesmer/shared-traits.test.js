@@ -2,9 +2,65 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { simulateMesmer, runMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCoreModifierRules } from '#gw2/professions/mesmer/core/modifiers.js';
+
+// Accepted mechanics drive combat even if diagnostic logging is suppressed, in either output mode.
+test('Method of Madness commits Syncopate independently of its proc marker', () => {
+  for (const scenario of ['completed', 'cancelled', 'cooldown', 'removed']) {
+    const config = defaultSimulationConfig({
+      specialization: 'Troubadour',
+      selectedTraitIds: [TRAIT.METHOD_OF_MADNESS, TRAIT.SYNCOPATE]
+    });
+    const run = (suppress, output = 'detailed') =>
+      runMesmer({
+        config,
+        output,
+        rotation: [
+          { name: 'Ether Feast', ...(scenario === 'cancelled' ? { interruptAfterMs: 1 } : {}) },
+          { type: 'wait', durationMs: 1000 }
+        ],
+        profession: {
+          ...mesmerProfession,
+          runtimeFor(config) {
+            const native = mesmerProfession.runtimeFor(config);
+            return {
+              ...native,
+              ...(scenario === 'removed'
+                ? {
+                    catalog: applyBalanceProfilePatch(native.catalog, {
+                      balanceProfiles: { [TRAIT.METHOD_OF_MADNESS]: { removeEffects: [{ type: 'strike', all: true }] } }
+                    })
+                  }
+                : {}),
+              prepareEvent(runtime, event) {
+                if (suppress && event.type === 'proc' && event.sourceId === 'Method of Madness') return null;
+                return native.prepareEvent(runtime, event);
+              }
+            };
+          }
+        },
+        initialize(runtime) {
+          if (scenario === 'cooldown') runtime.procs.readyAt[TRAIT.METHOD_OF_MADNESS] = 100;
+        }
+      });
+    const normal = run(false);
+    const suppressed = run(true);
+    assert.deepEqual(suppressed.warnings, []);
+    const waves = suppressed.events.filter((event) => event.type === 'damage' && event.skillName === 'Syncopate');
+    assert.equal(waves.length, scenario === 'completed' ? 1 : 0);
+    assert.equal(
+      suppressed.events.some((event) => event.type === 'proc' && event.sourceId === 'Method of Madness'),
+      false
+    );
+    if (waves.length) assert.equal(Math.round(waves[0].at * 1000), suppressed.steps[0].end);
+    assert.equal(suppressed.totalDamage, normal.totalDamage);
+    assert.equal(run(true, 'score').totalDamage, normal.totalDamage);
+  }
+});
 
 test('Mental Anguish uses explicit nested shatter eligibility', () => {
   // Only explicitly eligible packets receive this modifier.

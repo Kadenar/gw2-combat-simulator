@@ -1,5 +1,6 @@
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -64,7 +65,12 @@ export const reaperHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = 
     'condition.applied': reaperResolverEventReactions.condition,
     'control.resolved': reaperResolverEventReactions.control,
     'buff.applied'(runtime, event) {
-      if (event.resolvedAudience?.includesSelf && hasTrait(runtime, TRAIT.BLIGHTERS_BOON)) {
+      // Personal statuses share this stage with boons but must not award Blighter's Boon life force.
+      if (
+        isStandardBoon(event.kind) &&
+        event.resolvedAudience?.includesSelf &&
+        hasTrait(runtime, TRAIT.BLIGHTERS_BOON)
+      ) {
         grantNecromancerLifeForce(
           runtime,
           balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.blightersBoon), 'lifeForceGain')

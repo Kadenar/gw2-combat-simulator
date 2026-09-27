@@ -28,6 +28,40 @@ const state = (result) => observedRuntime(result).profession.specialization.stat
 const core = (result) => observedRuntime(result).profession.core;
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);
 
+// Removing one delayed component preserves entry effects, sibling packets, and the echo's consumption lifecycle.
+test('Paragon delayed payloads use independent profiles without changing entry effects or echo lifetimes', () => {
+  const source = withPatchPreview(warriorProfession, {
+    id: 'delayed-payloads',
+    label: 'Delayed payloads',
+    professions: {
+      warrior: {
+        balanceProfiles: {
+          [PROFILE.refrain]: { removeEffects: [{ type: 'boon', name: 'fury' }] },
+          [PROFILE.onYourKneesEcho]: {
+            removeEffects: [{ type: 'strike', name: 'Echo Damage' }],
+            effects: [{ type: 'condition', name: 'Echo Immobilized', duration: 7 }]
+          },
+          [PROFILE.findTheirWeaknessEcho]: { fields: { resourceGain: 6 } }
+        }
+      }
+    }
+  });
+  const chant = run(['Chant of Action', wait(3000)], { patchId: 'delayed-payloads' }, source);
+  const fury = chant.events.filter((event) => event.kind === 'fury');
+  assert.equal(fury.length, 1);
+  assert.equal(fury[0].at, chant.steps[0].end / 1000);
+  const command = run([ID.ON_YOUR_KNEES, wait(3500)], { patchId: 'delayed-payloads' }, source);
+  assert.equal(
+    command.events.some((event) => event.name?.endsWith('Echo Damage')),
+    false
+  );
+  assert.equal(command.events.find((event) => event.name?.endsWith('Echo Immobilized')).duration, 7);
+  assert.deepEqual(state(command).commandEchoes, {});
+  const baseline = run([ID.FIND_THEIR_WEAKNESS, wait(3500)], { initialResource: 0 });
+  const tuned = run([ID.FIND_THEIR_WEAKNESS, wait(3500)], { initialResource: 0, patchId: 'delayed-payloads' }, source);
+  assert.equal(core(tuned).adrenaline - core(baseline).adrenaline, 3);
+});
+
 test('chants and weapon bursts spend one bar and expose only live projected state', () => {
   const chant = run(['Chant of Action']);
   assert.deepEqual(chant.warnings, []);
