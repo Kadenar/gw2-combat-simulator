@@ -43,7 +43,8 @@ import { armElementalistElementalLightningJolt } from '#gw2/professions/elementa
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_OVERLOAD_SKILL_IDS,
-  ELEMENTALIST_SKILL_IDS as ID
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
@@ -58,7 +59,7 @@ const OVERLOAD_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_OVERLOAD_S
  * This is the shout half of the trait; its damage buff is refreshed by auras in the resolver.
  */
 export function applyTempestShoutTraits(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  if (!hasTrait(context, 'Tempestuous Aria')) return;
+  if (!hasTrait(context, TRAIT.TEMPESTUOUS_ARIA)) return;
   // Keep the party reward at this committed shout's completion while reusing named profile emission.
   emitProfiledBuff(
     context,
@@ -99,7 +100,7 @@ function availability(context: ElementalistRuntime, skill: Skill): AvailabilityR
   const overloadsProfile = requireBalanceProfileFromContext(context, PROFILE.overloads);
   // Transcendent Tempest shortens the dwell, and alacrity speeds the singularity's formation.
   const dwell =
-    (hasTrait(context, 'Transcendent Tempest')
+    (hasTrait(context, TRAIT.TRANSCENDENT_TEMPEST)
       ? balanceProfileNumber(overloadsProfile, 'durationMultiplier')
       : balanceProfileNumber(overloadsProfile, 'initialDelay')) / 1.25;
   // The configured starting attunement carries a negative entry stamp and needs no dwell.
@@ -117,7 +118,7 @@ function availability(context: ElementalistRuntime, skill: Skill): AvailabilityR
 // Derive Lucid Singularity boon pulses from the overload's actual emitted hits,
 // preserving interruption behavior and the distinct final-pulse duration.
 function afterCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  if (!skill.overload || !hasTrait(context, 'Lucid Singularity')) return;
+  if (!skill.overload || !hasTrait(context, TRAIT.LUCID_SINGULARITY)) return;
   const lucidSingularityProfile = requireBalanceProfileFromContext(context, PROFILE.lucidSingularity);
   const hits = (skill.effects ?? [])
     .flatMap((effect) =>
@@ -168,7 +169,7 @@ function afterCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill
 // for overloads the attunement lockout and each completion trait.
 function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   // Committed shortened heals retain the same reward before overload-specific completion work.
-  if (skill.type === 'Heal' && hasTrait(context, 'Gale Song'))
+  if (skill.type === 'Heal' && hasTrait(context, TRAIT.GALE_SONG))
     emitProfiledBuff(context, cast.effectiveEnd, PROFILE.galeSong, 'Protection', 'Gale Song', skill.id);
 
   if (!skill.overload) return;
@@ -182,7 +183,7 @@ function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: 
     }
   }
 
-  if (hasTrait(context, 'Unstable Conduit')) {
+  if (hasTrait(context, TRAIT.UNSTABLE_CONDUIT)) {
     const aura =
       attunement === 'Fire'
         ? 'Fire Aura'
@@ -275,7 +276,7 @@ function onAttunementEvent(context: ElementalistRuntime, event: SimulationEvent)
   }
 
   // Latent Stamina: vigor on attuning to water, throttled by its own internal cooldown stamp.
-  if (event.type === 'elementalist.attunement' && event.to === 'Water' && hasTrait(context, 'Latent Stamina')) {
+  if (event.type === 'elementalist.attunement' && event.to === 'Water' && hasTrait(context, TRAIT.LATENT_STAMINA)) {
     if (isInternalCooldownReady(event.at, context.procs.deadline('elementalist.tempest.latentStamina'))) {
       const latentStaminaProfile = requireBalanceProfileFromContext(context, PROFILE.latentStamina);
       context.procs.readyAt['elementalist.tempest.latentStamina'] =

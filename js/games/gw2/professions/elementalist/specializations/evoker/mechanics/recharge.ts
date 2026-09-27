@@ -12,6 +12,7 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * Spends an armed Elemental Balance window on the next non-autoattack weapon
@@ -24,7 +25,7 @@ export function commitRechargeDuration(context: ElementalistRuntime, skill: Skil
     !skill ||
     skill.type !== 'Weapon' ||
     String(skill.slot) === 'Weapon_1' ||
-    !hasTrait(context, 'Elemental Balance')
+    !hasTrait(context, TRAIT.ELEMENTAL_BALANCE)
   ) {
     return duration;
   }

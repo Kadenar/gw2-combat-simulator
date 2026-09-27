@@ -29,7 +29,10 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 
 import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/index.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   isElementalistAttunement,
@@ -89,7 +92,7 @@ function initialize(context: ElementalistRuntime): void {
   state.secondaryAttunement = isElementalistAttunement(context.config.secondaryAttunement)
     ? context.config.secondaryAttunement
     : core.primaryAttunement;
-  if (core.primaryAttunement === state.secondaryAttunement && hasTrait(context, 'Elements of Rage')) {
+  if (core.primaryAttunement === state.secondaryAttunement && hasTrait(context, TRAIT.ELEMENTS_OF_RAGE)) {
     const elementsOfRageProfile = requireBalanceProfileFromContext(context, PROFILE.elementsOfRage);
     emitElementalistBuff(context, {
       skill: elementalistEventSkill(context, 'Starting Attunement', 'starting-attunement'),
@@ -108,7 +111,7 @@ function initialize(context: ElementalistRuntime): void {
 // Enforce Weaver's dual-hand attunement model, Unravel replacement state, and
 // specialization-only skill gates before Core evaluates ordinary weapon rules.
 function availability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
-  if (skill.id === ID.UNRAVEL && !hasTrait(context, 'Elements of Rage')) {
+  if (skill.id === ID.UNRAVEL && !hasTrait(context, TRAIT.ELEMENTS_OF_RAGE)) {
     return denySkillCast(skill, 'elementalist.weaver-elements-of-rage', `requires Elements of Rage.`);
   }
 
@@ -170,7 +173,7 @@ function availability(context: ElementalistRuntime, skill: Skill): AvailabilityR
 // on every attunement swap keep the hands in sync, advance Weave Self, and fire
 // the swap-triggered Weaver traits.
 function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): void {
-  if (event.type === 'control' && event.actorType === 'player' && hasTrait(context, 'Elemental Pursuit')) {
+  if (event.type === 'control' && event.actorType === 'player' && hasTrait(context, TRAIT.ELEMENTAL_PURSUIT)) {
     emitProfiledBuff(
       context,
       event.at,
@@ -207,7 +210,7 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
   }
 
   // Fully attuned setup swaps can carry Elements of Rage into the opener.
-  if ((target === previous || unravelActive) && hasTrait(context, 'Elements of Rage')) {
+  if ((target === previous || unravelActive) && hasTrait(context, TRAIT.ELEMENTS_OF_RAGE)) {
     const elementsOfRageProfile = requireBalanceProfileFromContext(context, PROFILE.elementsOfRage);
     emitElementalistBuff(context, {
       skill: elementalistEventSkill(context, source, sourceId),
@@ -226,7 +229,7 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
 
   // Pre-combat setup swaps must not generate trait procs.
   if (at < Number(context.combatStartTime || 0) - EPSILON) return;
-  if (hasTrait(context, "Weaver's Prowess") && (unravelActive || target === previous)) {
+  if (hasTrait(context, TRAIT.WEAVERS_PROWESS) && (unravelActive || target === previous)) {
     const weaversProwessProfile = requireBalanceProfileFromContext(context, PROFILE.weaversProwess);
     const resistance = requireEffect(weaversProwessProfile, 'boon', 'Resistance');
     if (resistance) {
@@ -287,12 +290,12 @@ function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: 
   applyWeaverPistolState(context, cast, skill);
   applyWeaverHammerState(context, cast, skill);
 
-  if (hasTrait(context, 'Bolstered Elements') && skill.skillFamily === 'Stance') {
+  if (hasTrait(context, TRAIT.BOLSTERED_ELEMENTS) && skill.skillFamily === 'Stance') {
     emitProfiledBuff(context, at, PROFILE.bolsteredElements, 'Protection', skill.name, skill.id);
   }
 
   // Swift Revenge pays out per element of the dual skill that was just cast.
-  if (hasTrait(context, 'Swift Revenge') && dualAttunements) {
+  if (hasTrait(context, TRAIT.SWIFT_REVENGE) && dualAttunements) {
     for (const element of dualAttunements) {
       if (element === 'Fire') {
         emitProfiledBuff(context, at, PROFILE.swiftRevenge, 'Fire', skill.name, skill.id);
@@ -309,7 +312,7 @@ function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: 
   // Superior Elements applies Weakness on dual attacks behind its own internal
   // cooldown, tracked in Weaver state.
   if (
-    hasTrait(context, 'Superior Elements') &&
+    hasTrait(context, TRAIT.SUPERIOR_ELEMENTS) &&
     dualAttunements &&
     isInternalCooldownReady(at, context.procs.deadline('elementalist.weaver.superiorElements'))
   ) {
@@ -375,7 +378,7 @@ function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: 
       });
     }
 
-    if (hasTrait(context, 'Elements of Rage') && previousPrimary !== previousSecondary) {
+    if (hasTrait(context, TRAIT.ELEMENTS_OF_RAGE) && previousPrimary !== previousSecondary) {
       const elementsOfRageProfile = requireBalanceProfileFromContext(context, PROFILE.elementsOfRage);
       emitElementalistBuff(context, {
         skill: skill,

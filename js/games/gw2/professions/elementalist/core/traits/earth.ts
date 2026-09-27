@@ -12,7 +12,10 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { ElementalistRuntime, ElementalistResolverContext } from '#gw2/professions/elementalist/types.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   combatStarted,
@@ -30,7 +33,7 @@ const EARTHEN_BLAST_ICON = 'https://render.guildwars2.com/file/2531DCAFAEAB452C9
 
 /** Emits Earthen Blast's uncritable strike after entering Earth in combat. */
 export function triggerEarthenBlast(context: ElementalistRuntime, at: number, sourceId: Skill['id']): void {
-  if (!combatStarted(context, at) || !hasTrait(context, 'Earthen Blast')) return;
+  if (!combatStarted(context, at) || !hasTrait(context, TRAIT.EARTHEN_BLAST)) return;
   // Use the same attunement or overload trigger for the damage packet and its proc record.
   const sourceSkill = context.helpers.skillsById.get(sourceId)?.name || '';
   const earthenBlastProfile = requireBalanceProfileFromContext(context, PROFILE.earthenBlast);
@@ -63,14 +66,14 @@ export function triggerEarthenBlast(context: ElementalistRuntime, at: number, so
 
 /** Grants Rock Solid's Stability after entering Earth in combat. */
 export function grantElementalistRockSolid(context: ElementalistRuntime, at: number, sourceId: Skill['id']): void {
-  if (!combatStarted(context, at) || !hasTrait(context, 'Rock Solid')) return;
+  if (!combatStarted(context, at) || !hasTrait(context, TRAIT.ROCK_SOLID)) return;
   emitProfiledBuff(context, at, PROFILE.rockSolid, 'Stability', 'Rock Solid', sourceId);
 }
 
 /** Grants Earth's Embrace Resistance from an eligible healing skill. */
 export function applyEarthsEmbrace(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   const at = cast.effectiveEnd;
-  if (!hasTrait(context, "Earth's Embrace")) return;
+  if (!hasTrait(context, TRAIT.EARTHS_EMBRACE)) return;
   const earthsEmbraceProfile = requireBalanceProfileFromContext(context, PROFILE.earthsEmbrace);
   // Claim the existing owner-local timer before any derived effect.
   if (!context.procs.claimCooldown('earthsEmbrace', at, balanceProfileNumber(earthsEmbraceProfile, 'internalCooldown')))
@@ -85,7 +88,7 @@ export function applyWrittenInStone(
   skill: Skill,
   applyAura: ElementalistAuraApplier
 ): void {
-  if (!hasTrait(context, 'Written in Stone') || skill.skillFamily !== 'Signet') return;
+  if (!hasTrait(context, TRAIT.WRITTEN_IN_STONE) || skill.skillFamily !== 'Signet') return;
   const signet =
     skill.id === ID.SIGNET_OF_RESTORATION
       ? 'Restoration'
@@ -110,7 +113,7 @@ export function applyWrittenInStone(
 
 /** Applies Strength of Stone after an already-classified immobilize event. */
 export function applyStrengthOfStone(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
-  if (!hasTrait(context, 'Strength of Stone')) return;
+  if (!hasTrait(context, TRAIT.STRENGTH_OF_STONE)) return;
   const strengthOfStoneProfile = requireBalanceProfileFromContext(context, PROFILE.strengthOfStone);
   // Claim the existing owner-local timer before any derived effect.
   if (
@@ -149,7 +152,7 @@ function elementalShieldingEffect(context: unknown) {
 
 /** Grants resolver-side Elemental Shielding protection for one classified aura event. */
 export function applyResolverElementalShielding(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  if (!hasTrait(context, 'Elemental Shielding')) return;
+  if (!hasTrait(context, TRAIT.ELEMENTAL_SHIELDING)) return;
   const protection = elementalShieldingEffect(context);
   if (!protection) return;
   queueElementalistBuff(

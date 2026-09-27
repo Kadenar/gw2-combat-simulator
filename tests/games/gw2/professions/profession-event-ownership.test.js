@@ -21,6 +21,7 @@ import { REVENANT_TRAIT_IDS } from '#gw2/professions/revenant/data/ids.js';
 import { revenantCoreModifierRules } from '#gw2/professions/revenant/core/modifiers.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
 import { thiefCoreModifierRules } from '#gw2/professions/thief/core/modifiers.js';
+import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 
 const OWNERSHIP_CASES = Object.freeze([
   ['player actor', { actorType: 'player' }, true],
@@ -52,14 +53,17 @@ const revenantFerociousAggression = modifierRule(revenantCoreModifierRules, 'rev
 const thiefExposedWeakness = modifierRule(thiefCoreModifierRules, 'thief.exposed-weakness');
 
 const PLAYER_MODIFIER_PREDICATES = Object.freeze([
-  ['Elementalist core', (event) => elementalistStormsoul.when({ time: 1, event, traits: new Set(['Stormsoul']) })],
+  [
+    'Elementalist core',
+    (event) => elementalistStormsoul.when({ time: 1, event, traits: new Set([ELEMENTALIST_TRAIT_IDS.STORMSOUL]) })
+  ],
   [
     'Weaver',
     (event) =>
       weaverSuperiorElements.when({
         time: 1,
         event,
-        traits: new Set(['Superior Elements']),
+        traits: new Set([ELEMENTALIST_TRAIT_IDS.SUPERIOR_ELEMENTS]),
         query: { targetHasCondition: () => true }
       })
   ],

@@ -18,6 +18,7 @@ import {
   refreshElementalistBuffs
 } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * Convert resolved auras into Tempest trait boons and effects after the aura has been accepted by
@@ -25,7 +26,7 @@ import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/element
  * Torrents and Elemental Bastion boons for resolver-owned auras, recording each trait that fired as a proc.
  */
 export function applyTempestResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
-  if (hasTrait(context, 'Tempestuous Aria')) {
+  if (hasTrait(context, TRAIT.TEMPESTUOUS_ARIA)) {
     const tempestuousAriaProfile = requireBalanceProfileFromContext(context, PROFILE.tempestuousAria);
     const extension = balanceProfileNumber(tempestuousAriaProfile, 'durationMultiplier');
     const maximum = balanceProfileNumber(tempestuousAriaProfile, 'maximumStacks');
@@ -45,9 +46,13 @@ export function applyTempestResolverAura(context: ElementalistResolverContext, e
     context.recordProc('trait', 'Tempestuous Aria', event.at, resolverSourceSkill(event), '', '', null, expiresAt);
   }
 
-  // Both skill and combo auras grant their trait boons only after actual application.
-  for (const trait of ['Invigorating Torrents', 'Elemental Bastion'] as const) {
-    if (!hasTrait(context, trait)) continue;
+  // Both skill and combo auras grant their trait boons only after actual application. Selection is by trait ID; the
+  // name only chooses the boon profile and labels the recorded proc.
+  for (const [traitId, trait] of [
+    [TRAIT.INVIGORATING_TORRENTS, 'Invigorating Torrents'],
+    [TRAIT.ELEMENTAL_BASTION, 'Elemental Bastion']
+  ] as const) {
+    if (!hasTrait(context, traitId)) continue;
     const boons = tempestAuraBoons(context, trait);
     for (const boon of boons) {
       queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, resolverSourceSkill(event));

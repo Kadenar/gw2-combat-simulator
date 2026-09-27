@@ -10,13 +10,14 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { ALTRUISTIC_ASPECT_SKILLS } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * Grants Altruistic Aspect's per-meditation boon when the trait is slotted and
  * the completing skill is one of the four it covers; otherwise a no-op.
  */
 export function applyAltruisticAspect(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  if (!hasTrait(context, 'Altruistic Aspect')) return;
+  if (!hasTrait(context, TRAIT.ALTRUISTIC_ASPECT)) return;
   if (!ALTRUISTIC_ASPECT_SKILLS.has(skill.id)) return;
   const altruisticAspectProfile = requireBalanceProfileFromContext(context, PROFILE.altruisticAspect);
   const effect = requireEffect(altruisticAspectProfile, 'boon', skill.name);

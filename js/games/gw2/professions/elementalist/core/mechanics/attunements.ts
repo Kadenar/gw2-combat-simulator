@@ -60,7 +60,7 @@ export function elementalistAttunementRechargeDuration(
   if (!context.combatActive) return 0;
   let adjusted = seconds;
   // Trait reductions also apply when Weaver supplies Weave Self's shorter base recharge.
-  if (hasTrait(context, 'Elemental Enchantment')) {
+  if (hasTrait(context, TRAIT.ELEMENTAL_ENCHANTMENT)) {
     const elementalEnchantmentProfile = requireBalanceProfileFromContext(context, PROFILE.elementalEnchantment);
     adjusted *= balanceProfileNumber(elementalEnchantmentProfile, 'rechargeMultiplier');
   }

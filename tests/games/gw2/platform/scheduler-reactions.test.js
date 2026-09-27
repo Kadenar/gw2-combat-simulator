@@ -1,5 +1,5 @@
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS, ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -52,7 +52,7 @@ test('Fresh Air candidates wait for the actual critical fact', () => {
     config: {
       specialization: 'Core',
       startAttunement: 'Water',
-      selectedTraitIds: ['Fresh Air']
+      selectedTraitIds: [ELEMENTALIST_TRAIT_IDS.FRESH_AIR]
     },
     rotation: ['__combat_start', { type: 'wait', durationMs: 4000 }],
     initialize: (r) => {

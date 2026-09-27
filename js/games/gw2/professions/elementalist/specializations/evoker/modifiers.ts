@@ -1,4 +1,4 @@
-import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
 /**
@@ -32,7 +32,7 @@ const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.05,
-    when: (context) => hasTrait(context, 'Fiery Might') && targetConditionActive(context, 'Burning')
+    when: (context) => hasTrait(context, TRAIT.FIERY_MIGHT) && targetConditionActive(context, 'Burning')
   },
   {
     id: 'elementalist.familiars-prowess-strike',
@@ -40,7 +40,7 @@ const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     parameters: { baseAmount: 0.05, focusedAmount: 0.1 } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) =>
-      hasTrait(context, "Familiar's Focus") ? parameters.focusedAmount : parameters.baseAmount,
+      hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? parameters.focusedAmount : parameters.baseAmount,
     when: (context: ElementalistModifierContext) =>
       context.config?.evokerElement === 'Air' && elementalistTimedBuffStacks(context, "familiar's-prowess", 1) > 0
   },
@@ -50,7 +50,7 @@ const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     parameters: { baseAmount: 0.05, focusedAmount: 0.1 } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) =>
-      hasTrait(context, "Familiar's Focus") ? parameters.focusedAmount : parameters.baseAmount,
+      hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? parameters.focusedAmount : parameters.baseAmount,
     when: (context: ElementalistModifierContext) =>
       context.config?.evokerElement === 'Fire' && elementalistTimedBuffStacks(context, "familiar's-prowess", 1) > 0
   },
@@ -59,13 +59,10 @@ const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: (context) =>
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(context, ELEMENTALIST_TRAIT_IDS.ENHANCED_POTENCY),
-        'criticalChance'
-      ),
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ENHANCED_POTENCY), 'criticalChance'),
     when: (context: ElementalistModifierContext) =>
       context.config?.evokerElement === 'Air' &&
-      hasTrait(context, 'Enhanced Potency') &&
+      hasTrait(context, TRAIT.ENHANCED_POTENCY) &&
       Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
   },
   {
@@ -93,7 +90,7 @@ function modifyEvokerAttributes(context: ElementalistModifierContext, attributes
     modified.ferocity = Number(modified.ferocity || 0) + balanceProfileNumber(enhancedPotencyProfile, 'attributeBonus');
   }
 
-  if (context.config?.evokerElement === 'Fire' && hasTrait(context, 'Enhanced Potency')) {
+  if (context.config?.evokerElement === 'Fire' && hasTrait(context, TRAIT.ENHANCED_POTENCY)) {
     const enhancedPotencyProfile = requireBalanceProfileFromContext(context, PROFILE.enhancedPotency);
     // Fire Enhanced Potency scales condition damage per might stack
     modified.conditionDamage =

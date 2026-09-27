@@ -15,7 +15,10 @@ import { timedBuffAt } from '#gw2/platform/results/query.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 
-import { ELEMENTALIST_OVERLOAD_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_OVERLOAD_SKILL_IDS,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 
 // Editor-side preview of the scheduler's overload gate: non-overload skills always pass, an
@@ -40,7 +43,7 @@ function overloadPaletteAvailability(context: ElementalistUiContext, skill: Skil
   // visible temporary lockout, including trait and Alacrity adjustments.
   const overloadsProfile = requireBalanceProfileFromContext(context, PROFILE.overloads);
   const dwell =
-    (hasTrait(context, 'Transcendent Tempest')
+    (hasTrait(context, TRAIT.TRANSCENDENT_TEMPEST)
       ? balanceProfileNumber(overloadsProfile, 'durationMultiplier')
       : balanceProfileNumber(overloadsProfile, 'initialDelay')) / 1.25;
   const retryAt = enteredAt + dwell;

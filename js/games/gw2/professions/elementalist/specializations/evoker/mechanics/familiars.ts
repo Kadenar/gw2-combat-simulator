@@ -30,7 +30,10 @@ import { GW2_QUICKNESS_ACTION_RATE, castRelativeEffectTimingScale } from '#gw2/p
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
 import { emitElementalistProc, emitProfiledBuff } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   BASIC_FAMILIARS,
@@ -219,12 +222,12 @@ function applyWeaponSkillRechargeMultiplier(context: ElementalistRuntime, cast: 
 function applyFamiliarTraitProcs(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   const state = evokerState.from(context);
   const at = cast.effectiveEnd;
-  if (FAMILIAR_ELEMENTS.has(skill.id) && hasTrait(context, "Familiar's Prowess")) {
+  if (FAMILIAR_ELEMENTS.has(skill.id) && hasTrait(context, TRAIT.FAMILIARS_PROWESS)) {
     grantFamiliarProwess(context, cast, skill);
   }
 
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
-  if (familiarElement && hasTrait(context, "Familiar's Blessing")) {
+  if (familiarElement && hasTrait(context, TRAIT.FAMILIARS_BLESSING)) {
     const quick = familiarElement === 'Fire' || familiarElement === 'Air';
     // Blessing stays after Prowess and before charge grants; only packet construction is shared.
     emitProfiledBuff(
@@ -237,7 +240,7 @@ function applyFamiliarTraitProcs(context: ElementalistRuntime, cast: RuntimeCast
     );
   }
 
-  if (familiarElement && hasTrait(context, 'Galvanic Enchantment')) {
+  if (familiarElement && hasTrait(context, TRAIT.GALVANIC_ENCHANTMENT)) {
     const galvanicEnchantmentProfile = requireBalanceProfileFromContext(context, PROFILE.galvanicEnchantment);
     const stacks = balanceProfileNumber(galvanicEnchantmentProfile, 'playerStacks');
     const duration = balanceProfileNumber(galvanicEnchantmentProfile, 'durationMultiplier');
@@ -416,7 +419,7 @@ function applySpecializedElementsTrait(context: ElementalistRuntime, cast: Runti
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
   // Basic familiars retain 90% weapon recharge; empowered familiars retain
   // 67% and trigger the elemental entry effects.
-  if (familiarElement && hasTrait(context, 'Specialized Elements')) {
+  if (familiarElement && hasTrait(context, TRAIT.SPECIALIZED_ELEMENTS)) {
     const basic = BASIC_FAMILIARS.has(skill.id);
     applyWeaponSkillRechargeMultiplier(
       context,

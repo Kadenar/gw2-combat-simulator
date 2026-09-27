@@ -12,6 +12,7 @@ import { emitElementalistDamage } from '#gw2/professions/elementalist/core/event
 import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { modifyFamiliarEffects } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 test('Altruistic Aspect grants its meditation boon only when selected and the cast commits', () => {
   // Use one meditation with no other boon traits to expose the missing completion hook.
@@ -32,11 +33,11 @@ test('Altruistic Aspect grants its meditation boon only when selected and the ca
       ]
     }).resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'might');
   const base = run([]);
-  const boon = run(['Altruistic Aspect']);
+  const boon = run([TRAIT.ALTRUISTIC_ASPECT]);
   assert.equal(boon.length, base.length + 1);
   assert.equal(boon.at(-1).stacks, 3);
   assert.equal(boon.at(-1).duration, 10);
-  assert.deepEqual(run(['Altruistic Aspect'], true), run([], true));
+  assert.deepEqual(run([TRAIT.ALTRUISTIC_ASPECT], true), run([], true));
 });
 
 test('Ignite retains its final burning tier until the inactivity window expires', () => {
@@ -227,7 +228,7 @@ test('Elemental Balance reports the same patched duration used for its active wi
         }
       }
     }),
-    traits: new Set(['Elemental Balance']),
+    traits: new Set([TRAIT.ELEMENTAL_BALANCE]),
     profession: { specialization: { kind: 'Evoker', state } },
     emit: (event) => events.push(event)
   };

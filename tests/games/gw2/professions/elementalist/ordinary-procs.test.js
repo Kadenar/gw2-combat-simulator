@@ -19,6 +19,7 @@ import {
   completeEvokerAttunement,
   triggerSpecializedElementEntry
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 const skill = { id: 1, name: 'Fixture Heal', type: 'Heal' };
 
@@ -41,22 +42,36 @@ function contextFor(kind = 'Core', specialization = {}) {
   return { context, core, events };
 }
 
-for (const [trait, key, profile, invoke] of [
-  ["Earth's Embrace", 'earthsEmbrace', CORE.earthsEmbrace, (c) => applyGenericPostCast(c, c, skill)],
-  ['Soothing Ice', 'soothingIce', CORE.soothingIce, (c) => applyGenericPostCast(c, c, skill)],
+for (const [trait, traitId, key, profile, invoke] of [
+  [
+    "Earth's Embrace",
+    TRAIT.EARTHS_EMBRACE,
+    'earthsEmbrace',
+    CORE.earthsEmbrace,
+    (c) => applyGenericPostCast(c, c, skill)
+  ],
+  ['Soothing Ice', TRAIT.SOOTHING_ICE, 'soothingIce', CORE.soothingIce, (c) => applyGenericPostCast(c, c, skill)],
   [
     'Elemental Lockdown',
+    TRAIT.ELEMENTAL_LOCKDOWN,
     'elementalLockdown',
     CORE.elementalLockdown,
     (c) => observeElementalistTraitEvent(c, { type: 'control', actorType: 'player', at: c.effectiveEnd })
   ],
   [
     'Strength of Stone',
+    TRAIT.STRENGTH_OF_STONE,
     'strengthOfStone',
     CORE.strengthOfStone,
     (c) => applyElementalistResolvedCondition(c, { type: 'condition', condition: 'Immobilized', at: c.effectiveEnd })
   ],
-  ['Evasive Arcana', 'evasiveArcanaWater', CORE.evasiveArcana, (c) => triggerEvasiveArcana(c, c, skill)]
+  [
+    'Evasive Arcana',
+    TRAIT.EVASIVE_ARCANA,
+    'evasiveArcanaWater',
+    CORE.evasiveArcana,
+    (c) => triggerEvasiveArcana(c, c, skill)
+  ]
 ]) {
   test(`${trait} retains eligibility, zero override and strict owner-local deadlines`, () => {
     for (const duration of [2, 0]) {
@@ -67,7 +82,7 @@ for (const [trait, key, profile, invoke] of [
       context.helpers = { ...context.helpers, balanceProfilesById: profiles };
       invoke(context);
       assert.deepEqual({ ...context.procs.readyAt }, {});
-      context.traits.add(trait);
+      context.traits.add(traitId);
       const emit = context.emit.bind(context);
       context.emit = (event) => {
         assert.equal(context.procs.readyAt[key], event.at + duration);
@@ -107,7 +122,7 @@ test('Catalyst combo claims stay per element, and per trait, including Water', (
       const combo = { type: 'combo', at: 1, sourceId: 1 };
       invoke(context, combo);
       assert.deepEqual({ ...context.procs.readyAt }, {});
-      context.traits = new Set(['Elemental Epitome', 'Elemental Synergy']);
+      context.traits = new Set([TRAIT.ELEMENTAL_EPITOME, TRAIT.ELEMENTAL_SYNERGY]);
       for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
         core.primaryAttunement = element;
         invoke(context, { ...combo, attunement: element });
@@ -137,7 +152,7 @@ test('Evoker real and synthetic entry share profile timers without changing trai
   completeEvokerAttunement(context, context, earth);
   assert.equal(context.procs.readyAt[CORE.earthenBlast], 6);
   assert.equal(context.procs.readyAt[CORE.rockSolid], 6);
-  context.traits = new Set(['Earthen Blast', 'Rock Solid']);
+  context.traits = new Set([TRAIT.EARTHEN_BLAST, TRAIT.ROCK_SOLID]);
   core.primaryAttunement = 'Earth';
   context.effectiveEnd = 6;
   triggerSpecializedElementEntry(context, context, skill, 'Earth');

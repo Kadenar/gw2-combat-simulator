@@ -39,6 +39,7 @@ import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_TRAIT_IDS, WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
+import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 
 const READY_AT = 1;
 const AFTER_READY_AT = 1.001;
@@ -246,7 +247,7 @@ test('Elementalist control traits stay blocked at the exact ICD boundary', () =>
     core: createElementalistCoreState(),
     specialization: state,
     kind: 'Catalyst',
-    traits: ['Vicious Empowerment']
+    traits: [ELEMENTALIST_TRAIT_IDS.VICIOUS_EMPOWERMENT]
   });
   context.procs.readyAt['elementalist.catalyst.viciousEmpowerment'] = READY_AT;
   const event = { type: 'control', actorType: 'player', at: READY_AT, skillName: 'Boundary Control' };

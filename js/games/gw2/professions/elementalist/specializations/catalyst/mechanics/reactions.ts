@@ -37,6 +37,7 @@ import {
   elementalEpitomeAura,
   elementalSynergyBoon
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/aura-parameters.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * Convert resolved aura applications into Catalyst aura-stack traits and their
@@ -49,7 +50,7 @@ import {
 export function applyCatalystResolverAura(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
   // Scheduled auras already carry their trait grants; only newly resolved auras
   // need new grants here. Both paths still refresh Empowering Auras' duration.
-  if (hasTrait(context, 'Empowering Auras')) {
+  if (hasTrait(context, TRAIT.EMPOWERING_AURAS)) {
     const { maximumStacks, duration } = empoweringAurasParameters(context);
     const current = activeElementalistBuffs(context, 'Empowering Auras', event.at);
     refreshElementalistBuffs(context, 'Empowering Auras', event.at, () => event.at + duration);
@@ -62,7 +63,7 @@ export function applyCatalystResolverAura(context: ElementalistRuntime, event: G
   }
 
   if (
-    !hasTrait(context, 'Elemental Epitome') ||
+    !hasTrait(context, TRAIT.ELEMENTAL_EPITOME) ||
     (context.combatStartTime != null && event.at < context.combatStartTime)
   ) {
     return;
@@ -91,7 +92,7 @@ export function applyCatalystComboTraits(context: ElementalistRuntime, event: Gw
   const core = professionCoreState(context);
   const attunement = core.primaryAttunement;
   if (
-    hasTrait(context, 'Elemental Epitome') &&
+    hasTrait(context, TRAIT.ELEMENTAL_EPITOME) &&
     context.procs.claimCooldown(
       `elementalist.catalyst.elementalEpitome:${attunement}`,
       event.at,
@@ -106,7 +107,7 @@ export function applyCatalystComboTraits(context: ElementalistRuntime, event: Gw
   }
 
   if (
-    hasTrait(context, 'Elemental Synergy') &&
+    hasTrait(context, TRAIT.ELEMENTAL_SYNERGY) &&
     context.procs.claimCooldown(
       `elementalist.catalyst.elementalSynergy:${attunement}`,
       event.at,
@@ -147,7 +148,7 @@ function queueCatalystBuff(
 export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   const immobilize = ['Immobilize', 'Immobilized'].includes(String(event.condition || ''));
   if (
-    !hasTrait(context, 'Vicious Empowerment') ||
+    !hasTrait(context, TRAIT.VICIOUS_EMPOWERMENT) ||
     event.actorType !== 'player' ||
     (event.type !== 'control' && !immobilize) ||
     (context.combatStartTime != null && event.at < context.combatStartTime)

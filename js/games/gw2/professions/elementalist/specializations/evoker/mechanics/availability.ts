@@ -21,6 +21,7 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * Waits for in-flight familiar casts and charge grants; missing resources without
@@ -30,7 +31,7 @@ export function availability(context: ElementalistRuntime, skill: Skill): Availa
   const state = evokerState.from(context);
   const attunement = targetAttunement(skill);
   if (attunement) {
-    if (hasTrait(context, 'Specialized Elements')) {
+    if (hasTrait(context, TRAIT.SPECIALIZED_ELEMENTS)) {
       return denyCast(
         'elementalist.specialized-elements',
         `${skill.name} is unavailable - attunement swapping is disabled by Specialized Elements.`

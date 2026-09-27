@@ -1,4 +1,4 @@
-import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
@@ -42,7 +42,7 @@ export const weaverModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.15,
     when: (context) =>
-      hasTrait(context, 'Elements of Rage') && elementalistTimedBuffStacks(context, 'elements of rage', 1) > 0
+      hasTrait(context, TRAIT.ELEMENTS_OF_RAGE) && elementalistTimedBuffStacks(context, 'elements of rage', 1) > 0
   },
   {
     id: 'elementalist.elements-of-rage-condition',
@@ -50,20 +50,17 @@ export const weaverModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.1,
     when: (context) =>
-      hasTrait(context, 'Elements of Rage') && elementalistTimedBuffStacks(context, 'elements of rage', 1) > 0
+      hasTrait(context, TRAIT.ELEMENTS_OF_RAGE) && elementalistTimedBuffStacks(context, 'elements of rage', 1) > 0
   },
   {
     id: 'elementalist.superior-elements',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: (context) =>
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(context, ELEMENTALIST_TRAIT_IDS.SUPERIOR_ELEMENTS),
-        'criticalChance'
-      ),
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SUPERIOR_ELEMENTS), 'criticalChance'),
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      hasTrait(context, 'Superior Elements') &&
+      hasTrait(context, TRAIT.SUPERIOR_ELEMENTS) &&
       targetConditionActive(context, 'Weakness')
   }
 ]);
@@ -71,7 +68,7 @@ export const weaverModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 // Apply Elemental Polyphony's attribute bonuses from both current Weaver
 // attunements without double-counting a repeated element.
 function modifyWeaverAttributes(context: ElementalistModifierContext, attributes: Gw2Stats): Gw2Stats {
-  if (!hasTrait(context, 'Elemental Polyphony')) return attributes;
+  if (!hasTrait(context, TRAIT.ELEMENTAL_POLYPHONY)) return attributes;
   const modified = { ...attributes };
   const active = elementalistAttunements(context);
   const secondary =

@@ -2,6 +2,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { elementalistTimedBuffStacks } from '#gw2/professions/elementalist/core/modifiers.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * Damage modifiers for the two Tempest buffs tracked as timed applications: Tempestuous Aria
@@ -15,7 +16,7 @@ export const tempestModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.1,
     when: (context) =>
-      hasTrait(context, 'Tempestuous Aria') && elementalistTimedBuffStacks(context, 'tempestuous aria', 1) > 0
+      hasTrait(context, TRAIT.TEMPESTUOUS_ARIA) && elementalistTimedBuffStacks(context, 'tempestuous aria', 1) > 0
   },
   {
     id: 'elementalist.tempestuous-aria-condition',
@@ -23,7 +24,7 @@ export const tempestModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.05,
     when: (context) =>
-      hasTrait(context, 'Tempestuous Aria') && elementalistTimedBuffStacks(context, 'tempestuous aria', 1) > 0
+      hasTrait(context, TRAIT.TEMPESTUOUS_ARIA) && elementalistTimedBuffStacks(context, 'tempestuous aria', 1) > 0
   },
   {
     id: 'elementalist.transcendent-tempest-strike',
@@ -31,7 +32,8 @@ export const tempestModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.25,
     when: (context) =>
-      hasTrait(context, 'Transcendent Tempest') && elementalistTimedBuffStacks(context, 'transcendent-tempest', 1) > 0
+      hasTrait(context, TRAIT.TRANSCENDENT_TEMPEST) &&
+      elementalistTimedBuffStacks(context, 'transcendent-tempest', 1) > 0
   },
   {
     id: 'elementalist.transcendent-tempest-condition',
@@ -39,6 +41,7 @@ export const tempestModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.2,
     when: (context) =>
-      hasTrait(context, 'Transcendent Tempest') && elementalistTimedBuffStacks(context, 'transcendent-tempest', 1) > 0
+      hasTrait(context, TRAIT.TRANSCENDENT_TEMPEST) &&
+      elementalistTimedBuffStacks(context, 'transcendent-tempest', 1) > 0
   }
 ]);

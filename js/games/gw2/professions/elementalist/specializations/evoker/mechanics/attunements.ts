@@ -40,7 +40,10 @@ import { applyInscriptionAirEntry, applyOneWithAir } from '#gw2/professions/elem
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { evokerState, type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
-import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
 
 // Evocation's five-second trait ICD applies to some Fire and Earth entry effects
 const EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES = new Set<Skill['id']>([
@@ -159,7 +162,7 @@ export function triggerSpecializedElementEntry(
     to: element
   });
   if (element === 'Fire') {
-    if (hasTrait(context, 'Sunspot') && procReady(CORE_PROFILE.sunspot)) {
+    if (hasTrait(context, TRAIT.SUNSPOT) && procReady(CORE_PROFILE.sunspot)) {
       triggerSunspot(context, at, skill.id);
     }
   } else if (element === 'Air') {
@@ -168,7 +171,7 @@ export function triggerSpecializedElementEntry(
     applyOneWithAir(context, at, skill);
     applyInscriptionAirEntry(context, at, skill);
 
-    if (hasTrait(context, 'Fresh Air')) {
+    if (hasTrait(context, TRAIT.FRESH_AIR)) {
       const freshAirProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.freshAir);
       const freshAir = requireEffect(freshAirProfile, 'buff', 'fresh-air');
       if (freshAir) {
@@ -186,11 +189,11 @@ export function triggerSpecializedElementEntry(
       }
     }
   } else if (element === 'Earth') {
-    if (hasTrait(context, 'Earthen Blast') && procReady(CORE_PROFILE.earthenBlast)) {
+    if (hasTrait(context, TRAIT.EARTHEN_BLAST) && procReady(CORE_PROFILE.earthenBlast)) {
       triggerEarthenBlast(context, at, skill.id);
     }
 
-    if (hasTrait(context, 'Rock Solid') && procReady(CORE_PROFILE.rockSolid)) {
+    if (hasTrait(context, TRAIT.ROCK_SOLID) && procReady(CORE_PROFILE.rockSolid)) {
       grantElementalistRockSolid(context, at, skill.id);
     }
   }

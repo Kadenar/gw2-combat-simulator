@@ -12,6 +12,7 @@ import {
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import type { CatalystEmpowermentPool } from '#gw2/professions/elementalist/build/types.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * Damage modifiers driven by Catalyst buff states: Empowering Auras adds its
@@ -26,7 +27,7 @@ export const catalystModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     parameters: { maximumStacks: 5, damagePerStack: 0.01 } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) =>
       elementalistTimedBuffStacks(context, 'empowering auras', parameters.maximumStacks) * parameters.damagePerStack,
-    when: (context) => hasTrait(context, 'Empowering Auras')
+    when: (context) => hasTrait(context, TRAIT.EMPOWERING_AURAS)
   },
   {
     id: 'elementalist.empowering-auras-condition',
@@ -35,7 +36,7 @@ export const catalystModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     parameters: { maximumStacks: 5, damagePerStack: 0.01 } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) =>
       elementalistTimedBuffStacks(context, 'empowering auras', parameters.maximumStacks) * parameters.damagePerStack,
-    when: (context) => hasTrait(context, 'Empowering Auras')
+    when: (context) => hasTrait(context, TRAIT.EMPOWERING_AURAS)
   },
   {
     id: 'elementalist.relentless-fire',
@@ -64,7 +65,7 @@ interface CatalystStateLike {
 // Apply live Elemental Empowerment stacks as an all-attribute multiplier without
 // mutating the shared resolved-stat object.
 function modifyCatalystAttributes(context: ElementalistModifierContext, attributes: Gw2Stats): Gw2Stats {
-  if (!hasTrait(context, 'Elemental Empowerment')) return attributes;
+  if (!hasTrait(context, TRAIT.ELEMENTAL_EMPOWERMENT)) return attributes;
 
   // Attribute reads count live stacks without rebuilding or mutating the runtime pool.
   const timedStacks = activeStackCount(catalystModifierState(context).elementalEmpowermentExpiries || [], context.time);
@@ -73,7 +74,7 @@ function modifyCatalystAttributes(context: ElementalistModifierContext, attribut
   const stacks = Math.min(maximumStacks, timedStacks);
   // Empowered Empowerment replaces flat per-stack scaling with a coefficient ramp,
   // paying the full conversion only once every stack is up.
-  const multiplier = hasTrait(context, 'Empowered Empowerment')
+  const multiplier = hasTrait(context, TRAIT.EMPOWERED_EMPOWERMENT)
     ? stacks === maximumStacks
       ? balanceProfileNumber(elementalEmpowermentProfile, 'attributeConversion')
       : stacks * balanceProfileNumber(elementalEmpowermentProfile, 'coefficientMultiplier')

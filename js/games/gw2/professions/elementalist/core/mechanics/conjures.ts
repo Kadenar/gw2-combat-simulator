@@ -14,7 +14,10 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { CONJURE_PICKUP_WEAPONS, CONJURE_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/index.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 
@@ -36,7 +39,7 @@ export function applyConjureState(context: ElementalistRuntime, cast: RuntimeCas
     const conjurePickupsProfile = requireBalanceProfileFromContext(context, PROFILE.conjurePickups);
     state.conjurePickups[conjuredWeapon] = at + balanceProfileNumber(conjurePickupsProfile, 'durationMultiplier');
     swapped = true;
-    if (hasTrait(context, 'Conjurer')) {
+    if (hasTrait(context, TRAIT.CONJURER)) {
       const conjurerProfile = requireBalanceProfileFromContext(context, PROFILE.conjurer);
       const conjurerBuff = requireEffect(conjurerProfile, 'buff', 'Conjurer');
       if (conjurerBuff) {

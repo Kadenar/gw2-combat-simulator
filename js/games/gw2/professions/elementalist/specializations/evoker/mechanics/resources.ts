@@ -24,6 +24,7 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState, type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * Seeds charge capacity from the active balance profile before the first cast,
@@ -38,7 +39,7 @@ export function initialize(context: ElementalistRuntime): void {
   state.maximumCharges = balanceProfileNumber(
     requireBalanceProfileFromContext(
       context,
-      hasTrait(context, 'Specialized Elements') ? PROFILE.specializedElements : PROFILE.resources
+      hasTrait(context, TRAIT.SPECIALIZED_ELEMENTS) ? PROFILE.specializedElements : PROFILE.resources
     ),
     'maximumStacks'
   );
@@ -55,7 +56,7 @@ export function initialize(context: ElementalistRuntime): void {
     )
   );
   // locks the core attunement system to the fixed element so core trait procs key off the right element
-  if (hasTrait(context, 'Specialized Elements')) {
+  if (hasTrait(context, TRAIT.SPECIALIZED_ELEMENTS)) {
     core.primaryAttunement = state.element;
   }
 }
@@ -98,7 +99,7 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pic
 
   // Split-attunement skills gain the matching-element amount; Specialized
   // Elements raises that amount from two charges to three.
-  const specialized = hasTrait(context, 'Specialized Elements');
+  const specialized = hasTrait(context, TRAIT.SPECIALIZED_ELEMENTS);
   const profile = specialized ? PROFILE.specializedElements : PROFILE.resources;
   return String(skill.attunement || '')
     .split('+')

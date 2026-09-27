@@ -43,7 +43,7 @@ test('attunement recharge applies trait reductions in order and stays free befor
     helpers: elementalistCatalog,
     config: { selectedTraitIds: [TRAIT.ELEMENTAL_ENCHANTMENT, TRAIT.FLOW_STATE] },
     combatActive: true,
-    traits: new Set(['Elemental Enchantment', TRAIT.FLOW_STATE]),
+    traits: new Set([TRAIT.ELEMENTAL_ENCHANTMENT, TRAIT.FLOW_STATE]),
     cooldownController: { rate: () => 1.25 }
   };
   const skill = elementalistCatalog.skillsById.get(ID.FIRE_ATTUNEMENT);

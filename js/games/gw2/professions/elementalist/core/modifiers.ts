@@ -1,4 +1,7 @@
-import { ELEMENTALIST_SKILL_IDS as ID, ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
 /**
@@ -100,7 +103,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     operation: 'multiply',
     parameters: { powerScaling: 0.0825 } as Readonly<Record<string, number>>,
     factor: infernoBurningFactor,
-    when: (context) => hasTrait(context, 'Inferno') && context.condition === 'Burning'
+    when: (context) => hasTrait(context, TRAIT.INFERNO) && context.condition === 'Burning'
   },
   {
     id: 'elementalist.bountiful-power',
@@ -108,7 +111,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     operation: 'damage-additive',
     amount: 0.2,
     when: (context) =>
-      hasTrait(context, 'Bountiful Power') && elementalistTimedBuffStacks(context, 'bountiful power active', 1) > 0
+      hasTrait(context, TRAIT.BOUNTIFUL_POWER) && elementalistTimedBuffStacks(context, 'bountiful power active', 1) > 0
   },
   {
     id: 'elementalist.persisting-flames',
@@ -117,7 +120,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     parameters: { maximumStacks: 5, damagePerStack: 0.02 } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) =>
       elementalistTimedBuffStacks(context, 'persisting flames', parameters.maximumStacks) * parameters.damagePerStack,
-    when: (context) => hasTrait(context, 'Persisting Flames')
+    when: (context) => hasTrait(context, TRAIT.PERSISTING_FLAMES)
   },
   {
     id: 'elementalist.pyromancers-training',
@@ -126,7 +129,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     factor: 1.07,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      hasTrait(context, "Pyromancer's Training") &&
+      hasTrait(context, TRAIT.PYROMANCERS_TRAINING) &&
       targetConditionActive(context, 'Burning')
   },
   {
@@ -136,7 +139,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     factor: 1.05,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      hasTrait(context, 'Serrated Stones') &&
+      hasTrait(context, TRAIT.SERRATED_STONES) &&
       targetConditionActive(context, 'Bleeding')
   },
   {
@@ -144,14 +147,14 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.07,
-    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, 'Stormsoul')
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.STORMSOUL)
   },
   {
     id: 'elementalist.flow-like-water',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.1,
-    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, 'Flow like Water')
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.FLOW_LIKE_WATER)
   },
   {
     id: 'elementalist.bolt-to-the-heart',
@@ -160,7 +163,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     factor: 1.2,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      hasTrait(context, 'Bolt to the Heart') &&
+      hasTrait(context, TRAIT.BOLT_TO_THE_HEART) &&
       targetHealthBelow(context, 0.5)
   },
   {
@@ -172,7 +175,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
       primaryAttunement(context) === 'Water' ? parameters.waterFactor : parameters.otherFactor,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      hasTrait(context, 'Piercing Shards') &&
+      hasTrait(context, TRAIT.PIERCING_SHARDS) &&
       targetConditionActive(context, 'Vulnerability')
   },
   {
@@ -180,21 +183,15 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: (context) =>
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(context, ELEMENTALIST_TRAIT_IDS.ZEPHYRS_SPEED),
-        'criticalChance'
-      ),
-    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, "Zephyr's Speed")
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ZEPHYRS_SPEED), 'criticalChance'),
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.ZEPHYRS_SPEED)
   },
   {
     id: 'elementalist.electric-discharge-critical-damage',
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
     factor: (context) =>
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(context, ELEMENTALIST_TRAIT_IDS.ELECTRIC_DISCHARGE),
-        'criticalDamage'
-      ),
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ELECTRIC_DISCHARGE), 'criticalDamage'),
     when: (context) => String(context.event?.skillName || context.event?.name || '') === 'Electric Discharge'
   },
   {
@@ -225,7 +222,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
 export function modifyElementalistAttributes(context: ElementalistModifierContext, attributes: Gw2Stats): Gw2Stats {
   const modified: Gw2MutableStats = { ...attributes };
   const primary = primaryAttunement(context);
-  if (hasTrait(context, 'Empowering Flame') && primary === 'Fire') {
+  if (hasTrait(context, TRAIT.EMPOWERING_FLAME) && primary === 'Fire') {
     const empoweringFlameProfile = requireBalanceProfileFromContext(context, PROFILE.empoweringFlame);
     modified.power = Number(modified.power || 0) + balanceProfileNumber(empoweringFlameProfile, 'attributeBonus');
   }
@@ -233,7 +230,7 @@ export function modifyElementalistAttributes(context: ElementalistModifierContex
   // Power Overwhelming needs a might threshold, and pays the larger bonus while
   // attuned to Fire.
   if (
-    hasTrait(context, 'Power Overwhelming') &&
+    hasTrait(context, TRAIT.POWER_OVERWHELMING) &&
     elementalistMightStacks(context) >=
       balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.powerOverwhelming), 'minimumStacks')
   ) {
@@ -245,26 +242,26 @@ export function modifyElementalistAttributes(context: ElementalistModifierContex
         : balanceProfileNumber(powerOverwhelmingProfile, 'attributeBonus'));
   }
 
-  if (hasTrait(context, 'Fresh Air') && elementalistTimedBuffStacks(context, 'fresh air', 1) > 0) {
+  if (hasTrait(context, TRAIT.FRESH_AIR) && elementalistTimedBuffStacks(context, 'fresh air', 1) > 0) {
     const freshAirProfile = requireBalanceProfileFromContext(context, PROFILE.freshAir);
     modified.ferocity = Number(modified.ferocity || 0) + balanceProfileNumber(freshAirProfile, 'attributeBonus');
   }
 
-  if (hasTrait(context, "Aeromancer's Training") && primary === 'Air') {
+  if (hasTrait(context, TRAIT.AEROMANCERS_TRAINING) && primary === 'Air') {
     const aeromancersTrainingProfile = requireBalanceProfileFromContext(context, PROFILE.aeromancersTraining);
     modified.ferocity =
       Number(modified.ferocity || 0) + balanceProfileNumber(aeromancersTrainingProfile, 'attributeBonus');
   }
 
   if (
-    hasTrait(context, 'Raging Storm') &&
+    hasTrait(context, TRAIT.RAGING_STORM) &&
     Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
   ) {
     const ragingStormProfile = requireBalanceProfileFromContext(context, PROFILE.ragingStorm);
     modified.ferocity = Number(modified.ferocity || 0) + balanceProfileNumber(ragingStormProfile, 'attributeBonus');
   }
 
-  if (hasTrait(context, 'Arcane Lightning') && elementalistTimedBuffStacks(context, 'arcane lightning', 1) > 0) {
+  if (hasTrait(context, TRAIT.ARCANE_LIGHTNING) && elementalistTimedBuffStacks(context, 'arcane lightning', 1) > 0) {
     const arcaneLightningProfile = requireBalanceProfileFromContext(context, PROFILE.arcaneLightning);
     modified.ferocity = Number(modified.ferocity || 0) + balanceProfileNumber(arcaneLightningProfile, 'attributeBonus');
   }
@@ -286,7 +283,7 @@ export function modifyElementalistAttributes(context: ElementalistModifierContex
   // Remove baseline passive precision during live recharge, including resets, unless Written in Stone preserves it.
   if (
     hasSelectedSkill(context, 'Signet of Fire') &&
-    !hasTrait(context, 'Written in Stone') &&
+    !hasTrait(context, TRAIT.WRITTEN_IN_STONE) &&
     context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_FIRE, context.time)
   ) {
     const signetOfFireProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfFire);

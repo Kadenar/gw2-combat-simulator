@@ -40,6 +40,7 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 const CATALYST_BASE_EMPOWERMENT_TASK = 'elementalist.catalyst-base-empowerment';
 
@@ -112,8 +113,8 @@ function onCastStart(context: ElementalistRuntime, cast: RuntimeCast, skill: Ski
   // Spectacular Sphere pays party quickness plus the attunement's boon on deployment.
   // Both are stretched by Sphere Specialist here and flagged so afterCast does not
   // scale them a second time.
-  if (hasTrait(context, 'Spectacular Sphere')) {
-    const durationMultiplier = hasTrait(context, 'Sphere Specialist')
+  if (hasTrait(context, TRAIT.SPECTACULAR_SPHERE)) {
+    const durationMultiplier = hasTrait(context, TRAIT.SPHERE_SPECIALIST)
       ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.sphereSpecialist), 'durationMultiplier')
       : 1;
     const spectacularSphereProfile = requireBalanceProfileFromContext(context, PROFILE.spectacularSphere);
@@ -233,7 +234,7 @@ function activateElementalCelerity(context: ElementalistRuntime, skill: Skill, a
 
 function applyEnergizedElements(context: ElementalistRuntime, event: SimulationEvent): boolean {
   // Energized Elements refunds energy and grants fury on every attunement swap.
-  if (event.type === 'elementalist.attunement' && hasTrait(context, 'Energized Elements')) {
+  if (event.type === 'elementalist.attunement' && hasTrait(context, TRAIT.ENERGIZED_ELEMENTS)) {
     const state = catalystState.from(context);
     const before = state.energy;
     const energizedElementsProfile = requireBalanceProfileFromContext(context, PROFILE.energizedElements);
@@ -298,7 +299,7 @@ function gainEnergy(runtime: ElementalistRuntime, event: SimulationEvent): void 
   if (
     event.actorType === 'summon' ||
     !(Number(event.coefficient) > 0) ||
-    (runtime.time < state.sphereActiveUntil && !hasTrait(runtime, 'Sphere Specialist'))
+    (runtime.time < state.sphereActiveUntil && !hasTrait(runtime, TRAIT.SPHERE_SPECIALIST))
   )
     return;
   const before = state.energy;
@@ -335,7 +336,7 @@ export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState>>
   ],
   onCombatStart(runtime) {
     const state = catalystState.from(runtime);
-    if (!hasTrait(runtime, 'Elemental Empowerment') || state.elementalEmpowermentRefreshStarted) return;
+    if (!hasTrait(runtime, TRAIT.ELEMENTAL_EMPOWERMENT) || state.elementalEmpowermentRefreshStarted) return;
     state.elementalEmpowermentRefreshStarted = true;
     renewBaseEmpowerment(runtime);
   },
@@ -343,7 +344,7 @@ export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState>>
     withElementalistCast(runtime, cast, () => onCastStart(runtime, cast, cast.skill));
   },
   modifyEffects(runtime, cast, effects) {
-    if (cast.skill.skillFamily !== 'Jade Sphere' || !hasTrait(runtime, 'Sphere Specialist')) return effects;
+    if (cast.skill.skillFamily !== 'Jade Sphere' || !hasTrait(runtime, TRAIT.SPHERE_SPECIALIST)) return effects;
     const multiplier = balanceProfileNumber(
       requireBalanceProfileFromContext(runtime, PROFILE.sphereSpecialist),
       'durationMultiplier'

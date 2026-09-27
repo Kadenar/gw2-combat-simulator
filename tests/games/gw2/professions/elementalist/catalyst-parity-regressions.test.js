@@ -21,6 +21,7 @@ import {
   runElementalist,
   resolvedAndScheduledEvents
 } from '#tests/helpers/elementalist-simulation.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 // Elemental Empowerment scales Condition Damage supplied before combat by traits and utility conversions.
 test('Catalyst includes build-time derived Condition Damage in its empowerment pool', () => {
@@ -200,7 +201,7 @@ test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
   const attributes = catalystModifiers.modifyAttributes(
     {
       catalog: elementalistCatalog,
-      traits: new Set(['Elemental Empowerment', 'Empowered Empowerment']),
+      traits: new Set([TRAIT.ELEMENTAL_EMPOWERMENT, TRAIT.EMPOWERED_EMPOWERMENT]),
       config: {
         catalystEmpowermentPool: {
           power: 1000,

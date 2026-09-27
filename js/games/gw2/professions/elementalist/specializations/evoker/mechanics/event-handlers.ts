@@ -15,6 +15,7 @@ import { applyEvokerAttunementRechargePolicy } from '#gw2/professions/elementali
 import { consumeElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /** Applies familiar, enchantment, and attunement-entry rewards at their actual event boundary. */
 export function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): void {
@@ -60,7 +61,7 @@ export function onAcceptedEvent(context: ElementalistRuntime, event: SimulationE
 
   // only counts entering YOUR current element (Elemental Dynamo or Specialized Elements entry)
   if (event.to !== state.element) return;
-  if (hasTrait(context, 'Elemental Balance')) {
+  if (hasTrait(context, TRAIT.ELEMENTAL_BALANCE)) {
     state.elementalBalanceProgress += 1;
     const elementalBalanceProfile = requireBalanceProfileFromContext(context, PROFILE.elementalBalance);
     const threshold = balanceProfileNumber(elementalBalanceProfile, 'threshold');
@@ -83,7 +84,7 @@ export function onAcceptedEvent(context: ElementalistRuntime, event: SimulationE
   }
 
   // Elemental Dynamo turns each entry into familiar charges and reports the new total
-  if (!hasTrait(context, 'Elemental Dynamo')) return;
+  if (!hasTrait(context, TRAIT.ELEMENTAL_DYNAMO)) return;
   const elementalDynamoProfile = requireBalanceProfileFromContext(context, PROFILE.elementalDynamo);
   state.charges = Math.min(
     state.maximumCharges,

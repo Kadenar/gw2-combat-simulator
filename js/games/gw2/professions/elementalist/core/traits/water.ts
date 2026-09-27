@@ -11,6 +11,7 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { emitProfiledBuff } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /** Applies Soothing Ice's Frost Aura and regeneration from an eligible healing skill. */
 export function applySoothingIce(
@@ -20,7 +21,7 @@ export function applySoothingIce(
   applyAura: ElementalistAuraApplier
 ): void {
   const at = cast.effectiveEnd;
-  if (!hasTrait(context, 'Soothing Ice')) {
+  if (!hasTrait(context, TRAIT.SOOTHING_ICE)) {
     return;
   }
 

@@ -91,10 +91,10 @@ function criticalTraitEligible(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
   details: NativeResolvedDamageDetails,
-  trait: string
+  traitId: number
 ): boolean {
   return (
-    hasTrait(context, trait) &&
+    hasTrait(context, traitId) &&
     event.actorType === 'player' &&
     Number(event.coefficient) > 0 &&
     details.hitContext?.critEligible === true
@@ -104,7 +104,7 @@ function criticalTraitEligible(
 export const elementalistCoreCriticalReactions = Object.freeze([
   onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.raging-storm',
-    when: (context, event, details) => criticalTraitEligible(context, event, details, 'Raging Storm'),
+    when: (context, event, details) => criticalTraitEligible(context, event, details, TRAIT.RAGING_STORM),
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.ragingStorm), 'internalCooldown'),
@@ -120,7 +120,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
     id: 'elementalist.arcane-precision',
     chanceOnCriticalHit: (context) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.arcanePrecision), 'procChance'),
-    when: (context, event, details) => criticalTraitEligible(context, event, details, 'Arcane Precision'),
+    when: (context, event, details) => criticalTraitEligible(context, event, details, TRAIT.ARCANE_PRECISION),
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.arcanePrecision), 'internalCooldown'),
@@ -135,7 +135,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
   }),
   onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.renewing-stamina',
-    when: (context, event, details) => criticalTraitEligible(context, event, details, 'Renewing Stamina'),
+    when: (context, event, details) => criticalTraitEligible(context, event, details, TRAIT.RENEWING_STAMINA),
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.renewingStamina), 'internalCooldown'),
@@ -150,7 +150,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
   onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.burning-precision',
     chanceOnCriticalHit: (context) => procChanceFromContext(context, PROFILE.burningPrecision),
-    when: (context, event, details) => criticalTraitEligible(context, event, details, 'Burning Precision'),
+    when: (context, event, details) => criticalTraitEligible(context, event, details, TRAIT.BURNING_PRECISION),
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.burningPrecision), 'internalCooldown'),

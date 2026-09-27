@@ -14,6 +14,7 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/
 import { TEMPEST_BALANCE_PROFILE_IDS as TEMPEST } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS as CATALYST } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 test('real and synthetic Air entry honor trait gates and patched buff versus boon durations', () => {
   // Superspeed must read its buff profile without concentration scaling; Resistance scales once.
@@ -24,7 +25,7 @@ test('real and synthetic Air entry honor trait gates and patched buff versus boo
         [CORE.inscription]: { effects: [{ type: 'boon', name: 'Air Entry', duration: 7, stacks: 2 }] }
       }
     });
-    for (const selected of [[], ['One with Air'], ['Inscription'], ['One with Air', 'Inscription']]) {
+    for (const selected of [[], [TRAIT.ONE_WITH_AIR], [TRAIT.INSCRIPTION], [TRAIT.ONE_WITH_AIR, TRAIT.INSCRIPTION]]) {
       for (const synthetic of [false, true]) {
         const events = [];
         const skill = { id: 1, name: 'Air entry' };
@@ -55,8 +56,8 @@ test('real and synthetic Air entry honor trait gates and patched buff versus boo
         assert.deepEqual(
           buffs.map(({ kind, stacks, duration }) => ({ kind, stacks, duration })),
           [
-            ...(selected.includes('One with Air') ? [{ kind: 'superspeed', stacks: 1, duration }] : []),
-            ...(selected.includes('Inscription') ? [{ kind: 'resistance', stacks: 2, duration: 10.5 }] : [])
+            ...(selected.includes(TRAIT.ONE_WITH_AIR) ? [{ kind: 'superspeed', stacks: 1, duration }] : []),
+            ...(selected.includes(TRAIT.INSCRIPTION) ? [{ kind: 'resistance', stacks: 2, duration: 10.5 }] : [])
           ]
         );
         for (const event of buffs) {
@@ -72,11 +73,23 @@ test('real and synthetic Air entry honor trait gates and patched buff versus boo
 
 // Every aura enters one reaction pipeline, including patched boon payloads and duration scaling.
 test('Core and Tempest aura boons use patched effects and scale once', () => {
-  for (const [trait, profileId, names, resolve] of [
-    ["Zephyr's Boon", CORE.zephyrsBoon, ['Fury', 'Swiftness'], applyResolverZephyrsBoon],
-    ['Elemental Shielding', CORE.elementalShielding, ['Protection'], applyResolverElementalShielding],
-    ['Invigorating Torrents', TEMPEST.invigoratingTorrents, ['Vigor', 'Regeneration'], applyTempestResolverAura],
-    ['Elemental Bastion', TEMPEST.elementalBastion, ['Alacrity'], applyTempestResolverAura]
+  for (const [trait, traitId, profileId, names, resolve] of [
+    ["Zephyr's Boon", TRAIT.ZEPHYRS_BOON, CORE.zephyrsBoon, ['Fury', 'Swiftness'], applyResolverZephyrsBoon],
+    [
+      'Elemental Shielding',
+      TRAIT.ELEMENTAL_SHIELDING,
+      CORE.elementalShielding,
+      ['Protection'],
+      applyResolverElementalShielding
+    ],
+    [
+      'Invigorating Torrents',
+      TRAIT.INVIGORATING_TORRENTS,
+      TEMPEST.invigoratingTorrents,
+      ['Vigor', 'Regeneration'],
+      applyTempestResolverAura
+    ],
+    ['Elemental Bastion', TRAIT.ELEMENTAL_BASTION, TEMPEST.elementalBastion, ['Alacrity'], applyTempestResolverAura]
   ]) {
     const effects = names.map((name, index) => ({
       type: 'boon',
@@ -91,7 +104,7 @@ test('Core and Tempest aura boons use patched effects and scale once', () => {
     const profiles = new Map(elementalistCatalog.balanceProfilesById);
     profiles.set(profileId, { effects });
     context.helpers = { ...elementalistCatalog, balanceProfilesById: profiles };
-    context.traits = new Set([trait]);
+    context.traits = new Set([traitId]);
     context.queue.enqueue = (event) => events.push(event);
     // Live attribute and cooldown queries use the aura's actual application clock.
     context.time = 4;
@@ -128,7 +141,7 @@ test('Tempest preserves aura damage windows and grants boons for every actual au
     const queued = [];
     const context = {
       helpers: elementalistCatalog,
-      traits: new Set(['Tempestuous Aria', 'Invigorating Torrents', 'Elemental Bastion']),
+      traits: new Set([TRAIT.TEMPESTUOUS_ARIA, TRAIT.INVIGORATING_TORRENTS, TRAIT.ELEMENTAL_BASTION]),
       config: {},
       query: { statsAt: () => ({ concentration: 0 }) },
       boons: new Map([['tempestuous aria', [{ at: 0, expiresAt: 3, stacks: 1 }]]]),
@@ -148,7 +161,7 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
   const queued = [],
     procs = [];
   const context = {
-    traits: new Set(['Empowering Auras', 'Elemental Epitome']),
+    traits: new Set([TRAIT.EMPOWERING_AURAS, TRAIT.ELEMENTAL_EPITOME]),
     combatStartTime: 0,
     boons: new Map([['empowering auras', [{ at: 0, expiresAt: 3, stacks: 1 }]]]),
     helpers: {

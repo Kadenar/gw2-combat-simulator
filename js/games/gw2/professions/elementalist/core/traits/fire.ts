@@ -46,7 +46,7 @@ export function triggerSunspot(
   sourceId: Skill['id'],
   applyAura: ElementalistAuraApplier
 ): void {
-  if (!combatStarted(context, at) || !hasTrait(context, 'Sunspot')) return;
+  if (!combatStarted(context, at) || !hasTrait(context, TRAIT.SUNSPOT)) return;
 
   // Keep strike and Burning attribution aligned with the actual attunement or overload that triggered Sunspot.
   const sourceSkill = context.helpers.skillsById.get(sourceId)?.name || '';
@@ -80,7 +80,7 @@ export function triggerSunspot(
   }
 
   const burningEmitted =
-    hasTrait(context, 'Burning Rage') &&
+    hasTrait(context, TRAIT.BURNING_RAGE) &&
     emitProfiledCondition(context, at, PROFILE.burningRage, 'Sunspot Burning', 'Sunspot', sourceId, sourceSkill);
 
   if (sunspotAura || sunspotStrike || burningEmitted)
@@ -96,7 +96,7 @@ export function triggerSunspot(
 
 // Snapshot capped Might on Fire exit; the delayed blast damages enemies and grants that Might to other allies.
 export function triggerFlameExpulsion(context: ElementalistRuntime, at: number, sourceId: Skill['id']): void {
-  if (!combatStarted(context, at) || !hasTrait(context, "Pyromancer's Puissance")) return;
+  if (!combatStarted(context, at) || !hasTrait(context, TRAIT.PYROMANCERS_PUISSANCE)) return;
 
   const pyromancersPuissanceProfile = requireBalanceProfileFromContext(context, PROFILE.pyromancersPuissance);
   const impactAt = at + balanceProfileNumber(pyromancersPuissanceProfile, 'initialDelay');
@@ -182,7 +182,7 @@ export function triggerFlameExpulsion(context: ElementalistRuntime, at: number, 
 export function applyPyromancersPuissance(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   const at = cast.effectiveEnd;
   if (
-    !hasTrait(context, "Pyromancer's Puissance") ||
+    !hasTrait(context, TRAIT.PYROMANCERS_PUISSANCE) ||
     professionCoreState(context).primaryAttunement !== 'Fire' ||
     !combatStarted(context, at)
   )
@@ -192,7 +192,7 @@ export function applyPyromancersPuissance(context: ElementalistRuntime, cast: Ru
 
 /** Applies Smothering Auras' profile-driven duration multiplier once. */
 export function elementalistAuraDuration(context: unknown, duration: number): number {
-  return hasTrait(context, 'Smothering Auras')
+  return hasTrait(context, TRAIT.SMOTHERING_AURAS)
     ? duration *
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.smotheringAuras), 'durationMultiplier')
     : duration;
@@ -205,7 +205,7 @@ export function extendPersistingFlamesEffects(
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   if (
-    !hasTrait(context, 'Persisting Flames') ||
+    !hasTrait(context, TRAIT.PERSISTING_FLAMES) ||
     skill.type !== 'Weapon' ||
     !skill.comboFields?.some((field) => field.fieldType === 'Fire')
   )
@@ -277,7 +277,7 @@ export function extendPersistingFlamesFields(
   cast: RuntimeCast,
   fields: Skill['comboFields']
 ): Skill['comboFields'] {
-  if (!hasTrait(context, 'Persisting Flames') || cast.skill.type !== 'Weapon') return fields;
+  if (!hasTrait(context, TRAIT.PERSISTING_FLAMES) || cast.skill.type !== 'Weapon') return fields;
   const extension = balanceProfileNumber(
     requireBalanceProfileFromContext(context, PROFILE.persistingFlames),
     'durationPerTier'
@@ -307,7 +307,7 @@ export function applyBurningPrecision(context: Gw2ResolverRuntime, event: Gw2Res
 
 /** Grants one resolver-side Persisting Flames stack from a classified field tick or Burning application. */
 export function grantPersistingFlames(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  if (!hasTrait(context, 'Persisting Flames')) return;
+  if (!hasTrait(context, TRAIT.PERSISTING_FLAMES)) return;
   const persistingFlamesProfile = requireBalanceProfileFromContext(context, PROFILE.persistingFlames);
   queueElementalistBuff(
     context,
