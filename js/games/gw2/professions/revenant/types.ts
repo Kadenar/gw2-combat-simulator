@@ -2,7 +2,6 @@ import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/pla
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
@@ -76,10 +75,6 @@ export interface RevenantEnergyCostInput {
   >;
   readonly traits: ReadonlySet<SkillId>;
 }
-
-export type RevenantResolverEvent = Gw2ResolverEvent & {
-  readonly lifeSiphon?: boolean;
-};
 
 export type RevenantResolverContext = Gw2ResolverRuntime & {
   config: RevenantConfig;

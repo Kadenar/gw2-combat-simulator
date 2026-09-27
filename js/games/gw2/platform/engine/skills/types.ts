@@ -121,6 +121,8 @@ export interface BlindEffect extends SkillEffectBase {
 
 export interface StatusEffect extends SkillEffectBase {
   readonly type: 'boon' | 'buff';
+  /** Limits each grant after duration bonuses, independently of the buff pool's stacking cap. */
+  readonly maximumDuration?: number;
   readonly boon?: string;
   readonly kind?: string;
   readonly duration: number;

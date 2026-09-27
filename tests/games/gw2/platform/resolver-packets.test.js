@@ -254,7 +254,7 @@ test('neutral strike construction preserves the flat siphon formula and no-crit 
     flatStrikeBase: 99,
     flatStrikePowerCoeff: 0.005,
     noCrit: true,
-    lifeSiphon: true
+    damageKind: 'life-steal'
   });
   const result = resolveTestGw2Events({
     config: { stats: { power: 2000, precision: 4000, ferocity: 1500 }, target: { armor: 9000 } },

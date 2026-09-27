@@ -130,7 +130,7 @@ function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEve
       name: proc.name,
       coefficient: 0,
       flatDamage: proc.flatDamage,
-      lifeSiphon: true,
+      damageKind: 'life-steal',
       hits: 1,
       hitIndex: 1,
       totalHits: 1,

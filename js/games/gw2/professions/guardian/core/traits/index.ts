@@ -371,27 +371,6 @@ export function reactToGuardianDamage(runtime: Runtime, event: Gw2ResolverEvent,
         `${state.symbolicAvengerExpirations.length}/${balanceProfileNumber(profile, 'maximumStacks')} stacks`
       );
     }
-
-    if (hasTrait(runtime, TRAIT.SYMBOLIC_EXPOSURE)) {
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.symbolicExposure);
-      const effect = requireEffect(profile, 'condition', 'Vulnerability');
-      if (effect)
-        runtime.emitDerived(
-          event,
-          buildResolverCondition({
-            at: runtime.time,
-            source: 'guardian',
-            sourceId: TRAIT.SYMBOLIC_EXPOSURE,
-            actorType: 'effect',
-            skillId: TRAIT.SYMBOLIC_EXPOSURE,
-            skillName: profile.name,
-            condition: 'Vulnerability',
-            stacks: effectNumber(profile, effect, 'stacks'),
-            duration: effectNumber(profile, effect, 'duration'),
-            priority: 5
-          })
-        );
-    }
   }
 
   if (!hasTrait(runtime, TRAIT.ZEALOTS_RESOLUTION) || event.skillId === ID.LESSER_SYMBOL_OF_RESOLUTION) return;

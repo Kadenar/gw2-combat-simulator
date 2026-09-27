@@ -33,6 +33,7 @@ export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
         name: 'Life Siphon',
         type: 'strike',
         coefficient: 0,
+        damageKind: 'life-steal',
         flatStrikeBase: 53,
         flatStrikePowerCoeff: 0.0666,
         actorType: 'effect'

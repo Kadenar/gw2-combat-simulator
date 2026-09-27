@@ -280,7 +280,17 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.shadowsRejuvenation, "Shadow's Rejuvenation", { resourceGain: 1 }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.shadowSiphoning, 'Shadow Siphoning', {
     internalCooldown: 1,
-    effects: [{ type: 'strike', name: 'Shadow Siphoning', coefficient: 0.1, hits: 1 }]
+    effects: [
+      {
+        type: 'strike',
+        name: 'Shadow Siphoning',
+        coefficient: 0.1,
+        hits: 1,
+        canCrit: false,
+        noCrit: true,
+        damageKind: 'life-steal'
+      }
+    ]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.panicStrike, 'Panic Strike', {
     threshold: 3,
@@ -298,7 +308,17 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     ]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.cloakedInShadow, 'Cloaked in Shadow', {
-    effects: [{ type: 'strike', name: 'Cloaked in Shadow', coefficient: 0.04, hits: 1 }]
+    effects: [
+      {
+        type: 'strike',
+        name: 'Cloaked in Shadow',
+        coefficient: 0.04,
+        hits: 1,
+        canCrit: false,
+        noCrit: true,
+        damageKind: 'life-steal'
+      }
+    ]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.potentPoison, 'Potent Poison', {
     conditionDurationBonus: 0.33,

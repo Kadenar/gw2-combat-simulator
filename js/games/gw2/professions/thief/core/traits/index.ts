@@ -22,12 +22,7 @@ import {
   applyPanicStrike,
   applyPanicStrikePoison
 } from '#gw2/professions/thief/core/traits/deadly-arts.js';
-import {
-  applyAlliedLeechingVenoms,
-  applyCloakedInShadow,
-  applyLeechingVenoms,
-  applyShadowSiphoning
-} from '#gw2/professions/thief/core/traits/shadow-arts.js';
+import { applyAlliedLeechingVenoms, applyLeechingVenoms } from '#gw2/professions/thief/core/traits/shadow-arts.js';
 import { emitThiefBuff, emitThiefCondition } from '#gw2/professions/thief/core/events.js';
 import { grantThiefEndurance, grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -145,7 +140,6 @@ export function reactThiefCoreDamage(
   // Multiple venom types consume their charges but share one siphon per player strike.
   if (applyActiveVenoms(context, event as ThiefResolverEvent) > 0)
     applyLeechingVenoms(context, event as ThiefResolverEvent);
-  applyShadowSiphoning(context, event as ThiefResolverEvent);
   applyPanicStrike(context, event as ThiefResolverEvent);
 }
 
@@ -190,6 +184,5 @@ export function reactThiefCoreCondition(runtime: ThiefRuntime, application: Gw2R
   applyLotusPoison(context, application as ThiefResolverEvent);
   applyAlliedLeechingVenoms(context, application as ThiefResolverEvent);
   applyPanicStrikePoison(context, application as ThiefResolverEvent);
-  applyCloakedInShadow(context, application as ThiefResolverEvent);
   unsuspectingStrikeBonus(runtime, application);
 }

@@ -2,8 +2,7 @@ import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
-  effectNumber,
-  balanceProfileNumber
+  effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -35,7 +34,7 @@ function enqueueSiphon(
 
       canCrit: false,
       noCrit: true,
-      lifeSiphon: true,
+      damageKind: 'life-steal',
       triggeredBy: event.skillName
     })
   );
@@ -65,51 +64,4 @@ export function applyAlliedLeechingVenoms(context: ThiefResolverContext, applica
   )
     return;
   applyLeechingVenoms(context, application);
-}
-
-/** Claims the trait's ICD only for eligible stealth strikes before queuing the siphon. */
-export function applyShadowSiphoning(context: ThiefResolverContext, event: ThiefResolverEvent): void {
-  if (
-    event.actorType !== 'player' ||
-    !(Number(event.coefficient) > 0) ||
-    !hasTrait(context.config, TRAIT.SHADOW_SIPHONING)
-  )
-    return;
-  const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
-  const namedSkill = event.skillName == null ? undefined : context.helpers.skillsByName?.get(event.skillName);
-  if (!(skill || namedSkill)?.stealthAttack) return;
-  // Removing the siphon leaves no packet to claim its proc cooldown.
-  const shadowSiphoningProfile = requireBalanceProfileFromContext(context, PROFILE.shadowSiphoning);
-  const strike = requireEffect(shadowSiphoningProfile, 'strike', 'Shadow Siphoning');
-  if (!strike) return;
-  if (
-    !context.procs.claimCooldown(
-      TRAIT.SHADOW_SIPHONING,
-      event.at,
-      balanceProfileNumber(shadowSiphoningProfile, 'internalCooldown')
-    )
-  )
-    return;
-  enqueueSiphon(
-    context,
-    event,
-    TRAIT.SHADOW_SIPHONING,
-    'Shadow Siphoning',
-    effectNumber(shadowSiphoningProfile, strike, 'coefficient')
-  );
-}
-
-export function applyCloakedInShadow(context: ThiefResolverContext, application: ThiefResolverEvent): void {
-  if (application.condition !== 'Blindness' || !hasTrait(context.config, TRAIT.CLOAKED_IN_SHADOW)) return;
-  const cloakedInShadowProfile = requireBalanceProfileFromContext(context, PROFILE.cloakedInShadow);
-  const strike = requireEffect(cloakedInShadowProfile, 'strike', 'Cloaked in Shadow');
-  // Explicit removal suppresses this packet without restoring baseline tuning.
-  if (!strike) return;
-  enqueueSiphon(
-    context,
-    application,
-    TRAIT.CLOAKED_IN_SHADOW,
-    'Cloaked in Shadow',
-    effectNumber(cloakedInShadowProfile, strike, 'coefficient')
-  );
 }

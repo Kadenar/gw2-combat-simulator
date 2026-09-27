@@ -115,8 +115,16 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
 
 /** Round final boon grants and extension amounts after bonuses, preserving application times and generic buffs. */
 export function normalizeBoonDuration<
-  T extends { readonly type: string; readonly kind?: unknown; readonly duration?: unknown }
+  T extends {
+    readonly type: string;
+    readonly kind?: unknown;
+    readonly duration?: unknown;
+    readonly maximumDuration?: unknown;
+  }
 >(event: T): T {
+  // Per-grant limits apply after scaling to generic statuses as well as standard boons.
+  if (event.type === 'buff' && event.duration != null && event.maximumDuration != null)
+    event = { ...event, duration: Math.min(Number(event.duration), Number(event.maximumDuration)) };
   if (
     event.duration == null ||
     !(event.type === 'boon_extension' || (event.type === 'buff' && isStandardBoon(event.kind)))

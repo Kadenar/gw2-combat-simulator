@@ -120,8 +120,8 @@ export const TEMPEST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     effects: [boon('Vigor', 'vigor', 1, 5), boon('Regeneration', 'regeneration', 1, 5)]
   }),
   trait(TEMPEST_BALANCE_PROFILE_IDS.transcendentTempest, 'Transcendent Tempest', {
-    // Seconds the post-overload damage buff lasts.
-    durationMultiplier: 7
+    // Completion grants the timed damage-bonus status from this profile.
+    effects: [{ type: 'buff', name: 'Transcendent Tempest', kind: 'transcendent-tempest', duration: 7, stacks: 1 }]
   }),
   trait(TEMPEST_BALANCE_PROFILE_IDS.lucidSingularity, 'Lucid Singularity', {
     // At most `maximumStacks` overload hits pulse alacrity; the last of them uses `Final Alacrity`.

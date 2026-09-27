@@ -87,6 +87,7 @@ export interface EffectPatch extends EffectSelector {
   readonly hits?: NumEdit;
   readonly stacks?: NumEdit;
   readonly duration?: NumEdit;
+  readonly maximumDuration?: NumEdit;
   readonly applications?: NumEdit;
   readonly intervalMs?: NumEdit;
   readonly flatDamage?: NumEdit;

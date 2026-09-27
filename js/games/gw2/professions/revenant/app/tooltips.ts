@@ -908,7 +908,7 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.ENDLESS_ENMITY]: profileTooltip(
       RENEGADE.endlessEnmity,
       'Eligible critical hits grant fury to the party.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'cooldown', 'Internal cooldown', tooltipSeconds)]
+      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
     ),
     [TRAIT.BRUTAL_MOMENTUM]: profileTooltip(
       RENEGADE.brutalMomentum,

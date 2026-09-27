@@ -188,6 +188,7 @@ export const PATCHABLE_EFFECT_NUMERIC_FIELDS = Object.freeze([
   'hits',
   'stacks',
   'duration',
+  'maximumDuration',
   'applications',
   'intervalMs',
   'flatDamage',

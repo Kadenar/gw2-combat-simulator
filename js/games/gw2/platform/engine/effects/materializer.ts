@@ -258,6 +258,7 @@ export function materializeSkillEffectApplications({
           kind: String(effect.boon || effect.kind || effect.name || '').toLowerCase(),
           stacks: Math.max(1, Number(effect.stacks || 1)),
           duration: Math.max(0, Number(statusDuration ?? effect.duration ?? 0)),
+          ...(effect.maximumDuration == null ? {} : { maximumDuration: effect.maximumDuration }),
           ...(count > 1 ? { applicationIndex, totalApplications: count } : {}),
           ...(effect.audience ? { audience: effect.audience } : {}),
           ...nestedEffectMetadata(baseEvent.metadata, effect.metadata),

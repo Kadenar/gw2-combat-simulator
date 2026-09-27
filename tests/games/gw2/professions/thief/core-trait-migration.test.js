@@ -55,8 +55,6 @@ test('Thief critical boons read pre-hit Fury with same-time ordering and expiry'
   }
 });
 
-const STEAL = thiefCatalog.skillsById.get(ID.STEAL);
-
 /** Repeats an instant action at 1 s, at its internal-cooldown boundary, and just after it. */
 function internalCooldownClaims(traitId, action, duration, catalog) {
   const readyAt = [];
@@ -586,55 +584,38 @@ test('Spider Venom remains a base effect and Leeching Venoms stays nested after 
 });
 
 // Exercise the real damage dispatcher so a re-entrant child opportunity sees the armed cooldown.
-test('Shadow Siphoning gates eligible stealth attacks and keeps its cooldown through re-entry', () => {
-  const stealthAttack = thiefCatalog.skills.find((skill) => skill.stealthAttack);
-  const hit = {
-    type: 'damage',
-    at: 1,
-    actorType: 'player',
-    coefficient: 1,
-    skillId: stealthAttack.id,
-    skillName: stealthAttack.name
-  };
+test('Shadow Siphoning uses eligible stealth hits, a strict profile ICD, and authored strike policy', () => {
+  // Real hit reactions include same-time sibling hits and reject effect actors without recursive procs.
+  const stealth = thiefCatalog.skillsById.get(ID.BACKSTAB);
   for (const internalCooldown of [1, 0]) {
-    const { context } = traitContext([TRAIT.SHADOW_SIPHONING]);
-    const profiles = new Map(thiefCatalog.balanceProfilesById);
-    profiles.set(TRAIT.SHADOW_SIPHONING, { ...profiles.get(TRAIT.SHADOW_SIPHONING), internalCooldown });
-    context.catalog = { ...thiefCatalog, balanceProfilesById: profiles };
-    for (const event of [
-      { ...hit, actorType: 'summon' },
-      { ...hit, actorType: 'effect' },
-      { ...hit, coefficient: 0 },
-      { ...hit, skillId: STEAL.id, skillName: stealthAttack.name },
-      { ...hit, skillId: -1, skillName: 'Unknown attack' }
-    ])
-      reactThiefCoreDamage(context, event, {});
-    context.config.selectedTraitIds = [];
-    reactThiefCoreDamage(context, hit, {});
-    assert.deepEqual({ ...context.procs.readyAt }, {});
-    assert.equal(context.queue.length, 0);
-    context.config.selectedTraitIds = [TRAIT.SHADOW_SIPHONING];
-    const enqueue = context.queue.enqueue.bind(context.queue);
-    context.queue.enqueue = (event) => {
-      assert.equal(context.procs.readyAt[TRAIT.SHADOW_SIPHONING], event.at + internalCooldown);
-      // A child opportunity sees the armed ICD, and effect actors remain ineligible.
-      reactThiefCoreDamage(context, { ...hit, at: event.at }, {});
-      reactThiefCoreDamage(context, event, {});
-      return enqueue(event);
-    };
-
-    reactThiefCoreDamage(context, hit, {});
-    assert.equal(context.queue.length, 1);
-    const siphon = context.queue.dequeue();
-    assert.equal(siphon.sourceId, TRAIT.SHADOW_SIPHONING);
-    assert.equal(siphon.canCrit, false);
-    assert.equal(siphon.lifeSiphon, true);
-    assert.equal(context.procs.readyAt[TRAIT.SHADOW_SIPHONING], 1 + internalCooldown);
-    reactThiefCoreDamage(context, { ...hit, at: 1 + internalCooldown }, {});
-    assert.equal(context.queue.length, 0);
-    // Retain the legacy name fallback when no catalog ID matches.
-    reactThiefCoreDamage(context, { ...hit, at: 3, skillId: -1 }, {});
-    assert.equal(context.queue.length, 1);
+    const result = runThief(
+      [wait(4000)],
+      { selectedTraitIds: [TRAIT.SHADOW_SIPHONING] },
+      {
+        catalog: (catalog) => withProfile(catalog, TRAIT.SHADOW_SIPHONING, { internalCooldown }),
+        initialize(runtime) {
+          for (const fields of [
+            { actorType: 'summon' },
+            { actorType: 'effect' },
+            { coefficient: 0 },
+            { skillId: ID.DOUBLE_STRIKE, skillName: 'Double Strike' }
+          ])
+            runtime.emit(thiefHit(0.5, { skillId: stealth.id, skillName: stealth.name, ...fields }));
+          for (const at of [1, 1, 1 + internalCooldown, 3])
+            runtime.emit(thiefHit(at, { skillId: stealth.id, skillName: stealth.name }));
+        }
+      }
+    );
+    const packets = result.events.filter((event) => event.sourceId === TRAIT.SHADOW_SIPHONING);
+    assert.deepEqual(
+      packets.map((event) => event.at),
+      [1, 3]
+    );
+    assert.ok(
+      packets.every((event) => event.canCrit === false && event.noCrit === true && event.damageKind === 'life-steal')
+    );
+    assert.equal(observedRuntime(result).procs.deadline(TRAIT.SHADOW_SIPHONING), 3 + internalCooldown);
+    assert.deepEqual(result.warnings, []);
   }
 });
 
@@ -656,18 +637,43 @@ test('Panic Strike applies immobilize then its poison follow-up', () => {
   assert.equal(context.queue.dequeue().condition, 'Poisoned');
 });
 
-test('Cloaked in Shadow siphons from applied Blindness', () => {
-  const { context } = traitContext([TRAIT.CLOAKED_IN_SHADOW]);
-  reactThiefCoreCondition(context, {
-    type: 'condition',
-    at: 1,
-    actorType: 'player',
-    condition: 'Blindness',
-    skillName: 'Blind Test'
-  });
-  const siphon = context.queue.dequeue();
-  assert.equal(siphon.sourceId, TRAIT.CLOAKED_IN_SHADOW);
-  assert.equal(siphon.lifeSiphon, true);
+test('Cloaked in Shadow emits its authored noncritical packet only for applied Blindness', () => {
+  for (const removed of [false, true]) {
+    const result = runThief(
+      [wait(2000)],
+      { selectedTraitIds: [TRAIT.CLOAKED_IN_SHADOW] },
+      {
+        catalog: (catalog) =>
+          removed
+            ? withProfile(catalog, TRAIT.CLOAKED_IN_SHADOW, {
+                effects: [],
+                removedEffectKeys: [JSON.stringify(['strike', 'Cloaked in Shadow'])]
+              })
+            : catalog,
+        initialize(runtime) {
+          for (const condition of ['Blindness', 'Poisoned'])
+            runtime.emit({
+              type: 'condition',
+              at: 1,
+              source: 'fixture',
+              sourceId: 'blind',
+              actorType: 'player',
+              skillName: 'Blind Test',
+              condition,
+              stacks: 1,
+              duration: 1
+            });
+        }
+      }
+    );
+    const packets = result.events.filter((event) => event.sourceId === TRAIT.CLOAKED_IN_SHADOW);
+    assert.equal(packets.length, removed ? 0 : 1);
+    if (!removed) {
+      assert.equal(packets[0].damageKind, 'life-steal');
+      assert.equal(packets[0].canCrit, false);
+      assert.equal(packets[0].triggeredBy, 'Blind Test');
+    }
+  }
 });
 
 test('steal activation preserves its cross-line event order', () => {
@@ -776,4 +782,36 @@ test("Assassin's Fury preserves recipient gating, removed effects, and patched I
       }
     }
   }
+});
+
+// Shared combo/food packets and trait packets use the same life-steal classification for Lead Attacks.
+test('Lead Attacks boosts canonical flat life steal independently of its display name', () => {
+  const result = runThief(
+    [wait(2000)],
+    { selectedTraitIds: [TRAIT.LEAD_ATTACKS] },
+    {
+      initialize(runtime) {
+        runtime.profession.core.leadAttackExpirations = Array(10).fill(3);
+        for (const [sourceId, damageKind] of [
+          ['siphon', 'life-steal'],
+          ['ordinary', 'strike']
+        ])
+          runtime.emit(
+            thiefHit(1, {
+              sourceId,
+              actorType: 'effect',
+              ownerActorType: 'player',
+              name: 'Unrelated label',
+              coefficient: 0,
+              flatDamage: 1000,
+              noCrit: true,
+              damageKind
+            })
+          );
+      }
+    }
+  );
+  const damage = (id) => result.resolvedEvents.find((event) => event.sourceId === id).damage;
+  assert.equal(damage('siphon'), 1100);
+  assert.equal(damage('ordinary'), 1000);
 });

@@ -471,7 +471,7 @@ export function materializeComboOutcome(combo: ComboEvent): readonly SimulationE
           flatStrikeBase: outcome.flatStrikeBase,
           flatStrikePowerCoeff: outcome.flatStrikePowerCoeff,
           noCrit: true,
-          lifeSiphon: true
+          damageKind: 'life-steal'
         };
       case 'stealth':
         return {

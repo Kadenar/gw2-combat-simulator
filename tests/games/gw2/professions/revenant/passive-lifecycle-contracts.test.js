@@ -262,7 +262,7 @@ test('Nature adds outgoing Assassin damage only while its passive is available',
   });
   const siphons = (result) =>
     result.resolvedEvents.filter(
-      (event) => event.type === 'damage' && event.lifeSiphon && event.skillId === SKILL.FACET_OF_NATURE
+      (event) => event.type === 'damage' && event.damageKind === 'life-steal' && event.skillId === SKILL.FACET_OF_NATURE
     );
   assert.deepEqual(enabled.warnings, []);
   assert.equal(siphons(enabled).length, 1);

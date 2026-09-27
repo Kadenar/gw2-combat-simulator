@@ -62,8 +62,6 @@ export interface ProceduralEmissionOptions {
   readonly priority?: number;
   /** Keep the buff's authored duration instead of applying boon-duration modifiers; defaults to the event's flag. */
   readonly fixedDuration?: boolean;
-  /** Caps the final buff duration after boon-duration modifiers apply. */
-  readonly maximumDuration?: number;
 }
 
 /** The payload a profession task receives when a committed activation schedules its authored skill task. */
@@ -87,10 +85,7 @@ export interface FlipWindowOptions {
 export type RuntimeWork =
   | InternalWork<'runtime.effect', { event: SimulationEventBase }>
   | InternalWork<'runtime.flip-expiry', { skillId: SkillId; identity: number | string }>
-  | InternalWork<
-      'runtime.procedural',
-      { event: SimulationEventBase; fixedDuration?: boolean; maximumDuration?: number }
-    >
+  | InternalWork<'runtime.procedural', { event: SimulationEventBase; fixedDuration?: boolean }>
   | InternalWork<'runtime.complete', { reservationId: string }>
   | InternalWork<'runtime.task', { name: string; data: unknown }>;
 

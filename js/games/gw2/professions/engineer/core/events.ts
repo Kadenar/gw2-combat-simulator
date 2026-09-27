@@ -32,7 +32,5 @@ export function emitEngineerEvent(
     return;
   }
 
-  runtime.emitProcedural(event, {
-    ...(type === 'buff' && event.maximumDuration != null ? { maximumDuration: Number(event.maximumDuration) } : {})
-  });
+  runtime.emitProcedural(event);
 }

@@ -572,7 +572,9 @@ test('Dark projectile life steal receives the live Kalla bonus exactly once', ()
       },
       observationTail(1000)
     );
-    const siphon = result.resolvedEvents.find((event) => event.lifeSiphon && event.parentSkillName === 'Hammer Bolt');
+    const siphon = result.resolvedEvents.find(
+      (event) => event.damageKind === 'life-steal' && event.parentSkillName === 'Hammer Bolt'
+    );
     assert.ok(siphon);
     assert.equal(siphon.flatStrikeMultiplier, multiplier);
     assert.equal(siphon.damage, Math.floor((202 + 0.03 * 2000) * multiplier));

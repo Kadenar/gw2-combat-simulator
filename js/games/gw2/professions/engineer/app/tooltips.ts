@@ -775,12 +775,7 @@ export const engineerTooltips: ProfessionTooltips = {
     [TRAIT.MEDICAL_DISPERSION_FIELD]: outsideScopeTooltip,
     [TRAIT.FUNCTION_GYRO]: traitTooltip('Unlock Function Gyro, which can trigger supported gyro and toolbelt traits.'),
     [TRAIT.SPEED_OF_SYNERGY]: traitTooltip(
-      'Healing skills and their toolbelt skills grant superspeed. Equipping Med Kit is excluded; its toolbelt uses the longer duration.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'threshold', 'Healing-skill superspeed', tooltipSeconds),
-        profileFact(balanceContext, id, 'minimumStacks', 'Healing-toolbelt superspeed', tooltipSeconds),
-        profileFact(balanceContext, id, 'maximumStacks', 'Med Kit toolbelt base superspeed', tooltipSeconds)
-      ]
+      'Healing skills and their toolbelt skills grant superspeed. Equipping Med Kit is excluded; its toolbelt uses the longer duration.'
     ),
     [TRAIT.IMPACT_SAVANT]: outsideScopeTooltip,
     [TRAIT.GYROSCOPIC_ACCELERATION]: traitTooltip('Well skills and Function Gyro grant superspeed.'),

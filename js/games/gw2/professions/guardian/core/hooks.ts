@@ -1,3 +1,4 @@
+import { isGuardianSymbolSkill } from '#gw2/professions/guardian/core/traits/shared.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { consumeSkillFlip, skillFlipReady, followUpOf } from '#gw2/platform/engine/skills/skill-flips.js';
@@ -102,6 +103,33 @@ function completeWeapon(runtime: Runtime, cast: RuntimeCast): void {
 
 /** Core hooks: accepted virtues, shared recharge, endurance grants, and temporary weapon state. */
 export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
+  // Only damaging symbol hits apply the profile's Vulnerability packet.
+  traitTriggers: [
+    {
+      trait: TRAIT.SYMBOLIC_EXPOSURE,
+      emit: PROFILE.symbolicExposure,
+      on: 'damage.resolved',
+      when: (runtime, event, details) =>
+        event.actorType === 'player' &&
+        Number(event.coefficient) > 0 &&
+        (details.hitContext?.damage ?? 0) > 0 &&
+        Boolean(
+          event.isSymbol ||
+          isGuardianSymbolSkill(
+            event.skillId == null ? undefined : runtime.helpers.skillsById.get(event.skillId),
+            event.skillName
+          )
+        ),
+      effects: (effect) => effect.type === 'condition' && effect.name === 'Vulnerability',
+      attribution: {
+        source: 'guardian',
+        skillId: TRAIT.SYMBOLIC_EXPOSURE,
+        skillName: 'Symbolic Exposure',
+        name: 'Symbolic Exposure \u2014 Vulnerability',
+        priority: 5
+      }
+    }
+  ],
   endurance: { state: (runtime) => runtime.profession.core, maximum: () => 100, regenerationRate: () => 0 },
   rechargeWork: guardianRechargeWork,
   maximumAmmo: (runtime, skill, maximum) =>

@@ -1,3 +1,4 @@
+import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
@@ -226,23 +227,6 @@ function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: 
     triggerFlameExpulsion(context, cast.effectiveEnd, skill.id);
   }
 
-  if (hasTrait(context, 'Transcendent Tempest')) {
-    const transcendentTempestProfile = requireBalanceProfileFromContext(context, PROFILE.transcendentTempest);
-    emitElementalistBuff(context, {
-      at: cast.effectiveEnd,
-      // The completion buff applies to the final Overload packet and to
-      // same-time follow-ups such as Lightning Jolt.
-      priority: -10,
-      source: 'Transcendent Tempest',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillName: 'Transcendent Tempest',
-      kind: 'transcendent-tempest',
-      stacks: 1,
-      duration: balanceProfileNumber(transcendentTempestProfile, 'durationMultiplier')
-    });
-  }
-
   // Overload Air's completion strike: a non-critical unequipped-weapon hit, mirrored onto an
   // active fire/earth elemental and recorded as its own proc for attribution.
   if (skill.id === ID.OVERLOAD_AIR) {
@@ -337,26 +321,44 @@ function onAttunementEvent(context: ElementalistRuntime, event: SimulationEvent)
 /** Tempest owns overload channels and reacts only to actual attunement and aura events. */
 export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
   // Overload-start boons retain the triggering overload as source, including on interrupted channels.
-  traitTriggers: (
-    [
-      ['Hardy Conduit', PROFILE.hardyConduit, ['Protection']],
-      ['Harmonious Conduit', PROFILE.harmoniousConduit, ['Swiftness', 'Stability']]
-    ] as const
-  ).map(([name, profile, effects]) => ({
-    trait: name,
-    on: 'castStart',
-    when: (_runtime, cast) => Boolean(cast.skill.overload),
-    emit: profile,
-    effects: (effect) => effect.type === 'boon' && effects.some((name) => name === effect.name),
-    attribution: (_runtime, cast) => ({
-      source: name,
-      sourceId: cast.skill.id,
-      actorType: 'player',
-      skillName: name,
-      name,
-      offTarget: cast.command.offTarget
-    })
-  })),
+  traitTriggers: [
+    {
+      trait: 'Transcendent Tempest',
+      emit: PROFILE.transcendentTempest,
+      on: 'castComplete',
+      when: (_runtime, cast) => Boolean(cast.skill.overload),
+      // Apply before final overload packets and same-time completion strikes.
+      attribution: (_runtime, cast) => ({
+        source: 'Transcendent Tempest',
+        sourceId: cast.skill.id,
+        actorType: 'player',
+        skillId: cast.skill.id,
+        skillName: 'Transcendent Tempest',
+        priority: -10,
+        offTarget: cast.command.offTarget
+      })
+    },
+    ...(
+      [
+        ['Hardy Conduit', PROFILE.hardyConduit, ['Protection']],
+        ['Harmonious Conduit', PROFILE.harmoniousConduit, ['Swiftness', 'Stability']]
+      ] as const
+    ).map<Extract<TraitTrigger<ElementalistRuntimeState>, { on: 'castStart' }>>(([name, profile, effects]) => ({
+      trait: name,
+      on: 'castStart',
+      when: (_runtime, cast) => Boolean(cast.skill.overload),
+      emit: profile,
+      effects: (effect) => effect.type === 'boon' && effects.some((name) => name === effect.name),
+      attribution: (_runtime, cast) => ({
+        source: name,
+        sourceId: cast.skill.id,
+        actorType: 'player',
+        skillName: name,
+        name,
+        offTarget: cast.command.offTarget
+      })
+    }))
+  ],
   initialize(runtime) {
     registerElementalistEliteEvents(runtime, onAttunementEvent);
   },

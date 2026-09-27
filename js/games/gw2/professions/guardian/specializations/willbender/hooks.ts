@@ -298,32 +298,32 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
         hasTrait(runtime, TRAIT.BATTLE_PRESENCE)
       );
   }
-
-  if (event.willbenderFlames && hasTrait(runtime, TRAIT.SEARING_PACT)) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.searingPact);
-    const burn = requireEffect(profile, 'condition', 'Burning');
-    if (burn)
-      runtime.emitDerived(
-        event,
-        buildResolverCondition({
-          at: runtime.time,
-          source: 'guardian',
-          sourceId: TRAIT.SEARING_PACT,
-          actorType: 'player',
-          skillId: TRAIT.SEARING_PACT,
-          skillName: 'Searing Pact',
-          name: 'Searing Pact — Burning',
-          condition: String(burn.condition),
-          stacks: effectNumber(profile, burn, 'stacks'),
-          duration: effectNumber(profile, burn, 'duration'),
-          triggeredBy: 'Willbender Flames'
-        })
-      );
-  }
 }
 
 /** Virtue windows, flame lifetimes, and earned recharge reductions live beside the shared cast and damage owners. */
 export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
+  // Searing Pact follows actual flame damage, independently of virtue hit counters.
+  traitTriggers: [
+    {
+      trait: TRAIT.SEARING_PACT,
+      emit: PROFILE.searingPact,
+      on: 'damage.resolved',
+      when: (_runtime, event, details) =>
+        Boolean(event.willbenderFlames) &&
+        (details.hitContext?.damage ?? 0) > 0 &&
+        Number(event.coefficient) > 0 &&
+        (event.actorType === 'player' || event.sourceId === 'sigil.air'),
+      effects: (effect) => effect.type === 'condition' && effect.name === 'Burning',
+      attribution: {
+        source: 'guardian',
+        actorType: 'player',
+        skillId: TRAIT.SEARING_PACT,
+        skillName: 'Searing Pact',
+        name: 'Searing Pact \u2014 Burning',
+        triggeredBy: 'Willbender Flames'
+      }
+    }
+  ],
   availability(runtime, skill) {
     return skill.id === ID.REPOSE && !skillFlipReady(runtime.profession.core.availableFlips[ID.REPOSE], runtime.time)
       ? denySkillCast(skill, 'guardian.flip-not-armed', 'not currently armed.')

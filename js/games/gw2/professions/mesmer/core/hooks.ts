@@ -151,28 +151,28 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
   // Dazzling precedes other control reactions and keeps player ownership even for summon-triggered control.
   traitTriggers: [
     // Native shatter impacts inherit their triggering skill while selecting only the matching condition.
-    ...(['Weakness', 'Cripple'] as const).map<
-      Exclude<TraitTrigger<MesmerRuntimeState>, { on: 'castStart' | 'castComplete' }>
-    >((condition) => ({
-      trait: TRAIT.MASTER_OF_FRAGMENTATION,
-      on: 'damage.resolved' as const,
-      when: (_runtime, event) =>
-        event.type === 'damage' &&
-        isGw2PlayerActorEvent(event) &&
-        event.sourceId === event.skillId &&
-        !missesTarget(event) &&
-        (condition === 'Weakness'
-          ? event.skillId === ID.DEAFENING_DRUM
-          : [ID.CRY_OF_FRUSTRATION, ID.REWINDER, ID.BLADESONG_SORROW, ID.FLUSTERING_FLUTE].some(
-              (id) => id === event.skillId
-            )),
-      emit: TRAIT.MASTER_OF_FRAGMENTATION,
-      effects: (effect) => effect.type === 'condition' && effect.name === condition,
-      attribution: (_runtime, event) => ({
-        actorType: 'player',
-        name: `${event.skillName || TRAIT.MASTER_OF_FRAGMENTATION} — ${condition}`
+    ...(['Weakness', 'Cripple'] as const).map<Extract<TraitTrigger<MesmerRuntimeState>, { on: 'damage.resolved' }>>(
+      (condition) => ({
+        trait: TRAIT.MASTER_OF_FRAGMENTATION,
+        on: 'damage.resolved' as const,
+        when: (_runtime, event) =>
+          event.type === 'damage' &&
+          isGw2PlayerActorEvent(event) &&
+          event.sourceId === event.skillId &&
+          !missesTarget(event) &&
+          (condition === 'Weakness'
+            ? event.skillId === ID.DEAFENING_DRUM
+            : [ID.CRY_OF_FRUSTRATION, ID.REWINDER, ID.BLADESONG_SORROW, ID.FLUSTERING_FLUTE].some(
+                (id) => id === event.skillId
+              )),
+        emit: TRAIT.MASTER_OF_FRAGMENTATION,
+        effects: (effect) => effect.type === 'condition' && effect.name === condition,
+        attribution: (_runtime, event) => ({
+          actorType: 'player',
+          name: `${event.skillName || TRAIT.MASTER_OF_FRAGMENTATION} — ${condition}`
+        })
       })
-    })),
+    ),
     {
       on: 'control.resolved',
       trait: TRAIT.DAZZLING,

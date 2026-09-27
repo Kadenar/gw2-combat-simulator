@@ -41,12 +41,7 @@ import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type {
-  RevenantResolverContext,
-  RevenantResolverEvent,
-  RevenantRuntimeState,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantResolverContext, RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
 const SOULCLEAVE_ALLIES = 'revenant.soulcleave-allied-proc';
@@ -243,41 +238,11 @@ function ashenDemeanor(runtime: RevenantRuntime, cast: RuntimeCast): void {
 /** Actual critical and positional facts drive Ambush Commander and Endless Enmity. */
 function criticalTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent, hit?: Gw2HitResolutionContext): void {
   const ambush = hasTrait(runtime, TRAIT.AMBUSH_COMMANDER);
-  const enmity = hasTrait(runtime, TRAIT.ENDLESS_ENMITY);
-  if (!ambush && !enmity) return;
+  if (!ambush) return;
   const critical = Boolean(hit?.critEligible && hit.critical.didCrit);
   // A defiant golem never rotates, so flanking/behind positional triggers always apply.
   if (ambush && (Boolean(runtime.config.target?.defiant) || critical))
     grantKallasFervor(runtime, { sourceId: TRAIT.AMBUSH_COMMANDER, sourceName: 'Ambush Commander', cause: event });
-  if (
-    !enmity ||
-    !critical ||
-    !isInternalCooldownReady(runtime.time, Number(runtime.procs.deadline('revenant.renegade.endlessEnmity') || 0))
-  )
-    return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.endlessEnmity);
-  const effect = requireEffect(profile, 'boon', 'fury');
-  // The cooldown gates only fury, so a removed boon leaves it ready.
-  if (!effect) return;
-  runtime.procs.readyAt['revenant.renegade.endlessEnmity'] =
-    runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
-  runtime.emitProcedural(
-    {
-      type: 'buff',
-      at: runtime.time,
-      source: 'revenant',
-      sourceId: TRAIT.ENDLESS_ENMITY,
-      actorType: 'player',
-      skillId: TRAIT.ENDLESS_ENMITY,
-      skillName: 'Endless Enmity',
-      name: 'Endless Enmity — fury',
-      kind: String(effect.boon),
-      duration: effectNumber(profile, effect, 'duration'),
-      stacks: effectNumber(profile, effect, 'stacks'),
-      audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
-    },
-    { cause: event }
-  );
 }
 
 /** A ready, unexpired Razorclaw charge becomes an empowered Bleeding on a landed player strike. */
@@ -459,6 +424,26 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   },
   // Only Bombardment's first resolved hit emits Vindication's control packet.
   traitTriggers: [
+    // Only actual eligible critical hits claim the profile ICD; removal leaves it ready.
+    {
+      trait: TRAIT.ENDLESS_ENMITY,
+      emit: PROFILE.endlessEnmity,
+      on: 'damage.resolved',
+      icd: 'profile',
+      when: (runtime, event, details) =>
+        event.actorType === 'player' &&
+        Number(event.coefficient) > 0 &&
+        Boolean(details.hitContext?.critEligible && details.hitContext.critical.didCrit) &&
+        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.endlessEnmity), 'boon', 'fury')),
+      effects: (effect) => effect.type === 'boon' && effect.name === 'fury',
+      attribution: {
+        source: 'revenant',
+        actorType: 'player',
+        skillId: TRAIT.ENDLESS_ENMITY,
+        skillName: 'Endless Enmity',
+        name: 'Endless Enmity \u2014 fury'
+      }
+    },
     {
       trait: TRAIT.BRUTAL_MOMENTUM,
       emit: PROFILE.brutalMomentum,
@@ -497,10 +482,7 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   reactions: {
     'damage.resolving'(runtime, event) {
       // Core already applied its additive bonus; Fervor joins the same additive life-steal sum.
-      const core = revenantLifeSiphonBonus(
-        runtime as unknown as RevenantResolverContext,
-        event as RevenantResolverEvent
-      );
+      const core = revenantLifeSiphonBonus(runtime as unknown as RevenantResolverContext, event);
       if (core == null) return;
       const stacks = activeKallasFervorStacks(renegadeState.from(runtime), runtime.time);
       if (!stacks) return;

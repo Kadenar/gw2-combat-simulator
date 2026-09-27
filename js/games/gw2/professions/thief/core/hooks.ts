@@ -229,6 +229,45 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   },
   // Removed Might leaves Assassin's Fury's ICD untouched; accepted self Fury retains its causal identity.
   traitTriggers: [
+    // Siphon profiles own critical-hit policy; only eligible stealth attacks claim the ICD.
+    {
+      trait: TRAIT.SHADOW_SIPHONING,
+      emit: PROFILE.shadowSiphoning,
+      on: 'damage.resolved',
+      icd: 'profile',
+      when: (runtime, event) =>
+        event.actorType === 'player' &&
+        Number(event.coefficient) > 0 &&
+        Boolean(
+          (runtime.helpers.skillsById.get(event.skillId!) || runtime.helpers.skillsByName.get(event.skillName!))
+            ?.stealthAttack
+        ) &&
+        Boolean(
+          requireEffect(
+            requireBalanceProfileFromContext(runtime, PROFILE.shadowSiphoning),
+            'strike',
+            'Shadow Siphoning'
+          )
+        ),
+      effects: (effect) => effect.type === 'strike' && effect.name === 'Shadow Siphoning',
+      attribution: (_runtime, event) => ({
+        skillId: TRAIT.SHADOW_SIPHONING,
+        skillName: 'Shadow Siphoning',
+        triggeredBy: event.skillName
+      })
+    },
+    {
+      trait: TRAIT.CLOAKED_IN_SHADOW,
+      emit: PROFILE.cloakedInShadow,
+      on: 'condition.applied',
+      when: (_runtime, event) => event.condition === 'Blindness',
+      effects: (effect) => effect.type === 'strike' && effect.name === 'Cloaked in Shadow',
+      attribution: (_runtime, event) => ({
+        skillId: TRAIT.CLOAKED_IN_SHADOW,
+        skillName: 'Cloaked in Shadow',
+        triggeredBy: event.skillName
+      })
+    },
     {
       trait: TRAIT.ASSASSINS_FURY,
       on: 'buff.applied',

@@ -269,7 +269,7 @@ function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
       ownerActorType: 'player',
       coefficient: 0,
       noCrit: true,
-      lifeSiphon: true,
+      damageKind: 'life-steal',
       flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
       flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
       skillWeapon: 'Unequipped',

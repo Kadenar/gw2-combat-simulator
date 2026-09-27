@@ -977,9 +977,8 @@ export const elementalistTooltips: ProfessionTooltips = {
     [TRAIT.INVIGORATING_TORRENTS]: traitTooltip('Gaining an aura grants vigor and regeneration.'),
     [TRAIT.TRANSCENDENT_TEMPEST]: traitTooltip(
       'Singularities form sooner. Completing an overload grants a temporary strike- and condition-damage bonus.',
-      (balanceContext, id) => [
+      (balanceContext) => [
         profileFact(balanceContext, TEMPEST.overloads, 'durationMultiplier', 'Base attunement dwell', tooltipSeconds),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Damage-bonus duration', tooltipSeconds),
         modifierFact(balanceContext, 'elementalist.transcendent-tempest-strike', 'amount', 'Strike damage'),
         modifierFact(balanceContext, 'elementalist.transcendent-tempest-condition', 'amount', 'Condition damage')
       ]

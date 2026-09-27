@@ -14,7 +14,7 @@ import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/
 /** Lead Attacks also boosts owned flat life steal, which bypasses ordinary strike modifiers. */
 export function modifyThiefLifeSiphon(context: ThiefResolverContext, event: ThiefResolverEvent) {
   if (
-    !event.lifeSiphon ||
+    event.damageKind !== 'life-steal' ||
     ![event.flatDamage, event.flatStrikeBase, event.flatStrikePowerCoeff].some(Number.isFinite) ||
     !isGw2PlayerModifierOwnedEvent(event) ||
     !hasTrait(context.config, TRAIT.LEAD_ATTACKS)

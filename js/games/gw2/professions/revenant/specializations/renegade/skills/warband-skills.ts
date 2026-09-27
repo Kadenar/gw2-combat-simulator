@@ -351,6 +351,7 @@ export const RENEGADE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
       {
         type: 'strike',
         coefficient: 0,
+        damageKind: 'life-steal',
         flatStrikeBase: 325,
         flatStrikePowerCoeff: 0.1,
         hits: 1,

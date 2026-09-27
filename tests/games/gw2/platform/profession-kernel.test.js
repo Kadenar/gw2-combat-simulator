@@ -1,3 +1,4 @@
+import { withSkill, withProfile } from '#tests/helpers/catalog-overrides.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
@@ -525,4 +526,114 @@ test('dynamic resolver attribution retains the triggering activation and causal 
   assert.equal(packet.causalOrder, causes[0].causalOrder ?? causes[0].eventOrder);
   assert.ok(packet.eventOrder > causes[0].eventOrder);
   assert.deepEqual(result.warnings, []);
+});
+
+// Declarative hit predicates must receive the exact outcome passed to the imperative reaction owner.
+test('resolved trait predicates use actual damage and critical results and forward the original details', () => {
+  const predicates = [];
+  const prior = [];
+  const result = run(
+    {
+      initialize(runtime) {
+        for (const [at, fields] of [
+          [1, { forceCrit: true }],
+          [2, { noCrit: true }],
+          [3, { coefficient: 0 }]
+        ])
+          runtime.emit({
+            type: 'damage',
+            at,
+            source: 'fixture',
+            sourceId: 'hit',
+            actorType: 'player',
+            coefficient: 1,
+            skillWeapon: 'Unequipped',
+            ...fields
+          });
+      },
+      traitTriggers: [
+        {
+          trait: 'test.trait',
+          on: 'damage.resolved',
+          emit: 'test.proc',
+          when: (_runtime, event, details) => {
+            predicates.push([event, details]);
+            return (
+              details.hitContext.damage > 0 && details.hitContext.critEligible && details.hitContext.critical.didCrit
+            );
+          }
+        }
+      ],
+      reactions: {
+        'damage.resolved': (_runtime, event, details) => {
+          prior.push([event, details]);
+        }
+      }
+    },
+    [wait(4000)]
+  );
+  assert.equal(predicates.length, 3);
+  for (const [index, [event, details]] of predicates.entries()) {
+    assert.equal(event, prior[index][0]);
+    assert.equal(details, prior[index][1]);
+  }
+
+  assert.deepEqual(
+    result.events.filter((event) => event.sourceId === 'test.trait').map((event) => event.at),
+    [1]
+  );
+});
+
+// The same final cap must follow duration scaling for both authored skills and delayed procedural profiles.
+test('authored and procedural status caps apply after scaling and remain patchable', () => {
+  const effects = [
+    { type: 'boon', name: 'might', boon: 'might', duration: 4, stacks: 1, maximumDuration: 5 },
+    { type: 'buff', name: 'superspeed', kind: 'superspeed', duration: 12, stacks: 1, maximumDuration: 10 }
+  ];
+  const patched = applyBalanceProfilePatch(withProfile(catalog, 'test.proc', { effects }), {
+    balanceProfiles: { 'test.proc': { effects: [{ type: 'buff', name: 'superspeed', maximumDuration: 6 }] } }
+  });
+  const localCatalog = withSkill(patched, 991001, {
+    effects,
+    sideEffects: [{ on: 'castComplete', do: { type: 'emitProfile', profileId: 'test.proc' } }]
+  });
+  const result = runGw2Runtime({
+    profession: {
+      ...fixture({
+        onCastStart(runtime) {
+          runtime.emitProcedural({
+            type: 'buff',
+            at: 2,
+            source: 'fixture',
+            sourceId: 'future',
+            actorType: 'player',
+            kind: 'might',
+            duration: 4,
+            stacks: 1,
+            maximumDuration: 5
+          });
+        }
+      }),
+      catalog: localCatalog
+    },
+    config: { ...config, stats: { ...config.stats, concentration: 1500 } },
+    rotation: [cast(991001), wait(3000)]
+  });
+  assert.deepEqual(
+    result.events.filter((event) => event.type === 'buff' && event.kind === 'might').map((event) => event.duration),
+    [5, 5, 5]
+  );
+  assert.deepEqual(
+    result.events
+      .filter((event) => event.type === 'buff' && event.kind === 'superspeed')
+      .map((event) => event.duration)
+      .sort((a, b) => a - b),
+    [6, 10]
+  );
+  for (const maximumDuration of [-1, NaN, '10'])
+    assert.throws(() =>
+      createCanonicalCatalog({
+        generated: [{ id: 1, name: 'Invalid cap', effects: [{ ...effects[0], maximumDuration }] }]
+      })
+    );
 });

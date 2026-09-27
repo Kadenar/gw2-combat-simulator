@@ -131,6 +131,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         type: 'strike',
         coefficient: 0,
         hits: 1,
+        damageKind: 'life-steal',
         flatStrikeBase: 117,
         flatStrikePowerCoeff: 0.006,
         name: 'Battle Scars — Life Siphon',

@@ -148,7 +148,7 @@ test('Dark projectile and whirl siphons own their hits without inflating the fin
       },
       finisher('dark-finisher', { kind: 'field-id', fieldId: 'dark:1' }, { finisherType })
     ]);
-    const siphon = result.resolvedEvents.find((event) => event.type === 'damage' && event.lifeSiphon);
+    const siphon = result.resolvedEvents.find((event) => event.type === 'damage' && event.damageKind === 'life-steal');
     assert.equal(siphon.name, siphonName);
     assert.equal(siphon.skillName, siphonName);
     assert.equal(siphon.parentSkillName, 'Fixture Finisher');

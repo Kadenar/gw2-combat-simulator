@@ -24,6 +24,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
         atMs: 520,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        damageKind: 'life-steal',
         flatStrikeBase: 1028,
         flatStrikePowerCoeff: 0.06,
         name: 'Enchanted Daggers — Siphon Damage',

@@ -300,7 +300,7 @@ function larcenousTorment(runtime: ThiefRuntime, application: Gw2ResolverEvent):
           flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
           canCrit: false,
           noCrit: true,
-          lifeSiphon: true,
+          damageKind: 'life-steal',
           triggeredBy: application.skillName,
           stackIndex: stack
         })

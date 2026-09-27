@@ -1,3 +1,4 @@
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { sideEffectAmount, type ProfileAmount } from '#gw2/platform/simulation/side-effects.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
@@ -47,7 +48,16 @@ export type TraitTrigger<T extends object> = TraitTriggerBase &
         readonly attribution?: TriggerAttributionSource<T, RuntimeCast>;
       }
     | {
-        readonly on: Gw2ResolverStage;
+        readonly on: 'damage.resolved';
+        readonly when: (
+          runtime: Gw2Runtime<T>,
+          event: Gw2ResolverEvent,
+          details: NativeResolvedDamageDetails
+        ) => boolean;
+        readonly attribution?: TriggerAttributionSource<T, Gw2ResolverEvent>;
+      }
+    | {
+        readonly on: Exclude<Gw2ResolverStage, 'damage.resolved'>;
         readonly when: (runtime: Gw2Runtime<T>, event: Gw2ResolverEvent) => boolean;
         readonly attribution?: TriggerAttributionSource<T, Gw2ResolverEvent>;
       }
@@ -133,7 +143,13 @@ export function compileProfessionRules<T extends object>(
       compiled.reactions = {
         ...compiled.reactions,
         [rule.on]: (runtime: Gw2Runtime<T>, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
-          if (hasTrait(runtime, rule.trait) && rule.when(runtime, event))
+          // Hit predicates consume the resolved outcome, never a prediction from the packet.
+          if (
+            hasTrait(runtime, rule.trait) &&
+            (rule.on === 'damage.resolved'
+              ? rule.when(runtime, event, details as NativeResolvedDamageDetails)
+              : rule.when(runtime, event))
+          )
             emit(
               runtime,
               event.skillId,

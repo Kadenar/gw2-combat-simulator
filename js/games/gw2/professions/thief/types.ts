@@ -131,7 +131,6 @@ export type ThiefResolverEvent = Gw2ResolverEvent & {
   readonly application?: ThiefResolverEvent;
   readonly bonusAboveNinetyStacks?: number;
   readonly deadeyeMaliceSnapshot?: number;
-  readonly lifeSiphon?: boolean;
 };
 
 export type ThiefResolverContext = Gw2ResolverRuntime & {

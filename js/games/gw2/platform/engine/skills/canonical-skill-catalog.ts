@@ -68,6 +68,7 @@ const EFFECT_FIELDS = new Set([
   'condition',
   'stacks',
   'duration',
+  'maximumDuration',
   'durationPerAffinity',
   'durationReductionPerAffinity',
   'damageIncreasePerStack',
@@ -635,6 +636,11 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
 
   if (normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff') {
     requireBalanceNumber(normalizedEffect.duration, 'field=duration');
+    if (normalizedEffect.maximumDuration != null) {
+      requireBalanceNumber(normalizedEffect.maximumDuration, 'field=maximumDuration');
+      if (normalizedEffect.maximumDuration < 0) throw new TypeError('Status maximumDuration must be nonnegative.');
+    }
+
     if (normalizedEffect.stacks !== undefined && !(normalizedEffect.stacks > 0)) {
       throw new TypeError('Boon and buff statuses require positive stacks.');
     }

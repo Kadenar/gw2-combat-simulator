@@ -282,8 +282,7 @@ export function runGw2Runtime<T extends object>({
                 ...event,
                 at
               },
-              ...(options.fixedDuration == null ? {} : { fixedDuration: options.fixedDuration }),
-              ...(options.maximumDuration == null ? {} : { maximumDuration: options.maximumDuration })
+              ...(options.fixedDuration == null ? {} : { fixedDuration: options.fixedDuration })
             }
           })
         );
@@ -407,14 +406,13 @@ export function runGw2Runtime<T extends object>({
   /** Standard boons scale with boon duration at their application instant; other buffs keep their authored duration. */
   function scaleProceduralBuff(
     event: SimulationEventBase,
-    { fixedDuration, maximumDuration }: Pick<ProceduralEmissionOptions, 'fixedDuration' | 'maximumDuration'>
+    { fixedDuration }: Pick<ProceduralEmissionOptions, 'fixedDuration'>
   ): SimulationEventBase {
     const kind = String(event.kind ?? '');
     const duration =
       !(fixedDuration ?? event.fixedDuration === true) && isStandardBoon(kind)
         ? gw2ResolverBoonDuration(runtime, event as Gw2ResolverEvent, kind, Number(event.duration))
         : event.duration;
-    if (maximumDuration != null) return { ...event, duration: Math.min(Number(duration), maximumDuration) };
     return duration === event.duration ? event : { ...event, duration };
   }
 
