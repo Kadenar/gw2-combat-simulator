@@ -1,26 +1,14 @@
+import { completeNecromancerForm, necromancerFormTasks } from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';
 import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { modifyNecromancerRechargeStart } from '#gw2/professions/necromancer/core/mechanics/recharge.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
-import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import {
-  balanceProfileNumber,
-  requireEffect,
-  effectNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import {
-  runNecromancerShroudEnter,
-  runNecromancerShroudExit,
-  runNecromancerLifeForceDepletion
-} from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
+import { consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { requireEffect, requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { castCompleted } from '#gw2/platform/skills/timing.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
 import {
   necromancerLifeForceCostMultiplier,
   normalizedNecromancerLifeForceCost
@@ -34,8 +22,6 @@ import type {
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { addCarapace } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import {
   applyOverflowingThirstCast,
   reactToTasteForBloodGrant
@@ -43,8 +29,6 @@ import {
 import { applyDarkDefense } from '#gw2/professions/necromancer/core/traits/death-magic.js';
 import { applyFearOfDeath, soulMarksLifeForce } from '#gw2/professions/necromancer/core/traits/soul-reaping.js';
 import { spitefulFortitudeLifeForce } from '#gw2/professions/necromancer/core/traits/spite.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import {
   modifyNecromancerWeaponEffects,
   perforate,
@@ -54,6 +38,7 @@ import {
 } from '#gw2/professions/necromancer/core/mechanics/weapons.js';
 import {
   scheduleNecromancerConditions,
+  isCorruptionCompletionEffect,
   reactToNecromancerConditions,
   resolveNecromancerSkillConditions,
   resolveNecromancerTransfer,
@@ -85,190 +70,9 @@ import {
   grantNecromancerLifeForce,
   grantNecromancerSkillLifeForce
 } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
-import { DEPLETION, necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
+import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 
-const LICH_EXPIRY = 'necromancer.lich-expiry';
 const GRAVEDIGGER_RESET = 'necromancer.gravedigger-reset';
-
-/** Entry and exit refresh Soul Barbs from the actual transition, including automatic depletion. */
-function soulBarbs(runtime: NecromancerRuntime): void {
-  if (!hasTrait(runtime, TRAIT.SOUL_BARBS)) return;
-  runtime.emit({
-    type: 'buff',
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: TRAIT.SOUL_BARBS,
-    actorType: 'player',
-    kind: 'necromancer-soul-barbs',
-    stacks: 1,
-    duration: balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SOUL_BARBS), 'duration')
-  });
-}
-
-/** Life force reads pre-entry Carapace; entry grants and successful removals then update the same stack collection. */
-function prepareShroudEntry(runtime: NecromancerRuntime): void {
-  const state = runtime.profession.core;
-  if (hasTrait(runtime, TRAIT.SOUL_COMPREHENSION)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.SOUL_COMPREHENSION);
-    const minionStacks = hasTrait(runtime, TRAIT.FLESH_OF_THE_MASTER)
-      ? Object.values(state.activeMinions).reduce((sum, count) => sum + count * 2, 0)
-      : 0;
-    grantNecromancerLifeForce(
-      runtime,
-      Math.min(
-        balanceProfileNumber(profile, 'maximumStacks'),
-        activeStackCount(state.carapaceExpiries, runtime.time) + minionStacks
-      ) * balanceProfileNumber(profile, 'lifeForcePerStack')
-    );
-  }
-
-  if (hasTrait(runtime, TRAIT.ARMORED_SHROUD)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.ARMORED_SHROUD);
-    addCarapace(
-      state,
-      balanceProfileNumber(profile, 'resourceGain'),
-      runtime.time,
-      balanceProfileNumber(profile, 'duration')
-    );
-  }
-
-  state.selfConditions = state.selfConditions.filter((application) =>
-    isTimeInWindow(runtime.time, application.appliedAt, application.expiresAt)
-  );
-  if (hasTrait(runtime, TRAIT.SHROUDED_REMOVAL)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.SHROUDED_REMOVAL);
-    const removed = state.selfConditions.splice(0, balanceProfileNumber(profile, 'maximumConditions'));
-    if (removed.length)
-      addCarapace(
-        state,
-        removed.length * balanceProfileNumber(profile, 'resourceGain'),
-        runtime.time,
-        balanceProfileNumber(profile, 'duration')
-      );
-  }
-
-  state.plagueSendingArmed = hasTrait(runtime, TRAIT.PLAGUE_SENDING) && state.selfConditions.length > 0;
-  state.plagueSendingEntrySkillId = null;
-}
-
-/** Surviving entry packets use the shared boon and damage formulas after the transform state is established. */
-function shroudEntryEffects(runtime: NecromancerRuntime, cast: RuntimeCast): void {
-  soulBarbs(runtime);
-  const attribution = {
-    at: runtime.time,
-    source: 'Trait',
-    actorType: 'effect' as const,
-    activationId: cast.id,
-    triggeredBy: cast.skill.name
-  };
-  for (const [trait, boon] of [
-    [TRAIT.AWAKEN_THE_PAIN, 'might'],
-    [TRAIT.FURIOUS_DEMISE, 'fury'],
-    [TRAIT.SPEED_OF_SHADOWS, 'swiftness'],
-    [TRAIT.ETERNAL_LIFE, 'protection']
-  ] as const) {
-    if (!hasTrait(runtime, trait)) continue;
-    const profile = requireBalanceProfileFromContext(runtime, trait);
-    const effect = requireEffect(profile, 'boon', boon);
-    if (!effect) continue;
-    const event = {
-      ...attribution,
-      type: 'buff' as const,
-      sourceId: trait,
-      skillName: profile.name,
-      kind: boon,
-      duration: effectNumber(profile, effect, 'duration'),
-      stacks: effectNumber(profile, effect, 'stacks')
-    };
-    queueResolverBoon(runtime, event, event);
-  }
-
-  for (const trait of [TRAIT.WEAKENING_SHROUD, TRAIT.SPITEFUL_SPIRIT]) {
-    if (!hasTrait(runtime, trait)) continue;
-    const profile = requireBalanceProfileFromContext(runtime, trait);
-    const event = { ...attribution, sourceId: trait, skillName: profile.name, offTarget: cast.command.offTarget };
-    const strike = requireEffect(profile, 'strike', 'Strike');
-    if (strike)
-      runtime.emit(
-        buildResolverStrike({
-          ...event,
-          coefficient: effectNumber(profile, strike, 'coefficient'),
-          skillWeapon: 'Unequipped',
-          canCrit: true
-        })
-      );
-    if (trait === TRAIT.WEAKENING_SHROUD)
-      for (const name of ['Bleeding', 'Weakness']) {
-        const effect = requireEffect(profile, 'condition', name);
-        if (effect)
-          runtime.emit(
-            buildResolverCondition({
-              ...event,
-              condition: String(effect.condition),
-              stacks: effectNumber(profile, effect, 'stacks'),
-              duration: effectNumber(profile, effect, 'duration')
-            })
-          );
-      }
-  }
-}
-
-/** Manual exit cancels the owned deadline so it cannot grant twice or end a replacement Lich Form. */
-function exitLich(runtime: NecromancerRuntime): void {
-  const state = runtime.profession.core;
-  if (state.activeShroud !== 'lich') return;
-  runtime.cancelOwner({ id: LICH_EXPIRY, generation: state.lichGeneration });
-  state.activeShroud = '';
-  state.lichEndsAt = 0;
-  consumeSkillFlip(state.availableFlips, ID.EXIT_LICH_FORM);
-  runtime.resourceController.refresh('lifeForce');
-  grantNecromancerLifeForce(runtime, 15);
-}
-
-function transition(runtime: NecromancerRuntime, entering: boolean, skill?: NecromancerSkill): void {
-  const kind = entering ? 'shroudEntryMs' : 'shroudExitMs';
-  lockTransitionInput(runtime, kind, skill);
-  runtime.emit({
-    type: 'weapon_set',
-    at: runtime.time,
-    source: 'necromancer',
-    sourceId: entering ? 'necromancer.shroud-enter' : 'necromancer.shroud-exit',
-    actorType: 'player',
-    weaponSet: runtime.activeWeaponSet,
-    shroudSwap: true
-  });
-}
-
-/** Exit mutates the same state seen by attacks and starts entry recharge only after the form ends. */
-function exitNecromancerShroud(runtime: NecromancerRuntime): void {
-  const state = runtime.profession.core;
-  if (!state.activeShroud || state.activeShroud === 'lich') return;
-  // Depletion has no cast completion; the actual form exit still invalidates its pending attack chain.
-  resetAutoattackChains(runtime);
-  const entry =
-    state.activeShroudEntryId == null ? undefined : runtime.helpers.skillsById?.get(state.activeShroudEntryId);
-  if (state.activeShroudExitId != null) consumeSkillFlip(state.availableFlips, state.activeShroudExitId);
-  state.activeShroud = '';
-  state.activeShroudEntryId = null;
-  state.activeShroudExitId = null;
-  state.activeShroudProfileId = '';
-  runNecromancerShroudExit(runtime);
-  runtime.resourceController.refresh('lifeForce');
-  runtime.cooldownController.clear(ID.ISOLATE);
-  if (entry) {
-    // A known marker timestamp admits hostile packets but does not move an earlier authored exit into combat.
-    if (
-      runtime.combatStartPending ||
-      runtime.cursor.command?.type === 'combat-start' ||
-      (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
-    )
-      runtime.cooldownController.clear(entry.id);
-    else runtime.cooldownController.startRecharge(entry, runtime.time, 10);
-  }
-
-  transition(runtime, false);
-  soulBarbs(runtime);
-}
 
 /** Landed player packets own weapon gains and the post-hit half-health test; no predicted observation is replayed. */
 function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
@@ -313,30 +117,7 @@ function complete(runtime: NecromancerRuntime, cast: RuntimeCast): void {
 
   if (skill.flipParentId != null && !skill.shroudExit && !Boolean(skill.minionKey))
     consumeSkillFlip(state.availableFlips, skill.id);
-  if (skill.id === ID.LICH_FORM) {
-    state.activeShroud = 'lich';
-    state.lichEndsAt = canonicalTime(runtime.time + 20);
-    state.lichGeneration++;
-    armSkillFlip(state.availableFlips, ID.EXIT_LICH_FORM, runtime.time, state.lichEndsAt);
-    runtime.resourceController.refresh('lifeForce');
-    runtime.schedule(LICH_EXPIRY, state.lichEndsAt, null, { id: LICH_EXPIRY, generation: state.lichGeneration }, -20);
-  } else if (skill.id === ID.EXIT_LICH_FORM) exitLich(runtime);
-  else if (skill.shroudEntry) {
-    prepareShroudEntry(runtime);
-    state.activeShroud = skill.shroudEntry;
-    state.activeShroudEntryId = skill.id;
-    state.activeShroudProfileId = String(skill.shroudProfileId || PROFILE.shroud);
-    const exit = [...(runtime.helpers.skillsById?.values() ?? [])].find(
-      (candidate) => candidate.shroudExit === skill.shroudEntry
-    );
-    state.activeShroudExitId = exit?.id ?? null;
-    if (exit) armSkillFlip(state.availableFlips, exit.id, runtime.time);
-    runtime.cooldownController.setReadyAt(skill.id, Infinity);
-    runNecromancerShroudEnter(runtime, skill);
-    runtime.resourceController.refresh('lifeForce');
-    shroudEntryEffects(runtime, cast);
-    transition(runtime, true, skill);
-  } else if (skill.shroudExit) exitNecromancerShroud(runtime);
+  completeNecromancerForm(runtime, cast);
   applyDarkDefense(runtime, cast);
 }
 
@@ -457,10 +238,15 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
     }
   ],
   rechargeWork: (_runtime, skill, work) => (skill.shroudEntry || skill.rechargeOnMinionDeath ? 0 : work),
-  modifyEffects: (runtime, cast, effects) =>
-    ownsNecromancerMinionSkill(cast.skill as NecromancerSkill) || cast.skill.id === ID.DEVOURING_DARKNESS
-      ? []
-      : modifyNecromancerWeaponEffects(runtime, cast, effects),
+  modifyEffects(runtime, cast, effects) {
+    if (ownsNecromancerMinionSkill(cast.skill as NecromancerSkill) || cast.skill.id === ID.DEVOURING_DARKNESS)
+      return [];
+    // Completion owns corruption self-effects; ordinary scheduling must not apply them to the target or twice.
+    const selected = cast.skill.categories?.includes('Corruption')
+      ? effects.filter((effect) => !isCorruptionCompletionEffect(effect))
+      : effects;
+    return modifyNecromancerWeaponEffects(runtime, cast, selected);
+  },
   onCastStart(runtime, cast) {
     scheduleNecromancerConditions(runtime, cast);
     const cost = normalizedNecromancerLifeForceCost(runtime.profession.core, Number(cast.skill.lifeForceCost ?? 0));
@@ -537,11 +323,7 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
     [GRAVEDIGGER_RESET](runtime) {
       if (remainingTargetHealthBelow(runtime.config, runtime, 0.5)) runtime.cooldownController.clear(ID.GRAVEDIGGER);
     },
-    [DEPLETION](runtime) {
-      exitNecromancerShroud(runtime);
-      runNecromancerLifeForceDepletion(runtime);
-    },
-    [LICH_EXPIRY]: exitLich
+    ...necromancerFormTasks
   },
   reactions: {
     'buff.applied'(runtime, event) {

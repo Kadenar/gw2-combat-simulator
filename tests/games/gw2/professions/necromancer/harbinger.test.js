@@ -40,7 +40,11 @@ test('Harbinger entry grants precede depletion and its passive clock stops on ev
 test('Blight expiry runs before same-time spending and records no replay state', () => {
   const result = run([wait(24640), cast(ID.ELIXIR_OF_BLISS)], { ...base, initialBlight: 5 });
   const strike = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.ELIXIR_OF_BLISS);
-  assert.equal(strike.metadata.blightEmpowered, false);
+  assert.equal(
+    strike.coefficient,
+    necromancerProfession.catalog.skillsById.get(ID.ELIXIR_OF_BLISS).effects.find((effect) => effect.type === 'strike')
+      .coefficient
+  );
   assert.equal(state(result).blight, 10);
   assert.deepEqual(state(result).blightExpiries, Array(10).fill(50));
   assert.equal(
@@ -58,7 +62,6 @@ test('elixir launch spends once and delayed hostile impact preserves the selecte
   assert.equal(pending.totalDamage, 0);
   const arrived = run([...rotation, wait(1200)], config);
   const strike = arrived.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.ELIXIR_OF_RISK);
-  assert.equal(strike.metadata.blightEmpowered, true);
   assert.equal(strike.metadata.necromancerBlight, 0);
   assert.deepEqual(arrived.warnings, []);
   const interrupted = run([{ ...cast(ID.ELIXIR_OF_RISK), interruptAfterMs: 100 }, wait(1000)], config);
@@ -152,7 +155,6 @@ test('shroud attacks spend the Blight present at their actual attack boundary', 
   const config = { ...base, initialBlight: 4 };
   const result = run([cast(ID.HARBINGER_SHROUD), wait(700), cast(ID.DEVOURING_CUT)], config);
   const strike = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.DEVOURING_CUT);
-  assert.equal(strike.metadata.blightEmpowered, true);
   assert.equal(strike.metadata.necromancerBlight, 1);
   assert.equal(state(result).blight, 1);
   const cancelled = run([cast(ID.HARBINGER_SHROUD), { ...cast(ID.VORACIOUS_ARC), interruptAfterMs: 100 }], config);

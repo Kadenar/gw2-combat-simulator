@@ -9,7 +9,6 @@ import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 
 export { timedEffect } from '#gw2/platform/engine/effects/timed-effects.js';
-export { resolverTimedEffect } from '#gw2/platform/resolver/timed-effect-adapter.js';
 
 function resolvedReaction<
   TContext extends Gw2ResolverRuntime,
@@ -28,7 +27,6 @@ function resolvedReaction<
   }
 
   return Object.freeze({
-    phase: 'resolver',
     stage,
     id: declaration.id,
     order: Number(declaration.order || 0),
@@ -60,7 +58,6 @@ export interface ResolvedCriticalHitOptions<
   readonly order?: number;
   readonly chanceOnCriticalHit?: number | ((context: TContext) => number);
   readonly actorTypes?: readonly ('player' | 'summon' | 'effect' | 'environment' | 'unknown')[];
-  readonly sourceIds?: readonly SkillId[];
   readonly when?: (context: TContext, event: TEvent, details: TDetails) => boolean;
   readonly internalCooldown?: {
     readonly duration: number | ((context: TContext) => number);
@@ -96,16 +93,14 @@ export function onResolvedCriticalHit<
   readonly attribution: ResolvedCriticalHitOptions<TContext, TEvent, TDetails>['attribution'];
 } {
   const actorTypes = new Set(options.actorTypes || ['player']);
-  const sourceIds = options.sourceIds == null ? null : new Set(options.sourceIds.map(String));
 
   const reaction = onResolvedDamage<TContext, TEvent, TDetails>({
     id: options.id,
     order: options.order,
     handler(context, event, details = {} as TDetails) {
-      // Reject ineligible actors, sources, and profession predicates before
+      // Reject ineligible actors and profession predicates before
       // reading cooldowns or consuming a secondary random stream.
       if (!actorTypes.has(event.actorType || 'unknown')) return;
-      if (sourceIds && !sourceIds.has(String(event.sourceId ?? ''))) return;
       if (options.when?.(context, event, details) === false) return;
 
       // Resolve patched proc and ICD values at the hit timestamp so balance
@@ -154,7 +149,6 @@ export function onResolvedCriticalHit<
 
 /** Ordered reactions retain live critical facts without declaring a second execution phase. */
 interface ResolvedReaction<TContext, TEvent, TDetails> {
-  readonly phase: 'resolver';
   readonly stage: Gw2ResolverStage;
   readonly id: string;
   readonly order: number;

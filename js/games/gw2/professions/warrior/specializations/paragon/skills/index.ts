@@ -18,7 +18,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: [],
     castTimeMs: 167,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     categories: ['Burst', 'Chant']
   },
@@ -76,7 +75,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: [],
     castTimeMs: 167,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     categories: ['Burst', 'Chant']
   },
@@ -84,7 +82,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: [],
     castTimeMs: 167,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     categories: ['Burst', 'Chant']
   }

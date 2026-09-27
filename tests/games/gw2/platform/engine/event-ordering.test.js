@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { compareQueuedEvents, eventCausalOrder, StableEventQueue } from '#kernel/events/queue.js';
+import { compareQueuedEvents } from '#tests/helpers/event-order.js';
+import { eventCausalOrder, StableEventQueue } from '#kernel/events/queue.js';
 import { gw2ResolverPhase, GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-loop.js';
 
 // Phase 1 contract for the future cursor: settle due hits, then drain each command's effects before the next command.

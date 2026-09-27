@@ -1,4 +1,3 @@
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
@@ -62,8 +61,6 @@ export interface ProfessionDefinition<TProfessionState extends object = object, 
   readonly build?: ProfessionBuildDefinition<TBuild>;
   readonly resources?: ProfessionResourceDefinition<TProfessionState>;
   readonly modifiers?: ProfessionModifierDefinition;
-  /** Runtime callbacks composed over the normalized attribute and planning hooks. */
-  readonly hooks?: Partial<RuntimeProfession<TProfessionState>>;
   readonly ui?: Partial<ProfessionUiContract>;
 }
 
@@ -118,7 +115,6 @@ export interface NormalizedProfessionContract<TProfessionState extends object = 
   readonly catalog: CanonicalCatalog;
   readonly createState: (config: Readonly<ProfessionConfig>) => TProfessionState;
   readonly projectPlanningState: (...args: never[]) => unknown;
-  readonly runtimeFor: (config: Readonly<ProfessionConfig>) => RuntimeProfession<TProfessionState>;
   readonly modifyAttributes: (context: Gw2ModifierContext, attributes: Gw2Stats) => Gw2Stats;
   readonly modifyCriticalChance: (context: Gw2ModifierContext, chance: number) => number;
   readonly modifyCriticalDamage: (context: Gw2ModifierContext, multiplier: number) => number;

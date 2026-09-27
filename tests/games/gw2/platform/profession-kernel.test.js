@@ -537,7 +537,7 @@ test('resolved trait predicates use actual damage and critical results and forwa
       initialize(runtime) {
         for (const [at, fields] of [
           [1, { forceCrit: true }],
-          [2, { noCrit: true }],
+          [2, { canCrit: false }],
           [3, { coefficient: 0 }]
         ])
           runtime.emit({

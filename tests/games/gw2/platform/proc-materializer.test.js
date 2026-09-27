@@ -4,7 +4,7 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
@@ -39,7 +39,7 @@ test('sigil diagnostics correlate same-time causes and retain explicit suppressi
 });
 
 test('sigil diagnostics preserve seeded output and explain suppression of a later planned hit', () => {
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'sigil-diagnostic-fixture',
     name: 'Sigil diagnostic fixture',
     catalog: createCanonicalCatalog(),
@@ -131,7 +131,7 @@ test('critical sigil decisions use sampled outcomes and strict deadlines without
   for (const change of [
     { offTarget: true },
     { cancelled: true },
-    { noCrit: true },
+    { canCrit: false },
     { flatDamage: 10 },
     { coefficient: 0 },
     { actorType: 'summon' }
@@ -157,7 +157,7 @@ test('critical sigil decisions use sampled outcomes and strict deadlines without
 test('Blight procs supply condition-dependent readiness and expire without recursive relic output', () => {
   // Poison creates a later scheduling opportunity, and the resolver sees the same condition at that time.
   const observed = [];
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'blight-facts-fixture',
     name: 'Blight facts fixture',
     catalog: createCanonicalCatalog(),
@@ -214,7 +214,7 @@ test('critical sigil cooldowns persist across weapon swaps and cannot proc while
   for (const startingWeaponSet of [1, 2]) {
     const otherSet = startingWeaponSet === 1 ? 2 : 1;
     for (const startsEquipped of [false, true]) {
-      const profession = defineProfession({
+      const profession = defineTestProfession({
         id: 'sigil-cooldown-fixture',
         name: 'Sigil cooldown fixture',
         catalog: createCanonicalCatalog(),
@@ -261,7 +261,7 @@ test('sigil cooldown boundaries use exact canonical instants', () => {
 
 test('computed combat boundaries admit opening procs but exclude the preceding microsecond', () => {
   // Decimal addition must not put the opening hit before combat or admit a genuinely earlier hit.
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'combat-boundary-fixture',
     name: 'Combat Boundary Fixture',
     catalog: createCanonicalCatalog({
@@ -297,7 +297,7 @@ test('computed combat boundaries admit opening procs but exclude the preceding m
 
 test('missed attacks leave consecutive swaps out of combat', () => {
   // A retained cast must not impose combat recharge when its hostile effects miss.
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'missed-swap-fixture',
     name: 'Missed Swap Fixture',
     catalog: createCanonicalCatalog({

@@ -55,7 +55,7 @@ export function createGw2HitResolution({
     event: Gw2ResolverEvent,
     flatStrike: boolean
   ): Gw2HitResolutionContext['critical'] {
-    if (event.noCrit || flatStrike) {
+    if (event.canCrit === false || flatStrike) {
       return {
         chance: 0,
         chanceBeforeCap: 0,
@@ -159,7 +159,7 @@ export function createGw2HitResolution({
       Number.isFinite(event.flatStrikeBase) ||
       Number.isFinite(event.flatStrikePowerCoeff);
     const critical = resolveCritical(ctx, event, flatStrike);
-    const critEligible = !flatStrike && !event.noCrit && event.canCrit !== false;
+    const critEligible = !flatStrike && event.canCrit !== false;
     const strike = flatStrike
       ? resolveFlatStrike(ctx, event, stats.power)
       : resolveScalingStrike(ctx, event, stats.power, critical);
@@ -277,8 +277,7 @@ export interface Gw2HitResolutionContext {
   readonly unroundedDamage: number;
   readonly stats: Gw2ResolvedStats;
   readonly critical: Gw2CriticalResult;
-  // Whether this strike can crit at all (scaling strike, not flagged noCrit /
-  // canCrit=false). Non-eligible hits are excluded from crit-rate reporting.
+  // Whether this strike can crit at all (scaling strike, not flagged canCrit=false). Non-eligible hits are excluded from crit-rate reporting.
   readonly critEligible: boolean;
   readonly criticalMultiplier: number;
   readonly outgoingMultiplier: number;

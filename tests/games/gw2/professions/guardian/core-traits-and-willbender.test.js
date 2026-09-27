@@ -421,8 +421,8 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
   );
   assert.equal(amplifiedWrath.resolvedEvents.filter((event) => event.name === 'Justice — Active Burning').length, 3);
   assert.equal(permeatingWrath.resolvedEvents.filter((event) => event.name === 'Justice — Active Burning').length, 5);
-  assert.equal(full.combatState.profession.justiceUntil, 10.04);
-  assert.equal(full.combatState.profession.lethalTempoStacks, 5);
+  assert.equal(full.planningState.profession.justiceUntil, 10.04);
+  assert.equal(full.planningState.profession.lethalTempoStacks, 5);
   assert.equal(
     full.procSteps.filter(
       (step) =>
@@ -573,10 +573,10 @@ test('Willbender flame replacement and Phoenix Protocol follow virtue triggers',
   assert.equal(flameCount(replaced, GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES_ID_62618), 5);
   // Every live virtue contributes independently to the aggregate trigger counter.
   assert.ok(
-    stackedVirtues.combatState.profession.triggeredVirtueEffects >
-      stackedVirtues.combatState.profession.justiceActiveBurns
+    stackedVirtues.planningState.profession.triggeredVirtueEffects >
+      stackedVirtues.planningState.profession.justiceActiveBurns
   );
-  const allState = allVirtues.combatState.profession;
+  const allState = allVirtues.planningState.profession;
   const courageBoons = (kind) =>
     allVirtues.events.filter(
       (event) => event.type === 'buff' && event.kind === kind && event.sourceId === GUARDIAN_SKILL_IDS.CRASHING_COURAGE
@@ -585,7 +585,7 @@ test('Willbender flame replacement and Phoenix Protocol follow virtue triggers',
   assert.equal(courageBoons('aegis').length, courageBoons('stability').length);
   assert.equal(allState.triggeredVirtueEffects, allState.justiceActiveBurns * 3);
   assert.ok(allVirtues.procSteps.some((step) => step.skill === 'Restorative Virtues'));
-  const phoenixTriggerCount = phoenix.combatState.profession.triggeredVirtueEffects;
+  const phoenixTriggerCount = phoenix.planningState.profession.triggeredVirtueEffects;
   const phoenixActivationAlacrity = phoenix.events.filter(
     (event) =>
       event.type === 'buff' &&
@@ -888,7 +888,7 @@ test('Renewed Focus recharges all three core virtues', () => {
   assert.equal(Object.hasOwn(result.planningState.cooldowns, 'Virtue of Justice'), false);
   assert.equal(Object.hasOwn(result.planningState.cooldowns, 'Virtue of Resolve'), false);
   assert.equal(Object.hasOwn(result.planningState.cooldowns, 'Virtue of Courage'), false);
-  assert.deepEqual(result.combatState.profession.virtueReadyAt, {
+  assert.deepEqual(result.planningState.profession.virtueReadyAt, {
     justice: result.steps.at(-1).end / 1000,
     resolve: result.steps.at(-1).end / 1000,
     courage: result.steps.at(-1).end / 1000

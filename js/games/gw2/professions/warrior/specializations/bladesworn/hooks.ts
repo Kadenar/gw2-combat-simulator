@@ -276,7 +276,6 @@ function enterDragonTrigger(runtime: Runtime, cast: RuntimeCast): void {
     maximumFlow: state.maximumFlow,
     maximumCharges: maximumDragonCharges(runtime),
     chargesPerInterval: state.dragonChargesPerInterval,
-    flowPerInterval: dragonFlowPerInterval(runtime),
     nextChargeAt: state.nextDragonChargeAt,
     deadline: state.dragonTriggerChargeDeadline
   });
@@ -311,7 +310,6 @@ function chargeTick(runtime: Runtime, identity: unknown): void {
     value: state.dragonCharges,
     flowAfter: state.flow,
     flowSpent: granted ? cost : 0,
-    granted,
     deadline: state.dragonTriggerChargeDeadline
   });
   scheduleCharge(runtime);
@@ -695,7 +693,6 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = 
         flowSpent: release.flowSpent,
         flowAfter: state.flow,
         coefficient: release.coefficient,
-        adrenalineBarsSpent: dragonChargesToAdrenalineSpent(release.charges) / 10,
         chargingSeconds: runtime.time - state.dragonTriggerStartedAt,
         maximumChargingSeconds: dragonChargeTickOffsetSeconds(
           Math.ceil(release.maximum / state.dragonChargesPerInterval)

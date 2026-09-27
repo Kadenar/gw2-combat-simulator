@@ -3,13 +3,7 @@ import {
   type AutoattackChainOptions
 } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { toEntries } from '#kernel/core/collections.js';
-import type {
-  CanonicalCatalog,
-  BalanceProfile,
-  CatalogEntity,
-  Skill,
-  SkillId
-} from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/engine/profession/types.js';
 import type {
   AnyNativeModule,
@@ -18,21 +12,10 @@ import type {
 } from '#gw2/platform/profession-definition/module-types.js';
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 
-export interface NativeModuleDataSelection {
+/** Selects a module from shared input using the same catalog fields as its output. */
+export interface NativeModuleDataSelection extends NativeModuleCatalogData {
   readonly id: string;
-  readonly generatedSkills?: readonly Skill[];
   readonly sharedExtraSkills?: readonly Skill[];
-  readonly skillMechanics?: Readonly<Record<string, Partial<Skill>>>;
-  readonly skillOverrides?: Readonly<Record<string, Partial<Skill>>>;
-  readonly extraSkills?: readonly Skill[];
-  readonly balanceProfiles?: readonly BalanceProfile[];
-  readonly traits?: readonly CatalogEntity[];
-  readonly specializations?: readonly CatalogEntity[];
-  readonly weapons?: readonly string[];
-  readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
-  readonly autoattackChains?: AutoattackChainOptions;
-  readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
-  readonly specializationOnlySkillIds?: readonly SkillId[];
 }
 
 // Resolves which module owns an entity by matching its .specialization field
@@ -103,7 +86,6 @@ export function createNativeModuleData({
 export interface AssembledNativeCatalog {
   readonly catalog: Readonly<CanonicalCatalog>;
   readonly fragments: ReadonlyMap<string, Readonly<ProfessionModuleCatalogFragment>>;
-  readonly skillOwners: ReadonlyMap<SkillId, string>;
 }
 
 interface AssemblyCacheEntry {
@@ -394,7 +376,7 @@ function composeNativeCatalog(
     );
   }
 
-  return Object.freeze({ catalog, fragments, skillOwners });
+  return Object.freeze({ catalog, fragments });
 }
 
 // Caches assembled catalogs keyed by the first (Core) module so the expensive

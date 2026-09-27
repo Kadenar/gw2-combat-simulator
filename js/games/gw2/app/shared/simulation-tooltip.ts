@@ -217,11 +217,7 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
         effect.flatStrikePowerCoeff != null ? `${tooltipDecimal(effect.flatStrikePowerCoeff)} × power` : '',
         effect.flatStrikeMultiplier != null ? `${tooltipDecimal(effect.flatStrikeMultiplier)}× flat damage` : '',
         hits > 1 ? `${hits} hits` : '',
-        effect.noCrit || effect.canCrit === false
-          ? 'cannot critically strike'
-          : effect.forceCrit
-            ? 'always critically strikes'
-            : ''
+        effect.canCrit === false ? 'cannot critically strike' : effect.forceCrit ? 'always critically strikes' : ''
       ]
         .filter(Boolean)
         .join(' · ');

@@ -10,7 +10,7 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 // Queuing a hostile packet cannot fund a sphere; only the accepted impact earns energy.
 test('Catalyst energy ignores missed packets and arrives at the accepted impact', () => {
   const result = runElementalist({
-    config: { specialization: 'Catalyst', initialCatalystEnergy: 0, autoSummonElemental: false },
+    config: { specialization: 'Catalyst', initialCatalystEnergy: 0 },
     rotation: [{ type: 'wait', durationMs: 2000 }],
     initialize(runtime) {
       for (const [at, offTarget] of [
@@ -59,8 +59,7 @@ test('Grand Finale snapshots active orbs and keeps separate Burning applications
       specialization: 'Core',
       primaryWeapon: 'Hammer',
       startAttunement: 'Fire',
-      selectedTraitIds: [],
-      autoSummonElemental: false
+      selectedTraitIds: []
     },
     rotation: ['Grand Finale', { type: 'wait', durationMs: 2000 }],
     initialize(runtime) {
@@ -102,8 +101,7 @@ test('cancelled Grand Finale preserves the active orb and its attacks', () => {
       specialization: 'Core',
       primaryWeapon: 'Hammer',
       startAttunement: 'Fire',
-      selectedTraitIds: [],
-      autoSummonElemental: false
+      selectedTraitIds: []
     },
     rotation: [
       'Flame Wheel',
@@ -154,8 +152,7 @@ test('Elementalist score output agrees with detailed execution', () => {
       specialization: 'Weaver',
       primaryWeapon: 'Sword',
       startAttunement: 'Fire',
-      secondaryAttunement: 'Air',
-      autoSummonElemental: false
+      secondaryAttunement: 'Air'
     },
     rotation: ['Pyro Vortex', { type: 'wait', durationMs: 3000 }]
   };

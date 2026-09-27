@@ -150,8 +150,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         hits: 1,
         name: 'Vent Exhaust',
         actorType: 'player',
-        canCrit: false,
-        noCrit: true
+        canCrit: false
       },
       // Apply each Burning stack separately so same-impact relic checks observe every application.
       ...Array.from({ length: 2 }, () => ({

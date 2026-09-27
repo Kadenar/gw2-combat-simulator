@@ -11,7 +11,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Zeal',
     elite: false,
     icon: 'https://render.guildwars2.com/file/479676FC6349C7A12D429B685F0D4205ABFF2F94/1011999.png',
-    background: 'https://render.guildwars2.com/file/9244C9726D2AD30F9D7E22CF5C7A49601BFAFCC0/1012050.png',
     minorTraits: [
       {
         id: 648,
@@ -154,7 +153,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Radiance',
     elite: false,
     icon: 'https://render.guildwars2.com/file/16A05D047DFC0828D0E496F46FD8B20F97B42EB3/1011996.png',
-    background: 'https://render.guildwars2.com/file/9BE9604B0378D103EB2F551730BF802F2B1F3AA0/1012047.png',
     minorTraits: [
       {
         id: 572,
@@ -296,7 +294,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Valor',
     elite: false,
     icon: 'https://render.guildwars2.com/file/F8A95D6D3904A1F6430CF2D33A02FDF2A6132037/1011997.png',
-    background: 'https://render.guildwars2.com/file/12B4C72ADCE4EF2890606111B400630F3832F83D/1012048.png',
     minorTraits: [
       {
         id: 582,
@@ -433,7 +430,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Honor',
     elite: false,
     icon: 'https://render.guildwars2.com/file/A4C0E39152B005EE226DA56D010DEEABB1ADBF2B/1011995.png',
-    background: 'https://render.guildwars2.com/file/98C3AB64254E61E59D03D3AF29D75314730E9E72/1012046.png',
     minorTraits: [
       {
         id: 564,
@@ -573,7 +569,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Virtues',
     elite: false,
     icon: 'https://render.guildwars2.com/file/E165042F92999B3BEFA91E280CB807F62EF30218/1011998.png',
-    background: 'https://render.guildwars2.com/file/08FE79184543F8314648D3104268789B484AB0BF/1012049.png',
     minorTraits: [
       {
         id: 621,
@@ -718,7 +713,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Dragonhunter',
     elite: true,
     icon: 'https://render.guildwars2.com/file/736DB02E6DA2ACFAD3B9B0F4655113AD214FFA40/1011994.png',
-    background: 'https://render.guildwars2.com/file/6BD5F59A7A0EF4F20C1B1D216AFE2B084CC19FF4/1012045.png',
     minorTraits: [
       {
         id: 1848,
@@ -861,7 +855,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Firebrand',
     elite: true,
     icon: 'https://render.guildwars2.com/file/6D18B2D3EE0BFA0E4BC851A7D3C39D4330250916/1769890.png',
-    background: 'https://render.guildwars2.com/file/7E6454FF9A13DBE93873AF72E192A74622990171/1769899.png',
     minorTraits: [
       {
         id: 2089,
@@ -1005,7 +998,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Willbender',
     elite: true,
     icon: 'https://render.guildwars2.com/file/117F4659C3AD0AF6625D51013F03D541BEF2E8A6/2479302.png',
-    background: 'https://render.guildwars2.com/file/D90821BEE9EC0D7BBE3B462A6D44D4625BAFF198/2479305.png',
     minorTraits: [
       {
         id: 2200,
@@ -1152,7 +1144,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Luminary',
     elite: true,
     icon: 'https://render.guildwars2.com/file/034C203DBD60CFF19D3D5CE9E71B27CA0103F50D/3679898.png',
-    background: 'https://render.guildwars2.com/file/AF9E19ADE842E1661324EDC6AAAEF7B2933CF132/3679907.png',
     minorTraits: [
       {
         id: 2381,

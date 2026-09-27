@@ -8,7 +8,7 @@ import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
 import { isDpsReportData, parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { dpsReportId, dpsReportJsonUrl, fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import {
@@ -311,7 +311,7 @@ test('shortened report inputs preserve elapsed time and obey scheduler cancellat
       skillMap: { s1000: { name: 'Autoattack', autoAttack: true }, s1001: { name: 'Follow-up' } }
     });
     const imported = reconstructDpsReportRotation(report, catalog);
-    const profession = defineProfession({ id: 'import-contract', name: 'Import Contract', catalog });
+    const profession = defineTestProfession({ id: 'import-contract', name: 'Import Contract', catalog });
     const replay = simulateGw2({ profession, rotation: imported.rotation });
     const expectedDuration = duration === 10 ? 0 : duration;
     const autoattack = replay.steps.find((step) => step.skillId === 1_000);

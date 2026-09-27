@@ -208,7 +208,6 @@ export function bindRevenantCoreUi(catalog: Readonly<CanonicalCatalog>): Revenan
                 {
                   skillId: -4,
                   displayName: destination.compactLabel,
-                  fullDisplayName: destination.label,
                   icon: revenantLegend(destination.id)?.icon || '',
                   paletteLegendId: destination.id
                 }

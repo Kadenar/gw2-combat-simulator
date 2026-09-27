@@ -93,6 +93,8 @@ test('Core and Tempest aura boons use patched effects and scale once', () => {
     context.helpers = { ...elementalistCatalog, balanceProfilesById: profiles };
     context.traits = new Set([trait]);
     context.queue.enqueue = (event) => events.push(event);
+    // Live attribute and cooldown queries use the aura's actual application clock.
+    context.time = 4;
     resolve(context, { type: 'elementalist.aura', at: 4, sourceId: 1, skillName: 'Fixture Aura', actorType: 'player' });
     assert.deepEqual(
       events.map(({ kind, stacks, duration }) => ({ kind, stacks, duration })),

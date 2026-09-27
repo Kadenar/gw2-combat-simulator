@@ -151,9 +151,12 @@ test('Ranger prefix simulations keep precast traps armed until the inherited bou
     });
   const armed = prefix(1);
   assert.ok(armed.planningState.atSeconds < result.combatStartTime);
-  assert.ok(armed.combatState.profession.pendingFrostTrapEvents.length > 0);
+  assert.equal(
+    armed.resolvedEvents.some((event) => event.type === 'condition' && event.condition === 'Chilled'),
+    false
+  );
   const triggered = prefix(2);
-  assert.equal(triggered.combatState.profession.pendingFrostTrapEvents.length, 0);
+  assert.ok(triggered.resolvedEvents.some((event) => event.type === 'condition' && event.condition === 'Chilled'));
 });
 
 test('native insertion previews project weapon set and cooldown state', async () => {

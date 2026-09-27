@@ -128,8 +128,7 @@ function onCastStart(context: ElementalistRuntime, cast: RuntimeCast, skill: Ski
         kind: String(quickness.boon).toLowerCase(),
         stacks: Number(quickness.stacks),
         duration: Number(quickness.duration) * durationMultiplier,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        sphereSpecialistScaled: true
+        audience: { recipients: 'party' as const, maximumRecipients: 5 }
       });
     }
 
@@ -144,8 +143,7 @@ function onCastStart(context: ElementalistRuntime, cast: RuntimeCast, skill: Ski
         kind: String(profiledBoon.boon),
         stacks: Number(profiledBoon.stacks),
         duration: Number(profiledBoon.duration) * durationMultiplier,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 },
-        sphereSpecialistScaled: true
+        audience: { recipients: 'party' as const, maximumRecipients: 5 }
       });
     }
   }

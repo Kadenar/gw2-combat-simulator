@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { loadProfession } from '#gw2/profession-registry.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
 import { applyElementalistResolverAura } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
@@ -49,7 +49,7 @@ test('combo and aura handlers skip score report rows while preserving state and 
 
 test('score skips end-state projection for a custom profession without feedback', () => {
   let projections = 0;
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'score-test',
     name: 'Score test',
     resources: {

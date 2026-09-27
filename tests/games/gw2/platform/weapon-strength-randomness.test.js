@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { resolvedWeaponStrength } from '#gw2/platform/resolver/weapon-strength-resolution.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
@@ -217,7 +217,7 @@ function fixtureProfession() {
     weaponHands: { Dagger: 'mh+oh' }
   });
 
-  return defineProfession({
+  return defineTestProfession({
     id: 'weapon-strength-fixture',
     name: 'Weapon Strength Fixture',
     catalog
@@ -372,7 +372,7 @@ test('explicit fixed strength remains exempt from stochastic sampling', () => {
     ]
   });
   const result = simulateGw2({
-    profession: defineProfession({
+    profession: defineTestProfession({
       id: 'fixed-strength-fixture',
       name: 'Fixed Strength Fixture',
       catalog

@@ -830,7 +830,6 @@ test('Engineer hammer skills use the requested packets and field cadence', () =>
   const shield = skill('Shock Shield');
 
   assert.equal(shield.cooldown, 18);
-  assert.equal(shield.blockDuration, 2);
   assert.equal(strikeEffectCoefficient(shield.effects[0]), 1.25);
   assert.equal(strikeEffectTicks(shield.effects[0]).length, 5);
   assert.equal(shield.effects[1].stacks, 10);

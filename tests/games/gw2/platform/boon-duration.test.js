@@ -4,7 +4,7 @@ import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { gw2StaticAttributes } from '#gw2/platform/combat/query/combat-query.js';
 import { gw2ResolverBoonDuration, queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
@@ -12,7 +12,7 @@ import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
 // Final applications keep their rounded duration but expire on the next absolute 40 ms action tick.
 test('boon grants round durations to milliseconds and expirations up to action ticks', () => {
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'boon-rounding',
     name: 'Boon rounding',
     catalog: createCanonicalCatalog({
@@ -259,7 +259,7 @@ test('declarative boons can gate dynamic skill availability', () => {
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'boon-gated',
     name: 'Boon Gated',
     catalog,
@@ -313,7 +313,7 @@ test('declarative generic buffs use shared timed state without boon-duration sca
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'buff-state-fixture',
     name: 'Buff State Fixture',
     // Observe the actual buff after the preceding instant cast has resolved.
@@ -354,7 +354,7 @@ test('repeated Alacrity grants do not change permanent recharge', () => {
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'duration-stacking-boon-fixture',
     name: 'Duration Stacking Boon Fixture',
     catalog

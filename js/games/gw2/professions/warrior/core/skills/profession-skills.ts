@@ -42,7 +42,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 8,
     castTimeMs: 0,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     effects: [
       {
@@ -63,7 +62,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 8,
     castTimeMs: 480,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     effects: [
       {
@@ -91,7 +89,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 8,
     castTimeMs: 1000,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -127,7 +124,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 8,
     castTimeMs: 1160,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     effects: [
       {
@@ -147,7 +143,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 8,
     castTimeMs: 560,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -171,10 +166,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         startAnchor: 'castEnd'
       }
     ],
-    burstFieldDurations: [3, 6, 9],
     castTimeMs: 520,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     effects: []
   },
@@ -193,7 +186,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 840,
 
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects(
@@ -209,7 +201,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.PATH_TO_VICTORY]: {
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     // Numeric variants share the canonical burst's resource and trait contract.
     effects: [
@@ -229,7 +220,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.PATH_TO_VICTORY_ID_71932]: {
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     effects: [
       {
@@ -248,7 +238,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.PATH_TO_VICTORY_ID_71950]: {
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     // Numeric variants share the canonical burst's resource and trait contract.
     effects: [
@@ -268,7 +257,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.HARRIERS_TOSS_ID_73006]: {
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     // Numeric variants share the canonical burst's resource and trait contract.
     effects: [
@@ -288,7 +276,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.HARRIERS_TOSS]: {
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     effects: [
       {
@@ -307,7 +294,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.HARRIERS_TOSS_ID_73042]: {
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     // Numeric variants share the canonical burst's resource and trait contract.
     effects: [
@@ -329,7 +315,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 500,
     dualWieldCastTimeMs: 400,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [

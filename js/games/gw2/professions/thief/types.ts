@@ -120,7 +120,6 @@ export interface ThiefSkill extends Skill {
 
 export type ThiefSimulationEvent = SimulationEvent & {
   readonly application?: ThiefSimulationEvent;
-  readonly bonusAboveNinetyStacks?: number;
   readonly cancelled?: boolean;
   readonly coefficient?: number;
   readonly condition?: string;
@@ -129,7 +128,6 @@ export type ThiefSimulationEvent = SimulationEvent & {
 
 export type ThiefResolverEvent = Gw2ResolverEvent & {
   readonly application?: ThiefResolverEvent;
-  readonly bonusAboveNinetyStacks?: number;
   readonly deadeyeMaliceSnapshot?: number;
 };
 

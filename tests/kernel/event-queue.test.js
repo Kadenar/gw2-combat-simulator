@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { compareQueuedEvents, StableEventQueue } from '#kernel/events/queue.js';
+import { compareQueuedEvents } from '#tests/helpers/event-order.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 // Peeking may discard canceled work, but must never advance time or consume the inclusive boundary.

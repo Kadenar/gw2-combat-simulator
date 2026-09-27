@@ -88,6 +88,7 @@ test('Specter barrier tooltips distinguish self recipients and use the barrier C
     assert.equal(barrier.detail.includes('excluding yourself'), excludesSelf);
     assert.equal(barrier.icon, icon);
   }
+
   assert.equal(tooltipFactIcon('Minimum Barrier'), icon);
   assert.equal(tooltipFactIcon('Maximum Barrier'), icon);
 });
@@ -553,7 +554,7 @@ test('tooltip construction rejects missing inputs and ignores external fact stri
 });
 
 // Handler-owned damage and self-conditions must consume the same patched packets displayed by their tooltips.
-test('Necromancer condition handlers and tooltips share selected skill and profile effects', () => {
+test('Necromancer condition handlers and tooltips share selected skill effects', () => {
   const profession = withPatchPreview(necromancerProfession, {
     id: 'condition-tooltips',
     label: 'Condition tooltips',
@@ -566,11 +567,18 @@ test('Necromancer condition handlers and tooltips share selected skill and profi
               { type: 'strike', coefficient: 2 },
               { type: 'condition', condition: 'Torment', stacks: 2, duration: 7 }
             ]
-          }
-        },
-        balanceProfiles: {
-          'necromancer.core.blood-is-power-corruption': {
-            effects: [{ type: 'condition', condition: 'Bleeding', stacks: 3, duration: 9 }]
+          },
+          [ID.BLOOD_IS_POWER]: {
+            effects: [
+              {
+                type: 'condition',
+                name: 'Self Bleeding',
+                condition: 'Bleeding',
+                stacks: 3,
+                duration: 9,
+                target: 'self'
+              }
+            ]
           }
         }
       }
@@ -659,7 +667,13 @@ test('condition-transfer tooltips expose the same limits used by combat', () => 
   });
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
-    [...new Set(result.resolvedEvents.filter((event) => event.transferredCondition).map((event) => event.condition))],
+    [
+      ...new Set(
+        result.resolvedEvents
+          .filter((event) => event.type === 'condition' && event.fixedDuration === true)
+          .map((event) => event.condition)
+      )
+    ],
     ['Bleeding']
   );
   assert.ok(result.planningState.profession.selfConditions.some((condition) => condition.condition === 'Torment'));

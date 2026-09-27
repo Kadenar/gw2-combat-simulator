@@ -1,4 +1,4 @@
-import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { ELEMENTALIST_SKILL_IDS as ID, ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
 /**
@@ -17,7 +17,11 @@ import {
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { targetConditionActive, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
+import {
+  hasSelectedSkill,
+  targetConditionActive,
+  targetHealthBelow
+} from '#gw2/platform/combat/query/runtime-query.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
@@ -279,9 +283,12 @@ export function modifyElementalistAttributes(context: ElementalistModifierContex
     modified.ferocity = Number(modified.ferocity || 0) + balanceProfileNumber(lightningHammerProfile, 'attributeBonus');
   }
 
-  // Signet of Fire's passive precision is part of the build's baseline stats, so
-  // activating the signet is modeled by subtracting it for the recharge window.
-  if (Number(coreState(context).signetOfFireDisabledUntil || 0) > context.time) {
+  // Remove baseline passive precision during live recharge, including resets, unless Written in Stone preserves it.
+  if (
+    hasSelectedSkill(context, 'Signet of Fire') &&
+    !hasTrait(context, 'Written in Stone') &&
+    context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_FIRE, context.time)
+  ) {
     const signetOfFireProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfFire);
     modified.precision = Number(modified.precision || 0) - balanceProfileNumber(signetOfFireProfile, 'attributeBonus');
   }

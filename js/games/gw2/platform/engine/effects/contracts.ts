@@ -19,11 +19,9 @@ const METADATA_VALUE_KINDS = Object.freeze({
   activeSpirits: 'number',
   affinityOnHit: 'boolean',
   anguishConditionalDamage: 'boolean',
-  blightEmpowered: 'boolean',
   dhuumfireDuration: 'number',
   dhuumfireInterval: 'number',
   engineerMech: 'boolean',
-  evtcSkillId: 'skillId',
   hitboxIndex: 'number',
   largeHitboxOnly: 'boolean',
   legendId: 'string',
@@ -132,10 +130,6 @@ export function normalizeEffectMetadata(value: unknown): EffectMetadata | undefi
 
     if (kind === 'boolean' && typeof fieldValue !== 'boolean') {
       throw new TypeError(`Effect metadata ${field} must be a boolean.`);
-    }
-
-    if (kind === 'skillId' && typeof fieldValue !== 'string' && typeof fieldValue !== 'number') {
-      throw new TypeError(`Effect metadata ${field} must be a skill id.`);
     }
   }
 

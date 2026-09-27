@@ -300,7 +300,7 @@ test('a stalled charge waits for actual Positive Flow and a slash releases at th
   close(release.at, 1.92);
   close(release.flowSpent, 5);
   assert.equal(release.chargesReached, 2);
-  assert.ok(result.events.some((event) => event.reason === 'dragon trigger charge' && !event.granted));
+  assert.ok(result.events.some((event) => event.reason === 'dragon trigger charge' && event.flowSpent === 0));
   assert.equal(state(result).dragonTriggerActive, false);
   assert.ok(observedRuntime(result).cooldowns.get(ID.DRAGON_TRIGGER) > release.at);
 });

@@ -20,7 +20,6 @@ import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 const GW2_REACTION_ORDER = Object.freeze({
   EARLY_COMMON: -200,
   COMMON: -100,
-  PROFESSION: 0,
   LATE_COMMON: 100,
   FINAL_COMMON: 200
 });
@@ -134,7 +133,7 @@ function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEve
       hits: 1,
       hitIndex: 1,
       totalHits: 1,
-      noCrit: true
+      canCrit: false
     } as Gw2ResolverEvent;
   }
 

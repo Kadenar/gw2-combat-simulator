@@ -32,7 +32,7 @@ const trigger = {
   skillId: 1,
   skillName: 'Trigger',
   coefficient: 1,
-  noCrit: true,
+  canCrit: false,
   weaponStrength: 1000,
   activationId: 'activation',
   causalOrder: 1,
@@ -253,7 +253,7 @@ test('neutral strike construction preserves the flat siphon formula and no-crit 
     skillName: 'Siphon',
     flatStrikeBase: 99,
     flatStrikePowerCoeff: 0.005,
-    noCrit: true,
+    canCrit: false,
     damageKind: 'life-steal'
   });
   const result = resolveTestGw2Events({

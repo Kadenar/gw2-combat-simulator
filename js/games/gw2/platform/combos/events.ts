@@ -358,8 +358,17 @@ export function resolveComboAttempt(
   state.handledAttemptIds.add(event.attemptId);
   const field = boundField(state, event, warn);
   if (!field) return [];
-  // Seed each attempt identically in both phases and modes so predicted combo effects match resolution.
-  if (!roll(event.chance, `gw2.combo:${event.attemptId}`)) return [];
+  // Attempts retain queue IDs for deduplication; RNG follows the caster and activation so bookkeeping cannot reroll them.
+  // Multiple projectiles from the same activation consume successive draws, including simultaneous packets.
+  const stream = JSON.stringify([
+    event.actorType,
+    event.summonOwner,
+    event.sourceId,
+    event.skillId,
+    event.activationId,
+    event.finisherType
+  ]);
+  if (!roll(event.chance, `gw2.combo:${stream}`)) return [];
 
   const definition = comboDefinition(field.fieldType, event.finisherType);
   return Object.freeze(

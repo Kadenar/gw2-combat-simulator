@@ -7,11 +7,11 @@ import { relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { migrateGuardianBuild, validateGuardianBuild } from '#gw2/professions/guardian/build/build.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 // Minimal slot casts exercise live completion and activation timing without profession mechanics.
-const slotProfession = defineProfession({
+const slotProfession = defineTestProfession({
   id: 'slot-relic-fixture',
   name: 'Slot Relic Fixture',
   catalog: createCanonicalCatalog({
@@ -52,7 +52,7 @@ test('precast relic selections migrate and validate independently of the combat 
 
 // Real boon delivery must preserve preparation ordering, expiry, and a single runtime when Brawler stays equipped.
 test('Brawler precasts carry their remaining buff into combat without reactivating after unequipping', () => {
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'brawler-precast-fixture',
     name: 'Brawler Precast Fixture',
     catalog: createCanonicalCatalog({

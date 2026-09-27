@@ -43,12 +43,6 @@ export interface MesmerPhantasmExecution {
   readonly endpoint: (atMs: number | undefined) => number;
 }
 
-export interface MesmerPhantasmStrikeResult {
-  readonly damageGroup: Partial<MesmerStrikeEffect>;
-  readonly initialHitTimes: readonly number[];
-  readonly repeatHitTimes: readonly number[];
-}
-
 export interface MesmerPhantasmEffectController {
   prepare(
     skill: MesmerSkill,
@@ -57,11 +51,7 @@ export interface MesmerPhantasmEffectController {
     clarityConsumed: boolean
   ): readonly MesmerPhantasmExecution[];
   scheduleLifecycle(executions: readonly MesmerPhantasmExecution[]): void;
-  scheduleStrike(
-    execution: MesmerPhantasmExecution,
-    group: MesmerStrikeEffect,
-    castStart: number
-  ): MesmerPhantasmStrikeResult;
+  scheduleStrike(execution: MesmerPhantasmExecution, group: MesmerStrikeEffect, castStart: number): void;
   scheduleStatuses(execution: MesmerPhantasmExecution, conditions: readonly MesmerConditionEffect[]): void;
   queueConversion(execution: MesmerPhantasmExecution, amount?: number): void;
 }
@@ -272,11 +262,7 @@ export function createPhantasmEffectController({
     addTraitProc(policy.repeat.traitName, execution.spawnAt, skill.name);
   };
 
-  const scheduleStrike = (
-    execution: MesmerPhantasmExecution,
-    group: MesmerStrikeEffect,
-    castStart: number
-  ): MesmerPhantasmStrikeResult => {
+  const scheduleStrike = (execution: MesmerPhantasmExecution, group: MesmerStrikeEffect, castStart: number): void => {
     const sourcedGroup: Partial<MesmerStrikeEffect> = {
       ...group,
       source: 'Phantasm',
@@ -375,10 +361,9 @@ export function createPhantasmEffectController({
     }
 
     const initialHitTimes = initialEvents.map((event) => event.at);
-    let repeatHitTimes: readonly number[] = [];
     if (execution.hasRepeat) {
       const repeatPolicy = phantasmPolicy().repeat;
-      if (!repeatPolicy) return { damageGroup, initialHitTimes, repeatHitTimes };
+      if (!repeatPolicy) return;
       // Prefer dedicated repeat tick data; fall back to shifting the initial
       // hit pattern by the delta between repeatDamageAt and damageAt.
       const repeatMeasuredTicks =
@@ -395,7 +380,7 @@ export function createPhantasmEffectController({
           );
         }
 
-        repeatHitTimes = addDamage(
+        addDamage(
           execution.skill,
           castStart,
           {
@@ -416,14 +401,14 @@ export function createPhantasmEffectController({
             ...(attackDisplayName ? { parentSkillName: execution.skill.name } : {}),
             multiplier: repeatPolicy.damageMultiplier
           }
-        ).map((event) => event.at);
+        );
       } else {
         // No dedicated repeat ticks — shift each initial hit forward by the same offset.
         const repeatOffset = execution.repeatDamageAt - execution.damageAt;
         const shiftedHitTimes = initialHitTimes.map((hitAt) => hitAt + repeatOffset);
         if (shiftedHitTimes.length > 0) {
           const repeatOrigin = Math.min(...shiftedHitTimes);
-          repeatHitTimes = addDamage(
+          addDamage(
             execution.skill,
             repeatOrigin,
             {
@@ -444,12 +429,10 @@ export function createPhantasmEffectController({
               ...(attackDisplayName ? { parentSkillName: execution.skill.name } : {}),
               multiplier: repeatPolicy.damageMultiplier
             }
-          ).map((event) => event.at);
+          );
         }
       }
     }
-
-    return { damageGroup, initialHitTimes, repeatHitTimes };
   };
 
   const scheduleStatuses = (execution: MesmerPhantasmExecution, conditions: readonly MesmerConditionEffect[]): void => {

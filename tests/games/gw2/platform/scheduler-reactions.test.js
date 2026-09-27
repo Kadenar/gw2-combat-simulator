@@ -52,15 +52,14 @@ test('Fresh Air candidates wait for the actual critical fact', () => {
     config: {
       specialization: 'Core',
       startAttunement: 'Water',
-      selectedTraitIds: ['Fresh Air'],
-      autoSummonElemental: false
+      selectedTraitIds: ['Fresh Air']
     },
     rotation: ['__combat_start', { type: 'wait', durationMs: 4000 }],
     initialize: (r) => {
       r.cooldownController.setReadyAt(air, 10);
       for (const [at, fields] of [
-        [3, { noCrit: true }],
-        [2, { noCrit: true }],
+        [3, { canCrit: false }],
+        [2, { canCrit: false }],
         [2, { forceCrit: true }]
       ])
         emitElementalistDamage(r, {

@@ -262,7 +262,7 @@ function emitPetSkill(
       context.schedule(
         'ranger.pet-effect',
         event.at,
-        { ...prepareRangerPetEvent(context, event), icon: skill.icon, autonomousPetSkill: !cast },
+        { ...prepareRangerPetEvent(context, event), icon: skill.icon },
         cast || effect.persistsAfterInterrupt ? undefined : owner(context),
         -20
       );
@@ -332,7 +332,6 @@ export const rangerPetTasks = {
         name: skill.name,
         endsAt: context.time + recovery,
         fullEndsAt: context.time + recovery,
-        autonomousPetSkill: true,
         icon: skill.icon
       });
       const activationId = 'ranger-pet:' + action.eventOrder;

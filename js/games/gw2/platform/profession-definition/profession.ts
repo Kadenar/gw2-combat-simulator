@@ -1,7 +1,6 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { defineProfessionFamily } from '#gw2/platform/engine/profession/family.js';
-import { composeStateFragments } from '#gw2/platform/engine/profession/module.js';
 import type { RuntimeProfession, Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
@@ -41,16 +40,7 @@ function assertObject(value: object | null | undefined, label: string): void {
 }
 
 /** Every field a module shell may declare; `kind` is stamped by `defineNativeModule` itself. */
-const NATIVE_MODULE_FIELDS = Object.freeze([
-  'id',
-  'kind',
-  'data',
-  'state',
-  'resources',
-  'modifiers',
-  'hooks',
-  'presentation'
-]);
+const NATIVE_MODULE_FIELDS = Object.freeze(['id', 'kind', 'data', 'state', 'modifiers', 'hooks', 'presentation']);
 
 function assertNativeModuleDefinition(definition: object): void {
   assertObject(definition, 'Native profession module');
@@ -139,7 +129,6 @@ function compileNativeModule(
     id: module.id,
     catalog: fragment,
     resources: {
-      ...module.resources,
       createState: module.state.create as (config: Readonly<ProfessionConfig>) => UnvalidatedFields,
       ...(module.state.project == null ? {} : { projectPlanningState: module.state.project })
     },
@@ -249,14 +238,8 @@ export function defineNativeProfession<
       modifyConditionDamage: source.modifyConditionDamage,
       modifyConditionDuration: source.modifyConditionDuration,
       modifyConditionBaseDuration: source.modifyConditionBaseDuration,
-      createState: (initial) =>
-        composeStateFragments(
-          selected.map((module) => ({
-            name: module.id,
-            module: module.id === 'Core' ? engineDefinition.core : engineDefinition.specializations[module.id]
-          })),
-          initial
-        ) as State,
+      // Preview and simulation share the same validated Core/elite state composition.
+      createState: source.createState,
       resources: Object.assign({}, ...hooks.map((hook) => hook.resources)),
       endurance: [...hooks].reverse().find((hook) => hook.endurance)?.endurance,
       autoattackChainOverrides: definition.autoattackChains?.overrides,
@@ -399,8 +382,7 @@ export function defineNativeProfession<
     Object.defineProperties(
       {
         nativeDefinition: Object.freeze({ ...definition }),
-        runtimeFor,
-        specializationIds: Object.freeze(modules.slice(1).map((module) => module.id))
+        runtimeFor
       },
       Object.getOwnPropertyDescriptors(family)
     )

@@ -266,7 +266,7 @@ test('Taste for Blood consumes one stack per direct hit and uses its power-only 
         event.flatStrikePowerCoeff === 0.05 &&
         event.damage === 475 &&
         event.damageKind === 'life-steal' &&
-        event.noCrit === true
+        event.canCrit === false
     ),
     true
   );
@@ -621,7 +621,7 @@ test('Death Spiral includes its life-siphon damage packet', () => {
   );
   assert.equal(siphon?.flatStrikeBase, 3517);
   assert.equal(siphon?.flatStrikePowerCoeff, 0.01);
-  assert.equal(siphon?.noCrit, true);
+  assert.equal(siphon?.canCrit, false);
   assert.equal(resolvedSiphon?.criticalChance, 0);
   assert.equal(resolvedSiphon?.damage, 3537);
 
@@ -678,7 +678,7 @@ test('Necromancer dark-field life steals inherit finisher attribution', () => {
     assert.equal(bolts.length, scenario.hits);
     assert.ok(
       bolts.every(
-        (event) => event.flatStrikeBase === 170 && event.flatStrikePowerCoeff === 0.03 && event.noCrit === true
+        (event) => event.flatStrikeBase === 170 && event.flatStrikePowerCoeff === 0.03 && event.canCrit === false
       )
     );
     const rows = skillBreakdownRows(result);

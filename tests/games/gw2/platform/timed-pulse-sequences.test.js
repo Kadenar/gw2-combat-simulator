@@ -1,66 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { StableEventQueue } from '#kernel/events/queue.js';
-import { resolverTimedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { THIEF_SKILL_IDS as T } from '#gw2/professions/thief/data/ids.js';
 import { GUARDIAN_SKILL_IDS as G } from '#gw2/professions/guardian/data/ids.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
-
-// Exercise resolver queue identity directly so replacement and horizon behavior cannot depend on profession state.
-test('resolver recurrence ignores retired work, isolates queues, and stops at the horizon', () => {
-  const pulses = resolverTimedEffect({
-    id: 'test.pulse',
-    priority: -10,
-    interval: () => 2,
-    effectsAt(context, at, captured) {
-      context.observed.push([at, captured.label]);
-    }
-  });
-  const context = { queue: new StableEventQueue(), horizon: 5, observed: [] };
-  const other = { queue: new StableEventQueue(), horizon: 5, observed: [] };
-  pulses.start(context, { key: 'window', at: 1, captured: { label: 'retired' } });
-  pulses.start(context, { key: 'window', at: 2, captured: { label: 'current' } });
-  pulses.start(other, { key: 'window', at: 1, captured: { label: 'other' } });
-  for (const runtime of [context, other]) {
-    while (runtime.queue.length) {
-      const event = runtime.queue.dequeue();
-      assert.equal(event.priority, -10);
-      pulses.eventHandlers[event.type](runtime, event);
-    }
-
-    assert.equal(pulses.nextAt(runtime), Infinity);
-  }
-
-  assert.deepEqual(context.observed, [
-    [2, 'current'],
-    [4, 'current']
-  ]);
-  assert.deepEqual(other.observed, [
-    [1, 'other'],
-    [3, 'other'],
-    [5, 'other']
-  ]);
-});
-
-test('resolver zero interval permits the opening pulse without recurrence', () => {
-  const pulses = resolverTimedEffect({
-    id: 'test.zero',
-    interval: () => 0,
-    effectsAt(context) {
-      context.count++;
-    }
-  });
-  const context = { queue: new StableEventQueue(), horizon: 10, count: 0 };
-  pulses.start(context, { key: 'window', at: 1, captured: {} });
-  const event = context.queue.dequeue();
-  pulses.eventHandlers[event.type](context, event);
-  pulses.eventHandlers[event.type](context, event);
-  assert.equal(context.count, 1);
-  assert.equal(context.queue.length, 0);
-});
 
 test('Infiltrator signet rearm replaces the pending resource pulse and follows cooldown resets', () => {
   const observed = [];

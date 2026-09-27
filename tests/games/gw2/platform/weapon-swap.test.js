@@ -2,14 +2,14 @@ import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-sk
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 const gw2WeaponSwapSkill = { id: -3, name: 'Swap Weapons', inputCategory: 'weapon-swap', castTimeMs: 0, effects: [] };
 
 test('shared weapon swap commits canonical state and event before profession extensions', () => {
   const observed = [];
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'swap-fixture',
     name: 'Swap fixture',
     catalog: createCanonicalCatalog({ generated: [gw2WeaponSwapSkill] }),

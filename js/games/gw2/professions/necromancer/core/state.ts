@@ -20,8 +20,6 @@ export interface NecromancerSelfCondition {
   readonly duration?: number;
   readonly appliedAt: number;
   readonly expiresAt: number;
-  readonly sourceSkillId?: SkillId;
-  readonly sourceSkillName?: string;
 }
 
 export interface NecromancerTasteForBloodApplication {
@@ -54,7 +52,6 @@ export interface NecromancerCoreState {
   swordChainGeneration: number;
   selfConditions: NecromancerSelfCondition[];
   plagueSendingArmed: boolean;
-  plagueSendingEntrySkillId: SkillId | null;
   lichEndsAt: number;
   /** Re-entering the timed form owns a new cancellable expiry. */
   lichGeneration: number;
@@ -162,7 +159,6 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     swordChainGeneration: 0,
     selfConditions: [],
     plagueSendingArmed: false,
-    plagueSendingEntrySkillId: null,
     lichEndsAt: 0,
     lichGeneration: 0,
     targetChilledUntil: 0,

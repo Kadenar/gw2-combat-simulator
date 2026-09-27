@@ -57,8 +57,7 @@ export const galeshotHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
             at: runtime.time,
             skillId: skill.id,
             skillName: skill.name,
-            weaponSet: runtime.activeWeaponSet,
-            bundleSwap: true
+            weaponSet: runtime.activeWeaponSet
           },
           'weapon_set'
         )

@@ -329,7 +329,7 @@ function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEvent): v
       damageKind: strike.damageKind,
       flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
       flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
-      noCrit: true,
+      canCrit: false,
       skillWeapon: 'Unequipped'
     })
   );
@@ -420,7 +420,7 @@ function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEvent): vo
       damageKind: strike.damageKind,
       flatStrikeBase: effectNumber(skill, strike, 'flatStrikeBase'),
       flatStrikePowerCoeff: effectNumber(skill, strike, 'flatStrikePowerCoeff'),
-      noCrit: true,
+      canCrit: false,
       hitIndex: totalHits - daggers.charges,
       totalHits
     })

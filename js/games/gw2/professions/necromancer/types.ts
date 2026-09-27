@@ -47,7 +47,6 @@ export interface NecromancerRuntimeState {
 export type NecromancerRuntime = Gw2Runtime<NecromancerRuntimeState>;
 
 export interface NecromancerSkill extends Skill {
-  readonly blightCost?: number;
   readonly dhuumfireDuration?: number;
   readonly flipParent?: string;
   readonly lifeForceCost?: number;
@@ -74,7 +73,6 @@ export type NecromancerResolverEvent = Gw2ResolverEvent & {
   readonly allyStacks?: number;
   readonly spell?: string;
   readonly procIndex?: number;
-  readonly alliesReceiveFullBenefit?: boolean;
   readonly controlKind?: string;
   readonly effectiveDuration?: number;
 };

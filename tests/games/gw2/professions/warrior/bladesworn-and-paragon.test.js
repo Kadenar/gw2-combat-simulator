@@ -359,10 +359,10 @@ test('Dragon charges map to adrenaline-spend trait tiers', () => {
 });
 
 test('Dragon Slash charge tiers drive adrenaline-spend traits', () => {
-  for (const [charges, bars, powerStacks, precisionDuration] of [
-    [4, 1, 2, 2],
-    [5, 2, 3, 2],
-    [10, 3, 4, 4]
+  for (const [charges, powerStacks, precisionDuration] of [
+    [4, 2, 2],
+    [5, 3, 2],
+    [10, 4, 4]
   ]) {
     const result = simulate(
       'Bladesworn',
@@ -382,7 +382,7 @@ test('Dragon Slash charge tiers drive adrenaline-spend traits', () => {
     const slash = result.events.find((event) => event.type === 'action' && event.skillName === 'Dragon Slash—Force');
     const berserkersPower = result.events.find((event) => event.type === 'buff' && event.name === "Berserker's Power");
 
-    assert.equal(spend.adrenalineBarsSpent, bars);
+    assert.equal(-spend.amount, charges);
     assert.equal(berserkersPower.stacks, powerStacks);
     assert.equal(berserkersPower.at, slash.endsAt);
     assert.equal(berserkersPower.priority, 5);
@@ -475,10 +475,10 @@ test('Dragon Trigger stalls below its Flow cost and resumes after rebuilding', (
   );
 
   assert.equal(
-    ticks.some((tick) => tick.granted === false),
+    ticks.some((tick) => tick.flowSpent === 0),
     true
   );
-  assert.equal(ticks.at(-1).granted, true);
+  assert.ok(ticks.at(-1).flowSpent > 0);
   assert.equal(ticks.at(-1).value, 4);
   assert.ok(ticks.every((tick) => tick.flowAfter >= 0));
   assert.ok(
@@ -492,7 +492,7 @@ test('Dragon Trigger stalls below its Flow cost and resumes after rebuilding', (
   assert.equal(spend.amount, -4);
   assert.equal(spend.activationId, result.steps.find((step) => step.skillId === ID.DRAGON_SLASH_FORCE).activationId);
   assert.equal(spend.flowSpent, 15);
-  assert.equal(spend.adrenalineBarsSpent, 1);
+  assert.equal(dragonChargesToAdrenalineSpent(-spend.amount), 10);
 });
 
 test('Flow balance accounts for Stabilizer, entry spending, regeneration, and stalled charges', () => {
@@ -517,7 +517,7 @@ test('Flow balance accounts for Stabilizer, entry spending, regeneration, and st
     assert.ok(Math.abs(tick.flowAfter - (gained - (tick.value - 1) * DRAGON_TRIGGER_TICK_FLOW)) < 1e-9);
   }
 
-  assert.ok(ticks.some((tick) => !tick.granted));
+  assert.ok(ticks.some((tick) => tick.flowSpent === 0));
   assert.equal(ticks.at(-1).value, 10);
   assert.equal(
     result.events.find((event) => event.resource === 'dragon charges' && event.reason === 'profession mechanic')

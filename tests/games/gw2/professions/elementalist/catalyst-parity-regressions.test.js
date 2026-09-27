@@ -15,7 +15,12 @@ import {
 import { catalystModifiers } from '#gw2/professions/elementalist/specializations/catalyst/modifiers.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { catalystModifierRules } from '#gw2/professions/elementalist/specializations/catalyst/modifiers.js';
-import { createNativeApp, runNative, resolvedAndScheduledEvents } from '#tests/helpers/elementalist-simulation.js';
+import {
+  createNativeApp,
+  runNative,
+  runElementalist,
+  resolvedAndScheduledEvents
+} from '#tests/helpers/elementalist-simulation.js';
 
 // Elemental Empowerment scales Condition Damage supplied before combat by traits and utility conversions.
 test('Catalyst includes build-time derived Condition Damage in its empowerment pool', () => {
@@ -135,12 +140,24 @@ test('Catalyst grants one aura and one set of trait stacks per aura source', () 
 // The channel can trigger its Water aura whether it loads or consumes an ice bullet.
 test('Frigid Flurry can finish combos with either initial ice-bullet state', () => {
   for (const waterBullet of [false, true]) {
-    const result = runNative({
+    const { app, commands } = createNativeApp({
       lines: [['Fire'], ['Earth'], ['Catalyst', '1-1-2']],
       weapons: ['Pistol', 'Dagger'],
       startAttunement: 'Water',
       pistolBullets: { Fire: false, Water: waterBullet, Air: false, Earth: false },
       rotation: ['Deploy Jade Sphere (Water)', 'Frigid Flurry', 1000]
+    });
+    const result = runElementalist({
+      rotation: commands,
+      config: elementalistAppAdapter.simulationConfig(app),
+      initialize(runtime) {
+        // Exercise the aura payoff on successful combos without depending on one seed's projectile rolls.
+        const random = runtime.random;
+        runtime.random = {
+          ...random,
+          roll: (chance, stream) => (stream.startsWith('gw2.combo:') ? chance > 0 : random.roll(chance, stream))
+        };
+      }
     });
     assert.deepEqual(result.warnings, []);
     assert.equal(observedRuntime(result).profession.core.activeAuras.length, 1);

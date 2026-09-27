@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { isAutoattackSkill } from '#gw2/platform/engine/skills/autoattack-chains.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 
@@ -29,7 +29,7 @@ const catalog = createCanonicalCatalog({
     }
   ]
 });
-const profession = defineProfession({ id: 'apm-fixture', name: 'APM fixture', catalog });
+const profession = defineTestProfession({ id: 'apm-fixture', name: 'APM fixture', catalog });
 
 function analyze(rotation, options = {}) {
   const scheduled = simulateGw2({ profession, config: { weaponStrength: 1000 }, ...options, rotation });

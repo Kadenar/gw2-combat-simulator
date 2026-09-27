@@ -33,7 +33,7 @@ import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/
  * compiled once after Core and active-specialization declarations are merged.
  */
 function composeModuleModifiers(modules: readonly NamedModule<object>[]): ProfessionModifierDefinition {
-  const result = composeHookContainer(modules, 'modifiers', MODIFIER_HOOK_NAMES);
+  const result = composeHookContainer(modules, MODIFIER_HOOK_NAMES);
   const declarations = modules.flatMap((entry) => {
     const value = entry.module.modifiers?.modifierRules;
     if (value == null) return [];

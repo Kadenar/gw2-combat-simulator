@@ -429,8 +429,7 @@ function eventLogRow(
     event.type === 'combo' ||
     event.type === 'elementalist.fresh-air' ||
     event.type === 'elementalist.evasive-arcana' ||
-    event.type === 'elementalist.attunement-enter' ||
-    event.type === 'elementalist.signet-fire'
+    event.type === 'elementalist.attunement-enter'
   ) {
     return null;
   }

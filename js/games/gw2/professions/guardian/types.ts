@@ -24,9 +24,7 @@ export interface GuardianCanonicalBuild extends Gw2CanonicalBuild {
 }
 
 export interface GuardianConfig extends Gw2Config {
-  readonly maximumTomePages?: number;
   readonly initialTomePages?: number;
-  readonly initialEndurance?: number;
   readonly specializations?: readonly (string | { readonly name?: string })[];
 }
 

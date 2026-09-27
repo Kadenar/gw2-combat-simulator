@@ -222,8 +222,7 @@ export function applyFreshAirCritical(
     sourceId: 'Fresh Air',
     actorType: 'effect',
     skillName: 'Fresh Air',
-    sourceSkill: event.skillName,
-    triggeringSkillId: event.skillId ?? event.sourceId
+    sourceSkill: event.skillName
   });
 }
 

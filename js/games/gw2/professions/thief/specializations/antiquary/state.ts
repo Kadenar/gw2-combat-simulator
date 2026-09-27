@@ -12,11 +12,6 @@ export interface ThiefArtifactSlot {
   readonly skillId: SkillId;
 }
 
-export interface ThiefBackfireState {
-  readonly activeUntil: number;
-  readonly skillName: string;
-}
-
 export interface ThiefAntiquarySummon {
   readonly skillId: SkillId;
   readonly name: string;
@@ -29,7 +24,7 @@ export interface AntiquaryState extends ThiefStealthAttackChargeState {
   artifactUsesRemaining: number;
   scoundrelsLuck: number;
 
-  backfireState: Record<string, ThiefBackfireState>;
+  backfireState: Record<string, true>;
   initiativeSpentSincePilfer: number;
   activeAntiquarySummons: ThiefAntiquarySummon[];
   nextSkrittScufflePilferAt: number;

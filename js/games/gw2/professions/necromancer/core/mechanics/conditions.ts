@@ -13,11 +13,10 @@ import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { castCompleted } from '#gw2/platform/skills/timing.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { NECROMANCER_CORRUPTION_PROFILE_IDS } from '#gw2/professions/necromancer/core/profiles.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NecromancerCoreState, NecromancerSelfCondition } from '#gw2/professions/necromancer/core/state.js';
 
 const CORRUPTION = 'necromancer.corruption';
@@ -53,8 +52,7 @@ function applySelfCondition(
     skillId: skill.id,
     skillName: skill.name,
     condition,
-    stacks,
-    selfCondition: true
+    stacks
   };
   const stats = { ...runtime.query.statsAt(runtime.time, event, runtime), expertise: 0 };
   const effectiveDuration =
@@ -66,9 +64,7 @@ function applySelfCondition(
     condition,
     stacks,
     appliedAt: runtime.time,
-    expiresAt,
-    sourceSkillId: skill.id,
-    sourceSkillName: skill.name
+    expiresAt
   });
   runtime.emit({ ...event, name: `${skill.name} — self ${condition}`, duration: effectiveDuration, expiresAt });
   runtime.schedule(EXPIRY, expiresAt, null, undefined, -20);
@@ -117,27 +113,29 @@ function transfer(
         condition: application.condition,
         stacks: application.stacks,
         duration: application.expiresAt - runtime.time,
-        fixedDuration: true,
-        transferredCondition: true,
-        transferredFromSkillId: application.sourceSkillId
+        fixedDuration: true
       })
     );
   return selected.length;
 }
 
+/** Corruption self-conditions and boons share completion timing, independently of hostile skill packets. */
+export function isCorruptionCompletionEffect(effect: SkillEffect): boolean {
+  return (effect.type === 'condition' && effect.target === 'self') || effect.type === 'boon';
+}
+
 function corruption(runtime: NecromancerRuntime, data: unknown): void {
   const work = data as ConditionWork;
   const skill = runtime.helpers.skillsById.get(work.skillId) as NecromancerSkill;
-  const profile = requireBalanceProfileFromContext(runtime, NECROMANCER_CORRUPTION_PROFILE_IDS[skill.id]);
-  for (const effect of profile.effects ?? []) {
+  for (const effect of skill.effects?.filter(isCorruptionCompletionEffect) ?? []) {
     if (effect.requiredTrait != null && !hasTrait(runtime, Number(effect.requiredTrait))) continue;
     if (effect.type === 'condition')
       applySelfCondition(
         runtime,
         skill,
         String(effect.condition),
-        effectNumber(profile, effect, 'stacks'),
-        effectNumber(profile, effect, 'duration')
+        effectNumber(skill, effect, 'stacks'),
+        effectNumber(skill, effect, 'duration')
       );
     else if (effect.type === 'boon') {
       const event = {
@@ -150,8 +148,8 @@ function corruption(runtime: NecromancerRuntime, data: unknown): void {
         skillName: skill.name,
         activationId: work.activationId,
         kind: String(effect.boon),
-        duration: effectNumber(profile, effect, 'duration'),
-        stacks: effectNumber(profile, effect, 'stacks'),
+        duration: effectNumber(skill, effect, 'duration'),
+        stacks: effectNumber(skill, effect, 'stacks'),
         audience:
           effect.audience?.recipients === 'party'
             ? { ...effect.audience, eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime) }
@@ -221,7 +219,6 @@ export function reactToNecromancerConditions(runtime: NecromancerRuntime, event:
     )
   ) {
     state.plagueSendingArmed = false;
-    state.plagueSendingEntrySkillId = null;
   }
 }
 
@@ -229,7 +226,7 @@ export function reactToNecromancerConditions(runtime: NecromancerRuntime, event:
 export function scheduleNecromancerConditions(runtime: NecromancerRuntime, cast: RuntimeCast): void {
   const skill = cast.skill as NecromancerSkill;
   const work: ConditionWork = { skillId: skill.id, activationId: cast.id, offTarget: cast.command.offTarget };
-  if (NECROMANCER_CORRUPTION_PROFILE_IDS[skill.id]) {
+  if (skill.categories?.includes('Corruption') && skill.effects?.some(isCorruptionCompletionEffect)) {
     const first = skill.effects?.find((effect) => effect.type === 'strike');
     const timing = first && scaleCastBoundTiming(cast, skill, first);
     const committedBloodIsPower =

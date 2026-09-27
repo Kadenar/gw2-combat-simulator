@@ -9,11 +9,7 @@ export function isGw2WeaponSkillEquipped(
   skill: Skill,
   matcher?: Gw2WeaponSkillMatcher
 ): boolean {
-  const hasExplicitRequirement =
-    skill.requiredMainHand != null ||
-    skill.requiredOffHand != null ||
-    skill.weaponSet?.mainHand != null ||
-    skill.weaponSet?.offHand != null;
+  const hasExplicitRequirement = skill.requiredMainHand != null || skill.requiredOffHand != null;
   if (!hasExplicitRequirement && (skill.type !== 'Weapon' || !skill.weapon)) return true;
   const configured = gw2ConfiguredWeaponSet(context.config, context.weaponSet === 2 ? 2 : 1);
   return configured.every((value) => !value) || weaponSkillMatchesSet(matcher, skill, configured, context);
@@ -33,8 +29,8 @@ export function defaultWeaponSkillMatchesSet(
   context: Gw2WeaponMatcherContext = {}
 ): boolean {
   if (!skill) return true;
-  const requiredMain = skill.requiredMainHand ?? skill.weaponSet?.mainHand;
-  const requiredOff = skill.requiredOffHand ?? skill.weaponSet?.offHand;
+  const requiredMain = skill.requiredMainHand;
+  const requiredOff = skill.requiredOffHand;
   if (requiredMain != null || requiredOff != null) {
     return (
       (requiredMain == null || String(requiredMain) === String(mainHand)) &&
@@ -43,7 +39,6 @@ export function defaultWeaponSkillMatchesSet(
   }
 
   if (skill.type !== 'Weapon' || !skill.weapon) return true;
-  if (skill.requiresEmptyOffhand && offHand) return false;
   const wielding = context.weaponData?.[mainHand]?.wielding || context.catalog?.weaponHands?.get?.(mainHand);
   if (wielding === '2h') return skill.weapon === mainHand;
   const slot = slotNumber(skill);

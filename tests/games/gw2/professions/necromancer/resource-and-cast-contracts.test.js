@@ -194,8 +194,8 @@ test('Blight skill consumption follows earlier shroud gains', () => {
   assert.equal(result.planningState.profession.blight, 1);
   assert.equal(
     result.events.find((event) => event.type === 'damage' && event.skillId === ID.DEVOURING_CUT).metadata
-      .blightEmpowered,
-    true
+      .necromancerBlight,
+    1
   );
 });
 

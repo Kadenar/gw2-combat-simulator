@@ -118,7 +118,9 @@ test('a Fulgor recast replaces the pending secondary action pulses', () => {
     },
     targetHealth: 0
   });
-  const secondary = result.events.filter((event) => event.fulgorSecondary === true);
+  const secondary = result.events.filter(
+    (event) => event.type === 'damage' && event.skillName === 'Fulgor' && event.actorType === 'effect'
+  );
   const activePulses = secondary.filter((event) => event.type === 'damage');
   const casts = result.events.filter((event) => event.type === 'action' && event.skillName === 'Fulgor');
   assert.ok(activePulses.some((event) => event.activationId === casts[0].activationId));

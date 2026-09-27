@@ -1,4 +1,3 @@
-import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import type {
@@ -16,7 +15,6 @@ import type { Gw2ProfessionContract } from '#gw2/platform/simulation/types.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2AutoattackChainOptions } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
@@ -74,7 +72,6 @@ export interface NativeModuleDefinition<
   readonly id: TId;
   readonly data: NativeModuleCatalogData;
   readonly state: NativeStateDefinition<TState, TProjectOptions, TProjectedState>;
-  readonly resources?: ResourcePolicies & { readonly endurance?: EndurancePolicy };
   /** Declarative modifier rules, or rules plus imperative `modify*` callbacks for ordered or stateful math. */
   readonly modifiers?: readonly Gw2ModifierRule[] | TModifiers;
   /** Runtime hooks execute against the single chronological owner. */
@@ -128,11 +125,6 @@ export type NativeProfessionRuntimeState<TModules extends readonly AnyNativeModu
     { readonly kind: 'Core'; readonly state: Record<string, never> } | NativeSpecializationState<TModules>;
 };
 
-export type NativeSpecializationId<TModules extends readonly AnyNativeModule[]> = Exclude<
-  TModules[number]['id'],
-  'Core'
->;
-
 export interface NativeProfessionDefinition<
   TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
@@ -165,7 +157,6 @@ export type NativeProfessionContract<
   Gw2ProfessionContract<NativeProfessionRuntimeState<TModules>>,
   TBuild
 > & {
-  readonly specializationIds: readonly NativeSpecializationId<TModules>[];
   /** Retains the immutable composition input so optional integrations can decorate the family without content imports. */
   readonly nativeDefinition: Readonly<NativeProfessionDefinition<TModules, TPresentation, TBuild>>;
   runtimeFor(config: Gw2Config): RuntimeProfession<NativeProfessionRuntimeState<TModules>>;

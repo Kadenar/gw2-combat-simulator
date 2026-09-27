@@ -75,7 +75,7 @@ export function triggerSunspot(
       triggeredBy: sourceSkill,
       coefficient: effectNumber(sunspotProfile, sunspotStrike, 'coefficient'),
       skillWeapon: 'Unequipped',
-      noCrit: true
+      canCrit: false
     });
   }
 

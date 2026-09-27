@@ -43,18 +43,17 @@ function initialTomePageState(
   traitMaximum: number,
   tomePageInterval: number
 ) {
-  const maximumTomePages = Math.max(traitMaximum, Number(config.maximumTomePages ?? traitMaximum));
   const configuredInitialPages = Number(config.initialTomePages ?? traitMaximum);
   // Archivist upgrades the untraited default, while explicit nondefault page counts remain intact.
   const initialPages =
     archivistOfWhispers && configuredInitialPages === defaultMaximum ? traitMaximum : configuredInitialPages;
-  const tomePages = clamp(initialPages, 0, maximumTomePages);
+  const tomePages = clamp(initialPages, 0, traitMaximum);
   return {
     tomePages: {
       ...createDiscreteResourceClock(tomePages),
-      maximum: maximumTomePages,
+      maximum: traitMaximum,
       interval: tomePageInterval,
-      nextAt: tomePages < maximumTomePages && tomePageInterval > 0 ? tomePageInterval : Infinity
+      nextAt: tomePages < traitMaximum && tomePageInterval > 0 ? tomePageInterval : Infinity
     }
   };
 }
@@ -128,7 +127,7 @@ export function firebrandPageTuning(context: { readonly config: GuardianConfig }
     : balanceProfileNumber(resourcesProfile, 'pulseInterval');
   const initial = Number(context.config.initialTomePages ?? traitMaximum);
   return {
-    maximum: Math.max(traitMaximum, Number(context.config.maximumTomePages ?? traitMaximum)),
+    maximum: traitMaximum,
     initial: archivistOfWhispers && initial === defaultMaximum ? traitMaximum : initial,
     interval
   };

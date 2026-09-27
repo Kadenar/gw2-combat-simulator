@@ -1,3 +1,4 @@
+import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -45,19 +46,6 @@ const FLAME_IDS = {
   courage: ID.WILLBENDER_FLAMES_COURAGE
 };
 const flameOwner = (generation: number) => ({ id: 'willbender-flames', generation });
-
-function causeFor(runtime: Runtime, cast: RuntimeCast): Gw2ResolverEvent {
-  return {
-    type: 'buff',
-    at: runtime.time,
-    source: 'guardian',
-    sourceId: cast.skill.id,
-    actorType: 'player',
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id
-  };
-}
 
 /** Boons sample current attributes without inheriting the triggering packet's audience or hostile annotations. */
 function boon(
@@ -130,7 +118,7 @@ function activate(runtime: Runtime, data: unknown): void {
   );
   const window = requireEffect(profile, 'buff', virtue);
   const state = willbenderState.from(runtime);
-  const cause = causeFor(runtime, cast);
+  const cause = guardianCastCause(runtime, cast);
   state[`${virtue}Until`] = window ? gw2EffectExpiresAt(runtime.time, effectNumber(profile, window, 'duration')) : 0;
   if (window)
     runtime.emit({
@@ -177,7 +165,7 @@ function flames(runtime: Runtime, data: unknown): void {
       PULSE,
       canonicalTime(runtime.time + Number(tick.atMs) / 1000),
       {
-        ...causeFor(runtime, cast),
+        ...guardianCastCause(runtime, cast),
         type: 'damage',
         sourceId: FLAME_IDS[virtue],
         skillId: FLAME_IDS[virtue],

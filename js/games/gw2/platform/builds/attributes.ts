@@ -25,7 +25,6 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
   Gw2ApplyBuildAttributeRules,
   Gw2AttributeBreakdown,
-  Gw2AttributeData,
   Gw2AttributeEffect,
   Gw2AttributeMap,
   Gw2Build,
@@ -36,7 +35,7 @@ import type {
 } from '#gw2/platform/builds/types.js';
 
 /** Level-80 character baseline that gear and food attributes build on top of. */
-const BASE_STATS = {
+const BASE_STATS: Readonly<Gw2NumericAttributes> = {
   Power: 1000,
   Precision: 1000,
   Toughness: 1000,
@@ -44,13 +43,11 @@ const BASE_STATS = {
 };
 
 // Tier 10 Jade Bot Vitality belongs in the conversion pool used by profession traits.
-const JBC_BONUS = { Vitality: 235 };
+const JBC_BONUS: Readonly<Gw2NumericAttributes> = { Vitality: 235 };
 
 interface CalculateCommonAttributesOptions {
   readonly weaponSet?: number;
-  readonly data?: Gw2AttributeData;
   readonly sigilNames?: readonly string[] | null;
-  readonly dedupeSigils?: boolean;
   readonly disabledSigil?: string | null;
 }
 
@@ -124,7 +121,7 @@ export function resolveAttributeEffects(
   for (const effect of activeEffects) {
     if (effect.kind !== 'conversion') continue;
     const inputPool = effect.input === 'common' ? commonConversionPool : eligibleConversionPool;
-    const rawAmount = (inputPool[effect.from] ?? 0) * effect.multiplier + (effect.addend ?? 0);
+    const rawAmount = (inputPool[effect.from] ?? 0) * effect.multiplier;
     const amount =
       effect.rounding === 'round'
         ? Math.round(rawAmount)
@@ -251,29 +248,8 @@ function recomputeDerivedAttributes(
 /** Calculates profession-neutral base, gear, upgrade, consumable, and infusion attributes. */
 export function calculateCommonAttributes(
   build: Gw2Build,
-  {
-    weaponSet = 1,
-    data = {},
-    sigilNames = null,
-    dedupeSigils = true,
-    disabledSigil = null
-  }: CalculateCommonAttributesOptions = {}
+  { weaponSet = 1, sigilNames = null, disabledSigil = null }: CalculateCommonAttributesOptions = {}
 ): Gw2CommonAttributeResult {
-  // Data injection keeps this common pipeline reusable in tests and by
-  // professions with supplemental gear tables.
-  const baseStats: Readonly<Gw2NumericAttributes> = data.BASE_STATS || BASE_STATS;
-  const foodData: NonNullable<Gw2AttributeData['FOOD_DATA']> = data.FOOD_DATA || FOOD_DATA;
-  const gearSlots = data.GEAR_SLOTS || GEAR_SLOTS;
-  const gearStats: NonNullable<Gw2AttributeData['GEAR_STATS']> = data.GEAR_STATS || GEAR_STATS;
-  const infusionBonus = data.INFUSION_BONUS || INFUSION_BONUS;
-  const jadeBotBonus: Readonly<Gw2NumericAttributes> = data.JBC_BONUS || JBC_BONUS;
-  const runeData: NonNullable<Gw2AttributeData['RUNE_DATA']> = data.RUNE_DATA || RUNE_DATA;
-  const sigilData: NonNullable<Gw2AttributeData['SIGIL_DATA']> = data.SIGIL_DATA || SIGIL_DATA;
-  const utilityRates: Readonly<Gw2NumericAttributes> = data.UTILITY_CONVERSION_RATES || UTILITY_CONVERSION_RATES;
-  const utilityData: NonNullable<Gw2AttributeData['UTILITY_DATA']> = data.UTILITY_DATA || UTILITY_DATA;
-  const utilityStatData: NonNullable<Gw2AttributeData['UTILITY_STAT_DATA']> =
-    data.UTILITY_STAT_DATA || UTILITY_STAT_DATA;
-  const weaponData: NonNullable<Gw2AttributeData['WEAPON_DATA']> = data.WEAPON_DATA || WEAPON_DATA;
   const gear: Gw2NumericAttributes = {};
   const runes: Gw2NumericAttributes = {};
   const foodConverted: Gw2NumericAttributes = {};
@@ -286,8 +262,8 @@ export function calculateCommonAttributes(
 
   const selectedWeapons = weaponSet === 2 ? build.alternateWeapons : build.weapons;
   const mainHand = selectedWeapons?.[0] || '';
-  const isTwoHanded = weaponData[mainHand]?.wielding === '2h';
-  for (const slot of gearSlots) {
+  const isTwoHanded = WEAPON_DATA[mainHand]?.wielding === '2h';
+  for (const slot of GEAR_SLOTS) {
     // A two-handed weapon occupies both weapon stat budgets: skip Weapon2 and
     // read the main-hand selection from the Weapon2H coefficient table.
     if (isTwoHanded && slot === 'Weapon2') continue;
@@ -297,18 +273,23 @@ export function calculateCommonAttributes(
       weaponSet === 2 && weaponSlot >= 0
         ? build.alternateWeaponPrefixes?.[weaponSlot] || build.gear?.[slot] || ''
         : build.gear?.[slot] || '';
-    addAttributes(gear, gearStats[prefix]?.[statSlot]);
+    addAttributes(
+      gear,
+      (GEAR_STATS as Readonly<Record<string, Readonly<Record<string, Gw2NumericAttributes>>>>)[prefix]?.[statSlot]
+    );
   }
 
-  const rune = runeData[build.rune || ''];
+  const rune = (
+    RUNE_DATA as Readonly<Record<string, { stats?: Gw2NumericAttributes; durations?: Gw2NumericAttributes }>>
+  )[build.rune || ''];
   addAttributes(runes, rune?.stats);
   addAttributes(runeDurations, rune?.durations);
-  const food = foodData[build.food || ''];
+  const food = FOOD_DATA[build.food || ''];
   addAttributes(food?.isConverted ? foodConverted : foodBuff, food?.stats);
   addAttributes(foodDurations, food?.durations);
   for (const infusion of build.infusions || []) {
     if (infusion?.stat && Number(infusion.count) > 0) {
-      addAttribute(infusions, infusion.stat, Number(infusion.count) * infusionBonus);
+      addAttribute(infusions, infusion.stat, Number(infusion.count) * INFUSION_BONUS);
     }
   }
 
@@ -321,32 +302,34 @@ export function calculateCommonAttributes(
   // food buffs are applied later and must not feed another conversion.
   for (const stat of PRIMARY_ATTRIBUTES) {
     conversionPool[stat] =
-      (baseStats[stat] || 0) +
+      (BASE_STATS[stat] || 0) +
       (gear[stat] || 0) +
       (runes[stat] || 0) +
       (sigilStats[stat] || 0) +
       (foodConverted[stat] || 0) +
       (infusions[stat] || 0) +
-      (build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0);
+      (build.jadeBotCore ? JBC_BONUS[stat] || 0 : 0);
   }
 
-  for (const conversion of utilityData[build.utility || ''] || []) {
+  for (const conversion of (
+    UTILITY_DATA as Readonly<Record<string, readonly { from: string; to: string; percent?: number }[]>>
+  )[build.utility || ''] || []) {
     // Explicit rates support uniform all-attribute boosts; ordinary utility
     // conversions continue to derive their rate from the source attribute.
-    const rate = (conversion.percent ?? utilityRates[conversion.from] ?? 0) / 100;
+    const rate =
+      (conversion.percent ?? (UTILITY_CONVERSION_RATES as Readonly<Gw2NumericAttributes>)[conversion.from] ?? 0) / 100;
     // GW2 stat conversions round each declared conversion independently.
     addAttribute(utility, conversion.to, Math.round((conversionPool[conversion.from] || 0) * rate));
   }
 
-  addAttributes(utility, utilityStatData[build.utility || '']);
+  addAttributes(utility, (UTILITY_STAT_DATA as Readonly<Record<string, Gw2NumericAttributes>>)[build.utility || '']);
 
   let sigilCriticalChance = 0;
   const selectedSigils = sigilNames || weaponSigilsForSet(build, weaponSet);
-  // Duplicate named sigils do not stack by default. Tests and specialized
-  // callers may opt out when modeling a rule with different stacking behavior.
-  const effectiveSigils = dedupeSigils ? new Set(selectedSigils) : selectedSigils;
+  // Duplicate named sigils never stack.
+  const effectiveSigils = new Set(selectedSigils);
   for (const name of effectiveSigils) {
-    const sigil = sigilData[name];
+    const sigil = SIGIL_DATA[name];
     if (!sigil) continue;
     if (sigil.conditionDuration) {
       addAttribute(sigilDurations, 'Condition Duration', sigil.conditionDuration);
@@ -380,12 +363,12 @@ export function calculateCommonAttributes(
   for (const stat of PRIMARY_ATTRIBUTES) {
     const breakdown: Gw2AttributeBreakdown = {
       final: 0,
-      base: baseStats[stat] || 0,
+      base: BASE_STATS[stat] || 0,
       gear: gear[stat] || 0,
       runes: runes[stat] || 0,
       food: (foodConverted[stat] || 0) + (foodBuff[stat] || 0),
       utility: utility[stat] || 0,
-      jbc: build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0,
+      jbc: build.jadeBotCore ? JBC_BONUS[stat] || 0 : 0,
       traits: 0,
       sigils: sigilStats[stat] || 0,
       infusions: infusions[stat] || 0

@@ -35,7 +35,6 @@ export interface ElementalistConfig extends Gw2Config {
   readonly initialEvokerEmpowered?: number;
   readonly pistolBullets?: Readonly<Partial<Record<'Fire' | 'Water' | 'Air' | 'Earth', boolean>>>;
   /** Assumption: summon the glyph elemental at combat start. */
-  readonly autoSummonElemental?: boolean;
   /** Catalyst's configured Empowerment attribute pool. */
   readonly catalystEmpowermentPool?: CatalystEmpowermentPool;
 }

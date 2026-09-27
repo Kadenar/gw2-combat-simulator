@@ -64,7 +64,7 @@ import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-st
 import { buildSimulationScore, buildCombatResult } from '#gw2/platform/results/build-result.js';
 import { planningState } from '#gw2/platform/results/end-state.js';
 import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
-import { flattenProfessionState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { armSkillFlip, expireSkillFlip, type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import { createCriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
 import type { Gw2SimulationOptions } from '#gw2/platform/simulation/types.js';
@@ -165,7 +165,6 @@ export function runGw2Runtime<T extends object>({
   let runtime: Gw2Runtime<T>;
   let eventOrder = 0;
   let lethalActivation: string | undefined;
-  let combatState: ReturnType<typeof snapshot> | undefined;
   const executed: Gw2ResolverEvent[] = [];
   const preparedCombos = new WeakSet<Gw2ResolverEvent>();
 
@@ -615,14 +614,6 @@ export function runGw2Runtime<T extends object>({
   if (assumedField) runtime.emit(assumedField);
   profession.initialize?.(runtime);
 
-  /** Capture only detached authoring data, never a context containing mutable queues or closures. */
-  function snapshot() {
-    return structuredClone({
-      atSeconds: runtime.time,
-      profession: flattenProfessionState(runtime.profession)
-    });
-  }
-
   function reject(reason: string): void {
     const command = cursor.command;
     const name =
@@ -935,7 +926,6 @@ export function runGw2Runtime<T extends object>({
       continue;
     }
 
-    if (runtime.deathTime != null && !combatState && runtime.reporting) combatState = snapshot();
     const command = cursor.command;
     let nextCommandAt = Infinity;
     if (command) {
@@ -1124,7 +1114,7 @@ export function runGw2Runtime<T extends object>({
 
   invokeRelicHook(runtime, 'passiveTimeline', score.combatEndTime);
   const result = {
-    ...buildCombatResult(runtime, score, executed, combatState ?? snapshot()),
+    ...buildCombatResult(runtime, score, executed),
     output: 'detailed' as const,
     steps: runtime.steps,
     rotationApm: rotationApm(

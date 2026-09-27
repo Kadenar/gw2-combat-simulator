@@ -15,10 +15,7 @@ import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { selectedGw2TraitValues } from '#gw2/platform/combat/state/traits.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
-import {
-  canonicalTargetConditionName,
-  createCanonicalTargetConditionStateMap
-} from '#gw2/platform/combat/state/targets.js';
+import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   defaultWeaponSkillMatchesSet,
@@ -342,7 +339,7 @@ test('permanent Vulnerability at the cap skips history while uncapped queries ob
       profession: queryProfession,
       config: { target: { conditions: { vulnerability: configured } } }
     });
-    const conditionState = createCanonicalTargetConditionStateMap();
+    const conditionState = new Map();
     const stack = { appliedAt: 1, expiresAt: 3, weight: 10 };
     conditionState.set('Vulnerability', { stacks: [stack] });
     let reads = 0;

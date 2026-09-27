@@ -512,6 +512,66 @@ test('live corruption excludes Expertise from self durations and expires the act
   assert.deepEqual(result.warnings, []);
 });
 
+// Skill-owned self packets keep trait gating and can be removed without suppressing sibling effects.
+test('corruption skill effects apply self conditions once and honor trait selection and packet removal', () => {
+  for (const [skillId, ordinary, extra] of [
+    [ID.CONSUME_CONDITIONS, ['Vulnerability', 5], ['Vulnerability', 5]],
+    [ID.BLOOD_IS_POWER, ['Bleeding', 2], ['Torment', 2]],
+    [ID.CORROSIVE_POISON_CLOUD, ['Weakness', 1], ['Crippled', 1]],
+    [ID.PLAGUELANDS, ['Bleeding', 1], ['Poisoned', 1]]
+  ]) {
+    for (const mode of ['ordinary', 'trait', 'removed']) {
+      const config = { ...base, selectedTraitIds: mode === 'ordinary' ? [] : [TRAIT.MASTER_OF_CORRUPTION] };
+      const native = necromancerProfession.runtimeFor(config);
+      const skill = native.catalog.skillsById.get(skillId);
+      const profession =
+        mode === 'removed'
+          ? {
+              ...native,
+              catalog: withSkill(native.catalog, skillId, {
+                effects: skill.effects.filter((effect) => effect.target !== 'self')
+              })
+            }
+          : native;
+      const result = simulate([cast(skillId)], config, { profession });
+      assert.deepEqual(result.warnings, []);
+      assert.deepEqual(
+        result.planningState.profession.selfConditions.map(({ condition, stacks }) => [condition, stacks]),
+        mode === 'removed' ? [] : mode === 'trait' ? [ordinary, extra] : [ordinary]
+      );
+      if (skillId === ID.BLOOD_IS_POWER) {
+        assert.equal(
+          result.resolvedEvents.filter((event) => event.type === 'buff' && event.sourceId === skillId).length,
+          1
+        );
+        assert.equal(
+          result.resolvedEvents.some((event) => event.type === 'condition' && event.condition === 'Torment'),
+          false
+        );
+      }
+    }
+
+    const cancelled = simulate([{ ...cast(skillId), interruptAfterMs: 1 }]);
+    assert.deepEqual(cancelled.planningState.profession.selfConditions, []);
+  }
+});
+
+// Once its strike commits, ending Blood Is Power early still applies its local completion payload once.
+test('committed Blood Is Power interruption retains self conditions and boons', () => {
+  const config = { ...base, selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION] };
+  const result = simulate([{ ...cast(ID.BLOOD_IS_POWER), interruptAfterMs: 700 }, wait(2000)], config);
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.planningState.profession.selfConditions.map(({ condition }) => condition),
+    ['Bleeding', 'Torment']
+  );
+  assert.equal(result.events.filter((event) => event.type === 'self_condition').length, 2);
+  assert.equal(
+    result.resolvedEvents.filter((event) => event.type === 'buff' && event.sourceId === ID.BLOOD_IS_POWER).length,
+    1
+  );
+});
+
 test('ordinary transfers move all applications of the oldest distinct types with remaining duration', () => {
   const profession = withSelfConditions(base, [
     { condition: 'Bleeding' },
@@ -524,7 +584,9 @@ test('ordinary transfers move all applications of the oldest distinct types with
     result.planningState.profession.selfConditions.map((application) => application.condition),
     ['Torment']
   );
-  const moved = result.resolvedEvents.filter((event) => event.type === 'condition' && event.transferredCondition);
+  const moved = result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.type === 'condition' && event.fixedDuration === true
+  );
   assert.deepEqual(
     moved.map((event) => event.condition),
     ['Bleeding', 'Poisoned', 'Bleeding']
@@ -584,7 +646,9 @@ test('Plague Sending waits for an accepted strike and consumes the newest applic
     ['Bleeding']
   );
   assert.equal(
-    landed.resolvedEvents.filter((event) => event.type === 'condition' && event.transferredCondition).length,
+    landed.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.type === 'condition' && event.fixedDuration === true
+    ).length,
     2
   );
 });
@@ -1092,6 +1156,46 @@ test('a delivered entry boon triggers Blighters Boon once for the whole applicat
   const might = result.resolvedEvents.find((event) => event.type === 'buff' && event.kind === 'might');
   assert.equal(might.stacks, 5);
   assert.equal(result.planningState.profession.lifeForce.value, 11);
+});
+
+// Shared emission preserves independent removal, duration scaling, and the established form before reactions run.
+test('shroud entry profiles retain conditions without their strike and deliver boons after entering the form', () => {
+  const config = {
+    ...base,
+    initialResource: 100,
+    stats: { ...base.stats, concentration: 1500 },
+    selectedTraitIds: [TRAIT.WEAKENING_SHROUD, TRAIT.AWAKEN_THE_PAIN]
+  };
+  const native = necromancerProfession.runtimeFor(config);
+  const seen = [];
+  const profession = {
+    ...native,
+    catalog: applyBalanceProfilePatch(native.catalog, {
+      balanceProfiles: { [TRAIT.WEAKENING_SHROUD]: { removeEffects: [{ type: 'strike', name: 'Strike' }] } }
+    }),
+    reactions: {
+      ...native.reactions,
+      'buff.applied'(runtime, event) {
+        native.reactions['buff.applied']?.(runtime, event);
+        if (event.sourceId === TRAIT.AWAKEN_THE_PAIN) seen.push(runtime.profession.core.activeShroud);
+      }
+    }
+  };
+  for (const offTarget of [false, true]) {
+    seen.length = 0;
+    const result = simulate([{ ...cast(ID.REAPERS_SHROUD), offTarget }], config, { profession });
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(seen, ['reaper']);
+    const effects = result.resolvedEvents.filter((event) => event.sourceId === TRAIT.WEAKENING_SHROUD);
+    assert.deepEqual(
+      effects.map((event) => event.condition),
+      offTarget ? [] : ['Bleeding', 'Weakness']
+    );
+    const might = result.resolvedEvents.find(
+      (event) => event.sourceId === TRAIT.AWAKEN_THE_PAIN && event.type === 'buff'
+    );
+    assert.equal(might.duration, 10);
+  }
 });
 
 test('a landed shroud strike triggers Core conditions and siphons once in detailed and score execution', () => {

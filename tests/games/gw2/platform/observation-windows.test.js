@@ -33,9 +33,9 @@ test('post-death planning retains later self cooldowns without changing the comb
     target: { health: 1, armor: 2597 }
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.combatState.atSeconds, result.deathTime);
+  assert.equal(result.combatEndTime, result.deathTime);
   assert.equal(result.planningState.atSeconds, result.observationEndTime);
-  assert.ok(result.planningState.atSeconds > result.combatState.atSeconds);
+  assert.ok(result.planningState.atSeconds > result.combatEndTime);
   assert.ok(result.planningState.cooldowns['Phantasmal Swordsman'].remaining > 0);
   assert.ok(
     result.resolvedEvents.filter((event) => event.type === 'damage').every((event) => event.at <= result.deathTime)

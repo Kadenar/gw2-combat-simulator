@@ -569,7 +569,7 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
         event.type === 'action' &&
         event.skillId === ID.TWIN_DARTS &&
         event.actorType === 'summon' &&
-        event.autonomousPetSkill
+        event.source === 'ranger-pet'
     ),
     true
   );
@@ -986,7 +986,7 @@ test('Soulbeast owns merged pet suspension and restores the pet after leaving Be
 
   const autonomousPetActions = (result) =>
     result.events.filter(
-      (event) => event.type === 'action' && event.actorType === 'summon' && event.autonomousPetSkill
+      (event) => event.type === 'action' && event.actorType === 'summon' && event.source === 'ranger-pet'
     );
 
   assert.deepEqual(merged.warnings, []);

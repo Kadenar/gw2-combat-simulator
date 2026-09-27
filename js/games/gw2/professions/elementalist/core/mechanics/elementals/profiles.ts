@@ -1,9 +1,8 @@
 /**
  * Log-derived damage and timing constants for the Glyph of Elementals summons.
  *
- * Pure data: the elemental subsystem in `runtime.ts` reads lifetimes, packet
- * timings, and post-expiry recharge from these profiles, so every field here
- * directly shapes simulated elemental output.
+ * Packet timings and damage scales feed the elemental subsystem in `runtime.ts`.
+ * Lifetimes and post-expiry recharge belong to the patchable balance profiles.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
@@ -17,9 +16,6 @@ export const ELEMENTAL_LIGHTNING_JOLT_PROFILE = Object.freeze({
 
 /** Fire Elemental profile */
 export const FIRE_ELEMENTAL_EVTC_PROFILE = Object.freeze({
-  lifetime: 120,
-  rechargeAfterExpiry: 40,
-  targetAcquisitionDelay: 0.16,
   postCommandRecovery: 0.56,
   subsequentCommandRecovery: 0.08,
   // Provisional effective Power
@@ -66,9 +62,6 @@ export const FIRE_ELEMENTAL_EVTC_PROFILE = Object.freeze({
 
 /** Earth Elemental timings and packets measured from the supplied 2026-07-18 ArcDPS log. */
 export const EARTH_ELEMENTAL_EVTC_PROFILE = Object.freeze({
-  lifetime: 120,
-  rechargeAfterExpiry: 40,
-  targetAcquisitionDelay: 0.16,
   postCommandRecovery: 0.56,
   subsequentCommandRecovery: 0.08,
   basePower: 1000,

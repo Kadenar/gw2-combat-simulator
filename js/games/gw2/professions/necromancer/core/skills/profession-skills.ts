@@ -133,7 +133,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
         name: 'Grim Specter — Life Steal',
         flatStrikeBase: 778,
         flatStrikePowerCoeff: 0.2,
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -144,7 +144,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
           name: 'Grim Specter — Delayed Life Steal',
           flatStrikeBase: 778,
           flatStrikePowerCoeff: 0.2,
-          noCrit: true,
+          canCrit: false,
           damageKind: 'life-steal',
           timingAnchor: 'castStart',
           timingScale: 'fixed'

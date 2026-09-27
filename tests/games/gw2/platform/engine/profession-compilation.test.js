@@ -51,7 +51,6 @@ test('native runtime compilation defers presentation until the application reque
   const runtime = profession.resolveProfession({});
   assert.equal(Object.hasOwn(runtime, 'ui'), false);
   assert.equal(Object.hasOwn(runtime, 'migrateBuild'), false);
-  assert.deepEqual(simulateGw2({ profession: runtime, rotation: [] }).warnings, []);
   assert.deepEqual(simulateGw2({ profession, rotation: [] }).warnings, []);
   assert.equal(presentations, 0);
   const ui = profession.ui;

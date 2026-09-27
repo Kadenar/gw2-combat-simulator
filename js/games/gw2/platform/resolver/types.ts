@@ -42,12 +42,12 @@ export type Gw2ResolverEvent = SimulationEvent &
     readonly summonUsesMight?: boolean;
     readonly summonUsesEquipmentModifiers?: boolean;
     readonly summonUsesProfessionModifiers?: boolean;
-    readonly noCrit?: boolean;
+    readonly canCrit?: boolean;
     readonly forceCrit?: boolean;
     readonly canTriggerCriticalTraits?: boolean;
     /**
      * Resolver's derived verdict on whether the strike could crit: false for flat
-     * strikes and for `noCrit`/`canCrit:false` hits. Consumers should read this
+     * strikes and for `canCrit:false` hits. Consumers should read this
      * rather than re-deriving from the raw input flags.
      */
     readonly critEligible?: boolean;
@@ -191,10 +191,5 @@ export interface Gw2ResolverResult {
   readonly randomness: {
     mode: SimulationRandom['mode'];
     seed: number;
-  };
-  /** Resolved event state through combatEndTime, not a resumable player snapshot. */
-  readonly combatState: {
-    readonly atSeconds: number;
-    readonly profession: object;
   };
 }

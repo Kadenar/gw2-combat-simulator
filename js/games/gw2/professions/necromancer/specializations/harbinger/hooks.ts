@@ -223,7 +223,6 @@ function commit(runtime: NecromancerRuntime, cast: RuntimeCast, impactAt: number
       ? requireBalanceProfileFromContext(runtime, HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)])
       : cast.skill;
     emitEffects(runtime, cast.skill, profile.effects ?? [], cast, {
-      blightEmpowered: empowered,
       necromancerBlight: blight
     });
     if (cast.skill.id !== ID.DEVOURING_CUT)
@@ -349,7 +348,7 @@ export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
             effect.type === 'boon' && hasTrait(runtime, TRAIT.TWISTED_MEDICINE) ? party(runtime) : effect.audience
         })),
         cast,
-        { blightEmpowered: empowered, necromancerBlight: blight }
+        { necromancerBlight: blight }
       );
     }
   },

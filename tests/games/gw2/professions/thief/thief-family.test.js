@@ -91,7 +91,11 @@ const slices = Object.freeze([
   ['specializations/specter', specterModule],
   ['specializations/antiquary', antiquaryModule]
 ]);
-const thiefSkillOwners = getNativeCatalogAssembly(thiefNativeModules, undefined).skillOwners;
+const thiefSkillOwners = new Map(
+  [...getNativeCatalogAssembly(thiefNativeModules, undefined).fragments].flatMap(([owner, fragment]) =>
+    fragment.skills.map((skill) => [skill.id, owner])
+  )
+);
 
 // Check evaluated arrays, including generated packets and alternate outcome profiles, at the catalog boundary.
 test('Thief authored effect ticks use ordered non-negative 40 ms offsets', () => {

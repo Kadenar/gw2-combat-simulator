@@ -357,7 +357,7 @@ export const RENEGADE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         hits: 1,
         name: "Soulcleave's Summit — Life Siphon",
         actorType: 'effect',
-        noCrit: true
+        canCrit: false
       }
     ]
   })

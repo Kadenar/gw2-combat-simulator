@@ -1,4 +1,4 @@
-import { canonicalTime, isInternalCooldownReady, isTimeInWindow } from '#kernel/core/clock.js';
+import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -191,11 +191,6 @@ function completeShade(runtime: NecromancerRuntime, cast: RuntimeCast): void {
   if (skill.id === ID.DESERT_SHROUD || skill.id === ID.SANDSTORM_SHROUD) {
     if (hasTrait(runtime, TRAIT.PLAGUE_SENDING)) {
       core.plagueSendingArmed = true;
-      core.plagueSendingEntrySkillId = core.selfConditions.some((application) =>
-        isTimeInWindow(runtime.time, application.appliedAt, application.expiresAt)
-      )
-        ? null
-        : skill.id;
     }
 
     if (hasTrait(runtime, TRAIT.SOUL_BARBS))

@@ -97,10 +97,9 @@ test('the Ritualist palette reads detached live spirit availability without expo
       assert.equal(key in projection, false);
   }
 
-  // Public collections are detached from the live owner and from the combat boundary.
+  // Public collections are detached from the live owner.
   summoned.planningState.profession.activeSpirits.anguish = 0;
   assert.ok(state(summoned).activeSpirits.anguish);
-  assert.ok(summoned.combatState.profession.activeSpirits.anguish);
 });
 
 test('weapon spells consume only accepted recipient hits and their derived damage cannot recurse', () => {

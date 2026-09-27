@@ -80,15 +80,11 @@ export function buildSimulationScore(
   return score;
 }
 
-/** Presentation consumes executed events and an optional detached combat boundary, never a scheduler handoff. */
+/** Presentation consumes executed events bounded by the combat score. */
 export function buildCombatResult(
   ctx: Gw2ResolverRuntime,
   score: Gw2SimulationScore,
-  events: readonly Gw2ResolverEvent[],
-  combatState: Gw2ResolverResult['combatState'] = {
-    atSeconds: score.combatEndTime,
-    profession: structuredClone(ctx.profession)
-  }
+  events: readonly Gw2ResolverEvent[]
 ): Gw2ResolverResult {
   const effectiveEnd = score.combatEndTime;
   finalizeConditionApplications(ctx, effectiveEnd);
@@ -133,7 +129,6 @@ export function buildCombatResult(
     randomness: {
       mode: ctx.random.mode,
       seed: ctx.random.seed
-    },
-    combatState
+    }
   };
 }

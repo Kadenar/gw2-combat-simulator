@@ -94,8 +94,8 @@ test('Empowering Might requires player critical strikes and shares the one-secon
   }
 });
 
-test('Guardian combat and planning projections detach counters from the live state', () => {
-  // Both public boundaries detach their data from the one live state owner.
+test('Guardian planning projections detach counters from the live state', () => {
+  // Public planning data stays detached from the live state owner.
   const result = runGuardian(['Virtue of Justice', 'Orb of Wrath']);
   const runtime = observedRuntime(result);
   assert.equal(runtime.profession.core.justiceActiveBurns, 1);
@@ -104,7 +104,6 @@ test('Guardian combat and planning projections detach counters from the live sta
   projected.virtueReadyAt.justice = 99;
   runtime.profession.core.justiceActiveBurns = 9;
   assert.notEqual(runtime.profession.core.virtueReadyAt.justice, 99);
-  assert.equal(result.combatState.profession.justiceActiveBurns, 1);
   assert.equal(result.planningState.profession.justiceActiveBurns, 1);
 });
 
@@ -181,8 +180,7 @@ test('Zeal symbol traits emit their full profiles and stack damage', () => {
     true
   );
   assert.equal(
-    snapshotGuardianState(symbols.combatState.profession, symbols.combatState.atSeconds).symbolicAvengerExpirations
-      .length,
+    snapshotGuardianState(symbols.planningState.profession, symbols.combatEndTime).symbolicAvengerExpirations.length,
     5
   );
   assert.ok(blades.at(-1).damage > blades[0].damage);
@@ -516,7 +514,7 @@ test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () =
     activeBurning.every((event) => event.duration === 2),
     true
   );
-  assert.equal(result.combatState.profession.tetherUntil, 0);
+  assert.equal(result.planningState.profession.tetherUntil, 0);
   // The observation ends after the tether, so its expired flip must not remain in planning state.
   assert.equal(result.planningState.profession.availableFlips[GUARDIAN_SKILL_IDS.HUNTERS_VERDICT], undefined);
   assert.equal(

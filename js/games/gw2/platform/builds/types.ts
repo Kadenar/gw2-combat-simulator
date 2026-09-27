@@ -1,7 +1,6 @@
 /** Owns the builds/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
-import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/weapons/types.js';
 
 export type Gw2NumericAttributes = Record<string, number>;
 
@@ -101,7 +100,6 @@ export interface Gw2ConversionAttributeEffect extends Gw2AttributeEffectBase {
   readonly from: string;
   readonly to: string;
   readonly multiplier: number;
-  readonly addend?: number;
   readonly rounding: Gw2AttributeEffectRounding;
   readonly input: 'common' | 'eligible';
 }
@@ -321,56 +319,6 @@ export interface Gw2FinalizedAttributeResult {
   jadeBotCore: boolean;
   specializations: unknown[];
   activeTraits: unknown;
-}
-
-export interface Gw2AttributeData {
-  BASE_STATS?: Readonly<Gw2NumericAttributes>;
-  FOOD_DATA?: Readonly<
-    Record<
-      string,
-      {
-        readonly isConverted?: boolean;
-        readonly stats?: Readonly<Gw2NumericAttributes>;
-        readonly durations?: Readonly<Gw2NumericAttributes>;
-      }
-    >
-  >;
-  GEAR_SLOTS?: readonly string[];
-  GEAR_STATS?: Readonly<Record<string, Readonly<Record<string, Readonly<Gw2NumericAttributes>>>>>;
-  INFUSION_BONUS?: number;
-  JBC_BONUS?: Readonly<Gw2NumericAttributes>;
-  RUNE_DATA?: Readonly<
-    Record<
-      string,
-      {
-        readonly stats?: Readonly<Gw2NumericAttributes>;
-        readonly durations?: Readonly<Gw2NumericAttributes>;
-      }
-    >
-  >;
-  SIGIL_DATA?: Readonly<
-    Record<
-      string,
-      {
-        readonly criticalChance?: number;
-        readonly strikeDamageA?: number;
-        readonly nightStrikeDamageM?: number;
-        readonly conditionDamageA?: number;
-        readonly conditionDuration?: number;
-        readonly bleedingDuration?: number;
-        readonly burningDuration?: number;
-        readonly poisonDuration?: number;
-        readonly tormentDuration?: number;
-        readonly boonDuration?: number;
-      }
-    >
-  >;
-  UTILITY_CONVERSION_RATES?: Readonly<Gw2NumericAttributes>;
-  UTILITY_DATA?: Readonly<
-    Record<string, readonly { readonly from: string; readonly to: string; readonly percent?: number }[]>
-  >;
-  UTILITY_STAT_DATA?: Readonly<Record<string, Readonly<Gw2NumericAttributes>>>;
-  WEAPON_DATA?: Readonly<Record<string, Gw2WeaponDataEntry>>;
 }
 
 export interface Gw2BuildAttributeRuleContext {

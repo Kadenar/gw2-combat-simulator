@@ -11,7 +11,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Strength',
     elite: false,
     icon: 'https://render.guildwars2.com/file/0D48C40A1C042B0BC6DAA4B91AB272E5E90C934C/1012032.png',
-    background: 'https://render.guildwars2.com/file/09160450B40ED777650F632F2CE82504B90F5644/1012109.png',
     minorTraits: [
       {
         id: 1446,
@@ -152,7 +151,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Tactics',
     elite: false,
     icon: 'https://render.guildwars2.com/file/373162E8DED2793801194E622FEDEF2DBBDA6F10/1012033.png',
-    background: 'https://render.guildwars2.com/file/6FCF0E0E0C0E539290A8245F0DA49D0556D71E62/1012110.png',
     minorTraits: [
       {
         id: 1480,
@@ -294,7 +292,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Berserker',
     elite: true,
     icon: 'https://render.guildwars2.com/file/B706475993F16D0BD7DFDF3BB30AA144051CDC94/1029935.png',
-    background: 'https://render.guildwars2.com/file/665548439B5F7AB8CA63F46906A0630DAAF6069F/1012106.png',
     minorTraits: [
       {
         id: 1831,
@@ -438,7 +435,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Defense',
     elite: false,
     icon: 'https://render.guildwars2.com/file/5F0B793A5479007078067CD71D0E01B30602189B/1012030.png',
-    background: 'https://render.guildwars2.com/file/E0190E3B3745AA61D32CFF92C1FEFFFB56A90D4C/1012107.png',
     minorTraits: [
       {
         id: 1350,
@@ -582,7 +578,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Arms',
     elite: false,
     icon: 'https://render.guildwars2.com/file/03754E10970D0C68D76A1955245D7CB39AA21E59/1012029.png',
-    background: 'https://render.guildwars2.com/file/0A08B2DC35C8D22CC07B9F4C9023F7E9734C1B27/1012105.png',
     minorTraits: [
       {
         id: 1342,
@@ -726,7 +721,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Discipline',
     elite: false,
     icon: 'https://render.guildwars2.com/file/D10B771D01C85DA404472EE90F35EF15B0B36240/1012031.png',
-    background: 'https://render.guildwars2.com/file/2B80CF6504DA1B0DC8470D45ED5BE9992BEEC2B7/1012108.png',
     minorTraits: [
       {
         id: 1415,
@@ -868,7 +862,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Spellbreaker',
     elite: true,
     icon: 'https://render.guildwars2.com/file/06DFB7E3F267ADD0BB43C7383251343858371D02/1769896.png',
-    background: 'https://render.guildwars2.com/file/C0D57D3B17CC0408A2EE17FE2BA0C80A4E1838FA/1769905.png',
     minorTraits: [
       {
         id: 2175,
@@ -1009,7 +1002,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Bladesworn',
     elite: true,
     icon: 'https://render.guildwars2.com/file/9D0ADEDFDEACCCD2B27103A944B1E7F6C21DCBE2/2491509.png',
-    background: 'https://render.guildwars2.com/file/0E061BA341496AF47752A5A22578BCD67BF42D77/2491512.png',
     minorTraits: [
       {
         id: 2226,
@@ -1154,7 +1146,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Paragon',
     elite: true,
     icon: 'https://render.guildwars2.com/file/B915D599CB40733130F7121B5CDE0BE42ED9E06C/3679904.png',
-    background: 'https://render.guildwars2.com/file/F879AC0997C964DE562D98A5BC4EA60BC7C22849/3679913.png',
     minorTraits: [
       {
         id: 2373,

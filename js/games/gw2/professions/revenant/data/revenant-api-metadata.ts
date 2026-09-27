@@ -11,7 +11,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Invocation',
     elite: false,
     icon: 'https://render.guildwars2.com/file/2C4DCE5C0C255F32B51DCF9E4360106823EAF926/1012018.png',
-    background: 'https://render.guildwars2.com/file/B73FB47165CB20DE21B1FAE91FE22BDE29B6FB76/1012093.png',
     minorTraits: [
       {
         id: 1778,
@@ -151,7 +150,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Retribution',
     elite: false,
     icon: 'https://render.guildwars2.com/file/70B5F7E02769762D5FEE056D0136093BF3F580FF/1029933.png',
-    background: 'https://render.guildwars2.com/file/E6100E7B7704EEC632AD5B399C3BE8A84D7F7CED/1012095.png',
     minorTraits: [
       {
         id: 1783,
@@ -292,7 +290,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Salvation',
     elite: false,
     icon: 'https://render.guildwars2.com/file/0F0144B0E123163E0454B0C3D532282555BE7CE5/1029934.png',
-    background: 'https://render.guildwars2.com/file/1043F6D2CFECB77BC21C70B43F580611E5DAD7CD/1012097.png',
     minorTraits: [
       {
         id: 1816,
@@ -433,7 +430,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Corruption',
     elite: false,
     icon: 'https://render.guildwars2.com/file/FF4CBE97A807903DF3495E0ECC380E080291C698/1029931.png',
-    background: 'https://render.guildwars2.com/file/5AB700B8AE15619DDD3CAFD60D0203E5EB23C3BE/1012087.png',
     minorTraits: [
       {
         id: 1799,
@@ -572,7 +568,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Devastation',
     elite: false,
     icon: 'https://render.guildwars2.com/file/C95CAFC4DC0D2AF5DB0C66CB0E0B0FA699E45D6C/1029932.png',
-    background: 'https://render.guildwars2.com/file/0744C43591FB9C11A7554C9601215CA8022F4216/1012089.png',
     minorTraits: [
       {
         id: 1808,
@@ -714,7 +709,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Herald',
     elite: true,
     icon: 'https://render.guildwars2.com/file/78496E9E95C46527F8E0B974530A07A017DC9B79/1058520.png',
-    background: 'https://render.guildwars2.com/file/F2EEC706430942BEC2D51565AECC13135DF304F8/1012091.png',
     minorTraits: [
       {
         id: 1777,
@@ -855,7 +849,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Renegade',
     elite: true,
     icon: 'https://render.guildwars2.com/file/0152279F7DD0FCFA21F2D1CC17DE21B2BD58EFF3/1769894.png',
-    background: 'https://render.guildwars2.com/file/30377A5829605D7F1209B4064203A83F580548AD/1769903.png',
     minorTraits: [
       {
         id: 2181,
@@ -999,7 +992,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Vindicator',
     elite: true,
     icon: 'https://render.guildwars2.com/file/4FE40FD1ECD6C4EC45A32A2A740AC2E2A147E04F/2491508.png',
-    background: 'https://render.guildwars2.com/file/4A16C39ED845A4062D8014E5A20135910B201BA4/2491511.png',
     minorTraits: [
       {
         id: 2262,
@@ -1141,7 +1133,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Conduit',
     elite: true,
     icon: 'https://render.guildwars2.com/file/63DD70A26845681B9B993A51987F60A2F7970C52/3679902.png',
-    background: 'https://render.guildwars2.com/file/24DCBA06ED23E55A54953996025B07E46FFBC4B9/3679911.png',
     minorTraits: [
       {
         id: 2364,

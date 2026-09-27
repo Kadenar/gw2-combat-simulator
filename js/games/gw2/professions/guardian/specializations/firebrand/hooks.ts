@@ -1,3 +1,4 @@
+import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
@@ -71,19 +72,6 @@ function boon(
   return true;
 }
 
-function causeFor(runtime: Runtime, cast: RuntimeCast): Gw2ResolverEvent {
-  return {
-    type: 'buff',
-    at: runtime.time,
-    source: 'guardian',
-    sourceId: cast.skill.id,
-    actorType: 'player',
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id
-  };
-}
-
 /** Tome reopening changes only the current bar; it cannot restart a dormant passive or duplicate its activation traits. */
 function openTome(runtime: Runtime, cast: RuntimeCast, virtue: GuardianVirtue): void {
   const state = firebrandState.from(runtime);
@@ -108,7 +96,7 @@ function openTome(runtime: Runtime, cast: RuntimeCast, virtue: GuardianVirtue): 
     runtime.profession.core.virtueReadyAt[virtue] = state.tomeDormantReadyAt[virtue];
     applyGuardianVirtueActivationTraits(runtime, cast, virtue);
     if (virtue === 'justice') triggerGuardianFuriousFocus(runtime, cast);
-    if (boon(runtime, PROFILE.swiftScholar, 'quickness', causeFor(runtime, cast)))
+    if (boon(runtime, PROFILE.swiftScholar, 'quickness', guardianCastCause(runtime, cast)))
       recordGuardianTraitProc(
         runtime,
         TRAIT.SWIFT_SCHOLAR,
@@ -120,7 +108,7 @@ function openTome(runtime: Runtime, cast: RuntimeCast, virtue: GuardianVirtue): 
   }
 
   runtime.emit({
-    ...causeFor(runtime, cast),
+    ...guardianCastCause(runtime, cast),
     type: 'weapon_set',
     weaponSet: runtime.activeWeaponSet,
     weaponLine: cast.skill.name
@@ -211,7 +199,7 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
       state.swiftScholarTome = '';
       state.swiftScholarCount = 0;
       runtime.emit({
-        ...causeFor(runtime, cast),
+        ...guardianCastCause(runtime, cast),
         type: 'weapon_set',
         weaponSet: runtime.activeWeaponSet,
         weaponLine: null
@@ -238,7 +226,7 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
           runtime,
           PROFILE.legendaryLore,
           skill.tome === 'justice' ? 'might' : skill.tome === 'resolve' ? 'regeneration' : 'protection',
-          { ...causeFor(runtime, cast), sourceId: TRAIT.LEGENDARY_LORE, name: 'Legendary Lore' }
+          { ...guardianCastCause(runtime, cast), sourceId: TRAIT.LEGENDARY_LORE, name: 'Legendary Lore' }
         );
     }
 
@@ -252,7 +240,7 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
       hasTrait(runtime, TRAIT.LIBERATORS_VOW) &&
       isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.firebrand.liberatorsVow'))
     ) {
-      if (boon(runtime, PROFILE.liberatorsVow, 'quickness', causeFor(runtime, cast), true)) {
+      if (boon(runtime, PROFILE.liberatorsVow, 'quickness', guardianCastCause(runtime, cast), true)) {
         runtime.procs.readyAt['guardian.firebrand.liberatorsVow'] = canonicalTime(
           runtime.time +
             balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.liberatorsVow), 'internalCooldown')
@@ -279,7 +267,7 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
       if (slow)
         runtime.emit(
           buildResolverCondition({
-            ...causeFor(runtime, cast),
+            ...guardianCastCause(runtime, cast),
             sourceId: TRAIT.WEIGHTY_TERMS,
             name: 'Weighty Terms — Slow',
             condition: String(slow.condition),

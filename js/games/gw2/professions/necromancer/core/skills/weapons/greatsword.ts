@@ -204,7 +204,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         parentSkillName: 'Death Spiral',
         flatStrikeBase: 3517,
         flatStrikePowerCoeff: 0.01,
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal'
       },
       {

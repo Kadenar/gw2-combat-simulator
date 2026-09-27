@@ -131,7 +131,6 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   assert.equal(combustiveShot.comboFields[0].fieldType, 'Fire');
   assert.equal(combustiveShot.comboFields[0].duration, 3);
   assert.equal(combustiveShot.comboFields[0].startAnchor, 'castEnd');
-  assert.deepEqual(combustiveShot.burstFieldDurations, [3, 6, 9]);
   assert.deepEqual(combustiveShot.effects, []);
 
   const scorchedEarth = skill(ID.SCORCHED_EARTH);
@@ -171,9 +170,6 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   assert.equal(blazeBreaker.cooldown, 12);
   assert.equal(blazeBreaker.comboFinishers[0].finisherType, 'Blast');
   assert.equal(blazeBreaker.comboFinishers[0].chance, 1);
-  assert.equal(blazeBreaker.waves, 5);
-  assert.equal(blazeBreaker.totalCoefficient, 2);
-  assert.equal(blazeBreaker.maximumHitsPerTarget, 1);
   assert.deepEqual(
     blazeBreaker.effects.map((effect) =>
       effect.type === 'strike' ? strikeEffectTicks(effect) : conditionEffectTicks(effect)

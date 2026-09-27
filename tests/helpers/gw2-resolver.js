@@ -1,5 +1,5 @@
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 /** Queue focused packets in the production runtime; formula tests can replace query facts at initialization. */
 export function resolveTestGw2Events({
@@ -16,7 +16,7 @@ export function resolveTestGw2Events({
 }) {
   const native =
     profession?.runtimeFor(options.config ?? {}) ??
-    defineProfession({ id: 'event-fixture', name: 'Event fixture' }).runtimeFor({});
+    defineTestProfession({ id: 'event-fixture', name: 'Event fixture' }).runtimeFor({});
   return runGw2Runtime({
     ...options,
     combatStartTime,

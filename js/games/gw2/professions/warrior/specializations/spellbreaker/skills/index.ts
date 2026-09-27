@@ -27,7 +27,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ]),
     castTimeMs: 1000,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true
   },
   [ID.NATURAL_HEALING]: {
@@ -52,7 +51,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ]),
     castTimeMs: 560,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true
   },
   [ID.ARCING_SLICE_ID_42707]: {
@@ -78,7 +76,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ],
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true
   },
   [ID.COMBUSTIVE_SHOT_ID_42803]: {
@@ -99,7 +96,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ],
     castTimeMs: 500,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true
   },
   [ID.BREAK_ENCHANTMENTS]: {
@@ -128,7 +124,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       }
     ],
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true
   },
   [ID.FULL_COUNTER]: {
@@ -137,7 +132,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [],
     castTimeMs: 1000,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true
   },
   [ID.WINDS_OF_DISENCHANTMENT]: {
@@ -174,7 +168,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ],
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true
   },
   [ID.HARRIERS_TOSS_ID_73014]: {
@@ -193,7 +186,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ],
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true
   }
 });

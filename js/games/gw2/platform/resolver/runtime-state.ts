@@ -2,7 +2,6 @@ import type { CriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/di
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { Gw2CombatQuery, Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
-import { createCanonicalTargetConditionStateMap } from '#gw2/platform/combat/state/targets.js';
 import { createGw2ComboRuntimeState } from '#gw2/platform/combos/events.js';
 import type { Gw2ComboRuntimeState } from '#gw2/platform/combos/types.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
@@ -64,7 +63,7 @@ export function createGw2ResolverRuntimeState({
     conditions: new Map(),
     environmentDamage: 0,
     environmentConditions: new Map(),
-    conditionState: createCanonicalTargetConditionStateMap(),
+    conditionState: new Map(),
     resolved: [],
     procSteps: [],
     procKeys: new Set(),

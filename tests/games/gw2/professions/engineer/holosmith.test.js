@@ -727,7 +727,7 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
   const vent = vented.events.find((event) => event.type === 'damage' && event.name === 'Vent Exhaust');
 
   assert.equal(vent.coefficient, 1.1);
-  assert.equal(vent.noCrit, true);
+  assert.equal(vent.canCrit, false);
   assert.equal(vent.canCrit, false);
   assert.equal(vent.sourceId, ID.VENT_EXHAUST);
   assert.equal(vent.triggeredBy, 'Dodge');

@@ -17,7 +17,6 @@ import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.VORACIOUS_ARC]: {
     castTimeMs: 840,
-    blightCost: 5,
     effects: [{ name: 'Strike', type: 'strike', coefficient: 1.4, hits: 1 }],
     type: 'Profession',
     slot: 'Weapon_4',
@@ -167,7 +166,6 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 480,
     // Devouring Cut commits at its impact frame before the default cast finishes.
     interruptCommitMs: 280,
-    blightCost: 5,
     effects: [{ name: 'Strike', type: 'strike', coefficient: 1, hits: 1 }],
     type: 'Profession',
     slot: 'Weapon_3',

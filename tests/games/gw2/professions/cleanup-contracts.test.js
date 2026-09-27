@@ -61,19 +61,18 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
     [5, 8],
     [0, 0],
     [3, 3],
-    [99, 9]
+    [99, 8]
   ]) {
     const config = {
       specialization: 'Firebrand',
       selectedTraitIds: [GT.ARCHIVIST_OF_WHISPERS, GT.LOREMASTER],
-      initialTomePages: initial,
-      maximumTomePages: 9
+      initialTomePages: initial
     };
     const first = createFirebrandState(config);
     const second = observedRuntime(runGuardian([], config)).profession.specialization.state;
     assert.equal(second.tomePages.value, expected);
-    assert.equal(second.tomePages.maximum, 9);
-    assert.equal(second.tomePages.nextAt, expected < 9 ? 5 : Infinity);
+    assert.equal(second.tomePages.maximum, 8);
+    assert.equal(second.tomePages.nextAt, expected < 8 ? 5 : Infinity);
     assert.deepEqual(first.tomePages, second.tomePages);
     assert.notEqual(first.tomeDormantReadyAt, second.tomeDormantReadyAt);
   }

@@ -233,7 +233,7 @@ function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: 
         skillName: 'Lightning Jolt',
         coefficient,
         skillWeapon: 'Unequipped',
-        noCrit: true
+        canCrit: false
       });
       armElementalistElementalLightningJolt(context, cast, ID.LIGHTNING_JOLT, coefficient);
       emitElementalistProc(context, {

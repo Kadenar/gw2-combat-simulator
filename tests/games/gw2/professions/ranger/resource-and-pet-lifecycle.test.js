@@ -187,7 +187,7 @@ test('pet swaps preserve committed projectiles but interrupt unfinished melee at
         result.events.some(
           (event) =>
             event.type === 'action' &&
-            event.autonomousPetSkill &&
+            event.source === 'ranger-pet' &&
             event.at > 0.5 &&
             event.summonOwner === 'ranger-pet:1:0'
         ),
@@ -247,7 +247,7 @@ test('committed autonomous effects survive swaps with the outgoing pet identity 
       result.events.some(
         (event) =>
           event.type === 'action' &&
-          event.autonomousPetSkill &&
+          event.source === 'ranger-pet' &&
           event.at > 2.5 &&
           event.summonOwner === before.summonOwner
       ),

@@ -54,8 +54,7 @@ export function completeEngineerSpear(runtime: EngineerRuntime, cast: RuntimeCas
         at,
         activationId: cast.id,
         offTarget: cast.command.offTarget,
-        controlKind: focused ? 'launch' : 'stun',
-        focused
+        controlKind: focused ? 'launch' : 'stun'
       },
       skill
     );

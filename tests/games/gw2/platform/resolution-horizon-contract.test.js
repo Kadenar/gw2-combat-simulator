@@ -4,7 +4,7 @@ import test from 'node:test';
 import { EPSILON } from '#kernel/core/clock.js';
 
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
 
@@ -210,7 +210,7 @@ function contractProfession() {
     ]
   });
 
-  return defineProfession({
+  return defineTestProfession({
     id: 'resolution-contract',
     name: 'Resolution Contract',
     catalog,
@@ -460,7 +460,7 @@ test('interrupt modes distinguish whole-effect commits from per-packet channels'
 
 // Simultaneous melee and projectile packets share one inclusive cancellation boundary.
 test('per-packet channels cancel simultaneous hit pairs together', () => {
-  const pairedProfession = defineProfession({
+  const pairedProfession = defineTestProfession({
     id: 'paired-channel',
     name: 'Paired Channel',
     catalog: createCanonicalCatalog({

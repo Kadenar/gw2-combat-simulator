@@ -152,8 +152,6 @@ describe('Power Conduit skill profiles', () => {
     assert.equal(skill('Chilling Isolation').defaultInterruptMs, undefined);
     assert.equal(skill('Deathstrike').rechargeAnchor, 'castStart');
     assert.equal(skill('Deathstrike').rechargeOffsetMs, 420);
-    assert.equal(skill("Phantom's Onslaught").dashTimeMs, 40);
-    assert.equal(skill("Phantom's Onslaught").hitDelayMs, 400);
     assert.equal(skill("Phantom's Onslaught").rechargeAnchor, 'castStart');
     assert.equal(skill("Phantom's Onslaught").rechargeOffsetMs, 40);
     const alternateOnslaught = revenantCatalog.skillsById.get(SKILL.PHANTOMS_ONSLAUGHT_ID_62713);

@@ -407,11 +407,11 @@ test('Justice active burning resolves through simulateGw2', () => {
   assert.equal(withoutJustice.conditionDamage, 0);
   assert.ok(withJustice.conditionDamage > 0);
   assert.equal(
-    withJustice.combatState.profession.justiceActiveBurns + withJustice.combatState.profession.justicePassiveBurns,
+    withJustice.planningState.profession.justiceActiveBurns + withJustice.planningState.profession.justicePassiveBurns,
     1
   );
-  assert.equal(withJustice.combatState.profession.justiceActiveBurns, 1);
-  assert.equal(withJustice.combatState.profession.justiceActiveArmed, false);
+  assert.equal(withJustice.planningState.profession.justiceActiveBurns, 1);
+  assert.equal(withJustice.planningState.profession.justiceActiveArmed, false);
   assert.equal(
     withJustice.procSteps.find((step) => step.skill === 'Justice Active')?.icon,
     guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.JUSTICE).icon
@@ -449,18 +449,18 @@ test('Justice passive counts individual hits and respects its active cooldown', 
     primaryWeapon: 'Greatsword'
   })(undefined, ['Radiant Justice', 'Whirling Wrath']);
 
-  assert.equal(passive.combatState.profession.justicePassiveBurns, 2);
-  assert.equal(passive.combatState.profession.justiceHitCount, 4);
-  assert.equal(activated.combatState.profession.justiceActiveBurns, 1);
-  assert.equal(activated.combatState.profession.justicePassiveBurns, 0);
-  assert.equal(activated.combatState.profession.virtueReadyAt.justice, 16);
-  assert.equal(permeating.combatState.profession.justicePassiveBurns, 4);
-  assert.equal(permeating.combatState.profession.justiceHitCount, 2);
-  assert.equal(radiantPassive.combatState.profession.justicePassiveBurns, 2);
-  assert.equal(radiantPassive.combatState.profession.justiceHitCount, 4);
-  assert.equal(radiantPermeating.combatState.profession.justicePassiveBurns, 4);
-  assert.equal(radiantPermeating.combatState.profession.justiceHitCount, 2);
-  assert.equal(radiantActivated.combatState.profession.justicePassiveBurns, 0);
+  assert.equal(passive.planningState.profession.justicePassiveBurns, 2);
+  assert.equal(passive.planningState.profession.justiceHitCount, 4);
+  assert.equal(activated.planningState.profession.justiceActiveBurns, 1);
+  assert.equal(activated.planningState.profession.justicePassiveBurns, 0);
+  assert.equal(activated.planningState.profession.virtueReadyAt.justice, 16);
+  assert.equal(permeating.planningState.profession.justicePassiveBurns, 4);
+  assert.equal(permeating.planningState.profession.justiceHitCount, 2);
+  assert.equal(radiantPassive.planningState.profession.justicePassiveBurns, 2);
+  assert.equal(radiantPassive.planningState.profession.justiceHitCount, 4);
+  assert.equal(radiantPermeating.planningState.profession.justicePassiveBurns, 4);
+  assert.equal(radiantPermeating.planningState.profession.justiceHitCount, 2);
+  assert.equal(radiantActivated.planningState.profession.justicePassiveBurns, 0);
 });
 
 test('Justice counts symbol packets and applies the measured two-second passive burn', () => {
@@ -474,7 +474,7 @@ test('Justice counts symbol packets and applies the measured two-second passive 
   );
   const proc = result.procSteps.find((step) => step.skill === 'Justice Passive');
 
-  assert.equal(result.combatState.profession.justicePassiveBurns, 1);
+  assert.equal(result.planningState.profession.justicePassiveBurns, 1);
   assert.equal(burn.duration, 2);
   assert.equal(proc.sourceSkill, 'Symbol of Resolution');
 });

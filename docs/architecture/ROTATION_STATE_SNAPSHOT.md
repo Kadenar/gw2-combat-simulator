@@ -46,9 +46,9 @@ The shared `templates/profession.html` page template includes it for every nativ
 ## How the snapshot gets its state
 
 `planningState` is a detached observation of the live runtime at `atSeconds`. After target death, authored commands
-continue for editor planning while hostile effects and hit-dependent grants are suppressed. `combatState.profession`
-freezes at `combatState.atSeconds`; never overlay that earlier state onto a later planning snapshot. Neither projection
-is a resumable checkpoint. Prefix and append previews use the same runtime without an observation tail.
+continue for editor planning while hostile effects and hit-dependent grants are suppressed. Combat reports stop at
+`combatEndTime`; the planning projection describes the later observation boundary and is not a resumable checkpoint.
+Prefix and append previews use the same runtime without an observation tail.
 
 The snapshot model and renderer live in:
 

@@ -1,5 +1,5 @@
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -82,8 +82,11 @@ test('selected profile capacity controls initialization, grants, and readiness',
 });
 
 test('malformed declared endurance fails rather than silently dropping grants', () => {
-  assert.throws(() => defineProfession({ id: 'bad', name: 'Bad', resources: { endurance: {} } }), /Endurance requires/);
-  const profession = defineProfession({
+  assert.throws(
+    () => defineTestProfession({ id: 'bad', name: 'Bad', resources: { endurance: {} } }),
+    /Endurance requires/
+  );
+  const profession = defineTestProfession({
     id: 'bad-pool',
     name: 'Bad pool',
     resources: {

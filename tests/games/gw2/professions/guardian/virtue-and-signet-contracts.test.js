@@ -110,6 +110,6 @@ test('Willbender misses cannot complete a virtue hit cycle', () => {
       ]
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.combatState.profession.triggeredVirtueEffects > 0, !offTarget);
+    assert.equal(result.planningState.profession.triggeredVirtueEffects > 0, !offTarget);
   }
 });

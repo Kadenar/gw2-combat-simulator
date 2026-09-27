@@ -37,7 +37,7 @@ export function createSigilStrikeEvent(name: string, proc: Gw2SigilProc, sourceS
     totalHits: 1,
     weaponStrength: proc.weaponStrength,
     skillWeapon: 'Unequipped',
-    noCrit: !proc.canCrit,
+    canCrit: proc.canCrit === true,
     canTriggerCriticalSigils: proc.canCrit === true,
     canTriggerCriticalTraits: proc.canCrit === true
   };

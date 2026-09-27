@@ -11,7 +11,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Water',
     elite: false,
     icon: 'https://render.guildwars2.com/file/A3D60C0EBE0B33907505C7DED0FD4E4DE565250F/1011987.png',
-    background: 'https://render.guildwars2.com/file/F99A435D26057D6865ECBD0794B73D35A69FBB58/1012039.png',
     minorTraits: [
       {
         id: 350,
@@ -151,7 +150,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Earth',
     elite: false,
     icon: 'https://render.guildwars2.com/file/BA6BC962A7ABA1330B3AC4141299397C0036559F/1011985.png',
-    background: 'https://render.guildwars2.com/file/B9C5BE9716010E3F7F170A52B5B272327CDA49A1/1012037.png',
     minorTraits: [
       {
         id: 278,
@@ -295,7 +293,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Fire',
     elite: false,
     icon: 'https://render.guildwars2.com/file/B4BDAB2452DEF1A34615DDC4F30A157DADC743C5/1011986.png',
-    background: 'https://render.guildwars2.com/file/6BB3E8FDEA6E679050D59E411A4AA956D347B045/1012038.png',
     minorTraits: [
       {
         id: 320,
@@ -438,7 +435,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Arcane',
     elite: false,
     icon: 'https://render.guildwars2.com/file/C7F4C199EC07D0E6CC9417C6F53F53FDD3F92947/1011984.png',
-    background: 'https://render.guildwars2.com/file/01F1264B9F05CC52E46434C53DF6BA2A57CE21C5/1012035.png',
     minorTraits: [
       {
         id: 268,
@@ -578,7 +574,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Air',
     elite: false,
     icon: 'https://render.guildwars2.com/file/D3DB62FF6055021A717F3C6A0C19502F2C4EC1FF/1011983.png',
-    background: 'https://render.guildwars2.com/file/97BE972EC832ABC4F8645FF4A063EFF89B2942B8/1012034.png',
     minorTraits: [
       {
         id: 221,
@@ -721,7 +716,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Tempest',
     elite: true,
     icon: 'https://render.guildwars2.com/file/D1970ABC09D07B4275C7E47DDD0EDC0F4CFC050C/1029930.png',
-    background: 'https://render.guildwars2.com/file/D22197110A38F5651AA3F4C23914A197DD2C5BA1/1029936.png',
     minorTraits: [
       {
         id: 2025,
@@ -865,7 +859,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Weaver',
     elite: true,
     icon: 'https://render.guildwars2.com/file/02FAA82BF2F5BF3E3AD89BCF05FF56B4C86139F4/1769888.png',
-    background: 'https://render.guildwars2.com/file/C3D501E451AD49310F05B40924B20A3B7CB14E07/1769897.png',
     minorTraits: [
       {
         id: 2109,
@@ -1009,7 +1002,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Catalyst',
     elite: true,
     icon: 'https://render.guildwars2.com/file/1DF8CD361899081107B504A02B01C9B3B3645970/2491507.png',
-    background: 'https://render.guildwars2.com/file/379EA2AA09ED39F1312B20A6FBA835C6F893FA2E/2491510.png',
     minorTraits: [
       {
         id: 2227,
@@ -1155,7 +1147,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Evoker',
     elite: true,
     icon: 'https://render.guildwars2.com/file/A80E0721636B027711E408BF0ADFDCD3330920AA/3679896.png',
-    background: 'https://render.guildwars2.com/file/393A550E0EA1C4A9CB3FB9CD4AE4DDDC01E6C1D3/3679905.png',
     minorTraits: [
       {
         id: 2344,

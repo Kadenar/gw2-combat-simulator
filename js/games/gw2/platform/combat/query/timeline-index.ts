@@ -27,7 +27,6 @@ interface CreateGw2TimelineIndexOptions {
   readonly events?: readonly SimulationEvent[];
   readonly skillsById?: ReadonlyMap<SkillId, Skill>;
   readonly resolved?: boolean;
-  readonly sigilSet?: (config: Gw2Config, weaponSet: number) => Gw2SigilSet;
 }
 
 type IndexedEvents = Record<'weaponSet' | 'cooldown', SimulationEvent[]>;
@@ -55,8 +54,7 @@ export function createGw2TimelineIndex({
   skillOnCooldown,
   events = [],
   skillsById,
-  resolved = false,
-  sigilSet = gw2SigilSet
+  resolved = false
 }: CreateGw2TimelineIndexOptions = {}): Readonly<Gw2TimelineIndex> {
   // Timestamp ties follow scheduler causal order so derived events are queried
   // in the same order the resolver consumes them.
@@ -135,7 +133,7 @@ export function createGw2TimelineIndex({
   };
 
   const refreshIndex = (): void => {
-    // Appends are indexed incrementally; source replacements must call onEventReplaced.
+    // Index append-only histories incrementally; truncation discards the previous cache.
     if (events.length < indexedLength) resetIndex();
     if (events.length === indexedLength) return;
     clearQueryCache();
@@ -169,7 +167,7 @@ export function createGw2TimelineIndex({
   };
 
   const refreshQueryCache = (time: number): void => {
-    // Refresh before reuse so same-time appends, replacements, and backwards queries never see stale history.
+    // Refresh before reuse so same-time appends and backwards queries never see stale history.
     refreshIndex();
     if (cachedTime !== time) {
       clearQueryCache();
@@ -272,7 +270,7 @@ export function createGw2TimelineIndex({
     return activeSet;
   };
 
-  const activeSigilSetAt = (time: number): Gw2SigilSet => sigilSet(config, activeWeaponSetAt(time));
+  const activeSigilSetAt = (time: number): Gw2SigilSet => gw2SigilSet(config, activeWeaponSetAt(time));
 
   const skillOnCooldownAt = (skillId: SkillId, time: number): boolean => {
     time = canonicalTime(time);
@@ -308,7 +306,6 @@ export function createGw2TimelineIndex({
         // A snapshot replaces prior knowledge for the requested skill.
         const cooldowns = (event.cooldowns || {}) as Readonly<Record<string, unknown>>;
         readyAt = Number(cooldowns[String(skillId)] || 0);
-        progress = event.rechargeProgressBySkillId?.[String(skillId)];
       } else if (event.type === 'marker' && event.action === 'cooldown-reset') {
         // Training-area resets restore signet passives as soon as the scheduler clears their recharge.
         readyAt = 0;
@@ -330,18 +327,6 @@ export function createGw2TimelineIndex({
   };
 
   return Object.freeze({
-    onEventReplaced(previous: SimulationEvent, replacement: SimulationEvent): void {
-      // Rebuild lazily for changed history, but ignore unindexed packets such as critical damage facts.
-      if (
-        [previous, replacement].some(
-          (event) =>
-            ['buff', 'boon_extension', 'weapon_set', 'action', 'cooldown_snapshot'].includes(event.type) ||
-            (event.type === 'marker' && event.action === 'cooldown-reset')
-        )
-      ) {
-        resetIndex();
-      }
-    },
     buffStacksAt,
     timedStacks,
     timedActive,
@@ -357,8 +342,6 @@ export function createGw2TimelineIndex({
 export interface Gw2TimelineIndex {
   rechargeIntervals(skill: Skill, start: number, end: number): Iterable<RechargeInterval>;
   rechargeReadyAt(skill: Skill, progress: RechargeProgress): number;
-  /** Invalidates indexed history after the source owner replaces an event. */
-  onEventReplaced(previous: SimulationEvent, replacement: SimulationEvent): void;
   buffStacksAt(
     kind: string,
     time: number,

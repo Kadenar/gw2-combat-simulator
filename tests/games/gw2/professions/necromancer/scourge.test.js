@@ -197,7 +197,11 @@ test('Nefarious Favor cleanses one condition type and F5 transfers only on an ac
   const hit = run([cast(ID.NEFARIOUS_FAVOR), cast(ID.DESERT_SHROUD)], config, { profession });
   assert.deepEqual(hit.planningState.profession.selfConditions, []);
   assert.equal(observedRuntime(hit).profession.core.plagueSendingArmed, false);
-  assert.ok(hit.resolvedEvents.some((event) => event.transferredCondition && event.condition === 'Burning'));
+  assert.ok(
+    hit.resolvedEvents.some(
+      (event) => event.type === 'condition' && event.fixedDuration === true && event.condition === 'Burning'
+    )
+  );
   const missed = run([cast(ID.NEFARIOUS_FAVOR), { ...cast(ID.DESERT_SHROUD), offTarget: true }], config, {
     profession
   });

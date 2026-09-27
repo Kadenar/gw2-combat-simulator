@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { timelineDeadTimeMarkers, timelineTransitionDelayMarkers } from '#gw2/app/rotation/timeline/model.js';
@@ -27,7 +27,7 @@ const catalog = createCanonicalCatalog({
     { id: 5, name: 'Independent input', castTimeMs: 40, independentCast: true, effects: [] }
   ]
 });
-const profession = defineProfession({
+const profession = defineTestProfession({
   id: 'transition-fixture',
   name: 'Transition Fixture',
   catalog
@@ -92,7 +92,7 @@ test('last-transition recovery contributes to rotation completion while an absol
 });
 
 test('invalid transitions do not emit input recovery', () => {
-  const denied = defineProfession({
+  const denied = defineTestProfession({
     id: 'denied-transition',
     name: 'Denied Transition',
     catalog,

@@ -163,7 +163,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         flatStrikeBase: 200,
         flatStrikePowerCoeff: 0.4,
         actorType: 'effect',
-        noCrit: true
+        canCrit: false
       }
     ]
   },
@@ -182,7 +182,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         flatStrikeBase: 1200,
         flatStrikePowerCoeff: 0.05,
         actorType: 'effect',
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal'
       },
       {

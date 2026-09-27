@@ -124,8 +124,7 @@ export const ritualistSpellHooks: Partial<RuntimeProfession<NecromancerRuntimeSt
       skillId: cast.skill.id,
       skillName: cast.skill.name,
       appliedAt: runtime.time,
-      recipients,
-      alliesReceiveFullBenefit: fullBenefit
+      recipients
     };
     runtime.emit({
       type: 'buff',
@@ -209,7 +208,7 @@ export const ritualistSpellHooks: Partial<RuntimeProfession<NecromancerRuntimeSt
             flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
             flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
             skillWeapon: 'Unequipped',
-            noCrit: true,
+            canCrit: false,
             triggeredBy: (data as Gw2ResolverEvent).triggeredBy
           })
         );

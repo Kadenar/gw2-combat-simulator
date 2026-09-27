@@ -147,28 +147,7 @@ export function activateAmalgamMorph(context: EngineerRuntime, skill: EngineerSk
     );
   }
 
-  if (hasTrait(context.config, TRAIT.HARDENED_CHROME)) {
-    const sourceSkill =
-      context.helpers.skillsById.get(TRAIT.HARDENED_CHROME) ||
-      ({ id: TRAIT.HARDENED_CHROME, name: 'Hardened Chrome' } as EngineerSkill);
-    const hardenedChromeProfile = requireBalanceProfileFromContext(context, PROFILE.hardenedChrome);
-    emitEngineerEvent(
-      context,
-      'buff',
-      {
-        at,
-        source: 'engineer',
-        sourceId: TRAIT.HARDENED_CHROME,
-        actorType: 'player',
-        skillName: 'Hardened Chrome',
-        name: 'Hardened Chrome',
-        kind: 'protection',
-        duration: balanceProfileNumber(hardenedChromeProfile, 'minimumStacks'),
-        stacks: 1
-      },
-      sourceSkill
-    );
-  }
+  grantHardenedChrome(context, 'minimumStacks');
 
   if (morphKind && hasTrait(context.config, TRAIT.SILVER_LINING)) {
     applyAmalgamStrain(context, morphKind, at);
@@ -230,28 +209,7 @@ export function evolveAmalgam(context: EngineerRuntime): void {
     }
   }
 
-  if (hasTrait(context.config, TRAIT.HARDENED_CHROME)) {
-    const sourceSkill =
-      context.helpers.skillsById.get(TRAIT.HARDENED_CHROME) ||
-      ({ id: TRAIT.HARDENED_CHROME, name: 'Hardened Chrome' } as EngineerSkill);
-    const hardenedChromeProfile = requireBalanceProfileFromContext(context, PROFILE.hardenedChrome);
-    emitEngineerEvent(
-      context,
-      'buff',
-      {
-        at,
-        source: 'engineer',
-        sourceId: TRAIT.HARDENED_CHROME,
-        actorType: 'player',
-        skillName: 'Hardened Chrome',
-        name: 'Hardened Chrome',
-        kind: 'protection',
-        duration: balanceProfileNumber(hardenedChromeProfile, 'maximumStacks'),
-        stacks: 1
-      },
-      sourceSkill
-    );
-  }
+  grantHardenedChrome(context, 'maximumStacks');
 }
 
 /** Successful player control advances Evolve recharge once per internal cooldown. */
@@ -294,4 +252,30 @@ export function amalgamMaximumAmmo(context: EngineerRuntime, skill: EngineerSkil
         Number(maximum || 0)
       )
     : 0;
+}
+
+/** Morph and Evolve grant the same protection effect with their authored duration. */
+function grantHardenedChrome(context: EngineerRuntime, durationField: 'minimumStacks' | 'maximumStacks'): void {
+  if (hasTrait(context.config, TRAIT.HARDENED_CHROME)) {
+    const sourceSkill =
+      context.helpers.skillsById.get(TRAIT.HARDENED_CHROME) ||
+      ({ id: TRAIT.HARDENED_CHROME, name: 'Hardened Chrome' } as EngineerSkill);
+    const hardenedChromeProfile = requireBalanceProfileFromContext(context, PROFILE.hardenedChrome);
+    emitEngineerEvent(
+      context,
+      'buff',
+      {
+        at: context.time,
+        source: 'engineer',
+        sourceId: TRAIT.HARDENED_CHROME,
+        actorType: 'player',
+        skillName: 'Hardened Chrome',
+        name: 'Hardened Chrome',
+        kind: 'protection',
+        duration: balanceProfileNumber(hardenedChromeProfile, durationField),
+        stacks: 1
+      },
+      sourceSkill
+    );
+  }
 }

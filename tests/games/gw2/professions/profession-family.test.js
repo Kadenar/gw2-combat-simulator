@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { defineProfessionFamily } from '#gw2/platform/engine/profession/family.js';
 import { defineProfessionModule } from '#gw2/platform/engine/profession/module.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
@@ -74,7 +74,11 @@ function nativeModifierRules(module) {
 function nativeSkillOwnerMap(slices) {
   const modules = slices.map(([, module]) => module);
 
-  return getNativeCatalogAssembly(modules, undefined).skillOwners;
+  return new Map(
+    [...getNativeCatalogAssembly(modules, undefined).fragments].flatMap(([owner, fragment]) =>
+      fragment.skills.map((skill) => [skill.id, owner])
+    )
+  );
 }
 
 test('all migrated profession families share one conformance harness', () => {
@@ -280,8 +284,12 @@ test('native module contributions assemble disjoint application and runtime cata
       );
     }
 
-    const skillOwners = getNativeCatalogAssembly(modules, undefined).skillOwners;
-    for (const active of ['Core', ...family.specializationIds]) {
+    const skillOwners = new Map(
+      [...getNativeCatalogAssembly(modules, undefined).fragments].flatMap(([owner, fragment]) =>
+        fragment.skills.map((skill) => [skill.id, owner])
+      )
+    );
+    for (const active of ['Core', ...family.nativeDefinition.modules.slice(1).map((module) => module.id)]) {
       const runtime = family.resolveProfession({ specialization: active });
       const runtimeIds = new Set(runtime.catalog.skills.map((skill) => skill.id));
 
@@ -515,7 +523,7 @@ test('family composition rejects duplicate registries and catalog ids', () => {
 });
 
 test('canonical simulation resolves the selected live source once', () => {
-  const runtime = defineProfession({
+  const runtime = defineTestProfession({
     id: 'counted-runtime',
     name: 'Counted Runtime',
     catalog: createCanonicalCatalog()
@@ -687,7 +695,6 @@ const guardianInactiveStateKeys = Object.freeze({
     'lightAuraUntil',
     'radiantJusticeArmed',
     'radiantCourageSwordArmed',
-    'radiantCourageShieldArmed',
     'effulgentActiveUntil',
     'effulgentStacks'
   ]

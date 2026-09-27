@@ -94,7 +94,7 @@ test('elemental glyphs require equipment while matching command flips and summon
     const core = createElementalistCoreState();
     const context = {
       profession: { core },
-      config: { selectedSkills: { Elite: 'Conjure Fiery Greatsword' }, autoSummonElemental: false },
+      config: { selectedSkills: { Elite: 'Conjure Fiery Greatsword' } },
       helpers: elementalistCatalog,
       time: 0,
       start: 0
@@ -111,7 +111,7 @@ test('elemental glyphs require equipment while matching command flips and summon
     core.summonedElemental.activeUntil = 0;
     assert.equal(elementalistCoreAvailability(context, skill).ready, true);
     const flip = elementalistCatalog.skillsByName.get(command);
-    assert.equal(elementalistCoreAvailability(context, flip).ready, false);
+    assert.equal(elementalistCoreAvailability(context, flip).ready, true);
     Object.assign(core.summonedElemental, { element, activeUntil: 10 });
     const occupied = elementalistCoreAvailability(context, skill);
     assert.equal(occupied.ready, false);
@@ -130,7 +130,6 @@ test('elemental glyphs require equipment while matching command flips and summon
     const summoned = runNative({
       lines: [['Fire'], ['Air'], ['Arcane']],
       selectedSkills: { Elite: name },
-      autoSummonElemental: false,
       rotation: [name, command]
     });
     assert.deepEqual(summoned.warnings, []);

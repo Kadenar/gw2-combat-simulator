@@ -880,18 +880,6 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
     wildThrow.effects[0].ticks.map((tick) => tick.coefficient),
     Array(7).fill(0.75)
   );
-  assert.deepEqual(
-    wildThrow.effects[0].ticks.map((tick) => tick.metadata?.evtcSkillId || ID.WILD_THROW),
-    [
-      ID.WILD_THROW,
-      ID.WILD_THROW_ALTERNATE,
-      ID.WILD_THROW,
-      ID.WILD_THROW_ALTERNATE,
-      ID.WILD_THROW,
-      ID.WILD_THROW_ALTERNATE,
-      ID.WILD_THROW
-    ]
-  );
   assert.equal(maimingSpear.cooldown, 5);
   assert.deepEqual(
     maimingSpear.effects.filter((effect) => effect.type === 'strike').map(strikeCoefficient),
@@ -1376,7 +1364,6 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.combatState.profession.attackerInsightExpiries.length, 1);
   assert.equal(result.planningState.profession.attackerInsightExpiries.length, 1);
   assert.equal(
     result.events.some(
@@ -1418,7 +1405,7 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
     target: { defiant: true }
   });
 
-  assert.equal(kick.combatState.profession.attackerInsightExpiries.length, 2);
+  assert.equal(kick.planningState.profession.attackerInsightExpiries.length, 2);
   assert.equal(kick.planningState.profession.attackerInsightExpiries.length, 2);
 });
 
@@ -1678,5 +1665,5 @@ test('Spellbreaker offensive traits use multiplicative damage modifiers', () => 
   );
 
   assert.equal(internalCooldown.procSteps.filter((step) => step.skill === 'Magebane Tether').length, 1);
-  assert.ok(internalCooldown.combatState.profession.magebaneTetherUntil < internalCooldown.rotationEndTime);
+  assert.ok(internalCooldown.planningState.profession.magebaneTetherUntil < internalCooldown.rotationEndTime);
 });

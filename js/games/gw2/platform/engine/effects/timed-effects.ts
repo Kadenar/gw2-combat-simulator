@@ -192,14 +192,7 @@ export function timedEffect<TContext extends TimedEffectContext, TCaptured exten
       return instance.id;
     },
     consume,
-    consumeAll(context: TContext, at: number): void {
-      for (const id of [...runtime(context).instances.keys()]) consume(context, id, at);
-    },
     cancel,
-    cancelKey(context: TContext, key: string): void {
-      for (const instance of runtime(context).instances.values())
-        if (instance.key === key) cancel(context, instance.id);
-    },
     cancelOwner(context: TContext, ownerId: string): void {
       for (const instance of runtime(context).instances.values())
         if (instance.ownerId === ownerId) cancel(context, instance.id);

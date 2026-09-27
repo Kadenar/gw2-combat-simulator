@@ -14,7 +14,7 @@ import { gw2EffectExpiresAt, projectCastRelativeEffectTimingMs } from '#gw2/plat
 import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
+import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import {
   guardianVirtueForSlot,
   reactToJusticeHitWithOptions
@@ -30,7 +30,6 @@ import { luminaryState } from '#gw2/professions/guardian/specializations/luminar
 import {
   countEffulgentHit,
   grantLuminaryAura,
-  luminaryCause,
   luminaryEffectTasks,
   luminaryImpactAt,
   startLuminaryEffects
@@ -121,7 +120,7 @@ function enterForge(runtime: Runtime, cast: RuntimeCast): void {
   armSkillFlip(runtime.profession.core.availableFlips, ID.EXIT_RADIANT_FORGE, runtime.time);
   runtime.schedule(EXIT, state.radiantForgeEndsAt, cast.id, undefined, -220);
   runtime.emit({
-    ...luminaryCause(runtime, cast),
+    ...guardianCastCause(runtime, cast),
     type: 'weapon_set',
     weaponSet: runtime.activeWeaponSet,
     weaponLine: cast.skill.name
@@ -132,7 +131,7 @@ function enterForge(runtime: Runtime, cast: RuntimeCast): void {
 /** Equip rewards use their real delayed boundary; future boons cannot pre-fill the current state or cooldowns. */
 function equipTraits(runtime: Runtime, data: unknown): void {
   const cast = data as RuntimeCast;
-  const cause = luminaryCause(runtime, cast);
+  const cause = guardianCastCause(runtime, cast);
   const state = luminaryState.from(runtime);
   if (hasTrait(runtime, TRAIT.RESPLENDENT_WEAPONRY)) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.resplendentWeaponry);
@@ -193,7 +192,7 @@ function hammerImpact(runtime: Runtime, data: unknown): void {
   if (!state.radiantJusticeArmed) return;
   state.radiantJusticeArmed = false;
   const cast = data as RuntimeCast;
-  const cause = luminaryCause(runtime, cast);
+  const cause = guardianCastCause(runtime, cast);
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.radiantJusticeImpact);
   const strike = requireEffect(profile, 'strike', 'Strike');
   const condition = requireEffect(profile, 'condition', 'Vulnerability');
@@ -354,7 +353,7 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
       const effect = requireEffect(profile, 'buff', 'radiant-armaments');
       if (effect) {
         emitGuardianBoon(runtime, {
-          ...luminaryCause(runtime, cast),
+          ...guardianCastCause(runtime, cast),
           kind: 'guardian-radiant-armaments',
           duration: effectNumber(profile, effect, 'duration'),
           stacks: 1,
@@ -382,8 +381,6 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
       state.radiantResolveArmed = false;
       runtime.schedule(BOON, impact, { cast, kind: 'regeneration', duration: 4, party: true });
     }
-
-    if (cast.skill.id === ID.RADIANT_BULWARK) state.radiantCourageShieldArmed = false;
   },
   onCastComplete(runtime, cast) {
     if (cast.cancelled) return;
@@ -406,7 +403,7 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
       }
 
       if (cast.skill.flipSkillId != null) armSkillFlip(flips, cast.skill.flipSkillId, runtime.time);
-      runtime.emit({ ...luminaryCause(runtime, cast), type: 'sigil_swap', weaponSet: runtime.activeWeaponSet });
+      runtime.emit({ ...guardianCastCause(runtime, cast), type: 'sigil_swap', weaponSet: runtime.activeWeaponSet });
       runtime.schedule(EQUIP, canonicalTime(runtime.time + 0.001), cast);
     } else if (cast.skill.radiantForgeSkill && cast.skill.flipParentId != null)
       consumeSkillFlip(runtime.profession.core.availableFlips, cast.skill.id);
@@ -443,7 +440,7 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
 
     if (virtue === 'resolve') state.radiantResolveArmed = true;
     if (virtue === 'courage') {
-      state.radiantCourageSwordArmed = state.radiantCourageShieldArmed = true;
+      state.radiantCourageSwordArmed = true;
       runtime.recordProc(
         'skill',
         'Empowered Sword',
@@ -487,7 +484,7 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
         party?: boolean;
       };
       emitGuardianBoon(runtime, {
-        ...luminaryCause(runtime, cast),
+        ...guardianCastCause(runtime, cast),
         priority: kind === 'guardian-radiant-courage-sword' ? -5 : 0,
         kind,
         duration,

@@ -7,7 +7,7 @@ import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 function projectionApp(
   profession,
@@ -47,7 +47,7 @@ function projectionApp(
 
 // The palette consumes projected deadlines while recharge storage remains in base seconds.
 test('a used 20-second skill displays 16 seconds under Alacrity', () => {
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'palette-recharge',
     name: 'Palette Recharge',
     catalog: createCanonicalCatalog({

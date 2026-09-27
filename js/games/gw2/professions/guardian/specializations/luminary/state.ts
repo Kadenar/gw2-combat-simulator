@@ -16,7 +16,6 @@ export interface GuardianLuminaryState {
   radiantJusticeArmed: boolean;
   radiantResolveArmed: boolean;
   radiantCourageSwordArmed: boolean;
-  radiantCourageShieldArmed: boolean;
   effulgentActiveUntil: number;
   effulgentStacks: number;
   effulgentActivationId: string | null;
@@ -41,7 +40,6 @@ export function createLuminaryState(): GuardianLuminaryState {
     radiantJusticeArmed: false,
     radiantResolveArmed: false,
     radiantCourageSwordArmed: false,
-    radiantCourageShieldArmed: false,
     // Accepted strikes accumulate only inside the current stance's detonation window.
     effulgentActiveUntil: 0,
     effulgentStacks: 0,
@@ -62,7 +60,6 @@ export const LUMINARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   radiantJusticeArmed: false,
   radiantResolveArmed: false,
   radiantCourageSwordArmed: false,
-  radiantCourageShieldArmed: false,
   effulgentActiveUntil: 0,
   effulgentStacks: 0
 } satisfies Partial<GuardianLuminaryState>);

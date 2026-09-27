@@ -20,6 +20,11 @@ export function observeGw2Runtime(options) {
       ...options.profession,
       initialize(context) {
         runtime = context;
+        if (options.config?.initialEndurance != null && options.profession.endurance) {
+          const maximum = options.profession.endurance.maximum(context);
+          context.endurance.spend(maximum - Math.min(maximum, Math.max(0, options.config.initialEndurance)));
+        }
+
         options.profession.initialize?.(context);
       }
     }

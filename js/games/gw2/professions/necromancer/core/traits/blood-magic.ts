@@ -49,7 +49,7 @@ function queueBloodMagicLifeSteal(
       sourceId: traitId,
       actorType: 'effect',
       skillWeapon: 'Unequipped',
-      noCrit: true,
+      canCrit: false,
       damageKind: 'life-steal',
       ...(icon ? { icon } : {}),
       ...(event.summonOwner ? { summonOwner: event.summonOwner } : {}),

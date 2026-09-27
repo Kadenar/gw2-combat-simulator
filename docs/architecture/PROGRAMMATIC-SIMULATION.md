@@ -316,19 +316,16 @@ The commonly useful result fields are:
 | `events`, `resolvedEvents`                  | Dispatched packets (including attempted misses/precasts) and committed combat reports       |
 | `warnings`                                  | Invalid or constrained rotation behavior                                                    |
 | `planningState`                             | Observed continuation at `atSeconds`: cooldowns, ammo, weapon set, and profession resources |
-| `combatState`                               | Detached profession state at the combat boundary; not a complete player snapshot            |
 | `randomness`                                | Actual resolution mode and seed                                                             |
 
-All boundary times and both state projections' `atSeconds` values use absolute timeline seconds. Planning continues
-through the requested horizon after target death; combat effects stop at `combatEndTime`. Both projections come from the
-same live state at their respective boundaries. Cooldown `readyAt` and `remaining` values retain milliseconds; ammo
-recharge timestamps retain seconds. The editor obtains rotation/insertion state through `rotationPlanningStateAt`,
-excluding observation tails when appending.
+All boundary times and `planningState.atSeconds` use absolute timeline seconds. Planning continues through the requested
+horizon after target death; combat effects stop at `combatEndTime`. Cooldown `readyAt` and `remaining` values retain
+milliseconds; ammo recharge timestamps retain seconds. The editor obtains rotation/insertion state through
+`rotationPlanningStateAt`, excluding observation tails when appending.
 
-The old `duration`, `endState`, top-level `profession`, and standalone `snapshot` result fields are removed. Use
-`combatState.profession` for resolved effects and `planningState.profession` for observed resources. Neither projection
-is a resumable checkpoint. Combat records may retain expiry timestamps; evaluate active effects at
-`combatState.atSeconds`, never at the later planning time.
+Use `resolvedEvents` for committed combat effects and `planningState.profession` for observed resources. The planning
+projection is detached from the live runtime and is not a resumable checkpoint. There is no separate combat-state
+snapshot.
 
 Use `skillBreakdownRows(result)` for a stable per-skill table instead of reimplementing aggregation over raw events.
 
@@ -362,8 +359,10 @@ randomness: { mode: "stochastic", seed: 42 }
 
 The default seed is `1`. The application saves the player's chosen seed in `assumptions.simulationSeed` and converts it
 to `config.randomness.seed`. Identical inputs and seed reproduce the same result within a simulator revision. One run in
-either mode represents one set of proc outcomes, not an average across seeds. Scripts that compare random outcomes
-should run multiple seeds and summarize their results, as done by
+either mode represents one set of proc outcomes, not an average across seeds. Combo RNG streams follow the caster,
+skill, activation, and finisher type; packets within a stream consume successive draws. Queue event numbers are used for
+attempt deduplication, not for selecting random streams, so unrelated boon emissions do not reroll combos. Scripts that
+compare random outcomes should run multiple seeds and summarize their results, as done by
 `js/games/gw2/app/simulation/random-distribution/random-distribution.ts`.
 
 ## Current API status

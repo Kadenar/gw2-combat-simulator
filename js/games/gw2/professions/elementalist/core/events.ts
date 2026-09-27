@@ -15,7 +15,6 @@ type Packet = Partial<SimulationEventBase> & {
   hitIndex?: number;
   totalHits?: number;
   canCrit?: boolean;
-  noCrit?: boolean;
   skillWeapon?: string;
   stacks?: number;
   condition?: string;

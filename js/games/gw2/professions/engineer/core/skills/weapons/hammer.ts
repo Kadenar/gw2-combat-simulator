@@ -29,7 +29,6 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.SHOCK_SHIELD]: {
     castTimeMs: 1200,
     cooldown: 18,
-    blockDuration: 2,
     effects: [
       {
         type: 'strike',

@@ -2,11 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 function fixtureProfession(initialize, catalog = createCanonicalCatalog()) {
-  return defineProfession({
+  return defineTestProfession({
     id: 'combo-fixture',
     name: 'Combo Fixture',
     catalog,
@@ -218,7 +218,7 @@ test('combo outcomes settle before their originating damage packet', () => {
 });
 
 test('combo boons use profession duration modifiers at the combo time with finisher ownership', () => {
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'combo-duration-fixture',
     name: 'Combo Duration Fixture',
     catalog: createCanonicalCatalog(),
@@ -731,4 +731,45 @@ test('canonically equal fields register before finishers by default', () => {
 
   assert.equal(result.events.filter((event) => event.type === 'combo').length, 1);
   assert.equal(result.events.find((event) => event.type === 'aura')?.aura, 'Frost Aura');
+});
+
+// Bookkeeping emissions must not reroll finishers; simultaneous packets still own separate attempts.
+test('combo rolls use source-local packet identities instead of global event numbers', () => {
+  const run = (mode, seed, noisy, activationId, chance = 0.5) => {
+    const profession = fixtureProfession((runtime) => {
+      runtime.emit({ ...boundaryField, fieldType: 'Ice' });
+      for (let index = 0; index < 24; index++) {
+        const at = 0.25 + Math.floor(index / 2) * 0.04;
+        if (noisy) runtime.emit({ ...boundaryOwner, type: 'buff', at, kind: 'protection', duration: 1, stacks: 1 });
+        runtime.emit({
+          ...boundaryHit,
+          at,
+          activationId,
+          hitIndex: 1,
+          comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Projectile', chance }]
+        });
+      }
+    });
+    const result = simulateGw2({
+      profession,
+      rotation: [{ type: 'wait', durationMs: 2000 }],
+      config: { ...boundaryConfig, randomness: { mode, seed } }
+    });
+    const attempts = result.events.filter((event) => event.type === 'combo_finisher');
+    assert.equal(new Set(attempts.map((event) => event.attemptId)).size, 24);
+    return result.resolvedEvents
+      .filter((event) => event.type === 'combo')
+      .map((event) => attempts.findIndex((attempt) => attempt.attemptId === event.attemptId));
+  };
+
+  for (const activationId of ['cast:fixture', undefined]) {
+    const baseline = run('deterministic', 7, false, activationId);
+    assert.ok(baseline.length > 0 && baseline.length < 24);
+    for (const mode of ['deterministic', 'stochastic']) {
+      assert.deepEqual(run(mode, 7, true, activationId), baseline);
+      assert.deepEqual(run(mode, 7, false, activationId), baseline);
+      assert.notDeepEqual(run(mode, 8, false, activationId), baseline);
+      assert.equal(run(mode, 7, true, activationId, 1).length, 24);
+    }
+  }
 });

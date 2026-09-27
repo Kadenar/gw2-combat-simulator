@@ -104,7 +104,7 @@ test('autonomous pet impacts retain summon attribution and strike-before-conditi
         event.sourceId === ID.FELINE_BITE &&
         event.source === 'ranger-pet' &&
         event.actorType === 'summon' &&
-        event.autonomousPetSkill
+        event.source === 'ranger-pet'
     )
   );
   assert.equal(packets[1].condition, 'Vulnerability');

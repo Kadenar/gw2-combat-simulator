@@ -268,8 +268,7 @@ export function createMirageActionController({
       duration = balanceProfileNumber(
         requireBalanceProfileFromContext(balanceProfile, PROFILE.mechanics),
         'durationMultiplier'
-      ),
-      grantCloneCloak = true
+      )
     }: MesmerMirageCloakOptions = {}
   ) => {
     if (config.specialization !== 'Mirage') return;
@@ -302,7 +301,7 @@ export function createMirageActionController({
     }
 
     reduceDuneCloakShatters(at, source);
-    if (grantCloneCloak && traits.has(TRAIT.INFINITE_HORIZON)) {
+    if (traits.has(TRAIT.INFINITE_HORIZON)) {
       mirageState.from(state).cloneAmbushUntil = canonicalTime(at + duration);
       executeCloneAmbushes(at, professionCoreState(state).clones);
     }

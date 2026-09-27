@@ -1,5 +1,5 @@
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Shared fixture only; its filename keeps Node from reporting this helper as an empty test.
 const catalog = createCanonicalCatalog({
@@ -32,7 +32,7 @@ const catalog = createCanonicalCatalog({
   weapons: ['Sword']
 });
 
-export const testProfession = defineProfession({
+export const testProfession = defineTestProfession({
   id: 'fixture',
   name: 'Fixture',
   catalog,

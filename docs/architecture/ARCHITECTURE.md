@@ -147,8 +147,7 @@ outcome and claim one ICD; no scheduling prediction exists.
 - Score and detailed modes share mechanics. Detailed mode retains steps, reports, APM, and optional diagnostics.
 - `planningState` captures resources, cooldowns, ammo, weapon set, and public profession state at the observation end.
   After target death, authored commands continue while hostile effects and hit-dependent grants are suppressed.
-- `combatState` freezes the profession projection at the combat boundary. Both observations are deeply detached; neither
-  is a checkpoint, and neither is merged into the other.
+- The planning observation is deeply detached and is not a checkpoint. Combat reports stop at `combatEndTime`.
 - Rotation duration follows accepted commands, reservations, and final input recovery. Rotation, tail, and absolute
   observation policies bound delayed work without recursively extending the rotation.
 - Cast/interrupt commitment and lifetime generations determine whether pending work survives cancellation. Committed

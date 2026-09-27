@@ -11,7 +11,6 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ELIXIR_OF_BLISS]: {
     castTimeMs: 360,
-    blightCost: 5,
     blightGain: 10,
     // Unmeasured elixir packets currently share cast completion as their impact.
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
@@ -23,7 +22,6 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 680,
     // Safe animation cancellation is independent of Blight consumption and projectile impact.
     interruptCommitMs: 440,
-    blightCost: 5,
     blightGain: 10,
     effects: impactEffects(
       // The launched projectile survives an animation cancel and lands on its measured impact frame.
@@ -40,7 +38,6 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
   },
   [ID.ELIXIR_OF_IGNORANCE]: {
     castTimeMs: 360,
-    blightCost: 5,
     blightGain: 10,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.8, hits: 1 },
@@ -51,7 +48,6 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 680,
     // Safe animation cancellation is independent of Blight consumption.
     interruptCommitMs: 400,
-    blightCost: 10,
     blightGain: 15,
     effects: impactEffects(
       // The committed projectile lands independently of the cancelable remaining animation.
@@ -76,7 +72,6 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
   },
   [ID.ELIXIR_OF_ANGUISH]: {
     castTimeMs: 680,
-    blightCost: 5,
     blightGain: 10,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 1, hits: 1 },
@@ -90,7 +85,6 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 680,
     // Safe animation cancellation is independent of Blight consumption.
     interruptCommitMs: 400,
-    blightCost: 5,
     blightGain: 10,
     effects: impactEffects(
       { atMs: 400, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },

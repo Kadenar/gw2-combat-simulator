@@ -419,7 +419,7 @@ export function createGw2CombatQuery({
             : baseChance;
         return {
           furyActive,
-          chance: event.canCrit === false || event.noCrit ? 0 : clamp(chance, 0, 1),
+          chance: event.canCrit === false ? 0 : clamp(chance, 0, 1),
           damage: Math.max(1, Number(event.summonCriticalDamage ?? 1.5))
         };
       }
@@ -482,7 +482,7 @@ export function createGw2CombatQuery({
       contributors.push(...sigilCritical.chanceContributors);
       damage += sigilCritical.damage;
       let chanceBeforeCap = chance;
-      if (event.canCrit === false || event.noCrit) chance = 0;
+      if (event.canCrit === false) chance = 0;
       // forceCrit (e.g. Wild Blow) overrides everything including canCrit=false.
       if (event.forceCrit) {
         chance = 1;

@@ -59,7 +59,7 @@ function queueNightmareWeapon(
         actorType: 'effect',
         skillId: ID.NIGHTMARE_WEAPON,
         skillWeapon: 'Unequipped',
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal',
         triggeredBy: event.skillName,
         // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.

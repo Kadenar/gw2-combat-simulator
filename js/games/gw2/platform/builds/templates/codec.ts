@@ -42,7 +42,6 @@ export interface DecodedGw2BuildTemplate {
   readonly professionCode: number;
   readonly specializations: readonly DecodedGw2BuildTemplateSpecialization[];
   readonly skillPaletteIds: readonly number[];
-  readonly professionData: readonly number[];
   readonly weaponTypeIds: readonly number[];
   readonly skillOverrides: readonly number[];
 }
@@ -106,7 +105,6 @@ export function decodeGw2BuildTemplate(chatCode: string): DecodedGw2BuildTemplat
     });
   });
   const skillPaletteIds = Array.from({ length: 10 }, (_, index) => uint16(view, 8 + index * 2));
-  const professionData = [...bytes.slice(28, FIXED_LENGTH)];
   let offset = FIXED_LENGTH;
   const weaponTypeIds: number[] = [];
   const skillOverrides: number[] = [];
@@ -142,7 +140,6 @@ export function decodeGw2BuildTemplate(chatCode: string): DecodedGw2BuildTemplat
     professionCode: bytes[1],
     specializations: Object.freeze(specializations),
     skillPaletteIds: Object.freeze(skillPaletteIds),
-    professionData: Object.freeze(professionData),
     weaponTypeIds: Object.freeze(weaponTypeIds),
     skillOverrides: Object.freeze(skillOverrides)
   });

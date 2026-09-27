@@ -285,7 +285,6 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
         coefficient: 0.1,
         hits: 1,
         canCrit: false,
-        noCrit: true,
         damageKind: 'life-steal'
       }
     ]
@@ -313,7 +312,6 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
         coefficient: 0.04,
         hits: 1,
         canCrit: false,
-        noCrit: true,
         damageKind: 'life-steal'
       }
     ]

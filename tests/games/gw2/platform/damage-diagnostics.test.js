@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
@@ -188,7 +188,7 @@ test('public diagnostics capture one execution and are suppressed in score outpu
     weapons: ['Axe'],
     weaponHands: { Axe: 'mh+oh' }
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'diagnostic-live',
     name: 'Diagnostic live',
     catalog,

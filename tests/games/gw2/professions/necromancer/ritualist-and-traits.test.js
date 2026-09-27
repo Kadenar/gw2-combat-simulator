@@ -435,7 +435,7 @@ test('Ritualist weapon spells prioritize players, include minions, and exclude s
   );
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.combatState.profession.activeSpirits.anguish, true);
+  assert.equal(result.planningState.profession.activeSpirits.anguish, true);
   assert.deepEqual(
     applications.map((event) => event.skillId),
     [ID.NIGHTMARE_WEAPON, ID.SPLINTER_WEAPON]
@@ -610,7 +610,9 @@ test('Blood Is Power and Plague Signet preserve transferred conditions', () => {
     selectedSkills: ['Blood Is Power', 'Plague Signet'],
     selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION]
   });
-  const transferred = result.resolvedEvents.filter((event) => event.transferredCondition);
+  const transferred = result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.fixedDuration === true
+  );
 
   assert.deepEqual(result.warnings, []);
   assert.equal(
@@ -634,7 +636,9 @@ test('Plague Sending treats Scourge F5 as entering shroud', () => {
     selectedSkills: ['Blood Is Power'],
     selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION, TRAIT.PLAGUE_SENDING]
   });
-  const transferred = result.resolvedEvents.filter((event) => event.transferredCondition);
+  const transferred = result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.fixedDuration === true
+  );
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(

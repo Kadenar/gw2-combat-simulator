@@ -25,7 +25,6 @@ export function prepareElementalistHitboxEvent(
     type: 'marker',
     name: `${String(preparedEvent.skillName || preparedEvent.name || 'Elementalist effect')} misses small hitbox`,
     cancelled: true,
-    detail: 'excluded by Elementalist target-hitbox rules',
-    elementalistHitboxExcluded: true
+    detail: 'excluded by Elementalist target-hitbox rules'
   };
 }

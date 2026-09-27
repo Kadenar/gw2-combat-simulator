@@ -66,7 +66,7 @@ export const virtuosoHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     'damage.resolved'(runtime, event, details) {
       const mechanics = mesmerMechanicsFor(runtime);
       const skill = mechanics.skillsById.get(event.skillId ?? '');
-      if ((!event.metadata?.blade && !skill?.blade) || event.noCrit || event.canCrit === false) return;
+      if ((!event.metadata?.blade && !skill?.blade) || event.canCrit === false) return;
       for (const [id, name, condition, proc] of [
         [TRAIT.DEADLY_BLADES, 'Deadly Blades', 'Vulnerability', 'mesmer.virtuoso.deadly-blades'],
         [TRAIT.JAGGED_MIND, 'Jagged Mind', 'Bleeding', 'mesmer.virtuoso.jagged-mind']

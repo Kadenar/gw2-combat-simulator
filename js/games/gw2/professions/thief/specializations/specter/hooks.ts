@@ -301,10 +301,8 @@ function larcenousTorment(runtime: ThiefRuntime, application: Gw2ResolverEvent):
           flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
           flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
           canCrit: false,
-          noCrit: true,
           damageKind: 'life-steal',
-          triggeredBy: application.skillName,
-          stackIndex: stack
+          triggeredBy: application.skillName
         })
       );
   if (!specterState.from(runtime).shadowShroudActive && stacks > 0)

@@ -42,7 +42,6 @@ type Modules = readonly [typeof core, typeof elite];
 type RuntimeState = NativeProfessionRuntimeState<Modules>;
 type NativeAuthoringAssertions = [
   Assert<Equal<Extract<keyof Gw2PlanningStateInput, 'schedulerState' | 'schedulerContext' | 'queue'>, never>>,
-  Assert<Equal<(typeof profession.specializationIds)[number], 'Elite'>>,
   Assert<Equal<RuntimeState['core']['coreValue'], number>>,
   Assert<Equal<ReturnType<ReturnType<typeof profession.runtimeFor>['createState']>, RuntimeState>>,
   Assert<Equal<RuntimeState['specialization']['kind'], 'Core' | 'Elite'>>,

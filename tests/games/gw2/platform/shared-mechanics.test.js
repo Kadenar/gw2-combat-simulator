@@ -78,14 +78,14 @@ test('replacement retires old pulses and recurrence stops at the requested obser
   });
   const { context, through, queue } = harness(sequence);
   sequence.start(context, { key: 'upkeep', at: 1, captured: { source: 'old' } });
-  sequence.start(context, { key: 'upkeep', at: 2, captured: { source: 'new' } });
+  const current = sequence.start(context, { key: 'upkeep', at: 2, captured: { source: 'new' } });
   through(5);
   assert.deepEqual(context.events, [
     [2, 'new'],
     [4, 'new']
   ]);
   assert.equal(queue.nextAt(), 6);
-  sequence.cancelKey(context, 'upkeep');
+  sequence.cancel(context, current);
   through(10);
   assert.equal(context.events.length, 2);
 });

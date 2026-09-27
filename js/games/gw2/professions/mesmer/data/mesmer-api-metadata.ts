@@ -11,7 +11,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Domination',
     elite: false,
     icon: 'https://render.guildwars2.com/file/4B61EA5997709A5DC1E46FF50CEDF2A13C1F0C3D/1012002.png',
-    background: 'https://render.guildwars2.com/file/2C436DDDC3244409EEBF470A0AE3ED7CED1F99C0/1012055.png',
     minorTraits: [
       {
         id: 685,
@@ -127,7 +126,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Dueling',
     elite: false,
     icon: 'https://render.guildwars2.com/file/43C5400906A104C60F30DFE0A145D1E767353573/1012003.png',
-    background: 'https://render.guildwars2.com/file/992D53319C5FCD4AE841C592DC2AE91D5906AECF/1012057.png',
     minorTraits: [
       {
         id: 706,
@@ -241,7 +239,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Chaos',
     elite: false,
     icon: 'https://render.guildwars2.com/file/7FD4DF076AFB31793EFA07220B35B427B3D406C3/1012000.png',
-    background: 'https://render.guildwars2.com/file/B20B7C6DDC30F72207D9BE4FB87C2FDCDC292E90/1012051.png',
     minorTraits: [
       {
         id: 666,
@@ -357,7 +354,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Inspiration',
     elite: false,
     icon: 'https://render.guildwars2.com/file/BCC2C316C4FC2823679E0FD062C5A87E96E460CC/1012004.png',
-    background: 'https://render.guildwars2.com/file/DC30B4FF5377E80F21F4E912E8D548B004C95042/1012059.png',
     minorTraits: [
       {
         id: 757,
@@ -471,7 +467,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Illusions',
     elite: false,
     icon: 'https://render.guildwars2.com/file/A6D57C63D9EFB3FE75C9DAF8CBE603D8F45A635F/1012005.png',
-    background: 'https://render.guildwars2.com/file/B00D98B31B13416811B8484FC146C49B1E055BAC/1012061.png',
     minorTraits: [
       {
         id: 734,
@@ -583,7 +578,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Chronomancer',
     elite: true,
     icon: 'https://render.guildwars2.com/file/D9C960059A69F4DB6604DAD6AF06D0F940E76754/1012001.png',
-    background: 'https://render.guildwars2.com/file/9D9F0DA395FDB21423981FAC2CABC850CF7E0A62/1012053.png',
     minorTraits: [
       {
         id: 2030,
@@ -702,7 +696,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Mirage',
     elite: true,
     icon: 'https://render.guildwars2.com/file/6403ECA8E6C1683E2C9D075A39C154ED3A7C04A1/1769891.png',
-    background: 'https://render.guildwars2.com/file/BB67F76B46052E6E291AFE75807AFC7DD33563E4/1769900.png',
     minorTraits: [
       {
         id: 2150,
@@ -820,7 +813,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Virtuoso',
     elite: true,
     icon: 'https://render.guildwars2.com/file/7B0F5E48320F35C0C6A2013ACF63F4C17B1105A5/2479303.png',
-    background: 'https://render.guildwars2.com/file/97632575F6E89EB62A0AC8AF1DE7DFB060312317/2479306.png',
     minorTraits: [
       {
         id: 2216,
@@ -936,7 +928,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Troubadour',
     elite: true,
     icon: 'https://render.guildwars2.com/file/0FDD99E8B7A7FB4B06186C0756E02C0515520F75/3679899.png',
-    background: 'https://render.guildwars2.com/file/A9AF4BB7BC18AB4871B7D69EBEDEB344CD59D3DE/3679908.png',
     minorTraits: [
       {
         id: 2386,

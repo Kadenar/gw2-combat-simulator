@@ -95,7 +95,6 @@ export interface StrikeEffect extends SkillEffectBase {
   readonly flatStrikeHealthThreshold?: number;
   readonly flatStrikeThresholdMultiplier?: number;
   readonly canCrit?: boolean;
-  readonly noCrit?: boolean;
   readonly forceCrit?: boolean;
   readonly damageKind?: string;
   readonly projectile?: boolean;
@@ -163,8 +162,6 @@ export interface Skill extends CatalogEntity {
   readonly description?: string;
   readonly icon?: string;
   readonly variantBadge?: string;
-  /** Stable API skill used to enrich an internal simulator-only projection. */
-  readonly apiSkillId?: SkillId;
   /** Stable selectable skill resolved from a build-template palette ID. */
   readonly loadoutSkillId?: SkillId;
   /**
@@ -180,11 +177,6 @@ export interface Skill extends CatalogEntity {
   readonly specialization?: string;
   readonly requiredMainHand?: string;
   readonly requiredOffHand?: string | false;
-  readonly requiresEmptyOffhand?: boolean;
-  readonly weaponSet?: {
-    readonly mainHand?: string;
-    readonly offHand?: string | false;
-  };
   /** Effective player cast duration; independent summons retain their base duration. */
   readonly castTimeMs?: number;
   /** Summon-only measured duration under Quickness. Player skills use castTimeMs. */

@@ -53,26 +53,6 @@ function compareHeapEntries<T extends QueuedEvent>(left: HeapEntry<T>, right: He
   );
 }
 
-/** Shares one ordering policy while allowing heap entries to retain inherited causal placement. */
-function compareEventPlacement(
-  left: QueuedEvent,
-  right: QueuedEvent,
-  leftOrder: number | null,
-  rightOrder: number | null
-): number {
-  const priority = Number(left.priority || 0) - Number(right.priority || 0);
-  if (priority) return priority;
-  return (leftOrder ?? Infinity) - (rightOrder ?? Infinity) || 0;
-}
-
-/** Sorts arrays by the queue policy; stable sorting preserves insertion order for ties. */
-export function compareQueuedEvents(left: QueuedEvent, right: QueuedEvent): number {
-  return (
-    timeKey(eventTimestamp(left)) - timeKey(eventTimestamp(right)) ||
-    compareEventPlacement(left, right, eventCausalOrder(left), eventCausalOrder(right))
-  );
-}
-
 /**
  * Stable min-heap for resolver event queues. Equal events retain insertion
  * order independently of any causal metadata already present on the event.

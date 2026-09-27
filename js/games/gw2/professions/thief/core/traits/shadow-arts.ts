@@ -33,7 +33,6 @@ function enqueueSiphon(
       ...(flatStrikeBase == null ? {} : { flatStrikeBase, flatStrikePowerCoeff: coefficient }),
 
       canCrit: false,
-      noCrit: true,
       damageKind: 'life-steal',
       triggeredBy: event.skillName
     })

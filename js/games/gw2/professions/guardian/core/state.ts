@@ -1,8 +1,6 @@
 import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
-import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 
 export interface GuardianCoreState {
@@ -32,9 +30,9 @@ export interface GuardianCoreState {
 
 // Create a complete Guardian core state with bounded resources and initialized
 // virtue, trait, symbol, and flip bookkeeping.
-export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCoreState {
+export function createGuardianCoreState(): GuardianCoreState {
   return {
-    endurance: boundedNumber(config.initialEndurance ?? 100, 100, 0, 100),
+    endurance: 100,
 
     enduranceUpdatedAt: 0,
     justiceActiveArmed: false,

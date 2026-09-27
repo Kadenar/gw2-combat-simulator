@@ -81,7 +81,7 @@ function passivePulse(runtime: NecromancerRuntime, data: unknown): void {
           skillWeapon: 'Unequipped',
           flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
           flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
-          noCrit: strike.noCrit === true,
+          canCrit: strike.canCrit !== false,
           damageKind: String(strike.damageKind || '')
         })
       );

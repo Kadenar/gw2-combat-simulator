@@ -109,11 +109,10 @@ test('attribute effects use explicit immutable conversion input pools', () => {
     },
     {
       kind: 'conversion',
-      source: 'Conversion With Addend',
+      source: 'Unrounded Conversion',
       from: 'Power',
       to: 'Condition Damage',
       multiplier: 0.05,
-      addend: 3,
       rounding: 'none',
       input: 'common'
     }
@@ -124,7 +123,7 @@ test('attribute effects use explicit immutable conversion input pools', () => {
     Vitality: 180,
     Ferocity: 112,
     Expertise: 100,
-    'Condition Damage': 53
+    'Condition Damage': 50
   });
   assert.deepEqual(commonStats, { Power: 1000, Vitality: 1000 });
   assert.deepEqual(effects[0], {

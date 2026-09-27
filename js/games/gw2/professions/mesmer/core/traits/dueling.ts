@@ -169,7 +169,6 @@ export function triggerMasterFencer(
     !context.traits.has(TRAIT.MASTER_FENCER) ||
     !isGw2PlayerActorEvent(event) ||
     !(Number(event.coefficient) > 0) ||
-    event.noCrit === true ||
     event.canCrit === false
   ) {
     return;

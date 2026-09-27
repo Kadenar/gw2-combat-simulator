@@ -4,7 +4,6 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 export interface MesmerMirageCloakOptions {
   readonly duration?: number;
-  readonly grantCloneCloak?: boolean;
 }
 
 export interface MesmerMirageController {

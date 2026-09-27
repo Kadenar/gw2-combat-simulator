@@ -108,7 +108,7 @@ export function applyChillOfDeath(context: NecromancerResolverContext, event: Ne
       name: 'Lesser Spinal Shivers',
       traitId: TRAIT.CHILL_OF_DEATH,
       coefficient: effectNumber(profile, strike, 'coefficient'),
-      noCrit: true
+      canCrit: false
     });
   // Without its strike, Chill has no resolved hit to follow and applies at the trigger instead.
   else if (chilled) queueChillOfDeathCondition(context, event, profile, chilled);

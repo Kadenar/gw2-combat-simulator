@@ -699,11 +699,10 @@ test('Fire Elemental resumes autonomous attacks after Flame Burst recovery', () 
   const result = runElementalist({
     config: {
       specialization: 'Core',
-      autoSummonElemental: false,
       selectedSkills: { Elite: 'Glyph of Elementals' },
       boons: { quickness: false }
     },
-    rotation: ['__combat_start', 'Glyph of Elementals', { type: 'wait', durationMs: 7000 }]
+    rotation: ['Glyph of Elementals', '__combat_start', { type: 'wait', durationMs: 7000 }]
   });
   const elementalActions = result.events.filter((event) => event.type === 'action' && event.actorType === 'summon');
   const flameBurst = result.events.find((event) => event.type === 'damage' && event.skillName === 'Flame Burst');
@@ -738,13 +737,12 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
     config: {
       specialization: 'Core',
       startAttunement: 'Air',
-      autoSummonElemental: false,
       selectedSkills: { Elite: 'Glyph of Elementals' },
       boons: { quickness: false, alacrity: false }
     },
     rotation: [
-      '__combat_start',
       'Glyph of Elementals',
+      '__combat_start',
       { type: 'wait', durationMs: 1000 },
       'Flame Barrage',
       'Flame Barrage',
@@ -767,7 +765,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   assert.ok(
     elementalActions
       .filter((event) => event.skillName === 'Flame Barrage')
-      .every((event) => event.playerCommandedElementalSkill === true && event.autonomousElementalSkill === false)
+      .every((event) => event.actorType === 'summon')
   );
 
   const firstBarrageDamage = result.events.filter(
@@ -896,8 +894,12 @@ test('combat start preserves an elemental command already in progress', () => {
       const opener = actions.find((event) => event.skillName === command);
       assert.equal(opener.endsAt, opener.fullEndsAt);
       assert.notEqual(opener.interrupted, true);
-      assert.ok(actions.some((event) => event.autonomousElementalSkill));
-      assert.ok(actions.filter((event) => event.autonomousElementalSkill).every((event) => event.at >= opener.endsAt));
+      assert.ok(actions.some((event) => !['Flame Barrage', 'Stomp'].includes(event.skillName)));
+      assert.ok(
+        actions
+          .filter((event) => !['Flame Barrage', 'Stomp'].includes(event.skillName))
+          .every((event) => event.at >= opener.endsAt)
+      );
       assert.ok(result.events.some((event) => event.type === 'damage' && event.activationId === opener.activationId));
     }
   }

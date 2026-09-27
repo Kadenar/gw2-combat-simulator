@@ -17,7 +17,6 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  NECROMANCER_CORRUPTION_PROFILE_IDS,
   NECROMANCER_MINION_PROFILE_BY_SKILL_ID
 } from '#gw2/professions/necromancer/core/profiles.js';
 import {
@@ -374,11 +373,7 @@ const minionCommandTooltip: DescribeSimulationTooltip = skillTooltip(
 );
 
 const corruptionTooltip: DescribeSimulationTooltip = skillTooltip(
-  'Applies the listed target effects and self-conditions. Master of Corruption adds its listed self-condition. Expertise does not extend self-conditions; they can be transferred to the target.',
-  (balanceContext, entity) => {
-    const profileId = NECROMANCER_CORRUPTION_PROFILE_IDS[entity.id];
-    return profileId ? simulationEffectFacts(tooltipProfile(balanceContext, profileId).effects).facts : [];
-  }
+  'Applies the listed target effects and self-conditions. Master of Corruption adds its listed self-condition. Expertise does not extend self-conditions; they can be transferred to the target.'
 );
 
 const darkPactTooltip: DescribeSimulationTooltip = skillTooltip(
@@ -663,15 +658,16 @@ export const necromancerTooltips: ProfessionTooltips = {
         profileFact(balanceContext, id, 'rechargeMultiplier', 'Corruption recharge reduction', (value) =>
           tooltipPercent(1 - value)
         ),
-        ...Object.entries(NECROMANCER_CORRUPTION_PROFILE_IDS).flatMap(
-          ([skillId, profileId]) =>
-            simulationEffectFacts(
-              tooltipProfile(balanceContext, profileId).effects?.filter(
-                (effect) => effect.requiredTrait === TRAIT.MASTER_OF_CORRUPTION
-              ),
-              balanceContext.catalog.skillsById.get(Number(skillId))!.name
-            ).facts
-        )
+        // Trait facts read the same skill-owned extras used by corruption completion.
+        ...[...balanceContext.catalog.skillsById.values()]
+          .filter((skill) => skill.categories?.includes('Corruption'))
+          .flatMap(
+            (skill) =>
+              simulationEffectFacts(
+                skill.effects?.filter((effect) => effect.requiredTrait === TRAIT.MASTER_OF_CORRUPTION),
+                skill.name
+              ).facts
+          )
       ]
     ),
     [TRAIT.PATH_OF_CORRUPTION]: outsideScopeTooltip,

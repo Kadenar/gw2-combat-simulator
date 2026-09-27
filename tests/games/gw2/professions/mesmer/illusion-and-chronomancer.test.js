@@ -1119,12 +1119,7 @@ test('Mimic resets the next utility skill within its ten-second window', () => {
   assert.equal(result.steps[0].end, 640);
   assert.equal(result.steps[1].start, 640);
   assert.equal(result.steps[2].start, 1040);
-  assert.ok(
-    result.events.some(
-      (event) =>
-        event.type === 'proc' && event.source === 'Mimic' && event.targetSkillName === 'Tale of the Tortured Mastermind'
-    )
-  );
+  assert.ok(result.events.some((event) => event.type === 'proc' && event.source === 'Mimic'));
 });
 
 test('phantasms and Chronophantasma repeats use per-entity packet cadences', () => {

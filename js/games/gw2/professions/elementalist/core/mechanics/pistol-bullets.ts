@@ -115,7 +115,7 @@ export function applyPistolState(context: ElementalistRuntime, cast: RuntimeCast
         skillName: skill.name,
         skillId: skill.id,
         coefficient: 0,
-        noCrit: true,
+        canCrit: false,
         activationId: `${cast.id}:boulder-finisher`,
         comboFinishers: [
           {

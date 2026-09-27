@@ -3,7 +3,7 @@ import test from 'node:test';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { targetConditionActive, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
@@ -15,7 +15,7 @@ test('samples and strikes see cooldown resets, snapshots, and swaps only after e
   for (const output of ['detailed', 'score']) {
     for (const reset of [{ type: 'fixture.reset' }, { type: 'fixture.rewind' }]) {
       const seen = [];
-      const profession = defineProfession({
+      const profession = defineTestProfession({
         id: 'timeline-resolution',
         name: 'Timeline resolution',
         hooks: {
@@ -231,7 +231,7 @@ test('non-damaging conditions preserve other skills modifiers, expiry, and repor
     const strikes = [];
     const bleeding = new Map();
     const applied = [];
-    const profession = defineProfession({
+    const profession = defineTestProfession({
       id: 'condition-state-probe',
       name: 'Condition state probe',
       modifiers: {
@@ -262,7 +262,7 @@ test('non-damaging conditions preserve other skills modifiers, expiry, and repor
           actorType: 'player',
           coefficient: 1,
           weaponStrength: 1000,
-          noCrit: true
+          canCrit: false
         }))
       ],
       {

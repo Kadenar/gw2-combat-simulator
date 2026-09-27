@@ -132,7 +132,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
           atMs,
           coefficient: 0,
           flatDamage: 158,
-          noCrit: true
+          canCrit: false
         }))
       },
       {

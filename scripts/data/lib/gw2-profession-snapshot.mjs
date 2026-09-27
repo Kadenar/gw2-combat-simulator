@@ -81,7 +81,6 @@ export function buildSpecializationSnapshots(specializationData, traitData) {
       name: specialization.name,
       elite: Boolean(specialization.elite),
       icon: specialization.icon || '',
-      background: specialization.background || '',
       minorTraits: specialization.minor_traits
         .map((id) => traitsById.get(id))
         .filter(Boolean)

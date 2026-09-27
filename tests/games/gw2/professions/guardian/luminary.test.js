@@ -1170,7 +1170,7 @@ test('off-target Luminary precasts retain setup without damaging the target', ()
     4
   );
   assert.equal(result.planningState.profession.radiantWeapon, 'hammer');
-  assert.ok(result.combatState.profession.lightAuraUntil > 0);
+  assert.ok(result.planningState.profession.lightAuraUntil > 0);
 });
 
 test('Luminary hidden actions restore supplied opening-state durations', () => {
@@ -1246,11 +1246,11 @@ test('Luminary Light Aura follows resolved combos instead of hardcoded leap cast
     bound.resolvedEvents.find((event) => event.name === 'Sovereign of Light').triggeredBy,
     'Piercing Stance'
   );
-  assert.equal(dazzlingUnbound.combatState.profession.lightAuraUntil, 0);
+  assert.equal(dazzlingUnbound.planningState.profession.lightAuraUntil, 0);
   // Daring's field remains available to a subsequent finisher, while its own leap needs another field.
   assert.equal(combo(daring, 'Daring Advance'), undefined);
   assert.equal(combo(daring, 'Leap of Faith').fieldSourceId, GUARDIAN_SKILL_IDS.DARING_ADVANCE);
-  assert.ok(dazzlingBound.combatState.profession.lightAuraUntil > 0);
+  assert.ok(dazzlingBound.planningState.profession.lightAuraUntil > 0);
 });
 
 test('Dazzling Hammer combos at the Symbol of Resolution expiry boundary', () => {
@@ -1297,7 +1297,7 @@ test('Sovereign of Light ignores a core leap that refreshes Light Aura', () => {
     result.resolvedEvents.some((event) => event.name === 'Sovereign of Light'),
     false
   );
-  assert.ok(result.combatState.profession.lightAuraUntil > 0);
+  assert.ok(result.planningState.profession.lightAuraUntil > 0);
 });
 
 test('Sovereign of Light consumes combo and trait-granted light auras', () => {
@@ -1356,11 +1356,11 @@ test('Sovereign of Light consumes combo and trait-granted light auras', () => {
   assert.ok(justice.events.some((event) => event.type === 'blind' && event.skillName === 'Justice is Blind'));
   assert.equal(justice.resolvedEvents.filter((event) => event.name === 'Sovereign of Light').length, 1);
   // Activating Radiant Justice disables its passive counter until recharge completes.
-  assert.equal(activationJustice.combatState.profession.justiceHitCount, 0);
+  assert.equal(activationJustice.planningState.profession.justiceHitCount, 0);
   const justiceSovereign = justice.resolvedEvents.find((event) => event.name === 'Sovereign of Light');
   const clawSovereign = justiceWithClaw.resolvedEvents.find((event) => event.name === 'Sovereign of Light');
 
-  assert.equal(sovereignJustice.combatState.profession.justiceHitCount, 2);
+  assert.equal(sovereignJustice.planningState.profession.justiceHitCount, 2);
   assert.deepEqual(
     {
       actorType: clawSovereign.actorType,

@@ -99,15 +99,12 @@ function orderedHooks(value: unknown, hookName: string): OrderedHook[] {
 }
 
 /**
- * Reduces normalized hooks into one callable function with semantics tailored
- * to the hook family: availability results fold, modifiers chain their return
- * values, and ordinary hooks simply run in order.
+ * Chains modifier values in order and retains the last defined state projection.
  */
 function composeHooks(value: unknown, hookName: string, fallback: ComposableHook): ComposableHook {
   const hooks = orderedHooks(value, hookName);
   if (!hooks.length) return fallback;
-  // Recharge commitment also chains Core and elite contributions, but is invoked only for accepted casts.
-  // Preparers and modifiers preserve the current value when a hook returns undefined.
+  // Modifiers preserve the current value when a hook returns undefined.
   if (hookName.startsWith('modify')) {
     const composed = (context: UnvalidatedFields, initialValue: unknown) =>
       hooks.reduce((chainedValue: unknown, hook) => {
@@ -241,16 +238,7 @@ export function defineProfession<TProfessionState extends object, TBuild extends
     catalog: definition.catalog ?? createCanonicalCatalog(),
     createState: (config: Readonly<ProfessionConfig>) => resources.createState?.(config) ?? {},
     resources: Object.freeze({ ...resourcePolicies(resources), endurance: resources.endurance ?? null }),
-    ...composedHooks,
-    // Sparse standalone professions use the same runtime hooks as native family modules.
-    runtimeFor() {
-      return {
-        ...profession,
-        resources: resourcePolicies(resources),
-        endurance: resources.endurance,
-        ...definition.hooks
-      };
-    }
+    ...composedHooks
   };
   return Object.freeze(profession) as unknown as Readonly<NormalizedProfessionContract<TProfessionState>>;
 }

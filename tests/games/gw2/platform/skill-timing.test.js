@@ -1,7 +1,7 @@
 ﻿import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { strikeTimeline, conditionTimeline, impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { castCompleted, castWasInterrupted } from '#gw2/platform/skills/timing.js';
@@ -35,7 +35,7 @@ test('shared impacts schedule ordered effects with local attribution and timing 
       }
     ]
   });
-  const profession = defineProfession({ id: 'impacts', name: 'Impacts', catalog });
+  const profession = defineTestProfession({ id: 'impacts', name: 'Impacts', catalog });
   const result = simulateGw2({ profession, rotation: ['Impact'] });
   const packets = result.events.filter((event) => ['damage', 'blind', 'buff'].includes(event.type));
   assert.deepEqual(
@@ -78,7 +78,7 @@ test('shared timeline defaults preserve packet indices and same-time scheduling 
       }
     ]
   });
-  const profession = defineProfession({ id: 'pulses', name: 'Pulses', catalog });
+  const profession = defineTestProfession({ id: 'pulses', name: 'Pulses', catalog });
   const result = simulateGw2({ profession, rotation: ['Pulses'] });
   const packets = result.events.filter((event) => ['damage', 'condition', 'buff'].includes(event.type));
   assert.deepEqual(
@@ -152,7 +152,7 @@ test('declarative packets retain coefficients, shared timestamps, and applicatio
       }
     ]
   });
-  const profession = defineProfession({ id: 'packets', name: 'Packets', catalog });
+  const profession = defineTestProfession({ id: 'packets', name: 'Packets', catalog });
   const result = simulateGw2({ profession, rotation: ['Packets'] });
   assert.deepEqual(
     result.events.filter((e) => e.type === 'damage').map((e) => [e.at, e.coefficient]),
@@ -222,7 +222,7 @@ test('runtime variants scale cast-bound launch timing while fixed pulse spacing 
     ]
   });
   for (const multiplier of [1, 2]) {
-    const profession = defineProfession({
+    const profession = defineTestProfession({
       id: 'pulses',
       name: 'Pulses',
       catalog,

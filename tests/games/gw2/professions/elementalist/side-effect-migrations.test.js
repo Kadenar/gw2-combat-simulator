@@ -42,7 +42,6 @@ test('Elementalist endurance declarations retain patched amounts and committed-c
           primaryWeapon: 'Dagger',
           selectedTraitIds: [],
           initialEndurance: initial,
-          autoSummonElemental: false,
           selectedSkills: [skillId === ID.AQUATIC_STANCE ? 'Aquatic Stance' : "Hare's Agility"]
         },
         rotation: [
@@ -78,7 +77,6 @@ function fox({ might = 0, command = {}, profile = {}, skill = {}, timeline = [] 
       evokerElement: 'Fire',
       selectedTraitIds: [],
       selectedSkills: ["Fox's Fury"],
-      autoSummonElemental: false,
       boons: { might }
     },
     rotation: [

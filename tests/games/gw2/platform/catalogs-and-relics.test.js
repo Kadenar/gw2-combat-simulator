@@ -2,7 +2,7 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import {
@@ -172,7 +172,7 @@ test('summon-owned cooldowns use received Alacrity until it expires', () => {
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'summon-alacrity-fixture',
     name: 'Summon Alacrity Fixture',
     catalog
@@ -269,7 +269,7 @@ test('target-health coefficient modifiers are shared and resolve per hit', () =>
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'threshold-fixture',
     name: 'Threshold Fixture',
     catalog
@@ -330,7 +330,7 @@ test('shared relic behavior resolves triggering skills by stable id', () => {
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'stable-id-fixture',
     name: 'Stable ID Fixture',
     catalog
@@ -600,7 +600,7 @@ test('Relic of the Brawler grants four seconds of strike damage with a strict ei
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'brawler-fixture',
     name: 'Brawler Fixture',
     catalog
@@ -664,7 +664,7 @@ test('Relic of Mistburn grants one Might for eight seconds and applies its criti
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'mistburn-fixture',
     name: 'Mistburn Fixture',
     catalog
@@ -704,7 +704,7 @@ test('Relic of Mistburn grants one Might for eight seconds and applies its criti
 
 test('Mistburn also grants once per eligible resolver-created player Might application', () => {
   // A derived boon has no scheduler counterpart; both paths must enforce the same strict ICD.
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'mistburn-resolved-fixture',
     name: 'Mistburn Resolved Fixture',
     catalog: createCanonicalCatalog(),
@@ -835,7 +835,7 @@ test('Relic of Bloodstone records three Volatility stacks before the fourth blas
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'bloodstone-fixture',
     name: 'Bloodstone Fixture',
     catalog
@@ -976,7 +976,7 @@ test('Relic of the Shackles strikes five seconds after immobilize with a strict 
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'shackles-fixture',
     name: 'Shackles Fixture',
     catalog

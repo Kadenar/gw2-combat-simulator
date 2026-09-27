@@ -209,13 +209,22 @@ test('profession catalog binding preserves authored admission, specialization se
     assembly.catalog.skills.map(({ id }) => id),
     [2, 1, 3, 4, 5]
   );
-  assert.equal(assembly.skillOwners.get(2), 'Elite');
+  assert.equal(
+    new Map(
+      [...assembly.fragments].flatMap(([owner, fragment]) => fragment.skills.map((skill) => [skill.id, owner]))
+    ).get(2),
+    'Elite'
+  );
 });
 
 test('module-first assembly derives application and active runtime catalogs', () => {
   const modules = [coreModule(), eliteModule()];
   const catalog = assembleNativeApplicationCatalog(modules);
-  const skillOwners = getNativeCatalogAssembly(modules, undefined).skillOwners;
+  const skillOwners = new Map(
+    [...getNativeCatalogAssembly(modules, undefined).fragments].flatMap(([owner, fragment]) =>
+      fragment.skills.map((skill) => [skill.id, owner])
+    )
+  );
   const family = defineNativeProfession({
     id: 'fixture',
     name: 'Fixture',
@@ -236,7 +245,10 @@ test('module-first assembly derives application and active runtime catalogs', ()
       .sort(),
     [1, 2, 3]
   );
-  assert.deepEqual(family.specializationIds, ['Elite']);
+  assert.deepEqual(
+    family.nativeDefinition.modules.slice(1).map((module) => module.id),
+    ['Elite']
+  );
 });
 
 test('module-first assembly rejects duplicate and incomplete contributions', () => {
@@ -302,7 +314,7 @@ test('resolved critical-hit helper shares sampled outcomes and strict ICDs acros
   const reaction = onResolvedCriticalHit({
     id: 'fixture.critical',
     chanceOnCriticalHit: 0.5,
-    sourceIds: [7],
+    when: (_context, event) => event.sourceId === 7,
     internalCooldown: {
       duration: 1,
       readyAt: () => state.readyAt,

@@ -165,16 +165,15 @@ export function composeModuleCatalog(modules: readonly NamedModule<object>[]): R
 }
 
 function hookValues<
-  TContainer extends 'modifiers',
   TName extends Exclude<
-    keyof NonNullable<ProfessionModuleDefinition[TContainer]>,
-    'modifierRules' | 'compileModifierRules' | 'taskHandlers' | 'skillMechanicHandlers'
+    keyof NonNullable<ProfessionModuleDefinition['modifiers']>,
+    'modifierRules' | 'compileModifierRules'
   > &
     string
->(modules: readonly NamedModule<object>[], container: TContainer, name: TName): ProfessionHook[] {
+>(modules: readonly NamedModule<object>[], name: TName): ProfessionHook[] {
   return modules.flatMap((entry) => {
-    const source = entry.module[container] as
-      Pick<NonNullable<ProfessionModuleDefinition[TContainer]>, TName> | undefined;
+    const source = entry.module.modifiers as
+      Pick<NonNullable<ProfessionModuleDefinition['modifiers']>, TName> | undefined;
     const value = source?.[name];
     return (value == null ? [] : Array.isArray(value) ? value : [value]) as ProfessionHook[];
   });
@@ -182,20 +181,15 @@ function hookValues<
 
 /** Retains only the requested hook slots; runtime normalization still validates each contributed handler. */
 export function composeHookContainer<
-  TContainer extends 'modifiers',
   TName extends Exclude<
-    keyof NonNullable<ProfessionModuleDefinition[TContainer]>,
-    'modifierRules' | 'compileModifierRules' | 'taskHandlers' | 'skillMechanicHandlers'
+    keyof NonNullable<ProfessionModuleDefinition['modifiers']>,
+    'modifierRules' | 'compileModifierRules'
   > &
     string
->(
-  modules: readonly NamedModule<object>[],
-  container: TContainer,
-  names: readonly TName[]
-): Partial<Record<TName, ProfessionHook[]>> {
+>(modules: readonly NamedModule<object>[], names: readonly TName[]): Partial<Record<TName, ProfessionHook[]>> {
   return Object.fromEntries(
     names.flatMap((name) => {
-      const values = hookValues(modules, container, name);
+      const values = hookValues(modules, name);
       return values.length ? [[name, values]] : [];
     })
   ) as Partial<Record<TName, ProfessionHook[]>>;

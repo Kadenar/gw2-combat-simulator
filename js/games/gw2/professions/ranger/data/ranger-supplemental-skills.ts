@@ -30,8 +30,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
     icon: 'https://wiki.guildwars2.com/images/d/d4/Exploding_Spores.png',
     type: 'Profession',
     specialization: 'Untamed',
-    simulatorExcluded: true,
-    simulatorExcludedReason: 'Created by unleashed ambush skills.'
+    simulatorExcluded: true
   },
   {
     id: 31796,
@@ -189,7 +188,6 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
     icon: 'https://render.guildwars2.com/file/BE5F0405E79D13C89F0D9EF13B1B11479D0C3805/3679993.png',
     type: 'Profession',
     specialization: 'Galeshot',
-    simulatorExcluded: true,
-    simulatorExcludedReason: 'Triggered by the Wuthering Wind trait.'
+    simulatorExcluded: true
   }
 ]);

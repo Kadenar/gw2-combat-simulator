@@ -36,7 +36,7 @@ export function decideCriticalSigils(
     event.cancelled === true ||
     missesTarget(event) ||
     !(Number(event.coefficient) > 0) ||
-    event.noCrit === true ||
+    event.canCrit === false ||
     Number.isFinite(event.flatDamage) ||
     Number.isFinite(event.flatStrikeBase) ||
     Number.isFinite(event.flatStrikePowerCoeff) ||

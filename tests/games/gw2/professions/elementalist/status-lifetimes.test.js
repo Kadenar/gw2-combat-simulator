@@ -19,8 +19,7 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professio
 const config = {
   specialization: 'Core',
   primaryWeapon: 'Scepter',
-  startAttunement: 'Earth',
-  autoSummonElemental: false
+  startAttunement: 'Earth'
 };
 const glyphFor = (element) =>
   elementalistCatalog.skillsByName.get(element === 'Fire' ? 'Glyph of Elementals' : 'Glyph of Elementals (Earth)');
@@ -66,7 +65,7 @@ test('elemental commands and Lightning Jolt retain the final live microsecond wi
     const glyph = glyphFor(element),
       command = commandFor(element);
     const result = runElementalist({
-      config: { ...config, selectedSkills: { Elite: glyph.name } },
+      config: { ...config },
       rotation: [{ type: 'wait', durationMs: 121000 }],
       timeline: [
         { at: 0.301, run: (r) => complete(r, glyph, completeElementalistGlyphCast) },
@@ -76,12 +75,12 @@ test('elemental commands and Lightning Jolt retain the final live microsecond wi
           run: (r) => {
             const elemental = r.profession.core.summonedElemental;
             elemental.pendingLightningJolt = null;
-            r.config.autoSummonElemental = false;
+            r.config.selectedSkills = {};
             assert.equal(elementalistCoreAvailability(r, command).ready, at < 120.301);
+            r.config.selectedSkills = { Elite: glyph.name };
             assert.equal(elementalistCoreAvailability(r, glyph).ready, at >= 120.301);
             armElementalistElementalLightningJolt(r, { effectiveEnd: at }, 1, 0.5);
             assert.equal(elemental.pendingLightningJolt !== null, at < 120.301);
-            r.config.autoSummonElemental = true;
             ensureElementalistElemental(r);
             assert.equal(r.profession.core.summonedElemental.summonGeneration, at < 120.301 ? 1 : 2);
           }
@@ -96,7 +95,7 @@ test('elemental teardown clears the command and starts the glyph recharge once',
   for (const element of ['Fire', 'Earth']) {
     const glyph = glyphFor(element);
     const result = runElementalist({
-      config,
+      config: { ...config },
       rotation: [{ type: 'wait', durationMs: 122000 }],
       timeline: [{ at: 0.301, run: (r) => complete(r, glyph, completeElementalistGlyphCast) }]
     });
@@ -128,7 +127,7 @@ test('replacing an elemental interrupts its action, removes its flip, and reject
     ]
   });
   const action = result.events.find((e) => e.type === 'action' && e.actorType === 'summon');
-  assert.equal(action.interruptedAt, 0.5);
+  assert.equal(action.endsAt, 0.5);
   assert.equal(action.endsAt, 0.5);
   assert.ok(
     !result.resolvedEvents.some((e) => e.type === 'damage' && e.activationId === action.activationId && e.at >= 0.5)
@@ -164,7 +163,7 @@ test('elemental boon candidacy includes the final impact timestamp without an ep
 test('Hurl consumes the barrier before expiry while its released projectiles finish afterward', () => {
   const result = runElementalist({
     profession: elementalistProfession,
-    config: { specialization: 'Core', primaryWeapon: 'Scepter', startAttunement: 'Earth', autoSummonElemental: false },
+    config: { specialization: 'Core', primaryWeapon: 'Scepter', startAttunement: 'Earth' },
     rotation: [ID.ROCK_BARRIER, { type: 'wait', durationMs: 29999 }, ID.HURL],
     observationPolicy: { kind: 'tail', durationMs: 2000 }
   });
@@ -195,7 +194,6 @@ test('the live queue resolves a final elemental command hit before same-time tea
       config: {
         patchId: 'short-elemental',
         specialization: 'Core',
-        autoSummonElemental: false,
         selectedSkills: { Elite: 'Glyph of Elementals' },
         boons: { quickness: false }
       },
@@ -216,7 +214,7 @@ test('elemental command preemption resumes exactly at command recovery without s
   for (const element of ['Fire', 'Earth']) {
     let interrupted, recovery;
     const result = runElementalist({
-      config,
+      config: { ...config },
       rotation: ['__combat_start', { type: 'wait', durationMs: 6000 }],
       timeline: [
         { at: 0.301, run: (r) => complete(r, glyphFor(element), completeElementalistGlyphCast) },
@@ -230,13 +228,15 @@ test('elemental command preemption resumes exactly at command recovery without s
         }
       ]
     });
-    assert.equal(interrupted.interruptedAt, 0.6);
+    assert.equal(interrupted.endsAt, 0.6);
     assert.ok(
       !result.resolvedEvents.some(
         (e) => e.type === 'damage' && e.activationId === interrupted.activationId && e.at > 0.6
       )
     );
-    const resumed = result.events.find((e) => e.type === 'action' && e.autonomousElementalSkill && e.at > 0.6);
+    const resumed = result.events.find(
+      (e) => e.type === 'action' && !['Flame Barrage', 'Stomp'].includes(e.skillName) && e.at > 0.6
+    );
     assert.equal(resumed.at, recovery);
   }
 });

@@ -45,14 +45,6 @@ export const NECROMANCER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   spitefulSpirit: TRAIT.SPITEFUL_SPIRIT
 });
 
-/** Corruption handlers and presentation resolve the same patchable self-condition profiles. */
-export const NECROMANCER_CORRUPTION_PROFILE_IDS: Readonly<Record<string, string>> = Object.freeze({
-  [ID.CONSUME_CONDITIONS]: 'necromancer.core.consume-conditions-corruption',
-  [ID.BLOOD_IS_POWER]: 'necromancer.core.blood-is-power-corruption',
-  [ID.CORROSIVE_POISON_CLOUD]: 'necromancer.core.corrosive-poison-cloud-corruption',
-  [ID.PLAGUELANDS]: 'necromancer.core.plaguelands-corruption'
-});
-
 // Stamp the shared summon profile shape onto each minion's declarative balance fields and effects.
 const minion = (
   id: string,
@@ -83,91 +75,6 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
   variant(NECROMANCER_CORE_BALANCE_PROFILE_IDS.addleImmobilize, ID.ADDLE, 'Addle Immobilized', {
     effects: [{ type: 'condition', name: 'Immobilized', condition: 'Immobilized', stacks: 1, duration: 1.5 }]
   }),
-  variant(
-    NECROMANCER_CORRUPTION_PROFILE_IDS[ID.CONSUME_CONDITIONS],
-    ID.CONSUME_CONDITIONS,
-    'Consume Conditions — Corruption',
-    {
-      effects: [
-        {
-          name: 'Vulnerability',
-          type: 'condition',
-          condition: 'Vulnerability',
-          stacks: 5,
-          duration: 4,
-          target: 'self'
-        },
-        {
-          name: 'Master of Corruption Vulnerability',
-          type: 'condition',
-          condition: 'Vulnerability',
-          stacks: 5,
-          duration: 4,
-          target: 'self',
-          requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
-          packetLabel: 'additional with Master of Corruption'
-        }
-      ]
-    }
-  ),
-  variant(NECROMANCER_CORRUPTION_PROFILE_IDS[ID.BLOOD_IS_POWER], ID.BLOOD_IS_POWER, 'Blood Is Power — Corruption', {
-    effects: [
-      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10, target: 'self' },
-      {
-        name: 'Torment',
-        type: 'condition',
-        condition: 'Torment',
-        stacks: 2,
-        duration: 10,
-        target: 'self',
-        requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
-        packetLabel: 'additional with Master of Corruption'
-      },
-      {
-        name: 'might',
-        type: 'boon',
-        boon: 'might',
-        stacks: 5,
-        duration: 20,
-        audience: { recipients: 'party', maximumRecipients: 5 }
-      }
-    ]
-  }),
-  variant(
-    NECROMANCER_CORRUPTION_PROFILE_IDS[ID.CORROSIVE_POISON_CLOUD],
-    ID.CORROSIVE_POISON_CLOUD,
-    'Corrosive Poison Cloud — Corruption',
-    {
-      effects: [
-        { name: 'Weakness', type: 'condition', condition: 'Weakness', stacks: 1, duration: 6, target: 'self' },
-        {
-          name: 'Crippled',
-          type: 'condition',
-          condition: 'Crippled',
-          stacks: 1,
-          duration: 2,
-          target: 'self',
-          requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
-          packetLabel: 'additional with Master of Corruption'
-        }
-      ]
-    }
-  ),
-  variant(NECROMANCER_CORRUPTION_PROFILE_IDS[ID.PLAGUELANDS], ID.PLAGUELANDS, 'Plaguelands — Corruption', {
-    effects: [
-      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 10, target: 'self' },
-      {
-        name: 'Poisoned',
-        type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 4,
-        target: 'self',
-        requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
-        packetLabel: 'additional with Master of Corruption'
-      }
-    ]
-  }),
   variant(NECROMANCER_CORE_BALANCE_PROFILE_IDS.darkPactOnHit, ID.DARK_PACT, 'Dark Pact — First Hit', {
     effects: [
       { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10, target: 'self' },
@@ -193,7 +100,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         flatStrikePowerCoeff: 0.1,
         actorType: 'effect',
         name: 'Soul Shards',
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal'
       }
     ]
@@ -220,7 +127,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         flatStrikePowerCoeff: 0.03,
         actorType: 'effect',
         name: 'Signet of Vampirism - Passive Life Siphon',
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal'
       }
     ]
@@ -302,7 +209,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         flatStrikePowerCoeff: 0.003,
         actorType: 'effect',
         packetLabel: 'player',
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal'
       },
       {
@@ -314,7 +221,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         flatStrikePowerCoeff: 0.0213,
         actorType: 'effect',
         packetLabel: 'minion',
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal'
       }
     ]
@@ -331,7 +238,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         flatStrikePowerCoeff: 0.0333,
         actorType: 'effect',
         packetLabel: 'base',
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal'
       },
       {
@@ -343,7 +250,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         flatStrikePowerCoeff: 0.0666,
         actorType: 'effect',
         packetLabel: 'shroud',
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal'
       }
     ]
@@ -366,7 +273,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         flatStrikePowerCoeff: 0.05,
         hits: 1,
         actorType: 'effect',
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal'
       }
     ]
@@ -526,7 +433,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         coefficient: 0,
         hits: 1,
         flatStrikeBase: 1413,
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal'
       }
     ]

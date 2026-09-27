@@ -173,7 +173,7 @@ export const elementalistTooltips: ProfessionTooltips = {
               ? simulationEffectFacts(
                   tooltipProfile(balanceContext, TEMPEST.lightningJolt).effects?.map((effect) => ({
                     ...effect,
-                    noCrit: true
+                    canCrit: false
                   })),
                   'additional completion strike; also copied by an active elemental'
                 ).facts
@@ -331,7 +331,7 @@ export const elementalistTooltips: ProfessionTooltips = {
         simulationEffectFacts(
           tooltipProfile(balanceContext, CORE.fulgor).effects?.flatMap((effect) =>
             effect.type === 'strike'
-              ? (effect.ticks || []).map((tick) => ({ ...tick, type: 'strike' as const, noCrit: true }))
+              ? (effect.ticks || []).map((tick) => ({ ...tick, type: 'strike' as const, canCrit: false }))
               : []
           ),
           'additional pulses'

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 
 // Reloading to full may retain a pending timer, but neither policy may erase a cast lockout.
@@ -115,7 +115,7 @@ test('a recovered ammo charge cannot cast before its lockout expires', () => {
     ]
   });
   let recoveredCharges;
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'ammo-lockout',
     name: 'Ammo Lockout',
     catalog,
@@ -214,7 +214,7 @@ function temporalCatalog() {
 }
 
 test('tasks during a cast run before a later concurrent command', () => {
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'temporal-order',
     name: 'Temporal Order',
     catalog: temporalCatalog(),
@@ -247,7 +247,7 @@ test('tasks during a cast run before a later concurrent command', () => {
 });
 
 test('consecutive concurrent casts chain offsets from the preceding cast', () => {
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'temporal-concurrent-chain',
     name: 'Temporal Concurrent Chain',
     catalog: temporalCatalog()
@@ -279,7 +279,7 @@ test('consecutive concurrent casts chain offsets from the preceding cast', () =>
 });
 
 test('an intermediate task can make a waiting cast available', () => {
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'temporal-readiness',
     name: 'Temporal Readiness',
     catalog: temporalCatalog(),
@@ -316,7 +316,7 @@ test('an intermediate task can make a waiting cast available', () => {
 });
 
 test('a concurrent instant waits until its finite cooldown expires', () => {
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'temporal-concurrent-wait',
     name: 'Temporal Concurrent Wait',
     catalog: temporalCatalog(),
@@ -375,7 +375,7 @@ test('skill-group lockouts block only skills in the same group', () => {
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'temporal-group-lockout',
     name: 'Temporal Group Lockout',
     catalog
@@ -416,7 +416,7 @@ test('skill-group lockouts block only skills in the same group', () => {
 });
 
 test('interrupted casts complete at their effective end', () => {
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'temporal-interrupt',
     name: 'Temporal Interrupt',
     catalog: temporalCatalog(),
@@ -479,7 +479,7 @@ test('committed interrupted casts retain their lane while cancelled attempts rel
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'temporal-retained-aftercast',
     name: 'Temporal Retained Aftercast',
     catalog
@@ -547,7 +547,7 @@ test('queued instant casts use the combat marker when their requested overlap ha
 });
 
 test('independent casts use a separate serial cast lane', () => {
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'independent-casts',
     name: 'Independent Casts',
     catalog: createCanonicalCatalog({

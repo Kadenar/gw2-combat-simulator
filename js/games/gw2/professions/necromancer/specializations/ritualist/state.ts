@@ -13,7 +13,6 @@ export interface NecromancerWeaponSpellState {
   readonly appliedAt?: number;
   readonly recipients?: Record<string, ChargeGrant>;
   /** Weapon spells that reach allies at full strength rather than the reduced allied share. */
-  readonly alliesReceiveFullBenefit?: boolean;
 }
 
 export interface RitualistState {

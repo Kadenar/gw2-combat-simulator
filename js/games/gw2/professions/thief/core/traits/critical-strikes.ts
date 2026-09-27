@@ -71,7 +71,6 @@ function criticalBoonEligible(
     Number(event.coefficient) > 0 &&
     event.cancelled !== true &&
     !missesTarget(event) &&
-    !event.noCrit &&
     event.canCrit !== false &&
     !Number.isFinite(event.flatDamage) &&
     !Number.isFinite(event.flatStrikeBase) &&

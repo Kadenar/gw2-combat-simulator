@@ -8,13 +8,13 @@ import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-han
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 
 // Repeated resolution starts from resolver state and connects both runtime and condition dispatch to profession hooks.
 test('resolver setup shares reactions and creates fresh profession state for each pass', () => {
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'resolver-setup',
     name: 'Resolver Setup',
     resources: {
@@ -47,11 +47,11 @@ test('resolver setup shares reactions and creates fresh profession state for eac
     }
   };
   const first = resolveTestGw2Events(options);
-  assert.equal(first.combatState.profession.count, 11);
-  first.combatState.profession.count = 99;
+  assert.equal(first.planningState.profession.count, 11);
+  first.planningState.profession.count = 99;
   const second = resolveTestGw2Events(options);
-  assert.equal(second.combatState.profession.count, 11);
-  assert.notEqual(first.combatState.profession, second.combatState.profession);
+  assert.equal(second.planningState.profession.count, 11);
+  assert.notEqual(first.planningState.profession, second.planningState.profession);
 });
 
 // Generic event resolution preserves recipient, strike, and profession-state contracts.
@@ -145,7 +145,7 @@ test('flat and no-crit strikes skip critical queries', () => {
         name: 'No-crit strike',
         skillName: 'No-crit strike',
         coefficient: 1,
-        noCrit: true,
+        canCrit: false,
         weaponStrength: 1_000,
         source: 'Player',
         sourceId: 'no-crit-strike',
@@ -206,6 +206,7 @@ test('slot-skill strikes select nonweapon strength generically', () => {
 });
 
 test('resolver profession state changes are chronological and preserve counters', () => {
+  let hitCount = 0;
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -237,7 +238,7 @@ test('resolver profession state changes are chronological and preserve counters'
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'chronology-fixture',
     name: 'Chronology Fixture',
     catalog,
@@ -264,6 +265,7 @@ test('resolver profession state changes are chronological and preserve counters'
       reactions: {
         'damage.resolved': (context) => {
           context.profession.hitCount += 1;
+          hitCount = context.profession.hitCount;
         }
       }
     }
@@ -276,9 +278,9 @@ test('resolver profession state changes are chronological and preserve counters'
 
   assert.equal(Math.round(hits[1].damage / hits[0].damage), 2);
   assert.equal(Math.round(hits[2].damage / hits[0].damage), 2);
-  assert.equal(result.combatState.profession.hitCount, 3);
+  assert.equal(hitCount, 3);
   assert.deepEqual(result.planningState.profession, { active: true });
-  assert.equal(result.combatState.profession.active, true);
+  assert.equal(result.planningState.profession.active, true);
 
   const configured = simulateGw2({
     profession,
@@ -415,8 +417,8 @@ test('test profession runs end to end without importing Mesmer', () => {
   });
 
   assert.ok(base.totalDamage > withoutTrait.totalDamage);
-  assert.equal(base.combatState.profession.charge, 1);
-  assert.equal(base.combatState.profession.controlEvents, 1);
+  assert.equal(base.planningState.profession.charge, 1);
+  assert.equal(base.planningState.profession.controlEvents, 1);
   assert.equal(base.planningState.profession.charge, 1);
   assert.equal(
     base.events.every((event) => event.type && Number.isFinite(event.at) && event.source && event.sourceId != null),
@@ -437,7 +439,7 @@ test('resolver modifiers receive stable trait, event, and runtime context', () =
     ]
   });
   let observed = null;
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'context-fixture',
     name: 'Context Fixture',
     catalog,

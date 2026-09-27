@@ -24,9 +24,7 @@ const skill = { id: 1, name: 'Fixture Heal', type: 'Heal' };
 
 // Use native services while collecting just the procedural output under test.
 function contextFor(kind = 'Core', specialization = {}) {
-  const context = observedRuntime(
-    runElementalist({ config: { specialization: kind, autoSummonElemental: false }, rotation: [] })
-  );
+  const context = observedRuntime(runElementalist({ config: { specialization: kind }, rotation: [] }));
   const core = createElementalistCoreState();
   context.profession = { core, specialization: { kind, state: specialization } };
   context.time = context.effectiveEnd = 1;

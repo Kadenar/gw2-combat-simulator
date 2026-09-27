@@ -28,7 +28,6 @@ import {
   observeElementalistAutoattackTransition
 } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { elementalistRockBarrierTasks } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
-import { elementalistSignetTasks } from '#gw2/professions/elementalist/core/mechanics/signets.js';
 import {
   elementalistSpearMechanicHandlers,
   empowerElementalistSpearPacket
@@ -126,7 +125,6 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
     ...elementalistElementalTasks,
     ...elementalistWeaponStateTasks,
     ...elementalistRockBarrierTasks,
-    ...elementalistSignetTasks,
     ...elementalistSpearMechanicHandlers,
     'elementalist.expire-state': expireElementalistState,
     'elementalist.fulgor-pulse'(runtime, data) {
@@ -160,8 +158,7 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
     },
     'elementalist.fresh-air': observeElementalistTransition,
     'elementalist.evasive-arcana': OBSERVABLE_EVENT_HANDLER,
-    'elementalist.attunement-enter': observeElementalistTransition,
-    'elementalist.signet-fire': OBSERVABLE_EVENT_HANDLER
+    'elementalist.attunement-enter': observeElementalistTransition
   },
   reactions: {
     'damage.resolved'(runtime, event, details) {

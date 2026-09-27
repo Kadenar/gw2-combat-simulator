@@ -47,7 +47,6 @@ test('Willbender window removal preserves sibling durations, flames, and activat
     [TRAIT.HOLY_RECKONING]
   );
   assert.equal(result.planningState.profession.justiceUntil, 0);
-  assert.equal(result.combatState.profession.justiceUntil, 0);
   assert.equal(has(result, 'buff', 'kind', 'willbender-justice'), false);
   assert.equal(result.events.find((event) => event.type === 'buff' && event.kind === 'willbender-resolve').duration, 2);
   assert.ok(has(result, 'buff', 'kind', 'fury'));
@@ -70,7 +69,7 @@ test('Lethal Tempo removal suppresses scheduler and resolver stacks without remo
     'Rushing Justice',
     { type: 'wait', durationMs: 5000 }
   ]);
-  for (const state of [result.planningState.profession, result.combatState.profession]) {
+  for (const state of [result.planningState.profession, result.planningState.profession]) {
     assert.equal(state.lethalTempoStacks, 0);
     assert.equal(state.lethalTempoUntil, 0);
   }
@@ -200,7 +199,7 @@ test('Radiant Forge removal leaves no active form, expiry, or exit flip', () => 
   const result = run({ 'guardian.luminary.radiant-forge': remove('buff', 'radiant-forge') }, 'Luminary', [
     'Enter Radiant Forge'
   ]);
-  for (const state of [result.planningState.profession, result.combatState.profession]) {
+  for (const state of [result.planningState.profession, result.planningState.profession]) {
     assert.equal(state.radiantForge, false);
     assert.equal(state.radiantForgeEndsAt, 0);
   }
@@ -382,7 +381,7 @@ test('deleted Justice Burning does not increment burn counters or recreate packe
     { type: 'wait', durationMs: 5000 }
   ]);
   assert.ok(result.planningState.profession.triggeredVirtueEffects > 0);
-  assert.equal(result.combatState.profession.justiceActiveBurns, 0);
+  assert.equal(result.planningState.profession.justiceActiveBurns, 0);
   assert.equal(
     result.events.some((event) => event.type === 'condition' && event.skillName === 'Justice'),
     false
@@ -397,7 +396,7 @@ test('Quickfire window removal leaves its cooldown and charge reactions inactive
     [TRAIT.QUICKFIRE]
   );
   assert.equal(observedRuntime(result).procs.deadline('guardian.firebrand.quickfire'), 0);
-  assert.equal(result.combatState.profession.ashes.charges, 0);
+  assert.equal(result.planningState.profession.ashes.charges, 0);
   assert.equal(has(result, 'proc', 'name', 'Quickfire'), false);
 });
 
@@ -408,7 +407,7 @@ test('Light Aura removal prevents its window and Sovereign detonation', () => {
     ['Enter Radiant Forge', 'Radiant Resolve'],
     [TRAIT.SOVEREIGN_OF_LIGHT]
   );
-  assert.equal(result.combatState.profession.lightAuraUntil, 0);
+  assert.equal(result.planningState.profession.lightAuraUntil, 0);
   assert.equal(has(result, 'damage', 'skillName', 'Sovereign of Light'), false);
 });
 

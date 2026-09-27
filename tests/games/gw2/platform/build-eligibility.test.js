@@ -82,7 +82,10 @@ test('shared eligibility precedes profession filters and cast state changes', ()
 test('every profession inherits build rejection in browser, palette, and resolved runtime', async () => {
   for (const entry of professionRegistry) {
     const adapter = await entry.loadAppAdapter();
-    for (const specialization of ['Core', ...adapter.profession.specializationIds]) {
+    for (const specialization of [
+      'Core',
+      ...adapter.profession.nativeDefinition.modules.slice(1).map((module) => module.id)
+    ]) {
       const context = { specialization };
       const runtime = adapter.profession.runtimeFor(context);
       for (const skill of [

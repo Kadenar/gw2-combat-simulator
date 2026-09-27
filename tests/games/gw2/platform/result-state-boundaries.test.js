@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 // Separate phase counters expose accidental state mixing without relying on a saved rotation.
-const profession = defineProfession({
+const profession = defineTestProfession({
   id: 'result-boundaries',
   name: 'Result boundaries',
   catalog: createCanonicalCatalog({
@@ -56,11 +56,10 @@ test('early death separates combat effects from later planned casts and cooldown
   assert.equal(result.rotationEndTime, 2);
   assert.equal(result.observationEndTime, 2);
   assert.equal(result.combatEndTime, 0.1);
-  assert.equal(result.combatState.atSeconds, result.deathTime);
+  assert.equal(result.combatEndTime, result.deathTime);
   assert.equal(result.planningState.atSeconds, 2);
   assert.equal(result.planningState.profession.plannedCasts, 2);
   assert.equal(result.planningState.profession.resolvedHits, 2);
-  assert.equal(result.combatState.profession.resolvedHits, 2);
   assert.ok(result.planningState.cooldowns.Later.remaining > 0);
   assert.ok(result.events.every((event) => event.at <= result.combatEndTime));
   assert.equal(result.totalDamage, 200);
@@ -91,8 +90,7 @@ test('surviving combat and planning share the requested observation boundary', (
     assert.equal(result.observationEndTime, end);
     assert.equal(result.combatEndTime, end);
     assert.equal(result.planningState.atSeconds, end);
-    assert.equal(result.combatState.atSeconds, end);
-    assert.equal(result.combatState.profession.resolvedHits, 4);
+    assert.equal(result.planningState.profession.resolvedHits, 4);
     assert.equal(result.planningState.cooldowns.Later.remaining, (18 - end) * 1000);
   }
 });
@@ -107,8 +105,8 @@ test('explicit combat starts preserve absolute state clocks and exclude precomba
   assert.equal(result.combatStartTime, 1);
   assert.equal(result.rotationEndTime, 2);
   assert.equal(result.observationEndTime, 5);
-  assert.equal(result.combatState.atSeconds, 1.1);
+  assert.equal(result.combatEndTime, 1.1);
   assert.equal(result.planningState.atSeconds, 5);
-  assert.equal(result.combatState.profession.resolvedHits, 2);
+  assert.equal(result.planningState.profession.resolvedHits, 2);
   assert.equal(result.totalDamage, 200);
 });

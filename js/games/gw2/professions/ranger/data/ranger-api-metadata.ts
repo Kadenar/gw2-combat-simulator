@@ -11,7 +11,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Druid',
     elite: true,
     icon: 'https://render.guildwars2.com/file/BE10CB10D8446208729934F3F1BD3A54BEED9AD6/1012013.png',
-    background: 'https://render.guildwars2.com/file/306D6ED9D3F09FF5552609EC7DA2046ECD114F90/1012077.png',
     minorTraits: [
       {
         id: 1874,
@@ -155,7 +154,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Marksmanship',
     elite: false,
     icon: 'https://render.guildwars2.com/file/80FEB75663DAE60BAC59495671261C206C0BAFC3/1012014.png',
-    background: 'https://render.guildwars2.com/file/100CE796CC2318DA62D2189A02BAAD2AE91BCE1F/1012079.png',
     minorTraits: [
       {
         id: 1010,
@@ -297,7 +295,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Nature Magic',
     elite: false,
     icon: 'https://render.guildwars2.com/file/DC7A387D9AB3EACCDA35AEA872E4EA1007139612/1012015.png',
-    background: 'https://render.guildwars2.com/file/01B5C3050EAFB0C47065C333C8AA2B4255374DA7/1012081.png',
     minorTraits: [
       {
         id: 1055,
@@ -438,7 +435,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Skirmishing',
     elite: false,
     icon: 'https://render.guildwars2.com/file/A026F49FF905C0F8AFAC6EDFDE281AABE1912459/1012016.png',
-    background: 'https://render.guildwars2.com/file/08D1BEEC43F45C02DE59AE9010B9391F1FCA2966/1012083.png',
     minorTraits: [
       {
         id: 1080,
@@ -582,7 +578,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Beastmastery',
     elite: false,
     icon: 'https://render.guildwars2.com/file/02D851E1D7186112786D0F67910B58FACB5CCCF6/1012012.png',
-    background: 'https://render.guildwars2.com/file/4727784BBF467241CA9F29E4FEDE487FD33E2809/1012075.png',
     minorTraits: [
       {
         id: 1900,
@@ -726,7 +721,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Wilderness Survival',
     elite: false,
     icon: 'https://render.guildwars2.com/file/BEDA4B0CCD2E6F5F5C64509D67D3454E47D019F3/1012017.png',
-    background: 'https://render.guildwars2.com/file/417DC1B29EF0EADBD9CBE15B462B2D5B6AF328DA/1012085.png',
     minorTraits: [
       {
         id: 1096,
@@ -869,7 +863,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Soulbeast',
     elite: true,
     icon: 'https://render.guildwars2.com/file/0AA4A2C62C4F2D0E0D59DBEE9C63EB4AF472F0C5/1769893.png',
-    background: 'https://render.guildwars2.com/file/D624537D6B50C90B2A329EB16CF8911BDD4C0107/1769902.png',
     minorTraits: [
       {
         id: 2151,
@@ -1009,7 +1002,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Untamed',
     elite: true,
     icon: 'https://render.guildwars2.com/file/D219A813B5312BA9D1D10A74C10E9E5F3F54936B/2503609.png',
-    background: 'https://render.guildwars2.com/file/ED44DB9901D82D760DC5B8A918BB603DA06B3257/2503612.png',
     minorTraits: [
       {
         id: 2268,
@@ -1156,7 +1148,6 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
     name: 'Galeshot',
     elite: true,
     icon: 'https://render.guildwars2.com/file/1E0DE9DF219380B3DD15AD35466461C935930515/3679901.png',
-    background: 'https://render.guildwars2.com/file/4BC6740C765896B9EE6E38671BD204B7A82535F9/3679910.png',
     minorTraits: [
       {
         id: 2359,

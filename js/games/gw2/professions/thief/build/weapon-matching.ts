@@ -31,7 +31,7 @@ function matchesThiefWeaponSet(
   context: ThiefWeaponMatcherContext
 ): boolean {
   if (!matchesThiefVariant(skill, context)) return false;
-  if (skill.requiredMainHand != null || skill.requiredOffHand != null || skill.requiresEmptyOffhand) {
+  if (skill.requiredMainHand != null || skill.requiredOffHand != null) {
     const [mainHand = '', offHand = ''] = pair;
     return (
       (skill.requiredMainHand == null || skill.requiredMainHand === mainHand) &&

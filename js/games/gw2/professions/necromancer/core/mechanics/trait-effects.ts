@@ -17,7 +17,7 @@ interface TraitCoefficientDefinition {
   readonly name: string;
   readonly traitId: SkillId;
   readonly coefficient: number;
-  readonly noCrit?: boolean;
+  readonly canCrit?: boolean;
   readonly damageKind?: string;
   readonly icon?: string;
 }
@@ -60,7 +60,7 @@ export function applyTraitCondition(
 export function queueTraitCoefficientDamage(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  { name, traitId, coefficient, noCrit = true, damageKind, icon }: TraitCoefficientDefinition
+  { name, traitId, coefficient, canCrit = false, damageKind, icon }: TraitCoefficientDefinition
 ): void {
   context.queue.enqueue(
     buildResolverStrike({
@@ -72,7 +72,7 @@ export function queueTraitCoefficientDamage(
       sourceId: traitId,
       actorType: 'effect',
       skillWeapon: 'Unequipped',
-      noCrit,
+      canCrit,
       ...(damageKind ? { damageKind } : {}),
       ...(icon ? { icon } : {}),
       ...(event.summonOwner ? { summonOwner: event.summonOwner } : {}),

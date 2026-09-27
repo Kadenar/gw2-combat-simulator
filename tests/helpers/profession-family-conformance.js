@@ -68,7 +68,11 @@ function assertUniqueOwners(modules, select, label) {
 export function assertProfessionFamilyConformance({ family, core, specializations }) {
   assert.equal(typeof family.resolveProfession, 'function');
   const modules = [core, ...Object.values(specializations)];
-  const skillOwners = getNativeCatalogAssembly(modules, undefined).skillOwners;
+  const skillOwners = new Map(
+    [...getNativeCatalogAssembly(modules, undefined).fragments].flatMap(([owner, fragment]) =>
+      fragment.skills.map((skill) => [skill.id, owner])
+    )
+  );
 
   assertUniqueOwners(
     modules,

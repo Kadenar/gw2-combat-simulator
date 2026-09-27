@@ -445,10 +445,7 @@ function startDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast): void {
   doubleEdgeOutcomes.set(cast, outcome);
   if (outcome === 'backfire')
     // The backfire variant stays visible until the running recharge ends.
-    state.backfireState[skill.id] = {
-      activeUntil: Number(runtime.cooldowns.get(skill.id) || cast.effectiveEnd),
-      skillName: skill.name
-    };
+    state.backfireState[skill.id] = true;
   else delete state.backfireState[skill.id];
   if (skill.id === ID.STONE_SUMMIT_CANNON)
     (outcome === 'backfire' ? emitCannonBackfire : emitCannonSuccess)(runtime, cast);

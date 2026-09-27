@@ -611,9 +611,7 @@ test('Shadow Siphoning uses eligible stealth hits, a strict profile ICD, and aut
       packets.map((event) => event.at),
       [1, 3]
     );
-    assert.ok(
-      packets.every((event) => event.canCrit === false && event.noCrit === true && event.damageKind === 'life-steal')
-    );
+    assert.ok(packets.every((event) => event.canCrit === false && event.damageKind === 'life-steal'));
     assert.equal(observedRuntime(result).procs.deadline(TRAIT.SHADOW_SIPHONING), 3 + internalCooldown);
     assert.deepEqual(result.warnings, []);
   }
@@ -804,7 +802,7 @@ test('Lead Attacks boosts canonical flat life steal independently of its display
               name: 'Unrelated label',
               coefficient: 0,
               flatDamage: 1000,
-              noCrit: true,
+              canCrit: false,
               damageKind
             })
           );

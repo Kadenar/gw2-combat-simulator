@@ -473,14 +473,12 @@ test('live public projections observe planning after death without exposing cont
   const options = { config: { ...config, target: { ...config.target, health: 1 } } };
   const rotation = [cast(991002), cast(991002)];
   const result = run(rotation, options, profession);
-  // Planning includes self commands after death, while combat retains the earlier detached boundary.
+  // Planning includes self commands after death; combat counters stop when the target dies.
   assert.deepEqual(result.planningState.profession.counts, { uses: 2, hits: 1 });
   assert.equal(result.planningState.cooldowns.Channel.readyAt, 5200);
-  assert.equal(result.combatState.profession.uses, 1);
   assert.equal('privateGeneration' in result.planningState.profession, false);
   result.planningState.profession.counts.uses = 999;
   assert.equal(owner.profession.core.uses, 2);
-  assert.equal(result.combatState.profession.uses, 1);
   const score = run(rotation, { ...options, output: 'score' }, profession);
   assert.equal(projections, 1);
   assert.equal(score.totalDamage, result.totalDamage);
@@ -646,30 +644,18 @@ test('Energy sigils restore the selected endurance pool after actual Vigor recov
   assert.equal(result.planningState.profession.endurancePool.endurance, 65);
 });
 
-test('live endurance initialization honors explicit values, selected capacity, and finite input validation', () => {
-  const profession = native({
-    endurance: {
-      state: (runtime) => runtime.profession.core.endurancePool,
-      maximum: () => 150,
-      regenerationRate: () => 0
-    }
-  });
-  for (const [initialEndurance, expected] of [
-    [undefined, 150],
-    [0, 0],
-    [25, 25],
-    [-1, 0],
-    [200, 150]
-  ]) {
-    const result = run([wait(100)], { config: { ...config, initialEndurance } }, profession);
-    assert.equal(result.planningState.profession.endurancePool.endurance, expected);
+test('live endurance initializes at the selected profession capacity', () => {
+  for (const maximum of [100, 150]) {
+    const profession = native({
+      endurance: {
+        state: (runtime) => runtime.profession.core.endurancePool,
+        maximum: () => maximum,
+        regenerationRate: () => 0
+      }
+    });
+    const result = run([wait(100)], { config }, profession);
+    assert.equal(result.planningState.profession.endurancePool.endurance, maximum);
   }
-
-  for (const initialEndurance of [NaN, Infinity, -Infinity])
-    assert.throws(
-      () => run([wait(100)], { config: { ...config, initialEndurance } }, profession),
-      /Initial endurance must be finite/
-    );
 });
 
 test('live combo fields bind at the finisher boundary and actual outcomes trigger relics once', () => {

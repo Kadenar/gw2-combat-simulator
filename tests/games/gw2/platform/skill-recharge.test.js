@@ -2,14 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 
 // Minimal recharges isolate permanent Alacrity and tick detection from profession rotations.
 test('cooldowns and serial ammo assume permanent Alacrity before checking the absolute tick', () => {
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'alacrity-recharge',
     name: 'Alacrity recharge',
     catalog: createCanonicalCatalog({
@@ -45,7 +45,7 @@ test('cooldowns and serial ammo assume permanent Alacrity before checking the ab
 // Transient grants cannot change the permanent recharge rate or the independent ammo lockout.
 test('Alacrity gained during a cast leaves reserved recharge and the independent ammo lockout unchanged', () => {
   for (const ammo of [false, true]) {
-    const profession = defineProfession({
+    const profession = defineTestProfession({
       id: 'reserved-recharge',
       name: 'Reserved Recharge',
       catalog: createCanonicalCatalog({
@@ -117,7 +117,7 @@ test('ordinary and ammo cooldowns wait for their detection tick even one microse
       ...(ammo ? { ammo: 2, ammoRecharge: 0.475, ammoCastLockout: 0 } : {}),
       effects: []
     };
-    const profession = defineProfession({
+    const profession = defineTestProfession({
       id: 'tick-cooldown',
       name: 'Tick cooldown',
       catalog: createCanonicalCatalog({ generated: [skill] })
@@ -203,7 +203,7 @@ test('declarative ammo consumes and recharges shared charges', () => {
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'ammo-fixture',
     name: 'Ammo Fixture',
     catalog
@@ -247,7 +247,7 @@ test('end state projects ammo and cooldowns at the resolution boundary', () => {
       timingScale: 'fixed'
     }))
   };
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'tail-ammo-fixture',
     name: 'Tail Ammo Fixture',
     catalog: createCanonicalCatalog({ generated: [skill] })
@@ -290,7 +290,7 @@ test("shared scheduler detects a skill's cooldown expiry on the next action tick
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'cooldown-fixture',
     name: 'Cooldown Fixture',
     catalog
@@ -328,7 +328,7 @@ test('summon recharge requires shared player Alacrity and accounts for its expir
           effects: [],
           ...(ammo ? { ammo: 2, ammoRecharge: 10 } : {})
         };
-        const profession = defineProfession({
+        const profession = defineTestProfession({
           id: 'summon-recharge',
           name: 'Summon recharge',
           catalog: createCanonicalCatalog({ generated: [skill] })

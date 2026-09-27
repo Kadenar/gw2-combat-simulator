@@ -29,7 +29,7 @@ function resolve(events, { power = 1300, multiplier = 1, health = 0, output = 'd
         name: 'Rounding',
         coefficient: 0.5,
         weaponStrength: 922.5,
-        noCrit: true,
+        canCrit: false,
         ...event
       })),
       endTime: 3
@@ -64,7 +64,7 @@ test('strike damage floors the validated no-modifier Power cases', () => {
 
 test('strike flooring happens after modifiers and applies to flat and summon packets', () => {
   assert.equal(
-    resolve([{ coefficient: 0.0019, weaponStrength: 2597, noCrit: false }], { power: 1000, multiplier: 2 })
+    resolve([{ coefficient: 0.0019, weaponStrength: 2597, canCrit: true }], { power: 1000, multiplier: 2 })
       .strikeDamage,
     5
   );

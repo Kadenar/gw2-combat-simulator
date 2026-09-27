@@ -132,8 +132,7 @@ export function elementalistOnCastComplete(context: ElementalistRuntime, cast: R
           coefficient: Number(tick.coefficient),
           flatStrikeBase: Number(tick.flatStrikeBase),
           flatStrikePowerCoeff: Number(tick.flatStrikePowerCoeff),
-          fulgorSecondary: true,
-          noCrit: true,
+          canCrit: false,
           activationId: cast.id,
           offTarget: cast.command.offTarget
         },

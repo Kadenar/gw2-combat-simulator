@@ -1,6 +1,6 @@
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -39,10 +39,32 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     interruptCommitMs: 600,
     retainsCastLockoutAfterInterrupt: true,
     // Share this impact's timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 0.5 },
-      { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 15 }
-    ])
+    effects: [
+      ...impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.5 },
+        { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 15 }
+      ]),
+      // Corruption completion owns self-conditions and boons independently of hostile impacts.
+      { name: 'Self Bleeding', type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10, target: 'self' },
+      {
+        name: 'Self Torment',
+        type: 'condition',
+        condition: 'Torment',
+        stacks: 2,
+        duration: 10,
+        target: 'self',
+        requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
+        packetLabel: 'additional with Master of Corruption'
+      },
+      {
+        name: 'might',
+        type: 'boon',
+        boon: 'might',
+        stacks: 5,
+        duration: 20,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
+    ]
   },
   // Wells use their EVTC-observed Quickness packet schedule for every damage and condition pulse.
   [ID.WELL_OF_CORRUPTION]: {
@@ -94,106 +116,126 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.CONSUME_CONDITIONS]: {
     castTimeMs: 680,
-    effects: []
+    effects: [
+      // Corruption completion owns self-conditions and boons independently of hostile impacts.
+      {
+        name: 'Self Vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
+        stacks: 5,
+        duration: 4,
+        target: 'self'
+      },
+      {
+        name: 'Master of Corruption Vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
+        stacks: 5,
+        duration: 4,
+        target: 'self',
+        requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
+        packetLabel: 'additional with Master of Corruption'
+      }
+    ]
   },
   [ID.PLAGUELANDS]: {
     castTimeMs: 920,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 3.51 / 9 }))
-      },
-      {
-        type: 'condition',
-        ticks: Array.from({ length: 9 }, (_, index) => ({
-          atMs: 1000 + index * 1000,
-          condition: 'Bleeding',
-          stacks: 1,
-          duration: 8
-        }))
-      },
-      {
-        type: 'condition',
-        ticks: Array.from({ length: 8 }, (_, index) => ({
-          atMs: 2000 + index * 1000,
-          condition: 'Poisoned',
-          stacks: 1,
-          duration: 5
-        }))
-      },
-      {
-        type: 'condition',
-        ticks: Array.from({ length: 7 }, (_, index) => ({
-          atMs: 3000 + index * 1000,
-          condition: 'Torment',
-          stacks: 1,
-          duration: 5
-        }))
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 4000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 5000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 6000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 7000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 8000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 9000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
-      },
-      {
-        type: 'condition',
-        ticks: Array.from({ length: 5 }, (_, index) => ({
-          atMs: 5000 + index * 1000,
-          condition: 'Crippled',
-          stacks: 1,
-          duration: 2
-        }))
-      },
-      {
-        type: 'condition',
-        ticks: Array.from({ length: 4 }, (_, index) => ({
-          atMs: 6000 + index * 1000,
-          condition: 'Weakness',
-          stacks: 1,
+    effects: [
+      ...impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 3.51 / 9 }))
+        },
+        {
+          type: 'condition',
+          ticks: Array.from({ length: 9 }, (_, index) => ({
+            atMs: 1000 + index * 1000,
+            condition: 'Bleeding',
+            stacks: 1,
+            duration: 8
+          }))
+        },
+        {
+          type: 'condition',
+          ticks: Array.from({ length: 8 }, (_, index) => ({
+            atMs: 2000 + index * 1000,
+            condition: 'Poisoned',
+            stacks: 1,
+            duration: 5
+          }))
+        },
+        {
+          type: 'condition',
+          ticks: Array.from({ length: 7 }, (_, index) => ({
+            atMs: 3000 + index * 1000,
+            condition: 'Torment',
+            stacks: 1,
+            duration: 5
+          }))
+        },
+        {
+          type: 'condition',
+          // Vulnerability starts on pulse four and repeats through the final pulse.
+          ticks: Array.from({ length: 6 }, (_, index) => ({
+            atMs: 4000 + index * 1000,
+            condition: 'Vulnerability',
+            stacks: 1,
+            duration: 8
+          }))
+        },
+        {
+          type: 'condition',
+          ticks: Array.from({ length: 5 }, (_, index) => ({
+            atMs: 5000 + index * 1000,
+            condition: 'Crippled',
+            stacks: 1,
+            duration: 2
+          }))
+        },
+        {
+          type: 'condition',
+          ticks: Array.from({ length: 4 }, (_, index) => ({
+            atMs: 6000 + index * 1000,
+            condition: 'Weakness',
+            stacks: 1,
+            duration: 3
+          }))
+        },
+        {
+          type: 'blind',
+          applications: 3,
+          atMs: 7000,
+          intervalMs: 1000,
           duration: 3
-        }))
-      },
+        },
+        {
+          type: 'condition',
+          ticks: Array.from({ length: 2 }, (_, index) => ({
+            atMs: 8000 + index * 1000,
+            condition: 'Chilled',
+            stacks: 1,
+            duration: 2
+          }))
+        },
+        {
+          type: 'condition',
+          ticks: [{ atMs: 9000, condition: 'Burning', stacks: 1, duration: 10 }]
+        }
+      ]),
+      // Corruption completion owns self-conditions and boons independently of hostile impacts.
+      { name: 'Self Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 10, target: 'self' },
       {
-        type: 'blind',
-        applications: 3,
-        atMs: 7000,
-        intervalMs: 1000,
-        duration: 3
-      },
-      {
+        name: 'Self Poisoned',
         type: 'condition',
-        ticks: Array.from({ length: 2 }, (_, index) => ({
-          atMs: 8000 + index * 1000,
-          condition: 'Chilled',
-          stacks: 1,
-          duration: 2
-        }))
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 9000, condition: 'Burning', stacks: 1, duration: 10 }]
+        condition: 'Poisoned',
+        stacks: 1,
+        duration: 4,
+        target: 'self',
+        requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
+        packetLabel: 'additional with Master of Corruption'
       }
-    ])
+    ]
   },
   [ID.LICH_FORM]: {
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
@@ -390,6 +432,18 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         condition: 'Poisoned',
         stacks: 4,
         duration: 2
+      },
+      // Corruption completion owns self-conditions and boons independently of hostile impacts.
+      { name: 'Self Weakness', type: 'condition', condition: 'Weakness', stacks: 1, duration: 6, target: 'self' },
+      {
+        name: 'Self Crippled',
+        type: 'condition',
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 2,
+        target: 'self',
+        requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
+        packetLabel: 'additional with Master of Corruption'
       }
     ]
   },
@@ -408,7 +462,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingScale: 'fixed',
         actorType: 'effect',
         name: 'Signet of Vampirism - Vampiric Mark',
-        noCrit: true,
+        canCrit: false,
         damageKind: 'life-steal'
       }
     ]

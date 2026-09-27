@@ -20,7 +20,6 @@ test('Altruistic Aspect grants its meditation boon only when selected and the ca
       config: {
         specialization: 'Evoker',
         evokerElement: 'Fire',
-        autoSummonElemental: false,
         selectedTraitIds: traits,
         selectedSkills: ["Fox's Fury"]
       },
@@ -64,7 +63,7 @@ test('Ignite retains its final burning tier until the inactivity window expires'
 // Queue impacts out of order; only an accepted live strike may spend an active grant.
 function enchantments({ hits, grants, timeline = [] }) {
   return runElementalist({
-    config: { specialization: 'Evoker', evokerElement: 'Air', autoSummonElemental: false },
+    config: { specialization: 'Evoker', evokerElement: 'Air' },
     rotation: [{ type: 'wait', durationMs: 2000 }, '__combat_start', { type: 'wait', durationMs: 20000 }],
     initialize: (r) => {
       for (const [at, fields = {}] of hits)

@@ -189,11 +189,9 @@ export interface EffectMetadata {
   readonly activeSpirits?: number;
   readonly affinityOnHit?: boolean;
   readonly anguishConditionalDamage?: boolean;
-  readonly blightEmpowered?: boolean;
   readonly dhuumfireDuration?: number;
   readonly dhuumfireInterval?: number;
   readonly engineerMech?: boolean;
-  readonly evtcSkillId?: SkillId;
   readonly hitboxIndex?: number;
   readonly largeHitboxOnly?: boolean;
   readonly legendId?: string;
@@ -258,7 +256,6 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly cooldownReduction?: number;
   /** Committed base work keeps passive cooldown queries aligned with scheduling and rewinds. */
   readonly rechargeProgress?: RechargeProgress;
-  readonly rechargeProgressBySkillId?: Readonly<Record<string, RechargeProgress>>;
   readonly audience?: EffectAudience;
   readonly resolvedAudience?: ResolvedEffectAudience;
   readonly metadata?: EffectMetadata;
@@ -305,9 +302,6 @@ export interface ConditionEventFields {
   readonly duration: number;
   /** Transferred conditions retain their remaining lifetime without applying duration modifiers again. */
   readonly fixedDuration?: boolean;
-  readonly transferredCondition?: boolean;
-  readonly transferredFromSkillId?: SkillId;
-  readonly nonDamaging?: boolean;
   readonly offTarget?: boolean;
   readonly persistsAfterInterrupt?: boolean;
   readonly applicationIndex?: number;

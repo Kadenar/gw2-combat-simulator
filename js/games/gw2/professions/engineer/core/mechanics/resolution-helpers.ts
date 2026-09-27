@@ -13,7 +13,7 @@ interface QueueDamageOptions {
   readonly actorType?: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
   readonly at?: number;
-  readonly noCrit?: boolean;
+  readonly canCrit?: boolean;
   readonly explosion?: boolean;
   // The impact supplies timing, and the shared runtime generates the attempt identity.
   readonly comboFinisher?: Omit<EnqueueGw2OwnedComboFinisherOptions, 'at' | 'effectAt' | 'attemptId'>;
@@ -66,7 +66,7 @@ export function queueDamage(
     actorType = 'player',
     ownerActorType,
     at = event.at,
-    noCrit = false,
+    canCrit = true,
     explosion = false,
     comboFinisher,
     weaponStrength,
@@ -89,7 +89,7 @@ export function queueDamage(
       ...(actorType === 'player' ? { activationId: event.activationId, offTarget: event.offTarget } : {}),
       // "Spear" default for player spear skills; non-player damage uses "Unequipped" for weapon lookups
       skillWeapon: actorType === 'player' ? 'Spear' : 'Unequipped',
-      noCrit,
+      canCrit,
       explosion,
       ...(comboFinisher
         ? {

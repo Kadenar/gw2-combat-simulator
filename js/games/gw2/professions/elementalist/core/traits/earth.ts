@@ -47,7 +47,7 @@ export function triggerEarthenBlast(context: ElementalistRuntime, at: number, so
       icon: EARTHEN_BLAST_ICON,
       coefficient: effectNumber(earthenBlastProfile, earthenBlastStrike, 'coefficient'),
       skillWeapon: 'Unequipped',
-      noCrit: true
+      canCrit: false
     });
 
     emitElementalistProc(context, {

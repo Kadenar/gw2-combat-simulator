@@ -7,7 +7,7 @@ import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { gw2ResolverPhase } from '#gw2/platform/resolver/event-loop.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
@@ -556,7 +556,7 @@ test('environment conditions do not change player attribution over an equal obse
       actorType: 'player',
       name: 'Fixed Hit One',
       flatDamage: 50,
-      noCrit: true
+      canCrit: false
     },
     {
       type: 'damage',
@@ -566,7 +566,7 @@ test('environment conditions do not change player attribution over an equal obse
       actorType: 'player',
       name: 'Fixed Hit Two',
       flatDamage: 50,
-      noCrit: true
+      canCrit: false
     }
   ];
   const baseline = resolveEnvironmentConditions({ events, rotationEndTime: 2.5 });
@@ -590,7 +590,7 @@ test('environment damage can end a player sequence early without entering player
     actorType: 'player',
     name: `Early Hit ${index}`,
     flatDamage: 20,
-    noCrit: true
+    canCrit: false
   }));
   const baseline = resolveEnvironmentConditions({ events, rotationEndTime: 3, targetHealth: 75 });
   const ambient = resolveEnvironmentConditions({
@@ -652,7 +652,7 @@ test('target-health coefficient thresholds include environment damage', () => {
       name: 'Threshold Opening',
       coefficient: 0.04,
       weaponStrengthProfileId: 'weapon.sword',
-      noCrit: true
+      canCrit: false
     },
     {
       type: 'damage',
@@ -665,7 +665,7 @@ test('target-health coefficient thresholds include environment damage', () => {
       coefficient: 0.04,
       weaponStrengthProfileId: 'weapon.sword',
       coefficientModifiers: [{ kind: 'target-health-below', threshold: 0.5, multiplier: 2 }],
-      noCrit: true
+      canCrit: false
     }
   ];
   const baseline = resolveEnvironmentConditions({ events, rotationEndTime: 2, targetHealth: 100 });
@@ -735,7 +735,7 @@ test('profession condition-duration hooks remain under the GW2 cap', () => {
       }
     ]
   });
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'duration-cap-fixture',
     name: 'Duration Cap Fixture',
     catalog,

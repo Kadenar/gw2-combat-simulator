@@ -169,13 +169,8 @@ export function createRuntimeEndurance<T extends object>(runtime: Gw2Runtime<T>,
 
   if (policy) {
     const { state, maximum } = pool();
-    // Honor explicit starting endurance before profession hooks, using the selected elite pool's bounds.
-    const initial =
-      'initialEndurance' in runtime.config && runtime.config.initialEndurance != null
-        ? Number(runtime.config.initialEndurance)
-        : maximum;
-    if (!Number.isFinite(initial)) throw new TypeError('Initial endurance must be finite.');
-    state.endurance = Math.max(0, Math.min(maximum, initial));
+    // Every simulation starts with the selected profession's full endurance pool.
+    state.endurance = maximum;
     state.enduranceUpdatedAt = runtime.time;
   }
 

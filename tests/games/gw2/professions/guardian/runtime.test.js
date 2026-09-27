@@ -151,7 +151,6 @@ test('Radiant Armaments reads executed metadata and Courage empowers one sword i
   const empowered = run([ID.RADIANT_COURAGE, ID.ENTER_RADIANT_FORGE, ID.GLEAMING_BLADE], luminary);
   assert.ok(Math.abs(hit(empowered, ID.GLEAMING_BLADE).damage - hit(sword, ID.GLEAMING_BLADE).damage * 1.5) <= 1);
   assert.equal(lum(empowered).radiantCourageSwordArmed, false);
-  assert.equal(lum(empowered).radiantCourageShieldArmed, true);
 });
 
 test('Radiant Justice is claimed at hammer impact and retains missed activation ownership', () => {

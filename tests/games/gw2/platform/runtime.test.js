@@ -45,10 +45,11 @@ const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 test('endurance spending agrees with readiness after fractional regeneration', () => {
   const pool = { endurance: 0, enduranceUpdatedAt: 0 };
-  const runtime = { time: 0, config: { initialEndurance: 0 }, history: [] };
+  const runtime = { time: 0, config: {}, history: [] };
   const endurance = createRuntimeEndurance(runtime, {
     endurance: { state: () => pool, maximum: () => 100, regenerationRate: () => 7.5 }
   });
+  endurance.spend(100);
   runtime.time = 6;
   endurance.advance();
   runtime.time = 6 + 2 / 3;
@@ -408,8 +409,10 @@ test('empty rotations finalize at zero and environment work remains bounded with
 });
 
 test('lethal siblings finish but post-death hits grant nothing while self commands and cooldowns continue', () => {
+  let owner;
   const profession = fixture({
     initialize(runtime) {
+      owner = runtime;
       runtime.emit(packet(0.5, { activationId: 'lethal' }));
       runtime.emit(packet(0.5, { activationId: 'lethal' }));
       runtime.emit(packet(0.5, { activationId: 'other' }));
@@ -425,14 +428,12 @@ test('lethal siblings finish but post-death hits grant nothing while self comman
   const result = run([wait(1000), cast(990001)], options);
   assert.equal(result.totalDamage, 20);
   assert.equal(result.deathTime, 0.5);
-  assert.equal(result.combatState.atSeconds, 0.5);
-  assert.deepEqual(result.combatState.profession.accepted, []);
-  assert.equal(result.combatState.profession.hits, 1);
-  assert.equal(result.planningState.atSeconds, 2);
+  assert.equal(result.combatEndTime, 0.5);
   assert.equal(result.planningState.profession.hits, 1);
+  assert.equal(result.planningState.atSeconds, 2);
   assert.equal(result.planningState.cooldowns.Cast.readyAt, 3600);
   result.planningState.profession.hits = 999;
-  assert.equal(result.combatState.profession.hits, 1);
+  assert.equal(owner.profession.hits, 1);
   assert.equal(run([wait(1000), cast(990001)], { ...options, output: 'score' }).totalDamage, 20);
 });
 
@@ -591,7 +592,7 @@ test('same-time condition owners finish their lethal batch without granting new 
   assert.equal(result.deathTime, 1);
   assert.equal(result.environmentDamage, 22);
   assert.equal(result.conditionDamage, 22);
-  assert.equal(result.combatState.atSeconds, 1);
+  assert.equal(result.combatEndTime, 1);
   assert.equal(result.planningState.atSeconds, 2);
 });
 

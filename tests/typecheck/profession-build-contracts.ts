@@ -51,11 +51,11 @@ const invalidCompiler: ProfessionModifierDefinition = { compileModifierRules: ()
 void invalidCompiler;
 
 // Composition accepts executable hook names, not metadata or misspelled slots.
-const composed = composeHookContainer([], 'modifiers', ['modifyAttributes']);
+const composed = composeHookContainer([], ['modifyAttributes']);
 // @ts-expect-error Only requested hook slots are exposed.
 composed.modifyCastDuration;
 // @ts-expect-error Modifier declarations are metadata, not a callable hook slot.
-composeHookContainer([], 'modifiers', ['modifierRules']);
+composeHookContainer([], ['modifierRules']);
 
 // Presentation carries the canonical loadout methods and validates build-owned selector keys.
 declare const loadout: NonNullable<ProfessionUiContract['slotLoadout']>;

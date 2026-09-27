@@ -19,8 +19,6 @@ export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     damageBonus: 0.1,
     criticalChanceBonus: 0.1,
     boonDurationBonus: 10,
-    outgoingHealingBonus: 0.1,
-    incomingDamageReduction: 0.1,
     effects: []
   },
   {

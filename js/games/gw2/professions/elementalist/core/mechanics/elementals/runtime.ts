@@ -92,11 +92,6 @@ function selectedElemental(context: ElementalistRuntime): ElementalKind | null {
   return selectedElementalFromSkills(selectedSkillNameSet(context.config.selectedSkills));
 }
 
-// Auto-summon the selected glyph's elemental unless explicitly disabled.
-function automaticSummoningEnabled(context: ElementalistRuntime): boolean {
-  return context.config.autoSummonElemental !== false;
-}
-
 // Maps a stable glyph skill ID to the elemental it summons; null for unrelated skills.
 function elementalForGlyph(skill: Skill): ElementalKind | null {
   return elementalForGlyphId(skill.id);
@@ -110,8 +105,7 @@ function glyphSkillForElement(context: ElementalistRuntime, element: ElementalKi
   );
 }
 
-// The player-commanded flip skill name for an element (used to tag events as
-// player-commanded vs autonomous and to resolve the authored command ID).
+// Resolve the player-commanded flip skill for the selected element.
 function commandName(element: ElementalKind): 'Flame Barrage' | 'Stomp' {
   return elementalCommandName(element);
 }
@@ -162,7 +156,7 @@ function interruptCurrentAction(context: ElementalistRuntime, at: number): void 
     (event) => event.type === 'action' && event.activationId === elemental.currentActivationId
   );
   if (action && Number(action.fullEndsAt || action.endsAt || 0) > at)
-    Object.assign(action, { endsAt: at, interrupted: true, interruptedAt: at });
+    Object.assign(action, { endsAt: at, interrupted: true });
 }
 
 // Starts one attack: interrupts any prior action, bumps actionGeneration, emits the
@@ -177,7 +171,6 @@ function beginSummonAction(
 ): Readonly<{ actionGeneration: number; activationId: string }> {
   const elemental = professionCoreState(context).summonedElemental;
   const element = elemental.element as ElementalKind;
-  const playerCommanded = skillName === commandName(element);
   interruptCurrentAction(context, at);
   elemental.actionGeneration += 1;
   // A commanded opener already owns the AI loop; combat start must not replace its pending impacts.
@@ -196,9 +189,7 @@ function beginSummonAction(
     name: skillName,
     endsAt: at + animationEnd,
     fullEndsAt: at + animationEnd,
-    summonOwner: elementalistElementalCompanionId(elemental.summonGeneration),
-    autonomousElementalSkill: !playerCommanded,
-    playerCommandedElementalSkill: playerCommanded
+    summonOwner: elementalistElementalCompanionId(elemental.summonGeneration)
   });
   return {
     actionGeneration: elemental.actionGeneration,
@@ -368,7 +359,7 @@ function emitStrike(
       name: 'Lightning Jolt',
       coefficient: pendingLightningJolt.coefficient,
       hits: 1,
-      noCrit: true,
+      canCrit: false,
       skillWeapon: 'Unequipped',
       weaponStrengthProfileId: ELEMENTAL_LIGHTNING_JOLT_PROFILE.weaponStrengthProfileId,
       independentSummonStrike: true,
@@ -396,8 +387,6 @@ function emitStrike(
     hits: 1,
     hitIndex,
     totalHits,
-    autonomousElementalSkill: skillName !== commandName(element),
-    playerCommandedElementalSkill: skillName === commandName(element),
     ...summonStrikeMetadata(element, Number(payload.summonGeneration || 0), baseDamage),
     ...fields
   });
@@ -753,7 +742,6 @@ export function ensureElementalistElemental(context: ElementalistRuntime, skill?
   const selected = selectedElemental(context);
   if (
     selected &&
-    automaticSummoningEnabled(context) &&
     context.profession.core.summonedElemental.activeUntil <= context.time &&
     (!skill || !elementalForGlyph(skill))
   ) {
@@ -777,9 +765,7 @@ export function elementalistElementalAvailability(
   if (skill.id === FLAME_BARRAGE_ID) {
     const active = elemental.element === 'Fire' && elemental.activeUntil > context.time;
     return active ||
-      (elemental.activeUntil <= context.time &&
-        automaticSummoningEnabled(context as unknown as ElementalistRuntime) &&
-        selectedElemental(context as unknown as ElementalistRuntime) === 'Fire')
+      (elemental.activeUntil <= context.time && selectedElemental(context as unknown as ElementalistRuntime) === 'Fire')
       ? ready()
       : unavailable('an active Fire Elemental is required.');
   }
@@ -788,7 +774,6 @@ export function elementalistElementalAvailability(
     const active = elemental.element === 'Earth' && elemental.activeUntil > context.time;
     return active ||
       (elemental.activeUntil <= context.time &&
-        automaticSummoningEnabled(context as unknown as ElementalistRuntime) &&
         selectedElemental(context as unknown as ElementalistRuntime) === 'Earth')
       ? ready()
       : unavailable('an active Earth Elemental is required.');

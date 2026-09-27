@@ -62,7 +62,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ],
     castTimeMs: 500,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     primalBurst: true
   },
@@ -98,7 +97,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ],
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     primalBurst: true
   },
@@ -114,7 +112,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ],
     castTimeMs: 680,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     primalBurst: true
   },
@@ -141,7 +138,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]),
     castTimeMs: 360,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     primalBurst: true
   },
@@ -195,7 +191,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     castTimeMs: 0,
     effects: [],
     adrenalineCost: 30,
-    burstTier: 3,
     sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 10 } }]
   },
   [ID.BLOOD_RECKONING]: {
@@ -258,7 +253,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]),
     castTimeMs: 1600,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     primalBurst: true
   },
@@ -281,7 +275,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     castTimeMs: 720,
     dualWieldCastTimeMs: 480,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     primalBurst: true
   },
@@ -316,7 +309,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ],
     castTimeMs: 920,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     primalBurst: true
   },
@@ -331,7 +323,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ],
     castTimeMs: 500,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     primalBurst: true
   },
@@ -351,7 +342,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ],
     castTimeMs: 333,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     primalBurst: true
   },
@@ -365,20 +355,17 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
           { atMs: 240, coefficient: 0.75 },
           {
             atMs: 440,
-            coefficient: 0.75,
-            metadata: { evtcSkillId: ID.WILD_THROW_ALTERNATE }
+            coefficient: 0.75
           },
           { atMs: 600, coefficient: 0.75 },
           {
             atMs: 800,
-            coefficient: 0.75,
-            metadata: { evtcSkillId: ID.WILD_THROW_ALTERNATE }
+            coefficient: 0.75
           },
           { atMs: 960, coefficient: 0.75 },
           {
             atMs: 1160,
-            coefficient: 0.75,
-            metadata: { evtcSkillId: ID.WILD_THROW_ALTERNATE }
+            coefficient: 0.75
           },
           { atMs: 1280, coefficient: 0.75 }
         ],
@@ -394,7 +381,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ],
     castTimeMs: 1280,
     adrenalineCost: 10,
-    burstTier: 1,
     burst: true,
     primalBurst: true
   }

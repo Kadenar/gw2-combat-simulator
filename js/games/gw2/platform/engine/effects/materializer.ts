@@ -70,7 +70,6 @@ export interface MaterializeSkillEffectOptions {
   readonly fullEnd: number;
   readonly baseEvent: EffectEventBase;
   readonly skillWeaponFallback?: string;
-  readonly statusDuration?: number;
 }
 
 /** Preserves authored annotations as one nested runtime object, with tick values overriding effect and base defaults. */
@@ -109,7 +108,7 @@ function strikeEventFields(source: StrikeEffect | StrikeTick) {
       ? { flatStrikeThresholdMultiplier: Number(source.flatStrikeThresholdMultiplier) }
       : {}),
     ...(source.damageKind != null ? { damageKind: source.damageKind } : {}),
-    ...(source.noCrit != null ? { noCrit: source.noCrit } : {}),
+    ...(source.canCrit != null ? { canCrit: source.canCrit } : {}),
     ...(source.forceCrit != null ? { forceCrit: source.forceCrit } : {}),
     ...(source.projectile != null ? { projectile: source.projectile } : {})
   };
@@ -137,7 +136,6 @@ export function materializeSkillEffectApplications({
   fullEnd,
   baseEvent,
   skillWeaponFallback = '',
-  statusDuration,
   reactionGroup
 }: MaterializeSkillEffectOptions): readonly MaterializedEffectApplication[] {
   const firstAt = effectFirstAt(start, fullEnd, effect);
@@ -259,7 +257,7 @@ export function materializeSkillEffectApplications({
           type: 'buff',
           kind: String(effect.boon || effect.kind || effect.name || '').toLowerCase(),
           stacks: Math.max(1, Number(effect.stacks || 1)),
-          duration: Math.max(0, Number(statusDuration ?? effect.duration ?? 0)),
+          duration: Math.max(0, Number(effect.duration ?? 0)),
           ...(effect.maximumDuration == null ? {} : { maximumDuration: effect.maximumDuration }),
           ...(count > 1 ? { applicationIndex, totalApplications: count } : {}),
           ...(effect.audience ? { audience: effect.audience } : {}),

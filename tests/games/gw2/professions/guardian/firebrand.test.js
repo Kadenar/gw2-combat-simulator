@@ -27,11 +27,11 @@ const config = {
 
 test('Firebrand public projections preserve configured pages and detach the canonical Ashes grant', () => {
   // Public consumers read the canonical grant without sharing mutable runtime state.
-  const state = createFirebrandState({ initialTomePages: 2, maximumTomePages: 8 });
+  const state = createFirebrandState({ initialTomePages: 2 });
   const { keys, defaults } = FIREBRAND_PUBLIC_STATE_PROJECTION;
   const projected = projectPublicProfessionState(state, keys, defaults);
   assert.equal(projected.tomePages.value, 2);
-  assert.equal(projected.tomePages.maximum, 8);
+  assert.equal(projected.tomePages.maximum, 5);
   assert.equal(defaults.tomePages.value, 5);
   assert.deepEqual(projected.ashes, state.ashes);
   assert.notEqual(projected.ashes, state.ashes);
@@ -54,7 +54,7 @@ test('Firebrand tomes consume shared pages and execute tome damage', () => {
   ]);
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.combatState.profession.ashes.charges, 0);
+  assert.equal(result.planningState.profession.ashes.charges, 0);
   assert.ok(result.conditionBreakdown.some((row) => row.name === 'Burning'));
   assert.ok(result.conditionBreakdown.some((row) => row.name === 'Bleeding'));
   assert.equal(
@@ -236,7 +236,7 @@ test('later tome pages do not restore consumed Ashes charges', () => {
   );
 
   assert.equal(personalBurns.length, 2);
-  assert.equal(result.combatState.profession.ashes.charges, 0);
+  assert.equal(result.planningState.profession.ashes.charges, 0);
 });
 
 test('Firebrand page exhaustion keeps the tome open while pages regenerate', () => {
@@ -785,7 +785,7 @@ test('dormant Tome equips preserve recharge and do not trigger virtue traits', (
       specialization: 'Firebrand',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE]
     })(undefined, rotation);
-  const readyAt = simulate(['Tome of Justice']).combatState.profession.virtueReadyAt.justice;
+  const readyAt = simulate(['Tome of Justice']).planningState.profession.virtueReadyAt.justice;
   const result = simulate([
     'Tome of Justice',
     'Stow Tome',
@@ -802,7 +802,7 @@ test('dormant Tome equips preserve recharge and do not trigger virtue traits', (
     { type: 'wait', durationMs: readyAt * 500 },
     'Tome of Justice'
   ]);
-  assert.equal(dormant.combatState.profession.virtueReadyAt.justice, readyAt);
+  assert.equal(dormant.planningState.profession.virtueReadyAt.justice, readyAt);
   assert.deepEqual(
     result.procSteps.filter((step) => step.skill === 'Lesser Symbol of Blades').map((step) => step.start),
     [0, readyAt * 1000]
@@ -818,7 +818,7 @@ test('dormant Tome equips preserve recharge and do not trigger virtue traits', (
       .length,
     2
   );
-  assert.equal(result.combatState.profession.virtueReadyAt.justice, readyAt * 2);
+  assert.equal(result.planningState.profession.virtueReadyAt.justice, readyAt * 2);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -911,7 +911,6 @@ test('Firebrand grandmaster support traits react to boons and control', () => {
   const quickfire = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
-    maximumTomePages: 8,
     initialTomePages: 8,
     allies: { count: 1, strikesPerSecond: 1 },
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.STALWART_SPEED, GUARDIAN_TRAIT_IDS.QUICKFIRE]
@@ -950,7 +949,7 @@ test('Firebrand dormant passives and Imbued Haste use timeline state', () => {
     primaryWeapon: 'Greatsword'
   })(undefined, ['Whirling Wrath', { type: 'wait', durationMs: 80000 }]);
 
-  assert.ok(passive.combatState.profession.justicePassiveBurns > 0);
+  assert.ok(passive.planningState.profession.justicePassiveBurns > 0);
   assert.equal(
     passive.resolvedEvents
       .filter((event) => event.sourceId === 'guardian.justice-passive')

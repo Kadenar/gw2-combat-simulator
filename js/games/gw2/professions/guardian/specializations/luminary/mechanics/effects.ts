@@ -9,7 +9,7 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2EffectExpiresAt, projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
-import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
+import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { emitGuardianBoon } from '#gw2/professions/guardian/core/traits/index.js';
 import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/shared.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -29,20 +29,6 @@ const AURA_GRANT = 'guardian.luminary.aura-grant';
 const AURA_DETONATE = 'guardian.luminary.aura-detonate';
 const EFFULGENT = 'guardian.luminary.effulgent';
 const STANCE = 'guardian.luminary.stance';
-
-/** Child packets retain their activation without copying hostile flags into self-state applications. */
-export function luminaryCause(runtime: Runtime, cast: RuntimeCast): Gw2ResolverEvent {
-  return {
-    type: 'buff',
-    at: runtime.time,
-    source: 'guardian',
-    sourceId: cast.skill.id,
-    actorType: 'player',
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id
-  };
-}
 
 /** Linked self effects follow the selected primary packet's authored impact boundary. */
 export function luminaryImpactAt(cast: RuntimeCast): number {
@@ -126,7 +112,7 @@ export function grantLuminaryAura(runtime: Runtime, event: Gw2ResolverEvent): vo
 function initialState(runtime: Runtime, cast: RuntimeCast): void {
   const duration = Math.max(0, Number(cast.command.initialStateDurationMs ?? 0)) / 1000;
   if (!(duration > 0)) return;
-  const event = { ...luminaryCause(runtime, cast), duration, stacks: 1 };
+  const event = { ...guardianCastCause(runtime, cast), duration, stacks: 1 };
   const id = cast.skill.id;
   if (id === INITIAL.claw) {
     runtime.emit({ ...event, type: 'control', controlKind: 'initial-state', initialStateDuration: duration });
@@ -152,7 +138,7 @@ function initialState(runtime: Runtime, cast: RuntimeCast): void {
 export function startLuminaryEffects(runtime: Runtime, cast: RuntimeCast): void {
   initialState(runtime, cast);
   const skill = cast.skill;
-  const event = luminaryCause(runtime, cast);
+  const event = guardianCastCause(runtime, cast);
   const hostile = { ...event, offTarget: cast.command.offTarget === true };
   const impact = luminaryImpactAt(cast);
   const sovereign = hasTrait(runtime, TRAIT.SOVEREIGN_OF_LIGHT);
@@ -223,7 +209,7 @@ export const luminaryEffectTasks = {
     const duration = 8 + (piercing ? Math.max(0, state.piercingStanceUntil - runtime.time) : 0);
     if (piercing) state.piercingStanceUntil = gw2EffectExpiresAt(runtime.time, duration);
     emitGuardianBoon(runtime, {
-      ...luminaryCause(runtime, cast),
+      ...guardianCastCause(runtime, cast),
       kind: piercing ? 'guardian-piercing-stance' : 'guardian-daring-advance',
       duration,
       stacks: 1,

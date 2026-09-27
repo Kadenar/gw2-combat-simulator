@@ -136,7 +136,6 @@ const generated: readonly Skill[] = Object.freeze(
 
     return {
       ...skill,
-      ...(apiSkillId === skillId ? {} : { apiSkillId }),
       ...(loadoutSkillId == null ? {} : { loadoutSkillId }),
       ...(skill.type === 'Weapon' && String(skill.attunement || '').includes('+')
         ? {

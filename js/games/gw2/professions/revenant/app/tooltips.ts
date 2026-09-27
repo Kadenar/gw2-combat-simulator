@@ -156,7 +156,7 @@ const familyTooltips = {
     facts: (balanceContext.catalog.skillsById.get(entity.id)!.effects || []).flatMap(
       (effect) =>
         simulationEffectFacts(
-          [{ ...effect, ...(effect.type === 'strike' ? { noCrit: true } : {}) }],
+          [{ ...effect, ...(effect.type === 'strike' ? { canCrit: false } : {}) }],
           effect.type === 'strike' ? 'per consumed charge' : ''
         ).facts
     )

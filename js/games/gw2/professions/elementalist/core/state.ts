@@ -84,7 +84,6 @@ export interface ElementalistCoreState {
   conjureEquipped: string | null;
   conjureExpiresAt: number;
   conjurePickups: Record<string, number>;
-  signetOfFireDisabledUntil: number;
   availableFlips: SkillFlipWindows;
   summonedElemental: ElementalistSummonedElementalState;
 
@@ -140,7 +139,6 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
     conjureEquipped: null,
     conjureExpiresAt: 0,
     conjurePickups: {},
-    signetOfFireDisabledUntil: 0,
     availableFlips: {},
     summonedElemental: {
       element: null,
@@ -202,7 +200,6 @@ const ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'conjureEquipped',
   'conjureExpiresAt',
   'conjurePickups',
-  'signetOfFireDisabledUntil',
   'availableFlips',
   'summonedElemental'
 ] as const satisfies readonly (keyof ElementalistCoreState)[]);

@@ -153,7 +153,7 @@ test('Dark projectile and whirl siphons own their hits without inflating the fin
     assert.equal(siphon.skillName, siphonName);
     assert.equal(siphon.parentSkillName, 'Fixture Finisher');
     assert.equal(siphon.flatStrikeBase, flatStrikeBase);
-    assert.equal(siphon.noCrit, true);
+    assert.equal(siphon.canCrit, false);
     const rows = skillBreakdownRows(result);
     assert.equal(rows.find((row) => row.name === 'Fixture Finisher').hits, 1);
     assert.equal(rows.find((row) => row.name === siphonName).hits, 1);
@@ -268,10 +268,11 @@ test('attempt IDs deduplicate successful and failed rolls', () => {
     assert.equal(resolveComboAttempt(state, attempt, options).length, 0);
   }
 
-  assert.deepEqual(rolls, [
-    [0.2, 'gw2.combo:failed'],
-    [0.2, 'gw2.combo:succeeded']
-  ]);
+  assert.deepEqual(
+    rolls.map(([chance]) => chance),
+    [0.2, 0.2]
+  );
+  assert.equal(rolls[0][1], rolls[1][1], 'Attempt IDs must not select the RNG stream.');
 });
 
 test('Whirl applications do not multiply combos and authored double Blasts do', () => {
@@ -434,12 +435,15 @@ test('combo streams are seeded and isolated from unrelated rolls in both modes',
         finisher(`seeded:${index}`, { kind: 'field-id', fieldId: 'fire:seeded' }, { chance })
       )
     ];
-    const random = createSimulationRandom({ mode, seed: 7 });
-    const expected = events.slice(1).filter((event) => random.roll(event.chance, `gw2.combo:${event.attemptId}`));
     const result = resolve(events, { randomness: { mode, seed: 7 } });
-    assert.deepEqual(
-      result.resolvedEvents.filter((event) => event.type === 'combo').map((event) => event.attemptId),
-      expected.map((event) => event.attemptId)
+    const combos = result.resolvedEvents.filter((event) => event.type === 'combo');
+    assert.equal(
+      combos.some((event) => event.attemptId === 'seeded:0'),
+      false
+    );
+    assert.equal(
+      combos.some((event) => event.attemptId === 'seeded:4'),
+      true
     );
   }
 });

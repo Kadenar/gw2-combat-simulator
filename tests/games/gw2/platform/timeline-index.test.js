@@ -5,7 +5,7 @@ import test from 'node:test';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Constant recharge rates bypass boon history, including explicit false console inputs.
 test('player recharge never samples Alacrity grants or expiry', () => {
@@ -35,7 +35,7 @@ test('Chronomancer recharge applies its increased rate only to player skills', (
 // Passive cooldown checks use permanent Alacrity regardless of transient grants.
 test('passive cooldown queries integrate committed recharge and retain historical reset boundaries', () => {
   const skill = { id: 990001, name: 'Passive skill', castTimeMs: 0, cooldown: 10, effects: [] };
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'passive-recharge',
     name: 'Passive recharge',
     catalog: createCanonicalCatalog({ generated: [skill] })
@@ -64,7 +64,7 @@ test('passive cooldown queries integrate committed recharge and retain historica
 
 test('passive cooldown queries honor recharge anchors and completion ticks despite boon extensions', () => {
   const skill = { id: 990001, name: 'Passive skill', castTimeMs: 2000, cooldown: 10, effects: [] };
-  const profession = defineProfession({
+  const profession = defineTestProfession({
     id: 'passive-extension',
     name: 'Passive extension',
     catalog: createCanonicalCatalog({ generated: [skill] })
@@ -204,7 +204,7 @@ test('repeated timeline queries reuse answers, including zero stacks and a ready
   }
 });
 
-test('same-time appends, replacements, resets, and truncation invalidate timeline answers', () => {
+test('same-time appends, resets, and truncation invalidate timeline answers', () => {
   const events = [buffEvent(), { type: 'action', at: 0, skillId: 1, rechargeReadyAt: 2 }];
   const timeline = createGw2TimelineIndex({ events });
   assert.equal(timeline.timedStacks('might', 1, 0, 25), 4);
@@ -215,16 +215,6 @@ test('same-time appends, replacements, resets, and truncation invalidate timelin
   assert.equal(timeline.timedStacks('might', 1, 0, 25), 6);
   assert.equal(timeline.skillOnCooldownAt(1, 1), false);
   assert.equal(timeline.skillOnCooldownAt(2, 1), true);
-
-  const previous = events[0];
-  events[0] = { ...previous, duration: 0.5 };
-  timeline.onEventReplaced(previous, events[0]);
-  assert.equal(timeline.timedStacks('might', 1, 0, 25), 2);
-  const snapshot = events[3];
-  events[3] = { ...snapshot, cooldowns: { 1: 3 } };
-  timeline.onEventReplaced(snapshot, events[3]);
-  assert.equal(timeline.skillOnCooldownAt(1, 1), true);
-  assert.equal(timeline.skillOnCooldownAt(2, 1), false);
 
   events.push({ type: 'marker', action: 'cooldown-reset', at: 1 });
   assert.equal(timeline.skillOnCooldownAt(1, 1), false);
@@ -263,7 +253,7 @@ test('buff query arguments and timeline instances cannot share another audience 
   assert.equal(createGw2TimelineIndex().buffStacksAt('might', 1, 2, 25), 0);
 });
 
-test('appended and replaced boon extensions invalidate intensity and duration queries', () => {
+test('appended boon extensions invalidate intensity and duration queries', () => {
   const events = [buffEvent(), buffEvent({ kind: 'fury', stacks: 1 })];
   const timeline = createGw2TimelineIndex({ events });
   assert.equal(timeline.timedStacks('might', 2.5, 0, 25), 0);
@@ -272,10 +262,6 @@ test('appended and replaced boon extensions invalidate intensity and duration qu
   events.push(extension);
   assert.equal(timeline.timedStacks('might', 2.5, 0, 25), 4);
   assert.equal(timeline.timedActive('fury', 2.5), true);
-  events[2] = { ...extension, duration: 0.25 };
-  timeline.onEventReplaced(extension, events[2]);
-  assert.equal(timeline.timedStacks('might', 2.5, 0, 25), 0);
-  assert.equal(timeline.timedActive('fury', 2.5), false);
   assert.equal(timeline.timedStacks('might', 0.5, 0, 25), 4);
   assert.equal(timeline.timedActive('fury', 0.5), true);
 });
