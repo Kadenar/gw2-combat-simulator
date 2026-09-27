@@ -14,6 +14,79 @@ import { elementalistCoreModifierRules } from '#gw2/professions/elementalist/cor
 import { weaverModifierRules } from '#gw2/professions/elementalist/specializations/weaver/modifiers.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+
+test('Inferno reuses each application sample while direct queries still compute their own stats', () => {
+  // Exercise the real query and buffer with mixed conditions and owners; no application may borrow another's stats.
+  for (const output of ['detailed', 'score']) {
+    const reads = new Map();
+    const profession = defineTestProfession({
+      id: 'inferno-sample',
+      name: 'Inferno sample',
+      modifiers: {
+        ...createModifierHooks({
+          rules: elementalistCoreModifierRules.filter((rule) => rule.id === 'elementalist.inferno')
+        }),
+        modifyAttributes(context, attributes) {
+          if (context.time > 0) {
+            const key = `${context.time}:${context.event.sourceId}`;
+            reads.set(key, (reads.get(key) || 0) + 1);
+          }
+
+          return {
+            ...attributes,
+            power: context.time < 2 ? 1000 : 1200,
+            conditionDamage: context.event.condition === 'Bleeding' ? 2000 : 1000
+          };
+        }
+      }
+    });
+    const config = { selectedTraitIds: [TRAIT.INFERNO], target: { conditions: {} } };
+    const burning = {
+      type: 'condition',
+      at: 0,
+      actorType: 'player',
+      source: 'Player',
+      sourceId: 'burn',
+      condition: 'Burning',
+      stacks: 1,
+      duration: 2,
+      fixedDuration: true
+    };
+    const summon = {
+      ...burning,
+      actorType: 'summon',
+      source: 'Minion',
+      sourceId: 'summon-burn',
+      summonOwner: 'minion',
+      independentSummonStrike: true,
+      summonBasePower: 2000,
+      summonBaseConditionDamage: 0
+    };
+    const events = [
+      { type: 'damage', at: 0, actorType: 'player', source: 'Player', sourceId: 'opener', flatDamage: 1 },
+      burning,
+      summon,
+      { ...burning, sourceId: 'bleed', condition: 'Bleeding' },
+      { ...summon, sourceId: 'independent-burn', independentConditionOwner: true }
+    ];
+    const result = resolveTestGw2Events({ profession, config, events, endTime: 2, output });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(reads.size, 8);
+    for (const [key, count] of reads) assert.equal(count, 1, `Duplicate attribute calculation for ${key}`);
+    // Player and ordinary summon burns share rounding; the independent summon keeps its 2000-power profile.
+    assert.equal(result.conditionDamage, 427 + 460 + 142 * 2 + 296 * 2);
+
+    reads.clear();
+    const query = createGw2CombatQuery({ profession, config });
+    assert.equal(query.conditionMultiplier('Burning', 1, burning), 213.5 / 286);
+    assert.equal(query.conditionMultiplier('Bleeding', 1, events[3]), 1);
+    assert.deepEqual([...reads], [['1:burn', 1]]);
+  }
+});
 
 // Shared expansion preserves completion attribution while honoring authored offsets and repeated boon grants.
 test('Gale Song and Bolstered Elements expand their selected boon profile at completion', () => {

@@ -584,6 +584,8 @@ export interface Gw2ModifierContext {
   readonly damageInputs?: Gw2DamageInputs;
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
   readonly conditionSample?: Gw2ConditionSample;
+  /** Attributes already sampled for this application and instant, never shared across applications. */
+  readonly conditionStats?: Gw2ResolvedStats;
 }
 
 type Gw2ModifierNumericResolver = (

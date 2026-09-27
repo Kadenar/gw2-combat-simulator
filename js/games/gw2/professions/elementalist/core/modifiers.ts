@@ -84,7 +84,8 @@ function infernoBurningFactor(
   _target: string,
   parameters: Readonly<Record<string, number>>
 ): number {
-  const stats = context.query?.statsAt(context.time, context.event, context.runtime);
+  // Sampling already resolved this application's attributes; direct multiplier queries still need their own read.
+  const stats = context.conditionStats ?? context.query?.statsAt(context.time, context.event, context.runtime);
   const power = stats?.power || 0;
   const conditionDamage = stats?.conditionDamage || 0;
   // Only Inferno's power coefficient is balance-authorable; its shared burning formula stays canonical.

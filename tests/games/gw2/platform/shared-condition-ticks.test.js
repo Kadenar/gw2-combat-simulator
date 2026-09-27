@@ -282,9 +282,9 @@ test('non-damaging conditions preserve other skills modifiers, expiry, and repor
             strikes.push(multiplier);
             return multiplier;
           },
-          conditionMultiplier: (name, at, event, runtime, sample) => {
+          conditionMultiplier: (name, at, event, runtime, sample, stats) => {
             assert.equal(name, 'Bleeding', 'Only damaging conditions may calculate a damage multiplier');
-            const multiplier = combat.conditionMultiplier(name, at, event, runtime, sample);
+            const multiplier = combat.conditionMultiplier(name, at, event, runtime, sample, stats);
             bleeding.set(Math.round(at * 1000), multiplier);
             return multiplier;
           }

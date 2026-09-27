@@ -70,6 +70,7 @@ interface HookContextOptions {
   readonly damageInputs?: Gw2DamageInputs;
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
   readonly conditionSample?: Gw2ConditionSample;
+  readonly conditionStats?: Gw2ResolvedStats;
 }
 
 /** Conditions use their owner's bonuses; summon strike profiles and original actor metadata stay intact. */
@@ -335,6 +336,7 @@ export function createGw2CombatQuery({
       runtime = null,
       damageInputs,
       conditionSample,
+      conditionStats,
       criticalChanceContributors
     }: HookContextOptions = {}
   ): Gw2ModifierContext => ({
@@ -354,6 +356,7 @@ export function createGw2CombatQuery({
     runtime,
     damageInputs,
     conditionSample,
+    conditionStats,
     criticalChanceContributors
   });
 
@@ -559,7 +562,8 @@ export function createGw2CombatQuery({
       time: number,
       event: SimulationEvent | null = null,
       runtime: Gw2QueryRuntime | null = null,
-      sample?: Gw2ConditionSample
+      sample?: Gw2ConditionSample,
+      conditionStats?: Gw2ResolvedStats
     ) {
       event = conditionOwnerEvent(event);
       const relicContext = runtime?.relic ? runtime : historicalRelicContext;
@@ -585,6 +589,7 @@ export function createGw2CombatQuery({
           condition: name,
           runtime,
           conditionSample: sample,
+          conditionStats,
           damageInputs: { conditionSigilBonus: sigilBonus, equipmentBonus: relicBonus }
         }),
         base
@@ -690,7 +695,8 @@ export interface Gw2CombatQuery {
     time: number,
     event?: SimulationEvent | null,
     runtime?: Gw2QueryRuntime | null,
-    sample?: Gw2ConditionSample
+    sample?: Gw2ConditionSample,
+    conditionStats?: Gw2ResolvedStats
   ): number;
   conditionDurationMultiplier(
     name: string,
