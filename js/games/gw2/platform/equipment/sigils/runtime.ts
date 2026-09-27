@@ -14,7 +14,8 @@ export function consumeRuntimeDoom(runtime: Gw2Runtime, event: Gw2ResolverEvent)
   if (!runtime.sigil.doomPending || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
   runtime.sigil.doomPending = false;
   runtime.emitDerived(event, { ...createSigilConditionEvent('Doom', procs.Doom, event.skillName || ''), at: event.at });
-  runtime.recordProc('sigil', 'Sigil of Doom', event.at, event.skillName);
+  // The delayed proc carries Doom's artwork so every view displays the sigil's icon.
+  runtime.recordProc('sigil', 'Sigil of Doom', event.at, event.skillName, '', procs.Doom.icon);
 }
 
 /** Swap, control and ordinary strike sigils claim the same per-run ICD map as critical sigils. */
