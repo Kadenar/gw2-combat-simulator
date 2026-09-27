@@ -1,4 +1,5 @@
 import { applySideEffect, type ActionContext } from '#gw2/platform/simulation/side-effects.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
@@ -266,7 +267,27 @@ function gainEnergy(runtime: ElementalistRuntime, event: SimulationEvent): void 
 export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
   initialize,
   availability,
-  sideEffectHandlers: { 'elementalist.catalyst.refresh-weapons': activateElementalCelerity },
+  sideEffectHandlers: {
+    'elementalist.catalyst.refresh-weapons': activateElementalCelerity,
+    // A sphere can deploy during an augment's cast; select and emit its authored window only on commitment.
+    'elementalist.catalyst.augment-window'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Catalyst augment windows require a cast trigger.');
+      const { skill, cast } = context;
+      emitEffects(runtime, {
+        owner: skill,
+        effects: (skill.effects ?? []).filter((effect) => !effect.when || effect.when(runtime, cast)),
+        baseEvent: {
+          source: 'elementalist',
+          sourceId: skill.id,
+          actorType: 'player',
+          skillId: skill.id,
+          skillName: skill.name,
+          activationId: cast.id
+        },
+        transform: (event) => ({ ...event, offTarget: cast.command.offTarget })
+      });
+    }
+  },
   // Sphere recharge uses the selected Core trait profile.
   rechargeRules: [
     {
@@ -285,6 +306,8 @@ export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState>>
     withElementalistCast(runtime, cast, () => onCastStart(runtime, cast, cast.skill));
   },
   modifyEffects(runtime, cast, effects) {
+    // The commit action owns augment emission so cast-start materialization cannot freeze the sphere choice.
+    if (cast.skill.sideEffects?.some((effect) => effect.do.type === 'elementalist.catalyst.augment-window')) return [];
     if (cast.skill.skillFamily !== 'Jade Sphere' || !hasTrait(runtime, TRAIT.SPHERE_SPECIALIST)) return effects;
     const multiplier = balanceProfileNumber(
       requireBalanceProfileFromContext(runtime, PROFILE.sphereSpecialist),

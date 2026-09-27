@@ -1,3 +1,4 @@
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
@@ -168,6 +169,8 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     effects: []
   },
   [ID.PALM_STRIKE]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.PALM_STRIKE } }],
     castTimeMs: 480,
     cooldown: 0,
     initiativeCost: 0,
@@ -214,7 +217,19 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.FIST_FLURRY]: {
-    sideEffects: PHYSICAL_ENDURANCE,
+    // Only a complete on-target flurry exposes Palm Strike; accepted casts still grant trait endurance.
+    sideEffects: [
+      ...PHYSICAL_ENDURANCE,
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => cast.command.offTarget !== true && !castWasInterrupted(cast),
+        do: {
+          type: 'flipArm',
+          skillId: ID.PALM_STRIKE,
+          durationSec: { profile: PROFILE.palmStrike, field: 'durationMultiplier' }
+        }
+      }
+    ],
     castTimeMs: 680,
     cooldown: 16,
     initiativeCost: 0,

@@ -46,7 +46,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.DETONATE_HEALING_TURRET]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/hooks.ts`.
+    // Availability requires the parent skill's exposed window.
 
     flipParentName: 'Healing Turret',
     paletteTileId: HEALING_TURRET_PALETTE_TILE,
@@ -72,7 +72,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.CLEANSING_BURST]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/hooks.ts`.
+    // Availability requires the parent skill's exposed window.
 
     flipParentName: 'Healing Turret',
     paletteTileId: HEALING_TURRET_PALETTE_TILE,
@@ -97,14 +97,16 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.THROW_MINE]: {
-    // Custom: Arms this skill's follow-up palette flip; see `core/hooks.ts`.
-
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.DETONATE, durationSec: null } }],
     paletteFlipSkillId: ID.DETONATE,
     castTimeMs: 360,
     cooldown: 12,
     rechargeAnchor: 'castStart'
   },
   [ID.DETONATE]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DETONATE } }],
     // Gadgeteer adds one independent mine blast without duplicating the control packet.
     effectVariants: [
       {
@@ -127,7 +129,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
           )
       }
     ],
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/hooks.ts`.
+    // Availability requires the parent skill's exposed window.
 
     flipParentName: 'Throw Mine',
     castTimeMs: 0,

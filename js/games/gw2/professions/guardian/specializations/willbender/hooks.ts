@@ -10,7 +10,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
@@ -361,8 +361,6 @@ export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> =
         if (virtue === 'justice') triggerGuardianFuriousFocus(runtime, cast);
       }
     }
-
-    if (cast.skill.id === ID.REPOSE) consumeSkillFlip(runtime.profession.core.availableFlips, ID.REPOSE);
   },
   tasks: {
     [ACTIVATE]: activate,

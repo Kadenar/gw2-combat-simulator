@@ -325,7 +325,7 @@ export const guardianTooltips: ProfessionTooltips = {
     [ID.SHIELD_OF_ABSORPTION]: skillTooltip(
       'Knock back the target and temporarily unlock the shield follow-up. Projectile absorption and healing are outside combat simulation scope.'
     ),
-    [ID.SHIELD_OF_ABSORPTION_ID_9224]: skillTooltip(
+    [ID.SHIELD_OF_ABSORPTION_ID_DETONATE]: skillTooltip(
       'Consume the Shield of Absorption follow-up. Its healing adds no damage or status effect within combat simulation scope.'
     ),
     ...Object.fromEntries(

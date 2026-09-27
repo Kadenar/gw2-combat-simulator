@@ -42,6 +42,8 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.DEACTIVATE_OTHERWORLDLY_BOND]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DEACTIVATE_OTHERWORLDLY_BOND } }],
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -108,6 +110,8 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.OTHERWORLDLY_BOND]: {
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.DEACTIVATE_OTHERWORLDLY_BOND } }],
     castTimeMs: 520,
     flipDuration: 7,
     cooldown: 8,

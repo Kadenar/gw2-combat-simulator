@@ -35,7 +35,7 @@ import { scrapperModule } from '#gw2/professions/engineer/specializations/scrapp
 import { SCRAPPER_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
 import { assertProfessionFamilyConformance } from '#tests/helpers/profession-family-conformance.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { engineerCoreHooks } from '#gw2/professions/engineer/core/hooks.js';
+import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
 
@@ -182,14 +182,18 @@ test('Overclock Signet runtime inputs stay outside balance authoring', () => {
   }
 });
 
-test('Engineer palette flips require explicit consumable targets and ignore raw API flips', () => {
+test('Engineer flip declarations expose and consume windows independently of API metadata', () => {
   runEngineer(
     [],
     {},
     {
       initialize(runtime) {
         const complete = (skill) =>
-          engineerCoreHooks.onCastCommit(runtime, { skill, id: 'flip-test', start: 0, fullEnd: 0, effectiveEnd: 0 });
+          applySkillSideEffects(
+            runtime,
+            { skill, id: 'flip-test', start: 0, fullEnd: 0, effectiveEnd: 0 },
+            'castCommit'
+          );
         for (const skill of engineerCatalog.skills.filter(
           (candidate) =>
             candidate.paletteFlipSkillId != null &&
@@ -206,14 +210,8 @@ test('Engineer palette flips require explicit consumable targets and ignore raw 
         }
 
         const before = structuredClone(runtime.profession.core.availableFlips);
-        for (const paletteFlipSkillId of [NaN, Infinity, 0, -1, 'missing', ID.RIFLE_BURST]) {
-          assert.throws(
-            () => complete({ id: -999, name: 'Malformed parent', paletteFlipSkillId }),
-            /requires a paletteFlipSkillId/
-          );
-          assert.deepEqual(runtime.profession.core.availableFlips, before);
-        }
-
+        // Palette metadata alone cannot create a runtime window; only an authored action can.
+        complete({ id: -999, name: 'Palette-only parent', paletteFlipSkillId: ID.MAGNETIC_INVERSION });
         complete({ id: -999, name: 'Unowned API flip', flipSkillId: ID.MAGNETIC_INVERSION });
         assert.deepEqual(runtime.profession.core.availableFlips, before);
       }

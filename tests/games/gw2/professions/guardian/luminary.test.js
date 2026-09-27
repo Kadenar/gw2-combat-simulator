@@ -460,7 +460,7 @@ test('Guardian weapon and Radiant Forge flips occupy one live palette tile', () 
   );
 
   const shieldParent = GUARDIAN_SKILL_IDS.SHIELD_OF_ABSORPTION;
-  const shieldChild = GUARDIAN_SKILL_IDS.SHIELD_OF_ABSORPTION_ID_9224;
+  const shieldChild = GUARDIAN_SKILL_IDS.SHIELD_OF_ABSORPTION_ID_DETONATE;
   const shieldConfig = { primaryWeapon: 'Mace', secondaryWeapon: 'Shield' };
 
   assert.deepEqual(displayedIdsAfter([], [shieldParent], shieldConfig), [shieldParent]);

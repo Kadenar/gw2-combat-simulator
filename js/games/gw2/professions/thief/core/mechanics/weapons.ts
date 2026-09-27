@@ -5,13 +5,7 @@ import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { permanentTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  armSkillFlip,
-  consumeSkillFlip,
-  skillFlipVisible,
-  type SkillFlipWindows,
-  followUpOf
-} from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip, consumeSkillFlip, skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -175,20 +169,11 @@ function updateSpearChain(runtime: ThiefRuntime, skill: ThiefSkill): void {
 export function completeThiefWeaponState(runtime: ThiefRuntime, cast: RuntimeCast, committed: boolean): void {
   const skill = cast.skill as ThiefSkill;
   const core = runtime.profession.core;
-  const flips: SkillFlipWindows = core.availableFlips;
   // Weapon state uses the same commitment gate as other cast rewards, including shortened casts.
   if (committed && !(skill.categories || []).includes('stolen skill')) grantThiefStealth(runtime, skill);
   if (committed && (skill.resourceGain || 0) > 0) grantThiefEndurance(runtime, Number(skill.resourceGain));
   if (committed) updateSpearChain(runtime, skill);
   if (committed && AXE_RECALL_SKILLS.has(skill.id)) core.spinningAxeExpirations = [];
-  // Dual-wield openers keep their follow-up one second shorter unless the skill authors its own window.
-  const followUp = committed && skill.type === 'Weapon' ? followUpOf(runtime.helpers.skillsById, skill) : undefined;
-  if (followUp)
-    runtime.armFlip(followUp.id, {
-      expiresAt: runtime.time + (skill.flipDuration ?? (skill.dualWieldOpener ? 4 : 5))
-    });
-
-  if (committed && skill.type === 'Weapon' && skill.flipParentId != null) consumeSkillFlip(flips, skill.id);
 }
 
 /** Each landed axe joins the shared ground pool for ten seconds, keeping the six newest. */

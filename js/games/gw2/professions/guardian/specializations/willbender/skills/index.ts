@@ -8,6 +8,13 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ROILING_LIGHT]: {
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: { type: 'flipArm', skillId: ID.QUICK_RETRIBUTION, durationSec: 15, expiryPriority: -220 }
+      }
+    ],
     castTimeMs: 200,
     effects: [
       {
@@ -179,10 +186,14 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ])
   },
   [ID.REPOSE]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.REPOSE } }],
     castTimeMs: 200,
     effects: []
   },
   [ID.QUICK_RETRIBUTION]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.QUICK_RETRIBUTION } }],
     castTimeMs: 200,
     effects: [
       {

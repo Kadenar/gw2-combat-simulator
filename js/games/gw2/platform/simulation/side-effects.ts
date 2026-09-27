@@ -24,9 +24,11 @@ export type SideEffectAction =
   | {
       readonly type: 'flipArm';
       readonly skillId: SkillId;
-      readonly durationSec?: ProfileAmount;
+      /** Null keeps the flip exposed until its owner consumes it; omission uses the skill's flipDuration. */
+      readonly durationSec?: ProfileAmount | null;
       readonly expiryPriority?: number;
     }
+  | { readonly type: 'flipConsume'; readonly skillId: SkillId }
   | {
       readonly type: 'emitProfile';
       readonly profileId: SkillId;
@@ -97,10 +99,18 @@ export function applySideEffect(
     case 'flipArm':
       if (context.kind !== 'cast') throw new TypeError('flipArm requires a cast trigger.');
       runtime.armFlip(action.skillId, {
-        expiresAt: runtime.time + sideEffectAmount(runtime, action.durationSec ?? Number(context.skill.flipDuration)),
+        expiresAt:
+          action.durationSec === null
+            ? Infinity
+            : runtime.time + sideEffectAmount(runtime, action.durationSec ?? Number(context.skill.flipDuration)),
         // Some follow-ups must expire before same-time cast work, matching their previous lifecycle owner.
         expiryPriority: action.expiryPriority
       });
+      return;
+    case 'flipConsume':
+      // Consumption is phase-owned by the declaration and leaves any later rearm's expiry independent.
+      if (context.kind !== 'cast') throw new TypeError('flipConsume requires a cast trigger.');
+      runtime.consumeFlip(action.skillId);
       return;
     case 'emitProfile': {
       const profile = requireBalanceProfileFromContext(runtime, action.profileId);

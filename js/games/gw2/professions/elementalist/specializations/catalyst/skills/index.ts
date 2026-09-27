@@ -105,7 +105,8 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
     castTimeMs: 240,
     cooldown: 20,
     skillFamily: 'Augment',
-    // Only a sphere surviving through completion extends this skill's authored buff.
+    // Select the authored window from live sphere state when the cast commits.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.catalyst.augment-window' } }],
     effects: [
       {
         type: 'buff',
@@ -114,7 +115,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
         duration: 5,
         stacks: 1,
         audience: { recipients: 'self' },
-        when: (runtime, cast) => !(catalystState.from(runtime).sphereExpiry.Fire > cast.effectiveEnd)
+        when: (runtime) => !(catalystState.from(runtime).sphereExpiry.Fire > runtime.time)
       },
       {
         type: 'buff',
@@ -123,7 +124,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
         duration: 8,
         stacks: 1,
         audience: { recipients: 'self' },
-        when: (runtime, cast) => catalystState.from(runtime).sphereExpiry.Fire > cast.effectiveEnd
+        when: (runtime) => catalystState.from(runtime).sphereExpiry.Fire > runtime.time
       }
     ]
   },
@@ -136,7 +137,8 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
     castTimeMs: 240,
     cooldown: 20,
     skillFamily: 'Augment',
-    // Only a sphere surviving through completion extends this skill's authored buff.
+    // Select the authored window from live sphere state when the cast commits.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.catalyst.augment-window' } }],
     effects: [
       {
         type: 'buff',
@@ -145,7 +147,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
         duration: 5,
         stacks: 1,
         audience: { recipients: 'self' },
-        when: (runtime, cast) => !(catalystState.from(runtime).sphereExpiry.Water > cast.effectiveEnd)
+        when: (runtime) => !(catalystState.from(runtime).sphereExpiry.Water > runtime.time)
       },
       {
         type: 'buff',
@@ -154,7 +156,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
         duration: 8,
         stacks: 1,
         audience: { recipients: 'self' },
-        when: (runtime, cast) => catalystState.from(runtime).sphereExpiry.Water > cast.effectiveEnd
+        when: (runtime) => catalystState.from(runtime).sphereExpiry.Water > runtime.time
       }
     ]
   },

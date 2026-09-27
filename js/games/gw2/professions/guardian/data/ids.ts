@@ -108,7 +108,7 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   SYMBOL_OF_PROTECTION: 9161, // Symbol of Protection
   MIGHTY_BLOW: 9194, // Mighty Blow
   RING_OF_WARDING: 9195, // Ring of Warding
-  SHIELD_OF_ABSORPTION_ID_9224: 9224, // Shield of Absorption
+  SHIELD_OF_ABSORPTION_ID_DETONATE: 9224, // Shield of Absorption
   PULL: 9226, // Pull
   JUDGES_INTERVENTION: 9247, // Judge's Intervention
   ZEALOTS_EMBRACE: 9260, // Zealot's Embrace

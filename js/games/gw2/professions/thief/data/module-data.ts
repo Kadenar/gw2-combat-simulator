@@ -28,13 +28,6 @@ const WEAPON_FLIP_BY_PARENT: Readonly<Record<number, SkillId>> = Object.freeze({
   [ID.SNIPERS_COVER]: ID.DEATHS_ADVANCE
 });
 
-const WEAPON_FLIP_DURATION_BY_PARENT: Readonly<Record<number, number>> = Object.freeze({
-  [ID.INFILTRATORS_STRIKE]: 15,
-  [ID.CLUSTER_BOMB]: 1,
-  [ID.DEBILITATING_ARC]: 3,
-  [ID.SNIPERS_COVER]: 5
-});
-
 // Derive Scepter autoattack chain metadata from generated skill identity so the
 // catalog exposes the correct root, next step, and timing.
 function scepterAutoattackMetadata(skill: ThiefSkill): Partial<ThiefSkill> {
@@ -126,7 +119,6 @@ const normalize = (skill: ThiefSkill): ThiefSkill => ({
       }),
   flipParentId: flipParentById.get(skill.id) ?? null,
   dualWieldOpener: Object.hasOwn(DUAL_FOLLOWUP_BY_PARENT, skill.id),
-  flipDuration: WEAPON_FLIP_DURATION_BY_PARENT[Number(skill.id)] ?? skill.flipDuration,
   ...((skill.initiativeCost || 0) > 0
     ? {
         resource: 'initiative'

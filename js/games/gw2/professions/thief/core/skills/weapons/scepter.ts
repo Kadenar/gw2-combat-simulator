@@ -29,6 +29,8 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   },
   [ID.ENDLESS_NIGHT]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.ENDLESS_NIGHT } }],
     castTimeMs: 1920,
     // Retain each beam packet already emitted when the channel is interrupted.
     interruptMode: 'per-packet',
@@ -201,6 +203,8 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
     requiredOffHand: 'Dagger'
   },
   [ID.MEASURED_SHOT]: {
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.ENDLESS_NIGHT } }],
     castTimeMs: 560,
     // Commit the shot at 320 ms, preserving its impact and remaining cast lockout after interruption.
     interruptCommitMs: 320,

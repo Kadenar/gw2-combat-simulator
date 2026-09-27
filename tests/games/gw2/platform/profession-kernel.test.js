@@ -662,3 +662,71 @@ test('declared flip expiry priority orders cleanup against other work at its dea
     assert.deepEqual(observed, [expiryPriority === undefined]);
   }
 });
+
+// A declaration chooses the consumption boundary; cancelling before commitment must not spend the window.
+test('declared flip consumption respects cast phase and safely consumes an absent window', () => {
+  for (const on of ['castStart', 'castCommit']) {
+    for (const interruptAfterMs of [100, undefined]) {
+      let runtime;
+      const profession = fixture({
+        initialize: (value) => {
+          runtime = value;
+        }
+      });
+      profession.catalog = withSkill(
+        withSkill(catalog, 991001, {
+          sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: 'flip', durationSec: null } }]
+        }),
+        'flip',
+        {
+          castTimeMs: 1000,
+          sideEffects: [{ on, do: { type: 'flipConsume', skillId: 'flip' } }]
+        }
+      );
+      const result = runGw2Runtime({
+        profession,
+        config,
+        rotation: [cast(991001), wait(3000), cast('flip', { interruptAfterMs })]
+      });
+      assert.deepEqual(result.warnings, []);
+      const retained = on === 'castCommit' && interruptAfterMs !== undefined;
+      assert.equal(Boolean(runtime.profession.core.availableFlips.flip), retained);
+      if (retained) assert.equal(runtime.profession.core.availableFlips.flip.expiresAt, null);
+      runtime.consumeFlip('flip');
+      assert.equal(runtime.consumeFlip('flip'), undefined);
+    }
+  }
+});
+
+// Retiring a finite occurrence does not let its queued expiry remove an indefinite replacement.
+test('consumed flip expiry cannot clear a later declarative rearm', () => {
+  let runtime;
+  const profession = fixture({
+    initialize: (value) => {
+      runtime = value;
+    }
+  });
+  profession.catalog = withSkill(
+    withSkill(
+      withSkill(catalog, 991001, {
+        sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: 'flip', durationSec: 1 } }]
+      }),
+      'flip',
+      {
+        castTimeMs: 0,
+        sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: 'flip' } }]
+      }
+    ),
+    991006,
+    {
+      sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: 'flip', durationSec: null } }]
+    }
+  );
+  const result = runGw2Runtime({
+    profession,
+    config,
+    rotation: [cast(991001), cast('flip'), cast(991006), wait(2000)]
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(runtime.profession.core.availableFlips.flip.expiresAt, null);
+});

@@ -35,7 +35,7 @@ import {
 import {
   completeRevenantCrushingAbyssSwap,
   completeRevenantImperialGuard,
-  completeRevenantWeaponFlips,
+  completeRevenantBlossomingAura,
   detonateRevenantBlossomingAura,
   reactRevenantSpearRecharge,
   revenantAbyssalRazeImpact,
@@ -271,7 +271,7 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
     else if (upkeepRelease(runtime, skill)) releaseRevenantUpkeep(runtime, cast);
     else if (skill.id === ID.SWAP_LEGENDS) swapLegend(runtime, cast);
     else if (skill.id === ID.ENCHANTED_DAGGERS) completeRevenantEnchantedDaggers(runtime, cast);
-    completeRevenantWeaponFlips(runtime, cast);
+    completeRevenantBlossomingAura(runtime, cast);
 
     completeRevenantCastTraits(runtime, cast);
     // Empower only after the paid skill commits, so a pulse during its windup cannot consume the bonus.

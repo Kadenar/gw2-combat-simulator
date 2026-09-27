@@ -65,7 +65,12 @@ import { buildSimulationScore, buildCombatResult } from '#gw2/platform/results/b
 import { planningState } from '#gw2/platform/results/end-state.js';
 import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { armSkillFlip, expireSkillFlip, type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
+import {
+  armSkillFlip,
+  consumeSkillFlip,
+  expireSkillFlip,
+  type SkillFlipWindows
+} from '#gw2/platform/engine/skills/skill-flips.js';
 import { createCriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
 import type { Gw2SimulationOptions } from '#gw2/platform/simulation/types.js';
 import {
@@ -343,6 +348,9 @@ export function runGw2Runtime<T extends object>({
           })
         );
       return window;
+    },
+    consumeFlip(skillId: SkillId) {
+      return consumeSkillFlip(flipWindows(), skillId);
     },
     combatStartedAt(at = runtime.time) {
       // Setup casts that complete at the marker's own instant stay precombat until the cursor consumes the marker.

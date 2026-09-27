@@ -43,6 +43,8 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
     ])
   },
   [ID.SHADOW_STRIKE]: {
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.REPEATER_ID_59526, durationSec: 4 } }],
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 4,
@@ -272,6 +274,8 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
     stealthAttack: true
   },
   [ID.REPEATER_ID_59526]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.REPEATER_ID_59526 } }],
     castTimeMs: 840,
     cooldown: 0,
     initiativeCost: 2,

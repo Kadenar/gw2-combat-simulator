@@ -128,6 +128,8 @@ export interface Gw2Runtime<T extends object = object> extends Gw2ResolverRuntim
    * occurrence: a later rearm of the same skill survives the older deadline.
    */
   armFlip(skillId: SkillId, window?: FlipWindowOptions): SkillFlipWindow;
+  /** Retires a follow-up once; an absent window is already consumed. */
+  consumeFlip(skillId: SkillId): SkillFlipWindow | undefined;
   /** True once combat has started: always without an explicit marker, otherwise from the executed marker onward. */
   combatStartedAt(at?: number): boolean;
   schedule(name: string, at: number, data?: unknown, owner?: WorkOwner, priority?: number): number;

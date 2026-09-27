@@ -109,6 +109,9 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.DEBILITATING_ARC]: {
+    flipDuration: 3,
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.HELMET_BREAKER } }],
     castTimeMs: 200,
     cooldown: 0,
     initiativeCost: 3,
@@ -183,6 +186,8 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.HELMET_BREAKER]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.HELMET_BREAKER } }],
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 1,

@@ -138,6 +138,8 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.BINDING_BLADE]: {
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.PULL, expiryPriority: -220 } }],
     castTimeMs: 480,
     // Pull Self stays available for the tether's lifetime.
     flipDuration: 10,
@@ -165,6 +167,8 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.PULL]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.PULL } }],
     castTimeMs: 520,
     // Binding Blade only tethers; its armed Pull flip owns the control event that can trigger control relics.
     effects: [

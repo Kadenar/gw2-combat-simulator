@@ -7,6 +7,8 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.DEATHS_ADVANCE]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DEATHS_ADVANCE } }],
     castTimeMs: 200,
     cooldown: 0,
     initiativeCost: 2,
@@ -295,6 +297,9 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     kneelSkill: true
   },
   [ID.SNIPERS_COVER]: {
+    flipDuration: 5,
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.DEATHS_ADVANCE } }],
     castTimeMs: 200,
     cooldown: 0,
     initiativeCost: 4,

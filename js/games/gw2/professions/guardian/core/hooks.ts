@@ -77,7 +77,8 @@ function completeWeapon(runtime: Runtime, cast: RuntimeCast): void {
   } else if (skill.type !== 'Action') runtime.lockouts.delete('guardian-zealots-flame-after-fire');
   const flips = runtime.profession.core.availableFlips;
   const followUp = followUpOf(runtime.helpers.skillsById, skill);
-  if (followUp) {
+  // Declarative flips own their mutations; this path retains the trait-dependent and other procedural families.
+  if (followUp && !skill.sideEffects?.some((effect) => effect.do.type === 'flipArm')) {
     // Radiant Fire keeps Zealot's Flame burning longer; otherwise the window follows the skill's recharge.
     const duration =
       (skill.flipDuration ?? Math.max(1, skill.cooldown ?? 5)) *
@@ -87,7 +88,8 @@ function completeWeapon(runtime: Runtime, cast: RuntimeCast): void {
     runtime.armFlip(followUp.id, { expiresAt: canonicalTime(runtime.time + duration), expiryPriority: -220 });
   }
 
-  if (skill.flipParentId != null) consumeSkillFlip(flips, skill.id);
+  if (skill.flipParentId != null && !skill.sideEffects?.some((effect) => effect.do.type === 'flipConsume'))
+    consumeSkillFlip(flips, skill.id);
 }
 
 /** Core hooks: accepted virtues, shared recharge, endurance grants, and temporary weapon state. */

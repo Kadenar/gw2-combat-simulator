@@ -81,6 +81,8 @@ export function completeEngineerTurret(runtime: EngineerRuntime, cast: RuntimeCa
   const state = runtime.profession.core;
   const at = runtime.time;
   if (!HEALING_TURRET_SKILL_IDS.has(Number(cast.skill.id))) return;
+  // Turret commands retire their current face before rebuilding the deployed turret state.
+  if (cast.skill.id !== ID.HEALING_TURRET) consumeSkillFlip(state.availableFlips, cast.skill.id);
   runtime.cancelOwner({ id: 'engineer.turret', generation: state.healingTurretGeneration });
   const owner = { id: 'engineer.turret', generation: ++state.healingTurretGeneration };
   if (cast.skill.id === ID.DETONATE_HEALING_TURRET) {

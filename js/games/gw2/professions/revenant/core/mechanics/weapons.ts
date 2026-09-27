@@ -5,7 +5,7 @@ import {
   effectFirstAtMs,
   strikeEffectCoefficient
 } from '#gw2/platform/engine/effects/authoring.js';
-import { armSkillFlip, consumeSkillFlip, followUpOf } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
@@ -74,21 +74,10 @@ export function completeRevenantImperialGuard(runtime: RevenantRuntime, cast: Ru
   if (cast.skill.id === ID.TRUE_STRIKE) consumeSkillFlip(runtime.profession.core.availableFlips, ID.TRUE_STRIKE);
 }
 
-/** Committed weapon casts open their follow-up windows; follow-ups consume their own window. */
-export function completeRevenantWeaponFlips(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill;
-  const flips = runtime.profession.core.availableFlips;
-  if (skill.id === ID.CALL_TO_ANGUISH) armSkillFlip(flips, ID.UNYIELDING_IMPACT, runtime.time);
-  else if (skill.id === ID.UNYIELDING_IMPACT) consumeSkillFlip(flips, ID.UNYIELDING_IMPACT);
-  if (skill.type !== 'Weapon') return;
-  // Imperial Guard and Blossoming Aura open their windows from their own channel and pulse owners.
-  const followUp =
-    skill.id !== ID.IMPERIAL_GUARD && skill.id !== ID.BLOSSOMING_AURA
-      ? followUpOf(runtime.helpers.skillsById, skill)
-      : undefined;
-  if (followUp) armSkillFlip(flips, followUp.id, runtime.time, canonicalTime(runtime.time + (skill.flipDuration ?? 5)));
-
-  if (skill.id !== ID.TRUE_STRIKE && skill.flipParentId != null) consumeSkillFlip(flips, skill.id);
+/** Aura detonation retains its completion cleanup under the same owner as its pulse lifetime. */
+export function completeRevenantBlossomingAura(runtime: RevenantRuntime, cast: RuntimeCast): void {
+  if (cast.skill.id === ID.DETONATE_BLOSSOMING_AURA)
+    consumeSkillFlip(runtime.profession.core.availableFlips, cast.skill.id);
 }
 
 function auraSkill(runtime: RevenantRuntime): RevenantSkill {

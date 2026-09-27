@@ -60,11 +60,17 @@ export function validateSideEffectAction(catalog: CanonicalCatalog, skill: Skill
       if (action.expiryPriority !== undefined) validateFinitePriority(action.expiryPriority, label);
       if (!catalog.skillsById.has(action.skillId))
         throw new TypeError(`${label} references missing skill ${action.skillId}.`);
-      validateSideEffectAmount(
-        catalog,
-        action.durationSec === undefined ? skill.flipDuration : action.durationSec,
-        `${label} duration`
-      );
+      // Indefinite flips are explicit; missing duration still requires authored skill tuning.
+      if (action.durationSec !== null)
+        validateSideEffectAmount(
+          catalog,
+          action.durationSec === undefined ? skill.flipDuration : action.durationSec,
+          `${label} duration`
+        );
+      break;
+    case 'flipConsume':
+      if (!catalog.skillsById.has(action.skillId))
+        throw new TypeError(`${label} references missing skill ${action.skillId}.`);
       break;
     case 'emitProfile':
       if (!catalog.balanceProfilesById.has(action.profileId))
@@ -104,7 +110,8 @@ export function validateEffectReactions(catalog: CanonicalCatalog, skill: Skill,
     if (!actions.length) throw new TypeError(`Skill ${skill.id} reaction requires an action.`);
     for (const action of actions) {
       validateSideEffectAction(catalog, skill, action);
-      if (action.type === 'flipArm') throw new TypeError('flipArm requires a cast trigger.');
+      if (action.type === 'flipArm' || action.type === 'flipConsume')
+        throw new TypeError(`${action.type} requires a cast trigger.`);
     }
   }
 }

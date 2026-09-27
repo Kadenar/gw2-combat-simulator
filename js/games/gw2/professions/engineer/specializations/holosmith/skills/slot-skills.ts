@@ -21,7 +21,9 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     ]
   },
   [ID.LAUNCH_WALL]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/hooks.ts`.
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.LAUNCH_WALL } }],
+    // Availability requires the parent skill's exposed window.
 
     castTimeMs: 520,
     cooldown: 0.5,
@@ -89,8 +91,8 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     ]
   },
   [ID.PHOTON_WALL]: {
-    // Custom: Arms this skill's follow-up palette flip; see `core/hooks.ts`.
-
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.LAUNCH_WALL, durationSec: null } }],
     castTimeMs: 400,
     cooldown: 25,
     paletteFlipSkillId: ID.LAUNCH_WALL,

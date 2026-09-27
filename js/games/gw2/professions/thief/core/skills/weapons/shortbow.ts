@@ -76,6 +76,9 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.CLUSTER_BOMB]: {
+    flipDuration: 1,
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.DETONATE_CLUSTER } }],
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 3,
@@ -105,6 +108,8 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.DETONATE_CLUSTER]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DETONATE_CLUSTER } }],
     castTimeMs: 680,
     cooldown: 0,
     initiativeCost: 0,

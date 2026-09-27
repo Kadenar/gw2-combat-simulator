@@ -325,7 +325,8 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ]
   },
   [ID.SHADOW_SWAP]: {
-    // Custom: Consumes the Shadow Swap follow-up through `deadeye/hooks.ts`.
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.SHADOW_SWAP } }],
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,

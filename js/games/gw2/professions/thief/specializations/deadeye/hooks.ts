@@ -3,7 +3,6 @@ import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -255,7 +254,7 @@ function completeDeadeyeCast(runtime: ThiefRuntime, cast: RuntimeCast, facts: De
       runtime,
       balanceProfileNumber(mercy, 'resourceGain') + malice * balanceProfileNumber(mercy, 'attributePerStack')
     );
-  } else if (skill.id === ID.SHADOW_SWAP) consumeSkillFlip(runtime.profession.core.availableFlips, ID.SHADOW_SWAP);
+  }
 
   // Silent Scope: a dodge above the malice threshold grants one out-of-stealth stealth attack.
   if (skill.id === SHARED_SKILL_IDS.DODGE && hasTrait(runtime, TRAIT.SILENT_SCOPE)) {

@@ -1,6 +1,6 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -8,7 +8,6 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { deferThiefCompletion, emitThiefBuff } from '#gw2/professions/thief/core/events.js';
@@ -124,20 +123,6 @@ function completeDaredevilDodge(runtime: ThiefRuntime, cast: RuntimeCast): void 
   });
 }
 
-/** A completed, on-target Fist Flurry opens Palm Strike; Palm Strike closes its window. */
-function updatePalmStrike(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  const flips = runtime.profession.core.availableFlips;
-  if (cast.skill.id === ID.FIST_FLURRY) {
-    if (cast.command.offTarget === true || castWasInterrupted(cast)) return;
-    runtime.armFlip(ID.PALM_STRIKE, {
-      availableAt: runtime.time,
-      expiresAt:
-        runtime.time +
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.palmStrike), 'durationMultiplier')
-    });
-  } else if (cast.skill.id === ID.PALM_STRIKE) consumeSkillFlip(flips, ID.PALM_STRIKE);
-}
-
 /** The armed grant is consumed by the next landed player strike, never by a cast or condition tick. */
 function weakeningStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent): void {
   const state = daredevilState.from(runtime);
@@ -174,7 +159,6 @@ function weakeningStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent): void {
 
 function completeDaredevilCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
   if (cast.skill.id === SHARED_SKILL_IDS.DODGE) completeDaredevilDodge(runtime, cast);
-  updatePalmStrike(runtime, cast);
   // Endurance Thief follows Core's steal resources.
   if (cast.skill.id === ID.STEAL && hasTrait(runtime, TRAIT.ENDURANCE_THIEF))
     grantThiefEndurance(

@@ -282,6 +282,7 @@ test('reaction validation rejects incompatible stages, malformed actions and mis
     reaction(grant(-1)),
     reaction(grant({ skillField: 'absent' })),
     reaction({ type: 'flipArm', skillId: 990101, durationSec: 1 }),
+    reaction({ type: 'flipConsume', skillId: 990101 }),
     reaction([]),
     reaction(null),
     reaction({ type: 'emitProfile', profileId: 'missing' }),

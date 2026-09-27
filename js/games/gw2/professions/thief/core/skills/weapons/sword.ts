@@ -7,6 +7,8 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.LARCENOUS_STRIKE]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.LARCENOUS_STRIKE } }],
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 1,
@@ -39,6 +41,9 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.INFILTRATORS_STRIKE]: {
+    flipDuration: 15,
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.INFILTRATORS_RETURN } }],
     movementSkill: true,
     castTimeMs: 0,
     cooldown: 0,
@@ -68,6 +73,8 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.FLANKING_STRIKE]: {
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.LARCENOUS_STRIKE, durationSec: 4 } }],
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 4,
@@ -158,6 +165,8 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.INFILTRATORS_RETURN]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.INFILTRATORS_RETURN } }],
     castTimeMs: 200,
     cooldown: 0,
     initiativeCost: 2,

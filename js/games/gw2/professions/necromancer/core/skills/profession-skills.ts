@@ -283,10 +283,14 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     specialization: ''
   },
   [ID.MARCH_OF_UNDEATH]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.MARCH_OF_UNDEATH } }],
     castTimeMs: 0,
     effects: []
   },
   [ID.DARK_PURSUIT]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DARK_PURSUIT } }],
     castTimeMs: 0,
     effects: [],
     type: 'Profession',

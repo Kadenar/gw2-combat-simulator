@@ -5,7 +5,7 @@ import { isPlayerStrike, isPetStrike } from '#gw2/professions/ranger/core/mechan
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
-import { armSkillFlip, consumeSkillFlip, followUpOf } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -52,7 +52,6 @@ import {
   startRangerPet
 } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
-import { isRangerHammerVariant } from '#gw2/professions/ranger/data/hammer-variants.js';
 import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 
 const spearAttacks = new Set(Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT));
@@ -138,12 +137,6 @@ function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast): void {
   const flips = runtime.profession.core.availableFlips;
   if (skill.id === ID.PANTHERS_PROWL)
     for (const flip of spearAttacks) armSkillFlip(flips, flip, runtime.time, runtime.time + 3);
-
-  if (skill.type !== 'Weapon' || isRangerHammerVariant(skill.id)) return;
-  const followUp = followUpOf(runtime.helpers.skillsById, skill);
-  if (followUp) armSkillFlip(flips, followUp.id, runtime.time, runtime.time + (skill.flipDuration || 5));
-
-  if (skill.flipParentId != null && !spearAttacks.has(Number(skill.id))) consumeSkillFlip(flips, skill.id);
 }
 
 export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {

@@ -2,7 +2,6 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import { isElixirSkill } from '#gw2/professions/engineer/core/traits/alchemy.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -155,16 +154,6 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
       );
     }
 
-    if (skill.paletteFlipSkillId != null && !skill.flipParentName) {
-      const flip = runtime.helpers.skillsById.get(skill.paletteFlipSkillId);
-      if (!flip?.flipParentName)
-        throw new TypeError(
-          `Engineer skill ${skill.name} requires a paletteFlipSkillId referencing a consumable flip.`
-        );
-      armSkillFlip(state.availableFlips, flip.id, runtime.time);
-    }
-
-    if (skill.flipParentName) consumeSkillFlip(state.availableFlips, skill.id);
     completeEngineerTurret(runtime, cast);
     if (skill.id === ID.MINE_FIELD) {
       if (runtime.combatStartPending) state.pendingMineFieldActivationIds.push(cast.id);

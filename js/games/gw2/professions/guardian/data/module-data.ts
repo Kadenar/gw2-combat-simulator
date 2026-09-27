@@ -37,7 +37,7 @@ const flipParentById = createFlipParentMap(allSkills, {
   }
 });
 
-flipParentById.set(ID.SHIELD_OF_ABSORPTION_ID_9224, ID.SHIELD_OF_ABSORPTION);
+flipParentById.set(ID.SHIELD_OF_ABSORPTION_ID_DETONATE, ID.SHIELD_OF_ABSORPTION);
 
 for (const [normalId, finalId] of firebrandFinalFlipByNormalId) {
   flipParentById.set(finalId, normalId);

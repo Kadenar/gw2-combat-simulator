@@ -113,7 +113,13 @@ function complete(runtime: NecromancerRuntime, cast: RuntimeCast): void {
       });
   }
 
-  if (skill.flipParentId != null && !skill.shroudExit && !Boolean(skill.minionKey))
+  // Shroud follow-ups consume declaratively; weapon windows retain their recharge-anchored lifecycle.
+  if (
+    skill.flipParentId != null &&
+    !skill.shroudExit &&
+    !Boolean(skill.minionKey) &&
+    !skill.sideEffects?.some((effect) => effect.do.type === 'flipConsume')
+  )
     consumeSkillFlip(state.availableFlips, skill.id);
   completeNecromancerForm(runtime, cast);
   applyDarkDefense(runtime, cast);

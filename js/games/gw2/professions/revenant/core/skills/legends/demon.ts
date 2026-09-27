@@ -75,6 +75,8 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     legendId: 'LegendaryDemon'
   },
   [ID.CALL_TO_ANGUISH]: {
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.UNYIELDING_IMPACT, durationSec: null } }],
     // Call to Anguish completes on its 800 ms impact, which also commits its effects.
     interruptCommitMs: 800,
     castTimeMs: 800,
@@ -170,6 +172,8 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     legendId: 'LegendaryAssassin'
   },
   [ID.UNYIELDING_IMPACT]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.UNYIELDING_IMPACT } }],
     // The reviewed activation ends after the existing 560 ms impact packets.
     castTimeMs: 680,
     cooldown: 0,

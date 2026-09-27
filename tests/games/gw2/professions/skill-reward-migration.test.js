@@ -327,30 +327,34 @@ test('Shadow Flare uses the shared follow-up window', () => {
   assert.equal(observedRuntime(used).profession.core.availableFlips[THIEF.SHADOW_SWAP], undefined);
 });
 
-// Native buff effects own tuning/removal; a sphere expiring during the cast cannot extend the window.
-test('Catalyst augments apply their authored buff windows', () => {
-  for (const [id, element, kind] of [
-    [ELEMENTALIST.RELENTLESS_FIRE, 'Fire', 'relentless fire'],
-    [ELEMENTALIST.SHATTERING_ICE, 'Water', 'shattering ice']
+// Augments sample spheres at commitment, including deployments during the cast and exclusive expiry boundaries.
+test('Catalyst augments select their authored buff windows at cast commitment', () => {
+  for (const [id, element, kind, sphereId] of [
+    [ELEMENTALIST.RELENTLESS_FIRE, 'Fire', 'relentless fire', ELEMENTALIST.DEPLOY_JADE_SPHERE_FIRE],
+    [ELEMENTALIST.SHATTERING_ICE, 'Water', 'shattering ice', ELEMENTALIST.DEPLOY_JADE_SPHERE_WATER]
   ]) {
-    for (const [expiry, removed, cancelled] of [
+    for (const [expiry, removed, cancelled, deployDuringCast] of [
+      [0, false, false],
       [0.2, false, false],
+      [1, false, false],
       [10, false, false],
       [10, true, false],
-      [10, false, true]
+      [10, false, true],
+      [0, false, false, true]
     ]) {
       const result = migratedSkillRun(
         elementalistProfession,
         {
           specialization: 'Catalyst',
           selectedSkills: ['Relentless Fire', 'Shattering Ice', 'Elemental Celerity'],
-          startAttunement: 'Fire',
+          startAttunement: element,
           selectedTraitIds: [],
           boons: {},
           target: { armor: 2597 }
         },
         [
           { type: 'cast', skillId: id, ...(cancelled ? { interruptAfterMs: 100 } : {}) },
+          ...(deployDuringCast ? [{ type: 'cast', skillId: sphereId, concurrentOffsetMs: 200 }] : []),
           { type: 'wait', durationMs: 1000 }
         ],
         {
@@ -370,7 +374,13 @@ test('Catalyst augments apply their authored buff windows', () => {
       assert.deepEqual(result.warnings, []);
       const buffs = result.events.filter((event) => event.type === 'buff' && event.kind === kind);
       assert.equal(buffs.length, removed || cancelled ? 0 : 1);
-      if (buffs.length) assert.equal(buffs[0].duration, expiry > 1 ? 9 : 6);
+      if (buffs.length) {
+        assert.equal(buffs[0].duration, expiry > 1 || deployDuringCast ? 9 : 6, `${kind}: sphere at commitment`);
+        const activation = result.events.find((event) => event.type === 'action' && event.skillId === id);
+        assert.equal(buffs[0].at, activation.endsAt);
+        assert.equal(buffs[0].activationId, activation.activationId);
+      }
+
       if (kind === 'shattering ice')
         assert.equal(catalystState.from(observedRuntime(result)).shatteringIceUntil > 0, !removed && !cancelled);
     }

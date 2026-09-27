@@ -35,6 +35,8 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     specialization: 'Reaper'
   },
   [ID.TERRIFY]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.TERRIFY } }],
     castTimeMs: 320,
     effects: [{ type: 'control', controlKind: 'fear' }],
     type: 'Profession',

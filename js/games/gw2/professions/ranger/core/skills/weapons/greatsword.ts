@@ -103,10 +103,14 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     castTimeMs: 500
   },
   [ID.COUNTERATTACK]: {
+    // Expose the follow-up on commitment; its declaration owns the window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.COUNTERATTACK_KICK, durationSec: 5 } }],
     effects: [],
     castTimeMs: 2000
   },
   [ID.COUNTERATTACK_KICK]: {
+    // A committed follow-up consumes its window and restores the parent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.COUNTERATTACK_KICK } }],
     evades: true,
     // The PvE kick lands once and its knockback can trigger control reactions.
     effects: [
