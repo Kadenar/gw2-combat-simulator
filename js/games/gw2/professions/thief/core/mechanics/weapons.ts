@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
@@ -42,13 +43,6 @@ export const THIEF_GUILD_ATTACK = 'thief.thieves-guild-attack';
 export const THIEF_GUILD_EXPIRY = 'thief.thieves-guild-expire';
 
 const SPEAR_STEALTH_SKILLS = new Set<SkillId>([ID.ASHEN_ASSAULT]);
-const SPINNING_AXE_SKILLS = new Set<SkillId>([
-  ID.SPINNING_AXE,
-  ID.SPINNING_AXE_ID_71967,
-  ID.VENOMOUS_VOLLEY,
-  ID.CUNNING_SALVO,
-  ID.MALICIOUS_CUNNING_SALVO
-]);
 const AXE_RECALL_SKILLS = new Set<SkillId>([ID.HARROWING_STORM, ID.ORCHESTRATED_ASSAULT, ID.RECALL_AXES]);
 
 interface TrapDefinition {
@@ -201,8 +195,7 @@ export function completeThiefWeaponState(
 }
 
 /** Each landed axe joins the shared ground pool for ten seconds, keeping the six newest. */
-export function reactThiefSpinningAxe(runtime: ThiefRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || !SPINNING_AXE_SKILLS.has(Number(event.skillId))) return;
+export function grantThiefGroundAxe(runtime: ThiefRuntime): void {
   const core = runtime.profession.core;
   core.spinningAxeExpirations = grantTimedStacks(core.spinningAxeExpirations, {
     at: runtime.time,
@@ -403,4 +396,30 @@ export function thievesGuildAttack(runtime: ThiefRuntime, data: unknown): void {
 export function expireThievesGuild(runtime: ThiefRuntime, data: unknown): void {
   const core = runtime.profession.core;
   if (core.activeThievesGuild?.ownerId === (data as { ownerId: string }).ownerId) core.activeThievesGuild = null;
+}
+
+/**
+ * Unsuspecting Strike's Bleeding adds a fresh bonus application while the target is above ninety percent health. The
+ * bonus keeps the original skill identity and cannot trigger itself.
+ */
+export function unsuspectingStrikeBonus(runtime: ThiefRuntime, application: Gw2ResolverEvent): void {
+  runtime.emitDerived(
+    application,
+    buildResolverCondition({
+      at: runtime.time,
+      source: application.source,
+      sourceId: application.sourceId,
+      actorType: application.actorType,
+      ownerActorType: application.ownerActorType,
+      skillId: application.skillId,
+      skillName: application.skillName,
+      activationId: application.activationId,
+      triggeredBy: application.triggeredBy,
+      fixedDuration: application.fixedDuration,
+      name: 'Unsuspecting Strike - Bonus Bleeding',
+      condition: 'Bleeding',
+      duration: Number(application.duration || 0),
+      stacks: 3
+    })
+  );
 }

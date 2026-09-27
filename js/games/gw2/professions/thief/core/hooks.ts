@@ -44,7 +44,8 @@ import {
   completeThiefWeaponState,
   expireThievesGuild,
   expireThiefScepterChain,
-  reactThiefSpinningAxe,
+  grantThiefGroundAxe,
+  unsuspectingStrikeBonus,
   startThievesGuild,
   THIEF_GUILD_ATTACK,
   THIEF_GUILD_EXPIRY,
@@ -179,6 +180,12 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
 
 /** Core hooks: initiative, endurance, stealth, steals, weapon follow-ups, utilities, and resolved trait reactions. */
 export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
+  sideEffectHandlers: {
+    'thief.ground-axe': grantThiefGroundAxe,
+    'thief.unsuspecting-bleeding'(runtime, context) {
+      if (context.kind === 'effect') unsuspectingStrikeBonus(runtime, context.trigger.event);
+    }
+  },
   resources: { initiative: thiefInitiative },
   endurance: thiefEndurance,
   initialize(runtime) {
@@ -286,7 +293,6 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     },
     'damage.resolved'(runtime, event, details) {
       reactThiefStealthBreakingStrike(runtime, event);
-      reactThiefSpinningAxe(runtime, event);
       reactThiefCoreDamage(runtime, event, details);
     },
     'condition.applied': reactThiefCoreCondition

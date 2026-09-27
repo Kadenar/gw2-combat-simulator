@@ -1,3 +1,4 @@
+import { grantMaulAttackOfOpportunity } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverBuff, buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
@@ -22,7 +23,6 @@ import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeas
 import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { grantMaulAttackOfOpportunity } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
 
@@ -249,9 +249,9 @@ function handleSharedStanceHit(context: RangerResolverContext, event: Gw2Resolve
 
 export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
-  const state = soulbeastState.from(context);
-  // Merged Maul grants the player the smaller next-attack bonus in place of the pet's bonus.
-  if (state.beastmodeActive) grantMaulAttackOfOpportunity(context, event, 'player');
+  // The elite owns this gate; Core's shared weapon declaration cannot read merge state.
+  if (event.skillId === ID.MAUL_SOULBEAST && isPlayerStrike(event) && soulbeastState.from(context).beastmodeActive)
+    grantMaulAttackOfOpportunity(context, event, 'player');
   triggerMergedPoisonousStrikes(context, event);
 
   // One Wolf Pack must not trigger from its own echo or from effect-sourced hits to avoid infinite recursion.

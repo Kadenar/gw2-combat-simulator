@@ -84,6 +84,16 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: impactEffects({ atMs: 1640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        // The accepted authored strike owns the recharge reward.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'each',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'rechargeReset', skillIds: [ID.COALESCENCE_OF_RUIN] }
+          }
+        ],
         coefficient: 3.2,
         hits: 1,
         name: 'Drop the Hammer',

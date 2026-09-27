@@ -26,6 +26,16 @@ export const NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'condition',
+        // Only this selected application owns its accepted-impact reward.
+        reactions: [
+          {
+            on: 'condition.applied',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => event.sourceId === event.skillId,
+            do: { type: 'necromancer.condition-life-force' }
+          }
+        ],
         condition: 'Vulnerability',
         duration: 6,
         stacks: 5

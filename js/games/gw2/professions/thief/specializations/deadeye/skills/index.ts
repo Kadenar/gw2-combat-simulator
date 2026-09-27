@@ -520,6 +520,8 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        // Each accepted axe packet contributes one expiring ground axe.
+        reactions: [{ on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'thief.ground-axe' } }],
         coefficient: 1.5,
         hits: 1,
         name: 'Malicious Cunning Salvo',

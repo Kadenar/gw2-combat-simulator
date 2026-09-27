@@ -80,19 +80,6 @@ export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
     // An attempted ambush consumes its occurrence even if its animation is canceled.
     if (cast.skill.unleashedAmbushSkill) untamedState.from(runtime).ambushReadyUntil = 0;
   },
-  modifyEffects(runtime, cast, effects) {
-    if (cast.skill.id === ID.EXPLODING_SPORES) {
-      const ranger = untamedState.from(runtime).rangerUnleashed;
-      const effect = requireEffect(
-        requireBalanceProfileFromContext(runtime, ranger ? PROFILE.explodingSporesRanger : PROFILE.explodingSporesPet),
-        'boon',
-        ranger ? 'might' : 'protection'
-      );
-      return effect ? [...effects, { ...effect, timingAnchor: 'castEnd' as const, atMs: 0 }] : effects;
-    }
-
-    return effects;
-  },
   onCastComplete(runtime, cast) {
     if (castWasInterrupted(cast)) return;
     const state = untamedState.from(runtime);

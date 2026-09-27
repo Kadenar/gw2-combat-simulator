@@ -1,10 +1,10 @@
+import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';
 import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { canonicalTime, isTimeInWindow, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { modifyNecromancerRechargeStart } from '#gw2/professions/necromancer/core/mechanics/recharge.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
-import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   balanceProfileNumber,
@@ -47,13 +47,16 @@ import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resol
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import {
   modifyNecromancerWeaponEffects,
-  reactToNecromancerWeapons,
+  perforate,
+  resolveNecromancerOppressiveCollapse,
   grantNecromancerSoulShards,
   necromancerWeaponTasks
 } from '#gw2/professions/necromancer/core/mechanics/weapons.js';
 import {
   scheduleNecromancerConditions,
   reactToNecromancerConditions,
+  resolveNecromancerSkillConditions,
+  resolveNecromancerTransfer,
   necromancerConditionTasks
 } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
 import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
@@ -78,7 +81,10 @@ import {
   necromancerMinionTasks,
   ownsNecromancerMinionSkill
 } from '#gw2/professions/necromancer/core/mechanics/minions.js';
-import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import {
+  grantNecromancerLifeForce,
+  grantNecromancerSkillLifeForce
+} from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { DEPLETION, necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 
 const LICH_EXPIRY = 'necromancer.lich-expiry';
@@ -276,21 +282,10 @@ function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   }
 
   if (event.actorType !== 'player') return;
-  let amount = Number(skill.lifeForcePerHit ?? skill.lifeForcePerPulse ?? skill.lifeForceOnHit ?? 0);
-  if (Number(event.hitIndex ?? 1) === 1) {
-    amount += Number(skill.lifeForceGain ?? 0);
-    if (skill.categories?.includes('Mark') && hasTrait(runtime, TRAIT.SOUL_MARKS))
-      amount += balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SOUL_MARKS), 'lifeForceGain');
-    // Count at impact, before this skill's own conditions, and never credit a missed or still-travelling packet.
-    if (Number(skill.lifeForcePerCondition) > 0) {
-      const count = Number(
-        event.metadata?.necromancerConditionCount ??
-          targetConditionCount({ config: runtime.config, query: runtime.query, runtime, time: runtime.time })
-      );
-      amount += Math.min(Number(skill.maximumConditions), count) * Number(skill.lifeForcePerCondition);
-    }
-  }
-
+  // Skill grants are authored on their packets; broad trait rewards remain shared.
+  let amount = 0;
+  if (Number(event.hitIndex ?? 1) === 1 && skill.categories?.includes('Mark') && hasTrait(runtime, TRAIT.SOUL_MARKS))
+    amount += balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SOUL_MARKS), 'lifeForceGain');
   if (hasTrait(runtime, TRAIT.SPITEFUL_FORTITUDE) && remainingTargetHealthBelow(runtime.config, runtime, 0.5)) {
     amount += balanceProfileNumber(
       requireBalanceProfileFromContext(runtime, PROFILE.spitefulFortitude),
@@ -299,7 +294,6 @@ function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   }
 
   grantNecromancerLifeForce(runtime, amount);
-  if (skill.id === ID.CHILLING_SCYTHE) runtime.cooldownController.clear(ID.GRAVEDIGGER);
 }
 
 /** Completed heals grant Dark Defense Carapace and Protection together under one cooldown. */
@@ -399,6 +393,39 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
   rechargeStart: (_runtime, cast, at) => modifyNecromancerRechargeStart(cast, at),
   resources: { lifeForce: necromancerLifeForce },
   sideEffectHandlers: {
+    'necromancer.axe-health'(runtime, context) {
+      if (context.kind === 'effect') reactToNecromancerAxeHealth(runtime, context.trigger.event);
+    },
+    'necromancer.life-siphon'(runtime, context) {
+      if (context.kind === 'effect')
+        resolveNecromancerSkillConditions(runtime, context.trigger.event, PROFILE.lifeSiphonOnHit);
+    },
+    'necromancer.dark-pact'(runtime, context) {
+      if (context.kind === 'effect')
+        resolveNecromancerSkillConditions(runtime, context.trigger.event, PROFILE.darkPactOnHit);
+    },
+    'necromancer.transfer'(runtime, context) {
+      if (context.kind === 'effect') resolveNecromancerTransfer(runtime, context.trigger.event);
+    },
+    'necromancer.skill-life-force'(runtime, context) {
+      if (context.kind === 'effect') grantNecromancerSkillLifeForce(runtime, context.skill, context.trigger.event);
+    },
+    // Named actions preserve percentage conversions and coupled weapon transactions.
+    'necromancer.condition-life-force'(runtime, context) {
+      grantNecromancerLifeForce(runtime, Number(context.skill.lifeForceGain ?? 0));
+    },
+    // Declarations own amounts and eligibility; this handler applies the shared percentage conversion.
+    'necromancer.life-force'(runtime, _context, action) {
+      if (action.type !== 'necromancer.life-force' || action.amount == null)
+        throw new TypeError('Life-force grants require an amount.');
+      grantNecromancerLifeForce(runtime, sideEffectAmount(runtime, action.amount));
+    },
+    'necromancer.perforate'(runtime, context) {
+      if (context.kind === 'effect') perforate(runtime, context.trigger.event);
+    },
+    'necromancer.oppressive-collapse'(runtime, context) {
+      if (context.kind === 'effect') resolveNecromancerOppressiveCollapse(runtime, context.trigger.event);
+    },
     // Declared shard rewards reuse the hit-time grant owner so caps and refresh expiry stay identical.
     'necromancer.soul-shards'(runtime, _cast, action) {
       if (action.type !== 'necromancer.soul-shards' || action.amount == null)
@@ -598,20 +625,10 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
     },
     'damage.resolved'(runtime, event, details) {
       damage(runtime, event);
-      reactToNecromancerWeapons(runtime, event);
       reactToNecromancerConditions(runtime, event);
       reactToNecromancerCoreDamage(runtime, event, details);
     },
     'condition.applied'(runtime, event) {
-      // These hands have no strike packet; their first accepted authored condition owns the fixed life-force grant.
-      if (
-        event.actorType === 'player' &&
-        event.sourceId === event.skillId &&
-        Number(event.applicationIndex ?? 1) === 1 &&
-        ((event.skillId === ID.SPECTRAL_GRASP && event.condition === 'Chilled') ||
-          (event.skillId === ID.SOUL_GRASP && event.condition === 'Vulnerability'))
-      )
-        grantNecromancerLifeForce(runtime, Number(runtime.helpers.skillsById.get(event.skillId)?.lifeForceGain ?? 0));
       reactToNecromancerCoreCondition(runtime, event);
     },
     'control.resolved'(runtime, event) {

@@ -179,7 +179,10 @@ export function completeGuardianIgnition(runtime: Runtime, cast: RuntimeCast): v
 }
 
 /** Ready Justice activations claim symbol recharge at the permanent Alacrity rate. */
-export function triggerGuardianFuriousFocus(runtime: Runtime, cast: RuntimeCast): void {
+export function triggerGuardianFuriousFocus(
+  runtime: Runtime,
+  cast: { id: string; skill: Pick<RuntimeCast['skill'], 'id' | 'name'> }
+): void {
   if (!hasTrait(runtime, TRAIT.FURIOUS_FOCUS)) return;
   const state = runtime.profession.core;
   const symbol = symbols[ID.LESSER_SYMBOL_OF_BLADES];

@@ -82,6 +82,16 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         coefficient: 2,
         hits: 1
       }
@@ -136,7 +146,20 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     flipDuration: OFF_HAND_SWORD_FOLLOW_UP_WINDOW_SECONDS,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 1.5 },
+      {
+        type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
+        coefficient: 1.5
+      },
       { type: 'control', controlKind: 'fear' }
     ]),
     lifeForceGain: 10

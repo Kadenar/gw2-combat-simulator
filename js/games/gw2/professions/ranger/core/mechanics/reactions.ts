@@ -7,7 +7,6 @@ import {
   triggerPoisonousStrikes,
   triggerSharpeningStone,
   triggerStrengthOfThePack,
-  triggerStalkersStrike,
   triggerBloodThirst
 } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
 import { triggerTrappersExpertise, triggerLightOnYourFeet } from '#gw2/professions/ranger/core/traits/index.js';
@@ -24,7 +23,6 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: G
   triggerSharpeningStone(context, event);
   triggerArachnophobia(context, event);
   triggerStrengthOfThePack(context, event);
-  triggerStalkersStrike(context, event);
   triggerTrappersExpertise(context, event);
   triggerBloodThirst(context, event);
   triggerLightOnYourFeet(context, event);

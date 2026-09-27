@@ -13,9 +13,7 @@ import {
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import {
-  eventSkill,
   queueBleeding,
-  stalkersStrikeTargetImpaired,
   isPetStrike,
   isPlayerStrike,
   petDerivedConditionMetadata
@@ -119,28 +117,26 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
 
 /** Add Stalker's Strike's bonus poison only against movement-impaired targets. */
 export function triggerStalkersStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const skill = eventSkill(context, event);
-  if (skill?.id === ID.STALKERS_STRIKE && stalkersStrikeTargetImpaired(context.config, event.at, context)) {
-    // The base packet owns its own Poison; the impaired-target profile owns only the additional application.
-    const profile = requireBalanceProfileFromContext(context, PROFILE.stalkersStrikeImpaired);
-    const poison = requireEffect(profile, 'condition', 'Poisoned');
-    if (!poison) return;
-    context.queue.enqueue(
-      buildResolverCondition({
-        at: event.at,
-        source: 'ranger',
-        sourceId: skill.id,
-        actorType: 'player',
-        skillId: skill.id,
-        skillName: skill.name,
-        name: `${skill.name} — Poisoned`,
-        condition: String(poison.condition),
-        duration: effectNumber(profile, poison, 'duration'),
-        stacks: effectNumber(profile, poison, 'stacks'),
-        activationId: event.activationId
-      })
-    );
-  }
+  const skill = context.helpers.skillsById!.get(event.skillId!)!;
+  // The base packet owns its own Poison; the impaired-target profile owns only the additional application.
+  const profile = requireBalanceProfileFromContext(context, PROFILE.stalkersStrikeImpaired);
+  const poison = requireEffect(profile, 'condition', 'Poisoned');
+  if (!poison) return;
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      source: 'ranger',
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: `${skill.name} — Poisoned`,
+      condition: String(poison.condition),
+      duration: effectNumber(profile, poison, 'duration'),
+      stacks: effectNumber(profile, poison, 'stacks'),
+      activationId: event.activationId
+    })
+  );
 }
 
 /** Consume one live Blood Thirst charge per qualifying hit, excluding its arming skill and exact expiry. */

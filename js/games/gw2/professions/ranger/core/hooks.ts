@@ -1,3 +1,4 @@
+import { triggerStalkersStrike } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
 import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { isPlayerStrike, isPetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
@@ -29,7 +30,10 @@ import {
   reactToRangerCoreBuff
 } from '#gw2/professions/ranger/core/traits/index.js';
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
-import { reactToRangerGreatswordDamage } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
+import {
+  reactToRangerGreatswordDamage,
+  grantMaulAttackOfOpportunity
+} from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import {
   handleRangerPetSwapped,
@@ -143,6 +147,14 @@ function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast): void {
 }
 
 export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
+  sideEffectHandlers: {
+    'ranger.stalkers-poison'(runtime, context) {
+      if (context.kind === 'effect') triggerStalkersStrike(runtime, context.trigger.event);
+    },
+    'ranger.maul-pet'(runtime, context) {
+      if (context.kind === 'effect') grantMaulAttackOfOpportunity(runtime, context.trigger.event, 'pet');
+    }
+  },
   endurance: rangerEndurance,
   availability: rangerCoreCastAvailability,
   rechargeRules: rangerRechargeRules,

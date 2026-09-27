@@ -1,3 +1,6 @@
+import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
@@ -18,4 +21,24 @@ export function grantNecromancerLifeForce(runtime: NecromancerRuntime, percent: 
     'lifeForce',
     ((percent * runtime.profession.core.lifeForce.maximum) / 100) * multiplier
   );
+}
+
+/** A selected strike owns its live per-hit and first-hit tuning; target counts can be snapshotted by its emitter. */
+export function grantNecromancerSkillLifeForce(
+  runtime: NecromancerRuntime,
+  skill: Skill,
+  event: Gw2ResolverEvent
+): void {
+  let amount = Number(
+    skill.lifeForceGain ?? skill.lifeForcePerHit ?? skill.lifeForcePerPulse ?? skill.lifeForceOnHit ?? 0
+  );
+  if (Number(skill.lifeForcePerCondition) > 0) {
+    const count = Number(
+      event.metadata?.necromancerConditionCount ??
+        targetConditionCount({ config: runtime.config, query: runtime.query, runtime, time: runtime.time })
+    );
+    amount += Math.min(Number(skill.maximumConditions), count) * Number(skill.lifeForcePerCondition);
+  }
+
+  grantNecromancerLifeForce(runtime, amount);
 }

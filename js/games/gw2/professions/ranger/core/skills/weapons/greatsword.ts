@@ -6,7 +6,25 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 const maul: Partial<Skill> = {
   cooldown: 4,
   effects: [
-    { type: 'strike', coefficient: 2.2, hits: 1 },
+    {
+      type: 'strike',
+      coefficient: 2.2,
+      hits: 1,
+      // Queue the recipient's next-attack buff after the current strike's existing charge is consumed.
+      reactions: [
+        {
+          on: 'damage.resolved',
+          actor: 'player',
+          packets: 'each',
+          when: (runtime, { event, skill }) =>
+            Number(event.coefficient) > 0 &&
+            event.source !== 'ranger-pet' &&
+            skill.id === ID.MAUL_BASE &&
+            runtime.profession.core.petActive,
+          do: { type: 'ranger.maul-pet' }
+        }
+      ]
+    },
     { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 }
   ],
   castTimeMs: 840

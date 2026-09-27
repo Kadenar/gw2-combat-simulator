@@ -4,6 +4,8 @@
  */
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
+import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Both Unleash actions replace the same F5 tile as control passes between pet and ranger.
@@ -60,6 +62,22 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     // Custom: Transfers Unleash state to the ranger and may open an ambush window; see `untamed/hooks.ts`.
   },
   [ID.EXPLODING_SPORES]: {
+    // Capture Unleash at acceptance, adding the selected live boon to the skill's hostile packets.
+    effectVariants: (
+      [
+        [true, PROFILE.explodingSporesRanger, 'might'],
+        [false, PROFILE.explodingSporesPet, 'protection']
+      ] as const
+    ).map<NonNullable<Skill['effectVariants']>[number]>(([unleashed, profileId, boon]) => ({
+      when: (runtime) => untamedState.from(runtime).rangerUnleashed === unleashed,
+      profileId,
+      transform: (_runtime, cast, effects) => [
+        ...(cast.skill.effects ?? []),
+        ...effects
+          .filter((effect) => effect.type === 'boon' && effect.name === boon)
+          .map((effect) => ({ ...effect, timingAnchor: 'castEnd' as const, atMs: 0 }))
+      ]
+    })),
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -84,7 +102,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       }
     ]),
     castTimeMs: 480
-    // Custom: Chooses Might or Protection from the captured Unleash state; see `untamed/hooks.ts`.
   },
   [ID.FORESTS_FORTIFICATION]: {
     effects: [

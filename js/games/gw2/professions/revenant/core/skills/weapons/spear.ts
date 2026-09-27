@@ -15,6 +15,10 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        // The accepted authored strike owns the recharge reward.
+        reactions: [
+          { on: 'damage.resolved', actor: 'player', packets: 'first', do: { type: 'revenant.spear-recharge' } }
+        ],
         name: 'Abyssal Blitz — Mine',
         actorType: 'player',
         ticks: [560, 720, 960].map((atMs) => ({ atMs, coefficient: 0.5 })),
@@ -64,6 +68,10 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: [
       {
         type: 'strike',
+        // The accepted authored strike owns the recharge reward.
+        reactions: [
+          { on: 'damage.resolved', actor: 'player', packets: 'first', do: { type: 'revenant.spear-recharge' } }
+        ],
         name: 'Abyssal Blot',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -120,6 +128,10 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: impactEffects({ atMs: 1160, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        // The accepted authored strike owns the recharge reward.
+        reactions: [
+          { on: 'damage.resolved', actor: 'player', packets: 'first', do: { type: 'revenant.spear-recharge' } }
+        ],
         coefficient: 0.8,
         hits: 1,
         name: 'Abyssal Force',
@@ -157,6 +169,10 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
       [
         {
           type: 'strike',
+          // The accepted authored strike owns the recharge reward.
+          reactions: [
+            { on: 'damage.resolved', actor: 'player', packets: 'first', do: { type: 'revenant.spear-recharge' } }
+          ],
           coefficient: 0.85,
           hits: 1,
           name: 'Abyssal Strike',

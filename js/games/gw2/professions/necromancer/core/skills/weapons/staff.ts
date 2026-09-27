@@ -9,6 +9,16 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         coefficient: 1,
         hits: 1,
         comboFinishers: [
@@ -66,6 +76,16 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
+        // The selected landed strike owns this skill-specific transaction.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.transfer' }
+          }
+        ],
         coefficient: 1.32,
         hits: 1,
         comboFinishers: [

@@ -31,7 +31,23 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   },
   [ID.YOUR_SOUL_IS_MINE]: {
     castTimeMs: 680,
-    effects: [{ type: 'strike', coefficient: 0.5, hits: 1 }],
+    effects: [
+      {
+        type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
+        coefficient: 0.5,
+        hits: 1
+      }
+    ],
     lifeForceGain: 15
   },
   [ID.SUFFER]: {
@@ -39,7 +55,21 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     // The handler and tooltip share the maximum number of distinct self-condition types transferred.
     conditionsTransferred: 2,
     effects: [
-      { type: 'strike', coefficient: 1.5, hits: 1 },
+      {
+        type: 'strike',
+        // The selected landed strike owns this skill-specific transaction.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.transfer' }
+          }
+        ],
+        coefficient: 1.5,
+        hits: 1
+      },
       { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3 }
     ]
   },

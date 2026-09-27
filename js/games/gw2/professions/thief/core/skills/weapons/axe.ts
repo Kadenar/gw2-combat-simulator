@@ -13,6 +13,8 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
     effects: [
       {
         type: 'strike',
+        // Each accepted axe packet contributes one expiring ground axe.
+        reactions: [{ on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'thief.ground-axe' } }],
         ticks: [160, 360, 520].map((atMs) => ({
           atMs,
           coefficient: 3.6 / 3
@@ -39,6 +41,8 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        // Each accepted axe packet contributes one expiring ground axe.
+        reactions: [{ on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'thief.ground-axe' } }],
         coefficient: 0.8,
         hits: 1,
         name: 'Spinning Axe',
@@ -109,6 +113,8 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        // Each accepted axe packet contributes one expiring ground axe.
+        reactions: [{ on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'thief.ground-axe' } }],
         coefficient: 0.8,
         hits: 1,
         name: 'Spinning Axe',
@@ -131,6 +137,8 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        // Each accepted axe packet contributes one expiring ground axe.
+        reactions: [{ on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'thief.ground-axe' } }],
         coefficient: 1.5,
         hits: 1,
         name: 'Cunning Salvo',

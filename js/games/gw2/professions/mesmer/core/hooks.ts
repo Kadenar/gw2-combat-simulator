@@ -43,6 +43,14 @@ function complete(runtime: MesmerRuntime, cast: RuntimeCast): void {
 
 /** Core owns casts, clones, and accepted impact reactions on the shared clock. */
 export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
+  sideEffectHandlers: {
+    'mesmer.tracked-hit'(runtime, context) {
+      if (context.kind !== 'effect') return;
+      scheduleMesmerTrackedHits(runtime, mesmerMechanicsFor(runtime).addDamage, context.skill as MesmerSkill, [
+        context.trigger.event.at
+      ]);
+    }
+  },
   initialize(runtime) {
     const mechanics = createMesmerMechanics(runtime);
     registerMesmerMechanics(runtime, mechanics);
@@ -198,8 +206,6 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       if (!skill) return;
       const first = event.summonKind === 'clone' ? Infinity : emitFencersFinesseStacks(mechanics, skill, [event.at], 1);
       if (Number(event.hitIndex ?? 1) === 1) recordFencersFinesseProc(mechanics, skill, first);
-      if (isGw2PlayerActorEvent(event) && event.sourceId === skill.id && skill.trackedHitDamage)
-        scheduleMesmerTrackedHits(runtime, mechanics.addDamage, skill, [event.at]);
     },
     'condition.applied': triggerThePledge,
     'control.resolved'(runtime, event) {

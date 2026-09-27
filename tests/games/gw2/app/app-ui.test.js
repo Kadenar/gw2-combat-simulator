@@ -666,10 +666,21 @@ test('shared app options escape labels and preserve selection state', () => {
 });
 
 test('gear prefixes and sigils are sorted into Power and Condition groups', () => {
+  // Prefixes without Condition Damage belong to Power, including defensive and support stat combinations.
   assert.deepEqual(PREFIX_GROUPS, [
     {
       label: 'Power',
-      items: ["Assassin's", "Berserker's", "Diviner's", "Dragon's", "Zealot's"]
+      items: [
+        "Assassin's",
+        "Berserker's",
+        "Demolisher's",
+        "Diviner's",
+        "Dragon's",
+        "Harrier's",
+        "Knight's",
+        'Marauder',
+        "Zealot's"
+      ]
     },
     {
       label: 'Condition',

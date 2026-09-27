@@ -63,6 +63,16 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         ticks: [{ atMs: 280, coefficient: 1.8 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'

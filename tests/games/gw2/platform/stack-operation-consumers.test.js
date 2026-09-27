@@ -2,8 +2,7 @@ import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.j
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
-import { THIEF_SKILL_IDS } from '#gw2/professions/thief/data/ids.js';
-import { reactThiefSpinningAxe } from '#gw2/professions/thief/core/mechanics/weapons.js';
+import { grantThiefGroundAxe } from '#gw2/professions/thief/core/mechanics/weapons.js';
 import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { triggerSharpeningStone } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
@@ -27,9 +26,8 @@ test('axe materialization replaces the oldest grant without mutating earlier sta
         runtime.profession.core.spinningAxeExpirations = prior;
         snapshot = snapshotProfessionState(runtime.profession);
       },
-      probes: [
-        [1, (runtime) => reactThiefSpinningAxe(runtime, { actorType: 'player', skillId: THIEF_SKILL_IDS.SPINNING_AXE })]
-      ]
+      // Exercise the resource owner directly; authored strike reactions now select eligible grants.
+      probes: [[1, grantThiefGroundAxe]]
     }
   );
   assert.deepEqual(observedRuntime(result).profession.core.spinningAxeExpirations, [31, 32, 33, 34, 35, 11]);

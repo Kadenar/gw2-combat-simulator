@@ -37,7 +37,6 @@ import {
   completeRevenantImperialGuard,
   completeRevenantWeaponFlips,
   detonateRevenantBlossomingAura,
-  reactRevenantDropTheHammer,
   reactRevenantSpearRecharge,
   revenantAbyssalRazeImpact,
   revenantBlossomingAuraPulse,
@@ -221,6 +220,12 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast): void {
 
 /** Core hooks: Energy, upkeeps, legends, weapon follow-ups, and actual hit/application trait reactions. */
 export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
+  // Base-second reductions remain with the cooldown controller, including partial-ammo progress.
+  sideEffectHandlers: {
+    'revenant.spear-recharge'(runtime, context) {
+      if (context.kind === 'effect') reactRevenantSpearRecharge(runtime, context.trigger.event);
+    }
+  },
   resources: { energy: revenantEnergy },
   endurance: revenantEndurance,
   initialize(runtime) {
@@ -325,8 +330,6 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
       return modifyRevenantLifeSiphon(runtime as unknown as RevenantResolverContext, event);
     },
     'damage.resolved'(runtime, event) {
-      reactRevenantDropTheHammer(runtime, event);
-      reactRevenantSpearRecharge(runtime, event);
       reactRevenantImpossibleOdds(runtime, event);
       reactRevenantPlayerStrike(runtime, event);
     },

@@ -335,7 +335,6 @@ export function completeRevenantCrushingAbyssSwap(runtime: RevenantRuntime, cast
 
 /** The first landed hit of a spear skill reduces Abyssal Raze's live recharge by its authored seconds. */
 export function reactRevenantSpearRecharge(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || Number(event.hitIndex || 1) !== 1) return;
   const source = runtime.helpers.skillsById.get(Number(event.skillId)) as RevenantSkill | undefined;
   const seconds = Number(source?.rechargeReduction || 0);
   const raze = runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE);
@@ -359,10 +358,4 @@ export function reactRevenantSpearRecharge(runtime: RevenantRuntime, event: Gw2R
     detail: `${cooldownReduction}s`,
     cooldownReduction
   });
-}
-
-/** Drop the Hammer's landed delayed strike resets Coalescence of Ruin. */
-export function reactRevenantDropTheHammer(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if (event.skillId === ID.DROP_THE_HAMMER && Number(event.coefficient || 0) > 0)
-    runtime.cooldownController.clear(ID.COALESCENCE_OF_RUIN);
 }

@@ -396,8 +396,15 @@ test('axe half-health bonuses use the crossing impact and the burst keeps its de
     ...native,
     initialize(runtime) {
       native.initialize(runtime);
+      // This fixture represents Feast's selected authored impact, not an unrelated same-ID packet.
+      const skill = runtime.helpers.skillsById.get(ID.UNHOLY_FEAST);
+      const group = runtime.effectReactions.register(
+        skill,
+        skill.effects.find((effect) => effect.type === 'strike')
+      );
       runtime.emit({
         type: 'damage',
+        effectReaction: { group, packet: 1 },
         at: 0.1,
         source: 'necromancer',
         sourceId: ID.UNHOLY_FEAST,

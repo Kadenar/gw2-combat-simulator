@@ -7,6 +7,8 @@ import {
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 export const NECROMANCER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
+  addleDaze: 'necromancer.core.addle-daze',
+  addleImmobilize: 'necromancer.core.addle-immobilize',
   darkPactOnHit: 'necromancer.core.dark-pact-on-hit',
   lifeSiphonOnHit: 'necromancer.core.life-siphon-on-hit',
   soulShards: 'necromancer.core.soul-shards',
@@ -74,6 +76,13 @@ const MINION_PROJECTILE_FINISHER = Object.freeze({
 });
 
 export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Addle's landed strike selects these packets; its acceptance snapshot gates only Immobilized.
+  variant(NECROMANCER_CORE_BALANCE_PROFILE_IDS.addleDaze, ID.ADDLE, 'Addle Daze', {
+    effects: [{ type: 'control', name: 'Daze', controlKind: 'daze' }]
+  }),
+  variant(NECROMANCER_CORE_BALANCE_PROFILE_IDS.addleImmobilize, ID.ADDLE, 'Addle Immobilized', {
+    effects: [{ type: 'condition', name: 'Immobilized', condition: 'Immobilized', stacks: 1, duration: 1.5 }]
+  }),
   variant(
     NECROMANCER_CORRUPTION_PROFILE_IDS[ID.CONSUME_CONDITIONS],
     ID.CONSUME_CONDITIONS,

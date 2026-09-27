@@ -5,8 +5,6 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
@@ -49,13 +47,11 @@ export function grantMaulAttackOfOpportunity(
   event: Gw2ResolverEvent,
   recipient: 'pet' | 'player'
 ): void {
-  const maulId = recipient === 'player' ? ID.MAUL_SOULBEAST : ID.MAUL_BASE;
-  if (!isPlayerStrike(event) || event.skillId !== maulId) return;
   context.queue.enqueue(
     buildResolverBuff({
       at: event.at,
       source: 'ranger',
-      sourceId: event.skillId,
+      sourceId: event.skillId!,
       actorType: 'player',
       skillId: event.skillId,
       skillName: 'Attack of Opportunity',
@@ -92,6 +88,4 @@ export function reactToRangerGreatswordDamage(context: RangerResolverContext, ev
       )
     );
   }
-
-  if (professionCoreState(context).petActive) grantMaulAttackOfOpportunity(context, event, 'pet');
 }

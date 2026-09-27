@@ -127,6 +127,17 @@ function tetherBurn(runtime: Runtime, data: unknown): void {
 
 /** Dragonhunter owns its landed tether, passive cadence, and committed trap/virtue effects without replay records. */
 export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
+  sideEffectHandlers: {
+    'guardian.attach-tether'(runtime, context) {
+      if (context.kind !== 'effect') return;
+      const event = context.trigger.event;
+      const action = runtime.history.find(
+        (candidate) => candidate.type === 'action' && candidate.activationId === event.activationId
+      );
+      if (!action) return;
+      runtime.schedule(TETHER, Math.max(runtime.time, Number(action.endsAt)), event, undefined, -50);
+    }
+  },
   // Vulnerability follows actual player damage during an existing tether; its lifecycle remains with Justice.
   traitTriggers: [
     {
@@ -164,7 +175,9 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
       const at = canonicalTime(
         cast.start + projectCastRelativeEffectTimingMs(cast.skill, (cast.fullEnd - cast.start) * 1000, 480) / 1000
       );
-      if (at <= cast.effectiveEnd) runtime.schedule(FURIOUS, at, cast);
+      // Deferred attribution excludes the skill's executable reaction declarations.
+      if (at <= cast.effectiveEnd)
+        runtime.schedule(FURIOUS, at, { id: cast.id, skill: { id: cast.skill.id, name: cast.skill.name } });
     }
   },
   onCastComplete(runtime, cast) {
@@ -221,12 +234,6 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
       const damage = details as NativeResolvedDamageDetails;
       if (!(Number(event.coefficient) > 0) || !(Number(damage.hitContext?.damage) > 0)) return;
       reactToDragonhunterJusticeHit(runtime, event, damage);
-      if (event.skillId !== ID.SPEAR_OF_JUSTICE || event.actorType !== 'player') return;
-      const action = runtime.history.find(
-        (candidate) => candidate.type === 'action' && candidate.activationId === event.activationId
-      );
-      if (!action) return;
-      runtime.schedule(TETHER, Math.max(runtime.time, Number(action.endsAt)), event, undefined, -50);
     },
     'control.resolved'(runtime, event) {
       if (event.actorType === 'player') reactToDragonhunterControl(runtime, event);
@@ -234,7 +241,8 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
   },
   tasks: {
     [COURAGE]: couragePulse,
-    [FURIOUS]: (runtime, data) => triggerGuardianFuriousFocus(runtime, data as RuntimeCast),
+    [FURIOUS]: (runtime, data) =>
+      triggerGuardianFuriousFocus(runtime, data as Parameters<typeof triggerGuardianFuriousFocus>[1]),
     [TETHER]: attachTether,
     [BURN]: tetherBurn,
     [EXPIRY](runtime, data) {

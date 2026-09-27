@@ -7,15 +7,13 @@ import {
   requireEffect,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import {
   addSoulShards,
   consumeSoulShards,
   necromancerActiveBoonCompanionIds
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
-import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
@@ -48,7 +46,7 @@ export function modifyNecromancerWeaponEffects(
 }
 
 /** The consumed shard emits an independent siphon through the shared formula and cannot recursively consume another shard. */
-function perforate(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
+export function perforate(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   if (!consumeSoulShards(runtime.profession.core, 1, runtime.time)) return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.soulShards);
   const strike = requireEffect(profile, 'strike', 'Soul Shards');
@@ -81,68 +79,31 @@ function perforate(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   );
 }
 
-/** Landed weapon packets own shard gains and consumption, half-health bonuses, and condition-count rewards. */
-export function reactToNecromancerWeapons(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
-  reactToNecromancerAxeHealth(runtime, event);
-  if (event.skillId === ID.PERFORATE) perforate(runtime, event);
-  if (Number(event.hitIndex ?? 1) !== 1) return;
-  if (event.skillId === ID.DEADLY_SLICE || event.skillId === ID.SINISTER_STAB) grantNecromancerSoulShards(runtime, 1);
-  else if (event.skillId === ID.EXTIRPATE) grantNecromancerSoulShards(runtime, 2);
-  else if (event.skillId === ID.ADDLE) {
-    runtime.emitDerived(event, {
-      type: 'control',
-      at: runtime.time,
-      source: 'necromancer',
-      sourceId: ID.ADDLE,
-      actorType: 'player',
-      skillId: ID.ADDLE,
-      skillName: event.skillName,
-      controlKind: 'daze'
-    });
-    if (event.metadata?.necromancerAddleImmobilize)
-      runtime.emitDerived(
-        event,
-        buildResolverCondition({
-          at: runtime.time,
-          source: 'necromancer',
-          sourceId: ID.ADDLE,
-          actorType: 'player',
-          skillId: ID.ADDLE,
-          skillName: event.skillName,
-          condition: 'Immobilized',
-          stacks: 1,
-          duration: 1.5
-        })
-      );
-    const bonus = Boolean(runtime.config.target?.defiant || runtime.config.target?.activatingSkills);
-    if (bonus) grantNecromancerLifeForce(runtime, 10);
-    grantNecromancerSoulShards(runtime, bonus ? 4 : 2);
-  } else if (event.skillId === ID.OPPRESSIVE_COLLAPSE) {
-    const stacks =
-      2 *
-      Math.min(7, targetConditionCount({ config: runtime.config, query: runtime.query, runtime, time: runtime.time }));
-    if (!stacks) return;
-    const boon = {
-      type: 'buff' as const,
-      at: runtime.time,
-      source: 'necromancer',
-      sourceId: ID.OPPRESSIVE_COLLAPSE,
-      actorType: 'player' as const,
-      skillId: ID.OPPRESSIVE_COLLAPSE,
-      skillName: event.skillName,
-      activationId: event.activationId,
-      kind: 'might',
-      stacks,
-      duration: 8,
-      audience: {
-        recipients: 'party' as const,
-        maximumRecipients: 5,
-        eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime)
-      }
-    };
-    queueResolverBoon(runtime, event, boon);
-  }
+/** Party Might samples live conditions and companion eligibility at the accepted impact. */
+export function resolveNecromancerOppressiveCollapse(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
+  const stacks =
+    2 *
+    Math.min(7, targetConditionCount({ config: runtime.config, query: runtime.query, runtime, time: runtime.time }));
+  if (!stacks) return;
+  const boon = {
+    type: 'buff' as const,
+    at: runtime.time,
+    source: 'necromancer',
+    sourceId: ID.OPPRESSIVE_COLLAPSE,
+    actorType: 'player' as const,
+    skillId: ID.OPPRESSIVE_COLLAPSE,
+    skillName: event.skillName,
+    activationId: event.activationId,
+    kind: 'might',
+    stacks,
+    duration: 8,
+    audience: {
+      recipients: 'party' as const,
+      maximumRecipients: 5,
+      eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime)
+    }
+  };
+  queueResolverBoon(runtime, event, boon);
 }
 
 export const necromancerWeaponTasks = {

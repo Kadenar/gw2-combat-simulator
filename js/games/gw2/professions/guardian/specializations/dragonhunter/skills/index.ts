@@ -18,6 +18,17 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       {
         type: 'strike',
+        // The landed spear owns attachment; the tether controller retains commitment and replacement lifetime.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'each',
+            when: (_runtime, { event, details }) =>
+              Number(event.coefficient) > 0 && Number(details.hitContext?.damage) > 0,
+            do: { type: 'guardian.attach-tether' }
+          }
+        ],
         coefficient: 0.8,
         hits: 1,
         // The spear hits before the remaining virtue animation releases the action lane.

@@ -12,6 +12,16 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Part
     effects: [
       {
         type: 'strike',
+        // Only native accepted projectiles contribute to the persistent three-hit burst ledger.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'each',
+            when: (_runtime, { event, skill }) => event.sourceId === skill.id,
+            do: { type: 'mesmer.tracked-hit' }
+          }
+        ],
         coefficient: 0.5,
         hits: 1,
         name: 'Projectile',

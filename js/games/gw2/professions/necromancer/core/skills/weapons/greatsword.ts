@@ -10,6 +10,16 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         coefficient: 1.2,
         hits: 1
       }
@@ -26,7 +36,20 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     effects: impactEffects(
       { atMs: 1440, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
       [
-        { type: 'strike', coefficient: 1.3 },
+        {
+          type: 'strike',
+          // Accepted strikes grant live skill tuning through the percentage resource owner.
+          reactions: [
+            {
+              on: 'damage.resolved',
+              actor: 'player',
+              packets: 'each',
+              when: (_runtime, { event }) => Number(event.coefficient) > 0,
+              do: { type: 'necromancer.skill-life-force' }
+            }
+          ],
+          coefficient: 1.3
+        },
         { type: 'condition', condition: 'Chilled', stacks: 1, duration: 4 },
         { type: 'control', controlKind: 'pull' }
       ]
@@ -41,6 +64,16 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'each',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         // EVTC records four Quickness pulses at 560 ms and fixed one-second intervals.
         ticks: [560, 1560, 2560, 3560].map((atMs) => ({ atMs, coefficient: 4.6 / 4 })),
         comboFields: [{ ownerId: 'necromancer', fieldType: 'Dark', duration: 3 }],
@@ -75,7 +108,27 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     interruptCommitMs: 720,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 1.8 },
+      {
+        type: 'strike',
+        // Only this selected application owns its accepted-impact reward.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          },
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'each',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'rechargeReset', skillIds: [ID.GRAVEDIGGER] }
+          }
+        ],
+        coefficient: 1.8
+      },
       { type: 'condition', condition: 'Chilled', stacks: 1, duration: 2 }
     ]),
     lifeForceGain: 5
@@ -109,6 +162,16 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         ticks: [{ atMs: 520, coefficient: 1.4 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'

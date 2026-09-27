@@ -1,5 +1,5 @@
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
-import { impactEffects, strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
+import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -62,48 +62,30 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   [ID.LIFE_TRANSFER]: {
     castTimeMs: 2920,
     // Snap each original 222 ms pulse independently to 40 ms, keeping strikes and bleeding synchronized.
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    // Group bleeding applications in one timeline while retaining their shared strike timing.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         ticks: [240, 440, 680, 880, 1120, 1320, 1560, 1760, 2000].map((atMs) => ({ atMs, coefficient: 3.825 / 9 }))
       },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 240, condition: 'Bleeding', stacks: 1, duration: 3 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Bleeding', stacks: 1, duration: 3 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 680, condition: 'Bleeding', stacks: 1, duration: 3 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 880, condition: 'Bleeding', stacks: 1, duration: 3 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 1120, condition: 'Bleeding', stacks: 1, duration: 3 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 1320, condition: 'Bleeding', stacks: 1, duration: 3 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 1560, condition: 'Bleeding', stacks: 1, duration: 3 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 1760, condition: 'Bleeding', stacks: 1, duration: 3 }]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 2000, condition: 'Bleeding', stacks: 1, duration: 3 }]
-      }
+      conditionTimeline(
+        [240, 440, 680, 880, 1120, 1320, 1560, 1760, 2000].map((atMs) => ({
+          atMs,
+          condition: 'Bleeding',
+          stacks: 1,
+          duration: 3
+        }))
+      )
     ]),
     type: 'Profession',
     slot: 'Weapon_4',
@@ -227,12 +209,11 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     summonInterval: 1,
     // Creature lifetime survives removal of an attack or explosion from the selected profile.
     summonDuration: 6,
-    effects: [
+    // Anchor the horror's attack and explosion to cast completion with fixed delays.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [{ atMs: 1000, coefficient: 0.33 }],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         actorType: 'summon',
         packetLabel: 'attack',
         name: 'Unstable Horror - Attack'
@@ -240,13 +221,11 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       {
         type: 'strike',
         ticks: [{ atMs: 6000, coefficient: 1.25 }],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         actorType: 'summon',
         packetLabel: 'explosion',
         name: 'Unstable Horror - Explosion'
       }
-    ]
+    ])
   },
   [ID.DHUUMFIRE_BLAST]: {
     castTimeMs: 920,
@@ -274,38 +253,29 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   [ID.TAINTED_SHACKLES]: {
     castTimeMs: 200,
     // Align the delayed torment and final strike to 40 ms without shifting the cast-scaled opening pulse.
-    effects: [
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'condition',
         ticks: [{ atMs: 200, condition: 'Torment', stacks: 2, duration: 12 }],
-        timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1240, condition: 'Torment', stacks: 2, duration: 12 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 1240, condition: 'Torment', stacks: 2, duration: 12 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 2240, condition: 'Torment', stacks: 2, duration: 12 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 2240, condition: 'Torment', stacks: 2, duration: 12 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 3240, condition: 'Torment', stacks: 2, duration: 12 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 3240, condition: 'Torment', stacks: 2, duration: 12 }]
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 4240, coefficient: 1.25 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 4240, coefficient: 1.25 }]
       }
-    ],
+    ]),
     type: 'Profession',
     slot: 'Weapon_5',
     shroud: 'death',

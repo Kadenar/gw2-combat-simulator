@@ -52,6 +52,16 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         coefficient: 0.8,
         hits: 1
       },
@@ -73,7 +83,20 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     // The replacement handler scales this per-condition payload using the live target state.
     maximumConditions: 5,
     effects: [
-      { type: 'strike', coefficient: 1.16 },
+      {
+        type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
+        coefficient: 1.16
+      },
       { type: 'condition', condition: 'Torment', stacks: 1, duration: 4 }
     ],
     lifeForceGain: 8,

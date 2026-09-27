@@ -12,6 +12,16 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'each',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         // The supplied Quickness logs resolve eight individual hits; interruptions preserve only reached packets.
         ticks: [320, 440, 600, 760, 920, 1040, 1200, 1360].map((atMs) => ({ atMs, coefficient: 4.6 / 8 })),
         timingAnchor: 'castStart',
@@ -28,6 +38,16 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
+        // The selected landed strike owns this skill-specific transaction.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'each',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.axe-health' }
+          }
+        ],
         ticks: [400, 640].map((atMs) => ({ atMs, coefficient: 1.4 / 2 }))
       },
       {
@@ -43,7 +63,21 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Pa
     interruptCommitMs: 720,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 2.5, hits: 1 },
+      {
+        type: 'strike',
+        // The selected landed strike owns this skill-specific transaction.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'each',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.axe-health' }
+          }
+        ],
+        coefficient: 2.5,
+        hits: 1
+      },
       { type: 'condition', condition: 'Crippled', duration: 5, stacks: 1 }
     ])
   }

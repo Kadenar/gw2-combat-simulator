@@ -1,13 +1,11 @@
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { applyActiveVenoms } from '#gw2/professions/thief/core/mechanics/venoms.js';
@@ -135,46 +133,10 @@ export function reactThiefCoreDamage(
   applyPanicStrike(context, event as ThiefResolverEvent);
 }
 
-/**
- * Unsuspecting Strike's Bleeding adds a fresh bonus application while the target is above ninety percent health. The
- * bonus keeps the original skill identity and cannot trigger itself.
- */
-function unsuspectingStrikeBonus(runtime: ThiefRuntime, application: Gw2ResolverEvent): void {
-  if (
-    application.skillId !== ID.UNSUSPECTING_STRIKE ||
-    application.condition !== 'Bleeding' ||
-    application.actorType !== 'player' ||
-    application.name === 'Unsuspecting Strike - Bonus Bleeding'
-  )
-    return;
-  const maximum = Number(runtime.config?.target?.health || 0);
-  if (maximum > 0 && targetHealthLoss(runtime.config, runtime) / maximum >= 0.1) return;
-  runtime.emitDerived(
-    application,
-    buildResolverCondition({
-      at: runtime.time,
-      source: application.source,
-      sourceId: application.sourceId,
-      actorType: application.actorType,
-      ownerActorType: application.ownerActorType,
-      skillId: application.skillId,
-      skillName: application.skillName,
-      activationId: application.activationId,
-      triggeredBy: application.triggeredBy,
-      fixedDuration: application.fixedDuration,
-      name: 'Unsuspecting Strike - Bonus Bleeding',
-      condition: application.condition,
-      duration: Number(application.duration || 0),
-      stacks: 3
-    })
-  );
-}
-
 /** Applied conditions drive Lotus Poison, allied Leeching Venoms, Panic Strike, Cloaked in Shadow, then the skill bonus. */
 export function reactThiefCoreCondition(runtime: ThiefRuntime, application: Gw2ResolverEvent): void {
   const context = resolverContext(runtime);
   applyLotusPoison(context, application as ThiefResolverEvent);
   applyAlliedLeechingVenoms(context, application as ThiefResolverEvent);
   applyPanicStrikePoison(context, application as ThiefResolverEvent);
-  unsuspectingStrikeBonus(runtime, application);
 }

@@ -37,7 +37,6 @@ export const galeshotHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
         runtime.schedule('ranger.wind-force', at, Number(skill.windForceGain));
     }
 
-    if (Number(skill.arrowsRestored) > 0) runtime.resourceController.grant('arrows', Number(skill.arrowsRestored));
     if (skill.id === ID.MISTRAL)
       state.mistralUntil = canonicalTime(
         runtime.time +

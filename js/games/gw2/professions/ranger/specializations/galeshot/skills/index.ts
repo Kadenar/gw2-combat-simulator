@@ -1,6 +1,7 @@
 /** Explicit PvE skill mechanics owned by the Galeshot Ranger module. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Cyclone Bow entry and exit are state-selected variants of one F5 UI tile.
@@ -16,10 +17,18 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     castTimeMs: 500
   },
   [ID.MISTRAL]: {
+    // Accepted starts restore the live arrow amount through the existing capped recovery clock.
+    sideEffects: [
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        do: { type: 'resourceGrant', resource: 'arrows', amount: { skillField: 'arrowsRestored' } }
+      }
+    ],
     castTimeMs: 320,
     effects: [],
     arrowsRestored: 1
-    // Custom: Restores arrows and opens the Mistral buff window; see `galeshot/hooks.ts`.
+    // Custom: Opens the Mistral buff window; see `galeshot/hooks.ts`.
   },
   [ID.SUMMON_CYCLONE_BOW]: {
     castTimeMs: 0,
@@ -30,6 +39,14 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
   },
   [ID.PERFECT_STORM]: {
+    // Accepted starts restore the live arrow amount through the existing capped recovery clock.
+    sideEffects: [
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        do: { type: 'resourceGrant', resource: 'arrows', amount: { skillField: 'arrowsRestored' } }
+      }
+    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -53,7 +70,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     ]),
     castTimeMs: 600,
     arrowsRestored: 2
-    // Custom: Restores Cyclone Bow arrows and emits state; see `galeshot/hooks.ts`.
   },
   [ID.WIND_SHEAR]: {
     effects: [
@@ -80,6 +96,14 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
   },
   [ID.PIERCING_GALES]: {
+    // Accepted starts restore the live arrow amount through the existing capped recovery clock.
+    sideEffects: [
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        do: { type: 'resourceGrant', resource: 'arrows', amount: { skillField: 'arrowsRestored' } }
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -100,7 +124,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     ],
     castTimeMs: 640,
     arrowsRestored: 1
-    // Custom: Restores Cyclone Bow arrows and emits state; see `galeshot/hooks.ts`.
   },
   [ID.SOOTHING_BREEZE]: {
     effects: [],
@@ -187,6 +210,14 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     windForceApplyMs: 240
   },
   [ID.QUARRYS_PERIL]: {
+    // Committed shortened casts retain Cloudburst's reset at their effective completion boundary.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (runtime, cast) => Boolean(cast.skill.cycloneBowSkill) && hasTrait(runtime, TRAIT.CLOUDBURST),
+        do: { type: 'rechargeReset', skillIds: [ID.BLUSTER] }
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -230,6 +261,14 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     windForceApplyMs: 280
   },
   [ID.SUPERSONIC_ARROW]: {
+    // Committed shortened casts retain Cloudburst's reset at their effective completion boundary.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (runtime, cast) => Boolean(cast.skill.cycloneBowSkill) && hasTrait(runtime, TRAIT.CLOUDBURST),
+        do: { type: 'rechargeReset', skillIds: [ID.BLUSTER] }
+      }
+    ],
     effects: [
       {
         type: 'strike',

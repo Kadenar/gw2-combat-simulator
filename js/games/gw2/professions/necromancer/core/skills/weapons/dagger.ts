@@ -8,7 +8,20 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     castTimeMs: 680,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 2.4 },
+      {
+        type: 'strike',
+        // The selected landed strike owns this skill-specific transaction.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.dark-pact' }
+          }
+        ],
+        coefficient: 2.4
+      },
       { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10 }
     ])
   },
@@ -28,6 +41,16 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         ticks: [{ atMs: 160, coefficient: 0.9 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -40,6 +63,16 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         coefficient: 1.3,
         hits: 1
       }
@@ -53,6 +86,16 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'strike',
+        // The selected landed strike owns this skill-specific transaction.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.transfer' }
+          }
+        ],
         coefficient: 1.2,
         hits: 1
       },
@@ -82,6 +125,16 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'strike',
+        // The selected landed strike owns this skill-specific transaction.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.life-siphon' }
+          }
+        ],
         ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 480 + index * 160, coefficient: 2.7 / 9 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'

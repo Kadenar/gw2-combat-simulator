@@ -357,14 +357,6 @@ export function applyGaleshotCycloneBowTraits(context: RangerRuntime, skill: Ran
     state.wutheringWindReadyAt = context.time;
     emitCloudburstBoons(context, skill);
   }
-
-  if (
-    hasTrait(context, TRAIT.CLOUDBURST) &&
-    [ID.QUARRYS_PERIL, ID.SUPERSONIC_ARROW].includes(skill.id as typeof ID.QUARRYS_PERIL | typeof ID.SUPERSONIC_ARROW)
-  ) {
-    // Cloudburst trait: these two skills reset Bluster's cooldown on cast.
-    context.cooldownController.clear(ID.BLUSTER);
-  }
 }
 // Grant Cloudburst's profile-defined party boons from the qualifying reset skill
 // at cast completion.

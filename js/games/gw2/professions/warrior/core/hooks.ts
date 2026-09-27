@@ -166,7 +166,6 @@ function criticalTraits(
     Math.max(1, Number(event.hits ?? 1))
   );
   const criticals = opportunity.sampledCriticals;
-  if (criticals > 0 && event.skillId === ID.KEEN_STRIKE) traitEffects(runtime, event, ID.KEEN_STRIKE);
 
   if (hasTrait(runtime, TRAIT.BLOODLUST)) {
     const proc = advanceCriticalProc(opportunity, {
@@ -382,6 +381,10 @@ function weaponSwapTraits(runtime: WarriorRuntime): void {
 export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
   // Custom verbs keep specialization-dependent resource conversion and catalog-matched targets in their owner.
   sideEffectHandlers: {
+    // Reuse existing delivery priority and labels; the skill declaration owns eligibility and its profile owns tuning.
+    'warrior.critical-might'(runtime, context) {
+      if (context.kind === 'effect') traitEffects(runtime, context.trigger.event, Number(context.skill.id));
+    },
     'warrior.adrenaline'(runtime, _cast, action) {
       if (action.type !== 'warrior.adrenaline' || action.amount == null)
         throw new TypeError('Adrenaline grants require an amount.');

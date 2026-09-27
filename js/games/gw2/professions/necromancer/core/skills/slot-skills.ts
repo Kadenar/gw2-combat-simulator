@@ -50,6 +50,16 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       {
         type: 'strike',
+        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ],
         ticks: [320, 1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, coefficient: 0.5 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -324,6 +334,16 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       {
         type: 'condition',
+        // Only this selected application owns its accepted-impact reward.
+        reactions: [
+          {
+            on: 'condition.applied',
+            actor: 'player',
+            packets: 'first',
+            when: (_runtime, { event }) => event.sourceId === event.skillId,
+            do: { type: 'necromancer.condition-life-force' }
+          }
+        ],
         condition: 'Chilled',
         stacks: 1,
         duration: 4

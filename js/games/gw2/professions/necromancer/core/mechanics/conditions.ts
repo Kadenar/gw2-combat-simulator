@@ -13,10 +13,7 @@ import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { castCompleted } from '#gw2/platform/skills/timing.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import {
-  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  NECROMANCER_CORRUPTION_PROFILE_IDS
-} from '#gw2/professions/necromancer/core/profiles.js';
+import { NECROMANCER_CORRUPTION_PROFILE_IDS } from '#gw2/professions/necromancer/core/profiles.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -165,44 +162,53 @@ function corruption(runtime: NecromancerRuntime, data: unknown): void {
   }
 }
 
-/** First-hit effects and Plague Sending run only after an accepted player strike. */
+/** Selected first-hit profiles retain self-condition storage and derived enemy applications. */
+export function resolveNecromancerSkillConditions(
+  runtime: NecromancerRuntime,
+  event: Gw2ResolverEvent,
+  profileId: SkillId
+): void {
+  const skill = runtime.helpers.skillsById.get(event.skillId!) as NecromancerSkill;
+  const profile = requireBalanceProfileFromContext(runtime, profileId);
+  for (const effect of profile.effects ?? []) {
+    if (effect.type !== 'condition') continue;
+    const condition = String(effect.condition);
+    const stacks = effectNumber(profile, effect, 'stacks');
+    const duration = effectNumber(profile, effect, 'duration');
+    if (effect.target === 'self') applySelfCondition(runtime, skill, condition, stacks, duration);
+    else
+      runtime.emitDerived(
+        event,
+        buildResolverCondition({
+          at: runtime.time,
+          source: 'necromancer',
+          sourceId: skill.id,
+          actorType: 'player',
+          skillId: skill.id,
+          skillName: skill.name,
+          condition,
+          stacks,
+          duration
+        })
+      );
+  }
+}
+
+/** Transfers consume live applications before the shared Plague Sending consumer. */
+export function resolveNecromancerTransfer(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
+  const skill = runtime.helpers.skillsById.get(event.skillId!) as NecromancerSkill;
+  transfer(runtime, skill, Number(skill.conditionsTransferred), {
+    skillId: skill.id,
+    activationId: event.activationId
+  });
+}
+
+/** Plague Sending remains a shared consumer across accepted player strikes. */
 export function reactToNecromancerConditions(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
   const skill = runtime.helpers.skillsById.get(event.skillId ?? event.sourceId) as NecromancerSkill | undefined;
   if (!skill) return;
   const work = { skillId: skill.id, activationId: event.activationId };
-  if (Number(event.hitIndex ?? 1) === 1) {
-    const profileId =
-      skill.id === ID.LIFE_SIPHON ? PROFILE.lifeSiphonOnHit : skill.id === ID.DARK_PACT ? PROFILE.darkPactOnHit : null;
-    if (profileId) {
-      const profile = requireBalanceProfileFromContext(runtime, profileId);
-      for (const effect of profile.effects ?? []) {
-        if (effect.type !== 'condition') continue;
-        const condition = String(effect.condition);
-        const stacks = effectNumber(profile, effect, 'stacks');
-        const duration = effectNumber(profile, effect, 'duration');
-        if (effect.target === 'self') applySelfCondition(runtime, skill, condition, stacks, duration);
-        else
-          runtime.emitDerived(
-            event,
-            buildResolverCondition({
-              at: runtime.time,
-              source: 'necromancer',
-              sourceId: skill.id,
-              actorType: 'player',
-              skillId: skill.id,
-              skillName: skill.name,
-              condition,
-              stacks,
-              duration
-            })
-          );
-      }
-    }
-
-    if (Number(skill.conditionsTransferred) > 0) transfer(runtime, skill, Number(skill.conditionsTransferred), work);
-  }
-
   const state = runtime.profession.core;
   if (
     state.plagueSendingArmed &&
@@ -265,10 +271,12 @@ function devouring(runtime: NecromancerRuntime, data: unknown): void {
   };
   const strike = skill.effects?.find((effect) => effect.type === 'strike');
   const torment = skill.effects?.find((effect) => effect.type === 'condition');
+  const reactionGroup = strike && runtime.effectReactions.register(skill, strike);
   if (strike)
     runtime.emit(
       buildResolverStrike({
         ...event,
+        ...(reactionGroup === undefined ? {} : { effectReaction: { group: reactionGroup, packet: 1 } }),
         coefficient: effectNumber(skill, strike, 'coefficient'),
         skillWeapon: skill.weapon
       })

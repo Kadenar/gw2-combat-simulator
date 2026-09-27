@@ -1,3 +1,4 @@
+import { stalkersStrikeTargetImpaired } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -39,6 +40,19 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     effects: [
       {
         type: 'strike',
+        // The strike owns only its impaired-target bonus; the base poison remains independent.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'each',
+            when: (runtime, { event }) =>
+              Number(event.coefficient) > 0 &&
+              event.source !== 'ranger-pet' &&
+              stalkersStrikeTargetImpaired(runtime.config, event.at, runtime),
+            do: { type: 'ranger.stalkers-poison' }
+          }
+        ],
         coefficient: 0.6,
         hits: 1
       },
