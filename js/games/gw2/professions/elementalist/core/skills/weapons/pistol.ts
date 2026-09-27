@@ -412,7 +412,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     tasks: [
       {
         type: 'elementalist.core.consume-elemental-explosion',
-        timingAnchor: 'castComplete'
+        timingAnchor: 'castCommit'
       }
     ],
     effects: [

@@ -966,8 +966,8 @@ test('a replacement generation cancels the old autonomous clock and pending Haun
   let original;
   const profession = {
     ...native,
-    onCastComplete(runtime, completed) {
-      native.onCastComplete(runtime, completed);
+    onCastCommit(runtime, completed) {
+      native.onCastCommit(runtime, completed);
       if (completed.skill.id === ID.SUMMON_SHADOW_FIEND) {
         original = completed;
         runtime.schedule('replace-minion', runtime.time + 1);
@@ -1111,8 +1111,8 @@ test('manual Lich exit cancels its old deadline before a replacement form begins
   const native = necromancerProfession.runtimeFor(base);
   const profession = {
     ...native,
-    onCastComplete(runtime, completed) {
-      native.onCastComplete(runtime, completed);
+    onCastCommit(runtime, completed) {
+      native.onCastCommit(runtime, completed);
       if (completed.skill.id === ID.EXIT_LICH_FORM) runtime.cooldownController.clear(ID.LICH_FORM);
     }
   };
@@ -1477,7 +1477,7 @@ test('heal completion claims Dark Defense and Malicious Swarm once per cooldown,
   assert.deepEqual(result.warnings, []);
 });
 
-test('Transfusion keeps surviving conditions when its strike is removed and requires completion', () => {
+test('Transfusion keeps surviving conditions when its strike is removed and accepts shortened committed channels', () => {
   const config = { ...base, initialResource: 100, selectedTraitIds: [TRAIT.TRANSFUSION] };
   const native = necromancerProfession.runtimeFor(config);
   const profession = {
@@ -1492,12 +1492,12 @@ test('Transfusion keeps surviving conditions when its strike is removed and requ
   const result = simulate(rotation, config, { profession });
   const effects = result.resolvedEvents.filter((event) => event.sourceId === TRAIT.TRANSFUSION);
   assert.deepEqual(effects.map((event) => event.condition).sort(), ['Chilled', 'Poisoned']);
-  const cancelled = simulate([cast(ID.REAPERS_SHROUD), { ...cast(ID.SOUL_SPIRAL), interruptAfterMs: 40 }], config, {
+  const shortened = simulate([cast(ID.REAPERS_SHROUD), { ...cast(ID.SOUL_SPIRAL), interruptAfterMs: 400 }], config, {
     profession
   });
   assert.equal(
-    cancelled.resolvedEvents.some((event) => event.sourceId === TRAIT.TRANSFUSION),
-    false
+    shortened.resolvedEvents.some((event) => event.sourceId === TRAIT.TRANSFUSION),
+    true
   );
   assert.equal(simulate(rotation, config, { profession, output: 'score' }).totalDamage, result.totalDamage);
 });

@@ -230,7 +230,7 @@ function contractProfession() {
           [forbiddenHorizonField]: true
         });
       },
-      onCastComplete(context, { skill, effectiveEnd }) {
+      onCastCommit(context, { skill, effectiveEnd }) {
         if (skill.id !== 990006) return;
         context.profession.actorActiveUntil = effectiveEnd + 4;
         context.schedule('fixture.persistent-actor', effectiveEnd + 1);

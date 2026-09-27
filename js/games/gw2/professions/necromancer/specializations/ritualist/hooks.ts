@@ -12,7 +12,6 @@ import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/st
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
-import { castCompleted } from '#gw2/platform/skills/timing.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
@@ -402,7 +401,7 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
       : ritualistSpellHooks.modifyEffects!(runtime, cast, effects);
   },
   onCastStart(runtime, cast) {
-    if (cast.skill.id !== ID.WANDERLUST || !castCompleted(cast)) return;
+    if (cast.skill.id !== ID.WANDERLUST || cast.cancelled) return;
     const swing = spiritDefinition(runtime, cast.skill.id)?.summonTicks[0];
     if (!swing) return;
     const skillWeapon = gw2ActivePrimaryWeapon(runtime.config, runtime.activeWeaponSet) || 'Unequipped';
@@ -417,8 +416,8 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
       })
     );
   },
-  onCastComplete(runtime, cast) {
-    ritualistSpellHooks.onCastComplete!(runtime, cast);
+  onCastCommit(runtime, cast) {
+    ritualistSpellHooks.onCastCommit!(runtime, cast);
     // A cast cancelled after its commit point (aftercast cancel) still summons; earlier cancellation summons nothing.
     if (cast.cancelled) return;
     const spirit = spiritDefinition(runtime, cast.skill.id);

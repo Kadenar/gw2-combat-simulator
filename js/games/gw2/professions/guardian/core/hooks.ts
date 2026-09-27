@@ -182,7 +182,7 @@ export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
     refreshGuardianVirtues(runtime);
     if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtueActivations.add(cast);
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     if (cast.cancelled) return;
     completeWeapon(runtime, cast);
     completeSpearIllumination(runtime, cast);

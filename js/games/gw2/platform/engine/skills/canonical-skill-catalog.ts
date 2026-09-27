@@ -990,12 +990,22 @@ export function createCanonicalCatalog({
     }
 
     const effects = normalizeSkillEffects(merged.effects || [], `skill=${id}`);
+    // Reject obsolete or misspelled task anchors before scheduling can silently choose the full cast end.
+    if (!Array.isArray(merged.tasks ?? [])) throw new TypeError(`Skill ${id} tasks must be an array.`);
+    for (const task of merged.tasks ?? [])
+      if (
+        !task ||
+        typeof task.type !== 'string' ||
+        (task.timingAnchor != null && !['castStart', 'castEnd', 'castCommit'].includes(task.timingAnchor))
+      )
+        throw new TypeError(`Skill ${id} has an invalid task.`);
+
     // Declarative activation phases and variant selectors must be executable before they enter a live catalog.
     if (!Array.isArray(merged.sideEffects ?? [])) throw new TypeError(`Skill ${id} side effects must be an array.`);
     for (const sideEffect of merged.sideEffects ?? []) {
       if (
         !sideEffect ||
-        !['castStart', 'castCommit', 'castComplete'].includes(sideEffect.on) ||
+        !['castStart', 'castCommit'].includes(sideEffect.on) ||
         typeof sideEffect.do?.type !== 'string' ||
         Array.isArray(sideEffect.do) ||
         (sideEffect.when != null && typeof sideEffect.when !== 'function') ||

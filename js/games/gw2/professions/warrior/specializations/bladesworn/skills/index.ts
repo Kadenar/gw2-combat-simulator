@@ -59,7 +59,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   },
   [ID.DRAGONSPIKE_MINE]: {
     // The completed activation refreshes its paired skill through the shared recharge owner.
-    sideEffects: [{ on: 'castComplete', do: { type: 'rechargeReset', skillIds: [ID.DRAGON_TRIGGER] } }],
+    sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.DRAGON_TRIGGER] } }],
     movementSkill: true,
     // Dragonspike Mine refreshes Dragon Trigger when its cast completes.
     effects: [

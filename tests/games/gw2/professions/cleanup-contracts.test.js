@@ -129,8 +129,8 @@ test('Weighty Terms follows canonical mantra IDs and ignores names or final-char
           effectiveEnd: 0
         };
         // Exercise the shared completion boundary before the profession's remaining trait effects.
-        applySkillSideEffects(runtime, cast, 'castComplete');
-        native.onCastComplete(runtime, cast);
+        applySkillSideEffects(runtime, cast, 'castCommit');
+        native.onCastCommit(runtime, cast);
       });
       assert.equal(
         observedRuntime(result).profession.specialization.state.tomePages.value,
@@ -261,8 +261,8 @@ test('Paragon renamed refrains replace, project, exhaust, and recover from missi
       profession: {
         ...profession,
         catalog,
-        onCastComplete(runtime, cast) {
-          profession.onCastComplete?.(runtime, cast);
+        onCastCommit(runtime, cast) {
+          profession.onCastCommit?.(runtime, cast);
           if (missing && cast.skill.id === W.CHANT_OF_FREEDOM) skillsById.delete(W.CHANT_OF_FREEDOM);
         }
       },

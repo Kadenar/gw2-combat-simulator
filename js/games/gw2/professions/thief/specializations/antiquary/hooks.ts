@@ -540,7 +540,7 @@ export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
       ? []
       : effects;
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     deferThiefCompletion(runtime, ANTIQUARY_COMPLETE, cast);
   },
   reactions: {

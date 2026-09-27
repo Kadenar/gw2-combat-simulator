@@ -133,8 +133,11 @@ Force and Bursting. Ordered attribute conversions stay imperative hooks.
 
 ### Hook ownership
 
-Cast acceptance reserves lane/resource/recharge decisions once. Completion commits cooldowns and dispatches
-`onCastComplete`. Named tasks carry detached payloads on the common heap. Resolved-hit, condition, boon, combo, and
+Cast acceptance reserves lane/resource/recharge decisions once. Successful casts apply `castCommit` side effects,
+dispatch `onCastCommit` (including trait triggers), then schedule authored tasks. Committed interruptions receive the
+same rewards as full casts; cancelled attempts dispatch only `onCastCancel` for cleanup. The `castCommit` task anchor
+uses the actual cast end, while `castEnd` retains the reserved full end. Named tasks carry detached payloads on the
+common heap. Resolved-hit, condition, boon, combo, and
 control reactions see the same live profession state as the next command. Critical effects reuse the hit's actual
 outcome and claim one ICD; no scheduling prediction exists.
 

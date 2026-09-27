@@ -439,7 +439,7 @@ function applySpecializedElementsTrait(context: ElementalistRuntime, cast: Runti
  * the familiar traits, the charge/empowered state machine, and the Evoker
  * utility skill payloads.
  */
-export function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   const state = evokerState.from(context);
   const completesActiveFamiliar = state.activeFamiliarCast?.reservationId === cast.id;
   // A settled grant cannot fund another retry or be awarded again after a familiar spends it.

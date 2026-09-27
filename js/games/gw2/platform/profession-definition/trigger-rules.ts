@@ -3,7 +3,6 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { sideEffectAmount, type ProfileAmount } from '#gw2/platform/simulation/side-effects.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { castCompleted } from '#gw2/platform/skills/timing.js';
 import type { Skill, SkillId, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
@@ -43,7 +42,7 @@ export type TraitTrigger<T extends object> = TraitTriggerBase &
         readonly attribution?: TriggerAttributionSource<T, RuntimeCast>;
       }
     | {
-        readonly on: 'castComplete';
+        readonly on: 'castCommit';
         readonly when: (runtime: Gw2Runtime<T>, cast: RuntimeCast) => boolean;
         readonly attribution?: TriggerAttributionSource<T, RuntimeCast>;
       }
@@ -76,7 +75,7 @@ export function compileRechargeRules<T extends object>(
   };
 }
 
-/** Each module's rules run at its existing hook position; completion triggers require a fully completed cast. */
+/** Each module's rules run at its hook position; committed interruptions receive the same cast rewards. */
 export function compileProfessionRules<T extends object>(
   hooks: Partial<RuntimeProfession<T>>
 ): Partial<RuntimeProfession<T>> {
@@ -120,15 +119,11 @@ export function compileProfessionRules<T extends object>(
       });
     };
 
-    if (rule.on === 'castStart' || rule.on === 'castComplete') {
-      const key = rule.on === 'castStart' ? 'onCastStart' : 'onCastComplete';
+    if (rule.on === 'castStart' || rule.on === 'castCommit') {
+      const key = rule.on === 'castStart' ? 'onCastStart' : 'onCastCommit';
       const prior = compiled[key];
       compiled[key] = (runtime, cast) => {
-        if (
-          (rule.on !== 'castComplete' || castCompleted(cast)) &&
-          hasTrait(runtime, rule.trait) &&
-          rule.when(runtime, cast)
-        )
+        if ((rule.on !== 'castCommit' || !cast.cancelled) && hasTrait(runtime, rule.trait) && rule.when(runtime, cast))
           emit(
             runtime,
             cast.skill.id,

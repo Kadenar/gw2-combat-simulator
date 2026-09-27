@@ -98,7 +98,7 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     tasks: [
       {
         type: 'elementalist.weaver.consume-perfect-weave',
-        timingAnchor: 'castComplete'
+        timingAnchor: 'castCommit'
       }
     ],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -131,7 +131,7 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     tasks: [
       {
         type: 'elementalist.weaver.arm-fervent-stance',
-        timingAnchor: 'castComplete'
+        timingAnchor: 'castCommit'
       }
     ],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [

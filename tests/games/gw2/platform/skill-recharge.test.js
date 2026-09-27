@@ -78,7 +78,7 @@ test('Alacrity gained during a cast leaves reserved recharge and the independent
                 actorType: 'player'
               });
             },
-            onCastComplete(runtime, cast) {
+            onCastCommit(runtime, cast) {
               if (cast.start !== 0) return;
               if (ammo) {
                 assert.equal(runtime.ammo.get(990011).nextRechargeAt, 18);
@@ -169,8 +169,8 @@ test('Warrior ammo preserves charge recovery and its independent cast lockout', 
     profession: {
       runtimeFor: () => ({
         ...native,
-        onCastComplete(runtime, cast) {
-          native.onCastComplete?.(runtime, cast);
+        onCastCommit(runtime, cast) {
+          native.onCastCommit?.(runtime, cast);
           if (cast.skill.id === skill.id)
             seen.push({ start: cast.start, end: cast.effectiveEnd, ammo: { ...runtime.ammo.get(skill.id) } });
         }

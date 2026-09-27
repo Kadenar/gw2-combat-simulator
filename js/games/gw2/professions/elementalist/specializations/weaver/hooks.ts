@@ -184,7 +184,7 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
     );
   }
 
-  // Unravel emits its own attunement event from onCastComplete and handles the
+  // Unravel emits its own attunement event from onCastCommit and handles the
   // whole transition there, so it is skipped here.
   if (
     event.type !== 'elementalist.attunement' ||
@@ -276,7 +276,7 @@ function completeDualAttunement(context: ElementalistRuntime, cast: RuntimeCast)
 }
 
 // Commit dual-weapon and stance state at completion; Core owns the registered attunement transition.
-function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   const state = weaverState.from(context);
   const core = professionCoreState(context);
   const at = cast.effectiveEnd;
@@ -455,8 +455,8 @@ export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
   modifyEffects(_runtime, cast, effects) {
     return PRIMORDIAL_STANCES.has(Number(cast.skill.id)) ? [] : effects;
   },
-  onCastComplete(runtime, cast) {
-    if (!cast.cancelled) withElementalistCast(runtime, cast, () => onCastComplete(runtime, cast, cast.skill));
+  onCastCommit(runtime, cast) {
+    if (!cast.cancelled) withElementalistCast(runtime, cast, () => onCastCommit(runtime, cast, cast.skill));
   },
 
   reactions: { 'control.resolved': onAcceptedEvent },

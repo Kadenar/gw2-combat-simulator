@@ -854,7 +854,7 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     else if (TWIN_MOON_SKILL_IDS.has(skill.id)) twinMoonSweep(runtime, cast);
     else if (RELEASE_POTENTIAL_IDS.has(skill.id)) releasePotential(runtime, cast);
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
     const committed = !cast.cancelled;
     if (BEGUILING_HAZE_SKILL_IDS.has(skill.id)) {

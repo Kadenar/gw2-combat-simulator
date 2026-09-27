@@ -35,7 +35,7 @@ export const holosmithHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = 
     else if (skill.id === ID.PHOTON_BLITZ) applyPhotonBlitzHeat(runtime, skill, cast);
     else if (Number(skill.heatGain) > 0) applyHeat(runtime, skill, cast);
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     if (cast.cancelled) return;
     if (cast.skill.id === ID.ENGAGE_PHOTON_FORGE) enterPhotonForge(runtime, cast.skill);
     else if (HOLOSMITH_FORGE_TOGGLE_SKILL_IDS.has(Number(cast.skill.id))) exitPhotonForge(runtime, cast.skill);

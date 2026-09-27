@@ -331,13 +331,13 @@ export interface SkillLockout {
 
 /**
  * Authored deadlines for named work owned by the selected profession's live task registry. A committed activation
- * schedules each one after its completion owners run. `castEnd` is the reserved full end and `castComplete` the
+ * schedules each one after its completion owners run. `castEnd` is the reserved full end and `castCommit` the
  * instant the activation actually ended, which differs only when a committed cast is interrupted.
  */
 export interface SkillTask {
   readonly type: string;
   readonly atMs?: number;
-  readonly timingAnchor?: 'castStart' | 'castEnd' | 'castComplete';
+  readonly timingAnchor?: 'castStart' | 'castEnd' | 'castCommit';
   readonly timingScale?: 'cast' | 'fixed';
   readonly count?: number;
 }

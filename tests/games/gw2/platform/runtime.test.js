@@ -110,7 +110,7 @@ function fixture(hooks = {}) {
       }
     },
     onCastStart: (runtime, activation) => runtime.profession.accepted.push([activation.skill.name, runtime.time]),
-    onCastComplete: (runtime, activation) => runtime.profession.completed.push([activation.skill.name, runtime.time]),
+    onCastCommit: (runtime, activation) => runtime.profession.completed.push([activation.skill.name, runtime.time]),
     ...hooks
   };
 }
@@ -212,7 +212,7 @@ test('default interruptions and authored overrides release the actual cast lane'
     [{ interruptAfterMs: 2000 }, 1]
   ]) {
     const result = run([cast(990009, extra), cast(990002)]);
-    assert.deepEqual(result.planningState.profession.completed[0], ['Restricted', end]);
+    assert.deepEqual(result.planningState.profession.completed[0], [end === 1 ? 'Restricted' : 'Spend', end]);
     assert.deepEqual(result.planningState.profession.accepted[1], ['Spend', end]);
   }
 });
@@ -230,7 +230,7 @@ test('forbidden concurrent commands are rejected without reserving a cast lane',
 test('completion commits cooldowns and ammo before the next command at the same instant', () => {
   const completion = [];
   const profession = fixture({
-    onCastComplete(runtime, activation) {
+    onCastCommit(runtime, activation) {
       completion.push({
         id: activation.skill.id,
         at: runtime.time,
@@ -274,7 +274,7 @@ test('a final completion can extend input recovery before the tail is fixed once
   const result = run([cast(990001)], {
     observation: { kind: 'tail', durationMs: 500 },
     profession: fixture({
-      onCastComplete(runtime) {
+      onCastCommit(runtime) {
         runtime.inputReadyAt = runtime.time + 0.4;
         runtime.schedule('recover', 1.4);
       },
@@ -345,8 +345,8 @@ test('authored combat boundaries include simultaneous impacts before the marker 
         runtime.profession.hits++;
       }
     },
-    onCastComplete(runtime, activation) {
-      fixture().onCastComplete(runtime, activation);
+    onCastCommit(runtime, activation) {
+      fixture().onCastCommit(runtime, activation);
       runtime.inputReadyAt = runtime.time + 0.2;
     }
   });
@@ -381,7 +381,7 @@ test('absolute horizons reject unfinished commands, lanes and recovery instead o
       run([cast(990004)], {
         observation: { kind: 'absolute', endTimeMs: 0 },
         profession: fixture({
-          onCastComplete(runtime) {
+          onCastCommit(runtime) {
             runtime.inputReadyAt = 1;
           }
         })

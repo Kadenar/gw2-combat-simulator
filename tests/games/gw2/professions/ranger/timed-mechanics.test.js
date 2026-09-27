@@ -55,8 +55,8 @@ test('Avatar depletion schedules an earlier exit than the duration limit', () =>
     { specialization: 'Druid', selectedTraitIds: [TRAIT.NATURAL_MENDER] },
     {
       extend: (native) => ({
-        onCastComplete(runtime, cast) {
-          native.onCastComplete(runtime, cast);
+        onCastCommit(runtime, cast) {
+          native.onCastCommit(runtime, cast);
           if (cast.skill.id === ID.CELESTIAL_AVATAR) runtime.resourceController.spend('astralForce', 80);
         }
       })

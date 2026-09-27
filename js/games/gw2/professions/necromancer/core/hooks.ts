@@ -8,7 +8,6 @@ import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-he
 import { consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { requireEffect, requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import { castCompleted } from '#gw2/platform/skills/timing.js';
 import {
   necromancerLifeForceCostMultiplier,
   normalizedNecromancerLifeForceCost
@@ -91,7 +90,7 @@ function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
 }
 
 function complete(runtime: NecromancerRuntime, cast: RuntimeCast): void {
-  if (!castCompleted(cast)) return;
+  if (cast.cancelled) return;
   completeNecromancerMinion(runtime, cast);
   const skill = cast.skill as NecromancerSkill;
   const state = runtime.profession.core;
@@ -256,7 +255,7 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
   traitTriggers: [
     {
       trait: TRAIT.MALICIOUS_SWARM,
-      on: 'castComplete',
+      on: 'castCommit',
       emit: TRAIT.MALICIOUS_SWARM,
       icd: 'profile',
       when: (runtime, cast) =>
@@ -274,7 +273,7 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
     },
     {
       trait: TRAIT.SIGNETS_OF_SUFFERING,
-      on: 'castComplete',
+      on: 'castCommit',
       when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Signet')),
       emit: TRAIT.SIGNETS_OF_SUFFERING,
       effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
@@ -288,10 +287,10 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
       })
     },
     ...(['Strike', 'Poisoned', 'Chilled'] as const).map<
-      Extract<TraitTrigger<NecromancerRuntimeState>, { on: 'castComplete' }>
+      Extract<TraitTrigger<NecromancerRuntimeState>, { on: 'castCommit' }>
     >((name) => ({
       trait: TRAIT.TRANSFUSION,
-      on: 'castComplete' as const,
+      on: 'castCommit' as const,
       when: (_runtime, cast) => cast.skill.shroudSlot === 4,
       emit: TRAIT.TRANSFUSION,
       effects: (effect) => effect.type === (name === 'Strike' ? 'strike' : 'condition') && effect.name === name,
@@ -307,7 +306,7 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
       })
     }))
   ],
-  onCastComplete: complete,
+  onCastCommit: complete,
   onAutoattackChainTransition: observeNecromancerAutoattackTransition,
   onCooldownReset(runtime) {
     runtime.resourceController.grant('lifeForce', runtime.profession.core.lifeForce.maximum);

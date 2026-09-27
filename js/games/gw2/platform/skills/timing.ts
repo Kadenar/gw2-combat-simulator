@@ -19,7 +19,7 @@ export function castWasInterrupted(cast: Gw2CastEndTimes): boolean {
 }
 
 /** A cast that reached its full duration. Stated as its own comparison so a non-finite end is neither. */
-export function castCompleted(cast: Gw2CastEndTimes): boolean {
+export function castReachedFullDuration(cast: Gw2CastEndTimes): boolean {
   return cast.effectiveEnd >= cast.fullEnd - EPSILON;
 }
 

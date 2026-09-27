@@ -96,7 +96,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.DARK_PATH]: {
     // A completed cast arms the authored follow-up duration through the common flip owner.
-    sideEffects: [{ on: 'castComplete', do: { type: 'flipArm', skillId: ID.DARK_PURSUIT } }],
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.DARK_PURSUIT } }],
     castTimeMs: 880,
     // Dark Pursuit stays available briefly after the claw lands.
     flipDuration: 3,
@@ -154,7 +154,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.RIPPLE_OF_HORROR]: {
     // A completed cast arms the authored follow-up duration through the common flip owner.
-    sideEffects: [{ on: 'castComplete', do: { type: 'flipArm', skillId: ID.MARCH_OF_UNDEATH } }],
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.MARCH_OF_UNDEATH } }],
     castTimeMs: 360,
     flipDuration: 12,
     effects: [

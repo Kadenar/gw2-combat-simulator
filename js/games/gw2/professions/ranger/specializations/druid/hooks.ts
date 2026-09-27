@@ -8,7 +8,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { castWasInterrupted, gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
 import type { RuntimeProfession, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
@@ -228,8 +228,8 @@ export const druidHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
     return { ready: true };
   },
   modifyEffects: avatarEffects,
-  onCastComplete(runtime, cast) {
-    if (castWasInterrupted(cast)) return;
+  onCastCommit(runtime, cast) {
+    if (cast.cancelled) return;
     if (cast.skill.id === ID.CELESTIAL_AVATAR) avatar(runtime, true);
     if (cast.skill.id === ID.RELEASE_CELESTIAL_AVATAR) avatar(runtime, false);
   },

@@ -13,7 +13,7 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
 import {
   onCastStart,
-  onCastComplete,
+  onCastCommit,
   modifyFamiliarEffects
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
 import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
@@ -45,25 +45,22 @@ export const evokerHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
   onCastStart(runtime, cast) {
     onCastStart(runtime, cast, cast.skill);
   },
-  onCastComplete(runtime, cast) {
+  onCastCancel(runtime, cast) {
+    // Cancelled familiar casts release deferred weapon grants without resetting familiar charges.
     const state = evokerState.from(runtime);
-    if (cast.cancelled) {
-      state.pendingWeaponCompletions = state.pendingWeaponCompletions.filter((entry) => entry.activationId !== cast.id);
-      if (state.activeFamiliarCast?.reservationId === cast.id) {
-        // Interrupting the familiar releases completed weapon grants without applying its charge reset.
-        flushPendingWeaponChargeGains(runtime, state);
-        state.activeFamiliarCast = null;
-      }
-
-      return;
+    state.pendingWeaponCompletions = state.pendingWeaponCompletions.filter((entry) => entry.activationId !== cast.id);
+    if (state.activeFamiliarCast?.reservationId === cast.id) {
+      flushPendingWeaponChargeGains(runtime, state);
+      state.activeFamiliarCast = null;
     }
-
+  },
+  onCastCommit(runtime, cast) {
     withElementalistCast(runtime, cast, () => {
-      onCastComplete(runtime, cast, cast.skill);
+      onCastCommit(runtime, cast, cast.skill);
       // Meditation traits commit once with the completed cast, after interruption eligibility has been checked.
       applyAltruisticAspect(runtime, cast, cast.skill);
     });
-    delete state.cancelledFamiliarActivations[cast.id];
+    delete evokerState.from(runtime).cancelledFamiliarActivations[cast.id];
   },
 
   reactions: { 'damage.resolved': onAcceptedEvent, 'condition.applied': onAcceptedEvent }

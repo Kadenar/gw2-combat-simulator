@@ -134,7 +134,7 @@ test('catalogs validate side-effect payloads, amounts, and variant references', 
       ],
       balanceProfiles: [{ id: 'test.profile', name: 'Profile', profileKind: 'trait', resourceGain: 3, effects: [] }]
     });
-  const declaration = (action) => ({ sideEffects: [{ on: 'castComplete', do: action }] });
+  const declaration = (action) => ({ sideEffects: [{ on: 'castCommit', do: action }] });
   for (const action of [
     { type: 'rechargeReset', skillIds: [2] },
     { type: 'ammoRestore', skillIds: [2], count: 1 },
@@ -176,6 +176,9 @@ test('catalogs validate side-effect payloads, amounts, and variant references', 
   for (const extra of [
     { sideEffects: {} },
     { sideEffects: [null] },
+    // The removed lifecycle phase is rejected instead of silently retaining its old semantics.
+    { sideEffects: [{ on: 'castComplete', do: { type: 'rechargeReset', skillIds: [2] } }] },
+    { tasks: [{ type: 'test.task', timingAnchor: 'castComplete' }] },
     { effectVariants: {} },
     { effectVariants: [null] },
     { effectVariants: [{ when: () => true, profileId: 'missing' }] }

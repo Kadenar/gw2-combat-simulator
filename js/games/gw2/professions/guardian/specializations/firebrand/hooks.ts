@@ -8,7 +8,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { castCompleted } from '#gw2/platform/skills/timing.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { emitGuardianBoon, triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/index.js';
@@ -186,7 +185,7 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
       refundByCast.set(cast, balanceProfileNumber(profile, 'resourceGain'));
     }
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     if (cast.cancelled) return;
     completeFirebrandMantra(runtime, cast);
     const state = firebrandState.from(runtime);
@@ -229,7 +228,7 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
         );
     }
 
-    if (skill.id === ID.RENEWED_FOCUS && castCompleted(cast)) {
+    if (skill.id === ID.RENEWED_FOCUS) {
       runtime.resourceController.grant('tomePages', state.tomePages.maximum);
       state.tomeDormantReadyAt = { justice: runtime.time, resolve: runtime.time, courage: runtime.time };
     }
@@ -255,11 +254,7 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
       }
     }
 
-    if (
-      hasTrait(runtime, TRAIT.WEIGHTY_TERMS) &&
-      MANTRAS.some(({ finalId }) => finalId === skill.id) &&
-      castCompleted(cast)
-    ) {
+    if (hasTrait(runtime, TRAIT.WEIGHTY_TERMS) && MANTRAS.some(({ finalId }) => finalId === skill.id)) {
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.weightyTerms);
       const gain = balanceProfileNumber(profile, 'resourceGain');
       const slow = requireEffect(profile, 'condition', 'Slow');

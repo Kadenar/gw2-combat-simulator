@@ -457,7 +457,7 @@ export function runGw2Runtime<T extends object>({
       const origin =
         trigger.timingAnchor === 'castStart'
           ? cast.start
-          : trigger.timingAnchor === 'castComplete'
+          : trigger.timingAnchor === 'castCommit'
             ? cast.effectiveEnd
             : cast.fullEnd;
       const at = Math.max(runtime.time, origin + ((trigger.atMs ?? 0) * scale) / 1000);
@@ -546,11 +546,14 @@ export function runGw2Runtime<T extends object>({
     );
     profession.onAutoattackChainTransition?.(runtime, cast, transition);
     if (cast.skill.cost?.spendOn === 'castCommit' && !cast.cancelled) spendSkillCost(runtime, cast.skill);
-    if (!cast.cancelled) profession.onCastCommit?.(runtime, cast);
-    applySkillSideEffects(runtime, cast, 'castCommit', profession.sideEffectHandlers);
-    applySkillSideEffects(runtime, cast, 'castComplete', profession.sideEffectHandlers);
-    profession.onCastComplete?.(runtime, cast);
-    if (!cast.cancelled) scheduleSkillTasks(cast);
+    // One successful-cast phase owns rewards and tasks; cancelled attempts only release profession state.
+    if (cast.cancelled) profession.onCastCancel?.(runtime, cast);
+    else {
+      applySkillSideEffects(runtime, cast, 'castCommit', profession.sideEffectHandlers);
+      profession.onCastCommit?.(runtime, cast);
+      scheduleSkillTasks(cast);
+    }
+
     const completion = assertSimulationEvent({
       type: 'action',
       at: runtime.time,

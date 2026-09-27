@@ -14,7 +14,6 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -396,9 +395,9 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     const committed = !cast.cancelled;
     if (committed && RENEGADE_ENHANCED_SKILL_BY_ID[Number(cast.skill.id)] != null) beginBandTogether(runtime, cast);
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     const committed = !cast.cancelled;
-    if (cast.skill.id === ID.HEROIC_COMMAND && !castWasInterrupted(cast)) heroicCommand(runtime, cast);
+    if (cast.skill.id === ID.HEROIC_COMMAND && !cast.cancelled) heroicCommand(runtime, cast);
     if (committed) completeBandTogether(runtime, cast);
     ashenDemeanor(runtime, cast);
     if (!committed) return;

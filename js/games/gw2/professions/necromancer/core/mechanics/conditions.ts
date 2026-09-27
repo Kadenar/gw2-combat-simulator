@@ -11,7 +11,6 @@ import {
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { castCompleted } from '#gw2/platform/skills/timing.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
@@ -234,11 +233,11 @@ export function scheduleNecromancerConditions(runtime: NecromancerRuntime, cast:
       first &&
       timing?.type === 'strike' &&
       cast.start + (effectFirstAtMs(timing) ?? 0) / 1000 <= cast.effectiveEnd;
-    if (castCompleted(cast) || committedBloodIsPower) runtime.schedule(CORRUPTION, cast.effectiveEnd, work);
+    if (!cast.cancelled || committedBloodIsPower) runtime.schedule(CORRUPTION, cast.effectiveEnd, work);
   }
 
   // Only the signet transfers without a hit; removing Deathly Swarm's strike must not create a completion transfer.
-  if (skill.id === ID.PLAGUE_SIGNET && castCompleted(cast))
+  if (skill.id === ID.PLAGUE_SIGNET && !cast.cancelled)
     runtime.schedule(TRANSFER, cast.effectiveEnd + (cast.command.impactDelayMs ?? 0) / 1000, work);
   if (skill.id === ID.DEVOURING_DARKNESS) {
     const impactAt = canonicalTime(cast.start + (cast.fullEnd - cast.start) * 0.8);

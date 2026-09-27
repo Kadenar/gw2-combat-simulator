@@ -116,10 +116,10 @@ test('Conduit upkeep ticks precede same-time cast completion', () => {
     { ...baseConfig, specialization: 'Conduit' },
     {
       extend: (native) => ({
-        onCastComplete(runtime, cast) {
+        onCastCommit(runtime, cast) {
           if (cast.skill.name === 'Preparation Thrust')
             affinityAtCompletion = runtime.profession.specialization.state.affinity;
-          native.onCastComplete(runtime, cast);
+          native.onCastCommit(runtime, cast);
         }
       })
     }

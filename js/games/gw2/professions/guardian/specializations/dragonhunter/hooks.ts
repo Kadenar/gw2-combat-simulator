@@ -180,7 +180,7 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
         runtime.schedule(FURIOUS, at, { id: cast.id, skill: { id: cast.skill.id, name: cast.skill.name } });
     }
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     if (cast.cancelled) return;
     const virtue = cast.skill.categories?.includes('Virtue') ? guardianVirtueForSlot(cast.skill.slot) : null;
     if (virtue) {

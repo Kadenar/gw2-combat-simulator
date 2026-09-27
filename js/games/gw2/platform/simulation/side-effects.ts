@@ -8,7 +8,6 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import { castCompleted } from '#gw2/platform/skills/timing.js';
 
 export type ProfileAmount = number | { readonly profile: SkillId; readonly field: string };
 // Resource grants may read the accepted skill's live tuning without duplicating it in a balance profile.
@@ -37,7 +36,7 @@ export type ActionContext =
   | { readonly kind: 'effect'; readonly skill: Skill; readonly trigger: ResolvedEffectTrigger };
 
 export interface SkillSideEffect {
-  readonly on: 'castStart' | 'castCommit' | 'castComplete';
+  readonly on: 'castStart' | 'castCommit';
   readonly order?: number;
   readonly when?: (runtime: Gw2Runtime, cast: RuntimeCast) => boolean;
   readonly do: SideEffectAction;
@@ -119,14 +118,14 @@ export function applySideEffect(
   }
 }
 
-/** Start rewards survive cancellation, commit rewards require commitment, and completion rewards require a full cast. */
+/** Start rewards survive cancellation; every successful cast grants its commit rewards, including shortened casts. */
 export function applySkillSideEffects(
   runtime: Gw2Runtime,
   cast: RuntimeCast,
   on: SkillSideEffect['on'],
   handlers?: Parameters<typeof applySideEffect>[3]
 ): void {
-  if ((on === 'castCommit' && cast.cancelled) || (on === 'castComplete' && !castCompleted(cast))) return;
+  if (on === 'castCommit' && cast.cancelled) return;
   for (const effect of cast.skill.sideEffects ?? []) {
     if (effect.on === on && (!effect.when || effect.when(runtime, cast)))
       applySideEffect(runtime, { kind: 'cast', skill: cast.skill, cast }, effect.do, handlers);

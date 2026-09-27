@@ -13,7 +13,6 @@ import {
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { castCompleted } from '#gw2/platform/skills/timing.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
@@ -157,7 +156,7 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast): void {
 
 /** Completed shade commands mutate local state before their queued strikes, trait reactions, and later commands. */
 function completeShade(runtime: NecromancerRuntime, cast: RuntimeCast): void {
-  if (!castCompleted(cast)) return;
+  if (cast.cancelled) return;
   const skill = cast.skill;
   if ([ID.SERPENT_SIPHON, ID.SAND_FLARE].some((id) => id === Number(skill.id))) {
     barrierTraits(runtime, cast);
@@ -299,7 +298,7 @@ export const scourgeHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> =
     if (cast.skill.id === ID.MANIFEST_SAND_SHADE && !cast.cancelled)
       runtime.schedule(MANIFEST, canonicalTime(cast.start + ((cast.fullEnd - cast.start) * 11) / 12), cast);
   },
-  onCastComplete: completeShade,
+  onCastCommit: completeShade,
   tasks: {
     [EXPIRE](runtime) {
       purgeScourgeTimedState(scourgeState.from(runtime), runtime.time);

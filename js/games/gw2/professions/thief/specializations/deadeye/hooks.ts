@@ -383,7 +383,7 @@ export const deadeyeHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     }
   },
   modifyEffects: maliciousEffects,
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     deferThiefCompletion(runtime, DEADEYE_COMPLETE, cast);
   },
   reactions: {

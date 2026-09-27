@@ -81,8 +81,8 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     castTimeMs: 680,
     // The heal restores two dodge bars when its cast completes.
     sideEffects: [
-      { on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 30 } },
-      { on: 'castComplete', do: { type: 'resourceGrant', resource: 'endurance', amount: 100 } }
+      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 30 } },
+      { on: 'castCommit', do: { type: 'resourceGrant', resource: 'endurance', amount: 100 } }
     ],
     effects: []
   },
@@ -150,7 +150,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     cooldown: 16,
     castTimeMs: 400,
     dualWieldCastTimeMs: 280,
-    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 30 } }],
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 30 } }],
     effects: [
       {
         type: 'buff',

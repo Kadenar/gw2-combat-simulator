@@ -4,7 +4,7 @@ import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-sk
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { strikeTimeline, conditionTimeline, impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { castCompleted, castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import { castReachedFullDuration, castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { EPSILON } from '#kernel/core/clock.js';
 
 // Grouped authoring must retain the ordinary scheduler's ordering, ownership, and recipient contracts.
@@ -246,16 +246,16 @@ test('runtime variants scale cast-bound launch timing while fixed pulse spacing 
 test('cast interrupt predicates split on the epsilon-tolerant full-duration boundary', () => {
   const fullEnd = 4;
   assert.equal(castWasInterrupted({ fullEnd, effectiveEnd: fullEnd }), false);
-  assert.equal(castCompleted({ fullEnd, effectiveEnd: fullEnd }), true);
+  assert.equal(castReachedFullDuration({ fullEnd, effectiveEnd: fullEnd }), true);
 
   // An end short by less than the clock tolerance still counts as a completed cast.
   assert.equal(castWasInterrupted({ fullEnd, effectiveEnd: fullEnd - EPSILON / 2 }), false);
-  assert.equal(castCompleted({ fullEnd, effectiveEnd: fullEnd - EPSILON / 2 }), true);
+  assert.equal(castReachedFullDuration({ fullEnd, effectiveEnd: fullEnd - EPSILON / 2 }), true);
 
   assert.equal(castWasInterrupted({ fullEnd, effectiveEnd: fullEnd - 2 * EPSILON }), true);
-  assert.equal(castCompleted({ fullEnd, effectiveEnd: fullEnd - 2 * EPSILON }), false);
+  assert.equal(castReachedFullDuration({ fullEnd, effectiveEnd: fullEnd - 2 * EPSILON }), false);
 
   // Each predicate states its own comparison, so a non-finite end is neither interrupted nor completed.
   assert.equal(castWasInterrupted({ fullEnd, effectiveEnd: Number.NaN }), false);
-  assert.equal(castCompleted({ fullEnd, effectiveEnd: Number.NaN }), false);
+  assert.equal(castReachedFullDuration({ fullEnd, effectiveEnd: Number.NaN }), false);
 });

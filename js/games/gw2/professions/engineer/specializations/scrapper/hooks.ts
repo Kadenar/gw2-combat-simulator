@@ -2,7 +2,6 @@ import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-r
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { EngineerRuntimeState, EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
@@ -23,17 +22,17 @@ export const scrapperHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
     {
       trait: TRAIT.SPEED_OF_SYNERGY,
       emit: PROFILE.speedOfSynergy,
-      on: 'castComplete',
+      on: 'castCommit',
       when: (_runtime, cast) => healingSkill(cast.skill) && cast.skill.id !== ID.MED_KIT,
       effects: (effect) => effect.type === 'buff' && effect.name === 'Healing skill superspeed',
       attribution: { actorType: 'player', name: 'Speed of Synergy \u2014 superspeed' }
     },
     ...(['Healing toolbelt superspeed', 'Med Kit toolbelt superspeed'] as const).map<
-      Extract<TraitTrigger<EngineerRuntimeState>, { on: 'castComplete' }>
+      Extract<TraitTrigger<EngineerRuntimeState>, { on: 'castCommit' }>
     >((name) => ({
       trait: TRAIT.SPEED_OF_SYNERGY,
       emit: PROFILE.speedOfSynergy,
-      on: 'castComplete' as const,
+      on: 'castCommit' as const,
       when: (runtime, cast) =>
         cast.skill.toolbeltParentId != null &&
         healingSkill(runtime.helpers.skillsById.get((cast.skill as EngineerSkill).toolbeltParentId!)) &&
@@ -44,7 +43,7 @@ export const scrapperHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
     {
       trait: TRAIT.GYROSCOPIC_ACCELERATION,
       emit: PROFILE.gyroscopicAcceleration,
-      on: 'castComplete',
+      on: 'castCommit',
       when: (_runtime, cast) =>
         cast.skill.id === ID.FUNCTION_GYRO ||
         Boolean(cast.skill.categories?.some((category) => category.toLowerCase() === 'well')),
@@ -55,7 +54,7 @@ export const scrapperHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
     {
       trait: TRAIT.SYSTEM_SHOCKER,
       emit: PROFILE.systemShocker,
-      on: 'castComplete',
+      on: 'castCommit',
       when: (_runtime, cast) => cast.skill.id === ID.FUNCTION_GYRO,
       effects: (effect) => effect.type === 'control' && effect.name === 'System Shocker',
       attribution: { name: 'System Shocker — daze' }
@@ -63,7 +62,7 @@ export const scrapperHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
 
     {
       trait: TRAIT.MASS_MOMENTUM,
-      on: 'castComplete',
+      on: 'castCommit',
       when: (_runtime, cast) => cast.skill.id === ID.FUNCTION_GYRO,
       emit: PROFILE.massMomentum,
       effects: (effect) => effect.type === 'boon' && effect.name === 'stability',
@@ -76,8 +75,8 @@ export const scrapperHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
     }
   ],
   maximumAmmo: scrapperMaximumAmmo,
-  onCastComplete(runtime, cast) {
-    if (!castWasInterrupted(cast)) applyScrapperCastTraits(runtime, cast);
+  onCastCommit(runtime, cast) {
+    if (!cast.cancelled) applyScrapperCastTraits(runtime, cast);
   },
   tasks: {
     'engineer.mass-momentum'(runtime, data) {

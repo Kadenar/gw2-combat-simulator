@@ -91,7 +91,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     tasks: [
       {
         type: 'elementalist.core.arm-spear-damage',
-        timingAnchor: 'castComplete'
+        timingAnchor: 'castCommit'
       }
     ],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -334,7 +334,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     tasks: [
       {
         type: 'elementalist.core.arm-spear-recharge',
-        timingAnchor: 'castComplete'
+        timingAnchor: 'castCommit'
       }
     ],
     effects: []
@@ -493,7 +493,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     tasks: [
       {
         type: 'elementalist.core.arm-spear-critical',
-        timingAnchor: 'castComplete'
+        timingAnchor: 'castCommit'
       }
     ],
     effects: [
@@ -656,7 +656,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     tasks: [
       {
         type: 'elementalist.core.arm-spear-control',
-        timingAnchor: 'castComplete'
+        timingAnchor: 'castCommit'
       }
     ],
     effects: []

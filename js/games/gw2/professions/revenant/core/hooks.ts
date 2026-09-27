@@ -8,7 +8,6 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';
@@ -254,14 +253,19 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
     else if (skill.id === ID.DETONATE_BLOSSOMING_AURA) detonateRevenantBlossomingAura(runtime, cast);
     else if (skill.id === ID.ABYSSAL_RAZE) startRevenantAbyssalRaze(runtime, cast);
   },
-  onCastComplete(runtime, cast) {
+  onCastCancel(runtime, cast) {
+    // A cancelled follow-up consumes its armed window without paying upkeep or granting cast rewards.
+    upkeepCosts.delete(cast);
+    completeRevenantImperialGuard(runtime, cast);
+  },
+  onCastCommit(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
     const committed = !cast.cancelled;
     const upkeepCost = upkeepCosts.get(cast);
     upkeepCosts.delete(cast);
     if (committed && upkeepCost != null) runtime.resourceController.spend('energy', upkeepCost);
     completeRevenantImperialGuard(runtime, cast);
-    if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS && !castWasInterrupted(cast)) {
+    if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS && !cast.cancelled) {
       completeRevenantCrushingAbyssSwap(runtime, cast);
       completeRevenantBrutality(runtime, cast);
     }

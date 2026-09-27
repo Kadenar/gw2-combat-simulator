@@ -189,7 +189,7 @@ test('Engineer palette flips require explicit consumable targets and ignore raw 
     {
       initialize(runtime) {
         const complete = (skill) =>
-          engineerCoreHooks.onCastComplete(runtime, { skill, id: 'flip-test', start: 0, fullEnd: 0, effectiveEnd: 0 });
+          engineerCoreHooks.onCastCommit(runtime, { skill, id: 'flip-test', start: 0, fullEnd: 0, effectiveEnd: 0 });
         for (const skill of engineerCatalog.skills.filter(
           (candidate) =>
             candidate.paletteFlipSkillId != null &&

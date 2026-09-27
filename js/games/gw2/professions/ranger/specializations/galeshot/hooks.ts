@@ -43,7 +43,7 @@ export const galeshotHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
           balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.mistral), 'durationMultiplier')
       );
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     if (cast.cancelled) return;
     const state = galeshotState.from(runtime);
     const skill = cast.skill;

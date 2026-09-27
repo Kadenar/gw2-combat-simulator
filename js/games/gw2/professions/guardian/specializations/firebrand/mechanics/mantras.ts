@@ -1,7 +1,7 @@
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import { castCompleted, gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { MANTRAS, type MantraDefinition } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
@@ -117,7 +117,7 @@ export function firebrandMantraAvailability(runtime: Runtime, skill: Skill) {
 
 /** The last charge retires its ammo pool and starts root recharge; no predicted rearm mutates current state. */
 export function completeFirebrandMantra(runtime: Runtime, cast: RuntimeCast): void {
-  if (!castCompleted(cast)) return;
+  if (cast.cancelled) return;
   const definition = MANTRAS.find(({ rootId, normalId, finalId }) =>
     [rootId, normalId, finalId].includes(Number(cast.skill.id))
   );

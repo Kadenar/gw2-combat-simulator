@@ -13,7 +13,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { castCompleted, GW2_ACTION_TICK_MS, gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { GW2_ACTION_TICK_MS, gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { resolveSharpAsTheWindSkillId } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
@@ -706,10 +706,10 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = 
     )
       furyBeforeCast.add(cast);
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     // Successful ammunition commitment earns its reward even when the remaining animation is interrupted.
     if (!cast.cancelled) ammoTraits(runtime, cast);
-    if (!castCompleted(cast)) return;
+    if (cast.cancelled) return;
     grantWarriorAdrenaline(runtime, Number(cast.skill.flowGain ?? 0));
     if (cast.skill.id === ID.UNSHEATHE_GUNSABER) swapGunsaber(runtime, cast, true);
     if (cast.skill.id === ID.SHEATHE_GUNSABER) {

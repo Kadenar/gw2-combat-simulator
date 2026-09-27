@@ -217,7 +217,7 @@ export const daredevilHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
       );
     if (skill.id === SHARED_SKILL_IDS.DODGE && !cast.cancelled) queueDodgePackets(runtime, cast);
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     deferThiefCompletion(runtime, DAREDEVIL_COMPLETE, cast);
   },
   reactions: {

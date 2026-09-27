@@ -275,7 +275,7 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
     {
       trait: TRAIT.SHIMMERING_STANCES,
       emit: TRAIT.SHIMMERING_STANCES,
-      on: 'castComplete',
+      on: 'castCommit',
       when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Stance')),
       attribution: (_runtime, cast) => ({
         source: 'guardian',
@@ -390,7 +390,7 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
       runtime.schedule(BOON, impact, { cast, kind: 'regeneration', duration: 4, party: true });
     }
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     if (cast.cancelled) return;
     const state = luminaryState.from(runtime);
     if (cast.skill.id === ID.ENTER_RADIANT_FORGE) enterForge(runtime, cast);

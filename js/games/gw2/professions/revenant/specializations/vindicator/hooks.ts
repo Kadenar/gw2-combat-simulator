@@ -233,12 +233,16 @@ export const vindicatorHooks: Partial<RuntimeProfession<RevenantRuntimeState>> =
     else if (cast.skill.id === VINDICATOR_JUMP_SKILL.id && !cast.cancelled)
       scheduleLanding(runtime, cast, cast.start + VINDICATOR_AIRBORNE_MS / 1000);
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     // Airborne autos may advance the chain; landing resets it before the next serial input.
     if (cast.skill.id === VINDICATOR_JUMP_SKILL.id) resetAutoattackChains(runtime);
     if (cast.cancelled) return;
     if (ENERGY_MELD_IDS.has(cast.skill.id)) energyMeld(runtime, cast);
     if (cast.skill.id === ID.SWAP_LEGENDS) invokeAlliance(runtime);
+  },
+  onCastCancel(runtime, cast) {
+    // Ending a cancelled jump also retires any autoattack chain advanced while airborne.
+    if (cast.skill.id === VINDICATOR_JUMP_SKILL.id) resetAutoattackChains(runtime);
   },
   tasks: { [LANDING]: land }
 };

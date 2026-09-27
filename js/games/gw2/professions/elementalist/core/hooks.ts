@@ -9,7 +9,7 @@ import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/al
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   elementalistOnCastStart,
-  elementalistOnCastComplete
+  elementalistOnCastCommit
 } from '#gw2/professions/elementalist/core/cast-lifecycle.js';
 import { elementalistEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
@@ -115,9 +115,9 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
   onCastStart(runtime, cast) {
     if (!cast.cancelled) withElementalistCast(runtime, cast, () => elementalistOnCastStart(runtime, cast, cast.skill));
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     if (cast.cancelled) return;
-    withElementalistCast(runtime, cast, () => elementalistOnCastComplete(runtime, cast, cast.skill));
+    withElementalistCast(runtime, cast, () => elementalistOnCastCommit(runtime, cast, cast.skill));
   },
   onAutoattackChainTransition: observeElementalistAutoattackTransition,
   onCooldownReset: resetElementalistAttunementCooldowns,

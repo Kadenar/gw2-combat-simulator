@@ -40,7 +40,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       }
     ]),
     castTimeMs: 960,
-    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 10 } }]
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 10 } }]
   },
   [ID.GUN_FLAME]: {
     effects: [
@@ -162,7 +162,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       }
     ],
     castTimeMs: 600,
-    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 5 } }]
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 5 } }]
   },
   [ID.SHATTERING_BLOW]: {
     // Share impact timing while preserving independent payloads and declaration order.
@@ -185,13 +185,13 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       }
     ]),
     castTimeMs: 520,
-    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 5 } }]
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 5 } }]
   },
   [ID.BERSERK]: {
     castTimeMs: 0,
     effects: [],
     adrenalineCost: 30,
-    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 10 } }]
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 10 } }]
   },
   [ID.BLOOD_RECKONING]: {
     effects: [],
@@ -199,14 +199,14 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     dualWieldCastTimeMs: 240,
     // Reset live primal skills only after the completed heal's adrenaline grant.
     sideEffects: [
-      { on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 10 } },
-      { on: 'castComplete', do: { type: 'warrior.reset-primal-bursts' } }
+      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 10 } },
+      { on: 'castCommit', do: { type: 'warrior.reset-primal-bursts' } }
     ]
   },
   [ID.OUTRAGE]: {
     castTimeMs: 0,
     effects: [],
-    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 10 } }],
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 10 } }],
     stunbreak: true
   },
   [ID.HEAD_BUTT]: {
@@ -224,7 +224,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]),
     castTimeMs: 800,
     interruptCommitMs: 760,
-    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 30 } }],
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 30 } }],
     // Head Butt stuns both the foe and the player. The self-stun holds the cast
     // lane for 1s unless broken by a stunbreak (Outrage) or negated by stability.
     selfStunMs: 1000

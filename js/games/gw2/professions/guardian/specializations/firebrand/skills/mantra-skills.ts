@@ -10,7 +10,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 // Final mantra charges refund pages only after the full cast completes.
 const WEIGHTY_TERMS_PAGES: Skill['sideEffects'] = [
   {
-    on: 'castComplete',
+    on: 'castCommit',
     when: (runtime) => hasTrait(runtime, TRAIT.WEIGHTY_TERMS),
     do: {
       type: 'resourceGrant',

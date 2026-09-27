@@ -415,7 +415,7 @@ test('skill-group lockouts block only skills in the same group', () => {
   assert.deepEqual(scheduled.warnings, []);
 });
 
-test('interrupted casts complete at their effective end', () => {
+test('cancelled casts release their state at their effective end', () => {
   const profession = defineTestProfession({
     id: 'temporal-interrupt',
     name: 'Temporal Interrupt',
@@ -424,7 +424,7 @@ test('interrupted casts complete at their effective end', () => {
       createState: () => ({ completions: [] })
     },
     hooks: {
-      onCastComplete(context, cast) {
+      onCastCancel(context, cast) {
         context.profession.completions.push({
           skill: cast.skill.name,
           clock: context.time,

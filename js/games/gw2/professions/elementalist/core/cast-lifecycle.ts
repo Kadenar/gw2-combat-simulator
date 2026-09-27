@@ -92,7 +92,7 @@ function applySpecialSkillProgression(context: ElementalistRuntime, cast: Runtim
  * then the Arcane Echo and Fulgor special cases, and finally the
  * pistol, hammer, and trait post-cast owners for the finished activation.
  */
-export function elementalistOnCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function elementalistOnCastCommit(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   completeElementalistGlyphCast(context, cast, skill);
   completeElementalistElementalCommand(context, cast, skill);
   // Core commits exactly one registered attunement transition for the active specialization.

@@ -124,7 +124,7 @@ test('Blood Thirst grants twelve seconds, replaces remaining charges, and respec
   const skill = context.catalog.skillsById.get(RANGER.CRIPPLING_SHOT);
   const grant = (at) => {
     context.time = at;
-    rangerCoreHooks.onCastComplete(context, { skill, start: at, fullEnd: at, effectiveEnd: at });
+    rangerCoreHooks.onCastCommit(context, { skill, start: at, fullEnd: at, effectiveEnd: at });
     const event = context.events.at(-1);
     assert.equal(event.duration, 12);
     handleRangerBloodThirst(context, event);

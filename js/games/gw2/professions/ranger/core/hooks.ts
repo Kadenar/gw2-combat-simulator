@@ -12,7 +12,6 @@ import {
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 
@@ -135,7 +134,7 @@ function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast): void {
     runtime.cooldownController.copy(skill.id, ID.PATH_OF_SCARS_MAX_RANGE);
   }
 
-  if (castWasInterrupted(cast)) return;
+  if (cast.cancelled) return;
   const flips = runtime.profession.core.availableFlips;
   if (skill.id === ID.PANTHERS_PROWL)
     for (const flip of spearAttacks) armSkillFlip(flips, flip, runtime.time, runtime.time + 3);
@@ -262,10 +261,10 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
         ['Wellspring', TRAIT.WELLSPRING, PROFILE.wellspring],
         ['Windborne Notes', TRAIT.WINDBORNE_NOTES, PROFILE.windborneNotes]
       ] as const
-    ).map<Extract<TraitTrigger<RangerRuntimeState>, { on: 'castComplete' }>>(([name, trait, emit]) => ({
+    ).map<Extract<TraitTrigger<RangerRuntimeState>, { on: 'castCommit' }>>(([name, trait, emit]) => ({
       trait,
       emit,
-      on: 'castComplete' as const,
+      on: 'castCommit' as const,
       when: (_runtime, cast) =>
         trait === TRAIT.WELLSPRING ? cast.skill.type === 'Heal' : cast.skill.weapon === 'Warhorn',
       effects: (effect) => effect.type === 'boon' && effect.name === 'regeneration',
@@ -276,10 +275,10 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
         triggeredBy: cast.skill.name
       })
     })),
-    ...['swiftness', 'quickness'].map<Extract<TraitTrigger<RangerRuntimeState>, { on: 'castComplete' }>>((boon) => ({
+    ...['swiftness', 'quickness'].map<Extract<TraitTrigger<RangerRuntimeState>, { on: 'castCommit' }>>((boon) => ({
       trait: TRAIT.LEAD_THE_WIND,
       emit: PROFILE.leadTheWind,
-      on: 'castComplete' as const,
+      on: 'castCommit' as const,
       when: (_runtime, cast) => cast.skill.id === ID.POINT_BLANK_SHOT,
       effects: (effect) => effect.type === 'boon' && effect.name === boon,
       attribution: (_runtime, cast) => ({
@@ -290,9 +289,11 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       })
     }))
   ],
-  onCastComplete(runtime, cast) {
+  // Cancelled variants still synchronize their shared weapon recharge.
+  onCastCancel: completeWeapon,
+  onCastCommit(runtime, cast) {
     completeWeapon(runtime, cast);
-    if (castWasInterrupted(cast)) return;
+    if (cast.cancelled) return;
     const skill = cast.skill;
     const state = runtime.profession.core;
     if (skill.id === ID.PET_SWAP) {

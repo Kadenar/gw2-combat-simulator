@@ -64,17 +64,18 @@ test('Find Their Weakness grants initial adrenaline at commitment before its com
       profession: {
         ...native,
         catalog: withSkill(native.catalog, ID.FIND_THEIR_WEAKNESS, { castTimeMs: 1000, interruptCommitMs: 200 }),
-        onCastComplete(runtime, cast) {
+        onCastCommit(runtime, cast) {
           before = [
             runtime.profession.core.adrenaline,
             Object.keys(runtime.profession.specialization.state.commandEchoes).length
           ];
-          native.onCastComplete(runtime, cast);
+          native.onCastCommit(runtime, cast);
         }
       }
     });
     assert.deepEqual(result.warnings, []);
-    assert.deepEqual(before, [cancelled ? 0 : 3, 0]);
+    assert.deepEqual(before, cancelled ? undefined : [3, 0]);
+    assert.equal(observedRuntime(result).profession.core.adrenaline, cancelled ? 0 : 3);
     assert.equal(
       Object.keys(observedRuntime(result).profession.specialization.state.commandEchoes).length,
       cancelled ? 0 : 1

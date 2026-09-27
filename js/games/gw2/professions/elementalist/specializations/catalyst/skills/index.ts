@@ -109,7 +109,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
     tasks: [
       {
         type: 'elementalist.catalyst.relentless-fire',
-        timingAnchor: 'castComplete'
+        timingAnchor: 'castCommit'
       }
     ],
     effects: []
@@ -127,7 +127,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
     tasks: [
       {
         type: 'elementalist.catalyst.shattering-ice',
-        timingAnchor: 'castComplete'
+        timingAnchor: 'castCommit'
       }
     ],
     // The activation only opens a proc window; successful attacks own every strike and chill packet.
@@ -146,7 +146,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
     tasks: [
       {
         type: 'elementalist.catalyst.elemental-celerity',
-        timingAnchor: 'castComplete'
+        timingAnchor: 'castCommit'
       }
     ],
     effects: []

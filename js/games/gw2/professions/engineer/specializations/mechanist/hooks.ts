@@ -2,7 +2,7 @@ import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engin
 import { EPSILON } from '#kernel/core/clock.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
-import { castWasInterrupted, summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
+import { summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 
 import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
@@ -34,7 +34,7 @@ export const mechanistHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = 
   traitTriggers: [
     {
       trait: TRAIT.MECH_CORE_JADE_DYNAMO,
-      on: 'castComplete',
+      on: 'castCommit',
       when: (_runtime, cast) => isEngineerMechCommand(cast.skill),
       emit: PROFILE.jadeDynamo,
       effects: (effect) => effect.type === 'boon' && effect.name === 'quickness',
@@ -64,8 +64,8 @@ export const mechanistHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = 
     if (mech.active && isEngineerMechCommand(cast.skill) && cast.fullEnd > cast.start)
       mech.busyUntil = Math.max(mech.busyUntil, cast.effectiveEnd + MECHANIST_ATTACK_TIMING.commandRecovery);
   },
-  onCastComplete(runtime, cast) {
-    if (castWasInterrupted(cast)) return;
+  onCastCommit(runtime, cast) {
+    if (cast.cancelled) return;
     if (cast.skill.id === ID.OVERCLOCK_SIGNET) activateOverclockSignet(runtime, cast.skill);
     applyEngineerMechCastTraits(runtime, cast.skill);
   },

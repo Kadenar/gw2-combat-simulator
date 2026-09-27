@@ -1,7 +1,6 @@
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
-import { castCompleted } from '#gw2/platform/skills/timing.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -298,7 +297,7 @@ export const paragonHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
         balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.rallyTheValiant), 'resourceGain')
       );
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     if (cast.cancelled) return;
     if (cast.skill.categories?.includes('Chant')) activateChant(runtime, cast);
     if (cast.skill.categories?.includes('Command')) activateCommand(runtime, cast);
@@ -307,7 +306,6 @@ export const paragonHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
         consumeEcho(runtime, activationId);
     if (
       cast.skill.inputCategory === 'weapon-swap' &&
-      castCompleted(cast) &&
       hasTrait(runtime, TRAIT.INSPIRING_IMPLEMENTS) &&
       isInternalCooldownReady(runtime.time, runtime.procs.deadline('warrior.paragon.inspiringImplements'))
     ) {

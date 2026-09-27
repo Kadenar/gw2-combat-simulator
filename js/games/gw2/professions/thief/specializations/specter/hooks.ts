@@ -322,7 +322,7 @@ export const specterHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
         cost * balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'resourceGain')
       );
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     deferThiefCompletion(runtime, SPECTER_COMPLETE, cast);
   },
   onCooldownReset(runtime) {

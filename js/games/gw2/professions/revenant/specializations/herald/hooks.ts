@@ -8,7 +8,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
@@ -317,11 +316,13 @@ export const heraldHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   onCastStart(runtime, cast) {
     if (cast.skill.consume && !cast.cancelled) startConsume(runtime, cast);
   },
-  onCastComplete(runtime, cast) {
+  // Cancellation still refreshes the live upkeep threshold without granting a cast reward.
+  onCastCancel: syncCompassion,
+  onCastCommit(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
     const committed = !cast.cancelled;
     if (committed && skill.consume) completeConsume(runtime, cast);
-    if (committed && skill.id === ID.TRUE_NATURE_DRAGON && !castWasInterrupted(cast)) trueNatureDragon(runtime, cast);
+    if (committed && skill.id === ID.TRUE_NATURE_DRAGON) trueNatureDragon(runtime, cast);
     // Facet lifecycle changes aggregate upkeep before Elevated Compassion evaluates its threshold.
     if (committed) startFacet(runtime, skill);
     syncCompassion(runtime);

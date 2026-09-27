@@ -303,7 +303,7 @@ export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
     if (HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)]) return [];
     return effects;
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     if (cast.skill.id === ID.DARK_BARRAGE && !cast.cancelled) deathlyHaste(runtime, cast.skill);
   },
   tasks: {

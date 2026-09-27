@@ -21,7 +21,7 @@ export const reaperHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = 
   traitTriggers: [
     {
       trait: TRAIT.AUGURY_OF_DEATH,
-      on: 'castComplete',
+      on: 'castCommit',
       when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Shout')),
       emit: PROFILE.auguryOfDeath,
       effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',

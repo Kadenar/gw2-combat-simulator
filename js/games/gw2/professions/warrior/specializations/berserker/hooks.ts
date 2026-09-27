@@ -7,7 +7,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { castCompleted, gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
@@ -210,7 +210,7 @@ export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
   // Queue the profile's Burning on full completion; mode extension remains with its state owner.
   traitTriggers: [
     {
-      on: 'castComplete',
+      on: 'castCommit',
       trait: TRAIT.LAST_BLAZE,
       emit: PROFILE.lastBlaze,
       when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Rage')),
@@ -230,8 +230,8 @@ export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
       for (const skill of runtime.helpers.skills) if (skill.primalBurst) runtime.cooldownController.clear(skill.id);
     }
   },
-  onCastComplete(runtime, cast) {
-    if (!castCompleted(cast)) return;
+  onCastCommit(runtime, cast) {
+    if (cast.cancelled) return;
     completeBerserk(runtime, cast);
     if (cast.skill.primalBurst && hasTrait(runtime, TRAIT.HEAT_THE_SOUL))
       traitBoons(runtime, cast, TRAIT.HEAT_THE_SOUL, true);

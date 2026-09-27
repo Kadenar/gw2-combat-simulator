@@ -356,7 +356,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     tasks: [
       {
         type: 'elementalist.core.open-rock-barrier',
-        timingAnchor: 'castComplete'
+        timingAnchor: 'castCommit'
       }
     ],
     effects: [
@@ -388,7 +388,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     tasks: [
       {
         type: 'elementalist.core.release-rock-barrier',
-        timingAnchor: 'castComplete'
+        timingAnchor: 'castCommit'
       }
     ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.

@@ -9,7 +9,7 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { castCompleted, gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
@@ -96,8 +96,8 @@ function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
 /** Weapon spells and Bond own their live grants and timers alongside the specialization's spirit lifecycle. */
 export const ritualistSpellHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = {
   modifyEffects: (_runtime, cast, effects) => (SPELLS.has(Number(cast.skill.id)) ? [] : effects),
-  onCastComplete(runtime, cast) {
-    if (!SPELLS.has(Number(cast.skill.id)) || !castCompleted(cast)) return;
+  onCastCommit(runtime, cast) {
+    if (!SPELLS.has(Number(cast.skill.id)) || cast.cancelled) return;
     const spell = SPELLS.get(Number(cast.skill.id));
     const effect = cast.skill.effects?.find((effect) => effect.type === 'buff');
     if (!spell || !effect) return;

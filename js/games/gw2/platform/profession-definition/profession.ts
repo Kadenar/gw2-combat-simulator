@@ -311,11 +311,11 @@ export function defineNativeProfession<
       onCastStart(context: Gw2Runtime<State>, cast: RuntimeCast) {
         for (const hook of hooks) hook.onCastStart?.(context, cast);
       },
-      onCastComplete(context, cast) {
-        for (const hook of hooks) hook.onCastComplete?.(context, cast);
-      },
       onCastCommit(context, cast) {
         for (const hook of hooks) hook.onCastCommit?.(context, cast);
+      },
+      onCastCancel(context, cast) {
+        for (const hook of hooks) hook.onCastCancel?.(context, cast);
       },
       onAutoattackChainTransition(context, cast, result) {
         for (const hook of hooks) hook.onAutoattackChainTransition?.(context, cast, result);

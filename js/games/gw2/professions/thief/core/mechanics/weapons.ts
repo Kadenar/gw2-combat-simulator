@@ -172,19 +172,15 @@ function updateSpearChain(runtime: ThiefRuntime, skill: ThiefSkill): void {
  * Completion-time weapon state: stealth grants, endurance refunds, spear stages, axe recall, and weapon follow-up
  * windows. A committed opener arms its follow-up; a committed follow-up consumes it.
  */
-export function completeThiefWeaponState(
-  runtime: ThiefRuntime,
-  cast: RuntimeCast,
-  committed: boolean,
-  completed: boolean
-): void {
+export function completeThiefWeaponState(runtime: ThiefRuntime, cast: RuntimeCast, committed: boolean): void {
   const skill = cast.skill as ThiefSkill;
   const core = runtime.profession.core;
   const flips: SkillFlipWindows = core.availableFlips;
-  if (completed && !(skill.categories || []).includes('stolen skill')) grantThiefStealth(runtime, skill);
+  // Weapon state uses the same commitment gate as other cast rewards, including shortened casts.
+  if (committed && !(skill.categories || []).includes('stolen skill')) grantThiefStealth(runtime, skill);
   if (committed && (skill.resourceGain || 0) > 0) grantThiefEndurance(runtime, Number(skill.resourceGain));
   if (committed) updateSpearChain(runtime, skill);
-  if (completed && AXE_RECALL_SKILLS.has(skill.id)) core.spinningAxeExpirations = [];
+  if (committed && AXE_RECALL_SKILLS.has(skill.id)) core.spinningAxeExpirations = [];
   // Dual-wield openers keep their follow-up one second shorter unless the skill authors its own window.
   const followUp = committed && skill.type === 'Weapon' ? followUpOf(runtime.helpers.skillsById, skill) : undefined;
   if (followUp)

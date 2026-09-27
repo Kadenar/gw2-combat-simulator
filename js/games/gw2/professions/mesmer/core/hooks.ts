@@ -109,7 +109,9 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
         );
     });
   },
-  onCastComplete(runtime, cast) {
+  // Cancellation refunds reserved shatter resources and clears the same cast-local bookkeeping.
+  onCastCancel: complete,
+  onCastCommit(runtime, cast) {
     const cancelled = cast.cancelled;
     // A committed block exposes its flip when the animation ends, before any delayed completion packets.
     if (!cancelled) settleMesmerSkillFlips(runtime, cast, cast.skill as MesmerSkill, runtime.time);

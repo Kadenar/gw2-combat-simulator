@@ -88,8 +88,8 @@ test('Invigorating Tempo grants capped adrenaline for each point of Motivation a
     const result = observeGw2Runtime({
       profession: {
         ...profession,
-        onCastComplete(runtime, cast) {
-          profession.onCastComplete?.(runtime, cast);
+        onCastCommit(runtime, cast) {
+          profession.onCastCommit?.(runtime, cast);
           runtime.profession.core.adrenaline = adrenaline;
           runtime.profession.specialization.state.motivation = motivation;
         }

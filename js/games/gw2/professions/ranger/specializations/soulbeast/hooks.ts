@@ -5,7 +5,6 @@ import {
   requireEffect,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -38,7 +37,7 @@ export const soulbeastHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
         [TRAIT.TWICE_AS_VICIOUS, PROFILE.twiceAsVicious, 'Twice as Vicious', ['twice-as-vicious']],
         [TRAIT.BESTIAL_RAGE, PROFILE.bestialRage, 'Bestial Rage', ['might', 'fury']]
       ] as const
-    ).map<Exclude<TraitTrigger<RangerRuntimeState>, { on: 'castStart' | 'castComplete' }>>(
+    ).map<Exclude<TraitTrigger<RangerRuntimeState>, { on: 'castStart' | 'castCommit' }>>(
       ([trait, emit, name, names]) => ({
         trait,
         emit,
@@ -141,8 +140,8 @@ export const soulbeastHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
         )
       );
   },
-  onCastComplete(runtime, cast) {
-    if (castWasInterrupted(cast)) return;
+  onCastCommit(runtime, cast) {
+    if (cast.cancelled) return;
     const state = soulbeastState.from(runtime);
     const skill = cast.skill;
     if (skill.id === ID.PET_SWAP) state.archetype = rangerPetByName(runtime.profession.core.activePet).archetype;

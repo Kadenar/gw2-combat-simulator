@@ -615,6 +615,44 @@ test('Unload refunds 2 initiative on completion but not cancellation', () => {
   assert.ok(Math.abs(initiative(interrupted) - (3 - cost + interrupted.rotationEndTime)) < 1e-9);
 });
 
+// Commitment alone cannot refund Unload: the authored final bullet must have fired, even on shortened channels.
+test('Unload refunds initiative only after its final packet on a committed channel', () => {
+  for (const [interruptAfterMs, refund] of [
+    [400, 0],
+    [800, 2],
+    [undefined, 2]
+  ]) {
+    const result = runThief(
+      [{ type: 'cast', skillId: ID.UNLOAD, interruptAfterMs }],
+      { initialInitiative: 3, primaryWeapon: 'Pistol', secondaryWeapon: 'Pistol' },
+      {
+        catalog: (catalog) =>
+          withSkill(catalog, ID.UNLOAD, {
+            castTimeMs: 1000,
+            interruptMode: 'per-packet',
+            effects: [
+              {
+                type: 'strike',
+                name: 'Unload',
+                timingAnchor: 'castStart',
+                timingScale: 'fixed',
+                ticks: [
+                  { atMs: 200, coefficient: 1 },
+                  { atMs: 800, coefficient: 1 }
+                ]
+              }
+            ]
+          })
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.events.find((event) => event.type === 'action').cancelled, false);
+    assert.ok(
+      Math.abs(observedRuntime(result).resourceController.value('initiative') - result.rotationEndTime - refund) < 1e-9
+    );
+  }
+});
+
 test('weapon swap preserves shared initiative', () => {
   const result = simulate('Core', ['Death Blossom', 'Swap Weapons', 'Unload']);
 

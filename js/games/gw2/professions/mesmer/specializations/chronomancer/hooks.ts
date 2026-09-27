@@ -17,7 +17,7 @@ export const chronomancerHooks: Partial<RuntimeProfession<MesmerRuntimeState>> =
   playerAlacrityRechargeRate: 1.5,
   initialize: initializeChronomancerRuntime,
   availability: chronomancerAvailability,
-  onCastComplete: completeChronomancerTimeBomb,
+  onCastCommit: completeChronomancerTimeBomb,
   tasks: {
     'mesmer.continuum-expire'(runtime, data) {
       if (chronomancerState.from(runtime).continuum?.expiresAt !== data) return;

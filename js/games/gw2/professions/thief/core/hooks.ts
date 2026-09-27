@@ -8,7 +8,6 @@ import {
   requireEffect,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
@@ -175,7 +174,7 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
       balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.ashenAssaultRefund), 'resourceGain')
     );
   completeThiefCoreActions(runtime, cast, committed);
-  completeThiefWeaponState(runtime, cast, committed, !castWasInterrupted(cast));
+  completeThiefWeaponState(runtime, cast, committed);
   completeThiefCastTraits(runtime, cast, committed);
 }
 
@@ -220,8 +219,12 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     if (skill.id === SHARED_SKILL_IDS.DODGE) startThiefDodge(runtime, cast);
     if (skill.stealthAttack) beginThiefStealthAttack(runtime, cast);
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     deferThiefCompletion(runtime, THIEF_CORE_COMPLETE, cast);
+  },
+  onCastCancel(runtime, cast) {
+    // A cancelled signet still restarts its passive cadence after its recharge has settled.
+    if (cast.skill.id === ID.INFILTRATORS_SIGNET) deferThiefCompletion(runtime, THIEF_CORE_COMPLETE, cast);
   },
   onAutoattackChainTransition: transitionThiefScepterChain,
   onCooldownReset(runtime) {

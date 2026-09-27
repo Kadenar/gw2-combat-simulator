@@ -144,8 +144,8 @@ test('spirit replacement changes generation and busy state only at completion', 
         starts.push(observe(runtime));
         runtime.schedule('test.observe', (cast.start + cast.fullEnd) / 2);
       },
-      onCastComplete(runtime, cast) {
-        native.onCastComplete(runtime, cast);
+      onCastCommit(runtime, cast) {
+        native.onCastCommit(runtime, cast);
         if (cast.skill.id === ID.WANDERLUST) completed.push(observe(runtime));
       },
       tasks: {

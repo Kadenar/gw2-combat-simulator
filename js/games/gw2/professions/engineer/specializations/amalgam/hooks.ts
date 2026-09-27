@@ -1,4 +1,3 @@
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { effectFirstAt } from '#gw2/platform/engine/effects/materializer.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
@@ -32,9 +31,8 @@ export const amalgamHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
       if (at <= cast.effectiveEnd) runtime.schedule('engineer.plasmatic-state', at, undefined, undefined, -10);
     }
   },
-  onCastComplete(runtime, cast) {
-    if (!castWasInterrupted(cast) && cast.skill.categories?.includes('Morph'))
-      activateAmalgamMorph(runtime, cast.skill);
+  onCastCommit(runtime, cast) {
+    if (!cast.cancelled && cast.skill.categories?.includes('Morph')) activateAmalgamMorph(runtime, cast.skill);
   },
   tasks: { 'engineer.evolve': evolveAmalgam, 'engineer.plasmatic-state': activatePlasmaticState },
   reactions: { 'damage.resolved': amalgamResolverEventReactions.damage, 'control.resolved': reactToMercurialTendencies }

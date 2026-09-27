@@ -18,7 +18,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { castCompleted, castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
@@ -479,7 +478,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     // A completed dodge emits independent strike and Might packets with their original owners.
     {
       trait: TRAIT.RECKLESS_DODGE,
-      on: 'castComplete',
+      on: 'castCommit',
       when: (_runtime, cast) => cast.skill.id === SHARED_SKILL_IDS.DODGE,
       emit: PROFILE.recklessDodge,
       effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
@@ -487,7 +486,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     },
     {
       trait: TRAIT.RECKLESS_DODGE,
-      on: 'castComplete',
+      on: 'castCommit',
       when: (_runtime, cast) => cast.skill.id === SHARED_SKILL_IDS.DODGE,
       emit: PROFILE.recklessDodge,
       effects: (effect) => effect.type === 'boon' && effect.name === 'might',
@@ -496,7 +495,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     // Completed weapon swaps grant Fury once per the selected profile's cooldown.
     {
       trait: TRAIT.FURIOUS_BURST,
-      on: 'castComplete',
+      on: 'castCommit',
       when: (_runtime, cast) => cast.skill.inputCategory === 'weapon-swap',
       emit: PROFILE.furiousBurst,
       icd: 'profile',
@@ -512,7 +511,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     },
     {
       trait: TRAIT.SIGNET_MASTERY,
-      on: 'castComplete',
+      on: 'castCommit',
       when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Signet')),
       emit: PROFILE.signetMastery,
       effects: (effect) => effect.type === 'buff' && effect.kind === 'signet-mastery',
@@ -687,7 +686,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
       runtime.armFlip(ID.TACTICAL_BLOW, { expiresAt: cast.fullEnd });
     }
 
-    if (!castCompleted(cast)) return;
+    if (cast.cancelled) return;
     // Successful bursts refund the captured spend at completion, independently of target acceptance.
     const spent = warriorBurstSpends.get(cast) ?? 0;
     if (cast.skill.burst && cast.skill.id !== ID.FULL_COUNTER && spent > 0 && hasTrait(runtime, TRAIT.BURST_MASTERY)) {
@@ -708,11 +707,9 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
         5
       );
     }
-  },
-  onCastComplete(runtime, cast) {
-    if (!castCompleted(cast)) return;
+
     completeTraits(runtime, cast);
-    if (cast.skill.inputCategory === 'weapon-swap' && !castWasInterrupted(cast)) weaponSwapTraits(runtime);
+    if (cast.skill.inputCategory === 'weapon-swap') weaponSwapTraits(runtime);
   },
   onCooldownReset(runtime) {
     runtime.profession.core.adrenaline = runtime.profession.core.maximumAdrenaline;

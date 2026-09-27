@@ -342,7 +342,7 @@ export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> =
     runtime.schedule(ACTIVATE, at, { cast, virtue });
     runtime.schedule(FLAMES, flameAt, { cast, virtue }, undefined, -10);
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     const state = willbenderState.from(runtime);
     const pending = state.pendingWeaponCooldownReduction[cast.id] ?? 0;
     delete state.pendingWeaponCooldownReduction[cast.id];

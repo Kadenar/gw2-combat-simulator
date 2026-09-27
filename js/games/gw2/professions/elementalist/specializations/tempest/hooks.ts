@@ -164,7 +164,7 @@ function afterCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill
 
 // Resolve everything that happens when a Tempest cast finishes: the Gale Song heal payload, then
 // for overloads the attunement lockout and each completion trait.
-function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   // Committed shortened heals retain the same reward before overload-specific completion work.
   if (skill.type === 'Heal' && hasTrait(context, TRAIT.GALE_SONG))
     emitProfiledBuff(context, cast.effectiveEnd, PROFILE.galeSong, 'Protection', 'Gale Song', skill.id);
@@ -306,7 +306,7 @@ export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> 
     {
       trait: 'Transcendent Tempest',
       emit: PROFILE.transcendentTempest,
-      on: 'castComplete',
+      on: 'castCommit',
       when: (_runtime, cast) => Boolean(cast.skill.overload),
       // Apply before final overload packets and same-time completion strikes.
       attribution: (_runtime, cast) => ({
@@ -359,11 +359,11 @@ export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> 
       afterCast(runtime, cast, cast.skill);
     });
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     if (cast.cancelled) return;
     if (cast.skill.overload && cast.effectiveEnd < cast.fullEnd) return;
     withElementalistCast(runtime, cast, () => {
-      onCastComplete(runtime, cast, cast.skill);
+      onCastCommit(runtime, cast, cast.skill);
       if (cast.skill.skillFamily === 'Shout') applyTempestShoutTraits(runtime, cast, cast.skill);
     });
   },

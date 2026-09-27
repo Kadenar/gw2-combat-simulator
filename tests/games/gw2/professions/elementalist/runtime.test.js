@@ -136,8 +136,8 @@ test('interrupting a familiar releases deferred weapon charges once', () => {
         cancelled: true,
         command: {}
       };
-      evokerHooks.onCastComplete(runtime, cast);
-      evokerHooks.onCastComplete(runtime, cast);
+      evokerHooks.onCastCancel(runtime, cast);
+      evokerHooks.onCastCancel(runtime, cast);
       assert.equal(state.activeFamiliarCast, null);
       assert.deepEqual(state.pendingWeaponChargeGains, []);
     }

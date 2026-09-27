@@ -32,7 +32,7 @@ export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       mirageControllerFor(mesmerMechanicsFor(runtime)).executePlayerAmbush(skill, cast.fullEnd, cast.start)
     );
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     completeMirageSkill(runtime, cast);
     if (cast.cancelled) return;
     for (const trigger of cast.skill.tasks ?? [])

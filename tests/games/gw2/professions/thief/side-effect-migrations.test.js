@@ -103,8 +103,8 @@ test('Deadeye trait boons remain behind deferred completion and retain attributi
     { specialization: 'Deadeye', selectedTraitIds: [TRAIT.BE_QUICK_OR_BE_KILLED] },
     {
       extend: (native) => ({
-        onCastComplete(runtime, cast) {
-          native.onCastComplete(runtime, cast);
+        onCastCommit(runtime, cast) {
+          native.onCastCommit(runtime, cast);
           runtime.schedule('test.before-completion', runtime.time, undefined, undefined, 10);
         },
         tasks: {

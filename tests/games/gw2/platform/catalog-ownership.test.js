@@ -383,7 +383,7 @@ test('selected runtime assembly binds profession side-effect handlers', () => {
         generatedSkills: [
           skill(2, 'Elite action', {
             specialization: 'Elite',
-            sideEffects: [{ on: 'castComplete', do: { type: 'fixture.action' } }],
+            sideEffects: [{ on: 'castCommit', do: { type: 'fixture.action' } }],
             effects: [
               {
                 type: 'strike',

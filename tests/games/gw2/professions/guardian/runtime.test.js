@@ -433,11 +433,11 @@ test('Restorative Virtues reduces only the currently equipped weapon cooldowns',
   assert.equal(observedRuntime(result).cooldowns.get(ID.SYMBOL_OF_BLADES), 1.6);
 });
 
-test('Willbender Repose belongs to a completed Flash Combo and expires without touching a later occurrence', () => {
+test('Willbender Repose belongs to a committed Flash Combo and expires without touching a later occurrence', () => {
   const full = run([ID.FLASH_COMBO], willbender);
   assert.ok(core(full).availableFlips[ID.REPOSE]);
-  const canceled = run([{ type: 'cast', skillId: ID.FLASH_COMBO, interruptAfterMs: 1 }], willbender);
-  assert.equal(core(canceled).availableFlips[ID.REPOSE], undefined);
+  const shortened = run([{ type: 'cast', skillId: ID.FLASH_COMBO, interruptAfterMs: 400 }], willbender);
+  assert.ok(core(shortened).availableFlips[ID.REPOSE]);
   const used = run([ID.FLASH_COMBO, ID.REPOSE], willbender);
   assert.equal(core(used).availableFlips[ID.REPOSE], undefined);
   const expired = run([ID.FLASH_COMBO, wait(6000), ID.REPOSE], willbender);

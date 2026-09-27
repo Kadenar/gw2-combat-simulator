@@ -38,7 +38,7 @@ const catalog = createCanonicalCatalog({
       castTimeMs: 1000,
       interruptCommitMs: 200,
       tasks: [
-        { type: 'test.record-task', timingAnchor: 'castComplete' },
+        { type: 'test.record-task', timingAnchor: 'castCommit' },
         { type: 'test.record-task', atMs: 500, timingAnchor: 'castEnd' }
       ],
       effects: []
@@ -52,7 +52,7 @@ const catalog = createCanonicalCatalog({
         { on: 'castStart', do: { type: 'resourceGrant', resource: 'energy', amount: 1 } },
         { on: 'castCommit', do: { type: 'resourceGrant', resource: 'energy', amount: 2 } },
         {
-          on: 'castComplete',
+          on: 'castCommit',
           do: { type: 'resourceGrant', resource: 'energy', amount: { profile: 'test.proc', field: 'resourceGain' } }
         }
       ],
@@ -63,10 +63,10 @@ const catalog = createCanonicalCatalog({
       name: 'Restore',
       castTimeMs: 0,
       sideEffects: [
-        { on: 'castComplete', do: { type: 'rechargeReset', skillIds: [991007] } },
-        { on: 'castComplete', do: { type: 'ammoRestore', skillIds: [991007], count: 1 } },
-        { on: 'castComplete', do: { type: 'flipArm', skillId: 'flip', durationSec: 1 } },
-        { on: 'castComplete', do: { type: 'emitProfile', profileId: 'test.proc' } }
+        { on: 'castCommit', do: { type: 'rechargeReset', skillIds: [991007] } },
+        { on: 'castCommit', do: { type: 'ammoRestore', skillIds: [991007], count: 1 } },
+        { on: 'castCommit', do: { type: 'flipArm', skillId: 'flip', durationSec: 1 } },
+        { on: 'castCommit', do: { type: 'emitProfile', profileId: 'test.proc' } }
       ],
       effects: []
     },
@@ -248,11 +248,12 @@ test('an unaffordable declared cost waits for regeneration or rejects when no re
   assert.equal(skillCostAvailability(runtime(null), skill).retryAt, null);
 });
 
-test('committed activations schedule their authored tasks after completion owners run', () => {
+test('committed activations schedule authored tasks after commit hooks while cancellations only clean up', () => {
   const log = [];
   run(
     {
-      onCastComplete: (runtime, activation) => log.push(['complete', runtime.time, activation.skill.name]),
+      onCastCommit: (runtime, activation) => log.push(['commit', runtime.time, activation.skill.name]),
+      onCastCancel: (runtime, activation) => log.push(['cancel', runtime.time, activation.skill.name]),
       tasks: {
         'test.record-task': (runtime, data) => log.push(['task', runtime.time, data.cast.skill.name, data.trigger.atMs])
       }
@@ -261,9 +262,9 @@ test('committed activations schedule their authored tasks after completion owner
     [cast(991004, { interruptAfterMs: 800 }), cast(991004, { interruptAfterMs: 100 }), wait(2000)]
   );
   assert.deepEqual(log, [
-    ['complete', 0.8, 'Tasked'],
+    ['commit', 0.8, 'Tasked'],
     ['task', 0.8, 'Tasked', undefined],
-    ['complete', 0.9, 'Tasked'],
+    ['cancel', 0.9, 'Tasked'],
     ['task', 1.5, 'Tasked', 500]
   ]);
 });
@@ -283,26 +284,40 @@ test('the weapon follow-up rule hides a parent behind its open window and gates 
   assert.equal(weaponFollowUpOpen(open, parent, 5), false);
 });
 
-// Minimal activations distinguish acceptance, commitment, and full completion without asserting cast tuning.
-test('side effects preserve phase gates and resolve profile amounts from the selected catalog', () => {
+// Full and shortened committed casts receive identical rewards; cancelled attempts only retain start effects.
+test('commit rewards run once for full or shortened casts and resolve selected profile amounts', () => {
   for (const [interruptAfterMs, expected] of [
     [100, 1],
-    [500, 3],
+    [500, 7],
     [undefined, 7]
   ]) {
     const energy = [];
+    const phases = [];
     const patched = applyBalanceProfilePatch(catalog, {
       balanceProfiles: { 'test.proc': { fields: { resourceGain: 4 } } }
     });
-    run(
+    const result = run(
       {
         catalog: patched,
         initialize: (runtime) => runtime.resourceController.spend('energy', 10),
-        onCastComplete: (runtime) => energy.push(runtime.resourceController.value('energy'))
+        traitTriggers: [{ trait: 'test.trait', on: 'castCommit', when: () => true, emit: 'test.proc' }],
+        onCastCommit(runtime) {
+          phases.push('commit');
+          energy.push(runtime.resourceController.value('energy'));
+        },
+        onCastCancel(runtime) {
+          phases.push('cancel');
+          energy.push(runtime.resourceController.value('energy'));
+        }
       },
       [cast(991005, { interruptAfterMs })]
     );
     assert.deepEqual(energy, [expected]);
+    assert.deepEqual(phases, [interruptAfterMs === 100 ? 'cancel' : 'commit']);
+    assert.equal(
+      result.events.filter((event) => event.sourceId === 'test.trait').length,
+      interruptAfterMs === 100 ? 0 : 1
+    );
   }
 });
 
@@ -310,7 +325,7 @@ test('declared reset, ammo, flip, and profile effects settle before completion h
   const observed = [];
   const result = run(
     {
-      onCastComplete(runtime, activation) {
+      onCastCommit(runtime, activation) {
         if (activation.skill.id === 991006)
           observed.push([
             runtime.ammo.get(991007).charges,
@@ -362,7 +377,7 @@ test('recharge rules compose with hooks and trait triggers claim before emitting
       traitTriggers: [
         {
           trait: 'test.trait',
-          on: 'castComplete',
+          on: 'castCommit',
           when: () => true,
           emit: 'test.proc',
           icd: 'profile',
@@ -370,14 +385,14 @@ test('recharge rules compose with hooks and trait triggers claim before emitting
         },
         {
           trait: 'test.trait',
-          on: 'castComplete',
+          on: 'castCommit',
           when: () => true,
           emit: 'test.proc',
           icd: 'profile',
           attribution: { name: 'suppressed' }
         }
       ],
-      onCastComplete(runtime, activation) {
+      onCastCommit(runtime, activation) {
         observations.push([activation.rechargeWork, runtime.procs.readyAt['test.proc']]);
       }
     },
@@ -437,7 +452,7 @@ test('dynamic cast attribution preserves targeting and overrides authored packet
       traitTriggers: [
         {
           trait: 'test.trait',
-          on: 'castComplete',
+          on: 'castCommit',
           emit: 'test.attribution',
           icd: 'profile',
           when: (_runtime, activation) => activation.skill.id === 991001,
@@ -595,7 +610,7 @@ test('authored and procedural status caps apply after scaling and remain patchab
   });
   const localCatalog = withSkill(patched, 991001, {
     effects,
-    sideEffects: [{ on: 'castComplete', do: { type: 'emitProfile', profileId: 'test.proc' } }]
+    sideEffects: [{ on: 'castCommit', do: { type: 'emitProfile', profileId: 'test.proc' } }]
   });
   const result = runGw2Runtime({
     profession: {
@@ -649,7 +664,7 @@ test('declared flip expiry priority orders cleanup against other work at its dea
       tasks: { 'test.inspect-flip': (runtime) => observed.push(Boolean(runtime.profession.core.availableFlips.flip)) }
     });
     profession.catalog = withSkill(catalog, 991001, {
-      sideEffects: [{ on: 'castComplete', do: { type: 'flipArm', skillId: 'flip', durationSec: 1, expiryPriority } }]
+      sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: 'flip', durationSec: 1, expiryPriority } }]
     });
     runGw2Runtime({ profession, config, rotation: [cast(991001), wait(1100)] });
     assert.deepEqual(observed, [expiryPriority === undefined]);

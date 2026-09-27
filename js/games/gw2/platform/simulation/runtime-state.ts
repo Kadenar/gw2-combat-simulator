@@ -164,9 +164,10 @@ export interface RuntimeProfession<T extends object> extends Gw2QueryProfession 
   modifyComboFields?(runtime: Gw2Runtime<T>, cast: RuntimeCast, fields: Skill['comboFields']): Skill['comboFields'];
   modifyEffects?(runtime: Gw2Runtime<T>, cast: RuntimeCast, effects: readonly SkillEffect[]): readonly SkillEffect[];
   onCastStart?(runtime: Gw2Runtime<T>, cast: RuntimeCast): void;
-  /** Commit owners settle captured resource state before declared completion rewards and completion hooks. */
+  /** Successful casts settle once after declared commit effects, including committed interruptions. */
   onCastCommit?(runtime: Gw2Runtime<T>, cast: RuntimeCast): void;
-  onCastComplete?(runtime: Gw2Runtime<T>, cast: RuntimeCast): void;
+  /** Cancelled attempts release reservations and cast-local state without granting commit rewards. */
+  onCastCancel?(runtime: Gw2Runtime<T>, cast: RuntimeCast): void;
   readonly sideEffectHandlers?: Readonly<
     Record<string, (runtime: Gw2Runtime<T>, context: ActionContext, action: SideEffectAction) => void>
   >;

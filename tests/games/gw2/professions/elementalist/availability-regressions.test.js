@@ -77,7 +77,7 @@ test('Fervent Stance grants dual-attack Might only inside an armed window', () =
     };
     if (armed) weaverHooks.tasks['elementalist.weaver.arm-fervent-stance'](context);
     context.time = at;
-    weaverHooks.onCastComplete(context, { skill, command: {}, effectiveEnd: at, fullEnd: at, start: at });
+    weaverHooks.onCastCommit(context, { skill, command: {}, effectiveEnd: at, fullEnd: at, start: at });
     const grants = events.filter((event) => event.type === 'buff' && event.source === 'Fervent Stance');
     assert.equal(grants.length, active ? 1 : 0);
     if (active) assert.equal(grants[0].kind, 'might');

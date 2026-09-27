@@ -8,7 +8,6 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeProfession, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
@@ -115,7 +114,7 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
   // HGH grants its own unextended boons only after an elixir finishes.
   traitTriggers: ['might', 'fury'].map((boon) => ({
     trait: TRAIT.HGH,
-    on: 'castComplete',
+    on: 'castCommit',
     when: (_runtime, cast) => isElixirSkill(cast.skill),
     emit: TRAIT.HGH,
     effects: (effect) => effect.type === 'boon' && effect.name === boon,
@@ -142,7 +141,7 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
           name
         );
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     if (cast.cancelled) return;
     const skill = cast.skill as EngineerSkill;
     const state = runtime.profession.core;
@@ -167,13 +166,13 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
 
     if (skill.flipParentName) consumeSkillFlip(state.availableFlips, skill.id);
     completeEngineerTurret(runtime, cast);
-    if (skill.id !== ID.ELECTRIC_ARTILLERY || !castWasInterrupted(cast)) completeEngineerSpear(runtime, cast);
+    completeEngineerSpear(runtime, cast);
     if (skill.id === ID.MINE_FIELD) {
       if (runtime.combatStartPending) state.pendingMineFieldActivationIds.push(cast.id);
       else applyEngineerToolbeltTraits(runtime, runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!, runtime.time);
     }
 
-    if (!castWasInterrupted(cast)) applyEngineerCastTraits(runtime, cast);
+    applyEngineerCastTraits(runtime, cast);
   },
   tasks: engineerWeaponTasks,
   eventHandlers: {

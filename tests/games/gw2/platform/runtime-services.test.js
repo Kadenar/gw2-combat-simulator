@@ -401,7 +401,7 @@ test('live recharge anchors compose once per cast and reject nonfinite results',
           calls.push([id, runtime.time, cast.start]);
           return at - 0.25;
         },
-        onCastComplete(runtime, cast) {
+        onCastCommit(runtime, cast) {
           completions.push([id, cast.rechargeStart, runtime.rechargeProgress.get(cast.skill.id).startedAt]);
         }
       }
@@ -789,7 +789,7 @@ test('recharge entitlements are reserved once at acceptance and completion obser
       runtime.profession.core.grants++;
       return skill.id === 991002 ? work / 2 : work;
     },
-    onCastComplete(runtime, activation) {
+    onCastCommit(runtime, activation) {
       if (activation.skill.id === 991002)
         calls.push(['complete', runtime.time, runtime.cooldowns.get(activation.skill.id)]);
     }
@@ -867,7 +867,7 @@ test('boon duration snapshots the weapon set at application, and history exclude
 test('live cooldown queries observe completion and reset, and reject a future clock', () => {
   const seen = [];
   const profession = native({
-    onCastComplete(runtime, activation) {
+    onCastCommit(runtime, activation) {
       if (activation.skill.id === 991002) seen.push(runtime.query.timeline.skillOnCooldownAt(991002, runtime.time));
     },
     onCastStart(runtime, activation) {

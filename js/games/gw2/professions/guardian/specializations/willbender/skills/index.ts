@@ -132,9 +132,9 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: []
   },
   [ID.FLASH_COMBO]: {
-    // Only a completed combo arms Repose, whose old occurrence expires before same-time casts.
+    // Committed combos arm Repose, including shortened channels; old occurrences expire before same-time casts.
     sideEffects: [
-      { on: 'castComplete', do: { type: 'flipArm', skillId: ID.REPOSE, durationSec: 6, expiryPriority: -220 } }
+      { on: 'castCommit', do: { type: 'flipArm', skillId: ID.REPOSE, durationSec: 6, expiryPriority: -220 } }
     ],
     castTimeMs: 680,
     cooldown: 20,

@@ -39,7 +39,7 @@ export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
   onCastStart(runtime, cast) {
     scheduleTroubadourPerformance(runtime, cast, cast.skill as MesmerSkill);
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     completeTroubadourPerformance(runtime, cast, cast.skill as MesmerSkill);
     completeTroubadourPhantasm(runtime, cast);
   },

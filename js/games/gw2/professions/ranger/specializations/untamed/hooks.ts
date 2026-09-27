@@ -8,7 +8,6 @@ import {
   requireEffect,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -38,7 +37,7 @@ export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
         [TRAIT.ENHANCING_IMPACT, PROFILE.enhancingImpact, 'Enhancing Impact', 'boon', 'quickness', true],
         [TRAIT.ENHANCING_IMPACT, PROFILE.enhancingImpact, 'Enhancing Impact', 'boon', 'stability', false]
       ] as const
-    ).map<Exclude<TraitTrigger<RangerRuntimeState>, { on: 'castStart' | 'castComplete' }>>(
+    ).map<Exclude<TraitTrigger<RangerRuntimeState>, { on: 'castStart' | 'castCommit' }>>(
       ([trait, emit, name, type, effectName, unleashed]) => ({
         trait,
         emit,
@@ -81,8 +80,8 @@ export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
     // An attempted ambush consumes its occurrence even if its animation is canceled.
     if (cast.skill.unleashedAmbushSkill) untamedState.from(runtime).ambushReadyUntil = 0;
   },
-  onCastComplete(runtime, cast) {
-    if (castWasInterrupted(cast)) return;
+  onCastCommit(runtime, cast) {
+    if (cast.cancelled) return;
     const state = untamedState.from(runtime);
     if (cast.skill.id === ID.UNLEASH_RANGER || cast.skill.id === ID.UNLEASH_PET) {
       state.rangerUnleashed = cast.skill.id === ID.UNLEASH_RANGER;
