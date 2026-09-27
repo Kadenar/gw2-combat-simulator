@@ -8,14 +8,12 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/shared.js';
 import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/professions/guardian/types.js';
-import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 
 export function reactToDragonhunterJusticeHit(
@@ -56,38 +54,6 @@ export function reactToDragonhunterJusticeHit(
       );
     }
   }
-
-  if (
-    !hasTrait(context, GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER) ||
-    dragonhunterState.from(context).tetherUntil <= event.at ||
-    !isGw2PlayerActorEvent(event) ||
-    !(Number(event.coefficient || 0) > 0)
-  ) {
-    return;
-  }
-
-  // priority: 5 ensures this Vulnerability condition sorts after zero-priority damage
-  // events at the same timestamp so modifiers can pick it up on the next resolve tick.
-  const bigGameHunterProfile = requireBalanceProfileFromContext(context, PROFILE.bigGameHunter);
-  const vulnerability = requireEffect(bigGameHunterProfile, 'condition', 'Vulnerability');
-  if (!vulnerability) return;
-  context.queue.enqueue(
-    buildResolverCondition({
-      at: event.at,
-      priority: 5,
-      source: 'guardian',
-      sourceId: GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER,
-      activationId: event.activationId,
-      causalOrder: event.causalOrder ?? event.eventOrder,
-      actorType: 'effect',
-      skillId: GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER,
-      skillName: 'Big Game Hunter',
-      condition: 'Vulnerability',
-      stacks: effectNumber(bigGameHunterProfile, vulnerability, 'stacks'),
-      duration: effectNumber(bigGameHunterProfile, vulnerability, 'duration'),
-      triggeredBy: event.skillName
-    })
-  );
 }
 
 export function reactToDragonhunterControl(context: GuardianResolverContext, event: GuardianResolverEvent): void {

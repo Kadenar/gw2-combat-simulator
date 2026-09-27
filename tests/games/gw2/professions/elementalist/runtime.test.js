@@ -5,6 +5,7 @@ import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import { evokerHooks } from '#gw2/professions/elementalist/specializations/evoker/hooks.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 // Queuing a hostile packet cannot fund a sphere; only the accepted impact earns energy.
 test('Catalyst energy ignores missed packets and arrives at the accepted impact', () => {
@@ -49,6 +50,74 @@ test('Grand Finale cancels pending Weaver dual-orb contacts', () => {
   );
   assert.ok(contacts.length > 0);
   assert.ok(contacts.every((event) => event.at <= finale.at));
+});
+
+// Eligibility is captured before orb consumption, while later orb changes cannot add projectiles to the cast.
+test('Grand Finale snapshots active orbs and keeps separate Burning applications', () => {
+  const result = runElementalist({
+    config: {
+      specialization: 'Core',
+      primaryWeapon: 'Hammer',
+      startAttunement: 'Fire',
+      selectedTraitIds: [],
+      autoSummonElemental: false
+    },
+    rotation: ['Grand Finale', { type: 'wait', durationMs: 2000 }],
+    initialize(runtime) {
+      Object.assign(runtime.profession.core.hammerOrbs, { Fire: 10, Water: -1, Air: null, Earth: 10 });
+    },
+    timeline: [
+      {
+        at: 1,
+        run(runtime) {
+          assert.equal(runtime.profession.core.hammerOrbs.Fire, null);
+          assert.equal(runtime.profession.core.hammerOrbs.Earth, null);
+          runtime.profession.core.hammerOrbs.Water = 10;
+        }
+      }
+    ]
+  });
+  assert.deepEqual(result.warnings, []);
+  const packets = result.events.filter((event) => event.skillId === ID.GRAND_FINALE);
+  assert.deepEqual(
+    packets.filter((event) => event.type === 'damage').map((event) => event.name),
+    ['Fire', 'Earth']
+  );
+  assert.deepEqual(
+    packets.filter((event) => event.type === 'condition').map((event) => [event.condition, event.stacks]),
+    [
+      ['Burning', 1],
+      ['Burning', 1],
+      ['Bleeding', 4]
+    ]
+  );
+  const finishers = packets.filter((event) => event.type === 'combo_finisher');
+  assert.equal(new Set(finishers.map((event) => event.attemptId)).size, 2);
+});
+
+// Cancelling the spender must retain its orbs and their pending contacts without firing any finale effects.
+test('cancelled Grand Finale preserves the active orb and its attacks', () => {
+  const result = runElementalist({
+    config: {
+      specialization: 'Core',
+      primaryWeapon: 'Hammer',
+      startAttunement: 'Fire',
+      selectedTraitIds: [],
+      autoSummonElemental: false
+    },
+    rotation: [
+      'Flame Wheel',
+      { type: 'cast', skillId: ID.GRAND_FINALE, interruptAfterMs: 0 },
+      { type: 'wait', durationMs: 2000 }
+    ]
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.ok(observedRuntime(result).profession.core.hammerOrbs.Fire > 0);
+  assert.ok(result.events.some((event) => event.skillId === ID.FLAME_WHEEL && event.type === 'damage'));
+  assert.equal(
+    result.events.some((event) => event.skillId === ID.GRAND_FINALE && ['damage', 'condition'].includes(event.type)),
+    false
+  );
 });
 
 // A cancelled familiar cannot strand completed weapon grants behind its abandoned charge reset.

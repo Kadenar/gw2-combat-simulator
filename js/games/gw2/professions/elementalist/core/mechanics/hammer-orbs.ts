@@ -1,18 +1,17 @@
 import { refreshElementalistBuffs } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /**
- * Owns Core hammer orb state, availability, and Grand Finale scheduling.
+ * Owns Core hammer orb state, availability, and consumption.
  *
  * Owns the orb timers the hammer attunement skills create and the Grand Finale
- * payload that spends them, plus the queries availability uses to gate both.
- * Hammer skill fragments live in `skills/weapons/hammer.ts`.
+ * consumption that spends them, plus the queries availability uses to gate both.
+ * Hammer skill effects, including Grand Finale's projectiles, live in `skills/weapons/hammer.ts`.
  */
 import {
   requireBalanceProfileFromContext,
-  balanceProfileNumber,
-  requireEffect
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitElementalistBuff, emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
+import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
@@ -23,56 +22,8 @@ import {
   type ElementalistCoreState
 } from '#gw2/professions/elementalist/core/state.js';
 import { HAMMER_ORB_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
-import { emitProfiledCondition, skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
-
-/**
- * Replace Grand Finale with one projectile per active orb, preserving each orb's
- * element and consuming the captured set atomically.
- *
- * Returning true tells the scheduler this cast's packets were authored here, so
- * the skill's declarative effects are skipped.
- */
-export function scheduleGrandFinaleProfile(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): boolean {
-  if (skill.id !== ID.GRAND_FINALE) return false;
-  const state = professionCoreState(context);
-  const active = ELEMENTALIST_ATTUNEMENTS.filter((element) => {
-    const expiresAt = state.hammerOrbs[element];
-    return expiresAt != null && expiresAt >= cast.start;
-  });
-
-  const grandFinaleProfile = requireBalanceProfileFromContext(context, PROFILE.grandFinale);
-  const at = cast.effectiveEnd + balanceProfileNumber(grandFinaleProfile, 'initialDelay');
-  for (let index = 0; index < active.length; index += 1) {
-    const element = active[index];
-    const strike = requireEffect(grandFinaleProfile, 'strike', element);
-    if (strike) {
-      emitElementalistDamage(context, {
-        at,
-        source: skill.name,
-        sourceId: skill.id,
-        actorType: 'player',
-        skillId: skill.id,
-        skillName: skill.name,
-        coefficient: Number(strike.coefficient),
-        skillWeapon: 'Hammer',
-        comboFinishers: [
-          {
-            ownerId: 'elementalist',
-            finisherType: 'Projectile',
-            ambiguousFieldSelection: 'oldest'
-          }
-        ],
-        hitIndex: index + 1,
-        totalHits: active.length
-      });
-    }
-
-    emitProfiledCondition(context, at, PROFILE.grandFinale, element, skill.name, skill.id);
-  }
-
-  return true;
-}
 
 /** Orb elements still live at `at`; shared by availability gating and the Weaver orb handler. */
 export function activeHammerOrbElements(state: ElementalistCoreState, at: number): ElementalistAttunement[] {

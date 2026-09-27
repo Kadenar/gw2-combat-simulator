@@ -140,6 +140,7 @@ test('catalogs validate side-effect payloads, amounts, and variant references', 
     { type: 'ammoRestore', skillIds: [2], count: 1 },
     { type: 'resourceGrant', resource: 'endurance', amount: { profile: 'test.profile', field: 'resourceGain' } },
     { type: 'flipArm', skillId: 2, durationSec: 1 },
+    { type: 'flipArm', skillId: 2, durationSec: 1, expiryPriority: -220 },
     { type: 'emitProfile', profileId: 'test.profile' },
     { type: 'test.action', amount: 0 }
   ])
@@ -161,6 +162,12 @@ test('catalogs validate side-effect payloads, amounts, and variant references', 
     ].map((amount) => ({ type: 'resourceGrant', resource: 'endurance', amount })),
     { type: 'flipArm', skillId: 99, durationSec: 1 },
     { type: 'flipArm', skillId: 2 },
+    ...[NaN, Infinity, 'early'].map((expiryPriority) => ({
+      type: 'flipArm',
+      skillId: 2,
+      durationSec: 1,
+      expiryPriority
+    })),
     { type: 'emitProfile', profileId: 'missing' },
     { type: 'emitProfile', profileId: 'test.profile', attribution: [] },
     { type: 'typo' }

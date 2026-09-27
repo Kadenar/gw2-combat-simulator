@@ -28,8 +28,8 @@ test('Antiquary replacement owners emit their own packets instead of the authore
     );
 });
 
-test('Grand Finale uses its live replacement owner and emits one packet for one orb', () => {
-  // Replacement packets are authored from the consumed live orb pool.
+test('Grand Finale selects one delayed projectile for one consumed orb', () => {
+  // Authored effects capture the orb before completion consumes it.
   const result = runElementalist({
     profession: elementalistProfession,
     rotation: ['Flame Wheel', 'Grand Finale', { type: 'wait', durationMs: 1000 }],

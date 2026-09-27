@@ -637,3 +637,21 @@ test('authored and procedural status caps apply after scaling and remain patchab
       })
     );
 });
+
+// Authored cleanup ordering must retain the default while allowing a follow-up to retire before same-time work.
+test('declared flip expiry priority orders cleanup against other work at its deadline', () => {
+  for (const expiryPriority of [undefined, -220]) {
+    const observed = [];
+    const profession = fixture({
+      initialize(runtime) {
+        runtime.schedule('test.inspect-flip', 1, undefined, undefined, -100);
+      },
+      tasks: { 'test.inspect-flip': (runtime) => observed.push(Boolean(runtime.profession.core.availableFlips.flip)) }
+    });
+    profession.catalog = withSkill(catalog, 991001, {
+      sideEffects: [{ on: 'castComplete', do: { type: 'flipArm', skillId: 'flip', durationSec: 1, expiryPriority } }]
+    });
+    runGw2Runtime({ profession, config, rotation: [cast(991001), wait(1100)] });
+    assert.deepEqual(observed, [expiryPriority === undefined]);
+  }
+});

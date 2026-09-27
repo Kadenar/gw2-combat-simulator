@@ -975,6 +975,7 @@ function validateSkillDeclarations(catalog: CanonicalCatalog, skill: Skill): voi
         validateSideEffectAmount(catalog, action.amount, `${label} amount`);
         break;
       case 'flipArm':
+        if (action.expiryPriority !== undefined) requireBalanceNumber(action.expiryPriority, `${label} expiryPriority`);
         if (!catalog.skillsById.has(action.skillId))
           throw new TypeError(`${label} references missing skill ${action.skillId}.`);
         validateSideEffectAmount(

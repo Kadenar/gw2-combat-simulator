@@ -14,7 +14,12 @@ export type SideEffectAction =
   | { readonly type: 'rechargeReset'; readonly skillIds: readonly SkillId[] }
   | { readonly type: 'ammoRestore'; readonly skillIds: readonly SkillId[]; readonly count: ProfileAmount }
   | { readonly type: 'resourceGrant'; readonly resource: ResourceKey | 'endurance'; readonly amount: ProfileAmount }
-  | { readonly type: 'flipArm'; readonly skillId: SkillId; readonly durationSec?: ProfileAmount }
+  | {
+      readonly type: 'flipArm';
+      readonly skillId: SkillId;
+      readonly durationSec?: ProfileAmount;
+      readonly expiryPriority?: number;
+    }
   | { readonly type: 'emitProfile'; readonly profileId: SkillId; readonly attribution?: Partial<EffectEventBase> }
   | { readonly type: `${string}.${string}`; readonly amount?: ProfileAmount };
 
@@ -69,7 +74,9 @@ export function applySideEffect(
 
     case 'flipArm':
       runtime.armFlip(action.skillId, {
-        expiresAt: runtime.time + sideEffectAmount(runtime, action.durationSec ?? Number(cast.skill.flipDuration))
+        expiresAt: runtime.time + sideEffectAmount(runtime, action.durationSec ?? Number(cast.skill.flipDuration)),
+        // Some follow-ups must expire before same-time cast work, matching their previous lifecycle owner.
+        expiryPriority: action.expiryPriority
       });
       return;
     case 'emitProfile':

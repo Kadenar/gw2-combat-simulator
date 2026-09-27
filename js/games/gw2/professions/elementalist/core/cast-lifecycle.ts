@@ -34,10 +34,7 @@ import {
   completeElementalistElementalCommand,
   completeElementalistGlyphCast
 } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
-import {
-  applyHammerState,
-  scheduleGrandFinaleProfile
-} from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
+import { applyHammerState } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { applyPistolState } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
 
 // Skill data encodes a granted aura as "Element|seconds"; malformed or
@@ -67,7 +64,6 @@ export function elementalistOnCastStart(context: ElementalistRuntime, cast: Runt
   applySkillAura(context, cast, skill);
   captureConjurePickup(context, cast);
   ensureElementalistElemental(context, skill);
-  if (skill.id === ID.GRAND_FINALE) scheduleGrandFinaleProfile(context, cast, skill);
   beginElementalistSpearCast(context, cast, skill);
   const state = professionCoreState(context);
   if (Number(skill.id) === ID.GRAND_FINALE) {

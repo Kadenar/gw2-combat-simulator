@@ -102,19 +102,6 @@ export function guardianTraitEffects(
 ): readonly SkillEffect[] {
   const extra: SkillEffect[] = [];
   const skill = cast.skill;
-  if (skill.id === ID.PURGING_FLAMES && hasTrait(runtime, TRAIT.MASTER_OF_CONSECRATIONS)) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.masterOfConsecrations);
-    for (const effect of profile.effects ?? []) {
-      if (effect.type !== 'strike' && effect.type !== 'condition') continue;
-      if (!effect.ticks?.length) throw new Error('Master of Consecrations requires explicit packet timelines.');
-      extra.push({
-        ...effect,
-        name: effect.type === 'strike' ? skill.name : `${skill.name} — Burning`,
-        weapon: 'Unequipped'
-      });
-    }
-  }
-
   const field = skill.comboFields?.[0];
   if (field && isGuardianSymbolSkill(skill) && hasTrait(runtime, TRAIT.WRIT_OF_PERSISTENCE)) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.writOfPersistence);

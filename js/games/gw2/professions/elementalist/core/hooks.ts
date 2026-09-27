@@ -110,7 +110,6 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
     return empowerElementalistSpearPacket(runtime, prepared as ElementalistSimulationEvent);
   },
   modifyEffects(runtime, cast, effects) {
-    if (cast.skill.id === ID.GRAND_FINALE) return [];
     return extendPersistingFlamesEffects(runtime, cast.skill, effects);
   },
   modifyComboFields: extendPersistingFlamesFields,

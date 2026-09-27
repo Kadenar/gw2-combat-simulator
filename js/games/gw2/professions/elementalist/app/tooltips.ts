@@ -137,17 +137,10 @@ export const elementalistTooltips: ProfessionTooltips = {
         ]
       )
     ),
-    [ID.GRAND_FINALE]: (balanceContext) => ({
-      description:
-        "Consume all active hammer orbs and fire one projectile per orb. Each projectile applies its element's effects. Consuming the orbs cancels their pending attacks.",
-      facts: [
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, CORE.grandFinale).effects,
-          'only for each active orb consumed'
-        ).facts,
-        { name: 'Combo finisher', detail: 'Projectile, per consumed orb' }
-      ]
-    }),
+    [ID.GRAND_FINALE]: skillTooltip(
+      "Consume all active hammer orbs and fire one projectile per orb. Each projectile applies its element's effects. Consuming the orbs cancels their pending attacks.",
+      () => [{ name: 'Combo finisher', detail: 'Projectile, per consumed orb' }]
+    ),
 
     ...Object.fromEntries(
       [ID.MAGNETIC_AURA, ID.FROST_AURA, ID.SHOCKING_AURA, ID.FIRE_SHIELD].map((id) => [

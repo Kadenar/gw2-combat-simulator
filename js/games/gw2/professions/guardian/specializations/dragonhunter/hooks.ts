@@ -7,7 +7,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -128,6 +127,29 @@ function tetherBurn(runtime: Runtime, data: unknown): void {
 
 /** Dragonhunter owns its landed tether, passive cadence, and committed trap/virtue effects without replay records. */
 export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
+  // Vulnerability follows actual player damage during an existing tether; its lifecycle remains with Justice.
+  traitTriggers: [
+    {
+      trait: TRAIT.BIG_GAME_HUNTER,
+      emit: PROFILE.bigGameHunter,
+      on: 'damage.resolved',
+      when: (runtime, event, details) =>
+        event.actorType === 'player' &&
+        Number(event.coefficient) > 0 &&
+        (details.hitContext?.damage ?? 0) > 0 &&
+        dragonhunterState.from(runtime).tetherUntil > runtime.time,
+      effects: (effect) => effect.type === 'condition' && effect.name === 'Vulnerability',
+      attribution: (_runtime, event) => ({
+        source: 'guardian',
+        actorType: 'effect',
+        skillId: TRAIT.BIG_GAME_HUNTER,
+        skillName: 'Big Game Hunter',
+        name: 'Big Game Hunter \u2014 Vulnerability',
+        priority: 5,
+        triggeredBy: event.skillName
+      })
+    }
+  ],
   initialize(runtime) {
     runtime.schedule(COURAGE, runtime.time, undefined, undefined, -200);
   },
@@ -144,23 +166,6 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
       );
       if (at <= cast.effectiveEnd) runtime.schedule(FURIOUS, at, cast);
     }
-  },
-  modifyEffects(runtime, cast, effects) {
-    if (cast.skill.id !== ID.WINGS_OF_RESOLVE || !hasTrait(runtime, TRAIT.SOARING_DEVASTATION)) return effects;
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.soaringDevastation);
-    const weapon = gw2ActivePrimaryWeapon(runtime.config, runtime.activeWeaponSet);
-    return [
-      ...effects,
-      ...(profile.effects ?? [])
-        .filter((effect) => effect.type === 'strike' || effect.type === 'condition')
-        .map((effect) => ({
-          ...effect,
-          name:
-            effect.type === 'strike' ? 'Wings of Resolve — Soaring Devastation' : 'Soaring Devastation — Immobilized',
-          weapon,
-          timingAnchor: 'castEnd' as const
-        }))
-    ];
   },
   onCastComplete(runtime, cast) {
     if (cast.cancelled) return;

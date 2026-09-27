@@ -1,3 +1,4 @@
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
@@ -1653,4 +1654,85 @@ test('Dragonhunter rejects post-death attachment and shares tether execution in 
   assert.deepEqual(score.warnings, []);
   assert.equal(score.totalDamage, detailed.totalDamage);
   assert.equal(dh(score).tetherUntil, dh(detailed).tetherUntil);
+});
+
+// Additive variants must retain live base packets, including edits that were not present in the authored skill.
+test('Guardian trait variants preserve patched base effects with and without the trait', () => {
+  for (const [skillId, trait, specialization] of [
+    [ID.WINGS_OF_RESOLVE, TRAIT.SOARING_DEVASTATION, 'Dragonhunter'],
+    [ID.PURGING_FLAMES, TRAIT.MASTER_OF_CONSECRATIONS, 'Core']
+  ]) {
+    const source = {
+      ...guardianProfession,
+      runtimeFor(config) {
+        const native = guardianProfession.runtimeFor(config);
+        const skill = native.catalog.skillsById.get(skillId);
+        return {
+          ...native,
+          catalog: withSkill(native.catalog, skillId, {
+            effects: [...skill.effects, { type: 'boon', boon: 'vigor', duration: 7, stacks: 1 }]
+          })
+        };
+      }
+    };
+    for (const selectedTraitIds of [[], [trait]]) {
+      const result = run([skillId, wait(1000)], { specialization, selectedTraitIds }, () => {}, source);
+      assert.deepEqual(result.warnings, []);
+      const vigor = result.resolvedEvents.filter((event) => event.kind === 'vigor' && event.skillId === skillId);
+      assert.equal(vigor.length, 1);
+      assert.equal(vigor[0].duration, 7);
+    }
+  }
+});
+
+// Only actual player damage inside the live tether produces a causally attributed packet after same-time strikes.
+test('Big Game Hunter preserves hit eligibility, tether expiry, attribution, and component removal', () => {
+  for (const removed of [false, true]) {
+    const source = removed
+      ? withPatchPreview(guardianProfession, {
+          id: 'bgh-removed',
+          label: 'Remove Big Game Hunter vulnerability',
+          professions: {
+            guardian: {
+              balanceProfiles: {
+                [DH_PROFILE.bigGameHunter]: { removeEffects: [{ type: 'condition', name: 'Vulnerability' }] }
+              }
+            }
+          }
+        })
+      : guardianProfession;
+    const result = run(
+      [wait(2000)],
+      { ...dragonhunter, selectedTraitIds: [TRAIT.BIG_GAME_HUNTER], ...(removed ? { patchId: 'bgh-removed' } : {}) },
+      (runtime) => {
+        runtime.profession.specialization.state.tetherUntil = 1;
+        strike(runtime, 0.5, { activationId: 'accepted-hit', eventOrder: 17 });
+        strike(runtime, 0.5, { actorType: 'effect' });
+        strike(runtime, 0.6, { coefficient: 0 });
+        strike(runtime, 0.7, { offTarget: true });
+        strike(runtime, 1);
+      },
+      source
+    );
+    assert.deepEqual(result.warnings, []);
+    const packets = result.resolvedEvents.filter((event) => event.sourceId === TRAIT.BIG_GAME_HUNTER);
+    assert.equal(packets.length, removed ? 0 : 1);
+    if (removed) continue;
+    const packet = packets[0];
+    const hit = result.resolvedEvents.find((event) => event.type === 'damage' && event.activationId === 'accepted-hit');
+    assert.equal(packet.at, hit.at);
+    assert.equal(packet.activationId, hit.activationId);
+    assert.equal(packet.causalOrder, hit.causalOrder ?? hit.eventOrder);
+    assert.equal(packet.priority, 5);
+    assert.equal(packet.actorType, 'effect');
+    assert.equal(packet.source, 'guardian');
+    assert.equal(packet.skillId, TRAIT.BIG_GAME_HUNTER);
+    assert.equal(packet.skillName, 'Big Game Hunter');
+    assert.equal(packet.triggeredBy, 'Orb of Wrath');
+    assert.equal(packet.condition, 'Vulnerability');
+    assert.ok(
+      result.resolvedEvents.indexOf(packet) >
+        result.resolvedEvents.findLastIndex((event) => event.type === 'damage' && event.at === hit.at)
+    );
+  }
 });
