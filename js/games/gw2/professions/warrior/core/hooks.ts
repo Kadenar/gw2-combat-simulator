@@ -4,7 +4,6 @@ import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import { BRAVE_STRIDE_MOVEMENT_SKILL_IDS, reactToWarriorBuff } from '#gw2/professions/warrior/core/traits/strength.js';
@@ -24,13 +23,15 @@ import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/s
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
-import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
+import {
+  grantWarriorAdrenaline,
+  warriorBurstSpends,
+  warriorBurstTier
+} from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 
 type WarriorRuntime = Gw2Runtime<WarriorRuntimeState>;
 const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
 const EMPOWER_PULSE = 'warrior.empower-allies-pulse';
-// These immutable reservation facts survive resource changes during the cast; they are not another resource pool.
-const burstSpends = new WeakMap<RuntimeCast, number>();
 
 /** Actual reactions emit fresh trait packets, retaining only the triggering activation and causal placement. */
 function traitEffects(
@@ -365,16 +366,6 @@ function burstAdrenalineSpend(runtime: WarriorRuntime, skill: WarriorSkill): num
     : available;
 }
 
-/** Tier-dependent packets and fields use the same activation-time resource thresholds. */
-function burstTier(runtime: WarriorRuntime, spent: number): number {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.burstTiers);
-  return spent >= balanceProfileNumber(profile, 'maximumStacks')
-    ? 3
-    : spent >= balanceProfileNumber(profile, 'threshold')
-      ? 2
-      : 1;
-}
-
 /** Each pulse checks current recharge and then schedules only its next occurrence, preserving cadence while suppressed. */
 function signetPulse(runtime: WarriorRuntime): void {
   if ((runtime.cooldowns.get(ID.SIGNET_OF_RAGE) ?? 0) <= runtime.time) grantWarriorAdrenaline(runtime, 2);
@@ -404,34 +395,14 @@ function empowerPulse(runtime: WarriorRuntime): void {
   runtime.schedule(EMPOWER_PULSE, canonicalTime(runtime.time + interval), null, undefined, -210);
 }
 
-/** The shared swap commits its destination first; Core then resets Focus, grants adrenaline, and claims Fury once. */
-function weaponSwapTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
+/** The shared swap commits its destination first; Core then resets Focus and grants adrenaline. */
+function weaponSwapTraits(runtime: WarriorRuntime): void {
   if (hasTrait(runtime, TRAIT.MARTIAL_CADENCE)) runtime.procs.readyAt['warrior.core.soldierFocus'] = runtime.time;
   if (hasTrait(runtime, TRAIT.VERSATILE_RAGE))
     grantWarriorAdrenaline(
       runtime,
       balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.VERSATILE_RAGE), 'resourceGain')
     );
-  if (!hasTrait(runtime, TRAIT.FURIOUS_BURST)) return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.furiousBurst);
-  if (!runtime.procs.claim(PROFILE.furiousBurst)) return;
-  const fury = requireEffect(profile, 'boon', 'fury');
-  if (!fury) return;
-  const event = {
-    type: 'buff' as const,
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: TRAIT.FURIOUS_BURST,
-    actorType: 'effect' as const,
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id,
-    name: 'Furious Burst',
-    kind: 'fury',
-    stacks: effectNumber(profile, fury, 'stacks'),
-    duration: effectNumber(profile, fury, 'duration')
-  };
-  queueResolverBoon(runtime, event, event);
 }
 
 /** Core resources and burst packets execute in the Core hooks; elite behavior composes at the family boundary. */
@@ -501,6 +472,16 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
   ],
   rechargeWork: (_runtime, skill, work) => (skill.id === ID.SWAP_WEAPONS ? Math.min(5, work) : work),
   traitTriggers: [
+    // Completed weapon swaps grant Fury once per the selected profile's cooldown.
+    {
+      trait: TRAIT.FURIOUS_BURST,
+      on: 'castComplete',
+      when: (_runtime, cast) => cast.skill.inputCategory === 'weapon-swap',
+      emit: PROFILE.furiousBurst,
+      icd: 'profile',
+      effects: (effect) => effect.type === 'boon' && effect.name === 'fury',
+      attribution: { name: 'Furious Burst' }
+    },
     {
       trait: TRAIT.THICK_SKIN,
       on: 'castStart',
@@ -565,13 +546,13 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     if (cast.skill.burst && !cast.skill.dragonSlash) {
       const state = runtime.profession.core;
       const spent = burstAdrenalineSpend(runtime, cast.skill);
-      burstSpends.set(cast, spent);
+      warriorBurstSpends.set(cast, spent);
       state.adrenaline -= spent;
     }
   },
   modifyComboFields(runtime, cast, fields) {
     if (cast.skill.id !== ID.COMBUSTIVE_SHOT) return fields;
-    const tier = burstTier(runtime, burstAdrenalineSpend(runtime, cast.skill));
+    const tier = warriorBurstTier(runtime, burstAdrenalineSpend(runtime, cast.skill));
     const duration =
       tier * balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.combustiveShot), 'durationPerTier');
     return fields?.flatMap((field) =>
@@ -607,8 +588,8 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     }
 
     if (!cast.skill.burst || cast.skill.dragonSlash) return effects;
-    const spent = burstSpends.get(cast)!;
-    const tier = burstTier(runtime, spent);
+    const spent = warriorBurstSpends.get(cast)!;
+    const tier = warriorBurstTier(runtime, spent);
     if (cast.skill.id === ID.COMBUSTIVE_SHOT) {
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.combustiveShot);
       const interval = balanceProfileNumber(profile, 'pulseInterval');
@@ -662,15 +643,6 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
         return [{ ...captured, duration: Number(effect.duration) * [1, 1.5, 2][tier - 1] }];
       if (cast.skill.id === ID.KILL_SHOT && effect.type === 'strike')
         return [{ ...captured, coefficient: (Number(effect.coefficient) * [2.25, 2.75, 3.25][tier - 1]) / 2.25 }];
-      if (cast.skill.id === ID.EVISCERATE && effect.type === 'strike') {
-        const profile = requireBalanceProfileFromContext(
-          runtime,
-          [PROFILE.eviscerateTier1, PROFILE.eviscerateTier2, PROFILE.eviscerateTier3][tier - 1]
-        );
-        const strike = requireEffect(profile, 'strike', 'Strike');
-        return strike ? [{ ...captured, coefficient: effectNumber(profile, strike, 'coefficient') }] : [];
-      }
-
       if (cast.skill.id === ID.BLOODTHIRSTER && effect.type === 'condition' && effect.condition === 'Bleeding') {
         const profile = requireBalanceProfileFromContext(runtime, PROFILE.bloodthirsterTiers);
         const bleeding = requireEffect(profile, 'condition', `Tier ${tier}`);
@@ -696,7 +668,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
 
     if (!castCompleted(cast)) return;
     // Successful bursts refund the captured spend at completion, independently of target acceptance.
-    const spent = burstSpends.get(cast) ?? 0;
+    const spent = warriorBurstSpends.get(cast) ?? 0;
     if (cast.skill.burst && cast.skill.id !== ID.FULL_COUNTER && spent > 0 && hasTrait(runtime, TRAIT.BURST_MASTERY)) {
       grantWarriorAdrenaline(
         runtime,
@@ -719,7 +691,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
   onCastComplete(runtime, cast) {
     if (!castCompleted(cast)) return;
     completeTraits(runtime, cast);
-    if (cast.skill.inputCategory === 'weapon-swap' && !castWasInterrupted(cast)) weaponSwapTraits(runtime, cast);
+    if (cast.skill.inputCategory === 'weapon-swap' && !castWasInterrupted(cast)) weaponSwapTraits(runtime);
   },
   onCooldownReset(runtime) {
     runtime.profession.core.adrenaline = runtime.profession.core.maximumAdrenaline;

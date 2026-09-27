@@ -344,3 +344,33 @@ test('Warrior live owners reject missing profiles and invalid required scalars c
     result.events.find((event) => event.type === 'damage').at
   );
 });
+
+// Later resource mutations cannot change a burst's captured tier or discard its separate Might packet.
+test('Eviscerate variants use captured adrenaline after the live pool changes', () => {
+  const config = {
+    specialization: 'Core',
+    primaryWeapon: 'Axe',
+    initialResource: 20,
+    selectedTraitIds: [],
+    stats: { power: 2000, precision: 1000 },
+    target: { armor: 2597 }
+  };
+  const native = warriorProfession.runtimeFor(config);
+  const result = observeGw2Runtime({
+    profession: {
+      ...native,
+      onCastStart(runtime, cast) {
+        native.onCastStart(runtime, cast);
+        runtime.profession.core.adrenaline = 30;
+      }
+    },
+    config,
+    rotation: [ID.EVISCERATE]
+  });
+  assert.deepEqual(result.warnings, []);
+  const strike = result.events.find((event) => event.type === 'damage' && event.skillId === ID.EVISCERATE);
+  assert.equal(strike.coefficient, 2.5);
+  assert.equal(strike.metadata.warriorAdrenalineSpent, 20);
+  assert.equal(strike.metadata.warriorBurstTier, 2);
+  assert.ok(result.events.some((event) => event.kind === 'might' && event.skillId === ID.EVISCERATE));
+});

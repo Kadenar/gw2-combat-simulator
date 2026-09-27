@@ -315,3 +315,14 @@ for (const { name, trait, extraTraits = [], rotation, config, verify } of traitC
     verify(simulate('Core', rotation, { ...config, selectedTraitIds: [trait, ...extraTraits] }));
   });
 }
+
+// Shared emission gives weapon-swap Fury the same causal identity as its activation.
+test('Furious Burst retains activation ordering through the shared emission path', () => {
+  const result = simulate('Core', ['Swap Weapons'], { selectedTraitIds: [TRAIT.FURIOUS_BURST] });
+  const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.SWAP_WEAPONS);
+  const fury = result.events.find((event) => event.sourceId === TRAIT.FURIOUS_BURST);
+  assert.equal(fury.activationId, action.activationId);
+  assert.equal(fury.causalOrder, action.causalOrder);
+  assert.ok(Number.isFinite(fury.eventOrder));
+  assert.equal(fury.actorType, 'effect');
+});
