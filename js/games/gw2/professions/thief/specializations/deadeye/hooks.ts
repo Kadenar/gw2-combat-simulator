@@ -1,3 +1,4 @@
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -11,12 +12,7 @@ import {
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import {
-  deferThiefCompletion,
-  emitThiefBuff,
-  emitThiefCondition,
-  takeThiefCompletion
-} from '#gw2/professions/thief/core/events.js';
+import { deferThiefCompletion, emitThiefCondition, takeThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import { grantThiefEndurance, grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { grantThiefStealth } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import {
@@ -70,26 +66,28 @@ function traitBoons(
   cast: RuntimeCast | null,
   source: string,
   profileId: SkillId,
-  party: boolean
+  party: boolean,
+  only?: string
 ): void {
   const profile = requireBalanceProfileFromContext(runtime, profileId);
-  for (const effect of (profile.effects || []).filter((entry) => entry.type === 'boon')) {
-    const boon = String(effect.boon);
-    emitThiefBuff(runtime, null, {
-      at: runtime.time,
+  // Materialize the selected boons at this owner's deferred boundary, retaining its audience and attribution.
+  emitEffects(runtime, {
+    owner: profile,
+    effects: profile.effects?.filter((effect) => effect.type === 'boon' && (only == null || effect.name === only)),
+    baseEvent: {
       source: 'Trait',
       sourceId: `thief.deadeye.${source.toLowerCase().replaceAll(' ', '-')}`,
-      skillId: cast?.skill.id ?? null,
-      skillName: cast?.skill.name ?? null,
-      ...(cast ? { activationId: cast.id } : {}),
-      name: `${source} — ${boon}`,
-      kind: boon.toLowerCase(),
-      boon,
-      duration: effectNumber(profile, effect, 'duration'),
-      stacks: effectNumber(profile, effect, 'stacks'),
-      ...(party ? { audience: { recipients: 'party' as const, maximumRecipients: 5 } } : {})
-    });
-  }
+      actorType: 'player',
+      ...(cast ? { skillId: cast.skill.id, skillName: cast.skill.name, activationId: cast.id } : {})
+    },
+    transform: (event, effect) => ({
+      ...event,
+      actorType: 'player',
+      name: `${source} \u2014 ${effect.boon}`,
+      boon: String(effect.boon),
+      audience: party ? { recipients: 'party', maximumRecipients: 5 } : undefined
+    })
+  });
 }
 
 /** Reaching maximum malice grants Maleficent Seven's initiative and boons once per malice cycle. */
@@ -137,24 +135,8 @@ function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast): void {
   maleficentSeven(runtime, cast);
   const grant = stolenSkillGrant(runtime);
   completeThiefSteal(runtime, grant.skillIds, grant.forcedSkillId);
-  if (hasTrait(runtime, TRAIT.BE_QUICK_OR_BE_KILLED)) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.beQuickOrBeKilled);
-    const quickness = requireEffect(profile, 'boon', 'Quickness');
-    if (quickness)
-      emitThiefBuff(runtime, null, {
-        at: runtime.time,
-        source: 'Trait',
-        sourceId: 'thief.deadeye.be-quick-or-be-killed',
-        skillId: cast.skill.id,
-        skillName: cast.skill.name,
-        activationId: cast.id,
-        name: `Be Quick or Be Killed — ${quickness.boon}`,
-        kind: String(quickness.boon).toLowerCase(),
-        boon: String(quickness.boon),
-        duration: effectNumber(profile, quickness, 'duration'),
-        stacks: effectNumber(profile, quickness, 'stacks')
-      });
-  }
+  if (hasTrait(runtime, TRAIT.BE_QUICK_OR_BE_KILLED))
+    traitBoons(runtime, cast, 'Be Quick or Be Killed', PROFILE.beQuickOrBeKilled, false, 'Quickness');
 
   runtime.schedule(DEADEYE_MARK_EXPIRY, state.markExpiresAt, { generation: state.markGeneration });
 }

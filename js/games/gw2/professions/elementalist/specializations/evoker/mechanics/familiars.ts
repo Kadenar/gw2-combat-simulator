@@ -1,4 +1,3 @@
-import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import {
   activeElementalistBuffs,
   refreshElementalistBuffs
@@ -32,7 +31,7 @@ import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { emitElementalistProc, emitProfiledBuff } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   BASIC_FAMILIARS,
   ELECTRIC_ENCHANTMENT_ICON,
@@ -179,56 +178,6 @@ export function modifyFamiliarEffects(
   });
 }
 
-/** Fox's Fury captures Might at acceptance and retains that tier through its impact. */
-export function startMeditationEffects(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  // Fox's Fury picks one of three tiers from the might stacks held at cast start
-  if (skill.id === ID.FOXS_FURY) {
-    const might = context.config.boons?.might
-      ? Number(context.config.boons.might)
-      : buffApplicationStacks(context.boons.get('might') ?? [], 'might', cast.start, 25, {
-          includes: (application) => application.resolvedAudience?.includesSelf !== false
-        });
-    const foxsFuryProfile = requireBalanceProfileFromContext(context, PROFILE.foxsFury);
-    const threshold = balanceProfileNumber(foxsFuryProfile, 'threshold');
-    const tier = might >= threshold * 2 ? 2 : might >= threshold ? 1 : 0;
-    const effectName = `Tier ${tier + 1}`;
-    const strike = requireEffect(foxsFuryProfile, 'strike', effectName);
-    const burning = requireEffect(foxsFuryProfile, 'condition', effectName);
-    // The profile delay uses the authored cast timeline, just like declarative skill packets.
-    const at =
-      cast.start +
-      balanceProfileNumber(foxsFuryProfile, 'initialDelay') *
-        castRelativeEffectTimingScale(skill, (cast.fullEnd - cast.start) * 1000);
-    if (strike) {
-      emitElementalistDamage(context, {
-        at,
-        source: skill.name,
-        sourceId: skill.id,
-        actorType: 'player',
-        skillName: skill.name,
-        skillId: skill.id,
-        coefficient: Number(strike.coefficient),
-        skillWeapon: 'Unequipped'
-      });
-    }
-
-    // Separate Burning applications preserve the total, including any fractional final stack.
-    if (burning) {
-      const stacks = Number(burning.stacks);
-      for (let index = 0; index < Math.ceil(stacks); index += 1) {
-        emitElementalistCondition(context, {
-          skill,
-          at,
-          source: skill.name,
-          condition: String(burning.condition),
-          stacks: Math.min(1, stacks - index),
-          duration: Number(burning.duration)
-        });
-      }
-    }
-  }
-}
-
 // refreshes the Familiar's Prowess damage buff, extending an active one rather than stacking a second
 function grantFamiliarProwess(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   const at = cast.effectiveEnd;
@@ -277,21 +226,15 @@ function applyFamiliarTraitProcs(context: ElementalistRuntime, cast: RuntimeCast
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
   if (familiarElement && hasTrait(context, "Familiar's Blessing")) {
     const quick = familiarElement === 'Fire' || familiarElement === 'Air';
-    const familiarsBlessingProfile = requireBalanceProfileFromContext(context, PROFILE.familiarsBlessing);
-    const blessing = requireEffect(familiarsBlessingProfile, 'boon', quick ? 'Quickness' : 'Alacrity');
-    if (blessing) {
-      emitElementalistBuff(context, {
-        skill: skill,
-        at,
-        source: "Familiar's Blessing",
-        sourceId: skill.id,
-        actorType: 'player',
-        kind: String(blessing.boon).toLowerCase(),
-        stacks: Number(blessing.stacks),
-        duration: Number(blessing.duration),
-        skillName: "Familiar's Blessing"
-      });
-    }
+    // Blessing stays after Prowess and before charge grants; only packet construction is shared.
+    emitProfiledBuff(
+      context,
+      at,
+      PROFILE.familiarsBlessing,
+      quick ? 'Quickness' : 'Alacrity',
+      "Familiar's Blessing",
+      skill.id
+    );
   }
 
   if (familiarElement && hasTrait(context, 'Galvanic Enchantment')) {

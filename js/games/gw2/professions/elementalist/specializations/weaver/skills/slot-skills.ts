@@ -59,6 +59,10 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     castTimeMs: 640,
     cooldown: 20,
     resourceGain: 50,
+    // Committed activations restore endurance using this skill's editable amount.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'resourceGrant', resource: 'endurance', amount: { skillField: 'resourceGain' } } }
+    ],
     skillFamily: 'Stance',
     effects: []
   },

@@ -47,7 +47,7 @@ export const THIEF_CORE_EXTRA_SKILLS: readonly ThiefSkill[] = Object.freeze([
   }),
   Object.freeze({
     id: ID.DODGE,
-    // Custom: applies Thief dodge traits through `core/hooks.ts`.
+    // Base Dodge emits no packets; dodge traits and selected landing profiles own their separate effects.
     cost: { resource: 'endurance' as const, profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } },
     name: 'Dodge',
     description: 'Perform the selected thief dodge.',

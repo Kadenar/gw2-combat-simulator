@@ -50,7 +50,6 @@ import {
   THIEF_GUILD_EXPIRY,
   THIEF_SCEPTER_CHAIN_EXPIRY,
   thievesGuildAttack,
-  thiefSpearEffects,
   thiefTrapAvailability,
   transitionThiefScepterChain
 } from '#gw2/professions/thief/core/mechanics/weapons.js';
@@ -208,11 +207,6 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     skill.usableWhileRecharging === true && Number(runtime.cooldowns.get(skill.id) || 0) > runtime.time + EPSILON
       ? 0
       : work,
-  modifyEffects(runtime, cast, effects) {
-    // Dodges own their packets through the selected landing; their authored effects are never emitted directly.
-    if (cast.skill.id === ID.DODGE) return [];
-    return thiefSpearEffects(runtime, cast, effects);
-  },
   onCastStart(runtime, cast) {
     const skill = cast.skill as ThiefSkill;
     pruneSkillFlips(runtime.profession.core.availableFlips, runtime.time);

@@ -84,15 +84,11 @@ function applySpecialSkillProgression(context: ElementalistRuntime, cast: Runtim
   }
 
   completeElementalistSpearProgression(context, cast, skill);
-
-  if (Number(skill.resourceGain || 0) > 0) {
-    context.endurance.grant(Number(skill.resourceGain));
-  }
 }
 
 /**
- * Cast-completion hook: settles attunement swaps, conjures, etching progress and
- * endurance, then the Arcane Echo and Fulgor special cases, and finally the
+ * Cast-completion hook: settles attunement swaps, conjures, and etching progress,
+ * then the Arcane Echo and Fulgor special cases, and finally the
  * pistol, hammer, and trait post-cast owners for the finished activation.
  */
 export function elementalistOnCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {

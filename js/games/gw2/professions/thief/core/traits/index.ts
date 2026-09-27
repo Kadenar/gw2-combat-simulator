@@ -1,11 +1,10 @@
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
@@ -23,7 +22,7 @@ import {
   applyPanicStrikePoison
 } from '#gw2/professions/thief/core/traits/deadly-arts.js';
 import { applyAlliedLeechingVenoms, applyLeechingVenoms } from '#gw2/professions/thief/core/traits/shadow-arts.js';
-import { emitThiefBuff, emitThiefCondition } from '#gw2/professions/thief/core/events.js';
+import { emitThiefBuff } from '#gw2/professions/thief/core/events.js';
 import { grantThiefEndurance, grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -41,32 +40,25 @@ function resolverContext(runtime: ThiefRuntime): ThiefResolverContext {
 /** Uncatchable's caltrop pulses are queued from the dodge's takeoff; the runtime has already paid its endurance. */
 export function startThiefDodge(runtime: ThiefRuntime, cast: RuntimeCast): void {
   if (!hasTrait(runtime, TRAIT.UNCATCHABLE)) return;
-  // Each surviving condition owns its pulses; deleting Bleeding cannot remove Crippled.
+  // Each condition's authored timing is authoritative; removing one component leaves its sibling's pulses intact.
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.uncatchable);
-  const initialDelay = balanceProfileNumber(profile, 'initialDelay');
-  const pulseInterval = balanceProfileNumber(profile, 'pulseInterval');
   const caltrops = runtime.helpers.skillsById.get(ID.LESSER_CALTROPS);
-  for (const name of ['Bleeding', 'Crippled']) {
-    const effect = requireEffect(profile, 'condition', name);
-    if (!effect) continue;
-    const duration = effectNumber(profile, effect, 'duration');
-    const stacks = effectNumber(profile, effect, 'stacks');
-    for (let pulse = 0; pulse < effectNumber(profile, effect, 'applications'); pulse += 1)
-      emitThiefCondition(runtime, null, {
-        at: runtime.time + initialDelay + pulse * pulseInterval,
-        source: 'Trait',
-        sourceId: TRAIT.UNCATCHABLE,
-        skillId: ID.LESSER_CALTROPS,
-        skillName: 'Lesser Caltrops',
-        icon: caltrops?.icon,
-        triggeredBy: cast.skill.name,
-        activationId: cast.id,
-        name: 'Uncatchable — Lesser Caltrops',
-        condition: String(effect.condition),
-        duration,
-        stacks
-      });
-  }
+  emitEffects(runtime, {
+    owner: profile,
+    effects: profile.effects?.filter(
+      (effect) => effect.type === 'condition' && ['Bleeding', 'Crippled'].includes(String(effect.name))
+    ),
+    baseEvent: {
+      source: 'Trait',
+      sourceId: TRAIT.UNCATCHABLE,
+      actorType: 'player',
+      skillId: ID.LESSER_CALTROPS,
+      skillName: 'Lesser Caltrops',
+      triggeredBy: cast.skill.name,
+      activationId: cast.id
+    },
+    transform: (event) => ({ ...event, icon: caltrops?.icon, name: 'Uncatchable \u2014 Lesser Caltrops' })
+  });
 }
 
 /** Upper Hand claims its cooldown when a dodge completes, before its initiative can re-enter the trait. */

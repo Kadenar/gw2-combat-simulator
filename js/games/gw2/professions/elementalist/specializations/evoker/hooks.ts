@@ -14,8 +14,7 @@ import {
 import {
   onCastStart,
   onCastComplete,
-  modifyFamiliarEffects,
-  startMeditationEffects
+  modifyFamiliarEffects
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
 import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import { FAMILIAR_ELEMENTS } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
@@ -45,7 +44,6 @@ export const evokerHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
   modifyEffects: modifyFamiliarEffects,
   onCastStart(runtime, cast) {
     onCastStart(runtime, cast, cast.skill);
-    if (!cast.cancelled) withElementalistCast(runtime, cast, () => startMeditationEffects(runtime, cast, cast.skill));
   },
   onCastComplete(runtime, cast) {
     const state = evokerState.from(runtime);

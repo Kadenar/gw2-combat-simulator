@@ -917,7 +917,12 @@ export const thiefTooltips: ProfessionTooltips = {
     ),
     [TRAIT.UNCATCHABLE]: traitTooltip(
       'Dodging drops Lesser Caltrops, repeatedly inflicting bleeding and cripple.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'pulseInterval', 'Pulse interval', tooltipSeconds)]
+      (context, id) =>
+        (tooltipProfile(context, id).effects ?? []).flatMap((effect) =>
+          effect.intervalMs == null
+            ? []
+            : [{ name: `${effect.name} pulse interval`, detail: tooltipSeconds(effect.intervalMs / 1000) }]
+        )
     ),
     [TRAIT.BURST_OF_AGILITY]: outsideScopeTooltip,
     [TRAIT.THRILL_OF_THE_CRIME]: traitTooltip('Stealing grants fury, might, and swiftness to yourself.'),

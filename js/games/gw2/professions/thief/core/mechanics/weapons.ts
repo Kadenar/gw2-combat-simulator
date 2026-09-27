@@ -30,7 +30,7 @@ import {
 } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { grantThiefStealth } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { AutoattackChainTransitionResult } from '#gw2/platform/skills/autoattack-chain-controller.js';
@@ -171,50 +171,6 @@ function updateSpearChain(runtime: ThiefRuntime, skill: ThiefSkill): void {
     core.spearLastWasFinisher = false;
     core.spearPreviousSkillId = skill.id;
   }
-}
-
-/** Scales every strike coefficient of an authored effect, including per-tick coefficients. */
-function scaleStrike(effect: SkillEffect, factor: number): SkillEffect {
-  if (effect.type !== 'strike') return effect;
-  return effect.ticks?.length
-    ? { ...effect, ticks: effect.ticks.map((tick) => ({ ...tick, coefficient: Number(tick.coefficient) * factor })) }
-    : { ...effect, coefficient: Number(effect.coefficient || 0) * factor };
-}
-
-/**
- * Falling Spider after an Entangling Asp chain gains its empowered coefficient and extra Bleeding/Poison stacks. The
- * chain state is read at acceptance, before the cast's own completion advances it.
- */
-export function thiefSpearEffects(
-  runtime: ThiefRuntime,
-  cast: RuntimeCast,
-  effects: readonly SkillEffect[]
-): readonly SkillEffect[] {
-  const core = runtime.profession.core;
-  if (
-    cast.skill.id !== ID.FALLING_SPIDER ||
-    Number(core.spearChainStage || 0) !== 2 ||
-    core.spearPreviousSkillId !== ID.ENTANGLING_ASP
-  )
-    return effects;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.fallingSpiderEmpowered);
-  const factor = balanceProfileNumber(profile, 'damageMultiplier');
-  const extraStacks = balanceProfileNumber(profile, 'resourceGain');
-  const boosted = (condition: unknown) => ['Bleeding', 'Poisoned'].includes(String(condition));
-  return effects.map((effect) => {
-    if (effect.type === 'strike') return scaleStrike(effect, factor);
-    if (effect.type !== 'condition') return effect;
-    if (effect.ticks?.length)
-      return {
-        ...effect,
-        ticks: effect.ticks.map((tick) =>
-          boosted(tick.condition ?? effect.condition)
-            ? { ...tick, stacks: Number(tick.stacks ?? 1) + extraStacks }
-            : tick
-        )
-      };
-    return boosted(effect.condition) ? { ...effect, stacks: Number(effect.stacks ?? 1) + extraStacks } : effect;
-  });
 }
 
 /**

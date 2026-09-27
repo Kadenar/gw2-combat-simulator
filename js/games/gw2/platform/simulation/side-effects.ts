@@ -1,5 +1,5 @@
 import type { EffectEventBase } from '#gw2/platform/engine/effects/materializer.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import {
@@ -10,10 +10,17 @@ import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { castCompleted } from '#gw2/platform/skills/timing.js';
 
 export type ProfileAmount = number | { readonly profile: SkillId; readonly field: string };
+// Resource grants may read the accepted skill's live tuning without duplicating it in a balance profile.
+export type ResourceGrantAmount = ProfileAmount | { readonly skillField: string };
+
 export type SideEffectAction =
   | { readonly type: 'rechargeReset'; readonly skillIds: readonly SkillId[] }
   | { readonly type: 'ammoRestore'; readonly skillIds: readonly SkillId[]; readonly count: ProfileAmount }
-  | { readonly type: 'resourceGrant'; readonly resource: ResourceKey | 'endurance'; readonly amount: ProfileAmount }
+  | {
+      readonly type: 'resourceGrant';
+      readonly resource: ResourceKey | 'endurance';
+      readonly amount: ResourceGrantAmount;
+    }
   | {
       readonly type: 'flipArm';
       readonly skillId: SkillId;
@@ -31,12 +38,14 @@ export interface SkillSideEffect {
 }
 
 /** Resolve live patch data at the point of application, rejecting invalid amounts before mutating a pool. */
-export function sideEffectAmount(runtime: Gw2Runtime, amount: ProfileAmount): number {
+export function sideEffectAmount(runtime: Gw2Runtime, amount: ResourceGrantAmount, skill?: Skill): number {
   const value =
     typeof amount === 'number'
       ? amount
-      : balanceProfileNumber(requireBalanceProfileFromContext(runtime, amount.profile), amount.field);
-  if (!Number.isFinite(value) || value < 0)
+      : 'skillField' in amount
+        ? skill?.[amount.skillField]
+        : balanceProfileNumber(requireBalanceProfileFromContext(runtime, amount.profile), amount.field);
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
     throw new RangeError('Side-effect amounts must be finite and non-negative.');
   return value;
 }
@@ -66,7 +75,7 @@ export function applySideEffect(
     }
 
     case 'resourceGrant': {
-      const amount = sideEffectAmount(runtime, action.amount);
+      const amount = sideEffectAmount(runtime, action.amount, cast.skill);
       if (action.resource === 'endurance') runtime.endurance.grant(amount);
       else runtime.resourceController.grant(action.resource, amount);
       return;

@@ -38,7 +38,7 @@ import {
   triggerFlameExpulsion,
   triggerSunspot
 } from '#gw2/professions/elementalist/core/traits/index.js';
-import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { elementalistEventSkill, emitProfiledBuff } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { armElementalistElementalLightningJolt } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
@@ -57,22 +57,17 @@ const FULL_ETCHING_CHARGE_SKILLS = new Set<number>([ID.OVERLOAD_FIRE, ID.OVERLOA
  */
 export function applyTempestShoutTraits(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   if (!hasTrait(context, 'Tempestuous Aria')) return;
-  const tempestuousAriaProfile = requireBalanceProfileFromContext(context, PROFILE.tempestuousAria);
-  const might = requireEffect(tempestuousAriaProfile, 'boon', 'Shout Might');
-  if (might) {
-    emitElementalistBuff(context, {
-      skill: skill,
-      at: cast.effectiveEnd,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: 'player',
-      kind: String(might.boon).toLowerCase(),
-      stacks: Number(might.stacks),
-      duration: Number(might.duration),
-      skillName: skill.name,
-      audience: { recipients: 'party' as const, maximumRecipients: 5 }
-    });
-  }
+  // Keep the party reward at this committed shout's completion while reusing named profile emission.
+  emitProfiledBuff(
+    context,
+    cast.effectiveEnd,
+    PROFILE.tempestuousAria,
+    'Shout Might',
+    skill.name,
+    skill.id,
+    0,
+    'party'
+  );
 }
 
 // Fire the traits that pay out as an overload begins: the conduit boons, and the core
@@ -170,23 +165,9 @@ function afterCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill
 // Resolve everything that happens when a Tempest cast finishes: the Gale Song heal payload, then
 // for overloads the attunement lockout and each completion trait.
 function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  if (skill.type === 'Heal' && hasTrait(context, 'Gale Song')) {
-    const galeSongProfile = requireBalanceProfileFromContext(context, PROFILE.galeSong);
-    const protection = requireEffect(galeSongProfile, 'boon', 'Protection');
-    if (protection) {
-      emitElementalistBuff(context, {
-        skill: skill,
-        at: cast.effectiveEnd,
-        source: 'Gale Song',
-        sourceId: skill.id,
-        actorType: 'player',
-        kind: String(protection.boon).toLowerCase(),
-        stacks: Number(protection.stacks),
-        duration: Number(protection.duration),
-        skillName: 'Gale Song'
-      });
-    }
-  }
+  // Committed shortened heals retain the same reward before overload-specific completion work.
+  if (skill.type === 'Heal' && hasTrait(context, 'Gale Song'))
+    emitProfiledBuff(context, cast.effectiveEnd, PROFILE.galeSong, 'Protection', 'Gale Song', skill.id);
 
   if (!skill.overload) return;
   const state = professionCoreState(context);

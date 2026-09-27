@@ -183,3 +183,41 @@ test('catalogs validate side-effect payloads, amounts, and variant references', 
     assert.throws(() => load(extra), TypeError);
   assert.doesNotThrow(() => load({ effectVariants: [{ when: () => true, profileId: 'test.profile' }] }));
 });
+
+// Resource declarations resolve a live field on their own skill and reject missing or nonnumeric tuning at loading.
+test('resource grants validate current-skill amounts without accepting them for unrelated actions', () => {
+  const load = (resourceGain, action) =>
+    createCanonicalCatalog({
+      generated: [
+        {
+          id: 1,
+          name: 'Reward',
+          resourceGain,
+          effects: [],
+          sideEffects: [
+            {
+              on: 'castCommit',
+              do: action ?? {
+                type: 'resourceGrant',
+                resource: 'endurance',
+                amount: { skillField: 'resourceGain' }
+              }
+            }
+          ]
+        }
+      ]
+    });
+  for (const value of [0, 17.5]) assert.doesNotThrow(() => load(value));
+  for (const value of [undefined, -1, Infinity, NaN, '17']) assert.throws(() => load(value), TypeError);
+  for (const amount of [
+    { skillField: 'missing' },
+    { skillField: 'name' },
+    { skillField: 'resourceGain', profile: 'extra' },
+    { skillField: 3 }
+  ])
+    assert.throws(() => load(17, { type: 'resourceGrant', resource: 'endurance', amount }), TypeError);
+  assert.throws(
+    () => load(17, { type: 'flipArm', skillId: 1, durationSec: { skillField: 'resourceGain' } }),
+    TypeError
+  );
+});

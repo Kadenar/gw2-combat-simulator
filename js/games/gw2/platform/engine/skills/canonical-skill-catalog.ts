@@ -938,14 +938,26 @@ export function createCanonicalCatalog({
 }
 
 /** Validate literal and selected-profile amounts without coercion before a declaration can mutate runtime state. */
-function validateSideEffectAmount(catalog: CanonicalCatalog, amount: unknown, label: string): void {
+function validateSideEffectAmount(catalog: CanonicalCatalog, amount: unknown, label: string, skill?: Skill): void {
   let value = amount;
   if (amount && typeof amount === 'object' && !Array.isArray(amount)) {
-    const reference = amount as { profile?: SkillId; field?: string };
-    const profile = reference.profile == null ? undefined : catalog.balanceProfilesById.get(reference.profile);
-    if (!profile || typeof reference.field !== 'string' || !Object.hasOwn(profile, reference.field))
-      throw new TypeError(`${label} requires an existing balance profile field.`);
-    value = profile[reference.field];
+    const reference = amount as { profile?: SkillId; field?: string; skillField?: string };
+    if ('skillField' in reference) {
+      // Only resource grants supply the current skill; other action amounts retain profile/literal semantics.
+      if (
+        !skill ||
+        typeof reference.skillField !== 'string' ||
+        !Object.hasOwn(skill, reference.skillField) ||
+        Object.keys(reference).length !== 1
+      )
+        throw new TypeError(`${label} requires an existing numeric skill field.`);
+      value = skill[reference.skillField];
+    } else {
+      const profile = reference.profile == null ? undefined : catalog.balanceProfilesById.get(reference.profile);
+      if (!profile || typeof reference.field !== 'string' || !Object.hasOwn(profile, reference.field))
+        throw new TypeError(`${label} requires an existing balance profile field.`);
+      value = profile[reference.field];
+    }
   }
 
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
@@ -972,7 +984,7 @@ function validateSkillDeclarations(catalog: CanonicalCatalog, skill: Skill): voi
       case 'resourceGrant':
         if (action.resource !== 'endurance' && !RESOURCE_KEYS.includes(action.resource))
           throw new TypeError(`${label} references unknown resource ${action.resource}.`);
-        validateSideEffectAmount(catalog, action.amount, `${label} amount`);
+        validateSideEffectAmount(catalog, action.amount, `${label} amount`, skill);
         break;
       case 'flipArm':
         if (action.expiryPriority !== undefined) requireBalanceNumber(action.expiryPriority, `${label} expiryPriority`);

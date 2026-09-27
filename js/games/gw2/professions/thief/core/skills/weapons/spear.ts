@@ -1,6 +1,12 @@
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // EVTC-measured Quickness timings keep spear casts aligned with their observed cast-lane occupancy.
@@ -247,6 +253,41 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.FALLING_SPIDER]: {
+    // Capture the qualifying predecessor at acceptance and transform the live base packets, including patched ticks.
+    effectVariants: [
+      {
+        when: (runtime: ThiefRuntime) =>
+          Number(runtime.profession.core.spearChainStage || 0) === 2 &&
+          runtime.profession.core.spearPreviousSkillId === ID.ENTANGLING_ASP,
+        profileId: PROFILE.fallingSpiderEmpowered,
+        transform: (runtime, cast) => {
+          const profile = requireBalanceProfileFromContext(runtime, PROFILE.fallingSpiderEmpowered);
+          const factor = balanceProfileNumber(profile, 'damageMultiplier');
+          const extraStacks = balanceProfileNumber(profile, 'resourceGain');
+          const boosted = (condition: unknown) => ['Bleeding', 'Poisoned'].includes(String(condition));
+          return (cast.skill.effects ?? []).map((effect) => {
+            if (effect.type === 'strike')
+              return effect.ticks?.length
+                ? {
+                    ...effect,
+                    ticks: effect.ticks.map((tick) => ({ ...tick, coefficient: Number(tick.coefficient) * factor }))
+                  }
+                : { ...effect, coefficient: Number(effect.coefficient || 0) * factor };
+            if (effect.type !== 'condition') return effect;
+            if (effect.ticks?.length)
+              return {
+                ...effect,
+                ticks: effect.ticks.map((tick) =>
+                  boosted(tick.condition ?? effect.condition)
+                    ? { ...tick, stacks: Number(tick.stacks ?? 1) + extraStacks }
+                    : tick
+                )
+              };
+            return boosted(effect.condition) ? { ...effect, stacks: Number(effect.stacks ?? 1) + extraStacks } : effect;
+          });
+        }
+      }
+    ],
     // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 600,
     cooldown: 0,

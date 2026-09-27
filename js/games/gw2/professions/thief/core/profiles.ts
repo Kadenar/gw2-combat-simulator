@@ -154,9 +154,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     resourceGain: 3
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.uncatchable, 'Uncatchable', {
-    initialDelay: 0.8,
-    pulseInterval: 1,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    // Effect timelines own pulse timing for simulation, patch authoring, and tooltips.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'condition',
