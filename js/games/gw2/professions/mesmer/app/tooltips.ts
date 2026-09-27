@@ -195,9 +195,7 @@ export const mesmerTooltips: ProfessionTooltips = {
       'Strike and confuse your target. Each axe clone present when the cast begins performs its own additional strike and applies confusion.'
     ),
     [ID.MENTAL_COLLAPSE]: skillTooltip(
-      'Strike your target and reset Mind the Gap. Consuming Clarity also stuns the target.',
-      (_c, entity) =>
-        simulationEffectFacts((entity as MesmerSkill).clarityEffects, 'additional effect with Clarity').facts
+      'Strike your target and reset Mind the Gap. Consuming Clarity also stuns the target.'
     ),
     [ID.INSPIRING_IMAGERY]: (balanceContext, entity) => ({
       description:
@@ -349,12 +347,7 @@ export const mesmerTooltips: ProfessionTooltips = {
         profileFact(balanceContext, CORE.mimic, 'durationMultiplier', 'Mimic window', tooltipSeconds)
       ]
     ),
-    [ID.MIND_THE_GAP]: skillTooltip(
-      'Strike, generate a resource, and gain Clarity for a subsequent spear skill.',
-      (balanceContext) => [
-        profileFact(balanceContext, CORE.clarity, 'durationMultiplier', 'Clarity window', tooltipSeconds)
-      ]
-    ),
+    [ID.MIND_THE_GAP]: skillTooltip('Strike, generate a resource, and gain Clarity for a subsequent spear skill.'),
     [ID.IMAGINARY_INVERSION]: skillTooltip(
       "Strike your target and consume Clarity if present. Healing and incoming-damage avoidance do not change the simulated player's health."
     ),

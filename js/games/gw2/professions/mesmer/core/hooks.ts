@@ -18,10 +18,10 @@ import {
   withMesmerCastEmission
 } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
+import { applyMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
 import { mesmerRechargeWork, mesmerMaximumAmmo } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
 import { mesmerCoreEventHandlers, mesmerCoreEventReactions } from '#gw2/professions/mesmer/core/mechanics/reactions.js';
-import { emitMesmerEffects } from '#gw2/professions/mesmer/core/events.js';
 import { restartSignetIllusionsPassive, signetIllusionsPulse } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import { expireInspiringImagery } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
 import { scheduleChaosStormPoison } from '#gw2/professions/mesmer/core/mechanics/chaos-storm.js';
@@ -100,13 +100,6 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     withMesmerCastEmission(runtime, cast, skill, () => {
       if (skill.id === ID.AXES_OF_SYMMETRY)
         mesmerMechanicsFor(runtime).skillEffects.scheduleSpecial(skill, cast.fullEnd, cast.start);
-      if (skill.id === ID.MENTAL_COLLAPSE && mesmerMechanicsFor(runtime).castDetails.get(cast.id)?.clarityConsumed)
-        emitMesmerEffects(
-          runtime,
-          { ...skill, effects: (skill.clarityEffects ?? []) as MesmerSkill['effects'] },
-          cast.start,
-          cast.fullEnd
-        );
     });
   },
   // Cancellation refunds reserved shatter resources and clears the same cast-local bookkeeping.
@@ -199,6 +192,7 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
   ],
   eventHandlers: mesmerCoreEventHandlers,
   reactions: {
+    'buff.applied': applyMesmerClarity,
     'damage.resolved'(runtime, event, details) {
       const mechanics = mesmerMechanicsFor(runtime);
       const critical = (details as NativeResolvedDamageDetails).hitContext!.critical;

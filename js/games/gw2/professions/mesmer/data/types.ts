@@ -104,9 +104,6 @@ type MesmerTrackedHitDamage = Partial<MesmerStrikeEffect> & {
 };
 
 export interface MesmerSkill extends Skill {
-  /** Named live tasks preserve authored deadlines without scheduler handlers. */
-  /** Additional spear effects require the Clarity consumed by this activation. */
-  readonly clarityEffects?: readonly SkillEffect[];
   readonly id: number;
   readonly ambush?: boolean;
   readonly duration?: number;

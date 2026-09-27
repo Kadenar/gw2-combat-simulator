@@ -7,17 +7,15 @@ import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_CORE_CLONE_ATTACKS } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
-import { applyMesmerClarity, consumeMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
+import { consumeMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
 import { applyMesmerSignetReset } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import { triggerMethodOfMadness } from '#gw2/professions/mesmer/core/traits/index.js';
-import type { CooldownController } from '#gw2/platform/execution/types.js';
 import type {
   MesmerAddCondition,
   MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerInstrument,
-  MesmerMechanics
+  MesmerInstrument
 } from '#gw2/professions/mesmer/types.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 
@@ -32,7 +30,6 @@ interface MesmerSkillSpecialEffectController {
 
 interface SkillSpecialEffectControllerOptions {
   readonly state: MesmerRuntime;
-  readonly cooldownController: CooldownController;
   readonly traits: ReadonlySet<number>;
   readonly allSkills: readonly MesmerSkill[];
   readonly addEvent: MesmerAddEvent;
@@ -42,12 +39,10 @@ interface SkillSpecialEffectControllerOptions {
   readonly traitDamage: Readonly<Record<string, MesmerTraitDamage>>;
   readonly shatters: Readonly<Record<number, MesmerShatter>>;
   readonly instruments: Readonly<Record<number, MesmerInstrument>>;
-  readonly balanceProfile: MesmerMechanics['balanceProfile'];
 }
 
 export function createSkillSpecialEffectController({
   state,
-  cooldownController,
   traits,
   allSkills,
   addEvent,
@@ -56,8 +51,7 @@ export function createSkillSpecialEffectController({
   addDamage,
   traitDamage,
   shatters,
-  instruments,
-  balanceProfile
+  instruments
 }: SkillSpecialEffectControllerOptions): MesmerSkillSpecialEffectController {
   const consumeClarity = (skill: MesmerSkill, castStart: number): boolean =>
     consumeMesmerClarity(state, skill, castStart);
@@ -116,22 +110,7 @@ export function createSkillSpecialEffectController({
       }
     }
 
-    applyMesmerClarity(state, balanceProfile, addEvent, skill, at);
     applyMesmerSignetReset(state, allSkills, shatters, instruments, addEvent, skill, at);
-
-    if (skill.id === ID.MENTAL_COLLAPSE) {
-      const mindTheGap = allSkills.find((candidate) => candidate.id === ID.MIND_THE_GAP);
-      if (mindTheGap) {
-        // Reset both the ready time and recharge progress through their shared owner.
-        cooldownController.clear(mindTheGap.id);
-        addEvent({
-          type: 'marker',
-          at,
-          name: 'Mental Collapse',
-          detail: 'Mind the Gap cooldown reset'
-        });
-      }
-    }
 
     if (skill.type === 'Heal') {
       triggerMethodOfMadness({ state, traits, addDamage, addTraitProc }, skill, at, traitDamage['Lesser Chaos Storm']);

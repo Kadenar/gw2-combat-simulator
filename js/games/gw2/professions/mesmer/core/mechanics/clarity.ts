@@ -1,15 +1,9 @@
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
 /** Owns the Clarity window that one spear cast arms and a later spear cast consumes. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import type { MesmerAddEvent, MesmerMechanics } from '#gw2/professions/mesmer/types.js';
-
-const CLARITY_ICON = 'https://wiki.guildwars2.com/wiki/Special:FilePath/Clarity.png';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 const CLARITY_CONSUMERS = new Set<number>([ID.IMAGINARY_INVERSION, ID.PHANTASMAL_LANCER, ID.MENTAL_COLLAPSE]);
 
 /** Consumes Clarity at cast start only for the spear skills it empowers. */
@@ -19,24 +13,23 @@ export function consumeMesmerClarity(state: MesmerRuntime, skill: MesmerSkill, c
   return consumed;
 }
 
-/** Opens Clarity when Mind the Gap resolves and publishes the visible proc event. */
-export function applyMesmerClarity(
-  state: MesmerRuntime,
-  balanceProfile: MesmerMechanics['balanceProfile'],
-  addEvent: MesmerAddEvent,
-  skill: MesmerSkill,
-  at: number
-): void {
-  if (skill.id !== ID.MIND_THE_GAP) return;
-  const clarityProfile = requireBalanceProfileFromContext(balanceProfile, 'mesmer.core.clarity');
-  professionCoreState(state).clarityUntil = at + balanceProfileNumber(clarityProfile, 'durationMultiplier');
-  addEvent({
+/** Track the skill's applied Clarity buff for consumption and publish its existing proc indicator. */
+export function applyMesmerClarity(state: MesmerRuntime, event: Gw2ResolverEvent): void {
+  if (event.kind !== 'clarity' || !event.resolvedAudience?.includesSelf) return;
+  const duration = Number(event.duration);
+  professionCoreState(state).clarityUntil = event.at + duration;
+  state.emitDerived(event, {
     type: 'proc',
     procType: 'skill',
-    at,
+    at: event.at,
+    source: event.source,
+    sourceId: event.sourceId,
+    actorType: 'player',
+    skillId: event.skillId,
+    activationId: event.activationId,
     name: 'Clarity',
-    sourceSkill: skill.name,
-    detail: 'Spear skills 3-5 empowered for 15s',
-    icon: CLARITY_ICON
+    sourceSkill: event.skillName,
+    detail: `Spear skills 3-5 empowered for ${duration}s`,
+    icon: event.icon
   });
 }

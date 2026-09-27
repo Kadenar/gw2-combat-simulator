@@ -49,7 +49,6 @@ import {
 } from '#gw2/professions/revenant/core/mechanics/weapons.js';
 import {
   applyRevenantInvocationTraits,
-  completeRevenantAncientEcho,
   completeRevenantBrutality,
   completeRevenantCastTraits,
   completeRevenantEnchantedDaggers,
@@ -72,8 +71,7 @@ const CUSTOM_EFFECT_SKILL_IDS = new Set<SkillId>([
   ID.BLOSSOMING_AURA,
   ID.DETONATE_BLOSSOMING_AURA,
   ID.ENCHANTED_DAGGERS,
-  ID.ABYSSAL_RAZE,
-  ID.ANCIENT_ECHO
+  ID.ABYSSAL_RAZE
 ]);
 const DODGE_IDS = new Set<SkillId>([SHARED_SKILL_IDS.DODGE, VINDICATOR_JUMP_SKILL.id]);
 // Deferred upkeep costs are immutable acceptance facts, spent only if the activation commits.
@@ -273,7 +271,6 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
     else if (upkeepRelease(runtime, skill)) releaseRevenantUpkeep(runtime, cast);
     else if (skill.id === ID.SWAP_LEGENDS) swapLegend(runtime, cast);
     else if (skill.id === ID.ENCHANTED_DAGGERS) completeRevenantEnchantedDaggers(runtime, cast);
-    else if (skill.id === ID.ANCIENT_ECHO) completeRevenantAncientEcho(runtime, cast);
     completeRevenantWeaponFlips(runtime, cast);
 
     completeRevenantCastTraits(runtime, cast);

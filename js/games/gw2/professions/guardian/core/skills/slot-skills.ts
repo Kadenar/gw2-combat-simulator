@@ -1,5 +1,6 @@
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -97,6 +98,14 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.RENEWED_FOCUS]: {
+    // A full channel refreshes only the virtues present in the selected specialization's catalog.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => !castWasInterrupted(cast),
+        do: { type: 'guardian.refresh-virtues' }
+      }
+    ],
     castTimeMs: 1360,
     effects: []
   },

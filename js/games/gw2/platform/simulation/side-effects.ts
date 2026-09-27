@@ -32,7 +32,8 @@ export type SideEffectAction =
       readonly profileId: SkillId;
       /** Select the trigger's own effects from a shared profile without duplicating its balance data. */
       readonly effects?: (effect: SkillEffect) => boolean;
-      readonly attribution?: Partial<EffectEventBase>;
+      /** Preserve the existing proc label when a skill moves onto profile emission. */
+      readonly attribution?: Partial<EffectEventBase> & { readonly name?: string };
     }
   | { readonly type: `${string}.${string}`; readonly amount?: ProfileAmount };
 
@@ -115,7 +116,8 @@ export function applySideEffect(
           skillName: context.kind === 'cast' ? context.skill.name : context.trigger.event.skillName,
           activationId: context.kind === 'cast' ? context.cast.id : context.trigger.event.activationId,
           ...action.attribution
-        }
+        },
+        transform: (event) => ({ ...event, name: action.attribution?.name ?? event.name })
       });
       return;
     }

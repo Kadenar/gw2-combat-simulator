@@ -6,11 +6,9 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileNumber,
-  effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/index.js';
 import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/shared.js';
@@ -260,18 +258,7 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
     if (hasTrait(runtime, TRAIT.WEIGHTY_TERMS) && MANTRAS.some(({ finalId }) => finalId === skill.id)) {
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.weightyTerms);
       const gain = balanceProfileNumber(profile, 'resourceGain');
-      const slow = requireEffect(profile, 'condition', 'Slow');
-      if (slow)
-        runtime.emit(
-          buildResolverCondition({
-            ...guardianCastCause(runtime, cast),
-            sourceId: TRAIT.WEIGHTY_TERMS,
-            name: 'Weighty Terms — Slow',
-            condition: String(slow.condition),
-            stacks: effectNumber(profile, slow, 'stacks'),
-            duration: effectNumber(profile, slow, 'duration')
-          })
-        );
+      // Skill side effects own the rewards; retain only the existing proc report here.
       recordGuardianTraitProc(
         runtime,
         TRAIT.WEIGHTY_TERMS,

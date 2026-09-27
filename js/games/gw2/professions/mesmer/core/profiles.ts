@@ -23,7 +23,6 @@ export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   signetOfDomination: 'mesmer.core.signet-of-domination-passive',
   signetOfMidnight: 'mesmer.core.signet-of-midnight-passive',
   mimic: 'mesmer.core.mimic',
-  clarity: 'mesmer.core.clarity',
   chaoticPersistence: 1865,
   compoundingPower: TRAIT.COMPOUNDING_POWER,
   cryOfPain: TRAIT.CRY_OF_PAIN,
@@ -134,7 +133,6 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   variant(MESMER_CORE_BALANCE_PROFILE_IDS.mimic, ID.MIMIC, 'Mimic', {
     durationMultiplier: 10
   }),
-  variant(MESMER_CORE_BALANCE_PROFILE_IDS.clarity, ID.MIND_THE_GAP, 'Clarity', { durationMultiplier: 15 }),
   trait(MESMER_CORE_BALANCE_PROFILE_IDS.chaoticPersistence, 'Chaotic Persistence', {
     expertiseBonus: 100,
     concentrationBonus: 250

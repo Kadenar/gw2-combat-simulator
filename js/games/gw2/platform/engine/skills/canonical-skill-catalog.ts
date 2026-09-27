@@ -55,7 +55,6 @@ const SKILL_FIELDS = new Set([
   'celestialAvatarSkill',
   'chainRoot',
   'chainStep',
-  'clarityEffects',
   'clone',
   'comboFields',
   'comboFinishers',

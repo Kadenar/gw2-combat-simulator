@@ -113,6 +113,11 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     effects: []
   },
   [ID.TALE_OF_THE_HONORABLE_ROGUE]: {
+    // The instant tale refunds endurance at commitment through the shared capped pool.
+    resourceGain: 50,
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'resourceGrant', resource: 'endurance', amount: { skillField: 'resourceGain' } } }
+    ],
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 4,

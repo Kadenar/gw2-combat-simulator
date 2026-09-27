@@ -205,7 +205,6 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
   });
   const skillEffects = createSkillEffectController({
     state,
-    cooldownController: context.cooldownController,
     traits,
     resourceDefinition,
     phantasmAttackTimings: runtime.phantasmAttackTimings,

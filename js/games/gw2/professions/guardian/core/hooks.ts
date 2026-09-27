@@ -1,4 +1,5 @@
 import { isGuardianSymbolSkill } from '#gw2/professions/guardian/core/traits/shared.js';
+import { applySideEffect } from '#gw2/platform/simulation/side-effects.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { consumeSkillFlip, skillFlipReady, followUpOf } from '#gw2/platform/engine/skills/skill-flips.js';
@@ -55,18 +56,6 @@ function completeCoreVirtue(runtime: Runtime, cast: RuntimeCast, virtue: Guardia
   if (virtue === 'justice') triggerGuardianFuriousFocus(runtime, cast);
 }
 
-/** A completed refresh readies actual recharge and ammo pools; cancellation leaves every existing owner intact. */
-function renewedFocus(runtime: Runtime, cast: RuntimeCast): void {
-  if (castWasInterrupted(cast)) return;
-  for (const skill of runtime.helpers.skills) {
-    if (!skill.categories?.includes('Virtue') || !guardianVirtueForSlot(skill.slot)) continue;
-    runtime.cooldownController.clear(skill.id);
-    runtime.cooldownController.restoreAmmo(skill, Infinity, runtime.time, 'reset');
-  }
-
-  runtime.profession.core.virtueReadyAt = { justice: runtime.time, resolve: runtime.time, courage: runtime.time };
-}
-
 /** Weapon follow-ups open only on commitment and expire by occurrence identity, independent of parent recharge. */
 function completeWeapon(runtime: Runtime, cast: RuntimeCast): void {
   const skill = cast.skill;
@@ -103,6 +92,17 @@ function completeWeapon(runtime: Runtime, cast: RuntimeCast): void {
 
 /** Core hooks: accepted virtues, shared recharge, endurance grants, and temporary weapon state. */
 export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
+  sideEffectHandlers: {
+    // Elite virtue IDs are absent from other catalogs; select live IDs before using the shared reset action.
+    'guardian.refresh-virtues'(runtime, context) {
+      const virtues = runtime.helpers.skills.filter(
+        (skill) => skill.categories?.includes('Virtue') && guardianVirtueForSlot(skill.slot)
+      );
+      applySideEffect(runtime, context, { type: 'rechargeReset', skillIds: virtues.map((skill) => skill.id) });
+      for (const skill of virtues) runtime.cooldownController.restoreAmmo(skill, Infinity, runtime.time, 'reset');
+      runtime.profession.core.virtueReadyAt = { justice: runtime.time, resolve: runtime.time, courage: runtime.time };
+    }
+  },
   // Only damaging symbol hits apply the profile's Vulnerability packet.
   traitTriggers: [
     // Only resolved player critical strikes claim Empowering Might's shared ICD.
@@ -189,7 +189,6 @@ export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
     completeGuardianIgnition(runtime, cast);
     const virtue = CORE_VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
     if (virtue) completeCoreVirtue(runtime, cast, virtue);
-    if (cast.skill.id === ID.RENEWED_FOCUS) renewedFocus(runtime, cast);
   },
   onCooldownReset: refreshGuardianVirtues,
   reactions: {

@@ -450,27 +450,6 @@ export function completeRevenantEnchantedDaggers(runtime: RevenantRuntime, cast:
   );
 }
 
-/** A committed Ancient Echo selects the active legend's self package and refunds Energy. */
-export function completeRevenantAncientEcho(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const legendId = runtime.profession.core.activeLegendId;
-  emitEffects(runtime, {
-    owner: cast.skill,
-    effects: cast.skill.effects?.filter(
-      (effect) => effect.metadata?.legendId === legendId && (effect.type === 'boon' || effect.type === 'buff')
-    ),
-    baseEvent: {
-      source: 'revenant',
-      sourceId: cast.skill.id,
-      actorType: 'player',
-      skillId: cast.skill.id,
-      skillName: cast.skill.name,
-      activationId: cast.id
-    }
-  });
-
-  runtime.resourceController.grant('energy', cast.skill.resourceGain || 0);
-}
-
 /** Assassin's Presence pulses on its own combat-anchored cadence; attacks neither trigger nor delay it. */
 export function startRevenantAssassinsPresence(runtime: RevenantRuntime, anchor: number): void {
   if (!hasTrait(runtime, TRAIT.ASSASSINS_PRESENCE)) return;

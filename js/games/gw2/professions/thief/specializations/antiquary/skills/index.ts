@@ -1,5 +1,11 @@
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
+import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Both API IDs share the primary definition so future timing fixes cannot leave the alias behind.
@@ -160,47 +166,38 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     artifactKind: 'defensive'
   },
   [ID.STONE_SUMMIT_CANNON]: {
-    // Custom: Chooses success/backfire and materializes the selected outcome through `antiquary/hooks.ts`.
+    // Acceptance fixes the outcome; even a cancelled use fires from its effective end with fixed profile offsets.
     usableWhileRecharging: true,
     castTimeMs: 520,
     cooldown: 15,
     initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [120, 240, 320].map((atMs) => ({
-          atMs,
-          coefficient: 3 / 3
-        })),
-        name: 'Stone Summit Cannon — Packet 1',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-        {
-          type: 'strike',
-          coefficient: 3,
-          hits: 1,
-          name: 'Stone Summit Cannon — Packet 2',
-          actorType: 'player'
-        },
-        {
-          type: 'condition',
-          condition: 'Burning',
-          stacks: 3,
-          duration: 3,
-          actorType: 'player'
-        },
-        {
-          type: 'condition',
-          condition: 'Burning',
-          stacks: 3,
-          duration: 4,
-          actorType: 'player'
-        }
-      ])
-    ]
+    effects: [],
+    effectVariants: [true, false].map<NonNullable<Skill['effectVariants']>[number]>((backfire) => ({
+      when: (runtime, cast) => Boolean(antiquaryState.from(runtime).backfireState[cast.skill.id]) === backfire,
+      profileId: backfire ? PROFILE.cannonBackfire : PROFILE.cannonSuccess,
+      transform: (runtime, cast, effects) => {
+        const delay = backfire
+          ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.cannonBackfire), 'initialDelay')
+          : 0;
+        const offsetMs = (cast.effectiveEnd - cast.start + delay) * 1000;
+        return effects.map((effect) => ({
+          ...effect,
+          name: backfire
+            ? 'Stone Summit Cannon — Backfire'
+            : effect.type === 'condition'
+              ? 'Stone Summit Cannon — Burning'
+              : 'Stone Summit Cannon',
+          timingAnchor: 'castStart',
+          timingScale: 'fixed',
+          interruptCommitMs: 0,
+          persistsAfterInterrupt: true,
+          atMs: offsetMs + (effect.atMs ?? 0),
+          ...(Array.isArray(effect.ticks)
+            ? { ticks: effect.ticks.map((tick) => ({ ...tick, atMs: offsetMs + tick.atMs })) }
+            : {})
+        }));
+      }
+    }))
   },
   [ID.ZEPHYRITE_SUN_CRYSTAL_ID_76733]: {
     movementSkill: true,

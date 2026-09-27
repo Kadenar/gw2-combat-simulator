@@ -1,4 +1,3 @@
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { canonicalTime, EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
@@ -342,31 +341,6 @@ function acceptDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast): ThiefDouble
   return cast.command.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success';
 }
 
-/** The cannon backfire hits nearby foes after its delay; the self-hit is outside the outgoing-only model. */
-function emitCannonEffects(runtime: ThiefRuntime, cast: RuntimeCast, backfire: boolean): void {
-  const profile = requireBalanceProfileFromContext(runtime, backfire ? PROFILE.cannonBackfire : PROFILE.cannonSuccess);
-  // Double Edge still fires on a cancelled acceptance; shared expansion retains every authored offset and repeat.
-  emitEffects(runtime, {
-    owner: profile,
-    at: cast.effectiveEnd + (backfire ? balanceProfileNumber(profile, 'initialDelay') : 0),
-    baseEvent: {
-      source: 'thief',
-      sourceId: ID.STONE_SUMMIT_CANNON,
-      actorType: 'player',
-      skillId: ID.STONE_SUMMIT_CANNON,
-      skillName: 'Stone Summit Cannon'
-    },
-    transform: (event) => ({
-      ...event,
-      name: backfire
-        ? 'Stone Summit Cannon — Backfire'
-        : event.type === 'condition'
-          ? 'Stone Summit Cannon — Burning'
-          : 'Stone Summit Cannon'
-    })
-  });
-}
-
 /** Canach coins alternate heads and tails across uses; a backfire pays only for heads. */
 function tossCanachCoins(runtime: ThiefRuntime, backfire: boolean): number {
   const state = antiquaryState.from(runtime);
@@ -393,7 +367,6 @@ function startDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast): void {
     // The backfire variant stays visible until the running recharge ends.
     state.backfireState[skill.id] = true;
   else delete state.backfireState[skill.id];
-  if (skill.id === ID.STONE_SUMMIT_CANNON) emitCannonEffects(runtime, cast, outcome === 'backfire');
   if (skill.id === ID.CANACH_COIN_TOSS) coinInitiative.set(cast, tossCanachCoins(runtime, outcome === 'backfire'));
 }
 
@@ -481,11 +454,11 @@ export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     if (cast.skill.usableWhileRecharging === true) startDoubleEdge(runtime, cast);
   },
   modifyEffects(_runtime, cast, effects) {
-    // Surfer, Scuffle, Cannon, Coin Toss, and any backfire own their packets (or none) instead of the authored ones.
+    // Cannon variants already own both outcomes; other custom skills still suppress their authored packets.
     const id = cast.skill.id;
+    if (id === ID.STONE_SUMMIT_CANNON) return effects;
     return id === ID.FORGED_SURFER_DASH ||
       id === ID.SKRITT_SCUFFLE ||
-      id === ID.STONE_SUMMIT_CANNON ||
       id === ID.CANACH_COIN_TOSS ||
       doubleEdgeOutcomes.get(cast) === 'backfire'
       ? []

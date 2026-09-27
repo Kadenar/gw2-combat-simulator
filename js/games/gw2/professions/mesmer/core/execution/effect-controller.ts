@@ -3,7 +3,6 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
  * Owns the ordered Core Mesmer effect-controller pipeline used by replacing handlers.
  * Packet emission and stateful effects remain in their focused sibling modules.
  */
-import type { CooldownController } from '#gw2/platform/execution/types.js';
 import { createIllusionResourceController } from '#gw2/professions/mesmer/core/mechanics/illusions/resources.js';
 import { createPhantasmEffectController } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 import { createSkillDamageController } from '#gw2/professions/mesmer/core/execution/packet-emission.js';
@@ -34,7 +33,6 @@ import type { MesmerConditionEffect, MesmerSkill } from '#gw2/professions/mesmer
 
 interface SkillEffectControllerOptions {
   readonly state: MesmerRuntime;
-  readonly cooldownController: CooldownController;
   readonly traits: ReadonlySet<number>;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly phantasmAttackTimings: Readonly<Record<number, MesmerPhantasmAttackTiming>>;
@@ -59,7 +57,6 @@ interface SkillEffectControllerOptions {
  */
 export function createSkillEffectController({
   state,
-  cooldownController,
   traits,
   resourceDefinition,
   phantasmAttackTimings,
@@ -96,7 +93,6 @@ export function createSkillEffectController({
   const damage = createSkillDamageController({ phantasms, addCondition, addDamage });
   const specialEffects = createSkillSpecialEffectController({
     state,
-    cooldownController,
     traits,
     allSkills,
     addEvent,
@@ -105,8 +101,7 @@ export function createSkillEffectController({
     addDamage,
     traitDamage,
     shatters,
-    instruments,
-    balanceProfile
+    instruments
   });
 
   const schedule = (

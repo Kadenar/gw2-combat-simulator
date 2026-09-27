@@ -1,6 +1,6 @@
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
+import { applySideEffect, sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -373,12 +373,17 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
         throw new TypeError('Adrenaline grants require an amount.');
       grantWarriorAdrenaline(runtime, sideEffectAmount(runtime, action.amount));
     },
-    'warrior.rifle-restock'(runtime) {
+    'warrior.rifle-restock'(runtime, context) {
       for (const skill of runtime.helpers.skills) {
         if (skill.weapon === 'Rifle' && skill.ammo)
           runtime.cooldownController.restoreAmmo(skill, 1, runtime.time, 'reset');
-        if (skill.id === ID.KILL_SHOT || skill.id === ID.GUN_FLAME) runtime.cooldownController.clear(skill.id);
       }
+
+      // Gun Flame exists only in Berserker's catalog; reset the available bursts through the shared action.
+      applySideEffect(runtime, context, {
+        type: 'rechargeReset',
+        skillIds: [ID.KILL_SHOT, ID.GUN_FLAME].filter((id) => runtime.helpers.skillsById.has(id))
+      });
     }
   },
   // Only an authored measurement and an eligible active offhand can replace the selected duration.

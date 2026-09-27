@@ -75,11 +75,6 @@ export function resolveTroubadourTale({ context, skill, at, castStart, activatio
     );
   }
 
-  if (skill.id === ID.TALE_OF_THE_HONORABLE_ROGUE) {
-    // Preserve fractional recovery and cap the grant through the shared endurance pool.
-    context.endurance.grant(50);
-  }
-
   if (runtime.traits.has(TRAIT.RACONTEUR)) {
     const raconteurProfile = requireBalanceProfileFromContext(runtime, TRAIT.RACONTEUR);
     const protection = requireEffect(raconteurProfile, 'boon', 'protection');

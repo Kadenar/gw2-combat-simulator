@@ -1,6 +1,8 @@
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -57,24 +59,26 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
     }
   },
   [ID.MENTAL_COLLAPSE]: {
+    // A committed cast resets Mind the Gap even when the remaining animation is interrupted.
+    sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.MIND_THE_GAP] } }],
     shadowstepSkill: true,
     peithaImpactDelayMs: 800,
-    // Only the initial impact stuns when this activation consumed Clarity.
-    clarityEffects: [
+    castTimeMs: 640,
+    // Preserve the impact when interruption only skips the remaining recovery.
+    interruptCommitMs: 600,
+    effects: [
       {
+        // Only the initial impact stuns when this activation consumed Clarity.
         type: 'control',
         source: 'Player',
         controlKind: 'stun',
         actorType: 'player',
         atMs: 560,
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
-    ],
-    castTimeMs: 640,
-    // Preserve the impact when interruption only skips the remaining recovery.
-    interruptCommitMs: 600,
-    effects: [
+        timingScale: 'fixed',
+        when: (runtime, cast) =>
+          Boolean(mesmerMechanicsFor(runtime as MesmerRuntime).castDetails.get(cast.id)?.clarityConsumed)
+      },
       {
         type: 'strike',
         // The initial impact precedes recovery; the two follow-up hits resolve afterward.
@@ -141,6 +145,16 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
         atMs: 520,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
+      },
+      {
+        // Mind the Gap owns the Clarity grant; a committed interruption retains its completion-time buff.
+        type: 'buff',
+        kind: 'clarity',
+        name: 'Clarity',
+        duration: 15,
+        icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Clarity.png',
+        audience: { recipients: 'self' },
+        persistsAfterInterrupt: true
       }
     ]
   },

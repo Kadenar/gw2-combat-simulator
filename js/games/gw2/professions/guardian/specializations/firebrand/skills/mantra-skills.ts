@@ -7,8 +7,8 @@ import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guard
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-// Final mantra charges refund pages only after the full cast completes.
-const WEIGHTY_TERMS_PAGES: Skill['sideEffects'] = [
+// Final mantra charges own both Weighty Terms rewards at successful completion.
+const WEIGHTY_TERMS_REWARDS: Skill['sideEffects'] = [
   {
     on: 'castCommit',
     when: (runtime) => hasTrait(runtime, TRAIT.WEIGHTY_TERMS),
@@ -16,6 +16,15 @@ const WEIGHTY_TERMS_PAGES: Skill['sideEffects'] = [
       type: 'resourceGrant',
       resource: 'tomePages',
       amount: { profile: PROFILE.weightyTerms, field: 'resourceGain' }
+    }
+  },
+  {
+    on: 'castCommit',
+    when: (runtime) => hasTrait(runtime, TRAIT.WEIGHTY_TERMS),
+    do: {
+      type: 'emitProfile',
+      profileId: PROFILE.weightyTerms,
+      attribution: { source: 'guardian', actorType: 'player', name: 'Weighty Terms — Slow' }
     }
   }
 ];
@@ -64,7 +73,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: []
   },
   [ID.OVERWHELMING_CELERITY]: {
-    sideEffects: WEIGHTY_TERMS_PAGES,
+    sideEffects: WEIGHTY_TERMS_REWARDS,
     castTimeMs: 0,
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
@@ -139,7 +148,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: []
   },
   [ID.FLAME_SURGE]: {
-    sideEffects: WEIGHTY_TERMS_PAGES,
+    sideEffects: WEIGHTY_TERMS_REWARDS,
     castTimeMs: 0,
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
@@ -159,7 +168,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.REJUVENATING_RESPITE]: {
-    sideEffects: WEIGHTY_TERMS_PAGES,
+    sideEffects: WEIGHTY_TERMS_REWARDS,
     castTimeMs: 0,
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
@@ -170,7 +179,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.UNHINDERED_DELIVERY]: {
-    sideEffects: WEIGHTY_TERMS_PAGES,
+    sideEffects: WEIGHTY_TERMS_REWARDS,
     castTimeMs: 0,
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
