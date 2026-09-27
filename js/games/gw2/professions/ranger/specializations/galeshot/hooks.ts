@@ -44,7 +44,6 @@ export const galeshotHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       );
   },
   onCastCommit(runtime, cast) {
-    if (cast.cancelled) return;
     const state = galeshotState.from(runtime);
     const skill = cast.skill;
     if (skill.id === ID.SUMMON_CYCLONE_BOW || skill.id === ID.DISMISS_CYCLONE_BOW) {

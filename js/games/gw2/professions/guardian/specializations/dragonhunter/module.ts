@@ -1,5 +1,4 @@
-import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
-import { DRAGONHUNTER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
+import { projectDragonhunterPlanningState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { dragonhunterModifiers } from '#gw2/professions/guardian/specializations/dragonhunter/modifiers.js';
@@ -20,7 +19,7 @@ export const dragonhunterModule = defineNativeModule({
   }),
   state: {
     create: dragonhunterState.create,
-    project: createPublicStateProjector(DRAGONHUNTER_PUBLIC_STATE_PROJECTION)
+    project: projectDragonhunterPlanningState
   },
   modifiers: dragonhunterModifiers,
   hooks: dragonhunterHooks,

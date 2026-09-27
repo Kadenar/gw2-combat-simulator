@@ -84,13 +84,15 @@ export function createMirageActionController({
     const mirror = requireEffect(mechanicsProfile, 'buff', 'mirage-mirror');
     if (!mirror) return;
     at = canonicalTime(at);
+    // Every creation path discards expired mirrors so no expiry task is needed to bound the live collection.
+    const owner = mirageState.from(state);
+    owner.mirrors = owner.mirrors.filter((mirror) => mirror.expiresAt > at);
     for (let index = 0; index < Math.max(0, count); index += 1) {
-      mirageState.from(state).mirrors.push({
+      owner.mirrors.push({
         availableAt: at,
         expiresAt: canonicalTime(at + mirror.duration),
         source
       });
-      state.schedule('mesmer.mirror-expire', canonicalTime(at + mirror.duration), undefined);
     }
   };
 

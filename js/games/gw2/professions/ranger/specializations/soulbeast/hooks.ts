@@ -141,7 +141,6 @@ export const soulbeastHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       );
   },
   onCastCommit(runtime, cast) {
-    if (cast.cancelled) return;
     const state = soulbeastState.from(runtime);
     const skill = cast.skill;
     if (skill.id === ID.PET_SWAP) state.archetype = rangerPetByName(runtime.profession.core.activePet).archetype;

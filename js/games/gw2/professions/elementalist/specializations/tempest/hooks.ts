@@ -360,7 +360,6 @@ export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> 
     });
   },
   onCastCommit(runtime, cast) {
-    if (cast.cancelled) return;
     if (cast.skill.overload && cast.effectiveEnd < cast.fullEnd) return;
     withElementalistCast(runtime, cast, () => {
       onCastCommit(runtime, cast, cast.skill);

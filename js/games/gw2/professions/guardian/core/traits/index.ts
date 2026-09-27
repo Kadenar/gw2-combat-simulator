@@ -1,6 +1,6 @@
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { remainingDurationStackSeconds, durationStackingBoonCapSeconds } from '#gw2/platform/combat/boons.js';
-import { grantTimedStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
@@ -33,7 +33,6 @@ import type {
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
 const MIGHT = 'guardian.righteous-might';
 const RESOLUTION_EXPIRY = 'guardian.resolution-expiry';
-const AVENGER_EXPIRY = 'guardian.symbolic-avenger-expiry';
 // These child effects have packet identities but no player-selectable catalog entry.
 const symbols: Readonly<Record<SkillId, Skill>> = {
   [ID.LESSER_SYMBOL_OF_BLADES]: {
@@ -349,14 +348,6 @@ export function reactToGuardianDamage(runtime: Runtime, event: Gw2ResolverEvent,
         maximumStacks: balanceProfileNumber(profile, 'maximumStacks'),
         retain: 'latest-expiry'
       });
-      if (state.symbolicAvengerExpirations.length)
-        runtime.schedule(
-          AVENGER_EXPIRY,
-          Math.min(...state.symbolicAvengerExpirations),
-          Math.min(...state.symbolicAvengerExpirations),
-          undefined,
-          -220
-        );
       recordGuardianTraitProc(
         runtime,
         TRAIT.SYMBOLIC_AVENGER,
@@ -454,19 +445,6 @@ export function reactToGuardianBuff(runtime: Runtime, event: Gw2ResolverEvent): 
 }
 
 export const guardianTraitTasks = {
-  [AVENGER_EXPIRY](runtime: Runtime, deadline: unknown) {
-    const state = runtime.profession.core;
-    if (Math.min(...state.symbolicAvengerExpirations) !== deadline) return;
-    state.symbolicAvengerExpirations = purgeExpiredStacks(state.symbolicAvengerExpirations, runtime.time);
-    if (state.symbolicAvengerExpirations.length)
-      runtime.schedule(
-        AVENGER_EXPIRY,
-        Math.min(...state.symbolicAvengerExpirations),
-        Math.min(...state.symbolicAvengerExpirations),
-        undefined,
-        -220
-      );
-  },
   [RESOLUTION_EXPIRY](runtime: Runtime, deadline: unknown) {
     const state = runtime.profession.core;
     if (state.resolutionUntil !== deadline) return;

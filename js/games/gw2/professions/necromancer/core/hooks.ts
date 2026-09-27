@@ -90,7 +90,6 @@ function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
 }
 
 function complete(runtime: NecromancerRuntime, cast: RuntimeCast): void {
-  if (cast.cancelled) return;
   completeNecromancerMinion(runtime, cast);
   const skill = cast.skill as NecromancerSkill;
   const state = runtime.profession.core;

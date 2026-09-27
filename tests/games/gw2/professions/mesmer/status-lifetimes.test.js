@@ -1,5 +1,4 @@
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
-import { mirageHooks } from '#gw2/professions/mesmer/specializations/mirage/hooks.js';
 import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -178,7 +177,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
   assert.equal(core.mimicUntil, 11.301);
 });
 
-test('Mirror availability, palette, cleanup, and one-time pickup agree on exact half-open boundaries', () => {
+test('Mirror availability, palette, projection, and one-time pickup agree on exact half-open boundaries', () => {
   for (const at of [0.300999, 0.301, 8.300999, 8.301, 8.301001]) {
     const context = lifetimeContext();
     const controller = context.mesmerRuntime.mirage;
@@ -200,8 +199,7 @@ test('Mirror availability, palette, cleanup, and one-time pickup agree on exact 
     assert.equal(projected.availableMirrors, Number(active));
     assert.equal(mirageUi.paletteSkillAvailability({ professionState: projected }, skill).available, active);
     context.time = at;
-    mirageHooks.tasks['mesmer.mirror-expire'](context);
-    assert.equal(state.mirrors.length, at < 8.301 ? 1 : 0);
+    assert.equal(state.mirrors.length, 1, 'Projection does not purge the live owner');
     assert.equal(controller.pickUpMirror(at, 'pickup'), active);
     assert.equal(controller.pickUpMirror(at, 'pickup'), false);
     assert.equal(context.events.filter((event) => event.skillId === ID.MIRAGE_MIRROR_DAMAGE).length, Number(active));
@@ -217,13 +215,14 @@ test('Mirror retry retains pending creation and overlapping mirrors expire indep
   controller.createMirrors(0.301, 1, 'first');
   controller.createMirrors(1.301, 1, 'second');
   context.time = 8.301;
-  mirageHooks.tasks['mesmer.mirror-expire'](context);
-  assert.deepEqual(
-    context.profession.specialization.state.mirrors.map((mirror) => mirror.source),
-    ['second']
-  );
+  assert.equal(projectObservedState(mesmerProfession, context).availableMirrors, 1);
   assert.equal(controller.pickUpMirror(8.301, 'pickup'), true);
   assert.equal(controller.pickUpMirror(8.301, 'pickup'), false);
+  controller.createMirrors(8.301, 1, 'replacement');
+  assert.deepEqual(
+    context.profession.specialization.state.mirrors.map((mirror) => mirror.source),
+    ['replacement']
+  );
 });
 
 test('player ambush availability and projection preserve the final live microsecond and refresh exactly', () => {

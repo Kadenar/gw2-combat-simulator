@@ -175,7 +175,7 @@ test('combo Fire Aura can detonate during the critical-aura cooldown and an unus
   assert.equal(detonations[1].skillId, ID.SUNDERING_LEAP);
   const unused = run(['Chop', wait(5000)], { ...config, primaryWeapon: 'Axe' });
   assert.deepEqual(unused.warnings, []);
-  assert.equal(state(unused).fireAuraUntil, 0);
+  assert.ok(state(unused).fireAuraUntil <= observedRuntime(unused).time);
   assert.equal(
     unused.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === TRAIT.KING_OF_FIRES),
     false

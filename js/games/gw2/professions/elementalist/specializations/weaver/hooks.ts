@@ -456,7 +456,7 @@ export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
     return PRIMORDIAL_STANCES.has(Number(cast.skill.id)) ? [] : effects;
   },
   onCastCommit(runtime, cast) {
-    if (!cast.cancelled) withElementalistCast(runtime, cast, () => onCastCommit(runtime, cast, cast.skill));
+    withElementalistCast(runtime, cast, () => onCastCommit(runtime, cast, cast.skill));
   },
 
   reactions: { 'control.resolved': onAcceptedEvent },

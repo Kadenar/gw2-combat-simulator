@@ -19,7 +19,6 @@ import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior
 type Runtime = Gw2Runtime<WarriorRuntimeState>;
 const EXPIRE = 'warrior.berserk-expiry';
 const DETONATE = 'warrior.king-of-fires-detonate';
-const AURA_EXPIRE = 'warrior.berserker-aura-expiry';
 
 function isBerserkerSkill(skill: WarriorSkill): boolean {
   return skill.primalBurst || skill.categories?.includes('Rage') || skill.specialization === 'Berserker';
@@ -131,8 +130,6 @@ function completeBerserk(runtime: Runtime, cast: RuntimeCast): void {
 function armAura(runtime: Runtime, until: number): void {
   const state = berserkerState.from(runtime);
   state.fireAuraUntil = Math.max(state.fireAuraUntil, until);
-  if (state.fireAuraUntil > runtime.time)
-    runtime.schedule(AURA_EXPIRE, state.fireAuraUntil, state.fireAuraUntil, undefined, -220);
 }
 
 /** Consume the actual aura once and emit independently selected damage components with player ownership. */
@@ -231,7 +228,6 @@ export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
     }
   },
   onCastCommit(runtime, cast) {
-    if (cast.cancelled) return;
     completeBerserk(runtime, cast);
     if (cast.skill.primalBurst && hasTrait(runtime, TRAIT.HEAT_THE_SOUL))
       traitBoons(runtime, cast, TRAIT.HEAT_THE_SOUL, true);
@@ -254,10 +250,6 @@ export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
         runtime.profession.core.adrenaline,
         runtime.profession.core.maximumAdrenaline
       );
-    },
-    [AURA_EXPIRE](runtime, deadline) {
-      const state = berserkerState.from(runtime);
-      if (state.fireAuraUntil === deadline) state.fireAuraUntil = 0;
     },
     [DETONATE](runtime, payload) {
       detonate(runtime, payload as { activationId: string; skillId: number | string });

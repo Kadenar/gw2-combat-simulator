@@ -98,7 +98,7 @@ function modifierContext(context, time, event) {
   return { config: context.config, helpers: context.helpers, events: [...context.events], time, event };
 }
 
-test('instrument commitment, damage bonuses, cleanup, and UI share exact exclusive deadlines', () => {
+test('instrument commitment, damage bonuses, projection, and UI share exact exclusive deadlines', () => {
   for (const at of [5.300999, 5.301, 5.301001]) {
     const context = instrumentContext();
     play(context, ID.LIVELY_LUTE, 0.1 + 0.201);
@@ -124,10 +124,7 @@ test('instrument commitment, damage bonuses, cleanup, and UI share exact exclusi
     const query = modifierContext(context, at);
     assert.equal(troubadourModifierRules.find((rule) => rule.id === 'mesmer.lute').when(query), active);
     assert.equal(applyTroubadourAttributes(query, { power: 100 }).power, active ? 104 : 100);
-    context.time = at;
-    if (at >= 5.301)
-      troubadourHooks.tasks['mesmer.instrument-expire'](context, { instrument: 'Lute', expiresAt: 5.301 });
-    assert.equal(Object.hasOwn(state.instruments, 'Lute'), active);
+    assert.equal(state.instruments.Lute, 5.301, 'Projection does not mutate the stored deadline');
   }
 });
 
@@ -142,8 +139,10 @@ test('shorter instrument replays replace their own window without reviving old b
   assert.equal(troubadourModifierRules.find((rule) => rule.id === 'mesmer.lute').when(query), false);
   assert.equal(applyTroubadourAttributes(query, { power: 100 }).power, 104);
   context.time = 7.301;
-  troubadourHooks.tasks['mesmer.instrument-expire'](context, { instrument: 'Lute', expiresAt: 7.301 });
-  assert.deepEqual(state.instruments, { Flute: 21.301 });
+  assert.deepEqual(
+    projectObservedState(mesmerProfession, context).activeInstruments.map(({ name }) => name),
+    ['Flute']
+  );
   context.start = 7.301;
   const skill = { ...context.catalog.skillsById.get(ID.CRESCENDO), damageAtMs: 0 };
   troubadourHooks.tasks['mesmer.crescendo'](context, {
@@ -205,9 +204,6 @@ test('Flute endurance regeneration uses the final live microsecond and loses the
   play(context, ID.FLUSTERING_FLUTE, 0.301);
   for (const at of [5.300999, 5.301, 5.301001]) {
     context.time = at;
-    context.time = at;
-    if (at >= 5.301)
-      troubadourHooks.tasks['mesmer.instrument-expire'](context, { instrument: 'Lute', expiresAt: 5.301 });
     assert.equal(troubadourEndurance.regenerationRate(context, false, at), at < 5.301 ? 6.25 : 5);
   }
 });

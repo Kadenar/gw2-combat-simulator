@@ -229,7 +229,6 @@ export const druidHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
   },
   modifyEffects: avatarEffects,
   onCastCommit(runtime, cast) {
-    if (cast.cancelled) return;
     if (cast.skill.id === ID.CELESTIAL_AVATAR) avatar(runtime, true);
     if (cast.skill.id === ID.RELEASE_CELESTIAL_AVATAR) avatar(runtime, false);
   },

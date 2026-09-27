@@ -260,28 +260,25 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
   },
   onCastCommit(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
-    const committed = !cast.cancelled;
     const upkeepCost = upkeepCosts.get(cast);
     upkeepCosts.delete(cast);
-    if (committed && upkeepCost != null) runtime.resourceController.spend('energy', upkeepCost);
+    if (upkeepCost != null) runtime.resourceController.spend('energy', upkeepCost);
     completeRevenantImperialGuard(runtime, cast);
-    if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS && !cast.cancelled) {
+    if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
       completeRevenantCrushingAbyssSwap(runtime, cast);
       completeRevenantBrutality(runtime, cast);
     }
 
-    if (committed) {
-      if (isRevenantUpkeep(skill)) toggleRevenantUpkeep(runtime, cast);
-      else if (upkeepRelease(runtime, skill)) releaseRevenantUpkeep(runtime, cast);
-      else if (skill.id === ID.SWAP_LEGENDS) swapLegend(runtime, cast);
-      else if (skill.id === ID.ENCHANTED_DAGGERS) completeRevenantEnchantedDaggers(runtime, cast);
-      else if (skill.id === ID.ANCIENT_ECHO) completeRevenantAncientEcho(runtime, cast);
-      completeRevenantWeaponFlips(runtime, cast);
-    }
+    if (isRevenantUpkeep(skill)) toggleRevenantUpkeep(runtime, cast);
+    else if (upkeepRelease(runtime, skill)) releaseRevenantUpkeep(runtime, cast);
+    else if (skill.id === ID.SWAP_LEGENDS) swapLegend(runtime, cast);
+    else if (skill.id === ID.ENCHANTED_DAGGERS) completeRevenantEnchantedDaggers(runtime, cast);
+    else if (skill.id === ID.ANCIENT_ECHO) completeRevenantAncientEcho(runtime, cast);
+    completeRevenantWeaponFlips(runtime, cast);
 
-    completeRevenantCastTraits(runtime, cast, committed);
+    completeRevenantCastTraits(runtime, cast);
     // Empower only after the paid skill commits, so a pulse during its windup cannot consume the bonus.
-    if (committed) empowerRevenantEmbrace(runtime, cast);
+    empowerRevenantEmbrace(runtime, cast);
   },
   onCooldownReset(runtime) {
     // Restores in-combat Energy after the shared runtime resets cooldowns.

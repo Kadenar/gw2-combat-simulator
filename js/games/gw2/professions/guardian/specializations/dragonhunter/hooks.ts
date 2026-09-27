@@ -81,13 +81,7 @@ function attachTether(runtime: Runtime, data: unknown): void {
     runtime.time,
     state.tetherUntil
   );
-  runtime.schedule(
-    EXPIRY,
-    state.tetherUntil,
-    { deadline: state.tetherUntil, identity: window.identity },
-    undefined,
-    -220
-  );
+  runtime.schedule(EXPIRY, state.tetherUntil, { identity: window.identity }, undefined, -220);
   runtime.schedule(BURN, runtime.time, { event, activationId: state.tetherActivationId, deadline: state.tetherUntil });
 }
 
@@ -181,7 +175,6 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
     }
   },
   onCastCommit(runtime, cast) {
-    if (cast.cancelled) return;
     const virtue = cast.skill.categories?.includes('Virtue') ? guardianVirtueForSlot(cast.skill.slot) : null;
     if (virtue) {
       refreshGuardianVirtues(runtime);
@@ -246,9 +239,7 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
     [TETHER]: attachTether,
     [BURN]: tetherBurn,
     [EXPIRY](runtime, data) {
-      const { deadline, identity } = data as { deadline: number; identity: number | string };
-      const state = dragonhunterState.from(runtime);
-      if (state.tetherUntil === deadline) state.tetherUntil = 0;
+      const { identity } = data as { identity: number | string };
       expireSkillFlip(runtime.profession.core.availableFlips, ID.HUNTERS_VERDICT, runtime.time, identity);
     }
   }

@@ -65,7 +65,6 @@ export const mechanistHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = 
       mech.busyUntil = Math.max(mech.busyUntil, cast.effectiveEnd + MECHANIST_ATTACK_TIMING.commandRecovery);
   },
   onCastCommit(runtime, cast) {
-    if (cast.cancelled) return;
     if (cast.skill.id === ID.OVERCLOCK_SIGNET) activateOverclockSignet(runtime, cast.skill);
     applyEngineerMechCastTraits(runtime, cast.skill);
   },

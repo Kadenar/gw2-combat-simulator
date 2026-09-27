@@ -117,7 +117,6 @@ export function firebrandMantraAvailability(runtime: Runtime, skill: Skill) {
 
 /** The last charge retires its ammo pool and starts root recharge; no predicted rearm mutates current state. */
 export function completeFirebrandMantra(runtime: Runtime, cast: RuntimeCast): void {
-  if (cast.cancelled) return;
   const definition = MANTRAS.find(({ rootId, normalId, finalId }) =>
     [rootId, normalId, finalId].includes(Number(cast.skill.id))
   );

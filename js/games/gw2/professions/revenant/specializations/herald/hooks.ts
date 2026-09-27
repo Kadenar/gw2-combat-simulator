@@ -320,13 +320,12 @@ export const heraldHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   onCastCancel: syncCompassion,
   onCastCommit(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
-    const committed = !cast.cancelled;
-    if (committed && skill.consume) completeConsume(runtime, cast);
-    if (committed && skill.id === ID.TRUE_NATURE_DRAGON) trueNatureDragon(runtime, cast);
+    if (skill.consume) completeConsume(runtime, cast);
+    if (skill.id === ID.TRUE_NATURE_DRAGON) trueNatureDragon(runtime, cast);
     // Facet lifecycle changes aggregate upkeep before Elevated Compassion evaluates its threshold.
-    if (committed) startFacet(runtime, skill);
+    startFacet(runtime, skill);
     syncCompassion(runtime);
-    if (!committed || skill.id !== ID.SWAP_LEGENDS) return;
+    if (skill.id !== ID.SWAP_LEGENDS) return;
     if (runtime.profession.core.activeLegendId !== LEGEND.DRAGON || !runtime.combatStartedAt()) return;
     if (hasTrait(runtime, TRAIT.SPIRIT_BOON))
       emitRevenantInvocationProfile(runtime, HERALD_SPIRIT_BOON_PROFILE_ID, TRAIT.SPIRIT_BOON);

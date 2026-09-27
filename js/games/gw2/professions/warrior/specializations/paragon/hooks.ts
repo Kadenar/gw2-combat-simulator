@@ -298,7 +298,6 @@ export const paragonHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
       );
   },
   onCastCommit(runtime, cast) {
-    if (cast.cancelled) return;
     if (cast.skill.categories?.includes('Chant')) activateChant(runtime, cast);
     if (cast.skill.categories?.includes('Command')) activateCommand(runtime, cast);
     if (cast.skill.burst)

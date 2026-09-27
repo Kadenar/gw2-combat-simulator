@@ -76,7 +76,7 @@ export const scrapperHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
   ],
   maximumAmmo: scrapperMaximumAmmo,
   onCastCommit(runtime, cast) {
-    if (!cast.cancelled) applyScrapperCastTraits(runtime, cast);
+    applyScrapperCastTraits(runtime, cast);
   },
   tasks: {
     'engineer.mass-momentum'(runtime, data) {

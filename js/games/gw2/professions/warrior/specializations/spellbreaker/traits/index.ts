@@ -7,7 +7,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
@@ -34,7 +34,7 @@ function gainAttackersInsight(
   // Keep the newest grants; a disabled cap or expired grant cannot add live stacks.
   state.attackerInsightExpiries = grantTimedStacks(state.attackerInsightExpiries, {
     at,
-    expiresAt: at + effectNumber(attackersInsightProfile, effect, 'duration'),
+    expiresAt: canonicalTime(at + effectNumber(attackersInsightProfile, effect, 'duration')),
     count: Math.max(1, Math.trunc(applications)),
     maximumStacks: balanceProfileNumber(attackersInsightProfile, 'maximumStacks'),
     retain: 'newest-grant'
@@ -57,7 +57,7 @@ function triggerMagebaneTether(context: Runtime, state: SpellbreakerState, skill
   const effect = requireEffect(magebaneTetherProfile, 'buff', 'magebane-tether');
   // A removed tether must not activate its damage window.
   if (!effect) return false;
-  state.magebaneTetherUntil = at + effectNumber(magebaneTetherProfile, effect, 'duration');
+  state.magebaneTetherUntil = canonicalTime(at + effectNumber(magebaneTetherProfile, effect, 'duration'));
   state.magebaneTetherRecharge = { startedAt: at, work: balanceProfileNumber(magebaneTetherProfile, 'cooldown') };
   state.magebaneTetherReadyAt = project(state.magebaneTetherRecharge);
   return true;

@@ -23,7 +23,6 @@ function grantAmbush(runtime: RangerRuntime): void {
     runtime.time +
       balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'durationMultiplier')
   );
-  runtime.schedule('ranger.ambush-expiry', state.ambushReadyUntil, state.ambushReadyUntil);
 }
 
 export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
@@ -81,7 +80,6 @@ export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
     if (cast.skill.unleashedAmbushSkill) untamedState.from(runtime).ambushReadyUntil = 0;
   },
   onCastCommit(runtime, cast) {
-    if (cast.cancelled) return;
     const state = untamedState.from(runtime);
     if (cast.skill.id === ID.UNLEASH_RANGER || cast.skill.id === ID.UNLEASH_PET) {
       state.rangerUnleashed = cast.skill.id === ID.UNLEASH_RANGER;
@@ -110,11 +108,6 @@ export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
         balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.letLoose), 'internalCooldown');
       runtime.procs.readyAt['ranger.untamed.unleashedPower'] = 0;
       if (state.rangerUnleashed) grantAmbush(runtime);
-    }
-  },
-  tasks: {
-    'ranger.ambush-expiry'(runtime, deadline) {
-      if (untamedState.from(runtime).ambushReadyUntil === deadline) untamedState.from(runtime).ambushReadyUntil = 0;
     }
   },
   reactions: { 'damage.resolved': reactToUntamedDamage }

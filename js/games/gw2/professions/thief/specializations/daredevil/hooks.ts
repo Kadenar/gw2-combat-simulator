@@ -173,7 +173,6 @@ function weakeningStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent): void {
 }
 
 function completeDaredevilCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  if (cast.cancelled) return;
   if (cast.skill.id === SHARED_SKILL_IDS.DODGE) completeDaredevilDodge(runtime, cast);
   updatePalmStrike(runtime, cast);
   // Endurance Thief follows Core's steal resources.

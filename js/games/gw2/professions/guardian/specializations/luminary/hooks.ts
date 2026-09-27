@@ -391,7 +391,6 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
     }
   },
   onCastCommit(runtime, cast) {
-    if (cast.cancelled) return;
     const state = luminaryState.from(runtime);
     if (cast.skill.id === ID.ENTER_RADIANT_FORGE) enterForge(runtime, cast);
     if (cast.skill.id === ID.EXIT_RADIANT_FORGE) exitForge(runtime, cast);

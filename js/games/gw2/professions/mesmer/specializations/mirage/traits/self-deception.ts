@@ -10,7 +10,6 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 /** Applies Self-Deception to categorized Deception skills after their casts complete. */
 export function completeMirageSkill(context: MesmerRuntime, cast: RuntimeCast): void {
   const skill = cast.skill;
-  if (cast.cancelled) return;
   const runtime = mesmerMechanicsFor(context);
   if (
     runtime.traits.has(TRAIT.SELF_DECEPTION) &&

@@ -1,4 +1,7 @@
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
 import {
+  snapshotProfessionState,
+  projectPublicProfessionState,
   definePublicStateDefaults,
   defineProfessionSpecializationState
 } from '#gw2/platform/engine/profession/state.js';
@@ -53,3 +56,14 @@ export function createUntamedState(config: RangerConfig = {}): UntamedState {
 }
 
 export const untamedState = defineProfessionSpecializationState('Untamed', createUntamedState);
+
+/** Filters expired public values at observation time without queue work or live-state mutation. */
+export function projectUntamedPlanningState(input: Gw2PlanningStateInput) {
+  const state = snapshotProfessionState(input.profession) as UntamedState;
+  if (state.ambushReadyUntil <= input.time) state.ambushReadyUntil = 0;
+  return projectPublicProfessionState(
+    state,
+    UNTAMED_PUBLIC_STATE_PROJECTION.keys,
+    UNTAMED_PUBLIC_STATE_PROJECTION.defaults
+  );
+}

@@ -233,43 +233,39 @@ function completeDeadeyeCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const state = deadeyeState.from(runtime);
   const facts = castFacts.get(cast);
   castFacts.delete(cast);
-  const committed = !cast.cancelled;
-  if (committed) {
-    if (skill.id === ID.DEADEYES_MARK) completeDeadeyesMark(runtime, cast);
-    else if (skill.id === ID.MALICIOUS_SNEAK_ATTACK && !castWasInterrupted(cast))
-      maliceTorment(runtime, cast, PROFILE.maliciousSneakAttack, facts?.malice ?? 0, false);
-    else if (skill.id === ID.MALICIOUS_ASHEN_ASSAULT) {
-      grantThiefInitiative(
-        runtime,
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.maliciousAshenAssault), 'resourceGain')
-      );
-      if ((facts?.malice ?? 0) > 0)
-        maliceTorment(runtime, cast, PROFILE.maliciousAshenAssault, facts?.malice ?? 0, true);
-    } else if (STOLEN_SKILLS.has(skill.id)) {
-      if (facts?.grantsStealth) grantThiefStealth(runtime, skill, 3);
-      consumeThiefStolenSkill(runtime, skill);
-      if (hasTrait(runtime, TRAIT.FIRE_FOR_EFFECT))
-        traitBoons(runtime, cast, 'Fire for Effect', PROFILE.fireForEffect, true);
-    } else if (skill.id === ID.MERCY) {
-      const malice = Math.max(0, state.malice || 0);
-      state.malice = 0;
-      state.maleficentSevenTriggered = false;
-      // Mercy resets Deadeye's Mark and refunds initiative per malice spent.
-      runtime.cooldownController.clear(ID.DEADEYES_MARK);
-      const mercy = requireBalanceProfileFromContext(runtime, PROFILE.mercy);
-      grantThiefInitiative(
-        runtime,
-        balanceProfileNumber(mercy, 'resourceGain') + malice * balanceProfileNumber(mercy, 'attributePerStack')
-      );
-    } else if (skill.id === ID.SHADOW_FLARE)
-      runtime.armFlip(ID.SHADOW_SWAP, {
-        availableAt: runtime.time,
-        expiresAt:
-          runtime.time +
-          balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.shadowFlare), 'durationMultiplier')
-      });
-    else if (skill.id === ID.SHADOW_SWAP) consumeSkillFlip(runtime.profession.core.availableFlips, ID.SHADOW_SWAP);
-  }
+  if (skill.id === ID.DEADEYES_MARK) completeDeadeyesMark(runtime, cast);
+  else if (skill.id === ID.MALICIOUS_SNEAK_ATTACK && !castWasInterrupted(cast))
+    maliceTorment(runtime, cast, PROFILE.maliciousSneakAttack, facts?.malice ?? 0, false);
+  else if (skill.id === ID.MALICIOUS_ASHEN_ASSAULT) {
+    grantThiefInitiative(
+      runtime,
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.maliciousAshenAssault), 'resourceGain')
+    );
+    if ((facts?.malice ?? 0) > 0) maliceTorment(runtime, cast, PROFILE.maliciousAshenAssault, facts?.malice ?? 0, true);
+  } else if (STOLEN_SKILLS.has(skill.id)) {
+    if (facts?.grantsStealth) grantThiefStealth(runtime, skill, 3);
+    consumeThiefStolenSkill(runtime, skill);
+    if (hasTrait(runtime, TRAIT.FIRE_FOR_EFFECT))
+      traitBoons(runtime, cast, 'Fire for Effect', PROFILE.fireForEffect, true);
+  } else if (skill.id === ID.MERCY) {
+    const malice = Math.max(0, state.malice || 0);
+    state.malice = 0;
+    state.maleficentSevenTriggered = false;
+    // Mercy resets Deadeye's Mark and refunds initiative per malice spent.
+    runtime.cooldownController.clear(ID.DEADEYES_MARK);
+    const mercy = requireBalanceProfileFromContext(runtime, PROFILE.mercy);
+    grantThiefInitiative(
+      runtime,
+      balanceProfileNumber(mercy, 'resourceGain') + malice * balanceProfileNumber(mercy, 'attributePerStack')
+    );
+  } else if (skill.id === ID.SHADOW_FLARE)
+    runtime.armFlip(ID.SHADOW_SWAP, {
+      availableAt: runtime.time,
+      expiresAt:
+        runtime.time +
+        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.shadowFlare), 'durationMultiplier')
+    });
+  else if (skill.id === ID.SHADOW_SWAP) consumeSkillFlip(runtime.profession.core.availableFlips, ID.SHADOW_SWAP);
 
   // Silent Scope: a dodge above the malice threshold grants one out-of-stealth stealth attack.
   if (skill.id === SHARED_SKILL_IDS.DODGE && hasTrait(runtime, TRAIT.SILENT_SCOPE)) {

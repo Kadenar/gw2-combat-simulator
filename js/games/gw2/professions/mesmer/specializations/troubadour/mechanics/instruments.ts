@@ -136,7 +136,6 @@ function commitInstrument(
   const expiresAt = canonicalTime(at + baseDuration + spent * durationPerNote);
   const state = troubadourState.from(context);
   state.instruments[data.instrument] = expiresAt;
-  context.schedule('mesmer.instrument-expire', expiresAt, { instrument: data.instrument, expiresAt });
   state.lastInstrument = data.instrument;
   runtime.addEvent({
     type: 'mesmer.instrument',
@@ -306,8 +305,7 @@ export function scheduleTroubadourPerformance(context: MesmerRuntime, cast: Runt
 
 /** Commits Troubadour instrument state while preserving Harp's interrupt commit point. */
 export function completeTroubadourPerformance(context: MesmerRuntime, cast: RuntimeCast, skill: MesmerSkill): void {
-  // Cancelled performances retain their notes; committed Harp interruptions still activate the instrument.
-  if (cast.cancelled) return;
+  // Committed Harp interruptions activate the instrument at their shortened completion.
 
   const runtime = mesmerMechanicsFor(context);
   const instrument = runtime.instruments[skill.id];

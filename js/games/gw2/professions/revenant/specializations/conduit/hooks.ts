@@ -856,10 +856,8 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   },
   onCastCommit(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
-    const committed = !cast.cancelled;
     if (BEGUILING_HAZE_SKILL_IDS.has(skill.id)) {
-      if (committed) completeBeguilingHaze(runtime, cast);
-      else hazeMainCasts.delete(cast);
+      completeBeguilingHaze(runtime, cast);
     }
 
     // Cosmic Wisdom form procs follow the cast; Gladiator's Defense already struck at its stunbreak.
@@ -884,7 +882,6 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
         });
     }
 
-    if (!committed) return;
     if (skill.id === ID.COSMIC_WISDOM) cosmicWisdom(runtime, cast);
     else if (skill.id === ID.SWAP_LEGENDS) swapLegend(runtime, cast);
     if (isRevenantUpkeep(skill) && activeRevenantUpkeep(runtime, skill.id, runtime.time)) {

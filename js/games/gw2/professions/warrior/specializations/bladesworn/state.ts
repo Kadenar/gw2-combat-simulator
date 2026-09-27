@@ -1,4 +1,7 @@
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
 import {
+  snapshotProfessionState,
+  projectPublicProfessionState,
   definePublicStateDefaults,
   defineProfessionSpecializationState
 } from '#gw2/platform/engine/profession/state.js';
@@ -90,4 +93,17 @@ export function activeCartridgeWindow(
   }
 
   return undefined;
+}
+
+/** Filters expired public values at observation time without queue work or live-state mutation. */
+export function projectBladeswornPlanningState(input: Gw2PlanningStateInput) {
+  const state = snapshotProfessionState(input.profession) as BladeswornState;
+  state.overchargedCartridgeWindows = state.overchargedCartridgeWindows.filter(
+    (window) => window.expiresAt > input.time
+  );
+  return projectPublicProfessionState(
+    state,
+    BLADESWORN_PUBLIC_STATE_PROJECTION.keys,
+    BLADESWORN_PUBLIC_STATE_PROJECTION.defaults
+  );
 }

@@ -118,14 +118,13 @@ export function applySideEffect(
   }
 }
 
-/** Start rewards survive cancellation; every successful cast grants its commit rewards, including shortened casts. */
+/** The runtime dispatches start rewards for every accepted cast and commit rewards only for successful casts. */
 export function applySkillSideEffects(
   runtime: Gw2Runtime,
   cast: RuntimeCast,
   on: SkillSideEffect['on'],
   handlers?: Parameters<typeof applySideEffect>[3]
 ): void {
-  if (on === 'castCommit' && cast.cancelled) return;
   for (const effect of cast.skill.sideEffects ?? []) {
     if (effect.on === on && (!effect.when || effect.when(runtime, cast)))
       applySideEffect(runtime, { kind: 'cast', skill: cast.skill, cast }, effect.do, handlers);

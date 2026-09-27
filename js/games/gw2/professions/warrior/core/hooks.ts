@@ -682,11 +682,10 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
   },
   onCastCommit(runtime, cast) {
     // A committed block may release early; its follow-up inherits the remaining original channel window.
-    if (cast.skill.id === ID.COUNTERBLOW && runtime.time < cast.fullEnd && !cast.cancelled) {
+    if (cast.skill.id === ID.COUNTERBLOW && runtime.time < cast.fullEnd) {
       runtime.armFlip(ID.TACTICAL_BLOW, { expiresAt: cast.fullEnd });
     }
 
-    if (cast.cancelled) return;
     // Successful bursts refund the captured spend at completion, independently of target acceptance.
     const spent = warriorBurstSpends.get(cast) ?? 0;
     if (cast.skill.burst && cast.skill.id !== ID.FULL_COUNTER && spent > 0 && hasTrait(runtime, TRAIT.BURST_MASTERY)) {

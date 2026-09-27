@@ -419,7 +419,6 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
   onCastCommit(runtime, cast) {
     ritualistSpellHooks.onCastCommit!(runtime, cast);
     // A cast cancelled after its commit point (aftercast cancel) still summons; earlier cancellation summons nothing.
-    if (cast.cancelled) return;
     const spirit = spiritDefinition(runtime, cast.skill.id);
     if (spirit) summon(runtime, cast, spirit);
     const innervate = INNERVATE.get(cast.skill.id);

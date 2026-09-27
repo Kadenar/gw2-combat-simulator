@@ -143,7 +143,6 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
         );
   },
   onCastCommit(runtime, cast) {
-    if (cast.cancelled) return;
     const skill = cast.skill as EngineerSkill;
     const state = runtime.profession.core;
     if (skill.kitTransition) {

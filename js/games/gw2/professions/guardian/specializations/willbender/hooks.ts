@@ -348,7 +348,6 @@ export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> =
     delete state.pendingWeaponCooldownReduction[cast.id];
     delete state.weaponCastRecharge[cast.id];
     if (pending > 0) runtime.cooldownController.reduceSkillRecharge(cast.skill, pending, runtime.time);
-    if (cast.cancelled) return;
     const virtue = VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
     if (virtue) {
       refreshGuardianVirtues(runtime);

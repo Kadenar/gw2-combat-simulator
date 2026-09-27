@@ -156,7 +156,6 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast): void {
 
 /** Completed shade commands mutate local state before their queued strikes, trait reactions, and later commands. */
 function completeShade(runtime: NecromancerRuntime, cast: RuntimeCast): void {
-  if (cast.cancelled) return;
   const skill = cast.skill;
   if ([ID.SERPENT_SIPHON, ID.SAND_FLARE].some((id) => id === Number(skill.id))) {
     barrierTraits(runtime, cast);

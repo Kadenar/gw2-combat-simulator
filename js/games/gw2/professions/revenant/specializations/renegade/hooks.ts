@@ -396,11 +396,9 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     if (committed && RENEGADE_ENHANCED_SKILL_BY_ID[Number(cast.skill.id)] != null) beginBandTogether(runtime, cast);
   },
   onCastCommit(runtime, cast) {
-    const committed = !cast.cancelled;
-    if (cast.skill.id === ID.HEROIC_COMMAND && !cast.cancelled) heroicCommand(runtime, cast);
-    if (committed) completeBandTogether(runtime, cast);
+    if (cast.skill.id === ID.HEROIC_COMMAND) heroicCommand(runtime, cast);
+    completeBandTogether(runtime, cast);
     ashenDemeanor(runtime, cast);
-    if (!committed) return;
     if (cast.skill.id === ID.SWAP_LEGENDS) invokeRenegade(runtime);
     const allies = gw2AlliedPlayerAssumptions(runtime.config);
     if (

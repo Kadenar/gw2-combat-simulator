@@ -25,7 +25,6 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 const EXPIRE = 'ritualist.weapon-spell-expiry';
 const ALLY = 'ritualist.weapon-spell-opportunity';
 const BOND = 'ritualist.painful-bond-pulse';
-const BOND_END = 'ritualist.painful-bond-expiry';
 const SPELLS = new Map<number, string>([
   [ID.NIGHTMARE_WEAPON, 'nightmare'],
   [ID.SPLINTER_WEAPON, 'splinter'],
@@ -79,7 +78,6 @@ function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   state.painfulBondGeneration++;
   state.painfulBondUntil = gw2EffectExpiresAt(Math.max(runtime.time, state.painfulBondUntil), Number(event.duration));
   const identity = { id: BOND, generation: state.painfulBondGeneration };
-  runtime.schedule(BOND_END, state.painfulBondUntil, null, identity, -20);
   if (!(interval > 0)) return;
   const firstApplication = !Number.isFinite(state.painfulBondPulseAnchorAt);
   if (firstApplication)
@@ -97,7 +95,7 @@ function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
 export const ritualistSpellHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = {
   modifyEffects: (_runtime, cast, effects) => (SPELLS.has(Number(cast.skill.id)) ? [] : effects),
   onCastCommit(runtime, cast) {
-    if (!SPELLS.has(Number(cast.skill.id)) || cast.cancelled) return;
+    if (!SPELLS.has(Number(cast.skill.id))) return;
     const spell = SPELLS.get(Number(cast.skill.id));
     const effect = cast.skill.effects?.find((effect) => effect.type === 'buff');
     if (!spell || !effect) return;
@@ -215,9 +213,6 @@ export const ritualistSpellHooks: Partial<RuntimeProfession<NecromancerRuntimeSt
       const at = canonicalTime(runtime.time + balanceProfileNumber(profile, 'pulseInterval'));
       if (strike && at > runtime.time && at < state.painfulBondUntil)
         runtime.schedule(BOND, at, data, { id: BOND, generation: state.painfulBondGeneration });
-    },
-    [BOND_END](runtime) {
-      ritualistState.from(runtime).painfulBondUntil = 0;
     }
   }
 };

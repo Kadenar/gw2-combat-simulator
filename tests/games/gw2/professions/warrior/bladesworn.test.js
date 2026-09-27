@@ -455,7 +455,8 @@ test('Tactical Reload can be consumed exactly at expiry and closes before a late
     });
     assert.deepEqual(result.warnings, []);
     assert.equal(state(result).dragonCharges, expected);
-    assert.equal(state(result).tacticalReloadUntil, 0);
+    if (expected === 2) assert.equal(state(result).tacticalReloadUntil, 0);
+    else assert.ok(state(result).tacticalReloadUntil < observedRuntime(result).time);
   }
 });
 
@@ -530,7 +531,7 @@ test('cartridges activate on the queue, upgrade once, and expire without another
   );
   assert.equal(state(thrice).overchargedCartridgeWindows.at(-1).expiresAt, upgraded.expiresAt);
   const expired = run(['Overcharged Cartridges', wait(9000)], config);
-  assert.deepEqual(state(expired).overchargedCartridgeWindows, []);
+  assert.deepEqual(expired.planningState.profession.overchargedCartridgeWindows, []);
   const canceled = run([{ name: 'Overcharged Cartridges', interruptAfterMs: 1 }, wait(1000)], config);
   assert.deepEqual(state(canceled).overchargedCartridgeWindows, []);
 });
@@ -562,7 +563,7 @@ test('only accepted explosions apply cartridge Burning and extend Guns and Glory
     false
   );
   const expired = run(['Unsheathe Gunsaber', 'Artillery Slash', wait(13000)], config);
-  assert.equal(state(expired).gunsAndGloryUntil, 0);
+  assert.ok(state(expired).gunsAndGloryUntil <= observedRuntime(expired).time);
 });
 
 test('cartridge component removal separates its bonus and Burning and a removed upgrade preserves the old occurrence', () => {

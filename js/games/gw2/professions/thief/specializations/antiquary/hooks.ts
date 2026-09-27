@@ -464,8 +464,7 @@ function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast): voi
 
 function completeAntiquaryCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const skill = cast.skill as ThiefSkill;
-  const committed = !cast.cancelled;
-  if (skill.id === ID.SKRITT_SWIPE && committed) {
+  if (skill.id === ID.SKRITT_SWIPE) {
     emitThiefStealTraits(runtime, cast);
     pilferArtifacts(runtime, 'swipe');
     if (hasTrait(runtime, TRAIT.KLEPTOMANIAC))
@@ -484,7 +483,7 @@ function completeAntiquaryCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
   if (skill.id === ID.RESHUFFLE) antiquaryState.from(runtime).artifactSlots = allArtifactChoices();
   const coins = coinInitiative.get(cast);
   if (coins != null) grantThiefInitiative(runtime, coins);
-  if (skill.id === ID.SKRITT_SCUFFLE && committed) completeSkrittScuffle(runtime, skill);
+  if (skill.id === ID.SKRITT_SCUFFLE) completeSkrittScuffle(runtime, skill);
 }
 
 /** Artifacts require a held slot; backfire variants are internal; Reshuffle rerolls only an existing pool. */

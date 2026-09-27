@@ -49,7 +49,7 @@ test('Full Counter spends its bar without an incoming attack or successful burst
     result.resolvedEvents.some((event) => event.sourceId === TRAIT.BURST_MASTERY),
     false
   );
-  assert.equal(state(result).magebaneTetherUntil, 0);
+  assert.equal(result.planningState.profession.magebaneTetherUntil, 0);
 });
 
 test('accepted controls grant Insight once and each group expires at its own deadline', () => {
@@ -59,14 +59,14 @@ test('accepted controls grant Insight once and each group expires at its own dea
     target: { armor: 2597, defiant: true }
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(state(result).attackerInsightExpiries.length, 1);
+  assert.equal(result.planningState.profession.attackerInsightExpiries.length, 1);
   const expired = run(['Kick', wait(16000)], { selectedSkills: ['Kick'], selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT] });
-  assert.deepEqual(state(expired).attackerInsightExpiries, []);
+  assert.deepEqual(expired.planningState.profession.attackerInsightExpiries, []);
   const missed = run([{ name: 'Kick', offTarget: true }], {
     selectedSkills: ['Kick'],
     selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT]
   });
-  assert.deepEqual(state(missed).attackerInsightExpiries, []);
+  assert.deepEqual(missed.planningState.profession.attackerInsightExpiries, []);
 });
 
 test('No Escape retains effect ownership and boon-removal-only attacks cannot manufacture Insight', () => {
@@ -76,13 +76,13 @@ test('No Escape retains effect ownership and boon-removal-only attacks cannot ma
   };
   const control = run(['Disrupting Stab'], config);
   assert.deepEqual(control.warnings, []);
-  assert.equal(state(control).attackerInsightExpiries.length, 1);
+  assert.equal(control.planningState.profession.attackerInsightExpiries.length, 1);
   const immobilize = control.resolvedEvents.find((event) => event.sourceId === TRAIT.NO_ESCAPE);
   assert.equal(immobilize.condition, 'Immobilized');
   assert.equal(immobilize.actorType, 'effect');
   const removal = run(['Break Enchantments'], config);
   assert.deepEqual(removal.warnings, []);
-  assert.deepEqual(state(removal).attackerInsightExpiries, []);
+  assert.deepEqual(removal.planningState.profession.attackerInsightExpiries, []);
 });
 
 test('Magebane starts at impact after its triggering damage and expires without another cast', () => {
@@ -94,7 +94,7 @@ test('Magebane starts at impact after its triggering damage and expires without 
   const hit = result.resolvedEvents.find((event) => event.type === 'damage');
   assert.equal(hit.damage, baseline.resolvedEvents.find((event) => event.type === 'damage').damage);
   assert.equal(result.procSteps.find((proc) => proc.skill === 'Magebane Tether').start, Math.round(hit.at * 1000));
-  assert.equal(state(result).magebaneTetherUntil, 0);
+  assert.equal(result.planningState.profession.magebaneTetherUntil, 0);
   const missed = run([{ name: 'Breaching Strike', offTarget: true }], { selectedTraitIds: [TRAIT.MAGEBANE_TETHER] });
   assert.equal(state(missed).magebaneTetherRecharge, null);
 });
@@ -140,7 +140,7 @@ test('Magebane recharge ignores temporary Alacrity and admits the next action ti
       result.procSteps.filter((proc) => proc.skill === 'Magebane Tether').map((proc) => proc.start),
       [0, 9640]
     );
-    assert.equal(state(result).magebaneTetherUntil, 17.64);
+    assert.equal(result.planningState.profession.magebaneTetherUntil, 17.64);
   }
 });
 
@@ -166,8 +166,8 @@ test('removed Insight and Tether packets cannot create their state or proc windo
     patched
   );
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(state(result).attackerInsightExpiries, []);
-  assert.equal(state(result).magebaneTetherUntil, 0);
+  assert.deepEqual(result.planningState.profession.attackerInsightExpiries, []);
+  assert.equal(result.planningState.profession.magebaneTetherUntil, 0);
   assert.equal(state(result).magebaneTetherRecharge, null);
 });
 
@@ -246,6 +246,6 @@ test('No Escape keeps Insight ordering, actor eligibility, and live profile payl
       assert.ok(event.eventOrder > control.eventOrder);
     }
 
-    if (removed) assert.equal(state(result).attackerInsightExpiries.length, 1);
+    if (removed) assert.equal(result.planningState.profession.attackerInsightExpiries.length, 1);
   }
 });

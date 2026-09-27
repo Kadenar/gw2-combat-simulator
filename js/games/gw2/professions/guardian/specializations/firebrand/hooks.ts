@@ -186,7 +186,6 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
     }
   },
   onCastCommit(runtime, cast) {
-    if (cast.cancelled) return;
     completeFirebrandMantra(runtime, cast);
     const state = firebrandState.from(runtime);
     const skill = cast.skill;

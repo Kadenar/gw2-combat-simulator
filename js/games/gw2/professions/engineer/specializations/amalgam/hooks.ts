@@ -32,7 +32,7 @@ export const amalgamHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
     }
   },
   onCastCommit(runtime, cast) {
-    if (!cast.cancelled && cast.skill.categories?.includes('Morph')) activateAmalgamMorph(runtime, cast.skill);
+    if (cast.skill.categories?.includes('Morph')) activateAmalgamMorph(runtime, cast.skill);
   },
   tasks: { 'engineer.evolve': evolveAmalgam, 'engineer.plasmatic-state': activatePlasmaticState },
   reactions: { 'damage.resolved': amalgamResolverEventReactions.damage, 'control.resolved': reactToMercurialTendencies }

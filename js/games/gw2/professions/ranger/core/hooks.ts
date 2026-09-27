@@ -293,7 +293,6 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
   onCastCancel: completeWeapon,
   onCastCommit(runtime, cast) {
     completeWeapon(runtime, cast);
-    if (cast.cancelled) return;
     const skill = cast.skill;
     const state = runtime.profession.core;
     if (skill.id === ID.PET_SWAP) {

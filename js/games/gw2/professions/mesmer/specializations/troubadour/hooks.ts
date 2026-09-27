@@ -14,7 +14,6 @@ import {
   resolveCrescendo
 } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import { withMesmerCastEmission } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import { resolveTroubadourTale } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/tales.js';
 import {
   observeSyncopateEvent,
@@ -49,12 +48,6 @@ export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       withMesmerCastEmission(runtime, cast, cast.skill as MesmerSkill, () =>
         resolveCrescendo(runtime, cast, cast.skill as MesmerSkill, cast.fullEnd)
       );
-    },
-    'mesmer.instrument-expire'(runtime, data) {
-      const { instrument, expiresAt } = data as { instrument: string; expiresAt: number };
-      // Each performance expires only its own window, including shorter replacements.
-      const state = troubadourState.from(runtime);
-      if (state.instruments[instrument] === expiresAt) delete state.instruments[instrument];
     },
     'mesmer.syncopate': triggerMethodOfMadnessSyncopate,
     'mesmer.troubadour.resolve-tale'(runtime, data) {

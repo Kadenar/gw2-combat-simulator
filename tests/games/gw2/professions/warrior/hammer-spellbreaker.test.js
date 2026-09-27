@@ -51,14 +51,14 @@ test('Magebane Tether ignores Alacrity gained or lost during its recharge', () =
           'damage.resolved'(runtime, event, hit) {
             profession.reactions['damage.resolved'](runtime, event, hit);
             if (event.skillId === ID.BREACHING_STRIKE)
-              windows.push(runtime.profession.specialization.state.magebaneTetherUntil);
+              windows.push(runtime.profession.specialization.state.magebaneTetherUntil > runtime.time);
           }
         }
       },
       rotation: [{ type: 'wait', durationMs: 11000 }]
     });
     assert.deepEqual(result.warnings, []);
-    assert.deepEqual(windows, [8, 0, 17.64]);
+    assert.deepEqual(windows, [true, false, true]);
     assert.equal(observedRuntime(result).profession.specialization.state.magebaneTetherUntil, 17.64);
   }
 });

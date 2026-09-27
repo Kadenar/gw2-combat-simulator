@@ -236,7 +236,6 @@ export const vindicatorHooks: Partial<RuntimeProfession<RevenantRuntimeState>> =
   onCastCommit(runtime, cast) {
     // Airborne autos may advance the chain; landing resets it before the next serial input.
     if (cast.skill.id === VINDICATOR_JUMP_SKILL.id) resetAutoattackChains(runtime);
-    if (cast.cancelled) return;
     if (ENERGY_MELD_IDS.has(cast.skill.id)) energyMeld(runtime, cast);
     if (cast.skill.id === ID.SWAP_LEGENDS) invokeAlliance(runtime);
   },

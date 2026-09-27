@@ -123,7 +123,8 @@ export function compileProfessionRules<T extends object>(
       const key = rule.on === 'castStart' ? 'onCastStart' : 'onCastCommit';
       const prior = compiled[key];
       compiled[key] = (runtime, cast) => {
-        if ((rule.on !== 'castCommit' || !cast.cancelled) && hasTrait(runtime, rule.trait) && rule.when(runtime, cast))
+        // The runtime dispatches commit hooks only for successful casts, including shortened animations.
+        if (hasTrait(runtime, rule.trait) && rule.when(runtime, cast))
           emit(
             runtime,
             cast.skill.id,

@@ -224,7 +224,6 @@ function shadeStep(runtime: ThiefRuntime, cast: RuntimeCast): void {
 }
 
 function completeSpecterCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  if (cast.cancelled) return;
   const skill = cast.skill as ThiefSkill;
   const state = specterState.from(runtime);
   if (skill.id === ID.SIPHON) completeSiphon(runtime, cast);

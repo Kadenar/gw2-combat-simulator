@@ -13,6 +13,35 @@ import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 
+test('public expiry projections use exclusive deadlines without mutating the live owner', () => {
+  // Expiration is an observation of stored deadlines, independent of queued work or a later grant.
+  for (const [family, specialization, slice, key, value, expired] of [
+    [warriorProfession, 'Spellbreaker', 'specialization', 'attackerInsightExpiries', [5, 7], [7]],
+    [warriorProfession, 'Spellbreaker', 'specialization', 'magebaneTetherUntil', 5, 0],
+    [
+      warriorProfession,
+      'Bladesworn',
+      'specialization',
+      'overchargedCartridgeWindows',
+      [{ startedAt: 1, expiresAt: 5 }],
+      []
+    ],
+    [rangerProfession, 'Untamed', 'specialization', 'ambushReadyUntil', 5, 0],
+    [guardianProfession, 'Core', 'core', 'symbolicAvengerExpirations', [5, 7], [7]],
+    [guardianProfession, 'Dragonhunter', 'specialization', 'tetherUntil', 5, 0]
+  ]) {
+    const config = { specialization };
+    const profession = family.runtimeFor(config).createState(config);
+    const owner = slice === 'core' ? profession.core : profession.specialization.state;
+    owner[key] = structuredClone(value);
+    for (const time of [4.999999, 5, 5.000001]) {
+      const projected = projectObservedState(family, { profession, config, time });
+      assert.deepEqual(projected[key], time < 5 ? value : expired, `${specialization}.${key} at ${time}`);
+      assert.deepEqual(owner[key], value, 'Projection leaves the stored deadlines untouched');
+    }
+  }
+});
+
 test('force clocks are detached in snapshots and planning projections and absent for inactive specializations', () => {
   // Snapshots and presentation share one clock shape without sharing mutable resource state.
   for (const [profession, specialization, clockKey] of [

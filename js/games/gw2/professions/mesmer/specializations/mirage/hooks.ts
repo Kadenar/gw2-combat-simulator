@@ -34,7 +34,6 @@ export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
   },
   onCastCommit(runtime, cast) {
     completeMirageSkill(runtime, cast);
-    if (cast.cancelled) return;
     for (const trigger of cast.skill.tasks ?? [])
       if (trigger.type === 'mesmer.mirage.create-mirror') {
         // Readiness uses an actual queued creation deadline, without creating or spending a future mirror.
@@ -48,15 +47,10 @@ export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       }
   },
   tasks: {
-    'mesmer.mirror-expire'(runtime) {
-      const state = mirageState.from(runtime);
-      state.mirrors = state.mirrors.filter((mirror) => mirror.expiresAt > runtime.time);
-    },
     'mesmer.mirage.create-mirror'(runtime, data) {
       const { cast, trigger } = data as TriggerData;
       const state = mirageState.from(runtime);
       state.pendingMirrorAts = state.pendingMirrorAts.filter((at) => at > runtime.time);
-      state.mirrors = state.mirrors.filter((mirror) => mirror.expiresAt > runtime.time);
       mirageControllerFor(mesmerMechanicsFor(runtime)).createMirrors(runtime.time, trigger.count ?? 1, cast.skill.name);
     },
     'mesmer.mirage.grant-cloak'(runtime, data) {

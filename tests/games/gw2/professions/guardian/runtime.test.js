@@ -1089,7 +1089,7 @@ test('symbol traits claim only accepted player impacts and retain delayed impact
   assert.equal(exposure[0].at, 0.4);
 });
 
-test('Symbolic Avenger expires every independent stack during waits after its earliest wake', () => {
+test('Symbolic Avenger projects independently expired stacks during idle waits', () => {
   const initialize = (runtime) => {
     strike(runtime, 0.1, { isSymbol: true });
     strike(runtime, 0.5, { isSymbol: true });
@@ -1097,9 +1097,9 @@ test('Symbolic Avenger expires every independent stack during waits after its ea
 
   const config = { selectedTraitIds: [TRAIT.SYMBOLIC_AVENGER] };
   const partial = run([wait(15100)], config, initialize);
-  assert.deepEqual(core(partial).symbolicAvengerExpirations, [15.5]);
+  assert.deepEqual(partial.planningState.profession.symbolicAvengerExpirations, [15.5]);
   const expired = run([wait(15500)], config, initialize);
-  assert.deepEqual(core(expired).symbolicAvengerExpirations, []);
+  assert.deepEqual(expired.planningState.profession.symbolicAvengerExpirations, []);
 });
 
 test("Zealot's Resolution excludes the threshold-crossing hit and gives its child symbol one activation", () => {
@@ -1415,7 +1415,7 @@ test('Verdict consumes its occurrence and stops subsequent tether work', () => {
 test('Dragonhunter tether expiry and replacement invalidate old burns and flip wakes', () => {
   const expired = run([ID.SPEAR_OF_JUSTICE, wait(7000)], dragonhunter);
   assert.deepEqual(expired.warnings, []);
-  assert.equal(dh(expired).tetherUntil, 0);
+  assert.equal(expired.planningState.profession.tetherUntil, 0);
   assert.equal(core(expired).availableFlips[ID.HUNTERS_VERDICT], undefined);
   const replaced = run(
     [ID.SPEAR_OF_JUSTICE, wait(1000), { type: 'cooldown-reset' }, ID.SPEAR_OF_JUSTICE, wait(4800)],

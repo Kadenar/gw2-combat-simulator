@@ -39,11 +39,8 @@ type Runtime = Gw2Runtime<WarriorRuntimeState>;
 const FLOW_TICK = 'warrior.flow-tick';
 const CHARGE_TICK = 'warrior.dragon-charge';
 const TRIGGER_EXPIRY = 'warrior.dragon-trigger-expiry';
-const RELOAD_EXPIRY = 'warrior.tactical-reload-expiry';
 const RELOAD_COMPLETE = 'warrior.tactical-reload-complete';
 const CARTRIDGE_ACTIVATE = 'warrior.cartridges-activate';
-const CARTRIDGE_EXPIRY = 'warrior.cartridges-expire';
-const GLORY_EXPIRY = 'warrior.guns-and-glory-expire';
 const ammunition = new WeakMap<RuntimeCast, { rounds: number; startedFull: boolean }>();
 const furyBeforeCast = new WeakSet<RuntimeCast>();
 const releases = new WeakMap<
@@ -448,6 +445,10 @@ function ammoTraits(runtime: Runtime, cast: RuntimeCast): void {
 /** Actual activation upgrades a live cartridge window once; a supercharged window cannot be refreshed by another cast. */
 function activateCartridges(runtime: Runtime, cast: RuntimeCast): void {
   const state = bladeswornState.from(runtime);
+  // Discard expired occurrences on the next grant so idle expiry needs no queued cleanup.
+  state.overchargedCartridgeWindows = state.overchargedCartridgeWindows.filter(
+    (window) => window.expiresAt > runtime.time
+  );
   const active = activeCartridgeWindow(state.overchargedCartridgeWindows, runtime.time);
   if (active?.supercharged) return;
   const supercharged = Boolean(active);
@@ -467,7 +468,6 @@ function activateCartridges(runtime: Runtime, cast: RuntimeCast): void {
     damageBonus: effectNumber(profile, buff, 'damageIncreasePerStack'),
     burningDuration: burning ? effectNumber(profile, burning, 'duration') : 0
   });
-  runtime.schedule(CARTRIDGE_EXPIRY, expiresAt, null, undefined, -220);
   runtime.emit({
     type: 'buff',
     at: runtime.time,
@@ -496,7 +496,6 @@ function explosion(runtime: Runtime, event: Gw2ResolverEvent): void {
     );
     if (duration > 0) {
       state.gunsAndGloryUntil = gw2EffectExpiresAt(runtime.time, duration);
-      runtime.schedule(GLORY_EXPIRY, state.gunsAndGloryUntil, state.gunsAndGloryUntil, undefined, -220);
       runtime.emitDerived(event, {
         type: 'buff',
         at: runtime.time,
@@ -550,13 +549,6 @@ function tacticalReload(runtime: Runtime, cast: RuntimeCast): void {
 
   const state = bladeswornState.from(runtime);
   state.tacticalReloadUntil = gw2EffectExpiresAt(runtime.time, 10);
-  runtime.schedule(
-    RELOAD_EXPIRY,
-    (timeKey(state.tacticalReloadUntil) + 1) / 1_000_000,
-    state.tacticalReloadUntil,
-    undefined,
-    -220
-  );
   runtime.emit({
     type: 'buff',
     at: runtime.time,
@@ -708,8 +700,7 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = 
   },
   onCastCommit(runtime, cast) {
     // Successful ammunition commitment earns its reward even when the remaining animation is interrupted.
-    if (!cast.cancelled) ammoTraits(runtime, cast);
-    if (cast.cancelled) return;
+    ammoTraits(runtime, cast);
     grantWarriorAdrenaline(runtime, Number(cast.skill.flowGain ?? 0));
     if (cast.skill.id === ID.UNSHEATHE_GUNSABER) swapGunsaber(runtime, cast, true);
     if (cast.skill.id === ID.SHEATHE_GUNSABER) {
@@ -757,26 +748,12 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = 
     [CARTRIDGE_ACTIVATE](runtime, cast) {
       activateCartridges(runtime, cast as RuntimeCast);
     },
-    [CARTRIDGE_EXPIRY](runtime) {
-      const state = bladeswornState.from(runtime);
-      state.overchargedCartridgeWindows = state.overchargedCartridgeWindows.filter(
-        (window) => window.expiresAt > runtime.time
-      );
-    },
-    [GLORY_EXPIRY](runtime, deadline) {
-      const state = bladeswornState.from(runtime);
-      if (state.gunsAndGloryUntil === deadline) state.gunsAndGloryUntil = 0;
-    },
     [FLOW_TICK]: flowTick,
     [CHARGE_TICK]: chargeTick,
     [TRIGGER_EXPIRY](runtime, identity) {
       const state = bladeswornState.from(runtime);
       if (state.dragonTriggerActive && state.dragonTriggerEventActivationId === identity)
         exitDragonTrigger(runtime, state.dragonTriggerChargeDeadline);
-    },
-    [RELOAD_EXPIRY](runtime, deadline) {
-      const state = bladeswornState.from(runtime);
-      if (state.tacticalReloadUntil === deadline) state.tacticalReloadUntil = 0;
     }
   },
   reactions: { 'damage.resolved': explosion }

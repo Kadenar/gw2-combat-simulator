@@ -116,7 +116,6 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
     if (!cast.cancelled) withElementalistCast(runtime, cast, () => elementalistOnCastStart(runtime, cast, cast.skill));
   },
   onCastCommit(runtime, cast) {
-    if (cast.cancelled) return;
     withElementalistCast(runtime, cast, () => elementalistOnCastCommit(runtime, cast, cast.skill));
   },
   onAutoattackChainTransition: observeElementalistAutoattackTransition,
