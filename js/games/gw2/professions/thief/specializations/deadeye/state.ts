@@ -17,7 +17,6 @@ export interface DeadeyeState extends ThiefStealthAttackChargeState {
   maximumMalice: number;
   maliceResolvedActivations: Record<string, boolean>;
   maleficentSevenTriggered: boolean;
-  deadeyeRelicUntil: number;
 }
 
 function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
@@ -37,7 +36,6 @@ function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
     maliceResolvedActivations: {},
     // Prevents Maleficent Seven from firing more than once per mark application at full malice
     maleficentSevenTriggered: false,
-    deadeyeRelicUntil: 0,
     // Silent Scope charge path: these mirror AntiquaryState fields so beginStealthAttack can consume them generically
     stealthAttackCharges: 0,
     stealthAttackExpiresAt: 0
@@ -51,7 +49,6 @@ export const DEADEYE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   markGeneration: 0,
   malice: 0,
   maximumMalice: balanceProfileNumber(DEADEYE_RESOURCE_PROFILE, 'maximumStacks'),
-  deadeyeRelicUntil: 0,
   stealthAttackCharges: 0,
   stealthAttackExpiresAt: 0,
   maleficentSevenTriggered: false

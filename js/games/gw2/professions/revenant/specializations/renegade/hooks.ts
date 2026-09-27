@@ -22,19 +22,12 @@ import {
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/mechanics/life-siphon.js';
 import { emitRevenantProfile } from '#gw2/professions/revenant/core/events.js';
-import {
-  emitRevenantInvocationProfile,
-  emitRevenantInvocationSkill
-} from '#gw2/professions/revenant/core/traits/index.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import {
   activeKallasFervorStacks,
   isBandTogetherReady
 } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
-import {
-  RENEGADE_PROFILE_IDS as PROFILE,
-  RENEGADE_SPIRIT_BOON_PROFILE_ID
-} from '#gw2/professions/revenant/specializations/renegade/profiles.js';
+import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
@@ -360,14 +353,11 @@ function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   }
 }
 
-/** Swapping into Kalla in combat applies Spirit Boon and Song of the Mists, including two Fervor stacks. */
-function invokeRenegade(runtime: RevenantRuntime): void {
+/** Core emits the invocation packets; Kalla additionally grants two Fervor stacks for Song of the Mists. */
+function grantRenegadeInvocationFervor(runtime: RevenantRuntime): void {
   if (runtime.profession.core.activeLegendId !== LEGEND.RENEGADE || !runtime.combatStartedAt()) return;
-  if (hasTrait(runtime, TRAIT.SPIRIT_BOON))
-    emitRevenantInvocationProfile(runtime, RENEGADE_SPIRIT_BOON_PROFILE_ID, TRAIT.SPIRIT_BOON);
   const song = runtime.helpers.skillsById.get(ID.CALL_OF_THE_RENEGADE);
   if (!hasTrait(runtime, TRAIT.SONG_OF_THE_MISTS) || !song) return;
-  emitRevenantInvocationSkill(runtime, ID.CALL_OF_THE_RENEGADE, TRAIT.SONG_OF_THE_MISTS);
   for (let index = 0; index < 2; index += 1)
     grantKallasFervor(runtime, { sourceId: TRAIT.SONG_OF_THE_MISTS, sourceName: song.name });
 }
@@ -402,7 +392,7 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     if (cast.skill.id === ID.HEROIC_COMMAND) heroicCommand(runtime, cast);
     completeBandTogether(runtime, cast);
     ashenDemeanor(runtime, cast);
-    if (cast.skill.id === ID.SWAP_LEGENDS) invokeRenegade(runtime);
+    if (cast.skill.id === ID.SWAP_LEGENDS) grantRenegadeInvocationFervor(runtime);
     const allies = gw2AlliedPlayerAssumptions(runtime.config);
     if (
       cast.skill.id === ID.SOULCLEAVES_SUMMIT &&

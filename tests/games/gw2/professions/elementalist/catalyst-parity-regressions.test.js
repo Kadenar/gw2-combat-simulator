@@ -292,7 +292,8 @@ test('Shattering Ice is proc-only and accepts player-owned effect and field atta
   };
   state.shatteringIceUntil = 10;
 
-  assert.deepEqual(skill.effects, []);
+  // Activation owns only the buff window; accepted attacks still own the triggered damage.
+  assert.ok(skill.effects.every((effect) => effect.type === 'buff' && effect.kind === 'shattering ice'));
 
   applyCatalystResolvedDamage(context, {
     type: 'damage',

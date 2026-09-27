@@ -1,4 +1,9 @@
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
+import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { HERALD_SPIRIT_BOON_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
+import { RENEGADE_SPIRIT_BOON_PROFILE_ID } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
+import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/vindicator/profiles.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { applyConduitEnergyCostRules } from '#gw2/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
 import { applyVindicatorEnergyCostRules } from '#gw2/professions/revenant/specializations/vindicator/mechanics/energy-cost.js';
 import type {
@@ -10,6 +15,13 @@ import type {
 
 // Family Energy cost composition: Core supplies the base cost and each elite specialization applies its own policy.
 // It lives at the family root because Core modules may not import specialization rules.
+
+// Family composition supplies elite declarations without making Core import specialization modules.
+export const REVENANT_ELITE_INVOCATIONS: Readonly<Record<string, { spiritBoon: SkillId; song: SkillId }>> = {
+  [LEGEND.DRAGON]: { spiritBoon: HERALD_SPIRIT_BOON_PROFILE_ID, song: ID.CALL_OF_THE_DRAGON },
+  [LEGEND.RENEGADE]: { spiritBoon: RENEGADE_SPIRIT_BOON_PROFILE_ID, song: ID.CALL_OF_THE_RENEGADE },
+  [LEGEND.ALLIANCE]: { spiritBoon: VINDICATOR_BALANCE_PROFILE_IDS.spiritBoon, song: ID.CALL_OF_THE_ALLIANCE }
+};
 
 /** Resolves the shared upkeep-aware base cost before an elite specialization applies its own policy. */
 function baseRevenantEnergyCost({ state }: RevenantEnergyCostInput, skill: RevenantSkill): number {

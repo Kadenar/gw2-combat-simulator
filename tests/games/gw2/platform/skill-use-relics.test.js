@@ -28,9 +28,59 @@ const slotProfession = defineTestProfession({
         castTimeMs: 0,
         effects: [{ type: 'strike', coefficient: 1 }]
       },
-      { id: 940011, name: 'Control', type: 'Utility', castTimeMs: 0, effects: [{ type: 'control' }] }
+      { id: 940011, name: 'Control', type: 'Utility', castTimeMs: 0, effects: [{ type: 'control' }] },
+      { id: 940012, name: 'Cantrip', type: 'Utility', categories: ['Cantrip'], castTimeMs: 500, effects: [] }
     ]
   })
+});
+
+// A profession-neutral fixture verifies that completed cantrips own the buff, including refresh and expiry.
+test('Deadeye relic follows player cantrip completions independently of profession', () => {
+  const rotation = [
+    'Strike',
+    { type: 'cast', skillId: 940012, interruptAfterMs: 0 },
+    'Strike',
+    'Cantrip',
+    'Strike',
+    { type: 'wait', durationMs: 4000 },
+    'Cantrip',
+    'Strike',
+    { type: 'wait', durationMs: 8000 },
+    'Strike'
+  ];
+  const run = (relic) =>
+    observeGw2Runtime({
+      profession: slotProfession.runtimeFor({ relic }),
+      config: { relic },
+      rotation
+    });
+  const result = run('Deadeye');
+  const baseline = run('');
+  assert.deepEqual(result.warnings, []);
+  const hits = (simulation) => simulation.resolvedEvents.filter((event) => event.type === 'damage');
+  const actual = hits(result);
+  const expected = hits(baseline);
+  for (const [index, multiplier] of [1, 1, 1.1, 1.1, 1].entries())
+    assertFlooredDamageMultiplier(actual[index].damage, expected[index].damage, multiplier);
+  const procs = result.procSteps.filter((step) => step.skill === 'Relic of the Deadeye');
+  assert.equal(procs.length, 2);
+  for (const proc of procs) {
+    assert.equal(proc.expiresAt % 40, 0);
+    assert.ok(proc.expiresAt - proc.start >= 8000 && proc.expiresAt - proc.start < 8040);
+  }
+
+  const completed = result.events.find(
+    (event) => event.type === 'action' && event.skillId === 940012 && !event.cancelled
+  );
+  assert.equal(procs[0].start, completed.endsAt * 1000);
+
+  const ctx = observedRuntime(result);
+  const until = ctx.relic.state.buffUntil;
+  invokeRelicHook(ctx, 'completed', { type: 'action', at: 100, skillId: 940012, actorType: 'summon' });
+  assert.equal(ctx.relic.state.buffUntil, until);
+  assert.equal(relicStrikeMultiplier(ctx, { at: until - 0.001, actorType: 'summon' }), 1);
+  assert.equal(relicStrikeMultiplier(ctx, { at: until - 0.001, actorType: 'effect', ownerActorType: 'player' }), 1.1);
+  assert.equal(relicStrikeMultiplier(ctx, { at: until, actorType: 'player' }), 1);
 });
 
 // Saved preparation is opt-in, survives JSON persistence, and rejects unsupported or duplicate selections.

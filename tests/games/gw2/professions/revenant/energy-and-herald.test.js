@@ -558,6 +558,52 @@ test('legend invocation traits resolve after swap effects', () => {
   );
 });
 
+// Every destination uses one trait package; Entity borrows its paired Core legend and setup swaps grant nothing.
+test('invocation packages are selected once and require combat and the matching traits', () => {
+  for (const [specialization, destination, paired, boon, song] of [
+    ['Core', LEGEND.ASSASSIN, LEGEND.DEMON, 'might', 'Call of the Assassin'],
+    ['Core', LEGEND.DEMON, LEGEND.ASSASSIN, 'resistance', 'Call of the Demon'],
+    ['Core', LEGEND.DWARF, LEGEND.ASSASSIN, 'stability', 'Call of the Dwarf'],
+    ['Core', LEGEND.CENTAUR, LEGEND.ASSASSIN, 'regeneration', null],
+    ['Herald', LEGEND.DRAGON, LEGEND.ASSASSIN, 'protection', 'Call of the Dragon'],
+    ['Renegade', LEGEND.RENEGADE, LEGEND.ASSASSIN, 'resolution', 'Call of the Renegade'],
+    ['Vindicator', LEGEND.ALLIANCE, LEGEND.ASSASSIN, 'vigor', 'Call of the Alliance'],
+    ['Conduit', LEGEND.ENTITY, LEGEND.ASSASSIN, 'might', 'Call of the Assassin'],
+    ['Conduit', LEGEND.ENTITY, LEGEND.DEMON, 'resistance', 'Call of the Demon'],
+    ['Conduit', LEGEND.ENTITY, LEGEND.DWARF, 'stability', 'Call of the Dwarf'],
+    ['Conduit', LEGEND.ENTITY, LEGEND.CENTAUR, 'regeneration', null]
+  ]) {
+    for (const combat of [false, true])
+      for (const traits of [
+        [],
+        [TRAIT.SPIRIT_BOON],
+        [TRAIT.SONG_OF_THE_MISTS],
+        [TRAIT.SPIRIT_BOON, TRAIT.SONG_OF_THE_MISTS]
+      ]) {
+        const result = runRevenant(combat ? ['__combat_start', 'Swap Legends'] : ['Swap Legends', '__combat_start'], {
+          specialization,
+          selectedLegends: [paired, destination],
+          startingLegend: paired,
+          selectedTraitIds: traits
+        });
+        assert.deepEqual(result.warnings, []);
+        const boons = result.events.filter((event) => event.sourceId === TRAIT.SPIRIT_BOON);
+        assert.deepEqual(
+          boons.map((event) => event.kind),
+          combat && traits.includes(TRAIT.SPIRIT_BOON) ? [boon] : []
+        );
+        const calls = result.events.filter(
+          (event) => event.sourceId === TRAIT.SONG_OF_THE_MISTS && event.type === 'damage'
+        );
+        assert.deepEqual(
+          calls.map((event) => event.name),
+          combat && song && traits.includes(TRAIT.SONG_OF_THE_MISTS) ? [song] : []
+        );
+        if (boons.length && calls.length) assert.ok(boons[0].eventOrder < calls[0].eventOrder);
+      }
+  }
+});
+
 test('Herald invocation traits emit their declared proc skills', () => {
   const result = simulate('Herald', ['Swap Legends'], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.DRAGON],

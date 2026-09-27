@@ -22,7 +22,12 @@ import { applyMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clari
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
 import { mesmerRechargeWork, mesmerMaximumAmmo } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
 import { mesmerCoreEventHandlers, mesmerCoreEventReactions } from '#gw2/professions/mesmer/core/mechanics/reactions.js';
-import { restartSignetIllusionsPassive, signetIllusionsPulse } from '#gw2/professions/mesmer/core/mechanics/signets.js';
+import {
+  applyMesmerSignetReset,
+  restartSignetIllusionsPassive,
+  signetIllusionsPulse
+} from '#gw2/professions/mesmer/core/mechanics/signets.js';
+import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import { expireInspiringImagery } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
 import { scheduleChaosStormPoison } from '#gw2/professions/mesmer/core/mechanics/chaos-storm.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
@@ -44,6 +49,19 @@ function complete(runtime: MesmerRuntime, cast: RuntimeCast): void {
 /** Core owns casts, clones, and accepted impact reactions on the shared clock. */
 export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
   sideEffectHandlers: {
+    'mesmer.signet-reset': applyMesmerSignetReset,
+    // Impact-owned illusion gains use the same clone/blade/imagery resource owner as other skills.
+    'mesmer.illusion-gain'(runtime, context, action) {
+      if (action.type !== 'mesmer.illusion-gain') return;
+      const mechanics = mesmerMechanicsFor(runtime);
+      mechanics.resources.gainResources(
+        runtime.time,
+        sideEffectAmount(runtime, action.amount!),
+        context.skill.weapon || mechanics.activePrimaryWeapon(),
+        context.skill.name,
+        { kind: 'skill', sourceSkillId: context.skill.id }
+      );
+    },
     'mesmer.tracked-hit'(runtime, context) {
       if (context.kind !== 'effect') return;
       scheduleMesmerTrackedHits(runtime, mesmerMechanicsFor(runtime).addDamage, context.skill as MesmerSkill, [
@@ -129,15 +147,7 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     'mesmer.resource-gain'(runtime, data) {
       const { count, weapon, reason, cause } = data as MesmerPendingResource;
       const mechanics = mesmerMechanicsFor(runtime);
-      const skill = mechanics.skillsById.get(cause?.sourceSkillId ?? '');
-      if (
-        mechanics.resourceDefinition.singular === 'clone' &&
-        mechanics.actions.currentResource() >= mechanics.resourceDefinition.maximum &&
-        skill?.maxCloneEffects?.length
-      ) {
-        for (const effect of skill.maxCloneEffects)
-          mechanics.addCondition(skill.name, runtime.time, { ...effect, name: effect.condition }, 'Player');
-      } else mechanics.resources.gainResources(runtime.time, count, weapon, reason, cause);
+      mechanics.resources.gainResources(runtime.time, count, weapon, reason, cause);
     },
     'mesmer.signet-illusions-passive': signetIllusionsPulse,
     'mesmer.core.imagery-expire': (runtime, data) =>

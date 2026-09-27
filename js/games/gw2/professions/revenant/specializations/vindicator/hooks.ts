@@ -18,10 +18,6 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { VINDICATOR_AIRBORNE_MS, VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
-import {
-  emitRevenantInvocationProfile,
-  emitRevenantInvocationSkill
-} from '#gw2/professions/revenant/core/traits/index.js';
 import { VINDICATOR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/vindicator/profiles.js';
 import { vindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -165,14 +161,11 @@ function energyMeld(runtime: RevenantRuntime): void {
     );
 }
 
-/** Swapping into Alliance in combat applies Spirit Boon and Song of the Mists, which also restores endurance. */
-function invokeAlliance(runtime: RevenantRuntime): void {
+/** Core emits the invocation packets; Alliance additionally restores the Song skill's authored endurance. */
+function grantAllianceInvocationEndurance(runtime: RevenantRuntime): void {
   if (runtime.profession.core.activeLegendId !== LEGEND.ALLIANCE || !runtime.combatStartedAt()) return;
-  if (hasTrait(runtime, TRAIT.SPIRIT_BOON))
-    emitRevenantInvocationProfile(runtime, PROFILE.spiritBoon, TRAIT.SPIRIT_BOON);
   const song = runtime.helpers.skillsById.get(ID.CALL_OF_THE_ALLIANCE);
   if (!hasTrait(runtime, TRAIT.SONG_OF_THE_MISTS) || !song) return;
-  emitRevenantInvocationSkill(runtime, ID.CALL_OF_THE_ALLIANCE, TRAIT.SONG_OF_THE_MISTS);
   runtime.endurance.grant(song.resourceGain || 0);
 }
 
@@ -215,7 +208,7 @@ export const vindicatorHooks: Partial<RuntimeProfession<RevenantRuntimeState>> =
     // Airborne autos may advance the chain; landing resets it before the next serial input.
     if (cast.skill.id === VINDICATOR_JUMP_SKILL.id) resetAutoattackChains(runtime);
     if (ENERGY_MELD_IDS.has(cast.skill.id)) energyMeld(runtime);
-    if (cast.skill.id === ID.SWAP_LEGENDS) invokeAlliance(runtime);
+    if (cast.skill.id === ID.SWAP_LEGENDS) grantAllianceInvocationEndurance(runtime);
   },
   onCastCancel(runtime, cast) {
     // Ending a cancelled jump also retires any autoattack chain advanced while airborne.

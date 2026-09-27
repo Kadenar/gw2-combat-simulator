@@ -1,6 +1,18 @@
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
+
+/** Sample the clone cap at the landed hit; blades and imagery still gain their own resource. */
+function atCloneLimit(runtime: MesmerRuntime): boolean {
+  const mechanics = mesmerMechanicsFor(runtime);
+  return (
+    mechanics.resourceDefinition.singular === 'clone' &&
+    mechanics.actions.currentResource() >= mechanics.resourceDefinition.maximum
+  );
+}
 
 export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.CONFUSING_IMAGES]: {
@@ -89,25 +101,31 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Par
   [ID.ETHER_CLONE]: {
     interruptCommitMs: 440,
     castTimeMs: 840,
-    // Ether Clone creates its clone with the projectile hit; interruptions before that packet grant no clone.
-    resource: {
-      mode: 'add',
-      count: 1,
-      timingAnchor: 'castStart',
-      atMs: 440
-    },
-    maxCloneEffects: [
-      {
-        type: 'condition',
-        condition: 'Torment',
-        duration: 9,
-        stacks: 1
-      }
-    ],
     nextChainId: null,
     effects: [
       {
         type: 'strike',
+        // Resolve the replacement before granting a resource so reaching the cap never grants both rewards.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (runtime, { event }) => Number(event.coefficient) > 0 && atCloneLimit(runtime),
+            do: {
+              type: 'emitProfile',
+              profileId: PROFILE.etherClone,
+              attribution: { source: 'Player', sourceId: ID.ETHER_CLONE, actorType: 'player', name: 'Ether Clone' }
+            }
+          },
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            when: (runtime, { event }) => Number(event.coefficient) > 0 && !atCloneLimit(runtime),
+            do: { type: 'mesmer.illusion-gain', amount: 1 }
+          }
+        ],
         ticks: [{ atMs: 440, coefficient: 0.75 }],
         name: 'Damage',
         actorType: 'player',

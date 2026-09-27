@@ -13,10 +13,8 @@ import type {
   MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerInstrument,
   MesmerMechanics
 } from '#gw2/professions/mesmer/types.js';
-import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type {
   MesmerExceptionalProfileOptions,
   MesmerSkillEffectController
@@ -37,7 +35,6 @@ interface SkillEffectControllerOptions {
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly phantasmAttackTimings: Readonly<Record<number, MesmerPhantasmAttackTiming>>;
   readonly phantasmPolicy: () => MesmerPhantasmPolicy;
-  readonly allSkills: readonly MesmerSkill[];
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
   readonly queueResources: MesmerQueueResources;
   readonly addEvent: MesmerAddEvent;
@@ -45,8 +42,6 @@ interface SkillEffectControllerOptions {
   readonly addCondition: MesmerAddCondition;
   readonly addDamage: MesmerAddDamage;
   readonly traitDamage: Readonly<Record<string, MesmerTraitDamage>>;
-  readonly shatters?: Readonly<Record<number, MesmerShatter>>;
-  readonly instruments?: Readonly<Record<number, MesmerInstrument>>;
   readonly balanceProfile: MesmerMechanics['balanceProfile'];
 }
 
@@ -61,7 +56,6 @@ export function createSkillEffectController({
   resourceDefinition,
   phantasmAttackTimings,
   phantasmPolicy,
-  allSkills,
   activePrimaryWeapon,
   queueResources,
   addEvent,
@@ -69,8 +63,6 @@ export function createSkillEffectController({
   addCondition,
   addDamage,
   traitDamage,
-  shatters = {},
-  instruments = {},
   balanceProfile
 }: SkillEffectControllerOptions): MesmerSkillEffectController {
   const phantasms = createPhantasmEffectController({
@@ -94,14 +86,10 @@ export function createSkillEffectController({
   const specialEffects = createSkillSpecialEffectController({
     state,
     traits,
-    allSkills,
-    addEvent,
     addTraitProc,
     addCondition,
     addDamage,
-    traitDamage,
-    shatters,
-    instruments
+    traitDamage
   });
 
   const schedule = (

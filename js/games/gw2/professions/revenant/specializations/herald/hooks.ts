@@ -14,10 +14,6 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import {
-  emitRevenantInvocationProfile,
-  emitRevenantInvocationSkill
-} from '#gw2/professions/revenant/core/traits/index.js';
 import { activeRevenantUpkeep, removeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { HERALD_MECHANICS as MECHANICS } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 import { heraldFacetPassiveActive } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
@@ -26,8 +22,7 @@ import {
   HERALD_DRACONIC_ECHO_PROFILE_ID,
   HERALD_ELEVATED_COMPASSION_PROFILE_ID,
   HERALD_NATURE_ASSASSIN_PROFILE_ID,
-  HERALD_SHARED_EMPOWERMENT_PROFILE_ID,
-  HERALD_SPIRIT_BOON_PROFILE_ID
+  HERALD_SHARED_EMPOWERMENT_PROFILE_ID
 } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -327,12 +322,6 @@ export const heraldHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     // Facet lifecycle changes aggregate upkeep before Elevated Compassion evaluates its threshold.
     startFacet(runtime, skill);
     syncCompassion(runtime);
-    if (skill.id !== ID.SWAP_LEGENDS) return;
-    if (runtime.profession.core.activeLegendId !== LEGEND.DRAGON || !runtime.combatStartedAt()) return;
-    if (hasTrait(runtime, TRAIT.SPIRIT_BOON))
-      emitRevenantInvocationProfile(runtime, HERALD_SPIRIT_BOON_PROFILE_ID, TRAIT.SPIRIT_BOON);
-    if (hasTrait(runtime, TRAIT.SONG_OF_THE_MISTS))
-      emitRevenantInvocationSkill(runtime, ID.CALL_OF_THE_DRAGON, TRAIT.SONG_OF_THE_MISTS);
   },
   reactions: {
     'damage.resolved': natureSiphon

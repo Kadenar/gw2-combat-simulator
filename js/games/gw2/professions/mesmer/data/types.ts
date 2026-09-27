@@ -111,7 +111,6 @@ export interface MesmerSkill extends Skill {
   readonly blade?: boolean;
   readonly armedAtStart?: boolean;
   readonly flipDelay?: number;
-  readonly maxCloneEffects?: readonly MesmerConditionEffect[];
   readonly parentCooldownIncrease?: number;
   readonly phantasmSummonProgress?: number;
   readonly trackedHitDamage?: MesmerTrackedHitDamage;

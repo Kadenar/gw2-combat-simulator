@@ -128,7 +128,6 @@ const SKILL_FIELDS = new Set([
   'lockouts',
   'malicious',
   'manualReleaseCooldown',
-  'maxCloneEffects',
   'maximumConditions',
   'maximumStacks',
   'mechanicSlot',

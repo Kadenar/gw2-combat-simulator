@@ -493,14 +493,6 @@ export const elementalistTooltips: ProfessionTooltips = {
     [ID.RELENTLESS_FIRE]: skillTooltip(
       'Temporarily increase strike and condition damage. An active Fire Jade Sphere grants the longer window.',
       (balanceContext) => [
-        profileFact(balanceContext, CATALYST.relentlessFire, 'durationMultiplier', 'Base window', tooltipSeconds),
-        profileFact(
-          balanceContext,
-          CATALYST.relentlessFire,
-          'durationPerTier',
-          'Window with Fire sphere',
-          tooltipSeconds
-        ),
         modifierFact(balanceContext, 'elementalist.relentless-fire', 'amount', 'Strike damage'),
         modifierFact(balanceContext, 'elementalist.relentless-fire-condition', 'amount', 'Condition damage')
       ]
@@ -508,25 +500,12 @@ export const elementalistTooltips: ProfessionTooltips = {
     [ID.SHATTERING_ICE]: skillTooltip(
       'Qualifying hits trigger an additional strike and Chilled during the buff. An active Water Jade Sphere grants the longer window.',
       (balanceContext) => [
-        profileFact(balanceContext, CATALYST.shatteringIce, 'durationMultiplier', 'Base window', tooltipSeconds),
-        profileFact(
-          balanceContext,
-          CATALYST.shatteringIce,
-          'durationPerTier',
-          'Window with Water sphere',
-          tooltipSeconds
-        ),
         profileFact(balanceContext, CATALYST.shatteringIce, 'internalCooldown', 'Trigger interval', tooltipSeconds),
         ...simulationEffectFacts(tooltipProfile(balanceContext, CATALYST.shatteringIce).effects, 'per trigger').facts
       ]
     ),
     [ID.ELEMENTAL_CELERITY]: skillTooltip(
-      'Reset the recharges of eligible weapon skills matching your primary attunement. Gain a boon for each corresponding Jade Sphere currently active.',
-      (balanceContext) =>
-        simulationEffectFacts(
-          tooltipProfile(balanceContext, CATALYST.elementalCelerity).effects,
-          'requires the named active sphere'
-        ).facts
+      'Reset eligible weapon recharges in your primary attunement. Each authored boon requires its named Jade Sphere to remain active through completion.'
     ),
     [ID.REJUVENATE]: skillTooltip(
       'Refill the familiar charge bar. Healing is outside combat simulation scope.',

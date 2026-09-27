@@ -249,21 +249,13 @@ function completeDeadeyeCast(runtime: ThiefRuntime, cast: RuntimeCast, facts: De
     const malice = Math.max(0, state.malice || 0);
     state.malice = 0;
     state.maleficentSevenTriggered = false;
-    // Mercy resets Deadeye's Mark and refunds initiative per malice spent.
-    runtime.cooldownController.clear(ID.DEADEYES_MARK);
+    // Mercy consumes Malice and refunds initiative; its skill declaration owns the recharge reset.
     const mercy = requireBalanceProfileFromContext(runtime, PROFILE.mercy);
     grantThiefInitiative(
       runtime,
       balanceProfileNumber(mercy, 'resourceGain') + malice * balanceProfileNumber(mercy, 'attributePerStack')
     );
-  } else if (skill.id === ID.SHADOW_FLARE)
-    runtime.armFlip(ID.SHADOW_SWAP, {
-      availableAt: runtime.time,
-      expiresAt:
-        runtime.time +
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.shadowFlare), 'durationMultiplier')
-    });
-  else if (skill.id === ID.SHADOW_SWAP) consumeSkillFlip(runtime.profession.core.availableFlips, ID.SHADOW_SWAP);
+  } else if (skill.id === ID.SHADOW_SWAP) consumeSkillFlip(runtime.profession.core.availableFlips, ID.SHADOW_SWAP);
 
   // Silent Scope: a dodge above the malice threshold grants one out-of-stealth stealth attack.
   if (skill.id === SHARED_SKILL_IDS.DODGE && hasTrait(runtime, TRAIT.SILENT_SCOPE)) {
@@ -275,22 +267,6 @@ function completeDeadeyeCast(runtime: ThiefRuntime, cast: RuntimeCast, facts: De
   }
 
   if (!(skill.categories || []).includes('Cantrip')) return;
-  if (runtime.config.relic === 'Deadeye') {
-    state.deadeyeRelicUntil = runtime.time + 8;
-    runtime.emit({
-      type: 'proc',
-      procType: 'relic',
-      at: runtime.time,
-      source: 'Relic',
-      sourceId: 'relic.deadeye',
-      actorType: 'effect',
-      name: 'Relic of the Deadeye',
-      sourceSkill: skill.name,
-      duration: 8,
-      detail: 'activated'
-    });
-  }
-
   // One in the Chamber refreshes the stolen skill on every cantrip, replacing any stored choice.
   if (hasTrait(runtime, TRAIT.ONE_IN_THE_CHAMBER)) {
     const grant = stolenSkillGrant(runtime);

@@ -15,6 +15,7 @@ import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/i
 
 export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'mesmer.core.resources',
+  etherClone: 'mesmer.core.ether-clone',
   mindWrack: 'mesmer.core.mind-wrack',
   cryOfFrustration: 'mesmer.core.cry-of-frustration',
   diversion: 'mesmer.core.diversion',
@@ -94,6 +95,10 @@ const SHATTER_PROFILE_BY_SKILL_ID: Readonly<Record<number, string>> = Object.fre
 });
 
 export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // The landed-hit reaction selects this ordinary condition profile instead of creating an excess clone.
+  variant(MESMER_CORE_BALANCE_PROFILE_IDS.etherClone, ID.ETHER_CLONE, 'Ether Clone - Clone Limit', {
+    effects: [{ type: 'condition', condition: 'Torment', duration: 9, stacks: 1 }]
+  }),
   {
     id: MESMER_CORE_BALANCE_PROFILE_IDS.resources,
     name: 'Mesmer Clone Resources',

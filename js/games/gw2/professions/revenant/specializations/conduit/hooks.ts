@@ -26,9 +26,7 @@ import {
   REVENANT_CONDUIT_FORM_BY_LEGEND,
   REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND
 } from '#gw2/professions/revenant/data/legends.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/revenant/core/profiles.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
-import { emitRevenantInvocationProfile } from '#gw2/professions/revenant/core/traits/index.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { isRevenantUpkeep } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
@@ -398,30 +396,11 @@ function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast): void {
   numinousGift(runtime, cast);
 }
 
-/** Legend swaps reset affinity, inherit Entity invocations, extend and re-select the form, and share Found Purpose. */
+/** Legend swaps reset affinity, extend and re-select the form, and share Found Purpose. */
 function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const state = conduit(runtime);
   const core = runtime.profession.core;
   const combat = runtime.combatStartedAt();
-  // Entity invocation inherits Spirit Boon and Song of the Mists from Conduit's paired Core legend.
-  if (core.activeLegendId === LEGEND.ENTITY && combat) {
-    const paired = core.selectedLegendIds.find((legendId) => legendId !== LEGEND.ENTITY);
-    if (paired && hasTrait(runtime, TRAIT.SPIRIT_BOON))
-      emitRevenantInvocationProfile(
-        runtime,
-        CORE_PROFILE.spiritBoon,
-        TRAIT.SPIRIT_BOON,
-        (effect) => effect.metadata?.legendId === paired
-      );
-    if (paired && hasTrait(runtime, TRAIT.SONG_OF_THE_MISTS))
-      emitRevenantInvocationProfile(
-        runtime,
-        CORE_PROFILE.songOfTheMists,
-        TRAIT.SONG_OF_THE_MISTS,
-        (effect) => effect.metadata?.legendId === paired
-      );
-  }
-
   // The form state before the reset decides Enhanced Embodiment and the form update.
   const formActive = state.cosmicWisdomUntil > runtime.time;
   state.affinity = 0;

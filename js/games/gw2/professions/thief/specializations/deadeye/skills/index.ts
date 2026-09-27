@@ -1,3 +1,4 @@
+import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -106,7 +107,17 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.SHADOW_FLARE]: {
-    // Custom: Arms the temporary Shadow Swap follow-up through `deadeye/hooks.ts`.
+    // A committed Flare opens the follow-up through the shared flip lifecycle.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'flipArm',
+          skillId: ID.SHADOW_SWAP,
+          durationSec: { profile: PROFILE.shadowFlare, field: 'durationMultiplier' }
+        }
+      }
+    ],
     castTimeMs: 480,
     cooldown: 20,
     initiativeCost: 0,
@@ -158,7 +169,8 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.MERCY]: {
-    // Custom: Consumes Malice, refunds initiative, and resets Deadeye's Mark through `deadeye/hooks.ts`.
+    // The fixed reset belongs to the skill; Malice consumption and its scaled refund remain stateful.
+    sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.DEADEYES_MARK] } }],
     castTimeMs: 0,
     cooldown: 1,
     ammo: 2,

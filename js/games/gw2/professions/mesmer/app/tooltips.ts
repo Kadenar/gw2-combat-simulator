@@ -352,10 +352,12 @@ export const mesmerTooltips: ProfessionTooltips = {
       "Strike your target and consume Clarity if present. Healing and incoming-damage avoidance do not change the simulated player's health."
     ),
     [ID.ETHER_CLONE]: skillTooltip(
-      'Strike and generate a clone. If already at the clone limit when the resource packet lands, inflict the additional condition instead. Other specializations generate their own resource.',
-      (_c, entity) =>
-        simulationEffectFacts((entity as MesmerSkill).maxCloneEffects, 'instead of creating a clone at the clone limit')
-          .facts
+      'Strike and generate a clone. If already at the clone limit when the strike lands, inflict the additional condition instead. Other specializations generate their own resource.',
+      (context) =>
+        simulationEffectFacts(
+          tooltipProfile(context, CORE.etherClone).effects,
+          'instead of creating a clone at the clone limit'
+        ).facts
     ),
     [ID.FLYING_CUTTER]: skillTooltip(
       'Strike your target. Repeated qualifying hits within the tracking window trigger an additional Cutter Burst.',

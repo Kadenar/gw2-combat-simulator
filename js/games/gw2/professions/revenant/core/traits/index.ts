@@ -16,6 +16,7 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
+import { REVENANT_ELITE_INVOCATIONS } from '#gw2/professions/revenant/family-state.js';
 import { emitRevenantProfile, revenantBoonActive } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -25,7 +26,6 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
 export const REVENANT_ASSASSINS_PRESENCE = 'revenant.assassins-presence';
-const CORE_LEGENDS = new Set<string>([LEGEND.ASSASSIN, LEGEND.DEMON, LEGEND.DWARF, LEGEND.CENTAUR]);
 
 interface TraitBuff {
   readonly sourceId: SkillId;
@@ -49,7 +49,7 @@ function traitBuff(runtime: RevenantRuntime, profile: Skill, effect: SkillEffect
 }
 
 /** Invocation and legend packages share one profile materialization at the current instant. */
-export function emitRevenantInvocationProfile(
+function emitRevenantInvocationProfile(
   runtime: RevenantRuntime,
   profileId: SkillId,
   sourceId: SkillId,
@@ -60,13 +60,6 @@ export function emitRevenantInvocationProfile(
     activationId: `legend-invocation:${sourceId}:${runtime.time}`,
     predicate
   });
-}
-
-/** Song of the Mists materializes a declared legend proc skill with the trait as its source. */
-export function emitRevenantInvocationSkill(runtime: RevenantRuntime, skillId: SkillId, sourceId: SkillId): void {
-  const skill = runtime.helpers.skillsById.get(skillId);
-  if (!skill) return;
-  emitRevenantProfile(runtime, skill, { sourceId, activationId: `legend-invocation:${sourceId}:${runtime.time}` });
 }
 
 /** Adds expiring Battle Scars up to the shared cap and publishes only the stacks actually granted. */
@@ -169,27 +162,32 @@ export function completeRevenantCastTraits(runtime: RevenantRuntime, cast: Runti
   );
 }
 
-/** Core invocation traits run after a completed in-combat legend swap reaches its destination. */
+/** Core owns invocation traits for every legend; Entity inherits the paired legend's package. */
 export function applyRevenantInvocationTraits(runtime: RevenantRuntime): void {
   if (!runtime.combatStartedAt()) return;
-  const legendId = runtime.profession.core.activeLegendId;
+  const core = runtime.profession.core;
+  const legendId =
+    core.activeLegendId === LEGEND.ENTITY
+      ? core.selectedLegendIds.find((id) => id !== LEGEND.ENTITY)
+      : core.activeLegendId;
+  const elite = legendId ? REVENANT_ELITE_INVOCATIONS[legendId] : undefined;
+  const matchesLegend = (effect: SkillEffect) => elite != null || effect.metadata?.legendId === legendId;
   // Every in-combat invocation grants Fury; Invoker's Rage no longer has an internal cooldown.
   if (hasTrait(runtime, TRAIT.INVOKERS_RAGE))
     emitRevenantInvocationProfile(runtime, PROFILE.invokersRage, TRAIT.INVOKERS_RAGE);
-  if (CORE_LEGENDS.has(legendId) && hasTrait(runtime, TRAIT.SPIRIT_BOON))
-    emitRevenantInvocationProfile(
-      runtime,
-      PROFILE.spiritBoon,
-      TRAIT.SPIRIT_BOON,
-      (effect) => effect.metadata?.legendId === legendId
-    );
-  if (CORE_LEGENDS.has(legendId) && hasTrait(runtime, TRAIT.SONG_OF_THE_MISTS))
-    emitRevenantInvocationProfile(
-      runtime,
-      PROFILE.songOfTheMists,
-      TRAIT.SONG_OF_THE_MISTS,
-      (effect) => effect.metadata?.legendId === legendId
-    );
+  if (legendId && hasTrait(runtime, TRAIT.SPIRIT_BOON))
+    emitRevenantInvocationProfile(runtime, elite?.spiritBoon ?? PROFILE.spiritBoon, TRAIT.SPIRIT_BOON, matchesLegend);
+  if (legendId && hasTrait(runtime, TRAIT.SONG_OF_THE_MISTS)) {
+    if (elite) {
+      const song = runtime.helpers.skillsById.get(elite.song);
+      if (song)
+        emitRevenantProfile(runtime, song, {
+          sourceId: TRAIT.SONG_OF_THE_MISTS,
+          activationId: `legend-invocation:${TRAIT.SONG_OF_THE_MISTS}:${runtime.time}`
+        });
+    } else emitRevenantInvocationProfile(runtime, PROFILE.songOfTheMists, TRAIT.SONG_OF_THE_MISTS, matchesLegend);
+  }
+
   if (hasTrait(runtime, TRAIT.INVOKING_TORMENT)) {
     const diabolicInferno = hasTrait(runtime, TRAIT.DIABOLIC_INFERNO);
     emitRevenantInvocationProfile(

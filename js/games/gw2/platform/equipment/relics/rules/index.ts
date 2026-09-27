@@ -7,6 +7,7 @@ import { blightbringer } from '#gw2/platform/equipment/relics/rules/blightbringe
 import { bloodstone } from '#gw2/platform/equipment/relics/rules/bloodstone.js';
 import { brawler } from '#gw2/platform/equipment/relics/rules/brawler.js';
 import { claw } from '#gw2/platform/equipment/relics/rules/claw.js';
+import { deadeye } from '#gw2/platform/equipment/relics/rules/deadeye.js';
 import { dragonhunter } from '#gw2/platform/equipment/relics/rules/dragonhunter.js';
 import { eagle } from '#gw2/platform/equipment/relics/rules/eagle.js';
 import { fireworks } from '#gw2/platform/equipment/relics/rules/fireworks.js';
@@ -34,6 +35,7 @@ export const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Obj
   Bloodstone: bloodstone,
   Brawler: brawler,
   Claw: claw,
+  Deadeye: deadeye,
   Dragonhunter: dragonhunter,
   Eagle: eagle,
   Fireworks: fireworks,

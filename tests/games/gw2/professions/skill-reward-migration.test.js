@@ -10,6 +10,28 @@ import { runThief } from '#tests/helpers/thief-simulation.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_SKILL_IDS as GUARDIAN, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
+import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
+import { DEADEYE_BALANCE_PROFILE_IDS as DEADEYE_PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
+import { MESMER_CORE_BALANCE_PROFILE_IDS as MESMER_PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
+
+// Apply fixture tuning and state through the real profession lifecycle, retaining native task/reaction dispatch.
+function migratedSkillRun(profession, config, rotation, { catalog = (value) => value, initialize = () => {} } = {}) {
+  const native = profession.runtimeFor(config);
+  return observeGw2Runtime({
+    profession: {
+      ...native,
+      catalog: catalog(native.catalog),
+      initialize(runtime) {
+        native.initialize(runtime);
+        initialize(runtime);
+      }
+    },
+    config,
+    rotation
+  });
+}
 
 // The shared emitter must retain the trait's identity and cast lineage alongside the independent page refund.
 test('Weighty Terms side effects preserve Slow attribution and page restoration', () => {
@@ -201,5 +223,243 @@ test('Mind the Gap applies its authored Clarity duration and respects effect rem
     const proc = result.events.find((event) => event.type === 'proc' && event.name === 'Clarity');
     assert.equal(Boolean(proc), !removed && !cancelled);
     if (proc) assert.equal(proc.detail, 'Spear skills 3-5 empowered for 2s');
+  }
+});
+// Signet rewards follow commitment and authored removal, independently of deferred Mesmer completion.
+test('signet declarations reset only committed activations', () => {
+  for (const [id, target] of [
+    [MESMER.SIGNET_OF_THE_ETHER, MESMER.PHANTASMAL_WARLOCK],
+    [MESMER.SIGNET_OF_ILLUSIONS, MESMER.MIND_WRACK]
+  ]) {
+    for (const [cancelled, removed] of [
+      [false, false],
+      [true, false],
+      [false, true]
+    ]) {
+      const result = migratedSkillRun(
+        mesmerProfession,
+        { specialization: 'Core', selectedTraitIds: [], boons: {}, target: { armor: 2597 } },
+        [
+          { type: 'cast', skillId: id, interruptAfterMs: cancelled ? 100 : 500 },
+          { type: 'wait', durationMs: 250 }
+        ],
+        {
+          catalog: (catalog) =>
+            withSkill(catalog, id, {
+              castTimeMs: 1000,
+              interruptCommitMs: 400,
+              ...(removed ? { sideEffects: [] } : {})
+            }),
+          initialize(runtime) {
+            runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(target), 0, 50);
+          }
+        }
+      );
+      assert.deepEqual(result.warnings, []);
+      const runtime = observedRuntime(result);
+      assert.equal(runtime.cooldowns.has(target), cancelled || removed);
+      assert.equal(runtime.rechargeProgress.has(target), cancelled || removed);
+    }
+  }
+});
+
+// Mercy's removable reset must not own or suppress the independent Malice refund.
+test('Mercy declares its Mark reset independently of the Malice refund', () => {
+  const refunds = [];
+  for (const removed of [false, true]) {
+    const result = runThief(
+      ['Mercy'],
+      { specialization: 'Deadeye', selectedSkills: ['Mercy'], initialInitiative: 0 },
+      {
+        catalog: (catalog) => (removed ? withSkill(catalog, THIEF.MERCY, { sideEffects: [] }) : catalog),
+        initialize(runtime) {
+          runtime.profession.specialization.state.malice = 3;
+          runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(THIEF.DEADEYES_MARK), 0, 50);
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const runtime = observedRuntime(result);
+    assert.equal(runtime.cooldowns.has(THIEF.DEADEYES_MARK), removed);
+    assert.equal(runtime.profession.specialization.state.malice, 0);
+    refunds.push(runtime.profession.core.initiative.value);
+  }
+
+  assert.ok(refunds[0] > 0);
+  assert.equal(refunds[0], refunds[1]);
+});
+
+// The shared flip observes live profile duration, exclusive expiry, consumption, and cancellation.
+test('Shadow Flare uses the shared follow-up window', () => {
+  for (const cancelled of [false, true]) {
+    const windows = [];
+    const result = runThief(
+      [
+        { type: 'cast', skillId: THIEF.SHADOW_FLARE, ...(cancelled ? { interruptAfterMs: 100 } : {}) },
+        { type: 'wait', durationMs: 1500 }
+      ],
+      { specialization: 'Deadeye', selectedSkills: ['Shadow Flare'] },
+      {
+        catalog: (catalog) =>
+          withProfile(
+            withSkill(catalog, THIEF.SHADOW_FLARE, {
+              castTimeMs: 400,
+              interruptCommitMs: 400
+            }),
+            DEADEYE_PROFILE.shadowFlare,
+            { durationMultiplier: 0.5 }
+          ),
+        probes: [
+          [0.7, (runtime) => windows.push(Boolean(runtime.profession.core.availableFlips[THIEF.SHADOW_SWAP]))],
+          [1.2, (runtime) => windows.push(Boolean(runtime.profession.core.availableFlips[THIEF.SHADOW_SWAP]))]
+        ]
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(windows, [!cancelled, false]);
+  }
+
+  const used = runThief(['Shadow Flare', 'Shadow Swap'], {
+    specialization: 'Deadeye',
+    selectedSkills: ['Shadow Flare']
+  });
+  assert.deepEqual(used.warnings, []);
+  assert.equal(observedRuntime(used).profession.core.availableFlips[THIEF.SHADOW_SWAP], undefined);
+});
+
+// Native buff effects own tuning/removal; a sphere expiring during the cast cannot extend the window.
+test('Catalyst augments apply their authored buff windows', () => {
+  for (const [id, element, kind] of [
+    [ELEMENTALIST.RELENTLESS_FIRE, 'Fire', 'relentless fire'],
+    [ELEMENTALIST.SHATTERING_ICE, 'Water', 'shattering ice']
+  ]) {
+    for (const [expiry, removed, cancelled] of [
+      [0.2, false, false],
+      [10, false, false],
+      [10, true, false],
+      [10, false, true]
+    ]) {
+      const result = migratedSkillRun(
+        elementalistProfession,
+        {
+          specialization: 'Catalyst',
+          selectedSkills: ['Relentless Fire', 'Shattering Ice', 'Elemental Celerity'],
+          startAttunement: 'Fire',
+          selectedTraitIds: [],
+          boons: {},
+          target: { armor: 2597 }
+        },
+        [
+          { type: 'cast', skillId: id, ...(cancelled ? { interruptAfterMs: 100 } : {}) },
+          { type: 'wait', durationMs: 1000 }
+        ],
+        {
+          catalog: (catalog) =>
+            withSkill(catalog, id, {
+              castTimeMs: 1000,
+              interruptCommitMs: 1000,
+              effects: removed
+                ? []
+                : catalog.skillsById.get(id).effects.map((effect) => ({ ...effect, duration: effect.duration + 1 }))
+            }),
+          initialize(runtime) {
+            catalystState.from(runtime).sphereExpiry[element] = expiry;
+          }
+        }
+      );
+      assert.deepEqual(result.warnings, []);
+      const buffs = result.events.filter((event) => event.type === 'buff' && event.kind === kind);
+      assert.equal(buffs.length, removed || cancelled ? 0 : 1);
+      if (buffs.length) assert.equal(buffs[0].duration, expiry > 1 ? 9 : 6);
+      if (kind === 'shattering ice')
+        assert.equal(catalystState.from(observedRuntime(result)).shatteringIceUntil > 0, !removed && !cancelled);
+    }
+  }
+});
+
+// Celerity restores ammo and ordinary cooldowns in the selected attunement; boon removal never changes that reset.
+test('Elemental Celerity selects weapon targets and independently owns its sphere boons', () => {
+  for (const removed of [false, true]) {
+    let targets;
+    const result = migratedSkillRun(
+      elementalistProfession,
+      {
+        specialization: 'Catalyst',
+        startAttunement: 'Fire',
+        selectedSkills: ['Elemental Celerity'],
+        selectedTraitIds: [],
+        boons: {},
+        target: { armor: 2597 }
+      },
+      ['Elemental Celerity'],
+      {
+        catalog: (catalog) =>
+          removed ? withSkill(catalog, ELEMENTALIST.ELEMENTAL_CELERITY, { effects: [] }) : catalog,
+        initialize(runtime) {
+          targets = runtime.helpers.skills.filter((skill) => skill.type === 'Weapon' && skill.cooldown > 0);
+          for (const skill of targets) {
+            runtime.cooldownController.startRecharge(skill, 0, 50);
+            if (skill.ammo > 0) {
+              runtime.cooldownController.ensureAmmo(skill, 0);
+              runtime.ammo.get(skill.id).charges = 0;
+            }
+          }
+
+          Object.assign(catalystState.from(runtime).sphereExpiry, { Fire: 10, Water: 10, Air: 0.1, Earth: 0 });
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const runtime = observedRuntime(result);
+    for (const skill of targets) {
+      if (skill.ammo > 0) {
+        assert.equal(runtime.ammo.get(skill.id).charges, skill.attunement === 'Fire' ? skill.ammo : 0);
+      } else assert.equal(runtime.cooldowns.has(skill.id), skill.attunement !== 'Fire');
+    }
+
+    const boons = result.events.filter(
+      (event) => event.type === 'buff' && event.skillId === ELEMENTALIST.ELEMENTAL_CELERITY
+    );
+    assert.deepEqual(boons.map((event) => event.kind).sort(), removed ? [] : ['might', 'vigor']);
+  }
+});
+
+// The replacement profile resolves only after a landed strike and remains removable independently of clone gains.
+test('Ether Clone uses a live condition profile at the clone cap and grants nothing on a missed hit', () => {
+  for (const [initialResource, offTarget, removed] of [
+    [3, false, false],
+    [3, false, true],
+    [3, true, false],
+    [2, true, false]
+  ]) {
+    const result = migratedSkillRun(
+      mesmerProfession,
+      {
+        specialization: 'Core',
+        primaryWeapon: 'Scepter',
+        initialResource,
+        selectedTraitIds: [],
+        boons: {},
+        target: { armor: 2597 }
+      },
+      ['Ether Bolt', 'Ether Blast', { type: 'cast', skillId: MESMER.ETHER_CLONE, offTarget }],
+      {
+        catalog: (catalog) =>
+          withProfile(catalog, MESMER_PROFILE.etherClone, {
+            effects: removed ? [] : [{ type: 'condition', condition: 'Torment', duration: 2, stacks: 2 }]
+          })
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.resource, initialResource);
+    const conditions = result.events.filter(
+      (event) => event.type === 'condition' && event.skillId === MESMER.ETHER_CLONE
+    );
+    assert.equal(conditions.length, removed || offTarget ? 0 : 1);
+    if (conditions.length) {
+      assert.equal(conditions[0].duration, 2);
+      assert.equal(conditions[0].stacks, 2);
+      assert.equal(conditions[0].sourceId, MESMER.ETHER_CLONE);
+    }
   }
 });

@@ -209,7 +209,6 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
     resourceDefinition,
     phantasmAttackTimings: runtime.phantasmAttackTimings,
     phantasmPolicy: () => runtime.phantasmPolicy,
-    allSkills,
     activePrimaryWeapon,
     queueResources: resources.queueResources,
     addEvent,
@@ -217,8 +216,6 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
     addCondition,
     addDamage,
     traitDamage: runtime.traitDamage,
-    shatters: runtime.shatters,
-    instruments: runtime.instruments,
     balanceProfile: runtime.balanceProfile
   });
   const connectedRuntime: MesmerMechanics = Object.assign(runtime, {

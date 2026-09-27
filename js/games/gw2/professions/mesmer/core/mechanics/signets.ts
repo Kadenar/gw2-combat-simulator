@@ -6,8 +6,8 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerAddEvent, MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { applySideEffect, type ActionContext } from '#gw2/platform/simulation/side-effects.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 
@@ -16,38 +16,28 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 const SIGNET_ILLUSIONS_OWNER = 'mesmer.signet-illusions-passive';
 
 /** Applies active signet resets to the cooldown and ammo state shared by later casts. */
-export function applyMesmerSignetReset(
-  state: MesmerRuntime,
-  allSkills: readonly MesmerSkill[],
-  shatters: Readonly<Record<number, MesmerShatter>>,
-  instruments: Readonly<Record<number, MesmerInstrument>>,
-  addEvent: MesmerAddEvent,
-  skill: MesmerSkill,
-  at: number
-): void {
-  if (skill.id === ID.SIGNET_OF_THE_ETHER) {
-    for (const phantasmSkill of allSkills.filter((candidate) => candidate.phantasm)) {
-      state.cooldownController.clear(phantasmSkill.id);
-    }
-
-    addEvent({ type: 'marker', at, name: 'Signet of the Ether', detail: 'Phantasm skill cooldowns reset' });
-  }
-
-  if (skill.id !== ID.SIGNET_OF_ILLUSIONS) return;
-  for (const target of allSkills.filter(
-    (candidate) =>
-      Boolean(instruments[candidate.id]) ||
-      (shatters[candidate.id] && shatters[candidate.id].resetBySignetOfIllusions !== false)
-  )) {
-    if (state.ammo.has(target.id)) state.cooldownController.restoreAmmo(target, 1, at, 'reset');
-    state.cooldownController.clear(target.id);
-  }
-
+export function applyMesmerSignetReset(state: MesmerRuntime, context: ActionContext): void {
+  const { shatters, instruments, addEvent } = mesmerMechanicsFor(state);
+  const phantasms = context.skill.id === ID.SIGNET_OF_THE_ETHER;
+  const targets = state.helpers.skills.filter((candidate) =>
+    phantasms
+      ? candidate.phantasm
+      : Boolean(instruments[Number(candidate.id)]) ||
+        (shatters[Number(candidate.id)] && shatters[Number(candidate.id)].resetBySignetOfIllusions !== false)
+  );
+  // Catalog selection stays local; the shared actions own recharge and existing ammo restoration.
+  if (!phantasms)
+    applySideEffect(state, context, {
+      type: 'ammoRestore',
+      skillIds: targets.filter((target) => state.ammo.has(target.id)).map((target) => target.id),
+      count: 1
+    });
+  applySideEffect(state, context, { type: 'rechargeReset', skillIds: targets.map((target) => target.id) });
   addEvent({
     type: 'marker',
-    at,
-    name: 'Signet of Illusions',
-    detail: 'Eligible shatter and instrument cooldowns reset'
+    at: state.time,
+    name: context.skill.name,
+    detail: phantasms ? 'Phantasm skill cooldowns reset' : 'Eligible shatter and instrument cooldowns reset'
   });
 }
 

@@ -48,6 +48,8 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     effects: []
   },
   [ID.SIGNET_OF_ILLUSIONS]: {
+    // Committed activation refreshes the selected catalog's eligible shatters and instruments.
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.signet-reset' } }],
     castTimeMs: 1120,
     // Restart the passive clone interval only after the active cast completes.
     tasks: [
@@ -150,6 +152,8 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     castTimeMs: 760
   },
   [ID.SIGNET_OF_THE_ETHER]: {
+    // Reset phantasms at commitment; the delayed self-relock remains independent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.signet-reset' } }],
     // The live skill re-locks itself 300ms after completion despite resetting phantasms immediately.
     tasks: [
       {

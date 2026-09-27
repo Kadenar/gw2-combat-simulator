@@ -1,6 +1,6 @@
 import { completeNecromancerForm, necromancerFormTasks } from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';
-import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
+import { applySideEffect, sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { modifyNecromancerRechargeStart } from '#gw2/professions/necromancer/core/mechanics/recharge.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -14,7 +14,7 @@ import {
 } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast, RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,
@@ -317,8 +317,15 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
     ...necromancerConditionTasks,
     ...necromancerMinionTasks,
     ...necromancerPassiveTasks,
-    [GRAVEDIGGER_RESET](runtime) {
-      if (remainingTargetHealthBelow(runtime.config, runtime, 0.5)) runtime.cooldownController.clear(ID.GRAVEDIGGER);
+    [GRAVEDIGGER_RESET](runtime, data) {
+      // Preserve the full-end health sample while delegating the mutation to the shared reset.
+      const { cast } = data as SkillTaskData;
+      if (remainingTargetHealthBelow(runtime.config, runtime, 0.5))
+        applySideEffect(
+          runtime,
+          { kind: 'cast', skill: cast.skill, cast },
+          { type: 'rechargeReset', skillIds: [ID.GRAVEDIGGER] }
+        );
     },
     ...necromancerFormTasks
   },

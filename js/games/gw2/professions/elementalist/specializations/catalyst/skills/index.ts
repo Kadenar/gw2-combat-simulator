@@ -1,3 +1,4 @@
+import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 /**
  * Owns Catalyst Jade Sphere and augment skill catalog fragments only.
  * Energy, sphere, and empowerment state lives under `mechanics/`.
@@ -8,8 +9,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /**
  * Catalyst skill fragments: the four attunement-gated Deploy Jade Sphere profession
- * skills, each placing a five-second combo field of its element, and the three
- * augments whose `tasks` fire their Catalyst handler at cast end.
+ * skills, each placing a five-second combo field, and augments with skill-owned buffs and weapon refreshes.
  */
 export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.DEPLOY_JADE_SPHERE_FIRE]: {
@@ -105,14 +105,27 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
     castTimeMs: 240,
     cooldown: 20,
     skillFamily: 'Augment',
-    // Relentless Fire opens its damage window when the augment completes.
-    tasks: [
+    // Only a sphere surviving through completion extends this skill's authored buff.
+    effects: [
       {
-        type: 'elementalist.catalyst.relentless-fire',
-        timingAnchor: 'castCommit'
+        type: 'buff',
+        name: 'Base window',
+        kind: 'relentless fire',
+        duration: 5,
+        stacks: 1,
+        audience: { recipients: 'self' },
+        when: (runtime, cast) => !(catalystState.from(runtime).sphereExpiry.Fire > cast.effectiveEnd)
+      },
+      {
+        type: 'buff',
+        name: 'Window with Fire sphere',
+        kind: 'relentless fire',
+        duration: 8,
+        stacks: 1,
+        audience: { recipients: 'self' },
+        when: (runtime, cast) => catalystState.from(runtime).sphereExpiry.Fire > cast.effectiveEnd
       }
-    ],
-    effects: []
+    ]
   },
   [ID.SHATTERING_ICE]: {
     name: 'Shattering Ice',
@@ -123,15 +136,27 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
     castTimeMs: 240,
     cooldown: 20,
     skillFamily: 'Augment',
-    // Shattering Ice opens its proc window when the augment completes.
-    tasks: [
+    // Only a sphere surviving through completion extends this skill's authored buff.
+    effects: [
       {
-        type: 'elementalist.catalyst.shattering-ice',
-        timingAnchor: 'castCommit'
+        type: 'buff',
+        name: 'Base window',
+        kind: 'shattering ice',
+        duration: 5,
+        stacks: 1,
+        audience: { recipients: 'self' },
+        when: (runtime, cast) => !(catalystState.from(runtime).sphereExpiry.Water > cast.effectiveEnd)
+      },
+      {
+        type: 'buff',
+        name: 'Window with Water sphere',
+        kind: 'shattering ice',
+        duration: 8,
+        stacks: 1,
+        audience: { recipients: 'self' },
+        when: (runtime, cast) => catalystState.from(runtime).sphereExpiry.Water > cast.effectiveEnd
       }
-    ],
-    // The activation only opens a proc window; successful attacks own every strike and chill packet.
-    effects: []
+    ]
   },
   [ID.ELEMENTAL_CELERITY]: {
     name: 'Elemental Celerity',
@@ -142,13 +167,41 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
     castTimeMs: 240,
     cooldown: 90,
     skillFamily: 'Augment',
-    // Elemental Celerity refreshes the active attunement and grants sphere boons on completion.
-    tasks: [
+    // The active catalog selects reset targets; each surviving sphere gates its own authored boon.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.catalyst.refresh-weapons' } }],
+    effects: [
       {
-        type: 'elementalist.catalyst.elemental-celerity',
-        timingAnchor: 'castCommit'
+        type: 'boon',
+        name: 'Fire',
+        boon: 'might',
+        stacks: 5,
+        duration: 6,
+        when: (runtime, cast) => catalystState.from(runtime).sphereExpiry.Fire > cast.effectiveEnd
+      },
+      {
+        type: 'boon',
+        name: 'Water',
+        boon: 'vigor',
+        stacks: 1,
+        duration: 6,
+        when: (runtime, cast) => catalystState.from(runtime).sphereExpiry.Water > cast.effectiveEnd
+      },
+      {
+        type: 'boon',
+        name: 'Air',
+        boon: 'fury',
+        stacks: 1,
+        duration: 6,
+        when: (runtime, cast) => catalystState.from(runtime).sphereExpiry.Air > cast.effectiveEnd
+      },
+      {
+        type: 'boon',
+        name: 'Earth',
+        boon: 'protection',
+        stacks: 1,
+        duration: 4,
+        when: (runtime, cast) => catalystState.from(runtime).sphereExpiry.Earth > cast.effectiveEnd
       }
-    ],
-    effects: []
+    ]
   }
 });

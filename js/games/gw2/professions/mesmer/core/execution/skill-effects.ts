@@ -8,16 +8,8 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_CORE_CLONE_ATTACKS } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
 import { consumeMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
-import { applyMesmerSignetReset } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import { triggerMethodOfMadness } from '#gw2/professions/mesmer/core/traits/index.js';
-import type {
-  MesmerAddCondition,
-  MesmerAddDamage,
-  MesmerAddEvent,
-  MesmerAddTraitProc,
-  MesmerInstrument
-} from '#gw2/professions/mesmer/types.js';
-import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import type { MesmerAddCondition, MesmerAddDamage, MesmerAddTraitProc } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -31,27 +23,19 @@ interface MesmerSkillSpecialEffectController {
 interface SkillSpecialEffectControllerOptions {
   readonly state: MesmerRuntime;
   readonly traits: ReadonlySet<number>;
-  readonly allSkills: readonly MesmerSkill[];
-  readonly addEvent: MesmerAddEvent;
   readonly addTraitProc: MesmerAddTraitProc;
   readonly addCondition: MesmerAddCondition;
   readonly addDamage: MesmerAddDamage;
   readonly traitDamage: Readonly<Record<string, MesmerTraitDamage>>;
-  readonly shatters: Readonly<Record<number, MesmerShatter>>;
-  readonly instruments: Readonly<Record<number, MesmerInstrument>>;
 }
 
 export function createSkillSpecialEffectController({
   state,
   traits,
-  allSkills,
-  addEvent,
   addTraitProc,
   addCondition,
   addDamage,
-  traitDamage,
-  shatters,
-  instruments
+  traitDamage
 }: SkillSpecialEffectControllerOptions): MesmerSkillSpecialEffectController {
   const consumeClarity = (skill: MesmerSkill, castStart: number): boolean =>
     consumeMesmerClarity(state, skill, castStart);
@@ -98,7 +82,7 @@ export function createSkillSpecialEffectController({
   };
 
   // Resolve each supported skill's side effects at its effective timestamp while
-  // keeping reset, clone, and trait-proc mutations synchronized with emitted events.
+  // keeping clone and trait-proc mutations synchronized with emitted events.
   const apply = (skill: MesmerSkill, at: number, castStart = at): void => {
     if (skill.id === ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY) {
       // The non-Mirage variant adds one Confusion stack per cast-start clone; its declarative packet covers the player.
@@ -109,8 +93,6 @@ export function createSkillSpecialEffectController({
         });
       }
     }
-
-    applyMesmerSignetReset(state, allSkills, shatters, instruments, addEvent, skill, at);
 
     if (skill.type === 'Heal') {
       triggerMethodOfMadness({ state, traits, addDamage, addTraitProc }, skill, at, traitDamage['Lesser Chaos Storm']);

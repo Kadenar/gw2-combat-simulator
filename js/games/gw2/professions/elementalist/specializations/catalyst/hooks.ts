@@ -1,5 +1,6 @@
+import { applySideEffect, type ActionContext } from '#gw2/platform/simulation/side-effects.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
-import type { RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import {
@@ -150,54 +151,9 @@ function onCastStart(context: ElementalistRuntime, cast: RuntimeCast, skill: Ski
   }
 }
 
-// Relentless Fire's damage window is the longer profile duration while the Fire
-// Jade Sphere is still active, and the shorter one otherwise.
-function activateRelentlessFire(context: ElementalistRuntime, skill: Skill, at: number): void {
-  const state = catalystState.from(context);
-  const relentlessFireProfile = requireBalanceProfileFromContext(context, PROFILE.relentlessFire);
-  emitElementalistBuff(context, {
-    at,
-    source: skill.name,
-    sourceId: skill.id,
-    actorType: 'player',
-    skillName: skill.name,
-    kind: 'relentless fire',
-    stacks: 1,
-    duration:
-      state.sphereExpiry.Fire > at
-        ? balanceProfileNumber(relentlessFireProfile, 'durationPerTier')
-        : balanceProfileNumber(relentlessFireProfile, 'durationMultiplier')
-  });
-}
-
-// Opens the Shattering Ice proc window, extended while the Water Jade Sphere is up.
-function activateShatteringIce(context: ElementalistRuntime, skill: Skill, at: number): void {
-  const state = catalystState.from(context);
-  const shatteringIceProfile = requireBalanceProfileFromContext(context, PROFILE.shatteringIce);
-  const duration =
-    state.sphereExpiry.Water > at
-      ? balanceProfileNumber(shatteringIceProfile, 'durationPerTier')
-      : balanceProfileNumber(shatteringIceProfile, 'durationMultiplier');
-  // Scheduler and resolver use the emitted buff's tick-aligned expiry.
-
-  // Refreshing the buff rearms its first strike; subsequent strikes use the canonical strict ICD.
-
-  emitElementalistBuff(context, {
-    at,
-    source: skill.name,
-    sourceId: skill.id,
-    actorType: 'player',
-    skillName: skill.name,
-    kind: 'shattering ice',
-    stacks: 1,
-    duration
-  });
-}
-
 // Reset weapon cooldowns matching Catalyst's single active attunement while
 // preserving exclusions and active ammo-recharge contracts.
-function activateElementalCelerity(context: ElementalistRuntime, skill: Skill, at: number): void {
-  const state = catalystState.from(context);
+function activateElementalCelerity(context: ElementalistRuntime, actionContext: ActionContext): void {
   const core = professionCoreState(context);
   for (const candidate of context.helpers.skills) {
     if (
@@ -206,28 +162,12 @@ function activateElementalCelerity(context: ElementalistRuntime, skill: Skill, a
       candidate.attunement === core.primaryAttunement
     ) {
       if (Number(candidate.ammo) > 0)
-        context.cooldownController.restoreAmmo(candidate, Number(candidate.ammo), at, 'reset');
-      else context.cooldownController.clear(candidate.id);
-    }
-  }
-
-  // Each element contributes its boon only while that element's sphere is still active.
-  for (const element of ['Fire', 'Water', 'Air', 'Earth'] as const) {
-    if (state.sphereExpiry[element] <= at) continue;
-    const elementalCelerityProfile = requireBalanceProfileFromContext(context, PROFILE.elementalCelerity);
-    const effect = requireEffect(elementalCelerityProfile, 'boon', element);
-    if (effect) {
-      emitElementalistBuff(context, {
-        skill: skill,
-        at,
-        source: skill.name,
-        sourceId: skill.id,
-        actorType: 'player',
-        kind: String(effect.boon).toLowerCase(),
-        stacks: Number(effect.stacks),
-        duration: effect.duration,
-        skillName: skill.name
-      });
+        applySideEffect(context, actionContext, {
+          type: 'ammoRestore',
+          skillIds: [candidate.id],
+          count: Number(candidate.ammo)
+        });
+      else applySideEffect(context, actionContext, { type: 'rechargeReset', skillIds: [candidate.id] });
     }
   }
 }
@@ -322,10 +262,11 @@ function gainEnergy(runtime: ElementalistRuntime, event: SimulationEvent): void 
     });
 }
 
-/** Sphere spending, augment tasks, and accepted-hit traits operate on the same live state. */
+/** Sphere spending, weapon refreshes, and accepted-hit traits operate on the same live state. */
 export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
   initialize,
   availability,
+  sideEffectHandlers: { 'elementalist.catalyst.refresh-weapons': activateElementalCelerity },
   // Sphere recharge uses the selected Core trait profile.
   rechargeRules: [
     {
@@ -354,16 +295,7 @@ export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState>>
     );
   },
   tasks: {
-    [CATALYST_BASE_EMPOWERMENT_TASK]: renewBaseEmpowerment,
-    'elementalist.catalyst.relentless-fire'(runtime, data) {
-      activateRelentlessFire(runtime, (data as SkillTaskData).cast.skill, runtime.time);
-    },
-    'elementalist.catalyst.shattering-ice'(runtime, data) {
-      activateShatteringIce(runtime, (data as SkillTaskData).cast.skill, runtime.time);
-    },
-    'elementalist.catalyst.elemental-celerity'(runtime, data) {
-      activateElementalCelerity(runtime, (data as SkillTaskData).cast.skill, runtime.time);
-    }
+    [CATALYST_BASE_EMPOWERMENT_TASK]: renewBaseEmpowerment
   },
 
   reactions: {

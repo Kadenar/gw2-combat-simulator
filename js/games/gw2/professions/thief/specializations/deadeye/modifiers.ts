@@ -106,16 +106,6 @@ const deadeyeModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
       Boolean(context.config?.target?.defiant)
   },
   {
-    id: 'thief.relic-of-the-deadeye',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.1,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      context.config?.relic === 'Deadeye' &&
-      (thiefRuntimeSpecializationState<DeadeyeState>(context, 'Deadeye').deadeyeRelicUntil || 0) > context.time
-  },
-  {
     id: 'thief.malicious-stealth-attack',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',

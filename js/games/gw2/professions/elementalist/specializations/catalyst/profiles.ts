@@ -1,6 +1,6 @@
 /**
- * Balance-profile data for Catalyst: the energy resource, the three augment skill
- * variants, and every Catalyst trait. Mechanics read these through
+ * Balance-profile data for Catalyst: the energy resource, the Shattering Ice proc
+ * variant, and every Catalyst trait. Mechanics read these through
  * the shared required-value and removal-aware effect readers, so patch data can retune
  * Catalyst numbers without touching handler code.
  */
@@ -17,9 +17,7 @@ import {
  */
 export const CATALYST_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'elementalist.catalyst.resources',
-  relentlessFire: 'elementalist.catalyst.relentless-fire',
   shatteringIce: 'elementalist.catalyst.shattering-ice',
-  elementalCelerity: 'elementalist.catalyst.elemental-celerity',
   depthOfElements: TRAIT.DEPTH_OF_ELEMENTS,
   viciousEmpowerment: TRAIT.VICIOUS_EMPOWERMENT,
   energizedElements: TRAIT.ENERGIZED_ELEMENTS,
@@ -51,7 +49,7 @@ const aura = (name: string, auraName: string, duration: number): SkillEffect => 
 
 /**
  * The Catalyst profile table. `resources` carries the energy cap, the Jade Sphere
- * cost and the per-hit gain; the augment variants carry their buff windows; each
+ * cost and the per-hit gain; Shattering Ice carries its triggered packets; each
  * trait entry carries its internal cooldown and the effects its handler emits.
  */
 export const CATALYST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
@@ -64,40 +62,15 @@ export const CATALYST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     resourceGain: 1,
     effects: []
   },
-  // For both augment windows `durationMultiplier` is the base window and
-  // `durationPerTier` the longer one granted while the matching sphere is still active.
-  {
-    id: CATALYST_BALANCE_PROFILE_IDS.relentlessFire,
-    parentId: ID.RELENTLESS_FIRE,
-    name: 'Relentless Fire - Damage Window',
-    profileKind: 'skill-variant',
-    durationMultiplier: 5,
-    durationPerTier: 8,
-    effects: []
-  },
   {
     id: CATALYST_BALANCE_PROFILE_IDS.shatteringIce,
     parentId: ID.SHATTERING_ICE,
     name: 'Shattering Ice - Triggered Packet',
     profileKind: 'skill-variant',
-    durationMultiplier: 5,
-    durationPerTier: 8,
     internalCooldown: 1,
     effects: [
       { name: 'Shattering Ice - Triggered Packet', type: 'strike', coefficient: 0.6, hits: 1 },
       { name: 'Chilled', type: 'condition', condition: 'Chilled', stacks: 1, duration: 1 }
-    ]
-  },
-  {
-    id: CATALYST_BALANCE_PROFILE_IDS.elementalCelerity,
-    parentId: ID.ELEMENTAL_CELERITY,
-    name: 'Elemental Celerity - Sphere Boons',
-    profileKind: 'skill-variant',
-    effects: [
-      boon('Fire', 'might', 5, 6),
-      boon('Water', 'vigor', 1, 6),
-      boon('Air', 'fury', 1, 6),
-      boon('Earth', 'protection', 1, 4)
     ]
   },
   trait(CATALYST_BALANCE_PROFILE_IDS.depthOfElements, 'Depth of Elements', {
