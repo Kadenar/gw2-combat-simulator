@@ -308,25 +308,6 @@ export function applyEngineerMechCastTraits(context: EngineerRuntime, skill: Eng
     context.procs.readyAt.rocketPunch = at + balanceProfileNumber(rocketPunchProfile, 'internalCooldown');
     emitRocketPunch(context, skill, at);
   }
-
-  if (isEngineerMechCommand(skill) && hasTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)) {
-    const jadeDynamoProfile = requireBalanceProfileFromContext(context, PROFILE.jadeDynamo);
-    const boon = requireEffect(jadeDynamoProfile, 'boon', 'quickness');
-    if (boon) {
-      emitEngineerEvent(context, 'buff', {
-        at,
-        source: 'Trait',
-        sourceId: TRAIT.MECH_CORE_JADE_DYNAMO,
-        actorType: 'player',
-        skillId: skill.id,
-        skillName: skill.name,
-        name: 'Jade Dynamo — quickness',
-        kind: String(boon.boon).toLowerCase(),
-        stacks: Number(boon.stacks),
-        duration: Number(boon.duration)
-      });
-    }
-  }
 }
 
 /** Starts the autonomous mech attack loop when the specialization begins with an active mech. */

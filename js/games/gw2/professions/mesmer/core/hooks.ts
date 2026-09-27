@@ -1,3 +1,4 @@
+import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
@@ -29,7 +30,6 @@ import {
   emitFencersFinesseStacks,
   recordFencersFinesseProc,
   triggerChaoticInterruption,
-  triggerMasterOfFragmentation,
   triggerThePledge
 } from '#gw2/professions/mesmer/core/traits/index.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
@@ -150,6 +150,29 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
   },
   // Dazzling precedes other control reactions and keeps player ownership even for summon-triggered control.
   traitTriggers: [
+    // Native shatter impacts inherit their triggering skill while selecting only the matching condition.
+    ...(['Weakness', 'Cripple'] as const).map<
+      Exclude<TraitTrigger<MesmerRuntimeState>, { on: 'castStart' | 'castComplete' }>
+    >((condition) => ({
+      trait: TRAIT.MASTER_OF_FRAGMENTATION,
+      on: 'damage.resolved' as const,
+      when: (_runtime, event) =>
+        event.type === 'damage' &&
+        isGw2PlayerActorEvent(event) &&
+        event.sourceId === event.skillId &&
+        !missesTarget(event) &&
+        (condition === 'Weakness'
+          ? event.skillId === ID.DEAFENING_DRUM
+          : [ID.CRY_OF_FRUSTRATION, ID.REWINDER, ID.BLADESONG_SORROW, ID.FLUSTERING_FLUTE].some(
+              (id) => id === event.skillId
+            )),
+      emit: TRAIT.MASTER_OF_FRAGMENTATION,
+      effects: (effect) => effect.type === 'condition' && effect.name === condition,
+      attribution: (_runtime, event) => ({
+        actorType: 'player',
+        name: `${event.skillName || TRAIT.MASTER_OF_FRAGMENTATION} — ${condition}`
+      })
+    })),
     {
       on: 'control.resolved',
       trait: TRAIT.DAZZLING,
@@ -165,7 +188,6 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       const mechanics = mesmerMechanicsFor(runtime);
       const critical = (details as NativeResolvedDamageDetails).hitContext!.critical;
       mechanics.criticalTraits.process({ ...event, didCrit: critical.didCrit }, critical.chance);
-      triggerMasterOfFragmentation(runtime, event);
       const skill = mechanics.skillsById.get(event.skillId ?? '');
       if (!skill) return;
       const first = event.summonKind === 'clone' ? Infinity : emitFencersFinesseStacks(mechanics, skill, [event.at], 1);

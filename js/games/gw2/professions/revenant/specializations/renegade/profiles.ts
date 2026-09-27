@@ -43,7 +43,7 @@ export const RENEGADE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     id: RENEGADE_PROFILE_IDS.brutalMomentum,
     name: 'Brutal Momentum',
     profileKind: 'trait',
-    cooldown: 8,
+    internalCooldown: 8,
     effects: [{ name: 'vigor', type: 'boon', boon: 'vigor', duration: 6, stacks: 1 }]
   }),
   renegadeBalanceProfile({

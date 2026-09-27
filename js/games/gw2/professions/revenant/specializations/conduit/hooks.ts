@@ -1,6 +1,6 @@
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -741,37 +741,6 @@ function upkeepDaggers(runtime: RevenantRuntime, data: unknown): void {
   runtime.schedule(UPKEEP_DAGGERS, canonicalTime(runtime.time + 1), data, undefined, -190);
 }
 
-/** Mistfire burns on each accepted control outside Twin Moon's own chain, once per its cooldown. */
-function mistfire(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if ((event.skillId != null && TWIN_MOON_SKILL_IDS.has(event.skillId)) || !hasTrait(runtime, TRAIT.MISTFIRE)) return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.mistfire);
-  const burning = requireEffect(profile, 'condition', 'Burning');
-  // The cooldown gates only Burning, so a removed packet leaves it ready.
-  if (
-    !burning ||
-    !isInternalCooldownReady(runtime.time, Number(runtime.procs.deadline('revenant.conduit.mistfire') || 0))
-  )
-    return;
-  runtime.procs.readyAt['revenant.conduit.mistfire'] =
-    runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
-  runtime.emitDerived(
-    event,
-    buildResolverCondition({
-      at: runtime.time,
-      source: 'revenant',
-      sourceId: TRAIT.MISTFIRE,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillId: TRAIT.MISTFIRE,
-      skillName: 'Mistfire',
-      name: 'Mistfire — Burning',
-      condition: String(burning.condition),
-      stacks: effectNumber(profile, burning, 'stacks'),
-      duration: effectNumber(profile, burning, 'duration')
-    })
-  );
-}
-
 /** Conduit owns affinity, forms, Entity skills, Release Potential, and Beguiling Haze on the shared live state. */
 // Form selection chooses the base first; trait rules then scale that selected recharge.
 const conduitRecharge = compileRechargeRules<RevenantRuntimeState>([
@@ -788,6 +757,26 @@ const conduitRecharge = compileRechargeRules<RevenantRuntimeState>([
 ]);
 
 export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
+  // Control-triggered Burning shares Mistfire's profile, excluding its own Twin Moon chain.
+  traitTriggers: [
+    {
+      trait: TRAIT.MISTFIRE,
+      emit: PROFILE.mistfire,
+      on: 'control.resolved',
+      icd: 'profile',
+      when: (runtime, event) =>
+        !(event.skillId != null && TWIN_MOON_SKILL_IDS.has(event.skillId)) &&
+        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.mistfire), 'condition', 'Burning')),
+      effects: (effect) => effect.type === 'condition' && effect.name === 'Burning',
+      attribution: {
+        source: 'revenant',
+        ownerActorType: 'player',
+        skillId: TRAIT.MISTFIRE,
+        skillName: 'Mistfire',
+        name: 'Mistfire — Burning'
+      }
+    }
+  ],
   availability(runtime, skill) {
     const state = conduit(runtime);
     if (BEGUILING_HAZE_SKILL_IDS.has(skill.id)) {
@@ -919,8 +908,7 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
       if (event.metadata?.affinityOnHit !== true) return;
       const skill = event.skillId == null ? undefined : runtime.helpers.skillsById.get(event.skillId);
       gainAffinity(runtime, Number(skill?.energyCost || 0) >= 25 ? 2 : 1);
-    },
-    'control.resolved': mistfire
+    }
   },
   tasks: {
     [FORM_EXPIRY]: formExpiry,

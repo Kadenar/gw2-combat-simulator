@@ -7,7 +7,6 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { MesmerMechanics, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -16,41 +15,6 @@ import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mecha
 import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
 
 type CryOfPainContext = Pick<MesmerMechanics, 'traits' | 'balanceProfile'>;
-
-/** Applies Fragmentation conditions once per native impact, inheriting hit timing and cancellation. */
-export function triggerMasterOfFragmentation(context: MesmerRuntime, event: SimulationEvent): void {
-  if (
-    !mesmerMechanicsFor(context).traits.has(TRAIT.MASTER_OF_FRAGMENTATION) ||
-    event.type !== 'damage' ||
-    !isGw2PlayerActorEvent(event) ||
-    event.sourceId !== event.skillId ||
-    missesTarget(event)
-  )
-    return;
-  const drum = event.skillId === ID.DEAFENING_DRUM;
-  if (
-    !drum &&
-    ![ID.CRY_OF_FRUSTRATION, ID.REWINDER, ID.BLADESONG_SORROW, ID.FLUSTERING_FLUTE].some((id) => id === event.skillId)
-  )
-    return;
-  const masterOfFragmentationProfile = requireBalanceProfileFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION);
-  const effect = requireEffect(masterOfFragmentationProfile, 'condition', drum ? 'Weakness' : 'Cripple');
-  if (!effect) return;
-  context.emitDerived(
-    event,
-    buildResolverCondition({
-      actorType: 'player',
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.MASTER_OF_FRAGMENTATION,
-      skillId: event.skillId,
-      skillName: event.skillName,
-      condition: drum ? 'Weakness' : 'Cripple',
-      duration: Number(effect.duration),
-      stacks: Number(effect.stacks)
-    })
-  );
-}
 
 /** Adds The Pledge only to the skill's player Burning, inheriting its timing and excluding summon or trait procs. */
 export function triggerThePledge(context: MesmerRuntime, event: SimulationEvent): void {

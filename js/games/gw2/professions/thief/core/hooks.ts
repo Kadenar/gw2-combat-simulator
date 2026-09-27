@@ -4,6 +4,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { pruneSkillFlips, skillFlipReady, weaponFollowUpOpen } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   balanceProfileNumber,
+  requireEffect,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
@@ -55,7 +56,6 @@ import {
 } from '#gw2/professions/thief/core/mechanics/weapons.js';
 import {
   completeThiefCastTraits,
-  reactThiefCoreBuff,
   reactThiefCoreCondition,
   reactThiefCoreDamage,
   startThiefDodge
@@ -227,6 +227,26 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   onCooldownReset(runtime) {
     restartThiefInfiltratorsSignet(runtime);
   },
+  // Removed Might leaves Assassin's Fury's ICD untouched; accepted self Fury retains its causal identity.
+  traitTriggers: [
+    {
+      trait: TRAIT.ASSASSINS_FURY,
+      on: 'buff.applied',
+      emit: PROFILE.assassinsFury,
+      icd: 'profile',
+      when: (runtime, event) =>
+        String(event.kind || '').toLowerCase() === 'fury' &&
+        Boolean(event.resolvedAudience?.includesSelf) &&
+        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.assassinsFury), 'boon', 'Might')),
+      effects: (effect) => effect.type === 'boon' && effect.name === 'Might',
+      attribution: (_runtime, event) => ({
+        skillId: TRAIT.ASSASSINS_FURY,
+        skillName: "Assassin's Fury",
+        name: "Assassin's Fury - might",
+        triggeredBy: event.skillName
+      })
+    }
+  ],
   reactions: {
     'damage.resolving'(runtime, event) {
       return modifyThiefLifeSiphon(runtime as unknown as ThiefResolverContext, event);
@@ -236,8 +256,7 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
       reactThiefSpinningAxe(runtime, event);
       reactThiefCoreDamage(runtime, event, details);
     },
-    'condition.applied': reactThiefCoreCondition,
-    'buff.applied': reactThiefCoreBuff
+    'condition.applied': reactThiefCoreCondition
   },
   tasks: {
     [THIEF_CORE_COMPLETE](runtime, data) {

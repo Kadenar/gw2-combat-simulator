@@ -157,6 +157,63 @@ test('We Heal As One does not invent boons or copy from interrupted casts', () =
   }
 });
 
+// Completion declarations queue their rewards; the heal copies only boons already delivered before completion.
+test('Wellspring does not enter the same healing cast boon-copy snapshot', () => {
+  const result = simulate('Core', [ID.WE_HEAL_AS_ONE], { selectedTraitIds: [TRAIT.WELLSPRING] });
+  assert.deepEqual(copied(result), []);
+  const reward = result.events.find((event) => event.sourceId === TRAIT.WELLSPRING);
+  assert.equal(reward.kind, 'regeneration');
+  assert.equal(reward.triggeredBy, '"We Heal As One!"');
+  assert.equal(reward.resolvedAudience.includesSelf, true);
+  assert.deepEqual(result.warnings, []);
+});
+
+// Dynamic recipient attribution must keep a shared control reward on its originating ally.
+test('Soulbeast control declarations preserve ally recipients across both boons and their shared cooldown', () => {
+  const result = runRanger(
+    [wait(1500)],
+    {
+      ...config,
+      specialization: 'Soulbeast',
+      allies: { count: 1 },
+      selectedTraitIds: [TRAIT.BESTIAL_RAGE]
+    },
+    {
+      initialize(runtime) {
+        for (const at of [1, 1.25, 1.251])
+          runtime.emit({
+            type: 'control',
+            at,
+            source: 'fixture',
+            sourceId: 'control',
+            actorType: 'effect',
+            skillName: 'Ally Control',
+            controlKind: 'daze',
+            duration: 1,
+            metadata: { triggeredByAlly: 1 }
+          });
+      }
+    }
+  );
+  const rewards = result.events.filter((event) => event.sourceId === TRAIT.BESTIAL_RAGE);
+  assert.deepEqual(
+    rewards.map((event) => [event.at, event.kind]),
+    [
+      [1, 'might'],
+      [1, 'fury'],
+      [1.251, 'might'],
+      [1.251, 'fury']
+    ]
+  );
+  for (const event of rewards) {
+    assert.equal(event.resolvedAudience.includesSelf, false);
+    assert.equal(event.audience.alliedPlayerIndex, 1);
+    assert.equal(event.triggeredBy, 'Ally Control');
+  }
+
+  assert.deepEqual(result.warnings, []);
+});
+
 test('We Heal As One snapshots distinct audiences, intensity stacks, and boon lifetime at completion', () => {
   const boonConfig = { ...config, specialization: 'Core', boons: { might: 7 } };
   let petId;

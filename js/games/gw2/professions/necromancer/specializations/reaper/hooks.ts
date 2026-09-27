@@ -2,12 +2,8 @@ import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
-  requireEffect,
-  effectNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { castCompleted } from '#gw2/platform/skills/timing.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import {
   reactToReaperDamage,
@@ -20,32 +16,24 @@ import type { NecromancerRuntimeState } from '#gw2/professions/necromancer/types
 
 /** Reaper resource and recharge reactions follow landed impacts and delivered boons in the same live state. */
 export const reaperHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = {
-  // Augury belongs to the completed shout and uses its own siphon packet, independent of the shout's strike effects.
-  onCastComplete(runtime, cast) {
-    if (!castCompleted(cast) || !cast.skill.categories?.includes('Shout') || !hasTrait(runtime, TRAIT.AUGURY_OF_DEATH))
-      return;
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.auguryOfDeath);
-    const strike = requireEffect(profile, 'strike', 'Strike');
-    if (strike)
-      runtime.emit(
-        buildResolverStrike({
-          at: runtime.time,
-          source: 'Trait',
-          sourceId: TRAIT.AUGURY_OF_DEATH,
-          actorType: 'effect',
-          skillName: 'Augury of Death',
-          triggeredBy: cast.skill.name,
-          activationId: cast.id,
-          offTarget: cast.command.offTarget,
-          coefficient: 0,
-          skillWeapon: 'Unequipped',
-          flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
-          flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
-          noCrit: true,
-          damageKind: 'life-steal'
-        })
-      );
-  },
+  // Completed shouts own their siphon's targeting and diagnostic attribution.
+  traitTriggers: [
+    {
+      trait: TRAIT.AUGURY_OF_DEATH,
+      on: 'castComplete',
+      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Shout')),
+      emit: PROFILE.auguryOfDeath,
+      effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
+      attribution: (_runtime, cast) => ({
+        skillId: undefined,
+        skillName: 'Augury of Death',
+        name: 'Augury of Death',
+        triggeredBy: cast.skill.name,
+        offTarget: cast.command.offTarget,
+        skillWeapon: 'Unequipped'
+      })
+    }
+  ],
   reactions: {
     'damage.resolved'(runtime, event, details) {
       const specialization = runtime.profession.specialization;

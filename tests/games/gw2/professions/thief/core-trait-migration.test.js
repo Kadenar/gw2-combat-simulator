@@ -1,3 +1,4 @@
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
@@ -10,11 +11,7 @@ import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
-import {
-  reactThiefCoreBuff,
-  reactThiefCoreCondition,
-  reactThiefCoreDamage
-} from '#gw2/professions/thief/core/traits/index.js';
+import { reactThiefCoreCondition, reactThiefCoreDamage } from '#gw2/professions/thief/core/traits/index.js';
 import {
   noQuarterCriticalReaction,
   unrelentingStrikesCriticalReaction
@@ -178,18 +175,6 @@ for (const [name, traitId, invoke, output] of [
     TRAIT.PANIC_STRIKE,
     (c) => reactThiefCoreDamage(c, { type: 'damage', at: c.effectiveEnd, actorType: 'player', coefficient: 1 }, {}),
     'applyCondition'
-  ],
-  [
-    "Assassin's Fury",
-    TRAIT.ASSASSINS_FURY,
-    (c) =>
-      reactThiefCoreBuff(c, {
-        type: 'buff',
-        at: c.effectiveEnd,
-        kind: 'fury',
-        resolvedAudience: { includesSelf: true }
-      }),
-    'queue'
   ]
 ]) {
   test(`${name} preserves eligibility, scoped claims, strict boundaries and zero overrides`, () => {
@@ -557,24 +542,32 @@ test("No Quarter follows Fury's exact half-open expiration boundary", () => {
   }
 });
 
+// Resolver-delivered Fury retains the triggering skill when Assassin's Fury emits its Might.
 test("Assassin's Fury queues Might from self Fury", () => {
-  const { context } = traitContext([TRAIT.ASSASSINS_FURY]);
-  reactThiefCoreBuff(context, {
-    type: 'buff',
-    at: 1,
-    kind: 'fury',
-    skillName: 'Fury Test',
-    resolvedAudience: {
-      includesSelf: true,
-      includesSummons: false,
-      alliedPlayerCount: 0,
-      companionIds: [],
-      recipientCount: 1
+  const result = runThief(
+    [wait(1100)],
+    { selectedTraitIds: [TRAIT.ASSASSINS_FURY] },
+    {
+      initialize(runtime) {
+        runtime.emit({
+          type: 'buff',
+          at: 1,
+          kind: 'fury',
+          duration: 1,
+          stacks: 1,
+          source: 'fixture',
+          sourceId: 'fixture',
+          actorType: 'player',
+          skillName: 'Fury Test'
+        });
+      }
     }
-  });
-  const might = context.queue.dequeue();
+  );
+  assert.deepEqual(result.warnings, []);
+  const might = result.events.find((event) => event.sourceId === TRAIT.ASSASSINS_FURY);
   assert.equal(might.kind, 'might');
   assert.equal(might.stacks, 3);
+  assert.equal(might.triggeredBy, 'Fury Test');
 });
 
 test('Spider Venom remains a base effect and Leeching Venoms stays nested after it', () => {
@@ -718,4 +711,69 @@ test('cast completion grants Lead stacks before movement traits and leaves poiso
   );
   const poison = result.resolvedEvents.filter((event) => event.sourceId === TRAIT.DEADLY_AMBITION);
   assert.ok(poison.every((event) => strikes.some((strike) => strike.at === event.at)));
+});
+
+// The declaration retains eligibility, removed-effect guards, and the same exclusive profile deadline.
+test("Assassin's Fury preserves recipient gating, removed effects, and patched ICD boundaries", () => {
+  for (const duration of [2, 0]) {
+    for (const selected of [true, false]) {
+      for (const removed of [true, false]) {
+        const live = applyBalanceProfilePatch(thiefCatalog, {
+          balanceProfiles: {
+            [TRAIT.ASSASSINS_FURY]: {
+              fields: { internalCooldown: duration },
+              ...(removed ? { removeEffects: [{ type: 'boon', name: 'Might' }] } : {})
+            }
+          }
+        });
+        const result = runThief(
+          [{ type: 'wait', durationMs: (2 + duration) * 1000 }],
+          {
+            selectedTraitIds: selected ? [TRAIT.ASSASSINS_FURY] : []
+          },
+          {
+            catalog: () => live,
+            initialize(runtime) {
+              runtime.procs.readyAt.unrelated = 99;
+              for (const at of [1, 1 + duration, 1 + duration + 0.001])
+                runtime.emit({
+                  type: 'buff',
+                  at,
+                  source: 'fixture',
+                  sourceId: 'fury',
+                  actorType: 'player',
+                  skillName: 'Fury Test',
+                  kind: 'fury',
+                  duration: 1,
+                  stacks: 1
+                });
+              runtime.emit({
+                type: 'buff',
+                at: 0.5,
+                source: 'fixture',
+                sourceId: 'ally-fury',
+                actorType: 'player',
+                kind: 'fury',
+                duration: 1,
+                stacks: 1,
+                audience: { recipients: 'party', affectsSelf: false }
+              });
+            }
+          }
+        );
+        const packets = result.events.filter((event) => event.sourceId === TRAIT.ASSASSINS_FURY);
+        assert.deepEqual(
+          packets.map((event) => event.at),
+          selected && !removed ? [1, 1 + duration + 0.001] : []
+        );
+        const runtime = observedRuntime(result);
+        assert.equal(runtime.procs.readyAt.unrelated, 99);
+        assert.equal(
+          runtime.procs.readyAt[TRAIT.ASSASSINS_FURY],
+          selected && !removed ? 1 + duration + 0.001 + duration : undefined
+        );
+        assert.deepEqual(result.warnings, []);
+      }
+    }
+  }
 });

@@ -131,18 +131,4 @@ export function applyScrapperCastTraits(context: EngineerRuntime, cast: RuntimeC
       ]
     });
   }
-
-  // System Shocker (master trait): Function Gyro dazes for 1s on cast.
-  if (hasTrait(context.config, TRAIT.SYSTEM_SHOCKER)) {
-    emitEngineerEvent(context, 'control', {
-      at: context.time,
-      source: 'Trait',
-      sourceId: TRAIT.SYSTEM_SHOCKER,
-      actorType: 'effect',
-      skillId: skill.id,
-      skillName: skill.name,
-      name: 'System Shocker — daze',
-      controlKind: 'daze'
-    });
-  }
 }

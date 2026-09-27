@@ -382,38 +382,9 @@ function soulcleaveAllies(runtime: RevenantRuntime, data: unknown): void {
   );
 }
 
-/** Received Fury drives Brutal Momentum's Vigor and Blood Fury's Fervor on their own cooldowns. */
+/** Received Fury advances Blood Fury's Fervor on its own cooldown. */
 function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   if (String(event.kind || '').toLowerCase() !== 'fury') return;
-  if (
-    hasTrait(runtime, TRAIT.BRUTAL_MOMENTUM) &&
-    gw2BoonApplicationRecipients(runtime.config, event).includesSelf &&
-    isInternalCooldownReady(runtime.time, runtime.procs.deadline('revenant.renegade.brutalMomentum'))
-  ) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.brutalMomentum);
-    const effect = requireEffect(profile, 'boon', 'vigor');
-    // The cooldown gates only vigor, so a removed boon leaves it ready.
-    if (effect) {
-      runtime.procs.readyAt['revenant.renegade.brutalMomentum'] =
-        runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
-      runtime.emitProcedural(
-        {
-          type: 'buff',
-          at: runtime.time,
-          source: 'revenant',
-          sourceId: TRAIT.BRUTAL_MOMENTUM,
-          actorType: 'player',
-          skillId: profile.id,
-          skillName: profile.name,
-          kind: String(effect.boon),
-          duration: effectNumber(profile, effect, 'duration'),
-          stacks: effectNumber(profile, effect, 'stacks')
-        },
-        { cause: event }
-      );
-    }
-  }
-
   if (
     hasTrait(runtime, TRAIT.BLOOD_FURY) &&
     isInternalCooldownReady(runtime.time, Number(runtime.procs.deadline('revenant.renegade.bloodFury') || 0))
@@ -488,6 +459,25 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   },
   // Only Bombardment's first resolved hit emits Vindication's control packet.
   traitTriggers: [
+    {
+      trait: TRAIT.BRUTAL_MOMENTUM,
+      emit: PROFILE.brutalMomentum,
+      on: 'buff.applied',
+      icd: 'profile',
+      when: (runtime, event) =>
+        String(event.kind || '').toLowerCase() === 'fury' &&
+        gw2BoonApplicationRecipients(runtime.config, event).includesSelf &&
+        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.brutalMomentum), 'boon', 'vigor')),
+      effects: (effect) => effect.type === 'boon' && effect.name === 'vigor',
+      attribution: {
+        source: 'revenant',
+        actorType: 'player',
+        skillId: PROFILE.brutalMomentum,
+        skillName: 'Brutal Momentum',
+        name: undefined
+      }
+    },
+
     {
       trait: TRAIT.VINDICATION,
       on: 'damage.resolved',

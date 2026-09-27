@@ -1,3 +1,5 @@
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -10,15 +12,66 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/ranger/core/profiles.js';
 import { DRUID_BALANCE_PROFILE_IDS as DRUID } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as SOULBEAST } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
+import { UNTAMED_BALANCE_PROFILE_IDS as UNTAMED } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
-import { createSoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
-import { reactToSoulbeastControl } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const patched = (balanceProfiles) => applyBalanceProfilePatch(rangerCatalog, { balanceProfiles });
+
+// Only the state-selected packet can claim the shared deadline; its removed sibling cannot substitute for it.
+test('Untamed control declarations gate cooldowns on the selected surviving effect', () => {
+  for (const unleashed of [true, false]) {
+    for (const [trait, profile, type, selected, sibling] of [
+      [
+        TRAIT.DEBILITATING_BLOWS,
+        UNTAMED.debilitatingBlows,
+        'condition',
+        unleashed ? 'Poisoned' : 'Slow',
+        unleashed ? 'Slow' : 'Poisoned'
+      ],
+      [
+        TRAIT.ENHANCING_IMPACT,
+        UNTAMED.enhancingImpact,
+        'boon',
+        unleashed ? 'quickness' : 'stability',
+        unleashed ? 'stability' : 'quickness'
+      ]
+    ]) {
+      for (const removed of [selected, sibling]) {
+        const result = runRanger(
+          [wait(1500)],
+          { specialization: 'Untamed', selectedTraitIds: [trait] },
+          {
+            extend: () => ({ catalog: patched({ [profile]: remove(type, removed) }) }),
+            initialize(runtime) {
+              runtime.profession.specialization.state.rangerUnleashed = unleashed;
+              runtime.emit({
+                type: 'control',
+                at: 1,
+                source: 'fixture',
+                sourceId: 'control',
+                actorType: 'player',
+                skillName: 'Test',
+                controlKind: 'daze',
+                duration: 1
+              });
+            }
+          }
+        );
+        const rewards = result.events.filter((event) => event.sourceId === trait);
+        assert.deepEqual(
+          rewards.map((event) => event.condition ?? event.kind),
+          removed === selected ? [] : [selected]
+        );
+        assert.equal(observedRuntime(result).procs.deadline(profile) > 1, removed !== selected);
+        assert.deepEqual(result.warnings, []);
+      }
+    }
+  }
+});
 
 // Small patched rotations exercise removal through the real scheduler and resolver.
 function run(balanceProfiles, specialization, rotation, config = {}) {
@@ -113,35 +166,39 @@ test('removed Poisonous Strikes poison leaves its charges unspent', () => {
 });
 
 test('Bestial Rage keeps its sibling boon and cooldown, and releases the cooldown when both are removed', () => {
-  const soulbeast = () => ({ kind: 'Soulbeast', state: createSoulbeastState() });
-  const control = { type: 'control', at: 1, actorType: 'player', skillName: 'Test' };
-  const partial = resolverContext(
-    { [SOULBEAST.bestialRage]: remove('boon', 'might') },
-    [TRAIT.BESTIAL_RAGE],
-    soulbeast()
-  );
-  reactToSoulbeastControl(partial, control);
-  assert.deepEqual(
-    partial.queued.map((event) => event.kind),
-    ['fury']
-  );
-  assert.equal(partial.procs.deadline('ranger.soulbeast.bestialRage'), 1.25);
-
-  const empty = resolverContext(
-    {
-      [SOULBEAST.bestialRage]: {
-        removeEffects: [
-          { type: 'boon', name: 'might' },
-          { type: 'boon', name: 'fury' }
-        ]
+  for (const both of [false, true]) {
+    const result = runRanger(
+      [wait(1500)],
+      { specialization: 'Soulbeast', selectedTraitIds: [TRAIT.BESTIAL_RAGE] },
+      {
+        extend: () => ({
+          catalog: patched({
+            [SOULBEAST.bestialRage]: {
+              removeEffects: [{ type: 'boon', name: 'might' }, ...(both ? [{ type: 'boon', name: 'fury' }] : [])]
+            }
+          })
+        }),
+        initialize(runtime) {
+          runtime.emit({
+            type: 'control',
+            at: 1,
+            source: 'fixture',
+            sourceId: 'control',
+            actorType: 'player',
+            skillName: 'Test',
+            controlKind: 'daze',
+            duration: 1
+          });
+        }
       }
-    },
-    [TRAIT.BESTIAL_RAGE],
-    soulbeast()
-  );
-  reactToSoulbeastControl(empty, control);
-  assert.deepEqual(empty.queued, []);
-  assert.equal(empty.procs.deadline('ranger.soulbeast.bestialRage'), 0);
+    );
+    assert.deepEqual(
+      result.events.filter((event) => event.sourceId === TRAIT.BESTIAL_RAGE).map((event) => event.kind),
+      both ? [] : ['fury']
+    );
+    assert.equal(observedRuntime(result).procs.deadline(SOULBEAST.bestialRage), both ? 0 : 1.25);
+    assert.deepEqual(result.warnings, []);
+  }
 });
 
 test('a missing required Ranger scalar fails instead of using a local default', () => {

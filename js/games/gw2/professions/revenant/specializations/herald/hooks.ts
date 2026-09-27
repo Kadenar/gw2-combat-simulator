@@ -210,42 +210,6 @@ function compassionPulse(runtime: RevenantRuntime): void {
   scheduleCompassion(runtime, runtime.procs.deadline('revenant.herald.elevatedCompassion'));
 }
 
-/** Applied standard boons with at least one recipient grant Shared Empowerment's Might once per cooldown. */
-function sharedEmpowerment(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if (
-    event.sourceId === TRAIT.SHARED_EMPOWERMENT ||
-    !isStandardBoon(String(event.kind)) ||
-    !(Number((event.resolvedAudience as { recipientCount?: number } | undefined)?.recipientCount) > 0) ||
-    !hasTrait(runtime, TRAIT.SHARED_EMPOWERMENT)
-  )
-    return;
-  if (!isInternalCooldownReady(runtime.time, runtime.procs.deadline('revenant.herald.sharedEmpowerment'))) return;
-  const profile = requireBalanceProfileFromContext(runtime, HERALD_SHARED_EMPOWERMENT_PROFILE_ID);
-  const effect = requireEffect(profile, 'boon', 'might');
-  // The cooldown gates only might, so a removed boon leaves it ready.
-  if (!effect) return;
-  // Reserve the ICD before emitting Might so the derived boon cannot recursively trigger the trait.
-  runtime.procs.readyAt['revenant.herald.sharedEmpowerment'] =
-    runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
-  runtime.emitProcedural(
-    {
-      type: 'buff',
-      at: runtime.time,
-      source: 'revenant',
-      sourceId: TRAIT.SHARED_EMPOWERMENT,
-      actorType: 'effect',
-      skillId: TRAIT.SHARED_EMPOWERMENT,
-      skillName: 'Shared Empowerment',
-      name: 'Shared Empowerment — might',
-      kind: String(effect.boon),
-      duration: Math.max(0, effectNumber(profile, effect, 'duration')),
-      stacks: Math.max(1, effectNumber(profile, effect, 'stacks')),
-      audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
-    },
-    { cause: event }
-  );
-}
-
 /** True Nature (Dragon) extends boons when its authored proc lands; Core Value adds a flat second. */
 function trueNatureDragon(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const proc = cast.skill.effects?.find(
@@ -316,6 +280,33 @@ function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
 
 /** Herald owns facet availability, lifecycle, passives, and Dragon invocation on the shared live state. */
 export const heraldHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
+  // Accepted recipient delivery and self-source exclusion guard the shared profile cooldown.
+  traitTriggers: [
+    {
+      trait: TRAIT.SHARED_EMPOWERMENT,
+      emit: HERALD_SHARED_EMPOWERMENT_PROFILE_ID,
+      on: 'buff.applied',
+      icd: 'profile',
+      when: (runtime, event) =>
+        event.sourceId !== TRAIT.SHARED_EMPOWERMENT &&
+        isStandardBoon(String(event.kind)) &&
+        Number(event.resolvedAudience?.recipientCount) > 0 &&
+        Boolean(
+          requireEffect(
+            requireBalanceProfileFromContext(runtime, HERALD_SHARED_EMPOWERMENT_PROFILE_ID),
+            'boon',
+            'might'
+          )
+        ),
+      effects: (effect) => effect.type === 'boon' && effect.name === 'might',
+      attribution: {
+        source: 'revenant',
+        skillId: TRAIT.SHARED_EMPOWERMENT,
+        skillName: 'Shared Empowerment',
+        name: 'Shared Empowerment — might'
+      }
+    }
+  ],
   availability(runtime, skill) {
     const core = runtime.profession.core;
     if (skill.consume && !skillFlipReady(core.availableFlips[skill.id], runtime.time))
@@ -343,7 +334,6 @@ export const heraldHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
       emitRevenantInvocationSkill(runtime, ID.CALL_OF_THE_DRAGON, TRAIT.SONG_OF_THE_MISTS);
   },
   reactions: {
-    'buff.applied': sharedEmpowerment,
     'damage.resolved': natureSiphon
   },
   tasks: {

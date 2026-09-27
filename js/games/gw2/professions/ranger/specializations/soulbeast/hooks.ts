@@ -1,6 +1,8 @@
+import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   requireBalanceProfileFromContext,
+  requireEffect,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
@@ -15,8 +17,6 @@ import {
   soulbeastEventHandlers,
   reactToRangerWinterBite,
   reactToSoulbeastBuff,
-  reactToSoulbeastCondition,
-  reactToSoulbeastControl,
   reactToSoulbeastDamage
 } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
@@ -33,6 +33,66 @@ const commands = new Set<number>([ID.STRENGTH_OF_THE_PACK, ID.PROTECT_ME, ID.GUA
 
 /** Merge, stance grants, and hit reactions mutate their sole state slice at the owning cast boundary. */
 export const soulbeastHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
+  // Control rewards retain the triggering recipient; poison siphons remain noncritical profile strikes.
+  traitTriggers: [
+    ...(
+      [
+        [TRAIT.TWICE_AS_VICIOUS, PROFILE.twiceAsVicious, 'Twice as Vicious', ['twice-as-vicious']],
+        [TRAIT.BESTIAL_RAGE, PROFILE.bestialRage, 'Bestial Rage', ['might', 'fury']]
+      ] as const
+    ).map<Exclude<TraitTrigger<RangerRuntimeState>, { on: 'castStart' | 'castComplete' }>>(
+      ([trait, emit, name, names]) => ({
+        trait,
+        emit,
+        on: 'control.resolved',
+        ...(trait === TRAIT.BESTIAL_RAGE ? { icd: 'profile' as const } : {}),
+        when: (runtime) =>
+          names.some((effectName) =>
+            Boolean(
+              requireEffect(
+                requireBalanceProfileFromContext(runtime, emit),
+                effectName === 'twice-as-vicious' ? 'buff' : 'boon',
+                effectName
+              )
+            )
+          ),
+        effects: (effect) =>
+          (effect.type === 'boon' || effect.type === 'buff') && names.some((name) => name === effect.name),
+        attribution: (_runtime, event) => ({
+          skillId: trait,
+          skillName: name,
+          name,
+          triggeredBy: event.skillName,
+          ...(event.metadata?.triggeredByAlly
+            ? {
+                audience: {
+                  recipients: 'party' as const,
+                  alliedPlayerIndex: event.metadata.triggeredByAlly,
+                  affectsSelf: false,
+                  maximumRecipients: 1,
+                  eligibleCompanionIds: []
+                },
+                metadata: { triggeredByAlly: event.metadata.triggeredByAlly }
+              }
+            : {})
+        })
+      })
+    ),
+    {
+      trait: TRAIT.PREDATORS_CUNNING,
+      emit: PROFILE.predatorsCunning,
+      on: 'condition.applied',
+      when: (_runtime, event) => event.condition === 'Poisoned',
+      effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
+      attribution: (_runtime, event) => ({
+        skillId: TRAIT.PREDATORS_CUNNING,
+        skillName: "Predator's Cunning",
+        name: "Predator's Cunning",
+        skillWeapon: 'Unequipped',
+        triggeredBy: event.skillName
+      })
+    }
+  ],
   initialize(runtime) {
     setRangerPetActive(runtime, !soulbeastState.from(runtime).beastmodeActive);
   },
@@ -114,8 +174,6 @@ export const soulbeastHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       reactToSoulbeastDamage(runtime, event);
       reactToRangerWinterBite(runtime, event);
     },
-    'control.resolved': reactToSoulbeastControl,
-    'condition.applied': reactToSoulbeastCondition,
     'buff.applied': reactToSoulbeastBuff
   }
 };

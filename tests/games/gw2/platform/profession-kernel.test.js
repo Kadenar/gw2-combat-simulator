@@ -91,6 +91,16 @@ const catalog = createCanonicalCatalog({
       rechargeMultiplier: 0.5,
       effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 3 }]
     },
+    {
+      id: 'test.attribution',
+      name: 'Attribution Proc',
+      profileKind: 'trait',
+      internalCooldown: 2,
+      effects: [
+        { type: 'boon', name: 'might', boon: 'might', stacks: 2, duration: 3, actorType: 'summon' },
+        { type: 'boon', name: 'fury', boon: 'fury', stacks: 1, duration: 4 }
+      ]
+    },
     { id: 'test.other', name: 'Other Proc', profileKind: 'trait', internalCooldown: 2, effects: [] },
     {
       id: 'test.variant',
@@ -416,4 +426,103 @@ test('patched variants retain executable predicates and snapshot eligibility bef
       }),
     /predicate/
   );
+});
+
+// Dynamic metadata is evaluated only for an accepted proc, once for all packets, after the ICD claim.
+test('dynamic cast attribution preserves targeting and overrides authored packet identity once per proc', () => {
+  const calls = [];
+  const result = run(
+    {
+      traitTriggers: [
+        {
+          trait: 'test.trait',
+          on: 'castComplete',
+          emit: 'test.attribution',
+          icd: 'profile',
+          when: (_runtime, activation) => activation.skill.id === 991001,
+          attribution(runtime, activation) {
+            calls.push([activation.id, runtime.procs.deadline('test.attribution')]);
+            return {
+              actorType: 'player',
+              ownerActorType: 'player',
+              skillId: 'test.trait',
+              skillName: 'Proc',
+              name: `Proc from ${activation.skill.name}`,
+              triggeredBy: activation.skill.name,
+              offTarget: activation.command.offTarget
+            };
+          }
+        }
+      ]
+    },
+    [cast(991009), cast(991001, { offTarget: true }), wait(1000), cast(991001)]
+  );
+  const packets = result.events.filter((event) => event.sourceId === 'test.trait');
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][1], 2);
+  assert.deepEqual(
+    packets.map((event) => event.kind),
+    ['might', 'fury']
+  );
+  for (const event of packets) {
+    assert.equal(event.actorType, 'player');
+    assert.equal(event.ownerActorType, 'player');
+    assert.equal(event.activationId, calls[0][0]);
+    assert.equal(event.skillId, 'test.trait');
+    assert.equal(event.name, 'Proc from Trigger');
+    assert.equal(event.triggeredBy, 'Trigger');
+    assert.equal(event.offTarget, true);
+  }
+
+  assert.deepEqual(result.warnings, []);
+});
+
+test('dynamic resolver attribution retains the triggering activation and causal placement', () => {
+  const causes = [];
+  const result = run(
+    {
+      initialize(runtime) {
+        runtime.emit({
+          type: 'buff',
+          at: 0.1,
+          source: 'fixture',
+          sourceId: 'fury',
+          actorType: 'player',
+          skillId: 991001,
+          skillName: 'Trigger',
+          activationId: 'cause',
+          kind: 'fury',
+          stacks: 1,
+          duration: 2
+        });
+      },
+      traitTriggers: [
+        {
+          trait: 'test.trait',
+          on: 'buff.applied',
+          emit: 'test.proc',
+          when: (_runtime, event) => event.kind === 'fury',
+          attribution(_runtime, event) {
+            causes.push(event);
+            return {
+              skillId: 'test.trait',
+              skillName: 'Proc',
+              name: `Proc from ${event.skillName}`,
+              triggeredBy: event.skillName,
+              ownerActorType: event.actorType
+            };
+          }
+        }
+      ]
+    },
+    [wait(1000)]
+  );
+  const packet = result.events.find((event) => event.sourceId === 'test.trait');
+  assert.equal(causes.length, 1);
+  assert.equal(packet.activationId, 'cause');
+  assert.equal(packet.ownerActorType, 'player');
+  assert.equal(packet.name, 'Proc from Trigger');
+  assert.equal(packet.causalOrder, causes[0].causalOrder ?? causes[0].eventOrder);
+  assert.ok(packet.eventOrder > causes[0].eventOrder);
+  assert.deepEqual(result.warnings, []);
 });

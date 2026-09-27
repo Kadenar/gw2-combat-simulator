@@ -194,7 +194,7 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     id: CONDUIT_BALANCE_PROFILE_IDS.mistfire,
     name: 'Mistfire',
     profileKind: 'trait',
-    cooldown: 1,
+    internalCooldown: 1,
     effects: [
       {
         type: 'strike',

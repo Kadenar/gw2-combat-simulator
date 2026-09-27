@@ -1,3 +1,5 @@
+import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -12,10 +14,7 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import { untamedCastAvailability } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
-import {
-  reactToUntamedControl,
-  reactToUntamedDamage
-} from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
+import { reactToUntamedDamage } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 
 /** Each ambush window expires only its own grant, preserving the independent grant cooldown. */
 function grantAmbush(runtime: RangerRuntime): void {
@@ -28,6 +27,54 @@ function grantAmbush(runtime: RangerRuntime): void {
 }
 
 export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
+  // Accepted Venomous Outburst strikes retain player ownership for the trait's Blindness.
+  traitTriggers: [
+    // Pure state selection shares one profile ICD across the mutually exclusive packets.
+    ...(
+      [
+        [TRAIT.DEBILITATING_BLOWS, PROFILE.debilitatingBlows, 'Debilitating Blows', 'condition', 'Poisoned', true],
+        [TRAIT.DEBILITATING_BLOWS, PROFILE.debilitatingBlows, 'Debilitating Blows', 'condition', 'Slow', false],
+        [TRAIT.ENHANCING_IMPACT, PROFILE.enhancingImpact, 'Enhancing Impact', 'boon', 'quickness', true],
+        [TRAIT.ENHANCING_IMPACT, PROFILE.enhancingImpact, 'Enhancing Impact', 'boon', 'stability', false]
+      ] as const
+    ).map<Exclude<TraitTrigger<RangerRuntimeState>, { on: 'castStart' | 'castComplete' }>>(
+      ([trait, emit, name, type, effectName, unleashed]) => ({
+        trait,
+        emit,
+        on: 'control.resolved',
+        icd: 'profile',
+        when: (runtime, event) =>
+          (isPlayerStrike(event) || isPetStrike(event)) &&
+          untamedState.from(runtime).rangerUnleashed === unleashed &&
+          Boolean(requireEffect(requireBalanceProfileFromContext(runtime, emit), type, effectName)),
+        effects: (effect) => effect.type === type && effect.name === effectName,
+        attribution: (_runtime, event) => ({
+          skillId: trait,
+          skillName: name,
+          name: `${name} - ${effectName}`,
+          ...(type === 'condition' ? { ownerActorType: 'player' as const } : {}),
+          triggeredBy: event.skillName
+        })
+      })
+    ),
+    {
+      trait: TRAIT.BLINDING_OUTBURST,
+      on: 'damage.resolved',
+      when: (_runtime, event) =>
+        event.skillId === ID.VENOMOUS_OUTBURST &&
+        Number(event.coefficient) > 0 &&
+        (isPlayerStrike(event) || isPetStrike(event)),
+      emit: PROFILE.blindingOutburst,
+      effects: (effect) => effect.type === 'condition' && effect.name === 'Blindness',
+      attribution: (_runtime, event) => ({
+        ownerActorType: 'player',
+        skillId: TRAIT.BLINDING_OUTBURST,
+        skillName: 'Blinding Outburst',
+        name: 'Blinding Outburst - Blindness',
+        triggeredBy: event.skillName
+      })
+    }
+  ],
   availability: untamedCastAvailability,
   onCastStart(runtime, cast) {
     // An attempted ambush consumes its occurrence even if its animation is canceled.
@@ -83,5 +130,5 @@ export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       if (untamedState.from(runtime).ambushReadyUntil === deadline) untamedState.from(runtime).ambushReadyUntil = 0;
     }
   },
-  reactions: { 'damage.resolved': reactToUntamedDamage, 'control.resolved': reactToUntamedControl }
+  reactions: { 'damage.resolved': reactToUntamedDamage }
 };

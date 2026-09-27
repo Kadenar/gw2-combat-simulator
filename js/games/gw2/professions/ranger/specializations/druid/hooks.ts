@@ -18,10 +18,6 @@ import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/sp
 import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/index.js';
-import {
-  reactToDruidCondition,
-  reactToDruidControl
-} from '#gw2/professions/ranger/specializations/druid/traits/blood-moon.js';
 
 /** Avatar changes the one resource clock and bar; expiration cannot retire a later entry. */
 function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): void {
@@ -253,9 +249,23 @@ export const druidHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
         runtime.schedule('ranger.natural-mender', state.naturalMenderAt, deadline + interval, undefined, -1);
     }
   },
+  // Accepted controls and immobilization share Blood Moon's profile and player ownership.
+  traitTriggers: (['control.resolved', 'condition.applied'] as const).map((on) => ({
+    trait: TRAIT.BLOOD_MOON,
+    on,
+    when: (_runtime, event) =>
+      on === 'control.resolved' || event.condition === 'Immobilized' || event.condition === 'Immobile',
+    emit: PROFILE.bloodMoon,
+    effects: (effect) => effect.type === 'condition' && effect.name === 'Bleeding',
+    attribution: (_runtime, event) => ({
+      ownerActorType: 'player',
+      skillId: TRAIT.BLOOD_MOON,
+      skillName: 'Blood Moon',
+      name: 'Blood Moon - Bleeding',
+      triggeredBy: event.skillName
+    })
+  })),
   reactions: {
-    'control.resolved': reactToDruidControl,
-    'condition.applied': reactToDruidCondition,
     'damage.resolved'(runtime, event) {
       if (
         druidState.from(runtime).celestialAvatarActive ||

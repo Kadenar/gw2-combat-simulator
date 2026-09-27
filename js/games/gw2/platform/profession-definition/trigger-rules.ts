@@ -16,19 +16,41 @@ export interface RechargeRule<T extends object> {
   readonly order?: number;
 }
 
+// Attribution may depend on the accepted cast or event, while profiles keep ownership of effect payloads.
+type TriggerAttribution = Partial<
+  EffectEventBase &
+    Pick<
+      SimulationEventBase,
+      'name' | 'priority' | 'offTarget' | 'parentSkillName' | 'icon' | 'skillWeapon' | 'audience'
+    >
+>;
+type TriggerAttributionSource<T extends object, Trigger> =
+  TriggerAttribution | ((runtime: Gw2Runtime<T>, trigger: Trigger) => TriggerAttribution);
+
 type TraitTriggerBase = {
   readonly trait: SkillId;
   readonly emit: SkillId;
   readonly icd?: 'profile';
   readonly order?: number;
-  readonly attribution?: Partial<EffectEventBase & Pick<SimulationEventBase, 'name' | 'priority'>>;
   readonly effects?: (effect: SkillEffect) => boolean;
 };
 export type TraitTrigger<T extends object> = TraitTriggerBase &
   (
-    | { readonly on: 'castStart'; readonly when: (runtime: Gw2Runtime<T>, cast: RuntimeCast) => boolean }
-    | { readonly on: 'castComplete'; readonly when: (runtime: Gw2Runtime<T>, cast: RuntimeCast) => boolean }
-    | { readonly on: Gw2ResolverStage; readonly when: (runtime: Gw2Runtime<T>, event: Gw2ResolverEvent) => boolean }
+    | {
+        readonly on: 'castStart';
+        readonly when: (runtime: Gw2Runtime<T>, cast: RuntimeCast) => boolean;
+        readonly attribution?: TriggerAttributionSource<T, RuntimeCast>;
+      }
+    | {
+        readonly on: 'castComplete';
+        readonly when: (runtime: Gw2Runtime<T>, cast: RuntimeCast) => boolean;
+        readonly attribution?: TriggerAttributionSource<T, RuntimeCast>;
+      }
+    | {
+        readonly on: Gw2ResolverStage;
+        readonly when: (runtime: Gw2Runtime<T>, event: Gw2ResolverEvent) => boolean;
+        readonly attribution?: TriggerAttributionSource<T, Gw2ResolverEvent>;
+      }
   );
 
 /** Compile once; declaration order breaks equal-order ties and live profile lookups keep patches authoritative. */
@@ -63,16 +85,19 @@ export function compileProfessionRules<T extends object>(
       runtime: Gw2Runtime<T>,
       skillId: SkillId | null | undefined,
       skillName: string | undefined,
+      resolveAttribution: () => TriggerAttribution | undefined,
       activationId?: string,
       cause?: Gw2ResolverEvent
     ) => {
       if (rule.icd && !runtime.procs.claim(rule.emit)) return;
+      // Resolve once, after eligibility and the ICD claim, so every sibling packet shares the same identity.
+      const attribution = resolveAttribution();
       const profile = requireBalanceProfileFromContext(runtime, rule.emit);
       emitEffects(runtime, {
         owner: profile,
         effects: rule.effects ? profile.effects?.filter(rule.effects) : profile.effects,
         cause,
-        transform: (event) => ({ ...event, name: profile.name, ...rule.attribution }),
+        transform: (event) => ({ ...event, name: profile.name, ...attribution }),
         baseEvent: {
           source: 'Trait',
           sourceId: rule.trait,
@@ -80,7 +105,7 @@ export function compileProfessionRules<T extends object>(
           skillId,
           skillName,
           activationId,
-          ...rule.attribution
+          ...attribution
         }
       });
     };
@@ -94,7 +119,13 @@ export function compileProfessionRules<T extends object>(
           hasTrait(runtime, rule.trait) &&
           rule.when(runtime, cast)
         )
-          emit(runtime, cast.skill.id, cast.skill.name, cast.id);
+          emit(
+            runtime,
+            cast.skill.id,
+            cast.skill.name,
+            () => (typeof rule.attribution === 'function' ? rule.attribution(runtime, cast) : rule.attribution),
+            cast.id
+          );
         prior?.(runtime, cast);
       };
     } else {
@@ -103,7 +134,14 @@ export function compileProfessionRules<T extends object>(
         ...compiled.reactions,
         [rule.on]: (runtime: Gw2Runtime<T>, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
           if (hasTrait(runtime, rule.trait) && rule.when(runtime, event))
-            emit(runtime, event.skillId, event.skillName, event.activationId, event);
+            emit(
+              runtime,
+              event.skillId,
+              event.skillName,
+              () => (typeof rule.attribution === 'function' ? rule.attribution(runtime, event) : rule.attribution),
+              event.activationId,
+              event
+            );
           return prior?.(runtime, event, details);
         }
       };

@@ -78,47 +78,6 @@ export function applyTempestShoutTraits(context: ElementalistRuntime, cast: Runt
 // attunement-entry proc matching the channeled element.
 function onCastStart(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   if (!skill.overload) return;
-  if (hasTrait(context, 'Hardy Conduit')) {
-    const hardyConduitProfile = requireBalanceProfileFromContext(context, PROFILE.hardyConduit);
-    const protection = requireEffect(hardyConduitProfile, 'boon', 'Protection');
-    if (protection) {
-      emitElementalistBuff(context, {
-        skill: skill,
-        at: cast.start,
-        source: 'Hardy Conduit',
-        sourceId: skill.id,
-        actorType: 'player',
-        kind: String(protection.boon).toLowerCase(),
-        stacks: Number(protection.stacks),
-        duration: Number(protection.duration),
-        skillName: 'Hardy Conduit'
-      });
-    }
-  }
-
-  if (hasTrait(context, 'Harmonious Conduit')) {
-    const harmoniousConduitProfile = requireBalanceProfileFromContext(context, PROFILE.harmoniousConduit);
-    const swiftness = requireEffect(harmoniousConduitProfile, 'boon', 'Swiftness');
-    const stability = requireEffect(harmoniousConduitProfile, 'boon', 'Stability');
-    for (const effect of [swiftness, stability]) {
-      if (!effect) continue;
-      const boon = {
-        kind: String(effect.boon).toLowerCase(),
-        stacks: Number(effect.stacks),
-        duration: Number(effect.duration)
-      };
-      emitElementalistBuff(context, {
-        skill: skill,
-        at: cast.start,
-        source: 'Harmonious Conduit',
-        sourceId: skill.id,
-        actorType: 'player',
-        skillName: 'Harmonious Conduit',
-        ...boon
-      });
-    }
-  }
-
   // Beginning an overload replays the core attunement-entry traits, so fire the proc that belongs
   // to the channeled element (Water has no such proc).
   if (skill.attunement === 'Fire') {
@@ -377,6 +336,27 @@ function onAttunementEvent(context: ElementalistRuntime, event: SimulationEvent)
 
 /** Tempest owns overload channels and reacts only to actual attunement and aura events. */
 export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
+  // Overload-start boons retain the triggering overload as source, including on interrupted channels.
+  traitTriggers: (
+    [
+      ['Hardy Conduit', PROFILE.hardyConduit, ['Protection']],
+      ['Harmonious Conduit', PROFILE.harmoniousConduit, ['Swiftness', 'Stability']]
+    ] as const
+  ).map(([name, profile, effects]) => ({
+    trait: name,
+    on: 'castStart',
+    when: (_runtime, cast) => Boolean(cast.skill.overload),
+    emit: profile,
+    effects: (effect) => effect.type === 'boon' && effects.some((name) => name === effect.name),
+    attribution: (_runtime, cast) => ({
+      source: name,
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      skillName: name,
+      name,
+      offTarget: cast.command.offTarget
+    })
+  })),
   initialize(runtime) {
     registerElementalistEliteEvents(runtime, onAttunementEvent);
   },

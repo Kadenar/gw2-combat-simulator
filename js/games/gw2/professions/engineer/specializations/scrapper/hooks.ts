@@ -15,6 +15,16 @@ import {
 export const scrapperHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
   // Function Gyro's Stability seeds the existing live Stability pulse loop.
   traitTriggers: [
+    // Function Gyro's trait control uses its authored packet and keeps the casting skill's identity.
+    {
+      trait: TRAIT.SYSTEM_SHOCKER,
+      emit: PROFILE.systemShocker,
+      on: 'castComplete',
+      when: (_runtime, cast) => cast.skill.id === ID.FUNCTION_GYRO,
+      effects: (effect) => effect.type === 'control' && effect.name === 'System Shocker',
+      attribution: { name: 'System Shocker — daze' }
+    },
+
     {
       trait: TRAIT.MASS_MOMENTUM,
       on: 'castComplete',

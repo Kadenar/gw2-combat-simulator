@@ -345,61 +345,6 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
   }
 }
 
-// Translate canonical control into Soulbeast trait reactions after the control
-// window has been accepted by the core resolver.
-export function reactToSoulbeastControl(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  if (hasTrait(context, TRAIT.TWICE_AS_VICIOUS)) {
-    const profile = requireBalanceProfileFromContext(context, PROFILE.twiceAsVicious);
-    const buff = requireEffect(profile, 'buff', 'twice-as-vicious');
-    if (buff) queueProfileBuff(context, event, profile, buff, 'Twice as Vicious', TRAIT.TWICE_AS_VICIOUS);
-  }
-
-  if (
-    hasTrait(context, TRAIT.BESTIAL_RAGE) &&
-    isInternalCooldownReady(event.at, context.procs.deadline('ranger.soulbeast.bestialRage'))
-  ) {
-    const profile = requireBalanceProfileFromContext(context, PROFILE.bestialRage);
-    const might = requireEffect(profile, 'boon', 'might');
-    const fury = requireEffect(profile, 'boon', 'fury');
-    // Either surviving boon keeps the shared cooldown; removing both leaves no proc to gate.
-    if (might || fury)
-      context.procs.readyAt['ranger.soulbeast.bestialRage'] =
-        event.at + balanceProfileNumber(profile, 'internalCooldown');
-    if (might) queueProfileBuff(context, event, profile, might, 'Bestial Rage', TRAIT.BESTIAL_RAGE);
-    if (fury) queueProfileBuff(context, event, profile, fury, 'Bestial Rage', TRAIT.BESTIAL_RAGE);
-  }
-}
-
-// Predator's Cunning triggers a flat-coefficient strike on every Poisoned application, not once per tick.
-export function reactToSoulbeastCondition(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  if (event.condition !== 'Poisoned' || !hasTrait(context, TRAIT.PREDATORS_CUNNING)) {
-    return;
-  }
-
-  const profile = requireBalanceProfileFromContext(context, PROFILE.predatorsCunning);
-  const strike = requireEffect(profile, 'strike', 'Strike');
-  if (!strike) return;
-  const hits = effectNumber(profile, strike, 'hits');
-  context.queue.enqueue(
-    buildResolverStrike({
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.PREDATORS_CUNNING,
-      actorType: 'effect',
-      skillId: TRAIT.PREDATORS_CUNNING,
-      skillName: "Predator's Cunning",
-
-      coefficient: effectNumber(profile, strike, 'coefficient'),
-      hits,
-
-      totalHits: hits,
-      skillWeapon: 'Unequipped',
-      canCrit: false,
-      triggeredBy: event.skillName
-    })
-  );
-}
-
 // Essence of Speed reacts to each quickness application and extends all other boons by 2 s, with a 5 s ICD.
 // Quickness itself is excluded from the extension to prevent runaway stacking.
 export function essenceOfSpeedExtension(

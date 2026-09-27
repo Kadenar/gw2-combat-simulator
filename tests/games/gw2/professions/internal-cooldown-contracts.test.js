@@ -1,3 +1,4 @@
+import { runThief } from '#tests/helpers/thief-simulation.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
@@ -35,9 +36,6 @@ import { createSoulbeastState } from '#gw2/professions/ranger/specializations/so
 import { REVENANT_LEGEND_IDS, REVENANT_TRAIT_IDS, REVENANT_SKILL_IDS } from '#gw2/professions/revenant/data/ids.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
-import { thiefCatalog } from '#gw2/professions/thief/profession.js';
-import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
-import { reactThiefCoreBuff } from '#gw2/professions/thief/core/traits/index.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_TRAIT_IDS, WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
@@ -122,7 +120,7 @@ test('Revenant Vicious Reprisal claims only eligible strikes and honors the excl
 // Heal traits claim from the actual completion timestamp, with the shared strict cooldown boundary.
 for (const [key, trait] of [
   ['darkDefense', NECROMANCER_TRAIT_IDS.DARK_DEFENSE],
-  ['maliciousSwarm', NECROMANCER_TRAIT_IDS.MALICIOUS_SWARM]
+  [NECROMANCER_TRAIT_IDS.MALICIOUS_SWARM, NECROMANCER_TRAIT_IDS.MALICIOUS_SWARM]
 ]) {
   test(`Necromancer ${key} claims only after its live completion boundary`, () => {
     for (const selected of [false, true])
@@ -383,31 +381,34 @@ test('Revenant boon traits stay blocked at the exact ICD boundary', () => {
   assert.ok(observedRuntime(result).procs.deadline('revenant.renegade.bloodFury') > AFTER_READY_AT);
 });
 
+// Exercise the compiled trigger at real resolver times, including the exclusive cooldown boundary.
 test('Thief boon traits stay blocked at the exact ICD boundary', () => {
-  const core = createThiefCoreState();
-  const config = { selectedTraitIds: [THIEF_TRAIT_IDS.ASSASSINS_FURY] };
-  const { context } = professionContext({ id: 'thief', catalog: thiefCatalog, core, config });
-  context.procs.readyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] = READY_AT;
-  const event = {
-    type: 'buff',
-    kind: 'fury',
-    at: READY_AT,
-    resolvedAudience: {
-      includesSelf: true,
-      includesSummons: false,
-      alliedPlayerCount: 0,
-      companionIds: [],
-      recipientCount: 1
+  const result = runThief(
+    [wait(1100)],
+    { selectedTraitIds: [THIEF_TRAIT_IDS.ASSASSINS_FURY] },
+    {
+      initialize(runtime) {
+        runtime.procs.readyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] = READY_AT;
+        for (const at of [READY_AT, AFTER_READY_AT])
+          runtime.emit({
+            type: 'buff',
+            kind: 'fury',
+            at,
+            duration: 1,
+            stacks: 1,
+            source: 'fixture',
+            sourceId: 'fixture',
+            actorType: 'player'
+          });
+      }
     }
-  };
-
-  reactThiefCoreBuff(context, event);
-  assert.equal(context.procs.readyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY], READY_AT);
-  assert.equal(context.queue.length, 0);
-
-  reactThiefCoreBuff(context, { ...event, at: AFTER_READY_AT });
-  assert.ok(context.procs.readyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] > AFTER_READY_AT);
-  assert.equal(context.queue.length, 1);
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.events.filter((event) => event.sourceId === THIEF_TRAIT_IDS.ASSASSINS_FURY).map((event) => event.at),
+    [AFTER_READY_AT]
+  );
+  assert.ok(observedRuntime(result).procs.readyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] > AFTER_READY_AT);
 });
 
 // Actual burst impacts share the exclusive trait gate, independently of their skill recharge.

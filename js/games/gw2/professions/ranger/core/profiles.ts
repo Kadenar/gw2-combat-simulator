@@ -137,10 +137,28 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.wellspring, 'Wellspring', {
     attributeConversion: 0.07,
-    effects: [{ name: 'regeneration', type: 'boon', boon: 'regeneration', duration: 6, stacks: 1 }]
+    effects: [
+      {
+        name: 'regeneration',
+        type: 'boon',
+        boon: 'regeneration',
+        duration: 6,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
+    ]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.windborneNotes, 'Windborne Notes', {
-    effects: [{ name: 'regeneration', type: 'boon', boon: 'regeneration', duration: 6, stacks: 1 }]
+    effects: [
+      {
+        name: 'regeneration',
+        type: 'boon',
+        boon: 'regeneration',
+        duration: 6,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
+    ]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.rejuvenation, 'Rejuvenation', {
     internalCooldown: 20,
@@ -263,7 +281,8 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.carnivore, 'Carnivore', {
     internalCooldown: 0.25,
-    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.05, hits: 1 }]
+    // Life stealing cannot crit and uses its own damage category.
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.05, hits: 1, canCrit: false, damageKind: 'life-steal' }]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.naturalVigor, 'Natural Vigor', {
     vigorRegenerationMultiplier: 0.25

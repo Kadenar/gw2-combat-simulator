@@ -44,7 +44,7 @@ export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     name: 'Shared Empowerment',
     profileKind: 'trait',
     description: 'Applying a boon to an ally grants nearby allies one stack of might.',
-    cooldown: 1,
+    internalCooldown: 1,
     effects: [
       {
         name: 'might',

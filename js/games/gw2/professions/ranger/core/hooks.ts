@@ -1,3 +1,5 @@
+import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { isPlayerStrike, isPetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
@@ -13,7 +15,7 @@ import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mecha
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { rangerCoreCastAvailability } from '#gw2/professions/ranger/core/mechanics/availability.js';
 import { rangerEndurance } from '#gw2/professions/ranger/core/mechanics/resources.js';
@@ -24,8 +26,7 @@ import {
   applyRangerWeaponSwapTraits,
   completeRangerTraits,
   rangerCoreProfiledCriticalReaction,
-  reactToRangerCoreBuff,
-  reactToRangerCoreControl
+  reactToRangerCoreBuff
 } from '#gw2/professions/ranger/core/traits/index.js';
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
 import { reactToRangerGreatswordDamage } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
@@ -222,6 +223,60 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
         )
       );
   },
+  // Completed skill boons keep trait identity and the triggering skill's display attribution.
+  traitTriggers: [
+    // Carnivore's profile owns the noncritical life-steal packet; accepted control supplies attribution.
+    {
+      trait: TRAIT.CARNIVORE,
+      emit: PROFILE.carnivore,
+      on: 'control.resolved',
+      icd: 'profile',
+      when: (runtime, event) =>
+        (isPlayerStrike(event) || isPetStrike(event)) &&
+        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.carnivore), 'strike', 'Strike')),
+      effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
+      attribution: (_runtime, event) => ({
+        skillId: TRAIT.CARNIVORE,
+        skillName: 'Carnivore',
+        name: 'Carnivore',
+        skillWeapon: 'Unequipped',
+        triggeredBy: event.skillName
+      })
+    },
+
+    ...(
+      [
+        ['Wellspring', TRAIT.WELLSPRING, PROFILE.wellspring],
+        ['Windborne Notes', TRAIT.WINDBORNE_NOTES, PROFILE.windborneNotes]
+      ] as const
+    ).map<Extract<TraitTrigger<RangerRuntimeState>, { on: 'castComplete' }>>(([name, trait, emit]) => ({
+      trait,
+      emit,
+      on: 'castComplete' as const,
+      when: (_runtime, cast) =>
+        trait === TRAIT.WELLSPRING ? cast.skill.type === 'Heal' : cast.skill.weapon === 'Warhorn',
+      effects: (effect) => effect.type === 'boon' && effect.name === 'regeneration',
+      attribution: (_runtime, cast) => ({
+        skillId: trait,
+        skillName: name,
+        name: `${name} - regeneration`,
+        triggeredBy: cast.skill.name
+      })
+    })),
+    ...['swiftness', 'quickness'].map<Extract<TraitTrigger<RangerRuntimeState>, { on: 'castComplete' }>>((boon) => ({
+      trait: TRAIT.LEAD_THE_WIND,
+      emit: PROFILE.leadTheWind,
+      on: 'castComplete' as const,
+      when: (_runtime, cast) => cast.skill.id === ID.POINT_BLANK_SHOT,
+      effects: (effect) => effect.type === 'boon' && effect.name === boon,
+      attribution: (_runtime, cast) => ({
+        skillId: TRAIT.LEAD_THE_WIND,
+        skillName: 'Lead the Wind',
+        name: `Lead the Wind - ${boon}`,
+        triggeredBy: cast.skill.name
+      })
+    }))
+  ],
   onCastComplete(runtime, cast) {
     completeWeapon(runtime, cast);
     if (castWasInterrupted(cast)) return;
@@ -316,7 +371,6 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
         state.revealedUntil = runtime.time + 3;
       }
     },
-    'control.resolved': reactToRangerCoreControl,
     'buff.applied'(runtime, event) {
       reactToRangerCoreBuff(runtime, event);
       const state = runtime.profession.core;

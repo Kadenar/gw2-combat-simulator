@@ -43,7 +43,7 @@ export const SCRAPPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     effects: [{ name: 'superspeed', type: 'buff', kind: 'superspeed', stacks: 1, duration: 5 }]
   }),
   trait(SCRAPPER_BALANCE_PROFILE_IDS.systemShocker, 'System Shocker', {
-    effects: [{ name: 'System Shocker', type: 'control' }]
+    effects: [{ name: 'System Shocker', type: 'control', controlKind: 'daze' }]
   }),
   // Trait tuning is shared by build calculations, combat, and tooltips.
   trait(TRAIT.EX_MACHINA, 'Ex Machina', { maximumAmmo: 2 }),

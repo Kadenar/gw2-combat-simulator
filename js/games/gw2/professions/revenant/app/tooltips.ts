@@ -859,7 +859,7 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.SHARED_EMPOWERMENT]: profileTooltip(
       'revenant.shared-empowerment',
       'Applying a boon to an ally grants might to the party.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'cooldown', 'Internal cooldown', tooltipSeconds)]
+      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
     ),
     [TRAIT.SHINING_ASPECTS]: outsideScopeTooltip,
     [TRAIT.HARDENING_PERSISTENCE]: outsideScopeTooltip,
@@ -922,7 +922,7 @@ export const revenantTooltips: ProfessionTooltips = {
           'Critical chance at full endurance',
           tooltipPercent
         ),
-        profileFact(balanceContext, id, 'cooldown', 'Vigor cooldown', tooltipSeconds)
+        profileFact(balanceContext, id, 'internalCooldown', 'Vigor cooldown', tooltipSeconds)
       ]
     ),
     [TRAIT.ASHEN_DEMEANOR]: profileTooltip(
@@ -1120,7 +1120,7 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.MISTFIRE]: profileTooltip(
       CONDUIT.mistfire,
       'Control effects inflict burning. Twin Moon Sweep is excluded.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'cooldown', 'Internal cooldown', tooltipSeconds)]
+      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
     ),
     [TRAIT.ENHANCED_EMBODIMENT]: profileTooltip(
       CONDUIT.enhancedEmbodiment,

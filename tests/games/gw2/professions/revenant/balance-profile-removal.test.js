@@ -9,6 +9,7 @@ import {
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/revenant/core/profiles.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as CONDUIT } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
+import { HERALD_SHARED_EMPOWERMENT_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 
@@ -20,6 +21,46 @@ const RENEGADE_CONFIG = Object.freeze({
   startingLegend: LEGEND.RENEGADE,
   initialEnergy: 100
 });
+
+// Migrated profiles expose one canonical ICD field and leave it unclaimed when their output is removed.
+for (const [specialization, trait, profile, type, name] of [
+  ['Herald', TRAIT.SHARED_EMPOWERMENT, HERALD_SHARED_EMPOWERMENT_PROFILE_ID, 'boon', 'might'],
+  ['Renegade', TRAIT.BRUTAL_MOMENTUM, RENEGADE.brutalMomentum, 'boon', 'vigor'],
+  ['Conduit', TRAIT.MISTFIRE, CONDUIT.mistfire, 'condition', 'Burning']
+]) {
+  test(`${specialization} declared proc honors effect removal and the patched internal cooldown`, () => {
+    for (const removed of [false, true]) {
+      const result = runRevenant(
+        [{ type: 'wait', durationMs: 4000 }],
+        { specialization, selectedTraitIds: [trait] },
+        {
+          catalog: patched({ [profile]: { fields: { internalCooldown: 2 }, ...(removed ? remove(type, name) : {}) } }),
+          initialize(runtime) {
+            for (const at of [1, 3, 3.001])
+              runtime.emit({
+                at,
+                source: 'fixture',
+                sourceId: 'trigger',
+                actorType: 'player',
+                skillName: 'Trigger',
+                ...(type === 'condition'
+                  ? { type: 'control', controlKind: 'daze', duration: 1 }
+                  : { type: 'buff', kind: 'fury', stacks: 1, duration: 1 })
+              });
+          }
+        }
+      );
+      const packets = result.events.filter((event) => event.sourceId === trait);
+      assert.deepEqual(
+        packets.map((event) => event.at),
+        removed ? [] : [1, 3.001]
+      );
+      assert.equal(observedRuntime(result).procs.deadline(profile), removed ? 0 : 3.001 + 2);
+      if (trait === TRAIT.BRUTAL_MOMENTUM) assert.ok(packets.every((event) => event.skillId === profile));
+      assert.deepEqual(result.warnings, []);
+    }
+  });
+}
 
 test('removed Brutality quickness leaves the weapon-swap cooldown unclaimed', () => {
   // The live owner claims Brutality's cooldown only when it can deliver the Quickness.

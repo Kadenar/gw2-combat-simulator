@@ -4,7 +4,7 @@ import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import { BRAVE_STRIDE_MOVEMENT_SKILL_IDS, reactToWarriorBuff } from '#gw2/professions/warrior/core/traits/strength.js';
 import { reactToWarriorDamage } from '#gw2/professions/warrior/core/traits/arms.js';
@@ -89,13 +89,6 @@ function controlTraits(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
       runtime,
       balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.mercilessHammer), 'resourceGain')
     );
-  if (claimTrait(runtime, TRAIT.STALWART_STRENGTH)) traitEffects(runtime, event, TRAIT.STALWART_STRENGTH);
-  if (
-    hasTrait(runtime, TRAIT.BODY_BLOW) &&
-    ['stun', 'daze', 'knockback', 'pull', 'push', 'launch'].includes(String(event.controlKind).toLowerCase())
-  )
-    traitEffects(runtime, event, TRAIT.BODY_BLOW);
-  if (claimTrait(runtime, TRAIT.AGGRESSIVE_ONSLAUGHT)) traitEffects(runtime, event, TRAIT.AGGRESSIVE_ONSLAUGHT);
 }
 
 /** The first surviving burst strike claims its activation once, even when earlier packets missed or traveled. */
@@ -336,26 +329,6 @@ function completeTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
     );
     castTraitBuff(runtime, cast, TRAIT.BRAVE_STRIDE, PROFILE.braveStride, 'Brave Stride', 'stability', 'boon');
   }
-
-  if (skill.id !== ID.DODGE || !hasTrait(runtime, TRAIT.RECKLESS_DODGE)) return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.recklessDodge);
-  const strike = requireEffect(profile, 'strike', 'Strike');
-  if (strike)
-    runtime.emit(
-      buildResolverStrike({
-        at: runtime.time,
-        source: 'Warrior',
-        sourceId: TRAIT.RECKLESS_DODGE,
-        actorType: 'player',
-        skillId: skill.id,
-        skillName: skill.name,
-        activationId: cast.id,
-        name: 'Reckless Dodge',
-        coefficient: effectNumber(profile, strike, 'coefficient'),
-        skillWeapon: ''
-      })
-    );
-  castTraitBuff(runtime, cast, TRAIT.RECKLESS_DODGE, PROFILE.recklessDodge, 'Reckless Dodge — Might', 'might', 'boon');
 }
 
 /** One-bar elites reserve only the authored cost; Core reserves the whole pool for the activation's tier. */
@@ -472,6 +445,49 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
   ],
   rechargeWork: (_runtime, skill, work) => (skill.id === ID.SWAP_WEAPONS ? Math.min(5, work) : work),
   traitTriggers: [
+    // Independent control rewards share accepted-event ownership; resource transactions stay in the hook.
+    {
+      trait: TRAIT.STALWART_STRENGTH,
+      on: 'control.resolved',
+      when: (_runtime, event) => event.actorType === 'player',
+      emit: PROFILE.stalwartStrength,
+      icd: 'profile',
+      attribution: { priority: 5 }
+    },
+    {
+      trait: TRAIT.BODY_BLOW,
+      on: 'control.resolved',
+      when: (_runtime, event) =>
+        event.actorType === 'player' &&
+        ['stun', 'daze', 'knockback', 'pull', 'push', 'launch'].includes(String(event.controlKind).toLowerCase()),
+      emit: PROFILE.bodyBlow,
+      attribution: { priority: 5 }
+    },
+    {
+      trait: TRAIT.AGGRESSIVE_ONSLAUGHT,
+      on: 'control.resolved',
+      when: (_runtime, event) => event.actorType === 'player',
+      emit: PROFILE.aggressiveOnslaught,
+      icd: 'profile',
+      attribution: { priority: 5 }
+    },
+    // A completed dodge emits independent strike and Might packets with their original owners.
+    {
+      trait: TRAIT.RECKLESS_DODGE,
+      on: 'castComplete',
+      when: (_runtime, cast) => cast.skill.id === ID.DODGE,
+      emit: PROFILE.recklessDodge,
+      effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
+      attribution: { source: 'Warrior', actorType: 'player', name: 'Reckless Dodge', skillWeapon: '' }
+    },
+    {
+      trait: TRAIT.RECKLESS_DODGE,
+      on: 'castComplete',
+      when: (_runtime, cast) => cast.skill.id === ID.DODGE,
+      emit: PROFILE.recklessDodge,
+      effects: (effect) => effect.type === 'boon' && effect.name === 'might',
+      attribution: { name: 'Reckless Dodge — Might', priority: 0 }
+    },
     // Completed weapon swaps grant Fury once per the selected profile's cooldown.
     {
       trait: TRAIT.FURIOUS_BURST,

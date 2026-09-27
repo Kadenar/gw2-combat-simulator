@@ -22,7 +22,7 @@ import {
   rangerCoreCriticalReactions,
   rangerCoreProfiledCriticalReaction
 } from '#gw2/professions/ranger/core/traits/skirmishing.js';
-import { emitChildOfEarth, reactToRangerCoreControl } from '#gw2/professions/ranger/core/traits/wilderness-survival.js';
+import { emitChildOfEarth } from '#gw2/professions/ranger/core/traits/wilderness-survival.js';
 import { reactToRangerCoreBuff } from '#gw2/professions/ranger/core/traits/marksmanship.js';
 import { applyRangerCommandTraits } from '#gw2/professions/ranger/core/traits/beastmastery.js';
 
@@ -31,8 +31,7 @@ export {
   applyRangerWeaponSwapTraits,
   rangerCoreCriticalReactions,
   rangerCoreProfiledCriticalReaction,
-  reactToRangerCoreBuff,
-  reactToRangerCoreControl
+  reactToRangerCoreBuff
 };
 
 function isBeastSkill(skill: RangerSkill): boolean {
@@ -42,96 +41,7 @@ function isBeastSkill(skill: RangerSkill): boolean {
 // Route completed casts through shared Ranger trait families while consuming
 // transient Quick Draw state only on the next qualifying weapon skill.
 export function completeRangerTraits(context: RangerRuntime, skill: RangerSkill): void {
-  if (skill.type === 'Heal') {
-    const wellspringProfile = hasTrait(context, TRAIT.WELLSPRING)
-      ? requireBalanceProfileFromContext(context, PROFILE.wellspring)
-      : undefined;
-    const effect = wellspringProfile && requireEffect(wellspringProfile, 'boon', 'regeneration');
-    if (wellspringProfile && effect) {
-      const kind = String(effect.boon);
-      context.emitProcedural(
-        rangerEvent(
-          {
-            at: context.time,
-            source: 'Trait',
-            sourceId: TRAIT.WELLSPRING,
-            actorType: 'effect',
-            skillId: TRAIT.WELLSPRING,
-            skillName: 'Wellspring',
-            name: `Wellspring - ${kind}`,
-            kind,
-            boon: kind,
-            duration: effectNumber(wellspringProfile, effect, 'duration'),
-            stacks: effectNumber(wellspringProfile, effect, 'stacks'),
-            audience: { recipients: 'party' as const, maximumRecipients: 5 },
-            triggeredBy: skill.name
-          },
-          'buff'
-        )
-      );
-    }
-
-    emitChildOfEarth(context, skill);
-  }
-
-  const windborneNotesProfile =
-    skill.weapon === 'Warhorn' && hasTrait(context, TRAIT.WINDBORNE_NOTES)
-      ? requireBalanceProfileFromContext(context, PROFILE.windborneNotes)
-      : undefined;
-  const windborneNotes = windborneNotesProfile && requireEffect(windborneNotesProfile, 'boon', 'regeneration');
-  if (windborneNotesProfile && windborneNotes) {
-    const kind = String(windborneNotes.boon);
-    context.emitProcedural(
-      rangerEvent(
-        {
-          at: context.time,
-          source: 'Trait',
-          sourceId: TRAIT.WINDBORNE_NOTES,
-          actorType: 'effect',
-          skillId: TRAIT.WINDBORNE_NOTES,
-          skillName: 'Windborne Notes',
-          name: `Windborne Notes - ${kind}`,
-          kind,
-          boon: kind,
-          duration: effectNumber(windborneNotesProfile, windborneNotes, 'duration'),
-          stacks: effectNumber(windborneNotesProfile, windborneNotes, 'stacks'),
-          audience: { recipients: 'party' as const, maximumRecipients: 5 },
-          triggeredBy: skill.name
-        },
-        'buff'
-      )
-    );
-  }
-
-  // Point-Blank Shot materializes Lead the Wind's self boons only when the trait is selected.
-  if (skill.id === ID.POINT_BLANK_SHOT && hasTrait(context, TRAIT.LEAD_THE_WIND)) {
-    const profile = requireBalanceProfileFromContext(context, PROFILE.leadTheWind);
-    // Each named boon is independent, so removing one keeps its sibling bound to its own values.
-    for (const name of ['swiftness', 'quickness']) {
-      const effect = requireEffect(profile, 'boon', name);
-      if (!effect) continue;
-      const kind = String(effect.boon);
-      context.emitProcedural(
-        rangerEvent(
-          {
-            at: context.time,
-            source: 'Trait',
-            sourceId: TRAIT.LEAD_THE_WIND,
-            actorType: 'effect',
-            skillId: TRAIT.LEAD_THE_WIND,
-            skillName: 'Lead the Wind',
-            name: `Lead the Wind - ${kind}`,
-            kind,
-            boon: kind,
-            duration: effectNumber(profile, effect, 'duration'),
-            stacks: effectNumber(profile, effect, 'stacks'),
-            triggeredBy: skill.name
-          },
-          'buff'
-        )
-      );
-    }
-  }
+  if (skill.type === 'Heal') emitChildOfEarth(context, skill);
 
   if (String(skill.description || '').startsWith('Command.')) {
     applyRangerCommandTraits(context, skill);

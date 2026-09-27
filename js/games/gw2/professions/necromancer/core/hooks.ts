@@ -1,3 +1,4 @@
+import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { canonicalTime, isTimeInWindow, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { modifyNecromancerRechargeStart } from '#gw2/professions/necromancer/core/mechanics/recharge.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -300,7 +301,7 @@ function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   if (skill.id === ID.CHILLING_SCYTHE) runtime.cooldownController.clear(ID.GRAVEDIGGER);
 }
 
-/** Completed heal, signet, and shroud casts claim trait effects once against current cooldowns and Carapace. */
+/** Completed heals grant Dark Defense Carapace and Protection together under one cooldown. */
 function completionTraits(runtime: NecromancerRuntime, cast: RuntimeCast): void {
   const skill = cast.skill;
   const state = runtime.profession.core;
@@ -334,75 +335,6 @@ function completionTraits(runtime: NecromancerRuntime, cast: RuntimeCast): void 
         };
         queueResolverBoon(runtime, event, event);
       }
-    }
-  }
-
-  if (skill.categories?.includes('Signet') && hasTrait(runtime, TRAIT.SIGNETS_OF_SUFFERING)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.SIGNETS_OF_SUFFERING);
-    const strike = requireEffect(profile, 'strike', 'Strike');
-    if (strike)
-      runtime.emit(
-        buildResolverStrike({
-          ...cause,
-          sourceId: TRAIT.SIGNETS_OF_SUFFERING,
-          skillName: profile.name,
-          coefficient: 0,
-          skillWeapon: 'Unequipped',
-          noCrit: true,
-          flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
-          damageKind: 'life-steal'
-        })
-      );
-  }
-
-  if (skill.type === 'Heal' && hasTrait(runtime, TRAIT.MALICIOUS_SWARM)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.MALICIOUS_SWARM);
-    const strike = requireEffect(profile, 'strike', 'Strike');
-    if (
-      strike &&
-      runtime.procs.claimCooldown('maliciousSwarm', runtime.time, balanceProfileNumber(profile, 'internalCooldown'))
-    )
-      runtime.emit(
-        buildResolverStrike({
-          ...cause,
-          sourceId: TRAIT.MALICIOUS_SWARM,
-          skillName: 'Lesser Signet of the Locust',
-          skillWeapon: 'Unequipped',
-          coefficient: effectNumber(profile, strike, 'coefficient')
-        })
-      );
-  }
-
-  if (skill.shroudSlot === 4 && hasTrait(runtime, TRAIT.TRANSFUSION)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.TRANSFUSION);
-    const event = {
-      ...cause,
-      sourceId: TRAIT.TRANSFUSION,
-      skillId: ID.LESSER_CHILBLAINS,
-      skillName: 'Lesser Chilblains',
-      parentSkillName: skill.name,
-      icon: runtime.helpers.skillsById.get(ID.CHILLBLAINS)?.icon
-    };
-    const strike = requireEffect(profile, 'strike', 'Strike');
-    if (strike)
-      runtime.emit(
-        buildResolverStrike({
-          ...event,
-          coefficient: effectNumber(profile, strike, 'coefficient'),
-          skillWeapon: 'Unequipped'
-        })
-      );
-    for (const name of ['Poisoned', 'Chilled']) {
-      const condition = requireEffect(profile, 'condition', name);
-      if (condition)
-        runtime.emit(
-          buildResolverCondition({
-            ...event,
-            condition: String(condition.condition),
-            stacks: effectNumber(profile, condition, 'stacks'),
-            duration: effectNumber(profile, condition, 'duration')
-          })
-        );
     }
   }
 }
@@ -576,6 +508,61 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
         });
     }
   },
+  // Cast-derived attribution remains local to the declaration; balance profiles own all packets.
+  traitTriggers: [
+    {
+      trait: TRAIT.MALICIOUS_SWARM,
+      on: 'castComplete',
+      emit: TRAIT.MALICIOUS_SWARM,
+      icd: 'profile',
+      when: (runtime, cast) =>
+        cast.skill.type === 'Heal' &&
+        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.MALICIOUS_SWARM), 'strike', 'Strike')),
+      effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
+      attribution: (_runtime, cast) => ({
+        skillId: undefined,
+        skillName: 'Lesser Signet of the Locust',
+        name: 'Lesser Signet of the Locust',
+        skillWeapon: 'Unequipped',
+        triggeredBy: cast.skill.name,
+        offTarget: cast.command.offTarget
+      })
+    },
+    {
+      trait: TRAIT.SIGNETS_OF_SUFFERING,
+      on: 'castComplete',
+      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Signet')),
+      emit: TRAIT.SIGNETS_OF_SUFFERING,
+      effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
+      attribution: (_runtime, cast) => ({
+        skillId: undefined,
+        skillName: 'Signets of Suffering',
+        name: 'Signets of Suffering',
+        triggeredBy: cast.skill.name,
+        offTarget: cast.command.offTarget,
+        skillWeapon: 'Unequipped'
+      })
+    },
+    ...(['Strike', 'Poisoned', 'Chilled'] as const).map<
+      Extract<TraitTrigger<NecromancerRuntimeState>, { on: 'castComplete' }>
+    >((name) => ({
+      trait: TRAIT.TRANSFUSION,
+      on: 'castComplete' as const,
+      when: (_runtime, cast) => cast.skill.shroudSlot === 4,
+      emit: TRAIT.TRANSFUSION,
+      effects: (effect) => effect.type === (name === 'Strike' ? 'strike' : 'condition') && effect.name === name,
+      attribution: (runtime, cast) => ({
+        skillId: ID.LESSER_CHILBLAINS,
+        skillName: 'Lesser Chilblains',
+        name: name === 'Strike' ? 'Lesser Chilblains' : `Lesser Chilblains — ${name}`,
+        parentSkillName: cast.skill.name,
+        icon: runtime.helpers.skillsById.get(ID.CHILLBLAINS)?.icon,
+        triggeredBy: cast.skill.name,
+        offTarget: cast.command.offTarget,
+        skillWeapon: 'Unequipped'
+      })
+    }))
+  ],
   onCastComplete: complete,
   onAutoattackChainTransition: observeNecromancerAutoattackTransition,
   onCooldownReset(runtime) {

@@ -1,6 +1,6 @@
 import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 /** Owns Core Ranger Wilderness Survival condition and control-triggered trait behavior. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -12,11 +12,7 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import {
-  isPetStrike,
-  isPlayerStrike,
-  queueCondition
-} from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { isPetStrike, queueCondition } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import type { RangerRuntime, RangerResolverContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 
@@ -137,43 +133,5 @@ export function triggerArachnophobia(context: RangerResolverContext, event: Gw2R
     effectNumber(profile, torment, 'stacks'),
     TRAIT.ARACHNOPHOBIA,
     'Arachnophobia'
-  );
-}
-
-// Record the target-control window and dispatch Ranger traits that react to
-// canonical control events without replaying the source effect.
-export function reactToRangerCoreControl(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  if (
-    !hasTrait(context, TRAIT.CARNIVORE) ||
-    (!isPlayerStrike(event) && !isPetStrike(event)) ||
-    !isInternalCooldownReady(event.at, context.procs.deadline('ranger.core.carnivore'))
-  ) {
-    return;
-  }
-
-  const profile = requireBalanceProfileFromContext(context, PROFILE.carnivore);
-  const strike = requireEffect(profile, 'strike', 'Strike');
-  // The cooldown gates only the life-steal strike, so a removed strike leaves it ready.
-  if (!strike) return;
-  context.procs.readyAt['ranger.core.carnivore'] = event.at + balanceProfileNumber(profile, 'internalCooldown');
-  const hits = effectNumber(profile, strike, 'hits');
-  context.queue.enqueue(
-    buildResolverStrike({
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.CARNIVORE,
-      actorType: 'effect',
-      skillId: TRAIT.CARNIVORE,
-      skillName: 'Carnivore',
-
-      coefficient: effectNumber(profile, strike, 'coefficient'),
-      hits,
-
-      totalHits: hits,
-      skillWeapon: 'Unequipped',
-      canCrit: false,
-      damageKind: 'life-steal',
-      triggeredBy: event.skillName
-    })
   );
 }

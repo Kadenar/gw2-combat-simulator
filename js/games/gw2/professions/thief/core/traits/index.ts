@@ -13,7 +13,6 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { applyActiveVenoms } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import {
-  applyAssassinsFury,
   noQuarterCriticalReaction,
   unrelentingStrikesCriticalReaction
 } from '#gw2/professions/thief/core/traits/critical-strikes.js';
@@ -193,9 +192,4 @@ export function reactThiefCoreCondition(runtime: ThiefRuntime, application: Gw2R
   applyPanicStrikePoison(context, application as ThiefResolverEvent);
   applyCloakedInShadow(context, application as ThiefResolverEvent);
   unsuspectingStrikeBonus(runtime, application);
-}
-
-/** Applied self Fury drives Assassin's Fury. */
-export function reactThiefCoreBuff(runtime: ThiefRuntime, event: Gw2ResolverEvent): void {
-  applyAssassinsFury(resolverContext(runtime), event as ThiefResolverEvent);
 }
