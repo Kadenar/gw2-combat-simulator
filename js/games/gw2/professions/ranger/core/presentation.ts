@@ -38,8 +38,7 @@ const RANGER_HIDDEN_EVENT_TYPES = new Set([
   'ranger.blood-thirst',
   'ranger.pet-swapped',
   'ranger.poisonous-strikes',
-  'ranger.sharpening-stone',
-  'ranger.winter-bite-ready'
+  'ranger.sharpening-stone'
 ]);
 
 /** Flatten runtime or projected state while retaining the declared Ranger fields. */

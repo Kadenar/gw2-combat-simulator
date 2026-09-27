@@ -119,7 +119,6 @@ function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEve
 
 export const unrelentingStrikesCriticalReaction = Object.freeze({
   id: 'thief.unrelenting-strikes',
-  order: 10,
   actorTypes: ['player'] as const,
   when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: NativeResolvedDamageDetails) =>
     Boolean(details.hitContext?.critEligible) &&
@@ -131,10 +130,6 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
       context.procs.readyAt[TRAIT.UNRELENTING_STRIKES] = readyAt;
     }
-  },
-  attribution: {
-    kind: 'trait' as const,
-    id: TRAIT.UNRELENTING_STRIKES
   },
   handler: (context, event, _details, application) => {
     // One invocation shares authored effects; each queued boon still samples live duration scaling.
@@ -166,7 +161,6 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
 
 export const noQuarterCriticalReaction = Object.freeze({
   id: 'thief.no-quarter',
-  order: 20,
   actorTypes: ['player'] as const,
   when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: NativeResolvedDamageDetails) =>
     Boolean(details.hitContext?.critEligible) &&
@@ -179,7 +173,6 @@ export const noQuarterCriticalReaction = Object.freeze({
       context.procs.readyAt[TRAIT.NO_QUARTER] = readyAt;
     }
   },
-  attribution: { kind: 'trait' as const, id: TRAIT.NO_QUARTER },
   handler: (context, event, _details, application) => {
     // Reuse authored duration within this batch while extending the live pool for each proc.
     const definition = criticalBoonDefinition(context, TRAIT.NO_QUARTER);

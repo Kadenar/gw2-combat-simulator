@@ -322,7 +322,6 @@ test('resolved critical-hit helper shares sampled outcomes and strict ICDs acros
         state.readyAt = value;
       }
     },
-    attribution: { kind: 'trait', id: 99 },
     handler: (_context, _event, _details, application) => {
       // Discrete consumers apply every proc quantity returned by the shared kernel.
       state.procs += application.quantity;
@@ -355,7 +354,6 @@ test('resolved critical-hit helper shares sampled outcomes and strict ICDs acros
   );
   assert.equal(state.procs, 3);
   assert.equal(state.rolls, 3);
-  assert.deepEqual(reaction.attribution, { kind: 'trait', id: 99 });
 
   reaction.handler(
     context,

@@ -16,10 +16,6 @@ export function handleRangerBloodThirst(context: RangerResolverContext, event: G
   );
 }
 
-export function handleRangerWinterBiteReady(context: RangerResolverContext, _event: Gw2ResolverEvent): void {
-  professionCoreState(context).winterBiteReady = true;
-}
-
 export function handleRangerBeastSkillUsed(context: RangerResolverContext, _event: Gw2ResolverEvent): void {
   if (hasTrait(context, TRAIT.POISON_MASTER)) {
     professionCoreState(context).poisonMasterPetAttackReady = true;

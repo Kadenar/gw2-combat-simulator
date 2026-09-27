@@ -165,7 +165,6 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         }
       },
       randomStream: 'food.critical-strike',
-      attribution: { kind: 'effect', id: 'food.critical-strike' },
       handler: (ctx, event, _details, application) => {
         // Food procs are discrete events, so materialize every successful sampled application independently.
         for (let proc = 0; proc < application.quantity; proc += 1) {

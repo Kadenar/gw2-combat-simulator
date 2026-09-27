@@ -911,7 +911,7 @@ test('Ranger palette groups the active pet, command, swap, and Dodge endurance',
   assert.doesNotMatch(html, /class="active-resource" data-resource-id="endurance"/);
 });
 
-test("Core Ranger resolves Winter's Bite readiness events", () => {
+test("Core Ranger arms Winter's Bite readiness on cast commit", () => {
   const result = simulate('Core', ["Winter's Bite"], {
     primaryWeapon: 'Axe'
   });

@@ -39,7 +39,6 @@ const chillingNovaCriticalHit = onResolvedCriticalHit<
       context.procs.readyAt['necromancer.reaper.chillingNova'] = readyAt;
     }
   },
-  attribution: { kind: 'trait', id: TRAIT.CHILLING_NOVA },
   handler: (context, event, _details, application) => {
     // Chilling Nova is a discrete strike-and-chill package for each materialized proc.
     const profile = requireBalanceProfileFromContext(context, PROFILE.chillingNova);

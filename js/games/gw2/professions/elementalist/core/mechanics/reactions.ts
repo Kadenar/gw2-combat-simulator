@@ -113,7 +113,6 @@ export const elementalistCoreCriticalReactions = Object.freeze([
         context.procs.readyAt.ragingStorm = readyAt;
       }
     },
-    attribution: { kind: 'trait', id: TRAIT.RAGING_STORM },
     handler: applyRagingStorm
   }),
   onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
@@ -130,7 +129,6 @@ export const elementalistCoreCriticalReactions = Object.freeze([
       }
     },
     randomStream: 'elementalist.arcane-precision',
-    attribution: { kind: 'trait', id: TRAIT.ARCANE_PRECISION },
     handler: applyArcanePrecision
   }),
   onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
@@ -144,7 +142,6 @@ export const elementalistCoreCriticalReactions = Object.freeze([
         context.procs.readyAt.renewingStamina = readyAt;
       }
     },
-    attribution: { kind: 'trait', id: TRAIT.RENEWING_STAMINA },
     handler: applyRenewingStamina
   }),
   onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
@@ -160,7 +157,6 @@ export const elementalistCoreCriticalReactions = Object.freeze([
       }
     },
     randomStream: 'elementalist.burning-precision',
-    attribution: { kind: 'trait', id: TRAIT.BURNING_PRECISION },
     handler: applyBurningPrecision
   })
 ]);

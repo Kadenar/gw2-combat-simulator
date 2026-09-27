@@ -13,6 +13,7 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
+import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 
 import type { RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
@@ -40,8 +41,7 @@ import {
   handleRangerBloodThirst,
   handleRangerBeastSkillUsed,
   handleRangerPoisonousStrikes,
-  handleRangerSharpeningStone,
-  handleRangerWinterBiteReady
+  handleRangerSharpeningStone
 } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
 import {
   beginRangerPetCommand,
@@ -366,9 +366,8 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
   },
   eventHandlers: {
     // This is an executed transition fact for presentation; the completion owner already changed the pet.
-    'ranger.pet-swapped': () => {},
+    'ranger.pet-swapped': OBSERVABLE_EVENT_HANDLER,
     'ranger.blood-thirst': handleRangerBloodThirst,
-    'ranger.winter-bite-ready': handleRangerWinterBiteReady,
     'ranger.beast-skill-used': handleRangerBeastSkillUsed,
     'ranger.poisonous-strikes': handleRangerPoisonousStrikes,
     'ranger.sharpening-stone': handleRangerSharpeningStone

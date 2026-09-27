@@ -1,4 +1,3 @@
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import {
   advanceCriticalProc,
@@ -53,7 +52,6 @@ export interface ResolvedCriticalHitOptions<
   TDetails extends NativeResolvedDamageDetails
 > {
   readonly id: string;
-  readonly order?: number;
   readonly chanceOnCriticalHit?: number | ((context: TContext) => number);
   readonly actorTypes?: readonly ('player' | 'summon' | 'effect' | 'environment' | 'unknown')[];
   readonly when?: (context: TContext, event: TEvent, details: TDetails) => boolean;
@@ -63,10 +61,6 @@ export interface ResolvedCriticalHitOptions<
     readonly setReadyAt: (context: TContext, readyAt: number) => void;
   };
   readonly randomStream?: string;
-  readonly attribution: {
-    readonly kind: 'trait' | 'skill' | 'effect';
-    readonly id: SkillId;
-  };
   readonly handler: (
     context: TContext,
     event: TEvent,
@@ -80,21 +74,17 @@ export interface ResolvedCriticalHitOptions<
  * The phase-neutral critical-proc kernel owns seeded
  * secondary rolls, and ICD behavior; the declaration owns eligibility and the
  * profession-specific effect.
+ * Callers own execution order; handlers supply attribution on the effects they emit.
  */
 export function onResolvedCriticalHit<
   TContext extends Gw2ResolverRuntime,
   TEvent extends Gw2ResolverEvent,
   TDetails extends NativeResolvedDamageDetails
->(
-  options: ResolvedCriticalHitOptions<TContext, TEvent, TDetails>
-): ResolvedReaction<TContext, TEvent, TDetails> & {
-  readonly attribution: ResolvedCriticalHitOptions<TContext, TEvent, TDetails>['attribution'];
-} {
+>(options: ResolvedCriticalHitOptions<TContext, TEvent, TDetails>): ResolvedReaction<TContext, TEvent, TDetails> {
   const actorTypes = new Set(options.actorTypes || ['player']);
 
-  const reaction = onResolvedDamage<TContext, TEvent, TDetails>({
+  return onResolvedDamage<TContext, TEvent, TDetails>({
     id: options.id,
-    order: options.order,
     handler(context, event, details = {} as TDetails) {
       // Reject ineligible actors and profession predicates before
       // reading cooldowns or consuming a secondary random stream.
@@ -139,7 +129,6 @@ export function onResolvedCriticalHit<
       if (application) options.handler(context, event, details, application);
     }
   });
-  return Object.freeze({ ...reaction, attribution: options.attribution });
 }
 
 /** Ordered reactions retain live critical facts without declaring a second execution phase. */

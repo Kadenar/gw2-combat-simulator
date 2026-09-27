@@ -33,7 +33,6 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     when: (context, event) => Number(event.coefficient) > 0 && hasTrait(context, TRAIT.SERRATED_STEEL),
     chanceOnCriticalHit: (context) => procChanceFromContext(context, PROFILE.serratedSteel),
     randomStream: 'engineer.serrated-steel',
-    attribution: { kind: 'trait', id: TRAIT.SERRATED_STEEL },
     handler(context, event, _details, application) {
       const serratedSteelProfile = requireBalanceProfileFromContext(context, PROFILE.serratedSteel);
       const serratedSteelBleeding = requireEffect(serratedSteelProfile, 'condition', 'Bleeding');
@@ -65,7 +64,6 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
         context.procs.readyAt.noScope = readyAt;
       }
     },
-    attribution: { kind: 'trait', id: TRAIT.NO_SCOPE },
     handler(context, event) {
       const noScopeProfile = requireBalanceProfileFromContext(context, PROFILE.noScope);
       const noScopeFury = requireEffect(noScopeProfile, 'boon', 'fury');
@@ -95,7 +93,6 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
         context.procs.readyAt['incendiaryPowder.player'] = readyAt;
       }
     },
-    attribution: { kind: 'trait', id: TRAIT.INCENDIARY_POWDER },
     handler(context, event) {
       const incendiaryPowderProfile = requireBalanceProfileFromContext(context, PROFILE.incendiaryPowder);
       const incendiaryPowderBurning = requireEffect(incendiaryPowderProfile, 'condition', 'Burning');

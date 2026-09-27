@@ -149,16 +149,11 @@ export function applyRangerWeaponSwapTraits(context: RangerRuntime, skill: Range
 
 export const rangerCoreCriticalReactions = Object.freeze({
   id: 'ranger.sharpened-edges',
-  order: 20,
   chanceOnCriticalHit: (context: RangerResolverContext) =>
     balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.sharpenedEdges), 'criticalChance'),
   actorTypes: ['player', 'summon'] as const,
   when(context: RangerResolverContext, event: Gw2ResolverEvent): boolean {
     return hasTrait(context, TRAIT.SHARPENED_EDGES) && (event.actorType === 'player' || event.source === 'ranger-pet');
-  },
-  attribution: {
-    kind: 'trait' as const,
-    id: TRAIT.SHARPENED_EDGES
   },
   handler(context, event, _details, application): void {
     // Reuse this invocation's authored effect, emitting one bleeding application per threshold proc.
