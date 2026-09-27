@@ -681,7 +681,10 @@ export const guardianTooltips: ProfessionTooltips = {
       profileFact(balanceContext, id, 'attributeBonus', 'Concentration')
     ]),
     [TRAIT.PURE_OF_HEART]: outsideScopeTooltip,
-    [TRAIT.EMPOWERING_MIGHT]: outsideScopeTooltip,
+    [TRAIT.EMPOWERING_MIGHT]: traitTooltip(
+      'Critical strikes grant might to the party, subject to an internal cooldown.',
+      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
+    ),
     [TRAIT.PURE_OF_VOICE]: outsideScopeTooltip,
     [TRAIT.WRIT_OF_PERSISTENCE]: (balanceContext, entity) => {
       const effects = tooltipProfile(balanceContext, entity.id).effects || [];
@@ -969,7 +972,7 @@ export const guardianTooltips: ProfessionTooltips = {
         modifierFact(balanceContext, 'guardian.radiant-armaments', 'amount', 'Radiant hammer strike damage')
       ]
     ),
-    [TRAIT.SHIMMERING_STANCES]: outsideScopeTooltip,
+    [TRAIT.SHIMMERING_STANCES]: traitTooltip('Completed stances grant protection to the party and blind the target.'),
     [TRAIT.RESOLUTE_BLESSING]: outsideScopeTooltip,
     [TRAIT.PERSISTENT_BLESSING]: outsideScopeTooltip,
     [TRAIT.RESPLENDENT_WEAPONRY]: traitTooltip(

@@ -1,4 +1,5 @@
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { timedBuffAt } from '#gw2/platform/results/query.js';
 import type {
   ElementalistState,
   ElementalistUiContext,
@@ -452,14 +453,16 @@ function timelineWeaponLineTransition(context: ElementalistUiContext): string | 
   return target;
 }
 
-// Summarize hammer orbs; pistol bullets already have dedicated palette controls.
+// Show Fresh Air's ferocity window across specializations alongside hammer orb state.
 function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
   const state = elementalistUiState(context);
+  const freshAir = timedBuffAt(context.result, 'fresh air', context.atSeconds || 0);
   const orbs = Object.entries(state.hammerOrbs || {})
     .filter(([, expiresAt]) => Number(expiresAt || 0) > 0)
     .map(([element]) => element)
     .join('/');
   return [
+    ...(freshAir ? [{ id: 'fresh-air', label: 'Fresh Air', value: `${freshAir.remaining.toFixed(1)}s` }] : []),
     {
       id: 'elementalist-hammer-orbs',
       label: 'Orbs',

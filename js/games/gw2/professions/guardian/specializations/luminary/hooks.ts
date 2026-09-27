@@ -267,6 +267,21 @@ function burstEffects(runtime: Runtime, cast: RuntimeCast): readonly SkillEffect
 
 /** Luminary owns its live form, virtue entitlements, finite stance work, and actual combo-derived auras. */
 export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
+  // Catalog stance categories include Daring Advance; missing skills need no synthetic entries.
+  traitTriggers: [
+    {
+      trait: TRAIT.SHIMMERING_STANCES,
+      emit: TRAIT.SHIMMERING_STANCES,
+      on: 'castComplete',
+      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Stance')),
+      attribution: (_runtime, cast) => ({
+        source: 'guardian',
+        skillId: TRAIT.SHIMMERING_STANCES,
+        skillName: 'Shimmering Stances',
+        offTarget: cast.command.offTarget === true
+      })
+    }
+  ],
   availability(runtime, skill) {
     const active = luminaryState.from(runtime).radiantForge;
     if (skill.type === 'Weapon' && active)

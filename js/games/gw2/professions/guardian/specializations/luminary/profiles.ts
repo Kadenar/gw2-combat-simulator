@@ -22,6 +22,13 @@ export const LUMINARY_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Each completed stance supplies the trait's allied boon and hostile blind.
+  trait(TRAIT.SHIMMERING_STANCES, 'Shimmering Stances', {
+    effects: [
+      { type: 'boon', name: 'protection', boon: 'protection', duration: 3, audience: { recipients: 'party' } },
+      { type: 'blind', name: 'Blind', duration: 3 }
+    ]
+  }),
   // Support weapons replace the strike with a party boon; every weapon applies the shared vulnerability afterward.
   {
     id: LUMINARY_BALANCE_PROFILE_IDS.glaringBurstStaff,

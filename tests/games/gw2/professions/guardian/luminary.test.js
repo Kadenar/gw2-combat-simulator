@@ -28,6 +28,57 @@ const PLAYER_AUDIENCE = Object.freeze({
   recipientCount: 1
 });
 
+test('Shimmering Stances grants party Protection and blinds only with the trait on completed stances', () => {
+  // Cover the existing stance catalog, trait selection, boon scaling, and hostile off-target routing.
+  for (const name of [
+    'Effulgent Stance',
+    'Resolute Stance',
+    'Piercing Stance',
+    'Valorous Stance',
+    'Daring Advance',
+    'Orb of Wrath'
+  ]) {
+    for (const [traited, offTarget, concentration, interrupted] of [
+      [false, false, 0, false],
+      [true, false, 0, false],
+      [true, true, 750, false],
+      ...(name === 'Resolute Stance' ? [[true, false, 0, true]] : [])
+    ]) {
+      const result = runGuardian(
+        [
+          { name, offTarget, ...(interrupted ? { interruptMs: 0 } : {}) },
+          { type: 'wait', durationMs: 1000 }
+        ],
+        {
+          specialization: 'Luminary',
+          selectedTraitIds: traited ? [GUARDIAN_TRAIT_IDS.SHIMMERING_STANCES] : [],
+          stats: { ...config.stats, concentration },
+          allies: { count: 4 }
+        }
+      );
+      const effects = result.resolvedEvents.filter((event) => event.sourceId === GUARDIAN_TRAIT_IDS.SHIMMERING_STANCES);
+      const protection = effects.filter((event) => event.type === 'buff' && event.kind === 'protection');
+      const blind = result.events.filter(
+        (event) => event.sourceId === GUARDIAN_TRAIT_IDS.SHIMMERING_STANCES && event.type === 'blind'
+      );
+      const eligible = traited && !interrupted && name !== 'Orb of Wrath';
+      assert.deepEqual(result.warnings, [], name);
+      assert.equal(protection.length, eligible ? 1 : 0, name);
+      assert.equal(blind.length, eligible ? 1 : 0, name);
+      for (const boon of protection) {
+        assert.equal(boon.duration, concentration ? 4.5 : 3, name);
+        assert.equal(boon.resolvedAudience.includesSelf, true, name);
+        assert.equal(boon.resolvedAudience.alliedPlayerCount, 4, name);
+      }
+
+      for (const event of blind) {
+        assert.equal(event.duration, 3, name);
+        assert.equal(event.offTarget, offTarget, name);
+      }
+    }
+  }
+});
+
 // The shared exit path exempts precombat manual exits and expiry, while preserving combat recharge.
 test('Radiant Forge precombat exits leave entry ready', () => {
   const run = (rotation) =>

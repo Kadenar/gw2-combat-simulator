@@ -7,7 +7,11 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { PaletteSkillAvailability } from '#gw2/platform/profession-presentation/types.js';
+import type {
+  PaletteSkillAvailability,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
+import { timedBuffAt } from '#gw2/platform/results/query.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 
@@ -48,8 +52,36 @@ function overloadPaletteAvailability(context: ElementalistUiContext, skill: Skil
   };
 }
 
+/** Show only buffs already granted at the cursor, retaining Aria's aura-driven extensions. */
+function tempestStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
+  const at = context.atSeconds || 0;
+  const items: RotationStateSnapshotItem[] = [];
+  const transcendent = timedBuffAt(context.result, 'transcendent-tempest', at);
+  if (transcendent) {
+    items.push({
+      id: 'transcendent-tempest',
+      label: 'Transcendent Tempest',
+      value: `${transcendent.remaining.toFixed(1)}s`
+    });
+  }
+
+  let ariaExpiresAt = 0;
+  for (const proc of context.result?.procSteps || []) {
+    if (proc.type === 'trait_proc' && proc.skill === 'Tempestuous Aria' && proc.start <= at * 1000) {
+      ariaExpiresAt = Math.max(ariaExpiresAt, Number(proc.expiresAt || 0) / 1000);
+    }
+  }
+
+  if (ariaExpiresAt > at) {
+    items.push({ id: 'tempestuous-aria', label: 'Tempestuous Aria', value: `${(ariaExpiresAt - at).toFixed(1)}s` });
+  }
+
+  return items;
+}
+
 /** Presentation fragment the Tempest module contributes to the elementalist UI contract. */
 export const tempestUi: ElementalistUiSlice = Object.freeze({
+  rotationStateSnapshot: tempestStateSnapshot,
   paletteGroups: () => [
     {
       id: 'elementalist-tempest-overloads',

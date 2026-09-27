@@ -34,6 +34,66 @@ const config = {
   target: { armor: 2597 }
 };
 
+test('Empowering Might requires player critical strikes and shares the one-second ICD boundary', () => {
+  // Ineligible hits cannot consume readiness; hits within the ICD cannot grant extra party Might.
+  for (const [traited, precision, concentration] of [
+    [false, 3000, 0],
+    [true, 0, 0],
+    [true, 3000, 0],
+    [true, 3000, 750]
+  ]) {
+    const result = runGuardian(
+      [{ type: 'wait', durationMs: 2500 }],
+      {
+        selectedTraitIds: traited ? [GUARDIAN_TRAIT_IDS.EMPOWERING_MIGHT] : [],
+        stats: { ...config.stats, precision, concentration },
+        allies: { count: 4 }
+      },
+      (runtime) => {
+        for (const [at, overrides] of [
+          [0.1, { canCrit: false }],
+          [0.2, { actorType: 'effect' }],
+          [0.3, { offTarget: true }],
+          [0.4, { coefficient: 0 }],
+          [1, {}],
+          [1, {}],
+          [1.999, {}],
+          [2, {}],
+          [2.000001, {}]
+        ])
+          runtime.emit({
+            type: 'damage',
+            source: 'guardian',
+            sourceId: GUARDIAN_SKILL_IDS.ORB_OF_WRATH,
+            skillId: GUARDIAN_SKILL_IDS.ORB_OF_WRATH,
+            skillName: 'Orb of Wrath',
+            actorType: 'player',
+            coefficient: 1,
+            at,
+            ...overrides
+          });
+      }
+    );
+    const might = result.resolvedEvents.filter(
+      (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.EMPOWERING_MIGHT
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(
+      might.map((event) => [event.at, event.kind, event.stacks, event.duration]),
+      traited && precision > 0
+        ? [
+            [1, 'might', 1, concentration ? 12 : 8],
+            [2.000001, 'might', 1, concentration ? 12 : 8]
+          ]
+        : []
+    );
+    for (const event of might) {
+      assert.equal(event.resolvedAudience.includesSelf, true);
+      assert.equal(event.resolvedAudience.alliedPlayerCount, 4);
+    }
+  }
+});
+
 test('Guardian combat and planning projections detach counters from the live state', () => {
   // Both public boundaries detach their data from the one live state owner.
   const result = runGuardian(['Virtue of Justice', 'Orb of Wrath']);

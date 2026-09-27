@@ -105,6 +105,23 @@ function completeWeapon(runtime: Runtime, cast: RuntimeCast): void {
 export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
   // Only damaging symbol hits apply the profile's Vulnerability packet.
   traitTriggers: [
+    // Only resolved player critical strikes claim Empowering Might's shared ICD.
+    {
+      trait: TRAIT.EMPOWERING_MIGHT,
+      emit: TRAIT.EMPOWERING_MIGHT,
+      on: 'damage.resolved',
+      icd: 'profile',
+      when: (_runtime, event, details) =>
+        event.actorType === 'player' &&
+        Number(event.coefficient) > 0 &&
+        (details.hitContext?.damage ?? 0) > 0 &&
+        Boolean(details.hitContext?.critEligible && details.hitContext.critical.didCrit),
+      attribution: {
+        source: 'guardian',
+        skillId: TRAIT.EMPOWERING_MIGHT,
+        skillName: 'Empowering Might'
+      }
+    },
     {
       trait: TRAIT.SYMBOLIC_EXPOSURE,
       emit: PROFILE.symbolicExposure,

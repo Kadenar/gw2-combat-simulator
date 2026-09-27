@@ -32,15 +32,17 @@ export function applyTempestResolverAura(context: ElementalistResolverContext, e
     // Extend the newest live application instead of stacking a second one, clamping the new expiry
     // to the maximum window measured from this aura; with none live, start a fresh application.
     const current = activeElementalistBuffs(context, 'Tempestuous Aria', event.at).at(-1);
+    const expiresAt = current ? Math.min(event.at + maximum, current.expiresAt + extension) : event.at + extension;
     if (current) {
-      refreshElementalistBuffs(context, 'Tempestuous Aria', event.at, (expiresAt) =>
-        expiresAt === current.expiresAt ? Math.min(event.at + maximum, expiresAt + extension) : expiresAt
+      refreshElementalistBuffs(context, 'Tempestuous Aria', event.at, (previousExpiry) =>
+        previousExpiry === current.expiresAt ? expiresAt : previousExpiry
       );
     } else {
       queueElementalistBuff(context, event, 'Tempestuous Aria', 1, extension, resolverSourceSkill(event));
     }
 
-    recordElementalistTraitProc(context, event, 'Tempestuous Aria');
+    // Preserve each extension's deadline so cursor snapshots do not read a stale initial buff duration.
+    context.recordProc('trait', 'Tempestuous Aria', event.at, resolverSourceSkill(event), '', '', null, expiresAt);
   }
 
   // Both skill and combo auras grant their trait boons only after actual application.
