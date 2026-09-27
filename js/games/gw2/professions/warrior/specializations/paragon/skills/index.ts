@@ -23,6 +23,8 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     categories: ['Burst', 'Chant']
   },
   [ID.FIND_THEIR_WEAKNESS]: {
+    // The initial reward precedes echo arming; later rewards remain with echo consumption.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 3 } }],
     cooldown: 15,
     effects: [
       {

@@ -146,13 +146,14 @@ function darkSentry(runtime: ThiefRuntime, data: unknown): void {
       });
 }
 
-/** Grants a barrier to allies (never the caster) and queues Dark Sentry for them. */
-function allyBarrier(runtime: ThiefRuntime, cast: RuntimeCast, profileId: string | number, name: string): void {
+/** Dawn's Repose includes the caster; only allied recipients can trigger Dark Sentry. */
+function grantBarrier(runtime: ThiefRuntime, cast: RuntimeCast, profileId: string | number, name: string): void {
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   const barrier = requireEffect(profile, 'buff', 'barrier');
+  const affectsSelf = cast.skill.id === ID.DAWNS_REPOSE;
   const recipients = Math.min(
     balanceProfileNumber(profile, 'maximumTargets'),
-    gw2AlliedPlayerAssumptions(runtime.config).count
+    gw2AlliedPlayerAssumptions(runtime.config).count + Number(affectsSelf)
   );
   // Barrier removal also suppresses the barrier-triggered Dark Sentry reaction.
   if (!barrier || recipients <= 0) return;
@@ -167,11 +168,11 @@ function allyBarrier(runtime: ThiefRuntime, cast: RuntimeCast, profileId: string
     kind: 'barrier',
     duration: effectNumber(profile, barrier, 'duration'),
     stacks: effectNumber(profile, barrier, 'stacks'),
-    audience: { recipients: 'party', affectsSelf: false, maximumRecipients: recipients },
+    audience: { recipients: 'party', affectsSelf, maximumRecipients: recipients },
     fixedDuration: true
   });
   runtime.schedule(DARK_SENTRY, runtime.time, {
-    allyIndices: cast.skill.id === ID.DAWNS_REPOSE ? Array.from({ length: recipients }, (_, index) => index + 1) : [1]
+    allyIndices: Array.from({ length: recipients - Number(affectsSelf) }, (_, index) => index + 1)
   });
 }
 
@@ -231,11 +232,12 @@ function completeSpecterCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
     // Manual exit waits half a second; depletion still forces an immediate exit.
     state.shadowShroudExitReadyAt = runtime.time + 0.5;
     setShadowShroud(runtime, true, skill);
-    allyBarrier(runtime, cast, PROFILE.enterShadowShroud, 'Enter Shadow Shroud - Barrier');
+    grantBarrier(runtime, cast, PROFILE.enterShadowShroud, 'Enter Shadow Shroud - Barrier');
   } else if (skill.id === ID.EXIT_SHADOW_SHROUD) setShadowShroud(runtime, false, skill);
   else if (skill.shadowShroudSkill && !castWasInterrupted(cast)) {
     shadeStep(runtime, cast);
-    if (skill.id === ID.DAWNS_REPOSE) allyBarrier(runtime, cast, PROFILE.dawnsReposeBarrier, "Dawn's Repose - Barrier");
+    if (skill.id === ID.DAWNS_REPOSE)
+      grantBarrier(runtime, cast, PROFILE.dawnsReposeBarrier, "Dawn's Repose - Barrier");
   }
 }
 

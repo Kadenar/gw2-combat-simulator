@@ -105,8 +105,11 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     const cancelled = cast.cancelled;
     // A committed block exposes its flip when the animation ends, before any delayed completion packets.
     if (!cancelled) settleMesmerSkillFlips(runtime, cast, cast.skill as MesmerSkill, runtime.time);
-    if (!cancelled && cast.fullEnd > runtime.time) runtime.schedule('mesmer.cast-complete', cast.fullEnd, cast);
-    else complete(runtime, cast);
+    if (!cancelled && cast.fullEnd > runtime.time) {
+      // Deferred work stores skill identity, keeping declaration functions out of the serializable queue.
+      const { skill, ...reservation } = cast;
+      runtime.schedule('mesmer.cast-complete', cast.fullEnd, { ...reservation, skillId: skill.id });
+    } else complete(runtime, cast);
   },
   tasks: {
     'mesmer.flip-expire'(runtime, data) {
@@ -115,7 +118,10 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       if (runtime.profession.core.availableFlips[id]?.identity === identity)
         delete runtime.profession.core.availableFlips[id];
     },
-    'mesmer.cast-complete': (runtime, data) => complete(runtime, data as RuntimeCast),
+    'mesmer.cast-complete'(runtime, data) {
+      const { skillId, ...reservation } = data as Omit<RuntimeCast, 'skill'> & { skillId: RuntimeCast['skill']['id'] };
+      complete(runtime, { ...reservation, skill: runtime.helpers.skillsById.get(skillId)! });
+    },
     'mesmer.clone-attack'(runtime, data) {
       const id = Number(data);
       const next = mesmerMechanicsFor(runtime).cloneAttackScheduler.handleTask(id, runtime.time);

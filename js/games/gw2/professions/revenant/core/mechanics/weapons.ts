@@ -25,14 +25,13 @@ interface AuraPulse {
   readonly activationId: string;
 }
 
-/** Small targets never intersect large-hitbox-only packets, so those ticks and effects are never queued. */
+/** Small targets never intersect large-hitbox-only packets, so those ticks are never queued. */
 export function revenantHitboxEffects(
   runtime: RevenantRuntime,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   if (String(runtime.config.professionAssumptions?.hitboxSize || 'small') === 'large') return effects;
   return effects.flatMap((effect) => {
-    if (effect.metadata?.largeHitboxOnly === true) return [];
     const authored = (effect as { readonly ticks?: readonly { readonly metadata?: { largeHitboxOnly?: unknown } }[] })
       .ticks;
     if (!authored?.some((tick) => tick.metadata?.largeHitboxOnly === true)) return [effect];

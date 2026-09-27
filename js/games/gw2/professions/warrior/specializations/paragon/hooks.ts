@@ -220,7 +220,6 @@ function consumeEcho(runtime: Runtime, activationId: string): void {
 
 /** Command instances retain independent repeats; a successful burst consumes one repeat from each pending command. */
 function activateCommand(runtime: Runtime, cast: RuntimeCast): void {
-  if (cast.skill.id === ID.FIND_THEIR_WEAKNESS) grantWarriorAdrenaline(runtime, 3);
   const interval = balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.commands), 'pulseInterval');
   const remaining = hasTrait(runtime, TRAIT.REVERBERATION)
     ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.reverberation), 'maximumStacks')

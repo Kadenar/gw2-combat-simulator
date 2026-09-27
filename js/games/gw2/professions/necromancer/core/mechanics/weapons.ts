@@ -26,7 +26,7 @@ import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 const SHARD_EXPIRY = 'necromancer.soul-shards-expire';
 
 /** A refresh extends the actual grant; an older expiry cannot erase shards gained later. */
-function grantShards(runtime: NecromancerRuntime, amount: number): void {
+export function grantNecromancerSoulShards(runtime: NecromancerRuntime, amount: number): void {
   addSoulShards(runtime.profession.core, amount, runtime.time);
   runtime.schedule(SHARD_EXPIRY, runtime.profession.core.soulShardGrant.expiresAt, null, undefined, -20);
 }
@@ -87,8 +87,8 @@ export function reactToNecromancerWeapons(runtime: NecromancerRuntime, event: Gw
   reactToNecromancerAxeHealth(runtime, event);
   if (event.skillId === ID.PERFORATE) perforate(runtime, event);
   if (Number(event.hitIndex ?? 1) !== 1) return;
-  if (event.skillId === ID.DEADLY_SLICE || event.skillId === ID.SINISTER_STAB) grantShards(runtime, 1);
-  else if (event.skillId === ID.EXTIRPATE) grantShards(runtime, 2);
+  if (event.skillId === ID.DEADLY_SLICE || event.skillId === ID.SINISTER_STAB) grantNecromancerSoulShards(runtime, 1);
+  else if (event.skillId === ID.EXTIRPATE) grantNecromancerSoulShards(runtime, 2);
   else if (event.skillId === ID.ADDLE) {
     runtime.emitDerived(event, {
       type: 'control',
@@ -117,7 +117,7 @@ export function reactToNecromancerWeapons(runtime: NecromancerRuntime, event: Gw
       );
     const bonus = Boolean(runtime.config.target?.defiant || runtime.config.target?.activatingSkills);
     if (bonus) grantNecromancerLifeForce(runtime, 10);
-    grantShards(runtime, bonus ? 4 : 2);
+    grantNecromancerSoulShards(runtime, bonus ? 4 : 2);
   } else if (event.skillId === ID.OPPRESSIVE_COLLAPSE) {
     const stacks =
       2 *
@@ -143,12 +143,6 @@ export function reactToNecromancerWeapons(runtime: NecromancerRuntime, event: Gw
     };
     queueResolverBoon(runtime, event, boon);
   }
-}
-
-/** Distress completion grants the single-target shard allowance with its existing expiry ownership. */
-export function completeNecromancerWeapon(runtime: NecromancerRuntime, cast: RuntimeCast): void {
-  if (cast.skill.id !== ID.DISTRESS) return;
-  grantShards(runtime, 6);
 }
 
 export const necromancerWeaponTasks = {

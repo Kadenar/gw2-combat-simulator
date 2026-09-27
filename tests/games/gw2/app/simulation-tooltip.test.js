@@ -72,6 +72,26 @@ test('attribute bonuses, adrenaline, and skill recharge use game CDN icons', asy
   assert.match(tooltipFactIcon('Internal cooldown'), /\/156651\.png$/);
 });
 
+test('Specter barrier tooltips distinguish self recipients and use the barrier CDN glyph', async () => {
+  const { thiefProfession } = await import('#gw2/professions/thief/profession.js');
+  const { thiefTooltips } = await import('#gw2/professions/thief/app/tooltips.js');
+  const context = withPatchPreview(thiefProfession, null).balanceContextFor();
+  const icon = 'https://render.guildwars2.com/file/357922487919E8E84B914EAC13D5796DDDC42D14/1770209.png';
+  // Entering shroud targets an ally; Dawn's Repose includes the caster in its party barrier.
+  for (const [name, excludesSelf] of [
+    ['Enter Shadow Shroud', true],
+    ["Dawn's Repose", false]
+  ]) {
+    const skill = context.catalog.skills.find((skill) => skill.name === name);
+    const tooltip = describeSimulationSkill(context, skill, thiefTooltips);
+    const barrier = tooltip.facts.find((fact) => fact.name === 'Barrier');
+    assert.equal(barrier.detail.includes('excluding yourself'), excludesSelf);
+    assert.equal(barrier.icon, icon);
+  }
+  assert.equal(tooltipFactIcon('Minimum Barrier'), icon);
+  assert.equal(tooltipFactIcon('Maximum Barrier'), icon);
+});
+
 // A single sparse profile edit must reach the build panel, combat, and tooltip without duplicate tuning inputs.
 test('Radiant Power shares patched attribute and critical-chance values across consumers', async () => {
   const { guardianProfession } = await import('#gw2/professions/guardian/profession.js');

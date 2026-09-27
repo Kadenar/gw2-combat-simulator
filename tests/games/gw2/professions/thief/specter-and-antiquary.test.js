@@ -749,6 +749,22 @@ test('Larcenous Torment keeps its life siphon but grants no force inside Shadow 
   );
 });
 
+test("Dawn's Repose grants solo barrier without granting self Rot Wallow Venom", () => {
+  // Self barrier survives an empty party, while a full party still only arms allied venom.
+  for (const count of [0, 4]) {
+    const result = simulate('Specter', ['Enter Shadow Shroud', "Dawn's Repose"], {
+      initialShadowForce: 100,
+      allies: { count, strikesPerSecond: 0 }
+    });
+    const barrier = result.events.find((event) => event.kind === 'barrier' && event.skillId === ID.DAWNS_REPOSE);
+    assert.equal(barrier.resolvedAudience.includesSelf, true);
+    assert.equal(barrier.resolvedAudience.recipientCount, count + 1);
+    const venoms = result.events.filter((event) => event.kind === 'rot-wallow-venom');
+    assert.equal(venoms.length > 0, count > 0);
+    assert.ok(venoms.every((event) => !event.resolvedAudience.includesSelf));
+  }
+});
+
 test('Specter attribute, ally, and shadowstep traits resolve explicitly', () => {
   const attributeConfig = {
     specialization: 'Specter',
@@ -794,8 +810,8 @@ test('Specter attribute, ally, and shadowstep traits resolve explicitly', () => 
     (event) => event.type === 'buff' && event.skillName === "Dawn's Repose" && event.kind === 'barrier'
   );
 
-  assert.equal(dawnBarrier.resolvedAudience.includesSelf, false);
-  assert.equal(dawnBarrier.resolvedAudience.recipientCount, 2);
+  assert.equal(dawnBarrier.resolvedAudience.includesSelf, true);
+  assert.equal(dawnBarrier.resolvedAudience.recipientCount, 3);
   const venomBuffs = allies.events.filter((event) => event.type === 'buff' && event.kind === 'rot-wallow-venom');
   assert.equal(venomBuffs.length, 2);
   assert.ok(venomBuffs.every((event) => event.resolvedAudience.recipientCount === 1));

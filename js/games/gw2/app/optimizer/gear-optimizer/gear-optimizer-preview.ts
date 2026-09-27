@@ -1,7 +1,6 @@
 import { readAttributePreviewValues, renderAttributeStats } from '#gw2/app/build/panels/attributes.js';
 import { getProfessionEntry } from '#gw2/profession-registry.js';
 import { escapeHtml } from '#ui/shared/html.js';
-import { equipmentTooltipAttributes } from '#gw2/app/shared/equipment/labels.js';
 import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS } from '#gw2/app/shared/equipment/icons.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
@@ -43,7 +42,7 @@ export function renderOptimizerPreview(
   const entry = getProfessionEntry(app.adapter.id);
   const artwork = entry?.specializationArtwork?.find(({ name }) => name === specialization)?.conceptArt;
   const sets = optimizerWeaponSets(build, app.adapter);
-  // Icons identify slots visually; accessible names and tooltips retain the complete equipment configuration.
+  // Keep preview content free of wiki tooltips; accessible names retain the complete equipment configuration.
   const item = (
     label: string,
     value: string,
@@ -52,12 +51,12 @@ export function renderOptimizerPreview(
     showLabel = false
   ): string => {
     const description = `${label}: ${value || 'None'}${upgrades.map((upgrade) => `; ${upgrade.label}: ${upgrade.value || 'None'}`).join('')}`;
-    return `<div class="optimizer-preview-item" role="group" aria-label="${escapeHtml(description)}" ${equipmentTooltipAttributes(label, value, description)} tabindex="0">
+    return `<div class="optimizer-preview-item" role="group" aria-label="${escapeHtml(description)}">
       ${icon ? `<img class="optimizer-preview-item-icon" src="${escapeHtml(icon)}" alt="" width="60" height="60" loading="lazy">` : ''}
       <div>${showLabel ? `<span class="optimizer-preview-slot">${escapeHtml(label)}</span>` : ''}<strong>${escapeHtml(value || 'None')}</strong>${upgrades
         .map(
           (upgrade) =>
-            `<span class="optimizer-preview-upgrade" tabindex="0" ${equipmentTooltipAttributes(upgrade.label, upgrade.value)}>${upgrade.icon ? `<img src="${escapeHtml(upgrade.icon)}" alt="" width="16" height="16" loading="lazy">` : ''}${escapeHtml(upgrade.value || 'None')}</span>`
+            `<span class="optimizer-preview-upgrade">${upgrade.icon ? `<img src="${escapeHtml(upgrade.icon)}" alt="" width="16" height="16" loading="lazy">` : ''}${escapeHtml(upgrade.value || 'None')}</span>`
         )
         .join('')}</div></div>`;
   };

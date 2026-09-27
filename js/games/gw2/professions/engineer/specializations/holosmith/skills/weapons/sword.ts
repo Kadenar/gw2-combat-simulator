@@ -176,8 +176,8 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     ])
   },
   [ID.GLEAM_SABER]: {
-    // Custom: Recharges the other sword skills after the cast; see `core/hooks.ts`.
-
+    // A committed finisher reduces live sword recharge, including shortened casts.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.sword-recharge', amount: 1 } }],
     castTimeMs: 720,
     // Commit the strike and recharge at 600 ms while retaining the full cast lockout.
     interruptCommitMs: 600,

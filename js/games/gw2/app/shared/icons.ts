@@ -31,6 +31,8 @@ export const RESULT_PROC_NAMES: Readonly<Record<string, string>> = {
 
 /** Use the game's direct render assets for tooltip facts, build controls, and effect result rows. */
 export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
+  // Barrier facts share the game's shield glyph, including minimum and maximum amounts.
+  Barrier: 'https://render.guildwars2.com/file/357922487919E8E84B914EAC13D5796DDDC42D14/1770209.png',
   'Strike damage': 'https://render.guildwars2.com/file/61AA4919C4A7990903241B680A69530121E994C7/156657.png',
   Recharge: 'https://render.guildwars2.com/file/D767B963D120F077C3B163A05DC05A7317D7DB70/156651.png',
   // Skill recharge reductions and generic attribute bonuses use their dedicated in-game fact glyphs.

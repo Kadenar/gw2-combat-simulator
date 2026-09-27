@@ -10,7 +10,6 @@ import {
 import { triggerMaimTheDisillusioned } from '#gw2/professions/mesmer/core/traits/illusions.js';
 import type { MesmerMechanics } from '#gw2/professions/mesmer/types.js';
 
-export { scheduleBountifulBlades } from '#gw2/professions/mesmer/core/traits/domination.js';
 export {
   emitFencersFinesseStacks,
   recordFencersFinesseProc,

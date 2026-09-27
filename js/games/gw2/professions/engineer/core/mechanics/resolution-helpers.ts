@@ -15,7 +15,8 @@ interface QueueDamageOptions {
   readonly at?: number;
   readonly noCrit?: boolean;
   readonly explosion?: boolean;
-  readonly comboFinisher?: Omit<EnqueueGw2OwnedComboFinisherOptions, 'at' | 'effectAt'>;
+  // The impact supplies timing, and the shared runtime generates the attempt identity.
+  readonly comboFinisher?: Omit<EnqueueGw2OwnedComboFinisherOptions, 'at' | 'effectAt' | 'attemptId'>;
   readonly weaponStrength?: number;
   readonly weaponStrengthProfileId?: string;
 }

@@ -1,3 +1,4 @@
+import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { canonicalTime, isTimeInWindow, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { modifyNecromancerRechargeStart } from '#gw2/professions/necromancer/core/mechanics/recharge.js';
@@ -47,7 +48,7 @@ import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import {
   modifyNecromancerWeaponEffects,
   reactToNecromancerWeapons,
-  completeNecromancerWeapon,
+  grantNecromancerSoulShards,
   necromancerWeaponTasks
 } from '#gw2/professions/necromancer/core/mechanics/weapons.js';
 import {
@@ -342,7 +343,6 @@ function completionTraits(runtime: NecromancerRuntime, cast: RuntimeCast): void 
 function complete(runtime: NecromancerRuntime, cast: RuntimeCast): void {
   if (!castCompleted(cast)) return;
   completeNecromancerMinion(runtime, cast);
-  completeNecromancerWeapon(runtime, cast);
   const skill = cast.skill as NecromancerSkill;
   const state = runtime.profession.core;
   // Follow-ups own exact completion-time windows; ordinary attack chains and dedicated summons/forms own their own state.
@@ -398,6 +398,14 @@ function complete(runtime: NecromancerRuntime, cast: RuntimeCast): void {
 export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = {
   rechargeStart: (_runtime, cast, at) => modifyNecromancerRechargeStart(cast, at),
   resources: { lifeForce: necromancerLifeForce },
+  sideEffectHandlers: {
+    // Declared shard rewards reuse the hit-time grant owner so caps and refresh expiry stay identical.
+    'necromancer.soul-shards'(runtime, _cast, action) {
+      if (action.type !== 'necromancer.soul-shards' || action.amount == null)
+        throw new TypeError('Soul shard grants require an amount.');
+      grantNecromancerSoulShards(runtime, sideEffectAmount(runtime, action.amount));
+    }
+  },
   initialize(runtime) {
     runtime.profession.core.lifeForceCostMultiplier = necromancerLifeForceCostMultiplier(runtime.config, runtime);
     initializeNecromancerPassives(runtime);

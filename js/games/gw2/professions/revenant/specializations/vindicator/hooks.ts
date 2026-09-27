@@ -160,14 +160,12 @@ function land(runtime: RevenantRuntime, data: unknown): void {
   }
 }
 
-/** Energy Meld grants endurance, arms Reaver's Curse, refunds in-combat Energy, and grants Song of Arboreum's Vigor. */
+/** Energy Meld arms Reaver's Curse, refunds in-combat Energy, and grants Song of Arboreum's Vigor. */
 function energyMeld(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const state = vindicatorState.from(runtime);
   const song = hasTrait(runtime, TRAIT.SONG_OF_ARBOREUM)
     ? requireBalanceProfileFromContext(runtime, PROFILE.songOfArboreum)
     : undefined;
-  // Song of Arboreum replaces the base endurance amount.
-  runtime.endurance.grant(song ? balanceProfileNumber(song, 'resourceGain') : Number(cast.skill.resourceGain));
   if (hasTrait(runtime, TRAIT.REAVERS_CURSE)) {
     const curse = requireBalanceProfileFromContext(runtime, PROFILE.reaversCurse);
     const effect = requireEffect(curse, 'buff', 'reavers-curse');

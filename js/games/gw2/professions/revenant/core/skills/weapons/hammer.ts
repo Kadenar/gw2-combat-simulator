@@ -131,7 +131,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        metadata: { largeHitboxOnly: true }
+        when: (runtime) => runtime.config.professionAssumptions?.hitboxSize === 'large'
       }
     ]
   },

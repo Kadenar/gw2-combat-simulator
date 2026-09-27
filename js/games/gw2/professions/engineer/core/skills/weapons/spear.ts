@@ -169,14 +169,6 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     castTimeMs: 520,
 
     cooldown: 5,
-    // The dash completes one leap combo at impact, where the replacement handler also applies Focused.
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: 'Leap',
-        ambiguousFieldSelection: 'oldest'
-      }
-    ],
     effects: []
   },
   [ID.ELECTRIC_ARTILLERY]: {

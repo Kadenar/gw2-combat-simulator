@@ -1,6 +1,6 @@
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -127,11 +127,12 @@ test('The Pledge emits no Burning for a torch skill interrupted before its packe
   }
 });
 
-// A completed Mirror Blade keeps both delayed trait packets; interrupted casts and unselected traits cannot add them.
+// Launched Mirror Blade bounces survive shortened recovery; cancellation and unselected traits add nothing.
 test('Bountiful Blades owns two additional Mirror Blade packets and respects interruption', () => {
   for (const [selectedTraitIds, interruptMs, expected] of [
     [[], undefined, 0],
     [[TRAIT.BOUNTIFUL_BLADES], undefined, 2],
+    [[TRAIT.BOUNTIFUL_BLADES], 580, 2],
     [[TRAIT.BOUNTIFUL_BLADES], 300, 0]
   ]) {
     const result = simulateMesmer(
@@ -321,6 +322,70 @@ test('Dazzling preserves ownership and live profile edits for eligible control',
           assert.equal(event.duration, 3);
         }
       }
+    }
+  }
+});
+
+// Variant additions retain patched base effects, live profile removal, and the projectile's command targeting.
+test('Bountiful Blades uses live packets with the base projectile impact delay', () => {
+  for (const removed of [false, true]) {
+    for (const offTarget of [false, true]) {
+      const config = defaultSimulationConfig({
+        specialization: 'Core',
+        primaryWeapon: 'Greatsword',
+        secondaryWeapon: '',
+        initialResource: 0,
+        selectedTraitIds: [TRAIT.BOUNTIFUL_BLADES]
+      });
+      const native = mesmerProfession.runtimeFor(config);
+      const catalog = withProfile(
+        withSkill(native.catalog, ID.MIRROR_BLADE, {
+          effects: [
+            {
+              type: 'strike',
+              ticks: [{ atMs: 600, coefficient: 0.75 }],
+              timingAnchor: 'castStart',
+              timingScale: 'fixed'
+            }
+          ]
+        }),
+        TRAIT.BOUNTIFUL_BLADES,
+        {
+          effects: removed
+            ? []
+            : [
+                {
+                  type: 'strike',
+                  name: 'Strike',
+                  ticks: [{ atMs: 1300, coefficient: 0.125 }],
+                  timingAnchor: 'castStart',
+                  timingScale: 'fixed'
+                }
+              ]
+        }
+      );
+      const result = observeGw2Runtime({
+        config,
+        profession: { ...native, catalog },
+        rotation: [
+          { type: 'cast', skillId: ID.MIRROR_BLADE, impactDelayMs: offTarget ? 0 : 250, offTarget },
+          { type: 'wait', durationMs: 1500 }
+        ]
+      });
+      assert.deepEqual(result.warnings, []);
+      const packets = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.MIRROR_BLADE);
+      assert.equal(packets.length, removed ? 1 : 2);
+      assert.equal(packets[0].coefficient, 0.75);
+      assert.equal(packets[0].at, offTarget ? 0.6 : 0.85);
+      if (!removed) {
+        assert.equal(packets[1].coefficient, 0.125);
+        assert.equal(packets[1].at, offTarget ? 1.3 : 1.55);
+        assert.equal(packets[1].sourceId, TRAIT.BOUNTIFUL_BLADES);
+        assert.equal(packets[1].actorType, 'player');
+        assert.equal(packets[1].activationId, packets[0].activationId);
+      }
+
+      assert.ok(packets.every((event) => Boolean(event.offTarget) === offTarget));
     }
   }
 });

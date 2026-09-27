@@ -6,6 +6,7 @@ import {
   REVENANT_SKILL_IDS as SKILL,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { createHeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import {
@@ -276,4 +277,27 @@ test('Nature adds outgoing Assassin damage only while its passive is available',
   assert.equal(siphons(swapped).length, 0);
   assert.deepEqual(entered.warnings, []);
   assert.equal(siphons(entered).length, 1);
+});
+
+// Each accepted variant restores exactly one live reward; Song replaces it, and cancellation grants neither.
+test('Energy Meld declares one endurance reward for each trait selection and variant', () => {
+  for (const skillId of [SKILL.ENERGY_MELD, SKILL.ENERGY_MELD_ID_72058]) {
+    for (const song of [false, true]) {
+      for (const cancelled of [false, true]) {
+        const result = runRevenant(
+          [{ type: 'cast', skillId, ...(cancelled ? { interruptAfterMs: 100 } : {}) }],
+          { specialization: 'Vindicator', selectedTraitIds: song ? [TRAIT.SONG_OF_ARBOREUM] : [] },
+          {
+            catalog: (catalog) => withSkill(catalog, skillId, { resourceGain: 17 }),
+            initialize: (runtime) => {
+              runtime.profession.core.endurance = 0;
+            }
+          }
+        );
+        assert.deepEqual(result.warnings, []);
+        const expected = result.rotationEndTime * 5 + (cancelled ? 0 : song ? 40 : 17);
+        assert.ok(Math.abs(result.planningState.profession.endurance - expected) < 1e-9);
+      }
+    }
+  }
 });

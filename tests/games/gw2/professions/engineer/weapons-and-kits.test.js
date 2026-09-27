@@ -1431,6 +1431,18 @@ test('Mine Field automatically detonates five mines with cripple', () => {
   assert.deepEqual(mineTimes(precast), Array(5).fill(1.92));
   assert.deepEqual(mineTimes(active), Array(5).fill(0.92));
 
+  // Deferred packets keep their original cast owner, and combat start consumes the pending activation once.
+  const mineCast = precast.events.find((event) => event.type === 'action' && event.skillId === ID.MINE_FIELD);
+  assert.ok(mineCast?.activationId);
+  for (const event of precast.resolvedEvents.filter((event) => event.type === 'damage' || event.type === 'condition')) {
+    assert.equal(event.skillId, ID.MINE_FIELD);
+    assert.equal(event.skillName, 'Mine Field');
+    assert.equal(event.sourceId, ID.MINE_FIELD);
+    assert.equal(event.activationId, mineCast.activationId);
+  }
+
+  assert.deepEqual(observedRuntime(precast).profession.core.pendingMineFieldActivationIds, []);
+
   const staticPrecast = simulate('Core', ['Mine Field', { type: 'wait', durationMs: 1000 }, '__combat_start'], {
     selectedTraitIds: [TRAIT.STATIC_DISCHARGE]
   });

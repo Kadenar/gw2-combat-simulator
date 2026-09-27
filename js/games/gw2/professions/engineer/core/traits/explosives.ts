@@ -278,7 +278,6 @@ export function applyAimAssistedRocket(context: EngineerResolverContext, event: 
         ? {
             comboFinisher: {
               ownerId: 'engineer',
-              attemptId: `${event.activationId || event.sourceId}:orbital-command-strike:blast`,
               finisherType: 'Blast',
               ambiguousFieldSelection: 'oldest'
             }

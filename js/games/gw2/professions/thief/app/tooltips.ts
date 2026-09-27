@@ -487,6 +487,7 @@ const familyTooltips = {
     }
 
     if (entity.id === ID.DAWNS_REPOSE) {
+      // Unlike entering shroud, Dawn's Repose also grants barrier to the caster.
       const profile = tooltipProfile(balanceContext, SPECTER.dawnsReposeBarrier);
       facts.push(
         ...simulationEffectFacts(
@@ -494,7 +495,7 @@ const familyTooltips = {
             ...effect,
             audience: {
               recipients: 'party',
-              affectsSelf: false,
+              affectsSelf: true,
               maximumRecipients: tooltipNumber(profile, 'maximumTargets')
             }
           }))

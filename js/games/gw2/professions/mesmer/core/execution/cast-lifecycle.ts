@@ -9,7 +9,6 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import { scheduleBountifulBlades } from '#gw2/professions/mesmer/core/traits/index.js';
 import { detonateInspiringImagery } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -218,7 +217,6 @@ export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast, skill
   const runtime = mesmerMechanicsFor(context);
   if (skill.id === ID.ABSTRACTION && !cast.cancelled) detonateInspiringImagery(context, cast);
 
-  withMesmerCastEmission(context, cast, skill, () => scheduleBountifulBlades(context, cast, skill));
   const shatter = runtime.shatters[skill.id];
   let shatterSpent = null;
   const spendProgress = Number(shatter?.resourceSpendProgress);

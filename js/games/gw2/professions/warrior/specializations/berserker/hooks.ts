@@ -224,11 +224,15 @@ export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
       }
     }
   ],
+  sideEffectHandlers: {
+    // The live catalog defines eligibility, including patched primal skills; ordinary recharges are untouched.
+    'warrior.reset-primal-bursts'(runtime) {
+      for (const skill of runtime.helpers.skills) if (skill.primalBurst) runtime.cooldownController.clear(skill.id);
+    }
+  },
   onCastComplete(runtime, cast) {
     if (!castCompleted(cast)) return;
     completeBerserk(runtime, cast);
-    if (cast.skill.id === ID.BLOOD_RECKONING)
-      for (const skill of runtime.helpers.skills) if (skill.primalBurst) runtime.cooldownController.clear(skill.id);
     if (cast.skill.primalBurst && hasTrait(runtime, TRAIT.HEAT_THE_SOUL))
       traitBoons(runtime, cast, TRAIT.HEAT_THE_SOUL, true);
     if (isBerserkerSkill(cast.skill) && hasTrait(runtime, TRAIT.KING_OF_FIRES)) {

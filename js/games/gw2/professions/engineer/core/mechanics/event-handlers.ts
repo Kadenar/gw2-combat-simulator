@@ -119,7 +119,13 @@ export function handleConduitSurge(context: EngineerResolverContext, event: Engi
   if (strike)
     queueDamage(context, event, {
       name: 'Conduit Surge',
-      coefficient: Number(strike.coefficient)
+      coefficient: Number(strike.coefficient),
+      // Attempt the leap only when the strike reaches impact.
+      comboFinisher: {
+        ownerId: 'engineer',
+        finisherType: 'Leap',
+        ambiguousFieldSelection: 'oldest'
+      }
     });
   if (burning)
     context.queue.enqueue(

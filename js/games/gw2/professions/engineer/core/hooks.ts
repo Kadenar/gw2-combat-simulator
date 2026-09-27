@@ -1,5 +1,6 @@
+import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import { isElixirSkill } from '#gw2/professions/engineer/core/traits/alchemy.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   requireBalanceProfileFromContext,
@@ -67,20 +68,21 @@ function reduceRecharge(
 }
 
 /** Precast mines retain activation ownership until the actual combat boundary permits detonation. */
-function detonateMines(runtime: EngineerRuntime): void {
+function detonatePrecastMines(runtime: EngineerRuntime): void {
   const skill = runtime.helpers.skillsById.get(ID.MINE_FIELD)!;
   const detonation = runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!;
   for (const activationId of runtime.profession.core.pendingMineFieldActivationIds.splice(0)) {
-    for (const effect of skill.effects ?? [])
-      for (const { event } of materializeSkillEffectApplications({
-        skill,
-        effect,
-        start: runtime.time,
-        fullEnd: runtime.time,
-        baseEvent: { source: 'engineer', sourceId: skill.id, actorType: 'player', activationId }
-      }))
-        if (event.type === 'damage' || event.type === 'condition')
-          emitEngineerEvent(runtime, event.type, { ...event, at: runtime.time }, skill);
+    emitEffects(runtime, {
+      owner: skill,
+      baseEvent: {
+        source: 'engineer',
+        sourceId: skill.id,
+        actorType: 'player',
+        activationId,
+        skillId: skill.id,
+        skillName: skill.name
+      }
+    });
     applyEngineerToolbeltTraits(runtime, detonation, runtime.time);
   }
 }
@@ -89,13 +91,24 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
   endurance: engineerEndurance,
   availability: engineerCoreCastAvailability,
   rechargeRules: engineerRechargeRules,
-  reserveRecharge: (_runtime, skill, work) => (skill.id === ID.HEALING_TURRET ? 0 : work),
-  prepareEvent(runtime, event) {
-    // Conduit Surge owns its leap at impact; its zero-effect action must not make a second attempt.
-    if (event.type === 'action' && event.skillId === ID.CONDUIT_SURGE) return { ...event, comboFinishers: [] };
-    return prepareEngineerHghEvent(runtime, event);
+  sideEffectHandlers: {
+    // Both sword finishers declare the reward while live cooldown selection and proc reporting share one owner.
+    'engineer.sword-recharge'(runtime, cast, action) {
+      if (action.type !== 'engineer.sword-recharge' || action.amount == null)
+        throw new TypeError('Sword recharge reductions require an amount.');
+      reduceRecharge(
+        runtime,
+        cast,
+        (candidate) => candidate.type === 'Weapon' && candidate.weapon === 'Sword' && candidate.id !== cast.skill.id,
+        sideEffectAmount(runtime, action.amount),
+        cast.skill.id,
+        'Gleam Saber \u2014 Sword Recharge'
+      );
+    }
   },
-  onCombatStart: detonateMines,
+  reserveRecharge: (_runtime, skill, work) => (skill.id === ID.HEALING_TURRET ? 0 : work),
+  prepareEvent: prepareEngineerHghEvent,
+  onCombatStart: detonatePrecastMines,
   // HGH grants its own unextended boons only after an elixir finishes.
   traitTriggers: ['might', 'fury'].map((boon) => ({
     trait: TRAIT.HGH,
@@ -152,15 +165,6 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
     if (skill.flipParentName) consumeSkillFlip(state.availableFlips, skill.id);
     completeEngineerTurret(runtime, cast);
     if (skill.id !== ID.ELECTRIC_ARTILLERY || !castWasInterrupted(cast)) completeEngineerSpear(runtime, cast);
-    if (skill.id === ID.GLEAM_SABER || skill.id === ID.GLEAM_SABER_NON_HOLOSMITH)
-      reduceRecharge(
-        runtime,
-        cast,
-        (candidate) => candidate.type === 'Weapon' && candidate.weapon === 'Sword' && candidate.id !== skill.id,
-        1,
-        skill.id,
-        'Gleam Saber — Sword Recharge'
-      );
     if (skill.id === ID.MINE_FIELD) {
       if (runtime.combatStartPending) state.pendingMineFieldActivationIds.push(cast.id);
       else applyEngineerToolbeltTraits(runtime, runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!, runtime.time);

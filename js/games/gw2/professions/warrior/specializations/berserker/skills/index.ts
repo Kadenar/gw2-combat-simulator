@@ -202,7 +202,11 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     effects: [],
     castTimeMs: 280,
     dualWieldCastTimeMs: 240,
-    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 10 } }]
+    // Reset live primal skills only after the completed heal's adrenaline grant.
+    sideEffects: [
+      { on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 10 } },
+      { on: 'castComplete', do: { type: 'warrior.reset-primal-bursts' } }
+    ]
   },
   [ID.OUTRAGE]: {
     castTimeMs: 0,
