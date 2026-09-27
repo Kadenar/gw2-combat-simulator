@@ -30,7 +30,6 @@ body {
   font-family: 'Segoe UI', system-ui, sans-serif;
   font-size: 13px;
   line-height: 1.4;
-  padding-bottom: 52px;
 }
 
 /* Native dropdown popups cannot composite translucent control surfaces, so keep their menu rows opaque and dark. */
@@ -85,14 +84,6 @@ body[data-profession] #app > header {
   background: color-mix(in srgb, var(--bg-panel-alt) 84%, black);
 }
 
-:is(body[data-profession], .landing-page) #app > header .simulator-view-tabs {
-  margin: 0;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-}
-
 .landing-page .header-brand {
   grid-column: 1;
   grid-row: 1;
@@ -141,36 +132,138 @@ header h1 {
   letter-spacing: 1px;
 }
 
-/* Top-level simulator navigation */
+/* The profession control leads a flat tool strip; the accent underline marks the current view. */
 .simulator-view-tabs {
   display: grid;
-  grid-template-columns: repeat(3, minmax(92px, 1fr));
-  gap: 3px;
-  width: min(100%, 430px);
-  margin: 0 auto 10px;
-  padding: 3px;
-  background: color-mix(in srgb, var(--bg-panel-alt) 84%, black);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  grid-template-columns: auto repeat(3, auto);
+  align-items: center;
+  gap: 0 4px;
+  max-width: 100%;
+  border-bottom: 1px solid var(--border);
 }
 
-/* Size each tool column from its label so platform font metrics cannot squeeze text out of its tab. */
-body[data-profession] .simulator-view-tabs {
-  grid-template-columns: repeat(4, auto);
-  width: min(100%, 520px);
+.simulator-profession-control {
+  position: relative;
+  margin-right: 14px;
+}
+
+.simulator-profession-control::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* A subtle chevron keeps the profession trigger consistent with the other dark controls. */
+.simulator-profession-control::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  width: 5px;
+  height: 5px;
+  border-right: 1px solid var(--text-dim);
+  border-bottom: 1px solid var(--text-dim);
+  transform: translateY(-75%) rotate(45deg);
+  pointer-events: none;
+}
+
+.simulator-profession-control > button {
+  appearance: none;
+  min-height: 34px;
+  padding: 5px 30px 5px 26px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  background: var(--bg-panel-alt);
+  color: var(--text-bright);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.simulator-profession-control > button:is(:hover, :focus-visible) {
+  border-color: var(--accent);
+}
+
+.simulator-profession-control > button:focus-visible,
+a.simulator-view-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Nine artwork cards stay in armor-group rows and fit narrow embeds without clipping the popover. */
+.simulator-profession-menu {
+  position: fixed;
+  inset: auto;
+  width: min(520px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  margin: 0;
+  padding: 8px;
+  overflow-y: auto;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  background: var(--bg-panel-alt);
+  box-shadow: 0 10px 30px #0008;
+}
+
+.simulator-profession-menu:popover-open {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.simulator-profession-option {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--profession-accent) 12%, var(--bg-panel));
+  color: var(--text-bright);
+  text-decoration: none;
+}
+
+.simulator-profession-option img {
+  width: 100%;
+  height: clamp(86px, 25vw, 130px);
+  padding: 4px;
+  object-fit: contain;
+}
+
+.simulator-profession-option span {
+  width: 100%;
+  padding: 6px 4px;
+  background: var(--bg-panel-alt);
+  color: var(--profession-accent);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.simulator-profession-option:is(:hover, :focus-visible, [aria-current]) {
+  border-color: var(--profession-accent);
+  outline: none;
+}
+
+.simulator-profession-option:focus-visible {
+  outline: 2px solid var(--profession-accent);
+  outline-offset: 1px;
 }
 
 .simulator-view-tab {
   display: flex;
-  gap: 6px;
-  min-height: 34px;
-  padding: 6px 14px;
+  min-height: 46px;
+  padding: 10px 14px;
   align-items: center;
   justify-content: center;
-  /* Keep inactive upper tabs subtly outlined so each navigation target is visible. */
-  border: 1px solid var(--border);
-  border-radius: 2px;
+  border-bottom: 2px solid transparent;
   color: var(--text-dim);
   font-size: 11px;
   font-weight: 700;
@@ -184,52 +277,64 @@ body[data-profession] .simulator-view-tabs {
     color 0.15s ease;
 }
 
-/* Icons inherit each tab's active and hover color while staying out of its accessible name. */
-.simulator-view-tab svg {
-  width: 15px;
-  height: 15px;
-  flex: 0 0 15px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.75;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
 @media (max-width: 600px) {
-  body[data-profession] .simulator-view-tabs {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .simulator-view-tabs {
+    grid-template-columns: repeat(3, auto);
+    width: 100%;
   }
 
-  body[data-profession] .simulator-view-tab {
-    flex-direction: column;
-    gap: 1px;
-    padding: 6px 4px;
+  .simulator-profession-control {
+    grid-column: 1 / -1;
+    justify-self: start;
+    margin: 0 0 4px;
+  }
+
+  .simulator-view-tab {
+    min-height: 40px;
+    padding: 8px 4px;
     font-size: 10px;
     letter-spacing: 0;
-    line-height: 1.1;
-    white-space: normal;
-  }
-
-  body[data-profession] .simulator-view-tab svg {
-    width: 12px;
-    height: 12px;
-    flex-basis: 12px;
   }
 }
 
 a.simulator-view-tab:hover,
 a.simulator-view-tab:focus-visible {
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
   color: var(--text-bright);
-  outline: none;
 }
 
 .simulator-view-tab-active {
-  background: color-mix(in srgb, var(--accent) 16%, var(--bg-panel));
-  border-color: color-mix(in srgb, var(--accent) 62%, var(--border));
+  border-bottom-color: var(--accent);
   color: var(--accent);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+}
+
+/* Keep the primary result readable and profession-themed while the user scrolls or switches simulator views. */
+.header-dps {
+  display: flex;
+  flex-shrink: 0;
+  min-width: 116px;
+  padding: 7px 10px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-dim);
+  background: color-mix(in srgb, var(--bg-panel-alt) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border-light));
+  border-radius: var(--radius);
+}
+
+.header-dps-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header-dps-value {
+  color: var(--accent);
+  font-size: 21px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
 header .accent {

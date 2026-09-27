@@ -13,8 +13,7 @@ test('simulator navigation defaults to the workspace and recognizes analysis and
   assert.equal(simulatorViewFromHash('#unknown'), 'workspace');
 });
 
-test('professions has its own page while simulator views stay on the active profession', () => {
-  assert.equal(simulatorViewHref('/simulator/elementalist.html', 'professions'), 'index.html');
+test('simulator views stay on the selected profession page', () => {
   assert.equal(simulatorViewHref('/simulator/elementalist.html', 'workspace'), 'elementalist.html#workspace');
   assert.equal(simulatorViewHref('/simulator/elementalist.html', 'analysis'), 'elementalist.html#analysis');
   assert.equal(simulatorViewHref('/simulator/elementalist.html', 'gear-optimizer'), 'elementalist.html#gear-optimizer');

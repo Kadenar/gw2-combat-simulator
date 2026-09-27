@@ -20,6 +20,8 @@ test('profession headers share the embed layout without a title block', async ({
     await expect(header.locator('h1, .header-brand, .home-link')).toHaveCount(0);
     await expect(header.locator('.simulator-view-tabs')).toBeInViewport({ ratio: 1 });
     await expect(header.locator('.community-actions')).toBeInViewport({ ratio: 1 });
+    await expect(header.locator('#header-dps')).toBeInViewport({ ratio: 1 });
+    await expect(page.locator('.landing-footer')).toHaveCount(0);
     await expect(header.locator('#build-workspace-tabs')).toBeInViewport({ ratio: 1 });
     layouts.push(
       await header.evaluate((element) => {
@@ -30,6 +32,58 @@ test('profession headers share the embed layout without a title block', async ({
   }
 
   expect(layouts[0]).toEqual(layouts[1]);
+});
+
+// Profession changes retain the selected tool and display flags; tool links still support browser history.
+test('header profession selector preserves navigation and the landing page owns the copyright', async ({ page }) => {
+  await page.goto('/mesmer.html?embed=1&standalone=1#workspace');
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  const navigation = page.getByRole('navigation', { name: 'Simulator sections' });
+  const selector = navigation.getByRole('button', { name: 'Choose profession', exact: true });
+  await expect(selector).toHaveText('Mesmer');
+  await selector.focus();
+  await page.keyboard.press('Enter');
+  const professions = page.getByRole('group', { name: 'Professions', exact: true });
+  await expect(professions.getByRole('link')).toHaveCount(9);
+  await expect(professions.locator('img')).toHaveCount(9);
+  await expect
+    .poll(() => professions.locator('img').evaluateAll((images) => images.every((image) => image.naturalWidth > 0)))
+    .toBe(true);
+  await expect(professions.getByRole('link', { name: 'Mesmer', exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(professions).toBeHidden();
+  await expect(selector).toBeFocused();
+  await selector.click();
+  await page.locator('#header-dps').click();
+  await expect(professions).toBeHidden();
+  await navigation.getByRole('link', { name: 'Analysis', exact: true }).click();
+  await expect(navigation.getByRole('link', { name: 'Analysis', exact: true })).toHaveAttribute('aria-current', 'page');
+  await page.goBack();
+  await expect(navigation.getByRole('link', { name: 'Workspace', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page'
+  );
+  await navigation.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
+  await selector.click();
+  for (const width of [320, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    await expect(professions).toBeInViewport({ ratio: 1 });
+  }
+
+  await professions.getByRole('link', { name: 'Guardian', exact: true }).click();
+  await expect(page).toHaveURL(/guardian\.html\?embed=1&standalone=1#gear-optimizer$/);
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await expect(selector).toHaveText('Guardian');
+  await expect(navigation.getByRole('link', { name: 'Gear Optimizer', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page'
+  );
+  await expect(page.locator('#app > header #header-dps')).toBeVisible();
+  await expect(page.locator('.landing-footer')).toHaveCount(0);
+
+  await page.goto('/index.html');
+  await expect(page.locator('.landing-footer')).toContainText('All rights reserved.');
+  await expect(page.locator('#header-dps')).toHaveCount(0);
 });
 
 async function newBuild(page) {
@@ -64,7 +118,7 @@ test('build tabs isolate edits and results and support duplication, rename, clos
   await expect(strip.locator('.build-tab-menu-trigger')).toHaveCount(1);
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
   await settled(page);
-  const originalDps = await page.locator('#floating-dps').textContent();
+  const originalDps = await page.locator('#header-dps').textContent();
   await tabAction(page, 'Duplicate');
   await settled(page);
   await expect(strip.locator('.build-tab')).toHaveCount(2);
@@ -79,7 +133,7 @@ test('build tabs isolate edits and results and support duplication, rename, clos
   await expect(page.locator('#rotation-timeline')).toHaveClass(/is-empty/);
   await strip.getByRole('button', { name: 'Build 1', exact: true }).click();
   await expect(page.locator('#rotation-timeline')).not.toHaveClass(/is-empty/);
-  await expect(page.locator('#floating-dps')).toHaveText(originalDps);
+  await expect(page.locator('#header-dps')).toHaveText(originalDps);
   await page.locator('#btn-sim-undo').click();
   await settled(page);
   await expect(page.locator('#rotation-timeline')).toHaveClass(/is-empty/);

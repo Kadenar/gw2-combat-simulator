@@ -2,15 +2,15 @@
  * Registry-driven profession navigation for the landing page and simulator
  * headers.
  *
- * Binding renders an optional landing-page card grid, rebuilds an optional
- * profession select, applies the active profession's theme, and navigates on
- * selection changes. Importing this module in a browser binds the current
+ * Binding renders the landing-page cards or mounts the simulator header,
+ * profession picker, and workspace controls. Importing this module in a browser binds the current
  * document automatically; importing it outside a browser has no side effect.
  */
 
 import { EMBED_VISIBLE_TOP_EVENT, embeddedVisibleTop, navigationRoute } from '#app/page/embed.js';
 import { mountGw2IconFallback } from '#gw2/app/page/icon-fallback.js';
 import { mountRotationTimelineSize } from '#gw2/app/rotation/timeline/preferences.js';
+import { mountHeaderDps } from '#app/shell/header-dps.js';
 import { mountRotationWorkspace } from '#app/shell/rotation-workspace.js';
 import { mountSimulatorTutorial } from '#gw2/app/page/tutorial.js';
 import { mountSimulatorNavigation } from '#gw2/app/page/navigation.js';
@@ -21,9 +21,6 @@ const BUILD_SUBMISSION_URL = 'https://github.com/Kadenar/gw2-combat-simulator/is
 
 const GITHUB_MARK_SVG =
   '<svg class="github-link-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>';
-
-const LEGAL_TEXT =
-  'Guild Wars Games © ArenaNet LLC. All rights reserved. NCSOFT, ArenaNet, Guild Wars, Guild Wars 2, GW2, Heart of Thorns, Path of Fire, End of Dragons, Secrets of the Obscure, Janthir Wilds, Visions of Eternity, and all associated logos, designs, and composite marks are trademarks or registered trademarks of NCSOFT Corporation. All other trademarks are the property of their respective owners.';
 
 /**
  * Adds the shared build-submission and issue-reporting actions to the main
@@ -55,20 +52,6 @@ function mountCommunityActions(root: Document): void {
   link.innerHTML = `${GITHUB_MARK_SVG}<span>Report an issue</span>`;
   actions.append(submissionLink, link);
   host.append(actions);
-}
-
-function mountLegalFooter(root: Document): void {
-  if (root.querySelector('.landing-footer')) return;
-  const app = root.getElementById('app');
-  if (!app) return;
-  const footer = root.createElement('footer');
-  footer.className = 'landing-footer';
-  const p = root.createElement('p');
-  p.textContent = LEGAL_TEXT;
-  footer.append(p);
-  // Insert after #app (not inside it) so dynamic layout restructuring in
-  // mountBuildTemplateLayout cannot pull the footer up above the workspace.
-  app.after(footer);
 }
 
 /** Publishes the header height and adds its surface only after the page scrolls. */
@@ -217,11 +200,11 @@ async function renderLoaderArtwork(root: Document): Promise<void> {
 function bindProfessionSelector(root: Document = document): void {
   void renderLoaderArtwork(root);
   mountGw2IconFallback(root);
-  mountLegalFooter(root);
   mountRotationWorkspace(root);
   mountRotationTimelineSize(root);
   mountCommunityActions(root);
   mountSimulatorTutorial(root);
+  mountHeaderDps(root);
   mountSimulatorNavigation(root);
   mountStickyHeader(root);
   renderProfessionCards(root);

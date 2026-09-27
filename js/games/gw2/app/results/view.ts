@@ -109,7 +109,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
       summary: gw2ResultView({ metrics: EMPTY_RESULT_METRICS, summaryPlaceholder: true }),
       workspace: null,
       analysis: null,
-      floatingDps: null,
+      headerDps: null,
       // An existing rotation is waiting for results, so reserve the analysis layout instead of prompting for skills.
       analysisEmptyHtml: app.build.rotation.length
         ? `<div class="analysis-skeleton" role="status" aria-label="Loading combat analysis" aria-busy="true">
@@ -152,7 +152,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
 
   return {
     summary: gw2ResultView({ metrics, breakpoints }),
-    floatingDps: metrics.find((metric) => metric.className === 'dps')?.value,
+    headerDps: metrics.find((metric) => metric.className === 'dps')?.value,
     workspace: gw2ResultView(
       {
         showSummary: false,

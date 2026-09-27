@@ -1,7 +1,7 @@
 /**
  * Shared profession and simulator tool navigation for simulator pages.
  *
- * Professions returns to the standalone landing page. Simulator tools
+ * The profession selector switches directly between simulator pages. Tools
  * remain single-page views driven by the URL hash and remember their scroll
  * positions when switching. `mountSimulatorNavigation` is the entry point;
  * the rest are its DOM helpers.
@@ -9,9 +9,10 @@
 
 import { resetRotationWorkspace } from '#app/shell/rotation-workspace.js';
 import { navigationRoute } from '#app/page/embed.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 export type SimulatorView = 'workspace' | 'analysis' | 'gear-optimizer';
-type SimulatorSection = 'professions' | SimulatorView;
 
 type ScrollPosition = Readonly<{ left: number; top: number }>;
 
@@ -19,14 +20,6 @@ const VIEW_HASHES: Readonly<Record<SimulatorView, string>> = {
   workspace: '#workspace',
   analysis: '#analysis',
   'gear-optimizer': '#gear-optimizer'
-};
-
-// Decorative section icons make the compact tabs easier to scan without changing their text labels.
-const NAVIGATION_ICONS: Readonly<Record<SimulatorSection, string>> = {
-  professions: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>`,
-  workspace: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M9 9h12"/></svg>`,
-  analysis: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10m6 10V4m6 16v-7m4 7H2"/></svg>`,
-  'gear-optimizer': `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7m0-4V3m8 18v-4m0-4V3m8 18v-9m0-4V3M1 14h6m2 3h6m2-5h6"/></svg>`
 };
 
 /** Maps a URL hash to a view, defaulting to `workspace` when unrecognized. */
@@ -37,31 +30,21 @@ export function simulatorViewFromHash(hash: string): SimulatorView {
   return 'workspace';
 }
 
-/** Returns the landing page for Professions and a same-page hash for simulator views. */
-export function simulatorViewHref(pathname: string, view: SimulatorSection): string {
-  if (view === 'professions') return 'index.html';
+/** Keeps simulator tools on the given profession page. */
+export function simulatorViewHref(pathname: string, view: SimulatorView): string {
   const route = pathname.split('/').pop() || pathname || 'index.html';
   return `${route}${VIEW_HASHES[view]}`;
 }
 
 export const SIMULATOR_VIEW_CHANGE_EVENT = 'simulator-viewchange';
 
-/** Creates an icon-and-label tab anchor, tagging it with `data-simulator-view` when a view is given. */
-function createNavigationLink(
-  root: Document,
-  section: SimulatorSection,
-  label: string,
-  href: string,
-  view?: SimulatorView
-): HTMLAnchorElement {
+/** Creates a tool link that supports normal browser navigation as well as in-page switching. */
+function createNavigationLink(root: Document, view: SimulatorView, label: string, href: string): HTMLAnchorElement {
   const link = root.createElement('a');
   link.className = 'simulator-view-tab';
   link.href = href;
-  link.innerHTML = NAVIGATION_ICONS[section];
-  const text = root.createElement('span');
-  text.textContent = label;
-  link.append(text);
-  if (view) link.dataset.simulatorView = view;
+  link.textContent = label;
+  link.dataset.simulatorView = view;
   return link;
 }
 
@@ -117,10 +100,10 @@ function viewportScrollPosition(root: Document): ScrollPosition {
 }
 
 /**
- * Mounts the shared Professions / Workspace / Analysis navigation into the
+ * Mounts the profession selector and simulator tool tabs into the
  * simulator header. No-op unless the header exists, a profession is set, and the
  * tabs are not already mounted. Mounts the analysis heading,
- * builds the landing-page link and simulator tabs, and
+ * builds direct profession navigation and simulator tabs, and
  * wires hash/history-driven view switching with per-view scroll restoration.
  */
 export function mountSimulatorNavigation(root: Document = document): void {
@@ -137,6 +120,72 @@ export function mountSimulatorNavigation(root: Document = document): void {
 
   const pathname = root.defaultView?.location.pathname || 'index.html';
   let activeView = simulatorViewFromHash(root.defaultView?.location.hash || '');
+  // Full profession portraits stay legible in the picker; native popovers handle Escape and outside-click dismissal.
+  const professionControl = root.createElement('div');
+  professionControl.className = 'simulator-profession-control';
+  const selector = root.createElement('button');
+  selector.type = 'button';
+  selector.setAttribute('popovertarget', 'simulator-profession-menu');
+  selector.setAttribute('aria-label', 'Choose profession');
+  selector.setAttribute('aria-expanded', 'false');
+  selector.textContent = professionRegistry.find(({ id }) => id === professionId)?.name || professionId;
+  const professionMenu = root.createElement('div');
+  professionMenu.id = 'simulator-profession-menu';
+  professionMenu.className = 'simulator-profession-menu';
+  professionMenu.setAttribute('popover', 'auto');
+  professionMenu.setAttribute('role', 'group');
+  professionMenu.setAttribute('aria-label', 'Professions');
+  for (const profession of professionRegistry) {
+    const option = root.createElement('a');
+    option.className = `simulator-profession-option profession-card-${profession.id}`;
+    option.dataset.route = profession.route;
+    if (profession.id === professionId) {
+      option.setAttribute('aria-current', 'page');
+      option.setAttribute('autofocus', '');
+    }
+
+    // Vary each profession's portrait per page visit, using only full portraits that fit the compact cards.
+    const portraits = profession.specializationArtwork?.filter(({ conceptArt }) => conceptArt);
+    const artwork = portraits?.length ? portraits[Math.floor(Math.random() * portraits.length)] : undefined;
+    if (artwork?.conceptArt) {
+      const image = root.createElement('img');
+      image.src = artwork.conceptArt;
+      image.alt = '';
+      image.loading = 'lazy';
+      image.addEventListener('error', () => image.remove(), { once: true });
+      option.append(image);
+    }
+
+    const name = root.createElement('span');
+    name.textContent = profession.name;
+    option.append(name);
+    professionMenu.append(option);
+  }
+
+  professionMenu.addEventListener('beforetoggle', (event) => {
+    selector.setAttribute('aria-expanded', String(event.newState === 'open'));
+    if (event.newState !== 'open') return;
+    // Refresh destinations on every opening so normal clicks and new tabs retain the current tool and mode.
+    for (const link of professionMenu.querySelectorAll<HTMLAnchorElement>('a')) {
+      link.href = navigationRoute(
+        simulatorViewHref(link.dataset.route!, activeView),
+        root.defaultView?.location.search
+      );
+    }
+  });
+  // Keep an open picker inside the viewport when the header reflows after a resize.
+  const positionProfessionMenu = (): void => {
+    const window = root.defaultView;
+    if (!window || !professionMenu.matches(':popover-open')) return;
+    const bounds = selector.getBoundingClientRect();
+    professionMenu.style.left = `${clamp(bounds.left, 8, window.innerWidth - professionMenu.offsetWidth - 8)}px`;
+    professionMenu.style.top = `${clamp(bounds.bottom + 6, 8, window.innerHeight - professionMenu.offsetHeight - 8)}px`;
+  };
+
+  professionMenu.addEventListener('toggle', positionProfessionMenu);
+  root.defaultView?.addEventListener('resize', positionProfessionMenu);
+  professionControl.append(selector, professionMenu);
+  navigation.append(professionControl);
   const scrollPositions = new Map<SimulatorView, ScrollPosition>([[activeView, viewportScrollPosition(root)]]);
   // Restore twice (now + next frame) so layout that settles after the view swap
   // doesn't clobber the scroll; bail if the view changed again in between.
@@ -168,24 +217,15 @@ export function mountSimulatorNavigation(root: Document = document): void {
     restoreScrollPosition(view, position);
   };
 
-  for (const section of ['professions', 'workspace', 'analysis', 'gear-optimizer'] as const) {
-    const route = simulatorViewHref(pathname, section);
-    const view = section === 'professions' ? undefined : section;
+  for (const view of ['workspace', 'analysis', 'gear-optimizer'] as const) {
+    const route = simulatorViewHref(pathname, view);
     const link = createNavigationLink(
       root,
-      section,
-      section === 'professions'
-        ? 'Professions'
-        : section === 'workspace'
-          ? 'Workspace'
-          : section === 'analysis'
-            ? 'Analysis'
-            : 'Gear Optimizer',
-      navigationRoute(route),
-      view
+      view,
+      view === 'workspace' ? 'Workspace' : view === 'analysis' ? 'Analysis' : 'Gear Optimizer',
+      navigationRoute(route)
     );
     navigation.append(link);
-    if (!view) continue;
     link.addEventListener('click', (event) => {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
         return;

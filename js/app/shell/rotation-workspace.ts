@@ -1,7 +1,6 @@
 /** Owns the simulator page's rotation workspace layout, focus mode, and live DPS strip. */
 import { trackEmbeddedViewport } from '#app/page/embed.js';
 import { bindDialog, showDialog } from '#app/page/dialog.js';
-import { mountFloatingDps } from '#app/shell/floating-dps.js';
 
 export type RotationWorkspaceAction = 'toggle-config' | 'close-config' | 'toggle-focus' | 'escape';
 
@@ -251,7 +250,6 @@ export function mountRotationWorkspace(root: Document = document): void {
   rotationPanel.before(panelShell);
   panelShell.append(rotationPanel);
   mountRotationDpsSummary(root, rotationPanel);
-  mountFloatingDps(root);
 
   // Embedded settings use a native modal so focus and background interaction stay inside the dialog.
   const configDialog = root.documentElement.classList.contains('embed') ? root.createElement('dialog') : undefined;

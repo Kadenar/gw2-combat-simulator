@@ -314,7 +314,7 @@ test('simulation config controls and result-dependent palette state work in the 
 
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
   await expect(page.locator('#rotation-timeline')).not.toHaveClass(/is-empty/);
-  await expect(page.locator('#floating-dps')).toHaveAttribute('aria-label', /Current rotation DPS: /);
+  await expect(page.locator('#header-dps')).toHaveAttribute('aria-label', /Current rotation DPS: /);
   await expect(page.locator('[data-role="current-rotation-dps"]')).toHaveCount(0);
 });
 
