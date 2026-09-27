@@ -102,19 +102,11 @@ export function thiefInfiltratorsSignetPulse(runtime: ThiefRuntime, data: unknow
   restartThiefInfiltratorsSignet(runtime);
 }
 
-/** Initiative costs and Signets of Power's refund are paid when the cast is accepted. */
+/** Initiative costs are paid when the cast is accepted. */
 export function spendThiefCoreResources(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as { initiativeCost?: number; categories?: readonly string[] };
+  const skill = cast.skill as { initiativeCost?: number };
   const cost = Number(skill.initiativeCost || 0);
   if (cost > 0) runtime.resourceController.spend('initiative', cost);
-  if (
-    (skill.categories || []).some((category) => String(category).toLowerCase().includes('signet')) &&
-    hasTrait(runtime, TRAIT.SIGNETS_OF_POWER)
-  )
-    grantThiefInitiative(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.signetsOfPower), 'resourceGain')
-    );
 }
 
 /** Signet restarts, Signet of Agility, and Unload's refund apply at the actual completion. */

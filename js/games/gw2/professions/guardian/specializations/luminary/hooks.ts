@@ -404,12 +404,6 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
     }
 
     if (hasTrait(runtime, TRAIT.MASTER_AT_ARMS)) {
-      for (const id of virtue === 'justice'
-        ? [ID.DAZZLING_HAMMER]
-        : virtue === 'resolve'
-          ? [ID.LUMINOUS_STAFF]
-          : [ID.GLEAMING_BLADE, ID.RADIANT_BULWARK])
-        runtime.cooldownController.clear(id);
       recordGuardianTraitProc(
         runtime,
         TRAIT.MASTER_AT_ARMS,

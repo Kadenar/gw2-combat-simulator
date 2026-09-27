@@ -1,3 +1,4 @@
+import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
@@ -120,14 +121,17 @@ test('Weighty Terms follows canonical mantra IDs and ignores names or final-char
           description: id === mantra.finalId ? '' : 'Final Charge.',
           categories: ['Mantra']
         };
-        native.onCastComplete(runtime, {
+        const cast = {
           skill,
           id: 'fixture-mantra',
           command: {},
           start: 0,
           fullEnd: 0,
           effectiveEnd: 0
-        });
+        };
+        // Exercise the shared completion boundary before the profession's remaining trait effects.
+        applySkillSideEffects(runtime, cast, 'castComplete');
+        native.onCastComplete(runtime, cast);
       });
       assert.equal(
         observedRuntime(result).profession.specialization.state.tomePages.value,

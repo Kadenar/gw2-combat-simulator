@@ -275,7 +275,6 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
     ) {
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.weightyTerms);
       const gain = balanceProfileNumber(profile, 'resourceGain');
-      runtime.resourceController.grant('tomePages', gain);
       const slow = requireEffect(profile, 'condition', 'Slow');
       if (slow)
         runtime.emit(

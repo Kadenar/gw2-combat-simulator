@@ -34,16 +34,6 @@ const DODGE_PROFILES: Readonly<Partial<Record<ThiefDodge, SkillId>>> = Object.fr
   'Unhindered Combatant': PROFILE.unhinderedCombatant
 });
 
-// Only the physical utility skills grant Brawler's Tenacity endurance.
-const PHYSICAL_SKILLS: ReadonlySet<SkillId> = new Set([
-  ID.CHANNELED_VIGOR,
-  ID.BANDITS_DEFENSE,
-  ID.REFLEXIVE_STRIKE,
-  ID.DISTRACTING_DAGGERS,
-  ID.FIST_FLURRY,
-  ID.IMPAIRING_DAGGERS
-]);
-
 function selectedDodgeProfile(runtime: ThiefRuntime): BalanceProfile | undefined {
   const profileId = DODGE_PROFILES[daredevilState.from(runtime).selectedDodge];
   return profileId == null ? undefined : requireBalanceProfileFromContext(runtime, profileId);
@@ -250,16 +240,11 @@ export const daredevilHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   onCastStart(runtime, cast) {
     const skill = cast.skill as ThiefSkill;
     const cost = Number(skill.initiativeCost || 0);
-    // Staff Master refunds endurance per initiative spent; Brawler's Tenacity refunds physical skills.
+    // Staff Master refunds endurance per initiative spent on staff skills.
     if (cost > 0 && skill.weapon === 'Staff' && hasTrait(runtime, TRAIT.STAFF_MASTER))
       grantThiefEndurance(
         runtime,
         cost * balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.staffMaster), 'resourceGain')
-      );
-    if (PHYSICAL_SKILLS.has(skill.id) && hasTrait(runtime, TRAIT.BRAWLERS_TENACITY))
-      grantThiefEndurance(
-        runtime,
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.brawlersTenacity), 'resourceGain')
       );
     if (skill.id === ID.DODGE && !cast.cancelled) queueDodgePackets(runtime, cast);
   },

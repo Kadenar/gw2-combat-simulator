@@ -2,8 +2,23 @@
  * Owns Firebrand mantra preparation and charge-variant skill fragments.
  * Persistent mantra state and behavior remain in `mechanics/mantras.ts`.
  */
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+
+// Final mantra charges refund pages only after the full cast completes.
+const WEIGHTY_TERMS_PAGES: Skill['sideEffects'] = [
+  {
+    on: 'castComplete',
+    when: (runtime) => hasTrait(runtime, TRAIT.WEIGHTY_TERMS),
+    do: {
+      type: 'resourceGrant',
+      resource: 'tomePages',
+      amount: { profile: PROFILE.weightyTerms, field: 'resourceGain' }
+    }
+  }
+];
 
 export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.PORTENT_OF_FREEDOM]: {
@@ -49,6 +64,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: []
   },
   [ID.OVERWHELMING_CELERITY]: {
+    sideEffects: WEIGHTY_TERMS_PAGES,
     castTimeMs: 0,
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
@@ -123,6 +139,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: []
   },
   [ID.FLAME_SURGE]: {
+    sideEffects: WEIGHTY_TERMS_PAGES,
     castTimeMs: 0,
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
@@ -142,6 +159,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.REJUVENATING_RESPITE]: {
+    sideEffects: WEIGHTY_TERMS_PAGES,
     castTimeMs: 0,
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
@@ -152,6 +170,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.UNHINDERED_DELIVERY]: {
+    sideEffects: WEIGHTY_TERMS_PAGES,
     castTimeMs: 0,
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
