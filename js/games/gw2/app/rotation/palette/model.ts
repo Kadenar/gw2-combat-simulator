@@ -30,8 +30,6 @@ import type {
 import type { AmmoState } from '#gw2/platform/execution/types.js';
 import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
 
-/** Ammo may arrive as scheduler seconds or an already projected millisecond countdown. */
-type PaletteAmmo = Partial<AmmoState> & { readonly nextChargeAt?: number; readonly remaining?: number };
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 import { groupWeaponSkillsByAttunement } from '#gw2/app/rotation/palette/weapon-attunement-groups.js';
@@ -678,29 +676,14 @@ function currentCooldown(
   return palettePlanningState(app)?.cooldowns?.[name] || { remaining: 0, readyAt: 0 };
 }
 
-function currentAmmo(app: ProfessionAppState, skill: Skill): PaletteAmmo | null {
+/** Exact skill IDs prevent variant collisions; convert scheduler seconds to the displayed countdown. */
+function currentAmmo(app: ProfessionAppState, skill: Skill): (AmmoState & { readonly remaining: number }) | null {
   const planningState = palettePlanningState(app);
-  const ammoBySkillId = planningState?.ammoBySkillId;
-  // Prefer exact IDs so duplicate API names cannot leak another variant's ammo into this skill.
-  const rawAmmo =
-    ammoBySkillId && typeof ammoBySkillId === 'object'
-      ? ammoBySkillId[String(skill.id)]
-      : planningState?.ammo?.[skill.name];
-  if (!rawAmmo || typeof rawAmmo !== 'object') return null;
-  const ammo = rawAmmo as PaletteAmmo;
-  if (ammo.remaining != null) return ammo;
-  // Scheduler ammo uses `nextRechargeAt` in seconds, while UI projections may
-  // already expose `nextChargeAt` in milliseconds. Normalize both to UI time.
-  const nextChargeAt =
-    ammo.nextChargeAt != null
-      ? Number(ammo.nextChargeAt)
-      : ammo.nextRechargeAt == null
-        ? 0
-        : Number(ammo.nextRechargeAt) * 1000;
+  const ammo = planningState?.ammoBySkillId[String(skill.id)];
+  if (!ammo) return null;
   return {
     ...ammo,
-    nextChargeAt,
-    remaining: nextChargeAt ? Math.max(0, nextChargeAt - Number(planningState?.atSeconds || 0) * 1000) : 0
+    remaining: ammo.nextRechargeAt == null ? 0 : Math.max(0, (ammo.nextRechargeAt - planningState.atSeconds) * 1000)
   };
 }
 

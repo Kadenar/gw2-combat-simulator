@@ -494,16 +494,19 @@ export function procFilterKey(proc: Gw2ProcStep): string {
   return `${proc.type}:${proc.skill}`;
 }
 
+/** Keeps proc labels consistent across filters, overlays, and the separate proc panel. */
+export function procTypeLabel(proc: Gw2ProcStep): string {
+  return proc.type === 'relic_proc'
+    ? 'Relic'
+    : proc.type === 'sigil_proc'
+      ? 'Sigil'
+      : proc.type === 'skill_proc'
+        ? 'Skill'
+        : 'Trait';
+}
+
 export function procFilterLabel(proc: Gw2ProcStep): string {
-  const type =
-    proc.type === 'relic_proc'
-      ? 'Relic'
-      : proc.type === 'sigil_proc'
-        ? 'Sigil'
-        : proc.type === 'skill_proc'
-          ? 'Skill'
-          : 'Trait';
-  return `${proc.skill} (${type})`;
+  return `${proc.skill} (${procTypeLabel(proc)})`;
 }
 
 export interface ProcTimelineMarker extends Gw2ProcStep {
@@ -665,7 +668,6 @@ export interface TimelineWeaponRowOptions {
   readonly startingWeaponSet?: number;
   readonly startingWeaponLine?: string | null;
   readonly weaponSwapChangesSet?: boolean;
-  readonly weaponLineEndIndexes?: ReadonlySet<number>;
   readonly skillName?: (entry: RotationCommand) => string;
   readonly weaponLineTransition?: (
     entry: RotationCommand,
@@ -697,7 +699,6 @@ export function timelineWeaponRows(
     startingWeaponSet = 1,
     startingWeaponLine = null,
     weaponSwapChangesSet = true,
-    weaponLineEndIndexes = new Set<number>(),
     skillName = rotationEntryName,
     weaponLineTransition = () => undefined
   }: TimelineWeaponRowOptions = {}
@@ -712,16 +713,8 @@ export function timelineWeaponRows(
       const name = skillName(entry);
       return (!weaponSwapChangesSet && name === 'Swap Weapons') || WEAPON_SET_REFRESH_SKILLS.has(name);
     },
-    weaponLineTransition(entry, current, index) {
-      const authoredTransition = weaponLineTransition(entry, current, index);
-      // Simulated automatic exits close a named lane after the matching
-      // authored entry without requiring a synthetic rotation command.
-      return authoredTransition !== undefined
-        ? authoredTransition
-        : current.weaponLine !== null && weaponLineEndIndexes.has(index + 1)
-          ? null
-          : undefined;
-    }
+    // Profession transitions own named-lane boundaries.
+    weaponLineTransition
   });
 }
 

@@ -174,6 +174,26 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
     element.querySelector(':scope > .rotation-skeleton')?.remove();
   }
 
+  // Empty and populated timelines share selection, clearing, and dependent-view refreshes.
+  const bindInsertionCursor = (): void => {
+    const selectInsertion = (index: number | null): void => {
+      if (!interactionOptions.canInteract?.()) return;
+      app.rotationInsertionIndex = index;
+      renderPalette(app);
+      renderTimeline(app);
+      renderRotationStateSnapshot(app);
+      renderRotationComparison(app);
+    };
+
+    app.rotationInsertionIndex = mountRotationInsertionCursor({
+      root: element,
+      insertionIndex: app.rotationInsertionIndex,
+      rotationLength: rotation.length,
+      onSelect: selectInsertion,
+      onClear: () => selectInsertion(null)
+    });
+  };
+
   if (!rotation.length) {
     if (!readOnly) app.rotationSkillHighlightKey = null;
     delete element.dataset.skillHighlightKey;
@@ -185,27 +205,7 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
     timelineRowsByRoot.delete(element);
     if (procElement) procElement.innerHTML = '';
     if (!readOnly) {
-      app.rotationInsertionIndex = mountRotationInsertionCursor({
-        root: element,
-        insertionIndex: app.rotationInsertionIndex,
-        rotationLength: 0,
-        onSelect(index) {
-          if (!interactionOptions.canInteract?.()) return;
-          app.rotationInsertionIndex = index;
-          renderPalette(app);
-          renderTimeline(app);
-          renderRotationStateSnapshot(app);
-          renderRotationComparison(app);
-        },
-        onClear() {
-          if (!interactionOptions.canInteract?.()) return;
-          app.rotationInsertionIndex = null;
-          renderPalette(app);
-          renderTimeline(app);
-          renderRotationStateSnapshot(app);
-          renderRotationComparison(app);
-        }
-      });
+      bindInsertionCursor();
       bindTimelineInteractions(element, interactionOptions);
     }
 
@@ -230,27 +230,7 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
   if (procElement) procElement.innerHTML = procHtml;
   reconcileTimelineRows(element, timelineRows);
   if (!readOnly) {
-    app.rotationInsertionIndex = mountRotationInsertionCursor({
-      root: element,
-      insertionIndex: app.rotationInsertionIndex,
-      rotationLength: rotation.length,
-      onSelect(index) {
-        if (!interactionOptions.canInteract?.()) return;
-        app.rotationInsertionIndex = index;
-        renderPalette(app);
-        renderTimeline(app);
-        renderRotationStateSnapshot(app);
-        renderRotationComparison(app);
-      },
-      onClear() {
-        if (!interactionOptions.canInteract?.()) return;
-        app.rotationInsertionIndex = null;
-        renderPalette(app);
-        renderTimeline(app);
-        renderRotationStateSnapshot(app);
-        renderRotationComparison(app);
-      }
-    });
+    bindInsertionCursor();
   }
 
   const applySkillHighlight = (): void => {

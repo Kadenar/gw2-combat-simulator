@@ -21,7 +21,6 @@ export interface ActivationEditorOptions {
   readonly concurrentOffsetMs?: number | null;
   readonly fullCastMs?: number | null;
   readonly suggestedInterruptMs?: number | null;
-  readonly suggestedConcurrentOffsetMs?: number | null;
   readonly minimumConcurrentOffsetMs?: number | null;
   readonly damageCommitMs?: number | null;
   readonly targetImpactDetails?: string;
@@ -205,9 +204,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   const behavior = options.behavior || 'interrupt';
   const isConcurrentBehavior = behavior === 'concurrent';
   const configuredMs = isConcurrentBehavior ? options.concurrentOffsetMs : options.interruptMs;
-  const rawSuggestedMs = Number(
-    isConcurrentBehavior ? options.suggestedConcurrentOffsetMs : options.suggestedInterruptMs
-  );
+  const rawSuggestedMs = Number(options.suggestedInterruptMs);
   const minimumMs = isConcurrentBehavior
     ? options.minimumConcurrentOffsetMs === null
       ? null
@@ -216,10 +213,11 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   // Native number stepping snaps off-grid values in either direction; align its minimum to the same tick grid.
   const inputStep = GW2_ACTION_TICK_MS;
   const suggestedFloor = minimumMs ?? Number.NEGATIVE_INFINITY;
-  const suggestedMs = Number.isFinite(rawSuggestedMs)
-    ? Math.max(suggestedFloor, Math.round(rawSuggestedMs / inputStep) * inputStep)
-    : isConcurrentBehavior
-      ? Math.max(suggestedFloor, 120)
+  // Concurrent casts start with the standard offset; interruptions use the skill's suggested cutoff.
+  const suggestedMs = isConcurrentBehavior
+    ? Math.max(suggestedFloor, 120)
+    : Number.isFinite(rawSuggestedMs)
+      ? Math.max(suggestedFloor, Math.round(rawSuggestedMs / inputStep) * inputStep)
       : GW2_ACTION_TICK_MS;
   const inputMinimum = minimumMs == null ? '' : ` min="${minimumMs}"`;
   const editor = document.createElement('div');

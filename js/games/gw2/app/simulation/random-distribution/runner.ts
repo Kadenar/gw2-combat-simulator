@@ -1,7 +1,6 @@
 import {
   partitionRandomDistributionTrials,
   randomDistributionWorkerCount,
-  summarizeRandomDistribution,
   summarizeRandomDistributionOutcomes
 } from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#browser/game/worker-harness.js';
@@ -13,13 +12,8 @@ import type {
 } from '#gw2/app/simulation/random-distribution/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
-interface RandomDistributionWorkerMessage extends GameWorkerResponseEnvelope {
-  readonly progress?: { readonly completed?: number };
-  readonly distribution?: {
-    readonly samples?: readonly number[];
-    readonly outcomes?: readonly RandomDistributionOutcome[];
-  };
-}
+type RandomDistributionWorkerMessage = GameWorkerResponseEnvelope &
+  ({ readonly progress: RandomDistributionProgress } | { readonly outcomes: readonly RandomDistributionOutcome[] });
 
 export class RandomDistributionRunner {
   readonly app: ProfessionAppState;
@@ -146,13 +140,13 @@ export class RandomDistributionRunner {
         });
         const batches = partitionRandomDistributionTrials(request.trials, workerCount);
         if (!batches.length) {
-          applyDistribution(summarizeRandomDistribution([]));
+          applyDistribution(summarizeRandomDistributionOutcomes([]));
           return;
         }
 
         const batchProgress: number[] = batches.map(() => 0);
-        const completedSamples: Array<readonly number[] | null> = batches.map(() => null);
-        const completedOutcomes: Array<readonly RandomDistributionOutcome[] | null> = batches.map(() => null);
+        // Retain each seed batch in order and aggregate its outcomes once all workers finish.
+        const completedOutcomes: Array<readonly RandomDistributionOutcome[]> = batches.map(() => []);
         let completedWorkers = 0;
 
         batches.forEach((batch, batchIndex) => {
@@ -163,11 +157,10 @@ export class RandomDistributionRunner {
             requestId,
             {
               requestId,
-              request: { ...request, ...batch },
-              includeSamples: true
+              request: { ...request, ...batch }
             },
             (data, worker) => {
-              if (data.progress) {
+              if ('progress' in data) {
                 batchProgress[batchIndex] = boundedNumber(data.progress.completed || 0, 0, 0, batch.trials);
                 const completed = batchProgress.reduce((sum, value) => sum + value, 0);
                 applyProgress({
@@ -179,16 +172,10 @@ export class RandomDistributionRunner {
               }
 
               this.batch.finish(worker);
-              completedSamples[batchIndex] = data.distribution?.samples || [];
-              completedOutcomes[batchIndex] = data.distribution?.outcomes || [];
+              completedOutcomes[batchIndex] = data.outcomes;
               completedWorkers += 1;
               if (completedWorkers === batches.length) {
-                const outcomes = completedOutcomes.flatMap((batchOutcomes) => batchOutcomes || []);
-                applyDistribution(
-                  outcomes.length
-                    ? summarizeRandomDistributionOutcomes(outcomes)
-                    : summarizeRandomDistribution(completedSamples.flatMap((samples) => samples || []))
-                );
+                applyDistribution(summarizeRandomDistributionOutcomes(completedOutcomes.flat()));
               }
             }
           );

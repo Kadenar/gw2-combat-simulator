@@ -6,6 +6,7 @@ import { getBuildExportPayload } from '#gw2/app/import-export/files.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import {
   calculateRandomDistribution,
+  calculateRandomDistributionOutcomes,
   partitionRandomDistributionTrials,
   randomDistributionMetrics,
   randomDistributionWorkerCount,
@@ -211,7 +212,7 @@ test('RNG distributions report expected and percentile DPS without a UI seed', (
 
   const seenSeeds = [];
   const progressUpdates = [];
-  const distribution = calculateRandomDistribution(
+  const outcomes = calculateRandomDistributionOutcomes(
     {
       rotation: [],
       baseConfig: {},
@@ -223,7 +224,6 @@ test('RNG distributions report expected and percentile DPS without a UI seed', (
       return { dps: config.randomness.seed * 100 };
     },
     {
-      includeSamples: true,
       onProgress(progress) {
         progressUpdates.push(progress);
       }
@@ -231,7 +231,11 @@ test('RNG distributions report expected and percentile DPS without a UI seed', (
   );
 
   assert.deepEqual(seenSeeds, [1, 2, 3]);
-  assert.deepEqual(distribution.samples, [100, 200, 300]);
+  assert.deepEqual(
+    outcomes.map((outcome) => outcome.dps),
+    [100, 200, 300]
+  );
+  const distribution = summarizeRandomDistributionOutcomes(outcomes);
   assert.deepEqual(progressUpdates[0], {
     completed: 0,
     total: 3,

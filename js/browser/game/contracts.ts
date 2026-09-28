@@ -4,21 +4,15 @@ export interface GameContentAddress {
   readonly contentId: string;
 }
 
-/** Metadata the shared shell can render without loading game-owned code. */
+/** Declares content identity so the shell can check membership before loading it. */
 export interface PlayableContentEntry {
   readonly id: string;
-  readonly name: string;
-  readonly route: string;
-  readonly icon?: string;
-  readonly themeClass?: string;
-  readonly group?: string;
 }
 
 /** Minimal lifecycle exposed by one game-owned simulator entry. */
 export interface PlayableContentPlugin {
   readonly gameId: string;
   readonly id: string;
-  readonly name: string;
 
   mount(root: Document): Promise<unknown>;
 }
@@ -26,7 +20,6 @@ export interface PlayableContentPlugin {
 /** Coarse game boundary used by the shell before game-specific contracts are loaded. */
 export interface GamePlugin {
   readonly id: string;
-  readonly name: string;
   readonly content: readonly PlayableContentEntry[];
 
   loadContent(contentId: string): Promise<PlayableContentPlugin | null>;

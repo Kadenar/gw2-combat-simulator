@@ -22,8 +22,6 @@ export interface BoonGeneration {
 export interface BoonGenerationByAudience {
   readonly intensityStacking: boolean;
   readonly self: BoonGeneration;
-  readonly selfOnly: BoonGeneration;
-  readonly sharedWithSelf: BoonGeneration;
   readonly allies: BoonGeneration;
 }
 
@@ -135,15 +133,11 @@ export function buildBoonGeneration(
         // Percentage presentation is independent of which boons the combat engine models as duration pools.
         intensityStacking: kind === 'might' || kind === 'stability',
         self: empty(),
-        selfOnly: empty(),
-        sharedWithSelf: empty(),
         allies: empty()
       };
       totals.set(kind, {
         intensityStacking: previous.intensityStacking,
         self: add(previous.self, own),
-        selfOnly: add(previous.selfOnly, allied > 0 ? 0 : own),
-        sharedWithSelf: add(previous.sharedWithSelf, allied > 0 ? own : 0),
         allies: add(previous.allies, allied)
       });
     }

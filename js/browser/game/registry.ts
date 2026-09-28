@@ -17,11 +17,7 @@ function assertId(value: unknown, label: string): asserts value is string {
   }
 }
 
-function assertText(value: unknown, label: string): asserts value is string {
-  if (typeof value !== 'string' || value.trim() === '') throw new TypeError(`${label} must be a non-empty string.`);
-}
-
-/** Validates shell-visible content metadata and rejects ambiguous duplicate IDs. */
+/** Validates declared content IDs and rejects ambiguous duplicates before loading content. */
 function validateContentEntries(value: unknown): asserts value is readonly PlayableContentEntry[] {
   if (!Array.isArray(value)) throw new TypeError('GamePlugin.content must be an array.');
 
@@ -30,11 +26,6 @@ function validateContentEntries(value: unknown): asserts value is readonly Playa
     const label = `GamePlugin.content[${index}]`;
     assertRecord(entry, label);
     assertId(entry.id, `${label}.id`);
-    assertText(entry.name, `${label}.name`);
-    assertText(entry.route, `${label}.route`);
-    for (const key of ['icon', 'themeClass', 'group'] as const) {
-      if (entry[key] !== undefined) assertText(entry[key], `${label}.${key}`);
-    }
 
     if (ids.has(entry.id)) throw new TypeError(`GamePlugin.content contains duplicate ID "${entry.id}".`);
     ids.add(entry.id);
@@ -45,7 +36,6 @@ function validateContentEntries(value: unknown): asserts value is readonly Playa
 function validateGamePlugin(value: unknown): asserts value is GamePlugin {
   assertRecord(value, 'GamePlugin');
   assertId(value.id, 'GamePlugin.id');
-  assertText(value.name, 'GamePlugin.name');
   validateContentEntries(value.content);
   if (typeof value.loadContent !== 'function') throw new TypeError('GamePlugin.loadContent must be a function.');
 }
@@ -108,7 +98,6 @@ export async function loadGameContent(
     throw new TypeError(`Content loader "${gameId}/${contentId}" returned a mismatched plug-in.`);
   }
 
-  assertText(content.name, 'PlayableContentPlugin.name');
   if (typeof content.mount !== 'function') throw new TypeError('PlayableContentPlugin.mount must be a function.');
   return content as unknown as PlayableContentPlugin;
 }

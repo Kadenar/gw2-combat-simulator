@@ -29,6 +29,7 @@ import {
   procBadgeLabel,
   procFilterKey,
   procFilterLabel,
+  procTypeLabel,
   procStackLabel,
   relicProcExpirationTimelineMarkers,
   relicProcTimelineMarkers,
@@ -50,6 +51,7 @@ import {
 import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import { weaponSetActiveSegments, weaponSetDurationTotals } from '#gw2/app/rotation/timeline/timing/model.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
+import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { RotationCommand, SimulationStep } from '#gw2/platform/execution/types.js';
 import { rotationInsertionGapHtml, rotationTimelineEntryHtml } from '#ui/rotation/insertion-cursor.js';
@@ -300,22 +302,38 @@ export function timelineRowsView(
     </div>`;
   };
 
+  // Both proc presentations describe the same activations; expiration remains an overlay-only detail.
+  const procActivationDetail = (proc: Gw2ProcStep, activations: readonly Gw2ProcStep[]): string =>
+    activations.length === 1
+      ? [
+          proc.skill,
+          `${procTypeLabel(proc)} proc at ${formatTime(proc.start)}`,
+          proc.sourceSkill ? `Triggered by ${proc.sourceSkill}` : '',
+          proc.detail || ''
+        ]
+          .filter(Boolean)
+          .join('\n')
+      : [
+          proc.skill,
+          `${procTypeLabel(proc)} proc x${activations.length}`,
+          ...activations.map((activation, index) =>
+            [
+              `${index + 1}. ${formatTime(activation.start)}`,
+              activation.sourceSkill ? `Triggered by ${activation.sourceSkill}` : '',
+              activation.detail || ''
+            ]
+              .filter(Boolean)
+              .join(' - ')
+          )
+        ].join('\n');
+
   const renderOverlayProcMarker = (marker: (typeof overlayProcMarkers)[number]): string => {
     const key = procFilterKey(marker);
     const time = formatTime(marker.start);
     const icon = resolveProcIcon(app, marker) || PLACEHOLDER_ICON;
-    const isRelic = marker.type === 'relic_proc';
-    const isSkill = marker.type === 'skill_proc';
-    const isTrait = marker.type === 'trait_proc';
     const expired = marker.expired === true;
-    const type = isRelic ? 'Relic' : isSkill ? 'Skill' : isTrait ? 'Trait' : 'Sigil';
-    const className = isRelic
-      ? 'rot-relic-proc'
-      : isSkill
-        ? 'rot-skill-proc'
-        : isTrait
-          ? 'rot-trait-proc'
-          : 'rot-sigil-proc';
+    const type = procTypeLabel(marker);
+    const className = `rot-${type.toLowerCase()}-proc`;
     const color = procColors[marker.type] || '#9d7bd0';
     const count = marker.activations.length;
     const badgeLabel = expired ? '' : procBadgeLabel(marker.activations);
@@ -323,28 +341,7 @@ export function timelineRowsView(
       ? [marker.skill, `Relic effect expired at ${time}`, count > 1 ? `After ${count} activations or refreshes` : '']
           .filter(Boolean)
           .join('\n')
-      : count === 1
-        ? [
-            marker.skill,
-            `${type} proc at ${time}`,
-            marker.sourceSkill ? `Triggered by ${marker.sourceSkill}` : '',
-            marker.detail || ''
-          ]
-            .filter(Boolean)
-            .join('\n')
-        : [
-            marker.skill,
-            `${type} proc x${count}`,
-            ...marker.activations.map((activation, index) =>
-              [
-                `${index + 1}. ${formatTime(activation.start)}`,
-                activation.sourceSkill ? `Triggered by ${activation.sourceSkill}` : '',
-                activation.detail || ''
-              ]
-                .filter(Boolean)
-                .join(' - ')
-            )
-          ].join('\n');
+      : procActivationDetail(marker, marker.activations);
     return `<div class="rot-entry rot-proc-entry" data-proc-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'}>
         <div class="rot-skill rot-injected rot-proc-overlay ${className}${expired ? ' rot-relic-expired' : ''}" data-proc-key="${esc(key)}" data-skill-highlight-key="${esc(key)}"
             title="${esc(detail)}" style="--att-border:${color};--proc-color:${color}">
@@ -633,41 +630,10 @@ export function timelineRowsView(
         if (!proc) return '';
         const { key } = group;
         const icon = resolveProcIcon(app, proc) || PLACEHOLDER_ICON;
-        const type =
-          proc.type === 'relic_proc'
-            ? 'Relic'
-            : proc.type === 'sigil_proc'
-              ? 'Sigil'
-              : proc.type === 'skill_proc'
-                ? 'Skill'
-                : 'Trait';
         const time = formatTime(proc.start);
-        const count = group.steps.length;
         const badgeLabel = procBadgeLabel(group.steps);
         const stackLabel = procStackLabel(group.steps.at(-1) || proc);
-        const detail =
-          count === 1
-            ? [
-                proc.skill,
-                `${type} proc at ${time}`,
-                proc.sourceSkill ? `Triggered by ${proc.sourceSkill}` : '',
-                proc.detail || ''
-              ]
-                .filter(Boolean)
-                .join('\n')
-            : [
-                proc.skill,
-                `${type} proc x${count}`,
-                ...group.steps.map((step, index) =>
-                  [
-                    `${index + 1}. ${formatTime(step.start)}`,
-                    step.sourceSkill ? `Triggered by ${step.sourceSkill}` : '',
-                    step.detail || ''
-                  ]
-                    .filter(Boolean)
-                    .join(' - ')
-                )
-              ].join('\n');
+        const detail = procActivationDetail(proc, group.steps);
         return `<div class="proc-icon" data-proc-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'} title="${esc(detail)}"
                 style="--proc-color:${procColors[proc.type] || '#9d7bd0'}">
                 <img src="${esc(icon)}" alt="" />

@@ -146,15 +146,8 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
     'log',
     'Use the EVTC reconstruction CLI with --player=<address>.'
   );
-  // Forward active build mechanics when the full app adapter is available;
-  // lightweight parser consumers can still use the build's resource default.
-  const reconstructionOptions = appLogReconstructionOptions(app, {
-    initialResource: (
-      app.build as ProfessionAppState['build'] & {
-        readonly initialTomePages?: number;
-      }
-    ).initialTomePages
-  });
+  // Reconstruction uses the same active build mechanics as simulation.
+  const reconstructionOptions = appLogReconstructionOptions(app);
   // EVTC casts carry exact skill ids, so only build config is forwarded; selected ids disambiguate dps.report names.
   const result = rotationModule.reconstructEvtcRotation(log, app.activeCatalog, {
     playerAddress: selected.address,

@@ -3,7 +3,6 @@ export function createFakeGamePlugin(gameId = 'fake') {
   const content = {
     gameId,
     id: 'pilot',
-    name: 'Pilot',
     async mount(root) {
       return { root, started: true };
     }
@@ -11,8 +10,7 @@ export function createFakeGamePlugin(gameId = 'fake') {
 
   return {
     id: gameId,
-    name: 'Fake Game',
-    content: [{ id: 'pilot', name: 'Pilot', route: 'pilot.html' }],
+    content: [{ id: 'pilot' }],
     async loadContent(contentId) {
       return contentId === content.id ? content : null;
     }

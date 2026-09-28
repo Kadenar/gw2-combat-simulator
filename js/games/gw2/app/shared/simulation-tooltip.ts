@@ -33,8 +33,7 @@ export type DescribeSimulationTooltip = (
 export interface ProfessionTooltips {
   readonly traits: Readonly<Record<string, DescribeSimulationTooltip>>;
   readonly skills?: Readonly<Record<string, DescribeSimulationTooltip>>;
-  readonly handlers?: Readonly<Record<string, DescribeSimulationTooltip>>;
-  /** Profession resources supplement both ordinary skills and explicitly described handlers. */
+  /** Profession resources supplement both ordinary skills and explicitly described skills. */
   readonly skillFacts?: (context: ProfessionBalanceContext, skill: Skill) => readonly TooltipFact[];
 }
 
@@ -308,7 +307,7 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
   return { description: '', facts: [...facts.values()], incomplete };
 }
 
-/** Ordinary descriptions summarize declared effects; custom handlers retain their locally authored explanations. */
+/** Ordinary descriptions summarize declared effects; skill overrides retain their locally authored explanations. */
 function ordinarySkillDescription(skill: Skill): string {
   if (skill.initialStateOnly)
     return 'Restore this combat state for the duration recorded at the start of the imported encounter.';
@@ -352,7 +351,7 @@ function ordinarySkillDescription(skill: Skill): string {
   return sentences.join(' ') || 'This action has no direct damage or status effects described by the simulator.';
 }
 
-/** Generic skills describe only modeled payloads; profession functions supply conditional and handler-specific prose. */
+/** Generic skills describe only modeled payloads; profession functions supply conditional and skill-specific prose. */
 export function describeSimulationSkill(
   context: ProfessionBalanceContext,
   skill: Skill,

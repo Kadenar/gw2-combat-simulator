@@ -23,15 +23,10 @@ async function mountProfession(contentId: string, root: Document): Promise<Profe
   return app;
 }
 
-/** Wraps the existing profession registry as the first game plug-in without moving GW2 domain code. */
+/** Exposes profession IDs and lazy mounting to the shell; display metadata stays in the profession registry. */
 export const gw2Plugin: GamePlugin = Object.freeze({
   id: 'gw2',
-  name: 'Guild Wars 2',
-  content: Object.freeze(
-    professionRegistry.map(({ id, name, route, icon, themeClass, armorWeight }) =>
-      Object.freeze({ id, name, route, icon, themeClass, group: armorWeight })
-    )
-  ),
+  content: Object.freeze(professionRegistry.map(({ id }) => Object.freeze({ id }))),
   async loadContent(contentId: string): Promise<PlayableContentPlugin | null> {
     const entry = getProfessionEntry(contentId);
     if (!entry) return null;
@@ -39,7 +34,6 @@ export const gw2Plugin: GamePlugin = Object.freeze({
     return Object.freeze({
       gameId: 'gw2',
       id: entry.id,
-      name: entry.name,
       mount: (root: Document) => mountProfession(entry.id, root)
     });
   }

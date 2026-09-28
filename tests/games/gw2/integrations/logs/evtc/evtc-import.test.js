@@ -296,7 +296,7 @@ test('the browser rotation importer previews compressed .zevtc files before appl
   const originalRotation = [{ type: 'wait', durationMs: 250 }];
   const app = {
     profession: { id: 'mesmer', name: 'Mesmer' },
-    adapter: { eliteSpecialization: () => 'Chronomancer' },
+    adapter: { eliteSpecialization: () => 'Chronomancer', simulationConfig: () => ({}) },
     build: { rotation: originalRotation },
     activeCatalog: catalog,
     changed(...args) {
@@ -336,7 +336,7 @@ test('the browser rotation importer previews compressed .zevtc files before appl
     },
     {
       profession: { id: 'mesmer', name: 'Mesmer' },
-      adapter: { eliteSpecialization: () => 'Chronomancer' },
+      adapter: { eliteSpecialization: () => 'Chronomancer', simulationConfig: () => ({}) },
       build: {},
       activeCatalog: catalog
     }
@@ -362,7 +362,7 @@ test('the browser rotation importer previews compressed .zevtc files before appl
     },
     {
       profession: { id: 'mesmer', name: 'Mesmer' },
-      adapter: { eliteSpecialization: () => 'Chronomancer' },
+      adapter: { eliteSpecialization: () => 'Chronomancer', simulationConfig: () => ({}) },
       build: {},
       activeCatalog: {
         skills: catalog.skills.map((skill) =>
@@ -400,7 +400,7 @@ test('the browser rotation importer previews compressed .zevtc files before appl
       },
       {
         profession: { id: 'mesmer', name: 'Mesmer' },
-        adapter: { eliteSpecialization: () => 'Chronomancer' },
+        adapter: { eliteSpecialization: () => 'Chronomancer', simulationConfig: () => ({}) },
         build: {},
         activeCatalog: {
           skills: catalog.skills.map((skill) =>
@@ -442,7 +442,7 @@ test('the browser rotation importer previews compressed .zevtc files before appl
     },
     {
       profession: { id: 'mesmer', name: 'Mesmer' },
-      adapter: { eliteSpecialization: () => 'Chronomancer' },
+      adapter: { eliteSpecialization: () => 'Chronomancer', simulationConfig: () => ({}) },
       build: {},
       activeCatalog: {
         skills: catalog.skills.map((skill) =>

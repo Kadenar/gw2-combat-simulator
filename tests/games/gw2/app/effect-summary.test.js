@@ -135,30 +135,32 @@ test('duration supply can exceed a full window while caps and gaps reduce actual
     resolvedEvents: [buff('quickness', 0, 30), buff('quickness', 0, 30), buff('quickness', 40, 15)]
   };
   for (const sampleStep of [50, 1000]) {
-    const summary = buildChartSeries(result, sampleStep).effectSummaries.Quickness;
+    const series = buildChartSeries(result, sampleStep);
+    const summary = series.effectSummaries.Quickness;
     assert.equal(summary.uptime, 0.75);
     assert.equal(summary.averageStacks, 0.75);
-    assert.equal(summary.generation.generatedStackSeconds, 75);
-    assert.equal(summary.generation.generatedStackSeconds / result.rotationEndTime, 1.25);
+    assert.equal(series.boonGeneration.Quickness.self.generatedStackSeconds, 75);
+    assert.equal(series.boonGeneration.Quickness.self.generatedStackSeconds / result.rotationEndTime, 1.25);
   }
 });
 
 test('intensity averages apply caps and include downtime while generation retains raw stack-seconds', () => {
-  const summary = buildChartSeries({
+  const series = buildChartSeries({
     rotationEndTime: 10,
     observationEndTime: 10,
     combatEndTime: 10,
     resolvedEvents: [buff('might', 0, 5, 20), buff('might', 1, 3, 10)]
-  }).effectSummaries.Might;
+  });
+  const summary = series.effectSummaries.Might;
   assert.equal(summary.uptime, 0.5);
   assert.equal(summary.averageStacks, 11.5);
   assert.equal(summary.maximumStacks, 25);
   assert.equal(summary.maximumStackUptime, 0.3);
-  assert.equal(summary.generation.generatedStackSeconds, 130);
+  assert.equal(series.boonGeneration.Might.self.generatedStackSeconds, 130);
 });
 
 test('pre-combat boons are stripped and the death boundary excludes later grants', () => {
-  const summary = buildChartSeries({
+  const series = buildChartSeries({
     rotationEndTime: 20,
     observationEndTime: 20,
     combatEndTime: 8,
@@ -173,9 +175,10 @@ test('pre-combat boons are stripped and the death boundary excludes later grants
       buff('quickness', 6, 100, 1, { cancelled: true }),
       buff('quickness', 8, 100)
     ]
-  }).effectSummaries.Quickness;
+  });
+  const summary = series.effectSummaries.Quickness;
   assert.equal(summary.uptime, 1 / 3);
-  assert.equal(summary.generation.generatedStackSeconds, 2);
+  assert.equal(series.boonGeneration.Quickness.self.generatedStackSeconds, 2);
 });
 
 test('extensions count only existing boons and retain independent intensity lifetimes', () => {
@@ -187,16 +190,17 @@ test('extensions count only existing boons and retain independent intensity life
     { type: 'boon_extension', at: 2.5, duration: 2, kind: 'fury' },
     { type: 'boon_extension', at: 4, duration: 1, excludedKind: 'might' }
   ];
-  const summaries = buildChartSeries({
+  const series = buildChartSeries({
     rotationEndTime: 6,
     observationEndTime: 6,
     combatEndTime: 6,
     resolvedEvents: events
-  }).effectSummaries;
+  });
+  const summaries = series.effectSummaries;
   close(summaries.Fury.uptime, 5 / 6);
-  assert.equal(summaries.Fury.generation.generatedStackSeconds, 5);
+  assert.equal(series.boonGeneration.Fury.self.generatedStackSeconds, 5);
   close(summaries.Might.averageStacks, 10 / 6);
-  assert.equal(summaries.Might.generation.generatedStackSeconds, 10);
+  assert.equal(series.boonGeneration.Might.self.generatedStackSeconds, 10);
 });
 
 test('same-time extension accounting follows causal order and excludes the right window boundary', () => {
@@ -259,16 +263,17 @@ test('relic proc state survives recording and refreshes replace stack counts', (
 });
 
 test('empty observation windows do not accrue uptime or generated duration', () => {
-  const summary = buildChartSeries({
+  const series = buildChartSeries({
     rotationEndTime: 2,
     observationEndTime: 2,
     combatEndTime: 2,
     dpsStartTime: 2,
     resolvedEvents: [buff('might', 2, 10, 25)]
-  }).effectSummaries.Might;
+  });
+  const summary = series.effectSummaries.Might;
   assert.equal(summary.uptime, 0);
   assert.equal(summary.averageStacks, 0);
-  assert.equal(summary.generation, undefined);
+  assert.equal(series.boonGeneration.Might, undefined);
 });
 
 test('combat stripping uses the marker and causal order, retaining boons granted in combat before the first hit', () => {
@@ -315,8 +320,6 @@ test('personal boons and extensions cannot inflate shared generation, including 
   const quickness = series.boonGeneration.Quickness;
   assert.equal(series.alliedPlayerCount, 4);
   assert.equal(quickness.self.generatedStackSeconds, 11);
-  assert.equal(quickness.selfOnly.generatedStackSeconds, 9);
-  assert.equal(quickness.sharedWithSelf.generatedStackSeconds, 2);
   assert.equal(quickness.allies.generatedStackSeconds, 4);
   assert.equal(quickness.allies.generatedStackSeconds / (10 * series.alliedPlayerCount), 0.1);
   assert.equal(series.boonGeneration.Alacrity.allies.generatedStackSeconds, 0);
@@ -359,8 +362,7 @@ test('Firebrand tome Quickness remains self-only without configuring allies', as
   });
   assert.deepEqual(result.warnings, []);
   const generation = buildChartSeries(result).boonGeneration.Quickness;
-  assert.ok(generation.selfOnly.generatedStackSeconds > 0);
-  assert.equal(generation.sharedWithSelf.generatedStackSeconds, 0);
+  assert.ok(generation.self.generatedStackSeconds > 0);
   assert.equal(generation.allies.generatedStackSeconds, 0);
 });
 
@@ -374,8 +376,7 @@ test('presentation projects authored audiences onto four allies without mutating
   const before = structuredClone(events);
   const generation = buildBoonGeneration(events, 0, 10);
   assert.equal(generation.alliedPlayerCount, 4);
-  assert.equal(generation.boons.get('quickness').selfOnly.generatedStackSeconds, 1);
-  assert.equal(generation.boons.get('quickness').sharedWithSelf.generatedStackSeconds, 3);
+  assert.equal(generation.boons.get('quickness').self.generatedStackSeconds, 4);
   assert.equal(generation.boons.get('quickness').allies.generatedStackSeconds, 6);
   assert.equal(generation.boons.has('alacrity'), false);
   assert.deepEqual(events, before);

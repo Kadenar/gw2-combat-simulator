@@ -710,7 +710,7 @@ test('RNG worker errors preserve the ErrorEvent cause', (t) => {
   assert.equal(renderCount, 1);
 });
 
-test('RNG runner limits parallel workers for a condition-tick-heavy baseline', (t) => {
+test('RNG runner limits heavy batches and merges outcomes after every worker completes', (t) => {
   runTimersImmediately(t);
   const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
   const navigatorDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
@@ -732,14 +732,25 @@ test('RNG runner limits parallel workers for a condition-tick-heavy baseline', (
   const workers = [];
   class PendingWorker {
     constructor() {
+      this.listeners = new Map();
       workers.push(this);
     }
 
-    addEventListener() {}
+    addEventListener(type, listener) {
+      this.listeners.set(type, listener);
+    }
 
-    terminate() {}
+    terminate() {
+      this.terminated = true;
+    }
 
-    postMessage() {}
+    postMessage(message) {
+      this.message = message;
+    }
+
+    respond(outcomes) {
+      this.listeners.get('message')({ data: { requestId: this.message.requestId, outcomes } });
+    }
   }
 
   Object.defineProperty(globalThis, 'Worker', {
@@ -770,6 +781,17 @@ test('RNG runner limits parallel workers for a condition-tick-heavy baseline', (
   new RandomDistributionRunner(app).schedule(true);
 
   assert.equal(workers.length, 2);
+  // Completion order must not lose batches or publish a partial distribution.
+  workers[1].respond(Array.from({ length: 250 }, () => ({ dps: 300, metrics: [] })));
+  assert.equal(app.results.randomDistribution, undefined);
+  assert.equal(app.results.randomDistributionStale, true);
+  workers[0].respond(Array.from({ length: 250 }, () => ({ dps: 100, metrics: [] })));
+  assert.equal(app.results.randomDistribution.trials, 500);
+  assert.equal(app.results.randomDistribution.mean, 200);
+  assert.equal(app.results.randomDistribution.p50, 200);
+  assert.equal(app.results.randomDistributionStale, false);
+  assert.deepEqual(app.results.randomDistributionProgress, { completed: 500, total: 500, percent: 100 });
+  assert.ok(workers.every((worker) => worker.terminated));
 });
 
 function minimalResult(damageAt1s) {

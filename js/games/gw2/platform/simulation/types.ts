@@ -1,7 +1,7 @@
 import type { CriticalSigilDiagnostic } from '#gw2/platform/equipment/sigils/diagnostics.js';
 /** Owns the simulation/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { NormalizedProfessionContract, ProfessionFamilyContract } from '#gw2/platform/engine/profession/types.js';
-import type { SimulationStep } from '#gw2/platform/execution/types.js';
+import type { AmmoState, SimulationStep } from '#gw2/platform/execution/types.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
@@ -43,7 +43,7 @@ export interface Gw2SimulationPlanningState {
   /** Name-keyed observed ammo; absent entries do not imply full charges. Prefer ammoBySkillId for identity. */
   readonly ammo: Readonly<Record<string, unknown>>;
   /** ID-keyed ammo avoids collisions between distinct skills sharing a display name. */
-  readonly ammoBySkillId: Readonly<Record<string, unknown>>;
+  readonly ammoBySkillId: Readonly<Record<string, Readonly<AmmoState>>>;
   readonly activeWeaponSet: number;
   readonly profession: unknown;
 }

@@ -4,11 +4,7 @@ import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import type { SkillHit } from '#ui/results/charts/hit-timeline-model.js';
 import { eventCausalOrder } from '#kernel/events/queue.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import {
-  buildBoonGeneration,
-  type BoonGeneration,
-  type BoonGenerationByAudience
-} from '#gw2/app/results/charts/boon-generation.js';
+import { buildBoonGeneration, type BoonGenerationByAudience } from '#gw2/app/results/charts/boon-generation.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 // Builds renderer-independent chart data so simulations and views share one time-series contract.
@@ -32,7 +28,6 @@ export interface ChartEffectSummary {
   readonly averageStacks: number;
   readonly maximumStacks?: number;
   readonly maximumStackUptime?: number;
-  readonly generation?: BoonGeneration;
 }
 
 export interface ChartSeries {
@@ -366,8 +361,7 @@ export function buildTimeSeries(
       averageStacks: stackMs / durationMs,
       ...(maximumStacks == null || durationStacking
         ? {}
-        : { maximumStacks, maximumStackUptime: maximumMs / durationMs }),
-      ...(generation.has(name) ? { generation: generation.get(name)!.self } : {})
+        : { maximumStacks, maximumStackUptime: maximumMs / durationMs })
     };
   }
 

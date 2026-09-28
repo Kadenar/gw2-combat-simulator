@@ -68,7 +68,7 @@ test('Luminary preserves supplied Forge entries and exits, including inaccurate 
   assert.equal(out.rotation.filter((c) => c.skillId === 77073).length, 1);
   const app = {
     profession: { id: 'guardian', name: 'Guardian' },
-    adapter: { eliteSpecialization: () => 'Luminary' },
+    adapter: { eliteSpecialization: () => 'Luminary', simulationConfig: () => ({}) },
     build: {},
     activeCatalog: guardianCatalog
   };

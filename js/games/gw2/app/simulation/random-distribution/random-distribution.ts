@@ -519,14 +519,21 @@ type SimulateForDistribution = (
   config: Gw2Config
 ) => DistributionSimulationResult;
 
-/**
- * Runs reproducible stochastic simulations and summarizes their DPS.
- */
+/** Summarizes one local run; worker batches collect outcomes and summarize only after merging. */
 export function calculateRandomDistribution(
+  request: RandomDistributionRequest,
+  simulateBuild: SimulateForDistribution,
+  options: RandomDistributionOptions = {}
+): RandomDistributionSummary {
+  return summarizeRandomDistributionOutcomes(calculateRandomDistributionOutcomes(request, simulateBuild, options));
+}
+
+/** Collects reproducible trial outcomes without duplicating DPS samples or computing per-batch summaries. */
+export function calculateRandomDistributionOutcomes(
   { rotation, baseConfig, trials = DEFAULT_RANDOM_DISTRIBUTION_TRIALS, seedStart = 1 }: RandomDistributionRequest,
   simulateBuild: SimulateForDistribution,
-  { includeSamples = false, onProgress }: RandomDistributionOptions = {}
-): RandomDistributionSummary {
+  { onProgress }: RandomDistributionOptions = {}
+): RandomDistributionOutcome[] {
   if (typeof simulateBuild !== 'function') {
     throw new TypeError('A simulation function is required.');
   }
@@ -561,12 +568,5 @@ export function calculateRandomDistribution(
     }
   }
 
-  const summary = summarizeRandomDistributionOutcomes(outcomes);
-  return includeSamples
-    ? {
-        ...summary,
-        samples: outcomes.map((outcome) => outcome.dps),
-        outcomes
-      }
-    : summary;
+  return outcomes;
 }

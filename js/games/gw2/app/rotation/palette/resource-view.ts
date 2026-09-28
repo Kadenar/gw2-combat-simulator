@@ -431,19 +431,7 @@ export function renderStartResource(app: ProfessionAppState): void {
     });
   };
 
-  if (!definitions.length) {
-    element.innerHTML = `${weaponControl}${loadoutControl}${startControlsHtml}`;
-    element.querySelectorAll<HTMLElement>('.weapon-set-btn').forEach((button) => {
-      button.addEventListener('click', () => {
-        app.build.startingWeaponSet = Number(button.dataset.set);
-        app.changed();
-      });
-    });
-    bindStartingLoadout();
-    bindStartControls();
-    return;
-  }
-
+  // Empty resource lists use the same markup and start-control bindings as professions with resources.
   const resourceControls = definitions
     .map((definition) => {
       if (definition.canStart === false) return '';

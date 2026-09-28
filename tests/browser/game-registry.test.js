@@ -47,8 +47,8 @@ test('the GW2 game plug-in exposes the existing lazy profession registry', async
   ]);
 
   assert.deepEqual(
-    gw2Plugin.content.map(({ id, name, route }) => ({ id, name, route })),
-    professionRegistry.map(({ id, name, route }) => ({ id, name, route }))
+    gw2Plugin.content,
+    professionRegistry.map(({ id }) => ({ id }))
   );
   const content = await loadGameContent('gw2', 'warrior');
   const adapter = await professionRegistry.find(({ id }) => id === 'warrior').loadAppAdapter();
@@ -87,26 +87,27 @@ test('registry validation rejects duplicate IDs and malformed plug-ins', async (
       defineGameRegistry([
         {
           id: 'fake',
-          load: async () => ({ id: 'other', name: 'Other', content: [], loadContent: async () => null })
+          load: async () => ({ id: 'other', content: [], loadContent: async () => null })
         }
       ])
     ),
     /returned plug-in "other"/
   );
 
-  await assert.rejects(
-    loadGameContent(
-      'fake',
-      'pilot',
-      defineGameRegistry([
-        {
-          id: 'fake',
-          async load() {
-            return { ...createFakeGamePlugin(), content: [{ id: 'pilot', name: 'Pilot', route: '' }] };
-          }
-        }
-      ])
-    ),
-    /content\[0\]\.route/
-  );
+  // Removing display metadata must preserve validation of identity and the loading lifecycle.
+  for (const [overrides, error] of [
+    [{ id: 'Invalid' }, /GamePlugin\.id/],
+    [{ content: [{ id: 'Invalid' }] }, /content\[0\]\.id/],
+    [{ content: [{ id: 'pilot' }, { id: 'pilot' }] }, /duplicate ID/],
+    [{ loadContent: null }, /loadContent must be a function/],
+    [{ loadContent: async () => null }, /did not load its declared content/],
+    [{ loadContent: async () => ({ gameId: 'other', id: 'pilot' }) }, /mismatched plug-in/],
+    [{ loadContent: async () => ({ gameId: 'fake', id: 'other' }) }, /mismatched plug-in/],
+    [{ loadContent: async () => ({ gameId: 'fake', id: 'pilot' }) }, /mount must be a function/]
+  ]) {
+    const registry = defineGameRegistry([
+      { id: 'fake', load: async () => ({ ...createFakeGamePlugin(), ...overrides }) }
+    ]);
+    await assert.rejects(loadGameContent('fake', 'pilot', registry), error);
+  }
 });

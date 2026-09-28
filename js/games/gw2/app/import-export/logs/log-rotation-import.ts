@@ -18,13 +18,10 @@ export interface AppLogReconstructionOptions {
 }
 
 /** Builds the source-neutral catalog and profession inputs used by every application log importer. */
-export function appLogReconstructionOptions(
-  app: ProfessionAppState,
-  fallbackProfessionConfig: Gw2Config = {}
-): AppLogReconstructionOptions {
+export function appLogReconstructionOptions(app: ProfessionAppState): AppLogReconstructionOptions {
   return {
     selectedSkillIds: [...((app.build as { selectedMorphSkillIds?: readonly number[] }).selectedMorphSkillIds || [])],
-    professionConfig: app.adapter.simulationConfig?.(app) || fallbackProfessionConfig
+    professionConfig: app.adapter.simulationConfig(app)
   };
 }
 

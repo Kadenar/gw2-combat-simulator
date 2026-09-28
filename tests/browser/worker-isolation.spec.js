@@ -92,17 +92,16 @@ for (const patchId of ['current', 'worker-preview']) {
         worker.addEventListener('message', ({ data }) => {
           if (data.error) reject(new Error(data.error));
           else if (data.progress) progress.push(data.progress.completed);
-          else resolve({ requestId: data.requestId, distribution: data.distribution, progress });
+          else resolve({ requestId: data.requestId, outcomes: data.outcomes, progress });
         });
-        worker.postMessage({ requestId: 1, request, includeSamples: true });
+        worker.postMessage({ requestId: 1, request });
       });
     });
     expect(random.requestId).toBe(1);
     expect(random.progress[0]).toBe(0);
     expect(random.progress.at(-1)).toBe(2);
-    expect(random.distribution.trials).toBe(2);
-    expect(random.distribution.mean).toBeGreaterThan(0);
-    expect(random.distribution.samples).toHaveLength(2);
+    expect(random.outcomes).toHaveLength(2);
+    expect(random.outcomes.every((outcome) => outcome.dps > 0 && Array.isArray(outcome.metrics))).toBe(true);
     expect(await uiImports(await randomWorkerReady)).toEqual([]);
   });
 }

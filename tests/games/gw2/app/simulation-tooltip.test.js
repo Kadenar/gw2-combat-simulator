@@ -9,7 +9,6 @@ import {
   tooltipNumber
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
-import { professionRegistry } from '#gw2/profession-registry.js';
 import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -23,19 +22,6 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 
 // Raw Scourge costs are rounded only for display, with the same digit grouping as the in-game facts.
-// A handler description is reachable only through catalog skills that still declare that handler.
-test('profession tooltip handler descriptions bind to handlers declared by catalog skills', async () => {
-  for (const entry of professionRegistry) {
-    const exports = await import(`#gw2/professions/${entry.id}/app/tooltips.js`);
-    const tooltips = Object.values(exports).find((value) => value && typeof value === 'object' && 'traits' in value);
-    const declared = new Set(
-      (await entry.loadProfession()).catalog.skills.map((skill) => skill.handlerId).filter(Boolean)
-    );
-    for (const handlerId of Object.keys(tooltips.handlers ?? {}))
-      assert.ok(declared.has(handlerId), `${entry.id}: ${handlerId}`);
-  }
-});
-
 test('Scourge life-force tooltip costs display whole points', () => {
   const context = withPatchPreview(necromancerProfession, null).balanceContextFor();
   for (const [skillId, expected] of [

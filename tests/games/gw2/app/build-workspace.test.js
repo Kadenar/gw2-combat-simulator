@@ -638,7 +638,7 @@ test('cancelled simulation workers cannot publish late output or failures into a
       requestId: worker.message.requestId,
       output: {},
       contributions: [],
-      distribution: { samples: [10] }
+      outcomes: [{ dps: 10, metrics: [] }]
     });
     worker.respond({ requestId: worker.message.requestId, error: 'Late failure' });
     assert.deepEqual(app.results, { marker: 'destination' });
