@@ -1,4 +1,3 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   MUSHROOM_KINGS_BLESSING_BUFF_ID,
   MUSHROOM_KINGS_BLESSING_SKILL_ID
@@ -28,11 +27,8 @@ export interface EiInstantRule {
   readonly icd?: number;
   readonly swapOffset?: number;
   readonly minions?: boolean;
-  readonly excludeSpec?: string;
   readonly minBuild?: number;
   readonly maxBuild?: number;
-  readonly minEvtcBuild?: number;
-  readonly maxEvtcBuild?: number;
   readonly secondary?: readonly string[];
   readonly relatedHit?: number;
   readonly absentRelatedHits?: readonly number[];
@@ -332,7 +328,8 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
   {
     profession: 'elementalist',
     specialization: 'weaver',
-    skillId: SHARED_SKILL_IDS.DODGE,
+    // EI's synthetic Fire/Water identity is unrelated to the simulator's Dodge ID.
+    skillId: -5,
     signal: -5,
     kind: 'buff-gain',
     rule: 'WeaverHelper.BuffGainCastFinder(FireWaterAttunement)'

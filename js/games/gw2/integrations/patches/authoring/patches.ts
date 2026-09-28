@@ -573,42 +573,7 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string): Skill {
   return deepFreeze(clone);
 }
 
-// Translate historical Mechanist tuning keys only at the saved-patch boundary; runtime profiles stay semantic.
-const MECHANIST_PROFILE_FIELD_RENAMES: Readonly<Record<string, Readonly<Record<string, string>>>> = {
-  'engineer.mechanist.mech': {
-    attributeBonus: 'baseAttribute',
-    attributeConversion: 'inheritanceRatio',
-    minimumStacks: 'secondaryAttributeCap',
-    maximumStacks: 'powerCap',
-    threshold: 'improvedSecondaryAttributeCap',
-    weaponAttributeBonus: 'precisionCap',
-    coefficientMultiplier: 'improvedInheritanceRatio',
-    basePower: 'basePrecision'
-  }
-};
-
-/** Preserves old sparse edits without mutating inputs or silently overriding a second spelling. */
-function migrateBalanceProfileFields(key: string, edit: SkillPatchEdit): SkillPatchEdit {
-  const names: Readonly<Record<string, string>> = {
-    'Jade Mech Attribute Inheritance': 'engineer.mechanist.mech'
-  };
-  const renames = MECHANIST_PROFILE_FIELD_RENAMES[names[key] || key];
-  if (!renames || !edit.fields) return edit;
-  const fields = { ...edit.fields };
-  for (const [previous, current] of Object.entries(renames)) {
-    if (!Object.hasOwn(fields, previous)) continue;
-    if (Object.hasOwn(fields, current)) {
-      throw new TypeError(`Balance profile ${key} edits both ${previous} and ${current}. Use ${current} only.`);
-    }
-
-    fields[current] = fields[previous];
-    delete fields[previous];
-  }
-
-  return { ...edit, fields };
-}
-
-/** Produces an immutable patched balance profile using the shared sparse patch grammar. */
+/** Patches only fields exposed by the canonical profile; obsolete spellings fail ordinary numeric validation. */
 function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit, label: string): BalanceProfile {
   const ownerLabel = `${label} profile=${profile.id} (${profile.name})`;
   const clone = cloneCatalogData(profile);
@@ -727,10 +692,7 @@ export function applyBalanceProfilePatch(
       throw new TypeError(`Patch edits balance profile ${profile.name} more than once.`);
     }
 
-    replacements.set(
-      profile,
-      patchBalanceProfile(profile, migrateBalanceProfileFields(String(profile.id), edit), catalogPatchLabel(catalog))
-    );
+    replacements.set(profile, patchBalanceProfile(profile, edit, catalogPatchLabel(catalog)));
   }
 
   if (!replacements.size) return catalog;
@@ -808,14 +770,5 @@ export function validatePatchPreview(preview: PatchPreview): PatchPreview {
     validatePatchOverview(patch.overview, `${professionId} patch overview`);
   }
 
-  const normalized = structuredClone(preview);
-  const profiles = normalized.professions?.engineer?.balanceProfiles;
-  if (profiles) {
-    const mutableProfiles = profiles as Record<string, SkillPatchEdit>;
-    for (const [key, edit] of Object.entries(profiles)) {
-      mutableProfiles[key] = migrateBalanceProfileFields(key, edit);
-    }
-  }
-
-  return deepFreeze(normalized);
+  return deepFreeze(structuredClone(preview));
 }

@@ -99,6 +99,22 @@ Time-aware ownership changes and reused instance IDs are conservatively rejected
 uses the header build, and encounter start/end use the documented adapter boundaries rather than EI encounter-specific
 logic.
 
+Pet-command inference retains the pinned EI behavior: some species have multiple skill registrations for the same
+command buff. For example,
+[RangerHelper's Carrion Devourer registrations](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/ProfHelpers/Ranger/RangerHelper.cs#L333)
+produce both Poisonous Cloud and Regenerate. `MinionCommandCastFinder` checks species and ownership, and the shared buff
+finder and dispatcher preserve both outputs without disambiguating build gates. This is an upstream ambiguity, not a
+local parity defect; removing either registration would change the reference behavior.
+
+Weaver attunement inference ports the application-evidence portion of
+[WeaverHelper.TransformWeaverAttunements](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/ProfHelpers/Elementalist/WeaverHelper.cs#L458).
+The selected player's basic/major/minor/dual buffs are grouped within a strict, anchored 10 ms window; component
+evidence is suppressed before the existing finders consume synthetic applications. Dual and lone-basic transitions,
+initial snapshots, and incomplete-pair rejection follow the pinned transformation. Removal/extension evidence can anchor
+a group but cannot supply an attunement. Raw events remain unchanged; synthetic previous-state removals are not needed
+by supported cast finders. Canonical identities separate EI Fire Water -5 from simulator Dodge -5, and shared
+normalization handles attunement-dependent skills and Unravel's generated dual transition for both log adapters.
+
 The following skill-specific behaviors follow the pinned EI source directly:
 
 - **Holosmith Blade Burst / Particle Accelerator** use the pinned

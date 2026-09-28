@@ -131,7 +131,8 @@ export function reconstructProfessionActions(
     eventIndex: index,
     sourceActionIndex: index,
     rawName: action.rawName === 'Swap Weapons' ? 'Weapon Swap' : action.rawName,
-    isSwap: action.weaponSet != null,
+    // Synthetic Weaver transitions are attunement swaps without a weapon-set marker.
+    isSwap: action.isSwap ?? action.weaponSet != null,
     metadataAccurate: action.metadataAccurate ?? true,
     expectedDurationMs: action.expectedDuration ?? undefined
   }));

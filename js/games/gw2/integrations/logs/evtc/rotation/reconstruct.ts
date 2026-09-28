@@ -12,9 +12,13 @@ import {
   eiMesmerShatters,
   eiMinionSpawns
 } from '#gw2/integrations/logs/evtc/rotation/ei-minions.js';
-import { usesModernAnimations, evtcRecordingWindow } from '#gw2/integrations/logs/evtc/recording.js';
-import { selectPlayerAgent, selectedPlayerEvent } from '#gw2/integrations/logs/evtc/rotation/players.js';
-import { modernAnimationActions, legacyActivationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
+import { evtcRecordingWindow } from '#gw2/integrations/logs/evtc/recording.js';
+import {
+  detectEvtcRotationPlayers,
+  selectPlayerAgent,
+  selectedPlayerEvent,
+  type EvtcPlayerEvidence
+} from '#gw2/integrations/logs/evtc/rotation/players.js';
 
 import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
 import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
@@ -51,6 +55,8 @@ const TIMING_TOLERANCE_MS = 50;
 
 export interface EvtcRotationOptions {
   readonly playerAddress?: bigint | string;
+  /** Reuse evidence already decoded for the same log by an app or CLI player picker. */
+  readonly playerEvidence?: readonly EvtcPlayerEvidence[];
   readonly includeCombatStart?: boolean;
   readonly professionConfig?: Readonly<Record<string, unknown>>;
 }
@@ -192,7 +198,6 @@ function resolveAction(
 function actionCommand(action: ResolvedAction): CastCommand | CooldownResetCommand {
   if (isMushroomKingsBlessing(action)) return { type: 'cooldown-reset' };
   const command: { -readonly [Key in keyof CastCommand]: CastCommand[Key] } = { type: 'cast', skillId: action.skillId };
-  if (action.offTarget === true) command.offTarget = true;
   const interruptMs = observedInterruptMs(action, action.skill);
   // Keep cancelled inputs explicit instead of replaying them as full damaging casts.
   if (interruptMs != null) command.interruptAfterMs = interruptMs;
@@ -281,28 +286,17 @@ function warningList(actions: readonly EvtcRotationAction[]): string[] {
   return warnings;
 }
 
-/** Orchestrates player selection, recorded evidence, profession inference, and replay assembly. */
-export function reconstructWithProfile(
+/** Reuses the selected player's decoded casts for profession inference and replay assembly. */
+function reconstructWithProfile(
   log: ParsedEvtc,
+  { agent, player, castActions }: EvtcPlayerEvidence,
   profile: RotationProfessionProfile,
   catalog: RotationCatalog | null = null,
   options: EvtcRotationOptions = {}
 ): RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction> {
-  const { agent, player } = selectPlayerAgent(log, options.playerAddress);
-  if (player.professionId !== profile.professionId || player.specializationId !== profile.specializationId) {
-    throw new EvtcError(
-      'UNSUPPORTED_PROFESSION',
-      `The ${profile.professionName} ${profile.specializationName} parser cannot parse ${player.professionName} ${player.specializationName}.`
-    );
-  }
-
   // Eligibility limits inputs, not evidence: retain complete stops and split animations across the boundary.
   const encounterEnd = encounterEndTime(log);
   const inEncounter = (action: RecordedAction): boolean => encounterEnd == null || action.start < encounterEnd;
-  const names = new Map(log.skills.map((skill) => [skill.id, skill.name]));
-  const castActions = usesModernAnimations(log)
-    ? modernAnimationActions(log, agent.address, names)
-    : legacyActivationActions(log, agent.address, names);
   const combatStartEvent = log.events.find(
     (event) => selectedPlayerEvent(event, agent.address) && event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT
   );
@@ -395,7 +389,8 @@ export function reconstructEvtcRotation(
   catalog: RotationCatalog | null = null,
   options: EvtcRotationOptions = {}
 ): RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction> {
-  const { player } = selectPlayerAgent(log, options.playerAddress);
+  const selected = selectPlayerAgent(options.playerEvidence ?? detectEvtcRotationPlayers(log), options.playerAddress);
+  const { player } = selected;
   const profile = evtcRotationProfile(player.professionId, player.specializationId);
   if (!profile) {
     throw new EvtcError(
@@ -404,8 +399,5 @@ export function reconstructEvtcRotation(
     );
   }
 
-  return reconstructWithProfile(log, profile, catalog, {
-    ...options,
-    playerAddress: player.address
-  });
+  return reconstructWithProfile(log, selected, profile, catalog, options);
 }

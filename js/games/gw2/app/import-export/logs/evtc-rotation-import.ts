@@ -139,9 +139,9 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
   ]);
   const expanded = await decompressEvtcInput(await file.arrayBuffer());
   const log = parseEvtc(expanded);
-  const players = rotationModule.detectEvtcRotationPlayers(log);
+  const playerEvidence = rotationModule.detectEvtcRotationPlayers(log);
   const selected = selectActiveBuildLogPlayer(
-    players,
+    playerEvidence.map(({ player }) => player),
     app,
     'log',
     'Use the EVTC reconstruction CLI with --player=<address>.'
@@ -151,6 +151,7 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
   // EVTC casts carry exact skill ids, so only build config is forwarded; selected ids disambiguate dps.report names.
   const result = rotationModule.reconstructEvtcRotation(log, app.activeCatalog, {
     playerAddress: selected.address,
+    playerEvidence,
     professionConfig: reconstructionOptions.professionConfig
   });
   const playerAddress = BigInt(selected.address);

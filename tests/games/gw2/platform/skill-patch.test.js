@@ -279,6 +279,55 @@ test('skill patches target fields, effects, and individual timeline ticks', () =
   assert.equal(Object.isFrozen(preview.skillsById.get(1)), true);
 });
 
+test('balance profile patches reject obsolete Mechanist fields while accepting canonical fields', () => {
+  // Field names must belong to the selected profile; another profile may legitimately expose the old spelling.
+  const live = createCanonicalCatalog({
+    generated: [],
+    balanceProfiles: [
+      {
+        id: 'engineer.mechanist.mech',
+        name: 'Jade Mech Attribute Inheritance',
+        profileKind: 'mechanic',
+        baseAttribute: 1000,
+        effects: []
+      },
+      { id: 'other', name: 'Other', profileKind: 'trait', attributeBonus: 100, effects: [] }
+    ]
+  });
+  for (const key of ['engineer.mechanist.mech', 'Jade Mech Attribute Inheritance']) {
+    for (const field of [
+      'attributeBonus',
+      'attributeConversion',
+      'minimumStacks',
+      'maximumStacks',
+      'threshold',
+      'weaponAttributeBonus',
+      'coefficientMultiplier',
+      'basePower'
+    ]) {
+      const preview = validatePatchPreview({
+        id: 'canonical-fields',
+        label: 'Canonical fields',
+        professions: { engineer: { balanceProfiles: { [key]: { fields: { [field]: 200 } } } } }
+      });
+      assert.throws(
+        () => applyBalanceProfilePatch(live, preview.professions.engineer),
+        /does not expose|unsupported patch field/
+      );
+    }
+  }
+
+  const patched = applyBalanceProfilePatch(live, {
+    balanceProfiles: {
+      'engineer.mechanist.mech': { fields: { baseAttribute: 1200 } },
+      other: { fields: { attributeBonus: 200 } }
+    }
+  });
+  assert.equal(patched.balanceProfilesById.get('engineer.mechanist.mech').baseAttribute, 1200);
+  assert.equal(patched.balanceProfilesById.get('other').attributeBonus, 200);
+  assert.equal(live.balanceProfilesById.get('engineer.mechanist.mech').baseAttribute, 1000);
+});
+
 test('balance profile patches preserve non-skill catalog ownership', () => {
   const live = fixtureCatalog();
   const preview = applyBalanceProfilePatch(live, {

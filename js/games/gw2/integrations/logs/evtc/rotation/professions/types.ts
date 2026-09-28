@@ -18,7 +18,7 @@ export interface EvtcRecordedRotationAction {
   readonly castOrigin?: 'skill' | 'trait' | 'gear' | 'unconditional';
   readonly eventIndex: number;
   readonly weaponSet?: number | null;
-  readonly offTarget?: boolean;
+  readonly isSwap?: boolean;
   readonly canonicalSkillId?: number;
   readonly canonicalName?: string;
   readonly doubleEdgeOutcome?: 'success' | 'backfire';

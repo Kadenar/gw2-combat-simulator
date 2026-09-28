@@ -1,7 +1,5 @@
 import { usesModernAnimations } from '#gw2/integrations/logs/evtc/recording.js';
 import { modernAnimationActions, legacyActivationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
-/** Selects EVTC players from source-specific evidence before reconstruction dispatch. */
-/** Selects EVTC players from source-specific evidence before reconstruction dispatch. */
 import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
 import { evtcProfessionMetadata, evtcSpecializationMetadata } from '#gw2/integrations/logs/evtc/profession-metadata.js';
 import {
@@ -13,6 +11,13 @@ import {
 } from '#gw2/integrations/logs/evtc/types.js';
 
 import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
+import type { EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+
+export interface EvtcPlayerEvidence {
+  readonly agent: ParsedEvtcAgent;
+  readonly player: EvtcRotationPlayer;
+  readonly castActions: readonly EvtcRecordedRotationAction[];
+}
 
 function addressHex(address: bigint): string {
   return `0x${address.toString(16)}`;
@@ -26,16 +31,7 @@ export function selectedPlayerEvent(event: ParsedEvtcEvent, address: bigint): bo
   return event.source === address;
 }
 
-/** Rank players by decoded casts and actual swap markers, including surviving pre-log stops. */
-function rawActionCount(log: ParsedEvtc, address: bigint): number {
-  const names = new Map(log.skills.map((s) => [s.id, s.name]));
-  return (
-    (usesModernAnimations(log) ? modernAnimationActions : legacyActivationActions)(log, address, names).length +
-    log.events.filter((e) => e.source === address && e.stateChange === EVTC_STATE_CHANGE.WEAPON_SWAP).length
-  );
-}
-
-function playerDescription(log: ParsedEvtc, agent: ParsedEvtcAgent): EvtcRotationPlayer | null {
+function playerDescription(agent: ParsedEvtcAgent): Omit<EvtcRotationPlayer, 'recordedActionCount'> | null {
   const profession = evtcProfessionMetadata(agent.profession);
   if (!profession) return null;
   const specialization = evtcSpecializationMetadata(agent.elite, profession.id);
@@ -47,21 +43,42 @@ function playerDescription(log: ParsedEvtc, agent: ParsedEvtcAgent): EvtcRotatio
     professionId: profession.id,
     professionName: profession.name,
     specializationId: specialization.id,
-    specializationName: specialization.name,
-    recordedActionCount: rawActionCount(log, agent.address)
+    specializationName: specialization.name
   };
 }
 
-export function detectEvtcRotationPlayers(log: ParsedEvtc): readonly EvtcRotationPlayer[] {
+/** Decode once so selection and reconstruction share the same cast evidence, including pre-log stops. */
+export function detectEvtcRotationPlayers(log: ParsedEvtc): readonly EvtcPlayerEvidence[] {
+  const names = new Map(log.skills.map((skill) => [skill.id, skill.name]));
+  const decode = usesModernAnimations(log) ? modernAnimationActions : legacyActivationActions;
+  const swaps = new Map<bigint, number>();
+  for (const event of log.events) {
+    if (event.stateChange === EVTC_STATE_CHANGE.WEAPON_SWAP) {
+      swaps.set(event.source, (swaps.get(event.source) ?? 0) + 1);
+    }
+  }
+
   return log.agents
     .filter(isPlayer)
     .flatMap((agent) => {
-      const player = playerDescription(log, agent);
-      return player ? [player] : [];
+      const player = playerDescription(agent);
+      if (!player) return [];
+      const castActions = decode(log, agent.address, names);
+      return [
+        {
+          agent,
+          castActions,
+          player: {
+            ...player,
+            recordedActionCount: castActions.length + (swaps.get(agent.address) ?? 0)
+          }
+        }
+      ];
     })
     .sort(
       (left, right) =>
-        right.recordedActionCount - left.recordedActionCount || left.character.localeCompare(right.character)
+        right.player.recordedActionCount - left.player.recordedActionCount ||
+        left.player.character.localeCompare(right.player.character)
     );
 }
 
@@ -76,13 +93,12 @@ function parseRequestedAddress(address: bigint | string): bigint | null {
 
 /** Resolves an explicit address or the strongest evidence while retaining EVTC-specific errors. */
 export function selectPlayerAgent(
-  log: ParsedEvtc,
+  evidence: readonly EvtcPlayerEvidence[],
   requestedAddress?: bigint | string
-): { readonly agent: ParsedEvtcAgent; readonly player: EvtcRotationPlayer } {
-  const players = detectEvtcRotationPlayers(log);
+): EvtcPlayerEvidence {
   const parsed = requestedAddress == null ? null : parseRequestedAddress(requestedAddress);
   const selection = selectRotationPlayer(
-    players,
+    evidence.map(({ player }) => player),
     requestedAddress == null ? undefined : (player) => parsed != null && BigInt(player.address) === parsed
   );
   if (selection.status !== 'selected') {
@@ -100,12 +116,5 @@ export function selectPlayerAgent(
     );
   }
 
-  const selected = selection.player;
-  const address = BigInt(selected.address);
-  const agent = log.agents.find((candidate) => candidate.address === address);
-  if (!agent) {
-    throw new EvtcError('PLAYER_NOT_FOUND', 'The selected player agent is missing from the EVTC log.');
-  }
-
-  return { agent, player: selected };
+  return evidence.find(({ player }) => player === selection.player)!;
 }

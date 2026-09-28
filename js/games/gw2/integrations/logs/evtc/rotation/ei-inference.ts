@@ -6,10 +6,135 @@ import type {
 import { EI_INSTANT_RULES } from '#gw2/integrations/logs/evtc/rotation/ei-rules.js';
 import { legacyActivationActions, modernAnimationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
 import { usesModernAnimations } from '#gw2/integrations/logs/evtc/recording.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import {
   MUSHROOM_KINGS_BLESSING_NAME,
   MUSHROOM_KINGS_BLESSING_SKILL_ID
 } from '#gw2/integrations/logs/shared/rotation/model.js';
+
+type IndexedEvent = { event: ParsedEvtcEvent; eventIndex: number };
+
+// EI d7f186c WeaverHelper: primary/secondary components resolve to an EI identity before simulator normalization.
+const WEAVER_ELEMENTS = [
+  { name: 'Fire', basic: 5585, major: 40926, minor: 42811 },
+  { name: 'Water', basic: 5586, major: 43236, minor: 43370 },
+  { name: 'Air', basic: 5575, major: 41692, minor: 43229 },
+  { name: 'Earth', basic: 5580, major: 43740, minor: 44822 }
+] as const;
+const WEAVER_ATTUNEMENT_IDS = [
+  [43470, -5, -6, -7],
+  [-8, 41166, -9, -10],
+  [-11, -12, 42264, -13],
+  [-14, -15, -16, 44857]
+];
+const WEAVER_ATTUNEMENTS = new Map(
+  WEAVER_ELEMENTS.flatMap((primary, row) =>
+    WEAVER_ELEMENTS.map(
+      (secondary, column) =>
+        [
+          WEAVER_ATTUNEMENT_IDS[row][column],
+          {
+            rawName: `${row === column ? 'Dual' : primary.name} ${secondary.name} Attunement`,
+            canonicalSkillId: ELEMENTALIST_ATTUNEMENT_SKILL_IDS[primary.name],
+            canonicalName: `${primary.name} Attunement`,
+            isSwap: true
+          }
+        ] as const
+    )
+  )
+);
+
+/** Ports EI's Weaver buff transformation for cast inference without mutating the raw log or inventing missing halves. */
+function transformWeaverAttunements(
+  log: ParsedEvtc,
+  playerAddress: bigint,
+  eventsBySkill: Map<number, IndexedEvent[]>
+): void {
+  const modern = Number(log.header.arcdpsBuild) >= 20260501;
+  const components = WEAVER_ELEMENTS.flatMap(({ basic, major, minor }, index) => [
+    basic,
+    major,
+    minor,
+    WEAVER_ATTUNEMENT_IDS[index][index]
+  ]);
+  const buffs: (IndexedEvent & { apply: boolean })[] = [];
+  for (const id of components) {
+    eventsBySkill.set(
+      id,
+      (eventsBySkill.get(id) ?? []).filter(({ event, eventIndex }) => {
+        const application = isBuffApply(log, event, true);
+        const extension = modern ? event.stateChange === 70 : application && event.offcycle > 0;
+        const removal = modern
+          ? [71, 72].includes(event.stateChange)
+          : event.stateChange === 0 && event.activation === 0 && event.buffRemove !== 0;
+        const selected =
+          ((application || extension) && event.target === playerAddress) || (removal && event.source === playerAddress);
+        if (selected) buffs.push({ event, eventIndex, apply: application && !extension });
+        // Suppress component buffs even when incomplete, just as EI invalidates the original attunement events.
+        return !selected;
+      })
+    );
+  }
+
+  const groups: (typeof buffs)[] = [];
+  for (const buff of buffs.sort((a, b) => a.event.time - b.event.time || a.eventIndex - b.eventIndex)) {
+    const last = groups.at(-1);
+    // EI GroupByTime uses a strict 10 ms window anchored at the group's first event, including removals/extensions.
+    if (last && buff.event.time - last[0].event.time < 10) last.push(buff);
+    else groups.push([buff]);
+  }
+
+  for (const group of groups) {
+    const applies = group.filter(({ apply }) => apply);
+    let primary = -1;
+    let secondary = -1;
+    let id = 0;
+    const loneBasic =
+      applies.length === 1 ? WEAVER_ELEMENTS.findIndex(({ basic }) => basic === applies[0].event.skillId) : -1;
+    if (loneBasic >= 0) id = WEAVER_ATTUNEMENT_IDS[loneBasic][loneBasic];
+    else {
+      for (const { event } of applies) {
+        if (WEAVER_ATTUNEMENTS.has(event.skillId)) {
+          id = event.skillId;
+          break;
+        }
+
+        const major = WEAVER_ELEMENTS.findIndex(
+          ({ basic, major }) => event.skillId === basic || event.skillId === major
+        );
+        const minor = WEAVER_ELEMENTS.findIndex(({ minor }) => event.skillId === minor);
+        if (major >= 0) primary = major;
+        else if (minor >= 0) secondary = minor;
+      }
+
+      if (!id && primary >= 0 && secondary >= 0) id = WEAVER_ATTUNEMENT_IDS[primary][secondary];
+    }
+
+    if (!id) continue;
+
+    // EI creates non-initial applications even from snapshots. Previous-state removals have no cast-finder consumer.
+    const synthetic = {
+      eventIndex: group[0].eventIndex,
+      event: {
+        ...applies[0].event,
+        time: group[0].event.time,
+        source: playerAddress,
+        target: playerAddress,
+        skillId: id,
+        stateChange: modern ? 69 : 0,
+        buff: 1,
+        value: 2147483647,
+        buffDamage: 0,
+        activation: 0,
+        buffRemove: 0,
+        offcycle: 0
+      }
+    };
+    const events = eventsBySkill.get(id) ?? [];
+    events.push(synthetic);
+    eventsBySkill.set(id, events);
+  }
+}
 
 /** EI BuffGainCastFinder excludes snapshots and extensions; custom animated finders opt into snapshots explicitly. */
 export function isBuffApply(log: ParsedEvtc, event: ParsedEvtcEvent, initial = false): boolean {
@@ -119,12 +244,13 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
   );
   const effects = effectEvidence(log);
   const hasEffects = log.events.some((e) => [45, 51, 60, 62, 79].includes(e.stateChange) && e.skillId !== 0);
-  const eventsBySkill = new Map<number, { event: ParsedEvtcEvent; eventIndex: number }[]>();
+  const eventsBySkill = new Map<number, IndexedEvent[]>();
   log.events.forEach((event, eventIndex) => {
     const group = eventsBySkill.get(event.skillId) ?? [];
     group.push({ event, eventIndex });
     eventsBySkill.set(event.skillId, group);
   });
+  if (profile.specializationId === 'weaver') transformWeaverAttunements(log, playerAddress, eventsBySkill);
   const names = new Map(log.skills.map((s) => [s.id, s.name]));
   // CombatData.HasRelatedHit checks credited damage ownership within the strict 10 ms server tolerance.
   const isDamage = (event: ParsedEvtcEvent): boolean =>
@@ -149,11 +275,8 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
     (r) =>
       (r.profession === '*' || r.profession === profile.professionId) &&
       (!r.specialization || r.specialization === profile.specializationId) &&
-      r.excludeSpec !== profile.specializationId &&
       gw2Build >= (r.minBuild ?? 0) &&
       gw2Build < (r.maxBuild ?? Infinity) &&
-      evtcBuild >= (r.minEvtcBuild ?? 0) &&
-      evtcBuild < (r.maxEvtcBuild ?? Infinity) &&
       !(r.disableWithEffects && hasEffects)
   );
   for (const rule of rules) {
@@ -260,7 +383,9 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
         evidence: rule.kind.startsWith('buff-') ? 'buff-transition' : rule.kind === 'missile' ? 'missile' : 'effect',
         eiRule: rule.rule,
         castOrigin: rule.origin ?? 'skill',
-        metadataAccurate: !(rule.notAccurate || rule.kind.startsWith('effect') || rule.kind === 'damage')
+        metadataAccurate: !(rule.notAccurate || rule.kind.startsWith('effect') || rule.kind === 'damage'),
+        // EI's synthetic negative IDs must resolve as attunements before a catalog can mistake -5 for Dodge.
+        ...(rule.specialization === 'weaver' ? WEAVER_ATTUNEMENTS.get(rule.skillId) : undefined)
       });
     }
   }

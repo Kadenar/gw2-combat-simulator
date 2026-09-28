@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { modernAnimationActions, legacyActivationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
 import { evtcRecordingWindow, usesModernAnimations } from '#gw2/integrations/logs/evtc/recording.js';
-import { selectPlayerAgent } from '#gw2/integrations/logs/evtc/rotation/players.js';
+import { detectEvtcRotationPlayers, selectPlayerAgent } from '#gw2/integrations/logs/evtc/rotation/players.js';
+import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/reconstruct.js';
 import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';
 
 const names = new Map([
@@ -123,8 +124,19 @@ test('player selection recognizes stop-only evidence and validates explicit addr
       event({ time: 200, stateChange: 68, skillId: 1000, value: 800, activation: 5 })
     ]
   });
-  assert.equal(selectPlayerAgent(fixture).agent.address, PLAYER);
-  assert.equal(selectPlayerAgent(fixture, '0x2000').agent, second);
-  assert.throws(() => selectPlayerAgent(fixture, 'invalid'), { code: 'PLAYER_NOT_FOUND' });
-  assert.throws(() => selectPlayerAgent({ ...fixture, events: [] }), { code: 'PLAYER_SELECTION_REQUIRED' });
+  // Selection retains decoded evidence so callers can reconstruct without another ranking or decode pass.
+  const evidence = detectEvtcRotationPlayers(fixture);
+  const selected = selectPlayerAgent(evidence);
+  assert.equal(selected, evidence[0]);
+  assert.equal(selected.agent.address, PLAYER);
+  assert.equal(selected.castActions[0].start, -600);
+  assert.equal(selectPlayerAgent(evidence, '0x2000').agent, second);
+  assert.throws(() => selectPlayerAgent(evidence, 'invalid'), { code: 'PLAYER_NOT_FOUND' });
+  assert.throws(() => selectPlayerAgent(detectEvtcRotationPlayers({ ...fixture, events: [] })), {
+    code: 'PLAYER_SELECTION_REQUIRED'
+  });
+  assert.throws(() => selectPlayerAgent([]), { code: 'NO_PLAYER' });
+  const reconstructed = reconstructEvtcRotation(fixture, null, { playerEvidence: evidence });
+  assert.equal(reconstructed.player, selected.player);
+  assert.equal(reconstructed.timelineOriginMs, -600);
 });

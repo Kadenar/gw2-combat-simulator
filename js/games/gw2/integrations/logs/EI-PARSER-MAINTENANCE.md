@@ -1,9 +1,9 @@
 # Keeping log imports aligned with Elite Insights
 
 Use this guide when an Elite Insights (EI) release, ArcDPS encoding change, game patch, or reported import mismatch
-requires reviewing our parser. The
-[log-import alignment contract](../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md) defines what an import must and must
-not do and what's currently covered; this guide is the process for keeping that contract aligned with upstream EI.
+requires reviewing our parser. The [log-import alignment contract](../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md)
+defines what an import must and must not do and what's currently covered; this guide is the process for keeping that
+contract aligned with upstream EI.
 
 ## Baseline and scope
 
@@ -12,13 +12,12 @@ Current reference: EI commit `d7f186c8579a5cab4ed362f0703e49e4a81b9a2a` in
 claim of complete parity or the latest upstream version. The pinned links below come from the alignment doc.
 
 - Raw EVTC imports decode recorded casts and apply supported, explicit EI finders with their actual evidence checks.
-- dps.report imports use the selected player's supplied rotation and selected phase, including EI-inferred casts.
-  Older reports remain authoritative for their own contents — updating our EVTC rules does not authorize adding rows
-  to them.
-- Shared normalization maps represented actions into simulator inputs. Keep `sourceActions`, normalized `actions`,
-  and replay commands distinct so a replay change can't silently rewrite evidence.
-- Missing setup stays missing. Initial buffs, existing minions, later skills, damage totals, and simulation
-  requirements do not justify inventing casts. Preserve the single opener notice and independent actionable warnings.
+- dps.report imports use the selected player's supplied rotation and selected phase, including EI-inferred casts. Older
+  reports remain authoritative for their own contents — updating our EVTC rules does not authorize adding rows to them.
+- Shared normalization maps represented actions into simulator inputs. Keep `sourceActions`, normalized `actions`, and
+  replay commands distinct so a replay change can't silently rewrite evidence.
+- Missing setup stays missing. Initial buffs, existing minions, later skills, damage totals, and simulation requirements
+  do not justify inventing casts. Preserve the single opener notice and independent actionable warnings.
 
 Known gaps: extension healing/barrier and unported custom checker families, time-aware ownership and reused instance
 IDs, EI encounter-specific boundaries. Some custom finders have separate implementations even when excluded from the
@@ -29,30 +28,30 @@ ordinary table. Check the
 ## Review an upstream update
 
 1. **Choose an exact candidate commit.** Record the old and candidate full SHAs and any release tag, then diff between
-   them (including renamed files) — release notes alone don't establish parser compatibility. A release with no
-   relevant changes only needs a recorded review, not a parser edit.
+   them (including renamed files) — release notes alone don't establish parser compatibility. A release with no relevant
+   changes only needs a recorded review, not a parser edit.
 2. **Keep three versions separate.**
    - EI commit → reference implementation.
-   - ArcDPS/EVTC build → event encoding. Locally: `minEvtcBuild`/`maxEvtcBuild`.
+   - ArcDPS/EVTC build → event encoding. Locally: the header-build checks in `evtc/recording.ts` and evidence decoders.
    - GW2 build → game-era rules. Locally: `minBuild`/`maxBuild`.
 
    All ranges are half-open (min inclusive, max exclusive). Never use today's date, report upload date, or the EI
    release number as an event-format gate.
-3. **Trace the changed upstream behavior to its local owner.** Check shared finder implementations as well as
-   profession declarations and identifier/build constants — one shared finder change can affect many professions
-   without touching their declarations. Follow each changed local helper's callers before editing it.
-4. **Classify each relevant change** as implemented, unaffected (with a reason), or deferred (with an explicit
-   coverage limitation). Review additions, modifications, *and* removals — appending new skill IDs alone misses
-   changed predicates and obsolete rules. Preserve older log behavior through the applicable build gates.
-5. **Port complete conditions**, not just IDs: evidence IDs/GUIDs and namespaces, actor/owner selection,
-   specialization and build gates, initial/extension exclusions, secondary checks, effect-availability gates, offsets,
-   duplicate windows, and origin/accuracy metadata. If a checker is unsupported, document the omission instead of
-   approximating it from damage or the simulator catalog. Add a short comment naming the EI method and why the local
-   logic exists.
+
+3. **Trace the changed upstream behavior to its local owner.** Check shared finder implementations as well as profession
+   declarations and identifier/build constants — one shared finder change can affect many professions without touching
+   their declarations. Follow each changed local helper's callers before editing it.
+4. **Classify each relevant change** as implemented, unaffected (with a reason), or deferred (with an explicit coverage
+   limitation). Review additions, modifications, _and_ removals — appending new skill IDs alone misses changed
+   predicates and obsolete rules. Preserve older log behavior through the applicable build gates.
+5. **Port complete conditions**, not just IDs: evidence IDs/GUIDs and namespaces, actor/owner selection, specialization
+   and build gates, initial/extension exclusions, secondary checks, effect-availability gates, offsets, duplicate
+   windows, and origin/accuracy metadata. If a checker is unsupported, document the omission instead of approximating it
+   from damage or the simulator catalog. Add a short comment naming the EI method and why the local logic exists.
 6. **Validate before advancing the pin.** Update the baseline, affected source provenance comments, adapter
    documentation, and the coverage inventory together. Keep old/new SHAs and remaining gaps in the change description.
-   For a partial port, record the affected rule's candidate SHA and keep an explicit mixed-version scope — don't
-   relabel every rule as aligned with the candidate.
+   For a partial port, record the affected rule's candidate SHA and keep an explicit mixed-version scope — don't relabel
+   every rule as aligned with the candidate.
 
 To inspect an upstream checkout, run these commands there, replacing `CANDIDATE_SHA` with the reviewed full SHA:
 
@@ -78,8 +77,8 @@ the candidate commit.
 | Custom animated finders, Engineer kits, spawn and shatter helpers       | `evtc/rotation/ei-custom-casts.ts`, `ei-minions.ts`, and `professions/index.ts`: inspect separate custom paths rather than forcing them into the ordinary table. These filenames are under `evtc/rotation/`.                   |
 | Effect encoding, agent lifecycle, encounter boundaries                  | `evtc/rotation/effect-packets.ts`, `ei-inference.ts`, `players.ts`, `encounter.ts`, and `reconstruct.ts`: audit assumptions and document unsupported encounter/ownership behavior. These filenames are under `evtc/rotation/`. |
 | JSON actor/rotation builders and actor window filtering                 | `dps-report/parser.ts`, `types.ts`, and `rotation/reconstruct.ts`: schema validation, units, selected player/phase, crossing casts, accuracy, and stable timestamp ties. These filenames are under `dps-report/`.              |
-| Cast identity and origin classification                                 | `shared/rotation/catalog.ts`, `normalization.ts`, and `professions/`: aliases, represented composites, and proc filtering; never missing-input recovery. These filenames are under `shared/rotation/`.                               |
-| Simulator command conversion                                            | `shared/rotation/timeline.ts` and `timing.ts`: inspect only after source evidence agrees; catalog timing and cancellation quantization are separate from EI parsing. Both files are under `shared/rotation/`.                        |
+| Cast identity and origin classification                                 | `shared/rotation/catalog.ts`, `normalization.ts`, and `professions/`: aliases, represented composites, and proc filtering; never missing-input recovery. These filenames are under `shared/rotation/`.                         |
+| Simulator command conversion                                            | `shared/rotation/timeline.ts` and `timing.ts`: inspect only after source evidence agrees; catalog timing and cancellation quantization are separate from EI parsing. Both files are under `shared/rotation/`.                  |
 
 ## Compare evidence before replay
 
@@ -87,10 +86,9 @@ Use the same raw log with the exact reference EI version and our adapter. Record
 ArcDPS build, GW2 build, selected player, EI parser/export settings, and observation window. Keep the generated JSON
 with the comparison evidence — a public report may have been generated by a different EI version.
 
-Compare in this order: `sourceActions` first (skill identity, start, duration, status, origin/accuracy, rule
-provenance where available), then normalized actions and commands. Align recording, combat, report/phase, and replay
-origins explicitly — a common offset does not permit moving individual casts. Simulated DPS is not a parser parity
-test.
+Compare in this order: `sourceActions` first (skill identity, start, duration, status, origin/accuracy, rule provenance
+where available), then normalized actions and commands. Align recording, combat, report/phase, and replay origins
+explicitly — a common offset does not permit moving individual casts. Simulated DPS is not a parser parity test.
 
 For an absent, extra, or shifted cast, check in order:
 

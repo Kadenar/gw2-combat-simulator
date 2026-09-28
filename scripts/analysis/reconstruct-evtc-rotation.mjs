@@ -39,7 +39,9 @@ const requestedAddress = option('--player=');
 const source = await readFile(input);
 const expanded = await decompressEvtcInput(source);
 const log = parseEvtc(expanded);
-const players = detectEvtcRotationPlayers(log);
+// Keep decoded evidence for reconstruction after presenting the player descriptions.
+const playerEvidence = detectEvtcRotationPlayers(log);
+const players = playerEvidence.map(({ player }) => player);
 
 let selected;
 
@@ -75,7 +77,8 @@ if (!selected) {
 
 const profession = await loadProfession(selected.professionId);
 const result = reconstructEvtcRotation(log, profession?.catalog || null, {
-  playerAddress: selected.address
+  playerAddress: selected.address,
+  playerEvidence
 });
 const output = {
   metadata: {

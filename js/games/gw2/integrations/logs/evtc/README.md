@@ -20,6 +20,16 @@ extensions. Effect namespaces remain separate; secondary effects and effect-avai
 declared. Stable nested minion ownership is supported; ambiguous reused instances or changing masters are rejected
 pending time-aware ownership.
 
+Pet-command rules preserve the pinned EI registrations, including multiple skills for some species. EI's generic
+command-buff finder does not distinguish those competing registrations. Player detection retains decoded animations so
+the app/CLI picker and reconstruction reuse the same evidence.
+
+Weaver attunements follow EI's `TransformWeaverAttunements` before ordinary inference. Recorded components are grouped
+within a strict 10 ms window and replaced in the inference index by synthetic applications, including mixed IDs -5
+through -16. Incomplete pairs remain unknown. Canonical attunement identities prevent Fire Water -5 from resolving to
+simulator Dodge -5; shared normalization also removes Unravel's generated dual transition. Raw log events stay
+unchanged.
+
 `ei-custom-casts.ts` implements ProfHelper's buff- and effect-based animated finders, including their explicit
 initial-application exceptions and suppression when a decoded animation exists. `ei-minions.ts` implements Ranger
 pet/Reaper spawn rules and Chronomancer shatter effect/clone checks. An existing minion alone does not imply a summon.
@@ -37,8 +47,8 @@ implementation is not a full EI parity certification; encounter logic and time-a
 
 ## Normalization and timing
 
-Shared `../shared/rotation/professions/` rules convert represented identities, chains and composites. Source actions remain
-separate, including cast origin and EI rule provenance. Automatic procs do not become independent replay inputs.
+Shared `../shared/rotation/professions/` rules convert represented identities, chains and composites. Source actions
+remain separate, including cast origin and EI rule provenance. Automatic procs do not become independent replay inputs.
 Read-only packet/proc observations remain available and never inject casts or simulator state.
 
 Combat start uses the selected player's enter-combat record, falling back to recording start. It is not moved to a first

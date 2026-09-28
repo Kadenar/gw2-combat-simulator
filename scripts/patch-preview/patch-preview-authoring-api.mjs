@@ -89,7 +89,7 @@ export const activePatchPreview: PatchPreview = ${JSON.stringify(preview, null, 
 // Validates a patch preview for authoring purposes.
 export function validateAuthoringPreview(preview, runtime) {
   assertAuthoringShape(preview);
-  // Normalize saved field names before generating labels or returning editable controls.
+  // Validate the declaration before generating labels; profile validation below rejects unknown fields.
   const normalized = runtime.validatePatchPreview(preview);
   const generated = generatePatchOverview(
     normalized,

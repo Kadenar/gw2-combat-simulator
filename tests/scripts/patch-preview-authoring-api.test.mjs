@@ -11,22 +11,39 @@ import { validatePatchPreview } from '#gw2/integrations/patches/authoring/patche
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
-// Saving an older preview rewrites both its controls and generated description to the canonical field name.
-test('patch authoring migrates saved Mechanist fields before generating overview prose', () => {
+// Saved previews must use canonical fields so the controls and generated description address the same value.
+test('patch authoring accepts canonical Mechanist fields and rejects obsolete saved fields', () => {
   const id = 'engineer.mechanist.mech';
+  const runtime = { validatePatchPreview, professions: [withActivePatchPreview(engineerProfession)] };
   const preview = validateAuthoringPreview(
     {
       id: 'mech-fields',
       label: 'Mech fields',
-      professions: { engineer: { balanceProfiles: { [id]: { fields: { minimumStacks: { from: 750, to: 800 } } } } } }
+      professions: {
+        engineer: { balanceProfiles: { [id]: { fields: { secondaryAttributeCap: { from: 750, to: 800 } } } } }
+      }
     },
-    { validatePatchPreview, professions: [withActivePatchPreview(engineerProfession)] }
+    runtime
   );
   assert.deepEqual(preview.professions.engineer.balanceProfiles[id].fields, {
     secondaryAttributeCap: { from: 750, to: 800 }
   });
   assert.match(preview.professions.engineer.overview[0].text, /secondary attribute cap/i);
   assert.doesNotMatch(serializeActivePatchPreview(preview), /minimumStacks/);
+  assert.throws(
+    () =>
+      validateAuthoringPreview(
+        {
+          id: 'old-mech-fields',
+          label: 'Old mech fields',
+          professions: {
+            engineer: { balanceProfiles: { [id]: { fields: { minimumStacks: { from: 750, to: 800 } } } } }
+          }
+        },
+        runtime
+      ),
+    /does not expose minimumStacks/
+  );
 });
 
 test('patch authoring serializer emits the typed active preview module', () => {
