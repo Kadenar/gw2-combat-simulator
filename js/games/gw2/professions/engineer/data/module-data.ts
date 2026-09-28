@@ -49,8 +49,6 @@ const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.DEPLOY_MINE,
   ID.CONFUSING_SPEECH,
   ID.VENT_RADIATION,
-  ID.HIDDEN_PISTOLS,
-  ID.THROW_VINE,
   ID.STATIC_DISCHARGE_TRAIT_SKILL,
   ID.MAGNETIC_BOMB_TRAIT_SKILL,
   ID.SUPERSPEED_TRAIT_SKILL,
@@ -67,7 +65,8 @@ const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL
 ]);
 
-const CORE_SWORD_SKILL_IDS = new Set<SkillId>([
+/** Catalog, equipment matching, and cast availability share the non-Holosmith sword identities. */
+export const NON_HOLOSMITH_SWORD_SKILL_IDS: ReadonlySet<SkillId> = new Set([
   ID.SUN_EDGE_NON_HOLOSMITH,
   ID.SUN_RIPPER_NON_HOLOSMITH,
   ID.GLEAM_SABER_NON_HOLOSMITH,
@@ -78,12 +77,11 @@ const CORE_SWORD_SKILL_IDS = new Set<SkillId>([
 const generatedSource = SKILLS.map((skill) => ({
   ...skill,
   // Weaponmaster sword variants are profession-wide despite the API's stale Holosmith label.
-  ...(CORE_SWORD_SKILL_IDS.has(skill.id) ? { specialization: '' } : {})
+  ...(NON_HOLOSMITH_SWORD_SKILL_IDS.has(skill.id) ? { specialization: '' } : {})
 }));
 
 const allDeclared: readonly Skill[] = [...generatedSource, ...ENGINEER_SUPPLEMENTAL_SKILLS];
 
-const byId = new Map<SkillId, Skill>(allDeclared.map((skill) => [skill.id, skill]));
 const byName = new Map<string, Skill>(allDeclared.map((skill) => [skill.name, skill]));
 
 const preferredFlipParentById = new Map<SkillId, SkillId>([
@@ -169,7 +167,6 @@ function normalizeMechanics(
   return Object.freeze(
     Object.fromEntries(
       Object.entries(mechanics).map(([id, mechanic]) => {
-        const declared = byId.get(Number(id));
         const toolbeltParentId = byName.get(String(mechanic.toolbeltParentName || ''))?.id;
         // Resolve authored parent names once at catalog assembly so runtime trait behavior follows stable IDs.
         const linkedMechanic = toolbeltParentId == null ? mechanic : { ...mechanic, toolbeltParentId };
@@ -185,18 +182,7 @@ function normalizeMechanics(
           ];
         }
 
-        if (!declared?.categories?.includes('Morph')) {
-          return [id, linkedMechanic];
-        }
-
-        // All selectable Amalgam morphs share the stateful morph activation handler.
-        return [
-          id,
-          {
-            ...linkedMechanic
-            // Custom: Activates the selected morph, strain, and form-specific effects; see `amalgam/mechanics/evolved-form.ts`.
-          }
-        ];
+        return [id, linkedMechanic];
       })
     )
   );

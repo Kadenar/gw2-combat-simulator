@@ -1,5 +1,5 @@
 /**
- * API-omitted skill identity and display metadata.
+ * API-omitted skill identity and display metadata for skills supported by the simulator.
  *
  * Combat coefficients, costs, timing, and effects belong in owner-local skills.ts files.
  * Specialization labels use canonical names so shared build eligibility matches toolbelt skills.
@@ -431,32 +431,6 @@ const records: EngineerSupplementalSkill[] = [
     name: 'Vent Radiation',
     description: 'Vent radioactive gas to poison nearby foes.',
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vent_Radiation.png',
-    type: 'Profession',
-    slot: 'Action',
-    specialization: '',
-    categories: ['Tool belt'],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
-    id: 12357,
-    name: 'Hidden Pistols',
-    description: 'Draw both hidden pistols and unload a volley of bullets on your foe.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Hidden_Pistols.png',
-    type: 'Profession',
-    slot: 'Action',
-    specialization: '',
-    categories: ['Tool belt'],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
-    id: 12462,
-    name: 'Throw Vine',
-    description: 'Throw a vine and trip your foe.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Throw_Vine.png',
     type: 'Profession',
     slot: 'Action',
     specialization: '',

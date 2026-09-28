@@ -133,13 +133,9 @@ function toolbeltSkillId(catalog: Readonly<CanonicalCatalog>, parentName: string
   );
 }
 
-/** Finds the first named Engineer skill that satisfies an optional metadata predicate. */
-export function namedSkillId(
-  catalog: Readonly<CanonicalCatalog>,
-  name: string,
-  predicate: (skill: EngineerSkill) => boolean = () => true
-): SkillId | null {
-  return catalog.skills.find((skill) => skill.name === name && predicate(skill))?.id ?? null;
+/** Finds the first named Engineer skill for its profession bar. */
+export function namedSkillId(catalog: Readonly<CanonicalCatalog>, name: string): SkillId | null {
+  return catalog.skills.find((skill) => skill.name === name)?.id ?? null;
 }
 
 /** Maps the selected slot-skill loadout to its ordered Engineer toolbelt bar. */
@@ -150,14 +146,9 @@ export function engineerToolbeltSkillIds(
   return selectedNamesInSlotOrder(context).map((name) => toolbeltSkillId(catalog, name));
 }
 
-/** Returns the fixed Core Engineer profession-skill slots for the active loadout. */
-function professionSkillSlots(catalog: Readonly<CanonicalCatalog>, context: EngineerUiContext): (SkillId | null)[] {
-  return engineerToolbeltSkillIds(catalog, context);
-}
-
 /** Returns populated Core profession-skill IDs for palette and bar consumers. */
 function professionSkills(catalog: Readonly<CanonicalCatalog>, context: EngineerUiContext): SkillId[] {
-  return professionSkillSlots(catalog, context).filter((id) => id != null);
+  return engineerToolbeltSkillIds(catalog, context).filter((id) => id != null);
 }
 
 /** Explains whether a Core Engineer skill is usable in the currently displayed state. */

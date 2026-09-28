@@ -1,4 +1,5 @@
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
+import { NON_HOLOSMITH_SWORD_SKILL_IDS } from '#gw2/professions/engineer/data/module-data.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { denySkillCast as denyEngineerCast } from '#gw2/platform/engine/skills/availability.js';
@@ -9,14 +10,6 @@ import {
   HOLOSMITH_FORGE_TOGGLE_SKILL_IDS,
   HOLOSMITH_STORM_AUTOATTACK_SKILL_IDS
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
-
-const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set<number>([
-  ID.RADIANT_ARC_NON_HOLOSMITH,
-  ID.SUN_RIPPER_NON_HOLOSMITH,
-  ID.SUN_EDGE_NON_HOLOSMITH,
-  ID.GLEAM_SABER_NON_HOLOSMITH,
-  ID.REFRACTION_CUTTER_NON_HOLOSMITH
-]);
 
 /** Enforces Holosmith sword replacement, Forge bar state, overheat, and kit-lockout cast rules. */
 export function holosmithCastAvailability(context: EngineerRuntime, skill: HolosmithSkill): AvailabilityResult {

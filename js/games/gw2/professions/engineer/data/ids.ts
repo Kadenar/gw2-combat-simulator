@@ -133,8 +133,6 @@ export const ENGINEER_SKILL_IDS = Object.freeze({
   REGENERATING_MIST: 6176, // Regenerating Mist
   CONFUSING_SPEECH: 12334, // Confusing Speech
   VENT_RADIATION: 12336, // Vent Radiation
-  HIDDEN_PISTOLS: 12357, // Hidden Pistols
-  THROW_VINE: 12462, // Throw Vine
   LESSER_ELIXIR_B: 13465, // Lesser Elixir B
   STATIC_DISCHARGE_TRAIT_SKILL: 13552, // Static Discharge (trait skill)
   DROP_MINE: 17810, // Drop Mine

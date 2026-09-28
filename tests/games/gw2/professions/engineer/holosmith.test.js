@@ -444,6 +444,34 @@ test('Photon Forge overheats at its trait-adjusted maximum', () => {
   assert.equal(fullyCooled.planningState.profession.overheated, false);
 });
 
+test('ordinary Forge exits preserve one bar swap and their trait event ordering', () => {
+  // Core owns the kit swap before the Forge exit hook; explicit exits grant Lens before emitting their swap.
+  for (const exit of ['Deactivate Photon Forge', 'Grenade Kit']) {
+    const result = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 6000 }, exit], {
+      selectedTraitIds: [TRAIT.SOLAR_FOCUSING_LENS]
+    });
+    assert.deepEqual(result.warnings, []);
+    const exitEvent = result.events.find((event) => event.type === 'engineer.heat' && event.reason === 'exit-forge');
+    assert.ok(exitEvent);
+    const state = result.planningState.profession;
+    assert.equal(state.photonForgeActive, false);
+    assert.equal(state.forgeExitedAt, exitEvent.at);
+    assert.equal(state.overheated, false);
+    assert.equal(state.activeKit, exit === 'Grenade Kit' ? 'Grenade Kit' : '');
+    const exitEvents = result.events.filter(
+      (event) =>
+        event.at === exitEvent.at &&
+        (event.type === 'engineer.solar-focusing-lens' || event.type === 'sigil_swap' || event === exitEvent)
+    );
+    assert.deepEqual(
+      exitEvents.map((event) => event.type),
+      exit === 'Grenade Kit'
+        ? ['sigil_swap', 'engineer.solar-focusing-lens', 'engineer.heat']
+        : ['engineer.solar-focusing-lens', 'sigil_swap', 'engineer.heat']
+    );
+  }
+});
+
 test('explicit Overheat exits preserve cooling cadence and the pending Lens grant', () => {
   // Both exits acknowledge the existing resource transition without restarting cooling or granting Lens twice.
   const config = { initialHeat: 90, selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE, TRAIT.SOLAR_FOCUSING_LENS] };
@@ -724,6 +752,12 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
   });
 
   assert.equal(vented.planningState.profession.heat, 35);
+  // Render the real resource observation through the composed UI so a stale reason cannot hide it.
+  const heatEvent = vented.events.find((event) => event.type === 'engineer.heat' && event.reason === 'vent-exhaust');
+  assert.ok(heatEvent);
+  const heatRow = engineerProfession.ui.eventLogRow({ specialization: 'Holosmith' }, heatEvent);
+  assert.equal(heatRow?.className, 'resource');
+  assert.equal(heatRow?.description, 'vent-exhaust - Heat 35.0');
   const vent = vented.events.find((event) => event.type === 'damage' && event.name === 'Vent Exhaust');
 
   assert.equal(vent.coefficient, 1.1);

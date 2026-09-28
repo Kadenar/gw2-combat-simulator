@@ -79,7 +79,6 @@ export const mechanistHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = 
       if (!mech.enabled || !mech.active) return;
       const phase = data as { phase: number };
       if (runtime.time < mech.busyUntil - EPSILON) {
-        mech.nextAttackAt = mech.busyUntil;
         runtime.schedule('engineer.mech-attack', mech.busyUntil, phase);
         return;
       }

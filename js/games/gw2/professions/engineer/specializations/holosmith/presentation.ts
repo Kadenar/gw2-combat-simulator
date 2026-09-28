@@ -23,7 +23,8 @@ const HEAT_STATE_REASONS = new Set<string>([
   'heat',
   'overheat',
   'passive-heat',
-  'thermal-release-valve'
+  // Vent Exhaust publishes the heat spent by Thermal Release Valve.
+  'vent-exhaust'
 ]);
 
 const HOLOSMITH_PACKET_EVENTS = new Set<string>([

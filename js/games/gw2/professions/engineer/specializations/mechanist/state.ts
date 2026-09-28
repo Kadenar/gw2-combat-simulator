@@ -33,9 +33,7 @@ interface EngineerMechState {
   enabled: boolean;
   active: boolean;
   commandSkillIds: SkillId[];
-  nextAttackAt: number | null;
   busyUntil: number;
-  attributes: EngineerMechAttributes | null;
 }
 
 export interface MechanistState {
@@ -48,9 +46,7 @@ export const MECHANIST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
     enabled: false,
     active: false,
     commandSkillIds: [],
-    nextAttackAt: null,
-    busyUntil: 0,
-    attributes: null
+    busyUntil: 0
   }
 } satisfies Partial<MechanistState>);
 
@@ -139,7 +135,7 @@ export function engineerMechAttributes(
   };
 }
 
-/** The mech stays present throughout simulation; initialize its commands and inherited attributes. */
+/** The mech stays present throughout simulation; attack scheduling and live attributes belong to their runtime owners. */
 export function createMechanistState(config: EngineerConfig = {}): MechanistState {
   const traits = selectedEngineerTraits(config);
   return {
@@ -147,9 +143,7 @@ export function createMechanistState(config: EngineerConfig = {}): MechanistStat
       enabled: true,
       active: true,
       commandSkillIds: selectedMechCommands(traits),
-      nextAttackAt: 1,
-      busyUntil: 0,
-      attributes: engineerMechAttributes(config, config.stats)
+      busyUntil: 0
     }
   };
 }

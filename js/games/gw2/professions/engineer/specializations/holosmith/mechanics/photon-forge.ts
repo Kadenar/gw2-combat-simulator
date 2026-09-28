@@ -26,8 +26,6 @@ import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 interface PhotonForgeHeatPayload {
-  readonly skillId: string | number;
-  readonly skillName: string;
   readonly amount: number;
   readonly persistsOutsideForge: boolean;
 }
@@ -297,8 +295,8 @@ export function enterPhotonForge(context: EngineerRuntime, skill: EngineerSkill)
   reportHeat(context, 'enter-forge');
 }
 
-/** Exits Photon Forge voluntarily and starts cooling and exit trait state. */
-export function exitPhotonForge(context: EngineerRuntime, skill: EngineerSkill): void {
+/** Both exit paths share cooling and trait state; callers retain their own bar-swap event order. */
+function leavePhotonForge(context: EngineerRuntime, skill: EngineerSkill): void {
   lockTransitionInput(context, 'forgeExitMs', skill);
   const state = holosmithState.from(context);
   const at = context.time;
@@ -312,22 +310,24 @@ export function exitPhotonForge(context: EngineerRuntime, skill: EngineerSkill):
   }
 
   if (state.heat === 0) state.overheated = false;
-  emitEngineerBarSwap(context, skill, at);
+}
+
+/** The explicit Forge exit owns its swap; kit swaps are already emitted by Core. */
+export function exitPhotonForge(context: EngineerRuntime, skill: EngineerSkill): void {
+  leavePhotonForge(context, skill);
+  emitEngineerBarSwap(context, skill, context.time);
   reportHeat(context, 'exit-forge');
 }
 
 /** Queues a skill-owned heat change, optionally allowing it to land after Forge exit. */
 function scheduleHeatPulse(
   context: EngineerRuntime,
-  skill: EngineerSkill,
   times: readonly number[],
   amount: number,
   persistsOutsideForge = false
 ): void {
   for (const at of times)
     context.schedule('engineer.photon-forge-heat', at, {
-      skillId: skill.id,
-      skillName: skill.name,
       amount,
       persistsOutsideForge
     });
@@ -350,7 +350,6 @@ export function applyCoronaBurstHeat(context: EngineerRuntime, skill: HolosmithS
   const heatPerPulse = Number(skill.heatGain) / CORONA_QUICKNESS_PULSE_OFFSETS_MS.length;
   scheduleHeatPulse(
     context,
-    skill,
     CORONA_QUICKNESS_PULSE_OFFSETS_MS.map((offsetMs) => cast.start + offsetMs / 1000),
     heatPerPulse,
     true
@@ -367,7 +366,6 @@ export function applyPhotonBlitzHeat(context: EngineerRuntime, skill: HolosmithS
   const heatPerPulse = Number(skill.heatGain) / PHOTON_BLITZ_PULSE_OFFSETS_MS.length;
   scheduleHeatPulse(
     context,
-    skill,
     PHOTON_BLITZ_PULSE_OFFSETS_MS.filter((offsetMs) => offsetMs <= elapsedMs + EPSILON * 1000).map(
       (offsetMs) => cast.start + offsetMs / 1000
     ),
@@ -386,7 +384,7 @@ export function applyHeat(context: EngineerRuntime, skill: HolosmithSkill, cast:
 
   // A Forge attack that crossed its interrupt commit point already fired; its
   // authored heat survives cancelling the remaining animation/aftercast too.
-  scheduleHeatPulse(context, skill, [cast.effectiveEnd], Number(skill.heatGain));
+  scheduleHeatPulse(context, [cast.effectiveEnd], Number(skill.heatGain));
 }
 
 /** Invokes canonical Vent Exhaust effects and removes its authored heat amount. */
@@ -470,18 +468,7 @@ export function triggerThermalReleaseValve(context: EngineerRuntime, skill: Engi
 export function handleHolosmithKitEquip(context: EngineerRuntime, skill: EngineerSkill): void {
   const state = holosmithState.from(context);
   if (skill.kitTransition !== 'equip' || !state.photonForgeActive) return;
-  const at = context.time;
-  lockTransitionInput(context, 'forgeExitMs', skill);
-  state.photonForgeActive = false;
-  // A kit can acknowledge the exit too, without replacing Overheat's pending Lens grant.
-  if (!state.overheated) {
-    state.forgeExitedAt = at;
-    startPassiveHeatCadence(context, at);
-    const solarFocusingLensProfile = requireBalanceProfileFromContext(context, PROFILE.solarFocusingLens);
-    grantSolarFocusingLens(context, at, balanceProfileNumber(solarFocusingLensProfile, 'minimumStacks'));
-  }
-
-  if (state.heat === 0) state.overheated = false;
+  leavePhotonForge(context, skill);
   reportHeat(context, 'exit-forge');
 }
 

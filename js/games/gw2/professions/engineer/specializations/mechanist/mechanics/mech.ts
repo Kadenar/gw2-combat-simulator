@@ -229,8 +229,8 @@ export function applyEngineerMechCastTraits(context: EngineerRuntime, skill: Eng
 export function initializeEngineerMech(context: EngineerRuntime): void {
   const state = mechanistState.from(context);
   if (!state.mech.enabled || !state.mech.active) return;
-  state.mech.nextAttackAt = context.time + MECHANIST_ATTACK_TIMING.initialDelay;
-  context.schedule('engineer.mech-attack', state.mech.nextAttackAt, { phase: 0 });
+  const firstAttackAt = context.time + MECHANIST_ATTACK_TIMING.initialDelay;
+  context.schedule('engineer.mech-attack', firstAttackAt, { phase: 0 });
 }
 
 /** Executes one autonomous mech attack phase and schedules the next phase on the mech lane. */
@@ -251,7 +251,6 @@ export function stepMechAttack(
 
     const nextAt =
       at + (firstArm ? MECHANIST_ATTACK_TIMING.jadeCannonArmGap : MECHANIST_ATTACK_TIMING.jadeCannonCycleGap) / rate;
-    state.mech.nextAttackAt = nextAt;
     return { at: nextAt, state: { phase: firstArm ? 1 : 0 } };
   }
 
@@ -261,7 +260,6 @@ export function stepMechAttack(
   emitMechAttack(context, skillId, at);
 
   const nextAt = at + MECHANIST_ATTACK_TIMING.meleeChainIntervals[phase] / rate;
-  state.mech.nextAttackAt = nextAt;
   return { at: nextAt, state: { phase: (phase + 1) % 3 } };
 }
 

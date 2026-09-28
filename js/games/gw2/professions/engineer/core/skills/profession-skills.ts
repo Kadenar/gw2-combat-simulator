@@ -113,39 +113,6 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     ],
     toolbeltParentName: 'Radiation Field'
   },
-  [ID.HIDDEN_PISTOLS]: {
-    castTimeMs: 1200,
-    cooldown: 30,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.3,
-        hits: 1,
-        name: 'Hidden Pistols',
-        actorType: 'player'
-      }
-    ],
-    toolbeltParentName: 'Hidden Pistol'
-  },
-  [ID.THROW_VINE]: {
-    castTimeMs: 360,
-    cooldown: 45,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        name: 'Throw Vine',
-        actorType: 'player'
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        controlKind: 'knockdown'
-      }
-    ],
-    toolbeltParentName: 'Seed Turret'
-  },
   [ID.STATIC_SHOCK]: {
     castTimeMs: 680,
     cooldown: 20,

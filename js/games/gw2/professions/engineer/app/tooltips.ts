@@ -273,9 +273,11 @@ const familyTooltips = {
     }
 
     if (kind) facts.push(...strainFacts(balanceContext, kind, 'requires Silver Lining'));
-    if (kind === 'demolish') description += ' Its strain grants stability and increases the bonuses of equipped gear.';
+    // Predator and Berserker windows display strain uptime; only their authored boons affect combat.
+    if (kind === 'demolish') description += ' Its strain grants stability and displays the Berserker Strain window.';
     if (kind === 'obliterate') description += ' Its strain also grants power per might stack.';
-    if (kind === 'shred') description += ' Its strain also increases strike damage.';
+    if (kind === 'shred')
+      description += ' Its strain grants quickness and superspeed and displays the Predator Strain window.';
     return { description, facts };
   },
   'engineer.evolve': (balanceContext, entity) => ({
