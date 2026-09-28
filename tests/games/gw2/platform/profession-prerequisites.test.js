@@ -1,3 +1,4 @@
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -698,7 +699,7 @@ test('Engineer contracts present state and suppress known packet events', () => 
       planningState: { profession: {} }
     },
     { specialization: 'Holosmith' },
-    engineerProfession
+    withPatchPreview(engineerProfession)
   );
 
   assert.equal(engineerRows.length, 1);
@@ -718,7 +719,7 @@ test('Engineer contracts present state and suppress known packet events', () => 
         planningState: { profession: {} }
       },
       null,
-      engineerProfession
+      withPatchPreview(engineerProfession)
     );
 
     assert.equal(unknown.description, 'UNPRESENTED CUSTOM EVENT engineer.unhandled');
@@ -737,8 +738,16 @@ test('Guardian weapon-bar transitions and canonical Necromancer conditions have 
     const luminary = runGuardian(['Enter Radiant Forge', { type: 'wait', durationMs: 20000 }], {
       specialization: 'Luminary'
     });
-    const firebrandRows = simulationEventLogRows(firebrand, { specialization: 'Firebrand' }, guardianProfession);
-    const luminaryRows = simulationEventLogRows(luminary, { specialization: 'Luminary' }, guardianProfession);
+    const firebrandRows = simulationEventLogRows(
+      firebrand,
+      { specialization: 'Firebrand' },
+      withPatchPreview(guardianProfession)
+    );
+    const luminaryRows = simulationEventLogRows(
+      luminary,
+      { specialization: 'Luminary' },
+      withPatchPreview(guardianProfession)
+    );
     assert.ok(firebrandRows.some((row) => row.description === 'TOME STOWED'));
     assert.ok(firebrandRows.some((row) => row.description.includes('TOME EQUIPPED')));
     assert.ok(luminaryRows.some((row) => row.description === 'RADIANT FORGE ENTERED'));
@@ -762,7 +771,7 @@ test('Guardian weapon-bar transitions and canonical Necromancer conditions have 
         planningState: { profession: {} }
       },
       { specialization: 'Core' },
-      necromancerProfession
+      withPatchPreview(necromancerProfession)
     );
     const ritualistRows = simulationEventLogRows(
       {
@@ -771,7 +780,7 @@ test('Guardian weapon-bar transitions and canonical Necromancer conditions have 
         planningState: { profession: {} }
       },
       { specialization: 'Ritualist' },
-      necromancerProfession
+      withPatchPreview(necromancerProfession)
     );
     const necromancerRows = [...necromancerCoreRows, ...ritualistRows];
 

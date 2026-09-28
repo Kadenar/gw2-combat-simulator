@@ -1,3 +1,4 @@
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -383,7 +384,7 @@ test('Necromancer shroud transitions stay adjacent and toggle availability', () 
 test('Necromancer live transitions have an event-log presentation', () => {
   const result = simulate('Core', ['Death Shroud', 'End Death Shroud'], { initialResource: 100 });
   assert.deepEqual(result.warnings, []);
-  const rows = simulationEventLogRows(result, null, necromancerProfession);
+  const rows = simulationEventLogRows(result, null, withPatchPreview(necromancerProfession));
   assert.ok(rows.some((row) => row.description.includes('Death Shroud')));
   assert.ok(rows.every((row) => !row.description.includes('UNPRESENTED CUSTOM EVENT')));
 });

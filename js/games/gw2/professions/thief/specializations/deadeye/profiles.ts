@@ -22,12 +22,25 @@ export const DEADEYE_RESOURCE_PROFILE: BalanceProfile = {
   name: 'Deadeye Malice and Mark',
   profileKind: 'mechanic',
   maximumStacks: 5,
-  minimumStacks: 7,
   resourceGain: 1,
   playerStacks: 1,
   durationMultiplier: 30,
   effects: []
 };
+
+/** Maleficent Seven owns its replacement malice cap and the rewards for reaching it. */
+export const MALEFICENT_SEVEN_PROFILE = trait(DEADEYE_BALANCE_PROFILE_IDS.maleficentSeven, 'Maleficent Seven', {
+  maximumStacks: 7,
+  resourceGain: 7,
+  effects: [
+    { type: 'boon', name: 'Might', boon: 'Might', stacks: 10, duration: 10 },
+    { type: 'boon', name: 'Fury', boon: 'Fury', stacks: 1, duration: 10 },
+    { type: 'boon', name: 'Protection', boon: 'Protection', stacks: 1, duration: 5 },
+    { type: 'boon', name: 'Regeneration', boon: 'Regeneration', stacks: 1, duration: 10 },
+    { type: 'boon', name: 'Swiftness', boon: 'Swiftness', stacks: 1, duration: 10 },
+    { type: 'boon', name: 'Vigor', boon: 'Vigor', stacks: 1, duration: 10 }
+  ]
+});
 
 export const DEADEYE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   DEADEYE_RESOURCE_PROFILE,
@@ -69,18 +82,7 @@ export const DEADEYE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
   trait(DEADEYE_BALANCE_PROFILE_IDS.maliciousIntent, 'Malicious Intent', {
     resourceGain: 2
   }),
-  trait(DEADEYE_BALANCE_PROFILE_IDS.maleficentSeven, 'Maleficent Seven', {
-    maximumStacks: 7,
-    resourceGain: 7,
-    effects: [
-      { type: 'boon', name: 'Might', boon: 'Might', stacks: 10, duration: 10 },
-      { type: 'boon', name: 'Fury', boon: 'Fury', stacks: 1, duration: 10 },
-      { type: 'boon', name: 'Protection', boon: 'Protection', stacks: 1, duration: 5 },
-      { type: 'boon', name: 'Regeneration', boon: 'Regeneration', stacks: 1, duration: 10 },
-      { type: 'boon', name: 'Swiftness', boon: 'Swiftness', stacks: 1, duration: 10 },
-      { type: 'boon', name: 'Vigor', boon: 'Vigor', stacks: 1, duration: 10 }
-    ]
-  }),
+  MALEFICENT_SEVEN_PROFILE,
   trait(DEADEYE_BALANCE_PROFILE_IDS.beQuickOrBeKilled, 'Be Quick or Be Killed', {
     attributeBonus: 200,
     effects: [{ type: 'boon', name: 'Quickness', boon: 'Quickness', stacks: 1, duration: 4 }]

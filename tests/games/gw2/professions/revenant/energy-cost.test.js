@@ -9,7 +9,13 @@ import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 
 // Cost policies consume explicit inputs regardless of where the state originated.
 test('Conduit costs respect follow-up charges, form overrides, and free active upkeep toggles', () => {
-  const state = { beguilingHazeCharges: 2, energyCostOverrides: {}, activeUpkeeps: [], conduitForm: 'Mesmer', cosmicWisdomUntil: 10 };
+  const state = {
+    beguilingHazeCharges: 2,
+    energyCostOverrides: {},
+    activeUpkeeps: [],
+    conduitForm: 'Mesmer',
+    cosmicWisdomUntil: 10
+  };
   const input = { specialization: 'Conduit', state, traits: new Set(), time: 0 };
   const haze = { id: SKILL.BEGUILING_HAZE, energyCost: 20 };
   const vortex = { id: SKILL.HEX_EATER_VORTEX, energyCost: 15 };

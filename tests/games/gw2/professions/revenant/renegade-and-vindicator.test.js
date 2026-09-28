@@ -488,7 +488,7 @@ test('Ashen Demeanor grants self Fervor, Might, and Resistance on its healing-sk
 test("Kalla's Fervor chart uses the Renegade stack cap", () => {
   const effectPresentations = revenantProfession.ui.effectPresentations({
     specialization: 'Renegade',
-    catalog: revenantProfession.catalog
+    balanceContext: { catalog: revenantProfession.catalog, modifierRulesById: new Map() }
   });
   const series = buildChartSeries(
     {
@@ -1571,6 +1571,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
     results: {
       planningState: {
         activeWeaponSet: 1,
+        ammoBySkillId: {},
         profession: { autoattackChains: {} }
       }
     },
@@ -1765,6 +1766,7 @@ test('Deathstrike weapon palette keeps the primary skill timing on cooldown', ()
     results: {
       planningState: {
         atSeconds: 0.72,
+        ammoBySkillId: {},
         cooldowns: {
           Deathstrike: { readyAt: 12420, remaining: 11700 }
         }

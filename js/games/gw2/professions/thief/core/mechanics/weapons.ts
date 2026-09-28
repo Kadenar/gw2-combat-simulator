@@ -237,11 +237,9 @@ export function summonThievesGuild(runtime: ThiefRuntime, cast: RuntimeCast): vo
   const profile = (cast.skill as ThiefSkill).summonAttack;
   if (!profile) return;
   const core = runtime.profession.core;
-  const summons = thievesGuildSummons(runtime);
   const expiresAt = canonicalTime(cast.start + (profile.duration || 0));
   core.activeThievesGuild = {
     ownerId: `${cast.id}:thieves-guild`,
-    variant: summons.at(-1)?.name || 'Core Thief',
     expiresAt,
     started: false
   };

@@ -284,22 +284,18 @@ function skrittScufflePilfer(runtime: ThiefRuntime, data: unknown): void {
   if (!(interval > 0) || runtime.time > expiresAt) return;
   const state = antiquaryState.from(runtime);
   const next = canonicalTime(runtime.time + interval);
-  state.activeAntiquarySummons = state.activeAntiquarySummons.filter((summon) => summon.expiresAt > runtime.time);
   // The public value is a retry and display projection; the queued pulse owns scheduling.
   state.nextSkrittScufflePilferAt = next <= expiresAt ? next : 0;
   pilferArtifacts(runtime, 'scuffle');
   if (next <= expiresAt) runtime.schedule(SKRITT_SCUFFLE, next, { expiresAt });
 }
 
-function completeSkrittScuffle(runtime: ThiefRuntime, skill: ThiefSkill): void {
+/** The scheduled pilfer carries its assistant's lifetime, including the final pulse. */
+function completeSkrittScuffle(runtime: ThiefRuntime): void {
   const state = antiquaryState.from(runtime);
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.scuffle);
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   const expiresAt = canonicalTime(runtime.time + balanceProfileNumber(profile, 'durationMultiplier'));
-  state.activeAntiquarySummons = [
-    ...state.activeAntiquarySummons.filter((summon) => summon.expiresAt > runtime.time),
-    { skillId: skill.id, name: 'Skritt Assistant', expiresAt }
-  ];
   state.nextSkrittScufflePilferAt = runtime.time + interval;
   pilferArtifacts(runtime, 'scuffle');
   if (interval > 0) runtime.schedule(SKRITT_SCUFFLE, canonicalTime(runtime.time + interval), { expiresAt });
@@ -426,8 +422,8 @@ export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     'thief.forged-surfer'(runtime, context) {
       startForgedSurfer(runtime, context.skill);
     },
-    'thief.skritt-scuffle'(runtime, context) {
-      completeSkrittScuffle(runtime, context.skill);
+    'thief.skritt-scuffle'(runtime) {
+      completeSkrittScuffle(runtime);
     },
     'thief.guitar'(runtime) {
       const state = antiquaryState.from(runtime);

@@ -1,3 +1,4 @@
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -33,7 +34,7 @@ test('on-hit traits wait for damage and consumed Weakening Strikes stays consume
   assert.equal(weakness[0].skillName, 'Weakening Strikes');
   assert.equal(poison.length, 2);
   assert.equal(poison[0].at, strikes[0].at);
-  const log = simulationEventLogRows(result, null, thiefProfession);
+  const log = simulationEventLogRows(result, null, withPatchPreview(thiefProfession));
   assert.ok(log.some((row) => row.description === 'BUFF Lotus Training x1 (6s)'));
   assert.ok(log.some((row) => row.description === 'BUFF Weakening Strikes x1 (4s)'));
   assert.ok(log.some((row) => row.description.startsWith('BUFF Lead Attacks')));

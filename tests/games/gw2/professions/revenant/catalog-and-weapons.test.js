@@ -592,6 +592,7 @@ test('legend palette shows only the destination legend with the shared swap cool
         results: {
           planningState: {
             atSeconds: 1,
+            ammoBySkillId: {},
             cooldowns: cooldownContext.cooldowns,
             profession: cooldownContext.professionState
           }

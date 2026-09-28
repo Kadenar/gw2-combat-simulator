@@ -45,11 +45,25 @@ export function grantThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, dura
   const entering = core.stealthStartedAt > at || core.stealthUntil <= at;
   if (entering) core.stealthStartedAt = at;
   core.stealthUntil = Math.min(at + 15, Math.max(at, core.stealthUntil) + duration);
-  // Natural stealth expiry also grants Hidden Killer's four-second linger.
-  core.hiddenKillerUntil = core.stealthUntil + 4;
+  // Natural and forced exits use the same selected Hidden Killer linger.
+  core.hiddenKillerUntil =
+    core.stealthUntil +
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.HIDDEN_KILLER), 'duration');
   if (!entering) return;
   if (hasTrait(runtime, TRAIT.SHADOWS_REJUVENATION)) grantThiefInitiative(runtime, 2);
-  if (hasTrait(runtime, TRAIT.LEECHING_VENOMS)) addVenomCharges(core, ID.SPIDER_VENOM, at, 3, 24, 6);
+  // Entry grants use the same selected charge count, lifetime and cap as forced exits.
+  if (hasTrait(runtime, TRAIT.LEECHING_VENOMS)) {
+    const leeching = requireBalanceProfileFromContext(runtime, PROFILE.leechingVenoms);
+    addVenomCharges(
+      core,
+      ID.SPIDER_VENOM,
+      at,
+      balanceProfileNumber(leeching, 'resourceGain'),
+      balanceProfileNumber(leeching, 'durationMultiplier'),
+      balanceProfileNumber(leeching, 'maximumStacks')
+    );
+  }
+
   if (hasTrait(runtime, TRAIT.CLOAKED_IN_SHADOW))
     emitThiefCondition(runtime, skill, {
       at,

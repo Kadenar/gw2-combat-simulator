@@ -340,7 +340,7 @@ const familyTooltips = {
     (balanceContext) => [
       profileFact(balanceContext, DE.resources, 'durationMultiplier', 'Mark duration', tooltipSeconds),
       profileFact(balanceContext, DE.resources, 'maximumStacks', 'Maximum malice'),
-      profileFact(balanceContext, DE.resources, 'minimumStacks', 'Maximum malice with Maleficent Seven'),
+      profileFact(balanceContext, DE.maleficentSeven, 'maximumStacks', 'Maximum malice with Maleficent Seven'),
       profileFact(balanceContext, DE.resources, 'resourceGain', 'Malice per initiative attack'),
       profileFact(balanceContext, DE.resources, 'playerStacks', 'Additional malice from a critical hit')
     ]
@@ -562,7 +562,7 @@ const familyTooltips = {
   }),
   'thief.double-edge': (balanceContext, entity) => {
     const description =
-      "Succeeds when ready. Reusing during recharge takes the configured success or backfire outcome; Scoundrel's Luck guarantees a risky success and consumes its charge. Backfire locks further reuse until recharge ends.";
+      "Succeeds when ready. Reusing during recharge takes the configured success or backfire outcome; Scoundrel's Luck guarantees a risky success and consumes its charge. Further risky uses remain available after a backfire.";
     if (entity.id === ID.STONE_SUMMIT_CANNON) {
       const success = tooltipProfile(balanceContext, ANTIQUARY.cannonSuccess);
       return {
@@ -918,7 +918,13 @@ export const thiefTooltips: ProfessionTooltips = {
     [TRAIT.LEAD_ATTACKS]: traitTooltip(
       'Spending initiative grants temporary damage stacks. Steal recharges faster.',
       (balanceContext, id) => [
-        modifierFact(balanceContext, 'thief.lead-attacks', 'damagePerStack', 'Strike damage per stack'),
+        profileFact(
+          balanceContext,
+          id,
+          'damageIncreasePerStack',
+          'Strike and condition damage per stack',
+          tooltipPercent
+        ),
         profileFact(balanceContext, id, 'maximumStacks', 'Maximum stacks'),
         profileFact(balanceContext, id, 'durationMultiplier', 'Stack duration', tooltipSeconds),
         profileFact(balanceContext, id, 'rechargeMultiplier', 'Steal recharge', tooltipFactorChange)
@@ -1087,7 +1093,7 @@ export const thiefTooltips: ProfessionTooltips = {
     [TRAIT.MALEFICENT_SEVEN]: traitTooltip(
       'Increase maximum malice. Reaching maximum malice grants initiative and boons once until a malicious attack spends malice.',
       (balanceContext, id) => [
-        profileFact(balanceContext, 'thief.deadeye.resources', 'minimumStacks', 'Maximum malice'),
+        profileFact(balanceContext, id, 'maximumStacks', 'Maximum malice'),
         profileFact(balanceContext, id, 'resourceGain', 'Initiative restored')
       ]
     ),
@@ -1138,22 +1144,24 @@ export const thiefTooltips: ProfessionTooltips = {
     ),
     [TRAIT.TRAVERSING_DUSK]: outsideScopeTooltip,
     [TRAIT.STRENGTH_OF_SHADOWS]: traitTooltip(
-      'Gain expertise from vitality. Torment lasts longer.',
+      'Gain expertise from vitality. Torment deals more damage.',
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'attributeConversion', 'Vitality converted to expertise', tooltipPercent),
-        modifierFact(balanceContext, 'thief.strength-of-shadows', 'amount', 'Torment duration')
+        modifierFact(balanceContext, 'thief.strength-of-shadows', 'amount', 'Torment damage')
       ]
     ),
     [TRAIT.HUNGERING_DARKNESS]: outsideScopeTooltip,
     [TRAIT.SHADESTEP]: (balanceContext, entity) => ({
       description: 'Completing a supported Shadow Shroud skill grants its corresponding boon to the party.',
-      facts: (tooltipProfile(balanceContext, entity.id).effects || []).flatMap(
-        (effect, index) =>
-          simulationEffectFacts(
-            [effect],
-            ['Grasping Shadows · party', "Dawn's Repose · party", 'Mind Shock · party'][index]
-          ).facts
-      )
+      // Match runtime boon identities so removing or reordering effects cannot move skill labels.
+      facts: [
+        ['alacrity', 'Grasping Shadows · party'],
+        ['protection', "Dawn's Repose · party"],
+        ['aegis', 'Mind Shock · party']
+      ].flatMap(([name, label]) => {
+        const effect = requireEffect(tooltipProfile(balanceContext, entity.id), 'boon', name);
+        return effect ? simulationEffectFacts([effect], label).facts : [];
+      })
     }),
     [TRAIT.TRINKET_COLLECTOR]: traitTooltip(
       'Unlock Antiquary, artifacts, Skritt Swipe, and double-edge skills. Pilfering replaces held artifacts; each artifact use consumes its selected slot.'
@@ -1248,10 +1256,15 @@ export const thiefTooltips: ProfessionTooltips = {
     [TRAIT.POSSESSIVE_HOARDER]: (balanceContext, entity) => ({
       description:
         'Using an artifact grants alacrity. Offensive artifacts also grant might; defensive artifacts grant protection instead.',
-      facts: (tooltipProfile(balanceContext, entity.id).effects || []).flatMap(
-        (effect, index) =>
-          simulationEffectFacts([effect], ['offensive artifact', 'defensive artifact', 'any artifact'][index]).facts
-      )
+      // Artifact categories follow the same named boons selected by combat.
+      facts: [
+        ['might', 'offensive artifact'],
+        ['protection', 'defensive artifact'],
+        ['alacrity', 'any artifact']
+      ].flatMap(([name, label]) => {
+        const effect = requireEffect(tooltipProfile(balanceContext, entity.id), 'boon', name);
+        return effect ? simulationEffectFacts([effect], label).facts : [];
+      })
     }),
     [TRAIT.COMBAT_HIGH]: traitTooltip(
       'Skritt Swipe grants a full set of damage-bonus stacks, replacing earlier stacks. Stacks expire one at a time.',

@@ -366,7 +366,8 @@ test('patched Preparedness and Maleficent Seven capacities initialize before res
     const result = run(
       {
         [CORE.resources]: { fields: { maximumStacks: 18, minimumStacks: 21 } },
-        [DEADEYE.resources]: { fields: { maximumStacks: 9, minimumStacks: 11 } }
+        [DEADEYE.resources]: { fields: { maximumStacks: 9 } },
+        [DEADEYE.maleficentSeven]: { fields: { maximumStacks: 11 } }
       },
       'Deadeye',
       [],

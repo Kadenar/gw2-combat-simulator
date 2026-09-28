@@ -1,3 +1,4 @@
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -288,7 +289,7 @@ test('Taste for Blood procs use Overflowing Thirst artwork and log their trigger
   const wanderlustProc = result.procSteps.find(
     (proc) => proc.skill === 'Taste for Blood' && proc.sourceSkill === 'Wanderlust'
   );
-  const eventRows = simulationEventLogRows(result, null, necromancerProfession);
+  const eventRows = simulationEventLogRows(result, null, withPatchPreview(necromancerProfession));
 
   assert.equal(wanderlustProc?.icon, traitIcon);
   assert.equal(
@@ -1160,7 +1161,7 @@ test('Vampiric Presence supports four allied players and respects its five-targe
   const alliedSiphons = allies.resolvedEvents.filter(
     (event) => event.type === 'damage' && String(event.triggeredBy).startsWith('Allied Player')
   );
-  const alliedRows = simulationEventLogRows(allies, null, necromancerProfession).filter((row) =>
+  const alliedRows = simulationEventLogRows(allies, null, withPatchPreview(necromancerProfession)).filter((row) =>
     row.description.startsWith('HIT Vampiric Presence')
   );
   const minionSiphons = (result) =>
@@ -1205,7 +1206,7 @@ test('Vampiric Presence supports four allied players and respects its five-targe
     ['minion:bone-minion:0']
   );
   assert.equal(
-    simulationEventLogRows(uncappedBoneMinions, null, necromancerProfession).some((row) =>
+    simulationEventLogRows(uncappedBoneMinions, null, withPatchPreview(necromancerProfession)).some((row) =>
       row.description.startsWith('HIT Vampiric Presence [Bone Minion #1]')
     ),
     true

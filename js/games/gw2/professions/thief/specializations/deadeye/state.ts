@@ -1,5 +1,8 @@
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { DEADEYE_RESOURCE_PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
+import {
+  DEADEYE_RESOURCE_PROFILE,
+  MALEFICENT_SEVEN_PROFILE
+} from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import {
@@ -30,8 +33,8 @@ function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
     malice: 0,
     // State-only previews use authored defaults; initialization applies the selected patch.
     maximumMalice: balanceProfileNumber(
-      DEADEYE_RESOURCE_PROFILE,
-      hasTrait(traits, TRAIT.MALEFICENT_SEVEN) ? 'minimumStacks' : 'maximumStacks'
+      hasTrait(traits, TRAIT.MALEFICENT_SEVEN) ? MALEFICENT_SEVEN_PROFILE : DEADEYE_RESOURCE_PROFILE,
+      'maximumStacks'
     ),
     // Tracks which activationIds have already had their malice effect applied to prevent multi-hit double-counting
     maliceResolvedActivations: {},

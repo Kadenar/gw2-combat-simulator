@@ -135,7 +135,6 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     name: 'Distracting Throw - Finisher Bonus',
     profileKind: 'skill-variant',
     parentId: ID.DISTRACTING_THROW,
-    damageIncrease: 0.1,
     durationMultiplier: 10,
     effects: []
   },
@@ -240,7 +239,6 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     rechargeMultiplier: 0.85
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.fluidStrikes, 'Fluid Strikes', {
-    damageIncrease: 0.1,
     durationMultiplier: 5
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.hardToCatch, 'Hard to Catch', {
@@ -320,8 +318,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     ]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.potentPoison, 'Potent Poison', {
-    conditionDurationBonus: 0.33,
-    damageMultiplier: 1.33
+    conditionDurationBonus: 0.33
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.keenObserver, 'Keen Observer', {
     lowHealthCriticalChance: 0.1,

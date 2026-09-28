@@ -253,6 +253,7 @@ function syncConduitEnergyCostOverrides(runtime: RevenantRuntime): void {
     state.cosmicWisdomUntil = 0;
     state.conduitForm = '';
   }
+
   state.energyCostOverrides = revenantConduitFormIsActive(state, 'Mesmer', runtime.time)
     ? Object.fromEntries(
         MESMER_FORM_COSTS.map(([skillId, profileId]) => [

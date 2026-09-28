@@ -12,6 +12,7 @@ import { isRevenantUpkeep, isRevenantUpkeepRelease } from '#gw2/professions/reve
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type {
   PaletteSkillAvailability,
+  ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import type {
@@ -149,8 +150,7 @@ export function revenantCorePaletteSkillAvailability(
 
 /** Reports shared Revenant drains and spear charges that directly constrain the next action. */
 function revenantCoreStateSnapshot(
-  catalog: Readonly<CanonicalCatalog>,
-  context: RevenantUiContext
+  context: RevenantUiContext & Pick<ProfessionStateSnapshotContext, 'balanceContext'>
 ): RotationStateSnapshotItem[] {
   const state = revenantUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
@@ -171,7 +171,7 @@ function revenantCoreStateSnapshot(
     // Match runtime acquisition's cap from the selected spear skill.
     const maximum = Math.max(
       0,
-      Number((context.catalog ?? catalog).skillsById.get(SKILL.ABYSSAL_RAZE)?.maximumStacks || 0)
+      Number(context.balanceContext.catalog.skillsById.get(SKILL.ABYSSAL_RAZE)?.maximumStacks || 0)
     );
     const nextExpiry = Math.min(...abyssExpiries) - at;
     items.push({
@@ -198,7 +198,7 @@ export function bindRevenantCoreUi(catalog: Readonly<CanonicalCatalog>): Revenan
       return traits.some((trait) => trait.name === 'Swift Termination') ? [0.5] : [];
     },
     slotLoadout: revenantLegendLoadout,
-    rotationStateSnapshot: (context: RevenantUiContext) => revenantCoreStateSnapshot(catalog, context),
+    rotationStateSnapshot: revenantCoreStateSnapshot,
     timelineSkillIcon: revenantTimelineSkillIcon,
     paletteGroups: (context: RevenantUiContext) => {
       const loadout = revenantLegendLoadout.view(context);

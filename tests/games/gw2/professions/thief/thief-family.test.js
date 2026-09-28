@@ -116,13 +116,7 @@ const specializationStateKeys = Object.freeze({
   Daredevil: ['selectedDodge', 'boundingDamageUntil', 'lotusConditionDamageUntil', 'weakeningStrikeReady'],
   Deadeye: ['markedTargetId', 'malice', 'maximumMalice', 'maleficentSevenTriggered'],
   Specter: ['shadowClock', 'shadowShroudActive'],
-  Antiquary: [
-    'artifactSlots',
-    'artifactUsesRemaining',
-    'activeAntiquarySummons',
-    'mistburn',
-    'holoUtilityCooldownReductionExpirations'
-  ]
+  Antiquary: ['artifactSlots', 'artifactUsesRemaining', 'mistburn', 'holoUtilityCooldownReductionExpirations']
 });
 
 test('Thief modules own vertical source slices', () => {

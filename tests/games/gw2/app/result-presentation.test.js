@@ -1,3 +1,4 @@
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -1123,7 +1124,7 @@ test('event log distinguishes phantasm summon, attack, and clone conversion', ()
       initialResource: 0
     })
   );
-  const log = simulationEventLogRows(result, null, mesmerProfession);
+  const log = simulationEventLogRows(result, null, withPatchPreview(mesmerProfession));
 
   assert.ok(
     log.some(

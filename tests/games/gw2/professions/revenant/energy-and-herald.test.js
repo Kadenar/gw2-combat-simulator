@@ -199,7 +199,9 @@ test('profession palette deduplicates actions and shows only active Conduit rele
       .map((id) => revenantCatalog.skillsById.get(id)?.name)
       .filter((name) => name?.startsWith('Release Potential:'));
 
-    assert.deepEqual(releases, [revenantCatalog.skillsById.get(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND[activeLegendId]).name]);
+    assert.deepEqual(releases, [
+      revenantCatalog.skillsById.get(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND[activeLegendId]).name
+    ]);
   }
 });
 

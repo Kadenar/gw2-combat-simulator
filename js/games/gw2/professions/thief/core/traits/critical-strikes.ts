@@ -30,15 +30,11 @@ type ThiefCriticalHitDefinition = ResolvedCriticalHitOptions<
 const CRITICAL_BOONS = [
   {
     traitId: TRAIT.UNRELENTING_STRIKES,
-    profileId: PROFILE.unrelentingStrikes,
-    id: 'thief.unrelenting-strikes',
-    name: 'Unrelenting Strikes'
+    profileId: PROFILE.unrelentingStrikes
   },
   {
     traitId: TRAIT.NO_QUARTER,
-    profileId: PROFILE.noQuarter,
-    id: 'thief.no-quarter',
-    name: 'No Quarter'
+    profileId: PROFILE.noQuarter
   }
 ] as const;
 
@@ -50,11 +46,9 @@ function criticalBoonDefinition(context: unknown, traitId: SkillId) {
   const effect = requireEffect(selectedProfile, 'boon', 'Fury');
   if (!effect) return null;
   return {
-    ...rule,
     boon: String(effect.boon),
     duration: effectNumber(selectedProfile, effect, 'duration'),
-    stacks: effectNumber(selectedProfile, effect, 'stacks'),
-    internalCooldown: balanceProfileNumber(selectedProfile, 'internalCooldown')
+    stacks: effectNumber(selectedProfile, effect, 'stacks')
   };
 }
 

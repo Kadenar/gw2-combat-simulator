@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { describe, test } from 'node:test';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import {
@@ -91,7 +92,9 @@ test('sword follow-ups retain their casting skill while exposing separate damage
     assert.ok(rows.some((row) => row.name === skillName));
     assert.ok(rows.some((row) => row.name === followupName));
     assert.ok(
-      simulationEventLogRows(result, null, profession).some((row) => row.description.startsWith(`HIT ${followupName} `))
+      simulationEventLogRows(result, null, withPatchPreview(profession)).some((row) =>
+        row.description.startsWith(`HIT ${followupName} `)
+      )
     );
   }
 });

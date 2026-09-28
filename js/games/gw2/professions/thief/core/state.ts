@@ -14,7 +14,6 @@ interface ThievesGuildState {
   /** Combat activation starts the parallel streams once per summon. */
   started: boolean;
   readonly ownerId: string;
-  readonly variant: string;
   readonly expiresAt: number;
 }
 

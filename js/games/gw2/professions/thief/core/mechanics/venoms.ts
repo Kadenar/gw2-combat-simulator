@@ -11,7 +11,6 @@ import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 interface VenomDefinition {
   readonly skillId: SkillId;
   readonly skillName: string;
-  readonly kind: string;
   readonly profileId: SkillId;
 }
 
@@ -19,19 +18,16 @@ const VENOMS: readonly VenomDefinition[] = Object.freeze([
   {
     skillId: ID.SPIDER_VENOM,
     skillName: 'Spider Venom',
-    kind: 'spider-venom',
     profileId: PROFILE.spiderVenomProc
   },
   {
     skillId: ID.SKALE_VENOM,
     skillName: 'Skale Venom',
-    kind: 'skale-venom',
     profileId: PROFILE.skaleVenomProc
   },
   {
     skillId: ID.DEVOURER_VENOM,
     skillName: 'Devourer Venom',
-    kind: 'devourer-venom',
     profileId: PROFILE.devourerVenomProc
   }
 ]);

@@ -218,7 +218,7 @@ test('Thief activation declarations are the sole owners of their state transitio
     {
       id: ID.SKRITT_SCUFFLE,
       config: { specialization: 'Antiquary', selectedSkills: ['Skritt Scuffle'] },
-      active: (runtime) => runtime.profession.specialization.state.activeAntiquarySummons.length > 0
+      active: (runtime) => runtime.profession.specialization.state.artifactUsesRemaining > 0
     },
     {
       id: ID.THIEVES_GUILD,

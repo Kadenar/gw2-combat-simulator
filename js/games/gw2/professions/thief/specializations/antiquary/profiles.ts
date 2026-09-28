@@ -29,7 +29,6 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Antiquary Artifact Resources',
     profileKind: 'mechanic',
     maximumStacks: 1,
-    threshold: 15,
     effects: []
   },
   {

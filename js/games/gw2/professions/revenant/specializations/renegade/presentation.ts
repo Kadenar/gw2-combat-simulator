@@ -1,5 +1,6 @@
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import {
   requireBalanceProfileFromContext,
@@ -16,12 +17,16 @@ import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/pro
 
 /** Both displays select the same trait-dependent cap as runtime Fervor grants. */
 function fervorMaximum(context: RevenantUiContext): number {
+  // App snapshots provide a build; direct runtime UI queries provide resolved trait IDs.
+  const lastingLegacy =
+    hasTrait(context, TRAIT.LASTING_LEGACY) ||
+    getActiveTraits(context.build?.specializations).some((trait) => trait.id === TRAIT.LASTING_LEGACY);
   return Math.max(
     1,
     balanceProfileNumber(
       requireBalanceProfileFromContext(
-        context,
-        hasTrait(context, TRAIT.LASTING_LEGACY) ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor
+        context.balanceContext,
+        lastingLegacy ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor
       ),
       'maximumStacks'
     )

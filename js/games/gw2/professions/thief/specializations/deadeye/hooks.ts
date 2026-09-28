@@ -270,11 +270,12 @@ export const deadeyeHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
 
   initialize(runtime) {
     const state = deadeyeState.from(runtime);
-    const resources = requireBalanceProfileFromContext(runtime, PROFILE.resources);
-    state.maximumMalice = balanceProfileNumber(
-      resources,
-      hasTrait(runtime, TRAIT.MALEFICENT_SEVEN) ? 'minimumStacks' : 'maximumStacks'
+    // The selected trait owns its replacement cap; otherwise use Deadeye's base resource cap.
+    const resources = requireBalanceProfileFromContext(
+      runtime,
+      hasTrait(runtime, TRAIT.MALEFICENT_SEVEN) ? PROFILE.maleficentSeven : PROFILE.resources
     );
+    state.maximumMalice = balanceProfileNumber(resources, 'maximumStacks');
     state.malice = Math.min(state.malice, state.maximumMalice);
   },
   availability: (runtime, skill) =>

@@ -108,16 +108,16 @@ export const thiefCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>(
     id: 'thief.lead-attacks',
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: 'damage-additive',
-    parameters: {
-      maximumStacks: 15,
-      damagePerStack: 0.01
+    // Grants, damage and siphons share selected tuning; each packet counts its own live stacks.
+    amount: (context) => {
+      const profile = requireBalanceProfileFromContext(context, PROFILE.leadAttacks);
+      return (
+        Math.min(
+          balanceProfileNumber(profile, 'maximumStacks'),
+          activeStackCount(thiefRuntimeState(context).leadAttackExpirations || [], context.time)
+        ) * balanceProfileNumber(profile, 'damageIncreasePerStack')
+      );
     },
-    // Stacks expire individually, so strikes and condition ticks count those active at their own instant.
-    amount: (context, _target, parameters) =>
-      Math.min(
-        parameters.maximumStacks,
-        activeStackCount(thiefRuntimeState(context).leadAttackExpirations || [], context.time)
-      ) * parameters.damagePerStack,
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.LEAD_ATTACKS)
   },
   {

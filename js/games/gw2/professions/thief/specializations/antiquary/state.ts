@@ -16,12 +16,6 @@ export interface ThiefArtifactSlot {
   readonly skillId: SkillId;
 }
 
-interface ThiefAntiquarySummon {
-  readonly skillId: SkillId;
-  readonly name: string;
-  readonly expiresAt: number;
-}
-
 export interface AntiquaryState extends ThiefStealthAttackChargeState {
   initiativePipRows: number;
   artifactSlots: ThiefArtifactSlot[];
@@ -30,7 +24,6 @@ export interface AntiquaryState extends ThiefStealthAttackChargeState {
 
   backfireState: Record<string, true>;
   initiativeSpentSincePilfer: number;
-  activeAntiquarySummons: ThiefAntiquarySummon[];
   nextSkrittScufflePilferAt: number;
   antiquaryDamageUntil: number;
   combatHighExpirations: number[];
@@ -52,7 +45,6 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
 
     backfireState: {},
     initiativeSpentSincePilfer: 0,
-    activeAntiquarySummons: [],
     nextSkrittScufflePilferAt: 0,
     antiquaryDamageUntil: 0,
     combatHighExpirations: [],
@@ -79,7 +71,6 @@ export const ANTIQUARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   scoundrelsLuck: 0,
 
   backfireState: {},
-  activeAntiquarySummons: [],
   nextSkrittScufflePilferAt: 0,
   antiquaryDamageUntil: 0,
   combatHighExpirations: [],

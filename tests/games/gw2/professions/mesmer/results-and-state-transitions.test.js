@@ -1,3 +1,4 @@
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
@@ -264,7 +265,7 @@ test('event log timestamps use the same explicit Combat Start origin as rotation
       initialResource: 0
     })
   );
-  const log = simulationEventLogRows(result, null, mesmerProfession);
+  const log = simulationEventLogRows(result, null, withPatchPreview(mesmerProfession));
   const duelistStart = log.find((event) => event.description.startsWith('CAST Phantasmal Duelist'));
   const combatStart = log.find((event) => event.description === 'COMBAT START');
   const counterspellStart = log.find((event) => event.description.startsWith('CAST Counterspell'));
