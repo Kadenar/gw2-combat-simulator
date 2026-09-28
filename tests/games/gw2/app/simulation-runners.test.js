@@ -879,6 +879,8 @@ test('relic comparison scopes assumptions and attributes damage against a no-rel
   assert.ok(results.relicComparison, 'break-even model is stored');
   assert.equal(results.relicComparison.opponentRelic, 'Fractal');
   assert.equal(results.relicComparison.targetRelic, 'Mirage');
+  assert.equal(results.relicComparison.opponentFinalDps, results.dps);
+  assert.equal(results.relicComparison.targetFinalDps, 1050);
   assert.deepEqual(results.relicComparison.opponentDamage, { buildDps: 1000, directDamage: 0, contributedDps: 100 });
   assert.deepEqual(results.relicComparison.targetDamage, { buildDps: 1050, directDamage: 0, contributedDps: 150 });
   assert.ok(renderCount >= 1);

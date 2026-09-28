@@ -121,9 +121,10 @@ export class RelicComparisonRunner {
         const model = buildRelicComparisonModel({
           opponentRelic: request.opponentRelic,
           targetRelic: request.comparisonRelic,
-          durationMs: Math.max(opponentSeries.durationMs, targetSeries.durationMs),
           opponentDps: opponentSeries.dps,
-          targetDps: targetSeries.dps
+          targetDps: targetSeries.dps,
+          opponentFinalDps: opponentResult.dps,
+          targetFinalDps: targetResult.dps
         });
         if (requestId !== this.requestId || !app.results) return;
         app.results.relicComparison = {

@@ -429,8 +429,8 @@ test('Mesmer browser simulations allow weapons from other specializations', () =
 
   assert.deepEqual(
     mesmerAppAdapter
-      .runSimulation(app)
-      .steps.filter((step) => step.invalid)
+      .calculateBaselineSimulation(mesmerAppAdapter.baselineSimulationRequest(app))
+      .result.steps.filter((step) => step.invalid)
       .map((step) => step.skill),
     []
   );
@@ -579,7 +579,7 @@ test('interactive simulation leaves contribution passes to the background worker
     skillByName: new Map()
   };
 
-  const result = mesmerAppAdapter.runSimulation(app);
+  const { result } = mesmerAppAdapter.calculateBaselineSimulation(mesmerAppAdapter.baselineSimulationRequest(app));
 
   assert.equal(result.contributions, undefined);
 

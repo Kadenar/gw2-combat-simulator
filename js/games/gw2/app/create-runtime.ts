@@ -283,13 +283,6 @@ export function createProfessionRuntime({
     return calculateBaseline(request, profession);
   }
 
-  function runSimulation(app: ProfessionAppState): Gw2SimulationResult {
-    const output = calculateBaselineSimulation(baselineSimulationRequest(app));
-    app.patchComparison = output.patchComparison;
-    app.results = output.result;
-    return app.results;
-  }
-
   const api: ProfessionRuntimeApi = {
     simulateBuild,
     eliteSpecialization,
@@ -303,8 +296,7 @@ export function createProfessionRuntime({
     rotationPlanningStateAt,
     rotationPreviewAt,
     baselineSimulationRequest,
-    calculateBaselineSimulation,
-    runSimulation
+    calculateBaselineSimulation
   };
   return api;
 }

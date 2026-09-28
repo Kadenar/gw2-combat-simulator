@@ -149,10 +149,10 @@ export function relicComparisonChartSvg(
   const opponentLabel = options.opponentLabel || relicLabel(model.opponentRelic);
   const targetLabel = relicLabel(model.targetRelic);
 
-  // Combine the chart legend and final values in one table, even without enough samples to plot.
+  // Final values belong to each simulation's own endpoint, not the chart's shared duration.
   const damageSummary = `<div class="relic-cmp-table-wrap" role="region" aria-label="Relic comparison results" tabindex="0">
   <table class="relic-cmp-damage">
-    <caption>Results at ${formatSeconds(model.durationMs)}</caption>
+    <caption>Final simulation results</caption>
     <thead><tr><th scope="col">Relic</th><th scope="col">Build DPS</th><th scope="col">Direct relic damage</th><th scope="col">Relic DPS contribution</th></tr></thead>
     <tbody>${(
       [

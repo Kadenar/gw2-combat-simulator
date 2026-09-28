@@ -107,7 +107,9 @@ test('precombat insertion previews preserve Flow and the boundary inside an unfi
       results: null
     };
     adapter.recalculate(app);
-    const result = adapter.runSimulation(app);
+    // Publish the baseline explicitly so insertion previews can reuse its planning state.
+    const { result } = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
+    app.results = result;
     assert.deepEqual(result.warnings, []);
     const beforeHit = adapter.rotationPlanningStateAt(app, 2);
     assert.equal(beforeHit.atSeconds, 1);
@@ -139,7 +141,9 @@ test('Ranger prefix simulations keep precast traps armed until the inherited bou
     results: null
   };
   adapter.recalculate(app);
-  const result = adapter.runSimulation(app);
+  // Publish the baseline explicitly so insertion previews can reuse its planning state.
+  const { result } = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
+  app.results = result;
   assert.deepEqual(result.warnings, []);
   // A future boundary must remain pending: publishing its timestamp early would trigger the trap immediately.
   const prefix = (length) =>
@@ -179,7 +183,9 @@ test('native insertion previews project weapon set and cooldown state', async ()
   };
 
   adapter.recalculate(app);
-  const result = adapter.runSimulation(app);
+  // Publish the baseline explicitly so insertion previews can reuse its planning state.
+  const { result } = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
+  app.results = result;
   const initial = adapter.rotationPlanningStateAt(app, 0);
   const afterFirstSkill = adapter.rotationPlanningStateAt(app, 1);
   const afterFirstSwap = adapter.rotationPlanningStateAt(app, 2);

@@ -58,6 +58,55 @@ test('relic comparison requires two distinct relics', () => {
   assert.equal(relicComparisonAvailable(null, 'Krait'), false);
 });
 
+test('break-even samples share timestamps and stop at the shorter simulation endpoint', () => {
+  // Unequal endpoints must not label the shorter curve's final value with the longer curve's time.
+  const longer = [
+    { t: 0, v: 0 },
+    { t: 250, v: 1000 },
+    { t: 500, v: 2000 }
+  ];
+  const shorter = [
+    { t: 0, v: 0 },
+    { t: 250, v: 900 },
+    { t: 400, v: 1100 }
+  ];
+  for (const reversed of [false, true]) {
+    const model = buildRelicComparisonModel({
+      opponentRelic: 'Fractal',
+      targetRelic: 'Thorns',
+      opponentDps: reversed ? shorter : longer,
+      targetDps: reversed ? longer : shorter,
+      opponentFinalDps: reversed ? 1110 : 2010,
+      targetFinalDps: reversed ? 2010 : 1110
+    });
+
+    assert.equal(model.durationMs, 400);
+    assert.deepEqual(model.points, [
+      { tMs: 250, opponentDps: reversed ? 900 : 1000, targetDps: reversed ? 1000 : 900 },
+      { tMs: 400, opponentDps: reversed ? 1100 : 1000, targetDps: reversed ? 1000 : 1100 }
+    ]);
+    assert.equal(model.crossoverMs, reversed ? null : 325);
+    assert.equal(model.targetAlwaysAhead, false);
+    assert.equal(model.opponentFinalDps, reversed ? 1110 : 2010);
+    assert.equal(model.targetFinalDps, reversed ? 2010 : 1110);
+    assert.match(relicComparisonChartSvg(model), /<caption>Final simulation results<\/caption>/);
+  }
+
+  const empty = buildRelicComparisonModel({
+    opponentRelic: 'Fractal',
+    targetRelic: 'Thorns',
+    opponentDps: longer,
+    targetDps: [],
+    opponentFinalDps: 2010,
+    targetFinalDps: 0
+  });
+  assert.deepEqual(empty.points, []);
+  assert.equal(empty.durationMs, 0);
+  assert.equal(empty.crossoverMs, null);
+  assert.equal(empty.targetAlwaysAhead, false);
+  assert.equal(empty.opponentFinalDps, 2010);
+});
+
 test('break-even model interpolates the crossover where Thorns overtakes the opponent', () => {
   // Opponent flat at 1000; Thorns ramps 900 -> 1100 across the window. They are
   // equal at t=2000ms (index 2), so the crossover interpolates to exactly 2s.
@@ -78,9 +127,10 @@ test('break-even model interpolates the crossover where Thorns overtakes the opp
   const model = buildRelicComparisonModel({
     opponentRelic: 'Fractal',
     targetRelic: 'Thorns',
-    durationMs: 4000,
     opponentDps,
-    targetDps: thornsDps
+    targetDps: thornsDps,
+    opponentFinalDps: opponentDps.at(-1).v,
+    targetFinalDps: thornsDps.at(-1).v
   });
 
   assert.equal(model.opponentRelic, 'Fractal');
@@ -108,9 +158,10 @@ test('break-even model treats an early tie then lead as "always ahead", not a cr
   const model = buildRelicComparisonModel({
     opponentRelic: 'Fractal',
     targetRelic: 'Thorns',
-    durationMs: 2000,
     opponentDps,
-    targetDps: thornsDps
+    targetDps: thornsDps,
+    opponentFinalDps: opponentDps.at(-1).v,
+    targetFinalDps: thornsDps.at(-1).v
   });
 
   assert.equal(model.crossoverMs, null);
@@ -132,9 +183,10 @@ test('break-even model interpolates a crossover between samples', () => {
   const model = buildRelicComparisonModel({
     opponentRelic: 'Akeem',
     targetRelic: 'Thorns',
-    durationMs: 2000,
     opponentDps,
-    targetDps: thornsDps
+    targetDps: thornsDps,
+    opponentFinalDps: opponentDps.at(-1).v,
+    targetFinalDps: thornsDps.at(-1).v
   });
 
   // delta goes -100 -> +100 across [1000, 2000]; zero crossing at the midpoint.
@@ -157,9 +209,10 @@ test('break-even model ignores leading no-damage samples (no spurious t=0 crosso
   const model = buildRelicComparisonModel({
     opponentRelic: 'Fractal',
     targetRelic: 'Thorns',
-    durationMs: 2000,
     opponentDps,
-    targetDps: thornsDps
+    targetDps: thornsDps,
+    opponentFinalDps: opponentDps.at(-1).v,
+    targetFinalDps: thornsDps.at(-1).v
   });
 
   assert.equal(model.points.length, 2);
@@ -188,9 +241,10 @@ test('break-even model ignores an opponent lead confined to the opener', () => {
   const model = buildRelicComparisonModel({
     opponentRelic: 'Fractal',
     targetRelic: 'Thorns',
-    durationMs: 12000,
     opponentDps,
-    targetDps: thornsDps
+    targetDps: thornsDps,
+    opponentFinalDps: opponentDps.at(-1).v,
+    targetFinalDps: thornsDps.at(-1).v
   });
 
   assert.equal(model.crossoverMs, null);
@@ -213,9 +267,10 @@ test('break-even model reports a crossover that occurs past the opener threshold
   const model = buildRelicComparisonModel({
     opponentRelic: 'Akeem',
     targetRelic: 'Thorns',
-    durationMs: 12000,
     opponentDps,
-    targetDps: thornsDps
+    targetDps: thornsDps,
+    opponentFinalDps: opponentDps.at(-1).v,
+    targetFinalDps: thornsDps.at(-1).v
   });
 
   // Last opponent lead is at 8000ms; crossing interpolates to 10000ms.
@@ -235,9 +290,10 @@ test('break-even model reports no crossover when Thorns never catches up', () =>
   const model = buildRelicComparisonModel({
     opponentRelic: 'Fractal',
     targetRelic: 'Thorns',
-    durationMs: 1000,
     opponentDps,
-    targetDps: thornsDps
+    targetDps: thornsDps,
+    opponentFinalDps: opponentDps.at(-1).v,
+    targetFinalDps: thornsDps.at(-1).v
   });
 
   assert.equal(model.crossoverMs, null);
@@ -321,9 +377,10 @@ test('relic damage summaries separate direct damage from net DPS contribution', 
   const model = buildRelicComparisonModel({
     opponentRelic: 'Fractal',
     targetRelic: 'Thorns',
-    durationMs: 10000,
     opponentDps: [{ t: 10000, v: 1200 }],
-    targetDps: [{ t: 10000, v: 1300 }]
+    targetDps: [{ t: 10000, v: 1300 }],
+    opponentFinalDps: 1200,
+    targetFinalDps: 1300
   });
   const markup = relicComparisonChartSvg({ ...model, opponentDamage, targetDamage });
   assert.match(markup, /Fractal \(standard\)/);

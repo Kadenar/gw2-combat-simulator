@@ -244,7 +244,6 @@ export interface ProfessionRuntimeApi {
   ): Gw2SimulationResult;
   baselineSimulationRequest(app: ProfessionAppState): BaselineSimulationRequest;
   calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput;
-  runSimulation(app: ProfessionAppState): Gw2SimulationResult;
 }
 
 export interface ProfessionFeatureRunner {

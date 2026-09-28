@@ -385,7 +385,10 @@ test('RNG analysis is available while detailed Engineer results stay determinist
   };
 
   engineerAppAdapter.recalculate(app);
-  engineerAppAdapter.runSimulation(app);
+  // Keep test setup on the same baseline request/calculation path as the application.
+  app.results = engineerAppAdapter.calculateBaselineSimulation(
+    engineerAppAdapter.baselineSimulationRequest(app)
+  ).result;
   assert.equal(app.results.randomness.mode, 'deterministic');
 
   const request = engineerAppAdapter.randomDistributionRequest(app);

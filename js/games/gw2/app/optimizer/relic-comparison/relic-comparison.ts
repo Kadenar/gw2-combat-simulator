@@ -1,4 +1,5 @@
 import type { ChartPoint } from '#gw2/app/results/charts/time-series-model.js';
+import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
@@ -59,9 +60,10 @@ export interface RelicComparisonModel {
 export interface RelicComparisonModelInput {
   readonly opponentRelic: string;
   readonly targetRelic: string;
-  readonly durationMs: number;
   readonly opponentDps: readonly ChartPoint[];
   readonly targetDps: readonly ChartPoint[];
+  readonly opponentFinalDps: number;
+  readonly targetFinalDps: number;
   /** Fight time before which crossovers are ignored as opener noise. */
   readonly crossoverStartMs?: number;
 }
@@ -76,24 +78,29 @@ function interpolateCrossing(previous: RelicComparisonPoint, current: RelicCompa
   return previous.tMs + (current.tMs - previous.tMs) * fraction;
 }
 
-/** Zips two cumulative DPS curves and finds when the selected target relic stays ahead. */
+/** Samples both curves within their shared window; final simulation DPS stays independent of chart samples. */
 export function buildRelicComparisonModel({
   opponentRelic,
   targetRelic,
-  durationMs,
   opponentDps,
   targetDps,
+  opponentFinalDps,
+  targetFinalDps,
   crossoverStartMs = CROSSOVER_EVALUATION_START_MS
 }: RelicComparisonModelInput): RelicComparisonModel {
-  const length = Math.min(opponentDps.length, targetDps.length);
+  const durationMs = Math.min(opponentDps.at(-1)?.t ?? 0, targetDps.at(-1)?.t ?? 0);
+  const startMs = Math.max(opponentDps[0]?.t ?? 0, targetDps[0]?.t ?? 0);
+  const times = [...new Set([...opponentDps, ...targetDps].map((point) => point.t))]
+    .filter((time) => time >= startMs && time <= durationMs)
+    .sort((left, right) => left - right);
   const points: RelicComparisonPoint[] = [];
-  for (let index = 0; index < length; index += 1) {
-    const opponent = Number(opponentDps[index]?.v ?? 0);
-    const target = Number(targetDps[index]?.v ?? 0);
+  for (const tMs of times) {
+    const opponent = chartValueAt(opponentDps, tMs);
+    const target = chartValueAt(targetDps, tMs);
     // Leading zeroes are not a meaningful tie before either relic deals damage.
     if (!(opponent > 0) || !(target > 0)) continue;
     points.push({
-      tMs: Number(opponentDps[index]?.t ?? targetDps[index]?.t ?? 0),
+      tMs,
       opponentDps: opponent,
       targetDps: target
     });
@@ -125,7 +132,7 @@ export function buildRelicComparisonModel({
     crossoverMs,
     targetAlwaysAhead,
     evaluationStartMs,
-    opponentFinalDps: Number(points.at(-1)?.opponentDps ?? 0),
-    targetFinalDps: Number(points.at(-1)?.targetDps ?? 0)
+    opponentFinalDps,
+    targetFinalDps
   };
 }
