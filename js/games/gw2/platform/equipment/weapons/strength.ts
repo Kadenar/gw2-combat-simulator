@@ -170,8 +170,7 @@ export function weaponStrengthProfileIdForEvent(
     return weaponStrengthProfile(event.weaponStrengthProfileId).id;
   }
 
-  const professionValue = state?.profession || state || {};
-  const profession = typeof professionValue === 'object' ? (professionValue as Record<string, unknown>) : {};
+  // Skill metadata owns transform profiles so delayed hits cannot inherit a later transform state.
   if (skill?.radiantForgeSkill) return 'transform.radiant-forge';
   if (skill?.cycloneBowSkill) return 'transform.cyclone-bow';
   // Celestial Avatar replaces the weapon bar and scales its strikes from the transform, not the equipped weapon.
@@ -207,20 +206,6 @@ export function weaponStrengthProfileIdForEvent(
 
   if (isGw2NonWeaponEffectEvent(event)) {
     return 'nonweapon.unequipped';
-  }
-
-  const activeShroud = String(profession.activeShroud || '').toLowerCase();
-  if (activeShroud && SHROUD_PROFILE_IDS[activeShroud]) {
-    return SHROUD_PROFILE_IDS[activeShroud];
-  }
-
-  if (profession.radiantForge === true) return 'transform.radiant-forge';
-  if (profession.photonForgeActive === true) {
-    return 'transform.photon-forge';
-  }
-
-  if (profession.shadowShroudActive === true) {
-    return 'transform.shadow-shroud';
   }
 
   for (const candidate of [skill?.weapon, skill?.skillWeapon]) {
