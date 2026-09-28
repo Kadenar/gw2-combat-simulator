@@ -641,7 +641,6 @@
 }
 
 @media (max-width: 620px) {
-  .rng-driver-delta,
   .rng-driver-impact {
     align-items: baseline;
     flex-direction: row;
@@ -649,7 +648,6 @@
     width: 100%;
   }
 
-  .rng-driver-delta strong,
   .rng-driver-impact strong {
     min-width: 0;
     text-align: left;
@@ -1747,18 +1745,6 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   margin: 0 0 8px;
   color: var(--text-dim);
   font-size: 0.75rem;
-}
-
-.contrib-status {
-  padding: 2px 7px;
-  border: 1px solid rgba(217, 164, 65, 0.45);
-  border-radius: 999px;
-  color: #e4bd66;
-  background: rgba(217, 164, 65, 0.09);
-  font-size: 0.67rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .contrib-pending {
