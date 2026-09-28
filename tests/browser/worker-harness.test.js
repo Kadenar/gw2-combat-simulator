@@ -84,8 +84,9 @@ test('managed worker batches terminate completed and failed workers and reject s
   const handled = [];
   const batch = new ManagedWorkerBatch();
   batch.begin(1, (error) => failures.push(error));
-  const completedWorker = batch.spawn(
-    () => new globalThis.Worker(),
+  const completedWorker = new globalThis.Worker();
+  batch.spawn(
+    () => completedWorker,
     1,
     {},
     (message, worker) => {
@@ -93,8 +94,9 @@ test('managed worker batches terminate completed and failed workers and reject s
       batch.finish(worker);
     }
   );
-  const supersededWorker = batch.spawn(
-    () => new globalThis.Worker(),
+  const supersededWorker = new globalThis.Worker();
+  batch.spawn(
+    () => supersededWorker,
     1,
     {},
     () => {
@@ -110,14 +112,16 @@ test('managed worker batches terminate completed and failed workers and reject s
   assert.equal(supersededWorker.terminated, true);
   supersededWorker.respond({ requestId: 1, value: 'stale' });
 
-  const failedWorker = batch.spawn(
-    () => new globalThis.Worker(),
+  const failedWorker = new globalThis.Worker();
+  batch.spawn(
+    () => failedWorker,
     2,
     {},
     () => {}
   );
-  const peerWorker = batch.spawn(
-    () => new globalThis.Worker(),
+  const peerWorker = new globalThis.Worker();
+  batch.spawn(
+    () => peerWorker,
     2,
     {},
     () => {}

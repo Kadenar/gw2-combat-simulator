@@ -242,7 +242,7 @@ test('cast labels stagger without overlap and keep fight timestamps', () => {
   for (const label of timestamps) {
     assert.ok(label.x >= 0);
     assert.ok(label.x + context.measureText(label.text).width <= layout.cssWidth);
-    assert.ok(label.y + 10 <= layout.height);
+    assert.ok(label.y + 10 <= Number.parseFloat(canvas.style.height));
     for (const previous of timestamps.filter((other) => other !== label && other.y === label.y && other.x <= label.x)) {
       assert.ok(previous.x + context.measureText(previous.text).width + 4 <= label.x);
     }

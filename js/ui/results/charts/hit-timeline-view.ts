@@ -60,11 +60,8 @@ function tickAttributionHtml(
 export interface HitTimelineLayout {
   readonly groups: readonly (readonly SkillHit[])[];
   readonly cssWidth: number;
-  readonly height: number;
   readonly pad: {
     readonly top: number;
-    readonly right: number;
-    readonly bottom: number;
     readonly left: number;
   };
   readonly plotWidth: number;
@@ -95,7 +92,7 @@ export interface HitTimelineMountOptions extends HitTimelineOptions {
 const HIT_TIMELINE_PAD = { right: 16, left: 54 } as const;
 const ACTIVE_HIT_TIMELINE_MOUNTS = new WeakMap<HTMLElement, ActiveHitTimelineMount>();
 
-/** Draws damage-weighted hit markers and returns the cast groups used by inspection controls. */
+/** Draws damage-weighted hit markers and returns the groups and geometry needed by inspection controls. */
 export function drawHitTimeline(
   canvas: HTMLCanvasElement | null | undefined,
   hits: readonly SkillHit[],
@@ -234,7 +231,7 @@ export function drawHitTimeline(
     context.fillText(emptyText, pad.left + plotWidth / 2, pad.top + plotHeight / 2);
   }
 
-  return { cssWidth, height, pad, plotWidth, plotHeight, groups };
+  return { cssWidth, pad: { top: pad.top, left: pad.left }, plotWidth, plotHeight, groups };
 }
 
 /** Separates lingering condition damage from strike bursts on aligned, independently inspectable lanes. */
@@ -381,7 +378,7 @@ function mountHitTimelineLane(
         <div class="condition-payouts">${detailHits.map((hit) => tickAttributionHtml(hit.contributions || [], hit.t + timeOffsetMs, hit.v)).join('')}</div>`
           : `<div class="hit-detail-table"><table>
         <caption>${escapeHtml(detailLabel)}</caption>
-        <thead><tr><th scope="col">${isCondition ? 'Tick' : 'Hit'}</th><th scope="col">Time</th>${isCondition ? '<th scope="col">Condition type</th>' : ''}<th scope="col">Damage</th>${showEmpowered ? '<th scope="col">Pulse</th>' : ''}${showCritical ? '<th scope="col">Critical</th>' : ''}${showTriggeredBy ? '<th scope="col">Triggered by</th>' : ''}${showAttribution ? '<th scope="col">Attribution</th>' : ''}</tr></thead>
+        <thead><tr><th scope="col">${isCondition ? 'Tick' : 'Hit'}</th><th scope="col">Time</th>${isCondition ? '<th scope="col">Condition type</th>' : ''}<th scope="col">Damage</th>${showEmpowered ? '<th scope="col">Pulse</th>' : ''}${showCritical ? '<th scope="col">Critical</th>' : ''}${showTriggeredBy ? '<th scope="col">Triggered by</th>' : ''}</tr></thead>
         <tbody>${detailHits
           .map(
             (hit, hitIndex) => `<tr><td>${hitIndex + 1}</td><td>${hitTime(hit.t + timeOffsetMs)}</td>

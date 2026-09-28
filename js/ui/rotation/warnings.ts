@@ -1,40 +1,30 @@
 import { escapeHtml } from '#ui/shared/html.js';
 
 export interface RotationWarning {
-  readonly message?: unknown;
-  readonly text?: unknown;
-  readonly time?: unknown;
+  readonly message: string;
+  readonly time: string;
 }
 
 export interface RotationWarningOptions {
   readonly open?: boolean;
 }
 
+/** Renders escaped warning records while preserving the caller's disclosure state. */
 export function mountRotationWarnings(
   container: HTMLElement | null | undefined,
-  warnings: readonly (RotationWarning | string)[] = [],
+  warnings: readonly RotationWarning[] = [],
   { open = false }: RotationWarningOptions = {}
 ): void {
   if (!container) return;
-  const items = warnings
-    .filter((warning) => warning != null)
-    .map((warning) =>
-      typeof warning === 'object'
-        ? {
-            message: String(warning.message ?? warning.text ?? ''),
-            time: warning.time == null ? '' : String(warning.time)
-          }
-        : { message: String(warning), time: '' }
-    );
-  if (!items.length) {
+  if (!warnings.length) {
     container.innerHTML = '';
     return;
   }
 
   container.innerHTML = `<details class="rotation-warnings-wrap"${open ? ' open' : ''}>
-    <summary>Warnings (${items.length})</summary>
+    <summary>Warnings (${warnings.length})</summary>
     <ul class="rotation-warnings-content">
-      ${items
+      ${warnings
         .map(
           (warning) =>
             `<li>${

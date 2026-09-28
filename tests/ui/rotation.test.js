@@ -108,21 +108,26 @@ test('rotation warnings render a collapsed count and escaped details', () => {
 
   mountRotationWarnings(container, [
     { time: '1.25s', message: 'Unsafe <script>' },
-    { time: '2.50s', message: 'Missing resource' }
+    { time: '<2.50s>', message: 'Missing resource' }
   ]);
 
   assert.match(container.innerHTML, /<details class="rotation-warnings-wrap">/);
   assert.doesNotMatch(container.innerHTML, /rotation-warnings-wrap" open/);
   assert.match(container.innerHTML, /Warnings \(2\)/);
   assert.match(container.innerHTML, /rotation-warning-time">1\.25s/);
-  assert.match(container.innerHTML, /rotation-warning-time">2\.50s/);
+  assert.match(container.innerHTML, /rotation-warning-time">&lt;2\.50s&gt;/);
   assert.match(container.innerHTML, /Unsafe &lt;script&gt;/);
   assert.doesNotMatch(container.innerHTML, /Unsafe <script>/);
   assert.match(container.innerHTML, /Missing resource/);
 
-  mountRotationWarnings(container, ['Still unsafe'], { open: true });
+  mountRotationWarnings(container, [{ message: 'Still unsafe', time: '' }], { open: true });
   assert.match(container.innerHTML, /rotation-warnings-wrap" open/);
+  assert.doesNotMatch(container.innerHTML, /rotation-warning-time/);
 
   mountRotationWarnings(container, []);
+  assert.equal(container.innerHTML, '');
+
+  container.innerHTML = 'stale warnings';
+  mountRotationWarnings(container);
   assert.equal(container.innerHTML, '');
 });

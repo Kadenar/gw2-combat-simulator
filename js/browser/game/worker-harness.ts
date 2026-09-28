@@ -80,20 +80,21 @@ export class ManagedWorkerBatch<TMessage extends GameWorkerResponseEnvelope> {
     return !this.failed && this.activeRequestId === requestId;
   }
 
+  /** Starts an active request's worker and passes its handle to the response callback for follow-up or cleanup. */
   spawn(
     createWorker: ManagedWorkerFactory,
     requestId: number,
     request: unknown,
     onMessage: ManagedWorkerMessageHandler<TMessage>
-  ): Worker | null {
-    if (!this.isActive(requestId)) return null;
+  ): void {
+    if (!this.isActive(requestId)) return;
 
     let worker: Worker;
     try {
       worker = createWorker();
     } catch (error) {
       this.fail(requestId, error);
-      return null;
+      return;
     }
 
     this.workers.add(worker);
@@ -123,10 +124,7 @@ export class ManagedWorkerBatch<TMessage extends GameWorkerResponseEnvelope> {
       worker.postMessage(request);
     } catch (error) {
       this.fail(requestId, error);
-      return null;
     }
-
-    return worker;
   }
 
   finish(worker: Worker): void {
