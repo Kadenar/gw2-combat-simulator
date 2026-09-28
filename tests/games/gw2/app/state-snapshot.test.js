@@ -23,7 +23,8 @@ test('Catalyst snapshots use the active balance catalog before and after simulat
   });
   const app = {
     build: { rotation: [] },
-    profession: elementalistProfession,
+    profession: patched,
+    patchId: 'snapshot-test',
     activeCatalog: patched.resolveProfession({ specialization: 'Catalyst', patchId: 'snapshot-test' }).catalog,
     adapter: { eliteSpecialization: () => 'Catalyst' },
     results: null
@@ -94,7 +95,10 @@ test('active state shows one countdown per active relic and ignores future, expi
       ]
     },
     adapter: { eliteSpecialization: () => 'Core', rotationPlanningStateAt: () => ({ atSeconds: 3 }) },
-    profession: { ui: { rotationStateSnapshot: () => [] } },
+    profession: {
+      ui: { rotationStateSnapshot: () => [] },
+      balanceContextFor: () => ({ modifierRulesById: new Map() })
+    },
     rotationInsertionIndex: 1
   };
   const snapshot = rotationStateSnapshot(app);
@@ -128,7 +132,7 @@ test('Deadeye cantrip relic windows reach the shared active-state display and ex
     const { items } = rotationStateSnapshot({
       build: { relic: 'Deadeye', rotation: ['Shadow Gust', '__wait'] },
       results: result,
-      profession: thiefProfession,
+      profession: withPatchPreview(thiefProfession, null),
       adapter: { eliteSpecialization: () => 'Deadeye' }
     });
     assert.equal(items.find((item) => item.id === 'relic:Relic of the Deadeye')?.value, waitMs ? undefined : '8.0s');
@@ -150,7 +154,10 @@ test('Aristocracy shows current stacks with the remaining duration in its toolti
       planningState: { atSeconds: 11 },
       procSteps: [proc(2000, 3), proc(11000, 1), proc(0, 1), proc(1000, 2)]
     },
-    profession: { ui: { rotationStateSnapshot: () => [] } },
+    profession: {
+      ui: { rotationStateSnapshot: () => [] },
+      balanceContextFor: () => ({ modifierRulesById: new Map() })
+    },
     adapter: { eliteSpecialization: () => 'Core', rotationPlanningStateAt: () => ({ atSeconds: 1.5 }) },
     rotationInsertionIndex: 1
   };
@@ -190,7 +197,7 @@ test('Chronomancer active state shows only pending conversions from phantasms al
     rotationStateSnapshot({
       build: { rotation: ['Phantasmal Warlock', '__wait'] },
       results: result,
-      profession: mesmerProfession,
+      profession: withPatchPreview(mesmerProfession, null),
       rotationInsertionIndex: 1,
       adapter: {
         eliteSpecialization: () => 'Chronomancer',

@@ -212,7 +212,7 @@ test('Catalyst snapshots retain capped aura refreshes without adding or reviving
   const snapshot = (atSeconds) =>
     catalystUi
       .rotationStateSnapshot({
-        catalog: elementalistCatalog,
+        balanceContext: { catalog: elementalistCatalog, modifierRulesById: new Map() },
         result,
         atSeconds
       })

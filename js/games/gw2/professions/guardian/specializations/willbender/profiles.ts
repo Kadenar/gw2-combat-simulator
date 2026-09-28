@@ -20,8 +20,7 @@ export const WILLBENDER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     name: 'Willbender Flames',
     profileKind: 'skill-variant',
     parentId: ID.WILLBENDER_FLAMES,
-    maximumStacks: 5,
-    pulseInterval: 1,
+    // Explicit strike ticks own the flame count and timing.
     effects: [
       {
         type: 'strike',

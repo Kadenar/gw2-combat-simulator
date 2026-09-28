@@ -3,6 +3,12 @@ import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { timedBuffAt } from '#gw2/platform/results/query.js';
 import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
+import {
   formatSecondsRemaining,
   guardianSnapshotAt,
   guardianUiSkillIdsByName,
@@ -58,6 +64,16 @@ function professionState(context: GuardianUiContext): Partial<GuardianState> {
   return flattenProfessionState(context.state?.profession || context.professionState);
 }
 
+/** Read selected modifier values without running combat predicates; round away percentage arithmetic noise. */
+function strikeBonus(context: GuardianUiContext, id: string, field: 'amount' | 'factor'): string {
+  const value = requireBalanceNumber(
+    context.balanceContext?.modifierRulesById.get(id)?.[field],
+    `modifier=${id} field=${field}`
+  );
+  const percent = Number(((field === 'factor' ? value - 1 : value) * 100).toPrecision(8));
+  return `${percent > 0 ? '+' : ''}${percent}%`;
+}
+
 function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
   const result = context.result;
   const at = guardianSnapshotAt(context);
@@ -76,25 +92,28 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
 
   const effulgentRemaining = (state.effulgentActiveUntil || 0) - at;
   if (effulgentRemaining > 0) {
-    const stacks = boundedInteger(state.effulgentStacks || 0, 0, 0, 10);
+    // Display the selected cap, including patches that allow more than the baseline stack count.
+    const maximum = balanceProfileNumber(
+      requireBalanceProfileFromContext(context.balanceContext, PROFILE.effulgentStance),
+      'maximumStacks'
+    );
+    const stacks = boundedInteger(state.effulgentStacks || 0, 0, 0, maximum);
     items.push({
       id: 'luminary-effulgent-stance',
       label: 'Effulgent Stance',
-      value: `${stacks}/10 · ${formatSecondsRemaining(effulgentRemaining)}`,
+      value: `${stacks}/${maximum} · ${formatSecondsRemaining(effulgentRemaining)}`,
       title: 'Effulgent stacks and time until detonation'
     });
   }
 
-  // Radiant Armaments only grants +7% strike damage while the radiant hammer
-  // (Dazzling Hammer) is the equipped armament; other radiant weapons still
-  // emit the buff but strip the bonus, so mirror the modifier's hammer gate.
+  // Mirror the hammer-only modifier gate and read each bonus from the selected patch's rules.
   const radiant = timedBuffAt(result, 'guardian-radiant-armaments', at);
   if (radiant && radiant.event.metadata?.radiantWeapon === 'hammer') {
     items.push({
       id: 'luminary-radiant-armaments',
       label: 'Radiant Armaments',
       value: formatSecondsRemaining(radiant.remaining),
-      title: 'Dazzling Hammer: +7% strike damage'
+      title: `Dazzling Hammer: ${strikeBonus(context, 'guardian.radiant-armaments', 'amount')} strike damage`
     });
   }
 
@@ -104,7 +123,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
       id: 'luminary-piercing-stance',
       label: 'Piercing Stance',
       value: formatSecondsRemaining(piercing.remaining),
-      title: 'Piercing Stance: +10% strike damage'
+      title: `Piercing Stance: ${strikeBonus(context, 'guardian.piercing-stance', 'amount')} strike damage`
     });
   }
 
@@ -114,7 +133,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
       id: 'luminary-daring-advance',
       label: 'Daring Advance',
       value: formatSecondsRemaining(daring.remaining),
-      title: 'Daring Advance: +15% strike damage'
+      title: `Daring Advance: ${strikeBonus(context, 'guardian.daring-advance', 'factor')} strike damage`
     });
   }
 

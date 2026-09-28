@@ -97,7 +97,7 @@ function snapshot(profession, specialization, professionState, atSeconds, result
   // These fixture buffs were scheduled and committed; specialized views can inspect either report history.
   if (result) result = { ...result, events: result.resolvedEvents };
   return profession.ui.rotationStateSnapshot({
-    catalog: profession.catalog,
+    balanceContext: { catalog: profession.catalog, modifierRulesById: new Map() },
     specialization,
     professionState,
     atSeconds,

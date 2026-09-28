@@ -18,7 +18,7 @@ function activeState(result, specialization = 'Core', config = {}) {
     thiefProfession.ui
       .rotationStateSnapshot({
         // Presentation reads the same canonical balance source as simulation.
-        catalog: thiefProfession.catalog,
+        balanceContext: { catalog: thiefProfession.catalog, modifierRulesById: new Map() },
         specialization,
         professionState: result.planningState.profession,
         atSeconds: result.planningState.atSeconds,

@@ -51,7 +51,7 @@ function catalystPaletteAvailability(context: ElementalistUiContext, skill: Skil
 // Replay grants and refresh observations together so capped refreshes preserve
 // live stacks without adding stacks or reviving expired ones.
 function empoweringAurasAt(context: ElementalistUiContext, at: number): { stacks: number; remaining: number } | null {
-  const empoweringAurasProfile = requireBalanceProfileFromContext(context, PROFILE.empoweringAuras);
+  const empoweringAurasProfile = requireBalanceProfileFromContext(context.balanceContext, PROFILE.empoweringAuras);
   const maximum = balanceProfileNumber(empoweringAurasProfile, 'maximumStacks');
   let expiries: number[] = [];
   const applications = (context.result?.events || [])
@@ -88,7 +88,10 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
   const items: RotationStateSnapshotItem[] = [];
   const empowerment = activeStackCount(state.elementalEmpowermentExpiries || [], at);
   if (empowerment > 0) {
-    const elementalEmpowermentProfile = requireBalanceProfileFromContext(context, PROFILE.elementalEmpowerment);
+    const elementalEmpowermentProfile = requireBalanceProfileFromContext(
+      context.balanceContext,
+      PROFILE.elementalEmpowerment
+    );
     const maximum = balanceProfileNumber(elementalEmpowermentProfile, 'maximumStacks');
     items.push({
       id: 'catalyst-elemental-empowerment',
@@ -100,7 +103,7 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
 
   const empoweringAuras = empoweringAurasAt(context, at);
   if (empoweringAuras) {
-    const empoweringAurasProfile = requireBalanceProfileFromContext(context, PROFILE.empoweringAuras);
+    const empoweringAurasProfile = requireBalanceProfileFromContext(context.balanceContext, PROFILE.empoweringAuras);
     items.push({
       id: 'catalyst-empowering-auras',
       label: 'Empowering Auras',

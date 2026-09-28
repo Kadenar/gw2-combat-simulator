@@ -36,7 +36,7 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
   }
 
   const lethalRemaining = (state.lethalTempoUntil || 0) - at;
-  const lethalTempoProfile = requireBalanceProfileFromContext(context, PROFILE.lethalTempo);
+  const lethalTempoProfile = requireBalanceProfileFromContext(context.balanceContext, PROFILE.lethalTempo);
   const maximum = balanceProfileNumber(lethalTempoProfile, 'maximumStacks');
   const lethalStacks = boundedInteger(state.lethalTempoStacks || 0, 0, 0, maximum);
   // Lethal Tempo remains available for damage and refreshes on its final tick.

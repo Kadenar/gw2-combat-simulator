@@ -319,7 +319,15 @@ test('Guardian modules expose isolated balance-profile authoring', () => {
     profile('Willbender', WILLBENDER_BALANCE_PROFILE_IDS.flames).profile.effects[0].ticks[0].coefficient,
     0.22
   );
-  assert.equal(profile('Luminary', LUMINARY_BALANCE_PROFILE_IDS.forge).patchableFields.maximumStacks, 4);
+  assert.equal(profile('Luminary', LUMINARY_BALANCE_PROFILE_IDS.forge).patchableFields.rechargeReduction, 5);
+  // Authoring must not advertise scalars that gameplay never reads.
+  for (const [moduleId, profileId, fields] of [
+    ['Willbender', WILLBENDER_BALANCE_PROFILE_IDS.flames, ['maximumStacks', 'pulseInterval']],
+    ['Luminary', LUMINARY_BALANCE_PROFILE_IDS.forge, ['maximumStacks', 'threshold']]
+  ]) {
+    for (const field of fields) assert.equal(Object.hasOwn(profile(moduleId, profileId).patchableFields, field), false);
+  }
+
   assert.deepEqual(
     modules.get('Core').modifierRules.find((rule) => rule.id === 'guardian.inspired-virtue').parameters,
     { damagePerBoon: 0.005 }
@@ -362,7 +370,7 @@ test('Guardian modules expose isolated balance-profile authoring', () => {
         ]
       },
       [LUMINARY_BALANCE_PROFILE_IDS.forge]: {
-        fields: { maximumStacks: { from: 4, to: 5 } }
+        fields: { rechargeReduction: { from: 5, to: 6 } }
       }
     }
   });
@@ -376,7 +384,7 @@ test('Guardian modules expose isolated balance-profile authoring', () => {
       .get(WILLBENDER_BALANCE_PROFILE_IDS.flames)
       .effects[0].ticks.every((tick) => tick.coefficient === 0.3)
   );
-  assert.equal(preview.balanceProfilesById.get(LUMINARY_BALANCE_PROFILE_IDS.forge).maximumStacks, 5);
+  assert.equal(preview.balanceProfilesById.get(LUMINARY_BALANCE_PROFILE_IDS.forge).rechargeReduction, 6);
 
   assert.equal(guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE).effects[0].coefficient, 0.8);
   assert.equal(guardianCatalog.balanceProfilesById.get(GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice).threshold, 5);

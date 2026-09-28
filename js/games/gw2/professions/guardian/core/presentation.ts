@@ -5,6 +5,10 @@ import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulat
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionEffectPresentation,
@@ -47,7 +51,8 @@ function guardianCoreStateSnapshot(context: GuardianUiContext): RotationStateSna
         {
           id: 'guardian-symbolic-avenger',
           label: 'Symbolic Avenger',
-          value: `${stacks}/5 · ${formatSecondsRemaining(remaining)}`,
+          // The selected profile owns the cap in both combat and the snapshot.
+          value: `${stacks}/${balanceProfileNumber(requireBalanceProfileFromContext(context.balanceContext, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER), 'maximumStacks')} · ${formatSecondsRemaining(remaining)}`,
           title: 'Active Symbolic Avenger stacks and time remaining'
         }
       ]

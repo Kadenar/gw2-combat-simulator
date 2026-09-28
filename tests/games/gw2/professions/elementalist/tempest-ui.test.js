@@ -22,7 +22,7 @@ test('Tempest active state shows trait timers at the cursor and hides expired wi
     new Map(
       elementalistProfession.ui
         .rotationStateSnapshot({
-          catalog,
+          balanceContext: { catalog, modifierRulesById: new Map() },
           specialization: 'Tempest',
           result,
           atSeconds

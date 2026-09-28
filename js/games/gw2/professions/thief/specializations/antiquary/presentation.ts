@@ -26,7 +26,10 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     hasTrait(context, TRAIT.PRODIGIOUS_PINCHER) ||
     getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.PRODIGIOUS_PINCHER)
   ) {
-    const prodigiousPincherProfile = requireBalanceProfileFromContext(context, PROFILE.prodigiousPincher);
+    const prodigiousPincherProfile = requireBalanceProfileFromContext(
+      context.balanceContext,
+      PROFILE.prodigiousPincher
+    );
     const threshold = balanceProfileNumber(prodigiousPincherProfile, 'threshold');
     const spent = Math.max(0, state.initiativeSpentSincePilfer || 0);
     items.push({
@@ -49,7 +52,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
 
   const combatHigh = purgeExpiredStacks(state.combatHighExpirations || [], at);
   if (combatHigh.length > 0) {
-    const combatHighProfile = requireBalanceProfileFromContext(context, PROFILE.combatHigh);
+    const combatHighProfile = requireBalanceProfileFromContext(context.balanceContext, PROFILE.combatHigh);
     const maximum = balanceProfileNumber(combatHighProfile, 'maximumStacks');
     const remaining = Math.max(...combatHigh) - at;
     items.push({

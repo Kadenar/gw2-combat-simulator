@@ -59,9 +59,8 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     id: LUMINARY_BALANCE_PROFILE_IDS.forge,
     name: 'Radiant Forge',
     profileKind: 'mechanic',
-    maximumStacks: 4,
+    // Distinct weapons come from the weapon map; only duration and recharge reduction are tunable here.
     rechargeReduction: 5,
-    threshold: 5,
     effects: [
       {
         type: 'buff',

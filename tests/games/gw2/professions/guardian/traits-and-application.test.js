@@ -145,7 +145,11 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
     const projected = projectObservedState(guardianProfession, { profession, time: at });
     assert.equal(projected.symbolicAvengerExpirations.length, stacks);
     assert.equal(profession.core.symbolicAvengerExpirations.length, 5);
-    const items = guardianCoreUi.rotationStateSnapshot({ professionState: projected, atSeconds: at });
+    const items = guardianCoreUi.rotationStateSnapshot({
+      balanceContext: { catalog: guardianCatalog, modifierRulesById: new Map() },
+      professionState: projected,
+      atSeconds: at
+    });
     assert.equal(items.length, stacks ? 1 : 0);
     if (stacks) assert.ok(items[0].value.startsWith(stacks + '/5'));
   }

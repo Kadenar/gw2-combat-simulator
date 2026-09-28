@@ -190,7 +190,6 @@ const FAMILY_SKILL_IDS: Readonly<Record<keyof typeof familyTooltips, readonly Sk
     ID.RESOLVE,
     ID.SHIELD_OF_COURAGE,
     ID.TOME_OF_COURAGE,
-    ID.TOME_OF_COURAGE_ID_42371,
     ID.TOME_OF_JUSTICE,
     ID.TOME_OF_RESOLVE
   ],
@@ -216,8 +215,7 @@ export const guardianTooltips: ProfessionTooltips = {
       [
         [ID.TOME_OF_JUSTICE, FIREBRAND.tomeJustice],
         [ID.TOME_OF_RESOLVE, FIREBRAND.tomeResolve],
-        [ID.TOME_OF_COURAGE, FIREBRAND.tomeCourage],
-        [ID.TOME_OF_COURAGE_ID_42371, FIREBRAND.tomeCourage]
+        [ID.TOME_OF_COURAGE, FIREBRAND.tomeCourage]
       ].map(([id, profile]) => [
         id,
         skillTooltip(
@@ -239,6 +237,10 @@ export const guardianTooltips: ProfessionTooltips = {
           ]
         )
       ])
+    ),
+    // This distinct recorded variant has no tome-opening action or simulated payload.
+    [ID.TOME_OF_COURAGE_ID_42371]: skillTooltip(
+      'This Tome of Courage variant has no simulated effects. It does not open a tome, start passive dormancy, or grant Swift Scholar quickness.'
     ),
     [ID.HELIO_RUSH]: skillTooltip(
       'Rush through your target and strike. An Illuminated charge or an active Symbol of Luminance empowers the impact. The attack then arms a new Illuminated charge for another eligible spear attack.',

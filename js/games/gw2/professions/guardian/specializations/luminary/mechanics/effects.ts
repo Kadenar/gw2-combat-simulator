@@ -1,14 +1,15 @@
 import { canonicalTime } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
+import { strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
+import { effectFirstAt, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2EffectExpiresAt, projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { emitGuardianBoon } from '#gw2/professions/guardian/core/traits/index.js';
 import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/shared.js';
@@ -30,19 +31,11 @@ const AURA_DETONATE = 'guardian.luminary.aura-detonate';
 export const EFFULGENT = 'guardian.luminary.effulgent';
 export const STANCE = 'guardian.luminary.stance';
 
-/** Linked self effects follow the selected primary packet's authored impact boundary. */
+/** Linked self effects use the packet materializer's scaling and anchor so they resolve with the selected impact. */
 export function luminaryImpactAt(cast: RuntimeCast): number {
   const effect = cast.skill.effects?.find((effect) => effect.type === 'strike' && strikeEffectCoefficient(effect) > 0);
   if (effect?.type !== 'strike') return cast.effectiveEnd;
-  const atMs = effectFirstAtMs(effect);
-  if (atMs == null) return cast.effectiveEnd;
-  return canonicalTime(
-    cast.start +
-      (effect.timingScale === 'cast'
-        ? projectCastRelativeEffectTimingMs(cast.skill, (cast.fullEnd - cast.start) * 1000, atMs)
-        : atMs) /
-        1000
-  );
+  return canonicalTime(effectFirstAt(cast.start, cast.fullEnd, scaleCastBoundTiming(cast, cast.skill, effect)));
 }
 
 function detonator(skill: Skill): boolean {

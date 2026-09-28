@@ -94,7 +94,7 @@ test('Lethal Tempo activation and trigger grants share the buff-history and disp
       assert.equal(state(result).lethalTempoUntil, buff.expiresAt);
       for (const atSeconds of [buff.expiresAt, buff.expiresAt + 0.000001]) {
         const items = ui.rotationStateSnapshot({
-          catalog: guardianCatalog,
+          balanceContext: { catalog: guardianCatalog, modifierRulesById: new Map() },
           professionState: result.planningState.profession,
           atSeconds
         });
@@ -111,7 +111,7 @@ test('virtue snapshots include the expiry instant without showing never-activate
   const empty = runGuardian([], config);
   assert.deepEqual(
     ui.rotationStateSnapshot({
-      catalog: guardianCatalog,
+      balanceContext: { catalog: guardianCatalog, modifierRulesById: new Map() },
       professionState: empty.planningState.profession,
       atSeconds: 0
     }),
@@ -122,7 +122,7 @@ test('virtue snapshots include the expiry instant without showing never-activate
   });
   for (const atSeconds of [9.999999, 10, 10.000001]) {
     const items = ui.rotationStateSnapshot({
-      catalog: guardianCatalog,
+      balanceContext: { catalog: guardianCatalog, modifierRulesById: new Map() },
       professionState: result.planningState.profession,
       atSeconds
     });

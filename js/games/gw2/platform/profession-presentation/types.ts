@@ -1,5 +1,6 @@
 import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 /** Defines application presentation callbacks independently of the executable profession runtime. */
 import type { SkillId, Skill, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type { CastCommand, RotationCommand, ProfessionConfig } from '#gw2/platform/execution/types.js';
@@ -269,11 +270,14 @@ interface ProfessionResultUiContext<TProfessionState = unknown> extends Professi
 export type ProfessionEventLogContext<TProfessionState = unknown> = ProfessionResultUiContext<TProfessionState>;
 
 /** Rotation state snapshot at the inspected point. */
-interface ProfessionStateSnapshotContext<
-  TProfessionState = unknown
-> extends ProfessionResultUiContext<TProfessionState> {
+export interface ProfessionStateSnapshotContext<TProfessionState = unknown> extends Omit<
+  ProfessionResultUiContext<TProfessionState>,
+  'catalog'
+> {
   /** Simulation time in seconds of the rotation point being inspected. */
   readonly atSeconds?: number;
+  /** One selected balance source keeps snapshot profiles and modifiers on the same patch. */
+  readonly balanceContext: ProfessionBalanceContext;
 }
 
 /** Charge-release choices for one skill inserted at a rotation index. */
@@ -315,7 +319,7 @@ export interface ProfessionSkillBarSelectionChange {
 export type ProfessionUiCallbackContext<TProfessionState = unknown> = ProfessionPaletteContext<TProfessionState> &
   ProfessionResourceViewContext<TProfessionState> &
   ProfessionEventLogContext<TProfessionState> &
-  ProfessionStateSnapshotContext<TProfessionState> &
+  Partial<ProfessionStateSnapshotContext<TProfessionState>> &
   ProfessionChargeReleaseContext &
   ProfessionWeaponLineContext<TProfessionState> &
   ProfessionTimelineIconContext<TProfessionState>;
