@@ -2,10 +2,7 @@
  * Chronomancer-owned formulas and mechanic classifications.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type {
-  MesmerPhantasmAttackTiming,
-  MesmerTraitDamage
-} from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerPhantasmAttackTiming } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 
 export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
   Record<number, Partial<MesmerPhantasmAttackTiming>>
@@ -121,13 +118,5 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
     // These are Clarity-only observations and must not replace the single-Lancer profile globally.
     repeatDamageAtMs: 3320,
     repeatSpawnAtMs: 4140
-  }
-});
-export const MESMER_CHRONOMANCER_TRAIT_DAMAGE: Readonly<Record<string, MesmerTraitDamage>> = Object.freeze({
-  'Time Bomb': {
-    coefficient: 3,
-    hits: 1,
-    duration: 5,
-    damageIncrease: 0.1
   }
 });

@@ -37,7 +37,7 @@ export const chronomancerHooks: Partial<RuntimeProfession<MesmerRuntimeState>> =
       if (chronomancerState.from(runtime).continuum?.expiresAt !== data) return;
       chronomancerControllerFor(mesmerMechanicsFor(runtime)).restoreContinuum(runtime.time, 'split expired');
     },
-    'mesmer.chronomancer.restore-continuum'(runtime, _data: unknown) {
+    'mesmer.chronomancer.restore-continuum'(runtime) {
       chronomancerControllerFor(mesmerMechanicsFor(runtime)).restoreContinuum(runtime.time, 'manual shift');
     }
   },

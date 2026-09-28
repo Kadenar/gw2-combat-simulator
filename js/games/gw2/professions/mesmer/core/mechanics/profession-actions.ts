@@ -73,12 +73,12 @@ export function createProfessionActionController({
     return spent;
   };
 
-  // Clone path calls destroyClone per clone so the engine can emit death events; numeric path zeroes the counter.
+  // Spending clones cancels their pending attacks; numeric resources only need their counter cleared.
   const consumeResources = (at: number, { activationId }: MesmerResourceSpendDetails = {}): number => {
     const spent = currentResource();
     if (resourceDefinition.singular === 'clone') {
       for (const clone of professionCoreState(state).clones) {
-        destroyClone(clone, at);
+        destroyClone(clone);
       }
 
       professionCoreState(state).clones = [];

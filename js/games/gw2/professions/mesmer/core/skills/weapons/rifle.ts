@@ -52,7 +52,6 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Parti
     // The summon owns its attack and conversion timeline independently of the player cast.
     phantasmTiming: {
       // These lifecycle timings are estimates.
-      castTimeMs: 520,
       damageAtMs: 1560,
       spawnAtMs: 1560
     },

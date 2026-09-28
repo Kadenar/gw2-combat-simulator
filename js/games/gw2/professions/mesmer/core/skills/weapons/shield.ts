@@ -29,7 +29,6 @@ export const MESMER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Part
     sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
     // The summon owns its attack and conversion timeline independently of the player cast.
     phantasmTiming: {
-      castTimeMs: 1640,
       damageAtMs: 1440,
       spawnAtMs: 2160
     },

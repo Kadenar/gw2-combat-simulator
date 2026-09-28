@@ -142,7 +142,8 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
     addCondition,
     scheduleTask: scheduleCloneTask
   });
-  const destroyClone = (clone: MesmerClone, _at: number) => context.cancelOwner({ id: clone.ownerId!, generation: 0 });
+  // Cancelling the clone owner invalidates its pending attacks on replacement or shatter.
+  const destroyClone = (clone: MesmerClone) => context.cancelOwner({ id: clone.ownerId!, generation: 0 });
   const scheduleResourceTask = (candidate: MesmerPendingResource) => {
     if (runtime.activeEmission && candidate.at > runtime.activeEmission.effectiveEnd + EPSILON) return;
     context.schedule('mesmer.resource-gain', Math.max(context.time, candidate.at), candidate);
@@ -201,7 +202,6 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
     addCondition,
     addDamage,
     cloneAttackScheduler,
-    destroyClone,
     resources,
     criticalTraits,
     actions,

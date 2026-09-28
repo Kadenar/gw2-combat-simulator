@@ -191,8 +191,8 @@ test('Mirror availability, palette, projection, and one-time pickup agree on exa
     const controller = context.mesmerRuntime.mirage;
     const state = context.profession.specialization.state;
     const skill = context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR);
-    controller.createMirrors(0.1 + 0.201, 1, 'test');
-    assert.deepEqual(state.mirrors[0], { availableAt: 0.301, expiresAt: 8.301, source: 'test' });
+    controller.createMirrors(0.1 + 0.201, 1);
+    assert.deepEqual(state.mirrors[0], { availableAt: 0.301, expiresAt: 8.301 });
     context.start = context.time = at;
     const active = at >= 0.301 && at < 8.301;
     const availability = mirageAvailability(context, skill);
@@ -246,17 +246,15 @@ test('Mirror retry retains pending creation and overlapping mirrors expire indep
   context.profession.specialization.state.pendingMirrorAts.push(0.301);
   assert.equal(mirageAvailability(context, skill).retryAt, 0.301);
   const controller = context.mesmerRuntime.mirage;
-  controller.createMirrors(0.301, 1, 'first');
-  controller.createMirrors(1.301, 1, 'second');
+  controller.createMirrors(0.301, 1);
+  controller.createMirrors(1.301, 1);
   context.time = 8.301;
   assert.equal(projectObservedState(mesmerProfession, context).availableMirrors, 1);
   assert.equal(controller.pickUpMirror(8.301, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), true);
   assert.equal(controller.pickUpMirror(8.301, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), false);
-  controller.createMirrors(8.301, 1, 'replacement');
-  assert.deepEqual(
-    context.profession.specialization.state.mirrors.map((mirror) => mirror.source),
-    ['replacement']
-  );
+  controller.createMirrors(8.301, 1);
+  // Replacement leaves only its own pickup window after older mirrors expire or are consumed.
+  assert.deepEqual(context.profession.specialization.state.mirrors, [{ availableAt: 8.301, expiresAt: 16.301 }]);
 });
 
 test('player ambush availability and projection preserve the final live microsecond and refresh exactly', () => {

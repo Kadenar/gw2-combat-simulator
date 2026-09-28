@@ -153,6 +153,7 @@ const cloakFacts = (balanceContext: Parameters<DescribeSimulationTooltip>[0]) =>
 export const mesmerTooltips: ProfessionTooltips = {
   skillFacts: (_c, entity) => {
     const selected = entity as MesmerSkill;
+    // Follow-up facts use the runtime's window and fraction of parent base recharge.
     return [
       ...(selected.resource?.mode === 'add'
         ? [
@@ -162,12 +163,17 @@ export const mesmerTooltips: ProfessionTooltips = {
             }
           ]
         : []),
-      ...(selected.flipDuration == null
+      ...(selected.flipArm?.duration == null
         ? []
-        : [{ name: 'Follow-up window', detail: tooltipSeconds(selected.flipDuration) }]),
+        : [{ name: 'Follow-up window', detail: tooltipSeconds(selected.flipArm.duration) }]),
       ...(selected.parentCooldownIncrease == null
         ? []
-        : [{ name: 'Additional parent recharge', detail: tooltipSeconds(selected.parentCooldownIncrease) }]),
+        : [
+            {
+              name: 'Additional parent recharge',
+              detail: `${tooltipPercent(selected.parentCooldownIncrease)} of parent base recharge`
+            }
+          ]),
       ...(selected.resourceCost == null
         ? []
         : [{ name: 'Endurance spent', detail: tooltipDecimal(tooltipNumber(selected, 'resourceCost')) }])

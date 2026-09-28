@@ -68,7 +68,7 @@ export function createMirageActionController({
   });
 
   // Ground mirrors use exact half-open pickup windows; skill metadata owns any creation delay.
-  const createMirrors = (at: number, count: number, source: string) => {
+  const createMirrors = (at: number, count: number) => {
     const mechanicsProfile = requireBalanceProfileFromContext(state, PROFILE.mechanics);
     const mirror = requireEffect(mechanicsProfile, 'buff', 'mirage-mirror');
     if (!mirror) return;
@@ -79,8 +79,7 @@ export function createMirageActionController({
     for (let index = 0; index < Math.max(0, count); index += 1) {
       owner.mirrors.push({
         availableAt: at,
-        expiresAt: canonicalTime(at + mirror.duration),
-        source
+        expiresAt: canonicalTime(at + mirror.duration)
       });
     }
   };
@@ -341,7 +340,7 @@ export function createMirageActionController({
     if (skill.id === ID.DISTORTION && hasTrait(state, TRAIT.DESERT_DISTORTION)) {
       grantAmbushWindow(at, 'Desert Distortion');
       const desertDistortionProfile = requireBalanceProfileFromContext(state, PROFILE.desertDistortion);
-      createMirrors(at, spent * balanceProfileNumber(desertDistortionProfile, 'resourceGain'), 'Desert Distortion');
+      createMirrors(at, spent * balanceProfileNumber(desertDistortionProfile, 'resourceGain'));
       addTraitProc('Desert Distortion', at, skill.name, `${spent} Mirage Mirror${spent === 1 ? '' : 's'} created`);
     }
 

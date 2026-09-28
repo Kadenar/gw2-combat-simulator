@@ -17,7 +17,6 @@ import type { MesmerProjectedInstrument } from '#gw2/professions/mesmer/speciali
 import type {
   MesmerCloneAttack,
   MesmerCloneAttackScheduler,
-  MesmerDestroyClone,
   MesmerCriticalTraitDispatcher,
   MesmerPhantasmAttackTiming,
   MesmerPhantasmPolicy,
@@ -138,7 +137,6 @@ export interface MesmerMechanics {
   addCondition: MesmerAddCondition;
   addDamage: MesmerAddDamage;
   cloneAttackScheduler: MesmerCloneAttackScheduler;
-  destroyClone: MesmerDestroyClone;
   resources: MesmerResourceController;
   criticalTraits: MesmerCriticalTraitDispatcher;
   actions: MesmerProfessionActionController;

@@ -13,7 +13,6 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
     ],
     // The summon owns its attack and conversion timeline independently of the player cast.
     phantasmTiming: {
-      castTimeMs: 520,
       // Clarity agents spawn together, but their observed attacks/conversions can stagger:
       // representative per-entity offsets were damage [920, 1200] and conversion [1760, 2040].
       // Keep the single-Lancer profile until exact shatter-window fidelity needs a Clarity-only override.

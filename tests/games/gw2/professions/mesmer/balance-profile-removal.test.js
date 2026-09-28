@@ -126,6 +126,30 @@ for (const [specialization, trait, skill, attack] of [
     );
   });
 
+// The selected trait profile owns the explosion formula and the armed window without a runtime damage copy.
+test('Time Bomb trait profile edits control its explosion and delay without mutating base data', () => {
+  const result = run(
+    {
+      [TRAIT.TIME_BOMB]: {
+        fields: { durationMultiplier: { from: 5, to: 2 } },
+        effects: [{ type: 'strike', name: 'Strike', coefficient: { from: 3, to: 4 } }]
+      }
+    },
+    'Chronomancer',
+    ['Time Sink', { type: 'wait', durationMs: 3000 }],
+    { selectedTraitIds: [TRAIT.TIME_BOMB] }
+  );
+  const armed = result.events.find((event) => event.type === 'buff' && event.kind === 'time-bomb');
+  const explosion = result.events.find((event) => event.type === 'damage' && event.name === 'Time Bomb');
+  assert.equal(armed.duration, 2);
+  assert.equal(explosion.at, armed.at + 2);
+  assert.equal(explosion.coefficient, 4);
+  assert.equal(explosion.balanceProfileId, TRAIT.TIME_BOMB);
+  const base = mesmerCatalog.balanceProfilesById.get(TRAIT.TIME_BOMB);
+  assert.equal(base.durationMultiplier, 5);
+  assert.equal(base.effects.find((effect) => effect.name === 'Strike').coefficient, 3);
+});
+
 test('Mirage player and clone strikes are removed independently of their conditions', () => {
   for (const source of ['Player', 'Clone']) {
     const result = run(
@@ -261,7 +285,6 @@ test('required profiles and scalars reject malformed input while optional trait 
 
   const compiled = compile(mesmerCatalog.balanceProfilesById.get(id));
   assert.equal(compiled.duration, undefined);
-  assert.equal(compiled.damageIncrease, undefined);
 });
 
 test('selected resource capacity is shared by simulation and presentation', () => {

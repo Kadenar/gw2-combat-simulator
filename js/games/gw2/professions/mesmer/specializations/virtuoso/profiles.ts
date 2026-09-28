@@ -14,7 +14,6 @@ export const VIRTUOSO_BALANCE_PROFILE_IDS = Object.freeze({
   bladesongDistortion: 'mesmer.virtuoso.bladesong-distortion',
   deadlyBlades: TRAIT.DEADLY_BLADES,
   quietIntensity: TRAIT.QUIET_INTENSITY,
-  mentalFocus: TRAIT.MENTAL_FOCUS,
   jaggedMind: TRAIT.JAGGED_MIND,
   phantasmalBlades: TRAIT.PHANTASMAL_BLADES,
   sharpeningSorrow: 2207,
@@ -58,9 +57,6 @@ export const VIRTUOSO_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     phantasmCriticalChance: 0.15,
     criticalChance: 0.15,
     vitalityConversion: 0.1
-  }),
-  trait(VIRTUOSO_BALANCE_PROFILE_IDS.mentalFocus, 'Mental Focus', {
-    damageMultiplier: 1.05
   }),
   trait(VIRTUOSO_BALANCE_PROFILE_IDS.jaggedMind, 'Jagged Mind', {
     effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration: 4, stacks: 1 }]

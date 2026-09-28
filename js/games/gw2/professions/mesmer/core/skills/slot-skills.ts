@@ -66,7 +66,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
     // The summon owns its attack and conversion timeline independently of the player cast.
     phantasmTiming: {
-      castTimeMs: 760,
       damageAtMs: 1240,
       // The dedicated lifecycle converts Disenchanter about 1.92s after cast completion.
       spawnAtMs: 1920
@@ -130,8 +129,6 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
     // The summon owns its attack and conversion timeline independently of the player cast.
     phantasmTiming: {
-      // Keep the lifecycle reference consistent with the skill's reviewed activation.
-      castTimeMs: 760,
       damageAtMs: 3800,
       spawnAtMs: 4510
     },

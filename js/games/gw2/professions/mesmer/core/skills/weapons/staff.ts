@@ -51,7 +51,6 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
     sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
     // The summon owns its attack and conversion timeline independently of the player cast.
     phantasmTiming: {
-      castTimeMs: 780,
       damageAtMs: 2920,
       damageAtMsByEntity: [2800, 2920],
       // Both Warlocks retain their observed attack and clone-conversion stagger.

@@ -140,6 +140,26 @@ const applyMesmerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(mes
 // Keeps the public Core index contract while the named files own supplemental fragments and actions.
 const authoringMesmerProfession = withActivePatchPreview(mesmerProfession);
 
+// Follow-up tooltips expose the same window and recharge units used by the runtime.
+test('Mesmer follow-up facts show canonical windows and a percentage of parent base recharge', () => {
+  const factsFor = (id) => mesmerAppAdapter.skillTooltip(mesmerCatalog.skillsById.get(id)).facts;
+  for (const [id, duration] of [
+    [ID.SINGULARITY_SHOT, '3s'],
+    [ID.INSPIRING_IMAGERY, '2s']
+  ]) {
+    assert.equal(factsFor(id).find((fact) => fact.name === 'Follow-up window')?.detail, duration);
+  }
+
+  assert.equal(
+    factsFor(ID.DIMENSIONAL_APERTURE).find((fact) => fact.name === 'Additional parent recharge')?.detail,
+    '+50% of parent base recharge'
+  );
+  assert.equal(
+    factsFor(ID.MIND_SLASH).some((fact) => ['Follow-up window', 'Additional parent recharge'].includes(fact.name)),
+    false
+  );
+});
+
 // Include generated packets, clone gains, and phantasm overrides in the authored timing contract.
 test('Mesmer authored damage and resource offsets use ordered action ticks', () => {
   const check = (value, path = 'Mesmer', key = '') => {
@@ -448,7 +468,6 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
     const timing = PHANTASM_ATTACK_TIMINGS[skill.id];
 
     assert.ok(timing, `${skill.name} is missing a phantasm attack timing`);
-    assert.ok(timing.castTimeMs > 0, `${skill.name} has an invalid cast time`);
     assert.ok(timing.damageAtMs > 0, `${skill.name} has an invalid damage time`);
     assert.ok(timing.spawnAtMs >= timing.damageAtMs, `${skill.name} converts before damage ends`);
     assert.ok(timing.repeatDamageAtMs >= timing.damageAtMs, `${skill.name} has an invalid Chronophantasma damage time`);

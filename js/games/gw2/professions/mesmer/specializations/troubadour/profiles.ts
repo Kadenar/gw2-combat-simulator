@@ -126,7 +126,6 @@ export const TROUBADOUR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     profileKind: 'mechanic',
     durationMultiplier: 5,
     durationPerTier: 5,
-    damageIncrease: 0.1,
     effects: [HARMONIOUS_HARP_DISTORTION]
   },
   ...Object.entries(MESMER_TROUBADOUR_INSTRUMENTS).map(([skillId, instrument]) =>
@@ -165,7 +164,6 @@ export const TROUBADOUR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     effects: [{ name: 'Strike', type: 'strike', coefficient: 2.25, hits: 1 }]
   },
   trait(TROUBADOUR_BALANCE_PROFILE_IDS.shredding, 'Shredding', {
-    damageIncrease: 0.15,
     effects: [{ name: 'Strike', type: 'strike', coefficient: 1, hits: 1, atMs: 600 }]
   }),
   trait(TROUBADOUR_BALANCE_PROFILE_IDS.lifeOfTheParty, 'Life of the Party', {

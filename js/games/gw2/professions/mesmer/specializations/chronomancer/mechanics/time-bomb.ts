@@ -1,6 +1,11 @@
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
@@ -18,10 +23,12 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
   const at = cast.fullEnd;
   if (!hasTrait(context, TRAIT.TIME_BOMB) || at < state.timeBombUntil) return;
 
-  const timeBomb = runtime.traitDamage['Time Bomb'];
+  // Read the selected trait directly so patch edits and removals govern the explosion and its timer together.
+  const profile = requireBalanceProfileFromContext(context, TRAIT.TIME_BOMB);
+  const timeBomb = requireEffect(profile, 'strike', 'Strike');
   // The removed explosion cannot arm a timer or emit a synthetic hit.
-  if (timeBomb.type !== 'strike') return;
-  const duration = timeBomb.duration || 0;
+  if (!timeBomb) return;
+  const duration = balanceProfileNumber(profile, 'durationMultiplier');
   // This is the delayed explosion timer; rearming is allowed exactly when it detonates.
   state.timeBombUntil = canonicalTime(at + duration);
   const previousEmission = runtime.activeEmission;
@@ -51,6 +58,8 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
       state.timeBombUntil,
       {
         ...timeBomb,
+        balanceProfileId: profile.id,
+        name: undefined,
         summonKind: undefined,
         source: 'Player',
         weapon: 'utility'

@@ -7,7 +7,6 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Part
     sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
     // The summon owns its attack and conversion timeline independently of the player cast.
     phantasmTiming: {
-      castTimeMs: 560,
       damageAtMs: 2240,
       // Measured packet and conversion offsets stay anchored to the observed cast end.
       spawnAtMs: 2800,

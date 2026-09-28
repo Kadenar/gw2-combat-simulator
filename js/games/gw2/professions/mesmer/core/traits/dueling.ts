@@ -101,57 +101,31 @@ export function triggerBlindingDissipation(
   context.addTraitProc('Blinding Dissipation', at, skillName);
 }
 
-/** Emits Fencer's Finesse stacks at the materialized sword-hit cadence. */
-export function emitFencersFinesseStacks(
-  context: FencersFinesseContext,
-  skill: MesmerSkill,
-  hitTimes: readonly number[],
-  hits: number | undefined
-): number {
-  if (!hasTrait(context.context, TRAIT.FENCERS_FINESSE) || skill.weapon !== 'Sword' || hitTimes.length === 0) {
+/** Emits one Fencer's Finesse stack after each eligible resolved sword hit. */
+export function emitFencersFinesseStacks(context: FencersFinesseContext, skill: MesmerSkill, at: number): number {
+  if (!hasTrait(context.context, TRAIT.FENCERS_FINESSE) || skill.weapon !== 'Sword') {
     return Infinity;
   }
 
   const fencersFinesseProfile = requireBalanceProfileFromContext(context.context, TRAIT.FENCERS_FINESSE);
-  // Stack lifetime and cap come from the selected trait profile.
+  // The profile supplies stack lifetime; the attribute modifier owns the cap.
   const duration = balanceProfileNumber(fencersFinesseProfile, 'durationMultiplier');
-  const maximum = balanceProfileNumber(fencersFinesseProfile, 'maximumStacks');
-  const hitCount = Math.max(1, Math.trunc(hits || 1));
-  if (hitTimes.length === hitCount) {
-    for (const hitAt of hitTimes) {
-      context.addEvent({
-        type: 'buff',
-        at: hitAt,
-        // The triggering sword packet resolves before its same-time stack.
-        priority: 5,
-        kind: 'fencer',
-        stacks: 1,
-        duration
-      });
-    }
-
-    return Math.min(...hitTimes);
-  }
-
   context.addEvent({
     type: 'buff',
-    at: hitTimes[0],
+    at,
+    // The triggering sword packet resolves before its same-time stack.
     priority: 5,
     kind: 'fencer',
-    stacks: Math.min(maximum, hitCount),
+    stacks: 1,
     duration
   });
-  return hitTimes[0];
+  return at;
 }
 
-/** Records one Fencer's Finesse proc after all qualifying hit groups are scheduled. */
-export function recordFencersFinesseProc(
-  context: FencersFinesseContext,
-  skill: MesmerSkill,
-  firstTriggerAt: number
-): void {
-  if (Number.isFinite(firstTriggerAt)) {
-    context.addTraitProc("Fencer's Finesse", firstTriggerAt, skill.name);
+/** Records a Fencer's Finesse proc for an eligible hit selected by the caller. */
+export function recordFencersFinesseProc(context: FencersFinesseContext, skill: MesmerSkill, at: number): void {
+  if (Number.isFinite(at)) {
+    context.addTraitProc("Fencer's Finesse", at, skill.name);
   }
 }
 

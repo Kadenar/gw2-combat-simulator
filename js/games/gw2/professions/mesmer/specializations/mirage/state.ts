@@ -8,7 +8,6 @@ import { defineProfessionSpecializationState } from '#gw2/platform/engine/profes
 interface MesmerMirageMirror {
   availableAt: number;
   expiresAt: number;
-  source: string;
 }
 
 export interface MesmerMirageState {

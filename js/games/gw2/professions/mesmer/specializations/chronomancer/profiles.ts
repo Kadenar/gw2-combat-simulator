@@ -1,8 +1,7 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerShatterProfile, mesmerTraitDamageProfile } from '#gw2/professions/mesmer/core/profiles.js';
-import { MESMER_CHRONOMANCER_TRAIT_DAMAGE } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
+import { mesmerShatterProfile } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
 
 export const CHRONOMANCER_BALANCE_PROFILE_IDS = Object.freeze({
@@ -47,11 +46,11 @@ export const CHRONOMANCER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     criticalDamage: 0.05,
     durationMultiplier: 10
   }),
-  mesmerTraitDamageProfile(
-    CHRONOMANCER_BALANCE_PROFILE_IDS.timeBomb,
-    'Time Bomb',
-    MESMER_CHRONOMANCER_TRAIT_DAMAGE['Time Bomb']
-  ),
+  // The trait owns its explosion packet and delay for both runtime and tooltip consumers.
+  trait(CHRONOMANCER_BALANCE_PROFILE_IDS.timeBomb, 'Time Bomb', {
+    durationMultiplier: 5,
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 3, hits: 1 }]
+  }),
   trait(CHRONOMANCER_BALANCE_PROFILE_IDS.illusionaryReversion, 'Illusionary Reversion', {
     threshold: 3,
     resourceGain: 1

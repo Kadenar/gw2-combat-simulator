@@ -51,10 +51,10 @@ export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       );
     },
     'mesmer.mirage.create-mirror'(runtime, data) {
-      const { cast, trigger } = data as TriggerData;
+      const { trigger } = data as TriggerData;
       const state = mirageState.from(runtime);
       state.pendingMirrorAts = state.pendingMirrorAts.filter((at) => at > runtime.time);
-      mirageControllerFor(mesmerMechanicsFor(runtime)).createMirrors(runtime.time, trigger.count ?? 1, cast.skill.name);
+      mirageControllerFor(mesmerMechanicsFor(runtime)).createMirrors(runtime.time, trigger.count ?? 1);
     },
     'mesmer.mirage.grant-cloak'(runtime, data) {
       mirageControllerFor(mesmerMechanicsFor(runtime)).grantMirageCloak(

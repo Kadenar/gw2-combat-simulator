@@ -61,7 +61,7 @@ export function createResourceController({
       for (let index = 0; index < amount; index += 1) {
         if (professionCoreState(state).clones.length >= resourceDefinition.maximum) {
           const replaced = professionCoreState(state).clones.shift();
-          if (replaced) destroyClone(replaced, at);
+          if (replaced) destroyClone(replaced);
         }
 
         const clone = {

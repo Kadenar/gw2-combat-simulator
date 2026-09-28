@@ -74,7 +74,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
     // The summon owns its attack and conversion timeline independently of the player cast.
     phantasmDisplayNames: { 'Phantasm leap': 'Sword Attack', 'Phantasm Blurred Frenzy': 'Blurred Frenzy' },
     phantasmTiming: {
-      castTimeMs: 880,
       damageAtMs: 2280,
       // The supplied power-Chrono lifecycle converts Swordsman at a 3.41s median after its cast completes.
       spawnAtMs: 3410,

@@ -32,7 +32,6 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
     coefficient: 0.55,
     hits: 1,
     firstAttackDelay: 1.2,
-    castTimeMs: 1520,
     damageAtMs: 520,
     interval: 1.56,
     conditions: [

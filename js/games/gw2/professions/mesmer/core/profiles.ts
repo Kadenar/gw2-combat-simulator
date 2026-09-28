@@ -74,11 +74,11 @@ export function mesmerShatterProfile(
   });
 }
 
+// Profiles tune trait packets and timers; damage multipliers belong to executable modifier rules.
 export function mesmerTraitDamageProfile(id: SkillId, name: string, damage: MesmerTraitDamage): BalanceProfile {
   return trait(id, name, {
     ...(damage.cooldown == null ? {} : { internalCooldown: damage.cooldown }),
     ...(damage.duration == null ? {} : { durationMultiplier: damage.duration }),
-    ...(damage.damageIncrease == null ? {} : { damageIncrease: damage.damageIncrease }),
     effects: [
       damage.ticks?.length
         ? { name: 'Strike', type: 'strike', ticks: damage.ticks, timingAnchor: 'castEnd', timingScale: 'fixed' }
@@ -304,11 +304,7 @@ export function mesmerProfiledTraitDamage(
     duration:
       damage.duration === undefined && profile.durationMultiplier === undefined
         ? undefined
-        : balanceProfileNumber(profile, 'durationMultiplier'),
-    damageIncrease:
-      damage.damageIncrease === undefined && profile.damageIncrease === undefined
-        ? undefined
-        : balanceProfileNumber(profile, 'damageIncrease')
+        : balanceProfileNumber(profile, 'durationMultiplier')
   };
 }
 

@@ -22,7 +22,6 @@ export interface MesmerTraitDamage extends Partial<StrikeEffect> {
   readonly cooldown?: number;
   readonly weaponStrength?: number;
   readonly duration?: number;
-  readonly damageIncrease?: number;
 }
 
 export interface MesmerPhantasmPolicy {
@@ -42,7 +41,7 @@ export interface MesmerPhantasmPolicy {
   readonly conversionTiming: 'spawn' | 'blade-tick';
 }
 
-export type MesmerDestroyClone = (clone: MesmerClone, at: number) => void;
+export type MesmerDestroyClone = (clone: MesmerClone) => void;
 
 export type MesmerQueueResources = (
   at: number,
@@ -85,7 +84,6 @@ export interface MesmerCloneAttackStep {
   readonly coefficient?: number;
   readonly hits?: number;
   readonly atMs?: number;
-  readonly castTimeMs?: number;
   readonly damageAtMs?: number;
   readonly ticks?: readonly StrikeTick[];
   readonly interval: number;
@@ -111,8 +109,8 @@ interface MesmerAttackTimingTick {
   readonly atMs: number;
 }
 
+// Phantasm offsets begin at the actual summon cast end supplied by the scheduler.
 export interface MesmerPhantasmAttackTiming {
-  readonly castTimeMs: number;
   readonly damageAtMs: number;
   readonly damageAtMsByEntity?: readonly number[];
   readonly spawnAtMs: number;
