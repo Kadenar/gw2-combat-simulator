@@ -19,10 +19,10 @@
       "browser": "./js/ui/*",
       "default": "./dist/js/ui/*"
     },
-    "#app/*": {
-      "types": "./js/app/*",
-      "browser": "./js/app/*",
-      "default": "./dist/js/app/*"
+    "#browser/*": {
+      "types": "./js/browser/*",
+      "browser": "./js/browser/*",
+      "default": "./dist/js/browser/*"
     },
     "#tests/*": "./tests/*"
   },

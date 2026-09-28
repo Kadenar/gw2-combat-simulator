@@ -6,7 +6,7 @@ import {
   applyBuildTemplatePreview,
   BuildTemplateProfessionMismatchError,
   previewBuildTemplateCode
-} from '#gw2/app/io/build-template-import.js';
+} from '#gw2/app/import-export/build-template-import.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
@@ -101,10 +101,13 @@ test('cross-profession imports identify the build and offer its simulator', () =
 });
 
 test('GW2 contributes build-code controls that use a review dialog instead of browser prompts', () => {
-  const pageControls = readFileSync(new URL('../../../../js/games/gw2/app/page-controls.ts', import.meta.url), 'utf8');
+  const pageControls = readFileSync(
+    new URL('../../../../js/games/gw2/app/session-controls.ts', import.meta.url),
+    'utf8'
+  );
   const buildEditor = readFileSync(new URL('../../../../js/games/gw2/app/build/editor.ts', import.meta.url), 'utf8');
   const dialog = readFileSync(
-    new URL('../../../../js/games/gw2/app/io/build-template-import-dialog.ts', import.meta.url),
+    new URL('../../../../js/games/gw2/app/import-export/build-template-import-dialog.ts', import.meta.url),
     'utf8'
   );
 

@@ -28,13 +28,13 @@ for (const patchId of ['current', 'worker-preview']) {
       );
 
     const baselineWorkerReady = page.waitForEvent('worker', (worker) =>
-      worker.url().includes('baseline-simulation-worker')
+      worker.url().includes('/simulation/baseline/worker.')
     );
     const baseline = await page.evaluate(() => {
       const app = window.professionApp;
       const request = app.adapter.baselineSimulationRequest(app);
       return new Promise((resolve, reject) => {
-        const worker = new Worker('/js/games/gw2/app/simulation/baseline/baseline-simulation-worker.ts', {
+        const worker = new Worker('/js/games/gw2/app/simulation/baseline/worker.ts', {
           type: 'module'
         });
         worker.addEventListener('error', (event) => reject(new Error(event.message)));
@@ -54,19 +54,16 @@ for (const patchId of ['current', 'worker-preview']) {
     expect(await uiImports(await baselineWorkerReady)).toEqual([]);
 
     const modifierWorkerReady = page.waitForEvent('worker', (worker) =>
-      worker.url().includes('modifier-contribution-worker')
+      worker.url().includes('/simulation/modifier-contributions/worker.')
     );
     const contributions = await page.evaluate(() => {
       const app = window.professionApp;
       app.modifierContributionRunner.cancel();
       const request = app.adapter.modifierContributionRequest(app);
       return new Promise((resolve, reject) => {
-        const worker = new Worker(
-          '/js/games/gw2/app/simulation/modifier-contributions/modifier-contribution-worker.ts',
-          {
-            type: 'module'
-          }
-        );
+        const worker = new Worker('/js/games/gw2/app/simulation/modifier-contributions/worker.ts', {
+          type: 'module'
+        });
         worker.addEventListener('error', (event) => reject(new Error(event.message)));
         worker.addEventListener('message', ({ data }) => {
           if (data.error) reject(new Error(data.error));
@@ -81,13 +78,13 @@ for (const patchId of ['current', 'worker-preview']) {
     expect(await uiImports(await modifierWorkerReady)).toEqual([]);
 
     const randomWorkerReady = page.waitForEvent('worker', (worker) =>
-      worker.url().includes('random-distribution-worker')
+      worker.url().includes('/simulation/random-distribution/worker.')
     );
     const random = await page.evaluate(() => {
       const app = window.professionApp;
       const request = { ...app.adapter.randomDistributionRequest(app), trials: 2 };
       return new Promise((resolve, reject) => {
-        const worker = new Worker('/js/games/gw2/app/simulation/random-distribution/random-distribution-worker.ts', {
+        const worker = new Worker('/js/games/gw2/app/simulation/random-distribution/worker.ts', {
           type: 'module'
         });
         const progress = [];

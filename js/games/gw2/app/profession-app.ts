@@ -1,4 +1,4 @@
-import { bindPageControls } from '#gw2/app/page-controls.js';
+import { bindSessionControls } from '#gw2/app/session-controls.js';
 import { bindWikiTooltips } from '#gw2/app/shared/tooltip-overlay.js';
 import { normalizeSelectedSkills } from '#gw2/app/build/state/skill-selection.js';
 import { normalizeInfusions } from '#gw2/platform/builds/codec.js';
@@ -11,22 +11,22 @@ import {
 import { mountBuildTabs, renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
 import { addRotation } from '#gw2/app/rotation/editing/actions.js';
 import { cloneRotation, recordRotationHistory, resetRotationHistory } from '#gw2/app/rotation/editing/history.js';
-import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/modifier-contribution-runner.js';
-import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/random-distribution-runner.js';
-import { GearOptimizerRunner } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-runner.js';
-import { renderGearOptimizer } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-panel.js';
+import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';
+import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
+import { GearOptimizerRunner } from '#gw2/app/optimizer/gear/runner.js';
+import { renderGearOptimizer } from '#gw2/app/optimizer/gear/panel.js';
 import { renderGearOptimizerView } from '#gw2/app/optimizer/view.js';
-import { renderRelicComparison } from '#gw2/app/optimizer/relic-comparison/relic-comparison-panel.js';
+import { renderRelicComparison } from '#gw2/app/optimizer/relic-comparison/panel.js';
 import { renderModifierContributions } from '#gw2/app/results/view.js';
-import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/relic-comparison-runner.js';
+import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/preferences.js';
-import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/baseline-simulation-runner.js';
+import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
 import { loadSimulationSettings, type SimulationSettings } from '#gw2/app/build/panels/simulation-settings.js';
 import { renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/builder.js';
 import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
 import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
-import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#app/shell/rotation-workspace.js';
+import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#browser/shell/rotation-workspace.js';
 
 import type { BuildTemplatePreset, BuildTemplateSelection, ProfessionAttributeData } from '#gw2/app/build/types.js';
 import type {
@@ -147,7 +147,7 @@ export class ProfessionApp implements ProfessionAppState {
     }
 
     this.baselineSimulationRunner.warmup();
-    bindPageControls(this);
+    bindSessionControls(this);
     // Delegated tooltip listeners and the mutation observer cover every subsequent panel render.
     bindWikiTooltips();
     document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => {

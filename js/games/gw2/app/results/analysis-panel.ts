@@ -5,7 +5,7 @@ import type {
 } from '#gw2/app/simulation/random-distribution/types.js';
 import { mountTimeSeriesCharts, type ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
 import { mountHitTimeline } from '#ui/results/charts/hit-timeline-view.js';
-import { bindDialog, showDialog } from '#app/page/dialog.js';
+import { bindDialog, showDialog } from '#browser/page/dialog.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 import type { SkillBreakdownRow } from '#gw2/app/results/skill-breakdown.js';

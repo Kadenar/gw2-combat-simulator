@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { jsonExportFilename } from '#gw2/app/io/files.js';
+import { jsonExportFilename } from '#gw2/app/import-export/files.js';
 
 // Every export shares fallback, whitespace, and extension handling without requiring a browser download matrix.
 test('JSON export names preserve defaults and existing extensions', () => {

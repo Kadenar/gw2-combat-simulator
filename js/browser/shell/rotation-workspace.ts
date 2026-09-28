@@ -1,0 +1,301 @@
+/** Owns the simulator page's rotation workspace layout, focus mode, and live DPS strip. */
+import { trackEmbeddedViewport } from '#browser/page/embed.js';
+import { bindDialog, showDialog } from '#browser/page/dialog.js';
+
+export type RotationWorkspaceAction = 'toggle-config' | 'close-config' | 'toggle-focus' | 'escape';
+
+export type RotationWorkspaceState = Readonly<{
+  configOpen: boolean;
+  focus: boolean;
+}>;
+
+export const DEFAULT_ROTATION_WORKSPACE_STATE: RotationWorkspaceState = Object.freeze({
+  configOpen: false,
+  focus: false
+});
+
+type RotationWorkspaceController = {
+  configButton: HTMLButtonElement;
+  configCloseButton: HTMLButtonElement;
+  configDialog?: HTMLDialogElement;
+  configPanel: HTMLElement;
+  document: Document;
+  focusButton: HTMLButtonElement;
+  rotationSection: HTMLElement;
+  stopConfigViewport?: () => void;
+  stopFocusViewport?: () => void;
+  focusScrollPosition?: Readonly<{ left: number; top: number }>;
+  state: RotationWorkspaceState;
+};
+
+const controllers = new WeakMap<Document, RotationWorkspaceController>();
+export const ROTATION_FOCUS_EXIT_EVENT = 'rotation-workspace-focus-exit';
+
+/** Closes transient rotation UI before leaving the workspace view. */
+export function resetRotationWorkspace(root: Document = document): void {
+  const controller = controllers.get(root);
+  if (!controller) return;
+  applyWorkspaceState(controller, DEFAULT_ROTATION_WORKSPACE_STATE);
+}
+
+/** Enters the existing full-screen rotation workspace without coupling callers to its button markup. */
+export function enterRotationFocus(root: Document = document): void {
+  const controller = controllers.get(root);
+  if (!controller || controller.state.focus) return;
+  applyWorkspaceState(controller, { configOpen: false, focus: true });
+}
+
+export function reduceRotationWorkspaceState(
+  state: RotationWorkspaceState,
+  action: RotationWorkspaceAction
+): RotationWorkspaceState {
+  if (action === 'toggle-config') {
+    return { ...state, configOpen: !state.configOpen };
+  }
+
+  if (action === 'close-config') {
+    return { ...state, configOpen: false };
+  }
+
+  if (action === 'toggle-focus') {
+    return { configOpen: false, focus: !state.focus };
+  }
+
+  if (state.configOpen) {
+    return { ...state, configOpen: false };
+  }
+
+  return state;
+}
+
+export function isSimulationConfigVisible(state: RotationWorkspaceState): boolean {
+  return state.configOpen;
+}
+
+function applyWorkspaceState(controller: RotationWorkspaceController, state: RotationWorkspaceState): void {
+  const previous = controller.state;
+  const view = controller.document.defaultView;
+  if (!previous.focus && state.focus) {
+    const scrollingElement = controller.document.scrollingElement;
+    controller.focusScrollPosition = {
+      left: view?.scrollX ?? scrollingElement?.scrollLeft ?? 0,
+      top: view?.scrollY ?? scrollingElement?.scrollTop ?? 0
+    };
+  }
+
+  controller.state = state;
+
+  const body = controller.document.body;
+  body.toggleAttribute('data-simulation-config-open', state.configOpen);
+  body.toggleAttribute('data-rotation-focus', state.focus);
+
+  controller.configButton.setAttribute('aria-expanded', String(state.configOpen));
+  const configButtonLabel = state.configOpen ? 'Hide simulation config' : 'Open simulation config';
+  // Keep the settings action visibly labeled while its accessible hint reflects the drawer state.
+  controller.configButton.textContent = 'Settings';
+  controller.configButton.setAttribute('aria-label', configButtonLabel);
+  controller.configButton.title = configButtonLabel;
+  const configVisible = isSimulationConfigVisible(state);
+  controller.configPanel.setAttribute('aria-hidden', String(!configVisible));
+  controller.configPanel.inert = !configVisible;
+  controller.configPanel.setAttribute('role', 'dialog');
+  controller.configPanel.toggleAttribute('aria-modal', state.configOpen);
+  if (controller.configDialog) {
+    if (state.configOpen && !previous.configOpen) {
+      controller.stopConfigViewport = showDialog(controller.configDialog);
+    } else if (!state.configOpen) {
+      controller.stopConfigViewport?.();
+      controller.stopConfigViewport = undefined;
+      if (controller.configDialog.open) controller.configDialog.close();
+    }
+  }
+
+  controller.focusButton.setAttribute('aria-pressed', String(state.focus));
+  controller.focusButton.textContent = state.focus ? 'Exit focus' : 'Focus';
+
+  // Place focus where the host is already scrolled instead of jumping to the top of a tall iframe.
+  if (previous.focus !== state.focus && controller.document.documentElement.classList.contains('embed')) {
+    controller.stopFocusViewport?.();
+    controller.stopFocusViewport = state.focus
+      ? trackEmbeddedViewport(controller.rotationSection, { preserveHeight: true })
+      : undefined;
+  }
+
+  if (previous.focus && !state.focus && controller.focusScrollPosition) {
+    const { left, top } = controller.focusScrollPosition;
+    controller.focusScrollPosition = undefined;
+    view?.scrollTo(left, top);
+  }
+
+  // Focus-owned features use this boundary to discard layouts that cannot remain active outside focus mode.
+  if (previous.focus && !state.focus) {
+    controller.document.dispatchEvent(new Event(ROTATION_FOCUS_EXIT_EVENT));
+  }
+}
+
+function dispatchWorkspaceAction(
+  controller: RotationWorkspaceController,
+  action: RotationWorkspaceAction,
+  restoreConfigFocus = false
+): void {
+  const previous = controller.state;
+  const next = reduceRotationWorkspaceState(previous, action);
+  if (next === previous) return;
+  applyWorkspaceState(controller, next);
+
+  if (!previous.configOpen && next.configOpen && !controller.configDialog) {
+    controller.configCloseButton.focus();
+  } else if (previous.configOpen && !next.configOpen && restoreConfigFocus) {
+    controller.configButton.focus();
+  }
+}
+
+function mountRotationHeading(
+  root: Document,
+  heading: HTMLElement,
+  configPanelId: string
+): {
+  configButton: HTMLButtonElement;
+  focusButton: HTMLButtonElement;
+} {
+  const titleText =
+    heading.querySelector('.rotation-builder-title')?.textContent?.trim() ||
+    heading.textContent?.trim() ||
+    'Rotation builder';
+  const hint = heading.querySelector<HTMLElement>('.palette-hint');
+  const title = root.createElement('span');
+  title.className = 'rotation-builder-title';
+  title.textContent = titleText;
+
+  const headingTitle = root.createElement('span');
+  headingTitle.className = 'rotation-builder-heading-title';
+  headingTitle.append(title);
+  // Keep the compact interaction guide beside the title instead of consuming a separate builder row.
+  if (hint) headingTitle.append(hint);
+
+  const controls = root.createElement('span');
+  controls.className = 'rotation-builder-controls';
+
+  const configButton = root.createElement('button');
+  configButton.type = 'button';
+  configButton.className = 'btn btn-io simulation-config-open-button';
+  configButton.setAttribute('aria-controls', configPanelId);
+  configButton.setAttribute('aria-haspopup', 'dialog');
+  configButton.title = 'Open simulation config';
+
+  const focusButton = root.createElement('button');
+  focusButton.type = 'button';
+  focusButton.className = 'btn btn-io rotation-focus-toggle';
+  focusButton.title = 'Maximize the rotation builder';
+
+  controls.append(focusButton, configButton);
+  heading.replaceChildren(headingTitle, controls);
+  heading.classList.add('rotation-builder-heading');
+
+  return { configButton, focusButton };
+}
+
+function mountConfigHeading(root: Document, heading: HTMLElement): HTMLButtonElement {
+  const title = root.createElement('span');
+  title.className = 'simulation-config-title';
+  title.textContent = heading.textContent?.trim() || 'Simulation config';
+
+  const button = root.createElement('button');
+  button.type = 'button';
+  button.className = 'simulation-config-close-button';
+  button.setAttribute('aria-label', 'Close simulation config');
+  button.title = 'Close simulation config';
+  button.textContent = '\u00d7';
+  button.autofocus = true;
+
+  heading.replaceChildren(title, button);
+  return button;
+}
+
+/** Adds the live DPS strip between the timeline and its expandable analysis panels. */
+export function mountRotationDpsSummary(root: Document, rotationPanel: HTMLElement): void {
+  if (root.getElementById('rotation-dps-summary')) return;
+  const timeline = rotationPanel.querySelector<HTMLElement>('#rotation-timeline');
+  if (!timeline) return;
+  const summary = root.createElement('div');
+  summary.id = 'rotation-dps-summary';
+  summary.className = 'rotation-dps-summary';
+  timeline.after(summary);
+}
+
+/** Mounts the anchored config panel and full-viewport Rotation Builder mode. */
+export function mountRotationWorkspace(root: Document = document): void {
+  if (controllers.has(root)) return;
+
+  const workspace = root.querySelector<HTMLElement>('.simulation-workspace');
+  const rotationHeading = workspace?.querySelector<HTMLElement>('.rotation-panel > h3');
+  const rotationPanel = rotationHeading?.closest<HTMLElement>('.rotation-panel');
+  const rotationSection = rotationPanel?.closest<HTMLElement>('.rotation-section');
+  let configPanel = workspace?.querySelector<HTMLElement>('.perma-section');
+  const configHeading = configPanel?.querySelector<HTMLElement>('.perma-panel > h3');
+  if (
+    !root.body ||
+    !workspace ||
+    !rotationHeading ||
+    !rotationPanel ||
+    !rotationSection ||
+    !configPanel ||
+    !configHeading
+  ) {
+    return;
+  }
+
+  const panelShell = root.createElement('div');
+  panelShell.className = 'rotation-panel-shell';
+  rotationPanel.before(panelShell);
+  panelShell.append(rotationPanel);
+  mountRotationDpsSummary(root, rotationPanel);
+
+  // Embedded settings use a native modal so focus and background interaction stay inside the dialog.
+  const configDialog = root.documentElement.classList.contains('embed') ? root.createElement('dialog') : undefined;
+  if (configDialog) {
+    configDialog.className = configPanel.className;
+    configDialog.id = configPanel.id;
+    configDialog.append(...configPanel.childNodes);
+    configPanel.replaceWith(configDialog);
+    configPanel = configDialog;
+  }
+
+  configPanel.id ||= 'simulation-config-panel';
+  configPanel.setAttribute('aria-labelledby', 'simulation-config-title');
+
+  // Keep the viewport drawer outside layout and stacking containers.
+  root.body.append(configPanel);
+
+  const configCloseButton = mountConfigHeading(root, configHeading);
+  configHeading.querySelector('.simulation-config-title')!.id = 'simulation-config-title';
+  const { configButton, focusButton } = mountRotationHeading(root, rotationHeading, configPanel.id);
+
+  const controller: RotationWorkspaceController = {
+    configButton,
+    configCloseButton,
+    configDialog,
+    configPanel,
+    document: root,
+    focusButton,
+    rotationSection,
+    state: DEFAULT_ROTATION_WORKSPACE_STATE
+  };
+  controllers.set(root, controller);
+  applyWorkspaceState(controller, controller.state);
+
+  configButton.addEventListener('click', () => dispatchWorkspaceAction(controller, 'toggle-config', true));
+  configCloseButton.addEventListener('click', () => dispatchWorkspaceAction(controller, 'close-config', true));
+  if (configDialog) bindDialog(configDialog, () => dispatchWorkspaceAction(controller, 'close-config', true));
+  focusButton.addEventListener('click', () => dispatchWorkspaceAction(controller, 'toggle-focus'));
+  root.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || event.defaultPrevented) return;
+    if (root.querySelector('dialog[open]')) return;
+    const next = reduceRotationWorkspaceState(controller.state, 'escape');
+    if (next === controller.state) return;
+    event.preventDefault();
+    const restoreConfigFocus = controller.state.configOpen;
+    applyWorkspaceState(controller, next);
+    if (restoreConfigFocus) controller.configButton.focus();
+  });
+}

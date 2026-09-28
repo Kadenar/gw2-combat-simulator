@@ -10,7 +10,7 @@ import { PLACEHOLDER_ICON } from '#gw2/app/shared/icons.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { analysisViewIsActive, renderSimulationViewModel } from '#app/shell/result-view.js';
+import { analysisViewIsActive, renderSimulationViewModel } from '#browser/shell/result-view.js';
 import type { SimulationViewModel, SimulationViewSection } from '#ui/results/simulation-view.js';
 import type { ResultIconRow } from '#gw2/app/results/skill-icons.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';

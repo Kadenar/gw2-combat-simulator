@@ -5,14 +5,14 @@ import { execFileSync } from 'node:child_process';
 import { performance, PerformanceObserver } from 'node:perf_hooks';
 import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { createGroupedOptimizer } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-space.js';
+import { createGroupedOptimizer } from '#gw2/app/optimizer/gear/search-space.js';
 import {
   captureGearOptimizerRequest,
   createOptimizerSpace,
   createOptimizerEvaluator,
   ordinaryEquipmentAt,
   optimizerScore
-} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer.js';
+} from '#gw2/app/optimizer/gear/search.js';
 
 const professions = process.argv.slice(2);
 const gc = [];

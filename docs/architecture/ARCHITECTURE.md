@@ -37,7 +37,7 @@ Dependency rules (enforced by `eslint.config.js`, `tests/architecture/`, and
 - `js/ui` consumes game-neutral contracts only.
 - `js/games/gw2/platform` may import `js/kernel`, but no profession or application modules.
 - Profession runtimes may import the kernel and platform; profession `app/` adapters may also import GW2 app modules.
-- `js/app` and `js/games/gw2/app` are the composition roots for neutral and GW2 browser concerns.
+- `js/browser` and `js/games/gw2/app` are the composition roots for neutral and GW2 browser concerns.
 
 The shared shell receives a per-profession application adapter (build codec, storage key, runtime/config builder,
 renderer hooks, filenames, specialization fallback, relic list, contribution worker). The registry-driven profession
@@ -137,9 +137,8 @@ Cast acceptance reserves lane/resource/recharge decisions once. Successful casts
 dispatch `onCastCommit` (including trait triggers), then schedule authored tasks. Committed interruptions receive the
 same rewards as full casts; cancelled attempts dispatch only `onCastCancel` for cleanup. The `castCommit` task anchor
 uses the actual cast end, while `castEnd` retains the reserved full end. Named tasks carry detached payloads on the
-common heap. Resolved-hit, condition, boon, combo, and
-control reactions see the same live profession state as the next command. Critical effects reuse the hit's actual
-outcome and claim one ICD; no scheduling prediction exists.
+common heap. Resolved-hit, condition, boon, combo, and control reactions see the same live profession state as the next
+command. Critical effects reuse the hit's actual outcome and claim one ICD; no scheduling prediction exists.
 
 ## Runtime and simulation
 

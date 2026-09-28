@@ -48,7 +48,7 @@ test('clearing a loading template lets new skills simulate without its old worke
     window.Worker = class extends NativeWorker {
       constructor(url, options) {
         super(url, options);
-        this.baseline = String(url).includes('baseline-simulation-worker');
+        this.baseline = String(url).includes('/simulation/baseline/worker.');
       }
 
       postMessage(message) {
@@ -106,7 +106,7 @@ test('adding skills never shows the template skeleton', async ({ page }) => {
 // Cold baseline setup must reuse the preloaded engine and avoid the editor's dependency graph.
 test('template baselines reuse the preloaded worker without importing editor views', async ({ page }) => {
   await openSimulator(page);
-  const worker = page.workers().find((entry) => entry.url().includes('baseline-simulation-worker'));
+  const worker = page.workers().find((entry) => entry.url().includes('/simulation/baseline/worker.'));
   expect(worker).toBeDefined();
   await openTemplates(page);
   await page.locator('.template-load-btn').first().click();
@@ -114,7 +114,7 @@ test('template baselines reuse the preloaded worker without importing editor vie
     const app = window.professionApp;
     return app.build.rotation.length > 0 && app.buildRevision === app.resultRevision;
   });
-  expect(page.workers().find((entry) => entry.url().includes('baseline-simulation-worker'))).toBe(worker);
+  expect(page.workers().find((entry) => entry.url().includes('/simulation/baseline/worker.'))).toBe(worker);
   const editorImports = await worker.evaluate(() =>
     performance
       .getEntriesByType('resource')
@@ -511,8 +511,7 @@ test('relic comparison controls and loading layout survive a narrow host', async
   });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.evaluate(async () => {
-    const { mountRelicComparison } =
-      await import('/js/games/gw2/app/optimizer/relic-comparison/relic-comparison-panel.ts');
+    const { mountRelicComparison } = await import('/js/games/gw2/app/optimizer/relic-comparison/panel.ts');
     const host = document.createElement('div');
     host.dataset.layoutFixture = 'relic-comparison';
     host.style.width = '350px';

@@ -47,9 +47,8 @@ try {
       ...(await page.evaluate(
         async ({ build, rotation, profession }) => {
           const { captureGearOptimizerRequest, optimizerSlots } =
-            await import('/js/games/gw2/app/optimizer/gear-optimizer/gear-optimizer.ts');
-          const { GearOptimizerRunner } =
-            await import('/js/games/gw2/app/optimizer/gear-optimizer/gear-optimizer-runner.ts');
+            await import('/js/games/gw2/app/optimizer/gear/search.ts');
+          const { GearOptimizerRunner } = await import('/js/games/gw2/app/optimizer/gear/runner.ts');
           const app = window.professionApp;
           app.build = app.adapter.toApplicationBuild({ ...build, rotation: rotation.rotation ?? rotation });
           app.changed();

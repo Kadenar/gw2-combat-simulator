@@ -1,0 +1,257 @@
+import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
+import type { CriticalBleedingProcObservation } from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
+import type { EngineerShrapnelObservation } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/proc-observations.js';
+import type { MesmerSharperImagesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
+import type { RangerSharpenedEdgesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js';
+import type { RotationCommand } from '#gw2/platform/execution/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import {
+  appLogReconstructionOptions,
+  selectActiveBuildLogPlayer
+} from '#gw2/app/import-export/logs/log-rotation-import.js';
+import type { RotationImportObservation } from '#gw2/app/import-export/types.js';
+
+export interface ImportedEvtcRotation {
+  readonly rotation: readonly RotationCommand[];
+  readonly actionCount: number;
+  readonly warnings: readonly string[];
+  readonly observations: readonly RotationImportObservation[];
+  readonly playerLabel: string;
+}
+
+function percent(value: number): string {
+  return `${(value * 100).toFixed(2).replace(/\.00$/, '')}%`;
+}
+
+interface ProcRateResult {
+  readonly matchedApplications: number;
+  readonly observedProcRate: number;
+  readonly expectedProcChance: number;
+  readonly expectedApplications: number;
+}
+
+function durationList(durations: readonly number[]): string {
+  return durations.map((duration) => `${duration.toLocaleString()} ms`).join(' or ');
+}
+
+/** Presents inferred EVTC roll evidence without feeding it into reconstruction or simulation state. */
+function procImportObservation(
+  result: ProcRateResult | null,
+  title: string,
+  eligibleHits: number,
+  eligibleHitLabel: string,
+  detail: string
+): RotationImportObservation[] {
+  if (!result) return [];
+  return [
+    {
+      title,
+      summary: `${result.matchedApplications} matched applications / ${eligibleHits} ${eligibleHitLabel} = ${percent(result.observedProcRate)}; modeled chance ${percent(result.expectedProcChance)} (${result.expectedApplications.toFixed(2)} expected).`,
+      detail: `${detail} EVTC does not name the originating trait, so that attribution is inferred by duration.`
+    }
+  ];
+}
+
+function bloodlustImportObservation(result: CriticalBleedingProcObservation | null): RotationImportObservation[] {
+  return procImportObservation(
+    result,
+    'Bloodlust proc rate',
+    result?.criticalHits || 0,
+    'critical hits',
+    result
+      ? `ArcDPS marked the outgoing strike packets as critical. The applications are player-to-target Bleeding records matching the active build's ${durationList(result.matchedDurationsMs)} Bloodlust duration.`
+      : ''
+  );
+}
+
+function shrapnelImportObservation(result: EngineerShrapnelObservation | null): RotationImportObservation[] {
+  return procImportObservation(
+    result,
+    'Shrapnel proc rate',
+    result?.explosionHits || 0,
+    'explosion hits',
+    result
+      ? `The applications are paired player-to-target Bleeding and Crippled records matching the active build's ${durationList(result.matchedBleedingDurationsMs)} and ${durationList(result.matchedCrippledDurationsMs)} durations.`
+      : ''
+  );
+}
+
+function serratedSteelImportObservation(result: CriticalBleedingProcObservation | null): RotationImportObservation[] {
+  return procImportObservation(
+    result,
+    'Serrated Steel proc rate',
+    result?.criticalHits || 0,
+    'critical hits',
+    result
+      ? `ArcDPS marked the outgoing strike packets as critical. The applications are player-to-target Bleeding records matching the active build's ${durationList(result.matchedDurationsMs)} Serrated Steel duration.`
+      : ''
+  );
+}
+
+/** Reports observed Sharper Images procs because clone critical hits always trigger Bleeding. */
+function sharperImagesImportObservation(result: MesmerSharperImagesObservation | null): RotationImportObservation[] {
+  if (!result) return [];
+  return [
+    {
+      title: 'Sharper Images',
+      summary: `Observed ${result.matchedApplications} Sharper Images procs from clone critical hits.`,
+      detail: `ArcDPS records the strike on the clone but attributes the corresponding Bleeding application to the player. Applications were paired within 50 ms and matched the active build's ${durationList(result.matchedDurationsMs)} duration. Phantasm hits are excluded.`
+    }
+  ];
+}
+
+function barbedPrecisionImportObservation(result: CriticalBleedingProcObservation | null): RotationImportObservation[] {
+  return procImportObservation(
+    result,
+    'Barbed Precision proc rate',
+    result?.criticalHits || 0,
+    'critical hits',
+    result
+      ? `ArcDPS marked the outgoing strike packets as critical. The applications are player-to-target Bleeding records matching the active build's ${durationList(result.matchedDurationsMs)} Barbed Precision duration.`
+      : ''
+  );
+}
+
+/** Shows the independently duration-matched player and pet contributions to Sharpened Edges evidence. */
+function sharpenedEdgesImportObservation(result: RangerSharpenedEdgesObservation | null): RotationImportObservation[] {
+  return procImportObservation(
+    result,
+    'Sharpened Edges proc rate',
+    result?.criticalHits || 0,
+    'player or owned-pet critical hits',
+    result
+      ? `ArcDPS marked ${result.playerCriticalHits} player and ${result.petCriticalHits} owned-pet strike packets as critical. Player applications match the active build's ${durationList(result.playerMatchedDurationsMs)} duration; pet applications use independent pet expertise (${result.pets.map((pet) => `${pet.name}: ${pet.matchedApplications}/${pet.criticalHits} at ${pet.matchedDurationMs.toLocaleString()} ms`).join('; ') || 'no pet criticals'}).`
+      : ''
+  );
+}
+
+/** True when a selected rotation file should use the existing JSON importer. */
+export function isJsonRotationFile(file: Pick<File, 'name' | 'type'>): boolean {
+  return file.type.toLowerCase() === 'application/json' || file.name.toLowerCase().endsWith('.json');
+}
+
+/** Reads EVTC/ZIP bytes and reconstructs the matching active build's rotation. */
+export async function readEvtcRotationFile(file: File, app: ProfessionAppState): Promise<ImportedEvtcRotation> {
+  const [{ decompressEvtcInput }, { parseEvtc }, rotationModule] = await Promise.all([
+    import('#gw2/integrations/logs/evtc/decompression.js'),
+    import('#gw2/integrations/logs/evtc/parser.js'),
+    import('#gw2/integrations/logs/evtc/rotation/index.js')
+  ]);
+  const expanded = await decompressEvtcInput(await file.arrayBuffer());
+  const log = parseEvtc(expanded);
+  const players = rotationModule.detectEvtcRotationPlayers(log);
+  const selected = selectActiveBuildLogPlayer(
+    players,
+    app,
+    'log',
+    'Use the EVTC reconstruction CLI with --player=<address>.'
+  );
+  // Forward active build mechanics when the full app adapter is available;
+  // lightweight parser consumers can still use the build's resource default.
+  const reconstructionOptions = appLogReconstructionOptions(app, {
+    initialResource: (
+      app.build as ProfessionAppState['build'] & {
+        readonly initialTomePages?: number;
+      }
+    ).initialTomePages
+  });
+  // EVTC casts carry exact skill ids, so only build config is forwarded; selected ids disambiguate dps.report names.
+  const result = rotationModule.reconstructEvtcRotation(log, app.activeCatalog, {
+    playerAddress: selected.address,
+    professionConfig: reconstructionOptions.professionConfig
+  });
+  const playerAddress = BigInt(selected.address);
+  const observations: RotationImportObservation[] = [];
+  // Surface damage-proven dodge autos without turning supported bugged rotations into import warnings.
+  const dodgeAutos = result.actions.filter((action) => action.vindicatorDodgeAuto);
+  if (dodgeAutos.length) {
+    observations.push({
+      title: 'Vindicator Dodge + Auto bug',
+      summary: `Detected ${dodgeAutos.length} autoattacks during Dodge: ${[...new Set(dodgeAutos.map((action) => action.name))].join(', ')}.`,
+      detail:
+        'Damage confirms these autos executed before Death Drop landed. Dodge Jump spends endurance at takeoff and lands after the airborne autos.'
+    });
+  }
+
+  if (selected.professionId === 'warrior') {
+    observations.push(
+      ...bloodlustImportObservation(
+        rotationModule.analyzeWarriorBloodlustObservation(
+          log,
+          playerAddress,
+          app.activeCatalog,
+          reconstructionOptions.professionConfig
+        )
+      )
+    );
+  }
+
+  if (selected.professionId === 'engineer') {
+    observations.push(
+      ...shrapnelImportObservation(
+        rotationModule.analyzeEngineerShrapnelObservation(
+          log,
+          playerAddress,
+          app.activeCatalog,
+          reconstructionOptions.professionConfig
+        )
+      ),
+      ...serratedSteelImportObservation(
+        rotationModule.analyzeEngineerSerratedSteelObservation(
+          log,
+          playerAddress,
+          app.activeCatalog,
+          reconstructionOptions.professionConfig
+        )
+      )
+    );
+  }
+
+  if (selected.professionId === 'mesmer') {
+    observations.push(
+      ...sharperImagesImportObservation(
+        rotationModule.analyzeMesmerSharperImagesObservation(
+          log,
+          playerAddress,
+          app.activeCatalog,
+          reconstructionOptions.professionConfig
+        )
+      )
+    );
+  }
+
+  if (selected.professionId === 'necromancer') {
+    observations.push(
+      ...barbedPrecisionImportObservation(
+        rotationModule.analyzeNecromancerBarbedPrecisionObservation(
+          log,
+          playerAddress,
+          app.activeCatalog,
+          reconstructionOptions.professionConfig
+        )
+      )
+    );
+  }
+
+  if (selected.professionId === 'ranger') {
+    observations.push(
+      ...sharpenedEdgesImportObservation(
+        rotationModule.analyzeRangerSharpenedEdgesObservation(
+          log,
+          playerAddress,
+          app.activeCatalog,
+          reconstructionOptions.professionConfig
+        )
+      )
+    );
+  }
+
+  return {
+    // Reconstruction output is an external format; canonicalize it at this boundary with its log-derived waits intact.
+    rotation: normalizeRotation(result.rotation, app.activeCatalog, { strict: true }),
+    actionCount: result.actions.length,
+    warnings: result.warnings,
+    observations,
+    playerLabel: `${selected.character} (${selected.account || selected.address})`
+  };
+}

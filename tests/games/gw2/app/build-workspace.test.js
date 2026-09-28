@@ -18,11 +18,11 @@ import {
 } from '#gw2/app/build/state/workspace.js';
 import { loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/panels/presets.js';
 import { recordRotationHistory, undoRotation } from '#gw2/app/rotation/editing/history.js';
-import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/baseline-simulation-runner.js';
-import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/modifier-contribution-runner.js';
-import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/random-distribution-runner.js';
+import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
+import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';
+import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
 import { loadBuild } from '#gw2/app/build/state/persistence.js';
-import { previewRotationFile } from '#gw2/app/io/rotation-import-dialog.js';
+import { previewRotationFile } from '#gw2/app/import-export/rotation-import-dialog.js';
 
 function storage(t, initial = {}) {
   const values = new Map(Object.entries(initial));

@@ -7,8 +7,8 @@
  * the rest are its DOM helpers.
  */
 
-import { resetRotationWorkspace } from '#app/shell/rotation-workspace.js';
-import { navigationRoute } from '#app/page/embed.js';
+import { resetRotationWorkspace } from '#browser/shell/rotation-workspace.js';
+import { navigationRoute } from '#browser/page/embed.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { clamp } from '#kernel/core/numeric.js';
 

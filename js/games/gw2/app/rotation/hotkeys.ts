@@ -1,4 +1,4 @@
-import { bindDialog, showDialog } from '#app/page/dialog.js';
+import { bindDialog, showDialog } from '#browser/page/dialog.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import { ensureDocumentStyles, shouldIgnoreHotkey } from '#ui/shared/dom.js';
 

@@ -1,12 +1,9 @@
-import { mountRelicComparison } from '#gw2/app/optimizer/relic-comparison/relic-comparison-panel.js';
+import { mountRelicComparison } from '#gw2/app/optimizer/relic-comparison/panel.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  bindRelicComparisonChartHover,
-  relicComparisonChartSvg
-} from '#gw2/app/optimizer/relic-comparison/relic-comparison-chart.js';
+import { bindRelicComparisonChartHover, relicComparisonChartSvg } from '#gw2/app/optimizer/relic-comparison/chart.js';
 import {
   CROSSOVER_EVALUATION_START_MS,
   buildRelicComparisonModel,

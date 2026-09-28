@@ -1,4 +1,4 @@
-import { bindBuildTemplateImportDialog } from '#gw2/app/io/build-template-import-dialog.js';
+import { bindBuildTemplateImportDialog } from '#gw2/app/import-export/build-template-import-dialog.js';
 import { renderAssumptions } from '#gw2/app/build/panels/assumptions.js';
 import { renderAttributes } from '#gw2/app/build/panels/attributes.js';
 import { renderGear } from '#gw2/app/build/panels/gear.js';
@@ -7,7 +7,7 @@ import { renderSkills } from '#gw2/app/build/panels/skills.js';
 import { renderTraits } from '#gw2/app/build/panels/traits.js';
 import { mountRotationDisplayControls } from '#gw2/app/rotation/timeline/display-controls.js';
 import { mountSimulationSettings } from '#gw2/app/build/panels/simulation-settings.js';
-import type { BuildEditor } from '#app/shell/types.js';
+import type { BuildEditor } from '#browser/shell/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /** Supplies the existing GW2 editor sections through the game-neutral contribution contract. */

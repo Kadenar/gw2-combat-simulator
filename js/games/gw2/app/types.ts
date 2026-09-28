@@ -49,7 +49,7 @@ import type {
 } from '#gw2/app/build/types.js';
 import type { RelicComparisonModel } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { BuildEditor, SimulationPresentation } from '#app/shell/types.js';
+import type { BuildEditor, SimulationPresentation } from '#browser/shell/types.js';
 
 export type ProfessionAppContract = Gw2ProfessionSource & {
   readonly preview?: PatchPreview | null;
@@ -76,7 +76,7 @@ export interface RotationComparisonState {
 }
 
 export interface ProfessionAppState {
-  gearOptimizerRunner?: import('#gw2/app/optimizer/gear-optimizer/gear-optimizer-runner.js').GearOptimizerRunner;
+  gearOptimizerRunner?: import('#gw2/app/optimizer/gear/runner.js').GearOptimizerRunner;
   workspace?: import('#gw2/app/build/state/workspace.js').BuildWorkspace;
   activateBuildTab?(id: string): void;
   readonly gameId: string;

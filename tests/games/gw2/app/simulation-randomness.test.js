@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2SimulationConfig, deterministicSimulationConfig } from '#gw2/app/simulation/build-config.js';
-import { getBuildExportPayload } from '#gw2/app/io/files.js';
+import { getBuildExportPayload } from '#gw2/app/import-export/files.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import {
   calculateRandomDistribution,

@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
 test('modifiers run on demand in Analysis and update only their own section', async ({ page }) => {
   const modifierWorkers = [];
   page.on('worker', (worker) => {
-    if (worker.url().includes('modifier-contribution-worker')) modifierWorkers.push(worker);
+    if (worker.url().includes('/simulation/modifier-contributions/worker.')) modifierWorkers.push(worker);
   });
   await page.goto('/mesmer.html#workspace');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);

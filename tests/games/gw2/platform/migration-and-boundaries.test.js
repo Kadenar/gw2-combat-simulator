@@ -21,7 +21,7 @@ async function relativeStaticModuleGraph(entryFiles) {
     ['#gw2/', path.join(sourceRoot, 'games', 'gw2')],
     ['#kernel/', path.join(sourceRoot, 'kernel')],
     ['#ui/', path.join(sourceRoot, 'ui')],
-    ['#app/', path.join(sourceRoot, 'app')]
+    ['#browser/', path.join(sourceRoot, 'browser')]
   ];
 
   while (pending.length) {

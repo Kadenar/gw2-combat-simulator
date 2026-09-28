@@ -93,7 +93,7 @@ export default [
     }
   },
   {
-    files: ['js/app/page/github-pages-redirect.js', 'tests/browser/**/*.{js,mjs,cjs}'],
+    files: ['js/browser/page/github-pages-redirect.js', 'tests/browser/**/*.{js,mjs,cjs}'],
     languageOptions: {
       globals: globals.browser
     }
@@ -185,7 +185,7 @@ export default [
   // Source packages use aliases for consistent TypeScript, Vite, and Node resolution.
   {
     files: [
-      'js/app/**/*.{js,jsx,mjs,cjs,ts,tsx}',
+      'js/browser/**/*.{js,jsx,mjs,cjs,ts,tsx}',
       'js/games/gw2/**/*.{js,jsx,mjs,cjs,ts,tsx}',
       'js/kernel/**/*.{js,jsx,mjs,cjs,ts,tsx}',
       'js/ui/**/*.{js,jsx,mjs,cjs,ts,tsx}'
@@ -207,7 +207,7 @@ export default [
     files: ['js/kernel/**/*.{js,jsx,mjs,cjs,ts,tsx}'],
     rules: {
       'no-restricted-imports': restrictedImports({
-        regex: '^#(?:app|gw2|ui)/|(?:^|/)app/|(?:^|/)games/|(?:^|/)ui/',
+        regex: '^#(?:browser|gw2|ui)/|(?:^|/)(?:browser|app)/|(?:^|/)games/|(?:^|/)ui/',
         message: 'Kernel modules must remain independent of UI, applications, and games.'
       })
     }
@@ -216,7 +216,7 @@ export default [
     files: ['js/ui/**/*.{js,jsx,mjs,cjs,ts,tsx}'],
     rules: {
       'no-restricted-imports': restrictedImports({
-        regex: '^#(?:app|gw2)/|(?:^|/)games/|platform/gw2',
+        regex: '^#(?:browser|gw2)/|(?:^|/)games/|platform/gw2',
         message: 'Neutral UI modules must not depend on applications or games.'
       })
     }
@@ -226,7 +226,7 @@ export default [
     rules: {
       'no-restricted-imports': restrictedImports(
         {
-          regex: '^#(?:app|gw2)/|(?:^|/)games/|platform/gw2',
+          regex: '^#(?:browser|gw2)/|(?:^|/)games/|platform/gw2',
           message: 'Neutral UI modules must not depend on applications or games.'
         },
         {
@@ -238,10 +238,10 @@ export default [
   },
   {
     files: [
-      'js/app/shell/**/*.{js,jsx,mjs,cjs,ts,tsx}',
-      'js/app/page/**/*.{js,jsx,mjs,cjs,ts,tsx}',
-      'js/app/entry.ts',
-      'js/app/bootstrap.ts'
+      'js/browser/shell/**/*.{js,jsx,mjs,cjs,ts,tsx}',
+      'js/browser/page/**/*.{js,jsx,mjs,cjs,ts,tsx}',
+      'js/browser/entry.ts',
+      'js/browser/bootstrap.ts'
     ],
     rules: {
       'no-restricted-imports': restrictedImports({
@@ -251,7 +251,7 @@ export default [
     }
   },
   {
-    files: ['js/app/page/**/*.{js,jsx,mjs,cjs,ts,tsx}'],
+    files: ['js/browser/page/**/*.{js,jsx,mjs,cjs,ts,tsx}'],
     rules: {
       'no-restricted-imports': restrictedImports(
         {
@@ -259,14 +259,14 @@ export default [
           message: 'The shared application shell must not depend on GW2 modules.'
         },
         {
-          regex: '^#ui/|^#app/(?:game|shell)/',
+          regex: '^#ui/|^#browser/(?:game|shell)/',
           message: 'Page integration modules must remain leaves without UI, game-boundary, or shell dependencies.'
         }
       )
     }
   },
   {
-    files: ['js/app/game/contracts.ts', 'js/app/shell/types.ts'],
+    files: ['js/browser/game/contracts.ts', 'js/browser/shell/types.ts'],
     rules: {
       'no-restricted-imports': restrictedImports({
         regex: '^#gw2/|platform/gw2',

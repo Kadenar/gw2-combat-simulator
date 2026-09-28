@@ -7,11 +7,11 @@
  * document automatically; importing it outside a browser has no side effect.
  */
 
-import { EMBED_VISIBLE_TOP_EVENT, embeddedVisibleTop, navigationRoute } from '#app/page/embed.js';
+import { EMBED_VISIBLE_TOP_EVENT, embeddedVisibleTop, navigationRoute } from '#browser/page/embed.js';
 import { mountGw2IconFallback } from '#gw2/app/page/icon-fallback.js';
 import { mountRotationTimelineSize } from '#gw2/app/rotation/timeline/preferences.js';
-import { mountHeaderDps } from '#app/shell/header-dps.js';
-import { mountRotationWorkspace } from '#app/shell/rotation-workspace.js';
+import { mountHeaderDps } from '#browser/shell/header-dps.js';
+import { mountRotationWorkspace } from '#browser/shell/rotation-workspace.js';
 import { mountSimulatorTutorial } from '#gw2/app/page/tutorial.js';
 import { mountSimulatorNavigation } from '#gw2/app/page/navigation.js';
 import { getProfessionEntry, professionGroups, type ProfessionRegistryEntry } from '#gw2/profession-registry.js';

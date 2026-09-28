@@ -390,8 +390,8 @@ test('prepopulated choices enforce limits and stay usable on mobile', async ({ p
 async function showOptimizerResults(page) {
   await page.evaluate(async () => {
     const { captureGearOptimizerRequest, optimizerEquipment } =
-      await import('/js/games/gw2/app/optimizer/gear-optimizer/gear-optimizer.ts');
-    const { renderGearOptimizer } = await import('/js/games/gw2/app/optimizer/gear-optimizer/gear-optimizer-panel.ts');
+      await import('/js/games/gw2/app/optimizer/gear/search.ts');
+    const { renderGearOptimizer } = await import('/js/games/gw2/app/optimizer/gear/panel.ts');
     const app = window.professionApp;
     const runner = app.gearOptimizerRunner;
     const request = captureGearOptimizerRequest(app, { food: ['', app.build.food], utility: ['', app.build.utility] });

@@ -1,5 +1,5 @@
 import { getProfessionEntry, professionRegistry } from '#gw2/profession-registry.js';
-import type { GamePlugin, PlayableContentPlugin } from '#app/game/contracts.js';
+import type { GamePlugin, PlayableContentPlugin } from '#browser/game/contracts.js';
 import type { ProfessionApp } from '#gw2/app/profession-app.js';
 
 /** Starts the existing GW2 profession application while preserving its browser globals and lifecycle. */

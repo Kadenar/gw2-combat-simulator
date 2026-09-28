@@ -6,7 +6,7 @@ import {
   MUSHROOM_KINGS_BLESSING_BUFF_ID,
   MUSHROOM_KINGS_BLESSING_SKILL_ID
 } from '#gw2/integrations/logs/shared/rotation/model.js';
-import { applyRotationImportPreview } from '#gw2/app/io/rotation-import-dialog.js';
+import { applyRotationImportPreview } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { parseEvtc } from '#gw2/integrations/logs/evtc/parser.js';
 import { event, log, expandedEvtcFixture } from '#tests/helpers/evtc-fixture.js';
 

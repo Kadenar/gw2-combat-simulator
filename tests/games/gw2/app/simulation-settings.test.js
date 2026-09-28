@@ -9,10 +9,7 @@ import { normalizeTransitionDelays } from '#gw2/platform/skills/transition-delay
 import { createGw2SimulationConfig } from '#gw2/app/simulation/build-config.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
-import {
-  captureGearOptimizerRequest,
-  createOptimizerEvaluator
-} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer.js';
+import { captureGearOptimizerRequest, createOptimizerEvaluator } from '#gw2/app/optimizer/gear/search.js';
 
 // Browser storage is separate from the build codec; missing or corrupt preferences remain safe.
 test('simulation settings normalize invalid storage and persist separately from builds', (t) => {

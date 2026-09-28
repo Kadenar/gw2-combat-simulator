@@ -140,11 +140,11 @@ function serveRuntimeData() {
   };
 }
 
-// Inlines js/app/page/github-pages-redirect.js as a blocking <script> at the top of
+// Inlines js/browser/page/github-pages-redirect.js as a blocking <script> at the top of
 // each hosted page's <head> so it runs before first paint (zero flicker). Skips
 // patch-preview.html, which is a local-only authoring page and never hosted.
 function injectGithubPagesRedirect() {
-  const snippetPath = path.resolve('js', 'app', 'page', 'github-pages-redirect.js');
+  const snippetPath = path.resolve('js', 'browser', 'page', 'github-pages-redirect.js');
 
   return {
     name: 'inject-github-pages-redirect',
@@ -190,7 +190,13 @@ export default defineConfig(({ command, mode }) => ({
     ...(mode === 'github-pages' ? [injectGithubPagesRedirect()] : [])
   ],
   worker: {
-    format: 'es'
+    format: 'es',
+    // Feature folders identify worker chunks now that each source entry is named worker.ts.
+    rolldownOptions: {
+      output: {
+        entryFileNames: (chunk) => `assets/${path.basename(path.dirname(chunk.facadeModuleId))}-worker-[hash].js`
+      }
+    }
   },
   build: {
     outDir: 'dist/site',

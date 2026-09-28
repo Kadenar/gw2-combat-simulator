@@ -1,4 +1,4 @@
-import { bindDialog, showDialog } from '#app/page/dialog.js';
+import { bindDialog, showDialog } from '#browser/page/dialog.js';
 import { addBuildTab, closeBuildTab, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';

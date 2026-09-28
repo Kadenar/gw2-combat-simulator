@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { navigationRoute } from '#app/page/embed.js';
+import { navigationRoute } from '#browser/page/embed.js';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { escapeHtml } from '#ui/shared/html.js';
@@ -17,7 +17,7 @@ test('the kernel package import alias resolves compiled modules', () => {
 });
 
 // Exercises the browser-facing shared aliases without requiring a DOM.
-test('the app and UI package import aliases resolve compiled modules', () => {
+test('the browser and UI package import aliases resolve compiled modules', () => {
   assert.equal(navigationRoute('index.html', '?embed=1'), 'index.html?embed=1');
   assert.equal(escapeHtml('<'), '&lt;');
 });
