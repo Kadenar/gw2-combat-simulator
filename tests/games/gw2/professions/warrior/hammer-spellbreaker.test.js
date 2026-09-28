@@ -1,3 +1,4 @@
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -313,6 +314,7 @@ test('Peak Performance and Magebane Tether use their logged recharge timing', ()
   assert.equal(peakBuff.at * 1000, bull.end);
   const peakState = warriorProfession.ui
     .rotationStateSnapshot({
+      balanceContext: withPatchPreview(warriorProfession).balanceContextFor(),
       specialization: 'Spellbreaker',
       result: peak,
       atSeconds: peakBuff.at + 2
@@ -323,7 +325,7 @@ test('Peak Performance and Magebane Tether use their logged recharge timing', ()
     id: 'peak-performance',
     label: 'Peak Performance',
     value: '4.0s',
-    title: 'Peak Performance: +10% strike damage (+15% total from trait)'
+    title: 'Peak Performance active'
   });
 
   const magebaneProcs = (alacrity) =>

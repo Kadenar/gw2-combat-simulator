@@ -7,6 +7,7 @@ import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { applySideEffect, sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -383,6 +384,13 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
       : durationMs;
   },
   initialize(runtime) {
+    // Select the Core pool before elite initialization replaces its resource policy.
+    const state = runtime.profession.core;
+    state.maximumAdrenaline = balanceProfileNumber(
+      requireBalanceProfileFromContext(runtime, PROFILE.resources),
+      'maximumStacks'
+    );
+    state.adrenaline = boundedNumber(runtime.config.initialResource ?? 0, 0, 0, state.maximumAdrenaline);
     if (hasTrait(runtime, TRAIT.EMPOWER_ALLIES)) runtime.schedule(EMPOWER_PULSE, 0, null, undefined, -210);
   },
   endurance: {

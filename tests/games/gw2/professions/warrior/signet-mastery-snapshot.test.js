@@ -1,3 +1,5 @@
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -58,7 +60,12 @@ const WITH_TRAIT = { specializations: [{ name: 'Arms', traits: '2-1-1' }] };
 const WITHOUT_TRAIT = { specializations: [{ name: 'Arms', traits: '1-1-1' }] };
 
 function snapshot(build, atSeconds) {
-  return warriorCoreUi.rotationStateSnapshot({ build, result: RESULT, atSeconds });
+  return warriorCoreUi.rotationStateSnapshot({
+    balanceContext: withPatchPreview(warriorProfession).balanceContextFor(),
+    build,
+    result: RESULT,
+    atSeconds
+  });
 }
 
 test('Signet Mastery bar shows the stacks active at the inspection point', () => {
@@ -94,6 +101,7 @@ test('Signet Mastery bar caps at 5 stacks', () => {
     }))
   };
   const [item] = warriorCoreUi.rotationStateSnapshot({
+    balanceContext: withPatchPreview(warriorProfession).balanceContextFor(),
     build: WITH_TRAIT,
     result: overstacked,
     atSeconds: 1

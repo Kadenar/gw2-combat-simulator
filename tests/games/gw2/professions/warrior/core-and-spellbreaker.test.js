@@ -139,8 +139,11 @@ test('Warrior modules expose isolated balance-profile authoring', () => {
   assert.deepEqual(opaqueModifierRules, []);
   assert.deepEqual(
     modules.get('Core').modifierRules.find((rule) => rule.id === 'warrior.berserkers-power').parameters,
-    { maximumStacks: 4, damagePerStack: 0.0375 }
+    {}
   );
+  const berserkersPower = profile('Core', WARRIOR_CORE_BALANCE_PROFILE_IDS.berserkersPower).patchableFields;
+  assert.equal(berserkersPower.maximumStacks, 4);
+  assert.equal(berserkersPower.damageIncreasePerStack, 0.0375);
 
   const preview = applyWarriorPatch({
     balanceProfiles: {
@@ -479,6 +482,7 @@ test('Bladesworn gunsaber autos follow the standard autoattack chain display', (
 test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
   const result = simulate('Core', [], { initialResource: 25 });
   const coreResources = warriorProfession.ui.resourceViews({
+    catalog: warriorCatalog,
     specialization: 'Core',
     professionState: result.planningState.profession
   });
@@ -488,7 +492,7 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
     coreResources.map((view) => view.id),
     ['adrenaline']
   );
-  const flow = warriorProfession.ui.resourceViews({ specialization: 'Bladesworn' })[0];
+  const flow = warriorProfession.ui.resourceViews({ catalog: warriorCatalog, specialization: 'Bladesworn' })[0];
   assert.equal(flow.id, 'flow');
   assert.equal(flow.maximum, 100);
   assert.equal(flow.displayMode, 'bar');
@@ -509,19 +513,17 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
     ['Paragon', 30, 3]
   ]) {
     const specializationResource = warriorProfession.ui
-      .resourceViews({
-        specialization,
-        professionState: { maximumAdrenaline: maximum }
-      })
+      .resourceViews({ catalog: warriorCatalog, specialization, professionState: { maximumAdrenaline: maximum } })
       .find((view) => view.id === 'adrenaline');
 
     assert.equal(specializationResource.barSegments, barSegments);
-    assert.equal(warriorProfession.ui.resourceViews({ specialization })[0].maximum, maximum);
+    assert.equal(warriorProfession.ui.resourceViews({ catalog: warriorCatalog, specialization })[0].maximum, maximum);
   }
 
   const berserk = simulate('Berserker', ['Berserk'], { initialResource: 30 });
   assert.equal(
     warriorProfession.ui.resourceViews({
+      catalog: warriorCatalog,
       specialization: 'Berserker',
       professionState: berserk.planningState.profession
     })[0].barSegments,
@@ -549,6 +551,7 @@ test('Paragon motivation renders as a compact emblem counter', () => {
   });
   const motivation = warriorProfession.ui
     .resourceViews({
+      catalog: warriorCatalog,
       specialization: 'Paragon',
       professionState: result.planningState.profession
     })

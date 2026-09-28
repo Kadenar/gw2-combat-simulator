@@ -40,7 +40,6 @@ export const BERSERKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     ]
   }),
   trait(BERSERKER_BALANCE_PROFILE_IDS.bloodyRoar, 'Bloody Roar', {
-    damageMultiplier: 1.1,
     effects: [{ name: 'resistance', type: 'boon', boon: 'resistance', stacks: 1, duration: 3.5 }]
   }),
   trait(BERSERKER_BALANCE_PROFILE_IDS.lastBlaze, 'Last Blaze', {

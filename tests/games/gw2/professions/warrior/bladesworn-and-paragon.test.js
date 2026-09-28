@@ -1,3 +1,4 @@
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -619,6 +620,7 @@ test('Precombat Positive Flow survives an explicit combat start while base regen
   ]) {
     const display = warriorProfession.ui
       .rotationStateSnapshot({
+        balanceContext: withPatchPreview(warriorProfession).balanceContextFor(),
         specialization: 'Bladesworn',
         professionState: precombat.planningState.profession,
         atSeconds,
@@ -705,6 +707,7 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
   );
   const positiveFlowState = warriorProfession.ui
     .rotationStateSnapshot({
+      balanceContext: withPatchPreview(warriorProfession).balanceContextFor(),
       specialization: 'Bladesworn',
       professionState: overlapping.planningState.profession,
       atSeconds: overlapping.planningState.atSeconds,
@@ -1161,6 +1164,7 @@ test('two-stack Gunsaber traits grant and display their full Positive Flow rate 
       assert.ok(Math.abs(result.planningState.profession.flow - expectedFlow) < 1e-9);
       const display = warriorProfession.ui
         .rotationStateSnapshot({
+          balanceContext: withPatchPreview(warriorProfession).balanceContextFor(),
           specialization: 'Bladesworn',
           professionState: result.planningState.profession,
           atSeconds: result.planningState.atSeconds,
@@ -1305,6 +1309,7 @@ test("Berserker's Power retains applications beyond its visible stack cap", () =
   assert.equal(bolasHits.length, 2);
   bolasHits.forEach((hit, index) => assertFlooredDamageMultiplier(hit.damage, baselineBolasHits[index].damage, 1.15));
   const effectPresentations = warriorProfession.ui.effectPresentations({
+    balanceContext: withPatchPreview(warriorProfession).balanceContextFor(),
     specialization: 'Core',
     catalog: warriorProfession.catalog
   });

@@ -10,8 +10,6 @@ export const PARAGON_BALANCE_PROFILE_IDS = Object.freeze({
   findTheirWeaknessEcho: 'warrior.paragon.find-their-weakness-echo',
   onYourKneesEcho: 'warrior.paragon.on-your-knees-echo',
   weShallReturnEcho: 'warrior.paragon.we-shall-return-echo',
-  strengtheningStanzas: TRAIT.STRENGTHENING_STANZAS,
-  briskPacing: TRAIT.BRISK_PACING,
   inspiringImplements: TRAIT.INSPIRING_IMPLEMENTS,
   invigoratingTempo: TRAIT.INVIGORATING_TEMPO,
   enduringRefrain: TRAIT.ENDURING_REFRAIN,
@@ -86,20 +84,8 @@ export const PARAGON_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     name: 'Paragon Command Echoes',
     profileKind: 'mechanic',
     pulseInterval: 3,
-    maximumStacks: 2,
     effects: []
   },
-  trait(PARAGON_BALANCE_PROFILE_IDS.strengtheningStanzas, 'Strengthening Stanzas', {
-    damageMultiplier: 0.15,
-    coefficientMultiplier: 0.1
-  }),
-  trait(PARAGON_BALANCE_PROFILE_IDS.briskPacing, 'Brisk Pacing', {
-    minimumStacks: 4,
-    threshold: 7,
-    damageMultiplier: 0.1,
-    damageIncreasePerStack: 0.1,
-    coefficientMultiplier: 0.05
-  }),
   trait(PARAGON_BALANCE_PROFILE_IDS.inspiringImplements, 'Inspiring Implements', {
     attributeBonus: 180,
     internalCooldown: 4,

@@ -112,18 +112,19 @@ test('Warrior and Bladesworn stacks preserve self audience, caps, expiry, and sa
   ];
   const context = {
     time: 5,
+    catalog: warriorCatalog,
     config: { boons: { 'fierce-as-fire': 25 } },
     timeline: { timedStacks: () => 25, timedActive: () => true },
     runtime: { boons: new Map([['fierce-as-fire', applications]]) }
   };
   const rule = bladeswornModifiers.modifierRules.find(({ id }) => id === 'warrior.fierce-as-fire');
   assert.equal(warriorActiveBuffStacks(context, 'fierce-as-fire', 10), 4);
-  assert.equal(rule.amount(context, 'strikeDamage', rule.parameters), 0.04);
+  assert.equal(rule.amount(context), 0.04);
   assert.equal(warriorActiveBuffStacks(context, 'fierce-as-fire', 3), 3);
 
   applications.push({ at: 5, expiresAt: 10, stacks: 8, resolvedAudience: { includesSelf: true } });
   assert.equal(warriorActiveBuffStacks(context, 'fierce-as-fire', 10), 10);
-  assert.equal(rule.amount(context, 'strikeDamage', rule.parameters), 0.1);
-  assert.equal(rule.amount({ ...context, time: 10 }, 'strikeDamage', rule.parameters), 0);
-  assert.equal(rule.amount({ ...context, runtime: undefined }, 'strikeDamage', rule.parameters), 0);
+  assert.equal(rule.amount(context), 0.1);
+  assert.equal(rule.amount({ ...context, time: 10 }), 0);
+  assert.equal(rule.amount({ ...context, runtime: undefined }), 0);
 });

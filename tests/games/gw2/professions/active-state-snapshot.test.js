@@ -1,3 +1,4 @@
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -97,7 +98,7 @@ function snapshot(profession, specialization, professionState, atSeconds, result
   // These fixture buffs were scheduled and committed; specialized views can inspect either report history.
   if (result) result = { ...result, events: result.resolvedEvents };
   return profession.ui.rotationStateSnapshot({
-    balanceContext: { catalog: profession.catalog, modifierRulesById: new Map() },
+    balanceContext: withPatchPreview(profession).balanceContextFor(),
     specialization,
     professionState,
     atSeconds,

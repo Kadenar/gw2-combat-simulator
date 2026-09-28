@@ -1,4 +1,10 @@
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 import { isCombatEntryEvent } from '#gw2/platform/combat/state/targets.js';
 import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
 import {
@@ -33,19 +39,23 @@ const NO_WEAPON_BURSTS: Readonly<Record<string, number>> = Object.freeze({});
 
 function resources(context: WarriorUiContext): ProfessionResourceView[] {
   const state = warriorUiState(context);
+  // The live pool wins; authoring before simulation uses the selected Flow profile.
+  const maximum =
+    state.maximumFlow ??
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks');
   return [
     {
       id: 'flow',
       singular: 'flow',
       plural: 'flow',
-      maximum: 100,
+      maximum,
       value: Number(state.flow ?? context.initialResource ?? 0),
-      startMaximum: 100,
+      startMaximum: maximum,
       canStart: true,
       buildKey: 'initialResource',
       step: 1,
       displayMode: 'bar',
-      // Flow uses the compact Warrior bar styling beside the F skills while retaining its 100-point pool.
+      // Flow uses the compact Warrior bar styling beside the F skills.
       pipStyle: 'compact-profession-resource-warrior-flow',
       shortLabel: 'Flow',
       statusLabel: 'Current'
@@ -134,19 +144,23 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
   },
   resourceViews: resources,
   paletteSkillAvailability: availability,
-  rotationStateSnapshot: (context: WarriorUiContext) => {
+  rotationStateSnapshot: (context: WarriorUiContext & { readonly balanceContext: ProfessionBalanceContext }) => {
     const state = warriorUiState(context);
     const at = warriorSnapshotAt(context);
     const items: RotationStateSnapshotItem[] = [];
     const result = context.result;
     // Bladesworn's trait buffs live on the resolved buff timeline, which keeps
     // this snapshot aligned with the damage and ferocity modifier gates.
-    const fierceAsFire = Math.min(10, timedBuffStacksAt(result, 'fierce-as-fire', at));
+    const maximum = balanceProfileNumber(
+      requireBalanceProfileFromContext(context.balanceContext, PROFILE.fierceAsFire),
+      'maximumStacks'
+    );
+    const fierceAsFire = Math.min(maximum, timedBuffStacksAt(result, 'fierce-as-fire', at));
     if (fierceAsFire > 0) {
       items.push({
         id: 'bladesworn-fierce-as-fire',
         label: 'Fierce as Fire',
-        value: `${fierceAsFire}/10`,
+        value: `${fierceAsFire}/${maximum}`,
         title: 'Active Fierce as Fire stacks'
       });
     }

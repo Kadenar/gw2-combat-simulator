@@ -21,9 +21,7 @@ import type {
 
 import type { WarriorSkill, WarriorState, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-
-/** Signet Mastery caps at 5 stacks, each granting +100 ferocity. */
-const SIGNET_MASTERY_MAX_STACKS = 5;
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 
 const WARRIOR_REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze({
   Axe: ID.EVISCERATE,
@@ -170,28 +168,35 @@ function hasSignetMasteryTrait(context: WarriorUiContext): boolean {
  * Core Warrior buffs active at the inspection point. Read from the same buff
  * timeline as their modifiers so the bar never drifts from the simulation.
  */
-function warriorCoreStateSnapshot(context: WarriorUiContext): RotationStateSnapshotItem[] {
+function warriorCoreStateSnapshot(
+  context: WarriorUiContext & { readonly balanceContext: ProfessionBalanceContext }
+): RotationStateSnapshotItem[] {
   const result = context.result;
   const at = warriorSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
+  const balance = context.balanceContext;
   const peakPerformance = timedBuffAt(result, 'peak-performance', at);
   if (peakPerformance) {
+    // Show the active window here; the trait tooltip owns damage bonus details.
     items.push({
       id: 'peak-performance',
       label: 'Peak Performance',
       value: formatSecondsRemaining(peakPerformance.remaining),
-      title: 'Peak Performance: +10% strike damage (+15% total from trait)'
+      title: 'Peak Performance active'
     });
   }
 
   if (hasSignetMasteryTrait(context)) {
-    const stacks = Math.min(SIGNET_MASTERY_MAX_STACKS, timedBuffStacksAt(result, 'signet-mastery', at));
+    const profile = requireBalanceProfileFromContext(balance, PROFILE.signetMastery);
+    const maximum = balanceProfileNumber(profile, 'maximumStacks');
+    const bonus = balanceProfileNumber(profile, 'attributeBonus');
+    const stacks = Math.min(maximum, timedBuffStacksAt(result, 'signet-mastery', at));
     if (stacks > 0) {
       items.push({
         id: 'signet-mastery',
         label: 'Signet Mastery',
-        value: `${stacks}/${SIGNET_MASTERY_MAX_STACKS}`,
-        title: `Signet Mastery: +${stacks * 100} ferocity (+100 per stack)`
+        value: `${stacks}/${maximum}`,
+        title: `Signet Mastery: +${stacks * bonus} ferocity (+${bonus} per stack)`
       });
     }
   }
@@ -199,8 +204,18 @@ function warriorCoreStateSnapshot(context: WarriorUiContext): RotationStateSnaps
   // These independent stacking trait buffs are useful across every Warrior
   // specialization, regardless of whether Signet Mastery is selected.
   for (const [id, label, kind, maximum] of [
-    ['furious-surge', 'Furious Surge', 'furious-surge', 25],
-    ['berserkers-power', "Berserker's Power", 'berserkers-power', 4]
+    [
+      'furious-surge',
+      'Furious Surge',
+      'furious-surge',
+      balanceProfileNumber(requireBalanceProfileFromContext(balance, PROFILE.furious), 'maximumStacks')
+    ],
+    [
+      'berserkers-power',
+      "Berserker's Power",
+      'berserkers-power',
+      balanceProfileNumber(requireBalanceProfileFromContext(balance, PROFILE.berserkersPower), 'maximumStacks')
+    ]
   ] as const) {
     const stacks = Math.min(maximum, timedBuffStacksAt(result, kind, at));
     if (stacks > 0) items.push({ id, label, value: `${stacks}/${maximum}`, title: `${label} active stacks` });
@@ -209,15 +224,17 @@ function warriorCoreStateSnapshot(context: WarriorUiContext): RotationStateSnaps
   return items;
 }
 
-/** Publishes the Core Warrior stack cap from the same patchable profile used by its modifier. */
+/** Stack displays read the same profile cap as the damage formula. */
 function warriorCoreEffectPresentations(context: WarriorUiContext): ProfessionEffectPresentation[] {
-  const berserkersPowerProfile = requireBalanceProfileFromContext(context, PROFILE.berserkersPower);
   return [
     {
       id: 'warrior-berserkers-power',
       kind: 'berserkers-power',
       name: "Berserker's Power",
-      maximumStacks: balanceProfileNumber(berserkersPowerProfile, 'maximumStacks')
+      maximumStacks: balanceProfileNumber(
+        requireBalanceProfileFromContext(context, PROFILE.berserkersPower),
+        'maximumStacks'
+      )
     }
   ];
 }

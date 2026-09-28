@@ -1,5 +1,10 @@
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
+import {
   warriorAdrenalineResourceViews,
   warriorBurstPaletteAvailability,
   warriorPaletteGroups,
@@ -18,7 +23,10 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
       id: 'motivation',
       singular: 'motivation',
       plural: 'motivation',
-      maximum: 10,
+      // Reflect the initialized pool, including patch-selected Motivation limits.
+      maximum:
+        state.maximumMotivation ??
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks'),
       value: state.motivation || 0,
       canStart: false,
       step: 1,

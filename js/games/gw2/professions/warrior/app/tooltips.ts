@@ -492,9 +492,9 @@ export const warriorTooltips: ProfessionTooltips = {
     ),
     [TRAIT.BERSERKERS_POWER]: traitTooltip(
       'The first qualifying burst hit grants damage-bonus stacks according to the resource tier spent.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'warrior.berserkers-power', 'damagePerStack', 'Strike damage per stack'),
-        modifierFact(balanceContext, 'warrior.berserkers-power', 'maximumStacks', 'Maximum stacks', tooltipDecimal)
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
+        profileFact(balanceContext, id, 'maximumStacks', 'Maximum stacks', tooltipDecimal)
       ]
     ),
     [TRAIT.MIGHT_MAKES_RIGHT]: outsideScopeTooltip,
@@ -869,14 +869,15 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.UNSHAKABLE_MOUNTAIN]: outsideScopeTooltip,
     [TRAIT.FIERCE_AS_FIRE]: traitTooltip(
       'Spending ammunition grants damage-bonus stacks, one per round spent.',
-      (balanceContext) => [
-        modifierFact(
+      (balanceContext, id) => [
+        profileFact(
           balanceContext,
-          'warrior.fierce-as-fire',
-          'damagePerStack',
-          'Strike and condition damage per stack'
+          id,
+          'damageIncreasePerStack',
+          'Strike and condition damage per stack',
+          tooltipPercent
         ),
-        modifierFact(balanceContext, 'warrior.fierce-as-fire', 'maximumStacks', 'Maximum stacks', tooltipDecimal)
+        profileFact(balanceContext, id, 'maximumStacks', 'Maximum stacks', tooltipDecimal)
       ]
     ),
     [TRAIT.LUSH_FOREST]: traitTooltip(

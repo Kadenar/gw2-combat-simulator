@@ -40,13 +40,14 @@ const modifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
     id: 'warrior.fierce-as-fire',
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: 'damage-additive',
-    parameters: {
-      maximumStacks: 10,
-      damagePerStack: 0.01
+    // Apply profile tuning to live self stacks, preserving Core Warrior's stack and expiry policy.
+    amount: (context) => {
+      const profile = requireBalanceProfileFromContext(context, PROFILE.fierceAsFire);
+      return (
+        warriorActiveBuffStacks(context, 'fierce-as-fire', balanceProfileNumber(profile, 'maximumStacks')) *
+        balanceProfileNumber(profile, 'damageIncreasePerStack')
+      );
     },
-    // Count live self applications only, matching Core Warrior's stack and expiry policy.
-    amount: (context, _target, parameters) =>
-      warriorActiveBuffStacks(context, 'fierce-as-fire', parameters.maximumStacks) * parameters.damagePerStack,
     when: (context) => hasTrait(context, TRAIT.FIERCE_AS_FIRE)
   },
   ...cartridgeModifiers

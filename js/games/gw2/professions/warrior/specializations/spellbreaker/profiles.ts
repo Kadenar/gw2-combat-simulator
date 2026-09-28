@@ -4,12 +4,10 @@ import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js
 
 export const SPELLBREAKER_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'warrior.spellbreaker.resources',
-  fullCounter: 'warrior.spellbreaker.full-counter-window',
   attackersInsight: TRAIT.ATTACKERS_INSIGHT,
   magebaneTether: TRAIT.MAGEBANE_TETHER,
   noEscape: TRAIT.NO_ESCAPE,
-  pureStrike: TRAIT.PURE_STRIKE,
-  sunAndMoonStyle: TRAIT.SUN_AND_MOON_STYLE
+  pureStrike: TRAIT.PURE_STRIKE
 });
 
 export const SPELLBREAKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
@@ -20,12 +18,6 @@ export const SPELLBREAKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     maximumStacks: 20,
     effects: []
   },
-  {
-    id: SPELLBREAKER_BALANCE_PROFILE_IDS.fullCounter,
-    name: 'Full Counter Window',
-    profileKind: 'mechanic',
-    effects: [{ name: 'full-counter', type: 'buff', kind: 'full-counter', stacks: 1, duration: 1 }]
-  },
   trait(SPELLBREAKER_BALANCE_PROFILE_IDS.attackersInsight, "Attacker's Insight", {
     maximumStacks: 5,
     attributePerStack: 50,
@@ -33,7 +25,6 @@ export const SPELLBREAKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
   }),
   trait(SPELLBREAKER_BALANCE_PROFILE_IDS.magebaneTether, 'Magebane Tether', {
     cooldown: 12,
-    damageMultiplier: 1.15,
     effects: [{ name: 'magebane-tether', type: 'buff', kind: 'magebane-tether', stacks: 1, duration: 8 }]
   }),
   trait(SPELLBREAKER_BALANCE_PROFILE_IDS.noEscape, 'No Escape', {
@@ -42,8 +33,5 @@ export const SPELLBREAKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
   trait(SPELLBREAKER_BALANCE_PROFILE_IDS.pureStrike, 'Pure Strike', {
     // Targets have no boons, so the supported bonus is a single critical-damage multiplier.
     criticalDamage: 1.1
-  }),
-  trait(SPELLBREAKER_BALANCE_PROFILE_IDS.sunAndMoonStyle, 'Sun and Moon Style', {
-    damageMultiplier: 1.1
   })
 ]);

@@ -58,10 +58,7 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     name: 'Warrior Core Resources',
     profileKind: 'mechanic',
     maximumStacks: 30,
-    threshold: 10,
-    resourceGain: 1,
     resourceCost: 50,
-    pulseInterval: 0.2,
     enduranceRegenerationPerSecond: 5,
     vigorRegenerationMultiplier: 1.5,
     effects: []
@@ -70,7 +67,6 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     id: WARRIOR_CORE_BALANCE_PROFILE_IDS.burstTiers,
     name: 'Warrior Burst Tiers',
     profileKind: 'mechanic',
-    minimumStacks: 10,
     threshold: 20,
     maximumStacks: 30,
     effects: []
@@ -138,6 +134,7 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     effects: [{ name: 'swiftness', type: 'boon', boon: 'swiftness', stacks: 1, duration: 3 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.berserkersPower, "Berserker's Power", {
+    // Damage, presentation, and tooltip consumers share this trait's balance values.
     maximumStacks: 4,
     damageIncreasePerStack: 0.0375,
     effects: [{ name: 'berserkers-power', type: 'buff', kind: 'berserkers-power', stacks: 1, duration: 15 }]
@@ -153,8 +150,6 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     effects: [{ name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 5 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.peakPerformance, 'Peak Performance', {
-    damageIncrease: 0.05,
-    activeDamageIncrease: 0.1,
     effects: [{ name: 'peak-performance', type: 'buff', kind: 'peak-performance', stacks: 1, duration: 6 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.bloodlust, 'Bloodlust', {

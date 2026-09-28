@@ -1,6 +1,5 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { DRAGON_TRIGGER_CHARGE_INTERVAL_MS } from '#gw2/professions/warrior/data/dragon-charges.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 export const BLADESWORN_BALANCE_PROFILE_IDS = Object.freeze({
@@ -66,7 +65,6 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     minimumStacks: 5,
     threshold: 15,
     resourceCost: 5,
-    pulseInterval: DRAGON_TRIGGER_CHARGE_INTERVAL_MS / 1000,
     cooldown: 30,
     effects: []
   },
@@ -140,6 +138,7 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     effects: [{ name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 3 }]
   }),
   trait(BLADESWORN_BALANCE_PROFILE_IDS.fierceAsFire, 'Fierce as Fire', {
+    // Damage, presentation, and tooltip consumers share this trait's balance values.
     maximumStacks: 10,
     damageIncreasePerStack: 0.01,
     effects: [{ name: 'fierce-as-fire', type: 'buff', kind: 'fierce-as-fire', stacks: 1, duration: 15 }]

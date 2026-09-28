@@ -50,6 +50,7 @@ test('precombat control leaves base Flow inactive in execution and presentation 
     [result.combatStartTime, '1 stack']
   ]) {
     const display = warriorProfession.ui.rotationStateSnapshot({
+      balanceContext: withPatchPreview(warriorProfession).balanceContextFor(),
       specialization: 'Bladesworn',
       professionState: result.planningState.profession,
       atSeconds,

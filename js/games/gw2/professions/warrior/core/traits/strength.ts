@@ -63,12 +63,14 @@ export const warriorStrengthModifierRules = Object.freeze<readonly Gw2ModifierRu
     id: 'warrior.berserkers-power',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
-    parameters: {
-      maximumStacks: 4,
-      damagePerStack: 0.0375
+    // The profile owns tuning; this rule only applies the capped-stack damage formula.
+    amount: (context) => {
+      const profile = requireBalanceProfileFromContext(context, PROFILE.berserkersPower);
+      return (
+        warriorActiveBuffStacks(context, 'berserkers-power', balanceProfileNumber(profile, 'maximumStacks')) *
+        balanceProfileNumber(profile, 'damageIncreasePerStack')
+      );
     },
-    amount: (context, _target, parameters) =>
-      warriorActiveBuffStacks(context, 'berserkers-power', parameters.maximumStacks) * parameters.damagePerStack,
     when: (context) => hasTrait(context, TRAIT.BERSERKERS_POWER)
   },
   {
