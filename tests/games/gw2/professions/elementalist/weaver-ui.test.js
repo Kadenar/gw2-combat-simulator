@@ -115,6 +115,9 @@ test('Weaver current bar exposes a carried autoattack from the previous primary 
         activeWeaponSet: 1,
         atSeconds: 1,
         cooldowns: {},
+        // Carryover changes the active chain without changing the ammo projection.
+        ammo: {},
+        ammoBySkillId: {},
         profession: {
           primaryAttunement: 'Fire',
           secondaryAttunement: 'Air',

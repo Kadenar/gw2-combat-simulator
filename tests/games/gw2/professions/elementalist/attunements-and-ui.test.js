@@ -624,6 +624,9 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
         cooldowns: {
           'Pyro Vortex': { remaining: 3400, readyAt: 3400 }
         },
+        // Cooldown-only fixtures still provide the canonical empty ammo projection.
+        ammo: {},
+        ammoBySkillId: {},
         profession: {
           primaryAttunement: 'Fire',
           secondaryAttunement: 'Water',

@@ -613,16 +613,25 @@ export const revenantTooltips: ProfessionTooltips = {
     },
     [TRAIT.RAPID_FLOW]: outsideScopeTooltip,
     [TRAIT.INCENSED_RESPONSE]: traitTooltip('Receiving a player-owned fury application grants might.'),
-    [TRAIT.SONG_OF_THE_MISTS]: (balanceContext, entity) => {
-      const effects = variantEffects(tooltipProfile(balanceContext, entity.id).effects);
+    [TRAIT.SONG_OF_THE_MISTS]: (balanceContext) => {
       const alliance = balanceContext.catalog.skillsById.get(ID.CALL_OF_THE_ALLIANCE)!;
       // Elite legends own separate invocation skills; include their resource grants as well as attack packets.
       return {
-        ...effects,
+        facts: [],
         description:
           "Invoking a legend triggers its corresponding effect. Entity invocation uses the paired core legend's effect.",
         factTabs: [
-          ...effects.factTabs,
+          // Invocation tooltips read the same patchable call skills as the runtime.
+          ...(
+            [
+              ['Assassin', ID.CALL_OF_THE_ASSASSIN],
+              ['Dwarf', ID.CALL_OF_THE_DWARF],
+              ['Demon', ID.CALL_OF_THE_DEMON]
+            ] as const
+          ).map(([label, id]) => ({
+            label,
+            facts: simulationEffectFacts(balanceContext.catalog.skillsById.get(id)!.effects).facts
+          })),
           {
             label: 'Centaur',
             facts: [{ name: 'Call of the Centaur', detail: 'Healing is outside simulation scope.' }]

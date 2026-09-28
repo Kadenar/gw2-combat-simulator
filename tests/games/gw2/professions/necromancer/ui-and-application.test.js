@@ -284,6 +284,12 @@ test('Necromancer renders life force above its F-skills', async () => {
   };
   app.results = {
     planningState: {
+      // Resource-only fixtures retain the shared planning fields consumed by the palette.
+      atSeconds: 0,
+      activeWeaponSet: 1,
+      cooldowns: {},
+      ammo: {},
+      ammoBySkillId: {},
       profession: {
         lifeForce: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
 

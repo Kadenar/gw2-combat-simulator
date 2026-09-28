@@ -103,25 +103,25 @@ test('Mechanist keeps its mech present and exposes only trait-selected commands'
   );
 });
 
-// Saved inheritance tuning uses semantic keys after loading without mutating the original edits.
-test('Mechanist profile overrides migrate without losing edits or bypassing validation', () => {
+// Canonical inheritance edits survive loading and application; obsolete fields must fail validation.
+test('Mechanist profile overrides preserve canonical edits and reject obsolete fields', () => {
   const resourceId = MECHANIST_BALANCE_PROFILE_IDS.resources;
   const saved = {
-    id: 'mech-migration',
-    label: 'Mech migration',
+    id: 'mech-inheritance',
+    label: 'Mech inheritance',
     professions: {
       engineer: {
         balanceProfiles: {
           [resourceId]: {
             fields: {
-              attributeBonus: 100,
-              attributeConversion: 0.25,
-              minimumStacks: 50,
-              maximumStacks: 500,
-              threshold: 80,
-              weaponAttributeBonus: 300,
-              coefficientMultiplier: 0.75,
-              basePower: 2
+              baseAttribute: 100,
+              inheritanceRatio: 0.25,
+              secondaryAttributeCap: 50,
+              powerCap: 500,
+              improvedSecondaryAttributeCap: 80,
+              precisionCap: 300,
+              improvedInheritanceRatio: 0.75,
+              basePrecision: 2
             }
           }
         }
@@ -130,20 +130,10 @@ test('Mechanist profile overrides migrate without losing edits or bypassing vali
   };
   const original = structuredClone(saved);
   const normalized = validatePatchPreview(saved);
-  const fields = normalized.professions.engineer.balanceProfiles;
-  assert.deepEqual(fields[resourceId].fields, {
-    baseAttribute: 100,
-    inheritanceRatio: 0.25,
-    secondaryAttributeCap: 50,
-    powerCap: 500,
-    improvedSecondaryAttributeCap: 80,
-    precisionCap: 300,
-    improvedInheritanceRatio: 0.75,
-    basePrecision: 2
-  });
+  assert.deepEqual(normalized, original);
   assert.deepEqual(validatePatchPreview(normalized), normalized);
   assert.deepEqual(saved, original);
-  const catalog = applyEngineerPatch(saved.professions.engineer);
+  const catalog = applyEngineerPatch(normalized.professions.engineer);
   const resources = catalog.balanceProfilesById.get(resourceId);
   const attributes = engineerMechAttributes(
     { selectedTraitIds: [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR] },
@@ -162,9 +152,18 @@ test('Mechanist profile overrides migrate without losing edits or bypassing vali
     assert.throws(() => applyEngineerPatch({ balanceProfiles: { [resourceId]: { fields: invalid } } }));
   }
 
-  const conflict = structuredClone(saved);
-  conflict.professions.engineer.balanceProfiles[resourceId].fields.secondaryAttributeCap = 20;
-  assert.throws(() => validatePatchPreview(conflict), /edits both minimumStacks and secondaryAttributeCap/);
+  for (const field of [
+    'attributeBonus',
+    'attributeConversion',
+    'minimumStacks',
+    'maximumStacks',
+    'threshold',
+    'weaponAttributeBonus',
+    'coefficientMultiplier',
+    'basePower'
+  ]) {
+    assert.throws(() => applyEngineerPatch({ balanceProfiles: { [resourceId]: { fields: { [field]: 1 } } } }));
+  }
 });
 
 // Cannon payload and timing belong to the skill, so the passive profile rejects their obsolete tuning keys.

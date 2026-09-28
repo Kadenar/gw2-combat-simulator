@@ -861,6 +861,43 @@ test('Amalgam strain tooltips and activation use the same patched Stability pack
   }
 });
 
+// Invocation trait facts follow patched call skills instead of a removed duplicate balance profile.
+test('Song of the Mists tooltip reads patched core invocation skills', async () => {
+  const { default: revenant } = await import('#gw2/professions/revenant/profession.js');
+  const { revenantTooltips } = await import('#gw2/professions/revenant/app/tooltips.js');
+  const { REVENANT_SKILL_IDS: skillIds, REVENANT_TRAIT_IDS: traitIds } =
+    await import('#gw2/professions/revenant/data/ids.js');
+  const context = withPatchPreview(revenant, {
+    id: 'invocation-tooltip',
+    label: 'Invocation tooltip',
+    professions: {
+      revenant: {
+        skills: {
+          [skillIds.CALL_OF_THE_ASSASSIN]: { coefficient: 2 },
+          [skillIds.CALL_OF_THE_DWARF]: { coefficient: 3 },
+          [skillIds.CALL_OF_THE_DEMON]: { coefficient: 4 }
+        }
+      }
+    }
+  }).balanceContextFor('invocation-tooltip');
+  const model = describeSimulationTrait(
+    context,
+    { id: traitIds.SONG_OF_THE_MISTS, name: 'Song of the Mists' },
+    revenantTooltips
+  );
+  for (const [label, coefficient] of [
+    ['Assassin', 2],
+    ['Dwarf', 3],
+    ['Demon', 4]
+  ]) {
+    const tab = model.factTabs.find((entry) => entry.label === label);
+    assert.match(
+      tab.facts.find((fact) => fact.name === 'Strike damage').detail,
+      new RegExp(`^${coefficient} coefficient`)
+    );
+  }
+});
+
 // Every registered trait must resolve real declarations, including traits backed by separately named profiles.
 test('profession trait declarations resolve without missing references or invalid numeric facts', async () => {
   for (const name of [
