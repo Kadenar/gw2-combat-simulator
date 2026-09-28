@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { applyMesmerRuntimeManifest, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -30,17 +31,14 @@ export function initializeMirageRuntime(context: MesmerRuntime): void {
   const mirage = createMirageActionController({
     state: context,
     config: context.config,
-    traits: runtime.traits,
     ambushAttacks: runtime.ambushAttacks,
     cloneAttacks: runtime.cloneAttacks,
-    skillsById: runtime.skillsById,
     addEvent: runtime.addEvent,
     addTraitProc: runtime.addTraitProc,
     addCondition: runtime.addCondition,
     addDamage: runtime.addDamage,
     activePrimaryWeapon: runtime.activePrimaryWeapon,
     queueResources: runtime.resources.queueResources,
-    balanceProfile: runtime.balanceProfile,
     // Dune Cloak shares the scheduler's base-recharge conversion instead of editing tracked timestamps itself.
     reduceSkillRecharge: context.cooldownController.reduceSkillRecharge
   });
@@ -58,7 +56,7 @@ export function initializeMirageRuntime(context: MesmerRuntime): void {
     const cloneAmbushUntil = mirageState.from(context).cloneAmbushUntil;
     if (
       triggersCloneAmbush &&
-      runtime.traits.has(TRAIT.INFINITE_HORIZON) &&
+      hasTrait(context, TRAIT.INFINITE_HORIZON) &&
       cloneAmbushUntil > 0 &&
       at <= cloneAmbushUntil
     ) {
@@ -67,6 +65,6 @@ export function initializeMirageRuntime(context: MesmerRuntime): void {
   });
   // Riddle of Sand starts armed only for the active Mirage runtime and is re-armed by Mirage shatters.
   mirageState.from(context).riddleOfSandReady =
-    runtime.traits.has(TRAIT.RIDDLE_OF_SAND) &&
+    hasTrait(context, TRAIT.RIDDLE_OF_SAND) &&
     Boolean(requireEffect(requireBalanceProfileFromContext(context, TRAIT.RIDDLE_OF_SAND), 'condition', 'Confusion'));
 }

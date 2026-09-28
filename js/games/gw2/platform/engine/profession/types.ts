@@ -44,8 +44,9 @@ export interface ProfessionModifierDefinition {
   readonly modifyConditionDamage?: ProfessionHookEntry;
   readonly modifyConditionBaseDuration?: ProfessionHookEntry;
   readonly modifyConditionDuration?: ProfessionHookEntry;
-  /** Declarative modifier fragments compiled once per family by the single owning compiler. */
+  /** Declarative modifier fragments compiled once per selection with standard GW2 damage buckets. */
   readonly modifierRules?: readonly Gw2ModifierRule[];
+  /** Optional single-owner override for profession-specific damage-bucket policies. */
   readonly compileModifierRules?: (declarations: readonly Gw2ModifierRule[]) => {
     readonly [
       K in Exclude<keyof ProfessionModifierDefinition, 'modifierRules' | 'compileModifierRules'>

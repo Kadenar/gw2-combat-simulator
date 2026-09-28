@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   requireBalanceProfileFromContext,
@@ -41,7 +42,7 @@ export function initializeChronomancerRuntime(context: MesmerRuntime): void {
       'Time Bomb': mesmerProfiledTraitDamage(context, MESMER_CHRONOMANCER_TRAIT_DAMAGE['Time Bomb'], PROFILE.timeBomb)
     },
     phantasmAttackTimings: MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
-    phantasmPolicy: runtime.traits.has(TRAIT.CHRONOPHANTASMA)
+    phantasmPolicy: hasTrait(context, TRAIT.CHRONOPHANTASMA)
       ? {
           repeat: {
             label: 'Chronophantasma',
@@ -63,13 +64,12 @@ export function initializeChronomancerRuntime(context: MesmerRuntime): void {
     state: context,
     cooldownController: context.cooldownController,
     unaffectedCooldownIds: CONTINUUM_UNAFFECTED_COOLDOWN_IDS,
-    skillsById: runtime.skillsById,
     refreshAmmo: context.cooldownController.refreshAmmo,
     consumeResources: runtime.actions.consumeResources,
     triggerShatterTraits: runtime.actions.triggerShatterTraits,
     addEvent: runtime.addEvent,
     durationPerSource: balanceProfileNumber(continuumSplitProfile, 'durationPerTier'),
-    bonusDuration: runtime.traits.has(TRAIT.MASTER_OF_FRAGMENTATION)
+    bonusDuration: hasTrait(context, TRAIT.MASTER_OF_FRAGMENTATION)
       ? balanceProfileNumber(
           requireBalanceProfileFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION),
           'durationMultiplier'

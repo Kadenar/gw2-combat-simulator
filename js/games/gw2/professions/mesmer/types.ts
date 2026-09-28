@@ -2,7 +2,7 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type { BalanceProfile, Skill, SkillId, StrikeTick, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId, StrikeTick, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -116,12 +116,10 @@ export type MesmerResolverEvent = Gw2ResolverEvent & {
 /** All mechanic owners mutate the shared live runtime. */
 export type MesmerRuntime = Gw2Runtime<MesmerRuntimeState>;
 
-/** Scheduler-local dependencies assembled once for the active Mesmer module. */
+/** Mesmer helpers share the live context as the sole owner of traits, skills, and balance profiles. */
 export interface MesmerMechanics {
   context: MesmerRuntime;
-  traits: ReadonlySet<number>;
   resourceDefinition: MesmerResourceDefinition;
-  skillsById: ReadonlyMap<SkillId, MesmerSkill>;
   flipSkillsByParent: ReadonlyMap<SkillId, MesmerSkill>;
   activeEmission: MesmerActiveEmission | null;
   castDetails: Map<string, MesmerCastDetails>;
@@ -137,7 +135,6 @@ export interface MesmerMechanics {
   skillCompletionHandlers: MesmerSkillCompletionHandler[];
   methodOfMadnessCommitted?: (at: number) => void;
   instruments: Record<number, MesmerInstrument>;
-  balanceProfile: (id: SkillId) => BalanceProfile | undefined;
   activePrimaryWeapon: MesmerActivePrimaryWeapon;
   addEvent: MesmerAddEvent;
   addTraitProc: MesmerAddTraitProc;

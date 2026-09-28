@@ -1,7 +1,7 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /** Connects Core Mesmer resources, profession actions, player effects, and illusions into one simulation runtime. */
 import {
-  balanceProfileFromContext,
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -44,10 +44,9 @@ import { clamp } from '#kernel/core/numeric.js';
 
 /** Builds Core trait variations consumed by the shared phantasm lifecycle. */
 function runtimeTraitsPhantasmSpawnModifiers(
-  context: MesmerRuntime,
-  traits: ReadonlySet<number>
+  context: MesmerRuntime
 ): Record<number, { countMultiplier: number; damageMultiplier: number }> {
-  if (!traits.has(TRAIT.BOUNTIFUL_BLADES)) return {};
+  if (!hasTrait(context, TRAIT.BOUNTIFUL_BLADES)) return {};
   const bountifulBladesProfile = requireBalanceProfileFromContext(context, PROFILE.bountifulBlades);
   return {
     [ID.PHANTASMAL_BERSERKER]: {
@@ -60,9 +59,10 @@ function runtimeTraitsPhantasmSpawnModifiers(
 /**
  * Creates and connects all Mesmer feature controllers for one simulation.
  *
- * The returned runtime centralizes normalized traits, event materialization,
+ * The returned runtime centralizes event materialization,
  * resource and illusion controllers, cast-local details, and helper functions
- * shared by lifecycle hooks and task handlers.
+ * shared by lifecycle hooks and task handlers. Traits and catalog lookups stay
+ * on the canonical context so every controller reads the same build and patch.
  *
  * Connected Mesmer runtime.
  */
@@ -70,19 +70,14 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
   const state = context;
   const { config } = context;
   const catalog = context.helpers as import('#gw2/platform/engine/skills/types.js').CanonicalCatalog<MesmerSkill>;
-  // Normalize canonical selected IDs once for all Mesmer controllers.
-  const traits = new Set((config.selectedTraitIds || []).map(Number));
   const resourceDefinition = mesmerResourceDefinition(config.specialization ?? 'Core', context);
-  const skillsById = catalog.skillsById;
   const allSkills = catalog.skills;
   const flipSkillsByParent = new Map<SkillId, MesmerSkill>(
     allSkills.flatMap((skill) => (skill.flipParentId == null ? [] : ([[skill.flipParentId, skill]] as const)))
   );
   const runtime = {
     context,
-    traits,
     resourceDefinition,
-    skillsById,
     flipSkillsByParent,
     activeEmission: null as MesmerActiveEmission | null,
     castDetails: new Map<string, MesmerCastDetails>(),
@@ -93,7 +88,7 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
       Object.entries(MESMER_CORE_PHANTASM_ATTACK_TIMINGS).map(([id, timing]) => [Number(id), { ...timing }])
     ) as Record<number, MesmerPhantasmAttackTiming>,
     phantasmPolicy: {
-      spawnModifiers: runtimeTraitsPhantasmSpawnModifiers(context, traits),
+      spawnModifiers: runtimeTraitsPhantasmSpawnModifiers(context),
       conversionTiming: 'spawn' as const
     },
     traitDamage: {
@@ -110,8 +105,7 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
     },
     shatterResolvedHandlers: [],
     skillCompletionHandlers: [],
-    instruments: {},
-    balanceProfile: (id: SkillId) => balanceProfileFromContext(context, id)
+    instruments: {}
   };
   const activePrimaryWeapon = () => {
     const weaponSet = state.activeWeaponSet === 1 ? 1 : 2;
@@ -165,7 +159,6 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
 
   const resources = createResourceController({
     state,
-    traits,
     resourceDefinition,
     clamp,
     activePrimaryWeapon,
@@ -173,12 +166,10 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
     addEvent,
     addTraitProc,
     destroyClone,
-    scheduleResourceTask,
-    balanceProfile: runtime.balanceProfile
+    scheduleResourceTask
   });
   const criticalTraits = createCriticalTraitDispatcher({
     state,
-    traits,
     emitEvent: (cause, event) => context.emitDerived(cause, event),
     boonDuration: (boon, duration) =>
       gw2ResolverBoonDuration(
@@ -187,12 +178,10 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
         boon,
         duration
       ),
-    addTraitProc,
-    balanceProfile: runtime.balanceProfile
+    addTraitProc
   });
   const actions = createProfessionActionController({
     state,
-    traits,
     resourceDefinition,
     destroyClone,
     shatters: runtime.shatters,
@@ -200,12 +189,10 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
     warnings: context.warnings,
     addEvent,
     addTraitProc,
-    addCondition,
-    balanceProfile: runtime.balanceProfile
+    addCondition
   });
   const skillEffects = createSkillEffectController({
     state,
-    traits,
     resourceDefinition,
     phantasmAttackTimings: runtime.phantasmAttackTimings,
     phantasmPolicy: () => runtime.phantasmPolicy,
@@ -215,8 +202,7 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
     addTraitProc,
     addCondition,
     addDamage,
-    traitDamage: runtime.traitDamage,
-    balanceProfile: runtime.balanceProfile
+    traitDamage: runtime.traitDamage
   });
   const connectedRuntime: MesmerMechanics = Object.assign(runtime, {
     activePrimaryWeapon,

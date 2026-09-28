@@ -143,7 +143,7 @@ export function settleMesmerSkillFlips(
   }
 
   if (skill.parentCooldownIncrease) {
-    const parent = runtime.skillsById.get(flipParentId);
+    const parent = context.helpers.skillsById.get(flipParentId) as MesmerSkill | undefined;
     const parentReadyAt = parent ? state.cooldowns.get(parent.id) : null;
     if (parent && parentReadyAt != null) {
       const progress = state.rechargeProgress.get(parent.id);

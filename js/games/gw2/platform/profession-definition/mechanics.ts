@@ -4,47 +4,8 @@ import {
   criticalOpportunity,
   type CriticalProcApplication
 } from '#gw2/platform/combat/critical-procs.js';
-import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-
-function resolvedReaction<
-  TContext extends Gw2ResolverRuntime,
-  TEvent extends Gw2ResolverEvent,
-  TDetails extends object
->(
-  stage: Gw2ResolverStage,
-  declaration: Readonly<{
-    id: string;
-    order?: number;
-    handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
-  }>
-): ResolvedReaction<TContext, TEvent, TDetails> {
-  if (!(declaration.id || '').trim() || typeof declaration.handler !== 'function') {
-    throw new TypeError(`${stage} resolver reaction requires id and handler.`);
-  }
-
-  return Object.freeze({
-    stage,
-    id: declaration.id,
-    order: declaration.order || 0,
-    handler: declaration.handler
-  });
-}
-
-/** Creates an ordered resolver reaction for resolved damage. */
-export function onResolvedDamage<
-  TContext extends Gw2ResolverRuntime,
-  TEvent extends Gw2ResolverEvent,
-  TDetails extends object = NativeResolvedDamageDetails
->(
-  declaration: Readonly<{
-    id: string;
-    order?: number;
-    handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
-  }>
-): ResolvedReaction<TContext, TEvent, TDetails> {
-  return resolvedReaction('damage.resolved', declaration);
-}
 
 export interface ResolvedCriticalHitOptions<
   TContext extends Gw2ResolverRuntime,
@@ -70,71 +31,66 @@ export interface ResolvedCriticalHitOptions<
 }
 
 /**
- * Runs a resolved critical-hit reaction without rerolling the canonical hit.
+ * Returns a handler for resolved critical hits without rerolling the canonical hit.
  * The phase-neutral critical-proc kernel owns seeded
  * secondary rolls, and ICD behavior; the declaration owns eligibility and the
  * profession-specific effect.
  * Callers own execution order; handlers supply attribution on the effects they emit.
  */
-export function onResolvedCriticalHit<
+export function criticalProcHandler<
   TContext extends Gw2ResolverRuntime,
   TEvent extends Gw2ResolverEvent,
   TDetails extends NativeResolvedDamageDetails
->(options: ResolvedCriticalHitOptions<TContext, TEvent, TDetails>): ResolvedReaction<TContext, TEvent, TDetails> {
+>(
+  options: ResolvedCriticalHitOptions<TContext, TEvent, TDetails>
+): (context: TContext, event: TEvent, details?: TDetails) => void {
+  if (!(options.id || '').trim() || typeof options.handler !== 'function') {
+    throw new TypeError('Critical proc requires id and handler.');
+  }
+
   const actorTypes = new Set(options.actorTypes || ['player']);
 
-  return onResolvedDamage<TContext, TEvent, TDetails>({
-    id: options.id,
-    handler(context, event, details = {} as TDetails) {
-      // Reject ineligible actors and profession predicates before
-      // reading cooldowns or consuming a secondary random stream.
-      if (!actorTypes.has(event.actorType)) return;
-      if (options.when?.(context, event, details) === false) return;
+  return (context, event, details = {} as TDetails) => {
+    // Reject ineligible actors and profession predicates before
+    // reading cooldowns or consuming a secondary random stream.
+    if (!actorTypes.has(event.actorType)) return;
+    if (options.when?.(context, event, details) === false) return;
 
-      // Resolve patched proc and ICD values at the hit timestamp so balance
-      // profiles and runtime predicates remain profession-owned.
-      const chanceOnCriticalHit =
-        typeof options.chanceOnCriticalHit === 'function'
-          ? options.chanceOnCriticalHit(context)
-          : (options.chanceOnCriticalHit ?? 1);
-      const internalCooldownDuration = options.internalCooldown
-        ? typeof options.internalCooldown.duration === 'function'
-          ? options.internalCooldown.duration(context)
-          : options.internalCooldown.duration
-        : 0;
-      const criticalChance = details.hitContext?.critical.chance ?? details.criticalChance ?? 0;
+    // Resolve patched proc and ICD values at the hit timestamp so balance
+    // profiles and runtime predicates remain profession-owned.
+    const chanceOnCriticalHit =
+      typeof options.chanceOnCriticalHit === 'function'
+        ? options.chanceOnCriticalHit(context)
+        : (options.chanceOnCriticalHit ?? 1);
+    const internalCooldownDuration = options.internalCooldown
+      ? typeof options.internalCooldown.duration === 'function'
+        ? options.internalCooldown.duration(context)
+        : options.internalCooldown.duration
+      : 0;
+    const criticalChance = details.hitContext?.critical.chance ?? details.criticalChance ?? 0;
 
-      // Professions own deadlines; both modes consume the canonical seeded critical outcome.
-      const state = options.internalCooldown ? { readyAt: options.internalCooldown.readyAt(context) } : undefined;
-      const application = advanceCriticalProc(
-        criticalOpportunity(criticalChance, details.hitContext?.critical.didCrit),
-        {
-          id: options.id,
-          at: event.at,
-          chanceOnCriticalHit,
-          ...(options.internalCooldown ? { internalCooldown: internalCooldownDuration } : {}),
-          randomStream: options.randomStream,
-          roll: (chance, stream) => context.random.roll(chance, stream)
-        },
-        state
-      );
+    // Professions own deadlines; both modes consume the canonical seeded critical outcome.
+    const state = options.internalCooldown ? { readyAt: options.internalCooldown.readyAt(context) } : undefined;
+    const application = advanceCriticalProc(
+      criticalOpportunity(criticalChance, details.hitContext?.critical.didCrit),
+      {
+        id: options.id,
+        at: event.at,
+        chanceOnCriticalHit,
+        ...(options.internalCooldown ? { internalCooldown: internalCooldownDuration } : {}),
+        randomStream: options.randomStream,
+        roll: (chance, stream) => context.random.roll(chance, stream)
+      },
+      state
+    );
 
-      // Commit the claim before the trait emits effects that could cause another reaction.
-      if (state) {
-        options.internalCooldown?.setReadyAt(context, state.readyAt);
-      }
-
-      // The shared layer decides only whether and how much the proc applied;
-      // the declaration remains responsible for the actual trait effect.
-      if (application) options.handler(context, event, details, application);
+    // Commit the claim before the trait emits effects that could cause another reaction.
+    if (state) {
+      options.internalCooldown?.setReadyAt(context, state.readyAt);
     }
-  });
-}
 
-/** Ordered reactions retain live critical facts without declaring a second execution phase. */
-interface ResolvedReaction<TContext, TEvent, TDetails> {
-  readonly stage: Gw2ResolverStage;
-  readonly id: string;
-  readonly order: number;
-  readonly handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
+    // The shared layer decides only whether and how much the proc applied;
+    // the declaration remains responsible for the actual trait effect.
+    if (application) options.handler(context, event, details, application);
+  };
 }

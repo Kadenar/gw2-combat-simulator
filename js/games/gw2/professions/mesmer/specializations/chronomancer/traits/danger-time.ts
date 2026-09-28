@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import {
   requireBalanceProfileFromContext,
@@ -13,14 +14,14 @@ export function observeChronomancerEvent(context: MesmerRuntime, event: Simulati
   const runtime = mesmerMechanicsFor(context);
   const skillId = Number(event.skillId);
   if (
-    !runtime.traits.has(TRAIT.DANGER_TIME) ||
-    (skillId !== ID.TIME_SINK && !runtime.traits.has(TRAIT.DELAYED_REACTIONS))
+    !hasTrait(context, TRAIT.DANGER_TIME) ||
+    (skillId !== ID.TIME_SINK && !hasTrait(context, TRAIT.DELAYED_REACTIONS))
   ) {
     return;
   }
 
   const skillName = event.skillName || event.name || 'Control effect';
-  const dangerTimeProfile = requireBalanceProfileFromContext(runtime, TRAIT.DANGER_TIME);
+  const dangerTimeProfile = requireBalanceProfileFromContext(context, TRAIT.DANGER_TIME);
   runtime.addEvent({
     type: 'buff',
     at: event.at,

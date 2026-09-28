@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -11,7 +12,7 @@ import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mecha
 /** Activates Deadly Blades only after a successfully resolved Virtuoso Bladesong. */
 export function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
   const runtime = mesmerMechanicsFor(context);
-  if (!runtime.traits.has(TRAIT.DEADLY_BLADES)) return;
+  if (!hasTrait(context, TRAIT.DEADLY_BLADES)) return;
 
   const at = resolution.at;
   const deadlyBladesProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_BLADES);

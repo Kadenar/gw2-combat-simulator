@@ -17,11 +17,7 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import {
-  compileGw2ModifierRules,
-  MODIFIER_TARGET,
-  powerScaledConditionAttributes
-} from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET, powerScaledConditionAttributes } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -278,6 +274,5 @@ export const elementalistCoreModifiers = Object.freeze({
   // Inferno uses the same final-Power conversion as Sharpshooter, with Burning's authored coefficient.
   modifyConditionAttributes: (context: ElementalistModifierContext, attributes: Gw2Stats) =>
     powerScaledConditionAttributes(context, attributes, 'Burning', TRAIT.INFERNO),
-  modifierRules: elementalistCoreModifierRules,
-  compileModifierRules: compileGw2ModifierRules
+  modifierRules: elementalistCoreModifierRules
 });

@@ -7,7 +7,7 @@ import type {
   MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerMechanics
+  MesmerRuntime
 } from '#gw2/professions/mesmer/types.js';
 
 import type {
@@ -57,7 +57,7 @@ export interface MesmerPhantasmEffectController {
 }
 
 interface PhantasmEffectControllerOptions {
-  readonly traits: ReadonlySet<number>;
+  readonly state: MesmerRuntime;
   readonly phantasmAttackTimings: Readonly<Record<number, MesmerPhantasmAttackTiming>>;
   readonly phantasmPolicy: () => MesmerPhantasmPolicy;
   readonly queueResources: MesmerQueueResources;
@@ -65,7 +65,6 @@ interface PhantasmEffectControllerOptions {
   readonly addTraitProc: MesmerAddTraitProc;
   readonly addCondition: MesmerAddCondition;
   readonly addDamage: MesmerAddDamage;
-  readonly balanceProfile: MesmerMechanics['balanceProfile'];
 }
 
 function phantasmAttackDisplayName(skillId: number, damageGroupName: string): string {
@@ -76,15 +75,14 @@ function phantasmAttackDisplayName(skillId: number, damageGroupName: string): st
 }
 
 export function createPhantasmEffectController({
-  traits,
+  state,
   phantasmAttackTimings,
   phantasmPolicy,
   queueResources,
   addEvent,
   addTraitProc,
   addCondition,
-  addDamage,
-  balanceProfile
+  addDamage
 }: PhantasmEffectControllerOptions): MesmerPhantasmEffectController {
   const prepare = (
     skill: MesmerSkill,
@@ -108,7 +106,7 @@ export function createPhantasmEffectController({
     }
 
     // Phantasmal Haste compresses all post-cast timing offsets by 1/speed.
-    const speed = phantasmalHasteSpeed({ traits, balanceProfile });
+    const speed = phantasmalHasteSpeed(state);
     const endpoint = (atMs: number | undefined): number => {
       const measuredPostCast = Number(atMs) / 1000;
       const actualCastTime = summonAt - castStart;
@@ -186,7 +184,7 @@ export function createPhantasmEffectController({
     const initialBladeAt = Math.max(...executions.map((item) => item.initialBladeAt));
 
     triggerCompoundingPower(
-      { traits, addEvent, addTraitProc, balanceProfile },
+      { context: state, addEvent, addTraitProc },
       execution.summonAt,
       count,
       skill.name,
@@ -226,7 +224,7 @@ export function createPhantasmEffectController({
 
     // The active specialization repeat policy re-summons the phantasm for a second attack cycle.
     triggerCompoundingPower(
-      { traits, addEvent, addTraitProc, balanceProfile },
+      { context: state, addEvent, addTraitProc },
       execution.spawnAt,
       count,
       `${skill.name} - ${policy.repeat.label}`,

@@ -6,7 +6,7 @@ import {
   createNativeModuleData,
   getNativeCatalogAssembly
 } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
-import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { createProfessionModuleDataFactory } from '#gw2/professions/shared/catalog-data.js';
 
@@ -298,6 +298,8 @@ test('module-first assembly rejects duplicate and incomplete contributions', () 
 });
 
 test('resolved critical-hit helper shares sampled outcomes and strict ICDs across modes', () => {
+  assert.throws(() => criticalProcHandler({ id: '', handler() {} }), /Critical proc requires id and handler/);
+  assert.throws(() => criticalProcHandler({ id: 'invalid' }), /Critical proc requires id and handler/);
   const state = { readyAt: 0, procs: 0, rolls: 0 };
   const context = {
     random: {
@@ -311,7 +313,7 @@ test('resolved critical-hit helper shares sampled outcomes and strict ICDs acros
       }
     }
   };
-  const reaction = onResolvedCriticalHit({
+  const reaction = criticalProcHandler({
     id: 'fixture.critical',
     chanceOnCriticalHit: 0.5,
     when: (_context, event) => event.sourceId === 7,
@@ -322,7 +324,9 @@ test('resolved critical-hit helper shares sampled outcomes and strict ICDs acros
         state.readyAt = value;
       }
     },
-    handler: (_context, _event, _details, application) => {
+    handler: (_context, event, _details, application) => {
+      // Claim the cooldown before emitting effects that could reenter this handler.
+      assert.equal(state.readyAt, event.at + 1);
       // Discrete consumers apply every proc quantity returned by the shared kernel.
       state.procs += application.quantity;
     }
@@ -331,21 +335,21 @@ test('resolved critical-hit helper shares sampled outcomes and strict ICDs acros
   const deterministic = { hitContext: { critical: { chance: 0.5, didCrit: true } } };
 
   for (let index = 0; index < 8; index += 1) {
-    reaction.handler(context, { ...event, at: index / 4 }, deterministic);
+    reaction(context, { ...event, at: index / 4 }, deterministic);
   }
 
   assert.equal(state.procs, 2);
   assert.equal(state.rolls, 2);
 
   context.random.stochastic = true;
-  reaction.handler(
+  reaction(
     context,
     { ...event, at: 3 },
     {
       hitContext: { critical: { chance: 0.5, didCrit: false } }
     }
   );
-  reaction.handler(
+  reaction(
     context,
     { ...event, at: 3 },
     {
@@ -355,14 +359,14 @@ test('resolved critical-hit helper shares sampled outcomes and strict ICDs acros
   assert.equal(state.procs, 3);
   assert.equal(state.rolls, 3);
 
-  reaction.handler(
+  reaction(
     context,
     { ...event, at: 3, actorType: 'summon' },
     {
       hitContext: { critical: { chance: 1, didCrit: true } }
     }
   );
-  reaction.handler(
+  reaction(
     context,
     { ...event, at: 3, sourceId: 8 },
     {

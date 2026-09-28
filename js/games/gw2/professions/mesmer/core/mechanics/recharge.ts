@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
@@ -67,7 +68,7 @@ export function mesmerMaximumAmmo(context: MesmerRuntime, skill: MesmerSkill, ma
   const id = skill.id;
   const runtime = mesmerMechanicsFor(context);
   const isSlot1 = runtime.shatters[id]?.slot === 1 || runtime.instruments[id]?.slot === 1;
-  return isSlot1 && mesmerMechanicsFor(context).traits.has(TRAIT.SHATTER_STORM)
+  return isSlot1 && hasTrait(context, TRAIT.SHATTER_STORM)
     ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.shatterStorm), 'maximumStacks')
     : maximum;
 }

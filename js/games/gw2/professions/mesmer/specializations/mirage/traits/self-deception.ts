@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -12,7 +13,7 @@ export function completeMirageSkill(context: MesmerRuntime, cast: RuntimeCast): 
   const skill = cast.skill;
   const runtime = mesmerMechanicsFor(context);
   if (
-    runtime.traits.has(TRAIT.SELF_DECEPTION) &&
+    hasTrait(context, TRAIT.SELF_DECEPTION) &&
     skill.categories?.includes('Deception') &&
     runtime.actions.currentResource() > 0
   ) {

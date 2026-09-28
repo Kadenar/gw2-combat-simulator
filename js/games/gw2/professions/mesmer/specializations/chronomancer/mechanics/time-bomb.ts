@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -15,7 +16,7 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
   const runtime = mesmerMechanicsFor(context);
   const state = chronomancerState.from(context);
   const at = cast.fullEnd;
-  if (!runtime.traits.has(TRAIT.TIME_BOMB) || at < state.timeBombUntil) return;
+  if (!hasTrait(context, TRAIT.TIME_BOMB) || at < state.timeBombUntil) return;
 
   const timeBomb = runtime.traitDamage['Time Bomb'];
   // The removed explosion cannot arm a timer or emit a synthetic hit.

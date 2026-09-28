@@ -1,7 +1,7 @@
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { modifyWarriorArmsAttributes, warriorArmsModifierRules } from '#gw2/professions/warrior/core/traits/arms.js';
@@ -113,6 +113,5 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 
 export const warriorCoreModifiers = Object.freeze({
   modifyAttributes: modifyWarriorAttributes,
-  modifierRules: warriorModifierRules,
-  compileModifierRules: compileGw2ModifierRules
+  modifierRules: warriorModifierRules
 });

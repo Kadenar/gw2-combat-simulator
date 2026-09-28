@@ -1,4 +1,4 @@
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 /** Owns imperative Core Mesmer Illusions trait effects. */
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import {
@@ -14,12 +14,10 @@ import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mecha
 
 import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
 
-type CryOfPainContext = Pick<MesmerMechanics, 'traits' | 'balanceProfile'>;
-
 /** Adds The Pledge only to the skill's player Burning, inheriting its timing and excluding summon or trait procs. */
 export function triggerThePledge(context: MesmerRuntime, event: SimulationEvent): void {
   if (
-    !mesmerMechanicsFor(context).traits.has(TRAIT.THE_PLEDGE) ||
+    !hasTrait(context, TRAIT.THE_PLEDGE) ||
     event.type !== 'condition' ||
     event.condition !== 'Burning' ||
     !isGw2PlayerActorEvent(event) ||
@@ -48,10 +46,10 @@ export function triggerThePledge(context: MesmerRuntime, event: SimulationEvent)
 
 /** Returns Cry of Pain's Confusion override before the owning shatter emits packets. */
 export function applyCryOfPain(
-  context: CryOfPainContext,
+  context: MesmerRuntime,
   condition: MesmerConditionApplication | undefined
 ): MesmerConditionApplication | undefined {
-  if (!context.traits.has(TRAIT.CRY_OF_PAIN)) return condition;
+  if (!hasTrait(context, TRAIT.CRY_OF_PAIN)) return condition;
   const cryOfPainProfile = requireBalanceProfileFromContext(context, TRAIT.CRY_OF_PAIN);
   const effect = requireEffect(cryOfPainProfile, 'condition', 'Confusion');
   return effect ? { ...effect, summonKind: undefined, name: effect.condition! } : condition;
@@ -59,14 +57,14 @@ export function applyCryOfPain(
 
 /** Emits Compounding Power stacks and its proc record at the owning lifecycle position. */
 export function triggerCompoundingPower(
-  context: Readonly<Pick<MesmerMechanics, 'traits' | 'addEvent' | 'addTraitProc' | 'balanceProfile'>>,
+  context: Readonly<Pick<MesmerMechanics, 'context' | 'addEvent' | 'addTraitProc'>>,
   at: number,
   count: number,
   sourceSkill: string,
   detail: string
 ): void {
-  if (!context.traits.has(TRAIT.COMPOUNDING_POWER) || count <= 0) return;
-  const compoundingPowerProfile = requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER);
+  if (!hasTrait(context.context, TRAIT.COMPOUNDING_POWER) || count <= 0) return;
+  const compoundingPowerProfile = requireBalanceProfileFromContext(context.context, TRAIT.COMPOUNDING_POWER);
   const duration = balanceProfileNumber(compoundingPowerProfile, 'durationMultiplier');
   for (let index = 0; index < count; index += 1) {
     context.addEvent({
@@ -84,11 +82,11 @@ export function triggerCompoundingPower(
 
 /** Applies Maim the Disillusioned to the first-strike groups reported by the shatter resolver. */
 export function triggerMaimTheDisillusioned(
-  context: Readonly<Pick<MesmerMechanics, 'traits' | 'addCondition' | 'addTraitProc' | 'balanceProfile'>>,
+  context: Readonly<Pick<MesmerMechanics, 'context' | 'addCondition' | 'addTraitProc'>>,
   resolution: MesmerShatterResolution
 ): void {
-  if (!resolution.traitHits.length || !context.traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) return;
-  const maimTheDisillusionedProfile = requireBalanceProfileFromContext(context, TRAIT.MAIM_THE_DISILLUSIONED);
+  if (!resolution.traitHits.length || !hasTrait(context.context, TRAIT.MAIM_THE_DISILLUSIONED)) return;
+  const maimTheDisillusionedProfile = requireBalanceProfileFromContext(context.context, TRAIT.MAIM_THE_DISILLUSIONED);
   const effect = requireEffect(maimTheDisillusionedProfile, 'condition', 'Torment');
   if (!effect) return;
   const maim = {
@@ -112,8 +110,8 @@ export function triggerMaimTheDisillusioned(
 }
 
 /** Returns the profile-owned Phantasmal Haste speed before phantasm packet times are derived. */
-export function phantasmalHasteSpeed(context: CryOfPainContext): number {
-  return context.traits.has(TRAIT.PHANTASMAL_HASTE)
+export function phantasmalHasteSpeed(context: MesmerRuntime): number {
+  return hasTrait(context, TRAIT.PHANTASMAL_HASTE)
     ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PHANTASMAL_HASTE), 'quicknessCastMultiplier')
     : 1;
 }

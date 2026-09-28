@@ -7,7 +7,7 @@ import {
   balanceProfileNumber,
   procChanceFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { applyTraitCondition } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
@@ -16,7 +16,7 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
 /** Lets player and Ritualist spirit critical hits advance Barbed Precision, while excluding minions. */
-export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
+export const necromancerBarbedPrecisionReaction = criticalProcHandler<
   NecromancerResolverContext,
   NecromancerResolverEvent,
   NativeResolvedDamageDetails

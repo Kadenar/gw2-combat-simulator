@@ -39,6 +39,7 @@ function instrumentContext() {
 
   const context = {
     config,
+    traits: new Set(config.selectedTraitIds),
     profession,
     state,
     events,
@@ -51,10 +52,7 @@ function instrumentContext() {
     cooldownController: { ensureAmmo: () => null },
     eventsOfType: (type) => events.filter((event) => event.type === type),
     mesmerRuntime: {
-      traits: new Set(),
       instruments: {},
-      skillsById: profession.catalog.skillsById,
-      balanceProfile: (id) => profession.catalog.balanceProfilesById.get(id),
       addEvent: emit,
       addTraitProc() {},
       activePrimaryWeapon: () => 'Spear',

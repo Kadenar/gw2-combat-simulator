@@ -1,7 +1,7 @@
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
-import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
 import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
@@ -150,29 +150,27 @@ function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEve
 
 /** Resolver-time equipment hooks. Scheduler-owned sigil generation stays out. */
 export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionContributions {
-  const criticalFoodReaction = onResolvedCriticalHit<Gw2ResolverRuntime, Gw2ResolverEvent, NativeResolvedDamageDetails>(
-    {
-      id: 'food.critical-strike',
-      chanceOnCriticalHit: (ctx) => criticalFoodProc(ctx)?.chance || 0,
-      actorTypes: ['player'],
-      when: (ctx, event) =>
-        isGw2PlayerActorEvent(event) && Number(event.coefficient) > 0 && criticalFoodProc(ctx) != null,
-      internalCooldown: {
-        duration: (ctx) => (criticalFoodProc(ctx)?.icdMs || 0) / 1000,
-        readyAt: (ctx) => ctx.food.readyAt,
-        setReadyAt: (ctx, readyAt) => {
-          ctx.food.readyAt = readyAt;
-        }
-      },
-      randomStream: 'food.critical-strike',
-      handler: (ctx, event, _details, application) => {
-        // Food procs are discrete events, so materialize every successful sampled application independently.
-        for (let proc = 0; proc < application.quantity; proc += 1) {
-          createCriticalFoodEffect(ctx, event);
-        }
+  const criticalFoodReaction = criticalProcHandler<Gw2ResolverRuntime, Gw2ResolverEvent, NativeResolvedDamageDetails>({
+    id: 'food.critical-strike',
+    chanceOnCriticalHit: (ctx) => criticalFoodProc(ctx)?.chance || 0,
+    actorTypes: ['player'],
+    when: (ctx, event) =>
+      isGw2PlayerActorEvent(event) && Number(event.coefficient) > 0 && criticalFoodProc(ctx) != null,
+    internalCooldown: {
+      duration: (ctx) => (criticalFoodProc(ctx)?.icdMs || 0) / 1000,
+      readyAt: (ctx) => ctx.food.readyAt,
+      setReadyAt: (ctx, readyAt) => {
+        ctx.food.readyAt = readyAt;
+      }
+    },
+    randomStream: 'food.critical-strike',
+    handler: (ctx, event, _details, application) => {
+      // Food procs are discrete events, so materialize every successful sampled application independently.
+      for (let proc = 0; proc < application.quantity; proc += 1) {
+        createCriticalFoodEffect(ctx, event);
       }
     }
-  );
+  });
 
   return Object.freeze({
     'combo.resolved': [
@@ -226,9 +224,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       {
         id: 'food.critical-strike',
         order: GW2_REACTION_ORDER.LATE_COMMON,
-        handler(ctx, event, details = {}) {
-          criticalFoodReaction.handler(ctx, event, details);
-        }
+        handler: criticalFoodReaction
       },
       {
         id: 'relic.after-hit',

@@ -203,7 +203,7 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       const mechanics = mesmerMechanicsFor(runtime);
       const critical = (details as NativeResolvedDamageDetails).hitContext!.critical;
       mechanics.criticalTraits.process({ ...event, didCrit: critical.didCrit }, critical.chance);
-      const skill = mechanics.skillsById.get(event.skillId ?? '');
+      const skill = runtime.helpers.skillsById.get(event.skillId ?? '') as MesmerSkill | undefined;
       if (!skill) return;
       const first = event.summonKind === 'clone' ? Infinity : emitFencersFinesseStacks(mechanics, skill, [event.at], 1);
       if (Number(event.hitIndex ?? 1) === 1) recordFencersFinesseProc(mechanics, skill, first);

@@ -6,7 +6,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { applyActiveVenoms } from '#gw2/professions/thief/core/mechanics/venoms.js';
@@ -29,8 +29,8 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { ThiefResolverContext, ThiefSkill } from '#gw2/professions/thief/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
-const unrelentingStrikes = onResolvedCriticalHit(unrelentingStrikesCriticalReaction);
-const noQuarter = onResolvedCriticalHit(noQuarterCriticalReaction);
+const unrelentingStrikes = criticalProcHandler(unrelentingStrikesCriticalReaction);
+const noQuarter = criticalProcHandler(noQuarterCriticalReaction);
 
 function resolverContext(runtime: ThiefRuntime): ThiefResolverContext {
   return runtime;
@@ -125,8 +125,8 @@ export function reactThiefCoreDamage(
 ): void {
   const context = resolverContext(runtime);
   const resolved = details as unknown as NativeResolvedDamageDetails;
-  unrelentingStrikes.handler(context, event, resolved);
-  noQuarter.handler(context, event, resolved);
+  unrelentingStrikes(context, event, resolved);
+  noQuarter(context, event, resolved);
   applyDeadlyAmbition(context, event);
   // Multiple venom types consume their charges but share one siphon per player strike.
   if (applyActiveVenoms(context, event) > 0) applyLeechingVenoms(context, event);

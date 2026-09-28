@@ -16,6 +16,7 @@ test('Continuum snapshots restore recharge work at the permanent Chronomancer ra
   const skillsById = new Map([[skill.id, skill]]);
   const state = {
     time: 0,
+    helpers: { skillsById },
     ammo: new Map(),
     rechargeProgress: new Map(),
     cooldowns: new Map(),
@@ -33,7 +34,6 @@ test('Continuum snapshots restore recharge work at the permanent Chronomancer ra
     state,
     cooldownController: cooldown,
     unaffectedCooldownIds: new Set(),
-    skillsById,
     refreshAmmo: cooldown.refreshAmmo,
     consumeResources: () => 0,
     triggerShatterTraits: () => {},
@@ -52,6 +52,7 @@ test('Continuum Split restores ammo recharge and cast lockout deadlines independ
   const skill = { id: 980000, ammo: 2 };
   const state = {
     time: 0,
+    helpers: { skillsById: new Map([[skill.id, skill]]) },
     ammo: new Map(),
     rechargeProgress: new Map(),
     cooldowns: new Map(),
@@ -62,7 +63,6 @@ test('Continuum Split restores ammo recharge and cast lockout deadlines independ
     state,
     cooldownController: cooldown,
     unaffectedCooldownIds: new Set(),
-    skillsById: new Map([[skill.id, skill]]),
     refreshAmmo: cooldown.refreshAmmo,
     consumeResources: () => 0,
     triggerShatterTraits: () => {},

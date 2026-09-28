@@ -38,7 +38,7 @@ export function mesmerConditionFromProfile(
   id: number | string,
   name: string
 ): MesmerConditionApplication | undefined {
-  const effect = requireEffect(requireBalanceProfileFromContext(mesmerMechanicsFor(context), id), 'condition', name);
+  const effect = requireEffect(requireBalanceProfileFromContext(context, id), 'condition', name);
   return effect ? { ...effect, summonKind: undefined, name: effect.condition! } : undefined;
 }
 

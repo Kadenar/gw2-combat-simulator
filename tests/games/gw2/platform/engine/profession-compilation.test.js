@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
-import { onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { resolveProfessionContract } from '#gw2/platform/engine/profession/contract.js';
@@ -10,12 +9,12 @@ import { resolveProfessionContract } from '#gw2/platform/engine/profession/contr
 test('mixed-stage reaction arrays retain dispatch ownership and stable order after compilation', () => {
   const calls = [];
   const reactions = Object.freeze([
-    onResolvedDamage({ id: 'late', order: 20, handler: () => calls.push('late') }),
+    { stage: 'damage.resolved', id: 'late', order: 20, handler: () => calls.push('late') },
     { stage: 'condition.applied', id: 'shared', order: 0, handler: () => calls.push('condition') },
-    onResolvedDamage({ id: 'shared', order: 0, handler: () => calls.push('tie-first') }),
+    { stage: 'damage.resolved', id: 'shared', order: 0, handler: () => calls.push('tie-first') },
     { stage: 'buff.applied', id: 'shared', order: 0, handler: () => calls.push('buff') },
-    onResolvedDamage({ id: 'tie-second', order: 0, handler: () => calls.push('tie-second') }),
-    onResolvedDamage({ id: 'early', order: -10, handler: () => calls.push('early') })
+    { stage: 'damage.resolved', id: 'tie-second', order: 0, handler: () => calls.push('tie-second') },
+    { stage: 'damage.resolved', id: 'early', order: -10, handler: () => calls.push('early') }
   ]);
   const contributions = Object.groupBy(reactions, (reaction) => reaction.stage);
   const registry = createGw2ResolverReactionRegistry({ contributions });

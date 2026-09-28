@@ -14,7 +14,6 @@ import type {
   MesmerAddTraitProc,
   MesmerRuntime,
   MesmerProfessionActionController,
-  MesmerMechanics,
   MesmerShatterResolver
 } from '#gw2/professions/mesmer/types.js';
 import type {
@@ -28,7 +27,6 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 interface ProfessionActionControllerOptions {
   readonly state: MesmerRuntime;
-  readonly traits: ReadonlySet<number>;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly destroyClone: MesmerDestroyClone;
   readonly shatters: Readonly<Record<number, MesmerShatter>>;
@@ -37,12 +35,10 @@ interface ProfessionActionControllerOptions {
   readonly addTraitProc: MesmerAddTraitProc;
   readonly addCondition: MesmerAddCondition;
   readonly shatterResolvers: Readonly<Record<string, MesmerShatterResolver>>;
-  readonly balanceProfile: MesmerMechanics['balanceProfile'];
 }
 
 export function createProfessionActionController({
   state,
-  traits,
   resourceDefinition,
   destroyClone,
   shatters,
@@ -50,8 +46,7 @@ export function createProfessionActionController({
   addEvent,
   addTraitProc,
   addCondition,
-  shatterResolvers,
-  balanceProfile
+  shatterResolvers
 }: ProfessionActionControllerOptions): MesmerProfessionActionController {
   const numericResourceState = () => mesmerNumericResourceState(state);
 
@@ -134,7 +129,7 @@ export function createProfessionActionController({
   // Shared traits consume resolver-produced hit groups so Core does not need to know how a specialization attacks.
   const triggerShatterTraits = (resolution: MesmerShatterResolution): void => {
     triggerMesmerPostShatterTraits(
-      { traits, addEvent, addTraitProc, addCondition, balanceProfile },
+      { context: state, addEvent, addTraitProc, addCondition },
       shatters[resolution.skill.id],
       resolution
     );

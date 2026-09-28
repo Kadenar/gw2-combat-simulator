@@ -18,6 +18,7 @@ function lifetimeContext(traits = []) {
   const gainHandlers = [];
   const context = {
     config,
+    traits: new Set(config.selectedTraitIds),
     profession,
     catalog: profession.catalog,
     events,
@@ -38,12 +39,9 @@ function lifetimeContext(traits = []) {
     tasks: { nextAt: () => Infinity },
     eventsOfType: (type) => events.filter((event) => event.type === type),
     mesmerRuntime: {
-      traits: new Set(traits),
       ambushAttacks: {},
       cloneAttacks: {},
       shatterResolvedHandlers: [],
-      skillsById: profession.catalog.skillsById,
-      balanceProfile: (id) => profession.catalog.balanceProfilesById.get(id),
       activePrimaryWeapon: () => config.primaryWeapon,
       resourceDefinition: { singular: 'clone', plural: 'clones', maximum: 3 },
       resources: { queueResources() {}, addGainHandler: (handler) => gainHandlers.push(handler) },

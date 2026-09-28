@@ -62,7 +62,7 @@ export function resolveCloneShatter(
       );
 
     const baseConfusion = mesmerConditionFromProfile(context, shatter.balanceProfileId || skill.id, 'Confusion');
-    const confusion = applyCryOfPain(runtime, baseConfusion);
+    const confusion = applyCryOfPain(context, baseConfusion);
     if (confusion)
       runtime.addCondition(
         skill.name,

@@ -20,7 +20,6 @@ interface ContinuumControllerOptions {
   readonly state: MesmerRuntime;
   readonly cooldownController: CooldownController;
   readonly unaffectedCooldownIds: ReadonlySet<SkillId>;
-  readonly skillsById: ReadonlyMap<SkillId, MesmerSkill>;
   readonly refreshAmmo: MesmerRefreshAmmo;
   readonly consumeResources: (at: number, details?: MesmerResourceSpendDetails) => number;
   readonly triggerShatterTraits: (resolution: MesmerShatterResolution) => void;
@@ -34,7 +33,6 @@ export function createContinuumController({
   state,
   cooldownController,
   unaffectedCooldownIds,
-  skillsById,
   refreshAmmo,
   consumeResources,
   triggerShatterTraits,
@@ -93,7 +91,7 @@ export function createContinuumController({
     replaceAutoattackChains(state, continuum.autoattackChains);
     cooldownController.refresh(at);
     for (const [id] of state.ammo) {
-      const ammoSkill = skillsById.get(id);
+      const ammoSkill = state.helpers.skillsById.get(id) as MesmerSkill | undefined;
       if (ammoSkill) refreshAmmo(ammoSkill, at);
     }
 
@@ -120,7 +118,7 @@ export function createContinuumController({
     );
     const remainingRechargeWork = new Map(
       [...state.rechargeProgress].flatMap(([id, progress]) => {
-        const cooldownSkill = skillsById.get(id);
+        const cooldownSkill = state.helpers.skillsById.get(id);
         return cooldownSkill &&
           !unaffectedCooldownIds.has(id) &&
           gw2CooldownReadyAt(cooldownController.project(cooldownSkill, progress)) > at
@@ -135,11 +133,25 @@ export function createContinuumController({
           charges: value.charges,
           maximum: value.maximum,
           rechargeWork: value.rechargeWork,
-          ...(value.rechargeProgress && skillsById.has(id)
-            ? { pendingRechargeWork: cooldownController.remaining(skillsById.get(id)!, value.rechargeProgress, at) }
+          ...(value.rechargeProgress && state.helpers.skillsById.has(id)
+            ? {
+                pendingRechargeWork: cooldownController.remaining(
+                  state.helpers.skillsById.get(id)!,
+                  value.rechargeProgress,
+                  at
+                )
+              }
             : {}),
-          ...(value.lockoutProgress && gw2CooldownReadyAt(value.lockoutReadyAt ?? 0) > at && skillsById.has(id)
-            ? { pendingLockoutWork: cooldownController.remaining(skillsById.get(id)!, value.lockoutProgress, at) }
+          ...(value.lockoutProgress &&
+          gw2CooldownReadyAt(value.lockoutReadyAt ?? 0) > at &&
+          state.helpers.skillsById.has(id)
+            ? {
+                pendingLockoutWork: cooldownController.remaining(
+                  state.helpers.skillsById.get(id)!,
+                  value.lockoutProgress,
+                  at
+                )
+              }
             : {}),
           nextRechargeRemaining: value.nextRechargeAt == null ? null : Math.max(0, value.nextRechargeAt - at),
           lockoutRemaining: Math.max(0, (value.lockoutReadyAt ?? 0) - at)

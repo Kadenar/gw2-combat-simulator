@@ -3,7 +3,7 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { buffMatchesAudience, GW2_STANDARD_BOONS, sumActiveStacks } from '#gw2/platform/combat/boons.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -208,6 +208,5 @@ export const revenantCoreModifiers = Object.freeze({
   modifyAttributes: modifyCoreAttributes,
   modifyCriticalChance: modifyCoreCriticalChance,
   modifyConditionDuration: modifyCoreConditionDuration,
-  modifierRules: revenantCoreModifierRules,
-  compileModifierRules: compileGw2ModifierRules
+  modifierRules: revenantCoreModifierRules
 });

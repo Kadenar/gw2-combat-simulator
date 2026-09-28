@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
@@ -45,7 +46,7 @@ export const virtuosoHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
   reactions: {
     'condition.applied'(runtime, event) {
       const mechanics = mesmerMechanicsFor(runtime);
-      if (event.condition !== 'Bleeding' || !mechanics.traits.has(TRAIT.BLOODSONG)) return;
+      if (event.condition !== 'Bleeding' || !hasTrait(runtime, TRAIT.BLOODSONG)) return;
       const state = virtuosoState.from(runtime);
       state.bloodsongProgress += event.stacks ?? 0;
       const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODSONG);
@@ -63,13 +64,13 @@ export const virtuosoHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     },
     'damage.resolved'(runtime, event, details) {
       const mechanics = mesmerMechanicsFor(runtime);
-      const skill = mechanics.skillsById.get(event.skillId ?? '');
+      const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
       if ((!event.metadata?.blade && !skill?.blade) || event.canCrit === false) return;
       for (const [id, name, condition, proc] of [
         [TRAIT.DEADLY_BLADES, 'Deadly Blades', 'Vulnerability', 'mesmer.virtuoso.deadly-blades'],
         [TRAIT.JAGGED_MIND, 'Jagged Mind', 'Bleeding', 'mesmer.virtuoso.jagged-mind']
       ] as const) {
-        if (!mechanics.traits.has(id) || (id === TRAIT.DEADLY_BLADES && event.actorType !== 'player')) continue;
+        if (!hasTrait(runtime, id) || (id === TRAIT.DEADLY_BLADES && event.actorType !== 'player')) continue;
         const effect = requireEffect(requireBalanceProfileFromContext(runtime, id), 'condition', condition);
         if (!effect) continue;
         const critical = (details as NativeResolvedDamageDetails).hitContext!.critical;

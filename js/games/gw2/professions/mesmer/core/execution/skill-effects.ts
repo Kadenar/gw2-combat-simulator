@@ -22,7 +22,6 @@ interface MesmerSkillSpecialEffectController {
 
 interface SkillSpecialEffectControllerOptions {
   readonly state: MesmerRuntime;
-  readonly traits: ReadonlySet<number>;
   readonly addTraitProc: MesmerAddTraitProc;
   readonly addCondition: MesmerAddCondition;
   readonly addDamage: MesmerAddDamage;
@@ -31,7 +30,6 @@ interface SkillSpecialEffectControllerOptions {
 
 export function createSkillSpecialEffectController({
   state,
-  traits,
   addTraitProc,
   addCondition,
   addDamage,
@@ -95,7 +93,7 @@ export function createSkillSpecialEffectController({
     }
 
     if (skill.type === 'Heal') {
-      triggerMethodOfMadness({ state, traits, addDamage, addTraitProc }, skill, at, traitDamage['Lesser Chaos Storm']);
+      triggerMethodOfMadness({ state, addDamage, addTraitProc }, skill, at, traitDamage['Lesser Chaos Storm']);
     }
   };
 

@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 /** Owns imperative Core Mesmer Chaos trait effects. */
 import {
@@ -23,7 +24,6 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 interface MethodOfMadnessContext {
   readonly state: MesmerRuntime;
-  readonly traits: ReadonlySet<number>;
   readonly addDamage: MesmerAddDamage;
   readonly addTraitProc: MesmerAddTraitProc;
 }
@@ -34,7 +34,7 @@ interface MethodOfMadnessContext {
  */
 export function triggerChaoticInterruption(context: MesmerRuntime, event: SimulationEvent, skillName: string): void {
   const runtime = mesmerMechanicsFor(context);
-  if (!runtime.traits.has(TRAIT.CHAOTIC_INTERRUPTION) || !context.config.target?.activatingSkills) {
+  if (!hasTrait(context, TRAIT.CHAOTIC_INTERRUPTION) || !context.config.target?.activatingSkills) {
     return;
   }
 
@@ -67,19 +67,19 @@ export function triggerChaoticInterruption(context: MesmerRuntime, event: Simula
     'Chaotic Interruption',
     event.at,
     skillName,
-    `${runtime.skillsById.get(targetId)?.name || 'weapon skill'} recharge -${reduction}s`
+    `${context.helpers.skillsById.get(targetId)?.name || 'weapon skill'} recharge -${reduction}s`
   );
 }
 
 /** Applies Illusionary Membrane after earlier post-resolution shatter traits. */
 export function triggerIllusionaryMembrane(
-  context: Readonly<Pick<MesmerMechanics, 'traits' | 'addEvent' | 'addTraitProc' | 'balanceProfile'>>,
+  context: Readonly<Pick<MesmerMechanics, 'context' | 'addEvent' | 'addTraitProc'>>,
   shatter: MesmerShatter | undefined,
   skillName: string,
   at: number
 ): void {
-  if (shatter?.slot !== 2 || !context.traits.has(TRAIT.ILLUSIONARY_MEMBRANE)) return;
-  const illusionaryMembraneProfile = requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE);
+  if (shatter?.slot !== 2 || !hasTrait(context.context, TRAIT.ILLUSIONARY_MEMBRANE)) return;
+  const illusionaryMembraneProfile = requireBalanceProfileFromContext(context.context, TRAIT.ILLUSIONARY_MEMBRANE);
   const effect = requireEffect(illusionaryMembraneProfile, 'buff', 'illusionary-membrane');
   if (!effect) return;
   context.addEvent({
@@ -101,7 +101,7 @@ export function triggerMethodOfMadness(
   at: number,
   storm: MesmerTraitDamage
 ): void {
-  if (!context.traits.has(TRAIT.METHOD_OF_MADNESS)) return;
+  if (!hasTrait(context.state, TRAIT.METHOD_OF_MADNESS)) return;
   const readyAt = context.state.procs.readyAt[TRAIT.METHOD_OF_MADNESS] || 0;
   if (!isInternalCooldownReady(at, readyAt)) return;
   // A removed storm has no attack, proc, or attack-owned cooldown.

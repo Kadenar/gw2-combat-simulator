@@ -37,7 +37,7 @@ export function triggerMesmerCriticalTraits(
 
 /** Preserves Maim before Illusionary Membrane after shatter packet resolution. */
 export function triggerMesmerPostShatterTraits(
-  context: Readonly<Pick<MesmerMechanics, 'traits' | 'addEvent' | 'addCondition' | 'addTraitProc' | 'balanceProfile'>>,
+  context: Readonly<Pick<MesmerMechanics, 'context' | 'addEvent' | 'addCondition' | 'addTraitProc'>>,
   shatter: MesmerShatter | undefined,
   resolution: MesmerShatterResolution
 ): void {

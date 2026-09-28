@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 /** Owns Syncopate's balance values, disable procs, and delayed Drum wave. */
 import {
   requireBalanceProfileFromContext,
@@ -24,7 +25,7 @@ export const SYNCOPATE_PROFILE = defineTraitProfile(TRAIT.SYNCOPATE, 'Syncopate'
 export function observeSyncopateEvent(context: MesmerRuntime, event: SimulationEvent): void {
   if (event.type !== 'control') return;
   const runtime = mesmerMechanicsFor(context);
-  if (!runtime.traits.has(TRAIT.SYNCOPATE)) return;
+  if (!hasTrait(context, TRAIT.SYNCOPATE)) return;
   const syncopateProfile = requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE);
   const damage = requireEffect(syncopateProfile, 'strike', 'Immediate wave');
   if (!damage) return;
@@ -52,7 +53,7 @@ export function observeSyncopateEvent(context: MesmerRuntime, event: SimulationE
 /** The committed heal triggers its immediate wave even when diagnostic proc output is suppressed. */
 export function triggerMethodOfMadnessSyncopate(context: MesmerRuntime): void {
   const runtime = mesmerMechanicsFor(context);
-  if (!runtime.traits.has(TRAIT.SYNCOPATE)) return;
+  if (!hasTrait(context, TRAIT.SYNCOPATE)) return;
   const damage = requireEffect(requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE), 'strike', 'Immediate wave');
   if (!damage) return;
   runtime.addDamage({ id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false }, context.time, {
@@ -74,7 +75,7 @@ export function scheduleSyncopateDrumWave(
   actorType: 'player' | 'summon'
 ): void {
   const runtime = mesmerMechanicsFor(context);
-  if (!runtime.traits.has(TRAIT.SYNCOPATE)) return;
+  if (!hasTrait(context, TRAIT.SYNCOPATE)) return;
   const syncopateProfile = requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE);
   const delayedAt = damageAt + balanceProfileNumber(syncopateProfile, 'initialDelay');
   const delayedWave = requireEffect(syncopateProfile, 'strike', 'Delayed wave');

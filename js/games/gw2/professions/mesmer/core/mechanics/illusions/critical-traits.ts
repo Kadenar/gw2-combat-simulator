@@ -9,19 +9,15 @@ import type { MesmerCriticalTraitDispatcher } from '#gw2/professions/mesmer/core
  */
 export function createCriticalTraitDispatcher({
   state,
-  traits,
   emitEvent,
   boonDuration,
-  addTraitProc,
-  balanceProfile
+  addTraitProc
 }: MesmerDuelingCriticalContext): Readonly<MesmerCriticalTraitDispatcher> {
   const traitContext = {
     state,
-    traits,
     emitEvent,
     boonDuration,
-    addTraitProc,
-    balanceProfile
+    addTraitProc
   };
 
   return Object.freeze({

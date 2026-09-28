@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber,
@@ -37,7 +38,7 @@ const TALE_INSTRUMENTS: Readonly<Record<number, string>> = Object.freeze({
 export function resolveTroubadourTale({ context, skill, at, castStart, activationId }: TroubadourTaleInvocation): void {
   const runtime = mesmerMechanicsFor(context);
   const profileId = TALE_PROFILE_IDS[skill.id];
-  const profile = profileId ? requireBalanceProfileFromContext(runtime, profileId) : null;
+  const profile = profileId ? requireBalanceProfileFromContext(context, profileId) : null;
   const partyRecipients = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
 
   for (const boon of (profile?.effects || []).filter((effect) => effect.type === 'boon')) {
@@ -66,7 +67,7 @@ export function resolveTroubadourTale({ context, skill, at, castStart, activatio
       action
     ).has(requiredInstrument)
   ) {
-    const profile = requireBalanceProfileFromContext(runtime, profileId);
+    const profile = requireBalanceProfileFromContext(context, profileId);
     runtime.resources.queueResources(
       at,
       balanceProfileNumber(profile, 'resourceGain'),
@@ -75,8 +76,8 @@ export function resolveTroubadourTale({ context, skill, at, castStart, activatio
     );
   }
 
-  if (runtime.traits.has(TRAIT.RACONTEUR)) {
-    const raconteurProfile = requireBalanceProfileFromContext(runtime, TRAIT.RACONTEUR);
+  if (hasTrait(context, TRAIT.RACONTEUR)) {
+    const raconteurProfile = requireBalanceProfileFromContext(context, TRAIT.RACONTEUR);
     const protection = requireEffect(raconteurProfile, 'boon', 'protection');
     if (!protection) return;
     runtime.addEvent({

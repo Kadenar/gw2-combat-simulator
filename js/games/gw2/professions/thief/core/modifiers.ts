@@ -2,7 +2,7 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -279,6 +279,5 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
 
 export const thiefCoreModifiers = Object.freeze({
   modifyAttributes: modifyThiefCoreAttributes,
-  modifierRules: thiefCoreModifierRules,
-  compileModifierRules: compileGw2ModifierRules
+  modifierRules: thiefCoreModifierRules
 });

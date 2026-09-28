@@ -1,10 +1,11 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime, EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Mirage-owned cloak, ambush, and deception behavior. */
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import type { BalanceProfile, ConditionEffect, StatusEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { ConditionEffect, StatusEffect } from '#gw2/platform/engine/skills/types.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -38,17 +39,14 @@ import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-p
 interface MirageActionControllerOptions {
   readonly state: MesmerRuntime;
   readonly config: MesmerRuntime['config'];
-  readonly traits: ReadonlySet<number>;
   readonly ambushAttacks: Readonly<Record<string, MesmerAmbushAttack>>;
   readonly cloneAttacks: Readonly<Record<string, MesmerCloneAttack>>;
-  readonly skillsById: ReadonlyMap<SkillId, MesmerSkill>;
   readonly addEvent: MesmerAddEvent;
   readonly addTraitProc: MesmerAddTraitProc;
   readonly addCondition: MesmerAddCondition;
   readonly addDamage: MesmerAddDamage;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
   readonly queueResources: MesmerQueueResources;
-  readonly balanceProfile: (id: SkillId) => BalanceProfile | undefined;
   readonly reduceSkillRecharge: (skill: MesmerSkill, reduction: number, at: number) => number;
 }
 
@@ -58,17 +56,14 @@ interface MirageActionControllerOptions {
 export function createMirageActionController({
   state,
   config,
-  traits,
   ambushAttacks,
   cloneAttacks,
-  skillsById,
   addEvent,
   addTraitProc,
   addCondition,
   addDamage,
   activePrimaryWeapon,
   queueResources,
-  balanceProfile,
   reduceSkillRecharge
 }: MirageActionControllerOptions): MesmerMirageController {
   // The selected effect already owns its identity and validated balance values.
@@ -80,7 +75,7 @@ export function createMirageActionController({
 
   // Ground mirrors use exact half-open pickup windows; skill metadata owns any creation delay.
   const createMirrors = (at: number, count: number, source: string) => {
-    const mechanicsProfile = requireBalanceProfileFromContext(balanceProfile, PROFILE.mechanics);
+    const mechanicsProfile = requireBalanceProfileFromContext(state, PROFILE.mechanics);
     const mirror = requireEffect(mechanicsProfile, 'buff', 'mirage-mirror');
     if (!mirror) return;
     at = canonicalTime(at);
@@ -141,7 +136,7 @@ export function createMirageActionController({
 
   // Executes clone ambush attacks at the specified time, optionally for a given set of clones.
   const executeCloneAmbushes = (at: number, clones: readonly MesmerClone[] = professionCoreState(state).clones) => {
-    if (!traits.has(TRAIT.INFINITE_HORIZON) || !clones.length) return;
+    if (!hasTrait(state, TRAIT.INFINITE_HORIZON) || !clones.length) return;
     addTraitProc(
       'Infinite Horizon',
       at,
@@ -163,7 +158,7 @@ export function createMirageActionController({
       // Explicit summon ownership keeps clone ambush packets independent of their display labels.
       const impactAt = at + (ambush.clone.castTimeMs || 0) / 1000;
       // Clone ambushes use the weapon's authored control and retain summon ownership.
-      const skill = skillsById.get(ambush.id);
+      const skill = state.helpers.skillsById.get(ambush.id);
       for (const effect of skill?.effects || []) {
         if (effect.type !== 'control') continue;
         for (const application of materializeSkillEffectApplications({
@@ -230,10 +225,7 @@ export function createMirageActionController({
   const grantAmbushWindow = (
     at: number,
     source: string,
-    duration = balanceProfileNumber(
-      requireBalanceProfileFromContext(balanceProfile, PROFILE.mechanics),
-      'durationPerTier'
-    )
+    duration = balanceProfileNumber(requireBalanceProfileFromContext(state, PROFILE.mechanics), 'durationPerTier')
   ) => {
     if (config.specialization !== 'Mirage') return;
     at = canonicalTime(at);
@@ -249,12 +241,12 @@ export function createMirageActionController({
 
   // Reduces the recharge of Mind Wrack and Cry of Frustration by 1 second if the Dune Cloak trait is present.
   const reduceDuneCloakShatters = (at: number, source: string) => {
-    if (!traits.has(TRAIT.DUNE_CLOAK)) return;
+    if (!hasTrait(state, TRAIT.DUNE_CLOAK)) return;
     for (const id of [ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION]) {
-      const shatter = skillsById.get(id);
+      const shatter = state.helpers.skillsById.get(id) as MesmerSkill | undefined;
       const readyAt = shatter ? state.cooldowns.get(shatter.id) : null;
       if (shatter && readyAt != null) {
-        const duneCloakProfile = requireBalanceProfileFromContext(balanceProfile, PROFILE.duneCloak);
+        const duneCloakProfile = requireBalanceProfileFromContext(state, PROFILE.duneCloak);
         reduceSkillRecharge(shatter, balanceProfileNumber(duneCloakProfile, 'rechargeReduction'), at);
       }
     }
@@ -267,10 +259,7 @@ export function createMirageActionController({
     at: number,
     source: string,
     {
-      duration = balanceProfileNumber(
-        requireBalanceProfileFromContext(balanceProfile, PROFILE.mechanics),
-        'durationMultiplier'
-      )
+      duration = balanceProfileNumber(requireBalanceProfileFromContext(state, PROFILE.mechanics), 'durationMultiplier')
     }: MesmerMirageCloakOptions = {}
   ) => {
     if (config.specialization !== 'Mirage') return;
@@ -284,16 +273,16 @@ export function createMirageActionController({
       duration,
       sourceSkill: source
     });
-    const renewingOasis = traits.has(TRAIT.RENEWING_OASIS)
-      ? requireEffect(requireBalanceProfileFromContext(balanceProfile, PROFILE.renewingOasis), 'boon', 'regeneration')
+    const renewingOasis = hasTrait(state, TRAIT.RENEWING_OASIS)
+      ? requireEffect(requireBalanceProfileFromContext(state, PROFILE.renewingOasis), 'boon', 'regeneration')
       : undefined;
     if (renewingOasis) {
       addBoon(at, statusFromEffect(renewingOasis), source);
       addTraitProc('Renewing Oasis', at, source, '4s regeneration');
     }
 
-    if (traits.has(TRAIT.ELUSIVE_MIND)) {
-      const elusiveMindProfile = requireBalanceProfileFromContext(balanceProfile, PROFILE.elusiveMind);
+    if (hasTrait(state, TRAIT.ELUSIVE_MIND)) {
+      const elusiveMindProfile = requireBalanceProfileFromContext(state, PROFILE.elusiveMind);
       addTraitProc(
         'Elusive Mind',
         at,
@@ -303,7 +292,7 @@ export function createMirageActionController({
     }
 
     reduceDuneCloakShatters(at, source);
-    if (traits.has(TRAIT.INFINITE_HORIZON)) {
+    if (hasTrait(state, TRAIT.INFINITE_HORIZON)) {
       mirageState.from(state).cloneAmbushUntil = canonicalTime(at + duration);
       executeCloneAmbushes(at, professionCoreState(state).clones);
     }
@@ -348,12 +337,8 @@ export function createMirageActionController({
     }
 
     const riddleOfSand =
-      mirageState.from(state).riddleOfSandReady && traits.has(TRAIT.RIDDLE_OF_SAND)
-        ? requireEffect(
-            requireBalanceProfileFromContext(balanceProfile, PROFILE.riddleOfSand),
-            'condition',
-            'Confusion'
-          )
+      mirageState.from(state).riddleOfSandReady && hasTrait(state, TRAIT.RIDDLE_OF_SAND)
+        ? requireEffect(requireBalanceProfileFromContext(state, PROFILE.riddleOfSand), 'condition', 'Confusion')
         : undefined;
     if (riddleOfSand) {
       addCondition(ambush.name, impactAt, statusFromEffect(riddleOfSand), 'Player', `${ambush.name} — Riddle of Sand`);
@@ -367,8 +352,8 @@ export function createMirageActionController({
       }
     }
 
-    const mirageMantle = traits.has(TRAIT.MIRAGE_MANTLE)
-      ? requireEffect(requireBalanceProfileFromContext(balanceProfile, PROFILE.mirageMantle), 'boon', 'alacrity')
+    const mirageMantle = hasTrait(state, TRAIT.MIRAGE_MANTLE)
+      ? requireEffect(requireBalanceProfileFromContext(state, PROFILE.mirageMantle), 'boon', 'alacrity')
       : undefined;
     if (mirageMantle) {
       addBoon(impactAt, statusFromEffect(mirageMantle), ambush.name, 'player', 'party');
@@ -393,23 +378,23 @@ export function createMirageActionController({
   const handleMirageShatter = (skill: MesmerSkill, at: number, spent: number) => {
     if (config.specialization !== 'Mirage') return;
     if (
-      traits.has(TRAIT.RIDDLE_OF_SAND) &&
-      requireEffect(requireBalanceProfileFromContext(balanceProfile, PROFILE.riddleOfSand), 'condition', 'Confusion')
+      hasTrait(state, TRAIT.RIDDLE_OF_SAND) &&
+      requireEffect(requireBalanceProfileFromContext(state, PROFILE.riddleOfSand), 'condition', 'Confusion')
     ) {
       mirageState.from(state).riddleOfSandReady = true;
       addTraitProc('Riddle of Sand', at, skill.name, 'ambush primed');
     }
 
-    const nominalEndurance = traits.has(TRAIT.NOMADS_ENDURANCE)
-      ? requireEffect(requireBalanceProfileFromContext(balanceProfile, PROFILE.nominalEndurance), 'boon', 'vigor')
+    const nominalEndurance = hasTrait(state, TRAIT.NOMADS_ENDURANCE)
+      ? requireEffect(requireBalanceProfileFromContext(state, PROFILE.nominalEndurance), 'boon', 'vigor')
       : undefined;
     if (nominalEndurance) {
       addBoon(at, statusFromEffect(nominalEndurance), skill.name);
       addTraitProc("Nomad's Endurance", at, skill.name, '3s vigor');
     }
 
-    if (traits.has(TRAIT.PHANTOM_PAIN)) {
-      const phantomPainProfile = requireBalanceProfileFromContext(balanceProfile, PROFILE.phantomPain);
+    if (hasTrait(state, TRAIT.PHANTOM_PAIN)) {
+      const phantomPainProfile = requireBalanceProfileFromContext(state, PROFILE.phantomPain);
       addEvent({
         type: 'buff',
         at,
@@ -422,18 +407,18 @@ export function createMirageActionController({
       addTraitProc('Phantom Pain', at, skill.name);
     }
 
-    if (skill.id === ID.DISTORTION && traits.has(TRAIT.DESERT_DISTORTION)) {
+    if (skill.id === ID.DISTORTION && hasTrait(state, TRAIT.DESERT_DISTORTION)) {
       grantAmbushWindow(at, 'Desert Distortion');
-      const desertDistortionProfile = requireBalanceProfileFromContext(balanceProfile, PROFILE.desertDistortion);
+      const desertDistortionProfile = requireBalanceProfileFromContext(state, PROFILE.desertDistortion);
       createMirrors(at, spent * balanceProfileNumber(desertDistortionProfile, 'resourceGain'), 'Desert Distortion');
       addTraitProc('Desert Distortion', at, skill.name, `${spent} Mirage Mirror${spent === 1 ? '' : 's'} created`);
     }
 
     if (
-      traits.has(TRAIT.DUNE_CLOAK) &&
-      spent >= balanceProfileNumber(requireBalanceProfileFromContext(balanceProfile, PROFILE.duneCloak), 'threshold')
+      hasTrait(state, TRAIT.DUNE_CLOAK) &&
+      spent >= balanceProfileNumber(requireBalanceProfileFromContext(state, PROFILE.duneCloak), 'threshold')
     ) {
-      const duneCloakProfile = requireBalanceProfileFromContext(balanceProfile, PROFILE.duneCloak);
+      const duneCloakProfile = requireBalanceProfileFromContext(state, PROFILE.duneCloak);
       grantMirageCloak(at, 'Dune Cloak', {
         duration: balanceProfileNumber(duneCloakProfile, 'durationMultiplier')
       });
@@ -452,7 +437,7 @@ export function createMirageActionController({
       weapon: activePrimaryWeapon(),
       blade: false
     };
-    const mechanicsProfile = requireBalanceProfileFromContext(balanceProfile, PROFILE.mechanics);
+    const mechanicsProfile = requireBalanceProfileFromContext(state, PROFILE.mechanics);
     const strike = requireEffect(mechanicsProfile, 'strike', 'Strike');
     if (strike)
       addDamage(pseudo, at, {

@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 /** Owns imperative Core Mesmer Dueling trait effects. */
@@ -25,25 +26,23 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 export interface MesmerDuelingCriticalContext {
   readonly state: MesmerRuntime;
-  readonly traits: ReadonlySet<number>;
   readonly emitEvent: MesmerEmitDerivedEvent;
   readonly boonDuration: (boon: string, baseDuration: number) => number;
   readonly addTraitProc: MesmerAddTraitProc;
-  readonly balanceProfile: MesmerMechanics['balanceProfile'];
 }
 
 interface FencersFinesseContext {
-  readonly traits: ReadonlySet<number>;
+  readonly context: MesmerRuntime;
   readonly addEvent: MesmerAddEvent;
   readonly addTraitProc: MesmerAddTraitProc;
 }
 
-type BlindingDissipationContext = Pick<MesmerMechanics, 'traits' | 'addEvent' | 'addTraitProc'>;
+type BlindingDissipationContext = Pick<MesmerMechanics, 'context' | 'addEvent' | 'addTraitProc'>;
 
 // Attach Ineptitude's Confusion to a qualifying blindness application through
 // the resolver condition hook, preserving causal attribution.
 function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerResolverEvent, detail: string): void {
-  if (!context.traits.has(TRAIT.INEPTITUDE)) return;
+  if (!hasTrait(context, TRAIT.INEPTITUDE)) return;
   const count = Math.max(1, Math.trunc(event.count || 1));
   const ineptitudeProfile = requireBalanceProfileFromContext(context, TRAIT.INEPTITUDE);
   const effect = requireEffect(ineptitudeProfile, 'condition', 'Confusion');
@@ -74,7 +73,7 @@ function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerR
 
 /** Applies the interrupt half of Ineptitude with its defiant-target interval. */
 export function triggerIneptitudeFromInterrupt(context: MesmerResolverContext, event: MesmerResolverEvent): void {
-  if (!context.traits.has(TRAIT.INEPTITUDE)) return;
+  if (!hasTrait(context, TRAIT.INEPTITUDE)) return;
   const ineptitudeProfile = requireBalanceProfileFromContext(context, TRAIT.INEPTITUDE);
   // A removed Confusion packet owns no interrupt cooldown.
   if (!requireEffect(ineptitudeProfile, 'condition', 'Confusion')) return;
@@ -97,23 +96,23 @@ export function triggerBlindingDissipation(
   at: number,
   count: number
 ): void {
-  if (!context.traits.has(TRAIT.BLINDING_DISSIPATION)) return;
+  if (!hasTrait(context.context, TRAIT.BLINDING_DISSIPATION)) return;
   context.addEvent({ type: 'blind', at, skillName, count });
   context.addTraitProc('Blinding Dissipation', at, skillName);
 }
 
 /** Emits Fencer's Finesse stacks at the materialized sword-hit cadence. */
 export function emitFencersFinesseStacks(
-  context: FencersFinesseContext & Pick<MesmerMechanics, 'balanceProfile'>,
+  context: FencersFinesseContext,
   skill: MesmerSkill,
   hitTimes: readonly number[],
   hits: number | undefined
 ): number {
-  if (!context.traits.has(TRAIT.FENCERS_FINESSE) || skill.weapon !== 'Sword' || hitTimes.length === 0) {
+  if (!hasTrait(context.context, TRAIT.FENCERS_FINESSE) || skill.weapon !== 'Sword' || hitTimes.length === 0) {
     return Infinity;
   }
 
-  const fencersFinesseProfile = requireBalanceProfileFromContext(context, TRAIT.FENCERS_FINESSE);
+  const fencersFinesseProfile = requireBalanceProfileFromContext(context.context, TRAIT.FENCERS_FINESSE);
   // Stack lifetime and cap come from the selected trait profile.
   const duration = balanceProfileNumber(fencersFinesseProfile, 'durationMultiplier');
   const maximum = balanceProfileNumber(fencersFinesseProfile, 'maximumStacks');
@@ -163,7 +162,7 @@ export function triggerMasterFencer(
   chance: number
 ): void {
   if (
-    !context.traits.has(TRAIT.MASTER_FENCER) ||
+    !hasTrait(context.state, TRAIT.MASTER_FENCER) ||
     !isGw2PlayerActorEvent(event) ||
     !(Number(event.coefficient) > 0) ||
     event.canCrit === false
@@ -172,7 +171,7 @@ export function triggerMasterFencer(
   }
 
   // One resolved owner supplies both fury effects and the ICD for this proc attempt.
-  const masterFencerProfile = requireBalanceProfileFromContext(context, TRAIT.MASTER_FENCER);
+  const masterFencerProfile = requireBalanceProfileFromContext(context.state, TRAIT.MASTER_FENCER);
   const furyEffects = ['Self Fury', 'Allied Fury'].flatMap((name) => {
     const effect = requireEffect(masterFencerProfile, 'boon', name);
     return effect ? [effect] : [];
@@ -221,11 +220,11 @@ export function triggerSharperImages(
   event: SimulationEvent,
   chance: number
 ): void {
-  if (!context.traits.has(TRAIT.SHARPER_IMAGES) || !['clone', 'phantasm'].includes(event.summonKind || '')) {
+  if (!hasTrait(context.state, TRAIT.SHARPER_IMAGES) || !['clone', 'phantasm'].includes(event.summonKind || '')) {
     return;
   }
 
-  const sharperImagesProfile = requireBalanceProfileFromContext(context, TRAIT.SHARPER_IMAGES);
+  const sharperImagesProfile = requireBalanceProfileFromContext(context.state, TRAIT.SHARPER_IMAGES);
   const effect = requireEffect(sharperImagesProfile, 'condition', 'Bleeding');
   if (!effect) return;
   const application = advanceCriticalProc(

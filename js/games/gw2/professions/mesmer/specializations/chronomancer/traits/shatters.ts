@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -19,7 +20,7 @@ const triggerShatterBoon = (
   effectName: 'alacrity' | 'quickness'
 ): void => {
   const runtime = mesmerMechanicsFor(context);
-  if (!runtime.traits.has(traitId)) return;
+  if (!hasTrait(context, traitId)) return;
 
   const traitProfile = requireBalanceProfileFromContext(context, traitId);
   const effect = requireEffect(traitProfile, 'boon', effectName);
@@ -50,7 +51,7 @@ export function resolveChronomancerShatterBoons(context: MesmerRuntime, resoluti
 export function resolveIllusionaryReversion(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
   const runtime = mesmerMechanicsFor(context);
   if (
-    !runtime.traits.has(TRAIT.ILLUSIONARY_REVERSION) ||
+    !hasTrait(context, TRAIT.ILLUSIONARY_REVERSION) ||
     resolution.spent !==
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_REVERSION), 'threshold')
   ) {

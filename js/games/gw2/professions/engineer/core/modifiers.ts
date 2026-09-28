@@ -5,11 +5,7 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import {
-  compileGw2ModifierRules,
-  MODIFIER_TARGET,
-  powerScaledConditionAttributes
-} from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET, powerScaledConditionAttributes } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetConditionActive, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
@@ -280,6 +276,5 @@ export const engineerCoreModifiers = Object.freeze({
   modifyConditionAttributes: (context: Gw2ModifierContext, attributes: Gw2Stats) =>
     powerScaledConditionAttributes(context, attributes, 'Bleeding', TRAIT.SHARPSHOOTER),
   modifyConditionBaseDuration: modifyEngineerConditionBaseDuration,
-  modifierRules: engineerCoreModifierRules,
-  compileModifierRules: compileGw2ModifierRules
+  modifierRules: engineerCoreModifierRules
 });

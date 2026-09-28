@@ -1,6 +1,6 @@
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import { EPSILON } from '#kernel/core/clock.js';
-import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
@@ -26,7 +26,7 @@ import {
   mechanistResolverEventReactions
 } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-effects.js';
 
-const critical = mechanistCriticalHitDefinitions.map(onResolvedCriticalHit);
+const critical = mechanistCriticalHitDefinitions.map(criticalProcHandler);
 
 /** Commands reserve the summon lane immediately; its autoattack phase resumes only after command recovery. */
 export const mechanistHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
@@ -86,7 +86,7 @@ export const mechanistHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = 
   reactions: {
     'buff.applied': copyEngineerMechBoon,
     'damage.resolved'(runtime, event, details) {
-      for (const reaction of critical) reaction.handler(runtime, event, details);
+      for (const reaction of critical) reaction(runtime, event, details);
       mechanistResolverEventReactions.damage(runtime, event);
     }
   }

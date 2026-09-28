@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { skillTaskAt } from '#gw2/platform/simulation/internal-work.js';
 import type { SkillTask } from '#gw2/platform/engine/skills/types.js';
@@ -63,7 +64,7 @@ export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       const { cast } = data as TriggerData;
       const mechanics = mesmerMechanicsFor(runtime);
       mirageControllerFor(mechanics).grantMirageCloak(runtime.time, cast.skill.name);
-      if (mechanics.traits.has(TRAIT.DECEPTIVE_EVASION))
+      if (hasTrait(runtime, TRAIT.DECEPTIVE_EVASION))
         mechanics.resources.queueResources(runtime.time, 1, mechanics.activePrimaryWeapon(), 'Deceptive Evasion', {
           traitId: TRAIT.DECEPTIVE_EVASION,
           traitName: 'Deceptive Evasion'

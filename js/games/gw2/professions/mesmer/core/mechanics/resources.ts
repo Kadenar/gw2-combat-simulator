@@ -1,13 +1,9 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { mesmerNumericResourceState } from '#gw2/professions/mesmer/family-state.js';
 import { triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/index.js';
-import type {
-  MesmerActivePrimaryWeapon,
-  MesmerAddEvent,
-  MesmerAddTraitProc,
-  MesmerMechanics
-} from '#gw2/professions/mesmer/types.js';
+import type { MesmerActivePrimaryWeapon, MesmerAddEvent, MesmerAddTraitProc } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerClone,
   MesmerCloneAttackScheduler,
@@ -22,7 +18,6 @@ import type {
 
 interface ResourceControllerOptions {
   readonly state: MesmerRuntime;
-  readonly traits: ReadonlySet<number>;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly clamp: (value: number, minimum: number, maximum: number) => number;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
@@ -31,13 +26,11 @@ interface ResourceControllerOptions {
   readonly addTraitProc: MesmerAddTraitProc;
   readonly destroyClone: MesmerDestroyClone;
   readonly scheduleResourceTask: (candidate: MesmerPendingResource) => unknown;
-  readonly balanceProfile: MesmerMechanics['balanceProfile'];
 }
 
 /** Owns shared clone or numeric resource gains and exposes committed gains to active specialization reactions. */
 export function createResourceController({
   state,
-  traits,
   resourceDefinition,
   clamp,
   activePrimaryWeapon,
@@ -45,8 +38,7 @@ export function createResourceController({
   addEvent,
   addTraitProc,
   destroyClone,
-  scheduleResourceTask,
-  balanceProfile
+  scheduleResourceTask
 }: ResourceControllerOptions): MesmerResourceController {
   let cloneSequence = 0;
   const gainHandlers: Array<Parameters<MesmerResourceController['addGainHandler']>[0]> = [];
@@ -106,7 +98,7 @@ export function createResourceController({
     });
     if (cause.kind !== 'initial') {
       triggerCompoundingPower(
-        { traits, addEvent, addTraitProc, balanceProfile },
+        { context: state, addEvent, addTraitProc },
         at,
         gained,
         reason,
@@ -115,7 +107,7 @@ export function createResourceController({
     }
 
     const resourceTraitId = Number(cause.traitId);
-    if (Number.isFinite(resourceTraitId) && traits.has(resourceTraitId)) {
+    if (Number.isFinite(resourceTraitId) && hasTrait(state, resourceTraitId)) {
       addTraitProc(cause.traitName || reason, at, reason, `+${gained} ${resourceDefinition.singular}`);
     }
 

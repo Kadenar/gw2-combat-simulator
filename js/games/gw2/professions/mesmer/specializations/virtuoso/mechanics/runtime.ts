@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -40,7 +41,7 @@ export function initializeVirtuosoRuntime(context: MesmerRuntime): void {
     // Virtuoso owns blade-tick conversion and its optional phantasm trait variations.
     phantasmPolicy: {
       conversionTiming: 'blade-tick',
-      ...(runtime.traits.has(TRAIT.PHANTASMAL_BLADES) && phantasmalBlade.type === 'strike'
+      ...(hasTrait(context, TRAIT.PHANTASMAL_BLADES) && phantasmalBlade.type === 'strike'
         ? {
             bonusStrike: {
               name: 'Phantasmal Blade',
@@ -53,7 +54,7 @@ export function initializeVirtuosoRuntime(context: MesmerRuntime): void {
   });
 
   // The native queue owns passive generation; each pulse schedules only its successor.
-  if (runtime.traits.has(TRAIT.INFINITE_FORGE)) {
+  if (hasTrait(context, TRAIT.INFINITE_FORGE)) {
     const interval = balanceProfileNumber(
       requireBalanceProfileFromContext(context, TRAIT.INFINITE_FORGE),
       'pulseInterval'

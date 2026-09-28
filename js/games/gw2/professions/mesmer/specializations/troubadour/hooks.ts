@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -63,8 +64,8 @@ export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     'mesmer.troubadour.dodge'(runtime, data) {
       const cast = (data as { cast: RuntimeCast }).cast;
       const mechanics = mesmerMechanicsFor(runtime);
-      if (!mechanics.traits.has(TRAIT.MAYHEM)) return;
-      const flute = mechanics.skillsById.get(ID.FLUSTERING_FLUTE);
+      if (!hasTrait(runtime, TRAIT.MAYHEM)) return;
+      const flute = runtime.helpers.skillsById.get(ID.FLUSTERING_FLUTE);
       if (!flute || !runtime.cooldowns.has(flute.id)) return;
       runtime.cooldownController.reduceSkillRecharge(
         flute,

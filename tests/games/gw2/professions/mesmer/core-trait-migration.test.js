@@ -10,16 +10,26 @@ import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/index.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
+// Critical trait handlers read selected traits and patched profiles from the same live runtime as the proc registry.
 test('Master Fencer only claims its strict ICD on a sampled critical hit', () => {
   // Both sampled misses and hits during the ICD leave its deadline intact.
   for (const duration of [8, 0]) {
     const core = createMesmerCoreState();
     const events = [];
     const context = {
-      state: { profession: { core, specialization: { kind: 'Core', state: {} } } },
-      traits: new Set(),
+      state: {
+        profession: { core, specialization: { kind: 'Core', state: {} } },
+        traits: new Set(),
+        helpers: {
+          balanceProfilesById: new Map([
+            [
+              TRAIT.MASTER_FENCER,
+              { ...mesmerCatalog.balanceProfilesById.get(TRAIT.MASTER_FENCER), internalCooldown: duration }
+            ]
+          ])
+        }
+      },
       stochastic: false,
-      balanceProfile: (id) => ({ ...mesmerCatalog.balanceProfilesById.get(id), internalCooldown: duration }),
       boonDuration: (_boon, duration) => duration,
       addTraitProc(_name, at) {
         assert.equal(context.state.procs.readyAt[TRAIT.MASTER_FENCER], at + duration);
@@ -28,12 +38,12 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
         events.push(event);
       }
     };
-    context.state.procs = createProcRegistry(() => context);
+    context.state.procs = createProcRegistry(() => context.state);
     context.state.procs.readyAt[TRAIT.MASTER_FENCER] = 2;
     const opportunity = (at, didCrit = true) =>
       triggerMesmerCriticalTraits(context, { type: 'damage', actorType: 'player', coefficient: 1, at, didCrit }, 0.5);
     opportunity(1);
-    context.traits.add(TRAIT.MASTER_FENCER);
+    context.state.traits.add(TRAIT.MASTER_FENCER);
     opportunity(1);
     assert.equal(events.length, 0);
     opportunity(2);
@@ -230,20 +240,20 @@ test('canonical phantasm ownership triggers Sharper Images without Master Fencer
   const procs = [];
   const context = {
     state: {
+      traits: new Set([TRAIT.MASTER_FENCER, TRAIT.SHARPER_IMAGES]),
+      helpers: mesmerCatalog,
       profession: {
         core: createMesmerCoreState(),
         specialization: { kind: 'Core', state: {} }
       }
     },
-    traits: new Set([TRAIT.MASTER_FENCER, TRAIT.SHARPER_IMAGES]),
     stochastic: true,
     emitEvent: () => null,
     boonDuration: (_boon, duration) => duration,
     addTraitProc: (name) => {
       procs.push(name);
       return null;
-    },
-    balanceProfile: (id) => mesmerCatalog.balanceProfilesById.get(id)
+    }
   };
 
   // Canonical summon ownership prevents an illusion hit from also counting as a player hit.

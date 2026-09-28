@@ -48,7 +48,7 @@ export function reactToNecromancerCoreDamage(
   applyChillOfDeath(context, event);
   applyDhuumfire(context, event, skill?.dhuumfireDuration, shroudSkillOne);
   applyUnyieldingBlast(context, event, firstHit, shroudSkillOne);
-  necromancerBarbedPrecisionReaction.handler(context, event, details);
+  necromancerBarbedPrecisionReaction(context, event, details);
   applyVampiricPresence(context, event);
   applyOverflowingThirstDamage(context, event);
 }

@@ -6,7 +6,7 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { resolveSummonOwnedComboFinisher } from '#gw2/professions/necromancer/specializations/reaper/mechanics/combos.js';
 import {
@@ -21,7 +21,7 @@ import type { BalanceProfile, ConditionEffect } from '#gw2/platform/engine/skill
 import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/reaper/profiles.js';
 
 // Chilling Nova is gated on the target already being Chilled at the moment of the crit, not just on trait presence.
-const chillingNovaCriticalHit = onResolvedCriticalHit<
+const chillingNovaCriticalHit = criticalProcHandler<
   NecromancerResolverContext,
   NecromancerResolverEvent,
   NativeResolvedDamageDetails
@@ -91,7 +91,7 @@ export function reactToReaperDamage(
     if (chill) queueChillingNovaChill(context, event, profile, chill);
   }
 
-  chillingNovaCriticalHit.handler(context, event, details);
+  chillingNovaCriticalHit(context, event, details);
 }
 
 /** Converts Chilled applications into Deathly Chill's configured condition packet. */

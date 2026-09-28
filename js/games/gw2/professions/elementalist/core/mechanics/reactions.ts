@@ -9,7 +9,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 // Resolver mutations target the owned Core slice of the nested Elementalist runtime.
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -102,7 +102,7 @@ function criticalTraitEligible(
 }
 
 export const elementalistCoreCriticalReactions = Object.freeze([
-  onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
+  criticalProcHandler<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.raging-storm',
     when: (context, event, details) => criticalTraitEligible(context, event, details, TRAIT.RAGING_STORM),
     internalCooldown: {
@@ -115,7 +115,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
     },
     handler: applyRagingStorm
   }),
-  onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
+  criticalProcHandler<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.arcane-precision',
     chanceOnCriticalHit: (context) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.arcanePrecision), 'procChance'),
@@ -131,7 +131,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
     randomStream: 'elementalist.arcane-precision',
     handler: applyArcanePrecision
   }),
-  onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
+  criticalProcHandler<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.renewing-stamina',
     when: (context, event, details) => criticalTraitEligible(context, event, details, TRAIT.RENEWING_STAMINA),
     internalCooldown: {
@@ -144,7 +144,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
     },
     handler: applyRenewingStamina
   }),
-  onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
+  criticalProcHandler<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.burning-precision',
     chanceOnCriticalHit: (context) => procChanceFromContext(context, PROFILE.burningPrecision),
     when: (context, event, details) => criticalTraitEligible(context, event, details, TRAIT.BURNING_PRECISION),

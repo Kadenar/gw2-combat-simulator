@@ -12,8 +12,7 @@ import type {
   MesmerAddCondition,
   MesmerAddDamage,
   MesmerAddEvent,
-  MesmerAddTraitProc,
-  MesmerMechanics
+  MesmerAddTraitProc
 } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerExceptionalProfileOptions,
@@ -31,7 +30,6 @@ import type { MesmerConditionEffect, MesmerSkill } from '#gw2/professions/mesmer
 
 interface SkillEffectControllerOptions {
   readonly state: MesmerRuntime;
-  readonly traits: ReadonlySet<number>;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly phantasmAttackTimings: Readonly<Record<number, MesmerPhantasmAttackTiming>>;
   readonly phantasmPolicy: () => MesmerPhantasmPolicy;
@@ -42,7 +40,6 @@ interface SkillEffectControllerOptions {
   readonly addCondition: MesmerAddCondition;
   readonly addDamage: MesmerAddDamage;
   readonly traitDamage: Readonly<Record<string, MesmerTraitDamage>>;
-  readonly balanceProfile: MesmerMechanics['balanceProfile'];
 }
 
 /**
@@ -52,7 +49,6 @@ interface SkillEffectControllerOptions {
  */
 export function createSkillEffectController({
   state,
-  traits,
   resourceDefinition,
   phantasmAttackTimings,
   phantasmPolicy,
@@ -62,19 +58,17 @@ export function createSkillEffectController({
   addTraitProc,
   addCondition,
   addDamage,
-  traitDamage,
-  balanceProfile
+  traitDamage
 }: SkillEffectControllerOptions): MesmerSkillEffectController {
   const phantasms = createPhantasmEffectController({
-    traits,
+    state,
     phantasmAttackTimings,
     phantasmPolicy,
     queueResources,
     addEvent,
     addTraitProc,
     addCondition,
-    addDamage,
-    balanceProfile
+    addDamage
   });
   const illusionResources = createIllusionResourceController({
     resourceDefinition,
@@ -85,7 +79,6 @@ export function createSkillEffectController({
   const damage = createSkillDamageController({ phantasms, addCondition, addDamage });
   const specialEffects = createSkillSpecialEffectController({
     state,
-    traits,
     addTraitProc,
     addCondition,
     addDamage,

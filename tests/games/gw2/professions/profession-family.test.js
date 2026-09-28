@@ -471,6 +471,45 @@ test('family hook order is deterministic and duplicate hook ids fail', () => {
   );
 });
 
+// Default compilation combines active additive rules and equipment bonuses in one damage bucket.
+test('family modifier rules use standard GW2 compilation without an explicit compiler', () => {
+  const rule = (id, amount) => ({ id, target: 'strikeDamage', operation: 'damage-additive', amount });
+  const family = testFamily(
+    testModule('Core', { modifiers: { modifierRules: [rule('core.rule', 0.25)] } }),
+    testModule('Elite', { modifiers: [rule('elite.rule', 0.5)] })
+  );
+  const context = { damageInputs: { strikeSigilBonus: 0.5, equipmentBonus: 0.25 } };
+  assert.equal(family.resolveProfession({}).modifyStrikeDamage(context, 1), 2);
+  const config = { specialization: 'Elite' };
+  const query = family.resolveProfession(config);
+  const runtime = family.runtimeFor(config);
+  assert.equal(query.modifyStrikeDamage(context, 1), 2.5);
+  assert.equal(runtime.modifyStrikeDamage, query.modifyStrikeDamage);
+  assert.equal(runtime.modifyStrikeDamage.acceptsDamageInputs, true);
+});
+
+// A default compiler must not hide malformed overrides or conflicting module ownership.
+test('family modifier compiler overrides retain validation', () => {
+  const modifierRules = [{ id: 'core.rule', target: 'strikeDamage', operation: 'multiply', factor: 2 }];
+  for (const [compileModifierRules, message] of [
+    [42, /compileModifierRules must be a function/],
+    [() => null, /compileModifierRules must return a hook object/]
+  ]) {
+    const family = testFamily(testModule('Core', { modifiers: { modifierRules, compileModifierRules } }));
+    assert.throws(() => family.resolveProfession({}), message);
+  }
+
+  const compileModifierRules = () => ({});
+  const family = testFamily(
+    testModule('Core', { modifiers: { modifierRules, compileModifierRules } }),
+    testModule('Elite', { modifiers: { compileModifierRules } })
+  );
+  assert.throws(
+    () => family.resolveProfession({ specialization: 'Elite' }),
+    /compileModifierRules has multiple owners: Core, Elite/
+  );
+});
+
 test('family attribute declarations compile after active module composition', () => {
   const compiledRuleIds = [];
   // Query and execution must reuse one compilation, including the damage-input marker.

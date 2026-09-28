@@ -4,7 +4,7 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -300,6 +300,5 @@ function modifyNecromancerConditionBaseDuration(context: Gw2ModifierContext, dur
 export const necromancerCoreModifiers = Object.freeze({
   modifyAttributes: modifyNecromancerCoreAttributes,
   modifyConditionBaseDuration: modifyNecromancerConditionBaseDuration,
-  modifierRules: necromancerCoreModifierRules,
-  compileModifierRules: compileGw2ModifierRules
+  modifierRules: necromancerCoreModifierRules
 });

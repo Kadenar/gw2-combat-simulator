@@ -7,7 +7,7 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeProfession, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 
@@ -39,7 +39,7 @@ import {
   engineerWeaponTasks
 } from '#gw2/professions/engineer/core/mechanics/weapons.js';
 
-const critical = engineerCoreCriticalHitDefinitions.map(onResolvedCriticalHit);
+const critical = engineerCoreCriticalHitDefinitions.map(criticalProcHandler);
 const customSpear = new Set<number>([ID.LIGHTNING_ROD, ID.CONDUIT_SURGE, ID.ELECTRIC_ARTILLERY]);
 
 /** Recharge reductions operate on live remaining work, including ammo recharge, and report only effective changes. */
@@ -173,7 +173,7 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
   },
   reactions: {
     'damage.resolved'(runtime, event, details) {
-      for (const reaction of critical) reaction.handler(runtime, event, details);
+      for (const reaction of critical) reaction(runtime, event, details);
       reactToEngineerDamage(runtime, event);
     },
     'condition.applied': reactToEngineerCondition

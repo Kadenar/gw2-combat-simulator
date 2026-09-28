@@ -1,3 +1,4 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -12,7 +13,7 @@ import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mecha
 export function resolveInfiniteForgeRefund(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
   const runtime = mesmerMechanicsFor(context);
   if (
-    !runtime.traits.has(TRAIT.INFINITE_FORGE) ||
+    !hasTrait(context, TRAIT.INFINITE_FORGE) ||
     resolution.spent <
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.INFINITE_FORGE), 'threshold')
   ) {

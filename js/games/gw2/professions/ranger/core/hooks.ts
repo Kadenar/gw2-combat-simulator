@@ -12,7 +12,7 @@ import {
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 
@@ -55,7 +55,7 @@ import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/cor
 import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 
 const spearAttacks = new Set(Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT));
-const critical = onResolvedCriticalHit(rangerCoreCriticalReactions);
+const critical = criticalProcHandler(rangerCoreCriticalReactions);
 
 /** Charges are granted only at their actual activation boundary and consumed by resolved-hit owners. */
 function grantSkillCharges(runtime: RangerRuntime, cast: RuntimeCast, type: string, profileId: number | string): void {
@@ -367,7 +367,7 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
     'damage.resolved'(runtime, event, details) {
       reactToRangerGreatswordDamage(runtime, event);
       reactToRangerCoreDamage(runtime, event);
-      critical.handler(runtime, event, details);
+      critical(runtime, event, details);
       const state = runtime.profession.core;
       if ((event.actorType === 'player' || event.ownerActorType === 'player') && state.stealthUntil > runtime.time) {
         state.stealthUntil = runtime.time;

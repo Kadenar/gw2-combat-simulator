@@ -2,6 +2,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 import { MODIFIER_HOOK_NAMES, assertDefinition, defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-contract.js';
+import { compileGw2ModifierRules } from '#gw2/platform/combat/modifiers.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/compose.js';
 import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
@@ -151,7 +152,7 @@ function createModuleUi(
   return ui;
 }
 
-/** Merges active modifier declarations before their single compiler runs; hook normalization preserves ordering. */
+/** Compiles merged active rules once, using standard GW2 buckets unless a module owns a custom compiler. */
 function composeModuleModifiers(modules: readonly AnyNativeModule[]): ProfessionModifierDefinition {
   const modifiers = modules.map((module): ProfessionModifierDefinition =>
     Array.isArray(module.modifiers)
@@ -181,8 +182,9 @@ function composeModuleModifiers(modules: readonly AnyNativeModule[]): Profession
   }
 
   if (!declarations.length) return result;
-  const compiler = modifiers[owners[0]]?.compileModifierRules;
-  if (typeof compiler !== 'function') throw new TypeError('Attribute modifier-rule fragments require one compiler.');
+  const compiler: NonNullable<ProfessionModifierDefinition['compileModifierRules']> =
+    modifiers[owners[0]]?.compileModifierRules ?? compileGw2ModifierRules;
+  if (typeof compiler !== 'function') throw new TypeError('modifiers.compileModifierRules must be a function.');
   const compiled = compiler(declarations);
   if (!compiled || typeof compiled !== 'object' || Array.isArray(compiled)) {
     throw new TypeError('modifiers.compileModifierRules must return a hook object.');
