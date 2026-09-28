@@ -1,4 +1,5 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { splitConditionStacks } from '#gw2/platform/simulation/procedural-emission.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
@@ -190,23 +191,19 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
 
   // Separate Burning applications preserve the total, including any fractional final stack.
   if (burning) {
-    const stacks = Number(burning.stacks);
-    for (let index = 0; index < Math.ceil(stacks); index += 1) {
-      context.queue.enqueue(
-        buildResolverCondition({
-          at: event.at,
-          name: 'Electric Artillery — Burning',
-          skillName: 'Electric Artillery',
-          condition: 'Burning',
-          stacks: Math.min(1, stacks - index),
-          duration: Number(burning.duration) + charges * balanceProfileNumber(idProfile, 'burningDurationPerCharge'),
-          source: 'engineer',
-          sourceId: event.skillId ?? event.sourceId,
-          actorType: 'player',
-          activationId: event.activationId,
-          offTarget: event.offTarget
-        })
-      );
-    }
+    for (const packet of splitConditionStacks({
+      at: event.at,
+      name: 'Electric Artillery — Burning',
+      skillName: 'Electric Artillery',
+      condition: 'Burning',
+      stacks: Number(burning.stacks),
+      duration: Number(burning.duration) + charges * balanceProfileNumber(idProfile, 'burningDurationPerCharge'),
+      source: 'engineer',
+      sourceId: event.skillId ?? event.sourceId,
+      actorType: 'player' as const,
+      activationId: event.activationId,
+      offTarget: event.offTarget
+    }))
+      context.queue.enqueue(buildResolverCondition(packet));
   }
 }

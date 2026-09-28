@@ -1,4 +1,4 @@
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
+import { emitEffects, splitConditionStacks } from '#gw2/platform/simulation/procedural-emission.js';
 
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
@@ -170,17 +170,14 @@ function detonate(runtime: Runtime, payload: { activationId: string; skillId: nu
       })
     );
   if (burning) {
-    const stacks = effectNumber(profile, burning, 'stacks');
-    for (let index = 0; index < Math.ceil(stacks); index++)
-      runtime.emit(
-        buildResolverCondition({
-          ...fields,
-          name: 'King of Fires — Burning',
-          condition: 'Burning',
-          stacks: Math.min(1, stacks - index),
-          duration: effectNumber(profile, burning, 'duration')
-        })
-      );
+    for (const packet of splitConditionStacks({
+      ...fields,
+      name: 'King of Fires — Burning',
+      condition: 'Burning',
+      stacks: effectNumber(profile, burning, 'stacks'),
+      duration: effectNumber(profile, burning, 'duration')
+    }))
+      runtime.emit(buildResolverCondition(packet));
   }
 }
 

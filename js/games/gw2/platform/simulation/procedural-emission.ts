@@ -35,6 +35,14 @@ export function splitStrikeHits<T extends ProceduralStrike>(packet: T, intervalS
   }));
 }
 
+/** Splits explicitly selected conditions into separate applications, preserving fractional totals and metadata. */
+export function splitConditionStacks<T extends { readonly stacks: number }>(packet: T): T[] {
+  return Array.from({ length: Math.ceil(packet.stacks) }, (_, index) => ({
+    ...packet,
+    stacks: Math.min(1, packet.stacks - index)
+  }));
+}
+
 /** Weapon identity for a mechanic's strike: the skill's own weapon, or none for utility and profession skills. */
 export function proceduralSkillWeapon(skill: Pick<Skill, 'skillWeapon' | 'type' | 'weapon'>): string {
   return skill.skillWeapon ?? (skill.type === 'Weapon' ? skill.weapon || '' : 'Unequipped');

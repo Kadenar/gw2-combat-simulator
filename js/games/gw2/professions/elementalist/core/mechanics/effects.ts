@@ -8,6 +8,7 @@
 import { emitElementalistBuff, emitElementalistCondition } from '#gw2/professions/elementalist/core/events.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { splitConditionStacks } from '#gw2/platform/simulation/procedural-emission.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import type { ElementalistAuraState, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
@@ -105,17 +106,16 @@ export function emitProfiledCondition(
     baseEvent: { source, sourceId, actorType: 'player', skillId: skill.id, skillName: source, triggeredBy }
   })) {
     const condition = String(event.condition);
-    const stacks = Number(event.stacks);
-    const count = condition === 'Burning' ? Math.ceil(stacks) : 1;
-    for (let index = 0; index < count; index++) {
-      emitElementalistCondition(context, {
-        ...event,
-        skill,
-        name: `${source} — ${condition}`,
-        condition,
-        stacks: condition === 'Burning' ? Math.min(1, stacks - index) : stacks,
-        duration: Number(event.duration)
-      });
+    const packet = {
+      ...event,
+      skill,
+      name: `${source} — ${condition}`,
+      condition,
+      stacks: Number(event.stacks),
+      duration: Number(event.duration)
+    };
+    for (const application of condition === 'Burning' ? splitConditionStacks(packet) : [packet]) {
+      emitElementalistCondition(context, application);
       emitted = true;
     }
   }
