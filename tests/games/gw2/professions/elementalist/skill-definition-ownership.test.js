@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { withSkill, withProfile } from '#tests/helpers/catalog-overrides.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
@@ -117,6 +118,101 @@ test('Frigid Flurry declares independent projectile attempts only on surviving p
   }
 });
 
+test('ordinary spear snapshots retire at completion while prepared delayed strikes keep their bonuses', () => {
+  // Damaging, non-damaging, and cancelled activations must not leave historical snapshots behind.
+  for (const skillId of [ID.BLAZING_BARRAGE, ID.SEETHE]) {
+    for (const cancelled of [false, true]) {
+      const result = runElementalist({
+        config: { specialization: 'Core', primaryWeapon: 'Spear', startAttunement: 'Fire', selectedTraitIds: [] },
+        rotation: [
+          { type: 'cast', skillId, impactDelayMs: 2000, ...(cancelled ? { interruptAfterMs: 0 } : {}) },
+          { type: 'wait', durationMs: 3000 }
+        ],
+        initialize(runtime) {
+          Object.assign(runtime.profession.core, {
+            spearNextDamageBonus: true,
+            spearNextGuaranteedCritical: true,
+            spearNextControlHit: true
+          });
+        },
+        timeline: [{ at: 1, run: (runtime) => assert.deepEqual(runtime.profession.core.spearFollowups, {}) }]
+      });
+      assert.deepEqual(result.warnings, []);
+      const strikes = result.events.filter((event) => event.type === 'damage' && event.skillId === skillId);
+      if (!cancelled && skillId === ID.BLAZING_BARRAGE) {
+        assert.ok(strikes.length > 0);
+        assert.ok(strikes.every((event) => event.at > 1 && event.coefficient === 2.6 * 1.2 && event.forceCrit));
+        assert.equal(result.events.filter((event) => event.type === 'control' && event.skillId === skillId).length, 1);
+      } else assert.deepEqual(strikes, []);
+      assert.deepEqual(observedRuntime(result).profession.core.spearFollowups, {});
+    }
+  }
+});
+
+test('Fulgor keeps spear bonuses through the final procedural packet and consumes control only once', () => {
+  // Remove ordinary strikes so a delayed packet must consume control; equal-time tail packets share one snapshot.
+  const base = patchedProfession([[ID.FULGOR, { effects: [], cooldown: 0 }]]);
+  const profession = {
+    ...base,
+    runtimeFor(config) {
+      const native = base.runtimeFor(config);
+      return {
+        ...native,
+        catalog: withProfile(native.catalog, PROFILE.fulgor, {
+          effects: [
+            {
+              type: 'strike',
+              name: 'Fulgor',
+              ticks: [1000, 2000, 2000].map((atMs) => ({
+                atMs,
+                coefficient: 2,
+                flatStrikeBase: 0,
+                flatStrikePowerCoeff: 0
+              }))
+            }
+          ]
+        })
+      };
+    }
+  };
+  const result = runElementalist({
+    profession,
+    config: { specialization: 'Core', primaryWeapon: 'Spear', startAttunement: 'Air', selectedTraitIds: [] },
+    rotation: [
+      { type: 'cast', skillId: ID.FULGOR },
+      { type: 'wait', durationMs: 1000 },
+      { type: 'cast', skillId: ID.FULGOR, interruptAfterMs: 0 },
+      { type: 'wait', durationMs: 3000 }
+    ],
+    initialize(runtime) {
+      Object.assign(runtime.profession.core, {
+        spearNextDamageBonus: true,
+        spearNextGuaranteedCritical: true,
+        spearNextControlHit: true
+      });
+    },
+    timeline: [
+      {
+        at: 1.5,
+        run(runtime) {
+          // Delayed work retains its own snapshot after the cast's entry has been retired.
+          assert.deepEqual(runtime.profession.core.spearFollowups, {});
+        }
+      },
+      { at: 2.1, run: (runtime) => assert.deepEqual(runtime.profession.core.spearFollowups, {}) }
+    ]
+  });
+  assert.deepEqual(result.warnings, []);
+  const strikes = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.FULGOR);
+  assert.deepEqual(
+    strikes.map((event) => event.at),
+    [1, 2, 2]
+  );
+  assert.ok(strikes.every((event) => event.coefficient === 2 * 1.2 && event.forceCrit));
+  assert.ok(strikes.some((event) => event.at === 2));
+  assert.equal(result.events.filter((event) => event.type === 'control' && event.skillId === ID.FULGOR).length, 1);
+});
+
 test('Fulgor replaces only its extra stream on commitment and retains targeting and attribution', () => {
   for (const mode of ['full', 'cancelled', 'removed']) {
     const result = runElementalist({
@@ -127,9 +223,22 @@ test('Fulgor replaces only its extra stream on commitment and retains targeting 
         { type: 'wait', durationMs: 1000 },
         { type: 'cast', skillId: ID.FULGOR, offTarget: true, ...(mode === 'cancelled' ? { interruptAfterMs: 0 } : {}) },
         { type: 'wait', durationMs: 5500 }
+      ],
+      initialize(runtime) {
+        runtime.profession.core.spearNextDamageBonus = true;
+      },
+      timeline: [
+        {
+          at: 3,
+          run(runtime) {
+            // Neither surviving nor replaced pulse sequences retain entries in cast state.
+            assert.deepEqual(runtime.profession.core.spearFollowups, {});
+          }
+        }
       ]
     });
     assert.deepEqual(result.warnings, []);
+    assert.deepEqual(observedRuntime(result).profession.core.spearFollowups, {});
     const [first, second] = result.events.filter((event) => event.type === 'action' && event.skillId === ID.FULGOR);
     const extra = result.events.filter(
       (event) => event.type === 'damage' && event.skillId === ID.FULGOR && event.actorType === 'effect'
@@ -714,7 +823,7 @@ test('familiar declarations reset their pools before deferred grants and the nex
         rotation: [{ type: 'cast', skillId: id }],
         initialize(runtime) {
           runtime.profession.specialization.state.pendingWeaponChargeGains = [
-            { activationId: 'weapon', at: 0, source: 'Weapon', sourceId: 42, gain: 2 }
+            { activationId: 'weapon', source: 'Weapon', sourceId: 42, gain: 2 }
           ];
         },
         timeline: [

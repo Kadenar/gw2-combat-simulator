@@ -1,6 +1,5 @@
 import { observeElementalistTransition } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import type { RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { ElementalistRuntimeState, ElementalistSimulationEvent } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -36,6 +35,7 @@ import {
   empowerElementalistSpearPacket
 } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
 import { expireElementalistState } from '#gw2/professions/elementalist/core/mechanics/expiry.js';
+import { fulgorPulse } from '#gw2/professions/elementalist/core/mechanics/fulgor.js';
 import { applyFreshAirCritical } from '#gw2/professions/elementalist/core/traits/air.js';
 import {
   applyElementalistAura,
@@ -52,7 +52,7 @@ import {
   applyElementalistResolvedDamage,
   elementalistCoreCriticalReactions
 } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
-import { emitElementalistDamage, withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
+import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   resetElementalistAttunementCooldowns
@@ -102,7 +102,11 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
         : []
     );
     prepared = prepareElementalistHitboxEvent(runtime, prepared);
-    return empowerElementalistSpearPacket(runtime, prepared as ElementalistSimulationEvent);
+    return empowerElementalistSpearPacket(
+      runtime,
+      prepared as ElementalistSimulationEvent,
+      runtime.profession.core.spearFollowups[String(prepared.activationId)]
+    );
   },
   modifyEffects(runtime, cast, effects) {
     return extendPersistingFlamesEffects(runtime, cast.skill, effects);
@@ -113,6 +117,8 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
   },
   onCastCommit(runtime, cast) {
     withElementalistCast(runtime, cast, () => elementalistOnCastCommit(runtime, cast, cast.skill));
+    // Authored strikes are prepared, and delayed sequences now own their snapshots.
+    delete runtime.profession.core.spearFollowups[cast.id];
   },
   onAutoattackChainTransition: observeElementalistAutoattackTransition,
   onCooldownReset: resetElementalistAttunementCooldowns,
@@ -122,9 +128,7 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
     ...elementalistRockBarrierTasks,
     ...elementalistSpearMechanicHandlers,
     'elementalist.expire-state': expireElementalistState,
-    'elementalist.fulgor-pulse'(runtime, data) {
-      emitElementalistDamage(runtime, { ...(data as SimulationEventBase & { coefficient: number }), at: runtime.time });
-    },
+    'elementalist.fulgor-pulse': fulgorPulse,
     'elementalist.core.consume-elemental-explosion'(runtime, data) {
       const { cast } = data as SkillTaskData;
       const effect = requireEffect(

@@ -6,8 +6,6 @@ import type { RuntimeProfession, RuntimeCast } from '#gw2/platform/simulation/ru
  * Routes Core Elementalist casts to the skill families and persistent mechanics that own their behavior.
  * Catalog fragments remain in `skills/`; cross-cast state lives in `mechanics/`.
  */
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { AURA_TRANSMUTE_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
@@ -25,7 +23,7 @@ import {
   consumeElementalistEtching
 } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
 import { shareAttunementVariantRecharge } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+import { replaceFulgor } from '#gw2/professions/elementalist/core/mechanics/fulgor.js';
 import {
   applyElementalistAura,
   applyGenericPostCast,
@@ -172,32 +170,6 @@ export const elementalistCoreSideEffectHandlers: RuntimeProfession<ElementalistR
   },
   'elementalist.replace-fulgor'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Fulgor requires a cast trigger.');
-    const { cast, skill } = trigger;
-    const fulgorProfile = requireBalanceProfileFromContext(context, PROFILE.fulgor);
-    const pulse = requireEffect(fulgorProfile, 'strike', 'Fulgor');
-    if (!pulse?.ticks?.length) throw new TypeError('Fulgor requires an explicit strike timeline.');
-    context.cancelOwner({ id: 'elementalist.fulgor', generation: 0 });
-    for (const tick of pulse.ticks) {
-      context.schedule(
-        'elementalist.fulgor-pulse',
-        Math.max(context.time, cast.start + tick.atMs / 1000),
-        {
-          at: cast.start + tick.atMs / 1000,
-          source: skill.name,
-          sourceId: skill.id,
-          actorType: 'effect',
-          ownerActorType: 'player',
-          skillName: skill.name,
-          skillId: skill.id,
-          coefficient: tick.coefficient,
-          flatStrikeBase: Number(tick.flatStrikeBase),
-          flatStrikePowerCoeff: Number(tick.flatStrikePowerCoeff),
-          canCrit: false,
-          activationId: cast.id,
-          offTarget: cast.command.offTarget
-        },
-        { id: 'elementalist.fulgor', generation: 0 }
-      );
-    }
+    replaceFulgor(context, trigger.cast);
   }
 };

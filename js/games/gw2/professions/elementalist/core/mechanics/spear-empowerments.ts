@@ -1,4 +1,5 @@
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 /** Owns spear etching progress and one-shot empowerments that survive until a later cast consumes them. */
 import {
   requireBalanceProfileFromContext,
@@ -28,12 +29,12 @@ export function beginElementalistSpearCast(context: ElementalistRuntime, cast: R
   state.spearNextControlHit = false;
 }
 
-/** Strike packets read the accepted cast's snapshot, while the first hit owns its control rider. */
+/** Casts and delayed sequences supply their own snapshot; the first positive strike consumes its control rider. */
 export function empowerElementalistSpearPacket(
   context: ElementalistRuntime,
-  event: ElementalistSimulationEvent
+  event: ElementalistSimulationEvent,
+  followup: ElementalistCoreState['spearFollowups'][string] | undefined
 ): ElementalistSimulationEvent {
-  const followup = context.profession.core.spearFollowups[String(event.activationId)];
   if (!followup || event.type !== 'damage' || !(Number(event.coefficient) > 0)) return event;
   if (followup.control) {
     followup.control = false;

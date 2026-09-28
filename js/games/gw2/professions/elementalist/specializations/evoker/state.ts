@@ -63,7 +63,6 @@ export interface EvokerState {
   // charge grants deferred past a charge-resetting familiar cast, replayed once it completes
   pendingWeaponChargeGains: Array<{
     activationId: string;
-    at: number;
     source: string;
     sourceId: string | number;
     gain: number;

@@ -105,7 +105,7 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pic
     : balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'allyStacks');
 }
 
-// commits one grant, clamped to capacity, and reports it with a delta so the log shows the change
+// Commit at the live flush time, clamped to capacity, so deferred grants follow the familiar's reset.
 function applyWeaponSkillChargeGain(
   context: ElementalistRuntime,
   state: EvokerState,
@@ -145,7 +145,6 @@ export function grantWeaponSkillCharges(
   if (gain <= 0) return;
   const chargeGain = {
     activationId: cast.id,
-    at: cast.effectiveEnd,
     source: skill.name,
     sourceId: skill.id,
     gain

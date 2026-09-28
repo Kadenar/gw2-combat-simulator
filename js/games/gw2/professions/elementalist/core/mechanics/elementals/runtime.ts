@@ -447,7 +447,16 @@ function handleElementalImpactTask(context: ElementalistRuntime, payload: Elemen
   if (payload.impact === 'flame-burst') {
     const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst;
     emitStrike(context, payload, profile.skillId, 'Flame Burst', profile.baseDamage, 1, 1);
-    emitPlayerOwnedCondition(context, payload, profile.skillId, 'Flame Burst', 'Burning', profile.burningDuration);
+    // Read the burn count from the profile so balance changes reach the emitted condition.
+    emitPlayerOwnedCondition(
+      context,
+      payload,
+      profile.skillId,
+      'Flame Burst',
+      'Burning',
+      profile.burningDuration,
+      profile.burningStacks
+    );
     emitFlameBurstMight(context, payload);
     return;
   }

@@ -4,6 +4,10 @@ import { runElementalist, runNative } from '#tests/helpers/elementalist-simulati
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import { evokerHooks } from '#gw2/professions/elementalist/specializations/evoker/hooks.js';
+import {
+  grantWeaponSkillCharges,
+  flushPendingWeaponChargeGains
+} from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
@@ -128,7 +132,7 @@ test('interrupting a familiar releases deferred weapon charges once', () => {
     initialize(runtime) {
       const state = runtime.profession.specialization.state;
       state.activeFamiliarCast = { reservationId: 'familiar', endsAt: 1, resetsCharges: true };
-      state.pendingWeaponChargeGains = [{ activationId: 'weapon', at: 0, source: 'Weapon', sourceId: 42, gain: 2 }];
+      state.pendingWeaponChargeGains = [{ activationId: 'weapon', source: 'Weapon', sourceId: 42, gain: 2 }];
       const cast = {
         id: 'familiar',
         skill: elementalistCatalog.skillsByName.get('Ignite'),
@@ -145,6 +149,43 @@ test('interrupting a familiar releases deferred weapon charges once', () => {
     }
   });
   assert.equal(observedRuntime(result).profession.specialization.state.charges, 2);
+});
+
+test('deferred weapon charges report the actual flush time once', () => {
+  // A grant queued before the familiar reset must retain attribution and land only after that reset.
+  const result = runElementalist({
+    config: { specialization: 'Evoker', initialEvokerCharges: 0, evokerElement: 'Fire', selectedTraitIds: [] },
+    rotation: [{ type: 'wait', durationMs: 3000 }],
+    initialize(runtime) {
+      const state = runtime.profession.specialization.state;
+      state.activeFamiliarCast = { reservationId: 'familiar', endsAt: 2, resetsCharges: true };
+      grantWeaponSkillCharges(
+        runtime,
+        { id: 'weapon', effectiveEnd: 0 },
+        elementalistCatalog.skillsById.get(ID.BLAZING_BARRAGE),
+        state
+      );
+      assert.equal(state.charges, 0);
+    },
+    timeline: [
+      {
+        at: 2,
+        run(runtime) {
+          const state = runtime.profession.specialization.state;
+          state.charges = 0;
+          flushPendingWeaponChargeGains(runtime, state);
+          flushPendingWeaponChargeGains(runtime, state);
+          assert.deepEqual(state.pendingWeaponChargeGains, []);
+        }
+      }
+    ]
+  });
+  assert.deepEqual(result.warnings, []);
+  const grants = result.events.filter((event) => event.type === 'resource' && event.activationId === 'weapon');
+  assert.equal(grants.length, 1);
+  assert.equal(grants[0].at, 2);
+  assert.equal(grants[0].sourceId, ID.BLAZING_BARRAGE);
+  assert.equal(grants[0].change, 2);
 });
 
 // Output retention must not change live reaction state or total damage.
