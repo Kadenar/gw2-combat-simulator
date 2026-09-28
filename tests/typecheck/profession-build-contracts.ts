@@ -5,7 +5,6 @@ import { toApplicationBuild as elementalistApplicationBuild } from '#gw2/profess
 import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-contract.js';
-import { composeHookContainer } from '#gw2/platform/engine/profession/module.js';
 import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { ProfessionModifierDefinition } from '#gw2/platform/engine/profession/types.js';
 import type { ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
@@ -49,13 +48,6 @@ void invalidRules;
 // @ts-expect-error Compiler output must be a hook container.
 const invalidCompiler: ProfessionModifierDefinition = { compileModifierRules: () => ({ modifyStrikeDamage: 42 }) };
 void invalidCompiler;
-
-// Composition accepts executable hook names, not metadata or misspelled slots.
-const composed = composeHookContainer([], ['modifyAttributes']);
-// @ts-expect-error Only requested hook slots are exposed.
-composed.modifyCastDuration;
-// @ts-expect-error Modifier declarations are metadata, not a callable hook slot.
-composeHookContainer([], ['modifierRules']);
 
 // Presentation carries the canonical loadout methods and validates build-owned selector keys.
 declare const loadout: NonNullable<ProfessionUiContract['slotLoadout']>;

@@ -3,8 +3,7 @@ import test from 'node:test';
 
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
-import { defineProfessionFamily } from '#gw2/platform/engine/profession/family.js';
-import { defineProfessionModule } from '#gw2/platform/engine/profession/module.js';
+import { defineNativeProfession, defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
@@ -319,45 +318,37 @@ const eliteSkill = Object.freeze({
   effects: [],
   specialization: 'Elite'
 });
-const familyCatalog = createCanonicalCatalog({
-  generated: [coreSkill, eliteSkill],
-  specializations: [
-    { id: 1, name: 'Core Line', elite: false },
-    { id: 2, name: 'Elite', elite: true }
-  ]
-});
-
+// Synthetic families use the same native authoring boundary as shipped professions.
 function testModule(id, options = {}) {
-  return defineProfessionModule({
+  return defineNativeModule({
     id,
-    catalog: options.catalog || {
-      skills: id === 'Core' ? [coreSkill] : [eliteSkill],
+    data: {
+      generatedSkills: id === 'Core' ? [coreSkill] : [eliteSkill],
       specializations:
-        id === 'Core' ? [{ id: 1, name: 'Core Line', elite: false }] : [{ id: 2, name: 'Elite', elite: true }]
+        id === 'Core' ? [{ id: 1, name: 'Core Line', elite: false }] : [{ id: 2, name: 'Elite', elite: true }],
+      ...options.data
     },
-    resources: options.resources || {
-      createState: () => (id === 'Core' ? { coreReady: true } : { eliteReady: true })
+    state: options.state || {
+      create: () => (id === 'Core' ? { coreReady: true } : { eliteReady: true })
     },
     modifiers: options.modifiers,
-    ui: options.ui
+    presentation: options.presentation
   });
 }
 
-function testFamily(core = testModule('Core'), elite = testModule('Elite'), ui = undefined) {
-  return defineProfessionFamily({
+function testFamily(core = testModule('Core'), elite = testModule('Elite'), presentation = undefined) {
+  return defineNativeProfession({
     id: 'family-test',
     name: 'Family Test',
-    catalog: familyCatalog,
-    core,
-    specializations: { Elite: elite },
-    ui
+    modules: [core, elite],
+    presentation
   });
 }
 
 test('family UI uses active slices, Core-first event precedence, and family vetoes', () => {
   const descriptor = (description) => ({ type: 'test', description });
   const core = testModule('Core', {
-    ui: {
+    presentation: {
       effectPresentations: () => [{ id: 'core-effect', kind: 'core-effect', name: 'Core Effect' }],
       eventLogRow: (context, event) => {
         if (event.type === 'shared') return descriptor('core');
@@ -371,7 +362,7 @@ test('family UI uses active slices, Core-first event precedence, and family veto
     }
   });
   const elite = testModule('Elite', {
-    ui: {
+    presentation: {
       effectPresentations: () => [{ id: 'elite-effect', kind: 'elite-effect', name: 'Elite Effect' }],
       eventLogRow: (_context, event) =>
         event.type === 'shared' || event.type === 'elite-only' ? descriptor('elite') : undefined
@@ -430,7 +421,7 @@ test('profession families resolve Core or one known elite and cache contracts', 
     specialization: { kind: 'Elite', state: { eliteReady: true } }
   });
   assert.equal(family.resolveProfession({ specialization: 'Elite' }), elite);
-  assert.equal(family.catalog, familyCatalog);
+  assert.equal(family.catalog, getNativeCatalogAssembly(family.nativeDefinition.modules, undefined).catalog);
   assert.throws(
     () => family.resolveProfession({ specialization: 'Missing' }),
     /Unknown Family Test elite specialization "Missing"/
@@ -482,22 +473,21 @@ test('family hook order is deterministic and duplicate hook ids fail', () => {
 
 test('family attribute declarations compile after active module composition', () => {
   const compiledRuleIds = [];
-  const compileModifierRules = (rules) => ({
-    modifyStrikeDamage: (_context, value) => {
-      compiledRuleIds.push(rules.map((rule) => rule.id));
+  // Query and execution must reuse one compilation, including the damage-input marker.
+  const compileModifierRules = (rules) => {
+    compiledRuleIds.push(rules.map((rule) => rule.id));
+    return {
+      modifyStrikeDamage: Object.assign((_context, value) => value + rules.length, { acceptsDamageInputs: true })
+    };
+  };
 
-      return value + rules.length;
-    }
-  });
-  const core = defineProfessionModule({
-    ...testModule('Core'),
+  const core = testModule('Core', {
     modifiers: {
       modifierRules: [{ id: 'core.rule' }],
       compileModifierRules
     }
   });
-  const elite = defineProfessionModule({
-    ...testModule('Elite'),
+  const elite = testModule('Elite', {
     modifiers: {
       modifierRules: [{ id: 'elite.rule' }]
     }
@@ -505,8 +495,44 @@ test('family attribute declarations compile after active module composition', ()
   const family = testFamily(core, elite);
 
   assert.equal(family.resolveProfession({}).modifyStrikeDamage({}, 10), 11);
-  assert.equal(family.resolveProfession({ specialization: 'Elite' }).modifyStrikeDamage({}, 10), 12);
+  const config = { specialization: 'Elite' };
+  const query = family.resolveProfession(config);
+  const runtime = family.runtimeFor(config);
+  assert.equal(query.modifyStrikeDamage({}, 10), 12);
+  assert.equal(runtime.modifyStrikeDamage({}, 10), 12);
+  assert.equal(runtime.modifyStrikeDamage.acceptsDamageInputs, true);
+  assert.equal(runtime.modifyStrikeDamage, query.modifyStrikeDamage);
+  assert.equal(runtime.createState, query.createState);
+  assert.equal(runtime.catalog, query.catalog);
+  assert.equal(family.runtimeFor(config), runtime);
   assert.deepEqual(compiledRuleIds, [['core.rule'], ['core.rule', 'elite.rule']]);
+});
+
+// State factories remain per-run even though selected contracts are cached; invalid ownership must fail in both views.
+test('native composition preserves fresh state and rejects conflicting state fragments', () => {
+  const config = { specialization: 'Elite' };
+  const family = testFamily();
+  const queryState = family.resolveProfession(config).createState(config);
+  queryState.core.coreReady = false;
+  queryState.specialization.state.eliteReady = false;
+  assert.deepEqual(family.runtimeFor(config).createState(config), {
+    core: { coreReady: true },
+    specialization: { kind: 'Elite', state: { eliteReady: true } }
+  });
+  for (const [owner, create, message] of [
+    ['Core', () => [], /Core state factory must return an object/],
+    ['Elite', () => 1, /Elite state factory must return an object/],
+    ['Core', () => ({ core: {} }), /Core state fragment uses reserved key core/],
+    ['Elite', () => ({ specialization: {} }), /Elite state fragment uses reserved key specialization/],
+    ['Elite', () => ({ coreReady: false }), /Duplicate state field coreReady in Core and Elite/]
+  ]) {
+    const candidate = testFamily(
+      testModule('Core', owner === 'Core' ? { state: { create } } : {}),
+      testModule('Elite', owner === 'Elite' ? { state: { create } } : {})
+    );
+    assert.throws(() => candidate.resolveProfession(config).createState(config), message);
+    assert.throws(() => candidate.runtimeFor(config).createState(config), message);
+  }
 });
 
 test('family composition rejects duplicate registries and catalog ids', () => {
@@ -515,10 +541,10 @@ test('family composition rejects duplicate registries and catalog ids', () => {
       testFamily(
         testModule('Core'),
         testModule('Elite', {
-          catalog: { skills: [coreSkill] }
+          data: { generatedSkills: [coreSkill] }
         })
       ).resolveProfession({ specialization: 'Elite' }),
-    /Duplicate skill id 1/
+    /Duplicate generated skill id 1/
   );
 });
 

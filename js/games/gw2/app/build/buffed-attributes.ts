@@ -3,7 +3,7 @@ import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
-import { resolveProfessionContract } from '#gw2/platform/engine/profession/family.js';
+import { resolveProfessionContract } from '#gw2/platform/engine/profession/contract.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';

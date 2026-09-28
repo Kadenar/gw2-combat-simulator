@@ -3,7 +3,7 @@ import test from 'node:test';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { conditionApplicationDuration } from '#gw2/platform/combat/query/combat-query.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { resolveProfessionContract } from '#gw2/platform/engine/profession/family.js';
+import { resolveProfessionContract } from '#gw2/platform/engine/profession/contract.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 

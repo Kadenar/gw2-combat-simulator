@@ -1,6 +1,12 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-import { defineProfessionFamily } from '#gw2/platform/engine/profession/family.js';
+import { MODIFIER_HOOK_NAMES, assertDefinition, defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-contract.js';
+import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
+import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/compose.js';
+import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
+import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 import type { RuntimeProfession, Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
@@ -8,15 +14,17 @@ import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
 import { denyCast, selectedSlotSkillAvailability } from '#gw2/platform/engine/skills/availability.js';
 import type {
-  ProfessionFamilyDefinition,
-  ProfessionModifierDefinition,
-  ProfessionModuleCatalogFragment,
-  ProfessionModuleDefinition
+  NormalizedProfessionContract,
+  ProfessionHook,
+  ProfessionModifierDefinition
 } from '#gw2/platform/engine/profession/types.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
 
-import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import {
+  getNativeCatalogAssembly,
+  assembleNativeRuntimeCatalog
+} from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import type {
   AnyNativeModule,
   NativeModule,
@@ -31,7 +39,7 @@ import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 
 /** Policies a family exposes for capacity previews; their maximum reads only configuration and catalog. */
-type ProfessionResourcePreview = ReturnType<NonNullable<ProfessionFamilyDefinition['resourcesFor']>>;
+type ProfessionResourcePreview = ResourcePolicies & { readonly endurance?: EndurancePolicy };
 
 function assertObject(value: object | null | undefined, label: string): void {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -118,43 +126,100 @@ export function defineNativeModule<
   });
 }
 
-function compileNativeModule(
+/** Binds module presentation only when the application first requests its UI. */
+function createModuleUi(
   module: AnyNativeModule,
-  applicationCatalog: Readonly<CanonicalCatalog>,
-  fragment: Readonly<ProfessionModuleCatalogFragment>
-): ProfessionModuleDefinition {
-  const modifiers = Array.isArray(module.modifiers) ? { modifierRules: module.modifiers } : module.modifiers;
-  let compiledUi: Partial<ProfessionUiContract> | undefined;
-  return {
-    id: module.id,
-    catalog: fragment,
-    resources: {
-      createState: module.state.create,
-      ...(module.state.project == null ? {} : { projectPlanningState: module.state.project })
-    },
-    modifiers: modifiers,
-    get ui() {
-      if (compiledUi) return compiledUi;
-      const presentation =
-        typeof module.presentation === 'function' ? module.presentation(applicationCatalog) : module.presentation;
-      const ui = { ...(presentation as Partial<ProfessionUiContract> | undefined) };
-      if (module.id === 'Core') {
-        const paletteAvailability = ui.paletteSkillAvailability;
-        // Resolve preview selection once so the availability gate and profession callback use the same specialization.
-        ui.paletteSkillAvailability = (context, skill) => {
-          const config = context.config;
-          const build = context.build as { readonly specialization?: string } | undefined;
-          const specialization =
-            context.specialization || config?.specialization || build?.specialization || skill.specialization || 'Core';
-          return isBuildSkillAvailable(skill, { specialization })
-            ? (paletteAvailability?.({ ...context, specialization }, skill) ?? { available: true, message: '' })
-            : { available: false, message: `${skill.name} is unavailable for this build.` };
-        };
+  applicationCatalog: Readonly<CanonicalCatalog>
+): Partial<ProfessionUiContract> {
+  const presentation =
+    typeof module.presentation === 'function' ? module.presentation(applicationCatalog) : module.presentation;
+  const ui = { ...(presentation as Partial<ProfessionUiContract> | undefined) };
+  if (module.id === 'Core') {
+    const paletteAvailability = ui.paletteSkillAvailability;
+    // Resolve preview selection once so the availability gate and profession callback use the same specialization.
+    ui.paletteSkillAvailability = (context, skill) => {
+      const config = context.config;
+      const build = context.build as { readonly specialization?: string } | undefined;
+      const specialization =
+        context.specialization || config?.specialization || build?.specialization || skill.specialization || 'Core';
+      return isBuildSkillAvailable(skill, { specialization })
+        ? (paletteAvailability?.({ ...context, specialization }, skill) ?? { available: true, message: '' })
+        : { available: false, message: `${skill.name} is unavailable for this build.` };
+    };
+  }
+
+  return ui;
+}
+
+/** Merges active modifier declarations before their single compiler runs; hook normalization preserves ordering. */
+function composeModuleModifiers(modules: readonly AnyNativeModule[]): ProfessionModifierDefinition {
+  const modifiers = modules.map((module): ProfessionModifierDefinition =>
+    Array.isArray(module.modifiers)
+      ? { modifierRules: module.modifiers }
+      : ((module.modifiers as ProfessionModifierDefinition | undefined) ?? {})
+  );
+  const result = Object.fromEntries(
+    MODIFIER_HOOK_NAMES.map((name) => [
+      name,
+      modifiers.flatMap((source) => {
+        const value = source[name];
+        return (value == null ? [] : Array.isArray(value) ? value : [value]) as ProfessionHook[];
+      })
+    ])
+  ) as Record<(typeof MODIFIER_HOOK_NAMES)[number], ProfessionHook[]>;
+  const declarations = modifiers.flatMap((source, index) => {
+    const value = source.modifierRules;
+    if (value == null) return [];
+    if (!Array.isArray(value)) throw new TypeError(`${modules[index].id} modifiers.modifierRules must be an array.`);
+    return value;
+  });
+  const owners = modifiers.flatMap((source, index) => (source.compileModifierRules == null ? [] : [index]));
+  if (owners.length > 1) {
+    throw new TypeError(
+      `modifiers.compileModifierRules has multiple owners: ${owners.map((index) => modules[index].id).join(', ')}.`
+    );
+  }
+
+  if (!declarations.length) return result;
+  const compiler = modifiers[owners[0]]?.compileModifierRules;
+  if (typeof compiler !== 'function') throw new TypeError('Attribute modifier-rule fragments require one compiler.');
+  const compiled = compiler(declarations);
+  if (!compiled || typeof compiled !== 'object' || Array.isArray(compiled)) {
+    throw new TypeError('modifiers.compileModifierRules must return a hook object.');
+  }
+
+  for (const name of MODIFIER_HOOK_NAMES) {
+    const hook = compiled[name];
+    if (hook != null) result[name].push(hook);
+  }
+
+  return result;
+}
+
+/** Creates fresh Core/elite state while rejecting invalid fragments and conflicting field ownership. */
+function composeStateFragments(modules: readonly AnyNativeModule[], config: Readonly<ProfessionConfig>): object {
+  const fragments = modules.map((module) => {
+    const fragment = module.state.create(config) || {};
+    if (typeof fragment !== 'object' || Array.isArray(fragment)) {
+      throw new TypeError(`${module.id} state factory must return an object.`);
+    }
+
+    return fragment;
+  });
+  const core = fragments[0];
+  for (const [index, fragment] of fragments.entries()) {
+    for (const property of Reflect.ownKeys(fragment)) {
+      if (property === 'core' || property === 'specialization') {
+        throw new TypeError(`${modules[index].id} state fragment uses reserved key ${property}.`);
       }
 
-      return (compiledUi = ui);
+      if (index > 0 && Reflect.has(core, property)) {
+        throw new TypeError(`Duplicate state field ${String(property)} in Core and ${modules[index].id}.`);
+      }
     }
-  };
+  }
+
+  return { core, specialization: { kind: modules[1]?.id ?? 'Core', state: fragments[1] ?? {} } };
 }
 
 /** Compiles stable profession content while retaining its source definition for optional integration decorators. */
@@ -169,49 +234,73 @@ export function defineNativeProfession<
     throw new TypeError('A native profession definition is required.');
   }
 
+  assertDefinition(definition);
   validateAutoattackChainOptions(definition.autoattackChains ?? {});
   const modules = definition.modules as readonly AnyNativeModule[];
   for (const module of modules) assertNativeModuleDefinition(module);
   const assembly = getNativeCatalogAssembly(modules, definition.catalog);
   const core = modules[0];
-  const engineDefinition: ProfessionFamilyDefinition<TBuild> = {
-    id: definition.id,
-    name: definition.name,
-    weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
-    catalog: assembly.catalog,
-    build: definition.build,
-    core: compileNativeModule(core, assembly.catalog, assembly.fragments.get('Core')!),
-    specializations: Object.fromEntries(
-      modules
-        .slice(1)
-        .map((module) => [module.id, compileNativeModule(module, assembly.catalog, assembly.fragments.get(module.id)!)])
-    ),
-    // Bind family controls directly, without relying on a Core UI initialization side effect.
-    ui:
-      typeof definition.presentation === 'function'
-        ? definition.presentation(assembly.catalog)
-        : definition.presentation,
-    // Capacity previews read the resource policies owned by the selected modules' hooks.
-    resourcesFor(specialization) {
-      const runtime = runtimeFor({ specialization });
-      return {
-        ...(runtime.resources as ProfessionResourcePreview),
-        ...(runtime.endurance == null ? {} : { endurance: runtime.endurance })
-      };
-    }
-  };
-  const family = defineProfessionFamily<NativeProfessionRuntimeState<TModules>, TBuild>(engineDefinition);
+  const specializations = new Map(modules.slice(1).map((module) => [module.id, module]));
+  const build = normalizeProfessionBuild(definition.id, definition.build);
+  // Family controls bind independently of lazy module presentation.
+  const familyUi =
+    typeof definition.presentation === 'function' ? definition.presentation(assembly.catalog) : definition.presentation;
+  let presentation: ProfessionUiContract | undefined;
   type State = NativeProfessionRuntimeState<TModules>;
-  const runtimes = new Map<string, RuntimeProfession<State>>();
+  const selections = new Map<
+    string,
+    {
+      modules: readonly AnyNativeModule[];
+      source: Readonly<NormalizedProfessionContract<State>>;
+      runtime?: RuntimeProfession<State>;
+    }
+  >();
+  /** Query and execution share selected catalogs, state factories, and compiled modifiers. */
+  function selectionFor(specialization: string) {
+    const cached = selections.get(specialization);
+    if (cached) return cached;
+    const elite = specializations.get(specialization);
+    if (specialization !== 'Core' && !elite) {
+      throw new Error(
+        `Unknown ${definition.name} elite specialization "${specialization}". Expected Core or one of: ${[...specializations.keys()].join(', ')}.`
+      );
+    }
+
+    const selected = elite ? [core, elite] : [core];
+    const projectors = selected.flatMap((module) =>
+      module.state.project ? [module.state.project as (input: unknown) => object] : []
+    );
+    const source = defineProfession<State>({
+      id: definition.id,
+      name: definition.name,
+      weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
+      catalog: assembleNativeRuntimeCatalog(selected.map((module) => assembly.fragments.get(module.id)!)),
+      resources: {
+        createState: (config) => composeStateFragments(selected, config) as State,
+        ...(projectors.length
+          ? {
+              projectPlanningState: (input: unknown) =>
+                Object.assign({}, ...projectors.map((project) => project(input)))
+            }
+          : {})
+      },
+      modifiers: composeModuleModifiers(selected)
+    });
+    const selection: NonNullable<ReturnType<typeof selections.get>> = { modules: selected, source };
+    selections.set(specialization, selection);
+    return selection;
+  }
+
+  const resolveProfession = (config: Readonly<ProfessionConfig> = {}) =>
+    selectionFor((config.specialization || 'Core').trim() || 'Core').source;
   /** Composes Core and the selected specialization's hooks over the resolved profession's catalog and modifiers. */
   function runtimeFor(config: Gw2Config): RuntimeProfession<State> {
     const specialization = config.specialization ?? 'Core';
-    const cached = runtimes.get(specialization);
-    if (cached) return cached;
-    const selected = [core, ...modules.slice(1).filter((module) => module.id === specialization)];
-    if (specialization !== 'Core' && selected.length !== 2)
+    if (specialization !== 'Core' && !specializations.has(specialization))
       throw new TypeError(`Unknown specialization: ${specialization}.`);
-    const source = family.resolveProfession(config);
+    const selection = selectionFor(specialization);
+    if (selection.runtime) return selection.runtime;
+    const { modules: selected, source } = selection;
     const hooks = (selected.map((module) => module.hooks ?? {}) as Partial<RuntimeProfession<State>>[]).map(
       compileProfessionRules
     );
@@ -374,18 +463,40 @@ export function defineNativeProfession<
           throw new TypeError(`Skill ${owner.id} has no side-effect handler registered for ${action.type}.`);
     }
 
-    runtimes.set(specialization, runtime);
+    selection.runtime = runtime;
     return runtime;
   }
 
-  // Retain lazy application getters while exposing the immutable native compilation input.
-  return Object.freeze(
-    Object.defineProperties(
-      {
-        nativeDefinition: Object.freeze({ ...definition }),
-        runtimeFor
-      },
-      Object.getOwnPropertyDescriptors(family)
-    )
-  ) as NativeProfessionContract<TModules, TPresentation, TBuild>;
+  // The native owner exposes application services directly, without translating another module or family shell.
+  return Object.freeze({
+    id: definition.id,
+    name: definition.name,
+    weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
+    catalog: assembly.catalog,
+    nativeDefinition: Object.freeze({ ...definition }),
+    ...build,
+    resolveProfession,
+    runtimeFor,
+    get ui() {
+      return (presentation ??= normalizeProfessionUi(
+        definition.id,
+        createProfessionFamilyUi({
+          catalog: assembly.catalog,
+          core: createModuleUi(core, assembly.catalog),
+          specializations: Object.fromEntries(
+            [...specializations].map(([name, module]) => [name, createModuleUi(module, assembly.catalog)])
+          ),
+          family: familyUi,
+          // Capacity previews use live hook policies without creating state or starting gameplay tasks.
+          resourcesFor(specialization) {
+            const runtime = runtimeFor({ specialization });
+            return {
+              ...(runtime.resources as ProfessionResourcePreview),
+              ...(runtime.endurance == null ? {} : { endurance: runtime.endurance })
+            };
+          }
+        })
+      ));
+    }
+  }) as NativeProfessionContract<TModules, TPresentation, TBuild>;
 }

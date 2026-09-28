@@ -6,7 +6,7 @@ import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { resolveProfessionContract } from '#gw2/platform/engine/profession/family.js';
+import { resolveProfessionContract } from '#gw2/platform/engine/profession/contract.js';
 import { createGw2CombatQuery, gw2StatsForWeaponSet } from '#gw2/platform/combat/query/combat-query.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';

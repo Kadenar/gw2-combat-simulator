@@ -411,3 +411,35 @@ export function assembleNativeApplicationCatalog(
 ): Readonly<CanonicalCatalog> {
   return getNativeCatalogAssembly(modules, options).catalog;
 }
+
+/** Builds the active catalog from validated ownership fragments, retaining shared elite-authored weapon skills. */
+export function assembleNativeRuntimeCatalog(
+  fragments: readonly Readonly<ProfessionModuleCatalogFragment>[]
+): Readonly<CanonicalCatalog> {
+  const overrides = new Map<string, SkillId>();
+  for (const fragment of fragments) {
+    for (const [name, skillId] of Object.entries(fragment.skillNameOverrides || {})) {
+      if (overrides.has(name)) throw new TypeError(`Duplicate skill-name override ${name}.`);
+      overrides.set(name, skillId);
+    }
+  }
+
+  // Entity and weapon-hand ownership was validated once during full application assembly.
+  const catalog = createCanonicalCatalog({
+    generated: fragments.flatMap((fragment) => fragment.skills || []),
+    balanceProfiles: fragments.flatMap((fragment) => fragment.balanceProfiles || []),
+    traits: fragments.flatMap((fragment) => fragment.traits || []),
+    specializations: fragments.flatMap((fragment) => fragment.specializations || []),
+    weapons: [...new Set(fragments.flatMap((fragment) => fragment.weapons || []))],
+    weaponHands: new Map(fragments.flatMap((fragment) => [...toEntries(fragment.weaponHands)])),
+    autoattackChains: {
+      additional: fragments.flatMap((fragment) => fragment.autoattackChains?.additional || []),
+      excludeSkillIds: [...new Set(fragments.flatMap((fragment) => fragment.autoattackChains?.excludeSkillIds || []))]
+    },
+    skillNameCollision:
+      [...fragments].reverse().find((fragment) => fragment.skillNameCollision != null)?.skillNameCollision ?? 'first'
+  });
+  // Global name overrides may target an inactive elite; apply only identities present in this runtime.
+  applySkillNameOverrides(catalog, Object.fromEntries([...overrides].filter(([, id]) => catalog.skillsById.has(id))));
+  return catalog;
+}

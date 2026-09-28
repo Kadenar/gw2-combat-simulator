@@ -77,35 +77,6 @@ export interface ProfessionModuleCatalogFragment {
   readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
 }
 
-export interface ProfessionModuleDefinition<TModuleState extends object = object> {
-  readonly id: string;
-  readonly catalog?: ProfessionModuleCatalogFragment;
-  readonly resources?: ProfessionResourceDefinition<TModuleState>;
-  readonly modifiers?: ProfessionModifierDefinition;
-  readonly ui?: Partial<ProfessionUiContract>;
-}
-
-export interface ProfessionFamilyDefinition<TBuild extends object = object> {
-  /** One equipment eligibility policy used by simulation and application consumers. */
-  readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
-  readonly id: string;
-  readonly name: string;
-  readonly catalog: CanonicalCatalog;
-  readonly build?: ProfessionBuildDefinition<TBuild>;
-  readonly core: ProfessionModuleDefinition;
-  readonly specializations: Readonly<Record<string, ProfessionModuleDefinition>>;
-  /**
-   * Application-only callbacks that are genuinely global to the family.
-   * Runtime callbacks belong to Core or the active specialization module.
-   */
-  readonly ui?: Partial<ProfessionUiContract>;
-  /**
-   * Capacity-preview policies for the selected specialization. Families whose resources live only in their live
-   * owners supply them here; otherwise the composed module resources are used.
-   */
-  readonly resourcesFor?: (specialization: string) => ResourcePolicies & { readonly endurance?: EndurancePolicy };
-}
-
 /** Keeps scheduler contracts resolver-neutral while typed resolver layers supply their own registries. */
 export interface NormalizedProfessionContract<TProfessionState extends object = object> {
   readonly resources: ResourcePolicies & { readonly endurance: EndurancePolicy | null };

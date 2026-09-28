@@ -156,7 +156,7 @@ export default [
       'js/games/gw2/platform/builds/{codec,assumptions,attributes}.ts',
       'js/games/gw2/platform/combat/modifiers.ts',
       'js/games/gw2/platform/combos/{definitions,descriptors}.ts',
-      'js/games/gw2/platform/engine/profession/{family,module}.ts',
+      'js/games/gw2/platform/engine/profession/contract.ts',
       'js/games/gw2/platform/engine/skills/{canonical-skill-catalog,side-effect-validation}.ts',
       'js/games/gw2/platform/profession-definition/profession.ts',
       'js/games/gw2/platform/skills/autoattack-chain-controller.ts',

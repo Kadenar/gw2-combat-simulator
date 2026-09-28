@@ -335,7 +335,8 @@ inputs. Game-neutral clocks, queues, and random streams remain in `js/kernel/`. 
 | `engine/effects/materializer.ts`                   | Pure effect expansion                                                 |
 | `engine/skills/canonical-skill-catalog.ts`         | Canonical skill validation and normalization                          |
 | `profession-definition/assemble-module-catalog.ts` | Native Core/elite catalog ownership and assembly                      |
-| `engine/profession/{family,module,contract}.ts`    | Internal profession selection, composition, and runtime normalization |
+| `profession-definition/profession.ts`              | Native Core/elite selection, state/modifier composition, and lazy UI   |
+| `engine/profession/contract.ts`                    | Runtime hook normalization and query-contract resolution             |
 | `profession-presentation/`                         | UI composition, normalization, and presentation types                 |
 | `builds/profession-contract.ts`                    | Build callback validation and defaults                                |
 | `resolver/handler-registry.ts`                     | Exclusive resolver event-handler ownership                            |
@@ -343,6 +344,11 @@ inputs. Game-neutral clocks, queues, and random streams remain in `js/kernel/`. 
 | `results/end-state.ts`                             | Detached public planning state at the observation boundary            |
 
 Stable event ordering is owned by the game-neutral `js/kernel/events/queue.ts` module.
+
+Native modules are the sole profession composition input. `defineNativeProfession` shares each selected Core/elite
+catalog, state factory, and compiled modifiers between `resolveProfession` queries and `runtimeFor` execution.
+Application catalogs retain all specializations; runtime catalogs use validated ownership fragments so elite-authored
+shared weapon skills remain available. Module presentation is bound only when the application requests `ui`.
 
 If a new abstraction would still make sense in a non-GW2 simulator, consider `js/kernel/`; otherwise keep it here.
 

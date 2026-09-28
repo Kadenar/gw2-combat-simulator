@@ -4,7 +4,7 @@ import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profes
 import { onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { resolveProfessionContract } from '#gw2/platform/engine/profession/family.js';
+import { resolveProfessionContract } from '#gw2/platform/engine/profession/contract.js';
 
 // Flat declarations must compile once per stage, preserving priorities, ties, and stage-scoped IDs.
 test('mixed-stage reaction arrays retain dispatch ownership and stable order after compilation', () => {

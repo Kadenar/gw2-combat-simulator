@@ -6,7 +6,7 @@ import { describe, test } from 'node:test';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/profession-registry.js';
-import { resolveProfessionContract } from '#gw2/platform/engine/profession/family.js';
+import { resolveProfessionContract } from '#gw2/platform/engine/profession/contract.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';

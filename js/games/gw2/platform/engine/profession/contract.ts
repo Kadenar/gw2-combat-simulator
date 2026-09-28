@@ -6,7 +6,11 @@ import { resourcePolicies, validateResourcePolicies } from '#gw2/platform/combat
  */
 import type { DynamicFields, UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
-import type { NormalizedProfessionContract, ProfessionDefinition } from '#gw2/platform/engine/profession/types.js';
+import type {
+  NormalizedProfessionContract,
+  ProfessionDefinition,
+  ProfessionFamilyContract
+} from '#gw2/platform/engine/profession/types.js';
 
 type ComposableHook = (...args: unknown[]) => unknown;
 
@@ -243,4 +247,19 @@ export function defineProfession<TProfessionState extends object, TBuild extends
     ...composedHooks
   };
   return Object.freeze(profession) as unknown as Readonly<NormalizedProfessionContract<TProfessionState>>;
+}
+
+/** Selects the family's runtime for the supplied configuration; callers must supply a family contract. */
+export function resolveProfessionContract<
+  TProfessionState extends object = object,
+  TRuntime extends NormalizedProfessionContract<TProfessionState> = NormalizedProfessionContract<TProfessionState>
+>(
+  profession: ProfessionFamilyContract<TProfessionState, TRuntime>,
+  config: Readonly<ProfessionConfig> = {}
+): Readonly<TRuntime> {
+  if (!profession || typeof profession !== 'object' || typeof profession.resolveProfession !== 'function') {
+    throw new TypeError('A profession family contract is required.');
+  }
+
+  return profession.resolveProfession(config);
 }
