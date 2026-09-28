@@ -322,7 +322,7 @@ test('Elementalist critical reactions emit effects in registration order', (t) =
     startAttunement: 'Air',
     stats: criticalStats,
     initialize(runtime) {
-      t.mock.method(runtime.random, 'roll', () => true);
+      runtime.random = { ...runtime.random, roll: () => true };
       for (const [owner, method] of [
         [runtime.queue, 'enqueue'],
         [runtime, 'applyCondition']
