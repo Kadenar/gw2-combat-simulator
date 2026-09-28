@@ -54,17 +54,14 @@ const baseConfig = Object.freeze({
 const simulate = createObservedProfessionSimulator(rangerProfession, baseConfig);
 
 describe('Ranger skill-bar selections', () => {
-  test('Soulbeast pet selections update merged Beast skills', () => {
+  test('Soulbeast pet selections update detached merged Beast skill previews', () => {
     const build = createRangerBuildDefaults();
     const soulbeastContext = {
       build,
       specialization: 'Soulbeast',
       config: { specialization: 'Soulbeast', selectedPet: build.selectedPet },
-      catalog: rangerCatalog,
-      professionState: rangerProfession.resolveProfession({ specialization: 'Soulbeast' }).createState({
-        specialization: 'Soulbeast',
-        selectedPet: build.selectedPet
-      })
+      // Build editing has no live pet; combat palettes are covered by swap/remerge scenarios.
+      catalog: rangerCatalog
     };
 
     assert.equal(

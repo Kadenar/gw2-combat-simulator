@@ -5,7 +5,7 @@ import {
   normalizeGeneratedSkill
 } from '#gw2/professions/shared/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/ranger/data/ranger-api-metadata.js';
-import { RANGER_PET_SKILLS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import { RANGER_PETS, RANGER_PET_SKILLS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/ranger/data/ranger-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/ranger/data/traits-data.js';
@@ -19,13 +19,6 @@ const petSkills = RANGER_PET_SKILLS;
 const allSkills = [...apiSkills, ...petSkills, ...RANGER_SUPPLEMENTAL_SKILLS];
 
 const simulatorExcludedSkillIds = new Set<SkillId>([ID.EXPLODING_SPORE, ID.WUTHERING_WIND]);
-
-const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
-  ID.WORLDLY_IMPACT_ID_42809,
-  ID.ETERNAL_BOND,
-  ID.UNDEAD_PLAGUE,
-  ID.PHASE_POUNCE
-]);
 
 const flipParentById = createFlipParentMap(allSkills);
 
@@ -51,17 +44,10 @@ const UNTAMED_AMBUSH_SKILLS: readonly SkillId[] = Object.freeze([ID.RELENTLESS_W
 
 const GALESHOT_PROFESSION_SKILLS = Object.freeze([ID.SUMMON_CYCLONE_BOW, ID.DISMISS_CYCLONE_BOW]);
 
-const reservedProfessionIds = new Set<SkillId>([
-  ...DRUID_PROFESSION_SKILLS,
-  ...UNTAMED_PROFESSION_SKILLS,
-  ...GALESHOT_PROFESSION_SKILLS
+// Only mode toggles and current pets' merged skills belong to Soulbeast's supported profession bar.
+const SOULBEAST_PROFESSION_SKILLS = Object.freeze([
+  ...new Set([ID.BEASTMODE, ID.LEAVE_BEASTMODE, ...RANGER_PETS.flatMap((pet) => pet.beastmodeSkillIds)])
 ]);
-
-const SOULBEAST_PROFESSION_SKILLS = Object.freeze(
-  apiSkills
-    .filter((skill) => skill.type === 'Profession' && !reservedProfessionIds.has(skill.id))
-    .map((skill) => skill.id)
-);
 
 const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> = Object.freeze({
   Druid: DRUID_PROFESSION_SKILLS,
@@ -95,14 +81,10 @@ function normalize(skill: RangerSkill): RangerSkill {
   };
 }
 
+// Raw identities remain available to import tooling; authored mechanics alone admit simulator and patch skills.
 const generated = allSkills.map((skill) => ({
   ...normalize(skill),
-  simulatorExcluded: simulatorExcludedSkillIds.has(skill.id),
-  ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
-    ? {
-        patchAuthoringExcluded: true
-      }
-    : {})
+  simulatorExcluded: simulatorExcludedSkillIds.has(skill.id)
 }));
 
 const WEAPON_DATA = defineProfessionWeapons({

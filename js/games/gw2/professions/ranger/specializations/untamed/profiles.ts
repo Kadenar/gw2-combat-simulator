@@ -21,8 +21,6 @@ export const UNTAMED_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     durationMultiplier: 4,
     internalCooldown: 9,
     recharge: 1,
-    maximumStacks: 5,
-    pulseInterval: 0.5,
     effects: []
   },
   {

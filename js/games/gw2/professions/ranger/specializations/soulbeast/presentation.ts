@@ -1,9 +1,5 @@
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import {
-  rangerPetPaletteGroup,
-  rangerUiState,
-  selectedRangerUiPet
-} from '#gw2/professions/ranger/core/presentation.js';
+import { rangerPetPaletteGroup, rangerUiState, activeRangerUiPet } from '#gw2/professions/ranger/core/presentation.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   PaletteSkillAvailability,
@@ -14,7 +10,7 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 
 const BEASTMODE_TOGGLE_IDS = new Set<SkillId>([ID.BEASTMODE, ID.LEAVE_BEASTMODE]);
-const SOULBEAST_HIDDEN_EVENT_TYPES = new Set(['ranger.beastmode', 'ranger.boon-extension', 'ranger.shared-stance-hit']);
+const SOULBEAST_HIDDEN_EVENT_TYPES = new Set(['ranger.shared-stance-hit']);
 
 function beastmodeActive(context: RangerUiContext): boolean {
   // Treat missing state as active: initial state starts in Beastmode, so undefined means merged.
@@ -28,11 +24,7 @@ function paletteGroups(catalog: Readonly<CanonicalCatalog>, context: RangerUiCon
       id: 'ranger-soulbeast-profession',
       label: 'Beastmode',
       // Declare both toggle sides and let the shared projector choose one.
-      skillIds: [
-        ID.BEASTMODE,
-        ID.LEAVE_BEASTMODE,
-        ...(active ? selectedRangerUiPet(context)?.beastmodeSkillIds || [] : [])
-      ],
+      skillIds: [ID.BEASTMODE, ID.LEAVE_BEASTMODE, ...(active ? activeRangerUiPet(context).beastmodeSkillIds : [])],
       color: '#b78b42',
       resourceAnchor: true
     }
@@ -67,8 +59,8 @@ export function bindSoulbeastUi(catalog: Readonly<CanonicalCatalog>): RangerUiSl
       return { available: false, message: 'Leave Beastmode first' };
     }
 
-    const selectedSkillIds = selectedRangerUiPet(context)?.beastmodeSkillIds || [];
-    // A beast skill exists in the catalog for every pet, but only the selected pet's
+    const selectedSkillIds = activeRangerUiPet(context).beastmodeSkillIds;
+    // A beast skill exists in the catalog for every pet, but only the active pet's
     // merged skills should be usable — block the rest before checking the mode flag.
     if (
       beastmodeSkillIds.has(skill.id) &&

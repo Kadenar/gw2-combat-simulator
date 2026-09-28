@@ -40,7 +40,6 @@ export interface RangerCoreState {
   petAutoOpeningBasic: boolean;
   petCommandReadyAt: number;
   petCommandCooldowns: Record<string, number>;
-  petCommandDelays: Record<string, number>;
 }
 
 export function selectedRangerPet(config: RangerConfig = {}, slot: 1 | 2 = 1) {
@@ -91,8 +90,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     petAutoActivationCounts: [1, 0],
     petAutoOpeningBasic: true,
     petCommandReadyAt: 0,
-    petCommandCooldowns: {},
-    petCommandDelays: {}
+    petCommandCooldowns: {}
   };
 }
 

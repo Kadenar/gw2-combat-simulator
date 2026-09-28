@@ -51,7 +51,11 @@ function visibleBowSkills(context: RangerUiContext) {
 
 // Mirror Galeshot's runtime resource, replacement, and temporary weapon-bar gates
 // in the palette without mutating live state.
-function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
+function availability(
+  catalog: Readonly<CanonicalCatalog>,
+  context: RangerUiContext,
+  skill: RangerSkill
+): PaletteSkillAvailability {
   const state = rangerUiState(context);
   if (skill.id === ID.DISMISS_CYCLONE_BOW && !state.cycloneBowActive) {
     return { available: false, message: 'Cyclone Bow is not active' };
@@ -69,11 +73,16 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
     return { available: false, message: `Requires ${skill.arrowCost} arrows` };
   }
 
-  if (skill.id === ID.HAWKEYE && (state.windForce || 0) < 5) {
-    return { available: false, message: 'Requires 5 Wind Force' };
+  // Resolve the same patched Wind Force threshold used by runtime grants and cast gates.
+  const maximumWindForce = balanceProfileNumber(
+    requireBalanceProfileFromContext({ catalog: context.catalog ?? catalog }, PROFILE.resources),
+    'minimumStacks'
+  );
+  if (skill.id === ID.HAWKEYE && (state.windForce || 0) < maximumWindForce) {
+    return { available: false, message: `Requires ${maximumWindForce} Wind Force` };
   }
 
-  if (skill.id === ID.KEEN_SHOT && (state.windForce || 0) >= 5) {
+  if (skill.id === ID.KEEN_SHOT && (state.windForce || 0) >= maximumWindForce) {
     return { available: false, message: 'Replaced by Hawkeye' };
   }
 
@@ -139,13 +148,10 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog>): RangerUiSli
     },
     resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
       const state = rangerUiState(context);
+      const profile = requireBalanceProfileFromContext({ catalog: context.catalog ?? catalog }, PROFILE.resources);
+      const maximumWindForce = balanceProfileNumber(profile, 'minimumStacks');
       const maximum =
-        state.arrows?.maximum ??
-        context.resources?.arrows?.maximum ??
-        balanceProfileNumber(
-          requireBalanceProfileFromContext({ catalog: context.catalog ?? catalog }, PROFILE.resources),
-          'maximumStacks'
-        );
+        state.arrows?.maximum ?? context.resources?.arrows?.maximum ?? balanceProfileNumber(profile, 'maximumStacks');
       return [
         {
           id: 'arrows',
@@ -167,9 +173,9 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog>): RangerUiSli
           id: 'wind-force',
           singular: 'Wind Force',
           plural: 'Wind Force',
-          maximum: 5,
+          maximum: maximumWindForce,
           value: state.windForce || 0,
-          startMaximum: 5,
+          startMaximum: maximumWindForce,
           canStart: false,
           displayMode: 'pips',
           pipStyle: 'ranger-wind-force',
@@ -182,6 +188,6 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog>): RangerUiSli
       ];
     },
     rotationStateSnapshot: galeshotStateSnapshot,
-    paletteSkillAvailability: availability
+    paletteSkillAvailability: (context: RangerUiContext, skill: RangerSkill) => availability(catalog, context, skill)
   });
 }

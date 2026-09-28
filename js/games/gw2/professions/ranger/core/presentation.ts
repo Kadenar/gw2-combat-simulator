@@ -33,7 +33,6 @@ import {
 } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
 
 const RANGER_HIDDEN_EVENT_TYPES = new Set([
-  'ranger.pet-active',
   'ranger.beast-skill-used',
   'ranger.blood-thirst',
   'ranger.pet-swapped',
@@ -106,7 +105,8 @@ export function selectedRangerUiPet(context: RangerUiContext, slot: 1 | 2 = 1) {
   return RANGER_PETS.find((pet) => pet.name === selected) || RANGER_PETS[0];
 }
 
-function activeRangerUiPet(context: RangerUiContext) {
+/** Live pet identity owns combat palettes; detached previews use the configured selection. */
+export function activeRangerUiPet(context: RangerUiContext) {
   const activePet = rangerUiState(context).activePet || selectedRangerUiPet(context)?.name || '';
   return RANGER_PETS.find((pet) => pet.name === activePet) || RANGER_PETS[0];
 }

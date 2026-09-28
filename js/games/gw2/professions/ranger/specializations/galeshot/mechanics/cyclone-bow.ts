@@ -219,13 +219,8 @@ export function reactToGaleshotControl(context: RangerRuntime, event: Gw2Resolve
 }
 
 function isBeastSkill(skill: RangerSkill): boolean {
-  return Boolean(
-    // Pet family skills are passive and never cast by the player, so they don't
-    // count. BEASTMODE / LEAVE_BEASTMODE are the mode-switch commands, not
-    // actual pet abilities, so they're excluded as well.
-    (skill.petSkill && !skill.petFamilySkill) ||
-    (skill.beastmodeSkill && skill.id !== ID.BEASTMODE && skill.id !== ID.LEAVE_BEASTMODE)
-  );
+  // Only commandable pet Beast skills can trigger Galeshot's completed-skill traits.
+  return Boolean(skill.petSkill && !skill.petFamilySkill);
 }
 
 // Commit Galeshot resource spending, Wind Force transitions, Cyclone Bow state,
@@ -289,7 +284,7 @@ export function galeshotCastAvailability(context: RangerRuntime, skill: RangerSk
   }
 
   if (skill.id === ID.KEEN_SHOT && state.windForce >= maximumWindForce) {
-    return deny(skill, 'ranger.hawkeye-ready', 'Hawkeye replaces Keen Shot at 5 Wind Force.');
+    return deny(skill, 'ranger.hawkeye-ready', `Hawkeye replaces Keen Shot at ${maximumWindForce} Wind Force.`);
   }
 
   if (skill.id === ID.QUARRYS_PERIL && hasTrait(context, TRAIT.PERILOUS_SKIES)) {

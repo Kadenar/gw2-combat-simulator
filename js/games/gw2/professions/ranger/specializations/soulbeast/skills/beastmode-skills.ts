@@ -34,10 +34,6 @@ export const SOULBEAST_BEASTMODE_SKILL_MECHANICS: Readonly<Record<number, Partia
     paletteTileOrder: 2,
     effects: [],
     inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
-  },
-  [ID.ETERNAL_BOND]: {
-    castTimeMs: 0,
-    effects: []
   }
 });
 

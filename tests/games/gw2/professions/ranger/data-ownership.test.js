@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
 import test from 'node:test';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 import {
   RANGER_CORE_EXTRA_SKILLS,
@@ -18,6 +19,17 @@ import { SOULBEAST_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/speciali
 import { SOULBEAST_STANCE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/stance-skills.js';
 
 const professionRoot = new URL('../../../../../js/games/gw2/professions/ranger/', import.meta.url);
+
+// Unowned legacy identities must not enter either simulation or catalog-based patch authoring.
+test('Soulbeast legacy skills without pet membership are not admitted', () => {
+  for (const id of [ID.WORLDLY_IMPACT_ID_42809, ID.ETERNAL_BOND, ID.UNDEAD_PLAGUE, ID.PHASE_POUNCE]) {
+    assert.equal(rangerCatalog.skillsById.has(id), false);
+    assert.equal(
+      rangerCatalog.skills.some((skill) => skill.id === id),
+      false
+    );
+  }
+});
 
 // Removed skills and pets must be absent from the catalog, not merely hidden in the palette.
 test('Unsupported Druid glyphs and White Moa are absent from Ranger data', () => {
@@ -108,7 +120,7 @@ test('Core Ranger pet catalogs follow generated pet-family ownership', async () 
   }
 });
 
-test('Soulbeast Beast catalogs separate family, archetype, and legacy ownership', async () => {
+test('Soulbeast Beast catalogs follow family and archetype ownership', async () => {
   const fragments = await familyFragments('specializations/soulbeast/skills/beast-skills/');
 
   for (const [filename, mechanics] of fragments) {
@@ -120,8 +132,7 @@ test('Soulbeast Beast catalogs separate family, archetype, and legacy ownership'
         assert.equal(archetypesUsing(skillId).length, 1, skillId);
       } else if (filename === 'winged') {
         assert.deepEqual(new Set(owners), new Set(['phoenix', 'wyvern']), skillId);
-      } else if (filename === 'supplemental') assert.equal(owners.length, 0, skillId);
-      else assert.deepEqual(owners, [filename], skillId);
+      } else assert.deepEqual(owners, [filename], skillId);
     }
   }
 

@@ -43,63 +43,61 @@ function petHasSelectedSkill(context: RangerRuntime, skillName: string): boolean
 
 // Resolve each active pet's level-80 base attributes plus inherited Ranger
 // traits so independent summon packets do not fall back to player attributes.
-function rangerPetAttributes(context?: RangerRuntime | RangerResolverContext) {
-  const petName = context ? professionCoreState(context).activePet : 'Carrion Devourer';
+function rangerPetAttributes(context: RangerRuntime | RangerResolverContext) {
+  const petName = professionCoreState(context).activePet;
   let { power, precision, toughness, vitality, ferocity, conditionDamage, expertise, healingPower } =
     rangerPetBaseAttributes(petName);
 
-  if (context) {
-    if (hasTrait(context, TRAIT.PACK_ALPHA)) {
-      const packAlphaProfile = requireBalanceProfileFromContext(context, PROFILE.packAlpha);
-      const bonus = balanceProfileNumber(packAlphaProfile, 'weaponAttributeBonus');
-      power += bonus;
-      precision += bonus;
-      toughness += bonus;
-      vitality += bonus;
-      conditionDamage += bonus;
-    }
-
-    if (hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
-      const stridersStrengthProfile = requireBalanceProfileFromContext(context, PROFILE.stridersStrength);
-      power += balanceProfileNumber(stridersStrengthProfile, 'attributeBonus');
-    }
-
-    if (hasTrait(context, TRAIT.HONED_AXES)) {
-      const honedAxesProfile = requireBalanceProfileFromContext(context, PROFILE.honedAxes);
-      ferocity += balanceProfileNumber(honedAxesProfile, 'attributeBonus');
-    }
-
-    if (hasTrait(context, TRAIT.PETS_PROWESS)) {
-      const petsProwessProfile = requireBalanceProfileFromContext(context, PROFILE.petsProwess);
-      ferocity += balanceProfileNumber(petsProwessProfile, 'attributeBonus');
-    }
-
-    // Independent pet strikes resolve critical stats from this metadata, not player attribute modifiers.
-    if (
-      hasTrait(context, TRAIT.FANG_AND_CLAW) &&
-      ['feline', 'avian', 'drake'].includes(rangerPetByName(petName).family)
-    ) {
-      const fangAndClawProfile = requireBalanceProfileFromContext(context, PROFILE.fangAndClaw);
-      precision += balanceProfileNumber(fangAndClawProfile, 'attributeBonus');
-      ferocity += balanceProfileNumber(fangAndClawProfile, 'weaponAttributeBonus');
-    }
-
-    if (hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
-      const arachnophobiaProfile = requireBalanceProfileFromContext(context, PROFILE.arachnophobia);
-      expertise += balanceProfileNumber(arachnophobiaProfile, 'attributeBonus');
-      if (['spider', 'devourer'].includes(rangerPetByName(petName).family)) {
-        expertise += balanceProfileNumber(arachnophobiaProfile, 'weaponAttributeBonus');
-      }
-    }
-
-    const runtime = 'cooldowns' in context ? context : null;
-    if (runtime)
-      ferocity += signetOfTheWildBonus(
-        context,
-        petHasSelectedSkill(runtime, 'Signet of the Wild'),
-        (runtime.cooldowns.get(ID.SIGNET_OF_THE_WILD) || 0) <= runtime.time
-      );
+  if (hasTrait(context, TRAIT.PACK_ALPHA)) {
+    const packAlphaProfile = requireBalanceProfileFromContext(context, PROFILE.packAlpha);
+    const bonus = balanceProfileNumber(packAlphaProfile, 'weaponAttributeBonus');
+    power += bonus;
+    precision += bonus;
+    toughness += bonus;
+    vitality += bonus;
+    conditionDamage += bonus;
   }
+
+  if (hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
+    const stridersStrengthProfile = requireBalanceProfileFromContext(context, PROFILE.stridersStrength);
+    power += balanceProfileNumber(stridersStrengthProfile, 'attributeBonus');
+  }
+
+  if (hasTrait(context, TRAIT.HONED_AXES)) {
+    const honedAxesProfile = requireBalanceProfileFromContext(context, PROFILE.honedAxes);
+    ferocity += balanceProfileNumber(honedAxesProfile, 'attributeBonus');
+  }
+
+  if (hasTrait(context, TRAIT.PETS_PROWESS)) {
+    const petsProwessProfile = requireBalanceProfileFromContext(context, PROFILE.petsProwess);
+    ferocity += balanceProfileNumber(petsProwessProfile, 'attributeBonus');
+  }
+
+  // Independent pet strikes resolve critical stats from this metadata, not player attribute modifiers.
+  if (
+    hasTrait(context, TRAIT.FANG_AND_CLAW) &&
+    ['feline', 'avian', 'drake'].includes(rangerPetByName(petName).family)
+  ) {
+    const fangAndClawProfile = requireBalanceProfileFromContext(context, PROFILE.fangAndClaw);
+    precision += balanceProfileNumber(fangAndClawProfile, 'attributeBonus');
+    ferocity += balanceProfileNumber(fangAndClawProfile, 'weaponAttributeBonus');
+  }
+
+  if (hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
+    const arachnophobiaProfile = requireBalanceProfileFromContext(context, PROFILE.arachnophobia);
+    expertise += balanceProfileNumber(arachnophobiaProfile, 'attributeBonus');
+    if (['spider', 'devourer'].includes(rangerPetByName(petName).family)) {
+      expertise += balanceProfileNumber(arachnophobiaProfile, 'weaponAttributeBonus');
+    }
+  }
+
+  const runtime = 'cooldowns' in context ? context : null;
+  if (runtime)
+    ferocity += signetOfTheWildBonus(
+      context,
+      petHasSelectedSkill(runtime, 'Signet of the Wild'),
+      (runtime.cooldowns.get(ID.SIGNET_OF_THE_WILD) || 0) <= runtime.time
+    );
 
   return {
     power,
@@ -113,7 +111,8 @@ function rangerPetAttributes(context?: RangerRuntime | RangerResolverContext) {
   };
 }
 
-export function rangerPetCombatMetadata(context?: RangerRuntime | RangerResolverContext) {
+/** Pet combat packets always retain the active companion's identity and trait-derived attributes. */
+export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverContext) {
   const attributes = rangerPetAttributes(context);
   return {
     weaponStrength: undefined,
@@ -129,7 +128,7 @@ export function rangerPetCombatMetadata(context?: RangerRuntime | RangerResolver
     summonBaseConditionDamage: attributes.conditionDamage,
     summonBaseExpertise: attributes.expertise,
     summonBaseHealingPower: attributes.healingPower,
-    ...(context ? { summonOwner: rangerPetCompanionId(context) } : {}),
+    summonOwner: rangerPetCompanionId(context),
     summonCriticalChance: (attributes.precision - 1000) / 2100,
     summonCriticalDamage: 1.5 + attributes.ferocity / 1500,
     summonDamagePerCoefficient: (2880 * attributes.power) / STANDARD_TARGET_ARMOR
@@ -193,7 +192,6 @@ export function resetRangerPet(context: RangerRuntime): void {
   state.petAutoNextAt = 0;
   state.petAutoBusyUntil = context.time;
   state.petCommandReadyAt = context.time;
-  state.petCommandDelays = {};
   if (context.combatActive) startRangerPet(context);
 }
 
@@ -295,7 +293,6 @@ export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast)
   const start = petCommandStart(context, skill);
   const recovery = profile?.commandRecovery[String(skill.id)] || cast.effectiveEnd - cast.start;
   state.petCommandReadyAt = start + recovery;
-  state.petCommandDelays[cast.id] = start - cast.start;
   state.petCommandCooldowns[String(skill.id)] = context.cooldownController.project(skill, {
     startedAt: start,
     work: cast.rechargeWork

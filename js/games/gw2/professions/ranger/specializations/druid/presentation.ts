@@ -1,4 +1,9 @@
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
 import type { PaletteSkillAvailability, ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
@@ -12,7 +17,22 @@ const AVATAR_SKILLS = Object.freeze([
   ID.NATURAL_CONVERGENCE
 ]);
 
-function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
+/** Share the live clock limit, or the bound catalog's limit for a detached preview. */
+function astralForceMaximum(catalog: Readonly<CanonicalCatalog>, context: RangerUiContext): number {
+  return (
+    rangerUiState(context).astralClock?.maximum ??
+    balanceProfileNumber(
+      requireBalanceProfileFromContext({ catalog: context.catalog ?? catalog }, PROFILE.resources),
+      'maximumStacks'
+    )
+  );
+}
+
+function availability(
+  catalog: Readonly<CanonicalCatalog>,
+  context: RangerUiContext,
+  skill: RangerSkill
+): PaletteSkillAvailability {
   const state = rangerUiState(context);
   const active = Boolean(state.celestialAvatarActive);
   if (skill.id === ID.CELESTIAL_AVATAR) {
@@ -24,7 +44,7 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
     }
 
     // Runtime snapshots and detached planning projections share the same force clock.
-    if ((state.astralClock?.value ?? 0) < 100) {
+    if ((state.astralClock?.value ?? 0) < astralForceMaximum(catalog, context)) {
       return { available: false, message: 'Requires full Astral Force' };
     }
   }
@@ -76,14 +96,15 @@ export function bindDruidUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlice 
     },
     resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
       const state = rangerUiState(context);
+      const maximum = astralForceMaximum(catalog, context);
       return [
         {
           id: 'astral-force',
           singular: 'astral force',
           plural: 'astral force',
-          maximum: 100,
-          value: state.astralClock?.value ?? context.initialAstralForce ?? 100,
-          startMaximum: 100,
+          maximum,
+          value: state.astralClock?.value ?? context.initialAstralForce ?? maximum,
+          startMaximum: maximum,
           canStart: true,
           // buildKey links this value to the config field that persists initial force across sessions
           buildKey: 'initialAstralForce',
@@ -94,6 +115,6 @@ export function bindDruidUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlice 
         }
       ];
     },
-    paletteSkillAvailability: availability
+    paletteSkillAvailability: (context: RangerUiContext, skill: RangerSkill) => availability(catalog, context, skill)
   });
 }

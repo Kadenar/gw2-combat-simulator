@@ -32,7 +32,6 @@ import { SOULBEAST_RAPTOR_SWIFTWING_BEAST_SKILL_MECHANICS } from '#gw2/professio
 import { SOULBEAST_RIVER_OTTER_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/river-otter.js';
 import { SOULBEAST_ARCHETYPE_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/archetype.js';
 import { SOULBEAST_WINGED_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/winged.js';
-import { SOULBEAST_SUPPLEMENTAL_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/supplemental.js';
 
 export const SOULBEAST_BEAST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   ...SOULBEAST_FANGED_IBOGA_BEAST_SKILL_MECHANICS,
@@ -63,6 +62,5 @@ export const SOULBEAST_BEAST_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
   ...SOULBEAST_RAPTOR_SWIFTWING_BEAST_SKILL_MECHANICS,
   ...SOULBEAST_RIVER_OTTER_BEAST_SKILL_MECHANICS,
   ...SOULBEAST_ARCHETYPE_BEAST_SKILL_MECHANICS,
-  ...SOULBEAST_WINGED_BEAST_SKILL_MECHANICS,
-  ...SOULBEAST_SUPPLEMENTAL_BEAST_SKILL_MECHANICS
+  ...SOULBEAST_WINGED_BEAST_SKILL_MECHANICS
 });

@@ -18,7 +18,7 @@ import type { BalanceProfile, ConditionEffect, StatusEffect, StrikeEffect } from
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
-import { rangerPetByName, selectedRangerPet } from '#gw2/professions/ranger/core/state.js';
+import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
@@ -407,9 +407,9 @@ export function reactToRangerWinterBite(context: RangerResolverContext, event: G
 export function soulbeastCastAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult {
   const state = soulbeastState.from(context);
   const toggle = skill.id === ID.BEASTMODE || skill.id === ID.LEAVE_BEASTMODE;
-  // Wrong-pet check must precede the beastmode-active check: a skill can be a beastmodeSkill
-  // but still invalid if it belongs to a different pet than the one currently selected.
-  if (skill.beastmodeSkill && !toggle && !selectedRangerPet(context.config)?.beastmodeSkillIds.includes(skill.id)) {
+  // Swapping while unmerged changes which pet grants merged skills on reentry.
+  const pet = rangerPetByName(professionCoreState(context).activePet);
+  if (skill.beastmodeSkill && !toggle && !pet.beastmodeSkillIds.includes(skill.id)) {
     return deny(skill, 'ranger.inactive-merged-pet-skill', 'select the pet that grants this merged Beast skill.');
   }
 

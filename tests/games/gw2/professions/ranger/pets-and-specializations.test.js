@@ -1178,7 +1178,8 @@ test('Ranger transformation availability follows skill IDs after display labels 
     availability(
       {
         config: { specialization: kind, selectedPet: 'Lynx' },
-        profession: { specialization: { kind, state } },
+        // Availability reads pet identity from the canonical Core owner, independently of display labels.
+        profession: { core: { activePet: 'Lynx' }, specialization: { kind, state } },
         time: 0
       },
       skill
