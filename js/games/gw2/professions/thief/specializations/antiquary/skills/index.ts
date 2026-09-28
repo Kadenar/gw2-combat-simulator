@@ -213,14 +213,13 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         name: 'Zephyrite Sun Crystal',
         actorType: 'player'
       },
-      // Apply each Burning stack separately so same-impact relic checks observe every application.
-      ...Array.from({ length: 2 }, () => ({
-        type: 'condition' as const,
-        condition: 'Burning' as const,
-        stacks: 1,
+      {
+        type: 'condition',
+        condition: 'Burning',
+        stacks: 2,
         duration: 4,
-        actorType: 'player' as const
-      }))
+        actorType: 'player'
+      }
     ]),
     artifactKind: 'defensive'
   },
@@ -275,10 +274,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       },
       {
         type: 'condition',
-        ticks: [
-          // Apply each Burning stack separately so same-impact relic checks observe every application.
-          ...Array.from({ length: 2 }, () => ({ atMs: 400, condition: 'Burning' as const, stacks: 1, duration: 4 }))
-        ],
+        ticks: [{ atMs: 400, condition: 'Burning', stacks: 2, duration: 4 }],
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed'

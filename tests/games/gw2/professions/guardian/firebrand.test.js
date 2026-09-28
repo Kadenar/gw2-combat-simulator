@@ -384,7 +384,7 @@ test('Cleansing Flame applies Burning on its final strike', () => {
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Torch'
   })(undefined, ['Cleansing Flame']);
-  const packets = result.events.filter((event) => event.skillName === 'Cleansing Flame');
+  const packets = result.resolvedEvents.filter((event) => event.skillName === 'Cleansing Flame');
   const strikes = packets.filter((event) => event.type === 'damage');
   const burning = packets.filter((event) => event.type === 'condition' && event.condition === 'Burning');
 

@@ -12,6 +12,7 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import {
@@ -162,9 +163,7 @@ export function guardianTraitEffects(
 
 /** Core and elite-created effects receive the same Resolution adjustment exactly once. */
 export function guardianResolutionEffects(runtime: Runtime, effects: readonly SkillEffect[]): readonly SkillEffect[] {
-  const multiplier = hasTrait(runtime, TRAIT.VIRTUE_OF_RESOLUTION)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.virtueOfResolution), 'durationMultiplier')
-    : 1;
+  const multiplier = guardianResolutionMultiplier(runtime);
   return effects.map((effect) =>
     effect.type === 'boon' && String(effect.boon ?? effect.name).toLowerCase() === 'resolution'
       ? { ...effect, duration: effect.duration * multiplier }
@@ -195,16 +194,7 @@ export function triggerGuardianFuriousFocus(
   if (!isInternalCooldownReady(runtime.time, state.furiousFocusReadyAt)) return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.furiousFocus);
   if (!requireEffect(profile, 'strike', 'Strike')) return;
-  const cause = {
-    type: 'action' as const,
-    at: runtime.time,
-    source: 'guardian',
-    sourceId: cast.skill.id,
-    actorType: 'player' as const,
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id
-  };
+  const cause = { ...guardianCastCause(runtime, cast), type: 'action' as const };
   if (!emitTraitSymbol(runtime, TRAIT.FURIOUS_FOCUS, ID.LESSER_SYMBOL_OF_BLADES, cause)) return;
   state.furiousFocusRecharge = { startedAt: runtime.time, work: balanceProfileNumber(profile, 'cooldown') };
   state.furiousFocusReadyAt = runtime.cooldownController.project(symbol, state.furiousFocusRecharge);
@@ -217,14 +207,15 @@ export function emitGuardianBoon(runtime: Runtime, event: SimulationEventBase): 
 
 /** Procedural and materialized boons share Virtue of Resolution before ordinary boon-duration scaling. */
 export function guardianBoonDuration(runtime: Runtime, event: SimulationEventBase): number {
-  const multiplier =
-    String(event.kind) === 'resolution' && hasTrait(runtime, TRAIT.VIRTUE_OF_RESOLUTION)
-      ? balanceProfileNumber(
-          requireBalanceProfileFromContext(runtime, PROFILE.virtueOfResolution),
-          'durationMultiplier'
-        )
-      : 1;
+  const multiplier = String(event.kind) === 'resolution' ? guardianResolutionMultiplier(runtime) : 1;
   return Number(event.duration) * multiplier;
+}
+
+/** Both emission paths read one trait multiplier without applying ordinary boon-duration scaling twice. */
+function guardianResolutionMultiplier(runtime: Runtime): number {
+  return hasTrait(runtime, TRAIT.VIRTUE_OF_RESOLUTION)
+    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.virtueOfResolution), 'durationMultiplier')
+    : 1;
 }
 
 /** A triggered symbol owns a distinct activation and schedules only its surviving selected components. */
@@ -286,16 +277,7 @@ function emitTraitSymbol(runtime: Runtime, trait: number, symbolId: SkillId, cau
 /** Heals commit their shared trait cooldowns only if a selected packet can actually be created. */
 export function completeGuardianHealTraits(runtime: Runtime, cast: RuntimeCast): void {
   if (cast.skill.type !== 'Heal') return;
-  const cause = {
-    type: 'action' as const,
-    at: runtime.time,
-    source: 'guardian',
-    sourceId: cast.skill.id,
-    actorType: 'player' as const,
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id
-  };
+  const cause = { ...guardianCastCause(runtime, cast), type: 'action' as const };
   if (hasTrait(runtime, TRAIT.HEALERS_RESOLUTION)) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.healersResolution);
     const effect = requireEffect(profile, 'boon', 'resolution');

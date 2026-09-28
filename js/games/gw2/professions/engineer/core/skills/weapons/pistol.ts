@@ -146,13 +146,13 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         actorType: 'player'
       },
       // Each Burning stack is a separate application and can trigger its own relic check.
-      ...Array.from({ length: 3 }, () => ({
-        type: 'condition' as const,
-        condition: 'Burning' as const,
-        stacks: 1,
+      {
+        type: 'condition',
+        condition: 'Burning',
+        stacks: 3,
         duration: 4.5,
-        actorType: 'player' as const
-      }))
+        actorType: 'player'
+      }
     ])
   }
 });

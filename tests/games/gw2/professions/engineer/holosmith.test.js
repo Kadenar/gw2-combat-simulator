@@ -738,7 +738,7 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
   assert.equal(ventProc.icon, engineerCatalog.skillsById.get(ID.VENT_EXHAUST).icon);
   assert.ok(vented.events.some((event) => event.type === 'buff' && event.kind === 'vigor' && event.duration === 3));
   // Heat loss invokes the skill's separate Burning applications without changing their payload total.
-  const ventBurns = vented.events.filter(
+  const ventBurns = vented.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.name === 'Vent Exhaust — Burning'
   );
   assert.equal(ventBurns.length, 2);
@@ -818,7 +818,7 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
   assert.equal(blast.coefficient, 5);
   assert.equal(blast.explosion, true);
   assert.equal(blast.comboFinishers[0].finisherType, 'Blast');
-  const blastBurns = blasting.events.filter(
+  const blastBurns = blasting.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === TRAIT.PHOTONIC_BLASTING_MODULE
   );
   assert.equal(blastBurns.length, 7);

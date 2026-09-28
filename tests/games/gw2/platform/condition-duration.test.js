@@ -71,7 +71,7 @@ test('condition duration preserves phase context, fixed durations, and natural e
       };
     }
 
-    const application = resolver.applyCondition(event);
+    const [application] = resolver.applyCondition(event);
     assert.equal(application.effectiveDuration, expectedDuration);
     assert.equal(application.expiresAt, 4 + expectedDuration);
     assert.equal(application.naturalExpiresAt, 4 + expectedDuration);

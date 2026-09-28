@@ -658,7 +658,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     ])
   },
   // Snapshot each active orb at acceptance so consuming it at completion does not erase its delayed projectile.
-  // Burning keeps separate stack applications for relic triggers; each orb owns its projectile finisher.
+  // Each active orb owns its condition total and projectile finisher; resolution splits Burning applications.
   [ID.GRAND_FINALE]: {
     name: 'Grand Finale',
     type: 'Weapon',
@@ -670,12 +670,12 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Weapon skill',
     effects: (
       [
-        ['Fire', 'Burning', 1, 5, 2],
-        ['Water', 'Vulnerability', 6, 10, 1],
-        ['Air', 'Weakness', 1, 5, 1],
-        ['Earth', 'Bleeding', 4, 5, 1]
+        ['Fire', 'Burning', 2, 5],
+        ['Water', 'Vulnerability', 6, 10],
+        ['Air', 'Weakness', 1, 5],
+        ['Earth', 'Bleeding', 4, 5]
       ] as const
-    ).flatMap(([element, condition, stacks, duration, applications]) =>
+    ).flatMap(([element, condition, stacks, duration]) =>
       impactEffects({ atMs: 680, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
         {
           type: 'strike',
@@ -688,7 +688,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
             }
           ]
         },
-        { type: 'condition', condition, stacks, duration, applications, intervalMs: 0 }
+        { type: 'condition', condition, stacks, duration }
       ]).map<SkillEffect>((effect) => ({
         ...effect,
         name: element,

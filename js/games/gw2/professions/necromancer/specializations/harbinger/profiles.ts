@@ -295,17 +295,15 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       blightGain: 15,
       effects: [
         { name: 'Strike', type: 'strike', coefficient: 3, hits: 1, actorType: 'player' },
-        // Only Burning needs individual applications; other conditions retain their bundled stacks.
-        ...GW2_DAMAGING_CONDITIONS.flatMap((condition) =>
-          Array.from({ length: condition === 'Burning' ? 3 : 1 }, (_, index) => ({
-            name: condition === 'Burning' ? `Burning ${index + 1}` : condition,
-            type: 'condition' as const,
-            condition,
-            stacks: condition === 'Burning' ? 1 : 3,
-            duration: 10,
-            actorType: 'player' as const
-          }))
-        ),
+        // Profile totals stay editable as one effect; resolution owns Burning stack expansion.
+        ...GW2_DAMAGING_CONDITIONS.map((condition) => ({
+          name: condition,
+          type: 'condition' as const,
+          condition,
+          stacks: 3,
+          duration: 10,
+          actorType: 'player' as const
+        })),
         {
           name: 'might',
           type: 'boon',

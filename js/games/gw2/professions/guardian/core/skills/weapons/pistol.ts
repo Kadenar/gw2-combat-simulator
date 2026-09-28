@@ -17,13 +17,12 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
           coefficient: 3,
           projectile: true
         },
-        // Apply each Burning stack separately so same-impact relic checks observe every application.
-        ...Array.from({ length: 5 }, () => ({
-          type: 'condition' as const,
-          condition: 'Burning' as const,
-          stacks: 1,
+        {
+          type: 'condition',
+          condition: 'Burning',
+          stacks: 5,
           duration: 6
-        })),
+        },
         {
           type: 'control',
           controlKind: 'stun'

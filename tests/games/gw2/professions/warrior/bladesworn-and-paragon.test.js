@@ -108,7 +108,7 @@ test('Sharp as the Wind selects condition Gunsaber variants and their secondary 
     { initialResource: 100, selectedTraitIds: [TRAIT.SHARP_AS_THE_WIND] }
   );
   const conditionsFor = (skillId) =>
-    result.events
+    result.resolvedEvents
       .filter((event) => event.type === 'condition' && event.skillId === skillId)
       .map(({ condition, stacks, duration }) => [condition, stacks, duration]);
   const coefficientsFor = (skillId) =>
@@ -178,7 +178,7 @@ test('Sharp as the Wind scales each Dragon Slash burning payload with charge', (
         selectedTraitIds: [TRAIT.SHARP_AS_THE_WIND]
       });
       const damage = result.events.find((event) => event.type === 'damage' && event.skillId === variantId);
-      const burning = result.events.filter(
+      const burning = result.resolvedEvents.filter(
         (event) => event.type === 'condition' && event.skillId === variantId && event.condition === 'Burning'
       );
 

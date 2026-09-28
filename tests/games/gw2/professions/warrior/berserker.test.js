@@ -254,7 +254,7 @@ test('Last Blaze preserves completion, profile edits, and mode-before-condition 
       source
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(observed.length, !removed && !cancelled ? 1 : 0);
+    assert.equal(observed.length, !removed && !cancelled ? 2 : 0);
     assert.equal(state(result).berserkUntil > 10, !cancelled);
     if (observed.length) {
       const [[event, until, auraUntil]] = observed;
@@ -264,7 +264,7 @@ test('Last Blaze preserves completion, profile edits, and mode-before-condition 
       assert.equal(event.ownerActorType, 'player');
       assert.equal(event.skillId, ID.BLOOD_RECKONING);
       assert.equal(event.name, 'Last Blaze \u2014 Burning');
-      assert.equal(event.stacks, 2);
+      assert.equal(event.stacks, 1);
       assert.equal(event.duration, 3);
       const detonation = result.events.find(
         (candidate) => candidate.type === 'damage' && candidate.sourceId === TRAIT.KING_OF_FIRES

@@ -83,7 +83,9 @@ test('Grand Finale snapshots active orbs and keeps separate Burning applications
     ['Fire', 'Earth']
   );
   assert.deepEqual(
-    packets.filter((event) => event.type === 'condition').map((event) => [event.condition, event.stacks]),
+    result.resolvedEvents
+      .filter((event) => event.skillId === ID.GRAND_FINALE && event.type === 'condition')
+      .map((event) => [event.condition, event.stacks]),
     [
       ['Burning', 1],
       ['Burning', 1],

@@ -1,5 +1,5 @@
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { canonicalTime } from '#kernel/core/clock.js';
+import { skillTaskAt } from '#gw2/platform/simulation/internal-work.js';
 import type { SkillTask } from '#gw2/platform/engine/skills/types.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -37,13 +37,7 @@ export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     for (const trigger of cast.skill.tasks ?? [])
       if (trigger.type === 'mesmer.mirage.create-mirror') {
         // Readiness uses an actual queued creation deadline, without creating or spending a future mirror.
-        mirageState
-          .from(runtime)
-          .pendingMirrorAts.push(
-            canonicalTime(
-              (trigger.timingAnchor === 'castStart' ? cast.start : cast.fullEnd) + (trigger.atMs ?? 0) / 1000
-            )
-          );
+        mirageState.from(runtime).pendingMirrorAts.push(skillTaskAt(cast, trigger, runtime.time));
       }
   },
   tasks: {

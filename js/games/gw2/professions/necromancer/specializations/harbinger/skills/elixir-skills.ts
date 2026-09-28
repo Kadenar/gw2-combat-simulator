@@ -54,15 +54,13 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       { atMs: 400, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 1.5, hits: 1 },
-        // Only Burning needs individual applications; other conditions retain their bundled stacks.
-        ...GW2_DAMAGING_CONDITIONS.flatMap((condition) =>
-          Array.from({ length: condition === 'Burning' ? 3 : 1 }, () => ({
-            type: 'condition' as const,
-            condition,
-            stacks: condition === 'Burning' ? 1 : 3,
-            duration: 5
-          }))
-        ),
+        // Each condition carries its total; the resolver splits Burning for application reactions.
+        ...GW2_DAMAGING_CONDITIONS.map((condition) => ({
+          type: 'condition' as const,
+          condition,
+          stacks: 3,
+          duration: 5
+        })),
         { type: 'boon', boon: 'might', stacks: 25, duration: 5 },
         { type: 'boon', boon: 'fury', stacks: 1, duration: 5 },
         { type: 'boon', boon: 'quickness', stacks: 1, duration: 5 },

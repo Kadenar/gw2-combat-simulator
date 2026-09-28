@@ -17,7 +17,10 @@ export function buildGuardianStrike(fields: GuardianStrikeFields): DamageEvent {
 }
 
 /** Child packets retain their activation without copying hostile flags into self-state applications. */
-export function guardianCastCause(runtime: Gw2Runtime<GuardianRuntimeState>, cast: RuntimeCast): Gw2ResolverEvent {
+export function guardianCastCause(
+  runtime: Gw2Runtime<GuardianRuntimeState>,
+  cast: { id: string; skill: Pick<RuntimeCast['skill'], 'id' | 'name'> }
+): Gw2ResolverEvent {
   return {
     type: 'buff',
     at: runtime.time,

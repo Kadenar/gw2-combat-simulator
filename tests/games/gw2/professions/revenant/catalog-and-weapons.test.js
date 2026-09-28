@@ -169,8 +169,7 @@ test('Elemental Blast keeps packet timing runtime-only while exposing packet val
     [
       ['Weakness', 1, 5],
       ['Chilled', 1, 3],
-      ['Burning', 1, 4],
-      ['Burning', 1, 4]
+      ['Burning', 2, 4]
     ]
   );
   assert.deepEqual(
@@ -271,8 +270,7 @@ test('Herald invocation effects use patch-authorable skill declarations', () => 
     ]),
     [
       ['strike', 0.75, undefined, undefined, undefined],
-      ['condition', undefined, 'Burning', 1, 3],
-      ['condition', undefined, 'Burning', 1, 3],
+      ['condition', undefined, 'Burning', 2, 3],
       ['condition', undefined, 'Chilled', 1, 3]
     ]
   );

@@ -271,7 +271,7 @@ export interface Gw2ResolverRuntime {
     event: Gw2ResolverEvent,
     details?: Record<string, unknown>
   ): Record<string, unknown> | void;
-  applyCondition(event: Gw2EventDraft): Gw2ResolvedConditionApplication | null;
+  applyCondition(event: Gw2EventDraft): Gw2ResolvedConditionApplication[];
   recordProc(
     type: string,
     name: string,

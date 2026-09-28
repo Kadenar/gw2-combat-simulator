@@ -278,11 +278,10 @@ test('Engineer catalog retains reviewed packet and profile mechanics', () => {
   assert.equal(ventExhaust.heatLoss, 15);
   assert.equal(strikeEffectCoefficient(ventExhaust.effects[0]), 1.1);
   assert.equal(ventExhaust.effects[0].canCrit, false);
-  // Vent Exhaust carries two independently observable one-stack burns.
-  assert.deepEqual(
-    ventExhaust.effects.filter((effect) => effect.type === 'condition').flatMap(conditionEffectTicks),
-    Array(2).fill({ atMs: 0, condition: 'Burning', stacks: 1, duration: 6 })
-  );
+  // Vent Exhaust authors its total once; the resolver owns the separate applications.
+  assert.deepEqual(ventExhaust.effects.filter((effect) => effect.type === 'condition').flatMap(conditionEffectTicks), [
+    { atMs: 0, condition: 'Burning', stacks: 2, duration: 6 }
+  ]);
   const thermalReleaseValve = engineerCatalog.balanceProfilesById.get(
     HOLOSMITH_BALANCE_PROFILE_IDS.thermalReleaseValve
   );

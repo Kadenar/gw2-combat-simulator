@@ -150,7 +150,7 @@ test('condition stage runs once after state and ticks, including profession and 
   });
 
   assert.equal(typeof context.applyCondition, 'function');
-  assert.equal(
+  assert.deepEqual(
     context.applyCondition({
       type: 'condition',
       at: 0,
@@ -159,11 +159,11 @@ test('condition stage runs once after state and ticks, including profession and 
       duration: 0,
       stacks: 6
     }),
-    null
+    []
   );
   assert.deepEqual(trace, []);
 
-  const application = context.applyCondition({
+  const [application] = context.applyCondition({
     type: 'condition',
     at: 0,
     source: 'Fixture',
@@ -197,11 +197,11 @@ test('condition stage runs once after state and ticks, including profession and 
 
   assert.deepEqual(
     trace.map((entry) => entry.condition),
-    ['Bleeding', 'Weakness', 'Bleeding', 'Burning', 'Torment']
+    ['Bleeding', 'Weakness', 'Bleeding', 'Burning', 'Burning', 'Torment']
   );
   assert.deepEqual(
     trace.map((entry) => entry.active),
-    [6, 1, 7, 2, 3]
+    [6, 1, 7, 1, 2, 3]
   );
   assert.ok(trace.every((entry) => entry.queued > 0));
 });

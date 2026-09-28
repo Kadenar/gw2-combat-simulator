@@ -1,4 +1,4 @@
-import { emitEffects, splitConditionStacks } from '#gw2/platform/simulation/procedural-emission.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { canonicalTime, EPSILON, isInternalCooldownReady, timeKey } from '#kernel/core/clock.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
@@ -337,15 +337,13 @@ function slashEffects(runtime: Runtime, cast: RuntimeCast): readonly SkillEffect
   if (min > 0 && max > 0) {
     const stacks = dragonSlashCoefficient(1, 20, released.charges, released.maximum);
     const duration = dragonSlashCoefficient(min, max, released.charges, released.maximum);
-    effects.push(
-      ...splitConditionStacks({
-        ...timing,
-        type: 'condition' as const,
-        condition: 'Burning',
-        stacks,
-        duration
-      })
-    );
+    effects.push({
+      ...timing,
+      type: 'condition',
+      condition: 'Burning',
+      stacks,
+      duration
+    });
   }
 
   if (hasTrait(runtime, TRAIT.UNYIELDING_DRAGON))

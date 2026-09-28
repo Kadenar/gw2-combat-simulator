@@ -81,7 +81,9 @@ test('The Pledge adds separate trait-owned Burning stacks to each supported torc
         initialResource: 0,
         selectedTraitIds
       });
-      const bonus = result.events.filter((event) => event.type === 'condition' && event.sourceId === TRAIT.THE_PLEDGE);
+      const bonus = result.resolvedEvents.filter(
+        (event) => event.type === 'condition' && event.sourceId === TRAIT.THE_PLEDGE
+      );
       assert.equal(bonus.length, 2 * selectedTraitIds.length, name);
       if (!bonus.length) continue;
       const base = result.events.find(

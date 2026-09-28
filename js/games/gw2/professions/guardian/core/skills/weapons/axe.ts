@@ -60,10 +60,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Parti
       },
       {
         type: 'condition',
-        ticks: [
-          // Apply each Burning stack separately so same-impact relic checks observe every application.
-          ...Array.from({ length: 2 }, () => ({ atMs: 640, condition: 'Burning' as const, stacks: 1, duration: 2 }))
-        ]
+        ticks: [{ atMs: 640, condition: 'Burning', stacks: 2, duration: 2 }]
       }
     ])
   },

@@ -9,7 +9,6 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { splitConditionStacks } from '#gw2/platform/simulation/procedural-emission.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
@@ -45,13 +44,14 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
               if (effect.type === 'strike')
                 return [{ ...effect, ...timing, name: cast.skill.name, weapon: 'Unequipped' }];
               if (effect.type !== 'condition') return [];
-              // Each Burning stack remains a separate application, including a fractional final stack for patched tuning.
-              return splitConditionStacks({
-                ...effect,
-                ...timing,
-                name: `${cast.skill.name} \u2014 ${effect.condition}`,
-                stacks: Number(effect.stacks)
-              });
+              return [
+                {
+                  ...effect,
+                  ...timing,
+                  name: `${cast.skill.name} \u2014 ${effect.condition}`,
+                  stacks: Number(effect.stacks)
+                }
+              ];
             });
         }
       }

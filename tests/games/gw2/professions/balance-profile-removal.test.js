@@ -67,7 +67,11 @@ for (const [type, name] of [
       type !== 'condition'
     );
     if (type !== 'condition')
-      assert.ok(events.filter((event) => event.type === 'condition').every((event) => event.stacks <= 1));
+      assert.ok(
+        result.resolvedEvents
+          .filter((event) => event.type === 'condition' && event.skillName === 'Sunspot')
+          .every((event) => event.stacks <= 1)
+      );
   });
 }
 

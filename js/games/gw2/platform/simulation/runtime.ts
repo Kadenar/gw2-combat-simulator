@@ -79,7 +79,7 @@ import {
   retainsInterruptedCastLockout,
   summonQuicknessCastTimeMs
 } from '#gw2/platform/skills/timing.js';
-import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
+import { createInternalWorkFactory, skillTaskAt } from '#gw2/platform/simulation/internal-work.js';
 import { spendSkillCost } from '#gw2/platform/execution/skill-cost.js';
 import type { Gw2ResolverEvent, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -279,7 +279,7 @@ export function runGw2Runtime<T extends object>({
         runtime.combatStartPending ||
         (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
       )
-        return null;
+        return [];
       return conditions.applyCondition(runtime, event);
     },
     emitDerived(cause: Gw2ResolverEvent, event: SimulationEventBase) {
@@ -477,19 +477,8 @@ export function runGw2Runtime<T extends object>({
 
   /** Authored skill tasks become live work at their deadlines; cast-scaled offsets follow the reserved duration. */
   function scheduleSkillTasks(cast: RuntimeCast): void {
-    for (const trigger of cast.skill.tasks ?? []) {
-      const castTimeMs = Number(cast.skill.castTimeMs);
-      const scale =
-        trigger.timingScale === 'cast' && castTimeMs > 0 ? ((cast.fullEnd - cast.start) * 1000) / castTimeMs : 1;
-      const origin =
-        trigger.timingAnchor === 'castStart'
-          ? cast.start
-          : trigger.timingAnchor === 'castCommit'
-            ? cast.effectiveEnd
-            : cast.fullEnd;
-      const at = Math.max(runtime.time, origin + ((trigger.atMs ?? 0) * scale) / 1000);
-      runtime.scheduleForCast(trigger.type, at, cast, { trigger });
-    }
+    for (const trigger of cast.skill.tasks ?? [])
+      runtime.scheduleForCast(trigger.type, skillTaskAt(cast, trigger, runtime.time), cast, { trigger });
   }
 
   /** Every profession keeps its follow-up windows under one conventional key on its Core state. */

@@ -123,10 +123,9 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         type: 'condition',
         name: 'Burning',
         condition: 'Burning',
-        stacks: 1,
-        duration: 4,
-        applications: 3,
-        intervalMs: 0
+        // Backfire applies the total at one impact; resolution expands its stacks.
+        stacks: 3,
+        duration: 4
       }
     ]
   },

@@ -184,7 +184,9 @@ test("Fox's Fury applies the PvE high-Might burn", () => {
     const action = result.events.find((event) => event.type === 'action' && event.skillName === "Fox's Fury");
     const hit = result.events.find((event) => event.type === 'damage' && event.skillName === "Fox's Fury");
 
-    const burning = result.events.filter((event) => event.type === 'condition' && event.skillName === "Fox's Fury");
+    const burning = result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.skillName === "Fox's Fury"
+    );
     assert.ok(hit.at < action.endsAt);
     assert.equal(hit.coefficient, 3);
     // The high-Might tier keeps three stacks while exposing each application at the strike's impact.

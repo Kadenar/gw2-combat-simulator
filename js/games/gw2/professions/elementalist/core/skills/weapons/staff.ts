@@ -106,14 +106,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1 },
-      // Apply each Burning stack separately so same-impact relic checks observe every application.
-      ...Array.from({ length: 3 }, () => ({
-        type: 'condition' as const,
-        condition: 'Burning' as const,
-        stacks: 1,
+      {
+        type: 'condition',
+        condition: 'Burning',
+        stacks: 3,
         duration: 6,
         metadata: {}
-      })),
+      },
       { type: 'blind', applications: 1, controlKind: 'blind' }
     ])
   },

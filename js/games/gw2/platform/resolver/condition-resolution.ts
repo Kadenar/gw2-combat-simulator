@@ -15,6 +15,14 @@ interface CreateGw2ConditionResolutionOptions {
   readonly config?: Gw2ResolverRuntime['config'];
 }
 
+/** Gives Burning reactions one application per stack while preserving fractional totals and packet metadata. */
+function splitConditionStacks<T extends { readonly stacks: number }>(packet: T): T[] {
+  return Array.from({ length: Math.ceil(packet.stacks) }, (_, index) => ({
+    ...packet,
+    stacks: Math.min(1, packet.stacks - index)
+  }));
+}
+
 /**
  * Creates timestamp-aware condition resolution shared by GW2 professions.
  * Successful applications dispatch after state insertion and tick scheduling.
@@ -318,7 +326,7 @@ export function createGw2ConditionResolution({
     scheduleBuffer(ctx, event.at);
   }
 
-  function applyCondition(ctx: Gw2ResolverRuntime, event: Gw2EventDraft): Gw2ResolvedConditionApplication | null {
+  function applyCondition(ctx: Gw2ResolverRuntime, event: Gw2EventDraft): Gw2ResolvedConditionApplication[] {
     // Synchronous reaction applications bypass enqueue, so normalize before querying or inserting live state.
     event = canonicalEvent(event);
     if (ctx.queue.currentTime != null && event.at < ctx.queue.currentTime) {
@@ -332,73 +340,82 @@ export function createGw2ConditionResolution({
     const duration = conditionApplicationDuration(ctx.query, name, queryEvent, ctx);
     const expiresAt = canonicalTime(event.at + duration);
     const stacks = Math.max(0, event.stacks || 0);
-    if (!stacks || !duration) return null;
+    if (!Number.isFinite(stacks)) throw new RangeError('Condition stacks must be finite.');
+    if (!stacks || !duration) return [];
 
-    const application = {
-      ...event,
-      sourceId: event.sourceId ?? event.skillId ?? event.skillName ?? event.type,
-      name: event.name || `${event.skillName || event.sourceId || 'Condition'} — ${name}`,
-      condition: name,
-      stacks,
-      effectiveDuration: duration,
-      // Keep the natural lifetime while executing; result finalization clips only the presentation fields.
-      activeDuration: duration,
-      expiresAt,
-      naturalExpiresAt: expiresAt,
-      settledThrough: event.at,
-      bufferedRawDamage: 0,
-      bufferedDurationUs: 0,
-      damage: 0,
-      damagingStackSeconds: 0,
-      damageTicks: []
-    } as Gw2ResolvedConditionApplication;
-    if (ctx.reporting) ctx.resolved.push(application);
-
-    // Canonical stacks retain applications for live queries and queued-tick cancellation in both output modes.
-    const state = ensureConditionState(ctx, name);
-    state.stacks.push({
-      appliedAt: event.at,
-      // Stack queries use natural expiry. The resolver horizon only limits
-      // scheduled damage, not the semantic duration of the application.
-      expiresAt,
-      weight: stacks,
-      application
-    });
-    const groups = (state.groups ??= new Map());
-    const owner = damageOwner(application);
-    let group = groups.get(owner);
-    if (group) {
-      pruneGroup(group, event.at);
-      if (!group.applications.length) {
-        scheduleGroup(ctx, group);
-        group = undefined;
-      }
-    }
-
-    if (!group) {
-      // New applications join the first-damage clock, even after the target had no active conditions.
-      group = {
-        owner,
+    // Every producer reaches this boundary, so authored effects and immediate procs share Burning application semantics.
+    const packets = name === 'Burning' ? splitConditionStacks({ ...event, stacks }) : [{ ...event, stacks }];
+    const applications: Gw2ResolvedConditionApplication[] = [];
+    for (const [index, packet] of packets.entries()) {
+      const application = {
+        ...packet,
+        sourceId: event.sourceId ?? event.skillId ?? event.skillName ?? event.type,
+        name: event.name || `${event.skillName || event.sourceId || 'Condition'} — ${name}`,
         condition: name,
-        nextPulseAt: nextPulseAt(ctx, event.at),
-        wakeToken: 0,
-        wakeAt: null,
-        applications: []
-      };
-      groups.set(owner, group);
+        stacks: packet.stacks,
+        effectiveDuration: duration,
+        // Keep the natural lifetime while executing; result finalization clips only the presentation fields.
+        activeDuration: duration,
+        expiresAt,
+        naturalExpiresAt: expiresAt,
+        settledThrough: event.at,
+        bufferedRawDamage: 0,
+        bufferedDurationUs: 0,
+        damage: 0,
+        damagingStackSeconds: 0,
+        damageTicks: []
+      } as Gw2ResolvedConditionApplication;
+      if (ctx.reporting) ctx.resolved.push(application);
+
+      // Canonical stacks retain applications for live queries and queued-tick cancellation in both output modes.
+      const state = ensureConditionState(ctx, name);
+      state.stacks.push({
+        appliedAt: event.at,
+        // Stack queries use natural expiry. The resolver horizon only limits
+        // scheduled damage, not the semantic duration of the application.
+        expiresAt,
+        weight: packet.stacks,
+        application
+      });
+      const groups = (state.groups ??= new Map());
+      const owner = damageOwner(application);
+      let group = groups.get(owner);
+      if (group) {
+        pruneGroup(group, event.at);
+        if (!group.applications.length) {
+          scheduleGroup(ctx, group);
+          group = undefined;
+        }
+      }
+
+      if (!group) {
+        // New applications join the first-damage clock, even after the target had no active conditions.
+        group = {
+          owner,
+          condition: name,
+          nextPulseAt: nextPulseAt(ctx, event.at),
+          wakeToken: 0,
+          wakeAt: null,
+          applications: []
+        };
+        groups.set(owner, group);
+      }
+
+      group.applications.push(application);
+      scheduleBuffer(ctx, event.at, expiresAt);
+      scheduleGroup(ctx, group);
+
+      reactions.dispatch('condition.applied', ctx, application, {
+        application,
+        conditionStackIndex: index + 1,
+        activeConditionStackCount
+      });
+      // Blind consumers observe the successful condition application exactly once.
+      if (name === 'Blinded') reactions.dispatch('blind.resolved', ctx, application);
+      applications.push(application);
     }
 
-    group.applications.push(application);
-    scheduleBuffer(ctx, event.at, expiresAt);
-    scheduleGroup(ctx, group);
-
-    reactions.dispatch('condition.applied', ctx, application, {
-      application,
-      activeConditionStackCount
-    });
-    // Blind consumers observe the successful condition application exactly once.
-    if (name === 'Blinded') reactions.dispatch('blind.resolved', ctx, application);
-    return application;
+    return applications;
   }
 
   /** Round the complete owner/condition packet once, then attribute integer shares without changing its total. */
@@ -550,7 +567,7 @@ interface Gw2ConditionTickResult {
 
 export interface Gw2ConditionResolution {
   activeConditionStackCount(context: Gw2ResolverRuntime, name: string, at: number): number;
-  applyCondition(context: Gw2ResolverRuntime, event: Gw2EventDraft): Gw2ResolvedConditionApplication | null;
+  applyCondition(context: Gw2ResolverRuntime, event: Gw2EventDraft): Gw2ResolvedConditionApplication[];
   handleConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2ConditionTickResult | null;
   handleConditionBuffer(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void;
   initializeEnvironment(context: Gw2ResolverRuntime): void;

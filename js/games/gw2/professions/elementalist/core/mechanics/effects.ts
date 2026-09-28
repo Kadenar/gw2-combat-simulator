@@ -8,7 +8,6 @@
 import { emitElementalistBuff, emitElementalistCondition } from '#gw2/professions/elementalist/core/events.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { splitConditionStacks } from '#gw2/platform/simulation/procedural-emission.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import type { ElementalistAuraState, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
@@ -81,7 +80,7 @@ export function emitProfiledBuff(
     });
 }
 
-/** A removed condition emits nothing; surviving Burning still exposes each stack to relics. */
+/** Emits profile totals with authored timing; the condition resolver owns per-stack Burning applications. */
 export function emitProfiledCondition(
   context: ElementalistRuntime,
   at: number,
@@ -94,7 +93,7 @@ export function emitProfiledCondition(
   const profile = requireBalanceProfileFromContext(context, profileId);
   const effect = requireEffect(profile, 'condition', effectName);
   if (!effect) return false;
-  // Keep cast ownership and per-stack Burning reactions while sharing authored timing and repetition.
+  // Keep cast ownership while sharing authored timing and repetition.
   let emitted = false;
   const skill = elementalistEventSkill(context, source, sourceId);
   for (const { event } of materializeSkillEffectApplications({
@@ -114,10 +113,8 @@ export function emitProfiledCondition(
       stacks: Number(event.stacks),
       duration: Number(event.duration)
     };
-    for (const application of condition === 'Burning' ? splitConditionStacks(packet) : [packet]) {
-      emitElementalistCondition(context, application);
-      emitted = true;
-    }
+    emitElementalistCondition(context, packet);
+    emitted = true;
   }
 
   return emitted;

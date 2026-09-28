@@ -8,7 +8,6 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { splitConditionStacks } from '#gw2/platform/simulation/procedural-emission.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { MesmerMechanics, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
@@ -31,19 +30,20 @@ export function triggerThePledge(context: MesmerRuntime, event: SimulationEvent)
   const thePledgeProfile = requireBalanceProfileFromContext(context, TRAIT.THE_PLEDGE);
   const effect = requireEffect(thePledgeProfile, 'condition', 'Burning');
   if (!effect) return;
-  // Separate Burning applications preserve the total, including any fractional final stack.
-  for (const packet of splitConditionStacks({
-    actorType: 'player' as const,
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.THE_PLEDGE,
-    skillId: event.skillId,
-    skillName: event.skillName,
-    condition: 'Burning',
-    duration: Number(effect.duration),
-    stacks: Number(effect.stacks)
-  }))
-    context.emitDerived(event, buildResolverCondition(packet));
+  context.emitDerived(
+    event,
+    buildResolverCondition({
+      actorType: 'player',
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.THE_PLEDGE,
+      skillId: event.skillId,
+      skillName: event.skillName,
+      condition: 'Burning',
+      duration: Number(effect.duration),
+      stacks: Number(effect.stacks)
+    })
+  );
 }
 
 /** Returns Cry of Pain's Confusion override before the owning shatter emits packets. */

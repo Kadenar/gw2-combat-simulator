@@ -7,11 +7,55 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { applyHammerState } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
+import { applyWeaverHammerState } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
 import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import {
   schedulePrimordialStance,
   primordialStancePulse
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
+
+// Switching orb creators must refresh the original buff and transfer only the recast elements' ownership.
+test('Core and Weaver orb creation refresh existing buffs without duplicating them', () => {
+  const single = elementalistCatalog.skillsByName.get('Flame Wheel');
+  const dual = elementalistCatalog.skillsByName.get('Dual Orbits: Fire and Air');
+  let originalExpiry;
+  runElementalist({
+    config: { specialization: 'Weaver', primaryWeapon: 'Hammer', startAttunement: 'Fire' },
+    rotation: [{ type: 'wait', durationMs: 3000 }],
+    timeline: [
+      {
+        at: 1,
+        run(runtime) {
+          applyHammerState(runtime, { id: 'single', effectiveEnd: runtime.time }, single);
+          originalExpiry = runtime.profession.core.hammerOrbs.Fire;
+        }
+      },
+      {
+        at: 2,
+        run(runtime) {
+          applyWeaverHammerState(runtime, { id: 'dual', effectiveEnd: runtime.time }, dual);
+          const state = runtime.profession.core;
+          assert.equal(state.hammerOrbs.Fire, originalExpiry + 1);
+          assert.equal(state.hammerOrbs.Air, state.hammerOrbs.Fire);
+          assert.equal(state.hammerOrbActivationIds.Fire, 'dual');
+          assert.equal(state.hammerOrbActivationIds.Air, 'dual');
+          assert.equal(state.hammerOrbLastCastAt, 2);
+        }
+      },
+      {
+        at: 2.1,
+        run(runtime) {
+          const fire = runtime.boons.get('hammer fire orb');
+          assert.equal(fire.length, 1);
+          assert.equal(fire[0].at, 1);
+          assert.equal(fire[0].expiresAt, originalExpiry + 1);
+          assert.equal(runtime.boons.get('hammer air orb').length, 1);
+        }
+      }
+    ]
+  });
+});
 
 test('Weaver hammer orbs require both distinct hands and respect Unravel replacement skills', () => {
   // Exercise the public gate so hammer resource checks cannot bypass hand or replacement-state validation.

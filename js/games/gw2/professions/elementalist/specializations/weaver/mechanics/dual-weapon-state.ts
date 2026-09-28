@@ -1,4 +1,3 @@
-import { refreshElementalistBuffs } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
@@ -12,16 +11,12 @@ import {
   balanceProfileNumber,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitElementalistBuff, emitElementalistControl } from '#gw2/professions/elementalist/core/events.js';
+import { emitElementalistControl } from '#gw2/professions/elementalist/core/events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import {
-  ELEMENTALIST_ATTUNEMENTS,
-  isElementalistAttunement,
-  type ElementalistAttunement
-} from '#gw2/professions/elementalist/core/state.js';
-import { activeHammerOrbElements } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
+import { isElementalistAttunement, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
+import { createHammerOrbs } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import {
   emitProfiledBuff,
   emitProfiledCondition,
@@ -47,42 +42,7 @@ export function applyWeaverHammerState(context: ElementalistRuntime, cast: Runti
   if (skillWeapon(skill) !== 'Hammer') return;
   const elements = weaverDualAttunements(skill);
   if (!elements) return;
-  const state = professionCoreState(context);
-  const at = cast.effectiveEnd;
-  const hammerOrbsProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.hammerOrbs);
-  const orbDuration = balanceProfileNumber(hammerOrbsProfile, 'durationMultiplier');
-  // Any orb still alive is extended to the new full duration, including the
-  // buff events already placed on the timeline.
-  const previouslyActive = new Set(activeHammerOrbElements(state, at));
-  for (const element of ELEMENTALIST_ATTUNEMENTS) {
-    const expiresAt = state.hammerOrbs[element];
-    if (expiresAt == null || expiresAt < at) continue;
-    state.hammerOrbs[element] = at + orbDuration;
-    refreshElementalistBuffs(context, `hammer ${element} orb`, at, () => at + orbDuration);
-  }
-
-  // The cast's own pair is (re)created and attributed to this activation; the
-  // buff is only emitted for an element that was not already orbiting.
-  for (const element of elements) {
-    state.hammerOrbs[element] = at + orbDuration;
-    state.hammerOrbActivationIds[element] = cast.id;
-    if (!previouslyActive.has(element)) {
-      emitElementalistBuff(context, {
-        skill: skill,
-        at,
-        source: skill.name,
-        sourceId: skill.id,
-        actorType: 'player',
-        kind: `hammer ${element.toLowerCase()} orb`,
-        stacks: 1,
-        duration: orbDuration,
-        skillName: skill.name
-      });
-    }
-  }
-
-  context.schedule('elementalist.expire-state', at + orbDuration, null, undefined, 50);
-  state.hammerOrbLastCastAt = at;
+  createHammerOrbs(context, cast, skill, elements);
 }
 
 /** Checks the shared orb lockout and duplicate-orb restriction for Weaver dual skills. */

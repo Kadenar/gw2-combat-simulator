@@ -158,13 +158,12 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         coefficient: 0.7,
         hits: 1
       },
-      // Apply each Burning stack separately so same-impact relic checks observe every application.
-      ...Array.from({ length: 3 }, () => ({
-        type: 'condition' as const,
-        condition: 'Burning' as const,
-        stacks: 1,
+      {
+        type: 'condition',
+        condition: 'Burning',
+        stacks: 3,
         duration: 12
-      }))
+      }
     ]
   },
   [ID.REJUVENATING_RESPITE]: {

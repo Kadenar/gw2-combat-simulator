@@ -122,14 +122,13 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
 
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2.5 },
-      // Apply each Burning stack separately so same-impact relic checks observe every application.
-      ...Array.from({ length: 2 }, () => ({
-        type: 'condition' as const,
-        condition: 'Burning' as const,
-        stacks: 1,
+      {
+        type: 'condition',
+        condition: 'Burning',
+        stacks: 2,
         duration: 4,
         metadata: {}
-      })),
+      },
       {
         type: 'boon',
         boon: 'Fury',

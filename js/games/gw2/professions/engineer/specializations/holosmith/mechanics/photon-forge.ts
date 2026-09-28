@@ -1,5 +1,4 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { splitConditionStacks } from '#gw2/platform/simulation/procedural-emission.js';
 import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
 import {
   requireBalanceProfileFromContext,
@@ -176,9 +175,8 @@ function emitPhotonicBlastingModuleEffects(context: EngineerRuntime, effectAt: n
   }
 
   // Burning shares the delayed PBM timestamp but remains a separate canonical effect application.
-  // Separate Burning applications preserve the total, including any fractional final stack.
   if (condition) {
-    for (const packet of splitConditionStacks({
+    emitEngineerEvent(context, 'condition', {
       at: effectAt,
       source: 'Trait',
       sourceId: TRAIT.PHOTONIC_BLASTING_MODULE,
@@ -187,8 +185,7 @@ function emitPhotonicBlastingModuleEffects(context: EngineerRuntime, effectAt: n
       condition: String(condition.condition),
       stacks: Number(condition.stacks),
       duration: Number(condition.duration)
-    }))
-      emitEngineerEvent(context, 'condition', packet);
+    });
   }
 }
 

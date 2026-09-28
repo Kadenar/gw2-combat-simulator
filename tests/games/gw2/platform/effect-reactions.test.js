@@ -63,6 +63,26 @@ function run(
 
 const energy = (result) => observedRuntime(result).profession.energy.value;
 
+// Runtime stack expansion keeps first-packet rewards singular while each-application rewards observe every stack.
+test('Burning splitting preserves first/each reactions across timed pulses and repeated casts', () => {
+  const result = run(
+    [
+      {
+        type: 'condition',
+        ticks: [100, 400].map((atMs) => ({ atMs, condition: 'Burning', stacks: 2.5, duration: 1 })),
+        timingAnchor: 'castStart',
+        reactions: [
+          reaction(grant(10), { on: 'condition.applied', packets: 'first' }),
+          reaction(grant(1), { on: 'condition.applied' })
+        ]
+      }
+    ],
+    { rotation: [cast(), wait(1000), cast(), wait(1000)] }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(energy(result), 32);
+});
+
 // First means authored packet one; a miss never promotes a later packet or an unrelated same-ID effect.
 test('effect reactions retain per-effect first/each ownership and targeting', () => {
   for (const missFirst of [false, true]) {

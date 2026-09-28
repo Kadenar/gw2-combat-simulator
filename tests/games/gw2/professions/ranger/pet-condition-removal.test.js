@@ -37,7 +37,7 @@ for (const reporting of [true, false]) {
       { sourceId: 'early-expiry', summonOwner: outgoing, duration: 1.5 },
       { sourceId: 'boundary-expiry', summonOwner: outgoing, duration: 2 }
     ];
-    const applications = cases.map(({ sourceId, source = 'ranger-pet', summonOwner, duration }) =>
+    const applications = cases.flatMap(({ sourceId, source = 'ranger-pet', summonOwner, duration }) =>
       context.applyCondition({
         type: 'condition',
         at: 0,

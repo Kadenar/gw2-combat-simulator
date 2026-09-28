@@ -60,7 +60,7 @@ export function createEffectReactions(
       runtime: Gw2Runtime,
       on: EffectReactionStage,
       event: Gw2ResolverEvent,
-      details: NativeResolvedDamageDetails
+      details: NativeResolvedDamageDetails & { readonly conditionStackIndex?: number }
     ) {
       const ref = event.effectReaction;
       if (!ref) return;
@@ -69,7 +69,12 @@ export function createEffectReactions(
         throw new TypeError('Invalid resolved-effect reaction reference.');
       const { skill, rules } = group;
       for (const rule of rules) {
-        if (rule.on !== on || rule.actor !== event.actorType || (rule.packets === 'first' && ref.packet !== 1))
+        // Splitting the first authored condition packet must not repeat a first-packet action for every stack.
+        if (
+          rule.on !== on ||
+          rule.actor !== event.actorType ||
+          (rule.packets === 'first' && (ref.packet !== 1 || (details.conditionStackIndex ?? 1) !== 1))
+        )
           continue;
         const eligible =
           rule.on === 'damage.resolved'

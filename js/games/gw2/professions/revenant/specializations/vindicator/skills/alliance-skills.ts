@@ -128,14 +128,13 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
         name: 'Scavenger Burst',
         actorType: 'player'
       },
-      // Apply each Burning stack separately so same-impact relic checks observe every application.
-      ...Array.from({ length: 2 }, () => ({
-        type: 'condition' as const,
-        condition: 'Burning' as const,
-        stacks: 1,
+      {
+        type: 'condition',
+        condition: 'Burning',
+        stacks: 2,
         duration: 5,
-        actorType: 'player' as const
-      })),
+        actorType: 'player'
+      },
       {
         type: 'boon',
         boon: 'quickness',

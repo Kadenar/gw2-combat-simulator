@@ -46,14 +46,13 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
           }
         ]
       },
-      // Apply each Burning stack separately so same-impact relic checks observe every application.
-      ...Array.from({ length: 3 }, () => ({
-        type: 'condition' as const,
-        condition: 'Burning' as const,
-        stacks: 1,
+      {
+        type: 'condition',
+        condition: 'Burning',
+        stacks: 3,
         duration: 4,
-        actorType: 'player' as const
-      }))
+        actorType: 'player'
+      }
     ]
   },
   [ID.ROILING_SKIES]: {

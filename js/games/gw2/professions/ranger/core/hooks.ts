@@ -1,5 +1,4 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { splitConditionStacks } from '#gw2/platform/simulation/procedural-emission.js';
 import { triggerStalkersStrike } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
 import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { isPlayerStrike, isPetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
@@ -328,17 +327,21 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.sunSpirit);
       const burning = requireEffect(profile, 'condition', 'Burning');
       if (burning) {
-        for (const packet of splitConditionStacks({
-          at: runtime.time,
-          skillId: ID.SOLAR_FLARE,
-          skillName: 'Solar Flare',
-          name: 'Solar Flare - Burning',
-          condition: String(burning.condition),
-          stacks: effectNumber(profile, burning, 'stacks'),
-          duration: effectNumber(profile, burning, 'duration'),
-          triggeredBy: skill.name
-        }))
-          runtime.emit(rangerEvent(packet, 'condition'));
+        runtime.emit(
+          rangerEvent(
+            {
+              at: runtime.time,
+              skillId: ID.SOLAR_FLARE,
+              skillName: 'Solar Flare',
+              name: 'Solar Flare - Burning',
+              condition: String(burning.condition),
+              stacks: effectNumber(profile, burning, 'stacks'),
+              duration: effectNumber(profile, burning, 'duration'),
+              triggeredBy: skill.name
+            },
+            'condition'
+          )
+        );
       }
     }
 

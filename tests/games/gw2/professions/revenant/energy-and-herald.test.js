@@ -1724,7 +1724,7 @@ test('Herald consume skills apply their full outgoing profiles', () => {
     ]
   );
   assert.deepEqual(
-    elements.events
+    elements.resolvedEvents
       .filter((event) => event.type === 'condition' && event.skillName === 'Elemental Blast')
       .map((event) => [event.condition, event.stacks, event.duration]),
     [

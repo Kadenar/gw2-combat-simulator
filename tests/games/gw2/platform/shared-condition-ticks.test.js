@@ -114,6 +114,46 @@ function applications(result) {
   return result.resolvedEvents.filter(({ type }) => type === 'condition');
 }
 
+// Bundled Burning has the same damage and lifetime as explicit stacks, including a fractional remainder.
+test('Burning expansion preserves damage, metadata, and ordered live stack observations', () => {
+  for (const output of ['detailed', 'score']) {
+    const packet = Object.freeze(
+      condition(0, {
+        condition: 'Burning',
+        stacks: 2.5,
+        duration: 1.5,
+        activationId: 'fixture.cast',
+        metadata: { fixedDuration: true }
+      })
+    );
+    const observed = [];
+    const bundled = resolve([packet], {
+      output,
+      reactions: {
+        'condition.applied'(ctx, application, details) {
+          observed.push([application.stacks, details.activeConditionStackCount(ctx, 'Burning', 0)]);
+          assert.equal(application.activationId, packet.activationId);
+          assert.deepEqual(application.metadata, packet.metadata);
+          assert.equal(application.at, 0);
+          assert.equal(application.effectiveDuration, 1.5);
+        }
+      }
+    });
+    const explicit = resolve(
+      [1, 1, 0.5].map((stacks) => ({ ...packet, stacks })),
+      { output }
+    );
+    assert.equal(bundled.conditionDamage, explicit.conditionDamage);
+    assert.ok(bundled.conditionDamage > 0);
+    assert.deepEqual(observed, [
+      [1, 1],
+      [1, 2],
+      [0.5, 2.5]
+    ]);
+    assert.equal(packet.stacks, 2.5);
+  }
+});
+
 function packetDamage(result, name = 'Bleeding') {
   const packets = new Map();
   for (const application of applications(result).filter(({ condition }) => condition === name)) {

@@ -162,17 +162,10 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         actorType: 'player'
       },
       {
-        // Stoke's Burning stacks apply separately so each reaches condition-triggered relic rules.
+        // One authored total becomes independent Burning applications in the shared resolver.
         type: 'condition',
         condition: 'Burning',
-        stacks: 1,
-        duration: 6,
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
+        stacks: 2,
         duration: 6,
         actorType: 'player'
       },

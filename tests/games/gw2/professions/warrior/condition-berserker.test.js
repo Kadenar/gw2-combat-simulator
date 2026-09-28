@@ -69,7 +69,7 @@ test('Fan of Fire keeps only cast-time skills behind its retained aftercast', as
   assert.equal(action('Swap Weapons').at, 0.24);
   assert.equal(action('Flames of War').at, 0.56);
   assert.deepEqual(
-    result.events
+    result.resolvedEvents
       .filter(
         (event) =>
           event.activationId === fan.activationId &&

@@ -8,6 +8,7 @@ import { completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.
 import { initializeMirageRuntime } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
 import { mirageAvailability } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import { mirageUi } from '#gw2/professions/mesmer/specializations/mirage/presentation.js';
+import { mirageHooks } from '#gw2/professions/mesmer/specializations/mirage/hooks.js';
 
 // Real profiles and specialization initialization isolate the lifetime contracts from rotation and cast timing.
 function lifetimeContext(traits = []) {
@@ -203,6 +204,32 @@ test('Mirror availability, palette, projection, and one-time pickup agree on exa
     assert.equal(controller.pickUpMirror(at, 'pickup'), active);
     assert.equal(controller.pickUpMirror(at, 'pickup'), false);
     assert.equal(context.events.filter((event) => event.skillId === ID.MIRAGE_MIRROR_DAMAGE).length, Number(active));
+  }
+});
+
+// Readiness must describe the queued task even when its anchor, scale, or already-past offset changes.
+test('pending mirrors use task anchors, cast scaling, and the live-clock clamp', () => {
+  for (const [timingAnchor, timingScale, atMs, expected] of [
+    ['castStart', 'fixed', 2000, 3],
+    ['castEnd', 'fixed', 1000, 6],
+    ['castCommit', 'fixed', 1000, 3],
+    ['castStart', 'cast', 1000, 3],
+    ['castCommit', 'cast', 1000, 4],
+    ['castStart', 'fixed', 0, 2],
+    [undefined, undefined, undefined, 5]
+  ]) {
+    const context = lifetimeContext();
+    context.time = 2;
+    mirageHooks.onCastCommit(context, {
+      start: 1,
+      fullEnd: 5,
+      effectiveEnd: 2,
+      skill: {
+        castTimeMs: 2000,
+        tasks: [{ type: 'mesmer.mirage.create-mirror', timingAnchor, timingScale, atMs }]
+      }
+    });
+    assert.deepEqual(context.profession.specialization.state.pendingMirrorAts, [expected]);
   }
 });
 

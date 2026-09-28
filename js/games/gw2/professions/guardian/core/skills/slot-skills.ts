@@ -82,13 +82,12 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
         coefficient: 0.25,
         hits: 1
       },
-      // Apply each Burning stack separately so same-impact relic checks observe every application.
-      ...Array.from({ length: 3 }, () => ({
-        type: 'condition' as const,
-        condition: 'Burning' as const,
-        stacks: 1,
+      {
+        type: 'condition',
+        condition: 'Burning',
+        stacks: 3,
         duration: 5
-      })),
+      },
       {
         type: 'condition',
         condition: 'Immobilized',

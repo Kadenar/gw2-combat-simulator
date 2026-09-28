@@ -38,6 +38,45 @@ export function hammerOrbMatchesAttunement(state: ElementalistCoreState, element
   return element === state.primaryAttunement;
 }
 
+/** Core and Weaver refresh live orbs together, emitting buffs only for newly created elements. */
+export function createHammerOrbs(
+  context: ElementalistRuntime,
+  cast: RuntimeCast,
+  skill: Skill,
+  elements: readonly ElementalistAttunement[]
+): void {
+  const state = professionCoreState(context);
+  const at = cast.effectiveEnd;
+  const profile = requireBalanceProfileFromContext(context, PROFILE.hammerOrbs);
+  const duration = balanceProfileNumber(profile, 'durationMultiplier');
+  const previouslyActive = new Set(activeHammerOrbElements(state, at));
+  for (const element of previouslyActive) {
+    state.hammerOrbs[element] = at + duration;
+    refreshElementalistBuffs(context, `hammer ${element} orb`, at, () => at + duration);
+  }
+
+  for (const element of elements) {
+    state.hammerOrbs[element] = at + duration;
+    state.hammerOrbActivationIds[element] = cast.id;
+    if (!previouslyActive.has(element)) {
+      emitElementalistBuff(context, {
+        skill,
+        at,
+        source: skill.name,
+        sourceId: skill.id,
+        actorType: 'player',
+        kind: `hammer ${element.toLowerCase()} orb`,
+        stacks: 1,
+        duration,
+        skillName: skill.name
+      });
+    }
+  }
+
+  context.schedule('elementalist.expire-state', at + duration, null, undefined, 50);
+  state.hammerOrbLastCastAt = at;
+}
+
 /**
  * Creating an orb refreshes all active orb windows; Grand Finale consumes the
  * stored orbs while leaving their visible buffs alive for the final packet.
@@ -51,38 +90,7 @@ export function applyHammerState(context: ElementalistRuntime, cast: RuntimeCast
   const at = cast.effectiveEnd;
   const single = HAMMER_ORB_SKILLS[Number(skill.id)];
   if (single) {
-    const hammerOrbsProfile = requireBalanceProfileFromContext(context, PROFILE.hammerOrbs);
-    const orbDuration = balanceProfileNumber(hammerOrbsProfile, 'durationMultiplier');
-    const previouslyActive = new Set(activeHammerOrbElements(state, at));
-    // Refresh every live orb's window and stretch the buff event already on the timeline.
-    for (const [element, expiresAt] of Object.entries(state.hammerOrbs)) {
-      if (expiresAt != null && expiresAt >= at) {
-        state.hammerOrbs[element as ElementalistAttunement] = at + orbDuration;
-        refreshElementalistBuffs(context, `hammer ${element} orb`, at, () => at + orbDuration);
-      }
-    }
-
-    for (const element of [single]) {
-      state.hammerOrbs[element] = at + orbDuration;
-      state.hammerOrbActivationIds[element] = cast.id;
-      // Only a newly created orb emits a buff; a refresh extended the existing one above.
-      if (!previouslyActive.has(element)) {
-        emitElementalistBuff(context, {
-          skill: skill,
-          at,
-          source: skill.name,
-          sourceId: skill.id,
-          actorType: 'player',
-          kind: `hammer ${element.toLowerCase()} orb`,
-          stacks: 1,
-          duration: orbDuration,
-          skillName: skill.name
-        });
-      }
-    }
-
-    context.schedule('elementalist.expire-state', at + orbDuration, null, undefined, 50);
-    state.hammerOrbLastCastAt = at;
+    createHammerOrbs(context, cast, skill, [single]);
     return;
   }
 

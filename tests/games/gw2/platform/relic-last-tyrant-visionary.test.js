@@ -4,6 +4,30 @@ import test from 'node:test';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { emitProfiledCondition } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
+import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
+import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
+import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/equipment-reactions.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { testProfession } from '#tests/fixtures/profession.js';
+
+// Real condition resolution includes direct relic applications, so its own Burning must not feed another Fury cycle.
+function conditionResolver() {
+  const config = { relic: 'Last Tyrant' };
+  const reactions = createGw2ResolverReactionRegistry({ contributions: createGw2EquipmentReactionContributions() });
+  const conditions = createGw2ConditionResolution({ config, reactions });
+  return createGw2ResolverRuntimeState({
+    config,
+    horizon: 20,
+    query: createGw2CombatQuery({ profession: testProfession, config }),
+    helpers: { conditionName: (name) => name },
+    queue: new StableEventQueue(),
+    applyCondition: conditions.applyCondition
+  });
+}
 
 function relicHarness(name) {
   const relic = createRelicRuntime(name);
@@ -33,6 +57,7 @@ function burning(at, overrides = {}) {
     type: 'condition',
     at,
     source: 'Fixture',
+    sourceId: 'fixture.burn',
     skillName: 'Fixture Burn',
     actorType: 'player',
     condition: 'Burning',
@@ -147,22 +172,42 @@ test('one-time multi-stack Burning skills expose each stack to Last Tyrant at th
         )
         .map(({ event }) => event)
         .filter((event) => event.type === 'condition' && event.condition === 'Burning');
-      assert.equal(packets.length, totalStacks, skill.name);
-      assert.ok(
-        packets.every((event) => event.stacks === 1 && event.at === packets[0].at),
+      assert.equal(
+        packets.reduce((total, event) => total + event.stacks, 0),
+        totalStacks,
         skill.name
       );
-      const { relic, ctx, helpers, conditions } = relicHarness('Last Tyrant');
-      relic.state.stacks = 4;
-      for (const event of packets) relic.rules.condition(ctx, relic.state, event, helpers);
-      assert.equal(conditions.length, 1, skill.name);
-      assert.equal(conditions[0].at, packets[0].at, skill.name);
+      const ctx = conditionResolver();
+      ctx.relic.state.stacks = 4;
+      const applications = packets.flatMap((event) => ctx.applyCondition(event));
+      assert.equal(
+        applications.reduce((total, event) => total + event.stacks, 0),
+        totalStacks,
+        skill.name
+      );
+      assert.ok(
+        applications.every((event) => event.stacks === 1 && event.at === canonicalTime(packets[0].at)),
+        skill.name
+      );
+      const explosions = ctx.procSteps.filter((proc) => proc.detail === 'explosion');
+      assert.equal(explosions.length, 1, skill.name);
+      const relicBurning = ctx.resolved.filter((event) => event.sourceId === 'relic.last-tyrant');
+      assert.equal(
+        relicBurning.reduce((total, event) => total + event.stacks, 0),
+        2,
+        skill.name
+      );
+      assert.ok(
+        relicBurning.every((event) => event.at === canonicalTime(packets[0].at)),
+        skill.name
+      );
+      assert.equal(ctx.relic.state.stacks, 0, skill.name);
     }
   }
 });
 
-// Shared one-time proc emission preserves profile values and leaves other conditions bundled.
-test('profiled Burning procs preserve fractional totals and source attribution when split', () => {
+// Producers emit totals; the shared resolver splits Burning and leaves other conditions bundled.
+test('profiled Burning procs preserve fractional totals and source attribution through resolution', () => {
   for (const [condition, stacks, expected] of [
     ['Burning', 2.5, [1, 1, 0.5]],
     ['Bleeding', 3, [3]]
@@ -188,15 +233,60 @@ test('profiled Burning procs preserve fractional totals and source attribution w
     emitProfiledCondition(context, 3, 'fixture', 'Fire', 'Fixture Proc', 123, 'Fixture Skill');
     assert.deepEqual(
       events.map((event) => event.stacks),
+      [stacks]
+    );
+    const ctx = conditionResolver();
+    ctx.relic.state.stacks = 4;
+    const applications = events.flatMap((event) => ctx.applyCondition(event));
+    assert.deepEqual(
+      applications.map((event) => event.stacks),
       expected
     );
     assert.ok(
-      events.every(
+      applications.every(
         (event) =>
           event.at === 3 && event.duration === 7 && event.sourceId === 123 && event.triggeredBy === 'Fixture Skill'
       )
     );
+    assert.equal(ctx.procSteps.filter((proc) => proc.detail === 'explosion').length, condition === 'Burning' ? 1 : 0);
   }
+});
+
+// Scheduled totals exercise the full runtime, including immediate relic Burning and cooldown suppression.
+test('bundled Burning triggers Tyrant on the fifth-stack impact and respects cooldown and actor gates', () => {
+  for (const output of ['detailed', 'score']) {
+    const explosions = [];
+    const result = resolveTestGw2Events({
+      output,
+      config: { relic: 'Last Tyrant', sigilSets: [{ names: [] }] },
+      events: [
+        burning(0, { stacks: 3, actorType: 'summon' }),
+        burning(0, { stacks: 3, offTarget: true }),
+        ...[0, 0.28, 0.56, 0.84].map((at) => burning(at, { stacks: 3 })),
+        burning(1.12, { stacks: 2 }),
+        burning(2, { stacks: 3 }),
+        burning(13.12, { stacks: 3 }),
+        ...[13.4, 13.68, 13.96, 14.24, 14.52].map((at) => burning(at, { stacks: 2 }))
+      ],
+      endTime: 15,
+      professionReactions: {
+        'damage.resolved'(_ctx, event) {
+          if (event.sourceId === 'relic.last-tyrant') explosions.push(event.at);
+        }
+      }
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(explosions, [1.12, 14.52]);
+  }
+});
+
+// Empty applications cannot progress the relic, and unbounded stack counts must never allocate split packets.
+test('condition application returns no packets for zero stacks or duration and rejects infinite stacks', () => {
+  const ctx = conditionResolver();
+  assert.deepEqual(ctx.applyCondition(burning(0, { stacks: 0 })), []);
+  assert.deepEqual(ctx.applyCondition(burning(0, { duration: 0 })), []);
+  assert.equal(ctx.relic.state.stacks, 0);
+  assert.throws(() => ctx.applyCondition(burning(0, { stacks: Infinity })), /stacks must be finite/);
 });
 
 function combo(at, finisherType = 'Blast') {
