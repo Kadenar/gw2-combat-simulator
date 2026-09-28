@@ -34,6 +34,8 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     cooldown: 15,
     aura: 'Fire|3',
     skillFamily: 'Weapon skill',
+    // Different live hand elements make the current primary immediately re-attunable on commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
     effects: [
       {
         type: 'strike',
@@ -61,6 +63,8 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 0,
     cooldown: 12,
     skillFamily: 'Weapon skill',
+    // Different live hand elements make the current primary immediately re-attunable on commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2.6 },
       { type: 'buff', kind: 'superspeed', stacks: 1, duration: 3, metadata: {} },
@@ -80,6 +84,8 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 0,
     cooldown: 15,
     skillFamily: 'Weapon skill',
+    // Different live hand elements make the current primary immediately re-attunable on commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -109,6 +115,8 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 0,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    // Different live hand elements make the current primary immediately re-attunable on commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.25 },
       { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8, metadata: {} },
@@ -128,6 +136,8 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 0,
     cooldown: 20,
     skillFamily: 'Weapon skill',
+    // Different live hand elements make the current primary immediately re-attunable on commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
     effects: [
       {
         type: 'strike',
@@ -161,6 +171,8 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
+    // Different live hand elements make the current primary immediately re-attunable on commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.refresh-primary-attunement' } }],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.55 },
       { type: 'blind', applications: 1, controlKind: 'blind' },

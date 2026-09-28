@@ -7,8 +7,7 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { applyHammerState } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
-import { applyWeaverHammerState } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
+import { createHammerOrbs } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import {
   schedulePrimordialStance,
@@ -27,14 +26,14 @@ test('Core and Weaver orb creation refresh existing buffs without duplicating th
       {
         at: 1,
         run(runtime) {
-          applyHammerState(runtime, { id: 'single', effectiveEnd: runtime.time }, single);
+          createHammerOrbs(runtime, { id: 'single', effectiveEnd: runtime.time }, single, ['Fire']);
           originalExpiry = runtime.profession.core.hammerOrbs.Fire;
         }
       },
       {
         at: 2,
         run(runtime) {
-          applyWeaverHammerState(runtime, { id: 'dual', effectiveEnd: runtime.time }, dual);
+          createHammerOrbs(runtime, { id: 'dual', effectiveEnd: runtime.time }, dual, ['Fire', 'Air']);
           const state = runtime.profession.core;
           assert.equal(state.hammerOrbs.Fire, originalExpiry + 1);
           assert.equal(state.hammerOrbs.Air, state.hammerOrbs.Fire);

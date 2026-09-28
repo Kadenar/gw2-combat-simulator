@@ -16,23 +16,6 @@ export const HAMMER_ORB_SKILLS: Readonly<Record<number, ElementalistAttunement>>
   [ID.CRESCENT_WIND]: 'Air',
   [ID.ROCKY_LOOP]: 'Earth'
 });
-/** Pistol skills that interact with stocked bullets, mapped to the bullet element they use. */
-export const PISTOL_SKILL_ELEMENTS: Readonly<Record<number, ElementalistAttunement>> = Object.freeze({
-  [ID.RAGING_RICOCHET]: 'Fire',
-  [ID.FRIGID_FLURRY]: 'Water',
-  [ID.DAZING_DISCHARGE]: 'Air',
-  [ID.SHATTERING_STONE]: 'Earth',
-  [ID.SEARING_SALVO]: 'Fire',
-  [ID.FROZEN_FUSILLADE]: 'Water',
-  [ID.AERIAL_AGILITY]: 'Air',
-  [ID.AERIAL_AGILITY_CHAIN]: 'Air',
-  [ID.AERIAL_AGILITY_DASH]: 'Air',
-  [ID.BOULDER_BLAST]: 'Earth'
-});
-/** Pistol skills that read their element without spending the stocked bullet. */
-export const PISTOL_NO_CONSUME = new Set<number>([ID.AERIAL_AGILITY, ID.AERIAL_AGILITY_CHAIN, ID.AERIAL_AGILITY_DASH]);
-/** Pistol chain links that must never stock a new bullet of their element. */
-export const PISTOL_NO_GRANT = new Set<number>([ID.AERIAL_AGILITY_CHAIN, ID.AERIAL_AGILITY_DASH]);
 /** Conjure utility skills, mapped to the bundle weapon they equip. */
 export const CONJURE_SKILLS: Readonly<Record<number, string>> = Object.freeze({
   [ID.CONJURE_FROST_BOW]: 'Frost Bow',

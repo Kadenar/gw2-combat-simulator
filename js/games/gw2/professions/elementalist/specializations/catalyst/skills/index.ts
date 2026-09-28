@@ -13,6 +13,8 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
  */
 export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.DEPLOY_JADE_SPHERE_FIRE]: {
+    // Spend energy once and record this field's live window before deployment traits and pulses.
+    sideEffects: [{ on: 'castStart', do: { type: 'elementalist.catalyst.deploy-sphere' } }],
     name: 'Deploy Jade Sphere (Fire)',
     type: 'Profession',
     slot: 'Profession_5',
@@ -34,6 +36,8 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
     effects: CATALYST_JADE_SPHERE_EFFECTS[ID.DEPLOY_JADE_SPHERE_FIRE]
   },
   [ID.DEPLOY_JADE_SPHERE_WATER]: {
+    // Spend energy once and record this field's live window before deployment traits and pulses.
+    sideEffects: [{ on: 'castStart', do: { type: 'elementalist.catalyst.deploy-sphere' } }],
     name: 'Deploy Jade Sphere (Water)',
     type: 'Profession',
     slot: 'Profession_5',
@@ -55,6 +59,8 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
     effects: CATALYST_JADE_SPHERE_EFFECTS[ID.DEPLOY_JADE_SPHERE_WATER]
   },
   [ID.DEPLOY_JADE_SPHERE_AIR]: {
+    // Spend energy once and record this field's live window before deployment traits and pulses.
+    sideEffects: [{ on: 'castStart', do: { type: 'elementalist.catalyst.deploy-sphere' } }],
     name: 'Deploy Jade Sphere (Air)',
     type: 'Profession',
     slot: 'Profession_5',
@@ -76,6 +82,8 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
     effects: CATALYST_JADE_SPHERE_EFFECTS[ID.DEPLOY_JADE_SPHERE_AIR]
   },
   [ID.DEPLOY_JADE_SPHERE_EARTH]: {
+    // Spend energy once and record this field's live window before deployment traits and pulses.
+    sideEffects: [{ on: 'castStart', do: { type: 'elementalist.catalyst.deploy-sphere' } }],
     name: 'Deploy Jade Sphere (Earth)',
     type: 'Profession',
     slot: 'Profession_5',

@@ -1,3 +1,4 @@
+import { hasPistolBullet } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
 /**
  * Pistol weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -44,6 +45,11 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   // Stocks a Fire bullet, or spends one for extra Might that the pistol cast handler adds on top of the
   // Might declared here. `pistol-bullets` marks the skill as bullet-state-gated for rotation analysis.
   [ID.RAGING_RICOCHET]: {
+    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
+    sideEffects: [
+      { on: 'castCommit', when: hasPistolBullet, do: { type: 'elementalist.pistol.raging-ricochet' } },
+      { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
+    ],
     name: 'Raging Ricochet',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -66,6 +72,11 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   // Blast finisher up front, then a four-shot salvo landing together a second later. Spending a Fire
   // bullet additionally grants a Fire Aura through the pistol cast handler.
   [ID.SEARING_SALVO]: {
+    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
+    sideEffects: [
+      { on: 'castCommit', when: hasPistolBullet, do: { type: 'elementalist.pistol.searing-salvo' } },
+      { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
+    ],
     name: 'Searing Salvo',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -140,6 +151,8 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   // Five-shot channel with a Bleeding stack per shot; `per-packet` interruption keeps only the shots
   // that already landed.
   [ID.FRIGID_FLURRY]: {
+    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }],
     name: 'Frigid Flurry',
     interruptMode: 'per-packet',
     type: 'Weapon',
@@ -154,15 +167,20 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: FRIGID_FLURRY_SHOT_OFFSETS_MS.map((atMs) => ({ atMs, coefficient: 0.2 })),
-        comboFinishers: [
-          {
-            ownerId: 'elementalist',
-            finisherType: 'Projectile',
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
-          }
-        ],
+        // Each projectile owns an independent combo attempt; interrupted packets never attempt one.
+        ticks: FRIGID_FLURRY_SHOT_OFFSETS_MS.map((atMs, index) => ({
+          atMs,
+          coefficient: 0.2,
+          comboFinishers: [
+            {
+              ownerId: 'elementalist',
+              attemptGroup: `frigid-flurry:${index + 1}`,
+              finisherType: 'Projectile',
+              chance: 0.2,
+              ambiguousFieldSelection: 'oldest'
+            }
+          ]
+        })),
         metadata: {}
       },
       {
@@ -175,6 +193,11 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   // The released shot starts a four-second ice field. Its enhanced detonation
   // follows that field's expiry, independently of the remaining aftercast.
   [ID.FROZEN_FUSILLADE]: {
+    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
+    sideEffects: [
+      { on: 'castCommit', when: hasPistolBullet, do: { type: 'elementalist.pistol.frozen-fusillade' } },
+      { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
+    ],
     name: 'Frozen Fusillade',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -229,6 +252,11 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   // Strike plus crowd control; spending an Air bullet opens the Dazing Discharge window tracked in
   // profession state rather than adding packets here.
   [ID.DAZING_DISCHARGE]: {
+    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
+    sideEffects: [
+      { on: 'castCommit', when: hasPistolBullet, do: { type: 'elementalist.pistol.dazing-discharge' } },
+      { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
+    ],
     name: 'Dazing Discharge',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -248,6 +276,8 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   // to fire the leap finisher. The chain reads the Air bullet without spending it, and the two later
   // links can never stock one.
   [ID.AERIAL_AGILITY]: {
+    // The root only loads Air; its follow-up links neither grant nor consume bullets.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.pistol.load' } }],
     autoattack: false, // This manually activated flip chain reuses the scheduler's autoattack sequencing index.
     name: 'Aerial Agility',
     type: 'Weapon',
@@ -349,6 +379,11 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     )
   },
   [ID.SHATTERING_STONE]: {
+    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
+    sideEffects: [
+      { on: 'castCommit', when: hasPistolBullet, do: { type: 'elementalist.pistol.shattering-stone' } },
+      { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
+    ],
     name: 'Shattering Stone',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -365,6 +400,11 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     ])
   },
   [ID.BOULDER_BLAST]: {
+    // Resolve the live bullet bonus before the shared load/spend mutation; cancellation does neither.
+    sideEffects: [
+      { on: 'castCommit', when: hasPistolBullet, do: { type: 'elementalist.pistol.boulder-blast' } },
+      { on: 'castCommit', do: { type: 'elementalist.pistol.load-or-spend' } }
+    ],
     name: 'Boulder Blast',
     type: 'Weapon',
     slot: 'Weapon_3',

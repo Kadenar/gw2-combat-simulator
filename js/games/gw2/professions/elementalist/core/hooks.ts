@@ -8,6 +8,7 @@ import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registr
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
+  elementalistCoreSideEffectHandlers,
   elementalistOnCastStart,
   elementalistOnCastCommit
 } from '#gw2/professions/elementalist/core/cast-lifecycle.js';
@@ -56,10 +57,10 @@ import {
 } from '#gw2/professions/elementalist/core/state.js';
 import { HAMMER_ORB_SKILLS, CONJURED_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 /** Core casts, accepted hits, and owned expiry tasks share the runtime. */
 export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
+  sideEffectHandlers: elementalistCoreSideEffectHandlers,
   endurance: elementalistEndurance,
   availability: elementalistCoreAvailability,
   rechargeWork: elementalistRechargeWork,
@@ -93,19 +94,6 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
         : []
     );
     prepared = prepareElementalistHitboxEvent(runtime, prepared);
-    if (prepared.type === 'damage' && prepared.skillId === ID.FRIGID_FLURRY)
-      prepared = {
-        ...prepared,
-        comboFinishers: [
-          {
-            ownerId: 'elementalist',
-            attemptGroup: `frigid-flurry:${prepared.hitIndex ?? 1}`,
-            finisherType: 'Projectile',
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
-          }
-        ]
-      };
     return empowerElementalistSpearPacket(runtime, prepared as ElementalistSimulationEvent);
   },
   modifyEffects(runtime, cast, effects) {

@@ -1,4 +1,5 @@
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+import type { RuntimeCast, RuntimeProfession, Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 /**
  * Owns Core pistol-bullet loading, consumption, and enhanced payloads.
  *
@@ -12,45 +13,50 @@ import {
   balanceProfileNumber,
   effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitElementalistBuff, emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
+import {
+  emitElementalistBuff,
+  emitElementalistDamage,
+  withElementalistCast
+} from '#gw2/professions/elementalist/core/events.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import {
-  PISTOL_NO_CONSUME,
-  PISTOL_NO_GRANT,
-  PISTOL_SKILL_ELEMENTS
-} from '#gw2/professions/elementalist/core/constants.js';
-import {
-  emitProfiledBuff,
-  emitProfiledCondition,
-  skillWeapon
-} from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
+import { emitProfiledBuff, emitProfiledCondition } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/index.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 
-/**
- * Applies the load-or-spend bullet flip for one completed pistol cast: a loaded
- * bullet of the skill's element is spent for that skill's enhanced payload,
- * otherwise the cast leaves one loaded. The no-consume and no-grant sets (the
- * Aerial Agility chain) opt out of one or both halves.
- */
-export function applyPistolState(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  if (skillWeapon(skill) !== 'Pistol') return;
-  // A cancelled input cannot load or spend a bullet or apply its enhanced payload.
-  const state = professionCoreState(context);
-  const at = cast.effectiveEnd;
-  const element = PISTOL_SKILL_ELEMENTS[Number(skill.id)];
-  if (!element) return;
-  // Spend branch: the enhanced payload differs per skill, so each is authored
-  // inline (immediate buff, aura, delayed strike, or armed follow-up state).
-  if (state.pistolBullets[element] && !PISTOL_NO_CONSUME.has(Number(skill.id))) {
-    state.pistolBullets[element] = false;
-    if (skill.id === ID.RAGING_RICOCHET) {
+/** Reads the completion-time bullet before the declaration's final load/spend action changes it. */
+export function hasPistolBullet(context: Gw2Runtime, cast: RuntimeCast): boolean {
+  return readProfessionCoreState<ElementalistCoreState>(context.profession).pistolBullets![
+    cast.skill.attunement as ElementalistAttunement
+  ];
+}
+
+/** Payloads are selected by the skill; the last action toggles its element exactly once. */
+export const elementalistPistolSideEffects: RuntimeProfession<ElementalistRuntimeState>['sideEffectHandlers'] = {
+  'elementalist.pistol.load-or-spend'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Pistol bullets require a cast trigger.');
+    const element = trigger.skill.attunement as ElementalistAttunement;
+    const state = professionCoreState(context);
+    state.pistolBullets[element] = !state.pistolBullets[element];
+  },
+  'elementalist.pistol.load'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Pistol bullets require a cast trigger.');
+    professionCoreState(context).pistolBullets[trigger.skill.attunement as ElementalistAttunement] = true;
+  },
+  'elementalist.pistol.raging-ricochet'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+    const { cast, skill } = trigger;
+    const at = cast.effectiveEnd;
+    withElementalistCast(context, cast, () => {
       emitProfiledBuff(context, at, PROFILE.ragingRicochet, 'Fire', skill.name, skill.id);
-    } else if (skill.id === ID.SEARING_SALVO) {
+    });
+  },
+  'elementalist.pistol.searing-salvo'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+    const { cast, skill } = trigger;
+    const at = cast.effectiveEnd;
+    withElementalistCast(context, cast, () => {
       const searingSalvoProfile = requireBalanceProfileFromContext(context, PROFILE.searingSalvo);
       const aura = requireEffect(searingSalvoProfile, 'buff', 'Fire');
       if (aura) {
@@ -62,7 +68,12 @@ export function applyPistolState(context: ElementalistRuntime, cast: RuntimeCast
           sourceId: skill.id
         });
       }
-    } else if (skill.id === ID.FROZEN_FUSILLADE) {
+    });
+  },
+  'elementalist.pistol.frozen-fusillade'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+    const { cast, skill } = trigger;
+    withElementalistCast(context, cast, () => {
       const frozenFusilladeProfile = requireBalanceProfileFromContext(context, PROFILE.frozenFusillade);
       // The field's four-second lifetime starts at projectile release, so
       // aftercast length and cancellation cannot move its enhanced detonation.
@@ -87,12 +98,25 @@ export function applyPistolState(context: ElementalistRuntime, cast: RuntimeCast
       }
 
       emitProfiledCondition(context, detonationAt, PROFILE.frozenFusillade, 'Water Bullet', skill.name, skill.id);
-    } else if (skill.id === ID.DAZING_DISCHARGE) {
+    });
+  },
+  'elementalist.pistol.dazing-discharge'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+    const { cast } = trigger;
+    const at = cast.effectiveEnd;
+    withElementalistCast(context, cast, () => {
       const dazingDischargeProfile = requireBalanceProfileFromContext(context, PROFILE.dazingDischarge);
       // Arms a window that shortens the next pistol skill's recharge; the
       // reduction is consumed in `mechanics/recharge.ts`.
-      state.dazingDischargeUntil = at + balanceProfileNumber(dazingDischargeProfile, 'durationMultiplier');
-    } else if (skill.id === ID.SHATTERING_STONE) {
+      professionCoreState(context).dazingDischargeUntil =
+        at + balanceProfileNumber(dazingDischargeProfile, 'durationMultiplier');
+    });
+  },
+  'elementalist.pistol.shattering-stone'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+    const { cast, skill } = trigger;
+    const at = cast.effectiveEnd;
+    withElementalistCast(context, cast, () => {
       const shatteringStoneProfile = requireBalanceProfileFromContext(context, PROFILE.shatteringStone);
       // Arm the buff on the event timeline so the resolver consumes its charges
       // in impact order, including attacks scheduled before this cast.
@@ -104,7 +128,13 @@ export function applyPistolState(context: ElementalistRuntime, cast: RuntimeCast
         stacks: balanceProfileNumber(shatteringStoneProfile, 'maximumStacks'),
         duration: balanceProfileNumber(shatteringStoneProfile, 'durationMultiplier')
       });
-    } else if (skill.id === ID.BOULDER_BLAST) {
+    });
+  },
+  'elementalist.pistol.boulder-blast'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+    const { cast, skill } = trigger;
+    const at = cast.effectiveEnd;
+    withElementalistCast(context, cast, () => {
       // The projectile finisher is a separate non-weapon activation from the
       // pistol strike, so downstream combo damage must not reuse its roll.
       emitElementalistDamage(context, {
@@ -125,9 +155,6 @@ export function applyPistolState(context: ElementalistRuntime, cast: RuntimeCast
           }
         ]
       });
-    }
-  } else if (!PISTOL_NO_GRANT.has(Number(skill.id))) {
-    // Load branch: nothing was spent, so the cast leaves a bullet of its element behind.
-    state.pistolBullets[element] = true;
+    });
   }
-}
+};

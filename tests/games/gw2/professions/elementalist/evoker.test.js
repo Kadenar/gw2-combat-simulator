@@ -11,7 +11,10 @@ import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { modifyFamiliarEffects } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
+import {
+  captureIgniteTier,
+  selectIgniteEffects
+} from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 test('Altruistic Aspect grants its meditation boon only when selected and the cast commits', () => {
@@ -54,9 +57,16 @@ test('Ignite retains its final burning tier until the inactivity window expires'
     [18, 1.5],
     [33, 2]
   ]) {
-    const effects = modifyFamiliarEffects(context, { skill, start, id: 'ignite' }, [
-      { type: 'condition', condition: 'Burning', duration: 99 }
-    ]);
+    const cast = {
+      skill: { ...skill, effects: [{ type: 'condition', condition: 'Burning', duration: 99 }] },
+      start,
+      id: 'ignite'
+    };
+    captureIgniteTier(context, cast);
+    const tier = state.igniteTier;
+    const effects = selectIgniteEffects(cast);
+    assert.deepEqual(selectIgniteEffects(cast), effects);
+    assert.equal(state.igniteTier, tier);
     assert.equal(effects[0].duration, duration);
   }
 });

@@ -1,3 +1,4 @@
+import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 /**
  * Owns Evoker meditation heal, utility, and elite skill fragments.
  * Meditation trait reactions are registered by the Evoker module.
@@ -16,6 +17,8 @@ import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FOXS_FURY]: {
+    // Commit the live-element reward before Altruistic Aspect; acceptance-time damage selection stays independent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.evoker.foxs-fury' } }],
     // Snapshot the Might tier at acceptance; committed packets persist, while the common scheduler owns targeting/delay.
     effectVariants: [
       {
@@ -79,7 +82,11 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
     resourceGain: 50,
     // Committed activations restore endurance using this skill's editable amount.
     sideEffects: [
-      { on: 'castCommit', do: { type: 'resourceGrant', resource: 'endurance', amount: { skillField: 'resourceGain' } } }
+      {
+        on: 'castCommit',
+        do: { type: 'resourceGrant', resource: 'endurance', amount: { skillField: 'resourceGain' } }
+      },
+      { on: 'castCommit', do: { type: 'elementalist.evoker.hares-agility' } }
     ],
     skillFamily: 'Meditation',
     // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
@@ -90,6 +97,14 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ])
   },
   [ID.TOADS_FORTITUDE]: {
+    // Commit the live-element reward before Altruistic Aspect; acceptance-time damage selection stays independent.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (runtime) => evokerState.from(runtime).element === 'Earth',
+        do: { type: 'elementalist.evoker.toads-fortitude' }
+      }
+    ],
     name: "Toad's Fortitude",
     type: 'Utility',
     slot: 'Utility',
@@ -106,6 +121,8 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ])
   },
   [ID.ELEMENTAL_PROCESSION]: {
+    // Replay the four empowered familiars' offensive payloads without spending charges or granting enchantments.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.evoker.release-elemental-procession' } }],
     name: 'Elemental Procession',
     type: 'Elite',
     slot: 'Elite',
@@ -119,6 +136,8 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
     effects: []
   },
   [ID.REJUVENATE]: {
+    // Commit the live-element reward before Altruistic Aspect; acceptance-time damage selection stays independent.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.evoker.rejuvenate' } }],
     name: 'Rejuvenate',
     type: 'Heal',
     slot: 'Heal',

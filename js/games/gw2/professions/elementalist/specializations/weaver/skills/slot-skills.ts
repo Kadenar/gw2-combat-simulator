@@ -13,6 +13,14 @@ function primordialStance(attunement: ElementalistAttunement): Partial<Skill> {
   const offsets = [0, 1000, 2000, 3000, 4000, 5000];
   const { condition, stacks, duration } = PRIMORDIAL_STANCE_EFFECTS[attunement];
   return {
+    // Each pulse reads the live hands; these effects supply editable timing without emitting a second stream.
+    sideEffects: [
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        do: { type: 'elementalist.weaver.start-primordial-stance' }
+      }
+    ],
     name: `Primordial Stance (${attunement})`,
     type: 'Utility',
     slot: 'Utility',
@@ -28,6 +36,7 @@ function primordialStance(attunement: ElementalistAttunement): Partial<Skill> {
     effects: [
       {
         type: 'strike',
+        when: () => false,
         ticks: offsets.map((atMs) => ({
           atMs,
           coefficient: PRIMORDIAL_STANCE_EFFECTS.strike.coefficient,
@@ -38,6 +47,7 @@ function primordialStance(attunement: ElementalistAttunement): Partial<Skill> {
       },
       {
         type: 'condition',
+        when: () => false,
         ticks: offsets.map((atMs) => ({ atMs, condition, stacks, duration })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -73,6 +83,8 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
   // Weave Self and Tailored Victory chain into each other: completing Weave Self
   // opens the Perfect Weave flipover, and Tailored Victory consumes it.
   [ID.WEAVE_SELF]: {
+    // Schedule the profiled mid-cast activation; interruption before it grants no window.
+    sideEffects: [{ on: 'castStart', do: { type: 'elementalist.weaver.start-weave-self' } }],
     name: 'Weave Self',
     type: 'Elite',
     slot: 'Elite',
@@ -107,6 +119,8 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     ])
   },
   [ID.UNRAVEL]: {
+    // After completion traits, unify the live hands, clear attunement recharge, and grant the current element's boon.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.weaver.unravel' } }],
     name: 'Unravel',
     type: 'Profession',
     slot: 'Profession_5',

@@ -1,3 +1,4 @@
+import { applyConjurerAura } from '#gw2/professions/elementalist/core/traits/fire.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /**
  * Owns conjured-bundle equip, pickup, and recharge state across casts.
@@ -5,96 +6,76 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
  */
 import {
   requireBalanceProfileFromContext,
-  balanceProfileNumber,
-  requireEffect
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { CONJURE_PICKUP_WEAPONS, CONJURE_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
-import {
-  ELEMENTALIST_SKILL_IDS as ID,
-  ELEMENTALIST_TRAIT_IDS as TRAIT
-} from '#gw2/professions/elementalist/data/ids.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/index.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 
-/**
- * Track equipped and ground-copy conjures as timed flip state so pickup and
- * expiry behavior share one source of truth.
- *
- * Runs at cast completion: conjuring equips the weapon and opens its ground
- * copy's pick-up window, `__drop_bundle` unequips, and `__pickup_*` re-equips a
- * copy whose window is still open. Any of those swaps emits `sigil_swap`.
- */
-export function applyConjureState(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+/** A conjure creates independent equipped and one-use ground copies before its trait and swap events. */
+export function equipConjure(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+  const state = professionCoreState(context);
+  const weapon = CONJURE_SKILLS[Number(skill.id)];
+  state.conjureEquipped = weapon;
+  state.conjurePickups[weapon] =
+    cast.effectiveEnd +
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.conjurePickups), 'durationMultiplier');
+  applyConjurerAura(context, cast, skill, applyElementalistAura);
+  finishConjureSwap(context, cast, skill);
+}
+
+/** Dropping reports a swap only when a real equipped bundle was removed. */
+export function dropConjure(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+  const state = professionCoreState(context);
+  if (!state.conjureEquipped) return;
+  state.conjureEquipped = null;
+  finishConjureSwap(context, cast, skill);
+}
+
+/** A successful pickup consumes the ground copy captured at acceptance, even if its deadline passed during the cast. */
+export function pickUpConjure(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+  const expiresAt = pickupWindows.get(cast);
+  if (typeof expiresAt !== 'number' || !Number.isFinite(expiresAt) || expiresAt <= cast.start) return;
+  const state = professionCoreState(context);
+  const weapon = CONJURE_PICKUP_WEAPONS[Number(skill.id)];
+  state.conjureEquipped = weapon;
+  delete state.conjurePickups[weapon];
+  finishConjureSwap(context, cast, skill);
+}
+
+/** All real bundle swaps share lifetime scheduling, chain reset, and one sigil-swap notification. */
+function finishConjureSwap(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   const state = professionCoreState(context);
   const at = cast.effectiveEnd;
-  const conjuredWeapon = CONJURE_SKILLS[Number(skill.id)];
-  let swapped = false;
-  if (conjuredWeapon) {
-    state.conjureEquipped = conjuredWeapon;
-    const conjurePickupsProfile = requireBalanceProfileFromContext(context, PROFILE.conjurePickups);
-    state.conjurePickups[conjuredWeapon] = at + balanceProfileNumber(conjurePickupsProfile, 'durationMultiplier');
-    swapped = true;
-    if (hasTrait(context, TRAIT.CONJURER)) {
-      const conjurerProfile = requireBalanceProfileFromContext(context, PROFILE.conjurer);
-      const conjurerBuff = requireEffect(conjurerProfile, 'buff', 'Conjurer');
-      if (conjurerBuff) {
-        applyElementalistAura(context, {
-          at,
-          aura: String(conjurerBuff.kind),
-          duration: conjurerBuff.duration,
-          skillName: 'Conjurer',
-          sourceId: skill.id
-        });
-      }
-    }
-  } else if (Number(skill.id) === ID.DROP_BUNDLE) {
-    swapped = state.conjureEquipped != null;
-    state.conjureEquipped = null;
-  } else if (CONJURE_PICKUP_WEAPONS[Number(skill.id)]) {
-    const weapon = CONJURE_PICKUP_WEAPONS[Number(skill.id)];
-    // Require a real ground copy, preserving pickups begun before its window closes.
-    const expiresAt = pickupWindows.get(cast);
-    if (typeof expiresAt === 'number' && Number.isFinite(expiresAt) && expiresAt > cast.start) {
-      state.conjureEquipped = weapon;
-      delete state.conjurePickups[weapon];
-      swapped = true;
-    }
-  }
-
-  if (swapped) {
-    // Each equipped copy gets its own lifetime; the separately summoned ground copy is consumed once.
-    state.conjureExpiresAt = state.conjureEquipped
-      ? at +
-        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.conjurePickups), 'durationMultiplier')
-      : 0;
-    context.schedule('elementalist.expire-state', state.conjureExpiresAt || at, null);
-    for (const deadline of Object.values(state.conjurePickups))
-      context.schedule('elementalist.expire-state', deadline, null);
-    resetAutoattackChains(context);
-    context.emit({
-      type: 'elementalist.conjure',
-      at,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: 'player',
-      skillName: skill.name,
-      conjureEquipped: state.conjureEquipped,
-      conjureExpiresAt: state.conjureExpiresAt
-    });
-    context.emit({
-      type: 'sigil_swap',
-      at,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: 'player',
-      skillName: skill.name
-    });
-  }
+  state.conjureExpiresAt = state.conjureEquipped
+    ? at + balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.conjurePickups), 'durationMultiplier')
+    : 0;
+  context.schedule('elementalist.expire-state', state.conjureExpiresAt || at, null);
+  for (const deadline of Object.values(state.conjurePickups))
+    context.schedule('elementalist.expire-state', deadline, null);
+  resetAutoattackChains(context);
+  context.emit({
+    type: 'elementalist.conjure',
+    at,
+    source: skill.name,
+    sourceId: skill.id,
+    actorType: 'player',
+    skillName: skill.name,
+    conjureEquipped: state.conjureEquipped,
+    conjureExpiresAt: state.conjureExpiresAt
+  });
+  context.emit({
+    type: 'sigil_swap',
+    at,
+    source: skill.name,
+    sourceId: skill.id,
+    actorType: 'player',
+    skillName: skill.name
+  });
 }
 
 const pickupWindows = new WeakMap<RuntimeCast, number>();

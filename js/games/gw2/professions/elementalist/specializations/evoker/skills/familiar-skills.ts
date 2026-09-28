@@ -1,3 +1,5 @@
+import { selectIgniteEffects } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
+import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 /**
  * Owns Evoker familiar basic and empowered skill fragments.
  * Familiar charge, flip, and attunement state lives in `mechanics/familiars.ts`.
@@ -10,13 +12,24 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
  * Simulator-owned skill definitions merged over the API catalog for Evoker.
  *
  * The eight familiar skills form four basic/empowered pairs linked by
- * `nextChainId`. Familiar hooks own their behavior, and their gating is
+ * `nextChainId`. Definitions declare their start and commit behavior; gating uses
  * charge/empowered state in `mechanics/availability.ts`, not the `cooldown: 0`
  * declared here.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.IGNITE]: {
+    // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
+      { on: 'castStart', do: { type: 'elementalist.evoker.capture-ignite-tier' } },
+      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-basic-familiar' } }
+    ],
+    // The start action snapshots one tier; repeated packet selection cannot increment it again.
+    effectVariants: [
+      { when: () => true, profileId: PROFILE.ignite, transform: (_runtime, cast) => selectIgniteEffects(cast) }
+    ],
+
     name: 'Ignite',
     type: 'Profession',
     slot: 'Profession_5',
@@ -34,6 +47,12 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ])
   },
   [ID.CONFLAGRATION]: {
+    // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
+      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-empowered-familiar' } }
+    ],
+
     name: 'Conflagration',
     type: 'Profession',
     slot: 'Profession_5',
@@ -62,6 +81,12 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     )
   },
   [ID.SPLASH]: {
+    // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
+      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-basic-familiar' } }
+    ],
+
     name: 'Splash',
     type: 'Profession',
     slot: 'Profession_5',
@@ -87,6 +112,12 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ]
   },
   [ID.BUOYANT_DELUGE]: {
+    // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
+      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-empowered-familiar' } }
+    ],
+
     name: 'Buoyant Deluge',
     type: 'Profession',
     slot: 'Profession_5',
@@ -118,6 +149,13 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ]
   },
   [ID.ZAP]: {
+    // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
+      { on: 'castCommit', do: { type: 'elementalist.evoker.zap' } },
+      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-basic-familiar' } }
+    ],
+
     name: 'Zap',
     type: 'Profession',
     slot: 'Profession_5',
@@ -144,6 +182,13 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ]
   },
   [ID.LIGHTNING_BLITZ]: {
+    // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
+      { on: 'castCommit', do: { type: 'elementalist.evoker.lightning-blitz' } },
+      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-empowered-familiar' } }
+    ],
+
     name: 'Lightning Blitz',
     type: 'Profession',
     slot: 'Profession_5',
@@ -169,6 +214,12 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ])
   },
   [ID.CALCIFY]: {
+    // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
+      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-basic-familiar' } }
+    ],
+
     name: 'Calcify',
     type: 'Profession',
     slot: 'Profession_5',
@@ -186,6 +237,12 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ])
   },
   [ID.SEISMIC_IMPACT]: {
+    // Acceptance owns flip interruption; commitment applies the intrinsic bonus before settling this form's resources.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'elementalist.evoker.begin-familiar' } },
+      { on: 'castCommit', do: { type: 'elementalist.evoker.settle-empowered-familiar' } }
+    ],
+
     name: 'Seismic Impact',
     type: 'Profession',
     slot: 'Profession_5',

@@ -28,6 +28,8 @@ export const ELEMENTALIST_CORE_ELEMENTAL_EXTRA_SKILLS: readonly Skill[] = Object
     castTimeMs: 0,
     slotSelectable: false,
     simulatorExcluded: false,
+    // A committed command preempts the live elemental action and schedules its next decision.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.command-elemental' } }],
     effects: []
   },
   {
@@ -52,6 +54,8 @@ export const ELEMENTALIST_CORE_ELEMENTAL_EXTRA_SKILLS: readonly Skill[] = Object
     castTimeMs: 0,
     slotSelectable: false,
     simulatorExcluded: false,
+    // A committed command preempts the live elemental action and schedules its next decision.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.command-elemental' } }],
     effects: []
   }
 ]);

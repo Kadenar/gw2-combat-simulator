@@ -15,14 +15,11 @@ import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   type ElementalistAttunement,
   type ElementalistCoreState
 } from '#gw2/professions/elementalist/core/state.js';
-import { HAMMER_ORB_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
-import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 
 /** Orb elements still live at `at`; shared by availability gating and the Weaver orb handler. */
@@ -77,26 +74,10 @@ export function createHammerOrbs(
   state.hammerOrbLastCastAt = at;
 }
 
-/**
- * Creating an orb refreshes all active orb windows; Grand Finale consumes the
- * stored orbs while leaving their visible buffs alive for the final packet.
- *
- * Cast-completion owner of the orb timers and of the buff events that mirror
- * them on the log timeline.
- */
-export function applyHammerState(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  if (skillWeapon(skill) !== 'Hammer') return;
+/** Finale consumes stored orbs while keeping their buffs alive through its last packet. */
+export function consumeHammerOrbs(context: ElementalistRuntime, cast: RuntimeCast): void {
   const state = professionCoreState(context);
   const at = cast.effectiveEnd;
-  const single = HAMMER_ORB_SKILLS[Number(skill.id)];
-  if (single) {
-    createHammerOrbs(context, cast, skill, [single]);
-    return;
-  }
-
-  // Grand Finale clears the stored orbs and trims their buffs to just past the
-  // cast instead of ending them instantly, so the finisher still reads as covered.
-  if (skill.id !== ID.GRAND_FINALE) return;
   const active = ELEMENTALIST_ATTUNEMENTS.filter((element) => {
     const expiresAt = state.hammerOrbs[element];
     return expiresAt != null && expiresAt >= cast.start;

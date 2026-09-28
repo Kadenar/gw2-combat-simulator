@@ -12,7 +12,7 @@ import { etchingChain, skillWeapon } from '#gw2/professions/elementalist/core/me
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import type { ElementalistRuntime, ElementalistSimulationEvent } from '#gw2/professions/elementalist/types.js';
 
-/** Seeds etching progress and snapshots armed one-shot bonuses for this activation. */
+/** Snapshots armed one-shot bonuses for the next eligible spear activation. */
 export function beginElementalistSpearCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   const state = professionCoreState(context);
   if (skillWeapon(skill) !== 'Spear' || String(skill.slot || '') === 'Weapon_1') return;
@@ -56,21 +56,22 @@ export function empowerElementalistSpearPacket(
   };
 }
 
-/** Consumes a released etching or advances every armed etching after a completed cast. */
+/** Root/release declarations own their state; the observer below only grants ordinary cast credit. */
+export function openElementalistEtching(context: ElementalistRuntime, skill: Skill): void {
+  const chain = etchingChain(skill.id)!;
+  const expiresAt = context.time + Number(skill.comboFields?.[0]?.duration ?? 0);
+  professionCoreState(context).etchings[chain.etching] = { stage: 'lesser', otherCasts: 0, expiresAt };
+  context.schedule('elementalist.expire-state', expiresAt, null);
+}
+
+export function consumeElementalistEtching(context: ElementalistRuntime, skill: Skill): void {
+  professionCoreState(context).etchings[etchingChain(skill.id)!.etching] = null;
+}
+
+/** Releases never credit another etching, and a root never credits itself. */
 export function completeElementalistSpearProgression(context: ElementalistRuntime, skill: Skill): void {
   const state = professionCoreState(context);
   const chain = etchingChain(skill.id);
-  if (chain && skill.id === chain.etchingId && skillWeapon(skill) === 'Spear') {
-    const expiresAt = context.time + Number(skill.comboFields?.[0]?.duration ?? 0);
-    state.etchings[chain.etching] = { stage: 'lesser', otherCasts: 0, expiresAt };
-    context.schedule('elementalist.expire-state', expiresAt, null);
-  }
-
-  if (chain && Number(skill.id) !== chain.etchingId && skillWeapon(skill) === 'Spear') {
-    state.etchings[chain.etching] = null;
-    return;
-  }
-
   if (chain && Number(skill.id) !== chain.etchingId) return;
 
   for (const candidate of ETCHING_CHAINS) {

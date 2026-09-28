@@ -6,8 +6,8 @@ import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
-import { applyConjureState, captureConjurePickup } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
-import { completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
+import { pickUpConjure, captureConjurePickup } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
+import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
 
@@ -38,7 +38,7 @@ test('Arcane Echo requires an armed, unexpired window and consumes it only once'
       rechargeWork: 5
     };
     context.cooldownController = createCooldownController({ state: context, rechargeDuration: () => 5 });
-    if (armed) completeArcaneEcho(context, context, echo);
+    if (armed) armArcaneEcho(context, context);
     context.effectiveEnd = at;
     completeArcaneEcho(context, context, weapon);
     assert.equal(cooldowns.get(weapon.id), active ? at + 1 : 20);
@@ -161,13 +161,13 @@ test('conjure pickup availability and consumption require a finite, unexpired gr
       assert.equal(elementalistCoreAvailability(context, skill).ready, expected, `${weapon}: ${expiry}`);
       const cast = { skill, start: 0, effectiveEnd: 0.3 };
       captureConjurePickup(context, cast);
-      applyConjureState(context, cast, skill);
+      pickUpConjure(context, cast, skill);
       assert.equal(core.conjureEquipped, expected ? weapon : null);
       assert.equal(events.filter((event) => event.type === 'sigil_swap').length, expected ? 1 : 0);
       if (expected) {
         assert.equal(Object.hasOwn(core.conjurePickups, weapon), false);
         assert.equal(elementalistCoreAvailability(context, skill).ready, false);
-        applyConjureState(context, { skill, start: 0.3, effectiveEnd: 0.6 }, skill);
+        pickUpConjure(context, { skill, start: 0.3, effectiveEnd: 0.6 }, skill);
         assert.equal(events.filter((event) => event.type === 'sigil_swap').length, 1);
       }
     }

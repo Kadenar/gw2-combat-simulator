@@ -86,8 +86,7 @@ function availability(context: ElementalistRuntime, skill: Skill): AvailabilityR
 
 // Spend sphere energy and schedule its attunement-specific field, pulses, and
 // boons from cast start so later attunement swaps cannot change the sphere.
-function onCastStart(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  if (skill.skillFamily !== 'Jade Sphere') return;
+function deployJadeSphere(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   const state = catalystState.from(context);
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   const sphereCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
@@ -112,6 +111,10 @@ function onCastStart(context: ElementalistRuntime, cast: RuntimeCast, skill: Ski
     maximum: maximumEnergy(context),
     change: -sphereCost
   });
+}
+
+/** Sphere traits observe the deployment after its intrinsic start action and before ordinary packet emission. */
+function applySphereStartTraits(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   // Spectacular Sphere pays party quickness plus the attunement's boon on deployment.
   // Both are stretched by Sphere Specialist here and flagged so afterCast does not
   // scale them a second time.
@@ -268,6 +271,10 @@ export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState>>
   initialize,
   availability,
   sideEffectHandlers: {
+    'elementalist.catalyst.deploy-sphere'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Jade Sphere requires a cast trigger.');
+      deployJadeSphere(runtime, context.cast, context.skill);
+    },
     'elementalist.catalyst.refresh-weapons': activateElementalCelerity,
     // A sphere can deploy during an augment's cast; select and emit its authored window only on commitment.
     'elementalist.catalyst.augment-window'(runtime, context) {
@@ -302,13 +309,12 @@ export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState>>
     state.elementalEmpowermentRefreshStarted = true;
     renewBaseEmpowerment(runtime);
   },
-  onCastStart(runtime, cast) {
-    withElementalistCast(runtime, cast, () => onCastStart(runtime, cast, cast.skill));
-  },
   modifyEffects(runtime, cast, effects) {
     // The commit action owns augment emission so cast-start materialization cannot freeze the sphere choice.
     if (cast.skill.sideEffects?.some((effect) => effect.do.type === 'elementalist.catalyst.augment-window')) return [];
-    if (cast.skill.skillFamily !== 'Jade Sphere' || !hasTrait(runtime, TRAIT.SPHERE_SPECIALIST)) return effects;
+    if (cast.skill.skillFamily !== 'Jade Sphere') return effects;
+    withElementalistCast(runtime, cast, () => applySphereStartTraits(runtime, cast, cast.skill));
+    if (!hasTrait(runtime, TRAIT.SPHERE_SPECIALIST)) return effects;
     const multiplier = balanceProfileNumber(
       requireBalanceProfileFromContext(runtime, PROFILE.sphereSpecialist),
       'durationMultiplier'

@@ -280,6 +280,12 @@ const createModuleData = createProfessionModuleDataFactory({
   generatedSkills: generated,
   traits: TRAITS,
   specializations: ELEMENTALIST_API_SPECIALIZATIONS,
+  // Dual attacks require Weaver's hands and handlers; weapon mastery does not share them with other elites.
+  specializationOnlySkills: {
+    Weaver: Object.entries(WEAVER_SKILL_MECHANICS)
+      .filter(([, skill]) => skill.type === 'Weapon')
+      .map(([id]) => Number(id))
+  },
   core: { ...WEAPON_DATA, autoattackChains: { additional: AUTOATTACK_CHAINS } }
 });
 

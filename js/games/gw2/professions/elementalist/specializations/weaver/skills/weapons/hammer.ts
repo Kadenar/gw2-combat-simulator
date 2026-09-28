@@ -6,10 +6,8 @@
  * every fragment names its pair in `attunement`, and Weaver availability only
  * offers the skill when both of those elements are currently attuned.
  *
- * These fragments are the damage/condition side of the orbit only. The orbs
- * themselves - creation, the shared cast lockout, refreshing an already-active
- * orb, and the "an orb is still up" gate - are state owned by
- * `applyWeaverHammerState` / `weaverHammerAvailability`, not by this table.
+ * Each definition declares its two-orb grant. Shared mechanics retain lifetime
+ * refresh, modifier reads, and the active-orb availability gate.
  */
 
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
@@ -38,6 +36,8 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
+    // Create both authored hand elements and refresh the shared orb lifetime.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
       { type: 'condition', condition: 'Burning', stacks: 1, duration: 0.75, metadata: {} },
@@ -55,6 +55,8 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
+    // Create both authored hand elements and refresh the shared orb lifetime.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
       { type: 'condition', condition: 'Burning', stacks: 1, duration: 0.75, metadata: {} },
@@ -72,6 +74,8 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
+    // Create both authored hand elements and refresh the shared orb lifetime.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
       { type: 'condition', condition: 'Burning', stacks: 1, duration: 0.75, metadata: {} },
@@ -89,6 +93,8 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
+    // Create both authored hand elements and refresh the shared orb lifetime.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
       { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} },
@@ -106,6 +112,8 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
+    // Create both authored hand elements and refresh the shared orb lifetime.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
       { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2.5, metadata: {} },
@@ -123,6 +131,8 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
+    // Create both authored hand elements and refresh the shared orb lifetime.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
       { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2.5, metadata: {} },

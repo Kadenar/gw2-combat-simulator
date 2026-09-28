@@ -120,6 +120,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.ARCANE_ECHO]: {
+    // Arm the profiled window; the next recharging weapon completion consumes it.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.arm-arcane-echo' } }],
     name: 'Arcane Echo',
     type: 'Utility',
     slot: 'Utility',
@@ -162,6 +164,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
   // the ground pickup in core/mechanics/conjures.ts, and the bundle's weapon skills live in
   // conjure-skills.ts. (Conjure Fiery Greatsword, below, is the exception — it also strikes.)
   [ID.CONJURE_FROST_BOW]: {
+    // Equip this bundle and create its one-use ground copy on commitment, then emit the weapon-swap event.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.equip-conjure' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     name: 'Conjure Frost Bow',
     type: 'Utility',
@@ -173,6 +177,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     effects: []
   },
   [ID.CONJURE_LIGHTNING_HAMMER]: {
+    // Equip this bundle and create its one-use ground copy on commitment, then emit the weapon-swap event.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.equip-conjure' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     name: 'Conjure Lightning Hammer',
     type: 'Utility',
@@ -487,6 +493,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
   // --- Elites --------------------------------------------------------------------
   // Unlike the utility conjures this one also strikes, and its hit lands after the cast ends.
   [ID.CONJURE_FIERY_GREATSWORD]: {
+    // Equip this bundle and create its one-use ground copy on commitment, then emit the weapon-swap event.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.equip-conjure' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     name: 'Conjure Fiery Greatsword',
     type: 'Elite',
@@ -505,6 +513,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
   // core/mechanics/elementals/ owns the summon's lifetime, attack loop, and post-expiry recharge;
   // it also blocks a recast while the elemental is alive and re-arms the cooldown on expiry.
   [ID.GLYPH_OF_ELEMENTALS]: {
+    // Summon on commitment; the companion owns its attacks, command flip, lifetime, and held recharge.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.summon-elemental' } }],
     name: 'Glyph of Elementals',
     type: 'Elite',
     slot: 'Elite',
@@ -515,6 +525,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     effects: []
   },
   [ID.GLYPH_OF_ELEMENTALS_EARTH]: {
+    // Summon on commitment; the companion owns its attacks, command flip, lifetime, and held recharge.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.summon-elemental' } }],
     name: 'Glyph of Elementals (Earth)',
     type: 'Elite',
     slot: 'Elite',

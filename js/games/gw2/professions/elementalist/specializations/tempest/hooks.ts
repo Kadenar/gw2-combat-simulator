@@ -50,8 +50,6 @@ import {
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 
-// Overloads that count for a full spear etching; Overload Water is not one of them.
-const FULL_ETCHING_CHARGE_SKILLS = new Set<number>([ID.OVERLOAD_FIRE, ID.OVERLOAD_AIR, ID.OVERLOAD_EARTH]);
 // Every attunement's overload is attributed to the profession mechanic rather than the held weapon.
 const OVERLOAD_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_OVERLOAD_SKILL_IDS));
 
@@ -157,16 +155,7 @@ function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast, skill: Sk
     emitProfiledBuff(context, cast.effectiveEnd, PROFILE.galeSong, 'Protection', 'Gale Song', skill.id);
 
   if (!skill.overload) return;
-  const state = professionCoreState(context);
   const attunement = String(skill.attunement);
-  // Copy the overload's base progress to align both recharges while retaining longer lockouts.
-  if (isElementalistAttunement(attunement)) {
-    const readyAt = context.cooldowns.get(skill.id) ?? cast.effectiveEnd;
-    if (readyAt > (context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]) ?? 0)) {
-      context.cooldownController.copy(skill.id, ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]);
-    }
-  }
-
   if (hasTrait(context, TRAIT.UNSTABLE_CONDUIT)) {
     const aura =
       attunement === 'Fire'
@@ -193,53 +182,6 @@ function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast, skill: Sk
 
   if (attunement === 'Fire') {
     triggerFlameExpulsion(context, cast.effectiveEnd, skill.id);
-  }
-
-  // Overload Air's completion strike: a non-critical unequipped-weapon hit, mirrored onto an
-  // active fire/earth elemental and recorded as its own proc for attribution.
-  if (skill.id === ID.OVERLOAD_AIR) {
-    const lightningJoltProfile = requireBalanceProfileFromContext(context, PROFILE.lightningJolt);
-    const lightningJoltOverloadAirLightningJoltStrike = requireEffect(
-      lightningJoltProfile,
-      'strike',
-      'Overload Air - Lightning Jolt'
-    );
-    if (lightningJoltOverloadAirLightningJoltStrike) {
-      const coefficient = effectNumber(
-        lightningJoltProfile,
-        lightningJoltOverloadAirLightningJoltStrike,
-        'coefficient'
-      );
-      emitElementalistDamage(context, {
-        at: cast.effectiveEnd,
-        source: 'Lightning Jolt',
-        sourceId: ID.LIGHTNING_JOLT,
-        actorType: 'effect',
-        ownerActorType: 'player',
-        skillId: ID.LIGHTNING_JOLT,
-        skillName: 'Lightning Jolt',
-        coefficient,
-        skillWeapon: 'Unequipped',
-        canCrit: false
-      });
-      armElementalistElementalLightningJolt(context, cast, ID.LIGHTNING_JOLT, coefficient);
-      emitElementalistProc(context, {
-        at: cast.effectiveEnd,
-        name: 'Lightning Jolt',
-        procType: 'skill',
-        sourceId: ID.LIGHTNING_JOLT,
-        sourceSkill: skill.name
-      });
-    }
-  }
-
-  // Fire, Air, and Earth overloads supply all three casts needed to complete an active spear etching.
-  if (FULL_ETCHING_CHARGE_SKILLS.has(Number(skill.id))) {
-    for (const [name, progress] of Object.entries(state.etchings)) {
-      if (!progress || progress.stage !== 'lesser') continue;
-      const otherCasts = progress.otherCasts + 2;
-      state.etchings[name] = { ...progress, stage: otherCasts >= 3 ? 'full' : 'lesser', otherCasts };
-    }
   }
 }
 
@@ -286,6 +228,74 @@ function onAttunementEvent(context: ElementalistRuntime, event: SimulationEvent)
 
 /** Tempest owns overload channels and reacts only to actual attunement and aura events. */
 export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
+  sideEffectHandlers: {
+    'elementalist.tempest.overload-lockout'(context, trigger) {
+      if (trigger.kind !== 'cast') throw new TypeError('Overload lockout requires a cast trigger.');
+      const { cast, skill } = trigger;
+      const attunement = String(skill.attunement);
+      // Copy the overload's base progress to align both recharges while retaining longer lockouts.
+      if (isElementalistAttunement(attunement)) {
+        const readyAt = context.cooldowns.get(skill.id) ?? cast.effectiveEnd;
+        if (readyAt > (context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]) ?? 0)) {
+          context.cooldownController.copy(skill.id, ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]);
+        }
+      }
+    },
+    'elementalist.tempest.lightning-jolt'(context, trigger) {
+      if (trigger.kind !== 'cast') throw new TypeError('Lightning Jolt requires a cast trigger.');
+      const { cast, skill } = trigger;
+      withElementalistCast(context, cast, () => {
+        const lightningJoltProfile = requireBalanceProfileFromContext(context, PROFILE.lightningJolt);
+        const lightningJoltOverloadAirLightningJoltStrike = requireEffect(
+          lightningJoltProfile,
+          'strike',
+          'Overload Air - Lightning Jolt'
+        );
+        if (lightningJoltOverloadAirLightningJoltStrike) {
+          const coefficient = effectNumber(
+            lightningJoltProfile,
+            lightningJoltOverloadAirLightningJoltStrike,
+            'coefficient'
+          );
+          emitElementalistDamage(context, {
+            at: cast.effectiveEnd,
+            source: 'Lightning Jolt',
+            sourceId: ID.LIGHTNING_JOLT,
+            actorType: 'effect',
+            ownerActorType: 'player',
+            skillId: ID.LIGHTNING_JOLT,
+            skillName: 'Lightning Jolt',
+            coefficient,
+            skillWeapon: 'Unequipped',
+            canCrit: false
+          });
+          armElementalistElementalLightningJolt(context, cast, ID.LIGHTNING_JOLT, coefficient);
+          emitElementalistProc(context, {
+            at: cast.effectiveEnd,
+            name: 'Lightning Jolt',
+            procType: 'skill',
+            sourceId: ID.LIGHTNING_JOLT,
+            sourceSkill: skill.name
+          });
+        }
+      });
+    },
+    'elementalist.tempest.etching-credits'(context, trigger) {
+      if (trigger.kind !== 'cast') throw new TypeError('Etching credit requires a cast trigger.');
+      // Let Core grant its one ordinary credit first, then settle before another same-time cast commits.
+      context.scheduleForCast('elementalist.tempest.etching-credits', context.time, trigger.cast, {}, undefined, -101);
+    }
+  },
+  tasks: {
+    'elementalist.tempest.etching-credits'(context) {
+      const state = professionCoreState(context);
+      for (const [name, progress] of Object.entries(state.etchings)) {
+        if (!progress || progress.stage !== 'lesser') continue;
+        const otherCasts = progress.otherCasts + 2;
+        state.etchings[name] = { ...progress, stage: otherCasts >= 3 ? 'full' : 'lesser', otherCasts };
+      }
+    }
+  },
   // Overload-start boons retain the triggering overload as source, including on interrupted channels.
   traitTriggers: [
     {

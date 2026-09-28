@@ -1,5 +1,7 @@
+import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
+import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /**
  * Routes Core Elementalist casts to the skill families and persistent mechanics that own their behavior.
  * Catalog fragments remain in `skills/`; cross-cast state lives in `mechanics/`.
@@ -14,11 +16,13 @@ import {
   targetAttunement
 } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 
-import { completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
+import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 
 import {
   beginElementalistSpearCast,
-  completeElementalistSpearProgression
+  completeElementalistSpearProgression,
+  openElementalistEtching,
+  consumeElementalistEtching
 } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
 import { shareAttunementVariantRecharge } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
@@ -27,16 +31,20 @@ import {
   applyGenericPostCast,
   triggerEvasiveArcana
 } from '#gw2/professions/elementalist/core/traits/index.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { applyConjureState, captureConjurePickup } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistRuntime, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
+import {
+  equipConjure,
+  dropConjure,
+  pickUpConjure,
+  captureConjurePickup
+} from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import {
   ensureElementalistElemental,
   completeElementalistElementalCommand,
   completeElementalistGlyphCast
 } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
-import { applyHammerState } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
-import { applyPistolState } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
+import { createHammerOrbs, consumeHammerOrbs } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
+import { elementalistPistolSideEffects } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
 
 // Skill data encodes a granted aura as "Element|seconds"; malformed or
 // zero-length values grant nothing.
@@ -55,65 +63,116 @@ function applySkillAura(context: ElementalistRuntime, cast: RuntimeCast, skill: 
 }
 
 /**
- * Cast-start hook: grants the skill's aura, opens glyph casts, seeds spear
- * etching progress, cancels orb packets Grand Finale is about to supersede, and
- * captures armed spear empowerments for this activation.
+ * Shared cast-start observers grant declared auras, ensure the automatic companion,
+ * and capture armed spear empowerments for this activation.
  */
 export function elementalistOnCastStart(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   // Aura-bearing skills grant their aura before same-time strike/condition
   // packets, so aura-triggered modifiers can affect the skill that granted it.
   applySkillAura(context, cast, skill);
-  captureConjurePickup(context, cast);
   ensureElementalistElemental(context, skill);
   beginElementalistSpearCast(context, cast, skill);
-  const state = professionCoreState(context);
-  if (Number(skill.id) === ID.GRAND_FINALE) {
-    for (const activation of Object.values(state.hammerOrbActivationIds))
-      if (activation) context.cancelOwner({ id: activation, generation: 0 });
-  }
-}
-
-// Commit stateful flipovers and chain progress at cast completion, including
-// aura transmutation, pistol bullets, etchings, orbs, and conjured weapons.
-function applySpecialSkillProgression(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  const state = professionCoreState(context);
-  const at = cast.effectiveEnd;
-
-  const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)];
-  if (aura) {
-    state.activeAuras = state.activeAuras.filter((candidate) => candidate.type !== aura || candidate.expiresAt <= at);
-  }
-
-  completeElementalistSpearProgression(context, skill);
 }
 
 /**
- * Cast-completion hook: settles attunement swaps, conjures, and etching progress,
- * then the Arcane Echo and Fulgor special cases, and finally the
- * pistol, hammer, and trait post-cast owners for the finished activation.
+ * Shared completion observers settle attunement swaps, advance etchings and recharge,
+ * consume Arcane Echo on weapons, and apply cross-skill traits.
  */
 export function elementalistOnCastCommit(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  completeElementalistGlyphCast(context, cast, skill);
-  completeElementalistElementalCommand(context, cast, skill);
   // Core commits exactly one registered attunement transition for the active specialization.
   const target = targetAttunement(skill);
   if (target) {
     completeElementalistAttunement(context, cast);
     // Elementalist spear etchings count attunement swaps among the three
     // completed casts required to upgrade their release skill.
-    applySpecialSkillProgression(context, cast, skill);
+    completeElementalistSpearProgression(context, skill);
     return;
   }
 
-  applyConjureState(context, cast, skill);
-  applySpecialSkillProgression(context, cast, skill);
+  completeElementalistSpearProgression(context, skill);
   shareAttunementVariantRecharge(context, skill);
   // The runtime has already paid the committed dodge's declared endurance cost.
   if (Number(skill.id) === SHARED_SKILL_IDS.DODGE) triggerEvasiveArcana(context, cast, skill);
 
   completeArcaneEcho(context, cast, skill);
 
-  if (Number(skill.id) === ID.FULGOR) {
+  // Cross-skill traits observe the state settled by the skill declarations and shared observers.
+  applyGenericPostCast(context, cast, skill);
+}
+
+/** Skill declarations own these commit triggers; handlers retain aura and companion lifetime bookkeeping. */
+export const elementalistCoreSideEffectHandlers: RuntimeProfession<ElementalistRuntimeState>['sideEffectHandlers'] = {
+  ...elementalistPistolSideEffects,
+  'elementalist.capture-conjure-pickup'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Conjure pickup requires a cast trigger.');
+    captureConjurePickup(context, trigger.cast);
+  },
+  'elementalist.equip-conjure'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Conjures require a cast trigger.');
+    withElementalistCast(context, trigger.cast, () => equipConjure(context, trigger.cast, trigger.skill));
+  },
+  'elementalist.drop-conjure'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Dropping a conjure requires a cast trigger.');
+    withElementalistCast(context, trigger.cast, () => dropConjure(context, trigger.cast, trigger.skill));
+  },
+  'elementalist.pick-up-conjure'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Conjure pickup requires a cast trigger.');
+    withElementalistCast(context, trigger.cast, () => pickUpConjure(context, trigger.cast, trigger.skill));
+  },
+  'elementalist.create-hammer-orbs'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Hammer orbs require a cast trigger.');
+    withElementalistCast(context, trigger.cast, () =>
+      createHammerOrbs(
+        context,
+        trigger.cast,
+        trigger.skill,
+        String(trigger.skill.attunement).split('+') as ElementalistAttunement[]
+      )
+    );
+  },
+  'elementalist.cancel-hammer-orbits'(context) {
+    for (const activation of Object.values(professionCoreState(context).hammerOrbActivationIds))
+      if (activation) context.cancelOwner({ id: activation, generation: 0 });
+  },
+  'elementalist.consume-hammer-orbs'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Grand Finale requires a cast trigger.');
+    consumeHammerOrbs(context, trigger.cast);
+  },
+  'elementalist.open-etching'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Etchings require a cast trigger.');
+    openElementalistEtching(context, trigger.skill);
+  },
+  'elementalist.consume-etching'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Etchings require a cast trigger.');
+    consumeElementalistEtching(context, trigger.skill);
+  },
+  'elementalist.transmute-aura'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Aura transmutation requires a cast trigger.');
+    const aura = AURA_TRANSMUTE_SKILLS[Number(trigger.skill.id)];
+    const state = professionCoreState(context);
+    state.activeAuras = state.activeAuras.filter(
+      (candidate) => candidate.type !== aura || candidate.expiresAt <= trigger.cast.effectiveEnd
+    );
+  },
+  'elementalist.arm-arcane-echo'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Arcane Echo requires a cast trigger.');
+    armArcaneEcho(context, trigger.cast);
+  },
+  'elementalist.summon-elemental'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Elemental summoning requires a cast trigger.');
+    withElementalistCast(context, trigger.cast, () =>
+      completeElementalistGlyphCast(context, trigger.cast, trigger.skill)
+    );
+  },
+  'elementalist.command-elemental'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Elemental commands require a cast trigger.');
+    withElementalistCast(context, trigger.cast, () =>
+      completeElementalistElementalCommand(context, trigger.cast, trigger.skill)
+    );
+  },
+  'elementalist.replace-fulgor'(context, trigger) {
+    if (trigger.kind !== 'cast') throw new TypeError('Fulgor requires a cast trigger.');
+    const { cast, skill } = trigger;
     const fulgorProfile = requireBalanceProfileFromContext(context, PROFILE.fulgor);
     const pulse = requireEffect(fulgorProfile, 'strike', 'Fulgor');
     if (!pulse?.ticks?.length) throw new TypeError('Fulgor requires an explicit strike timeline.');
@@ -141,10 +200,4 @@ export function elementalistOnCastCommit(context: ElementalistRuntime, cast: Run
       );
     }
   }
-
-  // Bullet, orb, and trait post-cast owners run last so they observe the state
-  // this hook has already settled.
-  applyPistolState(context, cast, skill);
-  applyHammerState(context, cast, skill);
-  applyGenericPostCast(context, cast, skill);
-}
+};

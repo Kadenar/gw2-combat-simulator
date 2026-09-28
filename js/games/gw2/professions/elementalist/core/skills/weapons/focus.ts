@@ -79,6 +79,8 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   // Consumes the Fire Aura for a strike, Burning, and five Might, then flips back to Fire Shield.
   [ID.TRANSMUTE_FIRE]: {
+    // Consume all live matching auras on commitment, regardless of which skill or trait granted them.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.transmute-aura' } }],
     name: 'Transmute Fire',
     type: 'Weapon',
     slot: 'Weapon_5',

@@ -31,6 +31,8 @@ const CONJURE_ACTION_ICONS = Object.freeze({
 export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   {
     id: ID.DROP_BUNDLE,
+    // Dropping clears the equipped copy and reports one real bundle swap.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.drop-conjure' } }],
     inputCategory: 'bar-swap', // Dropping a conjure is an explicit return to the equipped weapon bar.
     name: '__drop_bundle',
     displayName: 'Drop Bundle',
@@ -57,6 +59,15 @@ export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = Object.fr
     ['Fiery Greatsword', ID.PICK_UP_FIERY_GREATSWORD]
   ].map(([weapon, id]): Skill => ({
     id: Number(id),
+    // Capture an available ground copy before expiry, then consume that copy only on successful commitment.
+    sideEffects: [
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        do: { type: 'elementalist.capture-conjure-pickup' }
+      },
+      { on: 'castCommit', do: { type: 'elementalist.pick-up-conjure' } }
+    ],
     inputCategory: 'bar-swap',
     name: `__pickup_${weapon}`,
     displayName: `Pick up ${weapon}`,

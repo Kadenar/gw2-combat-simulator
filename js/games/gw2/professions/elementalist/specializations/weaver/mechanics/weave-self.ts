@@ -23,7 +23,6 @@ export const WEAVE_SELF_ACTIVATION_TASK = 'elementalist.weave-self-activation';
 
 /** Schedules Weave Self at its profiled mid-cast activation point. */
 export function startWeaveSelfCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  if (skill.id !== ID.WEAVE_SELF) return;
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   const at = cast.start + (cast.fullEnd - cast.start) * balanceProfileNumber(resourcesProfile, 'firstPacketRatio');
   if (at > cast.effectiveEnd + EPSILON) return;

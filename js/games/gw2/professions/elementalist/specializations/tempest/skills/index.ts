@@ -18,6 +18,19 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.OVERLOAD_FIRE]: {
+    // Only a completed channel locks its attunement; Air also grants Jolt, and non-Water overloads add two etching credits.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => cast.effectiveEnd >= cast.fullEnd,
+        do: { type: 'elementalist.tempest.overload-lockout' }
+      },
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => cast.effectiveEnd >= cast.fullEnd,
+        do: { type: 'elementalist.tempest.etching-credits' }
+      }
+    ],
     name: 'Overload Fire',
     type: 'Profession',
     slot: 'Profession_1',
@@ -43,6 +56,14 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   // Overload Water is modeled for its cast time, recharge, and trait triggers only: its healing
   // pulses carry no simulated damage, condition, or boon packets.
   [ID.OVERLOAD_WATER]: {
+    // Only a completed channel locks its attunement; Air also grants Jolt, and non-Water overloads add two etching credits.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => cast.effectiveEnd >= cast.fullEnd,
+        do: { type: 'elementalist.tempest.overload-lockout' }
+      }
+    ],
     name: 'Overload Water',
     type: 'Profession',
     slot: 'Profession_2',
@@ -58,6 +79,24 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: TEMPEST_OVERLOAD_EFFECTS[ID.OVERLOAD_WATER]
   },
   [ID.OVERLOAD_AIR]: {
+    // Only a completed channel locks its attunement; Air also grants Jolt, and non-Water overloads add two etching credits.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => cast.effectiveEnd >= cast.fullEnd,
+        do: { type: 'elementalist.tempest.overload-lockout' }
+      },
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => cast.effectiveEnd >= cast.fullEnd,
+        do: { type: 'elementalist.tempest.lightning-jolt' }
+      },
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => cast.effectiveEnd >= cast.fullEnd,
+        do: { type: 'elementalist.tempest.etching-credits' }
+      }
+    ],
     name: 'Overload Air',
     type: 'Profession',
     slot: 'Profession_3',
@@ -81,6 +120,19 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: TEMPEST_OVERLOAD_EFFECTS[ID.OVERLOAD_AIR]
   },
   [ID.OVERLOAD_EARTH]: {
+    // Only a completed channel locks its attunement; Air also grants Jolt, and non-Water overloads add two etching credits.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => cast.effectiveEnd >= cast.fullEnd,
+        do: { type: 'elementalist.tempest.overload-lockout' }
+      },
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => cast.effectiveEnd >= cast.fullEnd,
+        do: { type: 'elementalist.tempest.etching-credits' }
+      }
+    ],
     name: 'Overload Earth',
     type: 'Profession',
     slot: 'Profession_4',

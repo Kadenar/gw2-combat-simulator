@@ -567,6 +567,8 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: []
   },
   [ID.TRANSMUTE_EARTH]: {
+    // Consume all live matching auras on commitment, regardless of which skill or trait granted them.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.transmute-aura' } }],
     name: 'Transmute Earth',
     type: 'Weapon',
     slot: 'Weapon_3',

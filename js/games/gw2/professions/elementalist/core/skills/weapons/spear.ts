@@ -126,6 +126,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
   // Etching root: lays the fire field and arms the Volcano chain at its `lesser` stage; the
   // payoff skills below occupy the same slot and are gated on that stage.
   [ID.ETCHING_VOLCANO]: {
+    // Open a field-length etching; the completion observer excludes this root from its own credits.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }],
     name: 'Etching: Volcano',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -158,6 +160,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   // Early payoff: six eruption packets whose coefficients decay from 0.63 down to 0.315.
   [ID.LESSER_VOLCANO]: {
+    // A committed release consumes only its own etching and never advances another etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Lesser Volcano',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -238,6 +242,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   // Full payoff: twelve eruption packets decaying from 1.21 to a 0.05 floor.
   [ID.VOLCANO]: {
+    // A committed release consumes only its own etching and never advances another etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Volcano',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -355,6 +361,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.ETCHING_JO_KULHLAUP]: {
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }],
     name: 'Etching: Jökulhlaup',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -375,6 +383,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: []
   },
   [ID.LESSER_JO_KULHLAUP]: {
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Lesser Jökulhlaup',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -399,6 +409,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.JO_KULHLAUP]: {
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Jökulhlaup',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -447,6 +459,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
   // Lingering aura: five pulses one second apart, each a strike plus one Vulnerability stack,
   // so most of the damage lands well after the 560ms cast.
   [ID.FULGOR]: {
+    // Replace the previous noncritical pulse stream while retaining the ordinary strike and Vulnerability.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.replace-fulgor' } }],
     name: 'Fulgor',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -539,6 +553,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.ETCHING_DERECHO]: {
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }],
     name: 'Etching: Derecho',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -570,6 +586,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.LESSER_DERECHO]: {
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Lesser Derecho',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -585,6 +603,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.DERECHO]: {
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Derecho',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -679,6 +699,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   // Earth's etching root is the odd one out: it lays a Dark field rather than an elemental one.
   [ID.ETCHING_HABOOB]: {
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }],
     name: 'Etching: Haboob',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -699,6 +721,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: []
   },
   [ID.LESSER_HABOOB]: {
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Lesser Haboob',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -716,6 +740,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   // Full payoff retains five-second Cripple and adds Vulnerability and Weakness to the Lesser version's effects.
   [ID.HABOOB]: {
+    // Roots open their field-length window; releases consume only their own etching.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }],
     name: 'Haboob',
     type: 'Weapon',
     slot: 'Weapon_5',

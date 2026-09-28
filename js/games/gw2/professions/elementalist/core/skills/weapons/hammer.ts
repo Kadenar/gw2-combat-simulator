@@ -58,6 +58,8 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // orb's real payoff is the projectile Grand Finale later fires for it. `hammer-orbs` marks the skill
   // as state-gated (it is unavailable while its own orb is still active).
   [ID.FLAME_WHEEL]: {
+    // Create this element's orb and refresh existing orb lifetimes without duplicating their buffs.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     name: 'Flame Wheel',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -271,6 +273,8 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   // Water orb creator; same token-packet shape as Flame Wheel, applying Vulnerability instead of Burning.
   [ID.ICY_COIL]: {
+    // Create this element's orb and refresh existing orb lifetimes without duplicating their buffs.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     name: 'Icy Coil',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -427,6 +431,8 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   // Air orb creator; same token-packet shape as Flame Wheel, applying Weakness.
   [ID.CRESCENT_WIND]: {
+    // Create this element's orb and refresh existing orb lifetimes without duplicating their buffs.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     name: 'Crescent Wind',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -582,6 +588,8 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   // Earth orb creator; same token-packet shape as Flame Wheel, applying Bleeding.
   [ID.ROCKY_LOOP]: {
+    // Create this element's orb and refresh existing orb lifetimes without duplicating their buffs.
+    sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }],
     name: 'Rocky Loop',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -660,6 +668,11 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Snapshot each active orb at acceptance so consuming it at completion does not erase its delayed projectile.
   // Each active orb owns its condition total and projectile finisher; resolution splits Burning applications.
   [ID.GRAND_FINALE]: {
+    // Retire old orbit contacts before packet selection; consume the captured orbs only on commitment.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'elementalist.cancel-hammer-orbits' } },
+      { on: 'castCommit', do: { type: 'elementalist.consume-hammer-orbs' } }
+    ],
     name: 'Grand Finale',
     type: 'Weapon',
     slot: 'Weapon_3',

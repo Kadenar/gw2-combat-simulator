@@ -318,3 +318,26 @@ export function grantPersistingFlames(context: Gw2ResolverRuntime, event: Gw2Res
     resolverSourceSkill(event)
   );
 }
+
+/** Conjurer grants its aura between bundle creation and the resulting swap events. */
+export function applyConjurerAura(
+  context: ElementalistRuntime,
+  cast: RuntimeCast,
+  skill: Skill,
+  applyAura: ElementalistAuraApplier
+): void {
+  const at = cast.effectiveEnd;
+  if (hasTrait(context, TRAIT.CONJURER)) {
+    const conjurerProfile = requireBalanceProfileFromContext(context, PROFILE.conjurer);
+    const conjurerBuff = requireEffect(conjurerProfile, 'buff', 'Conjurer');
+    if (conjurerBuff) {
+      applyAura(context, {
+        at,
+        aura: String(conjurerBuff.kind),
+        duration: conjurerBuff.duration,
+        skillName: 'Conjurer',
+        sourceId: skill.id
+      });
+    }
+  }
+}

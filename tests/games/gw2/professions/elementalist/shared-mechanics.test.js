@@ -9,7 +9,8 @@ import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-de
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import { applyPistolState } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
+import { elementalistPistolSideEffects } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
+import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { availability as evokerAvailability } from '#gw2/professions/elementalist/specializations/evoker/mechanics/availability.js';
@@ -452,7 +453,12 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
     ...elementalistCatalog.skillsById.get(ID.SHATTERING_STONE),
     name: 'Renamed core pistol skill'
   };
-  applyPistolState(pistolContext, pistolContext, shatteringStone);
+  applySkillSideEffects(
+    pistolContext,
+    { ...pistolContext, skill: shatteringStone, command: {} },
+    'castCommit',
+    elementalistPistolSideEffects
+  );
   assert.equal(core.pistolBullets.Earth, false);
   assert.equal(pistolEvents[0].kind, 'shattering stone');
   assert.equal(pistolEvents[0].skillId, shatteringStone.id);
