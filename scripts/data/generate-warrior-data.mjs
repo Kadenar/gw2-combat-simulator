@@ -182,7 +182,8 @@ function normalizeRawSkill(raw, identity) {
       icon: overrides.icon || '',
       type: 'Bundle',
       weapon: '',
-      slot: dragonSlash ? 'Weapon_1' : 'Weapon_1',
+      // Missing API records use the same bundle slot for all supplemental skills.
+      slot: 'Weapon_1',
       specialization: 'Bladesworn',
       categories: dragonSlash ? ['Burst', 'DragonSlash'] : [],
       cooldown,

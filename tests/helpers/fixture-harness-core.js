@@ -1,12 +1,4 @@
-import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
-import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-
-// Fixtures use the same attribute calculator composed into the Mesmer adapter.
-const calcAttributes = createCalculateAttributes(applyMesmerBuildAttributeRules);
-
+// Supply fresh sandbox defaults without loading application or simulation modules.
 export function defaultSimulationConfig(overrides = {}) {
   return {
     specialization: 'Virtuoso',
@@ -51,21 +43,5 @@ export function defaultSimulationConfig(overrides = {}) {
       confusionActivationsPerSecond: 0.5
     },
     ...overrides
-  };
-}
-
-export function runCoreFixtures() {
-  const build = createDefaultBuild(mesmerAppAdapter);
-  const attributes = calcAttributes(build, []);
-  const cooldown = simulateMesmer(['Bladecall', 'Bladecall'], defaultSimulationConfig());
-  const concurrent = simulateMesmer(
-    ['Bladecall', { name: 'Bladesong Distortion', offset: 100 }],
-    defaultSimulationConfig()
-  );
-
-  return {
-    attributes,
-    cooldown,
-    concurrent
   };
 }

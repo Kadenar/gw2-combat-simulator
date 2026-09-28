@@ -62,9 +62,6 @@ interface CommonBuildDefaultsOptions {
    * Profession-specific assumptions merged into the common assumptions.
    */
   readonly assumptions?: ProfessionAssumptionOverrides;
-  readonly startingWeaponSet?: number;
-  readonly targetHealth?: number;
-  readonly targetArmor?: number;
 }
 
 interface CommonBuildDefaults {
@@ -78,24 +75,20 @@ interface CommonBuildDefaults {
 
 /**
  * Creates the portion of a canonical profession build that is identical across
- * professions.
+ * professions. Weapon and target defaults stay fixed here; saved builds own
+ * their configurable values.
  *
  * Gear, weapons, specializations, selected skills, resources, and other
  * profession-specific defaults intentionally remain in the profession's own
  * build.ts.
  */
-export function createCommonBuildDefaults({
-  assumptions = {},
-  startingWeaponSet = DEFAULT_STARTING_WEAPON_SET,
-  targetHealth = DEFAULT_TARGET_HEALTH,
-  targetArmor = STANDARD_TARGET_ARMOR
-}: CommonBuildDefaultsOptions = {}): CommonBuildDefaults {
+export function createCommonBuildDefaults({ assumptions = {} }: CommonBuildDefaultsOptions = {}): CommonBuildDefaults {
   return {
     assumptions: createDefaultSimulationAssumptions(assumptions),
-    startingWeaponSet,
-    targetHealth,
+    startingWeaponSet: DEFAULT_STARTING_WEAPON_SET,
+    targetHealth: DEFAULT_TARGET_HEALTH,
     targetStartingHealthPercent: DEFAULT_TARGET_STARTING_HEALTH_PERCENT,
-    targetArmor,
+    targetArmor: STANDARD_TARGET_ARMOR,
     rotation: []
   };
 }
