@@ -140,6 +140,7 @@ const weaponSpellTooltip: DescribeSimulationTooltip = skillTooltip(
   }
 );
 
+// Match runtime's named spirit attacks so profile removals cannot move packets between summon and command facts.
 const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id);
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
@@ -159,11 +160,15 @@ const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => 
         'Command available active spirits to perform their coordinated attacks. Spirits still in their opening attack cannot participate. Wanderlust also dazes; Preservation has no direct damage from this command.',
       facts: [
         ...simulationEffectFacts(
-          tooltipProfile(balanceContext, RITUALIST.anguish).effects?.slice(2, 3),
+          tooltipProfile(balanceContext, RITUALIST.anguish).effects?.filter(
+            (effect) => effect.type === 'strike' && effect.name === 'Summon Spirits - Anguish'
+          ),
           'requires Anguish'
         ).facts,
         ...simulationEffectFacts(
-          tooltipProfile(balanceContext, RITUALIST.wanderlust).effects?.slice(3, 4),
+          tooltipProfile(balanceContext, RITUALIST.wanderlust).effects?.filter(
+            (effect) => effect.type === 'strike' && effect.name === 'Summon Spirits - Wanderlust'
+          ),
           'requires Wanderlust'
         ).facts
       ]
@@ -179,7 +184,20 @@ const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => 
           : ' Preservation grants party protection and vigor.'),
     facts: [
       ...simulationEffectFacts(selected.effects, 'on summon').facts,
-      ...simulationEffectFacts(profile.effects?.slice(0, id === ID.WANDERLUST ? 3 : 2)).facts,
+      ...simulationEffectFacts(
+        profile.effects?.filter(
+          (effect) =>
+            effect.type === 'strike' &&
+            [
+              'Anguish Autoattack',
+              'Anguish Initial Barrage',
+              'Wanderlust Autoattack',
+              'Wanderlust Initial Swing',
+              'Wanderlust Initial Field',
+              'Preservation Autoattack'
+            ].includes(effect.name || '')
+        )
+      ).facts,
       ...simulationEffectFacts(
         profile.effects?.filter((effect) => effect.type === 'condition'),
         'opening conditions'
@@ -798,7 +816,7 @@ export const necromancerTooltips: ProfessionTooltips = {
       profileFact(balanceContext, id, 'attributeBonus', 'Vitality')
     ]),
     [TRAIT.FEAR_OF_DEATH]: traitTooltip(
-      'Completing a fear-producing cast generates life force, subject to its internal cooldown.',
+      'Landing fear from a non-summon source generates life force, subject to its internal cooldown.',
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'lifeForceGain', 'Life force gained', lifeForce),
         profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)
@@ -871,7 +889,7 @@ export const necromancerTooltips: ProfessionTooltips = {
       )
     ]),
     [TRAIT.AUGURY_OF_DEATH]: traitTooltip(
-      'Shouts trigger life-steal damage and have reduced recharge.',
+      'Shouts trigger life-steal damage. The simulator assumes melee range, including the doubled siphon damage.',
       undefined,
       'on shout'
     ),
@@ -933,23 +951,27 @@ export const necromancerTooltips: ProfessionTooltips = {
       'on barrier application'
     ),
     [TRAIT.FELL_BEACON]: traitTooltip(
-      'Gain expertise from power and increase burning damage.',
+      'Gain expertise from condition damage and increase burning damage.',
       (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeConversion', 'Power converted to expertise', tooltipPercent),
+        profileFact(
+          balanceContext,
+          id,
+          'attributeConversion',
+          'Condition damage converted to expertise',
+          tooltipPercent
+        ),
         modifierFact(balanceContext, 'necromancer.fell-beacon', 'factor', 'Burning damage', tooltipFactorChange)
       ]
     ),
     [TRAIT.NOURISHING_ASHES]: traitTooltip(
-      'Condition applications generate life force, subject to an internal cooldown.',
+      'Burning applications generate life force, subject to an internal cooldown.',
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'lifeForceGain', 'Life force gained', lifeForce),
         profileFact(balanceContext, id, 'cooldown', 'Internal cooldown', tooltipSeconds)
       ]
     ),
     [TRAIT.FEED_FROM_CORRUPTION]: outsideScopeTooltip,
-    [TRAIT.SADISTIC_SEARING]: traitTooltip(
-      'Punishment skills empower a subsequent shade manifestation to inflict burning.'
-    ),
+    [TRAIT.SADISTIC_SEARING]: traitTooltip('Nefarious Favor inflicts burning.'),
     [TRAIT.HERALD_OF_SORROW]: traitTooltip('Replaces Desert Shroud with Sandstorm Shroud and its barrier pulses.'),
     [TRAIT.SAND_SAVANT]: traitTooltip(
       'Use a single greater sand shade with adjusted shade recharge.',
@@ -1068,12 +1090,7 @@ export const necromancerTooltips: ProfessionTooltips = {
     [TRAIT.CHARGED_SOULS]: outsideScopeTooltip,
     [TRAIT.WANDERING_SPIRITS]: outsideScopeTooltip,
     [TRAIT.SPIRITS_GIFT]: outsideScopeTooltip,
-    [TRAIT.EXPLOSIVE_GROWTH]: traitTooltip(
-      'Summoning a creature triggers a strike. The corresponding creature strike multiplier is increased.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'coefficientMultiplier', 'Creature strike multiplier', (value) => `${value}×`)
-      ]
-    ),
+    [TRAIT.EXPLOSIVE_GROWTH]: traitTooltip('Summoning a creature triggers a strike.'),
     [TRAIT.SPIRITS_REMEDY]: outsideScopeTooltip,
     [TRAIT.EMPOWERING_SPIRITS]: traitTooltip('Spirit interactions grant the modeled party boons.'),
     [TRAIT.SPIRITS_STRENGTH]: traitTooltip(
@@ -1096,7 +1113,7 @@ export const necromancerTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.SOUL_TWISTING]: traitTooltip(
-      'Consume spirits through the Soul Twisting mechanic to adjust the next spirit summon.'
+      "Entering Ritualist's Shroud causes your next spirit summon to clear its own cooldown."
     )
   }
 };

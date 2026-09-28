@@ -73,8 +73,9 @@ export const REAPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
         type: 'strike',
         coefficient: 0,
         hits: 1,
-        flatStrikeBase: 276,
-        flatStrikePowerCoeff: 0.02,
+        // The simulator assumes melee range, doubling the base siphon and its power scaling.
+        flatStrikeBase: 344,
+        flatStrikePowerCoeff: 0.025,
         actorType: 'effect',
         canCrit: false,
         damageKind: 'life-steal'

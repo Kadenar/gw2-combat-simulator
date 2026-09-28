@@ -1,6 +1,6 @@
 /**
  * Owns Harbinger elixir skill fragments.
- * Blight state and trait-dependent ground effects remain under `mechanics/`.
+ * Impact hooks read Blight gain from the mapped empowered balance profile for both impact variants.
  */
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
@@ -14,7 +14,6 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     sideEffects: [{ on: 'castStart', do: { type: 'harbinger.elixir-launch' } }],
     effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 360,
-    blightGain: 10,
     // Unmeasured elixir packets currently share cast completion as their impact.
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.8, hits: 1 }
@@ -28,7 +27,6 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 680,
     // Safe animation cancellation is independent of Blight consumption and projectile impact.
     interruptCommitMs: 440,
-    blightGain: 10,
     effects: impactEffects(
       // The launched projectile survives an animation cancel and lands on its measured impact frame.
       { atMs: 400, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
@@ -47,7 +45,6 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     sideEffects: [{ on: 'castStart', do: { type: 'harbinger.elixir-launch' } }],
     effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 360,
-    blightGain: 10,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.8, hits: 1 },
       { type: 'blind', duration: 0 }
@@ -60,7 +57,6 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 680,
     // Safe animation cancellation is independent of Blight consumption.
     interruptCommitMs: 400,
-    blightGain: 15,
     effects: impactEffects(
       // The committed projectile lands independently of the cancelable remaining animation.
       { atMs: 400, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
@@ -85,7 +81,6 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     sideEffects: [{ on: 'castStart', do: { type: 'harbinger.elixir-launch' } }],
     effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 680,
-    blightGain: 10,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 1, hits: 1 },
       // Anguish pairs enemy control with mobility; its empowered profile doubles these durations.
@@ -101,7 +96,6 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 680,
     // Safe animation cancellation is independent of Blight consumption.
     interruptCommitMs: 400,
-    blightGain: 10,
     effects: impactEffects(
       { atMs: 400, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [

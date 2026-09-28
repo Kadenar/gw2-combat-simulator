@@ -31,9 +31,7 @@ export interface MinionDefinition {
   readonly count: number;
   readonly interval: number;
   readonly initialDelay?: number;
-  readonly coefficient: number;
   readonly commandId?: SkillId;
-  readonly rechargeOnMinionDeath?: boolean;
   readonly weaponStrength?: number;
   readonly basePower?: number;
   readonly damagePerCoefficient?: number;
@@ -48,7 +46,6 @@ export interface MinionDefinition {
 interface MinionCommandDefinition {
   readonly strike?: SkillEffect;
   readonly coefficient?: number;
-  readonly condition?: readonly (string | number)[];
   readonly conditions?: readonly (readonly (string | number)[])[];
   readonly control?: string;
 
@@ -104,8 +101,6 @@ export function minionDefinitionForSkill(context: unknown, skillId: SkillId): Mi
     count: balanceProfileNumber(profile, 'minionCount'),
     interval: balanceProfileNumber(profile, 'pulseInterval'),
     initialDelay: profile.initialDelay == null ? undefined : balanceProfileNumber(profile, 'initialDelay'),
-    // With every ordinary attack removed the minion has no autonomous strike.
-    coefficient: ordinary[0] ? effectNumber(profile, ordinary[0], 'coefficient') : 0,
     commandId: profile.commandId as SkillId | undefined,
     weaponStrength: profile.weaponStrength == null ? undefined : balanceProfileNumber(profile, 'weaponStrength'),
     basePower: balanceProfileNumber(profile, 'basePower'),

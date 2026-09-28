@@ -8,7 +8,6 @@ import {
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { resolveSummonOwnedComboFinisher } from '#gw2/professions/necromancer/specializations/reaper/mechanics/combos.js';
 import {
   applyTraitCondition,
   queueTraitCoefficientDamage,
@@ -136,14 +135,6 @@ function reactToControl(context: NecromancerResolverContext, event: NecromancerR
 }
 
 export const reaperResolverEventReactions = Object.freeze({
-  damage(
-    context: NecromancerResolverContext,
-    event: NecromancerResolverEvent,
-    details: NativeResolvedDamageDetails = {}
-  ) {
-    resolveSummonOwnedComboFinisher(context, event);
-    reactToReaperDamage(context, event, details);
-  },
   condition: reactToCondition,
   control: reactToControl
 });

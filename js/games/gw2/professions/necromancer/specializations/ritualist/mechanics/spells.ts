@@ -116,7 +116,6 @@ function grantWeaponSpell(
     generation,
     skillId: cast.skill.id,
     skillName: cast.skill.name,
-    appliedAt: runtime.time,
     recipients
   };
   runtime.emit({

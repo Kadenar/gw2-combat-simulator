@@ -219,7 +219,6 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Explosive Growth',
     profileKind: 'trait',
     categories: ['Trait'],
-    coefficientMultiplier: 1.2,
     effects: [{ name: 'Strike', type: 'strike', coefficient: 1.2, hits: 1, actorType: 'effect' }]
   },
   {

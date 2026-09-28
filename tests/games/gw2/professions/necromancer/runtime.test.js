@@ -470,7 +470,11 @@ test('Augury of Death requires shout completion and survives removal of the shou
     })
   };
   const result = simulate([cast(ID.NOTHING_CAN_SAVE_YOU)], config, { profession });
-  assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === TRAIT.AUGURY_OF_DEATH));
+  const siphon = result.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.sourceId === TRAIT.AUGURY_OF_DEATH
+  );
+  // Melee range doubles both terms of the current 172 + 0.0125 * Power siphon.
+  assert.equal(siphon.damage, 2 * (172 + 0.0125 * config.stats.power));
   const cancelled = simulate([{ ...cast(ID.NOTHING_CAN_SAVE_YOU), interruptAfterMs: 40 }], config, { profession });
   assert.equal(
     cancelled.resolvedEvents.some((event) => event.sourceId === TRAIT.AUGURY_OF_DEATH),

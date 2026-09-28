@@ -10,7 +10,6 @@ interface NecromancerWeaponSpellState {
   readonly generation: number;
   readonly skillId?: SkillId;
   readonly skillName?: string;
-  readonly appliedAt?: number;
   readonly recipients?: Record<string, ChargeGrant>;
   /** Weapon spells that reach allies at full strength rather than the reduced allied share. */
 }

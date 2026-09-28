@@ -20,6 +20,40 @@ import { createNecromancerBuildDefaults, toApplicationBuild } from '#gw2/profess
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
+import { RITUALIST_BALANCE_PROFILE_IDS as RITUALIST } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
+
+// Removing any spirit strike must leave surviving summon and coordinated attacks in their original tooltip groups.
+test('Ritualist tooltip packet roles survive balance-profile removals', () => {
+  const base = withPatchPreview(necromancerProfession, null).balanceContextFor();
+  const facts = (context, skillId) =>
+    describeSimulationSkill(context, context.catalog.skillsById.get(skillId), necromancerTooltips).facts;
+  for (const [profileId, skillId] of [
+    [RITUALIST.anguish, ID.ANGUISH],
+    [RITUALIST.wanderlust, ID.WANDERLUST],
+    [RITUALIST.preservation, ID.PRESERVATION]
+  ]) {
+    for (const effect of base.catalog.balanceProfilesById
+      .get(profileId)
+      .effects.filter((effect) => effect.type === 'strike')) {
+      const preview = withPatchPreview(necromancerProfession, {
+        id: 'spirit-tooltip-removal',
+        label: 'Spirit tooltip removal',
+        professions: {
+          necromancer: {
+            balanceProfiles: { [profileId]: { removeEffects: [{ type: effect.type, name: effect.name }] } }
+          }
+        }
+      }).balanceContextFor('spirit-tooltip-removal');
+      for (const id of [skillId, ID.SUMMON_SPIRITS]) {
+        assert.deepEqual(
+          facts(preview, id),
+          facts(base, id).filter((fact) => !fact.detail.includes(effect.name)),
+          `${effect.name} removed from tooltip ${id}`
+        );
+      }
+    }
+  }
+});
 
 // Raw Scourge costs are rounded only for display, with the same digit grouping as the in-game facts.
 test('Scourge life-force tooltip costs display whole points', () => {
