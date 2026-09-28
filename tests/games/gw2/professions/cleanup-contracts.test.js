@@ -128,8 +128,8 @@ test('Weighty Terms follows canonical mantra IDs and ignores names or final-char
           fullEnd: 0,
           effectiveEnd: 0
         };
-        // Exercise the shared completion boundary before the profession's remaining trait effects.
-        applySkillSideEffects(runtime, cast, 'castCommit');
+        // Match runtime dispatch so named mantra actions run before the remaining trait effects.
+        applySkillSideEffects(runtime, cast, 'castCommit', native.sideEffectHandlers);
         native.onCastCommit(runtime, cast);
       });
       assert.equal(
