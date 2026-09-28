@@ -1,3 +1,22 @@
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  balanceProfileNumber,
+  effectNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
+import type { EngineerResolverContext, EngineerRuntime } from '#gw2/professions/engineer/types.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import type { HolosmithResolverEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
+import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { enqueueGw2OwnedComboFinisher } from '#gw2/platform/resolver/combo-resolution.js';
+import { queueBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import {
+  holosmithEventMetadata,
+  holosmithHeatTier,
+  snapshotHolosmithHeat
+} from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 /**
  * Owns Holosmith sword skill fragments and heat-aware sword variants.
  * Sword cast behavior shared with Core lives in `core/hooks.ts`.
@@ -194,4 +213,135 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
       }
     ]
   }
+});
+
+/** Resolves the heat-scaled Quickness packet emitted by Holosmith's Radiant Arc variant. */
+function handleRadiantArcQuickness(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
+  queueBuff(context, event, {
+    name: 'Radiant Arc - quickness',
+    kind: 'quickness',
+    stacks: 1,
+    duration: requireBalanceNumber(event.duration, 'Radiant Arc field=duration')
+  });
+}
+
+/** Materializes every heat-granted Refraction Cutter blade as a strike, bleed, and projectile finisher. */
+function handleRefractionCutterExtraBlades(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
+  const extraBlades = Math.max(0, Math.trunc(holosmithEventMetadata(event).extraBlades || 0));
+  const refractionCutterHeatTierProfile = requireBalanceProfileFromContext(context, PROFILE.refractionCutterHeatTier);
+  const delay = Math.max(0, balanceProfileNumber(refractionCutterHeatTierProfile, 'initialDelay'));
+  const strike = requireEffect(refractionCutterHeatTierProfile, 'strike', 'Refraction Cutter Heat Tier');
+  const condition = requireEffect(refractionCutterHeatTierProfile, 'condition', 'Bleeding');
+  // Materialize each extra blade independently so its strike can own a matching combo attempt and bleed.
+  for (let blade = 0; blade < extraBlades; blade += 1) {
+    const at = event.at + delay;
+    if (strike) {
+      const damage = context.queue.enqueue(
+        buildResolverStrike({
+          at,
+          name: 'Refraction Cutter Blade',
+          // Heat-generated blades share the base projectile's separate damage identity.
+          damageBreakdownName: 'Refraction Cutter Blade',
+          skillName: event.skillName,
+          coefficient: effectNumber(refractionCutterHeatTierProfile, strike, 'coefficient'),
+
+          hitIndex: blade + 2,
+          totalHits: extraBlades + 1,
+          source: 'engineer',
+          sourceId: ID.REFRACTION_CUTTER_BLADE,
+          actorType: 'player',
+          skillId: event.skillId,
+          skillWeapon: 'Sword',
+          projectile: true,
+          comboFinishers: [
+            {
+              ownerId: 'engineer',
+              finisherType: 'Projectile',
+              chance: 1,
+              preferredFieldTypes: ['Fire'],
+              ambiguousFieldSelection: 'oldest'
+            }
+          ]
+        })
+      );
+      // Register the owned finisher from the queued strike rather than emitting an uncorrelated combo event.
+      enqueueGw2OwnedComboFinisher(context, damage, {
+        ownerId: 'engineer',
+        attemptId: `${event.activationId || event.sourceId}:refraction-cutter:projectile:${blade + 2}`,
+        finisherType: 'Projectile',
+        at,
+        effectAt: at,
+        chance: 1,
+        preferredFieldTypes: ['Fire'],
+        ambiguousFieldSelection: 'oldest'
+      });
+    }
+
+    // Pair the blade's bleed with the same delayed impact and application index.
+    if (condition) {
+      context.queue.enqueue(
+        buildResolverCondition({
+          at,
+          name: `${event.skillName} - Bleeding`,
+          skillName: event.skillName,
+          condition: String(condition.condition),
+          stacks: Number(condition.stacks),
+          duration: Number(condition.duration),
+          applicationIndex: blade + 2,
+          totalApplications: extraBlades + 1,
+          source: 'engineer',
+          sourceId: event.skillId ?? event.sourceId,
+          actorType: 'player',
+          skillId: event.skillId
+        })
+      );
+    }
+  }
+}
+
+/** Arc and Cutter capture their tier; direct Holosmith sword hits sample their profile at impact. */
+export function prepareHolosmithSwordEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
+  if (event.type === 'engineer.radiant-arc-quickness' || event.type === 'engineer.refraction-cutter-extra-blades') {
+    const snapshot = snapshotHolosmithHeat(context);
+    const tier = holosmithHeatTier(snapshot);
+    const arc = event.type === 'engineer.radiant-arc-quickness';
+    const field = arc
+      ? tier === 'enhanced'
+        ? 'enhancedDuration'
+        : tier === 'high'
+          ? 'highDuration'
+          : 'baseDuration'
+      : tier === 'enhanced'
+        ? 'enhancedExtraBlades'
+        : tier === 'high'
+          ? 'highExtraBlades'
+          : 'baseExtraBlades';
+    const profile = requireBalanceProfileFromContext(
+      context,
+      arc ? PROFILE.radiantArcHeatTier : PROFILE.refractionCutterHeatTier
+    );
+    return {
+      ...event,
+      holosmithActivationHeat: snapshot.heat,
+      holosmithEnhancedCapacitySelected: snapshot.enhancedCapacitySelected,
+      ...(arc
+        ? { duration: balanceProfileNumber(profile, field) }
+        : { extraBlades: balanceProfileNumber(profile, field) })
+    };
+  }
+
+  if (
+    event.type !== 'damage' ||
+    event.actorType !== 'player' ||
+    !([ID.SUN_EDGE, ID.SUN_RIPPER, ID.GLEAM_SABER] as readonly number[]).includes(
+      Number(event.skillId ?? event.sourceId)
+    )
+  )
+    return event;
+  return { ...event, holosmithStrikeProfileId: PROFILE.swordHeatTier };
+}
+
+export const holosmithSwordEventHandlers = Object.freeze({
+  'engineer.radiant-arc-quickness': handleRadiantArcQuickness,
+  'engineer.refraction-cutter-extra-blades': handleRefractionCutterExtraBlades
 });

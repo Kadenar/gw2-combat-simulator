@@ -1,8 +1,10 @@
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 /**
  * Composes owner-local Core Mesmer skill catalogs without owning behavior.
  * Runtime execution lives in sibling controller files and persistent illusion state lives under `mechanics/`.
  */
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 import { MESMER_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/slot-skills.js';
@@ -35,3 +37,11 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Skill
   ...MESMER_WEAPONS_SWORD_SKILL_MECHANICS,
   ...MESMER_WEAPONS_TORCH_SKILL_MECHANICS
 });
+
+// Tooltips and runtime share the timelines authored by each summoning skill.
+export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, NonNullable<MesmerSkill['phantasmTiming']>>> =
+  Object.fromEntries(
+    Object.entries(MESMER_CORE_SKILL_MECHANICS).flatMap(([id, skill]) =>
+      skill.phantasmTiming ? [[Number(id), skill.phantasmTiming as NonNullable<MesmerSkill['phantasmTiming']>]] : []
+    )
+  );

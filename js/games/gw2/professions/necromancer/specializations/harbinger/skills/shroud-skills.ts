@@ -16,8 +16,14 @@ import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 /** Supplies Harbinger Shroud fragments to specialization composition. */
 export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.VORACIOUS_ARC]: {
+    // Sample empowerment at the authored launch boundary, not at cast acceptance.
+    sideEffects: [{ on: 'castStart', do: { type: 'harbinger.movement-launch', amount: 20 / 21 } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 840,
-    effects: [{ name: 'Strike', type: 'strike', coefficient: 1.4, hits: 1 }],
+    effects: [
+      { name: 'Strike', type: 'strike', coefficient: 1.4, hits: 1 },
+      { type: 'control', controlKind: 'daze' }
+    ],
     type: 'Profession',
     slot: 'Weapon_4',
     shroud: 'harbinger',
@@ -25,6 +31,8 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     specialization: 'Harbinger'
   },
   [ID.EXIT_HARBINGER_SHROUD]: {
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.exit-shroud' } }],
     castTimeMs: 0,
     effects: [],
     cooldown: 0,
@@ -68,6 +76,8 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     specialization: 'Harbinger'
   },
   [ID.HARBINGER_SHROUD]: {
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.enter-shroud' } }],
     castTimeMs: 0,
     effects: [],
     cooldown: 10,
@@ -163,6 +173,9 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     specialization: 'Harbinger'
   },
   [ID.DEVOURING_CUT]: {
+    // Sample empowerment at the authored launch boundary, not at cast acceptance.
+    sideEffects: [{ on: 'castStart', do: { type: 'harbinger.movement-launch', amount: 0.75 } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 480,
     // Devouring Cut commits at its impact frame before the default cast finishes.
     interruptCommitMs: 280,

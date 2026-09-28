@@ -1,3 +1,4 @@
+import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -35,6 +36,7 @@ import type { EffectMetadata } from '#gw2/platform/engine/events/events.js';
 const BLIGHT = 'harbinger.blight-clock';
 const COMMIT = 'harbinger.blight-commit';
 const IMPACT = 'harbinger.elixir-impact';
+const MOVEMENT = 'harbinger.movement-impact';
 
 /** One replaceable wake owns the next actual accrual, expiry, or Meltdown deadline. */
 function refreshBlight(runtime: NecromancerRuntime): void {
@@ -180,47 +182,50 @@ function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast): boolean {
   return empowered;
 }
 
-/** Empowerment is selected at the launch/hit boundary, after earlier stack expiries and passive ticks. */
-function commit(runtime: NecromancerRuntime, cast: RuntimeCast, impactAt: number): void {
+/** Elixir launch spends live Blight before queuing its independent local and hostile impact. */
+function launchElixir(runtime: NecromancerRuntime, cast: RuntimeCast, impactAt: number): void {
   const empowered = spendBlight(runtime, cast);
   const blight = harbingerState.from(runtime).blight;
-  if (cast.skill.categories?.includes('Elixir')) {
-    if (hasTrait(runtime, TRAIT.BOLSTERING_BREW)) {
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.bolsteringBrew);
-      emitHarbingerEffects(
-        runtime,
-        cast.skill,
-        (profile.effects ?? []).map((effect) => ({
-          ...effect,
-          atMs: 0,
-          audience: hasTrait(runtime, TRAIT.TWISTED_MEDICINE) ? party(runtime) : undefined
-        })),
-        cast
-      );
-    }
-
-    runtime.scheduleForCast(IMPACT, impactAt, cast, { empowered, blight });
-  } else {
-    const profile = empowered
-      ? requireBalanceProfileFromContext(runtime, HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)])
-      : cast.skill;
-    emitHarbingerEffects(runtime, cast.skill, profile.effects ?? [], cast, {
-      necromancerBlight: blight
-    });
-    if (cast.skill.id !== ID.DEVOURING_CUT)
-      runtime.emit({
-        type: 'control',
-        at: canonicalTime(runtime.time + (cast.command.impactDelayMs ?? 0) / 1000),
-        source: 'necromancer',
-        sourceId: cast.skill.id,
-        skillId: cast.skill.id,
-        skillName: cast.skill.name,
-        actorType: 'player',
-        activationId: cast.id,
-        offTarget: cast.command.offTarget,
-        controlKind: hasTrait(runtime, TRAIT.DOOM_APPROACHES) ? 'fear' : 'daze'
-      });
+  if (hasTrait(runtime, TRAIT.BOLSTERING_BREW)) {
+    const profile = requireBalanceProfileFromContext(runtime, PROFILE.bolsteringBrew);
+    emitHarbingerEffects(
+      runtime,
+      cast.skill,
+      (profile.effects ?? []).map((effect) => ({
+        ...effect,
+        atMs: 0,
+        audience: hasTrait(runtime, TRAIT.TWISTED_MEDICINE) ? party(runtime) : undefined
+      })),
+      cast
+    );
   }
+
+  runtime.scheduleForCast(IMPACT, impactAt, cast, { empowered, blight });
+}
+
+/** Movement launch carries the post-spend snapshot; its authored control receives the trait replacement. */
+function launchMovement(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+  const empowered = spendBlight(runtime, cast);
+  const blight = harbingerState.from(runtime).blight;
+  const profile = empowered
+    ? requireBalanceProfileFromContext(runtime, HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)])
+    : cast.skill;
+  emitHarbingerEffects(
+    runtime,
+    cast.skill,
+    [
+      ...(profile.effects ?? []),
+      ...(empowered ? (cast.skill.effects?.filter((effect) => effect.type === 'control') ?? []) : [])
+    ].map((effect) =>
+      effect.type === 'control' && hasTrait(runtime, TRAIT.DOOM_APPROACHES)
+        ? { ...effect, controlKind: 'fear' }
+        : effect
+    ),
+    cast,
+    {
+      necromancerBlight: blight
+    }
+  );
 }
 
 /** Blight lives on the one runtime; shroud callbacks own every entry and exit, including automatic depletion. */
@@ -269,27 +274,28 @@ export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
       multiplier: { profile: PROFILE.darkGunslinger, field: 'rechargeMultiplier' }
     }
   ],
-  onCastStart(runtime, cast) {
-    if (cast.skill.categories?.includes('Elixir')) {
-      if (cast.cancelled) return;
+  sideEffectHandlers: {
+    'harbinger.elixir-launch'(runtime, context) {
+      if (context.kind !== 'cast' || context.cast.cancelled) return;
+      const cast = context.cast;
       const strike = cast.skill.effects?.find((effect) => effect.type === 'strike');
       const impactAt = strike
         ? effectFirstAt(cast.start, cast.fullEnd, scaleCastBoundTiming(cast, cast.skill, strike))
         : cast.fullEnd;
-      // The thrown elixir's self Blight and boons remain local; only hostile packets carry target travel below.
       const at = canonicalTime(cast.start + 0.36);
       runtime.scheduleForCast(COMMIT, at, cast, { impactAt: Math.max(at, canonicalTime(impactAt)) });
-    } else if ([ID.VORACIOUS_ARC, ID.DEVOURING_CUT].some((id) => id === Number(cast.skill.id))) {
-      const progress = cast.skill.id === ID.DEVOURING_CUT ? 0.75 : 20 / 21;
+    },
+    'harbinger.movement-launch'(runtime, context, action) {
+      if (context.kind !== 'cast') return;
+      const cast = context.cast;
+      if (action.type !== 'harbinger.movement-launch' || action.amount == null)
+        throw new TypeError('Movement launch requires progress.');
+      const progress = sideEffectAmount(runtime, action.amount);
       const at = canonicalTime(
         cast.start + quantizeGw2ActionTimingMs((cast.fullEnd - cast.start) * progress * 1000) / 1000
       );
-      if (at <= cast.effectiveEnd) runtime.scheduleForCast(COMMIT, at, cast, { impactAt: at });
+      if (at <= cast.effectiveEnd) runtime.scheduleForCast(MOVEMENT, at, cast);
     }
-  },
-  modifyEffects(_runtime, cast, effects) {
-    if (HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)]) return [];
-    return effects;
   },
   onCastCommit(runtime, cast) {
     if (cast.skill.id === ID.DARK_BARRAGE) deathlyHaste(runtime, cast.skill);
@@ -312,7 +318,10 @@ export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
     },
     [COMMIT](runtime, data) {
       const { cast, impactAt } = data as { cast: RuntimeCast; impactAt: number };
-      commit(runtime, cast, impactAt);
+      launchElixir(runtime, cast, impactAt);
+    },
+    [MOVEMENT](runtime, data) {
+      launchMovement(runtime, (data as { cast: RuntimeCast }).cast);
     },
     [IMPACT](runtime, data) {
       const { cast, empowered, blight } = data as { cast: RuntimeCast; empowered: boolean; blight: number };

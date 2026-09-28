@@ -102,56 +102,60 @@ function alliedAshes(
     );
 }
 
-/** Ashes is granted during a committed animation; acceptance cannot expose its charges to earlier hits. */
+/** Accepted Ashes casts grant after 560 ms, without exposing charges at acceptance or waiting for animation end. */
 export function startFirebrandAshes(runtime: Runtime, cast: RuntimeCast): void {
-  if (cast.skill.id !== ID.ASHES_OF_THE_JUST) return;
-  runtime.schedule(ASHES, canonicalTime(cast.start + 0.56), {
+  runtime.scheduleForCast(ASHES, canonicalTime(cast.start + 0.56), cast);
+}
+
+/** The application boundary grants Might and installs the selected charge components together. */
+function grantFirebrandAshes(runtime: Runtime, cast: RuntimeCast): void {
+  const event: Gw2ResolverEvent = {
     type: 'buff',
-    at: cast.start,
+    at: runtime.time,
     source: 'guardian',
     sourceId: cast.skill.id,
     actorType: 'player',
     skillId: cast.skill.id,
     skillName: cast.skill.name,
     activationId: cast.id
+  };
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.ashes);
+  const might = requireEffect(profile, 'boon', 'might');
+  if (might)
+    emitGuardianBoon(runtime, {
+      ...event,
+      at: runtime.time,
+      kind: 'might',
+      stacks: effectNumber(profile, might, 'stacks'),
+      duration: effectNumber(profile, might, 'duration'),
+      audience: { recipients: 'party' }
+    });
+  const buff = requireEffect(profile, 'buff', 'ashes-of-the-just');
+  const burn = requireEffect(profile, 'condition', 'Burning');
+  if (!buff || !burn) return;
+  const state = firebrandState.from(runtime);
+  const duration = effectNumber(profile, buff, 'duration');
+  state.ashes = grantCharges(
+    balanceProfileNumber(profile, 'maximumStacks'),
+    gw2EffectExpiresAt(runtime.time, duration)
+  );
+  state.ashesBurnDuration = effectNumber(profile, burn, 'duration');
+  runtime.emit({
+    ...event,
+    at: runtime.time,
+    name: 'Ashes of the Just',
+    kind: 'ashes-of-the-just',
+    stacks: state.ashes.charges,
+    duration,
+    audience: { recipients: 'party' }
   });
+  runtime.schedule(EXPIRE, state.ashes.expiresAt, undefined, undefined, 10);
+  alliedAshes(runtime, event, state.ashes.charges, state.ashes.expiresAt - runtime.time, false);
 }
 
 export const firebrandEffectTasks = {
   [ASHES](runtime: Runtime, data: unknown) {
-    const event = data as Gw2ResolverEvent;
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.ashes);
-    const might = requireEffect(profile, 'boon', 'might');
-    if (might)
-      emitGuardianBoon(runtime, {
-        ...event,
-        at: runtime.time,
-        kind: 'might',
-        stacks: effectNumber(profile, might, 'stacks'),
-        duration: effectNumber(profile, might, 'duration'),
-        audience: { recipients: 'party' }
-      });
-    const buff = requireEffect(profile, 'buff', 'ashes-of-the-just');
-    const burn = requireEffect(profile, 'condition', 'Burning');
-    if (!buff || !burn) return;
-    const state = firebrandState.from(runtime);
-    const duration = effectNumber(profile, buff, 'duration');
-    state.ashes = grantCharges(
-      balanceProfileNumber(profile, 'maximumStacks'),
-      gw2EffectExpiresAt(runtime.time, duration)
-    );
-    state.ashesBurnDuration = effectNumber(profile, burn, 'duration');
-    runtime.emit({
-      ...event,
-      at: runtime.time,
-      name: 'Ashes of the Just',
-      kind: 'ashes-of-the-just',
-      stacks: state.ashes.charges,
-      duration,
-      audience: { recipients: 'party' }
-    });
-    runtime.schedule(EXPIRE, state.ashes.expiresAt, undefined, undefined, 10);
-    alliedAshes(runtime, event, state.ashes.charges, state.ashes.expiresAt - runtime.time, false);
+    grantFirebrandAshes(runtime, (data as { cast: RuntimeCast }).cast);
   },
   [EXPIRE](runtime: Runtime) {
     expireCharges(firebrandState.from(runtime).ashes, runtime.time);

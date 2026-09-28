@@ -79,6 +79,9 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     flipSkillId: null
   },
   [ID.DEVOURING_DARKNESS]: {
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castStart', do: { type: 'necromancer.devouring-impact' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 600,
     // The replacement handler scales this per-condition payload using the live target state.
     maximumConditions: 5,

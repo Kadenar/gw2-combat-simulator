@@ -4,7 +4,7 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { applyMesmerRuntimeManifest, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
 import {
@@ -13,9 +13,9 @@ import {
 } from '#gw2/professions/mesmer/specializations/chronomancer/traits/shatters.js';
 import {
   MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
-  MESMER_CHRONOMANCER_SHATTERS,
   MESMER_CHRONOMANCER_TRAIT_DAMAGE
 } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
+import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
 import type { MesmerMechanics, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import {
   CHRONOMANCER_BALANCE_PROFILE_IDS as PROFILE,
@@ -78,12 +78,4 @@ export function initializeChronomancerRuntime(context: MesmerRuntime): void {
     scheduleExpiry: (at) => context.schedule('mesmer.continuum-expire', at, at, undefined, -30)
   });
   runtime.continuum = continuum;
-  // Continuum Split replaces the ordinary shatter path while still publishing a resolved shatter contract.
-  runtime.skillCompletionHandlers.push((_context, cast, skill, at) =>
-    skill.id === ID.CONTINUUM_SPLIT
-      ? continuum.beginContinuumSplit(skill, at, {
-          activationId: cast.id
-        })
-      : false
-  );
 }

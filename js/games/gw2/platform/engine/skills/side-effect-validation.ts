@@ -100,7 +100,13 @@ export function validateEffectReactions(catalog: CanonicalCatalog, skill: Skill,
     if (
       !rule ||
       !stage ||
-      rule.on !== stage ||
+      (rule.on === 'combo.resolved'
+        ? !(
+            effect.comboFinishers?.length ||
+            (effect.type === 'strike' && effect.ticks?.some((tick) => tick.comboFinishers?.length)) ||
+            (effect.type === 'condition' && effect.ticks?.some((tick) => tick.comboFinishers?.length))
+          )
+        : rule.on !== stage) ||
       !['player', 'summon', 'effect'].includes(rule.actor) ||
       !['each', 'first'].includes(rule.packets) ||
       (rule.when !== undefined && typeof rule.when !== 'function')

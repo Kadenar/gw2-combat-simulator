@@ -11,6 +11,7 @@ import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 export interface MinionAttack {
+  readonly effect?: SkillEffect;
   readonly name: string;
   readonly coefficient?: number;
   readonly offset?: number;
@@ -45,6 +46,7 @@ export interface MinionDefinition {
 }
 
 interface MinionCommandDefinition {
+  readonly strike?: SkillEffect;
   readonly coefficient?: number;
   readonly condition?: readonly (string | number)[];
   readonly conditions?: readonly (readonly (string | number)[])[];
@@ -54,7 +56,6 @@ interface MinionCommandDefinition {
   readonly blindDuration?: number;
   readonly impactDelay?: number;
   readonly consumes?: number;
-  readonly lifeForceGain?: number;
   readonly attacks?: readonly MinionAttack[];
 }
 
@@ -152,6 +153,7 @@ export function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefi
     .map((effect) => [effect.condition || '', effect.stacks ?? 1, effect.duration || 0] as const);
   const controlEffect = effects.find((effect) => effect.type === 'control' || effect.type === 'blind');
   return {
+    strike,
     coefficient: Number(strike?.coefficient || 0),
     conditions,
     control: controlEffect?.type === 'blind' ? 'blind' : controlEffect?.controlKind || attacks[0]?.controlKind || '',
@@ -160,7 +162,6 @@ export function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefi
     blindDuration: Number(controlEffect?.duration || 0),
     impactDelay: Number(skill.impactDelay || 0),
     consumes: Number(skill.consumes || 0),
-    lifeForceGain: Number(skill.lifeForceOnHit || 0),
     attacks
   };
 }

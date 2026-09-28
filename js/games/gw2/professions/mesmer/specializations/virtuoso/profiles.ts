@@ -2,10 +2,8 @@ import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerShatterProfile, mesmerTraitDamageProfile } from '#gw2/professions/mesmer/core/profiles.js';
-import {
-  MESMER_VIRTUOSO_SHATTERS,
-  MESMER_VIRTUOSO_TRAIT_DAMAGE
-} from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
+import { MESMER_VIRTUOSO_TRAIT_DAMAGE } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
+import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
 
 export const VIRTUOSO_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'mesmer.virtuoso.resources',
@@ -24,13 +22,11 @@ export const VIRTUOSO_BALANCE_PROFILE_IDS = Object.freeze({
   bloodsong: TRAIT.BLOODSONG
 });
 
-export const VIRTUOSO_SHATTER_PROFILE_IDS: Readonly<Record<number, string>> = Object.freeze({
-  [ID.BLADETURN_REQUIEM]: VIRTUOSO_BALANCE_PROFILE_IDS.bladeturnRequiem,
-  [ID.BLADESONG_DISSONANCE]: VIRTUOSO_BALANCE_PROFILE_IDS.bladesongDissonance,
-  [ID.BLADESONG_SORROW]: VIRTUOSO_BALANCE_PROFILE_IDS.bladesongSorrow,
-  [ID.BLADESONG_HARMONY]: VIRTUOSO_BALANCE_PROFILE_IDS.bladesongHarmony,
-  [ID.BLADESONG_DISTORTION]: VIRTUOSO_BALANCE_PROFILE_IDS.bladesongDistortion
-});
+export const VIRTUOSO_SHATTER_PROFILE_IDS: Readonly<Record<number, string>> = Object.freeze(
+  Object.fromEntries(
+    Object.entries(MESMER_VIRTUOSO_SHATTERS).map(([id, shatter]) => [Number(id), String(shatter.balanceProfileId)])
+  )
+);
 
 export const VIRTUOSO_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   {
@@ -51,10 +47,7 @@ export const VIRTUOSO_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
         [ID.BLADESONG_HARMONY]: 'Bladesong Harmony',
         [ID.BLADESONG_DISTORTION]: 'Bladesong Distortion'
       }[Number(skillId)] || `Virtuoso Shatter ${skillId}`,
-      shatter,
-      Number(skillId) === ID.BLADESONG_SORROW
-        ? [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 3, stacks: 1 }]
-        : []
+      shatter
     )
   ),
   trait(VIRTUOSO_BALANCE_PROFILE_IDS.deadlyBlades, 'Deadly Blades', {

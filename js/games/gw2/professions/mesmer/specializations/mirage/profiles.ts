@@ -13,7 +13,10 @@ import {
 } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
-import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
+import {
+  MESMER_MIRAGE_AMBUSH_SKILLS,
+  MIRAGE_MIRROR_EFFECTS
+} from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 
 import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerAmbushAttack, MesmerAmbushStrike } from '#gw2/professions/mesmer/types.js';
@@ -184,9 +187,7 @@ export const MIRAGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     durationMultiplier: 0.75,
     durationPerTier: 1.5,
     effects: [
-      { name: 'Strike', type: 'strike', coefficient: 0.6, hits: 1 },
-      // Touching a mirror weakens nearby enemies; creating it does not apply the condition.
-      { name: 'Weakness', type: 'condition', condition: 'Weakness', stacks: 1, duration: 4 },
+      ...MIRAGE_MIRROR_EFFECTS,
       { name: 'mirage-mirror', type: 'buff', kind: 'mirage-mirror', duration: 8, stacks: 1 }
     ]
   },

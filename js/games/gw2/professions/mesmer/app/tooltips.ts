@@ -1,3 +1,4 @@
+import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
@@ -35,15 +36,10 @@ import {
   TROUBADOUR_BALANCE_PROFILE_IDS as TROUBADOUR,
   TROUBADOUR_INSTRUMENT_PROFILE_IDS
 } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
-import {
-  MESMER_CORE_SHATTERS,
-  MESMER_CORE_PHANTASM_ATTACK_TIMINGS
-} from '#gw2/professions/mesmer/core/mechanics/definitions.js';
-import {
-  MESMER_CHRONOMANCER_SHATTERS,
-  MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS
-} from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
-import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
+import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
+import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
+import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
+import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 

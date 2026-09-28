@@ -2,10 +2,8 @@ import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerShatterProfile, mesmerTraitDamageProfile } from '#gw2/professions/mesmer/core/profiles.js';
-import {
-  MESMER_CHRONOMANCER_SHATTERS,
-  MESMER_CHRONOMANCER_TRAIT_DAMAGE
-} from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
+import { MESMER_CHRONOMANCER_TRAIT_DAMAGE } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
+import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
 
 export const CHRONOMANCER_BALANCE_PROFILE_IDS = Object.freeze({
   continuumSplit: 'mesmer.chronomancer.continuum-split',
@@ -21,12 +19,11 @@ export const CHRONOMANCER_BALANCE_PROFILE_IDS = Object.freeze({
   chronophantasma: TRAIT.CHRONOPHANTASMA
 });
 
-export const CHRONOMANCER_SHATTER_PROFILE_IDS: Readonly<Record<number, string>> = Object.freeze({
-  [ID.CONTINUUM_SPLIT]: CHRONOMANCER_BALANCE_PROFILE_IDS.continuumSplit,
-  [ID.TIME_SINK]: CHRONOMANCER_BALANCE_PROFILE_IDS.timeSink,
-  [ID.REWINDER]: CHRONOMANCER_BALANCE_PROFILE_IDS.rewinder,
-  [ID.SPLIT_SECOND]: CHRONOMANCER_BALANCE_PROFILE_IDS.splitSecond
-});
+export const CHRONOMANCER_SHATTER_PROFILE_IDS: Readonly<Record<number, string>> = Object.freeze(
+  Object.fromEntries(
+    Object.entries(MESMER_CHRONOMANCER_SHATTERS).map(([id, shatter]) => [Number(id), String(shatter.balanceProfileId)])
+  )
+);
 
 export const CHRONOMANCER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   ...Object.entries(MESMER_CHRONOMANCER_SHATTERS).map(([skillId, shatter]) => ({
@@ -39,13 +36,9 @@ export const CHRONOMANCER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
         [ID.REWINDER]: 'Rewinder',
         [ID.SPLIT_SECOND]: 'Split Second'
       }[Number(skillId)] || `Chronomancer Shatter ${skillId}`,
-      shatter,
-      Number(skillId) === ID.REWINDER
-        ? [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 3, stacks: 1 }]
-        : []
+      shatter
     ),
-    // The existing Continuum controller reads this duration per player or clone shatter source.
-    ...(Number(skillId) === ID.CONTINUUM_SPLIT ? { durationPerTier: 1.5 } : {})
+    ...(shatter.durationPerTier == null ? {} : { durationPerTier: shatter.durationPerTier })
   })),
   trait(CHRONOMANCER_BALANCE_PROFILE_IDS.flowOfTime, 'Flow of Time', {
     criticalChance: 0.15

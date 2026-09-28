@@ -51,6 +51,9 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Par
     castTimeMs: 1920
   },
   [ID.ILLUSIONARY_COUNTER]: {
+    // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
+    flipArm: { skillId: ID.COUNTERSPELL, duration: 2, delay: 0, anchor: 'castStart' },
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }],
     castTimeMs: 1200,
     effects: [],
     defaultInterruptMs: 120,

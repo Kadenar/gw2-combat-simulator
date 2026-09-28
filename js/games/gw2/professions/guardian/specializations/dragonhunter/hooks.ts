@@ -122,6 +122,11 @@ function tetherBurn(runtime: Runtime, data: unknown): void {
 /** Dragonhunter owns its landed tether, passive cadence, and committed trap/virtue effects without replay records. */
 export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
   sideEffectHandlers: {
+    // Breaking a tether retires its follow-up without touching parent recharge.
+    'guardian.break-tether'(runtime) {
+      dragonhunterState.from(runtime).tetherUntil = 0;
+      consumeSkillFlip(runtime.profession.core.availableFlips, ID.HUNTERS_VERDICT);
+    },
     'guardian.attach-tether'(runtime, context) {
       if (context.kind !== 'effect') return;
       const event = context.trigger.event;
@@ -193,11 +198,6 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
     if (virtue) {
       refreshGuardianVirtues(runtime);
       if (readyVirtues.has(cast)) applyGuardianVirtueActivationTraits(runtime, cast, virtue);
-    }
-
-    if (cast.skill.id === ID.HUNTERS_VERDICT) {
-      dragonhunterState.from(runtime).tetherUntil = 0;
-      consumeSkillFlip(runtime.profession.core.availableFlips, ID.HUNTERS_VERDICT);
     }
 
     if (cast.skill.slot === 'Elite' && hasTrait(runtime, TRAIT.HUNTERS_DETERMINATION)) {

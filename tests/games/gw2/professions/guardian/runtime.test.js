@@ -545,7 +545,7 @@ test('Firebrand page exhaustion waits on the selected recovery policy and disabl
   );
   assert.equal(result.steps[1].invalid, true);
   assert.equal(result.warnings.length, 1);
-  assert.match(result.warnings[0], /tome pages/);
+  assert.match(result.warnings[0], /tomePages/);
   assert.equal(result.rotationEndTime, 0);
 });
 
@@ -589,13 +589,14 @@ test('Firebrand mantra recharge wakes ignore transient Alacrity and preserve lat
 
 test('Firebrand Ashes grants at application, ignores misses, and preserves hit lineage at inclusive expiry', () => {
   const seen = [];
+  const expiry = fb(run([ID.TOME_OF_JUSTICE, ID.ASHES_OF_THE_JUST], firebrand)).ashes.expiresAt;
   const result = run([ID.TOME_OF_JUSTICE, ID.ASHES_OF_THE_JUST, wait(11000)], firebrand, (runtime) => {
     strike(runtime, 0.2);
     strike(runtime, 0.6, { offTarget: true });
     strike(runtime, 0.7, { actorType: 'summon' });
     strike(runtime, 1);
     strike(runtime, 1.1);
-    strike(runtime, 10.56);
+    strike(runtime, expiry);
     const apply = runtime.applyCondition;
     runtime.applyCondition = (event) => {
       if (event.sourceId === 'guardian.ashes-of-the-just') seen.push([event.at, event.activationId]);
@@ -605,7 +606,7 @@ test('Firebrand Ashes grants at application, ignores misses, and preserves hit l
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(seen, [
     [1, 'impact-1'],
-    [10.56, 'impact-10.56']
+    [expiry, `impact-${expiry}`]
   ]);
   assert.equal(fb(result).ashes.charges, 0);
   const canceled = run(
@@ -1733,5 +1734,38 @@ test('Big Game Hunter preserves hit eligibility, tether expiry, attribution, and
       result.resolvedEvents.indexOf(packet) >
         result.resolvedEvents.findLastIndex((event) => event.type === 'damage' && event.at === hit.at)
     );
+  }
+});
+
+// Removing a declaration must remove its intrinsic transition instead of exposing a second global skill-ID owner.
+test('Guardian activation transitions are owned by their selected skill declarations', () => {
+  for (const [skillId, specialization, weapon, active] of [
+    [ID.ZEALOTS_FLAME, 'Core', 'Sword', (result) => Boolean(core(result).availableFlips[ID.ZEALOTS_FIRE])],
+    [ID.JUSTICE, 'Core', 'Scepter', (result) => core(result).justiceActiveArmed],
+    [ID.SYMBOL_OF_LUMINANCE, 'Core', 'Spear', (result) => core(result).spearLuminanceUntil > 0],
+    [ID.SYMBOL_OF_IGNITION, 'Core', 'Pistol', (result) => core(result).symbolIgnitionUntil > 0],
+    [ID.TOME_OF_JUSTICE, 'Firebrand', 'Scepter', (result) => fb(result).activeTome === 'justice'],
+    [ID.FLOWING_RESOLVE, 'Willbender', 'Sword', (result) => wb(result).resolveUntil > 0],
+    [ID.ENTER_RADIANT_FORGE, 'Luminary', 'Sword', (result) => lum(result).radiantForge],
+    [ID.RADIANT_JUSTICE, 'Luminary', 'Sword', (result) => lum(result).radiantJusticeArmed],
+    [ID.EFFULGENT_STANCE, 'Luminary', 'Sword', (result) => lum(result).effulgentActiveUntil > 0]
+  ]) {
+    const config = {
+      specialization,
+      primaryWeapon: weapon,
+      secondaryWeapon: skillId === ID.ZEALOTS_FLAME ? 'Torch' : ''
+    };
+    const source = {
+      runtimeFor(config) {
+        const native = guardianProfession.runtimeFor(config);
+        return { ...native, catalog: withSkill(native.catalog, skillId, { sideEffects: [] }) };
+      }
+    };
+    const original = run([skillId], config);
+    const removed = run([skillId], config, () => {}, source);
+    assert.deepEqual(original.warnings, []);
+    assert.deepEqual(removed.warnings, []);
+    assert.equal(active(original), true, `${skillId} declared activation`);
+    assert.equal(active(removed), false, `${skillId} has no procedural fallback`);
   }
 });

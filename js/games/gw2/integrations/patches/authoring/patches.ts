@@ -584,15 +584,13 @@ const MECHANIST_PROFILE_FIELD_RENAMES: Readonly<Record<string, Readonly<Record<s
     weaponAttributeBonus: 'precisionCap',
     coefficientMultiplier: 'improvedInheritanceRatio',
     basePower: 'basePrecision'
-  },
-  '63095': { maximumStacks: 'packetCount' }
+  }
 };
 
 /** Preserves old sparse edits without mutating inputs or silently overriding a second spelling. */
 function migrateBalanceProfileFields(key: string, edit: SkillPatchEdit): SkillPatchEdit {
   const names: Readonly<Record<string, string>> = {
-    'Jade Mech Attribute Inheritance': 'engineer.mechanist.mech',
-    'Jade Buster Cannon': '63095'
+    'Jade Mech Attribute Inheritance': 'engineer.mechanist.mech'
   };
   const renames = MECHANIST_PROFILE_FIELD_RENAMES[names[key] || key];
   if (!renames || !edit.fields) return edit;

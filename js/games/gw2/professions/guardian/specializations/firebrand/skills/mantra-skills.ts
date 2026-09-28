@@ -31,6 +31,8 @@ const WEIGHTY_TERMS_REWARDS: Skill['sideEffects'] = [
 
 export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.PORTENT_OF_FREEDOM]: {
+    // This phase updates the shared charge controller.
+    sideEffects: [{ on: 'castCommit', do: { type: `guardian.use-mantra-${ID.MANTRA_OF_LIBERATION}` } }],
     castTimeMs: 0,
     canCastConcurrently: true,
     cooldown: 25,
@@ -44,6 +46,8 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.MANTRA_OF_POTENCE]: {
+    // This phase updates the shared charge controller.
+    sideEffects: [{ on: 'castCommit', do: { type: `guardian.prepare-mantra-${ID.MANTRA_OF_POTENCE}` } }],
     castTimeMs: 1520,
     canCastConcurrently: false,
     cooldown: 20,
@@ -52,6 +56,8 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: []
   },
   [ID.RESTORING_REPRIEVE]: {
+    // This phase updates the shared charge controller.
+    sideEffects: [{ on: 'castCommit', do: { type: `guardian.use-mantra-${ID.MANTRA_OF_SOLACE}` } }],
     castTimeMs: 0,
     canCastConcurrently: true,
     cooldown: 10,
@@ -65,6 +71,8 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.MANTRA_OF_SOLACE]: {
+    // This phase updates the shared charge controller.
+    sideEffects: [{ on: 'castCommit', do: { type: `guardian.prepare-mantra-${ID.MANTRA_OF_SOLACE}` } }],
     castTimeMs: 1520,
     canCastConcurrently: false,
     cooldown: 24,
@@ -73,7 +81,11 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: []
   },
   [ID.OVERWHELMING_CELERITY]: {
-    sideEffects: WEIGHTY_TERMS_REWARDS,
+    // Weighty Terms rewards precede final-charge retirement.
+    sideEffects: [
+      ...WEIGHTY_TERMS_REWARDS,
+      { on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_POTENCE}` } }
+    ],
     castTimeMs: 0,
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
@@ -83,6 +95,8 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.ECHO_OF_TRUTH]: {
+    // Echo consumes the ordinary Truth follow-up on commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.ECHO_OF_TRUTH } }],
     castTimeMs: 200,
     effects: [
       {
@@ -93,6 +107,8 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.POTENT_HASTE]: {
+    // This phase updates the shared charge controller.
+    sideEffects: [{ on: 'castCommit', do: { type: `guardian.use-mantra-${ID.MANTRA_OF_POTENCE}` } }],
     castTimeMs: 0,
     canCastConcurrently: true,
     cooldown: 10,
@@ -106,6 +122,8 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.MANTRA_OF_LIBERATION]: {
+    // This phase updates the shared charge controller.
+    sideEffects: [{ on: 'castCommit', do: { type: `guardian.prepare-mantra-${ID.MANTRA_OF_LIBERATION}` } }],
     castTimeMs: 1520,
     canCastConcurrently: false,
     cooldown: 40,
@@ -114,10 +132,14 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: []
   },
   [ID.MANTRA_OF_TRUTH]: {
+    // Preserve its existing ordinary flip without adding it to the managed mantra charge families.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-follow-up' } }],
     castTimeMs: 200,
     effects: []
   },
   [ID.FLAME_RUSH]: {
+    // This phase updates the shared charge controller.
+    sideEffects: [{ on: 'castCommit', do: { type: `guardian.use-mantra-${ID.MANTRA_OF_FLAME}` } }],
     castTimeMs: 0,
     canCastConcurrently: true,
     cooldown: 10,
@@ -140,6 +162,8 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.MANTRA_OF_FLAME]: {
+    // This phase updates the shared charge controller.
+    sideEffects: [{ on: 'castCommit', do: { type: `guardian.prepare-mantra-${ID.MANTRA_OF_FLAME}` } }],
     castTimeMs: 1520,
     canCastConcurrently: false,
     cooldown: 20,
@@ -148,7 +172,11 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: []
   },
   [ID.FLAME_SURGE]: {
-    sideEffects: WEIGHTY_TERMS_REWARDS,
+    // Weighty Terms rewards precede final-charge retirement.
+    sideEffects: [
+      ...WEIGHTY_TERMS_REWARDS,
+      { on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_FLAME}` } }
+    ],
     castTimeMs: 0,
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
@@ -167,7 +195,11 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.REJUVENATING_RESPITE]: {
-    sideEffects: WEIGHTY_TERMS_REWARDS,
+    // Weighty Terms rewards precede final-charge retirement.
+    sideEffects: [
+      ...WEIGHTY_TERMS_REWARDS,
+      { on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_SOLACE}` } }
+    ],
     castTimeMs: 0,
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],
@@ -178,7 +210,11 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.UNHINDERED_DELIVERY]: {
-    sideEffects: WEIGHTY_TERMS_REWARDS,
+    // Weighty Terms rewards precede final-charge retirement.
+    sideEffects: [
+      ...WEIGHTY_TERMS_REWARDS,
+      { on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_LIBERATION}` } }
+    ],
     castTimeMs: 0,
     canCastConcurrently: true,
     tags: ['specialization-managed-flip'],

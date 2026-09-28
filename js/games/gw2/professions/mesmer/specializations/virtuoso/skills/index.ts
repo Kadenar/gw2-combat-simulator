@@ -1,3 +1,15 @@
+import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+/**
+ * Builds each blade tier's timed packets from its total strike coefficient.
+ * `coefficients` remains the tier total used by shared shatter profiles, while
+ * `ticks` distributes that total across the packets' individual impact times.
+ */
+function bladePacketTiers(coefficients: readonly number[], atMs: readonly number[]) {
+  return coefficients.map((coefficient, spent) =>
+    atMs.slice(0, spent).map((packetAtMs) => ({ atMs: packetAtMs, coefficient: coefficient / spent }))
+  );
+}
+
 /**
  * Owns Virtuoso slot-skill and bladesong catalog fragments only.
  * Blade storage and bladesong runtime behavior lives under `mechanics/`.
@@ -131,6 +143,18 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<S
     ]
   },
   [ID.BLADETURN_REQUIEM]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
+    // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
+    shatter: {
+      balanceProfileId: 'mesmer.virtuoso.bladeturn-requiem',
+      slot: 5,
+      kind: 'blade-requiem',
+      resolver: 'mesmer.virtuoso.bladesong',
+      coefficients: [0, 0.5, 1, 1.5, 2, 2.5],
+      minimumResource: 1,
+      resourceSpendProgress: 1,
+      ticks: bladePacketTiers([0, 0.5, 1, 1.5, 2, 2.5], [1000, 2000, 3000, 4000, 5000])
+    },
     castTimeMs: 0,
     lockouts: [
       {
@@ -142,6 +166,18 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<S
     effects: []
   },
   [ID.BLADESONG_DISSONANCE]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
+    // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
+    shatter: {
+      balanceProfileId: 'mesmer.virtuoso.bladesong-dissonance',
+      slot: 3,
+      kind: 'blade-control',
+      resolver: 'mesmer.virtuoso.bladesong',
+      coefficients: [0, 1, 1, 1, 1, 1],
+      minimumResource: 1,
+      resourceSpendProgress: 1,
+      damageAtMs: 400
+    },
     castTimeMs: 480,
     lockouts: [
       {
@@ -163,6 +199,19 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<S
     ]
   },
   [ID.BLADESONG_SORROW]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
+    // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
+    shatter: {
+      balanceProfileId: 'mesmer.virtuoso.bladesong-sorrow',
+      slot: 2,
+      kind: 'blade-confusion',
+      resolver: 'mesmer.virtuoso.bladesong',
+      coefficients: [0, 0.42, 0.84, 1.25, 1.67, 2.09],
+      minimumResource: 1,
+      resourceSpendProgress: 1,
+      ticks: bladePacketTiers([0, 0.42, 0.84, 1.25, 1.67, 2.09], [440, 520, 600, 680, 680]),
+      effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 3, stacks: 1 }]
+    },
     castTimeMs: 480,
     lockouts: [
       {
@@ -174,6 +223,18 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<S
     effects: []
   },
   [ID.BLADESONG_HARMONY]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
+    // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
+    shatter: {
+      balanceProfileId: 'mesmer.virtuoso.bladesong-harmony',
+      slot: 1,
+      kind: 'blade-power',
+      resolver: 'mesmer.virtuoso.bladesong',
+      coefficients: [0, 0.7, 1.4, 2.1, 2.8, 3.5],
+      minimumResource: 1,
+      resourceSpendProgress: 1,
+      ticks: bladePacketTiers([0, 0.7, 1.4, 2.1, 2.8, 3.5], [40, 200, 360, 520, 680])
+    },
     castTimeMs: 640,
     interruptCommitMs: 560,
     retainsCastLockoutAfterInterrupt: true,
@@ -187,6 +248,16 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<S
     effects: []
   },
   [ID.BLADESONG_DISTORTION]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
+    // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
+    shatter: {
+      balanceProfileId: 'mesmer.virtuoso.bladesong-distortion',
+      slot: 4,
+      kind: 'blade-defense',
+      resolver: 'mesmer.virtuoso.bladesong',
+      minimumResource: 1,
+      coefficients: [0, 0, 0, 0, 0, 0]
+    },
     castTimeMs: 0,
     lockouts: [
       {
@@ -199,3 +270,12 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<S
     effects: []
   }
 });
+
+// Profile and runtime registries project the same skill-owned recipe.
+export const MESMER_VIRTUOSO_SHATTERS: Readonly<Record<number, MesmerShatterDefinition>> = Object.freeze(
+  Object.fromEntries(
+    Object.entries(MESMER_VIRTUOSO_SKILL_MECHANICS).flatMap(([id, skill]) =>
+      skill.shatter ? [[Number(id), skill.shatter as MesmerShatterDefinition]] : []
+    )
+  )
+);

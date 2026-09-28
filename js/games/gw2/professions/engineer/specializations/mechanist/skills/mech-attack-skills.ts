@@ -65,7 +65,8 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
   [ID.JADE_ENERGY_SHOT]: {
     castTimeMs: 0,
     cooldown: 0,
-    effects: []
+    // Both arm identities share their intrinsic summon projectile payload.
+    effects: [{ type: 'strike', name: 'Jade Energy Shot', coefficient: 0.42, hits: 1, actorType: 'summon' }]
   },
   [ID.TWIN_STRIKE_MECH]: {
     castTimeMs: 500,
@@ -92,18 +93,20 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
         coefficient: 0.45,
         hits: 1,
         name: 'Hard Strike',
-        actorType: 'player'
+        actorType: 'summon'
       }
     ]
   },
   [ID.JADE_ENERGY_SHOT_ID_63348]: {
     castTimeMs: 0,
     cooldown: 0,
-    effects: []
+    // Both arm identities share their intrinsic summon projectile payload.
+    effects: [{ type: 'strike', name: 'Jade Energy Shot', coefficient: 0.42, hits: 1, actorType: 'summon' }]
   },
   [ID.JADE_BUSTER_CANNON]: {
     simulatorExcluded: true,
-    // Replay metadata mirrors the measured Quickness packet schedule used by Overclock's handler.
+    // The cannon owns its burst schedule and the lane duration used by Overclock and replay.
+    castTimeMs: 5040,
     quicknessCastTimeMs: 3360,
     cooldown: 1,
     // Share timing defaults while preserving each packet, effect order, and local schedule.

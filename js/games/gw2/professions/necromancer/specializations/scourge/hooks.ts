@@ -154,37 +154,31 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast): void {
     );
 }
 
-/** Completed shade commands mutate local state before their queued strikes, trait reactions, and later commands. */
-function completeShade(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+/** Manifest refreshes the capped shade lifetime before its queued impact. */
+function manifestShade(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+  const profile = requireBalanceProfileFromContext(
+    runtime,
+    hasTrait(runtime, TRAIT.SAND_SAVANT) ? PROFILE.sandSavant : PROFILE.shade
+  );
+  const lifetime = requireEffect(profile, 'buff', 'active-shade');
+  if (lifetime) {
+    const state = scourgeState.from(runtime);
+    state.shades = grantTimedStacks(state.shades, {
+      at: runtime.time,
+      expiresAt: canonicalTime(runtime.time + effectNumber(profile, lifetime, 'duration')),
+      count: 1,
+      maximumStacks: balanceProfileNumber(profile, 'maximumStacks'),
+      retain: 'latest-expiry'
+    }).reverse();
+    refreshShadeExpiry(runtime);
+  }
+
+  if (hasTrait(runtime, TRAIT.DESERT_EMPOWERMENT)) barrierTraits(runtime, cast);
+}
+
+/** Trait observers retain shroud-like entry and Sadistic Searing behavior. */
+function shadeTraits(runtime: NecromancerRuntime, cast: RuntimeCast): void {
   const skill = cast.skill;
-  if ([ID.SERPENT_SIPHON, ID.SAND_FLARE].some((id) => id === Number(skill.id))) {
-    barrierTraits(runtime, cast);
-    return;
-  }
-
-  if (!SHADE_SKILLS.has(Number(skill.id))) return;
-  if (skill.id === ID.MANIFEST_SAND_SHADE) {
-    const profile = requireBalanceProfileFromContext(
-      runtime,
-      hasTrait(runtime, TRAIT.SAND_SAVANT) ? PROFILE.sandSavant : PROFILE.shade
-    );
-    const lifetime = requireEffect(profile, 'buff', 'active-shade');
-    if (lifetime) {
-      const state = scourgeState.from(runtime);
-      state.shades = grantTimedStacks(state.shades, {
-        at: runtime.time,
-        expiresAt: canonicalTime(runtime.time + effectNumber(profile, lifetime, 'duration')),
-        count: 1,
-        maximumStacks: balanceProfileNumber(profile, 'maximumStacks'),
-        retain: 'latest-expiry'
-      }).reverse();
-      refreshShadeExpiry(runtime);
-    }
-
-    if (hasTrait(runtime, TRAIT.DESERT_EMPOWERMENT)) barrierTraits(runtime, cast);
-    return;
-  }
-
   const core = runtime.profession.core;
   if (skill.id === ID.DESERT_SHROUD || skill.id === ID.SANDSTORM_SHROUD) {
     if (hasTrait(runtime, TRAIT.PLAGUE_SENDING)) {
@@ -207,8 +201,6 @@ function completeShade(runtime: NecromancerRuntime, cast: RuntimeCast): void {
       });
   }
 
-  if (skill.id === ID.NEFARIOUS_FAVOR) removeNecromancerSelfCondition(core, runtime.time, 1);
-  shadeStrike(runtime, cast);
   if (skill.id === ID.NEFARIOUS_FAVOR && hasTrait(runtime, TRAIT.SADISTIC_SEARING)) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.sadisticSearing);
     const condition = requireEffect(profile, 'condition', 'Burning');
@@ -229,25 +221,7 @@ function completeShade(runtime: NecromancerRuntime, cast: RuntimeCast): void {
           duration: effectNumber(profile, condition, 'duration')
         })
       );
-  } else if (skill.id === ID.SAND_CASCADE) barrierTraits(runtime, cast);
-  else if (skill.id === ID.GARISH_PILLAR) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.garishPillar);
-    if (requireEffect(profile, 'control', 'Control'))
-      emitPacket(runtime, cast, {
-        type: 'control',
-        at: runtime.time,
-        source: 'necromancer',
-        sourceId: skill.id,
-        actorType: 'player',
-        skillId: skill.id,
-        skillName: skill.name,
-        controlKind: 'fear'
-      });
-  } else if (skill.id === ID.DESERT_SHROUD) {
-    barrierTraits(runtime, cast);
-    emitShroudEffects(runtime, cast, requireBalanceProfileFromContext(runtime, PROFILE.desertShroud).effects ?? []);
-  } else if (skill.id === ID.SANDSTORM_SHROUD)
-    emitShroudEffects(runtime, cast, requireBalanceProfileFromContext(runtime, PROFILE.sandstormShroud).effects ?? []);
+  }
 }
 
 // These profession skills share shade ownership and Sinister Shroud recharge.
@@ -292,12 +266,60 @@ export const scourgeHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> =
       ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.sandSavant), 'maximumStacks')
       : maximum;
   },
-  modifyEffects: (_runtime, cast, effects) => (SHADE_SKILLS.has(Number(cast.skill.id)) ? [] : effects),
-  onCastStart(runtime, cast) {
-    if (cast.skill.id === ID.MANIFEST_SAND_SHADE && !cast.cancelled)
-      runtime.scheduleForCast(MANIFEST, canonicalTime(cast.start + ((cast.fullEnd - cast.start) * 11) / 12), cast);
+  sideEffectHandlers: {
+    'scourge.manifest-start'(runtime, context) {
+      if (context.kind === 'cast' && !context.cast.cancelled)
+        runtime.scheduleForCast(
+          MANIFEST,
+          canonicalTime(context.cast.start + ((context.cast.fullEnd - context.cast.start) * 11) / 12),
+          context.cast
+        );
+    },
+    'scourge.manifest'(runtime, context) {
+      if (context.kind === 'cast') manifestShade(runtime, context.cast);
+    },
+    'scourge.strike'(runtime, context) {
+      if (context.kind === 'cast') shadeStrike(runtime, context.cast);
+    },
+    'scourge.barrier'(runtime, context) {
+      if (context.kind === 'cast') barrierTraits(runtime, context.cast);
+    },
+    'scourge.cleanse'(runtime) {
+      removeNecromancerSelfCondition(runtime.profession.core, runtime.time, 1);
+    },
+    'scourge.garish-pillar'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      const profile = requireBalanceProfileFromContext(runtime, PROFILE.garishPillar);
+      if (requireEffect(profile, 'control', 'Control'))
+        emitPacket(runtime, context.cast, {
+          type: 'control',
+          at: runtime.time,
+          source: 'necromancer',
+          sourceId: context.skill.id,
+          actorType: 'player',
+          skillId: context.skill.id,
+          skillName: context.skill.name,
+          controlKind: 'fear'
+        });
+    },
+    'scourge.desert-shroud'(runtime, context) {
+      if (context.kind === 'cast')
+        emitShroudEffects(
+          runtime,
+          context.cast,
+          requireBalanceProfileFromContext(runtime, PROFILE.desertShroud).effects ?? []
+        );
+    },
+    'scourge.sandstorm-shroud'(runtime, context) {
+      if (context.kind === 'cast')
+        emitShroudEffects(
+          runtime,
+          context.cast,
+          requireBalanceProfileFromContext(runtime, PROFILE.sandstormShroud).effects ?? []
+        );
+    }
   },
-  onCastCommit: completeShade,
+  onCastCommit: shadeTraits,
   tasks: {
     [EXPIRE](runtime) {
       purgeScourgeTimedState(scourgeState.from(runtime), runtime.time);

@@ -1,3 +1,5 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -104,3 +106,13 @@ export const NECROMANCER_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     ]
   }
 ]);
+
+/** Intrinsic impact-time formula; the existing modifier registry preserves its operation and ordering. */
+export const ghastlyClawsVulnerabilityModifier: Gw2ModifierRule = {
+  // Ghastly Claws' own Vulnerability bonus multiplies the target's ordinary Vulnerability multiplier.
+  id: 'necromancer.ghastly-claws-vulnerability',
+  target: MODIFIER_TARGET.STRIKE_DAMAGE,
+  operation: 'multiply',
+  factor: (context) => 1 + vulnerabilityStacks(context) * 0.01,
+  when: (context) => context.event?.skillId === ID.GHASTLY_CLAWS && context.event.actorType === 'player'
+};

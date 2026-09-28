@@ -142,7 +142,8 @@ export function createProfessionActionController({
     skill: MesmerSkill,
     at: number,
     resourcesSpent: number | null = null,
-    castStart = at
+    castStart = at,
+    packetAt = at
   ): MesmerShatterResolution | null => {
     const shatter = shatters[skill.id];
     if (!shatter) {
@@ -168,7 +169,7 @@ export function createProfessionActionController({
       traitHits: resolver(context, {
         skill,
         shatter,
-        at,
+        at: packetAt,
         castStart,
         spent
       })

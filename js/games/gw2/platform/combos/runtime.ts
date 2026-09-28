@@ -70,6 +70,8 @@ export function produceRuntimeCombos(runtime: Gw2Runtime, catalog: CanonicalCata
       runtime.emitDerived(event, {
         ...comboCombatMetadata(event),
         type: 'combo_finisher',
+        // A distinct provenance field survives derived-event isolation without inheriting hit reactions.
+        comboReaction: event.effectReaction,
         at,
         source: event.source,
         sourceId: event.sourceId,

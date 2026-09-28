@@ -1,3 +1,4 @@
+import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber,
@@ -10,8 +11,8 @@ import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
-import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/mechanics/new-genes.js';
-import type { AmalgamMorphKind } from '#gw2/professions/engineer/specializations/amalgam/mechanics/new-genes.js';
+import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
+import type { AmalgamMorphKind } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { EngineerRuntime, EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
@@ -27,66 +28,6 @@ function selectedMorphKinds(context: EngineerRuntime): Set<AmalgamMorphKind> {
   );
 }
 
-/**
- * Applies the strain mapped to a Morph name, emitting status effects immediately
- * while retaining timestamp-backed strains for later modifier and resolver checks.
- */
-function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamMorphKind, at: number): void {
-  const state = amalgamState.from(context);
-  const profile = requireBalanceProfileFromContext(context, PROFILE.strains);
-  if (morphKind === 'thorns') {
-    const rapaciousStrainProfile = requireBalanceProfileFromContext(context, PROFILE.rapaciousStrain);
-    const duration = balanceProfileNumber(rapaciousStrainProfile, 'durationMultiplier');
-    state.rapaciousUntil = Math.max(state.rapaciousUntil || 0, at + duration);
-  }
-
-  // The selected packet owns its effect and duration; state windows follow their associated boon.
-  for (const effect of profile.effects || []) {
-    if (effect.metadata?.trigger !== morphKind) continue;
-    if (!effect.sourceId || !effect.name) throw new Error('Missing Amalgam strain identity');
-    if (effect.type === 'control') {
-      emitEngineerEvent(context, 'control', {
-        at,
-        source: 'engineer',
-        sourceId: effect.sourceId,
-        actorType: 'player',
-        skillName: effect.name,
-        name: effect.name,
-        controlKind: effect.controlKind
-      });
-      continue;
-    }
-
-    if (effect.type !== 'boon' && effect.type !== 'buff') continue;
-    if (effect.type === 'boon') {
-      if (morphKind === 'obliterate') state.titanicUntil = Math.max(state.titanicUntil || 0, at + effect.duration);
-      else if (morphKind === 'shred') state.predatorUntil = Math.max(state.predatorUntil || 0, at + effect.duration);
-      else if (morphKind === 'demolish')
-        state.berserkerUntil = Math.max(state.berserkerUntil || 0, at + effect.duration);
-    }
-
-    // Resolve each strain's catalog identity before direct canonical status emission.
-    const sourceSkill = context.helpers.skillsById.get(effect.sourceId) ||
-      context.helpers.skillsByName.get(effect.name) || { id: effect.sourceId, name: effect.name };
-    emitEngineerEvent(
-      context,
-      'buff',
-      {
-        at,
-        source: 'engineer',
-        sourceId: effect.sourceId,
-        actorType: 'player',
-        skillName: effect.name,
-        name: effect.name,
-        kind: String(effect.boon || effect.kind),
-        duration: effect.duration,
-        stacks: effect.stacks
-      },
-      sourceSkill
-    );
-  }
-}
-
 /** Reads the damaging-field assumption across supported configuration shapes. */
 function assumesDamagingField(context: EngineerRuntime): boolean {
   return Boolean(
@@ -98,7 +39,7 @@ function assumesDamagingField(context: EngineerRuntime): boolean {
 }
 
 /** Schedules six one-second Thorns Retaliation pulses when damaging-field uptime is explicitly assumed. */
-function scheduleThornsRetaliation(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
+export function scheduleThornsRetaliation(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   if (!assumesDamagingField(context)) return;
   const morphsProfile = requireBalanceProfileFromContext(context, PROFILE.morphs);
   const hits = balanceProfileNumber(morphsProfile, 'maximumStacks');
@@ -129,11 +70,6 @@ export function activateAmalgamMorph(context: EngineerRuntime, skill: EngineerSk
   const at = context.time;
   const state = amalgamState.from(context);
   const morphKind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id);
-  // Schedule the protocol's retaliation pulses before applying its trait payoffs.
-  if (morphKind === 'thorns') {
-    scheduleThornsRetaliation(context, skill, at);
-  }
-
   // Resolve traits whose duration or strain depends on the chosen protocol.
   if (hasTrait(context.config, TRAIT.WILLING_HOST)) {
     const willingHostProfile = requireBalanceProfileFromContext(context, PROFILE.willingHost);

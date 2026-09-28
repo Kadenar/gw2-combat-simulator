@@ -1,3 +1,4 @@
+import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -134,12 +135,18 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     lifeForceGain: 5
   },
   [ID.GRAVEDIGGER]: {
-    // A committed strike samples target health when its full lockout ends, even after an interrupted animation.
-    tasks: [{ type: 'necromancer.gravedigger-reset', timingAnchor: 'castEnd' }],
     castTimeMs: 1080,
     // The strike commits at 840 ms, but cancelling after it lands retains the full skill lockout.
     interruptCommitMs: 840,
     retainsCastLockoutAfterInterrupt: true,
+    // Semantic completion samples health once; a later animation-tail crossing cannot reset recharge.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (runtime) => remainingTargetHealthBelow(runtime.config, runtime, 0.5),
+        do: { type: 'rechargeReset', skillIds: [ID.GRAVEDIGGER] }
+      }
+    ],
     effects: [
       {
         type: 'strike',

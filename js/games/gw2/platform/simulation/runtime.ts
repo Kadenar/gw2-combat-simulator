@@ -184,6 +184,8 @@ export function runGw2Runtime<T extends object>({
   const actualReactions = createGw2ResolverReactionRegistry({
     contributions: {
       ...contributions,
+      // Only accepted combos carry the originating finisher's authored reaction.
+      'combo.resolved': [...(contributions['combo.resolved'] ?? []), effectReactionContribution('combo.resolved')],
       'condition.applied': [
         ...(contributions['condition.applied'] ?? []),
         effectReactionContribution('condition.applied')
@@ -671,7 +673,9 @@ export function runGw2Runtime<T extends object>({
     const ammo = cooldownController.ensureAmmo(skill) != null;
     // Resolve the selected anchor once before reservation, retaining the same value through completion.
     const canonicalRechargeStart =
-      (skill.rechargeAnchor === 'castStart' ? start : effectiveEnd) + (skill.rechargeOffsetMs ?? 0) / 1000;
+      start +
+      (skill.rechargeAnchor === 'castStart' ? 0 : effectiveEnd - start) * (skill.rechargeProgress ?? 1) +
+      (skill.rechargeOffsetMs ?? 0) / 1000;
     const rechargeStart =
       profession.rechargeStart?.(runtime, { skill, start, fullEnd, effectiveEnd, cancelled }, canonicalRechargeStart) ??
       canonicalRechargeStart;

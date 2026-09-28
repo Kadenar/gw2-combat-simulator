@@ -107,3 +107,18 @@ test('Binding Blade expiry hides Pull without removing the final tether damage p
   assert.ok(final?.damage > 0);
   assert.equal(result.planningState.profession.availableFlips[ID.PULL], undefined);
 });
+
+// Removing the old fallback must retain ordinary staff-chain and Truth/Echo windows outside managed mantra ammo.
+test('staff chain and Truth follow-ups retain their declared commitment and consumption', () => {
+  for (const [rotation, config] of [
+    [[ID.BOLT_OF_WRATH, ID.SEARING_LIGHT, ID.SEEKING_JUDGMENT], { primaryWeapon: 'Staff' }],
+    [[ID.MANTRA_OF_TRUTH, ID.ECHO_OF_TRUTH], { specialization: 'Firebrand' }]
+  ]) {
+    const armed = runGuardian(rotation.slice(0, -1), config);
+    assert.deepEqual(armed.warnings, []);
+    assert.ok(observedRuntime(armed).profession.core.availableFlips[rotation.at(-1)]);
+    const consumed = runGuardian(rotation, config);
+    assert.deepEqual(consumed.warnings, []);
+    assert.equal(observedRuntime(consumed).profession.core.availableFlips[rotation.at(-1)], undefined);
+  }
+});

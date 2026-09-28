@@ -6,10 +6,13 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import {
+  selectedSignet,
+  signetModifierRules
+} from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { activeBoonStacks, engineerEvent } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
@@ -25,38 +28,8 @@ function engineerMechEvent(context: Gw2ModifierContext): boolean {
   );
 }
 
-/** Checks the normalized active loadout for a named Mechanist signet. */
-function selectedSignet(context: Gw2ModifierContext, name: string): boolean {
-  return selectedSkillNameSet(context.config?.selectedSkills).has(name);
-}
-
 const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    id: 'engineer.force-signet',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    amount: (context) => {
-      const forceSignetProfile = requireBalanceProfileFromContext(context, PROFILE.forceSignet);
-      return hasTrait(context, TRAIT.MECH_CORE_J_DRIVE)
-        ? balanceProfileNumber(forceSignetProfile, 'activeDamageIncrease')
-        : balanceProfileNumber(forceSignetProfile, 'damageIncrease');
-    },
-    when: (context) =>
-      selectedSignet(context, 'Force Signet') &&
-      (hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ||
-        !context.timeline?.skillOnCooldownAt(ID.FORCE_SIGNET, context.time))
-  },
-  {
-    id: 'engineer.superconducting-signet',
-    target: MODIFIER_TARGET.CONDITION_DAMAGE,
-    operation: 'damage-additive',
-    // Ordinary signets lose their passive on recharge; J-Drive retains and improves it.
-    amount: (context) => (hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ? 0.12 : 0.1),
-    when: (context) =>
-      selectedSignet(context, 'Superconducting Signet') &&
-      (hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ||
-        !context.timeline?.skillOnCooldownAt(ID.SUPERCONDUCTING_SIGNET, context.time))
-  },
+  ...signetModifierRules,
   {
     id: 'engineer.mech-base-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,

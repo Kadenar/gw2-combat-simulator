@@ -7,7 +7,11 @@ import {
 } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { SYNCOPATE_PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
-import { MESMER_TROUBADOUR_INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
+import {
+  MESMER_TROUBADOUR_INSTRUMENTS,
+  TROUBADOUR_TALE_PROFILES,
+  HARMONIOUS_HARP_DISTORTION
+} from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 
 import type { MesmerInstrument } from '#gw2/professions/mesmer/types.js';
 
@@ -108,21 +112,6 @@ export function mesmerProfiledInstrument(
   };
 }
 
-const tale = (
-  id: string,
-  parentId: number,
-  name: string,
-  effects: BalanceProfile['effects'],
-  resourceGain = 1
-): BalanceProfile => ({
-  id,
-  parentId,
-  name,
-  profileKind: 'skill-variant',
-  resourceGain,
-  effects
-});
-
 export const TROUBADOUR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   {
     id: TROUBADOUR_BALANCE_PROFILE_IDS.resources,
@@ -138,7 +127,7 @@ export const TROUBADOUR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     durationMultiplier: 5,
     durationPerTier: 5,
     damageIncrease: 0.1,
-    effects: [{ name: 'distortion', type: 'buff', kind: 'distortion', duration: 2, stacks: 1 }]
+    effects: [HARMONIOUS_HARP_DISTORTION]
   },
   ...Object.entries(MESMER_TROUBADOUR_INSTRUMENTS).map(([skillId, instrument]) =>
     mesmerInstrumentProfile(
@@ -155,30 +144,7 @@ export const TROUBADOUR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
       instrument
     )
   ),
-  tale(
-    TROUBADOUR_BALANCE_PROFILE_IDS.torturedMastermind,
-    ID.TALE_OF_THE_TORTURED_MASTERMIND,
-    'Tale of the Tortured Mastermind',
-    []
-  ),
-  tale(TROUBADOUR_BALANCE_PROFILE_IDS.honorableRogue, ID.TALE_OF_THE_HONORABLE_ROGUE, 'Tale of the Honorable Rogue', [
-    { name: 'aegis', type: 'boon', boon: 'aegis', duration: 4, stacks: 1 }
-  ]),
-  tale(
-    TROUBADOUR_BALANCE_PROFILE_IDS.soulkeeper,
-    ID.TALE_OF_THE_SOULKEEPER,
-    'Tale of the Soulkeeper',
-    [
-      { name: 'might', type: 'boon', boon: 'might', duration: 15, stacks: 10 },
-      { name: 'fury', type: 'boon', boon: 'fury', duration: 10, stacks: 1 },
-      { name: 'quickness', type: 'boon', boon: 'quickness', duration: 4, stacks: 1 }
-    ],
-    2
-  ),
-  tale(TROUBADOUR_BALANCE_PROFILE_IDS.valiantMarshal, ID.TALE_OF_THE_VALIANT_MARSHAL, 'Tale of the Valiant Marshal', [
-    { name: 'stability', type: 'boon', boon: 'stability', duration: 4, stacks: 5 },
-    { name: 'resistance', type: 'boon', boon: 'resistance', duration: 3, stacks: 1 }
-  ]),
+  ...TROUBADOUR_TALE_PROFILES,
   trait(TROUBADOUR_BALANCE_PROFILE_IDS.harmonize, 'Harmonize', {
     resourceGain: 1
   }),

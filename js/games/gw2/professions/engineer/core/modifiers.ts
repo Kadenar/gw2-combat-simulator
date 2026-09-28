@@ -1,3 +1,4 @@
+import { flameJetModifier } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
@@ -8,9 +9,9 @@ import {
 import { MODIFIER_TARGET, powerScaledConditionAttributes } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { targetConditionActive, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   activeBoonStacks,
   engineerEvent,
@@ -123,13 +124,7 @@ export const engineerCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[
       hasTrait(context, TRAIT.KINETIC_BATTERY) &&
       activeBoonStacks(context, 'kinetic-battery', 1) > 0
   },
-  {
-    id: 'engineer.flame-jet-burning-target',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    amount: 0.1,
-    when: (context) => context.event?.skillId === ID.FLAME_JET && targetConditionActive(context, 'Burning')
-  },
+  flameJetModifier,
   {
     id: 'engineer.high-caliber',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,

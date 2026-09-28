@@ -1,3 +1,4 @@
+import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
@@ -57,6 +58,21 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ADDLE]: {
+    // Capture shard eligibility at acceptance; target control and rewards remain impact-time queries.
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (runtime, _cast, effects) => {
+          const grant = (runtime as NecromancerRuntime).profession.core.soulShardGrant;
+          const immobilize = grant.charges >= 3 && grant.expiresAt > runtime.time;
+          return effects.map((effect) =>
+            effect.type === 'strike'
+              ? { ...effect, metadata: { ...effect.metadata, necromancerAddleImmobilize: immobilize } }
+              : effect
+          );
+        }
+      }
+    ],
     castTimeMs: 360,
     effects: [
       {
@@ -234,6 +250,8 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ISOLATE]: {
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.weapon-flip' } }],
     castTimeMs: 480,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -242,12 +260,14 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
       { type: 'condition', condition: 'Vulnerability', stacks: 8, duration: 8 }
     ]),
     flipDuration: 3,
-    flipActivationAtMs: 440
+    // Recharge tracks the same fraction of the accepted completion interval.
+    rechargeProgress: 11 / 12
   },
   [ID.DISTRESS]: {
     castTimeMs: 0,
     // Completing Distress refreshes Perforate before its profession-owned shard grant.
     sideEffects: [
+      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DISTRESS } },
       { on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.PERFORATE] } },
       { on: 'castCommit', do: { type: 'necromancer.soul-shards', amount: 6 } }
     ],

@@ -4,6 +4,8 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.BOLT_OF_WRATH]: {
+    // Preserve the existing staff-chain follow-up window through an explicit declaration.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-follow-up' } }],
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 360,
     effects: [
@@ -46,6 +48,8 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: []
   },
   [ID.SEEKING_JUDGMENT]: {
+    // The final chain strike consumes only its own follow-up.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.SEEKING_JUDGMENT } }],
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 360,
     effects: [
@@ -57,6 +61,11 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.SEARING_LIGHT]: {
+    // Preserve the existing staff-chain follow-up window through an explicit declaration.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'guardian.arm-follow-up' } },
+      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.SEARING_LIGHT } }
+    ],
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 360,
     effects: [

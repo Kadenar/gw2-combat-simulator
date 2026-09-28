@@ -7,6 +7,8 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
   [ID.MED_KIT]: {
     // Custom: Equips the kit and updates bundle/weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    // Commit the bar transition before cast traits observe the selected kit.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }],
     kitTransition: 'equip',
     castTimeMs: 0,
     cooldown: 0,
@@ -16,6 +18,8 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
   [ID.STOW_MED_KIT]: {
     // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    // Commit the bar transition before cast traits observe the selected kit.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }],
     kitTransition: 'stow',
     paletteFlip: false,
     castTimeMs: 0,

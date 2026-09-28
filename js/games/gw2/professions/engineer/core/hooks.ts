@@ -1,3 +1,4 @@
+import { handleAirBlast } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import { isElixirSkill } from '#gw2/professions/engineer/core/traits/alchemy.js';
@@ -17,7 +18,6 @@ import { engineerEndurance } from '#gw2/professions/engineer/core/mechanics/reso
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
 import { engineerRechargeRules } from '#gw2/professions/engineer/core/mechanics/recharge.js';
 import {
-  handleAirBlast,
   handleConduitSurge,
   handleElectricArtillery,
   handleLightningRodPulse
@@ -35,7 +35,7 @@ import {
 import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 import {
   engineerSpearSideEffectHandlers,
-  completeEngineerTurret,
+  engineerTurretSideEffectHandlers,
   engineerWeaponTasks
 } from '#gw2/professions/engineer/core/mechanics/weapons.js';
 
@@ -92,6 +92,25 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
   rechargeRules: engineerRechargeRules,
   sideEffectHandlers: {
     ...engineerSpearSideEffectHandlers,
+    ...engineerTurretSideEffectHandlers,
+    'engineer.kit-transition'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Kit transitions require a cast trigger.');
+      const { cast } = context;
+      const skill = context.skill as EngineerSkill;
+      runtime.profession.core.activeKit = skill.kitTransition === 'equip' ? (skill.kitName ?? skill.name) : '';
+      emitEngineerEvent(
+        runtime,
+        'sigil_swap',
+        { at: runtime.time, activationId: cast.id, weaponSet: runtime.activeWeaponSet },
+        skill
+      );
+    },
+    // Mine Field owns registration; the combat boundary still releases its pending activations.
+    'engineer.mine-field'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Mine Field requires a cast trigger.');
+      if (runtime.combatStartPending) runtime.profession.core.pendingMineFieldActivationIds.push(context.cast.id);
+      else applyEngineerToolbeltTraits(runtime, runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!, runtime.time);
+    },
     // Both sword finishers declare the reward while live cooldown selection and proc reporting share one owner.
     'engineer.sword-recharge'(runtime, context, action) {
       if (action.type !== 'engineer.sword-recharge' || action.amount == null)
@@ -142,24 +161,6 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
         );
   },
   onCastCommit(runtime, cast) {
-    const skill = cast.skill as EngineerSkill;
-    const state = runtime.profession.core;
-    if (skill.kitTransition) {
-      state.activeKit = skill.kitTransition === 'equip' ? (skill.kitName ?? skill.name) : '';
-      emitEngineerEvent(
-        runtime,
-        'sigil_swap',
-        { at: runtime.time, activationId: cast.id, weaponSet: runtime.activeWeaponSet },
-        skill
-      );
-    }
-
-    completeEngineerTurret(runtime, cast);
-    if (skill.id === ID.MINE_FIELD) {
-      if (runtime.combatStartPending) state.pendingMineFieldActivationIds.push(cast.id);
-      else applyEngineerToolbeltTraits(runtime, runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!, runtime.time);
-    }
-
     applyEngineerCastTraits(runtime, cast);
   },
   tasks: engineerWeaponTasks,

@@ -1,3 +1,9 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { eventSkill, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
+import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
+import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
+import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 /**
  * Ritualist skill mechanics owned by the Ritualist Necromancer module.
  *
@@ -11,6 +17,9 @@ import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necro
 
 export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.INNERVATE_PRESERVATION]: {
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.innervate' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 0,
     // The Innervate handler owns when these party grants and the resource gain commit.
     innervateLifeForceGain: 10,
@@ -34,6 +43,9 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     usableInShroud: true
   },
   [ID.SUMMON_SPIRITS]: {
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-spirits' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 0,
     effects: [],
     type: 'Profession',
@@ -43,6 +55,9 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     specialization: 'Ritualist'
   },
   [ID.PRESERVATION]: {
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-preservation' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 480,
     // Summoning grants these boons before the spirit's autonomous attack loop starts.
     effects: [
@@ -62,12 +77,18 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     specialization: 'Ritualist'
   },
   [ID.INNERVATE_WANDERLUST]: {
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.innervate' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 0,
     innervateLifeForceGain: 10,
     effects: [{ type: 'control', controlKind: 'fear' }],
     usableInShroud: true
   },
   [ID.NIGHTMARE_WEAPON]: {
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.nightmare-weapon' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 240,
     effects: [
       {
@@ -81,6 +102,9 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.ANGUISH]: {
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-anguish' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 560,
     // Benchmark logs spawn the spirit ~480 ms into every cast, including casts whose aftercast is cancelled.
     interruptCommitMs: 480,
@@ -92,6 +116,8 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     specialization: 'Ritualist'
   },
   [ID.EXIT_RITUALISTS_SHROUD]: {
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.exit-shroud' } }],
     castTimeMs: 0,
     effects: [],
     cooldown: 0,
@@ -101,6 +127,12 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     inputCategory: 'bar-swap'
   },
   [ID.WANDERLUST]: {
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'ritualist.wanderlust-opening' } },
+      { on: 'castCommit', do: { type: 'ritualist.summon-wanderlust' } }
+    ],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 760,
     effects: [],
     type: 'Profession',
@@ -110,6 +142,9 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     specialization: 'Ritualist'
   },
   [ID.SPLINTER_WEAPON]: {
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.splinter-weapon' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 240,
     effects: [
       {
@@ -123,6 +158,9 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.INNERVATE_ANGUISH]: {
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.innervate' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 0,
     innervateLifeForceGain: 10,
     effects: [
@@ -133,6 +171,26 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     usableInShroud: true
   },
   [ID.ESSENCE_BLAST]: {
+    // Carry the accepted weapon and spirit count into the delayed packet, retaining selected patch data.
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (runtime, cast, effects) => {
+          const skillWeapon = gw2ActivePrimaryWeapon(runtime.config, runtime.activeWeaponSet) || 'Unequipped';
+          return effects.map((effect) => ({
+            ...effect,
+            atMs: ((cast.fullEnd - cast.start) * 1000 * 14) / 15,
+            timingAnchor: 'castStart' as const,
+            timingScale: 'fixed' as const,
+            weapon: skillWeapon,
+            weaponStrengthProfileId: weaponStrengthProfileForName(skillWeapon)?.id,
+            metadata: {
+              activeSpirits: Object.keys(ritualistState.from(runtime as NecromancerRuntime).activeSpirits).length
+            }
+          }));
+        }
+      }
+    ],
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     interruptCommitMs: 560,
@@ -151,6 +209,8 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     specialization: 'Ritualist'
   },
   [ID.RITUALISTS_SHROUD]: {
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.enter-shroud' } }],
     castTimeMs: 0,
     effects: [],
     cooldown: 10,
@@ -162,6 +222,9 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     inputCategory: 'bar-swap'
   },
   [ID.RESILIENT_WEAPON]: {
+    // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.resilient-weapon' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 680,
     effects: [
       {
@@ -175,3 +238,27 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   }
 });
+
+/** Intrinsic impact-time formula; the existing modifier registry preserves its operation and ordering. */
+export const essenceBlastSpiritModifier: Gw2ModifierRule = {
+  id: 'necromancer.essence-blast-active-spirits',
+  target: MODIFIER_TARGET.STRIKE_DAMAGE,
+  operation: 'damage-additive',
+  parameters: { damagePerSpirit: 0.15 },
+  amount: (context, _target, parameters) => (context.event?.metadata?.activeSpirits || 0) * parameters.damagePerSpirit,
+  when: (context) => eventSkill(context)?.id === ID.ESSENCE_BLAST && (context.event?.metadata?.activeSpirits || 0) > 0
+};
+
+/** Intrinsic impact-time formula; the existing modifier registry preserves its operation and ordering. */
+export const anguishConditionModifier: Gw2ModifierRule = {
+  id: 'necromancer.anguish-conditional-damage',
+  target: MODIFIER_TARGET.STRIKE_DAMAGE,
+  operation: 'damage-additive',
+  // Apply the condition bonus; temporary target-control bonuses are outside simulation scope.
+  parameters: {
+    damagePerCondition: 0.02
+  },
+  amount: (context, _target, parameters) => targetConditionCount(context) * parameters.damagePerCondition,
+  // Every non-Innervate Anguish attack carries the flag, including Summon Spirits.
+  when: (context) => Boolean(context.event?.metadata?.anguishConditionalDamage)
+};

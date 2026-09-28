@@ -375,6 +375,8 @@ export function resolveComboAttempt(
     Array.from({ length: event.successfulCombos }, (_, index) => ({
       ...comboCombatMetadata(event),
       type: 'combo' as const,
+      // Outcomes retain lineage, but only the accepted combo dispatches this declaration.
+      effectReaction: event.comboReaction,
       at: event.effectAt,
       // Preserve pre-damage placement so relic reactions and combo outcomes can affect the originating hit.
       ...(event.priority == null ? {} : { priority: event.priority }),

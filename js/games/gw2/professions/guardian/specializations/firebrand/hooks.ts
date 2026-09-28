@@ -3,7 +3,7 @@ import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
+import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -19,7 +19,7 @@ import { firebrandPageTuning, firebrandState } from '#gw2/professions/guardian/s
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { reactToFirebrandJusticeHit } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
 import {
-  completeFirebrandMantra,
+  firebrandMantraActions,
   FIREBRAND_MANTRA_WAKE,
   initializeFirebrandMantras,
   firebrandMantraAvailability,
@@ -40,11 +40,6 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
 const COURAGE = 'guardian.firebrand.courage';
 const refundByCast = new WeakMap<RuntimeCast, number>();
-const TOMES = new Map<number, GuardianVirtue>([
-  [ID.TOME_OF_JUSTICE, 'justice'],
-  [ID.TOME_OF_RESOLVE, 'resolve'],
-  [ID.TOME_OF_COURAGE, 'courage']
-]);
 const DORMANCY = { justice: PROFILE.tomeJustice, resolve: PROFILE.tomeResolve, courage: PROFILE.tomeCourage };
 
 /** Selected boon components use application-time attributes and retain their actual trigger's lineage. */
@@ -136,6 +131,36 @@ function courage(runtime: Runtime): void {
 
 /** Pages, tome sessions, and mantra charges mutate one live state; report events never restore a snapshot. */
 export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
+  sideEffectHandlers: {
+    ...firebrandMantraActions,
+    // Declarations select the virtue; the controller retains dormancy and session invariants.
+    'guardian.open-justice'(runtime, context) {
+      if (context.kind === 'cast') openTome(runtime, context.cast, 'justice');
+    },
+    'guardian.open-resolve'(runtime, context) {
+      if (context.kind === 'cast') openTome(runtime, context.cast, 'resolve');
+    },
+    'guardian.open-courage'(runtime, context) {
+      if (context.kind === 'cast') openTome(runtime, context.cast, 'courage');
+    },
+    'guardian.stow-tome'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      const cast = context.cast;
+      const state = firebrandState.from(runtime);
+      state.activeTome = '';
+      state.swiftScholarTome = '';
+      state.swiftScholarCount = 0;
+      runtime.emit({
+        ...guardianCastCause(runtime, cast),
+        type: 'weapon_set',
+        weaponSet: runtime.activeWeaponSet,
+        weaponLine: null
+      });
+    },
+    'guardian.start-ashes'(runtime, context) {
+      if (context.kind === 'cast') startFirebrandAshes(runtime, context.cast);
+    }
+  },
   resources: {
     tomePages: {
       kind: 'discrete',
@@ -158,13 +183,6 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
     if (skill.tome) {
       if (skill.tome !== state.activeTome)
         return denyCast('guardian.tome-inactive', `${skill.name} requires its tome to be active.`);
-      const cost = Math.max(1, Number(skill.pageCost ?? 1));
-      if (runtime.resourceController.value('tomePages') < cost) {
-        const at = runtime.resourceController.readyAt('tomePages', cost);
-        const reason = `${skill.name} requires ${cost} tome pages.`;
-        return at == null ? denyCast('guardian.tome-pages', reason) : retryCast(at, 'guardian.tome-pages', reason);
-      }
-
       return CAST_READY;
     }
 
@@ -172,7 +190,6 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
   },
   onCastStart(runtime, cast) {
     if (!cast.skill.tome || cast.cancelled) return;
-    startFirebrandAshes(runtime, cast);
     const state = firebrandState.from(runtime);
     if (state.swiftScholarTome !== cast.skill.tome) {
       state.swiftScholarTome = String(cast.skill.tome);
@@ -188,25 +205,8 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
     }
   },
   onCastCommit(runtime, cast) {
-    completeFirebrandMantra(runtime, cast);
-    const state = firebrandState.from(runtime);
     const skill = cast.skill;
-    const virtue = TOMES.get(Number(skill.id));
-    if (virtue) openTome(runtime, cast, virtue);
-    if (skill.id === ID.STOW_TOME) {
-      state.activeTome = '';
-      state.swiftScholarTome = '';
-      state.swiftScholarCount = 0;
-      runtime.emit({
-        ...guardianCastCause(runtime, cast),
-        type: 'weapon_set',
-        weaponSet: runtime.activeWeaponSet,
-        weaponLine: null
-      });
-    }
-
     if (skill.tome) {
-      runtime.resourceController.spend('tomePages', Math.max(1, Number(skill.pageCost ?? 1)));
       const refund = refundByCast.get(cast) ?? 0;
       if (refund > 0) {
         runtime.resourceController.grant('tomePages', refund);
@@ -227,11 +227,6 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
           skill.tome === 'justice' ? 'might' : skill.tome === 'resolve' ? 'regeneration' : 'protection',
           { ...guardianCastCause(runtime, cast), sourceId: TRAIT.LEGENDARY_LORE, name: 'Legendary Lore' }
         );
-    }
-
-    if (skill.id === ID.RENEWED_FOCUS) {
-      runtime.resourceController.grant('tomePages', state.tomePages.maximum);
-      state.tomeDormantReadyAt = { justice: runtime.time, resolve: runtime.time, courage: runtime.time };
     }
 
     if (

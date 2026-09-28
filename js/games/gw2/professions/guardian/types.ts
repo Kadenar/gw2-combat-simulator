@@ -86,7 +86,6 @@ export type GuardianResolverEvent = Gw2ResolverEvent & {
 };
 
 export interface GuardianSkill extends Skill {
-  readonly pageCost?: number;
   readonly radiantForgeSkill?: boolean;
   readonly radiantWeapon?: string;
   readonly tome?: string;

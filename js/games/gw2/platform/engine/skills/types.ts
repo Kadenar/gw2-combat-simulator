@@ -194,6 +194,8 @@ export interface Skill extends CatalogEntity {
   readonly lockouts?: readonly SkillLockout[];
   readonly rechargeAnchor?: 'castStart' | 'castEnd';
   readonly rechargeOffsetMs?: number;
+  /** Fraction of the accepted interval to the recharge anchor, before any fixed offset. */
+  readonly rechargeProgress?: number;
   readonly cooldown?: number;
   /** Which actor's active boons determine recharge-rate modifiers. */
   readonly rechargeBuffAudience?: 'self' | 'summon';
@@ -266,11 +268,12 @@ export interface Skill extends CatalogEntity {
   readonly tasks?: readonly SkillTask[];
   /** Ordered mutations executed by the platform at the declared activation phase. */
   readonly sideEffects?: readonly SkillSideEffect[];
-  /** First matching variant supplies the selected profile's effects before ordinary profession modifiers. */
+  /** First matching variant transforms the skill's own effects or selects a separate profile before profession modifiers. */
   readonly effectVariants?: readonly {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Catalogs combine callbacks authored against different profession runtimes; dispatch preserves the owning runtime.
     readonly when: (runtime: Gw2Runtime<any>, cast: RuntimeCast) => boolean;
-    readonly profileId: SkillId;
+    /** Omission transforms this skill's selected, patchable effects in place. */
+    readonly profileId?: SkillId;
     readonly transform?: (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Catalogs combine callbacks authored against different profession runtimes; dispatch preserves the owning runtime.
       runtime: Gw2Runtime<any>,

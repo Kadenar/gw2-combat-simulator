@@ -26,6 +26,8 @@ export interface ComboFieldEvent extends SimulationEventBase<'combo_field'> {
 }
 
 export interface ComboFinisherEvent extends SimulationEventBase<'combo_finisher'> {
+  /** Originating effect declaration; only successful resolution exposes it to combo reactions. */
+  readonly comboReaction?: SimulationEventBase['effectReaction'];
   readonly attemptId: string;
   readonly finisherType: ComboFinisherType;
   readonly fieldBinding: ComboFieldBinding;

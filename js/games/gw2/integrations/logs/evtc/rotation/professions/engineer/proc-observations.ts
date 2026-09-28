@@ -42,13 +42,12 @@ export interface EngineerShrapnelObservation {
   readonly matchedCrippledDurationsMs: readonly number[];
 }
 
+/** Catalog packets own intrinsic explosions; log-only proc identities retain their explicit classification. */
 function isExplosionSkill(skill: Skill): boolean {
   return Boolean(
     EVENT_FLAGGED_EXPLOSION_NAMES.has(normalized(skill.name)) ||
     normalized(skill.damageKind) === 'explosion' ||
     skill.explosion === true ||
-    normalized(skill.kit) === 'grenade kit' ||
-    normalized(skill.name) === 'devastator' ||
     skill.categories?.some((category) => normalized(category) === 'explosion') ||
     skill.effects?.some((effect) => normalized(effect.damageKind) === 'explosion' || effect.explosion === true)
   );

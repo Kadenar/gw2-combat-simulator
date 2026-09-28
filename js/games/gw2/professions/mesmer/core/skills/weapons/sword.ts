@@ -1,6 +1,6 @@
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.MIND_SLASH]: {
@@ -50,6 +50,9 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.ILLUSIONARY_LEAP]: {
+    // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
+    flipArm: { skillId: ID.SWAP, duration: 5, delay: 0, anchor: 'castStart' },
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }],
     castTimeMs: 400,
     resource: {
       mode: 'add',
@@ -67,6 +70,16 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.PHANTASMAL_SWORDSMAN]: {
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
+    // The summon owns its attack and conversion timeline independently of the player cast.
+    phantasmDisplayNames: { 'Phantasm leap': 'Sword Attack', 'Phantasm Blurred Frenzy': 'Blurred Frenzy' },
+    phantasmTiming: {
+      castTimeMs: 880,
+      damageAtMs: 2280,
+      // The supplied power-Chrono lifecycle converts Swordsman at a 3.41s median after its cast completes.
+      spawnAtMs: 3410,
+      phantasmalBladeDelayAfterSpawnMs: 83
+    },
     phantasm: true,
     resource: {
       mode: 'phantasm',
@@ -123,6 +136,9 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
     castTimeMs: 880
   },
   [ID.ILLUSIONARY_RIPOSTE]: {
+    // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
+    flipArm: { skillId: ID.COUNTER_BLADE, duration: 3, delay: 0, anchor: 'castStart' },
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }],
     resource: {
       mode: 'add',
       count: 1

@@ -6,7 +6,7 @@ import { summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 
 import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 import { mechanistRechargeWork } from '#gw2/professions/engineer/specializations/mechanist/mechanics/recharge.js';
@@ -64,8 +64,13 @@ export const mechanistHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = 
     if (mech.active && isEngineerMechCommand(cast.skill) && cast.fullEnd > cast.start)
       mech.busyUntil = Math.max(mech.busyUntil, cast.effectiveEnd + MECHANIST_ATTACK_TIMING.commandRecovery);
   },
+  sideEffectHandlers: {
+    'engineer.overclock-signet'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Overclock requires a cast trigger.');
+      activateOverclockSignet(runtime, context.skill);
+    }
+  },
   onCastCommit(runtime, cast) {
-    if (cast.skill.id === ID.OVERCLOCK_SIGNET) activateOverclockSignet(runtime, cast.skill);
     applyEngineerMechCastTraits(runtime, cast.skill);
   },
   tasks: {

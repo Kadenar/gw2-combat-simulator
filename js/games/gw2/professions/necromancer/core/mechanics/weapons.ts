@@ -18,8 +18,6 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
 const SHARD_EXPIRY = 'necromancer.soul-shards-expire';
 
@@ -27,22 +25,6 @@ const SHARD_EXPIRY = 'necromancer.soul-shards-expire';
 export function grantNecromancerSoulShards(runtime: NecromancerRuntime, amount: number): void {
   addSoulShards(runtime.profession.core, amount, runtime.time);
   runtime.schedule(SHARD_EXPIRY, runtime.profession.core.soulShardGrant.expiresAt, null, undefined, -20);
-}
-
-/** Only Addle's activation gate is captured; resource consumption and target state stay live at impact. */
-export function modifyNecromancerWeaponEffects(
-  runtime: NecromancerRuntime,
-  cast: RuntimeCast,
-  effects: readonly SkillEffect[]
-): readonly SkillEffect[] {
-  if (cast.skill.id !== ID.ADDLE) return effects;
-  const grant = runtime.profession.core.soulShardGrant;
-  const immobilize = grant.charges >= 3 && grant.expiresAt > runtime.time;
-  return effects.map((effect) =>
-    effect.type === 'strike'
-      ? { ...effect, metadata: { ...effect.metadata, necromancerAddleImmobilize: immobilize } }
-      : effect
-  );
 }
 
 /** The consumed shard emits an independent siphon through the shared formula and cannot recursively consume another shard. */

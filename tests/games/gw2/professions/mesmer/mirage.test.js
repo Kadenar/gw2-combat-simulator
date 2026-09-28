@@ -269,7 +269,7 @@ test('Split Surge resolves its three beam packets with per-hit Might and Vulnera
     (event) => event.type === 'damage' && event.skillName === 'Split Surge' && event.source === 'Player'
   );
   const might = result.events.filter(
-    (event) => event.type === 'buff' && event.sourceSkill === 'Split Surge' && event.kind === 'might'
+    (event) => event.type === 'buff' && event.skillId === ID.SPLIT_SURGE && event.kind === 'might'
   );
   const vulnerability = result.events.filter(
     (event) => event.type === 'condition' && event.skillName === 'Split Surge' && event.condition === 'Vulnerability'

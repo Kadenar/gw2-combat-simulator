@@ -15,9 +15,5 @@ export const MECHANIST_ATTACK_TIMING = Object.freeze({
   jadeCannonArmGap: 0.5,
   jadeCannonCycleGap: 1.075,
   meleeChainIntervals: Object.freeze([0.25, 0.5, 0.5]),
-  commandRecovery: 0.35,
-  // Unquickened baselines inferred from the logged 880 ms launch / 360 ms pulse Quickness schedule.
-  jadeBusterFirstHitDelay: 1.32,
-  jadeBusterPulseInterval: 0.54,
-  jadeBusterAnimationDuration: 5.04
+  commandRecovery: 0.35
 });

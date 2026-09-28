@@ -20,6 +20,8 @@ const extraSkills: EngineerSkill[] = [
       inputCategory: 'bar-swap',
       cooldown: 0
     }),
+    // Commit the bar transition before cast traits observe the selected kit.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }],
     kitTransition: 'stow'
   }
 ];

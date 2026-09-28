@@ -11,7 +11,8 @@ import {
   mesmerProfiledTraitDamage,
   MESMER_CORE_SHATTER_PROFILE_IDS
 } from '#gw2/professions/mesmer/core/profiles.js';
-import { MESMER_CORE_SHATTERS, MESMER_CORE_TRAIT_DAMAGE } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
+import { MESMER_CORE_TRAIT_DAMAGE } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
+import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
 import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 

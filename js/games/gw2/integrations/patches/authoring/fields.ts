@@ -115,6 +115,7 @@ const AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS = new Set([
   'quicknessCastMultiplier',
   'quicknessCastTimeMs',
   'rechargeOffsetMs',
+  'rechargeProgress',
   'selfStunMs'
 ]);
 

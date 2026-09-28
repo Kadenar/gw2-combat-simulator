@@ -1,3 +1,12 @@
+import { canonicalTime } from '#kernel/core/clock.js';
+import {
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
+import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
@@ -93,6 +102,8 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.SYMBOL_OF_IGNITION]: {
+    // Placement opens the shared ignition observer only after commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.place-ignition' } }],
     castTimeMs: 360,
     interruptCommitMs: 320,
     comboFields: [
@@ -146,3 +157,31 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
     )
   }
 });
+
+/** Selected field duration is shared by placement and the public combo field. */
+export function guardianIgnitionFields(runtime: Gw2Runtime<GuardianRuntimeState>): Skill['comboFields'] {
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.symbolOfIgnition);
+  const field = requireEffect(profile, 'buff', 'guardian-symbol-of-ignition-field');
+  return field
+    ? [
+        {
+          ownerId: 'guardian',
+          fieldType: 'Light',
+          duration: effectNumber(profile, field, 'duration'),
+          startAnchor: 'castEnd'
+        }
+      ]
+    : [];
+}
+
+export const guardianIgnitionActions: RuntimeProfession<GuardianRuntimeState>['sideEffectHandlers'] = {
+  'guardian.place-ignition'(runtime) {
+    const profile = requireBalanceProfileFromContext(runtime, PROFILE.symbolOfIgnition);
+    const field = requireEffect(profile, 'buff', 'guardian-symbol-of-ignition-field');
+    if (!field) return;
+    runtime.profession.core.symbolIgnitionStartsAt = runtime.time;
+    runtime.profession.core.symbolIgnitionUntil = canonicalTime(
+      runtime.time + effectNumber(profile, field, 'duration')
+    );
+  }
+};

@@ -1,9 +1,18 @@
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.PHANTASMAL_DUELIST]: {
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
+    // The summon owns its attack and conversion timeline independently of the player cast.
+    phantasmTiming: {
+      castTimeMs: 560,
+      damageAtMs: 2240,
+      // Measured packet and conversion offsets stay anchored to the observed cast end.
+      spawnAtMs: 2800,
+      phantasmalBladeDelayAfterSpawnMs: 175
+    },
     phantasm: true,
     // Cancelling after commitment preserves the Duelist's attacks and clone conversion while retaining its cast lockout.
     interruptCommitMs: 360,

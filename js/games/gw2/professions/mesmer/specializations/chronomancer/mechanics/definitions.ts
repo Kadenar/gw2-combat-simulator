@@ -2,7 +2,6 @@
  * Chronomancer-owned formulas and mechanic classifications.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type {
   MesmerPhantasmAttackTiming,
   MesmerTraitDamage
@@ -130,39 +129,5 @@ export const MESMER_CHRONOMANCER_TRAIT_DAMAGE: Readonly<Record<string, MesmerTra
     hits: 1,
     duration: 5,
     damageIncrease: 0.1
-  }
-});
-export const MESMER_CHRONOMANCER_SHATTERS: Readonly<Record<number, MesmerShatterDefinition>> = Object.freeze({
-  [ID.CONTINUUM_SPLIT]: {
-    slot: 5,
-    kind: 'continuum',
-    resolver: 'mesmer.chronomancer.continuum',
-    consumesResources: false,
-    resetBySignetOfIllusions: false,
-    coefficients: [0, 0, 0, 0]
-  },
-  [ID.TIME_SINK]: {
-    slot: 3,
-    kind: 'control',
-    resolver: 'mesmer.core.clone-shatter',
-    coefficients: [0, 0, 0, 0]
-  },
-  [ID.REWINDER]: {
-    slot: 2,
-    kind: 'confusion',
-    resolver: 'mesmer.core.clone-shatter',
-    coefficients: [0.38, 0.76, 1.14, 1.52],
-    rechargeReductionPerSource: 3
-  },
-  [ID.SPLIT_SECOND]: {
-    slot: 1,
-    kind: 'power',
-    resolver: 'mesmer.core.clone-shatter',
-    coefficients: [1.53, 3.07, 3.68, 4.3],
-    // Each resource tier owns both Split Second packets and their full formulas.
-    ticks: [1.53, 3.07, 3.68, 4.3].map((coefficient) => [
-      { atMs: 0, coefficient: coefficient / 2 },
-      { atMs: 1000, coefficient: coefficient / 2 }
-    ])
   }
 });

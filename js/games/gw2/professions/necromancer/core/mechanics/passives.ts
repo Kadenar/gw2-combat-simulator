@@ -1,18 +1,18 @@
+import {
+  NECROMANCER_SIGNET_PASSIVES,
+  applyNecromancerSignetPassive
+} from '#gw2/professions/necromancer/core/skills/slot-skills.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import {
   balanceProfileNumber,
-  effectNumber,
-  requireEffect,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import {
   reactToVampiricPresenceAlliedHit,
   reactToTasteForBloodAlliedHit
@@ -57,35 +57,8 @@ function passivePulse(runtime: NecromancerRuntime, data: unknown): void {
     return;
   }
 
-  const id = pulse.passive === 'undeath' ? ID.SIGNET_OF_UNDEATH : ID.SIGNET_OF_VAMPIRISM;
-  const inShroud = Boolean(state.activeShroud && state.activeShroud !== 'lich');
-  if ((runtime.cooldowns.get(id) ?? 0) > runtime.time && !(hasTrait(runtime, TRAIT.SIGNETS_OF_SUFFERING) && inShroud))
-    return;
-  const profile = requireBalanceProfileFromContext(
-    runtime,
-    pulse.passive === 'undeath' ? PROFILE.signetOfUndeathPassive : PROFILE.signetOfVampirismPassive
-  );
-  if (pulse.passive === 'undeath') grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
-  else {
-    const strike = requireEffect(profile, 'strike', 'Signet of Vampirism - Passive Life Siphon');
-    if (strike)
-      runtime.emit(
-        buildResolverStrike({
-          at: runtime.time,
-          source: 'necromancer',
-          sourceId: id,
-          actorType: 'effect',
-          skillId: id,
-          skillName: strike.name,
-          coefficient: 0,
-          skillWeapon: 'Unequipped',
-          flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
-          flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
-          canCrit: strike.canCrit !== false,
-          damageKind: strike.damageKind || ''
-        })
-      );
-  }
+  const policy = NECROMANCER_SIGNET_PASSIVES.find((policy) => policy.passive === pulse.passive)!;
+  applyNecromancerSignetPassive(runtime, policy);
 }
 
 /** A readiness boundary names scheduled work, never a predicted amount or a replayed gain. */
@@ -109,8 +82,9 @@ export function initializeNecromancerPassives(runtime: NecromancerRuntime): void
   const selected = selectedSkillNameSet(runtime.config.selectedSkills);
   for (const [passive, enabled, profileId] of [
     ['eternal-life', hasTrait(runtime, TRAIT.ETERNAL_LIFE), TRAIT.ETERNAL_LIFE],
-    ['undeath', selected.has('Signet of Undeath'), PROFILE.signetOfUndeathPassive],
-    ['vampirism', selected.has('Signet of Vampirism'), PROFILE.signetOfVampirismPassive]
+    ...NECROMANCER_SIGNET_PASSIVES.map(
+      (policy) => [policy.passive, selected.has(policy.name), policy.profileId] as const
+    )
   ] as const) {
     if (!enabled) continue;
     const profile = requireBalanceProfileFromContext(runtime, profileId);

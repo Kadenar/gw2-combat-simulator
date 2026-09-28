@@ -23,14 +23,11 @@ export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
   initialize: initializeMirageRuntime,
   endurance: mirageEndurance,
   availability: mirageAvailability,
-  modifyEffects(_runtime, cast, effects) {
-    return cast.skill.ambush ? effects.filter((effect) => effect.type === 'control') : effects;
-  },
   onCastStart(runtime, cast) {
     const skill = cast.skill as MesmerSkill;
     if (!skill.ambush || cast.cancelled) return;
     withMesmerCastEmission(runtime, cast, skill, () =>
-      mirageControllerFor(mesmerMechanicsFor(runtime)).executePlayerAmbush(skill, cast.fullEnd, cast.start)
+      mirageControllerFor(mesmerMechanicsFor(runtime)).acceptPlayerAmbush(skill, cast.fullEnd, cast.start)
     );
   },
   onCastCommit(runtime, cast) {
@@ -42,6 +39,17 @@ export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       }
   },
   tasks: {
+    'mesmer.mirage.ambush-clone'(runtime, data) {
+      const cast = (data as TriggerData).cast;
+      const mechanics = mesmerMechanicsFor(runtime);
+      mechanics.resources.queueResources(
+        runtime.time,
+        1,
+        cast.skill.weapon || mechanics.activePrimaryWeapon(),
+        cast.skill.name,
+        { sourceSkillId: cast.skill.id }
+      );
+    },
     'mesmer.mirage.create-mirror'(runtime, data) {
       const { cast, trigger } = data as TriggerData;
       const state = mirageState.from(runtime);
@@ -57,7 +65,7 @@ export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     'mesmer.mirage.pick-up-mirror'(runtime, data) {
       mirageControllerFor(mesmerMechanicsFor(runtime)).pickUpMirror(
         runtime.time,
-        (data as TriggerData).cast.skill.name
+        (data as TriggerData).cast.skill as MesmerSkill
       );
     },
     'mesmer.mirage.dodge'(runtime, data) {

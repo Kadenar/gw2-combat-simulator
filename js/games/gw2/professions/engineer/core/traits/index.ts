@@ -1,7 +1,6 @@
 /** Public Core Engineer trait dispatcher preserving cross-line reaction order. */
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type {
   EngineerRuntime,
   EngineerResolverContext,
@@ -58,11 +57,7 @@ export function applyEngineerCastTraits(context: EngineerRuntime, cast: RuntimeC
 function isExplosion(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
   if (event.explosion || event.damageKind === 'explosion') return true;
   const skill = resolverSkill(context, event.skillId ?? event.sourceId);
-  return (
-    skill?.categories?.some((category) => category.toLowerCase() === 'explosion') ||
-    skill?.kit === 'Grenade Kit' ||
-    skill?.id === ID.DEVASTATOR
-  );
+  return Boolean(skill?.categories?.some((category) => category.toLowerCase() === 'explosion'));
 }
 
 /** Dispatches damage reactions in their established causal order. */

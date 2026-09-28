@@ -1,3 +1,5 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { eventSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -142,3 +144,13 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     ]
   }
 });
+
+/** Intrinsic impact-time formula; the existing modifier registry preserves its operation and ordering. */
+export const lifeSiphonBleedingModifier: Gw2ModifierRule = {
+  id: 'necromancer.life-siphon-bleeding-target',
+  target: MODIFIER_TARGET.STRIKE_DAMAGE,
+  operation: 'multiply',
+  factor: 1.5,
+  order: 100,
+  when: (context) => eventSkill(context)?.id === ID.LIFE_SIPHON && targetConditionActive(context, 'Bleeding')
+};

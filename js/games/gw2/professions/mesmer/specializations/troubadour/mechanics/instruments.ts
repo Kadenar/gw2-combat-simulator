@@ -39,7 +39,7 @@ function instrumentAttack(
   if (shredding && !shredding.ticks)
     effectNumber(requireBalanceProfileFromContext(context, TRAIT.SHREDDING), shredding, 'atMs');
   // The extra note belongs to Shredding, so removing the native Lute strike does not remove it.
-  for (const attack of [data, shredding]) {
+  for (const attack of actorType === 'summon' ? [data, shredding] : [shredding]) {
     if (attack?.type !== 'strike') continue;
     runtime.addDamage(
       skill,
@@ -57,7 +57,7 @@ function instrumentAttack(
     );
   }
 
-  for (const condition of data.conditions || []) {
+  for (const condition of actorType === 'summon' ? data.conditions || [] : []) {
     runtime.addCondition(skill.name, damageAt, condition, source, '', {
       source,
       sourceId: skill.id,
@@ -79,21 +79,22 @@ function instrumentAttack(
   }
 
   // Player and valid afterimage impacts use the same authored control with distinct ownership.
-  emitMesmerEffects(
-    context,
-    {
-      ...skill,
-      effects: (skill.effects || [])
-        .filter((effect) => effect.type === 'control')
-        .map((effect) => ({
-          ...effect,
-          source,
-          actorType
-        }))
-    },
-    damageAt,
-    damageAt
-  );
+  if (actorType === 'summon')
+    emitMesmerEffects(
+      context,
+      {
+        ...skill,
+        effects: (skill.effects || [])
+          .filter((effect) => effect.type === 'control')
+          .map((effect) => ({
+            ...effect,
+            source,
+            actorType
+          }))
+      },
+      damageAt,
+      damageAt
+    );
 
   if (data.instrument === 'Drum') scheduleSyncopateDrumWave(context, skill, damageAt, source, actorType);
 
@@ -185,7 +186,7 @@ export function resolveCrescendo(context: MesmerRuntime, cast: RuntimeCast, skil
     context.history.filter((event) => event.type === 'mesmer.instrument'),
     damageAt
   );
-  const crescendoProfile = requireBalanceProfileFromContext(context, PROFILE.crescendo);
+  const crescendoProfile = requireBalanceProfileFromContext(context, skill.crescendoProfileId!);
   const strike = requireEffect(crescendoProfile, 'strike', 'Strike');
   // Fragmentation replaces Crescendo's per-instrument effectiveness with the trait's improved value.
   const effectiveness = hasTrait(context, TRAIT.MASTER_OF_FRAGMENTATION)
@@ -280,28 +281,10 @@ export function scheduleTroubadourPerformance(context: MesmerRuntime, cast: Runt
   if (cast.cancelled) return;
   const runtime = mesmerMechanicsFor(context);
   const instrument = runtime.instruments[skill.id];
-  if (!instrument && skill.id !== ID.CRESCENDO) return;
-  withMesmerCastEmission(context, cast, skill, () => {
-    if (instrument) {
-      instrumentAttack(context, skill, instrument, cast.start + (instrument.damageAtMs || 0) / 1000);
-      if (instrument.instrument === 'Harp') {
-        const instrumentsProfile = requireBalanceProfileFromContext(context, PROFILE.instruments);
-        const distortion = requireEffect(instrumentsProfile, 'buff', 'distortion');
-        if (distortion)
-          runtime.addEvent({
-            type: 'buff',
-            at: cast.start,
-            kind: 'distortion',
-            stacks: Number(distortion.stacks),
-            duration: distortion.duration,
-            sourceSkill: skill.name
-          });
-      }
-    } else {
-      // Instrument state is read when the strike occurs, after intervening accepted performances.
-      context.scheduleForCast('mesmer.crescendo', cast.start + Number(skill.damageAtMs || 0) / 1000, cast);
-    }
-  });
+  if (!instrument) return;
+  withMesmerCastEmission(context, cast, skill, () =>
+    instrumentAttack(context, skill, instrument, cast.start + (instrument.damageAtMs || 0) / 1000)
+  );
 }
 
 /** Commits Troubadour instrument state while preserving Harp's interrupt commit point. */
@@ -313,6 +296,6 @@ export function completeTroubadourPerformance(context: MesmerRuntime, cast: Runt
   if (!instrument) return;
 
   const interrupted = castWasInterrupted(cast);
-  const at = interrupted && instrument.instrument === 'Harp' ? cast.effectiveEnd : cast.fullEnd;
+  const at = skill.interruptMode === 'per-packet' ? (interrupted ? cast.effectiveEnd : cast.fullEnd) : context.time;
   withMesmerCastEmission(context, cast, skill, () => commitInstrument(context, cast, skill, instrument, at));
 }

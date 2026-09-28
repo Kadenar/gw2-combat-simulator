@@ -1,3 +1,5 @@
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { dispatchShatterResolved } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
@@ -18,6 +20,18 @@ export const chronomancerHooks: Partial<RuntimeProfession<MesmerRuntimeState>> =
   initialize: initializeChronomancerRuntime,
   availability: chronomancerAvailability,
   onCastCommit: completeChronomancerTimeBomb,
+  sideEffectHandlers: {
+    // The checkpoint owns its atomic clone spend and publishes the same resolved-shatter notification once.
+    'mesmer.chronomancer.begin-continuum'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      const resolution = chronomancerControllerFor(mesmerMechanicsFor(runtime)).beginContinuumSplit(
+        context.skill as MesmerSkill,
+        runtime.time,
+        { activationId: context.cast.id }
+      );
+      dispatchShatterResolved(runtime, resolution);
+    }
+  },
   tasks: {
     'mesmer.continuum-expire'(runtime, data) {
       if (chronomancerState.from(runtime).continuum?.expiresAt !== data) return;

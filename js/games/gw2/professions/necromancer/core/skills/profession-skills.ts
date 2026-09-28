@@ -23,6 +23,8 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     flipSkillId: null
   },
   [ID.DEATH_SHROUD]: {
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.enter-shroud' } }],
     castTimeMs: 0,
     effects: [],
     cooldown: 10,
@@ -33,6 +35,8 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     inputCategory: 'bar-swap'
   },
   [ID.END_DEATH_SHROUD]: {
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.exit-shroud' } }],
     castTimeMs: 0,
     effects: [],
     cooldown: 0,
@@ -204,6 +208,9 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     cooldown: 8
   },
   [ID.SUMMON_MADNESS]: {
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-horrors' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 1000,
     summons: 8,
     summonInterval: 1,

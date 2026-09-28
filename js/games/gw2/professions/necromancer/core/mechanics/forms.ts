@@ -120,7 +120,7 @@ function shroudEntryEffects(runtime: NecromancerRuntime, cast: RuntimeCast): voi
 }
 
 /** Manual exit cancels the owned deadline so it cannot grant twice or end a replacement Lich Form. */
-function exitLich(runtime: NecromancerRuntime): void {
+export function exitLich(runtime: NecromancerRuntime): void {
   const state = runtime.profession.core;
   if (state.activeShroud !== 'lich') return;
   runtime.cancelOwner({ id: LICH_EXPIRY, generation: state.lichGeneration });
@@ -146,7 +146,7 @@ function transition(runtime: NecromancerRuntime, entering: boolean, skill?: Necr
 }
 
 /** Exit mutates the same state seen by attacks and starts entry recharge only after the form ends. */
-function exitNecromancerShroud(runtime: NecromancerRuntime): void {
+export function exitNecromancerShroud(runtime: NecromancerRuntime): void {
   const state = runtime.profession.core;
   if (!state.activeShroud || state.activeShroud === 'lich') return;
   // Depletion has no cast completion; the actual form exit still invalidates its pending attack chain.
@@ -176,34 +176,33 @@ function exitNecromancerShroud(runtime: NecromancerRuntime): void {
   soulBarbs(runtime);
 }
 
-/** Completed form casts coordinate state, recharge, callbacks, and entry effects in that order. */
-export function completeNecromancerForm(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+/** Lich entry arms one generation-owned expiry shared with manual exit. */
+export function enterLich(runtime: NecromancerRuntime): void {
+  const state = runtime.profession.core;
+  state.activeShroud = 'lich';
+  state.lichEndsAt = canonicalTime(runtime.time + 20);
+  state.lichGeneration++;
+  armSkillFlip(state.availableFlips, ID.EXIT_LICH_FORM, runtime.time, state.lichEndsAt);
+  runtime.resourceController.refresh('lifeForce');
+  runtime.schedule(LICH_EXPIRY, state.lichEndsAt, null, { id: LICH_EXPIRY, generation: state.lichGeneration }, -20);
+}
+
+/** Shroud entry preserves preparation, recharge, callbacks, resource refresh, and trait ordering. */
+export function enterNecromancerShroud(runtime: NecromancerRuntime, cast: RuntimeCast): void {
   const skill = cast.skill as NecromancerSkill;
   const state = runtime.profession.core;
-  if (skill.id === ID.LICH_FORM) {
-    state.activeShroud = 'lich';
-    state.lichEndsAt = canonicalTime(runtime.time + 20);
-    state.lichGeneration++;
-    armSkillFlip(state.availableFlips, ID.EXIT_LICH_FORM, runtime.time, state.lichEndsAt);
-    runtime.resourceController.refresh('lifeForce');
-    runtime.schedule(LICH_EXPIRY, state.lichEndsAt, null, { id: LICH_EXPIRY, generation: state.lichGeneration }, -20);
-  } else if (skill.id === ID.EXIT_LICH_FORM) exitLich(runtime);
-  else if (skill.shroudEntry) {
-    prepareShroudEntry(runtime);
-    state.activeShroud = skill.shroudEntry;
-    state.activeShroudEntryId = skill.id;
-    state.activeShroudProfileId = skill.shroudProfileId || PROFILE.shroud;
-    const exit = [...runtime.helpers.skillsById.values()].find(
-      (candidate) => candidate.shroudExit === skill.shroudEntry
-    );
-    state.activeShroudExitId = exit?.id ?? null;
-    if (exit) armSkillFlip(state.availableFlips, exit.id, runtime.time);
-    runtime.cooldownController.setReadyAt(skill.id, Infinity);
-    runNecromancerShroudEnter(runtime, skill);
-    runtime.resourceController.refresh('lifeForce');
-    shroudEntryEffects(runtime, cast);
-    transition(runtime, true, skill);
-  } else if (skill.shroudExit) exitNecromancerShroud(runtime);
+  prepareShroudEntry(runtime);
+  state.activeShroud = skill.shroudEntry!;
+  state.activeShroudEntryId = skill.id;
+  state.activeShroudProfileId = skill.shroudProfileId || PROFILE.shroud;
+  const exit = [...runtime.helpers.skillsById.values()].find((candidate) => candidate.shroudExit === skill.shroudEntry);
+  state.activeShroudExitId = exit?.id ?? null;
+  if (exit) armSkillFlip(state.availableFlips, exit.id, runtime.time);
+  runtime.cooldownController.setReadyAt(skill.id, Infinity);
+  runNecromancerShroudEnter(runtime, skill);
+  runtime.resourceController.refresh('lifeForce');
+  shroudEntryEffects(runtime, cast);
+  transition(runtime, true, skill);
 }
 
 export const necromancerFormTasks = {

@@ -11,6 +11,8 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
   [ID.GRENADE_KIT]: {
     // Custom: Equips the kit and updates bundle/weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    // Commit the bar transition before cast traits observe the selected kit.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }],
     kitTransition: 'equip',
     castTimeMs: 0,
     cooldown: 0,
@@ -52,7 +54,8 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         ticks: [400, 440, 440].map((atMs) => ({ atMs, coefficient: 0.63 })),
         name: 'Shrapnel Grenade',
         actorType: 'player',
-        damageKind: 'explosion'
+        damageKind: 'explosion',
+        projectile: true
       },
       {
         type: 'condition',
@@ -78,7 +81,8 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         timingScale: 'cast',
         name: 'Flash Grenade',
         actorType: 'player',
-        damageKind: 'explosion'
+        damageKind: 'explosion',
+        projectile: true
       },
       {
         type: 'blind',
@@ -100,7 +104,8 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         ticks: [400, 440, 440].map((atMs) => ({ atMs, coefficient: 0.75 })),
         name: 'Freeze Grenade',
         actorType: 'player',
-        damageKind: 'explosion'
+        damageKind: 'explosion',
+        projectile: true
       },
       {
         type: 'condition',
@@ -158,7 +163,8 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         persistsAfterInterrupt: true,
         name: 'Grenade',
         actorType: 'player',
-        damageKind: 'explosion'
+        damageKind: 'explosion',
+        projectile: true
       }
     ],
     kit: 'Grenade Kit'
@@ -166,6 +172,8 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
   [ID.STOW_GRENADE_KIT]: {
     // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    // Commit the bar transition before cast traits observe the selected kit.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }],
     kitTransition: 'stow',
     paletteFlip: false,
     castTimeMs: 0,

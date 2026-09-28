@@ -1,3 +1,4 @@
+import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /** Connects Core Mesmer resources, profession actions, player effects, and illusions into one simulation runtime. */
@@ -7,7 +8,6 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { emitMesmerPacket } from '#gw2/professions/mesmer/core/events.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -15,11 +15,10 @@ import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.j
 import type { MesmerMechanics, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import {
   MESMER_CORE_CLONE_ATTACKS,
-  MESMER_CORE_PHANTASM_ATTACK_TIMINGS,
-  MESMER_CORE_SHATTERS,
   MESMER_CORE_TRAIT_DAMAGE,
   MESMER_CORE_WEAPON_STRENGTH
 } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
+import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { createProfessionActionController } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import { createResourceController } from '#gw2/professions/mesmer/core/mechanics/resources.js';
 import { resolveCloneShatter } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
@@ -39,7 +38,6 @@ import type {
   MesmerPhantasmAttackTiming
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerPendingResource } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 /** Builds Core trait variations consumed by the shared phantasm lifecycle. */
@@ -69,16 +67,10 @@ function runtimeTraitsPhantasmSpawnModifiers(
 export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
   const state = context;
   const { config } = context;
-  const catalog = context.helpers as import('#gw2/platform/engine/skills/types.js').CanonicalCatalog<MesmerSkill>;
   const resourceDefinition = mesmerResourceDefinition(config.specialization ?? 'Core', context);
-  const allSkills = catalog.skills;
-  const flipSkillsByParent = new Map<SkillId, MesmerSkill>(
-    allSkills.flatMap((skill) => (skill.flipParentId == null ? [] : ([[skill.flipParentId, skill]] as const)))
-  );
   const runtime = {
     context,
     resourceDefinition,
-    flipSkillsByParent,
     activeEmission: null as MesmerActiveEmission | null,
     castDetails: new Map<string, MesmerCastDetails>(),
     weaponStrength: MESMER_CORE_WEAPON_STRENGTH,
@@ -104,7 +96,6 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
       'mesmer.core.clone-shatter': resolveCloneShatter
     },
     shatterResolvedHandlers: [],
-    skillCompletionHandlers: [],
     instruments: {}
   };
   const activePrimaryWeapon = () => {
@@ -201,8 +192,7 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
     addEvent,
     addTraitProc,
     addCondition,
-    addDamage,
-    traitDamage: runtime.traitDamage
+    addDamage
   });
   const connectedRuntime: MesmerMechanics = Object.assign(runtime, {
     activePrimaryWeapon,

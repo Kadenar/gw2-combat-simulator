@@ -11,7 +11,7 @@ import {
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -19,7 +19,6 @@ import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js'
 import type { NecromancerCoreState, NecromancerSelfCondition } from '#gw2/professions/necromancer/core/state.js';
 
 const CORRUPTION = 'necromancer.corruption';
-const TRANSFER = 'necromancer.transfer';
 const DEVOURING = 'necromancer.devouring-impact';
 const EXPIRY = 'necromancer.self-condition-expiry';
 interface ConditionWork {
@@ -221,29 +220,38 @@ export function reactToNecromancerConditions(runtime: NecromancerRuntime, event:
   }
 }
 
-/** Custom condition owners schedule only committed work; travel postpones the impact's live observation. */
-export function scheduleNecromancerConditions(runtime: NecromancerRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as NecromancerSkill;
-  const work: ConditionWork = { skillId: skill.id, activationId: cast.id, offTarget: cast.command.offTarget };
-  if (skill.categories?.includes('Corruption') && skill.effects?.some(isCorruptionCompletionEffect)) {
-    const first = skill.effects.find((effect) => effect.type === 'strike');
-    const timing = first && scaleCastBoundTiming(cast, skill, first);
-    const committedBloodIsPower =
-      skill.id === ID.BLOOD_IS_POWER &&
-      first &&
-      timing?.type === 'strike' &&
-      cast.start + (effectFirstAtMs(timing) ?? 0) / 1000 <= cast.effectiveEnd;
-    if (!cast.cancelled || committedBloodIsPower) runtime.schedule(CORRUPTION, cast.effectiveEnd, work);
-  }
+/** A committed Corruption applies local work without hostile travel or the remaining animation tail. */
+export function completeNecromancerCorruption(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+  corruption(runtime, { skillId: cast.skill.id, activationId: cast.id });
+}
 
-  // Only the signet transfers without a hit; removing Deathly Swarm's strike must not create a completion transfer.
-  if (skill.id === ID.PLAGUE_SIGNET && !cast.cancelled)
-    runtime.schedule(TRANSFER, cast.effectiveEnd + (cast.command.impactDelayMs ?? 0) / 1000, work);
-  if (skill.id === ID.DEVOURING_DARKNESS) {
-    const impactAt = canonicalTime(cast.start + (cast.fullEnd - cast.start) * 0.8);
-    if (impactAt <= cast.effectiveEnd)
-      runtime.schedule(DEVOURING, impactAt + (cast.command.impactDelayMs ?? 0) / 1000, work);
-  }
+/** Blood Is Power's launched opening still earns local work when cancellation precedes semantic commitment. */
+export function scheduleBloodIsPowerLaunch(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+  if (!cast.cancelled) return;
+  const first = cast.skill.effects?.find((effect) => effect.type === 'strike');
+  const timing = first && scaleCastBoundTiming(cast, cast.skill, first);
+  if (timing?.type === 'strike' && cast.start + (effectFirstAtMs(timing) ?? 0) / 1000 <= cast.effectiveEnd)
+    runtime.schedule(CORRUPTION, cast.effectiveEnd, { skillId: cast.skill.id, activationId: cast.id });
+}
+
+/** Plague Signet transfers immediately on commitment; it has no projectile or travel delay. */
+export function resolvePlagueSignetTransfer(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+  transfer(runtime, cast.skill, Number(cast.skill.conditionsTransferred), {
+    skillId: cast.skill.id,
+    activationId: cast.id,
+    offTarget: cast.command.offTarget
+  });
+}
+
+/** Devouring Darkness samples live conditions at its precommit impact, independently of its selected strike. */
+export function scheduleDevouringDarkness(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+  const impactAt = canonicalTime(cast.start + (cast.fullEnd - cast.start) * 0.8);
+  if (impactAt <= cast.effectiveEnd)
+    runtime.schedule(DEVOURING, impactAt + (cast.command.impactDelayMs ?? 0) / 1000, {
+      skillId: cast.skill.id,
+      activationId: cast.id,
+      offTarget: cast.command.offTarget
+    });
 }
 
 /** The impact reads conditions before emitting its own Torment; a removed strike leaves the condition packet independent. */
@@ -291,12 +299,7 @@ function devouring(runtime: NecromancerRuntime, data: unknown): void {
 export const necromancerConditionTasks = {
   [CORRUPTION]: corruption,
   [DEVOURING]: devouring,
-  [EXPIRY]: purge,
-  [TRANSFER](runtime: NecromancerRuntime, data: unknown) {
-    const work = data as ConditionWork;
-    const skill = runtime.helpers.skillsById.get(work.skillId) as NecromancerSkill;
-    transfer(runtime, skill, Number(skill.conditionsTransferred), work);
-  }
+  [EXPIRY]: purge
 };
 
 /** Removes expired or not-yet-active self-condition applications and returns the remaining active set. */

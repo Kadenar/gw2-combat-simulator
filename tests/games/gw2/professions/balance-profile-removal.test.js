@@ -5,10 +5,9 @@ import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ELEMENTALIST_TRAIT_IDS as ELE } from '#gw2/professions/elementalist/data/ids.js';
-import { ENGINEER_TRAIT_IDS as ENG } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_TRAIT_IDS as ENG, ENGINEER_SKILL_IDS as ENG_SKILL } from '#gw2/professions/engineer/data/ids.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/elementalist/core/profiles.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS as HOLO } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
-import { MECHANIST_BALANCE_PROFILE_IDS as MECH } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import { EVOKER_BALANCE_PROFILE_IDS as EVOKER } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS as CATALYST } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as ENGINEER } from '#gw2/professions/engineer/core/profiles.js';
@@ -114,11 +113,11 @@ test('Holosmith heat follow-ups preserve conditions when the strike is removed',
 test('removing a mech chain entry keeps later attacks bound to their own names', () => {
   const result = run(
     engineerProfession,
-    {
-      [MECH.meleeChain]: { removeEffects: [{ type: 'strike', name: 'Hard Strike' }] }
-    },
+    {},
     'Mechanist',
-    [{ type: 'wait', durationMs: 5000 }]
+    [{ type: 'wait', durationMs: 5000 }],
+    {},
+    { [ENG_SKILL.HARD_STRIKE]: { removeEffects: [{ type: 'strike' }] } }
   );
   const attacks = result.events.filter((event) => event.type === 'damage' && event.actorType === 'summon');
   assert.equal(
@@ -192,10 +191,14 @@ test('removed Ignite tier stays empty while the next named tier retains its dura
 });
 
 test('Rocket Punch keeps Burning and control when its strike is removed', () => {
-  const result = run(engineerProfession, { [MECH.rocketPunch]: { removeEffects: [{ type: 'strike' }] } }, 'Mechanist', [
-    'Lightning Rod',
-    { type: 'wait', durationMs: 1000 }
-  ]);
+  const result = run(
+    engineerProfession,
+    {},
+    'Mechanist',
+    ['Lightning Rod', { type: 'wait', durationMs: 1000 }],
+    {},
+    { [ENG_SKILL.ROCKET_PUNCH_MECH]: { removeEffects: [{ type: 'strike' }] } }
+  );
   const packets = result.events.filter((event) => event.skillName === 'Rocket Punch (Mech)');
   assert.equal(
     packets.some((event) => event.type === 'damage'),

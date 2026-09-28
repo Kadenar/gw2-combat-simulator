@@ -1,3 +1,14 @@
+import { canonicalTime } from '#kernel/core/clock.js';
+import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
+import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
+import {
+  AURA_GRANT,
+  EFFULGENT,
+  STANCE,
+  luminaryImpactAt
+} from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
 /**
  * Owns Luminary stance and stance-chain skill fragments.
  * Persistent stance windows and scheduled effects remain in `hooks.ts`.
@@ -15,6 +26,10 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     effects: []
   },
   [ID.DARING_ADVANCE]: {
+    // Schedule the intrinsic self effect at its boundary even when the hostile impact misses.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-daring' } }
+    ],
     castTimeMs: 1000,
 
     effects: [
@@ -39,10 +54,18 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ]
   },
   [ID.EFFULGENT_STANCE]: {
+    // Schedule the intrinsic self effect at its boundary even when the hostile impact misses.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-effulgent' } }
+    ],
     castTimeMs: 0,
     effects: []
   },
   [ID.PIERCING_STANCE]: {
+    // Schedule the intrinsic self effect at its boundary even when the hostile impact misses.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-piercing' } }
+    ],
     castTimeMs: 200,
     // Keep the stance's strike and daze on one impact.
     effects: impactEffects({ atMs: PIERCING_STANCE_IMPACT_MS, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -68,3 +91,26 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ]
   }
 });
+
+/** Priority preserves fresh Piercing before its hit and fresh Daring after Sovereign's detonation. */
+export const luminaryStanceActions: RuntimeProfession<GuardianRuntimeState>['sideEffectHandlers'] = {
+  'guardian.start-piercing'(runtime, context) {
+    if (context.kind === 'cast')
+      runtime.scheduleForCast(STANCE, luminaryImpactAt(context.cast), context.cast, { piercing: true }, undefined, -30);
+  },
+  'guardian.start-daring'(runtime, context) {
+    if (context.kind === 'cast')
+      runtime.scheduleForCast(STANCE, luminaryImpactAt(context.cast), context.cast, { piercing: false }, undefined, 0);
+  },
+  'guardian.start-effulgent'(runtime, context) {
+    if (context.kind !== 'cast') return;
+    const cast = context.cast;
+    const event = { ...guardianCastCause(runtime, cast), offTarget: cast.command.offTarget === true };
+    runtime.schedule(AURA_GRANT, cast.start, event, undefined, -10);
+    const state = luminaryState.from(runtime);
+    state.effulgentActiveUntil = canonicalTime(cast.start + 4);
+    state.effulgentStacks = 0;
+    state.effulgentActivationId = cast.id;
+    runtime.schedule(EFFULGENT, state.effulgentActiveUntil, event);
+  }
+};

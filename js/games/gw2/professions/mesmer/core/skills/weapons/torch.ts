@@ -1,10 +1,17 @@
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.PHANTASMAL_MAGE]: {
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
+    // The summon owns its attack and conversion timeline independently of the player cast.
+    phantasmTiming: {
+      castTimeMs: 800,
+      damageAtMs: 2000,
+      spawnAtMs: 2240
+    },
     phantasm: true,
     // The mage has already spawned before the aftercast ends, so a later cancellation retains its clone conversion.
     interruptCommitMs: 560,

@@ -1,6 +1,6 @@
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FRIENDLY_FIRE]: {
@@ -35,6 +35,9 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.INSPIRING_IMAGERY]: {
+    // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
+    flipArm: { skillId: ID.ABSTRACTION, duration: 2, delay: 0, anchor: 'castCommit' },
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }],
     castTimeMs: 500,
     // The image grants boons after its field expires unless Abstraction detonates it first.
     comboFields: [{ ownerId: 'mesmer', fieldType: 'Ethereal', duration: 2, startAnchor: 'castEnd' }],
@@ -45,6 +48,14 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.PHANTASMAL_SHARPSHOOTER]: {
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
+    // The summon owns its attack and conversion timeline independently of the player cast.
+    phantasmTiming: {
+      // These lifecycle timings are estimates.
+      castTimeMs: 520,
+      damageAtMs: 1560,
+      spawnAtMs: 1560
+    },
     castTimeMs: 500,
     phantasm: true,
     resource: {
@@ -75,6 +86,9 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.SINGULARITY_SHOT]: {
+    // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
+    flipArm: { skillId: ID.DIMENSIONAL_APERTURE, duration: 3, delay: 0, anchor: 'castStart' },
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }],
     castTimeMs: 333.333333333,
     effects: []
   }

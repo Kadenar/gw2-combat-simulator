@@ -8,6 +8,9 @@ const OFF_HAND_SWORD_FOLLOW_UP_WINDOW_SECONDS = 3;
 
 export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.PATH_OF_GLUTTONY]: {
+    // With no shorter flipDuration, Gorge remains available for this parent's selected cooldown.
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.weapon-flip' } }],
     castTimeMs: 760,
     comboFinishers: [
       {
@@ -25,6 +28,8 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.HUNGERING_MAELSTROM]: {
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.weapon-flip' } }],
     castTimeMs: 640,
     flipDuration: OFF_HAND_SWORD_FOLLOW_UP_WINDOW_SECONDS,
     // Share this impact's timing while preserving independent payloads and declaration order.
@@ -60,6 +65,8 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.GORGE]: {
+    // Successful follow-up commitment consumes only this weapon window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.GORGE } }],
     castTimeMs: 760,
     comboFinishers: [
       {
@@ -77,6 +84,8 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.RAVENOUS_WAVE]: {
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.weapon-flip' } }],
     castTimeMs: 400,
     flipDuration: 3,
     effects: [
@@ -99,6 +108,8 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     lifeForceGain: 12
   },
   [ID.SATIATE]: {
+    // Successful follow-up commitment consumes only this weapon window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.SATIATE } }],
     castTimeMs: 440,
     effects: [
       {
@@ -116,6 +127,8 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.CONSUME]: {
+    // Successful follow-up commitment consumes only this weapon window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.CONSUME } }],
     castTimeMs: 520,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: [
@@ -142,6 +155,8 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.DEVOURING_VISAGE]: {
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.weapon-flip' } }],
     castTimeMs: 680,
     flipDuration: OFF_HAND_SWORD_FOLLOW_UP_WINDOW_SECONDS,
     // Share this impact's timing while preserving independent payloads and declaration order.
@@ -165,6 +180,8 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     lifeForceGain: 10
   },
   [ID.GORMANDIZE]: {
+    // Successful follow-up commitment consumes only this weapon window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.GORMANDIZE } }],
     castTimeMs: 440,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [

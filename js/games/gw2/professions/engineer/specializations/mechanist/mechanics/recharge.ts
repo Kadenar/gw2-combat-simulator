@@ -1,4 +1,4 @@
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { overclockSignetApplies } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { ENGINEER_TRAIT_IDS as TRAIT, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -10,9 +10,7 @@ import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/
 function overclockPassive(context: EngineerRuntime, skill: EngineerSkill): boolean {
   return (
     !(isEngineerMechCommand(skill) && hasTrait(context, TRAIT.MECH_CORE_JADE_DYNAMO)) &&
-    skill.id !== ID.OVERCLOCK_SIGNET &&
-    Boolean(skill.categories?.some((category) => category.toLowerCase() === 'signet')) &&
-    selectedSkillNameSet(context.config.selectedSkills).has('Overclock Signet')
+    overclockSignetApplies(context, skill)
   );
 }
 

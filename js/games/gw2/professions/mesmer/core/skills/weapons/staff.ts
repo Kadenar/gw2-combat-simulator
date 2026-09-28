@@ -1,7 +1,7 @@
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // The opening strike is followed by five field pulses.
 const CHAOS_STORM_PULSES_MS = [280, 1280, 2280, 3280, 4280, 5280];
@@ -48,6 +48,24 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
     castTimeMs: 480
   },
   [ID.PHANTASMAL_WARLOCK]: {
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
+    // The summon owns its attack and conversion timeline independently of the player cast.
+    phantasmTiming: {
+      castTimeMs: 780,
+      damageAtMs: 2920,
+      damageAtMsByEntity: [2800, 2920],
+      // Both Warlocks retain their observed attack and clone-conversion stagger.
+      spawnAtMs: 4120,
+      spawnAtMsByEntity: [4080, 4180],
+      damageTicksByEntity: [
+        {
+          'One warlock': [{ atMs: 1200 }, { atMs: 2000 }, { atMs: 2800 }]
+        },
+        {
+          'One warlock': [{ atMs: 1320 }, { atMs: 2120 }, { atMs: 2920 }]
+        }
+      ]
+    },
     phantasm: true,
     resource: {
       mode: 'phantasm',

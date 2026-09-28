@@ -91,7 +91,9 @@ test('Quickfire allies can consume their tick-aligned grant exactly at expiry', 
 test('tome and Quickfire grants allow an expiry-time hit before cleanup in either insertion order', () => {
   for (const tome of [false, true]) {
     const rotation = tome ? [ID.TOME_OF_JUSTICE, ID.ASHES_OF_THE_JUST, wait(11000)] : [wait(11000)];
-    const expiry = tome ? 10.56 : 10;
+    const expiry = tome
+      ? state(runGuardian([ID.TOME_OF_JUSTICE, ID.ASHES_OF_THE_JUST], { specialization: 'Firebrand' })).ashes.expiresAt
+      : 10;
     for (const offset of [-0.000001, 0, 0.000001]) {
       for (const hitFirst of [false, true]) {
         const result = runGuardian(
@@ -115,6 +117,34 @@ test('tome and Quickfire grants allow an expiry-time hit before cleanup in eithe
         assert.equal(burns(result).length, Number(offset <= 0), `tome=${tome} offset=${offset} hitFirst=${hitFirst}`);
         assert.equal(state(result).ashes.charges, 0);
       }
+    }
+  }
+});
+
+// The application boundary owns the grant; cancellation before commitment never installs party charges.
+test('Ashes grants at its scheduled application boundary and canceled casts grant nothing', () => {
+  for (const interruptAfterMs of [undefined, 1, 700]) {
+    const result = runGuardian(
+      [
+        ID.TOME_OF_JUSTICE,
+        { type: 'cast', skillId: ID.ASHES_OF_THE_JUST, ...(interruptAfterMs == null ? {} : { interruptAfterMs }) },
+        wait(1000)
+      ],
+      { specialization: 'Firebrand' }
+    );
+    assert.deepEqual(result.warnings, []);
+    const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.ASHES_OF_THE_JUST);
+    const grants = result.events.filter((event) => event.kind === 'ashes-of-the-just');
+    if (action.cancelled) {
+      assert.deepEqual(grants, []);
+      assert.equal(state(result).ashes.charges, 0);
+      assert.equal(state(result).tomePages.value, 5);
+    } else {
+      assert.equal(grants.length, 1);
+      assert.ok(Math.abs(grants[0].at - action.at - 0.56) < 1e-9);
+      assert.ok(grants[0].at < action.endsAt);
+      assert.equal(state(result).ashes.charges, grants[0].stacks);
+      assert.equal(state(result).tomePages.value, 4);
     }
   }
 });

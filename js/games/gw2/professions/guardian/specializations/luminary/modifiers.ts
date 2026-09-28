@@ -1,3 +1,4 @@
+import { luminaryWeaponModifiers } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -61,33 +62,5 @@ export const luminaryModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       stanceModifierActive(context, 'guardian-daring-advance', GUARDIAN_SKILL_IDS.DARING_ADVANCE, 'Daring Advance')
   },
-  {
-    id: 'guardian.shining-spin',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.2,
-    order: 100,
-    when: (context) =>
-      context.event?.skillId === GUARDIAN_SKILL_IDS.SHINING_SPIN && Boolean(context.config?.target?.defiant)
-  },
-  {
-    id: 'guardian.glaring-burst-hammer',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    // Glaring Burst's hammer variant scales its packet after shared additive damage bonuses.
-    operation: 'multiply',
-    factor: 1.25,
-    order: 100,
-    when: (context) =>
-      context.event?.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST && context.event.metadata?.radiantWeapon === 'hammer'
-  },
-  {
-    id: 'guardian.gleaming-blade',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.5,
-    order: 100,
-    when: (context) =>
-      context.event?.skillId === GUARDIAN_SKILL_IDS.GLEAMING_BLADE &&
-      guardianTimedBuffActive(context, 'guardian-radiant-courage-sword')
-  }
+  ...luminaryWeaponModifiers
 ]);

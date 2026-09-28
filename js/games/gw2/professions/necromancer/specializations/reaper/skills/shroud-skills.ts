@@ -163,6 +163,8 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     specialization: 'Reaper'
   },
   [ID.REAPERS_SHROUD]: {
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.enter-shroud' } }],
     castTimeMs: 0,
     effects: [],
     cooldown: 10,
@@ -205,6 +207,8 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     specialization: 'Reaper'
   },
   [ID.EXIT_REAPERS_SHROUD]: {
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.exit-shroud' } }],
     castTimeMs: 0,
     effects: [],
     cooldown: 0,

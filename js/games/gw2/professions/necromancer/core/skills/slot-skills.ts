@@ -1,3 +1,22 @@
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasSelectedSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  effectNumber,
+  requireEffect
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { isCorruptionCompletionEffect } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -9,11 +28,17 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: []
   },
   [ID.SUMMON_BONE_FIEND]: {
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 360,
     effects: [],
     rechargeOnMinionDeath: true
   },
   [ID.PUTRID_EXPLOSION]: {
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 360,
     minionKey: 'bone-minion',
     consumes: 1,
@@ -29,11 +54,25 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.SUMMON_BONE_MINIONS]: {
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 360,
     effects: [],
     rechargeOnMinionDeath: true
   },
   [ID.BLOOD_IS_POWER]: {
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, _cast, effects) => effects.filter((effect) => !isCorruptionCompletionEffect(effect))
+      }
+    ],
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'necromancer.blood-is-power-launch' } },
+      { on: 'castCommit', do: { type: 'necromancer.corruption' } }
+    ],
     castTimeMs: 880,
     // Blood Is Power cannot cancel its remaining aftercast, so importers and live execution retain the full cast lane.
     interruptCommitMs: 600,
@@ -111,10 +150,21 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.SUMMON_BLOOD_FIEND]: {
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 680,
     effects: []
   },
   [ID.CONSUME_CONDITIONS]: {
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, _cast, effects) => effects.filter((effect) => !isCorruptionCompletionEffect(effect))
+      }
+    ],
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.corruption' } }],
     castTimeMs: 680,
     effects: [
       // Corruption completion owns self-conditions and boons independently of hostile impacts.
@@ -139,6 +189,14 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.PLAGUELANDS]: {
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, _cast, effects) => effects.filter((effect) => !isCorruptionCompletionEffect(effect))
+      }
+    ],
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.corruption' } }],
     castTimeMs: 920,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
@@ -238,6 +296,8 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.LICH_FORM]: {
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.enter-lich' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     castTimeMs: 680,
     effects: [],
@@ -245,12 +305,17 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     cooldown: 120
   },
   [ID.PLAGUE_SIGNET]: {
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.signet-transfer' } }],
     castTimeMs: 0,
     // The handler and tooltip share the maximum number of distinct self-condition types transferred.
     conditionsTransferred: 5,
     effects: []
   },
   [ID.RIGOR_MORTIS]: {
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 0,
     minionKey: 'bone-fiend',
     controlWindow: 4,
@@ -298,23 +363,47 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.TASTE_OF_DEATH]: {
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 680,
     minionKey: 'blood-fiend',
     consumes: 1,
     effects: []
   },
   [ID.SUMMON_SHADOW_FIEND]: {
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 360,
     effects: [],
     rechargeOnMinionDeath: true
   },
   [ID.HAUNT]: {
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 0,
     minionKey: 'shadow-fiend',
     impactDelay: 2,
     lifeForceOnHit: 10,
     effects: [
-      { type: 'strike', coefficient: 0.4, hits: 1, actorType: 'summon' },
+      {
+        type: 'strike',
+        coefficient: 0.4,
+        hits: 1,
+        actorType: 'summon',
+        // Only an accepted command strike grants Haunt life force.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'summon',
+            packets: 'first',
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: { type: 'necromancer.skill-life-force' }
+          }
+        ]
+      },
       { type: 'blind', actorType: 'summon', duration: 5 },
       {
         type: 'condition',
@@ -408,11 +497,17 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.SUMMON_FLESH_GOLEM]: {
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.summon-minion' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 680,
     effects: [],
     rechargeOnMinionDeath: true
   },
   [ID.CHARGE]: {
+    // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 680,
     minionKey: 'flesh-golem',
     effects: [
@@ -425,6 +520,14 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.CORROSIVE_POISON_CLOUD]: {
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, _cast, effects) => effects.filter((effect) => !isCorruptionCompletionEffect(effect))
+      }
+    ],
+    // The skill owns this transaction; its shared helper retains state and lifetime rules.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.corruption' } }],
     castTimeMs: 600,
     effects: [
       {
@@ -468,3 +571,88 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   }
 });
+
+/** Checks whether Signet of Spite's selected, out-of-shroud, off-cooldown passive is active. */
+function signetOfSpitePassiveActive(context: Gw2ModifierContext): boolean {
+  return (
+    hasSelectedSkill(context, 'Signet of Spite') &&
+    !readProfessionCoreState<NecromancerCoreState>(context.runtime?.profession).activeShroud &&
+    !context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_SPITE, context.time)
+  );
+}
+
+/** Restricts player attributes and outgoing modifiers to player-owned contexts. */
+function playerModifierContext(context: Gw2ModifierContext): boolean {
+  // Eventless attribute queries describe the player; event queries follow explicit outgoing ownership.
+  return context.event
+    ? isGw2PlayerModifierOwnedEvent(context.event)
+    : context.actorType == null || context.actorType === 'player';
+}
+
+/** Keep selected Signet of Spite's build provenance and live suppression in one policy. */
+export function modifySignetOfSpiteAttributes(
+  context: Gw2ModifierContext,
+  result: Gw2MutableStats & { power: number }
+): void {
+  const staticRulesApplied = professionStaticRulesApplied(context.config);
+  if (hasSelectedSkill(context, 'Signet of Spite')) {
+    const signetOfSpiteProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfSpite);
+    const signetPower = balanceProfileNumber(signetOfSpiteProfile, 'attributeBonus');
+    const passiveActive = playerModifierContext(context) && signetOfSpitePassiveActive(context);
+    if (staticRulesApplied) {
+      if (!passiveActive) result.power -= signetPower;
+    } else if (passiveActive) {
+      result.power += signetPower;
+    }
+  }
+}
+
+/** Equipped signets activate without a cast; their scheduler retains cadence through suppression and overflow. */
+export const NECROMANCER_SIGNET_PASSIVES = [
+  {
+    passive: 'undeath',
+    name: 'Signet of Undeath',
+    skillId: ID.SIGNET_OF_UNDEATH,
+    profileId: PROFILE.signetOfUndeathPassive
+  },
+  {
+    passive: 'vampirism',
+    name: 'Signet of Vampirism',
+    skillId: ID.SIGNET_OF_VAMPIRISM,
+    profileId: PROFILE.signetOfVampirismPassive
+  }
+] as const;
+
+/** Resolve the selected signet's live cooldown/shroud policy at each independently scheduled pulse. */
+export function applyNecromancerSignetPassive(
+  runtime: NecromancerRuntime,
+  policy: (typeof NECROMANCER_SIGNET_PASSIVES)[number]
+): void {
+  const state = runtime.profession.core;
+  const id = policy.skillId;
+  const inShroud = Boolean(state.activeShroud && state.activeShroud !== 'lich');
+  if ((runtime.cooldowns.get(id) ?? 0) > runtime.time && !(hasTrait(runtime, TRAIT.SIGNETS_OF_SUFFERING) && inShroud))
+    return;
+  const profile = requireBalanceProfileFromContext(runtime, policy.profileId);
+  if (policy.passive === 'undeath') grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
+  else {
+    const strike = requireEffect(profile, 'strike', 'Signet of Vampirism - Passive Life Siphon');
+    if (strike)
+      runtime.emit(
+        buildResolverStrike({
+          at: runtime.time,
+          source: 'necromancer',
+          sourceId: id,
+          actorType: 'effect',
+          skillId: id,
+          skillName: strike.name,
+          coefficient: 0,
+          skillWeapon: 'Unequipped',
+          flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
+          flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
+          canCrit: strike.canCrit !== false,
+          damageKind: strike.damageKind || ''
+        })
+      );
+  }
+}

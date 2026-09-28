@@ -10,6 +10,13 @@ const HEALING_TURRET_PALETTE_TILE = 'engineer-healing-turret';
 /** Defines Core heal, utility, elite, turret, and palette-follow-up skill fragments. */
 export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.HEALING_TURRET]: {
+    // Retire the old generation before rebuilding the deployed face; detonation starts parent recharge.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'engineer.retire-turret' } },
+      { on: 'castCommit', do: { type: 'flipArm', skillId: ID.DETONATE_HEALING_TURRET, durationSec: null } },
+      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.CLEANSING_BURST } },
+      { on: 'castCommit', do: { type: 'engineer.deploy-turret' } }
+    ],
     // Custom: Arms Detonate Healing Turret, fires the automatic Cleansing Burst pulse, and starts the
     // 10s overcharge window; see `core/mechanics/weapons.ts`.
 
@@ -46,6 +53,13 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.DETONATE_HEALING_TURRET]: {
+    // Retire the old generation before rebuilding the deployed face; detonation starts parent recharge.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DETONATE_HEALING_TURRET } },
+      { on: 'castCommit', do: { type: 'engineer.retire-turret' } },
+      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.CLEANSING_BURST } },
+      { on: 'castCommit', do: { type: 'engineer.detonate-turret' } }
+    ],
     // Availability requires the parent skill's exposed window.
 
     flipParentName: 'Healing Turret',
@@ -72,6 +86,13 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.CLEANSING_BURST]: {
+    // Retire the old face timer and expose detonation until this overcharge's face timer expires.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.CLEANSING_BURST } },
+      { on: 'castCommit', do: { type: 'engineer.retire-turret' } },
+      { on: 'castCommit', do: { type: 'flipArm', skillId: ID.DETONATE_HEALING_TURRET, durationSec: null } },
+      { on: 'castCommit', do: { type: 'engineer.overcharge-turret' } }
+    ],
     // Availability requires the parent skill's exposed window.
 
     flipParentName: 'Healing Turret',

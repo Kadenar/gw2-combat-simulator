@@ -2,12 +2,7 @@
  * Core-owned formulas and mechanic classifications.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import type {
-  MesmerCloneAttack,
-  MesmerPhantasmAttackTiming,
-  MesmerTraitDamage
-} from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerCloneAttack, MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 
 export const MESMER_CORE_WEAPON_STRENGTH: Readonly<Record<string, number>> = Object.freeze({
   Axe: 1000,
@@ -161,127 +156,10 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
     ]
   }
 });
-export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partial<MesmerPhantasmAttackTiming>>> =
-  Object.freeze({
-    [ID.PHANTASMAL_SWORDSMAN]: {
-      castTimeMs: 880,
-      damageAtMs: 2280,
-      // The supplied power-Chrono lifecycle converts Swordsman at a 3.41s median after its cast completes.
-      spawnAtMs: 3410,
-      phantasmalBladeDelayAfterSpawnMs: 83
-    },
-    [ID.PHANTASMAL_DUELIST]: {
-      castTimeMs: 560,
-      damageAtMs: 2240,
-      // Measured packet and conversion offsets stay anchored to the observed cast end.
-      spawnAtMs: 2800,
-      phantasmalBladeDelayAfterSpawnMs: 175
-    },
-    [ID.PHANTASMAL_MAGE]: {
-      castTimeMs: 800,
-      damageAtMs: 2000,
-      spawnAtMs: 2240
-    },
-    [ID.PHANTASMAL_WARLOCK]: {
-      castTimeMs: 780,
-      damageAtMs: 2920,
-      damageAtMsByEntity: [2800, 2920],
-      // Both Warlocks retain their observed attack and clone-conversion stagger.
-      spawnAtMs: 4120,
-      spawnAtMsByEntity: [4080, 4180],
-      damageTicksByEntity: [
-        {
-          'One warlock': [{ atMs: 1200 }, { atMs: 2000 }, { atMs: 2800 }]
-        },
-        {
-          'One warlock': [{ atMs: 1320 }, { atMs: 2120 }, { atMs: 2920 }]
-        }
-      ]
-    },
-    [ID.PHANTASMAL_BERSERKER]: {
-      castTimeMs: 560,
-      damageAtMs: 1360,
-      damageAtMsByEntity: [1080, 1360],
-      spawnAtMs: 2620,
-      spawnAtMsByEntity: [2360, 2620],
-      damageTicksByEntity: [
-        {
-          'One berserker': [{ atMs: 720 }, { atMs: 840 }, { atMs: 960 }, { atMs: 1080 }]
-        },
-        {
-          'One berserker': [{ atMs: 1000 }, { atMs: 1120 }, { atMs: 1240 }, { atMs: 1360 }]
-        }
-      ]
-    },
-    [ID.PHANTASMAL_DISENCHANTER]: {
-      castTimeMs: 760,
-      damageAtMs: 1240,
-      // The dedicated lifecycle converts Disenchanter about 1.92s after cast completion.
-      spawnAtMs: 1920
-    },
-    [ID.PHANTASMAL_WARDEN]: {
-      castTimeMs: 460,
-      damageAtMs: 4880,
-      spawnAtMs: 7040
-    },
-    [ID.PHANTASMAL_DEFENDER]: {
-      // Keep the lifecycle reference consistent with the skill's reviewed activation.
-      castTimeMs: 760,
-      damageAtMs: 3800,
-      spawnAtMs: 4510
-    },
-    [ID.ECHO_OF_MEMORY]: {
-      castTimeMs: 1640,
-      damageAtMs: 1440,
-      spawnAtMs: 2160
-    },
-    [ID.PHANTASMAL_SHARPSHOOTER]: {
-      // These lifecycle timings are estimates.
-      castTimeMs: 520,
-      damageAtMs: 1560,
-      spawnAtMs: 1560
-    },
-    [ID.PHANTASMAL_LANCER]: {
-      castTimeMs: 520,
-      // Clarity agents spawn together, but their observed attacks/conversions can stagger:
-      // representative per-entity offsets were damage [920, 1200] and conversion [1760, 2040].
-      // Keep the single-Lancer profile until exact shatter-window fidelity needs a Clarity-only override.
-      damageAtMs: 1160,
-      spawnAtMs: 2040,
-      // The trait blade lands about one second after the Lancer's javelin hit.
-      phantasmalBladeDelayAfterSpawnMs: 120
-    }
-  });
 export const MESMER_CORE_TRAIT_DAMAGE: Readonly<Record<string, MesmerTraitDamage>> = Object.freeze({
   'Lesser Chaos Storm': {
     // Each storm pulse is a distinct strike packet, not an aggregate hit count.
     ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: index * 1000, coefficient: 1.98 / 6 })),
     cooldown: 28
-  }
-});
-export const MESMER_CORE_SHATTERS: Readonly<Record<number, MesmerShatterDefinition>> = Object.freeze({
-  [ID.CRY_OF_FRUSTRATION]: {
-    slot: 2,
-    kind: 'confusion',
-    resolver: 'mesmer.core.clone-shatter',
-    coefficients: [0.42, 0.84, 1.25, 1.67]
-  },
-  [ID.MIND_WRACK]: {
-    slot: 1,
-    kind: 'power',
-    resolver: 'mesmer.core.clone-shatter',
-    coefficients: [0.81, 1.61, 2.42, 3.22]
-  },
-  [ID.DISTORTION]: {
-    slot: 4,
-    kind: 'defense',
-    resolver: 'mesmer.core.clone-shatter',
-    coefficients: [0, 0, 0, 0]
-  },
-  [ID.DIVERSION]: {
-    slot: 3,
-    kind: 'control',
-    resolver: 'mesmer.core.clone-shatter',
-    coefficients: [0, 0, 0, 0]
   }
 });

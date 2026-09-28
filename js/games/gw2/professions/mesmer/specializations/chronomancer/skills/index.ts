@@ -1,3 +1,4 @@
+import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 /**
  * Owns Chronomancer well, profession-skill, and Continuum action catalog data.
  * Continuum Split, Time Bomb, and shatter behavior live under `mechanics/` and `traits/`.
@@ -43,6 +44,18 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
     ]
   },
   [ID.CONTINUUM_SPLIT]: {
+    // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
+    shatter: {
+      balanceProfileId: 'mesmer.chronomancer.continuum-split',
+      slot: 5,
+      kind: 'continuum',
+      resolver: 'mesmer.chronomancer.continuum',
+      consumesResources: false,
+      resetBySignetOfIllusions: false,
+      coefficients: [0, 0, 0, 0],
+      durationPerTier: 1.5
+    },
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.chronomancer.begin-continuum' } }],
     castTimeMs: 0,
     lockouts: [
       {
@@ -190,6 +203,15 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
     ]
   },
   [ID.TIME_SINK]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
+    // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
+    shatter: {
+      balanceProfileId: 'mesmer.chronomancer.time-sink',
+      slot: 3,
+      kind: 'control',
+      resolver: 'mesmer.core.clone-shatter',
+      coefficients: [0, 0, 0, 0]
+    },
     castTimeMs: 0,
     lockouts: [
       {
@@ -212,6 +234,17 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
     ]
   },
   [ID.REWINDER]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
+    // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
+    shatter: {
+      balanceProfileId: 'mesmer.chronomancer.rewinder',
+      slot: 2,
+      kind: 'confusion',
+      resolver: 'mesmer.core.clone-shatter',
+      coefficients: [0.38, 0.76, 1.14, 1.52],
+      rechargeReductionPerSource: 3,
+      effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 3, stacks: 1 }]
+    },
     castTimeMs: 0,
     lockouts: [
       {
@@ -223,6 +256,20 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
     effects: []
   },
   [ID.SPLIT_SECOND]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
+    // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
+    shatter: {
+      balanceProfileId: 'mesmer.chronomancer.split-second',
+      slot: 1,
+      kind: 'power',
+      resolver: 'mesmer.core.clone-shatter',
+      coefficients: [1.53, 3.07, 3.68, 4.3],
+      // Each resource tier owns both Split Second packets and their full formulas.
+      ticks: [1.53, 3.07, 3.68, 4.3].map((coefficient) => [
+        { atMs: 0, coefficient: coefficient / 2 },
+        { atMs: 1000, coefficient: coefficient / 2 }
+      ])
+    },
     castTimeMs: 0,
     lockouts: [
       {
@@ -260,3 +307,12 @@ export const MESMER_CHRONOMANCER_EXTRA_SKILLS: readonly Skill[] = Object.freeze(
     effects: []
   }
 ] satisfies readonly MesmerSkill[]);
+
+// Profile and runtime registries project the same skill-owned recipe.
+export const MESMER_CHRONOMANCER_SHATTERS: Readonly<Record<number, MesmerShatterDefinition>> = Object.freeze(
+  Object.fromEntries(
+    Object.entries(MESMER_CHRONOMANCER_SKILL_MECHANICS).flatMap(([id, skill]) =>
+      skill.shatter ? [[Number(id), skill.shatter as MesmerShatterDefinition]] : []
+    )
+  )
+);

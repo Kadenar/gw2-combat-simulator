@@ -133,11 +133,12 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog>): GuardianUi
         };
       }
 
-      const pageCost = skill.pageCost ?? 1;
-      if (skill.tome && (state.tomePages?.value || 0) < pageCost) {
+      // Read the same authored debit used by the shared resource controller.
+      const resourceCost = Number(skill.resourceCost);
+      if (skill.tome && (state.tomePages?.value || 0) < resourceCost) {
         return {
           available: false,
-          message: `Requires ${pageCost} tome pages`
+          message: `Requires ${resourceCost} tome pages`
         };
       }
 

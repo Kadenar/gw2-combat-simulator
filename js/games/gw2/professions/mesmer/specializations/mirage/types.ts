@@ -9,8 +9,8 @@ export interface MesmerMirageCloakOptions {
 export interface MesmerMirageController {
   createMirrors(at: number, count: number, source: string): void;
   executeCloneAmbushes(at: number, clones?: readonly MesmerClone[]): void;
-  executePlayerAmbush(skill: MesmerSkill, at: number, castStart?: number): void;
+  acceptPlayerAmbush(skill: MesmerSkill, at: number, castStart?: number): void;
   grantMirageCloak(at: number, source: string, options?: MesmerMirageCloakOptions): void;
   handleMirageShatter(skill: MesmerSkill, at: number, spent: number): void;
-  pickUpMirror(at: number, source: string): boolean;
+  pickUpMirror(at: number, skill: MesmerSkill): boolean;
 }

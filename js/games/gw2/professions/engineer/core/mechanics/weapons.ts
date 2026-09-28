@@ -4,12 +4,9 @@ import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import type { RuntimeCast, RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
 
-import type { EngineerRuntime, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
+import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
-
-// Deploying, detonating, or bursting the Healing Turret all restart the one deployed turret lifetime.
-const HEALING_TURRET_SKILL_IDS = new Set<number>([ID.HEALING_TURRET, ID.DETONATE_HEALING_TURRET, ID.CLEANSING_BURST]);
 
 /** Skill declarations select each spear mutation; handlers retain lifetime ownership and release-time snapshots. */
 export const engineerSpearSideEffectHandlers: RuntimeProfession<EngineerRuntimeState>['sideEffectHandlers'] = {
@@ -76,37 +73,32 @@ export const engineerSpearSideEffectHandlers: RuntimeProfession<EngineerRuntimeS
   }
 };
 
-/** Automatic overcharge and palette expiry belong to the deployed turret, while cooldown starts on detonation. */
-export function completeEngineerTurret(runtime: EngineerRuntime, cast: RuntimeCast): void {
-  const state = runtime.profession.core;
-  const at = runtime.time;
-  if (!HEALING_TURRET_SKILL_IDS.has(Number(cast.skill.id))) return;
-  // Turret commands retire their current face before rebuilding the deployed turret state.
-  if (cast.skill.id !== ID.HEALING_TURRET) consumeSkillFlip(state.availableFlips, cast.skill.id);
-  runtime.cancelOwner({ id: 'engineer.turret', generation: state.healingTurretGeneration });
-  const owner = { id: 'engineer.turret', generation: ++state.healingTurretGeneration };
-  if (cast.skill.id === ID.DETONATE_HEALING_TURRET) {
-    state.healingTurretActivationId = '';
-    consumeSkillFlip(state.availableFlips, ID.CLEANSING_BURST);
-    runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(ID.HEALING_TURRET)!, at);
-    return;
+/** Definitions own cast-phase flips; the deployed generation owns automatic pulses and face expiry. */
+export const engineerTurretSideEffectHandlers: RuntimeProfession<EngineerRuntimeState>['sideEffectHandlers'] = {
+  'engineer.retire-turret'(runtime) {
+    const state = runtime.profession.core;
+    runtime.cancelOwner({ id: 'engineer.turret', generation: state.healingTurretGeneration++ });
+  },
+  'engineer.deploy-turret'(runtime, context) {
+    if (context.kind !== 'cast') throw new TypeError('Turret deployment requires a cast trigger.');
+    const state = runtime.profession.core;
+    const owner = { id: 'engineer.turret', generation: state.healingTurretGeneration };
+    state.healingTurretActivationId = context.cast.id;
+    runtime.cooldownController.setReadyAt(ID.DETONATE_HEALING_TURRET, runtime.time + 0.5);
+    runtime.schedule('engineer.turret-pulse', runtime.time + 0.24, context.cast.id, owner);
+    runtime.schedule('engineer.turret-flip', runtime.time + 10.24, undefined, owner);
+  },
+  'engineer.detonate-turret'(runtime) {
+    runtime.profession.core.healingTurretActivationId = '';
+    runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(ID.HEALING_TURRET)!, runtime.time);
+  },
+  'engineer.overcharge-turret'(runtime) {
+    runtime.schedule('engineer.turret-flip', runtime.time + 10, undefined, {
+      id: 'engineer.turret',
+      generation: runtime.profession.core.healingTurretGeneration
+    });
   }
-
-  armSkillFlip(state.availableFlips, ID.DETONATE_HEALING_TURRET, at);
-  if (cast.skill.id === ID.HEALING_TURRET) {
-    state.healingTurretActivationId = cast.id;
-    consumeSkillFlip(state.availableFlips, ID.CLEANSING_BURST);
-    runtime.cooldownController.setReadyAt(ID.DETONATE_HEALING_TURRET, at + 0.5);
-    runtime.schedule('engineer.turret-pulse', at + 0.24, cast.id, owner);
-  }
-
-  runtime.schedule(
-    'engineer.turret-flip',
-    at + (cast.skill.id === ID.HEALING_TURRET ? 0.24 : 0) + 10,
-    undefined,
-    owner
-  );
-}
+};
 
 export const engineerWeaponTasks: RuntimeProfession<EngineerRuntimeState>['tasks'] = {
   'engineer.rod-pulse'(runtime, data) {

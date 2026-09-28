@@ -1,3 +1,8 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { applyAimAssistedRocket } from '#gw2/professions/engineer/core/traits/explosives.js';
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 /** Core Engineer Flamethrower skill mechanics. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -10,6 +15,8 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
   [ID.FLAMETHROWER]: {
     // Custom: Equips the kit and updates bundle/weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    // Commit the bar transition before cast traits observe the selected kit.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }],
     kitTransition: 'equip',
     castTimeMs: 0,
     cooldown: 0,
@@ -67,7 +74,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
     cooldown: 15,
     effects: [
       {
-        // Custom: Burning and missile procs require an already-burning target at impact; see `core/mechanics/event-handlers.ts`.
+        // Custom: Burning and missile procs require an already-burning target at impact; the handler below preserves that live check.
         type: 'custom',
         eventType: 'engineer.air-blast',
         event: { condition: 'Burning', stacks: 1, duration: 5, projectile: true },
@@ -121,6 +128,8 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
   [ID.STOW_FLAMETHROWER]: {
     // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    // Commit the bar transition before cast traits observe the selected kit.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }],
     kitTransition: 'stow',
     paletteFlip: false,
     castTimeMs: 0,
@@ -185,3 +194,39 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
     kit: 'Flamethrower'
   }
 });
+
+/** Air Blast's Burning missile exists only against a target still burning at impact; knockback resolves separately. */
+export function handleAirBlast(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+  if (!context.query.targetHasCondition('Burning', event.at, context)) return;
+  // Materialize the deferred missile without importing unrelated proc or strike state from its trigger.
+  context.applyCondition(
+    buildResolverCondition({
+      at: event.at,
+      priority: event.priority,
+      source: event.source,
+      sourceId: event.sourceId,
+      actorType: event.actorType,
+      ownerActorType: event.ownerActorType,
+      skillId: event.skillId,
+      skillName: event.skillName,
+      name: 'Air Blast — Burning',
+      activationId: event.activationId,
+      condition: String(event.condition),
+      stacks: Number(event.stacks),
+      duration: Number(event.duration),
+      projectile: true,
+      applicationIndex: event.applicationIndex,
+      totalApplications: event.totalApplications
+    })
+  );
+  applyAimAssistedRocket(context, event);
+}
+
+/** Flame Jet samples Burning on each impact and retains additive damage stacking. */
+export const flameJetModifier: Gw2ModifierRule = {
+  id: 'engineer.flame-jet-burning-target',
+  target: MODIFIER_TARGET.STRIKE_DAMAGE,
+  operation: 'damage-additive',
+  amount: 0.1,
+  when: (context) => context.event?.skillId === ID.FLAME_JET && targetConditionActive(context, 'Burning')
+};

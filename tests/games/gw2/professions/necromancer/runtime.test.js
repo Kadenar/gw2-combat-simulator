@@ -6,7 +6,7 @@ import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runt
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
-import { completeNecromancerMinion } from '#gw2/professions/necromancer/core/mechanics/minions.js';
+import { summonNecromancerMinion } from '#gw2/professions/necromancer/core/mechanics/minions.js';
 import { addSoulShards } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { minionDefinitionForSkill } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -654,14 +654,28 @@ test('Plague Sending waits for an accepted strike and consumes the newest applic
   );
 });
 
-test('strike-less transfers consume state only when their delayed target application can execute', () => {
+// The instant signet consumes conditions during commitment, without waiting for a scheduled transfer task.
+test('Plague Signet transfers immediately without a strike while hit-owned transfers still require one', () => {
   const profession = withSelfConditions(base, [{ condition: 'Bleeding' }]);
-  const command = { ...cast(ID.PLAGUE_SIGNET), impactDelayMs: 1000 };
-  const pending = simulate([command], base, { profession });
-  assert.equal(pending.planningState.profession.selfConditions.length, 1);
-  const landed = simulate([command, wait(1100)], base, { profession });
+  const remainingAtCommit = [];
+  const landed = simulate([cast(ID.PLAGUE_SIGNET)], base, {
+    profession: {
+      ...profession,
+      onCastCommit(runtime, current) {
+        profession.onCastCommit(runtime, current);
+        remainingAtCommit.push(runtime.profession.core.selfConditions.length);
+      }
+    }
+  });
+  assert.deepEqual(landed.warnings, []);
+  assert.deepEqual(remainingAtCommit, [0]);
   assert.deepEqual(landed.planningState.profession.selfConditions, []);
-  const missed = simulate([{ ...cast(ID.PLAGUE_SIGNET), offTarget: true }, wait(1100)], base, { profession });
+  const transferred = landed.resolvedEvents.find(
+    (event) => event.type === 'condition' && event.skillId === ID.PLAGUE_SIGNET
+  );
+  assert.equal(transferred.at, 0);
+  assert.equal(transferred.duration, 10);
+  const missed = simulate([{ ...cast(ID.PLAGUE_SIGNET), offTarget: true }], base, { profession });
   assert.equal(missed.planningState.profession.selfConditions.length, 1);
   const removed = {
     ...profession,
@@ -799,13 +813,13 @@ test('Gravedigger completion uses actual target health to determine the next cas
   assert.equal(low.steps[1].start, low.steps[0].end);
 });
 
-// A committed strike retains its reset decision through animation cancellation, using health at the retained boundary.
-test('Gravedigger retains its health-gated recharge reset after a committed interruption', () => {
+// Commitment owns the reset decision; crossing half health during the retained animation tail cannot change it.
+test('Gravedigger samples reset health at commitment rather than the retained animation tail', () => {
   const config = { ...base, target: { ...base.target, health: 1000000 } };
   const native = necromancerProfession.runtimeFor(config);
   const skill = native.catalog.skillsById.get(ID.GRAVEDIGGER);
   for (const [committed, offTarget, resets] of [
-    [true, false, true],
+    [true, false, false],
     [true, true, false],
     [false, false, false]
   ]) {
@@ -977,7 +991,7 @@ test('a replacement generation cancels the old autonomous clock and pending Haun
       ...native.tasks,
       'replace-minion'(runtime) {
         // An actual replacement completion invalidates the previous creature's already queued work.
-        completeNecromancerMinion(runtime, {
+        summonNecromancerMinion(runtime, {
           ...original,
           id: 'replacement',
           start: runtime.time,

@@ -13,7 +13,7 @@ import {
   queueDamage
 } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
-import { holosmithResolverEventHandlers } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge-effects.js';
+import { holosmithSlotEventHandlers } from '#gw2/professions/engineer/specializations/holosmith/skills/slot-skills.js';
 import {
   applyTraitCondition,
   applyTraitVulnerability
@@ -263,7 +263,7 @@ test('Holosmith delayed packets retain activation heat after live heat and trait
     profession: { specialization: { kind: 'Holosmith', state: { heat: 0 } } },
     queue: { enqueue: (event) => packets.push(event) }
   };
-  holosmithResolverEventHandlers['engineer.prime-light-beam-field'](context, {
+  holosmithSlotEventHandlers['engineer.prime-light-beam-field'](context, {
     ...trigger,
     type: 'engineer.prime-light-beam-field',
     holosmithActivationHeat: 101,

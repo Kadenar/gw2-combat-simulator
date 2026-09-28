@@ -436,6 +436,80 @@ test('patched variants retain executable predicates and snapshot eligibility bef
   );
 });
 
+// Intrinsic transforms consume the patched skill payload once at acceptance, without a duplicate balance profile.
+test('effect variants can transform their own selected effects and retain removals', () => {
+  const own = createCanonicalCatalog({
+    generated: [
+      {
+        id: 991008,
+        name: 'Own variant',
+        castTimeMs: 1000,
+        effects: [{ type: 'boon', boon: 'might', duration: 5, stacks: 1 }],
+        effectVariants: [
+          {
+            when: () => true,
+            transform: (_runtime, _cast, effects) => effects.map((effect) => ({ ...effect, stacks: 3 }))
+          }
+        ]
+      }
+    ]
+  });
+  for (const removed of [false, true]) {
+    const selected = removed
+      ? applySkillPatch(own, {
+          skills: {
+            991008: {
+              removeEffects: [{ type: 'boon', effectIndex: 0 }]
+            }
+          }
+        })
+      : own;
+    const result = run({ catalog: selected }, [cast(991008)]);
+    assert.deepEqual(result.warnings, []);
+    const grants = result.events.filter((event) => event.kind === 'might');
+    assert.deepEqual(
+      grants.map((event) => event.stacks),
+      removed ? [] : [3]
+    );
+  }
+
+  assert.throws(
+    () => createCanonicalCatalog({ generated: [{ id: 1, name: 'Invalid', effectVariants: [{ when: () => true }] }] }),
+    /effect variant/
+  );
+});
+
+// Recharge progress follows the accepted interval, including a committed shortened cast; offsets stay fixed.
+test('declared recharge progress scales the accepted anchor and validates its range', () => {
+  for (const duration of [1000, 2000]) {
+    for (const interruptAfterMs of [undefined, duration * 0.75]) {
+      const seen = [];
+      const selected = withSkill(catalog, 991009, {
+        castTimeMs: duration,
+        interruptCommitMs: duration / 2,
+        rechargeProgress: 0.5,
+        rechargeOffsetMs: 100
+      });
+      run(
+        {
+          catalog: selected,
+          onCastCommit(_runtime, activation) {
+            seen.push(activation.rechargeStart);
+          }
+        },
+        [cast(991009, { interruptAfterMs })]
+      );
+      assert.deepEqual(seen, [(interruptAfterMs ?? duration) / 2000 + 0.1]);
+    }
+  }
+
+  for (const rechargeProgress of [-1, 1.1, Infinity, NaN, '0.5'])
+    assert.throws(
+      () => createCanonicalCatalog({ generated: [{ id: 1, name: 'Invalid', rechargeProgress }] }),
+      /rechargeProgress/
+    );
+});
+
 // Dynamic metadata is evaluated only for an accepted proc, once for all packets, after the ICD claim.
 test('dynamic cast attribution preserves targeting and overrides authored packet identity once per proc', () => {
   const calls = [];

@@ -11,6 +11,8 @@ const extraSkills: Skill[] = [
   createWeaponSwapSkill(),
   {
     id: ID.EXIT_LICH_FORM,
+    // Manual and timed exits share the same guarded life-force reward.
+    sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.exit-lich' } }],
     inputCategory: 'bar-swap', // Manual form exit replaces the active skill bar.
     name: 'Exit Lich Form',
     description: 'Leave Lich Form and return to your normal skill bar.',

@@ -123,8 +123,7 @@ test('Mechanist profile overrides migrate without losing edits or bypassing vali
               coefficientMultiplier: 0.75,
               basePower: 2
             }
-          },
-          [ID.OVERCLOCK_SIGNET]: { fields: { maximumStacks: { add: 1 } } }
+          }
         }
       }
     }
@@ -142,12 +141,10 @@ test('Mechanist profile overrides migrate without losing edits or bypassing vali
     improvedInheritanceRatio: 0.75,
     basePrecision: 2
   });
-  assert.deepEqual(fields[ID.OVERCLOCK_SIGNET].fields, { packetCount: { add: 1 } });
   assert.deepEqual(validatePatchPreview(normalized), normalized);
   assert.deepEqual(saved, original);
   const catalog = applyEngineerPatch(saved.professions.engineer);
   const resources = catalog.balanceProfilesById.get(resourceId);
-  assert.equal(catalog.balanceProfilesById.get(ID.OVERCLOCK_SIGNET).packetCount, 6);
   const attributes = engineerMechAttributes(
     { selectedTraitIds: [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR] },
     { power: 4000, precision: 1000, ferocity: 1000 },
@@ -170,9 +167,9 @@ test('Mechanist profile overrides migrate without losing edits or bypassing vali
   assert.throws(() => validatePatchPreview(conflict), /edits both minimumStacks and secondaryAttributeCap/);
 });
 
-// Overclock Signet execution timing stays outside the profile's supported balance overrides.
+// Cannon payload and timing belong to the skill, so the passive profile rejects their obsolete tuning keys.
 test('Overclock Signet runtime inputs stay outside balance authoring', () => {
-  for (const field of ['firstHitDelay', 'pulseInterval', 'animationDuration']) {
+  for (const field of ['firstHitDelay', 'pulseInterval', 'animationDuration', 'maximumStacks', 'packetCount']) {
     assert.throws(() =>
       authoringEngineerProfession.validatePatch({
         balanceProfiles: { [ID.OVERCLOCK_SIGNET]: { fields: { [field]: 1 } } }

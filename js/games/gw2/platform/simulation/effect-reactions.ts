@@ -5,7 +5,7 @@ import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/run
 import { applySideEffect, type SideEffectAction } from '#gw2/platform/simulation/side-effects.js';
 import { validateEffectReactions } from '#gw2/platform/engine/skills/side-effect-validation.js';
 
-export type EffectReactionStage = 'damage.resolved' | 'condition.applied' | 'control.resolved';
+export type EffectReactionStage = 'damage.resolved' | 'condition.applied' | 'control.resolved' | 'combo.resolved';
 export type ResolvedEffectTrigger<Stage extends EffectReactionStage = EffectReactionStage> = {
   [On in Stage]: {
     readonly on: On;
@@ -81,7 +81,9 @@ export function createEffectReactions(
             ? !rule.when || rule.when(runtime, { on: rule.on, skill, event, details })
             : rule.on === 'condition.applied'
               ? !rule.when || rule.when(runtime, { on: rule.on, skill, event })
-              : !rule.when || rule.when(runtime, { on: rule.on, skill, event });
+              : rule.on === 'control.resolved'
+                ? !rule.when || rule.when(runtime, { on: rule.on, skill, event })
+                : !rule.when || rule.when(runtime, { on: rule.on, skill, event });
         if (!eligible) continue;
         const trigger: ResolvedEffectTrigger =
           on === 'damage.resolved' ? { on, skill, event, details } : { on, skill, event };

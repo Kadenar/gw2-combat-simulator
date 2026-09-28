@@ -201,9 +201,10 @@ const FAMILY_SKILL_IDS: Readonly<Record<keyof typeof familyTooltips, readonly Sk
 /** Local descriptions follow implemented Guardian mechanics; scalar facts read the selected balance definitions. */
 export const guardianTooltips: ProfessionTooltips = {
   skillFacts: (_c, entity) =>
-    entity.pageCost == null
+    // Only tome pages spend this resource; other canonical costs have their own facts.
+    entity.resourceCost == null || !entity.tome
       ? []
-      : [{ name: 'Tome pages spent', detail: tooltipDecimal(tooltipNumber(entity, 'pageCost')) }],
+      : [{ name: 'Tome pages spent', detail: tooltipDecimal(tooltipNumber(entity, 'resourceCost')) }],
   skills: {
     // Family descriptions bind to canonical skill identities; skill-specific entries below take precedence.
     ...Object.fromEntries(

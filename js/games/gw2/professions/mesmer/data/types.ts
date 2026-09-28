@@ -15,6 +15,7 @@ export type MesmerSummonKind = 'clone' | 'phantasm';
 interface MesmerSkillResource {
   readonly mode?: string;
   readonly count?: number;
+  readonly clarityCount?: number;
   readonly timingAnchor?: 'castStart' | 'castEnd';
   readonly atMs?: number;
   readonly [field: string]: unknown;
@@ -106,11 +107,30 @@ type MesmerTrackedHitDamage = Partial<MesmerStrikeEffect> & {
 export interface MesmerSkill extends Skill {
   readonly id: number;
   readonly ambush?: boolean;
+  readonly crescendoProfileId?: string;
+  readonly tale?: {
+    readonly name: string;
+    readonly profileId: string;
+    readonly instrument: string;
+    readonly resourceGain: number;
+    readonly effects: readonly SkillEffect[];
+  };
+  readonly mirrorPayload?: { readonly profileId: string; readonly skillId: number; readonly name: string };
   readonly duration?: number;
   readonly phantasm?: boolean;
+  readonly phantasmTiming?: Partial<
+    import('#gw2/professions/mesmer/core/mechanics/illusions/types.js').MesmerPhantasmAttackTiming
+  >;
+  readonly phantasmDisplayNames?: Readonly<Record<string, string>>;
   readonly blade?: boolean;
+  readonly shatter?: import('#gw2/professions/mesmer/core/mechanics/shatter-types.js').MesmerShatterDefinition;
   readonly armedAtStart?: boolean;
-  readonly flipDelay?: number;
+  readonly flipArm?: {
+    readonly skillId: number;
+    readonly duration: number;
+    readonly delay?: number;
+    readonly anchor?: 'castStart' | 'castCommit';
+  };
   readonly parentCooldownIncrease?: number;
   readonly phantasmSummonProgress?: number;
   readonly trackedHitDamage?: MesmerTrackedHitDamage;

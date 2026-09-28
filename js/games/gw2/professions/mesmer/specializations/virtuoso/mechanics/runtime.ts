@@ -10,9 +10,9 @@ import { resolveBladesong } from '#gw2/professions/mesmer/specializations/virtuo
 import { resolveInfiniteForgeRefund } from '#gw2/professions/mesmer/specializations/virtuoso/traits/shatters.js';
 import {
   MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS,
-  MESMER_VIRTUOSO_SHATTERS,
   MESMER_VIRTUOSO_TRAIT_DAMAGE
 } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
+import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import {
   VIRTUOSO_BALANCE_PROFILE_IDS as PROFILE,

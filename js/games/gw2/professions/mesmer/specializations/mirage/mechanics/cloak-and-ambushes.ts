@@ -24,11 +24,7 @@ import type {
   MesmerMirageCloakOptions,
   MesmerMirageController
 } from '#gw2/professions/mesmer/specializations/mirage/types.js';
-import type {
-  MesmerClone,
-  MesmerCloneAttack,
-  MesmerQueueResources
-} from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerClone, MesmerCloneAttack } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 
 import type { MesmerConditionApplication, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
@@ -46,7 +42,6 @@ interface MirageActionControllerOptions {
   readonly addCondition: MesmerAddCondition;
   readonly addDamage: MesmerAddDamage;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
-  readonly queueResources: MesmerQueueResources;
   readonly reduceSkillRecharge: (skill: MesmerSkill, reduction: number, at: number) => number;
 }
 
@@ -63,7 +58,6 @@ export function createMirageActionController({
   addCondition,
   addDamage,
   activePrimaryWeapon,
-  queueResources,
   reduceSkillRecharge
 }: MirageActionControllerOptions): MesmerMirageController {
   // The selected effect already owns its identity and validated balance values.
@@ -115,23 +109,6 @@ export function createMirageActionController({
         ...(boonRecipients === 'party' ? { maximumRecipients: 5 } : {})
       }
     });
-  };
-
-  const addAmbushVulnerability = (at: number, ambush: MesmerAmbushAttack) => {
-    if (!ambush.vulnerability) return;
-    // Ambush Vulnerability uses the canonical condition envelope and application metadata.
-    addCondition(
-      ambush.name,
-      at,
-      {
-        name: 'Vulnerability',
-        stacks: ambush.vulnerability.stacks,
-        duration: ambush.vulnerability.duration
-      },
-      'Player',
-      '',
-      { source: 'Player', sourceId: ambush.id, skillId: ambush.id, actorType: 'player' }
-    );
   };
 
   // Executes clone ambush attacks at the specified time, optionally for a given set of clones.
@@ -298,44 +275,14 @@ export function createMirageActionController({
     }
   };
 
-  // Executes a player ambush attack at the specified time
-  const executePlayerAmbush = (skill: MesmerSkill, at: number, castStart = at) => {
+  // Accepted ambushes consume their window and schedule only trait-owned consequences.
+  const acceptPlayerAmbush = (skill: MesmerSkill, at: number, castStart = at) => {
     // The ambush keeps the weapon selected when its cast began, even if the
     // rotation swaps weapons before completion mechanics are dispatched.
     const weapon = skill.weapon || activePrimaryWeapon();
     const ambush = ambushAttacks[weapon];
     if (!ambush || skill.id !== ambush.id) return;
-    // Player ambushes retain their catalog ID so hit-driven traits can resolve the weapon skill.
-    const pseudo = {
-      id: ambush.id,
-      name: ambush.name,
-      weapon,
-      blade: false
-    };
     const impactAt = ambush.player.damageAtMs == null ? at : castStart + ambush.player.damageAtMs / 1000;
-    // Packetized ambushes resolve each hit and its repeated statuses at the measured beam timestamps.
-    const statusAtMs = ambush.player.ticks?.map((tick) => tick.atMs) ?? ambush.player.statusAtMs;
-    const impactTimes = statusAtMs?.length ? statusAtMs.map((atMs) => castStart + atMs / 1000) : [impactAt];
-    if (ambush.player.ticks?.length) {
-      addDamage(pseudo, castStart, {
-        ticks: ambush.player.ticks,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        source: 'Player'
-      });
-    } else if (ambush.player.type === 'strike') {
-      addDamage(pseudo, impactAt, {
-        ...ambush.player,
-        name: undefined,
-        summonKind: undefined,
-        source: 'Player'
-      });
-    }
-
-    for (const condition of ambush.player.conditions || []) {
-      addCondition(ambush.name, impactAt, condition);
-    }
-
     const riddleOfSand =
       mirageState.from(state).riddleOfSandReady && hasTrait(state, TRAIT.RIDDLE_OF_SAND)
         ? requireEffect(requireBalanceProfileFromContext(state, PROFILE.riddleOfSand), 'condition', 'Confusion')
@@ -346,28 +293,12 @@ export function createMirageActionController({
       mirageState.from(state).riddleOfSandReady = false;
     }
 
-    for (const boon of ambush.player.boons || []) {
-      for (const packetAt of impactTimes) {
-        addBoon(packetAt, boon, ambush.name, 'player', ambush.id === ID.CHAOS_VORTEX ? 'party' : 'self');
-      }
-    }
-
     const mirageMantle = hasTrait(state, TRAIT.MIRAGE_MANTLE)
       ? requireEffect(requireBalanceProfileFromContext(state, PROFILE.mirageMantle), 'boon', 'alacrity')
       : undefined;
     if (mirageMantle) {
       addBoon(impactAt, statusFromEffect(mirageMantle), ambush.name, 'player', 'party');
       addTraitProc('Mirage Mantle', impactAt, ambush.name, '4s alacrity');
-    }
-
-    for (const packetAt of impactTimes) {
-      addAmbushVulnerability(packetAt, ambush);
-    }
-
-    if (ambush.createsClone) {
-      queueResources(impactAt, 1, weapon, ambush.name, {
-        sourceSkillId: skill.id
-      });
     }
 
     mirageState.from(state).ambushUntil = 0;
@@ -426,18 +357,18 @@ export function createMirageActionController({
   };
 
   // Attempts to pick up a Mirage Mirror at the given time, applying damage and granting Mirage Cloak if successful.
-  const pickUpMirror = (at: number, source: string) => {
+  const pickUpMirror = (at: number, skill: MesmerSkill) => {
     const mirrors = mirageState.from(state).mirrors;
     const index = mirrors.findIndex((mirror) => isTimeInWindow(at, mirror.availableAt, mirror.expiresAt));
     if (index < 0) return false;
     mirrors.splice(index, 1);
     const pseudo = {
-      id: ID.MIRAGE_MIRROR_DAMAGE,
-      name: 'Mirage Mirror',
+      id: skill.mirrorPayload!.skillId,
+      name: skill.mirrorPayload!.name,
       weapon: activePrimaryWeapon(),
       blade: false
     };
-    const mechanicsProfile = requireBalanceProfileFromContext(state, PROFILE.mechanics);
+    const mechanicsProfile = requireBalanceProfileFromContext(state, skill.mirrorPayload!.profileId);
     const strike = requireEffect(mechanicsProfile, 'strike', 'Strike');
     if (strike)
       addDamage(pseudo, at, {
@@ -454,14 +385,14 @@ export function createMirageActionController({
         sourceId: pseudo.id,
         actorType: 'player'
       });
-    grantMirageCloak(at, source);
+    grantMirageCloak(at, skill.name);
     return true;
   };
 
   return {
     createMirrors,
     executeCloneAmbushes,
-    executePlayerAmbush,
+    acceptPlayerAmbush,
     grantMirageCloak,
     handleMirageShatter,
     pickUpMirror

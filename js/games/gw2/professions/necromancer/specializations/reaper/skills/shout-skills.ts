@@ -1,3 +1,6 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 /**
  * Owns Reaper shout skill fragments.
  * Reaper Shroud skill fragments live in `shroud-skills.ts`.
@@ -78,3 +81,19 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [{ type: 'strike', coefficient: 0.8, hits: 1 }]
   }
 });
+
+/** Intrinsic impact-time formula; the existing modifier registry preserves its operation and ordering. */
+export const reaperShoutMeleeModifier: Gw2ModifierRule = {
+  // The simulator's target is always nearby, so player shout packets always receive the melee bonus.
+  id: 'necromancer.reaper-shout-melee',
+  target: MODIFIER_TARGET.STRIKE_DAMAGE,
+  operation: 'multiply',
+  factor: 2,
+  // order: 100 places this after additive damage buckets so it multiplies the already-summed base.
+  order: 100,
+  when: (context) =>
+    Boolean(
+      // Shout doubling belongs to the player's skill packet, not merely an effect that inherits player modifiers.
+      isGw2PlayerActorEvent(context.event) && eventSkill(context)?.categories?.includes('Shout')
+    )
+};

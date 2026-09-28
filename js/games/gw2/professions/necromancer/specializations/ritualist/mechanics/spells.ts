@@ -11,25 +11,20 @@ import {
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import {
   ritualistResolverEventReactions,
   triggerRitualistWeaponSpell
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { NecromancerRuntime, NecromancerRuntimeState } from '#gw2/professions/necromancer/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
 const EXPIRE = 'ritualist.weapon-spell-expiry';
 const ALLY = 'ritualist.weapon-spell-opportunity';
 const BOND = 'ritualist.painful-bond-pulse';
-const SPELLS = new Map<number, string>([
-  [ID.NIGHTMARE_WEAPON, 'nightmare'],
-  [ID.SPLINTER_WEAPON, 'splinter'],
-  [ID.RESILIENT_WEAPON, 'resilient']
-]);
 const owner = (spell: string, generation: number) => ({ id: `ritualist.weapon-spell:${spell}`, generation });
 
 interface AllyOpportunity {
@@ -91,70 +86,83 @@ function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
     runtime.schedule(BOND, at, event, identity);
 }
 
+/** A definition-selected grant replaces only its spell's recipients and generation-owned opportunities. */
+function grantWeaponSpell(
+  runtime: NecromancerRuntime,
+  cast: RuntimeCast,
+  spell: 'nightmare' | 'splinter' | 'resilient'
+): void {
+  const effect = cast.skill.effects?.find((effect) => effect.type === 'buff');
+  if (!effect) return;
+  const state = ritualistState.from(runtime);
+  const previous = state.weaponSpells[spell];
+  if (previous) runtime.cancelOwner(owner(spell, previous.generation));
+  const generation = ++state.weaponSpellGeneration;
+  const expiresAt = canonicalTime(runtime.time + Number(effect.duration ?? 0));
+  const fullBenefit = hasTrait(runtime, TRAIT.WIELDERS_BOON);
+  const allyStacks = fullBenefit ? Number(effect.stacks ?? 0) : Number(effect.allyStacks ?? 0);
+  const audience = gw2AlliedEffectRecipients(runtime.config, {
+    ...effect.audience,
+    recipients: 'party',
+    eligibleCompanionIds: necromancerActiveMinionCompanionIds(runtime)
+  });
+  const recipients: Record<string, ChargeGrant> = { player: grantCharges(Number(effect.stacks ?? 0), expiresAt) };
+  for (const key of [
+    ...audience.companionIds,
+    ...Array.from({ length: audience.alliedPlayerCount }, (_, index) => `ally:${index + 1}`)
+  ])
+    recipients[key] = grantCharges(allyStacks, expiresAt);
+  state.weaponSpells[spell] = {
+    generation,
+    skillId: cast.skill.id,
+    skillName: cast.skill.name,
+    appliedAt: runtime.time,
+    recipients
+  };
+  runtime.emit({
+    type: 'buff',
+    at: runtime.time,
+    source: 'necromancer',
+    sourceId: cast.skill.id,
+    actorType: 'player',
+    skillId: cast.skill.id,
+    skillName: cast.skill.name,
+    activationId: cast.id,
+    kind: String(effect.kind),
+    duration: Number(effect.duration ?? 0),
+    stacks: Number(effect.stacks ?? 0),
+    resolvedAudience: audience
+  });
+  runtime.schedule(EXPIRE, expiresAt, { spell, generation }, owner(spell, generation), -20);
+  const rate = gw2AlliedPlayerAssumptions(runtime.config).strikesPerSecond;
+  if (spell === 'resilient' || !rate) return;
+  const profile = requireBalanceProfileFromContext(
+    runtime,
+    spell === 'nightmare' ? PROFILE.nightmareWeaponProc : PROFILE.splinterWeaponProc
+  );
+  if (
+    !requireEffect(profile, 'strike', 'Strike') &&
+    !(spell === 'nightmare' && requireEffect(profile, 'condition', 'Vulnerability'))
+  )
+    return;
+  // Model actual strikes on the allied cadence; the shared charge owner alone decides whether its ICD allows a proc.
+  const interval = 1 / rate;
+  for (let allyIndex = 1; allyIndex <= audience.alliedPlayerCount; allyIndex++)
+    scheduleAlly(runtime, { spell, generation, allyIndex, anchor: runtime.time, pulse: 1, interval });
+}
+
 /** Weapon spells and Bond own their live grants and timers alongside the specialization's spirit lifecycle. */
 export const ritualistSpellHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = {
-  modifyEffects: (_runtime, cast, effects) => (SPELLS.has(Number(cast.skill.id)) ? [] : effects),
-  onCastCommit(runtime, cast) {
-    if (!SPELLS.has(Number(cast.skill.id))) return;
-    const spell = SPELLS.get(Number(cast.skill.id));
-    const effect = cast.skill.effects?.find((effect) => effect.type === 'buff');
-    if (!spell || !effect) return;
-    const state = ritualistState.from(runtime);
-    const previous = state.weaponSpells[spell];
-    if (previous) runtime.cancelOwner(owner(spell, previous.generation));
-    const generation = ++state.weaponSpellGeneration;
-    const expiresAt = canonicalTime(runtime.time + Number(effect.duration ?? 0));
-    const fullBenefit = hasTrait(runtime, TRAIT.WIELDERS_BOON);
-    const allyStacks = fullBenefit ? Number(effect.stacks ?? 0) : Number(effect.allyStacks ?? 0);
-    const audience = gw2AlliedEffectRecipients(runtime.config, {
-      ...effect.audience,
-      recipients: 'party',
-      eligibleCompanionIds: necromancerActiveMinionCompanionIds(runtime)
-    });
-    const recipients: Record<string, ChargeGrant> = { player: grantCharges(Number(effect.stacks ?? 0), expiresAt) };
-    for (const key of [
-      ...audience.companionIds,
-      ...Array.from({ length: audience.alliedPlayerCount }, (_, index) => `ally:${index + 1}`)
-    ])
-      recipients[key] = grantCharges(allyStacks, expiresAt);
-    state.weaponSpells[spell] = {
-      generation,
-      skillId: cast.skill.id,
-      skillName: cast.skill.name,
-      appliedAt: runtime.time,
-      recipients
-    };
-    runtime.emit({
-      type: 'buff',
-      at: runtime.time,
-      source: 'necromancer',
-      sourceId: cast.skill.id,
-      actorType: 'player',
-      skillId: cast.skill.id,
-      skillName: cast.skill.name,
-      activationId: cast.id,
-      kind: String(effect.kind),
-      duration: Number(effect.duration ?? 0),
-      stacks: Number(effect.stacks ?? 0),
-      resolvedAudience: audience
-    });
-    runtime.schedule(EXPIRE, expiresAt, { spell, generation }, owner(spell, generation), -20);
-    const rate = gw2AlliedPlayerAssumptions(runtime.config).strikesPerSecond;
-    if (spell === 'resilient' || !rate) return;
-    if (spell !== 'nightmare' && spell !== 'splinter') throw new Error(`Unknown weapon spell: ${spell}`);
-    const profile = requireBalanceProfileFromContext(
-      runtime,
-      spell === 'nightmare' ? PROFILE.nightmareWeaponProc : PROFILE.splinterWeaponProc
-    );
-    if (
-      !requireEffect(profile, 'strike', 'Strike') &&
-      !(spell === 'nightmare' && requireEffect(profile, 'condition', 'Vulnerability'))
-    )
-      return;
-    // Model actual strikes on the allied cadence; the shared charge owner alone decides whether its ICD allows a proc.
-    const interval = 1 / rate;
-    for (let allyIndex = 1; allyIndex <= audience.alliedPlayerCount; allyIndex++)
-      scheduleAlly(runtime, { spell, generation, allyIndex, anchor: runtime.time, pulse: 1, interval });
+  sideEffectHandlers: {
+    'ritualist.nightmare-weapon'(runtime, context) {
+      if (context.kind === 'cast') grantWeaponSpell(runtime, context.cast, 'nightmare');
+    },
+    'ritualist.splinter-weapon'(runtime, context) {
+      if (context.kind === 'cast') grantWeaponSpell(runtime, context.cast, 'splinter');
+    },
+    'ritualist.resilient-weapon'(runtime, context) {
+      if (context.kind === 'cast') grantWeaponSpell(runtime, context.cast, 'resilient');
+    }
   },
   eventHandlers: { 'necromancer.painful-bond': applyBond },
   reactions: { 'damage.resolved': ritualistResolverEventReactions.damage },

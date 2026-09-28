@@ -6,6 +6,9 @@ import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 export function selectSkillEffects(runtime: Gw2Runtime, cast: RuntimeCast): readonly SkillEffect[] {
   const variant = cast.skill.effectVariants?.find((candidate) => candidate.when(runtime, cast));
   if (!variant) return cast.skill.effects ?? [];
-  const effects = requireBalanceProfileFromContext(runtime, variant.profileId).effects ?? [];
+  // An intrinsic acceptance transform uses the selected skill payload without copying it into a second profile.
+  const effects =
+    (variant.profileId == null ? cast.skill : requireBalanceProfileFromContext(runtime, variant.profileId)).effects ??
+    [];
   return variant.transform?.(runtime, cast, effects) ?? effects;
 }

@@ -25,10 +25,10 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
-const AURA_GRANT = 'guardian.luminary.aura-grant';
+export const AURA_GRANT = 'guardian.luminary.aura-grant';
 const AURA_DETONATE = 'guardian.luminary.aura-detonate';
-const EFFULGENT = 'guardian.luminary.effulgent';
-const STANCE = 'guardian.luminary.stance';
+export const EFFULGENT = 'guardian.luminary.effulgent';
+export const STANCE = 'guardian.luminary.stance';
 
 /** Linked self effects follow the selected primary packet's authored impact boundary. */
 export function luminaryImpactAt(cast: RuntimeCast): number {
@@ -154,8 +154,6 @@ export function startLuminaryEffects(runtime: Runtime, cast: RuntimeCast): void 
     skill.categories?.includes('Virtue') && skill.slot === 'Profession_1' && hasTrait(runtime, TRAIT.JUSTICE_IS_BLIND);
   if (
     skill.id === LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID ||
-    skill.id === ID.EFFULGENT_STANCE ||
-    skill.id === ID.RADIANT_RESOLVE ||
     (skill.id === ID.ENTER_RADIANT_FORGE && sovereign) ||
     justiceBlind
   )
@@ -175,16 +173,6 @@ export function startLuminaryEffects(runtime: Runtime, cast: RuntimeCast): void 
         duration: effectNumber(profile, blind, 'duration')
       });
   }
-
-  if (skill.id === ID.PIERCING_STANCE || skill.id === ID.DARING_ADVANCE)
-    runtime.scheduleForCast(STANCE, impact, cast, {}, undefined, skill.id === ID.PIERCING_STANCE ? -30 : 0);
-  if (skill.id === ID.EFFULGENT_STANCE) {
-    const state = luminaryState.from(runtime);
-    state.effulgentActiveUntil = canonicalTime(cast.start + 4);
-    state.effulgentStacks = 0;
-    state.effulgentActivationId = cast.id;
-    runtime.schedule(EFFULGENT, state.effulgentActiveUntil, hostile);
-  }
 }
 
 /** Count only accepted strikes in the half-open window, excluding gear and summoned actors. */
@@ -203,9 +191,8 @@ export const luminaryEffectTasks = {
   [AURA_GRANT]: (runtime: Runtime, data: unknown) => grantLuminaryAura(runtime, data as Gw2ResolverEvent),
   [AURA_DETONATE]: (runtime: Runtime, data: unknown) => detonate(runtime, data as Gw2ResolverEvent),
   [STANCE](runtime: Runtime, data: unknown) {
-    const { cast } = data as { cast: RuntimeCast };
+    const { cast, piercing } = data as { cast: RuntimeCast; piercing: boolean };
     const state = luminaryState.from(runtime);
-    const piercing = cast.skill.id === ID.PIERCING_STANCE;
     const duration = 8 + (piercing ? Math.max(0, state.piercingStanceUntil - runtime.time) : 0);
     if (piercing) state.piercingStanceUntil = gw2EffectExpiresAt(runtime.time, duration);
     emitGuardianBoon(runtime, {

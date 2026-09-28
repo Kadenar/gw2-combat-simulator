@@ -17,7 +17,7 @@ import {
   type ProfessionTooltips,
   type DescribeSimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/mechanics/new-genes.js';
+import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/engineer/core/profiles.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS as HOLOSMITH } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as MECHANIST } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
@@ -175,11 +175,16 @@ const familyTooltips = {
   'engineer.photon-blitz-heat': skillTooltip(
     'Fire the channelled projectiles. Heat follows projectiles launched before the channel ends; interruption prevents later launches.'
   ),
-  'engineer.overclock-signet': profileTooltip(
-    MECHANIST.overclock,
+  'engineer.overclock-signet': skillTooltip(
     "Command the active mech to fire Jade Buster Cannon. Its basic attack loop pauses during the burst; mech quickness changes its attack rate. The signet's passive reduces other signet recharges, subject to its passive availability rules.",
-    (balanceContext, id) => [profileFact(balanceContext, id, 'packetCount', 'Cannon pulses')],
-    'companion effect · per cannon pulse'
+    // The commanded skill owns the entire burst; the signet profile only owns its passive.
+    (balanceContext) => [
+      ...simulationEffectFacts(
+        balanceContext.catalog.skillsById.get(ID.JADE_BUSTER_CANNON)!.effects,
+        'companion effect'
+      ).facts,
+      profileFact(balanceContext, MECHANIST.overclock, 'rechargeMultiplier', 'Signet recharge', tooltipFactorChange)
+    ]
   ),
   'engineer.conduit-surge': profileTooltip(
     CORE.conduitSurge,
@@ -884,7 +889,9 @@ export const engineerTooltips: ProfessionTooltips = {
     [TRAIT.MECH_FIGHTER]: traitTooltip(
       'Eligible player weapon attacks command the mech to use Rocket Punch.',
       (balanceContext, id) => [
-        profileFact(balanceContext, id, 'internalCooldown', 'Rocket Punch cooldown', tooltipSeconds)
+        profileFact(balanceContext, id, 'internalCooldown', 'Rocket Punch cooldown', tooltipSeconds),
+        ...simulationEffectFacts(balanceContext.catalog.skillsById.get(ID.ROCKET_PUNCH_MECH)!.effects, 'mech effect')
+          .facts
       ],
       'mech effect'
     ),
@@ -900,7 +907,9 @@ export const engineerTooltips: ProfessionTooltips = {
     [TRAIT.MECH_ARMS_JADE_CANNONS]: traitTooltip(
       'Select Spark Revolver as the first mech command. The mech uses ranged arm shots and gains critical-strike chance.',
       (balanceContext, id) => [
-        profileFact(balanceContext, id, 'criticalChance', 'Additional mech critical chance', tooltipPercent)
+        profileFact(balanceContext, id, 'criticalChance', 'Additional mech critical chance', tooltipPercent),
+        ...simulationEffectFacts(balanceContext.catalog.skillsById.get(ID.JADE_ENERGY_SHOT)!.effects, 'per arm shot')
+          .facts
       ],
       'per arm shot'
     ),

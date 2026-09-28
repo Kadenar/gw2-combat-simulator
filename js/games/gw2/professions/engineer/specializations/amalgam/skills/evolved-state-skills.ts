@@ -1,3 +1,12 @@
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
+import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
+import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
+import type { AmalgamMorphKind } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
+import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
 /**
  * Owns Amalgam Evolve, locked-slot, and evolved-state skill fragments.
  * Persistent strain and morph state remain under `mechanics/evolved-form.ts`.
@@ -19,6 +28,8 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     mechanicSlot: 1
   },
   [ID.EVOLVE_BASE]: {
+    // Schedule the form transition before the first affected packet, only when the cast reaches it.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.schedule-evolve' } }],
     name: 'Evolve (Base)',
     description: 'Enter Evolved form. Double Helix replaces this action with the two-charge variant.',
     countsAsToolbeltSkill: true,
@@ -34,6 +45,8 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     mechanicSlot: 5
   },
   [ID.EVOLVE_DOUBLE_HELIX]: {
+    // Schedule the form transition before the first affected packet, only when the cast reaches it.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.schedule-evolve' } }],
     name: 'Evolve (Double Helix)',
     description: 'Enter Evolved form with an increased attribute bonus. Requires Double Helix.',
     countsAsToolbeltSkill: true,
@@ -159,6 +172,8 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     effects: []
   },
   [ID.PLASMATIC_STATE]: {
+    // Schedule the form transition before the first affected packet, only when the cast reaches it.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.schedule-plasmatic' } }],
     // Custom: Activates Plasmatic State and its duration/state event; see `amalgam/mechanics/evolved-form.ts`.
 
     castTimeMs: PLASMATIC_STATE_CAST_TIME_MS,
@@ -186,3 +201,63 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     effects: []
   }
 });
+
+/**
+ * Applies the strain mapped to a Morph name, emitting status effects immediately
+ * while retaining timestamp-backed strains for later modifier and resolver checks.
+ */
+export function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamMorphKind, at: number): void {
+  const state = amalgamState.from(context);
+  const profile = requireBalanceProfileFromContext(context, PROFILE.strains);
+  if (morphKind === 'thorns') {
+    const rapaciousStrainProfile = requireBalanceProfileFromContext(context, PROFILE.rapaciousStrain);
+    const duration = balanceProfileNumber(rapaciousStrainProfile, 'durationMultiplier');
+    state.rapaciousUntil = Math.max(state.rapaciousUntil || 0, at + duration);
+  }
+
+  // The selected packet owns its effect and duration; state windows follow their associated boon.
+  for (const effect of profile.effects || []) {
+    if (effect.metadata?.trigger !== morphKind) continue;
+    if (!effect.sourceId || !effect.name) throw new Error('Missing Amalgam strain identity');
+    if (effect.type === 'control') {
+      emitEngineerEvent(context, 'control', {
+        at,
+        source: 'engineer',
+        sourceId: effect.sourceId,
+        actorType: 'player',
+        skillName: effect.name,
+        name: effect.name,
+        controlKind: effect.controlKind
+      });
+      continue;
+    }
+
+    if (effect.type !== 'boon' && effect.type !== 'buff') continue;
+    if (effect.type === 'boon') {
+      if (morphKind === 'obliterate') state.titanicUntil = Math.max(state.titanicUntil || 0, at + effect.duration);
+      else if (morphKind === 'shred') state.predatorUntil = Math.max(state.predatorUntil || 0, at + effect.duration);
+      else if (morphKind === 'demolish')
+        state.berserkerUntil = Math.max(state.berserkerUntil || 0, at + effect.duration);
+    }
+
+    // Resolve each strain's catalog identity before direct canonical status emission.
+    const sourceSkill = context.helpers.skillsById.get(effect.sourceId) ||
+      context.helpers.skillsByName.get(effect.name) || { id: effect.sourceId, name: effect.name };
+    emitEngineerEvent(
+      context,
+      'buff',
+      {
+        at,
+        source: 'engineer',
+        sourceId: effect.sourceId,
+        actorType: 'player',
+        skillName: effect.name,
+        name: effect.name,
+        kind: String(effect.boon || effect.kind),
+        duration: effect.duration,
+        stacks: effect.stacks
+      },
+      sourceSkill
+    );
+  }
+}

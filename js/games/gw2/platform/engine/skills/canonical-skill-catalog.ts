@@ -89,7 +89,6 @@ const SKILL_FIELDS = new Set([
   'energyCost',
   'evades',
   'facet',
-  'flipActivationAtMs',
   'flipDelay',
   'flipDuration',
   'flipParent',
@@ -132,13 +131,20 @@ const SKILL_FIELDS = new Set([
   'maximumStacks',
   'mechanicSlot',
   'mesmerMechanic',
+  // Mesmer skills own intrinsic summon, shatter, flip, and performance recipes.
+  'flipArm',
+  'phantasmTiming',
+  'phantasmDisplayNames',
+  'shatter',
+  'mirrorPayload',
+  'crescendoProfileId',
+  'tale',
   'minimumShroudLifeForcePercent',
   'minionKey',
   'movementSkill',
   'name',
   'nextChainId',
   'overload',
-  'pageCost',
   'paletteAction',
   'paletteFlip',
   'paletteFlipSkillId',
@@ -166,6 +172,7 @@ const SKILL_FIELDS = new Set([
   'rechargeBuffAudience',
   'rechargeIgnoresAlacrity',
   'rechargeOffsetMs',
+  'rechargeProgress',
   'rechargeOnMinionDeath',
   'rechargeReduction',
   'removedEffectKeys',
@@ -1018,7 +1025,7 @@ export function createCanonicalCatalog({
       if (
         !variant ||
         typeof variant.when !== 'function' ||
-        variant.profileId == null ||
+        (variant.profileId == null && typeof variant.transform !== 'function') ||
         (variant.transform != null && typeof variant.transform !== 'function')
       )
         throw new TypeError(`Skill ${id} has an invalid effect variant.`);
@@ -1045,6 +1052,16 @@ export function createCanonicalCatalog({
     if (merged.rechargeAnchor != null && !RECHARGE_ANCHORS.has(merged.rechargeAnchor)) {
       throw new TypeError(`Skill ${id} has invalid rechargeAnchor ` + `"${merged.rechargeAnchor}".`);
     }
+
+    // A cast-scaled recharge boundary must stay inside the selected interval.
+    if (
+      merged.rechargeProgress != null &&
+      (typeof merged.rechargeProgress !== 'number' ||
+        !Number.isFinite(merged.rechargeProgress) ||
+        merged.rechargeProgress < 0 ||
+        merged.rechargeProgress > 1)
+    )
+      throw new TypeError(`Skill ${id} requires rechargeProgress between zero and one.`);
 
     const rechargeOffsetMs = Number(merged.rechargeOffsetMs ?? 0);
     if (!(rechargeOffsetMs >= 0) || !Number.isFinite(rechargeOffsetMs)) {
@@ -1155,7 +1172,7 @@ function validateSkillDeclarations(catalog: CanonicalCatalog, skill: Skill): voi
   for (const { do: action } of skill.sideEffects ?? []) validateSideEffectAction(catalog, skill, action);
   for (const effect of skill.effects ?? []) validateEffectReactions(catalog, skill, effect);
   for (const variant of skill.effectVariants ?? [])
-    if (!catalog.balanceProfilesById.has(variant.profileId))
+    if (variant.profileId != null && !catalog.balanceProfilesById.has(variant.profileId))
       throw new TypeError(`Skill ${skill.id} effect variant references missing profile ${variant.profileId}.`);
 }
 

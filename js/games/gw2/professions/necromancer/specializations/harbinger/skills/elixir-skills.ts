@@ -10,6 +10,9 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 /** Supplies Harbinger elixir fragments to specialization composition. */
 export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ELIXIR_OF_BLISS]: {
+    // The launch task samples live Blight before the separately timed impact.
+    sideEffects: [{ on: 'castStart', do: { type: 'harbinger.elixir-launch' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 360,
     blightGain: 10,
     // Unmeasured elixir packets currently share cast completion as their impact.
@@ -18,6 +21,9 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ])
   },
   [ID.ELIXIR_OF_RISK]: {
+    // The launch task samples live Blight before the separately timed impact.
+    sideEffects: [{ on: 'castStart', do: { type: 'harbinger.elixir-launch' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     // Risk occupies the same 680 ms Quickness cast lane as the other thrown Harbinger elixirs.
     castTimeMs: 680,
     // Safe animation cancellation is independent of Blight consumption and projectile impact.
@@ -37,6 +43,9 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     cooldown: 20
   },
   [ID.ELIXIR_OF_IGNORANCE]: {
+    // The launch task samples live Blight before the separately timed impact.
+    sideEffects: [{ on: 'castStart', do: { type: 'harbinger.elixir-launch' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 360,
     blightGain: 10,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
@@ -45,6 +54,9 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ])
   },
   [ID.ELIXIR_OF_AMBITION]: {
+    // The launch task samples live Blight before the separately timed impact.
+    sideEffects: [{ on: 'castStart', do: { type: 'harbinger.elixir-launch' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 680,
     // Safe animation cancellation is independent of Blight consumption.
     interruptCommitMs: 400,
@@ -69,6 +81,9 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     )
   },
   [ID.ELIXIR_OF_ANGUISH]: {
+    // The launch task samples live Blight before the separately timed impact.
+    sideEffects: [{ on: 'castStart', do: { type: 'harbinger.elixir-launch' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 680,
     blightGain: 10,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
@@ -80,6 +95,9 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ])
   },
   [ID.ELIXIR_OF_PROMISE]: {
+    // The launch task samples live Blight before the separately timed impact.
+    sideEffects: [{ on: 'castStart', do: { type: 'harbinger.elixir-launch' } }],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 680,
     // Safe animation cancellation is independent of Blight consumption.
     interruptCommitMs: 400,

@@ -6,7 +6,6 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { createIllusionResourceController } from '#gw2/professions/mesmer/core/mechanics/illusions/resources.js';
 import { createPhantasmEffectController } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 import { createSkillDamageController } from '#gw2/professions/mesmer/core/execution/packet-emission.js';
-import { createSkillSpecialEffectController } from '#gw2/professions/mesmer/core/execution/skill-effects.js';
 import type {
   MesmerActivePrimaryWeapon,
   MesmerAddCondition,
@@ -22,8 +21,7 @@ import type {
 import type {
   MesmerPhantasmAttackTiming,
   MesmerPhantasmPolicy,
-  MesmerQueueResources,
-  MesmerTraitDamage
+  MesmerQueueResources
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerConditionEffect, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -39,7 +37,6 @@ interface SkillEffectControllerOptions {
   readonly addTraitProc: MesmerAddTraitProc;
   readonly addCondition: MesmerAddCondition;
   readonly addDamage: MesmerAddDamage;
-  readonly traitDamage: Readonly<Record<string, MesmerTraitDamage>>;
 }
 
 /**
@@ -57,8 +54,7 @@ export function createSkillEffectController({
   addEvent,
   addTraitProc,
   addCondition,
-  addDamage,
-  traitDamage
+  addDamage
 }: SkillEffectControllerOptions): MesmerSkillEffectController {
   const phantasms = createPhantasmEffectController({
     state,
@@ -77,14 +73,6 @@ export function createSkillEffectController({
     phantasms
   });
   const damage = createSkillDamageController({ phantasms, addCondition, addDamage });
-  const specialEffects = createSkillSpecialEffectController({
-    state,
-    addTraitProc,
-    addCondition,
-    addDamage,
-    traitDamage
-  });
-
   const schedule = (
     skill: MesmerSkill,
     at: number,
@@ -102,10 +90,7 @@ export function createSkillEffectController({
   };
 
   return {
-    consumeClarity: specialEffects.consumeClarity,
-    complete: specialEffects.apply,
     schedule,
-    scheduleSpecial: specialEffects.schedule,
     scheduleResources: (skill, at, castStart = at) => illusionResources.schedule(skill, at, castStart, [])
   };
 }

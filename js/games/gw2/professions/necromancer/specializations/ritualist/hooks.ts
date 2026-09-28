@@ -25,10 +25,7 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import { spiritDefinition } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
 import { ritualistSpellHooks } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spells.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import {
-  RITUALIST_BALANCE_PROFILE_IDS as PROFILE,
-  RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID
-} from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
+import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { NecromancerRuntime, NecromancerRuntimeState } from '#gw2/professions/necromancer/types.js';
@@ -225,54 +222,6 @@ function summon(runtime: NecromancerRuntime, cast: RuntimeCast, spirit: Spirit):
     }
   }
 
-  if (key === 'anguish') {
-    const opening = requireBalanceProfileFromContext(runtime, PROFILE.anguish);
-    emitEffects(runtime, {
-      owner: opening,
-      effects: opening.effects?.filter((effect) => effect.type === 'condition'),
-      baseEvent: attribution(cast),
-      transform: (event) => ({
-        ...event,
-        name: `${cast.skill.name} — ${event.condition}`,
-        offTarget: cast.command.offTarget
-      })
-    });
-    strikes(runtime, cast, spirit, spirit.summonTicks, 'initial');
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.painfulBond);
-    const effect = requireEffect(profile, 'buff', 'necromancer-painful-bond');
-    if (effect && spirit.summonTicks.length) {
-      const at = canonicalTime(
-        runtime.time + spirit.summonTicks[0].atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000
-      );
-      const duration = effectNumber(profile, effect, 'duration');
-      queuePacket(runtime, key, {
-        ...attribution(cast),
-        type: 'necromancer.painful-bond',
-        at,
-        mode: 'apply',
-        duration,
-        triggeredBy: cast.skill.name
-      });
-    }
-  } else if (key === 'wanderlust') {
-    strikes(runtime, cast, spirit, spirit.lingeringTicks, 'initial');
-    const first = spirit.lingeringTicks[0];
-    if (first) {
-      const opening = requireBalanceProfileFromContext(runtime, PROFILE.wanderlust);
-      emitEffects(runtime, {
-        owner: opening,
-        effects: opening.effects?.filter((effect) => effect.type === 'condition'),
-        at: canonicalTime(runtime.time + first.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000),
-        baseEvent: { ...attribution(cast), ...spiritFields(key, 'initial') },
-        transform: (event) => ({
-          ...event,
-          name: `${cast.skill.name} — ${event.condition}`,
-          offTarget: cast.command.offTarget
-        })
-      });
-    }
-  }
-
   const resources = requireBalanceProfileFromContext(runtime, PROFILE.resources);
   const interval = balanceProfileNumber(resources, 'pulseInterval');
   if (!(interval > 0) || !(spirit.attackCoefficient > 0)) return;
@@ -378,53 +327,99 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
       ? denySkillCast(skill, 'necromancer.spirit', `requires an active ${key} spirit.`)
       : { ready: true };
   },
-  modifyEffects(runtime, cast, effects) {
-    if (cast.skill.id === ID.ESSENCE_BLAST) {
+  sideEffectHandlers: {
+    ...ritualistSpellHooks.sideEffectHandlers,
+    'ritualist.wanderlust-opening'(runtime, context) {
+      if (context.kind !== 'cast' || context.cast.cancelled) return;
+      const cast = context.cast;
+      const swing = spiritDefinition(runtime, cast.skill.id)?.summonTicks[0];
+      if (!swing) return;
       const skillWeapon = gw2ActivePrimaryWeapon(runtime.config, runtime.activeWeaponSet) || 'Unequipped';
-      return effects.map((effect) => ({
-        ...effect,
-        atMs: ((cast.fullEnd - cast.start) * 1000 * 14) / 15,
-        timingAnchor: 'castStart' as const,
-        timingScale: 'fixed' as const,
-        weapon: skillWeapon,
-        weaponStrengthProfileId: weaponStrengthProfileForName(skillWeapon)?.id,
-        metadata: { activeSpirits: Object.keys(ritualistState.from(runtime).activeSpirits).length }
-      }));
-    }
-
-    return RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID[Number(cast.skill.id)] ||
-      INNERVATE.has(cast.skill.id) ||
-      cast.skill.id === ID.SUMMON_SPIRITS
-      ? []
-      : ritualistSpellHooks.modifyEffects!(runtime, cast, effects);
-  },
-  onCastStart(runtime, cast) {
-    if (cast.skill.id !== ID.WANDERLUST || cast.cancelled) return;
-    const swing = spiritDefinition(runtime, cast.skill.id)?.summonTicks[0];
-    if (!swing) return;
-    const skillWeapon = gw2ActivePrimaryWeapon(runtime.config, runtime.activeWeaponSet) || 'Unequipped';
-    runtime.emit(
-      buildResolverStrike({
-        ...attribution(cast),
-        source: 'necromancer',
-        at: canonicalTime(cast.start + swing.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000),
-        coefficient: swing.coefficient,
-        skillWeapon,
-        weaponStrengthProfileId: weaponStrengthProfileForName(skillWeapon)?.id
-      })
-    );
-  },
-  onCastCommit(runtime, cast) {
-    ritualistSpellHooks.onCastCommit!(runtime, cast);
-    // A cast cancelled after its commit point (aftercast cancel) still summons; earlier cancellation summons nothing.
-    const spirit = spiritDefinition(runtime, cast.skill.id);
-    if (spirit) summon(runtime, cast, spirit);
-    const innervate = INNERVATE.get(cast.skill.id);
-    if (innervate) grantNecromancerLifeForce(runtime, Number(cast.skill.innervateLifeForceGain ?? 0));
-    if (spirit || innervate)
+      runtime.emit(
+        buildResolverStrike({
+          ...attribution(cast),
+          source: 'necromancer',
+          at: canonicalTime(cast.start + swing.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000),
+          coefficient: swing.coefficient,
+          skillWeapon,
+          weaponStrengthProfileId: weaponStrengthProfileForName(skillWeapon)?.id
+        })
+      );
+    },
+    'ritualist.summon-anguish'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      const cast = context.cast;
+      const spirit = spiritDefinition(runtime, cast.skill.id)!;
+      const key = spirit.key;
+      summon(runtime, cast, spirit);
+      const opening = requireBalanceProfileFromContext(runtime, PROFILE.anguish);
+      emitEffects(runtime, {
+        owner: opening,
+        effects: opening.effects?.filter((effect) => effect.type === 'condition'),
+        baseEvent: attribution(cast),
+        transform: (event) => ({
+          ...event,
+          name: `${cast.skill.name} — ${event.condition}`,
+          offTarget: cast.command.offTarget
+        })
+      });
+      strikes(runtime, cast, spirit, spirit.summonTicks, 'initial');
+      const profile = requireBalanceProfileFromContext(runtime, PROFILE.painfulBond);
+      const effect = requireEffect(profile, 'buff', 'necromancer-painful-bond');
+      if (effect && spirit.summonTicks.length) {
+        const at = canonicalTime(
+          runtime.time + spirit.summonTicks[0].atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000
+        );
+        const duration = effectNumber(profile, effect, 'duration');
+        queuePacket(runtime, key, {
+          ...attribution(cast),
+          type: 'necromancer.painful-bond',
+          at,
+          mode: 'apply',
+          duration,
+          triggeredBy: cast.skill.name
+        });
+      }
+    },
+    'ritualist.summon-wanderlust'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      const cast = context.cast;
+      const spirit = spiritDefinition(runtime, cast.skill.id)!;
+      const key = spirit.key;
+      summon(runtime, cast, spirit);
+      strikes(runtime, cast, spirit, spirit.lingeringTicks, 'initial');
+      const first = spirit.lingeringTicks[0];
+      if (first) {
+        const opening = requireBalanceProfileFromContext(runtime, PROFILE.wanderlust);
+        emitEffects(runtime, {
+          owner: opening,
+          effects: opening.effects?.filter((effect) => effect.type === 'condition'),
+          at: canonicalTime(runtime.time + first.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000),
+          baseEvent: { ...attribution(cast), ...spiritFields(key, 'initial') },
+          transform: (event) => ({
+            ...event,
+            name: `${cast.skill.name} — ${event.condition}`,
+            offTarget: cast.command.offTarget
+          })
+        });
+      }
+    },
+    'ritualist.summon-preservation'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      const cast = context.cast;
+      const spirit = spiritDefinition(runtime, cast.skill.id)!;
+      summon(runtime, cast, spirit);
+      for (const effect of cast.skill.effects ?? [])
+        if (effect.type === 'boon') boon(runtime, cast, cast.skill, [effect]);
+    },
+    'ritualist.innervate'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      const cast = context.cast;
+      const innervate = INNERVATE.get(cast.skill.id)!;
+      grantNecromancerLifeForce(runtime, Number(cast.skill.innervateLifeForceGain ?? 0));
       for (const effect of cast.skill.effects ?? []) {
         if (effect.type === 'boon') boon(runtime, cast, cast.skill, [effect]);
-        else if (innervate)
+        else
           for (const { event } of materializeSkillEffectApplications({
             skill: cast.skill,
             effect,
@@ -435,28 +430,31 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
           }))
             runtime.emit({ ...event, at: canonicalTime(event.at + (cast.command.impactDelayMs ?? 0) / 1000) });
       }
-
-    if (cast.skill.id !== ID.SUMMON_SPIRITS) return;
-    const state = ritualistState.from(runtime);
-    for (const id of [ID.ANGUISH, ID.WANDERLUST, ID.PRESERVATION]) {
-      const spirit = spiritDefinition(runtime, id)!;
-      if (!state.activeSpirits[spirit.key] || state.spiritInitialUntil[spirit.key] > runtime.time) continue;
-      strikes(runtime, cast, spirit, spirit.activeTicks, 'summon-spirits');
-      if (spirit.key === 'wanderlust')
-        queuePacket(runtime, spirit.key, {
-          ...attribution(cast),
-          ...spiritFields(spirit.key, 'summon-spirits'),
-          type: 'control',
-          controlKind: 'daze',
-          sourceId: `ritualist.${spirit.key}.summon-spirits`,
-          at: canonicalTime(
-            runtime.time + (spirit.activeTicks[0]?.atMs ?? 0) / 1000 + (cast.command.impactDelayMs ?? 0) / 1000
-          )
-        });
-      state.spiritBusyUntil[spirit.key] = Math.max(
-        state.spiritBusyUntil[spirit.key],
-        canonicalTime(runtime.time + spirit.activeDuration)
-      );
+    },
+    'ritualist.summon-spirits'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      const cast = context.cast;
+      const state = ritualistState.from(runtime);
+      for (const id of [ID.ANGUISH, ID.WANDERLUST, ID.PRESERVATION]) {
+        const spirit = spiritDefinition(runtime, id)!;
+        if (!state.activeSpirits[spirit.key] || state.spiritInitialUntil[spirit.key] > runtime.time) continue;
+        strikes(runtime, cast, spirit, spirit.activeTicks, 'summon-spirits');
+        if (spirit.key === 'wanderlust')
+          queuePacket(runtime, spirit.key, {
+            ...attribution(cast),
+            ...spiritFields(spirit.key, 'summon-spirits'),
+            type: 'control',
+            controlKind: 'daze',
+            sourceId: `ritualist.${spirit.key}.summon-spirits`,
+            at: canonicalTime(
+              runtime.time + (spirit.activeTicks[0]?.atMs ?? 0) / 1000 + (cast.command.impactDelayMs ?? 0) / 1000
+            )
+          });
+        state.spiritBusyUntil[spirit.key] = Math.max(
+          state.spiritBusyUntil[spirit.key],
+          canonicalTime(runtime.time + spirit.activeDuration)
+        );
+      }
     }
   },
   tasks: {

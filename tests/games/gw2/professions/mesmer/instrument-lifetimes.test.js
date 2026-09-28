@@ -13,7 +13,7 @@ import {
   troubadourModifierRules
 } from '#gw2/professions/mesmer/specializations/troubadour/modifiers.js';
 import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
-import { resolveTroubadourTale } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/tales.js';
+import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -53,6 +53,7 @@ function instrumentContext() {
     eventsOfType: (type) => events.filter((event) => event.type === type),
     mesmerRuntime: {
       instruments: {},
+      castDetails: new Map(),
       addEvent: emit,
       addTraitProc() {},
       activePrimaryWeapon: () => 'Spear',
@@ -65,7 +66,7 @@ function instrumentContext() {
         }
       },
       resources: { queueResources: (at, amount) => emit({ type: 'resource', at, amount }) },
-      addDamage: (skill, at, damage) => emit({ type: 'damage', at, skillId: skill.id, ...damage })
+      addDamage: (skill, at, damage) => emit({ ...damage, type: 'damage', at, skillId: skill.id })
     }
   };
   Object.assign(context, state);
@@ -165,38 +166,85 @@ test('instrument damage queries respect commitment order at the same timestamp',
   assert.equal(rule.when(modifierContext(context, 0.301, { eventOrder: instrument.eventOrder + 1 })), true);
 });
 
+// Exercise acceptance and commitment separately so expiry/replacement cannot rewrite a Tale's eligibility.
+function beginTale(context, at) {
+  const skill = context.catalog.skillsById.get(ID.TALE_OF_THE_TORTURED_MASTERMIND);
+  const cast = { id: 'tale', skill, start: at, command: {} };
+  context.time = at;
+  context.mesmerRuntime.addEvent({ type: 'action', at, activationId: cast.id });
+  context.mesmerRuntime.castDetails.set(cast.id, {});
+  applySkillSideEffects(context, cast, 'castStart', troubadourHooks.sideEffectHandlers);
+  return cast;
+}
+
 test('Tales retain cast-start note eligibility after instrument expiry and reject instruments started later', () => {
   for (const start of [5.300999, 5.301, 5.301001]) {
     const context = instrumentContext();
     play(context, ID.FLUSTERING_FLUTE, 0.301);
-    context.time = 6;
-    // A later performance must not change whether this already-started Tale earned its note.
+    const cast = beginTale(context, start);
     play(context, ID.FLUSTERING_FLUTE, 5.8);
-    resolveTroubadourTale({
-      context,
-      skill: context.catalog.skillsById.get(ID.TALE_OF_THE_TORTURED_MASTERMIND),
-      castStart: start,
-      at: 6
-    });
+    context.time = 6;
+    applySkillSideEffects(context, cast, 'castCommit', troubadourHooks.sideEffectHandlers);
     assert.equal(context.events.filter((event) => event.type === 'resource').length, start < 5.301 ? 1 : 0);
   }
 });
 
 test('a same-time instrument committed after a Tale starts cannot grant that Tale a note', () => {
   const context = instrumentContext();
-  context.mesmerRuntime.addEvent({ type: 'action', at: 0.301, activationId: 'tale' });
+  const cast = beginTale(context, 0.301);
   play(context, ID.FLUSTERING_FLUTE, 0.301);
-  resolveTroubadourTale({
-    context,
-    skill: context.catalog.skillsById.get(ID.TALE_OF_THE_TORTURED_MASTERMIND),
-    castStart: 0.301,
-    at: 1,
-    activationId: 'tale'
-  });
+  context.time = 1;
+  applySkillSideEffects(context, cast, 'castCommit', troubadourHooks.sideEffectHandlers);
   assert.equal(
     context.events.some((event) => event.type === 'resource'),
     false
   );
+});
+
+test('Tale rewards commit before recovery and are available to the next instrument', () => {
+  const context = instrumentContext();
+  play(context, ID.LIVELY_LUTE, 0);
+  const cast = {
+    id: 'soulkeeper',
+    skill: context.catalog.skillsById.get(ID.TALE_OF_THE_SOULKEEPER),
+    start: 1,
+    fullEnd: 3,
+    effectiveEnd: 2,
+    command: {}
+  };
+  context.time = cast.start;
+  context.mesmerRuntime.castDetails.set(cast.id, {});
+  applySkillSideEffects(context, cast, 'castStart', troubadourHooks.sideEffectHandlers);
+  context.time = cast.effectiveEnd;
+  applySkillSideEffects(context, cast, 'castCommit', troubadourHooks.sideEffectHandlers);
+  const note = context.events.find((event) => event.type === 'resource');
+  const boon = context.events.find((event) => event.kind === 'might');
+  assert.equal(note.at, context.time);
+  assert.equal(boon.at, context.time);
+  assert.equal(boon.audience.recipients, 'party');
+  assert.equal(boon.audience.maximumRecipients, 5);
+  play(context, ID.FLUSTERING_FLUTE, context.time, note.amount);
+  assert.equal(context.profession.specialization.state.numericResource, 0);
+  assert.ok(context.profession.specialization.state.instruments.Flute > context.time + 5);
+});
+
+test('Crescendo reads an instrument committed between acceptance and impact', () => {
+  const context = instrumentContext();
+  const skill = context.catalog.skillsById.get(ID.CRESCENDO);
+  const cast = { id: 'crescendo', skill, start: 0, fullEnd: 1, effectiveEnd: 1, command: {} };
+  const queued = [];
+  context.scheduleForCast = (type, at, cast) => queued.push({ type, at, cast });
+  applySkillSideEffects(context, cast, 'castStart', troubadourHooks.sideEffectHandlers);
+  assert.equal(
+    context.events.some((event) => event.type === 'damage'),
+    false
+  );
+  play(context, ID.LIVELY_LUTE, queued[0].at / 2);
+  context.time = queued[0].at;
+  troubadourHooks.tasks[queued[0].type](context, { cast });
+  const strike = context.events.find((event) => event.type === 'damage');
+  assert.equal(strike.at, context.time);
+  assert.equal(strike.coefficient, 2.25 * 1.25);
 });
 
 test('Flute endurance regeneration uses the final live microsecond and loses the bonus at expiry', () => {

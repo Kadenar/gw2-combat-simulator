@@ -8,6 +8,9 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SCORCHED_AFTERMATH]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
     castTimeMs: 920,
     // The Fire combo field lasts four seconds from the first pulse.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Fire', duration: 4, startMs: 440, startAnchor: 'castStart' }],
@@ -35,6 +38,9 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ])
   },
   [ID.IGNITING_BURST]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
     castTimeMs: 480,
     // Keep the page's strike, Burning, and Weakness on one impact.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -57,10 +63,16 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ])
   },
   [ID.RADIANT_RECOVERY]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
     castTimeMs: 200,
     effects: []
   },
   [ID.STALWART_STAND]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
     castTimeMs: 200,
     effects: [
       {
@@ -95,6 +107,9 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.SEARING_SPELL]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
     castTimeMs: 680,
     // A cancel after commitment retains the completed page use and its effects.
     interruptCommitMs: 480,
@@ -122,6 +137,8 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     )
   },
   [ID.STOW_TOME]: {
+    // Stow closes the bar and ends its Swift Scholar session.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.stow-tome' } }],
     // Tome transitions change the available bar without cancelling the active animation.
     canCastConcurrently: true,
     castTimeMs: 0,
@@ -130,6 +147,8 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: []
   },
   [ID.TOME_OF_RESOLVE]: {
+    // Reopening preserves the shared dormancy and session controller.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-resolve' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     // Tome transitions change the available bar without cancelling the active animation.
     canCastConcurrently: true,
@@ -137,10 +156,16 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: []
   },
   [ID.VALIANT_BULWARK]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
     castTimeMs: 200,
     effects: []
   },
   [ID.DARING_CHALLENGE]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
     castTimeMs: 200,
     effects: [
       {
@@ -160,6 +185,9 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.SHINING_RIVER]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
     castTimeMs: 200,
     effects: [
       {
@@ -202,6 +230,8 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.TOME_OF_COURAGE]: {
+    // Reopening preserves the shared dormancy and session controller.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-courage' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     canCastConcurrently: true,
     castTimeMs: 0,
@@ -214,6 +244,9 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: []
   },
   [ID.HEATED_REBUKE]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
     castTimeMs: 200,
     effects: [
       {
@@ -228,16 +261,27 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.ASHES_OF_THE_JUST]: {
+    // Accepted casts schedule the party grant at its application boundary during the animation.
+    sideEffects: [{ on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-ashes' } }],
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
     castTimeMs: 880,
-    // Commitment precedes the animation end; the Ashes grant keeps its separate application time.
+    // A committed cancellation preserves the separately scheduled Ashes grant.
     interruptCommitMs: 640,
     effects: []
   },
   [ID.ETERNAL_OASIS]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 2,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
     castTimeMs: 200,
     effects: []
   },
   [ID.UNFLINCHING_CHARGE]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
     castTimeMs: 200,
     effects: [
       {
@@ -253,6 +297,8 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.TOME_OF_JUSTICE]: {
+    // Reopening preserves the shared dormancy and session controller.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-justice' } }],
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     // Tome transitions change the available bar without cancelling the active animation.
     canCastConcurrently: true,
@@ -260,6 +306,9 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: []
   },
   [ID.UNBROKEN_LINES]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 2,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
     castTimeMs: 200,
     effects: [
       {
@@ -286,10 +335,16 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.DESERT_BLOOM]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
     castTimeMs: 200,
     effects: []
   },
   [ID.AZURE_SUN]: {
+    // Debit on commitment before the earned Swift Scholar refund.
+    resourceCost: 1,
+    cost: { resource: 'tomePages', spendOn: 'castCommit' },
     castTimeMs: 200,
     effects: [
       {

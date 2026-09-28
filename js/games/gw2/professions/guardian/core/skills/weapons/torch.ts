@@ -1,6 +1,15 @@
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -22,6 +31,11 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.ZEALOTS_FIRE]: {
+    // Consume once before blocking immediate Flame reuse.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.ZEALOTS_FIRE } },
+      { on: 'castCommit', do: { type: 'guardian.zealots-fire-lockout' } }
+    ],
     castTimeMs: 680,
     interruptCommitMs: 480,
     cooldown: 0,
@@ -45,6 +59,8 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Par
     )
   },
   [ID.ZEALOTS_FLAME]: {
+    // The selected trait extends this activation's follow-up window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-zealots-fire' } }],
     // Zealot's Fire stays available while the flame burns; Radiant Fire lengthens it.
     flipDuration: 3,
     // Fire sets this lockout; another actual skill clears it at commitment.
@@ -69,3 +85,19 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   }
 });
+
+/** Torch activation owns its flip duration and lockout; later eligible skills clear the shared lockout. */
+export const guardianTorchActions: RuntimeProfession<GuardianRuntimeState>['sideEffectHandlers'] = {
+  'guardian.arm-zealots-fire'(runtime, context) {
+    const duration =
+      Number(context.skill.flipDuration) *
+      (hasTrait(runtime, TRAIT.RADIANT_FIRE)
+        ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.RADIANT_FIRE), 'durationMultiplier')
+        : 1);
+    runtime.armFlip(ID.ZEALOTS_FIRE, { expiresAt: canonicalTime(runtime.time + duration), expiryPriority: -220 });
+  },
+  'guardian.zealots-fire-lockout'(runtime) {
+    for (const lockout of runtime.helpers.skillsById.get(ID.ZEALOTS_FLAME)?.lockouts ?? [])
+      runtime.lockouts.set(lockout.group, canonicalTime(runtime.time + lockout.durationMs / 1000));
+  }
+};

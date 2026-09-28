@@ -137,7 +137,7 @@ function assertEventDescriptors(entry, profession) {
     count: 1,
     instrument: 'Lute',
     duration: 5,
-    pageCost: 1,
+    resourceCost: 1,
     pagesRemaining: 4
   };
   const specializations = [

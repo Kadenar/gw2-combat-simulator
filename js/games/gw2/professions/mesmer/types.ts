@@ -1,4 +1,3 @@
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
@@ -120,7 +119,6 @@ export type MesmerRuntime = Gw2Runtime<MesmerRuntimeState>;
 export interface MesmerMechanics {
   context: MesmerRuntime;
   resourceDefinition: MesmerResourceDefinition;
-  flipSkillsByParent: ReadonlyMap<SkillId, MesmerSkill>;
   activeEmission: MesmerActiveEmission | null;
   castDetails: Map<string, MesmerCastDetails>;
   weaponStrength: Readonly<Record<string, number>>;
@@ -132,7 +130,6 @@ export interface MesmerMechanics {
   shatters: Record<number, MesmerShatter>;
   shatterResolvers: Record<string, MesmerShatterResolver>;
   shatterResolvedHandlers: MesmerShatterResolvedHandler[];
-  skillCompletionHandlers: MesmerSkillCompletionHandler[];
   methodOfMadnessCommitted?: (at: number) => void;
   instruments: Record<number, MesmerInstrument>;
   activePrimaryWeapon: MesmerActivePrimaryWeapon;
@@ -185,7 +182,6 @@ export interface MesmerAmbushAttack extends MesmerSkill {
     readonly duration: number;
     readonly stacks: number;
   };
-  readonly createsClone?: boolean;
 }
 
 export interface MesmerInstrument extends Partial<StrikeEffect> {
@@ -205,13 +201,6 @@ export type MesmerShatterResolver = (
   context: MesmerRuntime,
   request: MesmerShatterResolverRequest
 ) => readonly MesmerShatterTraitHit[];
-
-type MesmerSkillCompletionHandler = (
-  context: MesmerRuntime,
-  cast: RuntimeCast,
-  skill: MesmerSkill,
-  at: number
-) => boolean | MesmerShatterResolution;
 
 export type MesmerShatterResolvedHandler = (context: MesmerRuntime, resolution: MesmerShatterResolution) => void;
 
@@ -258,7 +247,8 @@ export interface MesmerProfessionActionController {
     skill: MesmerSkill,
     at: number,
     resourcesSpent?: number | null,
-    castStart?: number
+    castStart?: number,
+    packetAt?: number
   ): MesmerShatterResolution | null;
   reserveResources(): number;
   restoreReservedResources(spent: number): void;

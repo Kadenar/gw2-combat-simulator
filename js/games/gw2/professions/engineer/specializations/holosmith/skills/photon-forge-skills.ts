@@ -9,6 +9,8 @@ import type { HolosmithSkillFragment } from '#gw2/professions/engineer/specializ
 /** Supplies Photon Forge fragments to Holosmith module composition. */
 export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
   [ID.DEACTIVATE_PHOTON_FORGE]: {
+    // Commit voluntary exit without replacing an overheat-owned Lens grant.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.exit-forge' } }],
     // Custom: Leaves Photon Forge and starts passive heat decay; see `holosmith/mechanics/photon-forge.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
 
@@ -20,6 +22,8 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     mechanicSlot: 5
   },
   [ID.FLASH_CUTTER_STORM]: {
+    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }],
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
 
     castTimeMs: 560,
@@ -49,6 +53,8 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     forgeSkill: true
   },
   [ID.BRIGHT_SLASH_STORM]: {
+    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }],
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
 
     castTimeMs: 520,
@@ -80,6 +86,8 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     forgeSkill: true
   },
   [ID.HOLOGRAPHIC_SHOCKWAVE]: {
+    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }],
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
 
     castTimeMs: 520,
@@ -105,6 +113,8 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     forgeSkill: true
   },
   [ID.ENGAGE_PHOTON_FORGE]: {
+    // Commit the bar transition; shared heat cadence and Lens lifetime retain their mechanic owner.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.enter-forge' } }],
     // Custom: Enters Photon Forge and starts its heat lifecycle; see `holosmith/mechanics/photon-forge.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
 
@@ -116,6 +126,8 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     mechanicSlot: 5
   },
   [ID.HOLO_LEAP]: {
+    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }],
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
 
     castTimeMs: 520,
@@ -167,6 +179,8 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     effects: []
   },
   [ID.LIGHT_STRIKE_STORM]: {
+    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }],
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
 
     castTimeMs: 360,
@@ -200,6 +214,8 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     effects: []
   },
   [ID.CORONA_BURST]: {
+    // A released Corona owns its complete heat pulse sequence, including after Forge exit.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.corona-heat' } }],
     // Custom: Schedules committed heat pulses that persist after Forge exit; see `holosmith/mechanics/photon-forge.ts`.
 
     castTimeMs: 480,
@@ -278,6 +294,8 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     forgeSkill: true
   },
   [ID.LIGHT_STRIKE]: {
+    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }],
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
 
     castTimeMs: 360,
@@ -298,6 +316,8 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     forgeSkill: true
   },
   [ID.DEACTIVATE_PHOTON_FORGE_HOT]: {
+    // Commit voluntary exit without replacing an overheat-owned Lens grant.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.exit-forge' } }],
     // Custom: Leaves Photon Forge and starts passive heat decay; see `holosmith/mechanics/photon-forge.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
 
@@ -309,6 +329,8 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     mechanicSlot: 5
   },
   [ID.BRIGHT_SLASH]: {
+    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }],
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
 
     castTimeMs: 520,
@@ -329,6 +351,8 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     forgeSkill: true
   },
   [ID.PHOTON_BLITZ]: {
+    // Only projectiles launched before interruption schedule their heat.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.blitz-heat' } }],
     // Custom: Adds heat per completed projectile launch; see `holosmith/mechanics/photon-forge.ts`.
 
     castTimeMs: 1320,
@@ -368,6 +392,8 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     forgeSkill: true
   },
   [ID.FLASH_CUTTER]: {
+    // Schedule the authored heat at semantic completion through the shared overheat-aware owner.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }],
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
 
     castTimeMs: 520,

@@ -1,3 +1,6 @@
+import { modifySignetOfSpiteAttributes } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
+import { ghastlyClawsVulnerabilityModifier } from '#gw2/professions/necromancer/core/skills/weapons/axe.js';
+import { lifeSiphonBleedingModifier } from '#gw2/professions/necromancer/core/skills/weapons/dagger.js';
 import type { Gw2Stats, Gw2MutableStats } from '#gw2/platform/combat/types.js';
 import {
   requireBalanceProfileFromContext,
@@ -6,15 +9,12 @@ import {
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   eventSkill,
-  hasSelectedSkill,
   targetConditionActive,
   targetConditionCount,
-  targetHealthBelow,
-  vulnerabilityStacks
+  targetHealthBelow
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
@@ -71,23 +71,6 @@ export function cloneNecromancerAttributes(attributes: Gw2Stats): Gw2MutableStat
   };
 }
 
-/** Checks whether Signet of Spite's selected, out-of-shroud, off-cooldown passive is active. */
-function signetOfSpitePassiveActive(context: Gw2ModifierContext): boolean {
-  return (
-    hasSelectedSkill(context, 'Signet of Spite') &&
-    !necromancerActiveShroud(context) &&
-    !context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_SPITE, context.time)
-  );
-}
-
-/** Restricts player attributes and outgoing modifiers to player-owned contexts. */
-function playerModifierContext(context: Gw2ModifierContext): boolean {
-  // Eventless attribute queries describe the player; event queries follow explicit outgoing ownership.
-  return context.event
-    ? isGw2PlayerModifierOwnedEvent(context.event)
-    : context.actorType == null || context.actorType === 'player';
-}
-
 /** Applies Core Necromancer static conversions and runtime-dependent attribute bonuses. */
 export function modifyNecromancerCoreAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = cloneNecromancerAttributes(attributes);
@@ -96,16 +79,7 @@ export function modifyNecromancerCoreAttributes(context: Gw2ModifierContext, att
   // (accrued on `result`).
   const gearPower = context.config?.stats?.power || 0;
   const staticRulesApplied = professionStaticRulesApplied(context.config);
-  if (hasSelectedSkill(context, 'Signet of Spite')) {
-    const signetOfSpiteProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfSpite);
-    const signetPower = balanceProfileNumber(signetOfSpiteProfile, 'attributeBonus');
-    const passiveActive = playerModifierContext(context) && signetOfSpitePassiveActive(context);
-    if (staticRulesApplied) {
-      if (!passiveActive) result.power -= signetPower;
-    } else if (passiveActive) {
-      result.power += signetPower;
-    }
-  }
+  modifySignetOfSpiteAttributes(context, result);
 
   // Attribute reads count live stacks without rebuilding or mutating the runtime pool.
   const timedCarapace = activeStackCount(necromancerRuntimeCoreState(context).carapaceExpiries || [], context.time);
@@ -169,14 +143,7 @@ export function modifyNecromancerCoreAttributes(context: Gw2ModifierContext, att
 }
 
 const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    id: 'necromancer.life-siphon-bleeding-target',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.5,
-    order: 100,
-    when: (context) => eventSkill(context)?.id === ID.LIFE_SIPHON && targetConditionActive(context, 'Bleeding')
-  },
+  lifeSiphonBleedingModifier,
   {
     id: 'necromancer.target-the-weak-critical-chance',
     label: 'Target the Weak',
@@ -246,14 +213,7 @@ const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     order: 100,
     when: (context) => hasTrait(context, TRAIT.CLOSE_TO_DEATH) && targetHealthBelow(context, 0.5)
   },
-  {
-    // Ghastly Claws' own Vulnerability bonus multiplies the target's ordinary Vulnerability multiplier.
-    id: 'necromancer.ghastly-claws-vulnerability',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: (context) => 1 + vulnerabilityStacks(context) * 0.01,
-    when: (context) => context.event?.skillId === ID.GHASTLY_CLAWS && context.event.actorType === 'player'
-  },
+  ghastlyClawsVulnerabilityModifier,
   {
     id: 'necromancer.necromantic-corruption',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,

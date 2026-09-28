@@ -1,3 +1,4 @@
+import { guardianIgnitionFields } from '#gw2/professions/guardian/core/skills/weapons/pistol.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { remainingDurationStackSeconds, durationStackingBoonCapSeconds } from '#gw2/platform/combat/boons.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -60,18 +61,7 @@ export function guardianComboFields(
   fields: Skill['comboFields']
 ): Skill['comboFields'] {
   if (cast.skill.id === ID.SYMBOL_OF_IGNITION) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.symbolOfIgnition);
-    const field = requireEffect(profile, 'buff', 'guardian-symbol-of-ignition-field');
-    fields = field
-      ? [
-          {
-            ownerId: 'guardian',
-            fieldType: 'Light',
-            duration: effectNumber(profile, field, 'duration'),
-            startAnchor: 'castEnd'
-          }
-        ]
-      : [];
+    fields = guardianIgnitionFields(runtime);
   }
 
   if (cast.skill.id === ID.PURGING_FLAMES && hasTrait(runtime, TRAIT.MASTER_OF_CONSECRATIONS)) {
@@ -142,8 +132,8 @@ export function guardianTraitEffects(
 
   const selected = [...effects, ...extra];
   // A symbol's self boon belongs to each pulse even when its hostile packet misses the target.
-  if (skill.id === ID.SYMBOL_OF_RESOLUTION)
-    for (const effect of [...selected]) {
+  if (skill.id === ID.SYMBOL_OF_RESOLUTION || skill.id === ID.LUMINOUS_STAFF)
+    for (const effect of extra) {
       if (effect.type !== 'strike') continue;
       for (const tick of strikeEffectTicks(effect))
         selected.push({
@@ -169,16 +159,6 @@ export function guardianResolutionEffects(runtime: Runtime, effects: readonly Sk
       ? { ...effect, duration: effect.duration * multiplier }
       : effect
   );
-}
-
-/** Committed ignition placement owns an inclusive reaction window independent of its public field record. */
-export function completeGuardianIgnition(runtime: Runtime, cast: RuntimeCast): void {
-  if (cast.skill.id !== ID.SYMBOL_OF_IGNITION) return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.symbolOfIgnition);
-  const field = requireEffect(profile, 'buff', 'guardian-symbol-of-ignition-field');
-  if (!field) return;
-  runtime.profession.core.symbolIgnitionStartsAt = runtime.time;
-  runtime.profession.core.symbolIgnitionUntil = canonicalTime(runtime.time + effectNumber(profile, field, 'duration'));
 }
 
 /** Ready Justice activations claim symbol recharge at the permanent Alacrity rate. */

@@ -1,3 +1,7 @@
+import { canonicalTime } from '#kernel/core/clock.js';
+import type { RuntimeProfession, RuntimeCast, Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { ActionContext } from '#gw2/platform/simulation/side-effects.js';
+import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
 /**
  * Owns Willbender virtue and physical skill fragments.
  * Runtime virtue behavior remains under `mechanics/` and `execution/virtues.ts`.
@@ -36,6 +40,10 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: []
   },
   [ID.CRASHING_COURAGE]: {
+    // Accepted activations launch the self window and autonomous flame group.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-courage' } }
+    ],
     castTimeMs: 680,
     // Grant the virtue's defensive boons with its initial strike.
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -133,6 +141,10 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ])
   },
   [ID.FLOWING_RESOLVE]: {
+    // Accepted activations launch the self window and autonomous flame group.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-resolve' } }
+    ],
     castTimeMs: 520,
 
     ammoCastLockout: 0.5,
@@ -164,6 +176,10 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: []
   },
   [ID.RUSHING_JUSTICE]: {
+    // Accepted activations launch the self window and autonomous flame group.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-justice' } }
+    ],
     castTimeMs: 480,
     rechargeAnchor: 'castStart',
     // Both impact packets retain the impact identity; the strike uses mechanic weapon strength.
@@ -204,3 +220,29 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   }
 });
+
+export const ACTIVATE = 'guardian.willbender.activate';
+export const FLAMES = 'guardian.willbender.flames';
+/** Activation recipes preserve the window/flame boundaries and priority ahead of shared lifetime work. */
+export const willbenderVirtueActions: RuntimeProfession<GuardianRuntimeState>['sideEffectHandlers'] =
+  Object.fromEntries(
+    (
+      [
+        ['justice', (cast: RuntimeCast) => Math.min(cast.effectiveEnd, cast.start + 0.04)],
+        ['resolve', (cast: RuntimeCast) => cast.effectiveEnd],
+        ['courage', (cast: RuntimeCast) => Math.min(cast.effectiveEnd, cast.start + 0.52)]
+      ] as const
+    ).map(([virtue, activationAt]) => [
+      `guardian.start-${virtue}`,
+      (runtime: Gw2Runtime<GuardianRuntimeState>, context: ActionContext) => {
+        if (context.kind !== 'cast') return;
+        const cast = context.cast;
+        const at = canonicalTime(activationAt(cast));
+        const flameAt = canonicalTime(
+          virtue === 'resolve' ? cast.start : virtue === 'justice' ? Math.max(at, cast.effectiveEnd - 0.04) : at
+        );
+        runtime.scheduleForCast(ACTIVATE, at, cast, { virtue });
+        runtime.scheduleForCast(FLAMES, flameAt, cast, { virtue }, undefined, -10);
+      }
+    ])
+  );

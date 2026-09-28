@@ -13,6 +13,7 @@ export interface MesmerActiveEmission {
 
 export interface MesmerCastDetails {
   clarityConsumed?: boolean;
+  taleEligible?: boolean;
   earlyResourceAt?: number | null;
   earlyResourceOwnerId?: string;
   resourceScheduledDuringCast?: boolean;
@@ -28,9 +29,6 @@ export interface MesmerExceptionalProfileOptions {
 }
 
 export interface MesmerSkillEffectController {
-  consumeClarity(skill: MesmerSkill, castStart: number): boolean;
-  complete(skill: MesmerSkill, at: number, castStart?: number): void;
   schedule(skill: MesmerSkill, at: number, castStart?: number, options?: MesmerExceptionalProfileOptions): void;
-  scheduleSpecial(skill: MesmerSkill, at: number, castStart?: number): void;
   scheduleResources(skill: MesmerSkill, at: number, castStart?: number): void;
 }

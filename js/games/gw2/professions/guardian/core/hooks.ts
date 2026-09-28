@@ -1,13 +1,11 @@
+import { guardianTorchActions } from '#gw2/professions/guardian/core/skills/weapons/torch.js';
+import { guardianSpearActions } from '#gw2/professions/guardian/core/skills/weapons/spear.js';
+import { guardianIgnitionActions } from '#gw2/professions/guardian/core/skills/weapons/pistol.js';
+import { guardianJusticeActions } from '#gw2/professions/guardian/core/skills/profession-skills.js';
 import { isGuardianSymbolSkill } from '#gw2/professions/guardian/core/traits/shared.js';
 import { applySideEffect } from '#gw2/platform/simulation/side-effects.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { consumeSkillFlip, skillFlipReady, followUpOf } from '#gw2/platform/engine/skills/skill-flips.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -24,15 +22,9 @@ import { guardianRechargeWork } from '#gw2/professions/guardian/core/mechanics/r
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import {
-  completeSpearIllumination,
-  expireSpearIllumination,
-  GUARDIAN_SPEAR_EXPIRY,
-  illuminatedSpearEffects
-} from '#gw2/professions/guardian/core/mechanics/spear.js';
+import { expireSpearIllumination, GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import {
   completeGuardianHealTraits,
-  completeGuardianIgnition,
   guardianComboFields,
   guardianTraitEffects,
   guardianTraitTasks,
@@ -47,17 +39,13 @@ const readyVirtueActivations = new WeakSet<RuntimeCast>();
 /** Virtue state changes once on commitment; report packets do not restore a second copy of that state. */
 function completeCoreVirtue(runtime: Runtime, cast: RuntimeCast, virtue: GuardianVirtue): void {
   refreshGuardianVirtues(runtime);
-  if (virtue === 'justice')
-    runtime.profession.core.justiceActiveArmed = Boolean(
-      requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.justice), 'condition', 'Burning (active)')
-    );
   if (!readyVirtueActivations.has(cast)) return;
   applyGuardianVirtueActivationTraits(runtime, cast, virtue);
   if (virtue === 'justice') triggerGuardianFuriousFocus(runtime, cast);
 }
 
-/** Weapon follow-ups open only on commitment and expire by occurrence identity, independent of parent recharge. */
-function completeWeapon(runtime: Runtime, cast: RuntimeCast): void {
+/** Eligible completed skills release the post-Fire lockout; flip transitions remain skill-owned. */
+function clearTorchLockout(runtime: Runtime, cast: RuntimeCast): void {
   const skill = cast.skill;
   // Profession bars and explicitly managed flips retain their specialization's sole transition owner.
   if (
@@ -71,30 +59,25 @@ function completeWeapon(runtime: Runtime, cast: RuntimeCast): void {
   )
     return;
   if (skill.interruptMode === 'per-packet' && castWasInterrupted(cast)) return;
-  if (skill.id === ID.ZEALOTS_FIRE) {
-    for (const lockout of runtime.helpers.skillsById.get(ID.ZEALOTS_FLAME)?.lockouts ?? [])
-      runtime.lockouts.set(lockout.group, canonicalTime(runtime.time + lockout.durationMs / 1000));
-  } else if (skill.type !== 'Action') runtime.lockouts.delete('guardian-zealots-flame-after-fire');
-  const flips = runtime.profession.core.availableFlips;
-  const followUp = followUpOf(runtime.helpers.skillsById, skill);
-  // Declarative flips own their mutations; this path retains the trait-dependent and other procedural families.
-  if (followUp && !skill.sideEffects?.some((effect) => effect.do.type === 'flipArm')) {
-    // Radiant Fire keeps Zealot's Flame burning longer; otherwise the window follows the skill's recharge.
-    const duration =
-      (skill.flipDuration ?? Math.max(1, skill.cooldown ?? 5)) *
-      (skill.id === ID.ZEALOTS_FLAME && hasTrait(runtime, TRAIT.RADIANT_FIRE)
-        ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.RADIANT_FIRE), 'durationMultiplier')
-        : 1);
-    runtime.armFlip(followUp.id, { expiresAt: canonicalTime(runtime.time + duration), expiryPriority: -220 });
-  }
-
-  if (skill.flipParentId != null && !skill.sideEffects?.some((effect) => effect.do.type === 'flipConsume'))
-    consumeSkillFlip(flips, skill.id);
+  if (skill.id !== ID.ZEALOTS_FIRE && skill.type !== 'Action')
+    runtime.lockouts.delete('guardian-zealots-flame-after-fire');
 }
 
 /** Core hooks: accepted virtues, shared recharge, endurance grants, and temporary weapon state. */
 export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
   sideEffectHandlers: {
+    ...guardianTorchActions,
+    ...guardianSpearActions,
+    ...guardianIgnitionActions,
+    ...guardianJusticeActions,
+    // Declared follow-ups retain their selected recharge-derived lifetime without a global completion fallback.
+    'guardian.arm-follow-up'(runtime, context) {
+      const skill = context.skill;
+      runtime.armFlip(skill.flipSkillId!, {
+        expiresAt: runtime.time + (skill.flipDuration ?? Math.max(1, skill.cooldown ?? 5)),
+        expiryPriority: -220
+      });
+    },
     // Elite virtue IDs are absent from other catalogs; select live IDs before using the shared reset action.
     'guardian.refresh-virtues'(runtime, context) {
       const virtues = runtime.helpers.skills.filter(
@@ -103,6 +86,16 @@ export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
       applySideEffect(runtime, context, { type: 'rechargeReset', skillIds: virtues.map((skill) => skill.id) });
       for (const skill of virtues) runtime.cooldownController.restoreAmmo(skill, Infinity, runtime.time, 'reset');
       runtime.profession.core.virtueReadyAt = { justice: runtime.time, resolve: runtime.time, courage: runtime.time };
+      // The same declared refresh also resets Firebrand's separate page and dormancy pools.
+      const specialization = runtime.profession.specialization;
+      if (specialization.kind === 'Firebrand') {
+        runtime.resourceController.grant('tomePages', specialization.state.tomePages.maximum);
+        specialization.state.tomeDormantReadyAt = {
+          justice: runtime.time,
+          resolve: runtime.time,
+          courage: runtime.time
+        };
+      }
     }
   },
   // Only damaging symbol hits apply the profile's Vulnerability packet.
@@ -154,9 +147,7 @@ export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
   maximumAmmo: (runtime, skill, maximum) =>
     modifyGuardianMaximumAmmo({ catalog: runtime.helpers, config: runtime.config, skill }, maximum),
   modifyComboFields: guardianComboFields,
-  modifyEffects(runtime, cast, effects) {
-    return guardianTraitEffects(runtime, cast, illuminatedSpearEffects(runtime, cast, effects));
-  },
+  modifyEffects: guardianTraitEffects,
   availability(runtime, skill) {
     const glacial = hasTrait(runtime, TRAIT.GLACIAL_HEART);
     if (skill.id === ID.MIGHTY_BLOW && glacial)
@@ -185,10 +176,8 @@ export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
     if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtueActivations.add(cast);
   },
   onCastCommit(runtime, cast) {
-    completeWeapon(runtime, cast);
-    completeSpearIllumination(runtime, cast);
+    clearTorchLockout(runtime, cast);
     completeGuardianHealTraits(runtime, cast);
-    completeGuardianIgnition(runtime, cast);
     const virtue = CORE_VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
     if (virtue) completeCoreVirtue(runtime, cast, virtue);
   },

@@ -331,3 +331,55 @@ test('reaction registry interns shared declarations across repeated materializat
   for (let index = 0; index < 1000; index++) ids.add(registry.register(skill, { ...skill.effects[0] }));
   assert.equal(ids.size, 1);
 });
+
+// A finisher carries its authored packet identity through selection/chance without passing reactions to combo damage.
+test('resolved combo reactions retain finisher provenance, acceptance gates, and observer ordering', () => {
+  for (const [field, chance, expected] of [
+    [true, 1, 7],
+    [false, 1, 0],
+    [true, 0, 0]
+  ]) {
+    const seen = [];
+    const result = run(
+      [
+        strike([reaction(grant(7), { on: 'combo.resolved' })], {
+          comboFinishers: [
+            { ownerId: 'fixture', finisherType: 'Projectile', chance, ambiguousFieldSelection: 'oldest' }
+          ]
+        }),
+        // A sibling packet with the same skill identity must not borrow the first packet's reaction.
+        strike(undefined, {
+          atMs: 200,
+          comboFinishers: [{ ownerId: 'fixture', finisherType: 'Blast', ambiguousFieldSelection: 'oldest' }]
+        })
+      ],
+      {
+        skill: {
+          comboFields: field ? [{ ownerId: 'fixture', fieldType: 'Fire', duration: 1, startAnchor: 'castStart' }] : []
+        },
+        hooks: {
+          reactions: {
+            'combo.resolved'(runtime, event) {
+              seen.push({
+                energy: runtime.profession.energy.value,
+                reaction: event.effectReaction,
+                activation: event.activationId
+              });
+            }
+          }
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(energy(result), expected);
+    if (expected) {
+      assert.equal(seen[0].energy, 7);
+      assert.equal(seen[0].reaction.packet, 1);
+      assert.ok(seen[0].activation);
+      assert.equal(seen[1].reaction, undefined);
+      assert.ok(result.resolvedEvents.some((event) => event.type === 'condition' && event.condition === 'Burning'));
+    }
+  }
+
+  assert.throws(() => catalogFor([strike([reaction(grant(1), { on: 'combo.resolved' })])]), /invalid effect reaction/);
+});

@@ -6,7 +6,6 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 // trait handlers to values that balance overrides can replace independently.
 export const MECHANIST_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'engineer.mechanist.mech',
-  meleeChain: 'engineer.mechanist.melee-chain',
   jadeCannons: TRAIT.MECH_ARMS_JADE_CANNONS,
   rocketPunch: TRAIT.MECH_FIGHTER,
   jadeDynamo: TRAIT.MECH_CORE_JADE_DYNAMO,
@@ -34,30 +33,13 @@ export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     basePrecision: 1,
     effects: []
   },
-  {
-    id: MECHANIST_BALANCE_PROFILE_IDS.meleeChain,
-    name: 'Jade Mech Melee Chain',
-    profileKind: 'skill-variant',
-    effects: [
-      { name: 'Hard Strike', type: 'strike', coefficient: 0.45, hits: 1 },
-      { name: 'Heavy Smash (Mech)', type: 'strike', coefficient: 0.45, hits: 1 },
-      { name: 'Twin Strike (Mech)', type: 'strike', coefficient: 0.8, hits: 2, atMs: 0 }
-    ]
-  },
   trait(MECHANIST_BALANCE_PROFILE_IDS.jadeCannons, 'Jade Cannons', {
     criticalChance: 0.2,
-    effects: [
-      { name: 'Jade Cannons', type: 'strike', coefficient: 0.42, hits: 1 },
-      { name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6 }
-    ]
+    effects: [{ name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6 }]
   }),
   trait(MECHANIST_BALANCE_PROFILE_IDS.rocketPunch, 'Rocket Punch', {
     internalCooldown: 5,
-    effects: [
-      { name: 'Rocket Punch', type: 'strike', coefficient: 1, hits: 1 },
-      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 5 },
-      { name: 'Rocket Punch', type: 'control' }
-    ]
+    effects: []
   }),
   // Trait tuning is shared by build calculations, combat, and tooltips.
   trait(TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, 'Mech Arms: High-Impact Drivers', {
@@ -89,13 +71,9 @@ export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   {
     rechargeMultiplier: 0.8,
     id: MECHANIST_BALANCE_PROFILE_IDS.overclock,
-    name: 'Jade Buster Cannon',
+    name: 'Overclock Signet Passive',
     profileKind: 'skill-variant',
     parentId: ID.OVERCLOCK_SIGNET,
-    packetCount: 5,
-    effects: [
-      { name: 'Jade Buster Cannon', type: 'strike', coefficient: 0.95, hits: 1 },
-      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 6 }
-    ]
+    effects: []
   }
 ]);

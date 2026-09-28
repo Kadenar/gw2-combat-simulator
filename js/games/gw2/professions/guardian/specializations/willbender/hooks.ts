@@ -1,3 +1,8 @@
+import {
+  willbenderVirtueActions,
+  ACTIVATE,
+  FLAMES
+} from '#gw2/professions/guardian/specializations/willbender/skills/index.js';
 import { guardianBoonDuration } from '#gw2/professions/guardian/core/traits/index.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
@@ -33,8 +38,6 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
-const ACTIVATE = 'guardian.willbender.activate';
-const FLAMES = 'guardian.willbender.flames';
 const PULSE = 'guardian.willbender.pulse';
 const readyVirtues = new WeakSet<RuntimeCast>();
 const VIRTUES = [
@@ -295,6 +298,7 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
 
 /** Virtue windows, flame lifetimes, and earned recharge reductions live beside the shared cast and damage owners. */
 export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
+  sideEffectHandlers: willbenderVirtueActions,
   // Searing Pact follows actual flame damage, independently of virtue hit counters.
   traitTriggers: [
     {
@@ -334,18 +338,6 @@ export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> =
     if (!virtue) return;
     refreshGuardianVirtues(runtime);
     if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtues.add(cast);
-    const at = canonicalTime(
-      virtue === 'justice'
-        ? Math.min(cast.effectiveEnd, cast.start + 0.04)
-        : virtue === 'courage'
-          ? Math.min(cast.effectiveEnd, cast.start + 0.52)
-          : cast.effectiveEnd
-    );
-    const flameAt = canonicalTime(
-      virtue === 'resolve' ? cast.start : virtue === 'justice' ? Math.max(at, cast.effectiveEnd - 0.04) : at
-    );
-    runtime.scheduleForCast(ACTIVATE, at, cast, { virtue });
-    runtime.scheduleForCast(FLAMES, flameAt, cast, { virtue }, undefined, -10);
   },
   onCastCommit(runtime, cast) {
     const state = willbenderState.from(runtime);

@@ -1,4 +1,5 @@
-import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { anguishConditionModifier } from '#gw2/professions/necromancer/specializations/ritualist/skills/index.js';
+import { essenceBlastSpiritModifier } from '#gw2/professions/necromancer/specializations/ritualist/skills/index.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
   requireBalanceProfileFromContext,
@@ -6,10 +7,9 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   cloneNecromancerAttributes,
   necromancerRuntimeSpecializationState
@@ -31,15 +31,7 @@ function modifyRitualistAttributes(context: Gw2ModifierContext, attributes: Gw2S
 }
 
 const ritualistModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
-  {
-    id: 'necromancer.essence-blast-active-spirits',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    parameters: { damagePerSpirit: 0.15 },
-    amount: (context, _target, parameters) =>
-      (context.event?.metadata?.activeSpirits || 0) * parameters.damagePerSpirit,
-    when: (context) => eventSkill(context)?.id === ID.ESSENCE_BLAST && (context.event?.metadata?.activeSpirits || 0) > 0
-  },
+  essenceBlastSpiritModifier,
   {
     id: 'necromancer.lingering-spirits',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -49,18 +41,7 @@ const ritualistModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
       hasTrait(context, TRAIT.LINGERING_SPIRITS) &&
       Boolean(necromancerRuntimeSpecializationState(context, 'Ritualist').activeSpirits?.anguish)
   },
-  {
-    id: 'necromancer.anguish-conditional-damage',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    // Apply the condition bonus; temporary target-control bonuses are outside simulation scope.
-    parameters: {
-      damagePerCondition: 0.02
-    },
-    amount: (context, _target, parameters) => targetConditionCount(context) * parameters.damagePerCondition,
-    // Flag is set on Anguish autoattacks and summon barrage hits but NOT on innervate or Summon Spirits hits
-    when: (context) => Boolean(context.event?.metadata?.anguishConditionalDamage)
-  },
+  anguishConditionModifier,
   {
     id: 'necromancer.spirits-strength',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,

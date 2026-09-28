@@ -606,7 +606,7 @@ describe('Mechanist grandmaster active effects', () => {
 
     assert.equal(punch.actorType, 'summon');
     assert.equal(punch.coefficient, 1);
-    assert.equal(punch.explosion, true);
+    assert.equal(punch.damageKind, 'explosion');
     assert.equal(punch.weaponStrengthProfileId, 'summon.weapon-type-1');
     assert.equal(punch.resolvedWeaponStrength, 2553.5);
     const punchBreakdown = fighter.breakdown.find((entry) => entry.name === 'Rocket Punch (Mech)');

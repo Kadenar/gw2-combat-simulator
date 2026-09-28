@@ -1,13 +1,23 @@
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.TEMPORAL_CURTAIN]: {
+    // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
+    flipArm: { skillId: ID.INTO_THE_VOID, duration: 5, delay: 1, anchor: 'castStart' },
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }],
     castTimeMs: 740,
     effects: []
   },
   [ID.PHANTASMAL_WARDEN]: {
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
+    // The summon owns its attack and conversion timeline independently of the player cast.
+    phantasmTiming: {
+      castTimeMs: 460,
+      damageAtMs: 4880,
+      spawnAtMs: 7040
+    },
     phantasm: true,
     resource: {
       mode: 'phantasm',

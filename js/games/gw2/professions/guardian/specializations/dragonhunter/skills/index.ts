@@ -143,6 +143,8 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ]
   },
   [ID.HUNTERS_VERDICT]: {
+    // Only a committed verdict breaks the live tether.
+    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.break-tether' } }],
     castTimeMs: 0,
     cooldown: 40,
     effects: [

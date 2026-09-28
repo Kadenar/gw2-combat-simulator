@@ -120,6 +120,17 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       }
     ],
     effects: [
+      // Self Resolution follows each pulse even when the symbol misses.
+      ...[200, 1200, 2200, 3200, 4200].map((atMs) => ({
+        type: 'boon' as const,
+        boon: 'resolution',
+        duration: 1,
+        stacks: 1,
+        atMs,
+        timingAnchor: 'castStart' as const,
+        timingScale: 'fixed' as const,
+        persistsAfterInterrupt: atMs !== 200
+      })),
       {
         type: 'strike',
         ticks: [{ atMs: 200, coefficient: 0.8 }],

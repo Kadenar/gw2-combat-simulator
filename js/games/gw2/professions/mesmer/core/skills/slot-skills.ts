@@ -1,7 +1,7 @@
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Reviewed activation durations keep completion effects and resource changes on their intended action ticks.
 export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -23,6 +23,8 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     effects: []
   },
   [ID.MANTRA_OF_PAIN]: {
+    // Preparation replaces spent charges and any previous recharge state.
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.prepare-mantra' } }],
     castTimeMs: 1600,
     effects: []
   },
@@ -61,6 +63,14 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     effects: []
   },
   [ID.PHANTASMAL_DISENCHANTER]: {
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
+    // The summon owns its attack and conversion timeline independently of the player cast.
+    phantasmTiming: {
+      castTimeMs: 760,
+      damageAtMs: 1240,
+      // The dedicated lifecycle converts Disenchanter about 1.92s after cast completion.
+      spawnAtMs: 1920
+    },
     phantasm: true,
     resource: {
       mode: 'phantasm',
@@ -117,6 +127,14 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     ])
   },
   [ID.PHANTASMAL_DEFENDER]: {
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
+    // The summon owns its attack and conversion timeline independently of the player cast.
+    phantasmTiming: {
+      // Keep the lifecycle reference consistent with the skill's reviewed activation.
+      castTimeMs: 760,
+      damageAtMs: 3800,
+      spawnAtMs: 4510
+    },
     phantasm: true,
     resource: {
       mode: 'phantasm',
@@ -174,6 +192,8 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     ]
   },
   [ID.MIMIC]: {
+    // Arm a fresh utility-reset window at semantic completion.
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-mimic' } }],
     castTimeMs: 640,
     effects: []
   }

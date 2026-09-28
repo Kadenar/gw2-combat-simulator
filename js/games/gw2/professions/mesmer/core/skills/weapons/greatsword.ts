@@ -1,7 +1,7 @@
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.MIND_STAB]: {
@@ -62,6 +62,23 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.PHANTASMAL_BERSERKER]: {
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
+    // The summon owns its attack and conversion timeline independently of the player cast.
+    phantasmTiming: {
+      castTimeMs: 560,
+      damageAtMs: 1360,
+      damageAtMsByEntity: [1080, 1360],
+      spawnAtMs: 2620,
+      spawnAtMsByEntity: [2360, 2620],
+      damageTicksByEntity: [
+        {
+          'One berserker': [{ atMs: 720 }, { atMs: 840 }, { atMs: 960 }, { atMs: 1080 }]
+        },
+        {
+          'One berserker': [{ atMs: 1000 }, { atMs: 1120 }, { atMs: 1240 }, { atMs: 1360 }]
+        }
+      ]
+    },
     // Once committed, interrupting the remaining animation preserves the attack and phantasm summon.
     interruptCommitMs: 520,
     phantasmSummonProgress: 520 / 560,

@@ -36,6 +36,8 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 2,
         hits: 1,
         name: 'Devastator',
+        // Its primary impact is intrinsically an explosion for every event producer.
+        damageKind: 'explosion',
         actorType: 'player',
         // Only the primary impact is the blast; focused follow-up packets must not create extra combos.
         comboFinishers: [

@@ -1,3 +1,4 @@
+import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -20,19 +21,14 @@ import {
   MESMER_CORE_SHATTER_PROFILE_IDS,
   mesmerProfiledShatters
 } from '#gw2/professions/mesmer/core/profiles.js';
-import {
-  MESMER_CORE_CLONE_ATTACKS as CLONE_ATTACKS,
-  MESMER_CORE_PHANTASM_ATTACK_TIMINGS,
-  MESMER_CORE_SHATTERS
-} from '#gw2/professions/mesmer/core/mechanics/definitions.js';
+import { MESMER_CORE_CLONE_ATTACKS as CLONE_ATTACKS } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
+import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_CORE_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { MESMER_CORE_EXTRA_SKILLS } from '#gw2/professions/mesmer/core/skills/actions.js';
 import { MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/supplemental-skills.js';
 import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
-import {
-  MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
-  MESMER_CHRONOMANCER_SHATTERS
-} from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
+import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
+import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
 import {
   MESMER_CHRONOMANCER_EXTRA_SKILLS,
   MESMER_CHRONOMANCER_SKILL_MECHANICS,
@@ -49,10 +45,8 @@ import {
   MESMER_MIRAGE_AMBUSH_SKILLS as AMBUSH_ATTACKS
 } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import { VIRTUOSO_BALANCE_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/virtuoso/profiles.js';
-import {
-  MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS,
-  MESMER_VIRTUOSO_SHATTERS
-} from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
+import { MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
+import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
 import { MESMER_VIRTUOSO_SKILL_MECHANICS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
 import {
   TROUBADOUR_BALANCE_PROFILE_IDS,

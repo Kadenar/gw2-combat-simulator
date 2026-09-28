@@ -1,3 +1,5 @@
+import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import assert from 'node:assert/strict';
@@ -61,6 +63,13 @@ function lifetimeContext(traits = []) {
   return context;
 }
 
+function complete(context, cast) {
+  context.time = cast.fullEnd;
+  if (!cast.cancelled && cast.skill.id === ID.MIMIC)
+    applySkillSideEffects(context, cast, 'castCommit', mesmerCoreHooks.sideEffectHandlers);
+  completeMimicCast(context, cast);
+}
+
 test('Mimic accepts utility starts through its exact deadline and consumes the reset once', () => {
   for (const start of [10.300999, 10.301, 10.301001]) {
     const context = lifetimeContext();
@@ -68,7 +77,7 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
     const mimic = context.catalog.skillsById.get(ID.MIMIC);
     const utility = context.catalog.skillsById.get(ID.SIGNET_OF_ILLUSIONS);
     context.fullEnd = 0.1 + 0.201;
-    completeMimicCast(context, {
+    complete(context, {
       start: context.start,
       fullEnd: context.fullEnd,
       effectiveEnd: context.action.cancelled ? context.start : context.fullEnd,
@@ -83,7 +92,7 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
     context.fullEnd = start + 1;
     context.cooldowns.set(utility.id, 99);
     context.ammo.set(utility.id, { lockoutReadyAt: 99 });
-    completeMimicCast(context, {
+    complete(context, {
       start: context.start,
       fullEnd: context.fullEnd,
       effectiveEnd: context.action.cancelled ? context.start : context.fullEnd,
@@ -98,7 +107,7 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
     assert.equal(context.ammo.get(utility.id).lockoutReadyAt, consumed ? 0 : 99);
     assert.equal(context.events.filter((event) => event.source === 'Mimic').length, consumed ? 1 : 0);
     context.cooldowns.set(utility.id, 100);
-    completeMimicCast(context, {
+    complete(context, {
       start: context.start,
       fullEnd: context.fullEnd,
       effectiveEnd: context.action.cancelled ? context.start : context.fullEnd,
@@ -117,7 +126,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
   const core = context.profession.core;
   const mimic = context.catalog.skillsById.get(ID.MIMIC);
   context.fullEnd = 0.301;
-  completeMimicCast(context, {
+  complete(context, {
     start: context.start,
     fullEnd: context.fullEnd,
     effectiveEnd: context.action.cancelled ? context.start : context.fullEnd,
@@ -128,7 +137,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
     skill: mimic
   });
   context.fullEnd = 1.301;
-  completeMimicCast(context, {
+  complete(context, {
     start: context.start,
     fullEnd: context.fullEnd,
     effectiveEnd: context.action.cancelled ? context.start : context.fullEnd,
@@ -141,7 +150,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
   assert.equal(core.mimicUntil, 11.301);
   context.action.cancelled = true;
   context.fullEnd = 2.301;
-  completeMimicCast(context, {
+  complete(context, {
     start: context.start,
     fullEnd: context.fullEnd,
     effectiveEnd: context.action.cancelled ? context.start : context.fullEnd,
@@ -151,7 +160,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
     rechargeWork: 0,
     skill: mimic
   });
-  completeMimicCast(context, {
+  complete(context, {
     start: context.start,
     fullEnd: context.fullEnd,
     effectiveEnd: context.action.cancelled ? context.start : context.fullEnd,
@@ -163,7 +172,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
   });
   assert.equal(core.mimicUntil, 11.301);
   context.action.cancelled = false;
-  completeMimicCast(context, {
+  complete(context, {
     start: context.start,
     fullEnd: context.fullEnd,
     effectiveEnd: context.action.cancelled ? context.start : context.fullEnd,
@@ -199,8 +208,8 @@ test('Mirror availability, palette, projection, and one-time pickup agree on exa
     assert.equal(mirageUi.paletteSkillAvailability({ professionState: projected }, skill).available, active);
     context.time = at;
     assert.equal(state.mirrors.length, 1, 'Projection does not purge the live owner');
-    assert.equal(controller.pickUpMirror(at, 'pickup'), active);
-    assert.equal(controller.pickUpMirror(at, 'pickup'), false);
+    assert.equal(controller.pickUpMirror(at, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), active);
+    assert.equal(controller.pickUpMirror(at, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), false);
     assert.equal(context.events.filter((event) => event.skillId === ID.MIRAGE_MIRROR_DAMAGE).length, Number(active));
   }
 });
@@ -241,8 +250,8 @@ test('Mirror retry retains pending creation and overlapping mirrors expire indep
   controller.createMirrors(1.301, 1, 'second');
   context.time = 8.301;
   assert.equal(projectObservedState(mesmerProfession, context).availableMirrors, 1);
-  assert.equal(controller.pickUpMirror(8.301, 'pickup'), true);
-  assert.equal(controller.pickUpMirror(8.301, 'pickup'), false);
+  assert.equal(controller.pickUpMirror(8.301, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), true);
+  assert.equal(controller.pickUpMirror(8.301, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), false);
   controller.createMirrors(8.301, 1, 'replacement');
   assert.deepEqual(
     context.profession.specialization.state.mirrors.map((mirror) => mirror.source),
@@ -271,7 +280,7 @@ test('player ambush availability and projection preserve the final live microsec
 
   controller.grantMirageCloak(1.800999, 'refresh');
   assert.equal(state.ambushUntil, 3.300999);
-  controller.executePlayerAmbush(skill, 2, 1.9);
+  controller.acceptPlayerAmbush(skill, 2, 1.9);
   assert.equal(state.ambushUntil, 0);
   assert.equal(state.ambushSource, '');
   context.start = context.time = 2;

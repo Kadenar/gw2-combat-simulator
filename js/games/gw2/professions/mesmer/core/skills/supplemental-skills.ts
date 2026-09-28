@@ -8,6 +8,7 @@ import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Skill>>> = Object.freeze({
   [ID.POWER_SPIKE]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.exhaust-mantra' } }],
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 10,
@@ -31,6 +32,7 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     ]
   },
   [ID.COUNTERSPELL]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.COUNTERSPELL } }],
     castTimeMs: 600,
     // The projectile and clone commit on the 360 ms Quickness frame, but weapon-swap cancellation retains the full cast lane.
     interruptCommitMs: 360,
@@ -42,7 +44,6 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
       timingAnchor: 'castStart',
       atMs: 360
     },
-    flipDuration: 2,
     // Blind and Confusion land with the projectile, including after committed animation cancellation.
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -68,11 +69,10 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     ])
   },
   [ID.SWAP]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.SWAP } }],
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 0,
-    flipDuration: 5,
-    flipDelay: 0,
     comboFinishers: [
       {
         ownerId: 'mesmer',
@@ -84,10 +84,9 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     effects: []
   },
   [ID.COUNTER_BLADE]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.COUNTER_BLADE } }],
     castTimeMs: 680,
     cooldown: 0,
-    flipDuration: 3,
-    flipDelay: 0,
     effects: [
       // Preserve the flip's existing control timing at cast completion.
       {
@@ -110,31 +109,34 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     ]
   },
   [ID.INTO_THE_VOID]: {
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.INTO_THE_VOID } }],
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 0,
-    flipDuration: 5,
-    flipDelay: 1,
     // Activating the flip applies its pull immediately.
     effects: [
       { type: 'control', source: 'Player', actorType: 'player', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }
     ]
   },
   [ID.DIMENSIONAL_APERTURE]: {
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DIMENSIONAL_APERTURE } },
+      { on: 'castCommit', do: { type: 'mesmer.extend-parent-recharge' } }
+    ],
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 0,
-    flipDuration: 3,
-    flipDelay: 0,
     parentCooldownIncrease: 0.5,
     effects: []
   },
   [ID.ABSTRACTION]: {
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'mesmer.detonate-imagery' } },
+      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.ABSTRACTION } }
+    ],
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 0,
-    flipDuration: 2,
-    flipDelay: 0,
     // Early detonation replaces the image's boons with an offensive blast of its own field.
     effects: [
       {

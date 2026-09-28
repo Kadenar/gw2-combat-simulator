@@ -15,7 +15,7 @@ import {
   runCreatureSummonReactions,
   necromancerCreatureStrikeMultiplier
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   commandDefinitionFor,
   minionDefinitionFor,
@@ -48,12 +48,6 @@ interface MinionWork {
   attack?: MinionAttack;
   offTarget?: boolean;
   consumed?: boolean;
-}
-
-export function ownsNecromancerMinionSkill(skill: NecromancerSkill): boolean {
-  return Boolean(
-    NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skill.id)] || skill.minionKey || skill.id === ID.SUMMON_MADNESS
-  );
 }
 
 interface HorrorWork {
@@ -145,11 +139,14 @@ function emitAttack(
     summonOwner: companion(work.key, work.index),
     summonOwnerBase: `minion:${work.key}`
   };
+  const reactionGroup = attack.effect && runtime.effectReactions.register(skill, attack.effect);
   if (Number(attack.coefficient) > 0)
     runtime.emit(
       buildResolverStrike({
         ...attribution,
         coefficient: Number(attack.coefficient),
+        // Register the selected command effect so summon strikes retain their owned reactions.
+        ...(reactionGroup === undefined ? {} : { effectReaction: { group: reactionGroup, packet: 1 } }),
         icon: attack.icon || skill.icon,
         comboFinishers: attack.comboFinishers,
         skillWeapon: 'Unequipped',
@@ -242,6 +239,7 @@ function commandImpact(runtime: NecromancerRuntime, data: unknown): void {
   emitAttack(runtime, work, skill, minion, {
     name: skill.name,
     coefficient: command.coefficient,
+    effect: command.strike,
     controlKind: command.control === 'blind' ? undefined : command.control
   });
   const attribution = {
@@ -270,49 +268,51 @@ function commandImpact(runtime: NecromancerRuntime, data: unknown): void {
   if (command.control === 'blind') runtime.emit({ ...attribution, type: 'blind', duration: command.blindDuration });
 }
 
-/** Successful completion creates or commands the current generation; interrupted casts never acquire a creature. */
-export function completeNecromancerMinion(runtime: NecromancerRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as NecromancerSkill;
-  if (!ownsNecromancerMinionSkill(skill)) return;
-  if (skill.id === ID.SUMMON_MADNESS) {
-    for (let index = 0; index < Number(skill.summons); index++)
-      runtime.schedule(HORROR_SPAWN, runtime.time + index * Number(skill.summonInterval), {
-        skillId: skill.id,
-        activationId: cast.id,
-        index
-      });
-    return;
-  }
+/** Staggered horrors outlive their creating cast and Lich Form. */
+export function summonNecromancerHorrors(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+  const skill = cast.skill;
+  for (let index = 0; index < Number(skill.summons); index++)
+    runtime.schedule(HORROR_SPAWN, runtime.time + index * Number(skill.summonInterval), {
+      skillId: skill.id,
+      activationId: cast.id,
+      index
+    });
+}
 
+/** Successful summons replace only their own generation and notify each creature's trait observers. */
+export function summonNecromancerMinion(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+  const skill = cast.skill as NecromancerSkill;
   const state = runtime.profession.core;
-  const definition = Boolean(NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skill.id)])
-    ? minionDefinitionForSkill(runtime, skill.id)
-    : minionDefinitionFor(runtime, String(skill.minionKey));
+  const definition = minionDefinitionForSkill(runtime, skill.id);
   if (!definition) return;
   const key = definition.key;
-  if (Boolean(NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skill.id)])) {
-    replaceAttacks(runtime, key);
-    state.activeMinions[key] = definition.count;
-    state.minionGenerations[key] = (state.minionGenerations[key] ?? 0) + 1;
-    // Traits observe the concrete completed summon once, including each member of a multi-creature grant.
-    runCreatureSummonReactions(runtime, skill, runtime.time, definition.count, cast.id);
-    if (definition.commandId != null) armSkillFlip(state.availableFlips, definition.commandId, runtime.time);
-    if (skill.rechargeOnMinionDeath) runtime.cooldownController.clear(skill.id);
-    for (let index = 0; index < definition.count; index++) {
-      state.minionAttackCursors[companion(key, index)] = { cycleIndex: 1, attackIndex: 0 };
-      scheduleAttack(runtime, runtime.time + (definition.initialDelay ?? definition.interval), {
-        skillId: skill.id,
-        key,
-        index,
-        generation: state.minionGenerations[key],
-        attackGeneration: state.minionAttackGenerations[key],
-        activationId: `${cast.id}:${index}`
-      });
-    }
-
-    return;
+  replaceAttacks(runtime, key);
+  state.activeMinions[key] = definition.count;
+  state.minionGenerations[key] = (state.minionGenerations[key] ?? 0) + 1;
+  // Traits observe the concrete completed summon once, including each member of a multi-creature grant.
+  runCreatureSummonReactions(runtime, skill, runtime.time, definition.count, cast.id);
+  if (definition.commandId != null) armSkillFlip(state.availableFlips, definition.commandId, runtime.time);
+  if (skill.rechargeOnMinionDeath) runtime.cooldownController.clear(skill.id);
+  for (let index = 0; index < definition.count; index++) {
+    state.minionAttackCursors[companion(key, index)] = { cycleIndex: 1, attackIndex: 0 };
+    scheduleAttack(runtime, runtime.time + (definition.initialDelay ?? definition.interval), {
+      skillId: skill.id,
+      key,
+      index,
+      generation: state.minionGenerations[key],
+      attackGeneration: state.minionAttackGenerations[key],
+      activationId: `${cast.id}:${index}`
+    });
   }
+}
 
+/** Commands pause the live attack cursor; consuming the last creature retains its committed explosion. */
+export function commandNecromancerMinion(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+  const skill = cast.skill as NecromancerSkill;
+  const state = runtime.profession.core;
+  const definition = minionDefinitionFor(runtime, String(skill.minionKey));
+  if (!definition) return;
+  const key = definition.key;
   if (!(state.activeMinions[key] > 0)) return;
   const command = commandDefinitionFor(skill);
   const summon = skill.flipParentId == null ? undefined : runtime.helpers.skillsById.get(skill.flipParentId);

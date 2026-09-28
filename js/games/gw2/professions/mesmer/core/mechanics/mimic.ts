@@ -15,16 +15,15 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast): vo
   const skill = cast.skill;
   if (cast.cancelled) return;
 
-  const at = canonicalTime(cast.fullEnd);
+  const at = canonicalTime(context.time);
   const core = professionCoreState(context);
-  if (skill.id === ID.MIMIC) {
-    const mimicProfile = requireBalanceProfileFromContext(context, PROFILE.mimic);
-    // Mimic has an exact cast-start window, including its deadline even if the utility finishes later.
-    core.mimicUntil = canonicalTime(at + balanceProfileNumber(mimicProfile, 'durationMultiplier'));
-    return;
-  }
-
-  if (skill.type !== 'Utility' || skill.flipParentId || core.mimicUntil <= 0 || core.mimicUntil < cast.start) {
+  if (
+    skill.id === ID.MIMIC ||
+    skill.type !== 'Utility' ||
+    skill.flipParentId ||
+    core.mimicUntil <= 0 ||
+    core.mimicUntil < cast.start
+  ) {
     return;
   }
 
@@ -46,4 +45,12 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast): vo
     skillName: 'Mimic',
     name: 'Mimic'
   });
+}
+
+/** Mimic owns arming; the shared observer only consumes later eligible utilities. */
+export function armMimic(context: MesmerRuntime): void {
+  const profile = requireBalanceProfileFromContext(context, PROFILE.mimic);
+  professionCoreState(context).mimicUntil = canonicalTime(
+    context.time + balanceProfileNumber(profile, 'durationMultiplier')
+  );
 }

@@ -1,3 +1,11 @@
+import {
+  armMesmerSkillFlip,
+  prepareMesmerMantra,
+  exhaustMesmerMantra,
+  extendMesmerParentRecharge
+} from '#gw2/professions/mesmer/core/mechanics/flips.js';
+import { scheduleAxesClones, completeAxesConfusion } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
+import { emitMesmerEffects } from '#gw2/professions/mesmer/core/events.js';
 import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -12,13 +20,13 @@ import { createMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/ru
 import { mesmerMechanicsFor, registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import {
   completeMesmerCast,
+  commitMesmerShatter,
   startMesmerCast,
-  settleMesmerSkillFlips,
   scheduleMesmerPhantasmEffects,
   withMesmerCastEmission
 } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
-import { applyMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
+import { armMimic, completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
+import { consumeMesmerClarity, applyMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
 import { mesmerRechargeWork, mesmerMaximumAmmo } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
 import { mesmerCoreEventHandlers, mesmerCoreEventReactions } from '#gw2/professions/mesmer/core/mechanics/reactions.js';
@@ -28,7 +36,7 @@ import {
   signetIllusionsPulse
 } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
-import { expireInspiringImagery } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
+import { detonateInspiringImagery, expireInspiringImagery } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
 import { scheduleChaosStormPoison } from '#gw2/professions/mesmer/core/mechanics/chaos-storm.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import {
@@ -49,6 +57,54 @@ function complete(runtime: MesmerRuntime, cast: RuntimeCast): void {
 /** Core owns casts, clones, and accepted impact reactions on the shared clock. */
 export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
   sideEffectHandlers: {
+    'mesmer.shatter'(runtime, context) {
+      if (context.kind === 'cast') commitMesmerShatter(runtime, context.cast);
+    },
+    'mesmer.arm-flip'(runtime, context) {
+      if (context.kind === 'cast') armMesmerSkillFlip(runtime, context.cast);
+    },
+    'mesmer.prepare-mantra'(runtime) {
+      prepareMesmerMantra(runtime, ID.POWER_SPIKE);
+    },
+    'mesmer.exhaust-mantra'(runtime, context) {
+      exhaustMesmerMantra(runtime, context.skill as MesmerSkill);
+    },
+    'mesmer.extend-parent-recharge'(runtime, context) {
+      extendMesmerParentRecharge(runtime, context.skill as MesmerSkill);
+    },
+    'mesmer.arm-mimic': armMimic,
+    'mesmer.detonate-imagery'(runtime, context) {
+      if (context.kind === 'cast') detonateInspiringImagery(runtime, context.cast);
+    },
+    'mesmer.axes-clones'(runtime, context) {
+      if (context.kind === 'cast') scheduleAxesClones(runtime, context.cast);
+    },
+    'mesmer.axes-confusion'(runtime, context) {
+      if (context.kind === 'cast') completeAxesConfusion(runtime, context.cast);
+    },
+    // Start declarations run after cast bookkeeping and before effect selection or summon preparation.
+    'mesmer.consume-clarity'(runtime, context) {
+      if (context.kind === 'cast')
+        mesmerMechanicsFor(runtime).castDetails.get(context.cast.id)!.clarityConsumed = consumeMesmerClarity(
+          runtime,
+          context.cast.start
+        );
+    },
+    'mesmer.summon-phantasm'(runtime, context) {
+      if (context.kind === 'cast') scheduleMesmerPhantasmEffects(runtime, context.cast, context.skill as MesmerSkill);
+    },
+    'mesmer.grant-clarity'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      const skill = context.skill as MesmerSkill;
+      withMesmerCastEmission(runtime, context.cast, skill, () =>
+        emitMesmerEffects(
+          runtime,
+          { ...skill, effects: skill.effects?.filter((effect) => effect.type === 'buff' && effect.kind === 'clarity') },
+          runtime.time,
+          runtime.time
+        )
+      );
+    },
     'mesmer.signet-reset': applyMesmerSignetReset,
     // Impact-owned illusion gains use the same clone/blade/imagery resource owner as other skills.
     'mesmer.illusion-gain'(runtime, context, action) {
@@ -109,34 +165,22 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     if (skill.phantasm)
       return effects.filter((effect) => effect.type === 'control' && effect.summonKind !== 'phantasm');
     if (mesmerMechanicsFor(runtime).shatters[skill.id] || skill.id === ID.INSPIRING_IMAGERY) return [];
-    return effects;
+    return effects.filter((effect) => !(effect.type === 'buff' && effect.kind === 'clarity'));
   },
   onCastStart(runtime, cast) {
     const skill = cast.skill as MesmerSkill;
     startMesmerCast(runtime, cast, skill);
-    if (skill.phantasm) scheduleMesmerPhantasmEffects(runtime, cast, skill);
-    withMesmerCastEmission(runtime, cast, skill, () => {
-      if (skill.id === ID.AXES_OF_SYMMETRY)
-        mesmerMechanicsFor(runtime).skillEffects.scheduleSpecial(skill, cast.fullEnd, cast.start);
-    });
   },
   // Cancellation refunds reserved shatter resources and clears the same cast-local bookkeeping.
   onCastCancel: complete,
-  onCastCommit(runtime, cast) {
-    // A committed block exposes its flip when the animation ends, before any delayed completion packets.
-    settleMesmerSkillFlips(runtime, cast, cast.skill as MesmerSkill, runtime.time);
-    if (cast.fullEnd > runtime.time) runtime.scheduleForCast('mesmer.cast-complete', cast.fullEnd, cast);
-    else complete(runtime, cast);
-  },
+  // Successful non-channel completion is commitment; animation tails carry only their authored packets.
+  onCastCommit: complete,
   tasks: {
     'mesmer.flip-expire'(runtime, data) {
       const { id, identity } = data as { id: number; identity: string };
       // A replaced flip survives its predecessor's pending expiry.
       if (runtime.profession.core.availableFlips[id]?.identity === identity)
         delete runtime.profession.core.availableFlips[id];
-    },
-    'mesmer.cast-complete'(runtime, data) {
-      complete(runtime, (data as { cast: RuntimeCast }).cast);
     },
     'mesmer.clone-attack'(runtime, data) {
       const id = Number(data);

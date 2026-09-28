@@ -1,4 +1,3 @@
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { phantasmalHasteSpeed, triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/index.js';
@@ -67,13 +66,6 @@ interface PhantasmEffectControllerOptions {
   readonly addDamage: MesmerAddDamage;
 }
 
-function phantasmAttackDisplayName(skillId: number, damageGroupName: string): string {
-  if (skillId !== ID.PHANTASMAL_SWORDSMAN) return '';
-  if (damageGroupName === 'Phantasm leap') return 'Sword Attack';
-  if (damageGroupName === 'Phantasm Blurred Frenzy') return 'Blurred Frenzy';
-  return '';
-}
-
 export function createPhantasmEffectController({
   state,
   phantasmAttackTimings,
@@ -92,12 +84,11 @@ export function createPhantasmEffectController({
   ): readonly MesmerPhantasmExecution[] => {
     if (skill.resource?.mode !== 'phantasm') return [];
 
-    // Clarity (Herald legend) doubles Lancer's phantasm count when consumed on cast.
+    // Skill-owned summon counts use the accepted Clarity snapshot before trait spawn policies.
     const policy = phantasmPolicy();
     const spawnModifier = policy.spawnModifiers[skill.id];
     const count =
-      (skill.resource.count ?? 1) *
-      (skill.id === ID.PHANTASMAL_LANCER && clarityConsumed ? 2 : 1) *
+      (clarityConsumed ? (skill.resource.clarityCount ?? skill.resource.count ?? 1) : (skill.resource.count ?? 1)) *
       (spawnModifier?.countMultiplier ?? 1);
 
     const timing = phantasmAttackTimings[skill.id];
@@ -282,7 +273,7 @@ export function createPhantasmEffectController({
         : { coefficient: (sourcedGroup.coefficient || 0) * execution.damageMultiplier })
     };
     const groupName = group.name || '';
-    const attackDisplayName = phantasmAttackDisplayName(execution.skill.id, groupName);
+    const attackDisplayName = execution.skill.phantasmDisplayNames?.[groupName] ?? '';
     const initialEventExtra = attackDisplayName
       ? {
           name: attackDisplayName,

@@ -1,11 +1,15 @@
-import { completeNecromancerForm, necromancerFormTasks } from '#gw2/professions/necromancer/core/mechanics/forms.js';
+import {
+  enterLich,
+  exitLich,
+  enterNecromancerShroud,
+  exitNecromancerShroud,
+  necromancerFormTasks
+} from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';
-import { applySideEffect, sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
+import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { modifyNecromancerRechargeStart } from '#gw2/professions/necromancer/core/mechanics/recharge.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
-import { consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { requireEffect, requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
@@ -14,7 +18,7 @@ import {
 } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import type { RuntimeCast, RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,
@@ -29,15 +33,16 @@ import { applyDarkDefense } from '#gw2/professions/necromancer/core/traits/death
 import { applyFearOfDeath, soulMarksLifeForce } from '#gw2/professions/necromancer/core/traits/soul-reaping.js';
 import { spitefulFortitudeLifeForce } from '#gw2/professions/necromancer/core/traits/spite.js';
 import {
-  modifyNecromancerWeaponEffects,
   perforate,
   resolveNecromancerOppressiveCollapse,
   grantNecromancerSoulShards,
   necromancerWeaponTasks
 } from '#gw2/professions/necromancer/core/mechanics/weapons.js';
 import {
-  scheduleNecromancerConditions,
-  isCorruptionCompletionEffect,
+  completeNecromancerCorruption,
+  scheduleBloodIsPowerLaunch,
+  resolvePlagueSignetTransfer,
+  scheduleDevouringDarkness,
   reactToNecromancerConditions,
   resolveNecromancerSkillConditions,
   resolveNecromancerTransfer,
@@ -60,10 +65,11 @@ import {
   reactToNecromancerBlind
 } from '#gw2/professions/necromancer/core/traits/index.js';
 import {
-  completeNecromancerMinion,
+  summonNecromancerMinion,
+  commandNecromancerMinion,
+  summonNecromancerHorrors,
   necromancerMinionAvailability,
-  necromancerMinionTasks,
-  ownsNecromancerMinionSkill
+  necromancerMinionTasks
 } from '#gw2/professions/necromancer/core/mechanics/minions.js';
 import {
   grantNecromancerLifeForce,
@@ -71,65 +77,70 @@ import {
 } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 
-const GRAVEDIGGER_RESET = 'necromancer.gravedigger-reset';
-
 /** Landed player packets own weapon gains and the post-hit half-health test; no predicted observation is replayed. */
 function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
   const skill = runtime.helpers.skillsById.get(event.skillId ?? event.sourceId);
   if (!skill) return;
-  // A command grants its resource only after its owned summon strike lands on a living target.
-  if (event.actorType === 'summon' && Boolean(skill.minionKey)) {
-    grantNecromancerLifeForce(runtime, Number(skill.lifeForceOnHit ?? 0));
-    return;
-  }
-
   if (event.actorType !== 'player') return;
   // Combine trait rewards before the shared conversion and pool refresh, ahead of condition transfers.
   grantNecromancerLifeForce(runtime, soulMarksLifeForce(runtime, skill, event) + spitefulFortitudeLifeForce(runtime));
 }
 
-function complete(runtime: NecromancerRuntime, cast: RuntimeCast): void {
-  completeNecromancerMinion(runtime, cast);
-  const skill = cast.skill as NecromancerSkill;
-  const state = runtime.profession.core;
-  // Follow-ups own exact completion-time windows; ordinary attack chains and dedicated summons/forms own their own state.
-  const next = runtime.helpers.autoattackChainPositions.get(Number(skill.id))?.next;
-  if (
-    !skill.sideEffects?.some((effect) => effect.do.type === 'flipArm') &&
-    skill.flipSkillId != null &&
-    skill.flipSkillId !== next &&
-    skill.flipSkillId !== skill.nextChainId &&
-    !ownsNecromancerMinionSkill(skill) &&
-    !skill.shroudEntry &&
-    !skill.shroudExit &&
-    skill.id !== ID.LICH_FORM &&
-    skill.id !== ID.EXIT_LICH_FORM
-  ) {
-    const flip = runtime.helpers.skillsById.get(skill.flipSkillId);
-    if (flip && flip.name !== skill.name && flip.flipParentId === skill.id)
-      runtime.armFlip(flip.id, {
-        expiresAt: cast.rechargeStart + Math.max(1, skill.flipDuration ?? skill.cooldown ?? 5)
-      });
-  }
-
-  // Shroud follow-ups consume declaratively; weapon windows retain their recharge-anchored lifecycle.
-  if (
-    skill.flipParentId != null &&
-    !skill.shroudExit &&
-    !Boolean(skill.minionKey) &&
-    !skill.sideEffects?.some((effect) => effect.do.type === 'flipConsume')
-  )
-    consumeSkillFlip(state.availableFlips, skill.id);
-  completeNecromancerForm(runtime, cast);
-  applyDarkDefense(runtime, cast);
-}
-
 /** Core mechanics share one live queue and resource owner with the active specialization. */
 export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = {
-  rechargeStart: (_runtime, cast, at) => modifyNecromancerRechargeStart(cast, at),
   resources: { lifeForce: necromancerLifeForce },
   sideEffectHandlers: {
+    'necromancer.corruption'(runtime, context) {
+      if (context.kind === 'cast') completeNecromancerCorruption(runtime, context.cast);
+    },
+    'necromancer.blood-is-power-launch'(runtime, context) {
+      if (context.kind === 'cast') scheduleBloodIsPowerLaunch(runtime, context.cast);
+    },
+    'necromancer.signet-transfer'(runtime, context) {
+      if (context.kind === 'cast') resolvePlagueSignetTransfer(runtime, context.cast);
+    },
+    'necromancer.devouring-impact'(runtime, context) {
+      if (context.kind === 'cast') scheduleDevouringDarkness(runtime, context.cast);
+    },
+    'necromancer.enter-shroud'(runtime, context) {
+      if (context.kind === 'cast') enterNecromancerShroud(runtime, context.cast);
+    },
+    'necromancer.summon-minion'(runtime, context) {
+      if (context.kind === 'cast') summonNecromancerMinion(runtime, context.cast);
+    },
+    'necromancer.command-minion'(runtime, context) {
+      if (context.kind === 'cast') commandNecromancerMinion(runtime, context.cast);
+    },
+    'necromancer.summon-horrors'(runtime, context) {
+      if (context.kind === 'cast') summonNecromancerHorrors(runtime, context.cast);
+    },
+    'necromancer.enter-lich'(runtime) {
+      enterLich(runtime);
+    },
+    'necromancer.exit-lich'(runtime) {
+      exitLich(runtime);
+    },
+    'necromancer.exit-shroud'(runtime) {
+      exitNecromancerShroud(runtime);
+    },
+    // Weapon definitions select their window; its deadline stays anchored to the accepted recharge boundary.
+    'necromancer.weapon-flip'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      const { cast, skill } = context;
+      runtime.armFlip(skill.flipSkillId!, {
+        expiresAt: cast.rechargeStart + Math.max(1, skill.flipDuration ?? skill.cooldown ?? 5)
+      });
+    },
+    // Scourge declarations spend the same normalized amount used by the shared affordability gate.
+    'necromancer.life-force-cost'(runtime, context) {
+      const cost = normalizedNecromancerLifeForceCost(
+        runtime.profession.core,
+        Number(context.skill.lifeForceCost ?? 0)
+      );
+      if (cost) runtime.resourceController.spend('lifeForce', cost);
+    },
+
     'necromancer.axe-health'(runtime, context) {
       if (context.kind === 'effect') reactToNecromancerAxeHealth(runtime, context.trigger.event);
     },
@@ -242,18 +253,7 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
     }
   ],
   rechargeWork: (_runtime, skill, work) => (skill.shroudEntry || skill.rechargeOnMinionDeath ? 0 : work),
-  modifyEffects(runtime, cast, effects) {
-    if (ownsNecromancerMinionSkill(cast.skill) || cast.skill.id === ID.DEVOURING_DARKNESS) return [];
-    // Completion owns corruption self-effects; ordinary scheduling must not apply them to the target or twice.
-    const selected = cast.skill.categories?.includes('Corruption')
-      ? effects.filter((effect) => !isCorruptionCompletionEffect(effect))
-      : effects;
-    return modifyNecromancerWeaponEffects(runtime, cast, selected);
-  },
   onCastStart(runtime, cast) {
-    scheduleNecromancerConditions(runtime, cast);
-    const cost = normalizedNecromancerLifeForceCost(runtime.profession.core, Number(cast.skill.lifeForceCost ?? 0));
-    if (cost) runtime.resourceController.spend('lifeForce', cost);
     applyOverflowingThirstCast(runtime, cast);
   },
   // Cast-derived attribution remains local to the declaration; balance profiles own all packets.
@@ -311,7 +311,7 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
       })
     }))
   ],
-  onCastCommit: complete,
+  onCastCommit: applyDarkDefense,
   onAutoattackChainTransition: observeNecromancerAutoattackTransition,
   onCooldownReset(runtime) {
     runtime.resourceController.grant('lifeForce', runtime.profession.core.lifeForce.maximum);
@@ -323,16 +323,6 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
     ...necromancerConditionTasks,
     ...necromancerMinionTasks,
     ...necromancerPassiveTasks,
-    [GRAVEDIGGER_RESET](runtime, data) {
-      // Preserve the full-end health sample while delegating the mutation to the shared reset.
-      const { cast } = data as SkillTaskData;
-      if (remainingTargetHealthBelow(runtime.config, runtime, 0.5))
-        applySideEffect(
-          runtime,
-          { kind: 'cast', skill: cast.skill, cast },
-          { type: 'rechargeReset', skillIds: [ID.GRAVEDIGGER] }
-        );
-    },
     ...necromancerFormTasks
   },
   reactions: {

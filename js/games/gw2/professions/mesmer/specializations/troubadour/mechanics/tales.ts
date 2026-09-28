@@ -4,10 +4,8 @@ import {
   balanceProfileNumber,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
-import { activeTroubadourInstrumentsAt } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -16,28 +14,13 @@ interface TroubadourTaleInvocation {
   readonly context: MesmerRuntime;
   readonly skill: MesmerSkill;
   readonly at: number;
-  readonly castStart: number;
-  readonly activationId?: string;
+  readonly eligible: boolean;
 }
 
-const TALE_PROFILE_IDS: Readonly<Record<number, string>> = Object.freeze({
-  [ID.TALE_OF_THE_TORTURED_MASTERMIND]: PROFILE.torturedMastermind,
-  [ID.TALE_OF_THE_HONORABLE_ROGUE]: PROFILE.honorableRogue,
-  [ID.TALE_OF_THE_SOULKEEPER]: PROFILE.soulkeeper,
-  [ID.TALE_OF_THE_VALIANT_MARSHAL]: PROFILE.valiantMarshal
-});
-
-const TALE_INSTRUMENTS: Readonly<Record<number, string>> = Object.freeze({
-  [ID.TALE_OF_THE_SOULKEEPER]: 'Lute',
-  [ID.TALE_OF_THE_HONORABLE_ROGUE]: 'Drum',
-  [ID.TALE_OF_THE_VALIANT_MARSHAL]: 'Harp',
-  [ID.TALE_OF_THE_TORTURED_MASTERMIND]: 'Flute'
-});
-
 /** Resolves a Tale's profile boons, matching-instrument note, and Troubadour trait effects together. */
-export function resolveTroubadourTale({ context, skill, at, castStart, activationId }: TroubadourTaleInvocation): void {
+export function resolveTroubadourTale({ context, skill, at, eligible }: TroubadourTaleInvocation): void {
   const runtime = mesmerMechanicsFor(context);
-  const profileId = TALE_PROFILE_IDS[skill.id];
+  const profileId = skill.tale?.profileId;
   const profile = profileId ? requireBalanceProfileFromContext(context, profileId) : null;
   const partyRecipients = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
 
@@ -54,19 +37,7 @@ export function resolveTroubadourTale({ context, skill, at, castStart, activatio
     });
   }
 
-  const requiredInstrument = TALE_INSTRUMENTS[skill.id];
-  // Completion can follow expiry or another performance; award the note from the instrument present at cast start.
-  const action = activationId
-    ? context.history.filter((event) => event.type === 'action').find((event) => event.activationId === activationId)
-    : undefined;
-  if (
-    requiredInstrument &&
-    activeTroubadourInstrumentsAt(
-      context.history.filter((event) => event.type === 'mesmer.instrument'),
-      castStart,
-      action
-    ).has(requiredInstrument)
-  ) {
+  if (eligible && profileId) {
     const profile = requireBalanceProfileFromContext(context, profileId);
     runtime.resources.queueResources(
       at,

@@ -1,4 +1,4 @@
-import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { reaperShoutMeleeModifier } from '#gw2/professions/necromancer/specializations/reaper/skills/shout-skills.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
   requireBalanceProfileFromContext,
@@ -7,7 +7,6 @@ import {
 
 import { targetConditionStacks as configuredTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
@@ -31,20 +30,7 @@ function modifyReaperAttributes(context: Gw2ModifierContext, attributes: Gw2Stat
 }
 
 export const reaperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    // The simulator's target is always nearby, so player shout packets always receive the melee bonus.
-    id: 'necromancer.reaper-shout-melee',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 2,
-    // order: 100 places this after additive damage buckets so it multiplies the already-summed base.
-    order: 100,
-    when: (context) =>
-      Boolean(
-        // Shout doubling belongs to the player's skill packet, not merely an effect that inherits player modifiers.
-        isGw2PlayerActorEvent(context.event) && eventSkill(context)?.categories?.includes('Shout')
-      )
-  },
+  reaperShoutMeleeModifier,
   {
     id: 'necromancer.decimate-defenses',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,

@@ -1,4 +1,4 @@
-import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait
@@ -9,7 +9,8 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { MESMER_CORE_SHATTERS, MESMER_CORE_TRAIT_DAMAGE } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
+import { MESMER_CORE_TRAIT_DAMAGE } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
+import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import type { MesmerShatter, MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 
@@ -47,8 +48,7 @@ export function mesmerShatterProfile(
   id: string,
   parentId: SkillId,
   name: string,
-  shatter: MesmerShatterDefinition,
-  effects: readonly SkillEffect[] = []
+  shatter: MesmerShatterDefinition
 ): BalanceProfile {
   return variant(id, parentId, `${name} - Shatter`, {
     ...(shatter.rechargeReductionPerSource == null ? {} : { rechargeReduction: shatter.rechargeReductionPerSource }),
@@ -69,7 +69,7 @@ export function mesmerShatterProfile(
               hits: 1
             }
       ),
-      ...effects
+      ...(shatter.effects ?? [])
     ]
   });
 }
@@ -87,12 +87,11 @@ export function mesmerTraitDamageProfile(id: SkillId, name: string, damage: Mesm
   });
 }
 
-const SHATTER_PROFILE_BY_SKILL_ID: Readonly<Record<number, string>> = Object.freeze({
-  [ID.MIND_WRACK]: MESMER_CORE_BALANCE_PROFILE_IDS.mindWrack,
-  [ID.CRY_OF_FRUSTRATION]: MESMER_CORE_BALANCE_PROFILE_IDS.cryOfFrustration,
-  [ID.DIVERSION]: MESMER_CORE_BALANCE_PROFILE_IDS.diversion,
-  [ID.DISTORTION]: MESMER_CORE_BALANCE_PROFILE_IDS.distortion
-});
+const SHATTER_PROFILE_BY_SKILL_ID: Readonly<Record<number, string>> = Object.freeze(
+  Object.fromEntries(
+    Object.entries(MESMER_CORE_SHATTERS).map(([id, shatter]) => [Number(id), String(shatter.balanceProfileId)])
+  )
+);
 
 export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   // The landed-hit reaction selects this ordinary condition profile instead of creating an excess clone.
@@ -116,10 +115,7 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
         [ID.DIVERSION]: 'Diversion',
         [ID.DISTORTION]: 'Distortion'
       }[Number(skillId)] || `Shatter ${skillId}`,
-      shatter,
-      Number(skillId) === ID.CRY_OF_FRUSTRATION
-        ? [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 3, stacks: 1 }]
-        : []
+      shatter
     )
   ),
   variant(MESMER_CORE_BALANCE_PROFILE_IDS.signetOfIllusions, ID.SIGNET_OF_ILLUSIONS, 'Signet of Illusions - Passive', {

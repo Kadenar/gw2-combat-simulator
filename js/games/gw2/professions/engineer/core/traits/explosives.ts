@@ -225,14 +225,12 @@ export function applyShrapnel(
   if (shrapnelBleeding || shrapnelCrippled) recordTrait(context, 'Shrapnel', event);
 }
 
-// Mech attacks do not trigger Aim-Assisted Rocket; player projectiles and Grenade Kit packets do.
+// Only player packets with authored projectile identity can trigger Aim-Assisted Rocket.
 function isAimAssistedProjectile(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
   if (event.actorType !== 'player') return false;
   if (event.projectile === true) return true;
   const skill = resolverSkill(context, event.skillId);
-  return Boolean(
-    skill?.kit === 'Grenade Kit' || skill?.categories?.some((category) => category.toLowerCase() === 'projectile')
-  );
+  return Boolean(skill?.categories?.some((category) => category.toLowerCase() === 'projectile'));
 }
 
 /** Queues Aim-Assisted Rocket, upgrading every fifth eligible proc to Orbital Command Strike. */

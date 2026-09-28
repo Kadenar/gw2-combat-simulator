@@ -3,10 +3,15 @@ import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registr
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { HOLOSMITH_FORGE_TOGGLE_SKILL_IDS } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import { holosmithCastAvailability } from '#gw2/professions/engineer/specializations/holosmith/mechanics/availability.js';
-import { decorateHolosmithHeatEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
+import {
+  prepareHolosmithSlotEvent,
+  holosmithSlotEventHandlers
+} from '#gw2/professions/engineer/specializations/holosmith/skills/slot-skills.js';
+import {
+  prepareHolosmithSwordEvent,
+  holosmithSwordEventHandlers
+} from '#gw2/professions/engineer/specializations/holosmith/skills/weapons/sword.js';
 import {
   applyCoronaBurstHeat,
   applyPhotonBlitzHeat,
@@ -27,20 +32,42 @@ import {
 export const holosmithHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
   initialize: initializePhotonForgeHeat,
   availability: holosmithCastAvailability,
-  prepareEvent: decorateHolosmithHeatEvent,
+  prepareEvent: (runtime, event) => prepareHolosmithSwordEvent(runtime, prepareHolosmithSlotEvent(runtime, event)),
+  sideEffectHandlers: {
+    'engineer.enter-forge'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Forge entry requires a cast trigger.');
+      enterPhotonForge(runtime, context.skill);
+    },
+    'engineer.exit-forge'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Forge exit requires a cast trigger.');
+      exitPhotonForge(runtime, context.skill);
+    },
+    'engineer.forge-heat'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Forge heat requires a cast trigger.');
+      applyHeat(runtime, context.skill, context.cast);
+    },
+    'engineer.corona-heat'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Corona heat requires a cast trigger.');
+      applyCoronaBurstHeat(runtime, context.skill, context.cast);
+    },
+    'engineer.blitz-heat'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Blitz heat requires a cast trigger.');
+      applyPhotonBlitzHeat(runtime, context.skill, context.cast);
+    }
+  },
   onCastStart(runtime, cast) {
     const skill = cast.skill as HolosmithSkill;
     if (skill.id === SHARED_SKILL_IDS.DODGE) triggerThermalReleaseValve(runtime, skill, runtime.time);
-    if (skill.id === ID.CORONA_BURST) applyCoronaBurstHeat(runtime, skill, cast);
-    else if (skill.id === ID.PHOTON_BLITZ) applyPhotonBlitzHeat(runtime, skill, cast);
-    else if (Number(skill.heatGain) > 0) applyHeat(runtime, skill, cast);
   },
   onCastCommit(runtime, cast) {
-    if (cast.skill.id === ID.ENGAGE_PHOTON_FORGE) enterPhotonForge(runtime, cast.skill);
-    else if (HOLOSMITH_FORGE_TOGGLE_SKILL_IDS.has(Number(cast.skill.id))) exitPhotonForge(runtime, cast.skill);
     handleHolosmithKitEquip(runtime, cast.skill);
   },
   tasks: photonForgeTasks,
-  eventHandlers: { ...holosmithResolverEventHandlers, 'engineer.heat': OBSERVABLE_EVENT_HANDLER },
+  eventHandlers: {
+    ...holosmithSlotEventHandlers,
+    ...holosmithSwordEventHandlers,
+    ...holosmithResolverEventHandlers,
+    'engineer.heat': OBSERVABLE_EVENT_HANDLER
+  },
   reactions: { 'damage.resolving': consumeSolarFocusingLens }
 };

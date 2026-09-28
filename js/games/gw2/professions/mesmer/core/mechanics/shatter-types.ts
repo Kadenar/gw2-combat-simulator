@@ -1,9 +1,11 @@
-import type { SkillId, StrikeTick, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId, SkillEffect, StrikeTick, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /** Leaf shatter contracts let Core and specialization mechanics share results without importing the family type root. */
 export interface MesmerShatterDefinition {
   readonly balanceProfileId?: SkillId;
+  readonly effects?: readonly SkillEffect[];
+  readonly durationPerTier?: number;
   readonly slot: number;
   readonly kind: string;
   readonly resolver: string;

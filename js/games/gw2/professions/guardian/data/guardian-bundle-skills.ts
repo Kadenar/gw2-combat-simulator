@@ -1,6 +1,7 @@
 // Guardian bundle skills missing from the profession API payload.
 // Simulation behavior lives exclusively in owner-local skills.ts fragments.
 
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 function wikiSkillIcon(fileName: string): string {
@@ -9,7 +10,7 @@ function wikiSkillIcon(fileName: string): string {
 
 export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
   {
-    id: 41328,
+    id: ID.UNHINDERED_DELIVERY,
     name: 'Unhindered Delivery',
     description: 'Final Charge. Grant resolution, stability, and swiftness to allies.',
     icon: wikiSkillIcon('Unhindered Delivery.png'),
@@ -25,7 +26,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     flipSkillId: null
   },
   {
-    id: 42924,
+    id: ID.FLAME_SURGE,
     name: 'Flame Surge',
     description: 'Final Charge. Unleash a powerful wave of purging fire in front of and around you.',
     icon: wikiSkillIcon('Flame Surge.png'),
@@ -41,7 +42,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     flipSkillId: null
   },
   {
-    id: 42960,
+    id: ID.REJUVENATING_RESPITE,
     name: 'Rejuvenating Respite',
     description: 'Final Charge. Gain health and grant aegis, protection, and resolution to allies.',
     icon: wikiSkillIcon('Rejuvenating Respite.png'),
@@ -57,7 +58,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     flipSkillId: null
   },
   {
-    id: 41258,
+    id: ID.SEARING_SPELL,
     name: 'Chapter 1: Searing Spell',
     description: 'Tome. Incite a swelling of heat, damaging and burning foes in front of you.',
     icon: wikiSkillIcon('Chapter 1- Searing Spell.png'),
@@ -71,11 +72,10 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    tome: 'justice',
-    pageCost: 1
+    tome: 'justice'
   },
   {
-    id: 40635,
+    id: ID.IGNITING_BURST,
     name: 'Chapter 2: Igniting Burst',
     description: 'Tome. Ignite nearby foes and weaken them.',
     icon: wikiSkillIcon('Chapter 2- Igniting Burst.png'),
@@ -89,11 +89,10 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    tome: 'justice',
-    pageCost: 1
+    tome: 'justice'
   },
   {
-    id: 42449,
+    id: ID.HEATED_REBUKE,
     name: 'Chapter 3: Heated Rebuke',
     description: 'Tome. Pull nearby enemies toward you with a heated rebuke.',
     icon: wikiSkillIcon('Chapter 3- Heated Rebuke.png'),
@@ -107,11 +106,10 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    tome: 'justice',
-    pageCost: 1
+    tome: 'justice'
   },
   {
-    id: 40015,
+    id: ID.SCORCHED_AFTERMATH,
     name: 'Chapter 4: Scorched Aftermath',
     description: 'Tome. Create a pulsing fire field that burns and bleeds enemies.',
     icon: wikiSkillIcon('Chapter 4- Scorched Aftermath.png'),
@@ -125,11 +123,10 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    tome: 'justice',
-    pageCost: 1
+    tome: 'justice'
   },
   {
-    id: 42898,
+    id: ID.ASHES_OF_THE_JUST,
     name: 'Epilogue: Ashes of the Just',
     description: 'Tome. Your next attacks inflict burning on their targets.',
     icon: wikiSkillIcon('Epilogue- Ashes of the Just.png'),
@@ -143,11 +140,10 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    tome: 'justice',
-    pageCost: 1
+    tome: 'justice'
   },
   {
-    id: 45022,
+    id: ID.DESERT_BLOOM,
     name: 'Chapter 1: Desert Bloom',
     description: 'Tome. Tales of desert blooms create a wave of healing for your allies.',
     icon: wikiSkillIcon('Chapter 1- Desert Bloom.png'),
@@ -161,11 +157,10 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    tome: 'resolve',
-    pageCost: 1
+    tome: 'resolve'
   },
   {
-    id: 40679,
+    id: ID.RADIANT_RECOVERY,
     name: 'Chapter 2: Radiant Recovery',
     description:
       'Tome. Release magic from pages detailing the rebuilding of Vabbi, cleansing conditions on nearby allies. Allies are healed for each condition removed.',
@@ -180,11 +175,10 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    tome: 'resolve',
-    pageCost: 1
+    tome: 'resolve'
   },
   {
-    id: 45128,
+    id: ID.AZURE_SUN,
     name: 'Chapter 3: Azure Sun',
     description:
       'Tome. Inspired by countless poems describing the comforting powers of the water-reflected sun, grant boons to allies.',
@@ -199,11 +193,10 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    tome: 'resolve',
-    pageCost: 1
+    tome: 'resolve'
   },
   {
-    id: 42008,
+    id: ID.SHINING_RIVER,
     name: 'Chapter 4: Shining River',
     description:
       'Tome. Release a torrent of pages describing the water cycle of the Elon River. Heal allies and grant them swiftness.',
@@ -218,11 +211,10 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    tome: 'resolve',
-    pageCost: 1
+    tome: 'resolve'
   },
   {
-    id: 42925,
+    id: ID.ETERNAL_OASIS,
     name: 'Epilogue: Eternal Oasis',
     description: 'Tome. Convert conditions to boons and increase incoming healing.',
     icon: wikiSkillIcon('Epilogue- Eternal Oasis.png'),
@@ -236,11 +228,10 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    tome: 'resolve',
-    pageCost: 2
+    tome: 'resolve'
   },
   {
-    id: 42986,
+    id: ID.UNFLINCHING_CHARGE,
     name: 'Chapter 1: Unflinching Charge',
     description: 'Tome. Grant swiftness and protection to nearby allies.',
     icon: wikiSkillIcon('Chapter 1- Unflinching Charge.png'),
@@ -254,11 +245,10 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    tome: 'courage',
-    pageCost: 1
+    tome: 'courage'
   },
   {
-    id: 41968,
+    id: ID.DARING_CHALLENGE,
     name: 'Chapter 2: Daring Challenge',
     description: 'Tome. Taunt nearby enemies and grant resolution to allies.',
     icon: wikiSkillIcon('Chapter 2- Daring Challenge.png'),
@@ -272,11 +262,10 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    tome: 'courage',
-    pageCost: 1
+    tome: 'courage'
   },
   {
-    id: 41836,
+    id: ID.VALIANT_BULWARK,
     name: 'Chapter 3: Valiant Bulwark',
     description: 'Tome. Create a reflective barrier at the target area.',
     icon: wikiSkillIcon('Chapter 3- Valiant Bulwark.png'),
@@ -290,11 +279,10 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    tome: 'courage',
-    pageCost: 1
+    tome: 'courage'
   },
   {
-    id: 40988,
+    id: ID.STALWART_STAND,
     name: 'Chapter 4: Stalwart Stand',
     description: 'Tome. Create a light field that grants resistance and breaks stun.',
     icon: wikiSkillIcon('Chapter 4- Stalwart Stand.png'),
@@ -308,11 +296,10 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    tome: 'courage',
-    pageCost: 1
+    tome: 'courage'
   },
   {
-    id: 44455,
+    id: ID.UNBROKEN_LINES,
     name: 'Epilogue: Unbroken Lines',
     description: 'Tome. Grant protection, stability, aegis, and toughness to allies.',
     icon: wikiSkillIcon('Epilogue- Unbroken Lines.png'),
@@ -326,11 +313,10 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammoRecharge: 0,
     nextChainId: null,
     flipSkillId: null,
-    tome: 'courage',
-    pageCost: 2
+    tome: 'courage'
   },
   {
-    id: 76982,
+    id: ID.GLARING_BURST,
     name: 'Glaring Burst',
     description: 'Create a burst whose effect changes with the equipped radiant weapon.',
     icon: 'https://render.guildwars2.com/file/7E68406FAAC4FFF878CDD307B257C9D6AECE2935/3680152.png',
@@ -347,7 +333,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     radiantForgeSkill: true
   },
   {
-    id: 77339,
+    id: ID.DAZZLING_HAMMER,
     name: 'Dazzling Hammer',
     description: 'Smash the ground with a radiant hammer, dazing nearby foes.',
     icon: 'https://render.guildwars2.com/file/4ECA0C916F5D54C3C12AC135AB5A1E2D4BC792E5/3680142.png',
@@ -360,12 +346,12 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 76910,
+    flipSkillId: ID.SHINING_SPIN,
     radiantForgeSkill: true,
     radiantWeapon: 'hammer'
   },
   {
-    id: 76910,
+    id: ID.SHINING_SPIN,
     name: 'Shining Spin',
     description: 'Strike nearby foes, dealing increased damage to disabled enemies.',
     icon: 'https://render.guildwars2.com/file/2E5878CE9AFA2634D7F6DBAB10389D20C1BFF75E/3680143.png',
@@ -383,7 +369,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     radiantWeapon: 'hammer'
   },
   {
-    id: 76708,
+    id: ID.LUMINOUS_STAFF,
     name: 'Luminous Staff',
     description: 'Slam a radiant staff into the ground and create a symbol.',
     icon: 'https://render.guildwars2.com/file/06BD9362B2F9FAE403181D0F9BE96A12664C22CA/3680148.png',
@@ -396,12 +382,12 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 77136,
+    flipSkillId: ID.RESTORATIVE_GLOW,
     radiantForgeSkill: true,
     radiantWeapon: 'staff'
   },
   {
-    id: 77136,
+    id: ID.RESTORATIVE_GLOW,
     name: 'Restorative Glow',
     description: 'Heal and remove conditions from nearby allies.',
     icon: 'https://render.guildwars2.com/file/9B72587791FE50B415B94BE92AA9050F43F6A848/3680149.png',
@@ -419,7 +405,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     radiantWeapon: 'staff'
   },
   {
-    id: 76924,
+    id: ID.GLEAMING_BLADE,
     name: 'Gleaming Blade',
     description: 'Leap to the target and slash, inflicting cripple and vulnerability.',
     icon: 'https://render.guildwars2.com/file/79B0DCC5E4A0A8BBE04AC0024D01A0F36D0B0C79/3680151.png',
@@ -432,12 +418,12 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 77366,
+    flipSkillId: ID.LUCENT_THRUST,
     radiantForgeSkill: true,
     radiantWeapon: 'blade'
   },
   {
-    id: 77366,
+    id: ID.LUCENT_THRUST,
     name: 'Lucent Thrust',
     description: 'Stab your foe and launch a blinding ray that bounces between foes.',
     icon: 'https://render.guildwars2.com/file/1967D3BD670E976B0B554AAE3C0E070E0BF672D8/3680150.png',
@@ -455,7 +441,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     radiantWeapon: 'blade'
   },
   {
-    id: 77197,
+    id: ID.RADIANT_BULWARK,
     name: 'Radiant Bulwark',
     description: 'Block attacks and grant aegis to nearby allies.',
     icon: 'https://render.guildwars2.com/file/06735858B4DE086359A7DB1D4B2B650F97D7DD03/3680144.png',
@@ -468,12 +454,12 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,
-    flipSkillId: 76978,
+    flipSkillId: ID.BRILLIANT_SLAM,
     radiantForgeSkill: true,
     radiantWeapon: 'bulwark'
   },
   {
-    id: 76978,
+    id: ID.BRILLIANT_SLAM,
     name: 'Brilliant Slam',
     description: 'Slam foes with your shield, dazing them.',
     icon: 'https://render.guildwars2.com/file/BAD4D149039913DCF7FA724D4BFE9C9EB17E68D5/3680145.png',
@@ -491,7 +477,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     radiantWeapon: 'bulwark'
   },
   {
-    id: 30083,
+    id: ID.WINGS_OF_RESOLVE,
     name: 'Wings of Resolve',
     description: 'Virtue. Dart forward and heal allies near your destination.',
     icon: 'https://render.guildwars2.com/file/A054A5300BF26FBAA601611BDA07B6001830FF92/1012864.png',
@@ -507,7 +493,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     flipSkillId: null
   },
   {
-    id: 30029,
+    id: ID.SHIELD_OF_COURAGE,
     name: 'Shield of Courage',
     description: 'Virtue. Grant aegis and block attacks in front of you.',
     icon: 'https://render.guildwars2.com/file/09DE3F47930AFF2B2B3F4C20A401DCA9DC7344CC/1012865.png',

@@ -38,7 +38,6 @@ export function initializeMirageRuntime(context: MesmerRuntime): void {
     addCondition: runtime.addCondition,
     addDamage: runtime.addDamage,
     activePrimaryWeapon: runtime.activePrimaryWeapon,
-    queueResources: runtime.resources.queueResources,
     // Dune Cloak shares the scheduler's base-recharge conversion instead of editing tracked timestamps itself.
     reduceSkillRecharge: context.cooldownController.reduceSkillRecharge
   });

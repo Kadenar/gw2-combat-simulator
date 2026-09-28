@@ -1,12 +1,27 @@
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.PHANTASMAL_LANCER]: {
+    sideEffects: [
+      { on: 'castStart', do: { type: 'mesmer.consume-clarity' } },
+      { on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }
+    ],
+    // The summon owns its attack and conversion timeline independently of the player cast.
+    phantasmTiming: {
+      castTimeMs: 520,
+      // Clarity agents spawn together, but their observed attacks/conversions can stagger:
+      // representative per-entity offsets were damage [920, 1200] and conversion [1760, 2040].
+      // Keep the single-Lancer profile until exact shatter-window fidelity needs a Clarity-only override.
+      damageAtMs: 1160,
+      spawnAtMs: 2040,
+      // The trait blade lands about one second after the Lancer's javelin hit.
+      phantasmalBladeDelayAfterSpawnMs: 120
+    },
     castTimeMs: 520,
     effects: [
       {
@@ -55,12 +70,16 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
     phantasm: true,
     resource: {
       mode: 'phantasm',
-      count: 1
+      count: 1,
+      clarityCount: 2
     }
   },
   [ID.MENTAL_COLLAPSE]: {
     // A committed cast resets Mind the Gap even when the remaining animation is interrupted.
-    sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.MIND_THE_GAP] } }],
+    sideEffects: [
+      { on: 'castStart', do: { type: 'mesmer.consume-clarity' } },
+      { on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.MIND_THE_GAP] } }
+    ],
     shadowstepSkill: true,
     peithaImpactDelayMs: 800,
     castTimeMs: 640,
@@ -122,6 +141,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.MIND_THE_GAP]: {
+    // Clarity is granted at commitment while damage keeps its independent packet timestamp.
+    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.grant-clarity' } }],
     castTimeMs: 600,
     // Committed interrupts preserve the attack while its full cast still occupies the casting lane.
     interruptCommitMs: 520,
@@ -182,6 +203,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
     ])
   },
   [ID.IMAGINARY_INVERSION]: {
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.consume-clarity' } }],
     castTimeMs: 680,
     interruptCommitMs: 600,
     effects: [

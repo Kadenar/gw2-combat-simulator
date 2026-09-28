@@ -144,7 +144,7 @@ test('Ashes of the Just cannot trigger before its application event', () => {
 });
 
 test('stowing during a tome page preserves its effects and resource spend without reopening the tome', () => {
-  // Stow changes only the bar; the in-flight page must finish and its buff applies before aftercast ends.
+  // Stow changes only the bar; the in-flight page still grants its buff during the animation and pays on commitment.
   const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
@@ -153,10 +153,10 @@ test('stowing during a tome page preserves its effects and resource spend withou
   assert.deepEqual(result.warnings, []);
   const cast = result.events.find((e) => e.type === 'action' && e.skillId === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST);
   const granted = result.events.find((e) => e.type === 'buff' && e.kind === 'ashes-of-the-just');
-  const pageCost = guardianCatalog.skillsById.get(cast.skillId).pageCost;
+  const resourceCost = guardianCatalog.skillsById.get(cast.skillId).resourceCost;
   assert.equal(Boolean(cast.interrupted), false);
   assert.ok(granted.at > cast.at && granted.at < cast.endsAt);
-  assert.equal(result.planningState.profession.tomePages.value, 5 - pageCost);
+  assert.equal(result.planningState.profession.tomePages.value, 5 - resourceCost);
   assert.equal(result.planningState.profession.activeTome, '');
 });
 
@@ -203,9 +203,9 @@ for (const initialTomePages of [1, 5]) {
       (event) => event.type === 'action' && event.skillId === GUARDIAN_SKILL_IDS.IGNITING_BURST
     );
     const refund = result.procSteps.find((step) => step.skill === 'Weighty Terms');
-    const pageCost = guardianCatalog.skillsById.get(cast.skillId).pageCost;
+    const resourceCost = guardianCatalog.skillsById.get(cast.skillId).resourceCost;
     assert.ok(refund.start / 1000 > cast.at && refund.start / 1000 < cast.endsAt);
-    assert.equal(result.planningState.profession.tomePages.value, Math.min(5, initialTomePages + 2) - pageCost);
+    assert.equal(result.planningState.profession.tomePages.value, Math.min(5, initialTomePages + 2) - resourceCost);
     assert.equal(result.planningState.profession.activeTome, 'justice');
     assert.equal(
       result.events.some((event) => event.type === 'weapon_set' && event.automatic),
@@ -288,7 +288,7 @@ test('Firebrand page regeneration keeps ticking at capacity after natural recove
     // Full-pool ticks advance the original clock without banking extra pages or restarting on the next spend.
     assert.equal(
       state.tomePages.value,
-      state.tomePages.maximum - guardianCatalog.skillsById.get(first.skillId).pageCost
+      state.tomePages.maximum - guardianCatalog.skillsById.get(first.skillId).resourceCost
     );
     assert.equal(state.tomePages.nextAt, first.endsAt + 3 * state.tomePages.interval);
   }
