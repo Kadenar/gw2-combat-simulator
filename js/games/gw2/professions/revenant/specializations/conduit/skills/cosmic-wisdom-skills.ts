@@ -39,6 +39,8 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.COSMIC_WISDOM]: {
+    // Complete pre-form trait rewards before opening the form and publishing its gift.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.cosmic-wisdom' } }],
     // Custom: Activates the Cosmic Wisdom affinity window; see `conduit/hooks.ts`.
     castTimeMs: 0,
     cooldown: 20,

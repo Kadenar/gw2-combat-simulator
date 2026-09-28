@@ -1140,11 +1140,12 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
 
 test('Warrior dagger bursts always apply their boonless-target multiplier', () => {
   // Both skill bonuses use the fixed target scope even when retained config says otherwise.
-  for (const [id, skillId] of [
-    ['warrior.breaching-strike-boonless', ID.BREACHING_STRIKE],
-    ['warrior.slicing-maelstrom-boonless', ID.SLICING_MAELSTROM]
+  // Each module composes the intrinsic rule exported beside its own burst.
+  for (const [owner, id, skillId] of [
+    [warriorCoreModifiers, 'warrior.breaching-strike-boonless', ID.BREACHING_STRIKE],
+    [berserkerModifiers, 'warrior.slicing-maelstrom-boonless', ID.SLICING_MAELSTROM]
   ]) {
-    const rule = warriorCoreModifiers.modifierRules.find((rule) => rule.id === id);
+    const rule = owner.modifierRules.find((rule) => rule.id === id);
     const context = { profession: warriorProfession, config: { target: { boonless: false } }, event: { skillId } };
     assert.equal(rule.when(context), true);
     assert.equal(rule.factor, 1.5);

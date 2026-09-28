@@ -5,6 +5,10 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 // Log-measured impact/aftercast timings are separate from Aura's fixed one-second fuse pulses.
 export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.BLOSSOMING_AURA]: {
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.blossoming-aura' } }
+    ],
     castTimeMs: 600,
     interruptCommitMs: 480,
     rechargeAnchor: 'castStart',
@@ -153,6 +157,11 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.DETONATE_BLOSSOMING_AURA]: {
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.detonate-aura' } },
+      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DETONATE_BLOSSOMING_AURA } }
+    ],
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,

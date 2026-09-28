@@ -1,3 +1,4 @@
+import { completeRevenantCastTraits } from '#gw2/professions/revenant/core/traits/index.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import {
@@ -189,8 +190,6 @@ function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast): void
   const selected = bandTogether.get(cast);
   bandTogether.delete(cast);
   if (!selected) return;
-  const profile = runtime.helpers.skillsById.get(selected.profileSkillId) ?? cast.skill;
-  if (cast.skill.id === ID.RAZORCLAWS_RAGE) razorclawsRage(runtime, cast, profile);
   if (selected.enhanced) return;
   const window = requireBalanceProfileFromContext(runtime, PROFILE.bandTogether);
   const effect = requireEffect(window, 'buff', 'band-together');
@@ -384,23 +383,37 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     if (cast.skill.id === ID.HEROIC_COMMAND) return [];
     return bandTogether.get(cast)?.enhanced ? [] : effects;
   },
-  onCastStart(runtime, cast) {
-    const committed = !cast.cancelled;
-    if (committed && RENEGADE_ENHANCED_SKILL_BY_ID[Number(cast.skill.id)] != null) beginBandTogether(runtime, cast);
-  },
-  onCastCommit(runtime, cast) {
-    if (cast.skill.id === ID.HEROIC_COMMAND) heroicCommand(runtime, cast);
-    completeBandTogether(runtime, cast);
-    ashenDemeanor(runtime, cast);
-    if (cast.skill.id === ID.SWAP_LEGENDS) grantRenegadeInvocationFervor(runtime);
-    const allies = gw2AlliedPlayerAssumptions(runtime.config);
-    if (
-      cast.skill.id === ID.SOULCLEAVES_SUMMIT &&
-      activeRevenantUpkeep(runtime, cast.skill.id) &&
-      allies.count &&
-      allies.strikesPerSecond
-    )
-      // Start at least one second after activation.
+  sideEffectHandlers: {
+    'revenant.heroic-command'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      // Keep Core rewards ahead of elite completion state and packets.
+      completeRevenantCastTraits(runtime, context.cast);
+      heroicCommand(runtime, context.cast);
+    },
+    'revenant.begin-band-together'(runtime, context) {
+      if (context.kind === 'cast') beginBandTogether(runtime, context.cast);
+    },
+    'revenant.arm-razorclaw'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      // Elite completion follows Core trait publication, including any immediate boon reactions.
+      completeRevenantCastTraits(runtime, context.cast);
+      const selected = bandTogether.get(context.cast);
+      if (!selected) return;
+      razorclawsRage(runtime, context.cast, runtime.helpers.skillsById.get(selected.profileSkillId) ?? context.skill);
+    },
+    'revenant.complete-band-together'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      // Keep Core rewards ahead of elite completion state and packets.
+      completeRevenantCastTraits(runtime, context.cast);
+      completeBandTogether(runtime, context.cast);
+    },
+    'revenant.soulcleave-allies'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      // Keep Core rewards ahead of elite completion state and packets.
+      completeRevenantCastTraits(runtime, context.cast);
+      const allies = gw2AlliedPlayerAssumptions(runtime.config);
+      if (!activeRevenantUpkeep(runtime, context.skill.id) || !allies.count || !allies.strikesPerSecond) return;
+      // The declaration activates upkeep first; allied work retains its activation identity.
       runtime.schedule(
         SOULCLEAVE_ALLIES,
         canonicalTime(runtime.time + Math.max(1, 1 / allies.strikesPerSecond)),
@@ -408,6 +421,11 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
         undefined,
         -200
       );
+    }
+  },
+  onCastCommit(runtime, cast) {
+    ashenDemeanor(runtime, cast);
+    if (cast.skill.id === ID.SWAP_LEGENDS) grantRenegadeInvocationFervor(runtime);
   },
   // Only Bombardment's first resolved hit emits Vindication's control packet.
   traitTriggers: [

@@ -4,6 +4,11 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.VENGEFUL_HAMMERS]: {
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
+      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
+    ],
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     castTimeMs: 0,
     cooldown: 0,
@@ -50,6 +55,8 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     legendId: 'LegendaryDwarf'
   },
   [ID.RELEASE_HAMMERS]: {
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-upkeep' } }],
     // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
     castTimeMs: 0,
     cooldown: 0,
@@ -159,6 +166,11 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     legendId: 'LegendaryDwarf'
   },
   [ID.VENGEFUL_HAMMERS_ID_56752]: {
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
+      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
+    ],
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     castTimeMs: 0,
     cooldown: 0,

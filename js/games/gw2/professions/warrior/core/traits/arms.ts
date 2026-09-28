@@ -11,7 +11,7 @@ import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasSelectedSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
@@ -103,32 +103,6 @@ export function modifyWarriorArmsAttributes(
   if (hasTrait(context, TRAIT.BURST_PRECISION) && warriorActiveBuffStacks(context, 'burst-precision', 1) > 0) {
     const burstPrecisionProfile = requireBalanceProfileFromContext(context, PROFILE.burstPrecision);
     result.ferocity += balanceProfileNumber(burstPrecisionProfile, 'attributeBonus');
-  }
-
-  if (warriorActiveBuffStacks(context, 'signet-of-fury-active', 1) > 0) {
-    const signetOfFuryActiveProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfFuryActive);
-    const bonus = balanceProfileNumber(signetOfFuryActiveProfile, 'attributeBonus');
-    result.precision += bonus;
-    result.ferocity += bonus;
-  }
-
-  const activeSignets = (
-    [
-      ['Signet of Might', ID.SIGNET_OF_MIGHT, 'power'],
-      ['Signet of Fury', ID.SIGNET_OF_FURY, 'precision']
-    ] as const
-  ).filter(([name, id]) => {
-    if (!hasSelectedSkill(context, name)) return false;
-    const onCooldown = Boolean(context.timeline?.skillOnCooldownAt(id, context.time));
-    return staticRulesApplied ? onCooldown : !onCooldown;
-  });
-  if (activeSignets.length > 0) {
-    const signetPassivesProfile = requireBalanceProfileFromContext(context, PROFILE.signetPassives);
-    // Both eligible signets use the same passive bonus, read once before applying it.
-    const passiveBonus = balanceProfileNumber(signetPassivesProfile, 'attributeBonus');
-    for (const [, , attribute] of activeSignets) {
-      result[attribute] += (staticRulesApplied ? -1 : 1) * passiveBonus;
-    }
   }
 }
 

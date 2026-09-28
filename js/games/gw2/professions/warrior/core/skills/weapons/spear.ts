@@ -119,6 +119,8 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.SPEAR_SWIPE]: {
+    // Movement classification drives completed Brave Stride rewards.
+    movementSkill: true,
     castTimeMs: 1240,
     effects: [
       {

@@ -1,3 +1,6 @@
+import { EPSILON } from '#kernel/core/clock.js';
+import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -86,6 +89,27 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
     requiredOffHand: 'Dagger'
   },
   [ID.UNLOAD]: {
+    // The refund requires the final authored bullet, even when the remaining channel tail is cut short.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => {
+          const bullets = cast.skill.effects?.find((effect) => effect.type === 'strike' && effect.name === 'Unload');
+          if (bullets?.type !== 'strike') return false;
+          const offset = Number(bullets.ticks?.at(-1)?.atMs);
+          const scale =
+            bullets.timingScale === 'cast'
+              ? castRelativeEffectTimingScale(cast.skill, (cast.fullEnd - cast.start) * 1000)
+              : 1;
+          return Number.isFinite(offset) && cast.effectiveEnd + EPSILON >= cast.start + (offset * scale) / 1000;
+        },
+        do: {
+          type: 'resourceGrant',
+          resource: 'initiative',
+          amount: { profile: PROFILE.unloadRefund, field: 'resourceGain' }
+        }
+      }
+    ],
     castTimeMs: 1320,
     cooldown: 0,
     initiativeCost: 3,
@@ -241,7 +265,6 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.SNEAK_ATTACK]: {
-    // Custom: Consumes stealth and applies Revealed after the attack through `core/hooks.ts`.
     castTimeMs: 680,
     cooldown: 1,
     initiativeCost: 0,

@@ -1,7 +1,16 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
-import { warriorBurstSpends, warriorBurstTier } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import { eventSkill, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import {
+  burstAdrenalineSpend,
+  warriorBurstSpends,
+  warriorBurstTier
+} from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import {
+  balanceProfileNumber,
   effectNumber,
   requireEffect,
   requireBalanceProfileFromContext
@@ -12,6 +21,8 @@ import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.EVISCERATE]: {
+    // Movement classification drives completed Brave Stride rewards.
+    movementSkill: true,
     // Captured adrenaline selects only the strike coefficient; Might and burst ownership stay intact.
     effectVariants: [PROFILE.eviscerateTier1, PROFILE.eviscerateTier2, PROFILE.eviscerateTier3].map<
       NonNullable<Skill['effectVariants']>[number]
@@ -59,6 +70,20 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ARCING_SLICE]: {
+    // Packet selection uses the accepted spend, never the later live pool.
+    effectVariants: [
+      {
+        when: () => true,
+        transform(runtime, cast, effects) {
+          const tier = warriorBurstTier(runtime, warriorBurstSpends.get(cast)!);
+          return effects.map((effect) =>
+            effect.type === 'boon' && effect.boon === 'fury'
+              ? { ...effect, duration: effect.duration * [1, 1.5, 2][tier - 1] }
+              : effect
+          );
+        }
+      }
+    ],
     cooldown: 8,
     castTimeMs: 480,
     adrenalineCost: 10,
@@ -85,6 +110,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.EARTHSHAKER]: {
+    // Movement classification drives completed Brave Stride rewards.
+    movementSkill: true,
     skillWeapon: 'Hammer',
     cooldown: 8,
     castTimeMs: 1000,
@@ -111,6 +138,20 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.KILL_SHOT]: {
+    // Packet selection uses the accepted spend, never the later live pool.
+    effectVariants: [
+      {
+        when: () => true,
+        transform(runtime, cast, effects) {
+          const tier = warriorBurstTier(runtime, warriorBurstSpends.get(cast)!);
+          return effects.map((effect) =>
+            effect.type === 'strike'
+              ? { ...effect, coefficient: (Number(effect.coefficient) * [2.25, 2.75, 3.25][tier - 1]) / 2.25 }
+              : effect
+          );
+        }
+      }
+    ],
     skillWeapon: 'Rifle',
     comboFinishers: [
       {
@@ -158,6 +199,58 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.COMBUSTIVE_SHOT]: {
+    // Fixed pulses preserve independent Strike/Burning removal and persistent field cadence.
+    effectVariants: [
+      {
+        profileId: PROFILE.combustiveShot,
+        when: () => true,
+        transform(runtime, cast) {
+          const spent = warriorBurstSpends.get(cast)!;
+          const tier = warriorBurstTier(runtime, spent);
+          const profile = requireBalanceProfileFromContext(runtime, PROFILE.combustiveShot);
+          const interval = balanceProfileNumber(profile, 'pulseInterval');
+          const pulses = interval > 0 ? tier + 1 : 1;
+          // Each selected component keeps its own removal semantics and fixed post-completion cadence.
+          const timing = {
+            timingAnchor: 'castEnd' as const,
+            timingScale: 'fixed' as const,
+            persistsAfterInterrupt: true,
+            metadata: { warriorAdrenalineSpent: spent, warriorBurstTier: tier }
+          };
+          const strike = requireEffect(profile, 'strike', 'Strike');
+          const burning = requireEffect(profile, 'condition', 'Burning');
+          return [
+            ...(strike
+              ? [
+                  {
+                    ...timing,
+                    type: 'strike' as const,
+                    weapon: 'Longbow',
+                    ticks: Array.from({ length: pulses }, (_, index) => ({
+                      atMs: index * interval * 1000,
+                      coefficient: effectNumber(profile, strike, 'coefficient')
+                    }))
+                  }
+                ]
+              : []),
+            ...(burning
+              ? [
+                  {
+                    ...timing,
+                    type: 'condition' as const,
+                    condition: String(burning.condition),
+                    stacks: effectNumber(profile, burning, 'stacks'),
+                    duration: effectNumber(profile, burning, 'duration'),
+                    atMs: 0,
+                    applications: pulses,
+                    intervalMs: interval * 1000
+                  }
+                ]
+              : [])
+          ];
+        }
+      }
+    ],
     comboFields: [
       {
         ownerId: 'warrior',
@@ -172,6 +265,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effects: []
   },
   [ID.BREACHING_STRIKE]: {
+    // Movement classification drives completed Brave Stride rewards.
+    movementSkill: true,
     // Keep commitment, damage, and boon removal together on the nearest 40 ms tick.
     interruptCommitMs: 760,
     skillWeapon: 'Dagger',
@@ -311,6 +406,30 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.BLOODTHIRSTER]: {
+    // Packet selection uses the accepted spend, never the later live pool.
+    effectVariants: [
+      {
+        when: () => true,
+        transform(runtime, cast, effects) {
+          const tier = warriorBurstTier(runtime, warriorBurstSpends.get(cast)!);
+          const profile = requireBalanceProfileFromContext(runtime, PROFILE.bloodthirsterTiers);
+          const bleeding = requireEffect(profile, 'condition', `Tier ${tier}`);
+          return effects.flatMap<SkillEffect>((effect) =>
+            effect.type === 'condition' && effect.condition === 'Bleeding'
+              ? bleeding
+                ? [
+                    {
+                      ...effect,
+                      stacks: effectNumber(profile, bleeding, 'stacks'),
+                      duration: effectNumber(profile, bleeding, 'duration')
+                    }
+                  ]
+                : []
+              : [effect]
+          );
+        }
+      }
+    ],
     skillWeapon: 'Sword',
     castTimeMs: 500,
     dualWieldCastTimeMs: 400,
@@ -331,3 +450,41 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   }
 });
+
+/** Intrinsic live modifiers retain critical semantics and the simulator's boonless-target assumption. */
+export const warriorBurstSkillModifiers: readonly Gw2ModifierRule[] = [
+  {
+    id: 'warrior.kill-shot-threshold',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.2,
+    order: 100,
+    // Kill Shot gets the same execute bonus from either a defiant target or live sub-50% health.
+    when: (context) =>
+      eventSkill(context)?.id === ID.KILL_SHOT &&
+      (context.config?.target?.defiant === true || targetHealthBelow(context, 0.5))
+  },
+  {
+    id: 'warrior.breaching-strike-boonless',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.5,
+    order: 100,
+    when: (context) => eventSkill(context)?.id === ID.BREACHING_STRIKE
+  }
+];
+
+/** Fields select their tier before the shared burst reservation spends adrenaline. */
+export const combustiveShotFields: NonNullable<RuntimeProfession<WarriorRuntimeState>['modifyComboFields']> = (
+  runtime,
+  cast,
+  fields
+) => {
+  if (cast.skill.id !== ID.COMBUSTIVE_SHOT) return fields;
+  const tier = warriorBurstTier(runtime, burstAdrenalineSpend(runtime, cast.skill));
+  const duration =
+    tier * balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.combustiveShot), 'durationPerTier');
+  return fields?.flatMap((field) =>
+    field.ownerId !== 'warrior' ? [field] : duration > 0 ? [{ ...field, duration }] : []
+  );
+};

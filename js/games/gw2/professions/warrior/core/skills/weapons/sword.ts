@@ -64,6 +64,8 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   },
   [ID.SAVAGE_LEAP]: {
+    // Movement classification drives completed Brave Stride rewards.
+    movementSkill: true,
     // Retain a field crossed during the leap even when it expires before landing.
     comboFinishers: [
       {

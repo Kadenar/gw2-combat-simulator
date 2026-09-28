@@ -10,7 +10,7 @@ import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill, SkillEffect, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -25,24 +25,8 @@ interface AuraPulse {
   readonly activationId: string;
 }
 
-/** Small targets never intersect large-hitbox-only packets, so those ticks are never queued. */
-export function revenantHitboxEffects(
-  runtime: RevenantRuntime,
-  effects: readonly SkillEffect[]
-): readonly SkillEffect[] {
-  if (String(runtime.config.professionAssumptions?.hitboxSize || 'small') === 'large') return effects;
-  return effects.flatMap((effect) => {
-    const authored = (effect as { readonly ticks?: readonly { readonly metadata?: { largeHitboxOnly?: unknown } }[] })
-      .ticks;
-    if (!authored?.some((tick) => tick.metadata?.largeHitboxOnly === true)) return [effect];
-    const ticks = authored.filter((tick) => tick.metadata?.largeHitboxOnly !== true);
-    return ticks.length ? [{ ...effect, ticks } as SkillEffect] : [];
-  });
-}
-
 /** Imperial Guard blocks from acceptance; its True Strike follow-up belongs to this exact channel. */
-export function startRevenantWeaponCast(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  if (cast.skill.id !== ID.IMPERIAL_GUARD) return;
+export function startRevenantImperialGuard(runtime: RevenantRuntime, cast: RuntimeCast): void {
   // The follow-up window belongs to this channel; a later channel's rearm survives this deadline.
   runtime.armFlip(ID.TRUE_STRIKE, {
     availableAt: cast.start,
@@ -72,12 +56,6 @@ export function startRevenantWeaponCast(runtime: RevenantRuntime, cast: RuntimeC
 /** A completed True Strike consumes the window its Imperial Guard channel opened. */
 export function completeRevenantImperialGuard(runtime: RevenantRuntime, cast: RuntimeCast): void {
   if (cast.skill.id === ID.TRUE_STRIKE) consumeSkillFlip(runtime.profession.core.availableFlips, ID.TRUE_STRIKE);
-}
-
-/** Aura detonation retains its completion cleanup under the same owner as its pulse lifetime. */
-export function completeRevenantBlossomingAura(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  if (cast.skill.id === ID.DETONATE_BLOSSOMING_AURA)
-    consumeSkillFlip(runtime.profession.core.availableFlips, cast.skill.id);
 }
 
 function auraSkill(runtime: RevenantRuntime): RevenantSkill {

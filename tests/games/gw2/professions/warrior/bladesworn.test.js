@@ -444,9 +444,10 @@ test('Dragonspike resets exit recharge and an old expiry cannot close a replacem
   assert.equal(observedRuntime(result).cooldowns.has(ID.DRAGON_TRIGGER), false);
 });
 
-test('Tactical Reload can be consumed exactly at expiry and closes before a later entry', () => {
+test('Tactical Reload can be consumed before expiry and closes exactly at its deadline', () => {
   for (const [delay, expected] of [
-    [10000, 2],
+    [9999, 2],
+    [10000, 1],
     [10001, 1]
   ]) {
     const result = run(['Tactical Reload', wait(delay), 'Dragon Trigger', wait(240), combat], {
@@ -456,7 +457,7 @@ test('Tactical Reload can be consumed exactly at expiry and closes before a late
     assert.deepEqual(result.warnings, []);
     assert.equal(state(result).dragonCharges, expected);
     if (expected === 2) assert.equal(state(result).tacticalReloadUntil, 0);
-    else assert.ok(state(result).tacticalReloadUntil < observedRuntime(result).time);
+    else assert.ok(state(result).tacticalReloadUntil <= observedRuntime(result).time);
   }
 });
 
@@ -616,7 +617,7 @@ test('cartridge component removal separates its bonus and Burning and a removed 
   );
 });
 
-test('committed reloads survive early release and restore ammo only at their retained completion', () => {
+test('committed reloads restore ammo once at semantic completion before the reserved tail', () => {
   const skill = warriorProfession
     .runtimeFor({ specialization: 'Bladesworn' })
     .catalog.skillsById.get(ID.TACTICAL_RELOAD);
@@ -639,7 +640,9 @@ test('committed reloads survive early release and restore ammo only at their ret
   const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.TACTICAL_RELOAD);
   const reloaded = result.events.find((event) => event.type === 'buff' && event.kind === 'tactical-reload');
   assert.ok(action.endsAt < action.fullEndsAt);
-  assert.equal(reloaded.at, action.fullEndsAt);
+  // The reward belongs to successful commitment; the retained animation cannot grant it again.
+  assert.equal(reloaded.at, action.endsAt);
+  assert.equal(result.events.filter((event) => event.kind === 'tactical-reload').length, 1);
   assert.equal(state(result).dragonCharges, 2);
   const ammo = observedRuntime(result).ammo.get(ID.FLOW_STABILIZER);
   assert.equal(ammo.charges, ammo.maximum);

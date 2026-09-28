@@ -4,6 +4,8 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ENCHANTED_DAGGERS]: {
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.enchanted-daggers' } }],
     // Custom: Arms Enchanted Daggers charges and their strike-triggered healing state; see `core/traits/index.ts`.
     castTimeMs: 360,
     cooldown: 30,
@@ -34,6 +36,11 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
     legendId: 'LegendaryAssassin'
   },
   [ID.IMPOSSIBLE_ODDS]: {
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
+      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
+    ],
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     castTimeMs: 0,
     cooldown: 0,

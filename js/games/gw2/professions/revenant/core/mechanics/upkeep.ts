@@ -170,9 +170,9 @@ function hammerPulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number)
 }
 
 /** A committed Embrace activation lands its opening pulse at the authored offset, before drain begins. */
-export function startRevenantUpkeepCast(runtime: RevenantRuntime, cast: RuntimeCast): void {
+export function startRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const skill = cast.skill as RevenantSkill;
-  if (skill.id !== ID.EMBRACE_THE_DARKNESS || activeRevenantUpkeep(runtime, skill.id)) return;
+  if (activeRevenantUpkeep(runtime, skill.id)) return;
   const strike = skill.effects?.find((effect) => effect.type === 'strike');
   if (!strike) throw new Error('Embrace the Darkness is missing its strike effect.');
   embracePulse(runtime, skill, canonicalTime(cast.start + (effectFirstAtMs(strike) || 0) / 1000), false);

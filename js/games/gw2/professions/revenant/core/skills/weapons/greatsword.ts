@@ -87,6 +87,8 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ])
   },
   [ID.TRUE_STRIKE]: {
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.TRUE_STRIKE } }],
     castTimeMs: 520,
     cooldown: 0,
     energyCost: 0,
@@ -151,6 +153,8 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.IMPERIAL_GUARD]: {
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [{ on: 'castStart', do: { type: 'revenant.imperial-guard' } }],
     castTimeMs: 2000,
 
     defaultInterruptMs: 80,
@@ -183,16 +187,28 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
           { atMs: 640, coefficient: 0.6 },
           { atMs: 720, coefficient: 0.5 },
           { atMs: 840, coefficient: 0.4 },
-          { atMs: 920, coefficient: 0.3 },
-          // Large targets overlap all nine random and five guaranteed impact areas.
-          { atMs: 1000, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
-          { atMs: 1080, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
-          { atMs: 1160, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
-          { atMs: 1240, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
-          { atMs: 1320, coefficient: 0.3, metadata: { largeHitboxOnly: true } },
-          { atMs: 1400, coefficient: 0.3, metadata: { largeHitboxOnly: true } }
+          { atMs: 920, coefficient: 0.3 }
         ],
         metadata: {}
+      },
+      {
+        type: 'strike',
+        name: "Eternity's Requiem - Large Target",
+        actorType: 'player',
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true,
+        // Target size is selected at acceptance, before any impact is queued.
+        when: (runtime) => runtime.config.professionAssumptions?.hitboxSize === 'large',
+        ticks: [
+          // Large targets overlap all nine random and five guaranteed impact areas.
+          { atMs: 1000, coefficient: 0.3, name: "Eternity's Requiem" },
+          { atMs: 1080, coefficient: 0.3, name: "Eternity's Requiem" },
+          { atMs: 1160, coefficient: 0.3, name: "Eternity's Requiem" },
+          { atMs: 1240, coefficient: 0.3, name: "Eternity's Requiem" },
+          { atMs: 1320, coefficient: 0.3, name: "Eternity's Requiem" },
+          { atMs: 1400, coefficient: 0.3, name: "Eternity's Requiem" }
+        ]
       }
     ]
   }

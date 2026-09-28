@@ -1,3 +1,4 @@
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
 import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
@@ -14,7 +15,7 @@ import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import { deferThiefCompletion, emitThiefBuff, emitThiefCondition } from '#gw2/professions/thief/core/events.js';
+import { emitThiefBuff, emitThiefCondition } from '#gw2/professions/thief/core/events.js';
 import { completeThiefSteal, emitThiefStealTraits } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
@@ -27,7 +28,6 @@ import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-r
 import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
-const SPECTER_COMPLETE = 'thief.specter-complete';
 const SHADOW_DEPLETED = 'thief.shadow-shroud-depleted';
 const DARK_SENTRY = 'thief.specter-dark-sentry';
 const ROT_WALLOW_VENOM_ICON = 'https://render.guildwars2.com/file/0F0B6509C8D5023D949153929E02FD2195AF63FE/2503654.png';
@@ -184,22 +184,6 @@ function completeSiphon(runtime: ThiefRuntime, cast: RuntimeCast): void {
   completeThiefSteal(runtime, []);
 }
 
-function completeSpecterCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as ThiefSkill;
-  const state = specterState.from(runtime);
-  if (skill.id === ID.SIPHON) completeSiphon(runtime, cast);
-  else if (skill.id === ID.ENTER_SHADOW_SHROUD) {
-    // Manual exit waits half a second; depletion still forces an immediate exit.
-    state.shadowShroudExitReadyAt = runtime.time + 0.5;
-    setShadowShroud(runtime, true, skill);
-    grantBarrier(runtime, cast, PROFILE.enterShadowShroud, 'Enter Shadow Shroud - Barrier');
-  } else if (skill.id === ID.EXIT_SHADOW_SHROUD) setShadowShroud(runtime, false, skill);
-  else if (skill.shadowShroudSkill && !castWasInterrupted(cast)) {
-    if (skill.id === ID.DAWNS_REPOSE)
-      grantBarrier(runtime, cast, PROFILE.dawnsReposeBarrier, "Dawn's Repose - Barrier");
-  }
-}
-
 /** Shroud entry needs force; inside the shroud only its own bar is castable, and exit waits out its lockout. */
 function specterAvailability(runtime: ThiefRuntime, rawSkill: Skill): AvailabilityResult {
   const skill = rawSkill as ThiefSkill;
@@ -270,11 +254,47 @@ function larcenousTorment(runtime: ThiefRuntime, application: Gw2ResolverEvent):
 
 /** Specter hooks: Shadow Force and its shroud, Siphon, shroud skill traits, Dark Sentry, and Larcenous Torment. */
 export const specterHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
-  // Each committed shroud skill grants only its own party boon, before deferred completion mechanics.
+  sideEffectHandlers: {
+    'thief.dawn-shade-step'(runtime, context) {
+      if (context.kind !== 'cast' || !hasTrait(runtime, TRAIT.SHADESTEP)) return;
+      const profile = requireBalanceProfileFromContext(runtime, PROFILE.shadeStep);
+      emitEffects(runtime, {
+        owner: profile,
+        effects: profile.effects?.filter((effect) => effect.type === 'boon' && effect.name === 'protection'),
+        baseEvent: {
+          source: 'Trait',
+          sourceId: PROFILE.shadeStep,
+          actorType: 'player',
+          skillId: context.skill.id,
+          skillName: context.skill.name,
+          activationId: context.cast.id
+        },
+        transform: (event) => ({ ...event, name: 'Shade Step - protection', audience: { recipients: 'party' } })
+      });
+    },
+    'thief.siphon'(runtime, context) {
+      if (context.kind === 'cast') completeSiphon(runtime, context.cast);
+    },
+    'thief.enter-shadow-shroud'(runtime, context) {
+      specterState.from(runtime).shadowShroudExitReadyAt = runtime.time + 0.5;
+      setShadowShroud(runtime, true, context.skill);
+    },
+    'thief.exit-shadow-shroud'(runtime, context) {
+      setShadowShroud(runtime, false, context.skill);
+    },
+    'thief.shroud-entry-barrier'(runtime, context) {
+      if (context.kind === 'cast')
+        grantBarrier(runtime, context.cast, PROFILE.enterShadowShroud, 'Enter Shadow Shroud - Barrier');
+    },
+    'thief.dawns-barrier'(runtime, context) {
+      if (context.kind === 'cast')
+        grantBarrier(runtime, context.cast, PROFILE.dawnsReposeBarrier, "Dawn's Repose - Barrier");
+    }
+  },
+  // These shroud skills grant their own party boon; Dawn's declaration notifies Shade Step before its barrier.
   traitTriggers: (
     [
       [ID.GRASPING_SHADOWS, 'alacrity'],
-      [ID.DAWNS_REPOSE, 'protection'],
       [ID.MIND_SHOCK, 'aegis']
     ] as const
   ).map<TraitTrigger<ThiefRuntimeState>>(([skillId, boon]) => ({
@@ -297,19 +317,12 @@ export const specterHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
         cost * balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'resourceGain')
       );
   },
-  onCastCommit(runtime, cast) {
-    deferThiefCompletion(runtime, SPECTER_COMPLETE, cast);
-  },
   onCooldownReset(runtime) {
     // The training-area reset refills Shadow Force without forcing Specter out of Shadow Shroud.
     runtime.resourceController.grant('shadowForce', specterState.from(runtime).shadowClock.maximum);
   },
   reactions: { 'condition.applied': larcenousTorment },
   tasks: {
-    [SPECTER_COMPLETE](runtime, data) {
-      const { cast } = data as { cast: RuntimeCast };
-      completeSpecterCast(runtime, cast);
-    },
     [SHADOW_DEPLETED]: shadowDepleted,
     [DARK_SENTRY]: darkSentry
   }

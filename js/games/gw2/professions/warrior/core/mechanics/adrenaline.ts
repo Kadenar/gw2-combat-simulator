@@ -4,7 +4,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 type WarriorRuntime = Gw2Runtime<WarriorRuntimeState>;
 
@@ -35,4 +35,12 @@ export function warriorBurstTier(runtime: Gw2Runtime, spent: number): number {
     : spent >= balanceProfileNumber(profile, 'threshold')
       ? 2
       : 1;
+}
+
+/** One-bar elites reserve only the authored cost; Core reserves the whole pool for the activation's tier. */
+export function burstAdrenalineSpend(runtime: WarriorRuntime, skill: WarriorSkill): number {
+  const available = runtime.profession.core.adrenaline;
+  return skill.primalBurst || ['Spellbreaker', 'Paragon'].includes(runtime.profession.specialization.kind)
+    ? Math.min(available, skill.adrenalineCost ?? 0)
+    : available;
 }

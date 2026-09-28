@@ -1,3 +1,4 @@
+import { deadeyeSkillModifiers, markedTarget } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -8,28 +9,14 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { boonActive, eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/modifiers.js';
-import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
-import type { ThiefSimulationEvent } from '#gw2/professions/thief/types.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 
-const SHADOW_FLARE_SKILL_IDS: ReadonlySet<number> = new Set([ID.SHADOW_FLARE, ID.SHADOW_SWAP]);
-const MALICIOUS_DAMAGE_SCALING_SKILL_IDS: ReadonlySet<number> = new Set([
-  ID.MALICIOUS_BACKSTAB,
-  ID.MALICIOUS_DEATHS_JUDGMENT
-]);
-
 function activeBoonCount(context: Gw2ModifierContext): number {
   return GW2_STANDARD_BOONS.filter((boon) => boonActive(context, boon)).length;
-}
-
-function markedTarget(context: Gw2ModifierContext): boolean {
-  const state = thiefRuntimeSpecializationState<DeadeyeState>(context, 'Deadeye');
-  return Boolean(state.markedTargetId) && (state.markExpiresAt || Infinity) > context.time;
 }
 
 function modifyDeadeyeAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
@@ -58,6 +45,7 @@ function modifyDeadeyeAttributes(context: Gw2ModifierContext, attributes: Gw2Res
 }
 
 const deadeyeModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
+  ...deadeyeSkillModifiers,
   {
     id: 'thief.iron-sight',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -83,41 +71,6 @@ const deadeyeModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.ONE_IN_THE_CHAMBER) &&
       Boolean(eventSkill(context)?.categories?.includes('stolen skill'))
-  },
-  {
-    id: 'thief.shadow-flare-marked',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.5,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      markedTarget(context) &&
-      SHADOW_FLARE_SKILL_IDS.has(Number(eventSkill(context)?.id))
-  },
-  {
-    id: 'thief.malicious-backstab-position',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 2,
-    // Malicious Backstab belongs to Deadeye; its rear-position rule stays out of the base Thief modifier set.
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      eventSkill(context)?.id === ID.MALICIOUS_BACKSTAB &&
-      Boolean(context.config?.target?.defiant)
-  },
-  {
-    id: 'thief.malicious-stealth-attack',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    // Malice at cast start is snapshotted onto the event so each hit sees the pre-consumption value after malice is spent
-    parameters: { damagePerMalice: 0.1 },
-    amount: (context, _target, parameters) =>
-      Math.max(0, (context.event as ThiefSimulationEvent | undefined)?.deadeyeMaliceSnapshot || 0) *
-      parameters.damagePerMalice,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      markedTarget(context) &&
-      MALICIOUS_DAMAGE_SCALING_SKILL_IDS.has(Number(eventSkill(context)?.id))
   }
 ]);
 

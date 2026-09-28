@@ -5,7 +5,6 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
@@ -106,35 +105,4 @@ export function spendThiefCoreResources(runtime: ThiefRuntime, cast: RuntimeCast
   const skill = cast.skill as { initiativeCost?: number };
   const cost = skill.initiativeCost || 0;
   if (cost > 0) runtime.resourceController.spend('initiative', cost);
-}
-
-/** Signet restarts, Signet of Agility, and Unload's refund apply at the actual completion. */
-export function completeThiefCoreResources(runtime: ThiefRuntime, cast: RuntimeCast, committed: boolean): void {
-  const skill = cast.skill;
-  if (skill.id === ID.INFILTRATORS_SIGNET) {
-    restartThiefInfiltratorsSignet(runtime);
-    return;
-  }
-
-  if (skill.id === ID.SIGNET_OF_AGILITY) {
-    grantThiefEndurance(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.signetOfAgility), 'resourceGain')
-    );
-    return;
-  }
-
-  // An interruption before the final bullet cannot award Unload's on-completion refund.
-  if (skill.id !== ID.UNLOAD || !committed) return;
-  const bullets = skill.effects?.find((effect) => effect.type === 'strike' && effect.name === 'Unload');
-  if (bullets?.type !== 'strike') return;
-  const finalBulletOffsetMs = Number(bullets.ticks?.at(-1)?.atMs);
-  if (!Number.isFinite(finalBulletOffsetMs)) return;
-  const timingScale =
-    bullets.timingScale === 'cast' ? castRelativeEffectTimingScale(skill, (cast.fullEnd - cast.start) * 1000) : 1;
-  if (cast.effectiveEnd + EPSILON < cast.start + (finalBulletOffsetMs * timingScale) / 1000) return;
-  grantThiefInitiative(
-    runtime,
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.unloadRefund), 'resourceGain')
-  );
 }

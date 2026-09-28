@@ -539,18 +539,13 @@ export const revenantTooltips: ProfessionTooltips = {
     ),
     [ID.ETERNITYS_REQUIEM]: (balanceContext, entity) => ({
       description: 'Strike repeatedly. Additional packets hit only a target configured with a large hitbox.',
-      // Packet metadata is the same exclusion gate used by the live hitbox filter.
+      // The separately gated strike owns the large-target component in both the tooltip and simulation.
       facts: (balanceContext.catalog.skillsById.get(entity.id)!.effects || []).flatMap((effect) =>
-        effect.type === 'strike' && effect.ticks
-          ? [false, true].flatMap((large) => {
-              const ticks = effect.ticks!.filter((tick) => (tick.metadata?.largeHitboxOnly === true) === large);
-              return ticks.length
-                ? simulationEffectFacts(
-                    [{ ...effect, ticks }],
-                    large ? 'additional hits on a large target' : 'hits on either target size'
-                  ).facts
-                : [];
-            })
+        effect.type === 'strike'
+          ? simulationEffectFacts(
+              [effect],
+              effect.when ? 'additional hits on a large target' : 'hits on either target size'
+            ).facts
           : simulationEffectFacts([effect]).facts
       )
     }),

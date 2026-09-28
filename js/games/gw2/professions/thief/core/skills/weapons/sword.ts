@@ -7,6 +7,20 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.LARCENOUS_STRIKE]: {
+    // Apply the intrinsic factor to the current packet, retaining coefficient patch semantics.
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, _cast, effects) =>
+          effects.map((effect) =>
+            effect.type !== 'strike'
+              ? effect
+              : effect.ticks?.length
+                ? { ...effect, ticks: effect.ticks.map((tick) => ({ ...tick, coefficient: tick.coefficient * 1.2 })) }
+                : { ...effect, coefficient: (effect.coefficient || 0) * 1.2 }
+          )
+      }
+    ],
     // A committed follow-up consumes its window and restores the parent.
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.LARCENOUS_STRIKE } }],
     castTimeMs: 360,
@@ -124,7 +138,6 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     requiredOffHand: false
   },
   [ID.TACTICAL_STRIKE]: {
-    // Custom: Consumes stealth and applies Revealed after the attack through `core/hooks.ts`.
     castTimeMs: 360,
     cooldown: 1,
     initiativeCost: 0,

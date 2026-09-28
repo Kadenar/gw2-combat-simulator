@@ -8,7 +8,10 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.DEATHS_ADVANCE]: {
     // A committed follow-up consumes its window and restores the parent.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DEATHS_ADVANCE } }],
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DEATHS_ADVANCE } },
+      { on: 'castCommit', do: { type: 'thief.stealth' } }
+    ],
     castTimeMs: 200,
     cooldown: 0,
     initiativeCost: 2,
@@ -23,7 +26,9 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     kneelSkill: true
   },
   [ID.KNEEL]: {
-    // Custom: Enters Kneel and exposes kneeling rifle skills through `core/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.kneel' } }],
+
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     castTimeMs: 360,
     cooldown: 0.5,
@@ -70,7 +75,9 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     kneelSkill: true
   },
   [ID.FREE_ACTION]: {
-    // Custom: Leaves Kneel and restores standing rifle skills through `core/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.stand' } }],
+
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     castTimeMs: 0,
     cooldown: 0,
@@ -309,7 +316,6 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     kneelSkill: true
   },
   [ID.DEATHS_JUDGMENT]: {
-    // Custom: Consumes stealth and applies Revealed after the attack through `core/hooks.ts`.
     castTimeMs: 360,
     cooldown: 1,
     initiativeCost: 0,

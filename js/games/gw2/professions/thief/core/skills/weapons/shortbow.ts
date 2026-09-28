@@ -161,7 +161,6 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.SURPRISE_SHOT]: {
-    // Custom: Consumes stealth and applies Revealed after the attack through `core/hooks.ts`.
     castTimeMs: 200,
     cooldown: 1,
     initiativeCost: 0,

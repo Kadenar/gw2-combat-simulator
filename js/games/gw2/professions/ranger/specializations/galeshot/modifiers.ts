@@ -1,10 +1,11 @@
+import { piercingGalesModifier } from '#gw2/professions/ranger/specializations/galeshot/skills/index.js';
 import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 
@@ -32,10 +33,6 @@ function activePetIsFeathered(context: RangerModifierContext): boolean {
     context.config?.selectedPet ||
     '';
   return ['avian', 'moa', 'phoenix', 'raptor swiftwing'].includes(rangerPetByName(name).family);
-}
-
-function eventSkillId(context: RangerModifierContext): number {
-  return Number(context.event?.skillId ?? context.skillId);
 }
 
 // Galeshot player modifiers follow outgoing ownership without changing explicit pet-only branches.
@@ -76,22 +73,5 @@ export const galeshotModifiers = Object.freeze<readonly Gw2ModifierRule[]>([
       hasTrait(context, TRAIT.FLOCK_TOGETHER) &&
       activePetIsFeathered(context)
   },
-  {
-    id: 'ranger.piercing-gales-vulnerability',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    // Piercing Gales applies its own doubled vulnerability multiplier (2% per
-    // stack) in addition to the standard vulnerability already baked into the
-    // platform strikeMultiplier, effectively tripling the vulnerability bonus
-    // for this skill.
-    parameters: {
-      baseFactor: 1,
-      vulnerabilityPerStack: 0.02
-    },
-    factor: (context, _target, parameters) =>
-      parameters.baseFactor +
-      (context.query?.vulnerabilityStacksAt(context.time, context.runtime || undefined) || 0) *
-        parameters.vulnerabilityPerStack,
-    when: (context) => eventSkillId(context) === ID.PIERCING_GALES
-  }
+  piercingGalesModifier
 ]);

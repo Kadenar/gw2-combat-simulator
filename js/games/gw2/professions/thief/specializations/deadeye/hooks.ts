@@ -1,3 +1,5 @@
+import { refundMaliciousTacticalStrike } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
+import { deadeyeCastFacts } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -9,22 +11,19 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { deferThiefCompletion, emitThiefCondition } from '#gw2/professions/thief/core/events.js';
-import { grantThiefEndurance, grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { grantThiefStealth } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import {
   completeThiefSteal,
-  consumeThiefStolenSkill,
   emitThiefStealTraits,
   storeThiefStolenSkillChoices
 } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
-import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
@@ -37,14 +36,6 @@ const DEADEYE_MARK_EXPIRY = 'thief.deadeye-mark-expire';
 
 const STOLEN_SKILLS = new Set<SkillId>(DEADEYE_STOLEN_SKILL_IDS);
 
-/** Acceptance facts: malice before consumption and whether a stolen skill will grant stealth. */
-interface DeadeyeCastFacts {
-  readonly malice: number;
-  readonly markedMalice: number;
-  readonly grantsStealth: boolean;
-}
-
-const castFacts = new WeakMap<RuntimeCast, DeadeyeCastFacts>();
 // A malicious attack's damage bonus uses the malice it was cast with, even after its first hit spends it.
 const maliceSnapshots = new WeakMap<object, Map<string, number>>();
 
@@ -152,65 +143,6 @@ function expireDeadeyesMark(runtime: ThiefRuntime, data: unknown): void {
   state.maleficentSevenTriggered = false;
 }
 
-/** Scales a malice-dependent authored packet selected at acceptance. */
-function maliciousEffects(runtime: ThiefRuntime, cast: RuntimeCast, effects: readonly SkillEffect[]) {
-  const facts = castFacts.get(cast);
-  const skill = cast.skill as ThiefSkill;
-  if (!facts || STOLEN_SKILLS.has(skill.id)) return effects;
-  const malice = facts.markedMalice;
-  return effects.flatMap((effect): SkillEffect[] => {
-    // Malice lengthens the Poison whether it is authored on the effect or on its timed ticks.
-    if (
-      effect.type === 'condition' &&
-      (skill.id === ID.MALICIOUS_CUNNING_SALVO || skill.id === ID.MALICIOUS_SHADOWSQUALL)
-    ) {
-      const scaled = (duration: unknown) =>
-        skill.id === ID.MALICIOUS_CUNNING_SALVO
-          ? Number(duration || 0) + malice
-          : Number(duration || 0) * (1 + 0.2 * malice);
-      if (effect.ticks?.length)
-        return [
-          {
-            ...effect,
-            ticks: effect.ticks.map((tick) =>
-              tick.condition === 'Poisoned' ? { ...tick, duration: scaled(tick.duration) } : tick
-            )
-          }
-        ];
-      if (effect.condition === 'Poisoned') return [{ ...effect, duration: scaled(effect.duration) }];
-    }
-
-    const quickness =
-      (effect.type === 'boon' && String(effect.boon).toLowerCase() === 'quickness') ||
-      (effect.type === 'buff' && effect.kind === 'quickness');
-    if (skill.id === ID.MALICIOUS_HOOK_STRIKE && quickness)
-      return malice > 0 ? [{ ...effect, duration: (effect.duration || 0) * malice }] : [];
-    if (
-      skill.id === ID.MALICIOUS_ASHEN_ASSAULT &&
-      effect.type === 'strike' &&
-      effect.name === 'Malicious Ashen Assault — Final Strike'
-    ) {
-      const factor =
-        1 +
-        facts.malice *
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(runtime, PROFILE.maliciousAshenAssault),
-            'coefficientMultiplier'
-          );
-      return [
-        effect.ticks?.length
-          ? {
-              ...effect,
-              ticks: effect.ticks.map((tick) => ({ ...tick, coefficient: tick.coefficient * factor }))
-            }
-          : { ...effect, coefficient: (effect.coefficient || 0) * factor }
-      ];
-    }
-
-    return [effect];
-  });
-}
-
 /** Torment from a malicious finisher scales with the malice it was cast with. */
 function maliceTorment(runtime: ThiefRuntime, cast: RuntimeCast, profileId: SkillId, malice: number, trait: boolean) {
   const profile = requireBalanceProfileFromContext(runtime, profileId);
@@ -226,36 +158,12 @@ function maliceTorment(runtime: ThiefRuntime, cast: RuntimeCast, profileId: Skil
   });
 }
 
-/** Deadeye completion transitions in their established order after Core's. */
-function completeDeadeyeCast(runtime: ThiefRuntime, cast: RuntimeCast, facts: DeadeyeCastFacts | undefined): void {
+/** Cross-skill dodge and cantrip traits retain their post-packet completion order. */
+function completeDeadeyeCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const skill = cast.skill as ThiefSkill;
   const state = deadeyeState.from(runtime);
-  if (skill.id === ID.DEADEYES_MARK) completeDeadeyesMark(runtime, cast);
-  else if (skill.id === ID.MALICIOUS_SNEAK_ATTACK && !castWasInterrupted(cast))
-    maliceTorment(runtime, cast, PROFILE.maliciousSneakAttack, facts?.malice ?? 0, false);
-  else if (skill.id === ID.MALICIOUS_ASHEN_ASSAULT) {
-    grantThiefInitiative(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.maliciousAshenAssault), 'resourceGain')
-    );
-    if ((facts?.malice ?? 0) > 0) maliceTorment(runtime, cast, PROFILE.maliciousAshenAssault, facts?.malice ?? 0, true);
-  } else if (STOLEN_SKILLS.has(skill.id)) {
-    if (facts?.grantsStealth) grantThiefStealth(runtime, skill, 3);
-    consumeThiefStolenSkill(runtime, skill);
-    if (hasTrait(runtime, TRAIT.FIRE_FOR_EFFECT))
-      traitBoons(runtime, cast, 'Fire for Effect', PROFILE.fireForEffect, true);
-  } else if (skill.id === ID.MERCY) {
-    const malice = Math.max(0, state.malice || 0);
-    state.malice = 0;
-    state.maleficentSevenTriggered = false;
-    // Mercy consumes Malice and refunds initiative; its skill declaration owns the recharge reset.
-    const mercy = requireBalanceProfileFromContext(runtime, PROFILE.mercy);
-    grantThiefInitiative(
-      runtime,
-      balanceProfileNumber(mercy, 'resourceGain') + malice * balanceProfileNumber(mercy, 'attributePerStack')
-    );
-  }
-
+  if (STOLEN_SKILLS.has(skill.id) && hasTrait(runtime, TRAIT.FIRE_FOR_EFFECT))
+    traitBoons(runtime, cast, 'Fire for Effect', PROFILE.fireForEffect, true);
   // Silent Scope: a dodge above the malice threshold grants one out-of-stealth stealth attack.
   if (skill.id === SHARED_SKILL_IDS.DODGE && hasTrait(runtime, TRAIT.SILENT_SCOPE)) {
     const silentScope = requireBalanceProfileFromContext(runtime, PROFILE.silentScope);
@@ -289,8 +197,7 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
   if (state.maliceResolvedActivations[event.activationId]) return;
   state.maliceResolvedActivations[event.activationId] = true;
   if (skill.malicious) {
-    if (skill.id === ID.MALICIOUS_TACTICAL_STRIKE)
-      grantThiefEndurance(runtime, Number(event.deadeyeMaliceSnapshot || 0) * 10);
+    refundMaliciousTacticalStrike(runtime, event);
     state.malice = 0;
     state.maleficentSevenTriggered = false;
     if (hasTrait(runtime, TRAIT.MALICIOUS_INTENT)) {
@@ -320,6 +227,47 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
 
 /** Deadeye hooks: the mark and malice, malicious attacks, stolen skills, Mercy, Shadow Flare, and cantrip traits. */
 export const deadeyeHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
+  sideEffectHandlers: {
+    'thief.clear-revealed'(runtime) {
+      runtime.profession.core.revealedUntil = Math.min(runtime.profession.core.revealedUntil, runtime.time);
+    },
+    'thief.deadeyes-mark'(runtime, context) {
+      if (context.kind === 'cast') completeDeadeyesMark(runtime, context.cast);
+    },
+    'thief.mercy'(runtime) {
+      // Consume live commitment-time malice before refunding the selected profile's amount.
+      const state = deadeyeState.from(runtime);
+      const malice = Math.max(0, state.malice || 0);
+      state.malice = 0;
+      state.maleficentSevenTriggered = false;
+      const mercy = requireBalanceProfileFromContext(runtime, PROFILE.mercy);
+      grantThiefInitiative(
+        runtime,
+        balanceProfileNumber(mercy, 'resourceGain') + malice * balanceProfileNumber(mercy, 'attributePerStack')
+      );
+    },
+    'thief.sneak-torment'(runtime, context) {
+      if (context.kind === 'cast')
+        maliceTorment(
+          runtime,
+          context.cast,
+          PROFILE.maliciousSneakAttack,
+          deadeyeCastFacts.get(context.cast)?.malice ?? 0,
+          false
+        );
+    },
+    'thief.ashen-torment'(runtime, context) {
+      if (context.kind === 'cast')
+        maliceTorment(
+          runtime,
+          context.cast,
+          PROFILE.maliciousAshenAssault,
+          deadeyeCastFacts.get(context.cast)?.malice ?? 0,
+          true
+        );
+    }
+  },
+
   initialize(runtime) {
     const state = deadeyeState.from(runtime);
     const resources = requireBalanceProfileFromContext(runtime, PROFILE.resources);
@@ -334,16 +282,12 @@ export const deadeyeHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   onCastStart(runtime, cast) {
     const skill = cast.skill as ThiefSkill;
     const state = deadeyeState.from(runtime);
-    const core = runtime.profession.core;
-    // Shadow Meld ends Revealed at its start so stealth can apply immediately.
-    if (skill.id === ID.SHADOW_MELD) core.revealedUntil = Math.min(core.revealedUntil, runtime.time);
     if (!skill.malicious && !STOLEN_SKILLS.has(skill.id)) return;
     const malice = boundedNumber(state.malice, 0, 0, state.maximumMalice);
-    castFacts.set(cast, {
+    deadeyeCastFacts.set(cast, {
       malice,
       // Poison, quickness, and duration scaling apply only against a live mark and a hit target.
-      markedMalice: cast.command.offTarget !== true && marked(runtime) ? malice : 0,
-      grantsStealth: state.malice >= 3
+      markedMalice: cast.command.offTarget !== true && marked(runtime) ? malice : 0
     });
     if (skill.malicious) {
       let snapshots = maliceSnapshots.get(runtime);
@@ -351,11 +295,10 @@ export const deadeyeHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
       snapshots.set(cast.id, malice);
     }
   },
-  modifyEffects: maliciousEffects,
   onCastCommit(runtime, cast) {
     // Completion carries the accepted malice and stealth facts across the detached cast-task boundary.
-    deferThiefCompletion(runtime, DEADEYE_COMPLETE, cast, { facts: castFacts.get(cast) });
-    castFacts.delete(cast);
+    deferThiefCompletion(runtime, DEADEYE_COMPLETE, cast);
+    deadeyeCastFacts.delete(cast);
   },
   reactions: {
     'damage.resolving'(runtime, event) {
@@ -368,8 +311,8 @@ export const deadeyeHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   },
   tasks: {
     [DEADEYE_COMPLETE](runtime, data) {
-      const { cast, facts } = data as { cast: RuntimeCast; facts: DeadeyeCastFacts | undefined };
-      completeDeadeyeCast(runtime, cast, facts);
+      const { cast } = data as { cast: RuntimeCast };
+      completeDeadeyeCast(runtime, cast);
     },
     [DEADEYE_MARK_EXPIRY]: expireDeadeyesMark
   }

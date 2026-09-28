@@ -5,9 +5,11 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.STEAL]: {
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.steal' } }],
     stealTraitSkill: true,
     movementSkill: true,
-    // Custom: Runs steal traits, grants a stored stolen skill, and updates steal state through `core/hooks.ts`.
+
     castTimeMs: 0,
     cooldown: 25,
     initiativeCost: 0,
@@ -21,7 +23,9 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: []
   },
   [ID.SOUL_STONE_VENOM]: {
-    // Consume the selected stolen skill after its effects; Improvisation retains one use of the same choice.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.consume-stolen' } }],
+    // Commitment consumes the selected skill; Improvisation retains one use of the same choice.
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -37,7 +41,9 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.DETONATE_PLASMA]: {
-    // Consume the selected stolen skill after its effects; Improvisation retains one use of the same choice.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.consume-stolen' } }],
+    // Commitment consumes the selected skill; Improvisation retains one use of the same choice.
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
@@ -113,7 +119,9 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.THROW_MAGNETIC_BOMB]: {
-    // Consume the selected stolen skill after its effects; Improvisation retains one use of the same choice.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.consume-stolen' } }],
+    // Commitment consumes the selected skill; Improvisation retains one use of the same choice.
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,

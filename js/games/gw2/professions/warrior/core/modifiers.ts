@@ -1,8 +1,8 @@
-import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { modifySignetAttributes } from '#gw2/professions/warrior/core/skills/slot-skills.js';
+import { warriorDaggerSkillModifiers } from '#gw2/professions/warrior/core/skills/weapons/dagger.js';
+import { warriorBurstSkillModifiers } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { modifyWarriorArmsAttributes, warriorArmsModifierRules } from '#gw2/professions/warrior/core/traits/arms.js';
 import { warriorDefenseModifierRules } from '#gw2/professions/warrior/core/traits/defense.js';
@@ -16,7 +16,6 @@ import {
   modifyWarriorTacticsAttributes,
   warriorTacticsModifierRules
 } from '#gw2/professions/warrior/core/traits/tactics.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
 function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = { ...attributes } as WarriorModifierAttributes;
@@ -34,80 +33,18 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
   modifyWarriorStrengthAttributes(context, result, staticRulesApplied, gearPower);
   modifyWarriorTacticsAttributes(context, result, staticRulesApplied);
   modifyWarriorArmsAttributes(context, result, staticRulesApplied);
+  modifySignetAttributes(context, result, staticRulesApplied);
 
   return result;
 }
 
 const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    id: 'warrior.kill-shot-threshold',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.2,
-    order: 100,
-    // Kill Shot gets the same execute bonus from either a defiant target or live sub-50% health.
-    when: (context) =>
-      eventSkill(context)?.id === ID.KILL_SHOT &&
-      (context.config?.target?.defiant === true || targetHealthBelow(context, 0.5))
-  },
-  {
-    id: 'warrior.throw-axe-health-threshold',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    parameters: {
-      lowerThreshold: 0.25,
-      upperThreshold: 0.5,
-      lowerFactor: 2,
-      upperFactor: 1.5
-    },
-    factor: (context, _target, parameters) =>
-      targetHealthBelow(context, parameters.lowerThreshold)
-        ? parameters.lowerFactor
-        : targetHealthBelow(context, parameters.upperThreshold)
-          ? parameters.upperFactor
-          : 1,
-    order: 100,
-    when: (context) => eventSkill(context)?.id === ID.THROW_AXE
-  },
   ...warriorStrengthModifierRules,
   ...warriorTacticsModifierRules,
   ...warriorDefenseModifierRules,
   ...warriorArmsModifierRules,
-  {
-    id: 'warrior.dagger-auto-critical-damage',
-    target: MODIFIER_TARGET.CRITICAL_DAMAGE,
-    operation: 'multiply',
-    factor: 1.15,
-    order: 100,
-    when: (context) => {
-      const skillId = Number(eventSkill(context)?.id);
-      return skillId === ID.PRECISE_CUT || skillId === ID.FOCUSED_SLASH;
-    }
-  },
-  {
-    id: 'warrior.wastrels-ruin-defiant',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 2,
-    order: 100,
-    when: (context) => eventSkill(context)?.id === ID.WASTRELS_RUIN && context.config?.target?.defiant === true
-  },
-  {
-    id: 'warrior.breaching-strike-boonless',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.5,
-    order: 100,
-    when: (context) => eventSkill(context)?.id === ID.BREACHING_STRIKE
-  },
-  {
-    id: 'warrior.slicing-maelstrom-boonless',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.5,
-    order: 100,
-    when: (context) => eventSkill(context)?.id === ID.SLICING_MAELSTROM
-  },
+  ...warriorBurstSkillModifiers,
+  ...warriorDaggerSkillModifiers,
   ...warriorDisciplineModifierRules
 ]);
 

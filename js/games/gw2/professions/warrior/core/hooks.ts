@@ -1,19 +1,22 @@
+import { spendWarriorMagazine } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
+import { signetOfRageLifecycle } from '#gw2/professions/warrior/core/skills/slot-skills.js';
+import { fierceBlowDamage } from '#gw2/professions/warrior/core/skills/weapons/hammer.js';
+import { combustiveShotFields } from '#gw2/professions/warrior/core/skills/profession-skills.js';
+import { counterblowActions } from '#gw2/professions/warrior/core/skills/weapons/mace.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { applySideEffect, sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { scaleCastBoundTiming, materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import { BRAVE_STRIDE_MOVEMENT_SKILL_IDS, reactToWarriorBuff } from '#gw2/professions/warrior/core/traits/strength.js';
+import { reactToWarriorBuff } from '#gw2/professions/warrior/core/traits/strength.js';
 import { reactToWarriorDamage } from '#gw2/professions/warrior/core/traits/arms.js';
-import { consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   balanceProfileNumber,
-  effectNumber,
   procChanceFromContext,
   requireBalanceProfileFromContext,
   requireEffect
@@ -25,13 +28,13 @@ import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import {
+  burstAdrenalineSpend,
   grantWarriorAdrenaline,
   warriorBurstSpends,
   warriorBurstTier
 } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 
 type WarriorRuntime = Gw2Runtime<WarriorRuntimeState>;
-const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
 const EMPOWER_PULSE = 'warrior.empower-allies-pulse';
 
 /** Actual reactions emit fresh trait packets, retaining only the triggering activation and causal placement. */
@@ -303,31 +306,13 @@ function startTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
 /** Only completed activations earn signet, movement, and dodge rewards, using the live resource owner. */
 function completeTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
   const skill = cast.skill;
-  if (
-    hasTrait(runtime, TRAIT.BRAVE_STRIDE) &&
-    (skill.movementSkill || BRAVE_STRIDE_MOVEMENT_SKILL_IDS.some((id) => id === skill.id))
-  ) {
+  if (hasTrait(runtime, TRAIT.BRAVE_STRIDE) && skill.movementSkill) {
     grantWarriorAdrenaline(
       runtime,
       balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.braveStride), 'resourceGain')
     );
     castTraitBuff(runtime, cast, TRAIT.BRAVE_STRIDE, PROFILE.braveStride, 'Brave Stride', 'stability', 'boon');
   }
-}
-
-/** One-bar elites reserve only the authored cost; Core reserves the whole pool for the activation's tier. */
-function burstAdrenalineSpend(runtime: WarriorRuntime, skill: WarriorSkill): number {
-  const available = runtime.profession.core.adrenaline;
-  return skill.primalBurst || ['Spellbreaker', 'Paragon'].includes(runtime.profession.specialization.kind)
-    ? Math.min(available, skill.adrenalineCost ?? 0)
-    : available;
-}
-
-/** Each pulse checks current recharge and then schedules only its next occurrence, preserving cadence while suppressed. */
-function signetPulse(runtime: WarriorRuntime): void {
-  if ((runtime.cooldowns.get(ID.SIGNET_OF_RAGE) ?? 0) <= runtime.time) grantWarriorAdrenaline(runtime, 2);
-  runtime.profession.core.nextSignetPulseAt = canonicalTime(runtime.time + 3);
-  runtime.schedule(SIGNET_PULSE, runtime.profession.core.nextSignetPulseAt, null, undefined, -220);
 }
 
 /** Empower Allies owns one next wake; removing its Might or disabling cadence cannot leave a recurring task. */
@@ -361,6 +346,10 @@ function weaponSwapTraits(runtime: WarriorRuntime): void {
 export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
   // Custom verbs keep specialization-dependent resource conversion and catalog-matched targets in their owner.
   sideEffectHandlers: {
+    'warrior.spend-magazine'(runtime, context) {
+      if (context.kind === 'cast') spendWarriorMagazine(runtime, context.cast);
+    },
+    ...counterblowActions,
     // Reuse existing delivery priority and labels; the skill declaration owns eligibility and its profile owns tuning.
     'warrior.critical-might'(runtime, context) {
       if (context.kind === 'effect') traitEffects(runtime, context.trigger.event, Number(context.skill.id));
@@ -407,11 +396,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
       );
     }
   },
-  onCombatStart(runtime) {
-    if (!selectedSkillNameSet(runtime.config.selectedSkills).has('Signet of Rage')) return;
-    runtime.profession.core.nextSignetPulseAt = canonicalTime(runtime.time + 3);
-    runtime.schedule(SIGNET_PULSE, runtime.profession.core.nextSignetPulseAt, null, undefined, -220);
-  },
+  onCombatStart: signetOfRageLifecycle.onCombatStart,
   // Selected weapon and burst traits share live, patchable recharge rules.
   rechargeRules: [
     {
@@ -545,8 +530,6 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
   },
   onCastStart(runtime, cast) {
     startTraits(runtime, cast);
-    // Attempting the manual follow-up consumes its occurrence, even if the attack is later canceled.
-    if (cast.skill.id === ID.TACTICAL_BLOW) consumeSkillFlip(runtime.profession.core.availableFlips, ID.TACTICAL_BLOW);
     if (cast.skill.burst && !cast.skill.dragonSlash) {
       const state = runtime.profession.core;
       const spent = burstAdrenalineSpend(runtime, cast.skill);
@@ -554,122 +537,18 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
       state.adrenaline -= spent;
     }
   },
-  modifyComboFields(runtime, cast, fields) {
-    if (cast.skill.id !== ID.COMBUSTIVE_SHOT) return fields;
-    const tier = warriorBurstTier(runtime, burstAdrenalineSpend(runtime, cast.skill));
-    const duration =
-      tier * balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.combustiveShot), 'durationPerTier');
-    return fields?.flatMap((field) =>
-      field.ownerId !== 'warrior' ? [field] : duration > 0 ? [{ ...field, duration }] : []
-    );
-  },
+  modifyComboFields: combustiveShotFields,
   modifyEffects(runtime, cast, effects) {
-    // Dragon's Roar commits the available rounds; the shared completion spends the final reserved round once.
-    if (cast.skill.id === ID.DRAGONS_ROAR) {
-      const ammo = runtime.ammo.get(cast.skill.id);
-      const bullets = Math.max(1, ammo?.charges ?? 1);
-      if (ammo && ammo.charges > 1) ammo.charges = 1;
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.dragonsRoar);
-      const strike = requireEffect(profile, 'strike', 'Strike');
-      if (!strike) return [];
-      const durationMs = (cast.effectiveEnd - cast.start) * 1000;
-      const first = durationMs * balanceProfileNumber(profile, 'firstPacketRatio');
-      const interval = durationMs * balanceProfileNumber(profile, 'packetIntervalRatio');
-      return [
-        {
-          type: 'strike',
-          timingAnchor: 'castStart',
-          timingScale: 'fixed',
-          name: "Dragon's Roar — Damage per Bullet",
-          damageKind: 'explosion',
-          weapon: 'Pistol',
-          ticks: Array.from({ length: bullets }, (_, index) => ({
-            atMs: first + index * interval,
-            coefficient: effectNumber(profile, strike, 'coefficient')
-          }))
-        }
-      ];
-    }
-
     if (!cast.skill.burst || cast.skill.dragonSlash) return effects;
     const spent = warriorBurstSpends.get(cast)!;
     const tier = warriorBurstTier(runtime, spent);
-    if (cast.skill.id === ID.COMBUSTIVE_SHOT) {
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.combustiveShot);
-      const interval = balanceProfileNumber(profile, 'pulseInterval');
-      const pulses = interval > 0 ? tier + 1 : 1;
-      // Each selected component keeps its own removal semantics and fixed post-completion cadence.
-      const timing = {
-        timingAnchor: 'castEnd' as const,
-        timingScale: 'fixed' as const,
-        persistsAfterInterrupt: true,
-        metadata: { warriorAdrenalineSpent: spent, warriorBurstTier: tier }
-      };
-      const strike = requireEffect(profile, 'strike', 'Strike');
-      const burning = requireEffect(profile, 'condition', 'Burning');
-      return [
-        ...(strike
-          ? [
-              {
-                ...timing,
-                type: 'strike' as const,
-                weapon: 'Longbow',
-                ticks: Array.from({ length: pulses }, (_, index) => ({
-                  atMs: index * interval * 1000,
-                  coefficient: effectNumber(profile, strike, 'coefficient')
-                }))
-              }
-            ]
-          : []),
-        ...(burning
-          ? [
-              {
-                ...timing,
-                type: 'condition' as const,
-                condition: String(burning.condition),
-                stacks: effectNumber(profile, burning, 'stacks'),
-                duration: effectNumber(profile, burning, 'duration'),
-                atMs: 0,
-                applications: pulses,
-                intervalMs: interval * 1000
-              }
-            ]
-          : [])
-      ];
-    }
 
-    return effects.flatMap((effect) => {
-      const captured = {
-        ...effect,
-        metadata: { ...effect.metadata, warriorAdrenalineSpent: spent, warriorBurstTier: tier }
-      };
-      if (cast.skill.id === ID.ARCING_SLICE && effect.type === 'boon' && effect.boon === 'fury')
-        return [{ ...captured, duration: effect.duration * [1, 1.5, 2][tier - 1] }];
-      if (cast.skill.id === ID.KILL_SHOT && effect.type === 'strike')
-        return [{ ...captured, coefficient: (Number(effect.coefficient) * [2.25, 2.75, 3.25][tier - 1]) / 2.25 }];
-      if (cast.skill.id === ID.BLOODTHIRSTER && effect.type === 'condition' && effect.condition === 'Bleeding') {
-        const profile = requireBalanceProfileFromContext(runtime, PROFILE.bloodthirsterTiers);
-        const bleeding = requireEffect(profile, 'condition', `Tier ${tier}`);
-        return bleeding
-          ? [
-              {
-                ...captured,
-                stacks: effectNumber(profile, bleeding, 'stacks'),
-                duration: effectNumber(profile, bleeding, 'duration')
-              }
-            ]
-          : [];
-      }
-
-      return [captured];
-    });
+    return effects.map((effect) => ({
+      ...effect,
+      metadata: { ...effect.metadata, warriorAdrenalineSpent: spent, warriorBurstTier: tier }
+    }));
   },
   onCastCommit(runtime, cast) {
-    // A committed block may release early; its follow-up inherits the remaining original channel window.
-    if (cast.skill.id === ID.COUNTERBLOW && runtime.time < cast.fullEnd) {
-      runtime.armFlip(ID.TACTICAL_BLOW, { expiresAt: cast.fullEnd });
-    }
-
     // Successful bursts refund the captured spend at completion, independently of target acceptance.
     const spent = warriorBurstSpends.get(cast) ?? 0;
     if (cast.skill.burst && cast.skill.id !== ID.FULL_COUNTER && spent > 0 && hasTrait(runtime, TRAIT.BURST_MASTERY)) {
@@ -698,15 +577,11 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     runtime.profession.core.adrenaline = runtime.profession.core.maximumAdrenaline;
   },
   tasks: {
-    [SIGNET_PULSE]: signetPulse,
+    ...signetOfRageLifecycle.tasks,
     [EMPOWER_PULSE]: empowerPulse
   },
   reactions: {
-    'damage.resolving'(runtime, event) {
-      // Only defiant targets receive the bonus; temporary disable windows are outside simulation scope.
-      if (event.skillId === ID.FIERCE_BLOW && Number(event.coefficient) > 0 && runtime.config.target?.defiant)
-        return { coefficient: Number(event.coefficient) * 1.5 };
-    },
+    'damage.resolving': fierceBlowDamage,
     'damage.resolved'(runtime, event, details) {
       if ((event.actorType === 'player' || event.canTriggerCriticalTraits === true) && Number(event.coefficient) > 0) {
         const firstBurst = firstBurstHit(runtime, event);

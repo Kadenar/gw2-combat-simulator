@@ -29,23 +29,21 @@ import {
   revenantUpkeepDrain,
   revenantUpkeepPulse,
   starveRevenantUpkeeps,
-  startRevenantUpkeepCast,
+  startRevenantEmbrace,
   toggleRevenantUpkeep
 } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import {
   completeRevenantCrushingAbyssSwap,
   completeRevenantImperialGuard,
-  completeRevenantBlossomingAura,
   detonateRevenantBlossomingAura,
   reactRevenantSpearRecharge,
   revenantAbyssalRazeImpact,
   revenantBlossomingAuraPulse,
-  revenantHitboxEffects,
   REVENANT_ABYSSAL_RAZE,
   REVENANT_BLOSSOMING_AURA,
   startRevenantAbyssalRaze,
   startRevenantBlossomingAura,
-  startRevenantWeaponCast
+  startRevenantImperialGuard
 } from '#gw2/professions/revenant/core/mechanics/weapons.js';
 import {
   applyRevenantInvocationTraits,
@@ -215,6 +213,41 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast): void {
 export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   // Base-second reductions remain with the cooldown controller, including partial-ammo progress.
   sideEffectHandlers: {
+    'revenant.imperial-guard'(runtime, context) {
+      if (context.kind === 'cast') startRevenantImperialGuard(runtime, context.cast);
+    },
+    'revenant.enchanted-daggers'(runtime, context) {
+      if (context.kind === 'cast') completeRevenantEnchantedDaggers(runtime, context.cast);
+    },
+    'revenant.blossoming-aura'(runtime, context) {
+      if (context.kind === 'cast') startRevenantBlossomingAura(runtime, context.cast);
+    },
+    'revenant.detonate-aura'(runtime, context) {
+      if (context.kind === 'cast') detonateRevenantBlossomingAura(runtime, context.cast);
+    },
+    'revenant.abyssal-raze'(runtime, context) {
+      if (context.kind === 'cast') startRevenantAbyssalRaze(runtime, context.cast);
+    },
+    'revenant.embrace-opening'(runtime, context) {
+      if (context.kind === 'cast') startRevenantEmbrace(runtime, context.cast);
+    },
+    'revenant.release-upkeep'(runtime, context) {
+      if (context.kind === 'cast') releaseRevenantUpkeep(runtime, context.cast);
+    },
+    'revenant.swap-legends'(runtime, context) {
+      if (context.kind === 'cast') swapLegend(runtime, context.cast);
+    },
+    // Reserve before activation, then pay before the upkeep changes live cost queries.
+    'revenant.reserve-upkeep'(runtime, context) {
+      if (context.kind === 'cast') upkeepCosts.set(context.cast, revenantEnergyCost(runtime, context.skill));
+    },
+    'revenant.activate-upkeep'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      const cost = upkeepCosts.get(context.cast);
+      upkeepCosts.delete(context.cast);
+      if (cost != null) runtime.resourceController.spend('energy', cost);
+      toggleRevenantUpkeep(runtime, context.cast);
+    },
     'revenant.spear-recharge'(runtime, context) {
       if (context.kind === 'effect') reactRevenantSpearRecharge(runtime, context.trigger.event);
     }
@@ -236,20 +269,13 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
   modifyEffects(runtime, cast, effects) {
     if (CUSTOM_EFFECT_SKILL_IDS.has(cast.skill.id) || isRevenantUpkeep(cast.skill)) return [];
     if (upkeepRelease(runtime, cast.skill)) return [];
-    return revenantHitboxEffects(runtime, effects);
+    return effects;
   },
   onCastStart(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
     if (DODGE_IDS.has(skill.id)) return;
-    if (isRevenantUpkeep(skill)) upkeepCosts.set(cast, revenantEnergyCost(runtime, skill));
-    else if (skill.id !== ID.SWAP_LEGENDS)
+    if (!isRevenantUpkeep(skill) && skill.id !== ID.SWAP_LEGENDS)
       runtime.resourceController.spend('energy', revenantEnergyCost(runtime, skill));
-    startRevenantWeaponCast(runtime, cast);
-    if (cast.cancelled) return;
-    startRevenantUpkeepCast(runtime, cast);
-    if (skill.id === ID.BLOSSOMING_AURA) startRevenantBlossomingAura(runtime, cast);
-    else if (skill.id === ID.DETONATE_BLOSSOMING_AURA) detonateRevenantBlossomingAura(runtime, cast);
-    else if (skill.id === ID.ABYSSAL_RAZE) startRevenantAbyssalRaze(runtime, cast);
   },
   onCastCancel(runtime, cast) {
     // A cancelled follow-up consumes its armed window without paying upkeep or granting cast rewards.
@@ -258,20 +284,10 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
   },
   onCastCommit(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
-    const upkeepCost = upkeepCosts.get(cast);
-    upkeepCosts.delete(cast);
-    if (upkeepCost != null) runtime.resourceController.spend('energy', upkeepCost);
-    completeRevenantImperialGuard(runtime, cast);
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
       completeRevenantCrushingAbyssSwap(runtime, cast);
       completeRevenantBrutality(runtime, cast);
     }
-
-    if (isRevenantUpkeep(skill)) toggleRevenantUpkeep(runtime, cast);
-    else if (upkeepRelease(runtime, skill)) releaseRevenantUpkeep(runtime, cast);
-    else if (skill.id === ID.SWAP_LEGENDS) swapLegend(runtime, cast);
-    else if (skill.id === ID.ENCHANTED_DAGGERS) completeRevenantEnchantedDaggers(runtime, cast);
-    completeRevenantBlossomingAura(runtime, cast);
 
     completeRevenantCastTraits(runtime, cast);
     // Empower only after the paid skill commits, so a pulse during its windup cannot consume the bonus.

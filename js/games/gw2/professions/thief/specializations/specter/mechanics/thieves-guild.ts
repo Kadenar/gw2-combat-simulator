@@ -1,3 +1,5 @@
+import { permanentTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefSummonCondition, ThiefSummonDefinition, ThiefSummonStrike } from '#gw2/professions/thief/types.js';
 
 const SKILL = Object.freeze({
@@ -73,3 +75,23 @@ export const SPECTER_THIEVES_GUILD_SUMMON: ThiefSummonDefinition = Object.freeze
   weaponStrengthProfileId: 'weapon.scepter',
   attacks: specterAttackPattern()
 });
+
+const WELL_OF_SORROW = 67795;
+const WELL_OF_SORROW_PRIORITY = Object.freeze(['Poisoned', 'Bleeding', 'Torment']);
+const WELL_OF_SORROW_CONDITIONS = Object.freeze([
+  Object.freeze({ condition: 'Poisoned', stacks: 1, duration: 3 }),
+  Object.freeze({ condition: 'Bleeding', stacks: 2, duration: 4 }),
+  Object.freeze({ condition: 'Torment', stacks: 2, duration: 4 }),
+  Object.freeze({ condition: 'Torment', stacks: 1, duration: 4 })
+]);
+
+/** Well of Sorrow chooses the first missing condition from the target's state at its own impact. */
+export function guildAttackConditions(runtime: ThiefRuntime, attack: ThiefSummonStrike) {
+  if (attack.skillId !== WELL_OF_SORROW) return attack.conditions || [];
+  if (WELL_OF_SORROW_PRIORITY.every((condition) => permanentTargetConditionStacks(runtime.config, condition) > 0))
+    return [WELL_OF_SORROW_CONDITIONS[3]];
+  const missing = WELL_OF_SORROW_PRIORITY.findIndex(
+    (condition) => !runtime.query.targetHasCondition(condition, runtime.time, runtime)
+  );
+  return [WELL_OF_SORROW_CONDITIONS[missing < 0 ? 3 : missing]];
+}

@@ -1,3 +1,4 @@
+import { vampiricSlashModifier } from '#gw2/professions/thief/core/skills/weapons/spear.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -12,7 +13,6 @@ import {
   eventSkill,
   hasSelectedSkill,
   playerHealthFraction,
-  targetConditionActive,
   targetConditionCount,
   targetHealthBelow,
   targetHealthFraction
@@ -37,6 +37,7 @@ export function thiefRuntimeSpecializationState<TState extends object = object>(
 }
 
 export const thiefCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
+  vampiricSlashModifier,
   {
     id: 'thief.exposed-weakness',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -47,16 +48,7 @@ export const thiefCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>(
     factor: (context, _target, parameters) => 1 + targetConditionCount(context) * parameters.damagePerCondition,
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.EXPOSED_WEAKNESS)
   },
-  {
-    id: 'thief.vampiric-slash-vulnerable',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.5,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      context.event?.metadata?.packetKind === 'thief.vampiric-slash-life-siphon' &&
-      targetConditionActive(context, 'Vulnerability')
-  },
+
   {
     id: 'thief.executioner',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -111,13 +103,7 @@ export const thiefCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>(
       hasTrait(context, TRAIT.DEADLY_AIM) &&
       eventSkill(context)?.weapon === 'Pistol'
   },
-  {
-    id: 'thief.larcenous-strike-boonless',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.2,
-    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && eventSkill(context)?.id === ID.LARCENOUS_STRIKE
-  },
+
   {
     id: 'thief.lead-attacks',
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
@@ -153,16 +139,7 @@ export const thiefCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>(
       isGw2PlayerModifierOwnedEvent(context.event) &&
       (thiefRuntimeState(context).distractingThrowBuffUntil || 0) > context.time
   },
-  {
-    id: 'thief.backstab-position',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 2,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      eventSkill(context)?.id === ID.BACKSTAB &&
-      Boolean(context.config?.target?.defiant)
-  },
+
   {
     id: 'thief.potent-poison-damage',
     target: MODIFIER_TARGET.CONDITION_DAMAGE,

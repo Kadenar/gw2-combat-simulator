@@ -109,7 +109,11 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ])
   },
   [ID.CHANNELED_VIGOR]: {
-    sideEffects: PHYSICAL_ENDURANCE,
+    // Keep the intrinsic completion grant separate from the acceptance trait reward.
+    sideEffects: [
+      ...PHYSICAL_ENDURANCE,
+      { on: 'castCommit', do: { type: 'resourceGrant', resource: 'endurance', amount: { skillField: 'resourceGain' } } }
+    ],
     castTimeMs: 480,
     // The endurance grant commits at 440 ms, allowing the remaining cast to be interrupted.
     interruptCommitMs: 440,

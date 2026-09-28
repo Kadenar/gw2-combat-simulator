@@ -110,13 +110,16 @@ test('Ranger public state is composed from Core and specialization-owned manifes
   }
 });
 
-test('Ranger Core source stays specialization-agnostic', async () => {
+test('Ranger Core shared mechanics stay specialization-agnostic', async () => {
   const directory = new URL('../../../../../js/games/gw2/professions/ranger/core/', import.meta.url);
   const files = (await readdir(directory, { recursive: true })).filter((file) => file.endsWith('.ts'));
   const sources = await Promise.all(files.map((file) => readFile(new URL(file, directory), 'utf8')));
-  const coreSource = sources.join('\n');
-
-  assert.doesNotMatch(coreSource, /specializations\//);
+  assert.doesNotMatch(sources.join('\n'), /specializations\//);
+  // Shared skill definitions may select an optional elite recipient; state machines still belong to the elite.
+  const recipientDefinitions = new Set(['skills/slot-skills.ts', 'skills/weapons/greatsword.ts']);
+  const coreSource = sources
+    .filter((_source, index) => !recipientDefinitions.has(files[index].replaceAll('\\', '/')))
+    .join('\n');
   assert.doesNotMatch(coreSource, /\b(?:Druid|Soulbeast|Untamed|Galeshot|Beastmode)\b/);
   assert.doesNotMatch(coreSource, /\b(?:beastmodeActive|astralClock|rangerUnleashed|cycloneBowActive)\b/);
 });

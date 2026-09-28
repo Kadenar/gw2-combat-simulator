@@ -7,7 +7,10 @@ import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenan
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 /** Owns Conduit Release Potential skill variants. */
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import { conditionEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 
 /** Capture equipped-legend eligibility at acceptance; full affinity unlocks every Dervish component. */
@@ -16,8 +19,36 @@ const releaseLegend = (legend: string) => (runtime: RevenantRuntime) =>
   effectiveConduitAffinity(runtime) >=
     balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.affinity), 'minimumStacks');
 
+/** Releases inherit active-weapon attribution; Assassin durations snapshot affinity, Mesmer conditions resolve live. */
+function releaseEffects(
+  runtime: RevenantRuntime,
+  cast: RuntimeCast,
+  effects: readonly SkillEffect[]
+): readonly SkillEffect[] {
+  const assassin = cast.skill.id === ID.RELEASE_POTENTIAL_ASSASSIN;
+  const affinity = assassin ? effectiveConduitAffinity(runtime) : 0;
+  const set = runtime.activeWeaponSet === 2 ? 2 : 1;
+  const weapon =
+    cast.skill.weapon ||
+    (cast.skill.type === 'Profession' ? (gw2PrimaryWeapon(runtime.config, set) ?? '') : 'Unequipped');
+  return effects.flatMap((effect): SkillEffect[] => {
+    if (effect.type === 'strike') return [{ ...effect, weapon }];
+    if (effect.type === 'condition') {
+      if (cast.skill.id === ID.RELEASE_POTENTIAL_MESMER) return [];
+      if (assassin) {
+        const multiplier = 1 + affinity * Number(effect.durationPerAffinity || 0);
+        const ticks = conditionEffectTicks(effect).map((tick) => ({ ...tick, duration: tick.duration * multiplier }));
+        return ticks.length ? [{ ...effect, ticks }] : [];
+      }
+    }
+
+    return [effect];
+  });
+}
+
 export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RELEASE_POTENTIAL_MONK]: {
+    effectVariants: [{ when: () => true, transform: releaseEffects }],
     // The shared scheduler materializes these packets; conditional legend components declare their own gates.
     castTimeMs: 360,
     cooldown: 10,
@@ -28,6 +59,10 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.RELEASE_POTENTIAL_MESMER]: {
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.mesmer-release' } }
+    ],
+    effectVariants: [{ when: () => true, transform: releaseEffects }],
     // Strike and daze use ordinary scheduling; Conduit evaluates the conditions' affinity at impact.
     castTimeMs: 440,
     cooldown: 10,
@@ -66,6 +101,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.RELEASE_POTENTIAL_DERVISH]: {
+    effectVariants: [{ when: () => true, transform: releaseEffects }],
     // The shared scheduler materializes these packets; conditional legend components declare their own gates.
     castTimeMs: 680,
     // Dervish commits its impact before the remaining animation can be cancelled.
@@ -110,6 +146,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.RELEASE_POTENTIAL_ASSASSIN]: {
+    effectVariants: [{ when: () => true, transform: releaseEffects }],
     // Conduit snapshots condition-duration scaling; the shared scheduler owns all release packets.
     // Assassin releases the cast lane at 720 ms; the final strike follows at 800 ms.
     castTimeMs: 720,
@@ -150,6 +187,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.RELEASE_POTENTIAL_WARRIOR]: {
+    effectVariants: [{ when: () => true, transform: releaseEffects }],
     // The shared scheduler materializes these packets; conditional legend components declare their own gates.
     castTimeMs: 520,
     cooldown: 10,

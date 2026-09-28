@@ -4,6 +4,9 @@ import { DEADEYE_THIEVES_GUILD_SUMMON } from '#gw2/professions/thief/specializat
 import { SPECTER_THIEVES_GUILD_SUMMON } from '#gw2/professions/thief/specializations/specter/mechanics/thieves-guild.js';
 import type { ThiefSummonDefinition } from '#gw2/professions/thief/types.js';
 
+// Core's summon scheduler uses the Specter-owned live selector through the family composition boundary.
+export { guildAttackConditions } from '#gw2/professions/thief/specializations/specter/mechanics/thieves-guild.js';
+
 const SPECIALIZATION_THIEVES_GUILD_SUMMON: Readonly<Record<string, ThiefSummonDefinition>> = Object.freeze({
   Antiquary: ANTIQUARY_THIEVES_GUILD_SUMMON,
   Daredevil: DAREDEVIL_THIEVES_GUILD_SUMMON,

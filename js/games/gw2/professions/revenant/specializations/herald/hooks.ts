@@ -1,3 +1,4 @@
+import { completeRevenantCastTraits } from '#gw2/professions/revenant/core/traits/index.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -310,18 +311,28 @@ export const heraldHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
       return denySkillCast(skill, 'revenant.facet-active', 'the facet is already active; consume it instead.');
     return { ready: true };
   },
-  onCastStart(runtime, cast) {
-    if (cast.skill.consume && !cast.cancelled) startConsume(runtime, cast);
-  },
-  // Cancellation still refreshes the live upkeep threshold without granting a cast reward.
+  // Facet actions finish before the observer evaluates the resulting aggregate upkeep.
   onCastCancel: syncCompassion,
-  onCastCommit(runtime, cast) {
-    const skill = cast.skill as RevenantSkill;
-    if (skill.consume) completeConsume(runtime, cast);
-    if (skill.id === ID.TRUE_NATURE_DRAGON) trueNatureDragon(runtime, cast);
-    // Facet lifecycle changes aggregate upkeep before Elevated Compassion evaluates its threshold.
-    startFacet(runtime, skill);
-    syncCompassion(runtime);
+  onCastCommit: syncCompassion,
+  sideEffectHandlers: {
+    'revenant.start-facet'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      // Keep Core rewards ahead of elite completion state and packets.
+      completeRevenantCastTraits(runtime, context.cast);
+      startFacet(runtime, context.skill);
+    },
+    'revenant.start-consume'(runtime, context) {
+      if (context.kind === 'cast') startConsume(runtime, context.cast);
+    },
+    'revenant.complete-consume'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      // Keep Core rewards ahead of elite completion state and packets.
+      completeRevenantCastTraits(runtime, context.cast);
+      completeConsume(runtime, context.cast);
+    },
+    'revenant.true-nature-dragon'(runtime, context) {
+      if (context.kind === 'cast') trueNatureDragon(runtime, context.cast);
+    }
   },
   reactions: {
     'damage.resolved': natureSiphon

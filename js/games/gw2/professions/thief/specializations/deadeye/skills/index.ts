@@ -1,13 +1,33 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/modifiers.js';
+import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
+import type { ThiefSimulationEvent } from '#gw2/professions/thief/types.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { grantThiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import { deadeyeCastFacts } from '#gw2/professions/thief/specializations/deadeye/state.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.STEAL_WARMTH]: {
-    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'thief.stealth' } },
+      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
+    ],
+    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -26,7 +46,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.STEAL_RESISTANCE]: {
-    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'thief.stealth' } },
+      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
+    ],
+    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -51,7 +76,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.STEAL_PRECISION]: {
-    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'thief.stealth' } },
+      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
+    ],
+    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -70,7 +100,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.STEAL_HEALTH]: {
-    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'thief.stealth' } },
+      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
+    ],
+    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -88,7 +123,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.STEAL_STRENGTH]: {
-    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'thief.stealth' } },
+      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
+    ],
+    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -170,7 +210,10 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   },
   [ID.MERCY]: {
     // The fixed reset belongs to the skill; Malice consumption and its scaled refund remain stateful.
-    sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.DEADEYES_MARK] } }],
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.DEADEYES_MARK] } },
+      { on: 'castCommit', do: { type: 'thief.mercy' } }
+    ],
     castTimeMs: 0,
     cooldown: 1,
     ammo: 2,
@@ -180,7 +223,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: []
   },
   [ID.STEAL_TIME]: {
-    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'thief.stealth' } },
+      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
+    ],
+    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 280,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -212,7 +260,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.STEAL_DURABILITY]: {
-    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'thief.stealth' } },
+      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
+    ],
+    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -237,16 +290,23 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.DEADEYES_MARK]: {
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.deadeyes-mark' } }],
     stealTraitSkill: true,
     movementSkill: true,
-    // Custom: Marks the target, initializes Malice/stolen skills, and schedules expiry through `deadeye/hooks.ts`.
+
     castTimeMs: 0,
     cooldown: 25,
     initiativeCost: 0,
     effects: []
   },
   [ID.STEAL_DEFENSES]: {
-    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'thief.stealth' } },
+      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
+    ],
+    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -265,7 +325,6 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.MALICIOUS_DEATHS_JUDGMENT]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/hooks.ts`.
     castTimeMs: 600,
     cooldown: 1,
     initiativeCost: 0,
@@ -284,7 +343,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.STEAL_MOBILITY]: {
-    // Completion consumes the stored skill and applies the canonical stealth transition through `deadeye/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'thief.stealth' } },
+      { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
+    ],
+    // The selected stealth grant commits before consuming the stored use.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -308,7 +372,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: []
   },
   [ID.SHADOW_MELD]: {
-    // Custom: Clears Revealed at cast start so stealth can apply through `deadeye/hooks.ts`.
+    // Clear Revealed before selecting the stealth grant; only commitment applies it.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'thief.clear-revealed' } },
+      { on: 'castCommit', do: { type: 'thief.stealth' } }
+    ],
+
     castTimeMs: 440,
     cooldown: 5,
     ammo: 2,
@@ -342,6 +411,8 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ]
   },
   [ID.SHADOW_GUST]: {
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.stealth' } }],
     castTimeMs: 360,
     cooldown: 30,
     initiativeCost: 0,
@@ -368,7 +439,6 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ]
   },
   [ID.MALICIOUS_SURPRISE_SHOT]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 1,
     initiativeCost: 0,
@@ -400,7 +470,11 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.MALICIOUS_SNEAK_ATTACK]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/hooks.ts`.
+    // Only a completed channel emits the Torment using its accepted malice.
+    sideEffects: [
+      { on: 'castCommit', when: (_runtime, cast) => !castWasInterrupted(cast), do: { type: 'thief.sneak-torment' } }
+    ],
+
     castTimeMs: 680,
     cooldown: 1,
     initiativeCost: 0,
@@ -429,7 +503,6 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.MALICIOUS_BACKSTAB]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/hooks.ts`.
     castTimeMs: 440,
     cooldown: 1,
     initiativeCost: 0,
@@ -448,7 +521,6 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.MALICIOUS_TACTICAL_STRIKE]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/hooks.ts`.
     castTimeMs: 440,
     cooldown: 1,
     initiativeCost: 0,
@@ -464,7 +536,31 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.MALICIOUS_SHADOWSQUALL]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/hooks.ts`.
+    // Transform the selected base packet so coefficient and duration patches remain authoritative.
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, cast, effects) => {
+          const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
+          const scaled = (duration: unknown) => Number(duration || 0) * (1 + 0.2 * malice);
+          return effects.map((effect) =>
+            effect.type !== 'condition'
+              ? effect
+              : effect.ticks?.length
+                ? {
+                    ...effect,
+                    ticks: effect.ticks.map((tick) =>
+                      tick.condition === 'Poisoned' ? { ...tick, duration: scaled(tick.duration) } : tick
+                    )
+                  }
+                : effect.condition === 'Poisoned'
+                  ? { ...effect, duration: scaled(effect.duration) }
+                  : effect
+          );
+        }
+      }
+    ],
+
     castTimeMs: 1680,
     cooldown: 0,
     initiativeCost: 0,
@@ -496,7 +592,22 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.MALICIOUS_HOOK_STRIKE]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/hooks.ts`.
+    // Zero accepted marked malice suppresses Quickness; later malice changes cannot change this payload.
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, cast, effects) => {
+          const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
+          return effects.flatMap((effect): SkillEffect[] => {
+            const quickness =
+              (effect.type === 'boon' && String(effect.boon).toLowerCase() === 'quickness') ||
+              (effect.type === 'buff' && effect.kind === 'quickness');
+            return !quickness ? [effect] : malice > 0 ? [{ ...effect, duration: (effect.duration || 0) * malice }] : [];
+          });
+        }
+      }
+    ],
+
     castTimeMs: 0,
     cooldown: 1,
     initiativeCost: 0,
@@ -526,7 +637,31 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.MALICIOUS_CUNNING_SALVO]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/hooks.ts`.
+    // Transform the selected base packet so coefficient and duration patches remain authoritative.
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, cast, effects) => {
+          const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
+          const scaled = (duration: unknown) => Number(duration || 0) + malice;
+          return effects.map((effect) =>
+            effect.type !== 'condition'
+              ? effect
+              : effect.ticks?.length
+                ? {
+                    ...effect,
+                    ticks: effect.ticks.map((tick) =>
+                      tick.condition === 'Poisoned' ? { ...tick, duration: scaled(tick.duration) } : tick
+                    )
+                  }
+                : effect.condition === 'Poisoned'
+                  ? { ...effect, duration: scaled(effect.duration) }
+                  : effect
+          );
+        }
+      }
+    ],
+
     castTimeMs: 360,
     cooldown: 1,
     initiativeCost: 0,
@@ -567,9 +702,50 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.MALICIOUS_ASHEN_ASSAULT]: {
+    // Snapshot rewards commit before the shared lifecycle releases the acceptance facts.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'thief.spear-chain' } },
+      {
+        on: 'castCommit',
+        do: {
+          type: 'resourceGrant',
+          resource: 'initiative',
+          amount: { profile: PROFILE.maliciousAshenAssault, field: 'resourceGain' }
+        }
+      },
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => (deadeyeCastFacts.get(cast)?.malice ?? 0) > 0,
+        do: { type: 'thief.ashen-torment' }
+      }
+    ],
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (runtime, cast, effects) => {
+          const factor =
+            1 +
+            (deadeyeCastFacts.get(cast)?.malice ?? 0) *
+              balanceProfileNumber(
+                requireBalanceProfileFromContext(runtime, PROFILE.maliciousAshenAssault),
+                'coefficientMultiplier'
+              );
+          return effects.map((effect) =>
+            effect.type !== 'strike' || effect.name !== 'Malicious Ashen Assault — Final Strike'
+              ? effect
+              : effect.ticks?.length
+                ? {
+                    ...effect,
+                    ticks: effect.ticks.map((tick) => ({ ...tick, coefficient: tick.coefficient * factor }))
+                  }
+                : { ...effect, coefficient: (effect.coefficient || 0) * factor }
+          );
+        }
+      }
+    ],
     preservesStealth: true,
     spearStealthAttack: true,
-    // Custom: Snapshots Malice, scales the final hit/Torment, refunds initiative, and consumes stealth through `deadeye/hooks.ts`.
+
     castTimeMs: 400,
     cooldown: 0,
     initiativeCost: 0,
@@ -621,3 +797,59 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   }
 });
+
+const SHADOW_FLARE_SKILL_IDS: ReadonlySet<number> = new Set([ID.SHADOW_FLARE, ID.SHADOW_SWAP]);
+const MALICIOUS_DAMAGE_SCALING_SKILL_IDS: ReadonlySet<number> = new Set([
+  ID.MALICIOUS_BACKSTAB,
+  ID.MALICIOUS_DEATHS_JUDGMENT
+]);
+
+export function markedTarget(context: Gw2ModifierContext): boolean {
+  const state = thiefRuntimeSpecializationState<DeadeyeState>(context, 'Deadeye');
+  return Boolean(state.markedTargetId) && (state.markExpiresAt || Infinity) > context.time;
+}
+
+/** Intrinsic damage rules retain live mark eligibility and additive malice composition. */
+export const deadeyeSkillModifiers: readonly Gw2ModifierRule[] = [
+  {
+    id: 'thief.shadow-flare-marked',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.5,
+    when: (context) =>
+      isGw2PlayerModifierOwnedEvent(context.event) &&
+      markedTarget(context) &&
+      SHADOW_FLARE_SKILL_IDS.has(Number(eventSkill(context)?.id))
+  },
+  {
+    id: 'thief.malicious-backstab-position',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 2,
+    // Malicious Backstab belongs to Deadeye; its rear-position rule stays out of the base Thief modifier set.
+    when: (context) =>
+      isGw2PlayerModifierOwnedEvent(context.event) &&
+      eventSkill(context)?.id === ID.MALICIOUS_BACKSTAB &&
+      Boolean(context.config?.target?.defiant)
+  },
+  {
+    id: 'thief.malicious-stealth-attack',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'damage-additive',
+    // Malice at cast start is snapshotted onto the event so each hit sees the pre-consumption value after malice is spent
+    parameters: { damagePerMalice: 0.1 },
+    amount: (context, _target, parameters) =>
+      Math.max(0, (context.event as ThiefSimulationEvent | undefined)?.deadeyeMaliceSnapshot || 0) *
+      parameters.damagePerMalice,
+    when: (context) =>
+      isGw2PlayerModifierOwnedEvent(context.event) &&
+      markedTarget(context) &&
+      MALICIOUS_DAMAGE_SCALING_SKILL_IDS.has(Number(eventSkill(context)?.id))
+  }
+];
+
+/** Called after Core observers and the shared first-landed latch, before malice consumption. */
+export function refundMaliciousTacticalStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent): void {
+  if (event.skillId === ID.MALICIOUS_TACTICAL_STRIKE)
+    grantThiefEndurance(runtime, Number(event.deadeyeMaliceSnapshot || 0) * 10);
+}

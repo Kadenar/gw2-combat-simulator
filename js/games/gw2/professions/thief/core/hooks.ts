@@ -15,10 +15,9 @@ import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thie
 import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import {
-  completeThiefCoreResources,
-  grantThiefInitiative,
   restartThiefInfiltratorsSignet,
   spendThiefCoreResources,
+  setThiefKneeling,
   THIEF_INFILTRATORS_SIGNET_PULSE,
   thiefInfiltratorsSignetPulse,
   thiefEndurance,
@@ -26,6 +25,8 @@ import {
 } from '#gw2/professions/thief/core/mechanics/resources.js';
 import {
   beginThiefStealthAttack,
+  selectThiefStealth,
+  commitThiefStealth,
   completeThiefStealthAttack,
   reactThiefStealthBreakingStrike,
   thiefBonusStealthAttack,
@@ -40,11 +41,17 @@ import {
   THIEF_STOLEN_SKILL_IDS
 } from '#gw2/professions/thief/core/mechanics/steal.js';
 import {
-  completeThiefCoreActions,
-  completeThiefWeaponState,
+  prepareTrap,
+  activateTrap,
+  activateVenom,
+  updateSpearChain,
+  completeThiefWeaponSwap,
+  activateAssassinsSignet,
+  summonThievesGuild,
   expireThievesGuild,
   expireThiefScepterChain,
   grantThiefGroundAxe,
+  grantDistractingThrowWindow,
   unsuspectingStrikeBonus,
   startThievesGuild,
   THIEF_GUILD_ATTACK,
@@ -155,32 +162,50 @@ function thiefRechargeWork(runtime: ThiefRuntime, rawSkill: Skill, work: number)
 
 const THIEF_CORE_COMPLETE = 'thief.core-complete';
 
-/** Core completion: resources, steals, stealth attacks, utilities, weapon state, and completion traits. */
+/** Shared swap and completion traits retain their post-packet order after intrinsic skill actions commit. */
 function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const skill = cast.skill as ThiefSkill;
   const committed = !cast.cancelled;
   pruneSkillFlips(runtime.profession.core.availableFlips, runtime.time);
-  completeThiefCoreResources(runtime, cast, committed);
-  if (committed && skill.id === ID.STEAL) {
-    emitThiefStealTraits(runtime, cast);
-    completeThiefSteal(runtime, THIEF_STOLEN_SKILL_IDS);
-  }
-
-  if (committed && THIEF_STOLEN_SKILL_IDS.includes(skill.id)) consumeThiefStolenSkill(runtime, skill);
   if (committed && skill.stealthAttack) completeThiefStealthAttack(runtime, cast);
-  if (committed && skill.id === ID.ASHEN_ASSAULT)
-    grantThiefInitiative(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.ashenAssaultRefund), 'resourceGain')
-    );
-  completeThiefCoreActions(runtime, cast, committed);
-  completeThiefWeaponState(runtime, cast, committed);
+  if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) completeThiefWeaponSwap(runtime);
   completeThiefCastTraits(runtime, cast, committed);
 }
 
 /** Core hooks: initiative, endurance, stealth, steals, weapon follow-ups, utilities, and resolved trait reactions. */
 export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   sideEffectHandlers: {
+    'thief.restart-signet': restartThiefInfiltratorsSignet,
+    'thief.assassins-signet': activateAssassinsSignet,
+    'thief.kneel': (runtime) => setThiefKneeling(runtime, true),
+    'thief.stand': (runtime) => setThiefKneeling(runtime, false),
+    'thief.recall-axes': (runtime) => {
+      runtime.profession.core.spinningAxeExpirations = [];
+    },
+    'thief.spear-chain': (runtime, context) => updateSpearChain(runtime, context.skill),
+    'thief.consume-stolen': (runtime, context) => consumeThiefStolenSkill(runtime, context.skill),
+    'thief.steal'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      // Preserve the shared trait notification before acquisition and Kleptomaniac.
+      emitThiefStealTraits(runtime, context.cast);
+      completeThiefSteal(runtime, THIEF_STOLEN_SKILL_IDS);
+    },
+    'thief.prepare-trap'(runtime, context) {
+      if (context.kind === 'cast') prepareTrap(runtime, context.cast);
+    },
+    'thief.activate-trap'(runtime, context) {
+      if (context.kind === 'cast') activateTrap(runtime, context.cast);
+    },
+    'thief.activate-venom'(runtime, context) {
+      if (context.kind === 'cast') activateVenom(runtime, context.cast);
+    },
+    'thief.summon-guild'(runtime, context) {
+      if (context.kind === 'cast') summonThievesGuild(runtime, context.cast);
+    },
+    'thief.stealth'(runtime, context) {
+      if (context.kind === 'cast') commitThiefStealth(runtime, context.cast);
+    },
+
     'thief.ground-axe': grantThiefGroundAxe,
     'thief.unsuspecting-bleeding'(runtime, context) {
       if (context.kind === 'effect') unsuspectingStrikeBonus(runtime, context.trigger.event);
@@ -219,12 +244,13 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     if (skill.id === SHARED_SKILL_IDS.DODGE) startThiefDodge(runtime, cast);
     if (skill.stealthAttack) beginThiefStealthAttack(runtime, cast);
   },
+  modifyEffects: selectThiefStealth,
   onCastCommit(runtime, cast) {
     deferThiefCompletion(runtime, THIEF_CORE_COMPLETE, cast);
   },
   onCastCancel(runtime, cast) {
     // A cancelled signet still restarts its passive cadence after its recharge has settled.
-    if (cast.skill.id === ID.INFILTRATORS_SIGNET) deferThiefCompletion(runtime, THIEF_CORE_COMPLETE, cast);
+    if (cast.skill.id === ID.INFILTRATORS_SIGNET) restartThiefInfiltratorsSignet(runtime);
   },
   onAutoattackChainTransition: transitionThiefScepterChain,
   onCooldownReset(runtime) {
@@ -300,6 +326,7 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     'condition.applied': reactThiefCoreCondition
   },
   tasks: {
+    'thief.distracting-throw-window': grantDistractingThrowWindow,
     [THIEF_CORE_COMPLETE](runtime, data) {
       const { cast } = data as { cast: RuntimeCast };
       completeThiefCast(runtime, cast);

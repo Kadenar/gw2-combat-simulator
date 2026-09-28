@@ -50,6 +50,11 @@ const BASE_BREAKRAZOR_EFFECTS = Object.freeze([
 // Quantize Icerazor impacts and their conditions together so each volley retains its 160 ms cadence.
 export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ICERAZORS_IRE]: {
+    // Skill-owned triggers delegate shared state transitions to the registered mechanic.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.begin-band-together' } },
+      { on: 'castCommit', do: { type: 'revenant.complete-band-together' } }
+    ],
     // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/hooks.ts`.
     castTimeMs: 520,
     interruptCommitMs: 480,
@@ -92,6 +97,11 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     legendId: 'LegendaryRenegade'
   },
   [ID.DARKRAZORS_DARING]: {
+    // Skill-owned triggers delegate shared state transitions to the registered mechanic.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.begin-band-together' } },
+      { on: 'castCommit', do: { type: 'revenant.complete-band-together' } }
+    ],
     // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/hooks.ts`.
     // The normal summon occupies 520 ms; Quickness does not shorten its animation.
     castTimeMs: 520,
@@ -127,6 +137,8 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     legendId: 'LegendaryRenegade'
   },
   [ID.DISMISS_LIEUTENANT_SOULCLEAVE]: {
+    // Skill-owned triggers delegate shared state transitions to the registered mechanic.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-upkeep' } }],
     // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
     castTimeMs: 0,
     cooldown: 0,
@@ -136,6 +148,12 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     legendId: 'LegendaryRenegade'
   },
   [ID.RAZORCLAWS_RAGE]: {
+    // Skill-owned triggers delegate shared state transitions to the registered mechanic.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.begin-band-together' } },
+      { on: 'castCommit', do: { type: 'revenant.arm-razorclaw' } },
+      { on: 'castCommit', do: { type: 'revenant.complete-band-together' } }
+    ],
     // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/hooks.ts`.
     castTimeMs: 360,
     cooldown: 15,
@@ -144,6 +162,11 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     legendId: 'LegendaryRenegade'
   },
   [ID.BREAKRAZORS_BASTION]: {
+    // Skill-owned triggers delegate shared state transitions to the registered mechanic.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.begin-band-together' } },
+      { on: 'castCommit', do: { type: 'revenant.complete-band-together' } }
+    ],
     // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/hooks.ts`.
     castTimeMs: 520,
     cooldown: 30,
@@ -152,6 +175,12 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     legendId: 'LegendaryRenegade'
   },
   [ID.SOULCLEAVES_SUMMIT]: {
+    // Skill-owned triggers delegate shared state transitions to the registered mechanic.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
+      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
+      { on: 'castCommit', do: { type: 'revenant.soulcleave-allies' } }
+    ],
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     castTimeMs: 360,
     cooldown: 3,

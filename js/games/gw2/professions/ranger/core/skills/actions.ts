@@ -1,3 +1,8 @@
+import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
+import { handleRangerPetSwapped } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
+import { resetRangerPet } from '#gw2/professions/ranger/core/mechanics/pets.js';
+import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 
 /**
@@ -24,9 +29,39 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 20,
-    // Custom: Switches pet slots and applies pet-swap traits; see `hooks.ts`.
+    // Publish the new pet generation before shared pet-swap observers execute.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.swap-pets' } }],
 
     effects: []
   },
   createWeaponSwapSkill()
 ]);
+
+/** Retire the outgoing pet and publish exactly one fact after the incoming generation is ready. */
+export function swapRangerPets(runtime: RangerRuntime, skill: Skill): void {
+  const state = runtime.profession.core;
+  const slot = state.activePetSlot === 1 ? 2 : 1;
+  const pet = rangerPetByName(state.petNames[slot - 1]);
+  handleRangerPetSwapped(
+    runtime,
+    rangerEvent({ at: runtime.time, activePet: pet.name, activePetSlot: slot }, 'ranger.pet-swapped')
+  );
+  state.petSwapCount += 1;
+  state.petAutoActivationCounts[slot - 1] += 1;
+  state.petAutoActivationUses = {};
+  state.petAutoOpeningBasic = state.petAutoActivationCounts[slot - 1] === 1;
+  resetRangerPet(runtime);
+  runtime.emit(
+    rangerEvent(
+      {
+        at: runtime.time,
+        skillId: skill.id,
+        skillName: skill.name,
+        activePet: pet.name,
+        activePetSlot: slot,
+        generation: state.petAutoGeneration
+      },
+      'ranger.pet-swapped'
+    )
+  );
+}

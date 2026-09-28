@@ -17,12 +17,7 @@ import {
   THIEF_TRAIT_IDS as TRAIT
 } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import {
-  deferThiefCompletion,
-  emitThiefBuff,
-  emitThiefCondition,
-  emitThiefDamage
-} from '#gw2/professions/thief/core/events.js';
+import { emitThiefBuff, emitThiefCondition, emitThiefDamage } from '#gw2/professions/thief/core/events.js';
 import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { emitThiefStealTraits } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
@@ -35,14 +30,12 @@ import type { ThiefDoubleEdgeOutcome, ThiefRuntimeState, ThiefSkill } from '#gw2
 import type { ThiefArtifactSlot } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
-const ANTIQUARY_COMPLETE = 'thief.antiquary-complete';
 const FORGED_SURFER = 'thief.forged-surfer';
 const SKRITT_SCUFFLE = 'thief.skritt-scuffle';
 // One owner for every Forged Surfer occurrence: a new dash cancels the whole prior sequence.
 const FORGED_SURFER_OWNER = Object.freeze({ id: FORGED_SURFER, generation: 0 });
 
-/** Accepted Double Edge outcomes and Canach coin initiative, held by cast identity until completion. */
-const doubleEdgeOutcomes = new WeakMap<RuntimeCast, ThiefDoubleEdgeOutcome>();
+/** Accepted Canach coin initiative, held by cast identity until commitment or cancellation. */
 const coinInitiative = new WeakMap<RuntimeCast, number>();
 /** The slot each accepted artifact cast spent, which selects its Possessive Hoarder family boon. */
 const artifactSlotsUsed = new WeakMap<RuntimeCast, ThiefArtifactSlot | undefined>();
@@ -118,31 +111,17 @@ function pilferArtifacts(runtime: ThiefRuntime, source: 'swipe' | 'initiative' |
   reduceUtilityRecharges(runtime);
 }
 
-/** Each artifact opens its own identity window, measured from its use. */
-function applyArtifactIdentity(runtime: ThiefRuntime, skill: ThiefSkill): void {
-  const state = antiquaryState.from(runtime);
-  const at = runtime.time;
+/** Identity lifetimes use the live Meticulous profile at commitment. */
+function artifactWindow(runtime: ThiefRuntime): {
+  windows: ReturnType<typeof requireBalanceProfileFromContext>;
+  duration: number;
+} {
   const windows = requireBalanceProfileFromContext(runtime, PROFILE.artifactWindows);
   const duration = balanceProfileNumber(
     windows,
     hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? 'maximumStacks' : 'durationMultiplier'
   );
-  if (skill.id === ID.METAL_LEGION_GUITAR) {
-    state.stealthAttackCharges = balanceProfileNumber(windows, 'resourceGain');
-    state.stealthAttackExpiresAt = at + duration;
-  } else if (skill.id === ID.MISTBURN_MORTAR) {
-    // No charge grant survives removal of its only proc packet; a new Mortar replaces the grant.
-    if (!requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.mistburnProc), 'condition', 'Burning')) return;
-    state.mistburn = grantCharges(balanceProfileNumber(windows, 'playerStacks'), at + duration);
-  } else if (skill.id === ID.SUMMON_KRYPTIS_TURRET)
-    state.kryptisDamageUntil =
-      at + balanceProfileNumber(windows, hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? 'threshold' : 'minimumStacks');
-  else if (skill.id === ID.CHAK_SHIELD) state.chakInitiativeRefundUntil = at + duration;
-  // Each Decoy adds one utility-recharge entry; accepted utility casts spend them in grant order.
-  else if (skill.id === ID.HOLO_DANCER_DECOY)
-    state.holoUtilityCooldownReductionExpirations = [...state.holoUtilityCooldownReductionExpirations, at + duration];
-  // The bomb-drop buff has its own duration, independent of how many bombs hit.
-  else if (skill.id === ID.FORGED_SURFER_DASH) state.forgedSurferBombDropUntil = at + duration;
+  return { windows, duration };
 }
 
 /** Possessive Hoarder grants the artifact family's boon plus Alacrity. */
@@ -183,8 +162,9 @@ function spendArtifact(runtime: ThiefRuntime, cast: RuntimeCast): void {
   state.artifactSlots = state.artifactSlots.filter((value) => value.skillId !== cast.skill.id);
 }
 
-/** The used artifact's family traits and identity window apply at completion, followed by Repeat Ransacker. */
-function completeArtifact(runtime: ThiefRuntime, cast: RuntimeCast, slot: ThiefArtifactSlot | undefined): void {
+/** Notify family traits before the skill grants its identity window and invokes Repeat Ransacker. */
+function notifyArtifactTraits(runtime: ThiefRuntime, cast: RuntimeCast): void {
+  const slot = artifactSlotsUsed.get(cast);
   const state = antiquaryState.from(runtime);
   const skill = cast.skill as ThiefSkill;
   if (hasTrait(runtime, TRAIT.ENTERPRISING_ARISTOCRAT))
@@ -219,8 +199,10 @@ function completeArtifact(runtime: ThiefRuntime, cast: RuntimeCast, slot: ThiefA
         hits: effectNumber(profile, strike, 'hits')
       });
   }
+}
 
-  applyArtifactIdentity(runtime, skill);
+/** Repeat Ransacker follows the artifact identity grant. */
+function repeatRansacker(runtime: ThiefRuntime): void {
   const swipe = runtime.helpers.skillsById.get(ID.SKRITT_SWIPE);
   if (swipe && hasTrait(runtime, TRAIT.REPEAT_RANSACKER))
     runtime.cooldownController.reduceSkillRecharge(
@@ -356,12 +338,10 @@ function startDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const state = antiquaryState.from(runtime);
   const skill = cast.skill as ThiefSkill;
   const outcome = acceptDoubleEdge(runtime, cast);
-  doubleEdgeOutcomes.set(cast, outcome);
   if (outcome === 'backfire')
     // The backfire variant stays visible until the running recharge ends.
     state.backfireState[skill.id] = true;
   else delete state.backfireState[skill.id];
-  if (skill.id === ID.CANACH_COIN_TOSS) coinInitiative.set(cast, tossCanachCoins(runtime, outcome === 'backfire'));
 }
 
 /** Initiative spending feeds Prodigious Pincher, and Chak Shield refunds it while its window is open. */
@@ -381,32 +361,15 @@ function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast): voi
     pilferArtifacts(runtime, 'initiative');
 }
 
-function completeAntiquaryCast(
-  runtime: ThiefRuntime,
-  cast: RuntimeCast,
-  slot: ThiefArtifactSlot | undefined,
-  coins: number | undefined
-): void {
-  const skill = cast.skill as ThiefSkill;
-  if (skill.id === ID.SKRITT_SWIPE) {
-    emitThiefStealTraits(runtime, cast);
-    pilferArtifacts(runtime, 'swipe');
-    if (hasTrait(runtime, TRAIT.KLEPTOMANIAC))
-      grantThiefInitiative(
-        runtime,
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, CORE_PROFILE.kleptomaniac), 'resourceGain')
-      );
-  }
-
-  // Artifact, Reshuffle, and Double Edge completions keep the accepted use even when the cast is cut short.
-  if (skill.artifactKind) {
-    completeArtifact(runtime, cast, slot);
-    if (skill.id === ID.FORGED_SURFER_DASH) startForgedSurfer(runtime, skill);
-  }
-
-  if (skill.id === ID.RESHUFFLE) antiquaryState.from(runtime).artifactSlots = allArtifactChoices();
-  if (coins != null) grantThiefInitiative(runtime, coins);
-  if (skill.id === ID.SKRITT_SCUFFLE) completeSkrittScuffle(runtime, skill);
+/** Swipe alone grants its steal package and swipe-only pilfer policies. */
+function completeSkrittSwipe(runtime: ThiefRuntime, cast: RuntimeCast): void {
+  emitThiefStealTraits(runtime, cast);
+  pilferArtifacts(runtime, 'swipe');
+  if (hasTrait(runtime, TRAIT.KLEPTOMANIAC))
+    grantThiefInitiative(
+      runtime,
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, CORE_PROFILE.kleptomaniac), 'resourceGain')
+    );
 }
 
 /** Artifacts require a held slot; backfire variants are internal; Reshuffle rerolls only an existing pool. */
@@ -433,6 +396,82 @@ function antiquaryAvailability(runtime: ThiefRuntime, rawSkill: Skill): Availabi
 
 /** Antiquary hooks: artifact pilfering and use, Double Edge outcomes, Skritt summons, and artifact-driven traits. */
 export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
+  sideEffectHandlers: {
+    'thief.artifact-spend'(runtime, context) {
+      if (context.kind === 'cast') spendArtifact(runtime, context.cast);
+    },
+    'thief.artifact-traits'(runtime, context) {
+      if (context.kind === 'cast') notifyArtifactTraits(runtime, context.cast);
+    },
+    'thief.repeat-ransacker': repeatRansacker,
+    'thief.skritt-swipe'(runtime, context) {
+      if (context.kind === 'cast') completeSkrittSwipe(runtime, context.cast);
+    },
+    'thief.reshuffle'(runtime) {
+      antiquaryState.from(runtime).artifactSlots = allArtifactChoices();
+    },
+    'thief.double-edge'(runtime, context) {
+      if (context.kind === 'cast') startDoubleEdge(runtime, context.cast);
+    },
+    'thief.roll-coins'(runtime, context) {
+      if (context.kind === 'cast')
+        coinInitiative.set(
+          context.cast,
+          tossCanachCoins(runtime, Boolean(antiquaryState.from(runtime).backfireState[context.skill.id]))
+        );
+    },
+    'thief.pay-coins'(runtime, context) {
+      if (context.kind === 'cast') grantThiefInitiative(runtime, coinInitiative.get(context.cast) ?? 0);
+    },
+    'thief.forged-surfer'(runtime, context) {
+      startForgedSurfer(runtime, context.skill);
+    },
+    'thief.skritt-scuffle'(runtime, context) {
+      completeSkrittScuffle(runtime, context.skill);
+    },
+    'thief.guitar'(runtime) {
+      const state = antiquaryState.from(runtime);
+      const at = runtime.time;
+      const { windows, duration } = artifactWindow(runtime);
+      state.stealthAttackCharges = balanceProfileNumber(windows, 'resourceGain');
+      state.stealthAttackExpiresAt = at + duration;
+    },
+    'thief.mortar'(runtime) {
+      const state = antiquaryState.from(runtime);
+      const at = runtime.time;
+      const { windows, duration } = artifactWindow(runtime);
+      if (!requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.mistburnProc), 'condition', 'Burning'))
+        return;
+      state.mistburn = grantCharges(balanceProfileNumber(windows, 'playerStacks'), at + duration);
+    },
+    'thief.kryptis'(runtime) {
+      const state = antiquaryState.from(runtime);
+      const at = runtime.time;
+      const { windows } = artifactWindow(runtime);
+      state.kryptisDamageUntil =
+        at +
+        balanceProfileNumber(windows, hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? 'threshold' : 'minimumStacks');
+    },
+    'thief.chak'(runtime) {
+      const state = antiquaryState.from(runtime);
+      const at = runtime.time;
+      const { duration } = artifactWindow(runtime);
+      state.chakInitiativeRefundUntil = at + duration;
+    },
+    'thief.holo'(runtime) {
+      const state = antiquaryState.from(runtime);
+      const at = runtime.time;
+      const { duration } = artifactWindow(runtime);
+      state.holoUtilityCooldownReductionExpirations = [...state.holoUtilityCooldownReductionExpirations, at + duration];
+    },
+    'thief.surfer-window'(runtime) {
+      const state = antiquaryState.from(runtime);
+      const at = runtime.time;
+      const { duration } = artifactWindow(runtime);
+      state.forgedSurferBombDropUntil = at + duration;
+    }
+  },
+
   availability: antiquaryAvailability,
   // Only accepted utility casts spend the oldest live Holo-Dancer entry, even when a newer one expires sooner.
   reserveRecharge(runtime, skill, work) {
@@ -447,27 +486,8 @@ export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   },
   onCastStart(runtime, cast) {
     spendAntiquaryInitiative(runtime, cast);
-    if ((cast.skill as ThiefSkill).artifactKind) spendArtifact(runtime, cast);
-    // Double Edge skills are the ones usable while recharging; they choose an outcome from cooldown state at acceptance.
-    if (cast.skill.usableWhileRecharging === true) startDoubleEdge(runtime, cast);
   },
-  modifyEffects(_runtime, cast, effects) {
-    // Cannon variants already own both outcomes; other custom skills still suppress their authored packets.
-    const id = cast.skill.id;
-    if (id === ID.STONE_SUMMIT_CANNON) return effects;
-    return id === ID.FORGED_SURFER_DASH ||
-      id === ID.SKRITT_SCUFFLE ||
-      id === ID.CANACH_COIN_TOSS ||
-      doubleEdgeOutcomes.get(cast) === 'backfire'
-      ? []
-      : effects;
-  },
-  onCastCommit(runtime, cast) {
-    // Preserve the consumed artifact and rolled coin reward independently of the queued cast snapshot's identity.
-    deferThiefCompletion(runtime, ANTIQUARY_COMPLETE, cast, {
-      slot: artifactSlotsUsed.get(cast),
-      coins: coinInitiative.get(cast)
-    });
+  onCastCommit(_runtime, cast) {
     artifactSlotsUsed.delete(cast);
     coinInitiative.delete(cast);
   },
@@ -477,14 +497,6 @@ export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     }
   },
   tasks: {
-    [ANTIQUARY_COMPLETE](runtime, data) {
-      const { cast, slot, coins } = data as {
-        cast: RuntimeCast;
-        slot: ThiefArtifactSlot | undefined;
-        coins: number | undefined;
-      };
-      completeAntiquaryCast(runtime, cast, slot, coins);
-    },
     [FORGED_SURFER]: forgedSurfer,
     [SKRITT_SCUFFLE]: skrittScufflePilfer
   }

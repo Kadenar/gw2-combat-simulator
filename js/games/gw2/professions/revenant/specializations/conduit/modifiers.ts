@@ -8,20 +8,13 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
-import {
-  REVENANT_LEGEND_IDS as LEGEND,
-  REVENANT_SKILL_IDS as ID,
-  REVENANT_TRAIT_IDS as TRAIT
-} from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { bolsteredBondsBonuses } from '#gw2/professions/revenant/specializations/conduit/traits/bolstered-bonds.js';
 import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState
 } from '#gw2/professions/revenant/core/modifiers.js';
-import {
-  BEGUILING_HAZE_SKILL_IDS,
-  TWIN_MOON_SKILL_IDS
-} from '#gw2/professions/revenant/specializations/conduit/skill-groups.js';
+import { conduitEntityModifierRules } from '#gw2/professions/revenant/specializations/conduit/skills/entity-skills.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 
@@ -34,10 +27,6 @@ function affinity(context: Gw2ModifierContext): number {
     Math.max(1, revenantRuntimeSpecializationState(context, 'Conduit').affinityMaximum || 5),
     (revenantRuntimeSpecializationState(context, 'Conduit').affinity || 0) + bonus
   );
-}
-
-function equippedLegend(context: Gw2ModifierContext, legendId: string): boolean {
-  return (revenantRuntimeCoreState(context).selectedLegendIds || []).includes(legendId);
 }
 
 export const conduitModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
@@ -79,23 +68,7 @@ export const conduitModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
     factor: (context, _target, parameters) => 1 + affinity(context) * parameters.damagePerAffinity,
     when: (context) => context.event?.skillId === ID.RELEASE_POTENTIAL_WARRIOR
   },
-  {
-    id: 'revenant.beguiling-haze-assassin-resonance',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    // Assassin resonance doubles Beguiling Haze damage when Assassin is equipped (not necessarily active).
-    factor: 2,
-    when: (context) =>
-      BEGUILING_HAZE_SKILL_IDS.has(Number(context.event?.skillId)) && equippedLegend(context, LEGEND.ASSASSIN)
-  },
-  {
-    id: 'revenant.twin-moon-assassin-resonance',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.5,
-    when: (context) =>
-      TWIN_MOON_SKILL_IDS.has(Number(context.event?.skillId)) && equippedLegend(context, LEGEND.ASSASSIN)
-  },
+  ...conduitEntityModifierRules,
   {
     id: 'revenant.yearning-empowerment-numinous-gift',
     target: MODIFIER_TARGET.CONDITION_DURATION,

@@ -1,11 +1,11 @@
+import { signetBuildAttributes } from '#gw2/professions/warrior/core/skills/slot-skills.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/warrior/core/profiles.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 import { getActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
 import {
@@ -38,7 +38,6 @@ export function applyWarriorBuildAttributeRules(
 
   const greatFortitudeProfile = requireBalanceProfileFromContext(profileContext, TRAIT.GREAT_FORTITUDE);
   const forcefulGreatswordProfile = requireBalanceProfileFromContext(profileContext, TRAIT.FORCEFUL_GREATSWORD);
-  const signetPassivesProfile = requireBalanceProfileFromContext(profileContext, CORE.signetPassives);
   const roaringReveilleProfile = requireBalanceProfileFromContext(profileContext, TRAIT.ROARING_REVEILLE);
   const deepStrikesProfile = requireBalanceProfileFromContext(profileContext, TRAIT.DEEP_STRIKES);
   const woundingPrecisionProfile = requireBalanceProfileFromContext(profileContext, TRAIT.WOUNDING_PRECISION);
@@ -46,22 +45,7 @@ export function applyWarriorBuildAttributeRules(
   const axeMasteryProfile = requireBalanceProfileFromContext(profileContext, TRAIT.AXE_MASTERY);
   const inspiringImplementsProfile = requireBalanceProfileFromContext(profileContext, TRAIT.INSPIRING_IMPLEMENTS);
   const attributeEffects: readonly Gw2AttributeEffect[] = [
-    {
-      kind: 'flat',
-      source: 'Signet of Might',
-      to: 'Power',
-      amount: balanceProfileNumber(signetPassivesProfile, 'attributeBonus'),
-      feedsConversions: false,
-      enabled: hasSelectedSkill(ID.SIGNET_OF_MIGHT)
-    },
-    {
-      kind: 'flat',
-      source: 'Signet of Fury',
-      to: 'Precision',
-      amount: balanceProfileNumber(signetPassivesProfile, 'attributeBonus'),
-      feedsConversions: false,
-      enabled: hasSelectedSkill(ID.SIGNET_OF_FURY)
-    },
+    ...signetBuildAttributes(profileContext, hasSelectedSkill),
     {
       kind: 'flat',
       source: 'Forceful Greatsword',

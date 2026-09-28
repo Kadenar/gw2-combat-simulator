@@ -22,6 +22,18 @@ const maul: Partial<Skill> = {
             skill.id === ID.MAUL_BASE &&
             runtime.profession.core.petActive,
           do: { type: 'ranger.maul-pet' }
+        },
+        {
+          on: 'damage.resolved',
+          actor: 'player',
+          packets: 'each',
+          when: (runtime, { event, skill }) =>
+            Number(event.coefficient) > 0 &&
+            event.source !== 'ranger-pet' &&
+            skill.id === ID.MAUL_SOULBEAST &&
+            runtime.profession.specialization.kind === 'Soulbeast' &&
+            runtime.profession.specialization.state.beastmodeActive,
+          do: { type: 'ranger.maul-player' }
         }
       ]
     },

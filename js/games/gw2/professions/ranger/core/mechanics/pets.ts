@@ -1,3 +1,4 @@
+import { signetOfTheWildBonus } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import {
@@ -92,14 +93,12 @@ function rangerPetAttributes(context?: RangerRuntime | RangerResolverContext) {
     }
 
     const runtime = 'cooldowns' in context ? context : null;
-    if (
-      runtime &&
-      petHasSelectedSkill(runtime, 'Signet of the Wild') &&
-      (runtime.cooldowns.get(ID.SIGNET_OF_THE_WILD) || 0) <= runtime.time
-    ) {
-      const signetOfTheWildProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfTheWild);
-      ferocity += balanceProfileNumber(signetOfTheWildProfile, 'attributeBonus');
-    }
+    if (runtime)
+      ferocity += signetOfTheWildBonus(
+        context,
+        petHasSelectedSkill(runtime, 'Signet of the Wild'),
+        (runtime.cooldowns.get(ID.SIGNET_OF_THE_WILD) || 0) <= runtime.time
+      );
   }
 
   return {

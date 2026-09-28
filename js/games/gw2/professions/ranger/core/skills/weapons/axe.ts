@@ -1,3 +1,5 @@
+import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
@@ -63,6 +65,8 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     castTimeMs: 560
   },
   [ID.WINTERS_BITE]: {
+    // Arm subsequent qualifying hits only on semantic commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.winter-bite' } }],
     interruptCommitMs: 360,
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -84,7 +88,6 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       }
     ]),
     castTimeMs: 520
-    // Custom: Arms the Winter's Bite follow-up state; see `core/hooks.ts`.
   },
   [ID.PATH_OF_SCARS]: {
     interruptCommitMs: 360,
@@ -197,3 +200,10 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     ])
   }
 ]);
+
+/** Both throw distances keep the source's live recharge even when the attempt is interrupted. */
+export function synchronizePathOfScarsRecharge(runtime: RangerRuntime, cast: RuntimeCast): void {
+  if (cast.skill.id !== ID.PATH_OF_SCARS && cast.skill.id !== ID.PATH_OF_SCARS_MAX_RANGE) return;
+  runtime.cooldownController.copy(cast.skill.id, ID.PATH_OF_SCARS);
+  runtime.cooldownController.copy(cast.skill.id, ID.PATH_OF_SCARS_MAX_RANGE);
+}

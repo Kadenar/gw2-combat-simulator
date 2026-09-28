@@ -11,6 +11,8 @@ const actions: readonly Skill[] = [
   createWeaponSwapSkill(),
   {
     id: ID.SWAP_LEGENDS,
+    // Complete the legend transition before cast traits and elite observers.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.swap-legends' } }],
     // Custom: Switches legends and resets energy through `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     name: 'Swap Legends',
@@ -25,12 +27,22 @@ const actions: readonly Skill[] = [
     resourceGain: 50,
     effects: []
   },
-  createDodgeSkill({
-    description: 'Perform the selected dodge.',
-    castTimeMs: 0,
-    resourceCost: 50,
-    cost: { resource: 'endurance' }
-  })
+  {
+    ...createDodgeSkill({
+      description: 'Perform the selected dodge.',
+      castTimeMs: 0,
+      resourceCost: 50,
+      cost: { resource: 'endurance' }
+    }),
+    // The family registers this shared action; only Vindicator supplies a landing.
+    sideEffects: [
+      {
+        on: 'castStart',
+        when: (runtime) => runtime.config.specialization === 'Vindicator',
+        do: { type: 'revenant.vindicator-dodge' }
+      }
+    ]
+  }
 ];
 
 export const REVENANT_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze(actions.map((skill) => Object.freeze(skill)));

@@ -196,6 +196,10 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     )
   },
   [ID.ABYSSAL_RAZE]: {
+    // The declaration owns this activation; shared mechanics retain its live state.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.abyssal-raze' } }
+    ],
     // Custom: Consumes Crushing Abyss stacks and materializes the scaled raze packets; see `core/mechanics/weapons.ts`.
     castTimeMs: 600,
     cooldown: 1,

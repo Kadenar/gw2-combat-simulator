@@ -1,3 +1,17 @@
+import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
+import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -195,6 +209,8 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 167
   },
   [ID.SUN_SPIRIT]: {
+    // Activate the intrinsic reward at its declared boundary, before common trait observers.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.sun-spirit' } }],
     effects: [
       {
         type: 'boon',
@@ -217,7 +233,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     cooldown: 20,
     // Use the measured Quickness animation so later casts begin at the logged time.
     castTimeMs: 360
-    // Custom: Emits Solar Flare's Burning packet; see `core/hooks.ts`.
   },
   [ID.FLAME_TRAP]: {
     interruptCommitMs: 500,
@@ -294,10 +309,13 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 667
   },
   [ID.SHARPENING_STONE]: {
+    // Activate the intrinsic reward at its declared boundary, before common trait observers.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.sharpening-stone' } }
+    ],
     effects: [],
     castTimeMs: 0,
     canCastConcurrently: true
-    // Custom: Arms Sharpening Stone charges and duration; see `core/hooks.ts`.
   },
   [ID.SPIRIT_OF_NATURE]: {
     effects: [
@@ -415,10 +433,11 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 333
   },
   [ID.SIC_EM]: {
+    // Instant activation selects the current pet or merged recipient before subsequent impacts.
+    sideEffects: [{ on: 'castStart', do: { type: 'ranger.sic-em' } }],
     categories: ['Command'],
     castTimeMs: 0,
     effects: []
-    // Custom: Applies the pet-only Sic Em damage window when a pet is active; see `core/hooks.ts`.
   },
   [ID.WATER_SPIRIT]: {
     effects: [
@@ -442,22 +461,147 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 500
   },
   [ID.WE_HEAL_AS_ONE]: {
+    // Activate the intrinsic reward at its declared boundary, before common trait observers.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.copy-healing-boons' } }],
     categories: ['Command'],
-    // The replacement handler leaves these durations for the completion hook to copy active boons.
+    // These non-emitting templates provide the duration menu for the live two-way copy.
     effects: [
-      { type: 'boon', boon: 'aegis', duration: 5 },
-      { type: 'boon', boon: 'alacrity', duration: 3 },
-      { type: 'boon', boon: 'fury', duration: 3 },
-      { type: 'boon', boon: 'might', duration: 10 },
-      { type: 'boon', boon: 'protection', duration: 2 },
-      { type: 'boon', boon: 'quickness', duration: 2 },
-      { type: 'boon', boon: 'regeneration', duration: 5 },
-      { type: 'boon', boon: 'resistance', duration: 2 },
-      { type: 'boon', boon: 'resolution', duration: 5 },
-      { type: 'boon', boon: 'stability', duration: 3 },
-      { type: 'boon', boon: 'swiftness', duration: 3 },
-      { type: 'boon', boon: 'vigor', duration: 3 }
+      { type: 'boon', when: () => false, boon: 'aegis', duration: 5 },
+      { type: 'boon', when: () => false, boon: 'alacrity', duration: 3 },
+      { type: 'boon', when: () => false, boon: 'fury', duration: 3 },
+      { type: 'boon', when: () => false, boon: 'might', duration: 10 },
+      { type: 'boon', when: () => false, boon: 'protection', duration: 2 },
+      { type: 'boon', when: () => false, boon: 'quickness', duration: 2 },
+      { type: 'boon', when: () => false, boon: 'regeneration', duration: 5 },
+      { type: 'boon', when: () => false, boon: 'resistance', duration: 2 },
+      { type: 'boon', when: () => false, boon: 'resolution', duration: 5 },
+      { type: 'boon', when: () => false, boon: 'stability', duration: 3 },
+      { type: 'boon', when: () => false, boon: 'swiftness', duration: 3 },
+      { type: 'boon', when: () => false, boon: 'vigor', duration: 3 }
     ],
     castTimeMs: 920
   }
 });
+
+/** Copy both actors from one executed-time snapshot so the first copy never feeds the second. */
+export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast): void {
+  const timeline = createGw2TimelineIndex({ events: runtime.history });
+  const companionId = rangerPetCompanionId(runtime);
+  const petActive = runtime.profession.core.petActive;
+  const copies = (cast.skill.effects ?? [])
+    .filter((effect) => effect.type === 'boon')
+    .map((effect) => {
+      const kind = String(effect.boon);
+      const maximum = kind === 'might' || kind === 'stability' ? 25 : 1;
+      const configured = runtime.config.boons?.[kind];
+      const player = Math.min(
+        maximum,
+        Number(configured || 0) +
+          buffApplicationStacks(runtime.boons.get(kind) ?? [], kind, runtime.time, maximum, { ordered: true })
+      );
+      return {
+        kind,
+        duration: Number(effect.duration),
+        player,
+        pet: petActive ? timeline.buffStacksAt(kind, runtime.time, 0, maximum, 'summon', companionId) : player
+      };
+    });
+  for (const { kind, duration, player, pet } of copies) {
+    const event = rangerEvent(
+      { at: runtime.time, skillId: cast.skill.id, skillName: cast.skill.name, activationId: cast.id, kind, duration },
+      'buff'
+    );
+    if (pet > 0) runtime.emitProcedural({ ...event, stacks: pet, audience: { recipients: 'self' } });
+    if (petActive && player > 0)
+      runtime.emitProcedural({
+        ...event,
+        stacks: player,
+        audience: {
+          recipients: 'summons',
+          affectsSelf: false,
+          maximumRecipients: 1,
+          eligibleCompanionIds: [companionId]
+        }
+      });
+  }
+}
+
+/** Solar Flare is a commit-time child emission, independent of the spirit pulse schedule. */
+export function emitSunSpiritBurning(runtime: RangerRuntime, skill: Skill): void {
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.sunSpirit);
+  const burning = requireEffect(profile, 'condition', 'Burning');
+  if (burning) {
+    runtime.emit(
+      rangerEvent(
+        {
+          at: runtime.time,
+          skillId: ID.SOLAR_FLARE,
+          skillName: 'Solar Flare',
+          name: 'Solar Flare - Burning',
+          condition: String(burning.condition),
+          stacks: effectNumber(profile, burning, 'stacks'),
+          duration: effectNumber(profile, burning, 'duration'),
+          triggeredBy: skill.name
+        },
+        'condition'
+      )
+    );
+  }
+}
+
+/** Select the live recipient at activation; Core always registers this action, including unmerged builds. */
+export function activateSicEm(runtime: RangerRuntime, skill: Skill): void {
+  const specialization = runtime.profession.specialization;
+  const merged = specialization.kind === 'Soulbeast' && specialization.state.beastmodeActive;
+  for (const kind of [...(runtime.profession.core.petActive ? ['sic-em-pet'] : []), ...(merged ? ['sic-em'] : [])])
+    runtime.emitProcedural(
+      rangerEvent(
+        {
+          at: runtime.time,
+          skillId: skill.id,
+          skillName: skill.name,
+          kind,
+          priority: -20,
+          stacks: 1,
+          duration: balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.sicEm), 'durationMultiplier')
+        },
+        'buff'
+      )
+    );
+}
+
+/** Hold deployed trap packets until explicit engagement, preserving their relative pulses and field lifetime. */
+export function prepareFrostTrapEvent(runtime: RangerRuntime, event: SimulationEventBase): SimulationEventBase | null {
+  if (
+    runtime.hasExplicitCombatStart &&
+    runtime.combatStartPending &&
+    event.skillId === ID.FROST_TRAP &&
+    !event.cancelled &&
+    ['damage', 'condition', 'combo_field'].includes(event.type)
+  ) {
+    runtime.profession.core.pendingFrostTrapEvents.push(event);
+    return null;
+  }
+
+  return event;
+}
+
+/** Drain once; a repeated engagement notification cannot replay or renew the trap. */
+export function releaseFrostTrap(runtime: RangerRuntime): void {
+  const pending = runtime.profession.core.pendingFrostTrapEvents;
+  runtime.profession.core.pendingFrostTrapEvents = [];
+  const delay = Math.max(0, runtime.time - Math.min(...pending.map((event) => event.at)));
+  for (const event of pending)
+    runtime.emit({
+      ...event,
+      at: event.at + delay,
+      ...(event.type === 'combo_field' ? { expiresAt: Number(event.expiresAt) + delay } : {})
+    });
+}
+
+/** Selected Signet of the Wild grants ferocity only while ready; callers supply their own observation clock. */
+export function signetOfTheWildBonus(context: unknown, selected: boolean, ready = true): number {
+  return selected && ready
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.signetOfTheWild), 'attributeBonus')
+    : 0;
+}

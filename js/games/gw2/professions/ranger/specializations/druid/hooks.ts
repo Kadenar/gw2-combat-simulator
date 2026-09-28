@@ -228,9 +228,13 @@ export const druidHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
     return { ready: true };
   },
   modifyEffects: avatarEffects,
-  onCastCommit(runtime, cast) {
-    if (cast.skill.id === ID.CELESTIAL_AVATAR) avatar(runtime, true);
-    if (cast.skill.id === ID.RELEASE_CELESTIAL_AVATAR) avatar(runtime, false);
+  sideEffectHandlers: {
+    'ranger.avatar-enter'(runtime) {
+      avatar(runtime, true);
+    },
+    'ranger.avatar-release'(runtime) {
+      avatar(runtime, false);
+    }
   },
   tasks: {
     'ranger.avatar-exit'(runtime, deadline) {

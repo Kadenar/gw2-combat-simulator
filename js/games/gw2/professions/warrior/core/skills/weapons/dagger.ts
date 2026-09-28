@@ -1,4 +1,6 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
+import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -112,6 +114,8 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.AURA_SLICER]: {
+    // Movement classification drives completed Brave Stride rewards.
+    movementSkill: true,
     // Aura Slicer ignores Quickness and Dual Wielding, so its observed timing stays fixed.
     interruptCommitMs: 760,
     castTimeMs: 840,
@@ -139,3 +143,26 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   }
 });
+
+/** Intrinsic live modifiers retain critical semantics and the simulator's boonless-target assumption. */
+export const warriorDaggerSkillModifiers: readonly Gw2ModifierRule[] = [
+  {
+    id: 'warrior.dagger-auto-critical-damage',
+    target: MODIFIER_TARGET.CRITICAL_DAMAGE,
+    operation: 'multiply',
+    factor: 1.15,
+    order: 100,
+    when: (context) => {
+      const skillId = Number(eventSkill(context)?.id);
+      return skillId === ID.PRECISE_CUT || skillId === ID.FOCUSED_SLASH;
+    }
+  },
+  {
+    id: 'warrior.wastrels-ruin-defiant',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 2,
+    order: 100,
+    when: (context) => eventSkill(context)?.id === ID.WASTRELS_RUIN && context.config?.target?.defiant === true
+  }
+];

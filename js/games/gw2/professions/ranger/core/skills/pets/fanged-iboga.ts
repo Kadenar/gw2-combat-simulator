@@ -1,3 +1,5 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 /**
  * Owns Core Ranger pet skill fragments for the Fanged Iboga family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
@@ -112,3 +114,21 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
     petSkill: true
   }
 });
+
+/** Intrinsic live-impact policy stays beside its skill; the shared registry supplies resolution. */
+export const rangerConsumingBiteModifier: Gw2ModifierRule = {
+  id: 'ranger.consuming-bite-condition-count',
+  target: MODIFIER_TARGET.STRIKE_DAMAGE,
+  operation: 'multiply',
+  parameters: {
+    maximumConditions: 5,
+    coefficientPerCondition: 0.025
+  },
+  factor: (context, _target, parameters) => {
+    const coefficient = Number(context.event?.coefficient || 0);
+    if (!(coefficient > 0)) return 1;
+    const conditions = Math.min(parameters.maximumConditions, targetConditionCount(context));
+    return (coefficient + conditions * parameters.coefficientPerCondition) / coefficient;
+  },
+  when: (context) => Number(context.event?.skillId ?? context.skillId) === ID.CONSUMING_BITE
+};

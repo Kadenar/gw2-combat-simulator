@@ -1,3 +1,6 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
@@ -15,7 +18,9 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ENTANGLING_ASP]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
+
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 2,
@@ -44,7 +49,12 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.SHATTERING_ASSAULT]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'thief.stealth' } },
+      { on: 'castCommit', do: { type: 'thief.spear-chain' } }
+    ],
+
     castTimeMs: 640,
     cooldown: 0,
     initiativeCost: 1,
@@ -66,7 +76,9 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.DISTRACTING_THROW]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
+
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 2,
@@ -102,7 +114,9 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.UNSUSPECTING_STRIKE]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
+
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 3,
@@ -149,9 +163,21 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: []
   },
   [ID.ASHEN_ASSAULT]: {
+    // The stealth attack consumes at acceptance; its refund and chain reset commit once.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'thief.spear-chain' } },
+      {
+        on: 'castCommit',
+        do: {
+          type: 'resourceGrant',
+          resource: 'initiative',
+          amount: { profile: PROFILE.ashenAssaultRefund, field: 'resourceGain' }
+        }
+      }
+    ],
     preservesStealth: true,
     spearStealthAttack: true,
-    // Custom: Selects the stealth spear chain, then consumes stealth on completion through `core/hooks.ts`.
+
     castTimeMs: 1200,
     cooldown: 0,
     initiativeCost: 0,
@@ -202,7 +228,9 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     stealthAttack: true
   },
   [ID.MANTIS_STING]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
+
     castTimeMs: 400,
     cooldown: 0,
     initiativeCost: 3,
@@ -231,7 +259,9 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.VAMPIRIC_SLASH]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
+
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 1,
@@ -266,6 +296,8 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.FALLING_SPIDER]: {
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }],
     // Capture the qualifying predecessor at acceptance and transform the live base packets, including patched ticks.
     effectVariants: [
       {
@@ -299,7 +331,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         }
       }
     ],
-    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
+
     castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 1,
@@ -336,7 +368,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
   },
   [ID.BARBED_SPEAR]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
+
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
@@ -358,3 +390,15 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   }
 });
+
+/** Only the siphon packet samples live Vulnerability at impact. */
+export const vampiricSlashModifier: Gw2ModifierRule = {
+  id: 'thief.vampiric-slash-vulnerable',
+  target: MODIFIER_TARGET.STRIKE_DAMAGE,
+  operation: 'multiply',
+  factor: 1.5,
+  when: (context) =>
+    isGw2PlayerModifierOwnedEvent(context.event) &&
+    context.event?.metadata?.packetKind === 'thief.vampiric-slash-life-siphon' &&
+    targetConditionActive(context, 'Vulnerability')
+};

@@ -1,7 +1,27 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
+import { canonicalTime } from '#kernel/core/clock.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { hasSelectedSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
+import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
+import {
+  warriorActiveBuffStacks,
+  type WarriorModifierAttributes
+} from '#gw2/professions/warrior/core/traits/modifier-queries.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+
+type WarriorRuntime = Gw2Runtime<WarriorRuntimeState>;
+const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
 
 export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.THROW_BOLAS]: {
@@ -39,6 +59,8 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.STOMP]: {
+    // Movement classification drives completed Brave Stride rewards.
+    movementSkill: true,
     castTimeMs: 500,
     effects: [
       {
@@ -209,6 +231,8 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.KICK]: {
+    // Movement classification drives completed Brave Stride rewards.
+    movementSkill: true,
     castTimeMs: 842,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -223,6 +247,8 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.BULLS_CHARGE]: {
+    // Movement classification drives completed Brave Stride rewards.
+    movementSkill: true,
     // Bull's Charge keeps its fixed 640 ms cast and has no measured Dual Wielding variant.
     castTimeMs: 640,
 
@@ -250,3 +276,73 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: []
   }
 });
+
+/** Each pulse checks current recharge and then schedules only its next occurrence, preserving cadence while suppressed. */
+function signetPulse(runtime: WarriorRuntime): void {
+  if ((runtime.cooldowns.get(ID.SIGNET_OF_RAGE) ?? 0) <= runtime.time) grantWarriorAdrenaline(runtime, 2);
+  runtime.profession.core.nextSignetPulseAt = canonicalTime(runtime.time + 3);
+  runtime.schedule(SIGNET_PULSE, runtime.profession.core.nextSignetPulseAt, null, undefined, -220);
+}
+
+/** Selected Signet of Rage starts its passive at accepted combat and preserves suppressed pulse cadence. */
+export const signetOfRageLifecycle: Partial<RuntimeProfession<WarriorRuntimeState>> = {
+  onCombatStart(runtime) {
+    if (!selectedSkillNameSet(runtime.config.selectedSkills).has('Signet of Rage')) return;
+    runtime.profession.core.nextSignetPulseAt = canonicalTime(runtime.time + 3);
+    runtime.schedule(SIGNET_PULSE, runtime.profession.core.nextSignetPulseAt, null, undefined, -220);
+  },
+  tasks: { [SIGNET_PULSE]: signetPulse }
+};
+
+// One passive descriptor feeds both baked build attributes and live cooldown subtraction.
+const signetPassives = [
+  { name: 'Signet of Might', id: ID.SIGNET_OF_MIGHT, attribute: 'power', label: 'Power' },
+  { name: 'Signet of Fury', id: ID.SIGNET_OF_FURY, attribute: 'precision', label: 'Precision' }
+] as const;
+
+/** Signet bonuses never feed build conversions, and baked passives are subtracted only while recharging. */
+export function signetBuildAttributes(
+  context: Parameters<typeof requireBalanceProfileFromContext>[0],
+  selected: (id: number) => boolean
+): readonly Gw2AttributeEffect[] {
+  const bonus = balanceProfileNumber(
+    requireBalanceProfileFromContext(context, PROFILE.signetPassives),
+    'attributeBonus'
+  );
+  return signetPassives.map(({ name, id, label }) => ({
+    kind: 'flat',
+    source: name,
+    to: label,
+    amount: bonus,
+    feedsConversions: false,
+    enabled: selected(id)
+  }));
+}
+
+/** Intrinsic active and passive attributes use live self status and selected signet recharge. */
+export function modifySignetAttributes(
+  context: Gw2ModifierContext,
+  result: WarriorModifierAttributes,
+  staticRulesApplied: boolean
+): void {
+  if (warriorActiveBuffStacks(context, 'signet-of-fury-active', 1) > 0) {
+    const signetOfFuryActiveProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfFuryActive);
+    const bonus = balanceProfileNumber(signetOfFuryActiveProfile, 'attributeBonus');
+    result.precision += bonus;
+    result.ferocity += bonus;
+  }
+
+  const activeSignets = signetPassives.filter(({ name, id }) => {
+    if (!hasSelectedSkill(context, name)) return false;
+    const onCooldown = Boolean(context.timeline?.skillOnCooldownAt(id, context.time));
+    return staticRulesApplied ? onCooldown : !onCooldown;
+  });
+  if (activeSignets.length > 0) {
+    const signetPassivesProfile = requireBalanceProfileFromContext(context, PROFILE.signetPassives);
+    // Both eligible signets use the same passive bonus, read once before applying it.
+    const passiveBonus = balanceProfileNumber(signetPassivesProfile, 'attributeBonus');
+    for (const { attribute } of activeSignets) {
+      result[attribute] += (staticRulesApplied ? -1 : 1) * passiveBonus;
+    }
+  }
+}

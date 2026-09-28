@@ -1,9 +1,39 @@
 /** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
+import { canonicalTime } from '#kernel/core/clock.js';
+import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import {
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
+import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
+import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
+import { bladeswornState, activeCartridgeWindow } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
+import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
+import {
+  dragonChargesToAdrenalineSpent,
+  dragonSlashCoefficient,
+  maximumDragonCharges,
+  requestedDragonCharges,
+  exitDragonTrigger
+} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { hasTrait, type Gw2TraitLookupContext } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+
+type Runtime = Gw2Runtime<WarriorRuntimeState>;
+const CARTRIDGE_ACTIVATE = 'warrior.cartridges-activate';
+const furyBeforeCast = new WeakSet<RuntimeCast>();
 
 const SHARP_AS_THE_WIND_VARIANTS = new Map<number, number>([
   [ID.SWIFT_CUT, ID.SHARP_SWIFT_CUT],
@@ -31,6 +61,8 @@ export function resolveSharpAsTheWindSkillId(context: Gw2TraitLookupContext, ski
 
 export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.UNSHEATHE_GUNSABER]: {
+    // Successful commitment owns this transition or reward.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.gunsaber-enter' } }],
     // Gunsaber transitions use a five-second base recharge before recharge modifiers.
     cooldown: 5,
     castTimeMs: 0,
@@ -38,22 +70,28 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
   },
   [ID.DRAGON_TRIGGER]: {
+    // Successful commitment owns this transition or reward.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.dragon-trigger-enter' } }],
     effects: [],
     castTimeMs: 0,
     canCastConcurrently: false,
     inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
   },
   [ID.SHEATHE_GUNSABER]: {
+    // Successful commitment owns this transition or reward.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.gunsaber-exit' } }],
     cooldown: 5,
     castTimeMs: 0,
     effects: [],
     inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
   },
   [ID.TACTICAL_RELOAD]: {
+    // Successful commitment owns this transition or reward.
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.tactical-reload' } }],
     effects: [],
     castTimeMs: 560,
     dualWieldCastTimeMs: 400,
-    // Tactical Reload commits at 480ms, keeps its remaining cast lockout, and resolves its reload after interruption.
+    // Commitment grants the reload while the remaining animation retains its cast lockout.
     interruptCommitMs: 480,
     retainsCastLockoutAfterInterrupt: true
   },
@@ -90,6 +128,11 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     interruptCommitMs: 640
   },
   [ID.FLOW_STABILIZER]: {
+    // Capture preexisting Fury before this skill applies its own boon.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'warrior.flow-snapshot' } },
+      { on: 'castCommit', do: { type: 'warrior.flow-stabilize' } }
+    ],
     castTimeMs: 0,
     // Flow Stabilizer opens its passive-flow window and grants its conditional flow on completion.
     effects: [
@@ -132,6 +175,10 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     castTimeMs: 500
   },
   [ID.OVERCHARGED_CARTRIDGES]: {
+    // Activation precedes completion, so acceptance schedules its own guarded wake.
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'warrior.cartridges-schedule' } }
+    ],
     ammo: 2,
     ammoRecharge: 20,
     cooldown: 20,
@@ -231,6 +278,15 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     skillWeapon: 'Gunsaber'
   },
   [ID.ARTILLERY_SLASH]: {
+    // Capture every round before shared commitment spends the last reserved round.
+    sideEffects: [{ on: 'castStart', do: { type: 'warrior.spend-magazine' } }],
+    effectVariants: [
+      {
+        profileId: PROFILE.artillerySlash,
+        when: () => true,
+        transform: (runtime, cast) => artilleryEffects(runtime, cast, false)
+      }
+    ],
     ammo: 2,
     ammoRecharge: 15,
     cooldown: 15,
@@ -295,6 +351,9 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     skillWeapon: 'Gunsaber'
   },
   [ID.DRAGON_SLASH_FORCE]: {
+    // Normal and Sharp releases share captured facts and their own interpolation endpoints.
+    sideEffects: [{ on: 'castStart', do: { type: 'warrior.slash-release' } }],
+    effectVariants: [{ when: () => true, transform: slashEffects }],
     effects: [],
     castTimeMs: 1040,
     // Force hits during its animation so expiring buffs are evaluated before recovery ends.
@@ -307,6 +366,9 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     dragonSlashMaximumCoefficient: 20.4
   },
   [ID.DRAGON_SLASH_BOOST]: {
+    // Normal and Sharp releases share captured facts and their own interpolation endpoints.
+    sideEffects: [{ on: 'castStart', do: { type: 'warrior.slash-release' } }],
+    effectVariants: [{ when: () => true, transform: slashEffects }],
     movementSkill: true,
     effects: [],
     castTimeMs: 1040,
@@ -318,6 +380,9 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     dragonSlashMaximumCoefficient: 16.3
   },
   [ID.DRAGON_SLASH_REACH]: {
+    // Normal and Sharp releases share captured facts and their own interpolation endpoints.
+    sideEffects: [{ on: 'castStart', do: { type: 'warrior.slash-release' } }],
+    effectVariants: [{ when: () => true, transform: slashEffects }],
     effects: [],
     castTimeMs: 1040,
     burst: true,
@@ -434,7 +499,15 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
       }
     ])
   }),
-  sharpAsTheWindVariant(ID.SHARP_ARTILLERY_SLASH, ID.ARTILLERY_SLASH, 'Artillery Slash', {}),
+  sharpAsTheWindVariant(ID.SHARP_ARTILLERY_SLASH, ID.ARTILLERY_SLASH, 'Artillery Slash', {
+    effectVariants: [
+      {
+        profileId: PROFILE.sharpArtillerySlash,
+        when: () => true,
+        transform: (runtime, cast) => artilleryEffects(runtime, cast, true)
+      }
+    ]
+  }),
   sharpAsTheWindVariant(ID.SHARP_CYCLONE_TRIGGER, ID.CYCLONE_TRIGGER, 'Cyclone Trigger', {
     effects: [
       { type: 'strike', coefficient: 1, hits: 1, persistsAfterInterrupt: true },
@@ -497,3 +570,294 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
     dragonSlashMaximumBurningDuration: 2
   })
 ]);
+
+export const dragonSlashReleases = new WeakMap<
+  RuntimeCast,
+  { charges: number; maximum: number; flowSpent: number; coefficient: number }
+>();
+
+/** Release captures charge facts before clearing the mode; every packet still uses common miss, interruption, and impact scheduling. */
+function slashEffects(_runtime: Runtime, cast: RuntimeCast): readonly SkillEffect[] {
+  const released = dragonSlashReleases.get(cast)!;
+  const skill = cast.skill;
+  const spent = dragonChargesToAdrenalineSpent(released.charges);
+  const timing = {
+    timingAnchor: 'castStart' as const,
+    timingScale: 'fixed' as const,
+    atMs: Number(skill.dragonSlashImpactOffsetMs ?? (cast.fullEnd - cast.start) * 1000)
+  };
+  const effects: SkillEffect[] = [
+    {
+      ...timing,
+      type: 'strike',
+      coefficient: released.coefficient,
+      weapon: 'Gunsaber',
+      damageKind: 'explosion',
+      hits: 1,
+      metadata: { warriorAdrenalineSpent: spent, warriorBurstTier: spent / 10 }
+    }
+  ];
+  const min = Number(skill.dragonSlashMinimumBurningDuration ?? 0);
+  const max = Number(skill.dragonSlashMaximumBurningDuration ?? 0);
+  if (min > 0 && max > 0) {
+    const stacks = dragonSlashCoefficient(1, 20, released.charges, released.maximum);
+    const duration = dragonSlashCoefficient(min, max, released.charges, released.maximum);
+    effects.push({
+      ...timing,
+      type: 'condition',
+      condition: 'Burning',
+      stacks,
+      duration
+    });
+  }
+
+  return effects;
+}
+
+/** Artillery spends every captured round while the shared completion consumes its final reserved round. */
+function artilleryEffects(runtime: Runtime, cast: RuntimeCast, sharp: boolean): readonly SkillEffect[] {
+  const rounds = warriorAmmunition.get(cast)!.rounds;
+  const profile = requireBalanceProfileFromContext(
+    runtime,
+    sharp ? PROFILE.sharpArtillerySlash : PROFILE.artillerySlash
+  );
+  const strike = requireEffect(profile, 'strike', sharp ? 'Strike' : rounds >= 2 ? 'Two rounds' : 'One round');
+  const effects: SkillEffect[] = [];
+  if (strike)
+    effects.push({
+      type: 'strike',
+      coefficient: effectNumber(profile, strike, 'coefficient'),
+      weapon: 'Gunsaber',
+      damageKind: 'explosion',
+      projectile: sharp,
+      ...(sharp
+        ? { comboFinishers: [{ ownerId: 'warrior', finisherType: 'Projectile', ambiguousFieldSelection: 'oldest' }] }
+        : {})
+    });
+  const bleeding = sharp ? requireEffect(profile, 'condition', rounds >= 2 ? 'Two rounds' : 'One round') : undefined;
+  if (bleeding)
+    effects.push({
+      type: 'condition',
+      condition: String(bleeding.condition),
+      stacks: effectNumber(profile, bleeding, 'stacks'),
+      duration: effectNumber(profile, bleeding, 'duration')
+    });
+  if (requireEffect(profile, 'control', 'Control'))
+    effects.push({ type: 'control', controlKind: sharp && rounds >= 2 ? 'stun' : 'daze' });
+  return effects;
+}
+
+/** Actual activation upgrades a live cartridge window once; a supercharged window cannot be refreshed by another cast. */
+function activateCartridges(runtime: Runtime, cast: RuntimeCast): void {
+  const state = bladeswornState.from(runtime);
+  // Discard expired occurrences on the next grant so idle expiry needs no queued cleanup.
+  state.overchargedCartridgeWindows = state.overchargedCartridgeWindows.filter(
+    (window) => window.expiresAt > runtime.time
+  );
+  const active = activeCartridgeWindow(state.overchargedCartridgeWindows, runtime.time);
+  if (active?.supercharged) return;
+  const supercharged = Boolean(active);
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.overchargedCartridges);
+  const kind = supercharged ? 'supercharged-cartridges' : 'overcharged-cartridges';
+  const buff = requireEffect(profile, 'buff', kind);
+  if (!buff) return;
+  const duration = effectNumber(profile, buff, 'duration');
+  if (duration <= 0) return;
+  if (active) active.expiresAt = runtime.time;
+  const burning = requireEffect(profile, 'condition', supercharged ? 'Supercharged Burning' : 'Overcharged Burning');
+  const expiresAt = gw2EffectExpiresAt(runtime.time, duration);
+  state.overchargedCartridgeWindows.push({
+    startedAt: runtime.time,
+    expiresAt,
+    supercharged,
+    damageBonus: effectNumber(profile, buff, 'damageIncreasePerStack'),
+    burningDuration: burning ? effectNumber(profile, burning, 'duration') : 0
+  });
+  runtime.emit({
+    type: 'buff',
+    at: runtime.time,
+    source: 'Warrior',
+    sourceId: cast.skill.id,
+    actorType: 'player',
+    skillId: cast.skill.id,
+    skillName: cast.skill.name,
+    activationId: cast.id,
+    name: supercharged ? 'Supercharged Cartridges' : 'Overcharged Cartridges',
+    kind,
+    stacks: effectNumber(profile, buff, 'stacks'),
+    duration
+  });
+}
+
+/** Only resolved positive player explosions emit the selected cartridge condition; derived conditions cannot recurse. */
+export function cartridgeExplosion(runtime: Runtime, event: Gw2ResolverEvent): void {
+  if (event.actorType !== 'player' || event.damageKind !== 'explosion' || !(Number(event.coefficient) > 0)) return;
+  const state = bladeswornState.from(runtime);
+  const window = activeCartridgeWindow(state.overchargedCartridgeWindows, runtime.time);
+  if (!window || window.burningDuration <= 0) return;
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.overchargedCartridges);
+  const burning = requireEffect(
+    profile,
+    'condition',
+    window.supercharged ? 'Supercharged Burning' : 'Overcharged Burning'
+  );
+  if (burning)
+    runtime.emitDerived(
+      event,
+      buildResolverCondition({
+        at: runtime.time,
+        source: 'Warrior',
+        sourceId: ID.OVERCHARGED_CARTRIDGES,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        skillId: event.skillId,
+        skillName: event.skillName,
+        name: 'Overcharged Cartridges — Burning',
+        condition: 'Burning',
+        stacks: effectNumber(profile, burning, 'stacks'),
+        duration: window.burningDuration
+      })
+    );
+}
+
+/** Successful commitment restores ammo once, retaining existing recharge progress through the animation tail. */
+function tacticalReload(runtime: Runtime, cast: RuntimeCast): void {
+  for (const id of runtime.ammo.keys()) {
+    const skill = runtime.helpers.skillsById.get(id);
+    if (skill?.specialization === 'Bladesworn')
+      runtime.cooldownController.restoreAmmo(skill, 1, runtime.time, 'retain');
+  }
+
+  const state = bladeswornState.from(runtime);
+  state.tacticalReloadUntil = gw2EffectExpiresAt(runtime.time, 10);
+  runtime.emit({
+    type: 'buff',
+    at: runtime.time,
+    source: 'Warrior',
+    sourceId: cast.skill.id,
+    actorType: 'player',
+    skillId: cast.skill.id,
+    skillName: cast.skill.name,
+    activationId: cast.id,
+    name: 'Tactical Reload',
+    kind: 'tactical-reload',
+    stacks: 1,
+    duration: 10
+  });
+}
+
+/** Accepted releases publish captured charge facts before clearing the shared Trigger state, even on cancellation. */
+function captureSlash(runtime: Runtime, cast: RuntimeCast): void {
+  const state = bladeswornState.from(runtime);
+  const maximum = maximumDragonCharges(runtime);
+  const release = {
+    charges: state.dragonCharges,
+    maximum,
+    flowSpent: state.dragonTriggerFlowSpent,
+    coefficient: dragonSlashCoefficient(
+      Number(cast.skill.dragonSlashMinimumCoefficient ?? 0),
+      Number(cast.skill.dragonSlashMaximumCoefficient ?? 0),
+      state.dragonCharges,
+      maximum
+    )
+  };
+  dragonSlashReleases.set(cast, release);
+  runtime.emit({
+    type: 'resource',
+    at: runtime.time,
+    source: 'Warrior',
+    sourceId: cast.skill.id,
+    actorType: 'player',
+    skillId: cast.skill.id,
+    skillName: cast.skill.name,
+    activationId: cast.id,
+    resource: 'dragon charges',
+    reason: 'profession mechanic',
+    amount: -release.charges,
+    value: 0,
+    requestedCharges: requestedDragonCharges(cast, release.maximum),
+    maximumCharges: release.maximum,
+    chargesReached: release.charges,
+    flowSpent: release.flowSpent,
+    flowAfter: state.flow,
+    coefficient: release.coefficient,
+    chargingSeconds: runtime.time - state.dragonTriggerStartedAt,
+    maximumChargingSeconds: dragonChargeTickOffsetSeconds(Math.ceil(release.maximum / state.dragonChargesPerInterval))
+  });
+  exitDragonTrigger(runtime);
+}
+
+/** Intrinsic recipes execute at their declared phase; shared Flow and Trigger lifetimes remain separate. */
+export const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState>['sideEffectHandlers'] = {
+  'warrior.slash-release'(runtime, context) {
+    if (context.kind === 'cast') captureSlash(runtime, context.cast);
+  },
+  'warrior.tactical-reload'(runtime, context) {
+    if (context.kind === 'cast') tacticalReload(runtime, context.cast);
+  },
+  'warrior.cartridges-schedule'(runtime, context) {
+    if (context.kind !== 'cast') return;
+    const cast = context.cast;
+    runtime.scheduleForCast(
+      CARTRIDGE_ACTIVATE,
+      canonicalTime(cast.start + (cast.fullEnd - cast.start) * (420 / 900)),
+      cast
+    );
+  },
+  'warrior.flow-snapshot'(runtime, context) {
+    if (context.kind !== 'cast') return;
+    const cast = context.cast;
+    if (
+      Number(runtime.config.boons?.fury ?? 0) > 0 ||
+      buffApplicationStacks(runtime.boons.get('fury') ?? [], 'fury', runtime.time, 1, {
+        ordered: true
+      }) > 0
+    )
+      furyBeforeCast.add(cast);
+  },
+  'warrior.flow-stabilize'(runtime, context) {
+    if (context.kind !== 'cast') return;
+    const cast = context.cast;
+    if (furyBeforeCast.has(cast)) grantWarriorAdrenaline(runtime, 15);
+    // The conditional instant grant is independent of the removable Positive Flow component.
+    const effect = requireEffect(cast.skill, 'buff', 'Positive Flow');
+    if (effect) {
+      const expiresAt = gw2EffectExpiresAt(runtime.time, effectNumber(cast.skill, effect, 'duration'));
+      if (expiresAt > runtime.time)
+        bladeswornState.from(runtime).flowStabilizerWindows.push({ startedAt: runtime.time, expiresAt });
+    }
+  }
+};
+export const bladeswornSkillTasks: RuntimeProfession<WarriorRuntimeState>['tasks'] = {
+  [CARTRIDGE_ACTIVATE](runtime, data) {
+    activateCartridges(runtime, (data as { cast: RuntimeCast }).cast);
+  }
+};
+
+function cartridgeDamageBonus(context: Gw2ModifierContext): number {
+  // A newer cartridge application replaces the older bonus, even after the newer one expires.
+  let latest = { at: -Infinity, expiresAt: 0, kind: '' };
+  for (const kind of ['overcharged-cartridges', 'supercharged-cartridges']) {
+    for (const application of context.runtime?.boons?.get(kind) ?? []) {
+      if (application.resolvedAudience.includesSelf && application.at <= context.time && application.at >= latest.at)
+        latest = { at: application.at, expiresAt: application.expiresAt, kind };
+    }
+  }
+
+  if (latest.expiresAt <= context.time) return 0;
+  const profile = requireBalanceProfileFromContext(context, PROFILE.overchargedCartridges);
+  const effect = requireEffect(profile, 'buff', latest.kind);
+  return effect ? effectNumber(profile, effect, 'damageIncreasePerStack') : 0;
+}
+
+/** Cartridge explosions retain their live outgoing multiplier independently of the Burning component. */
+export const cartridgeModifiers: readonly Gw2ModifierRule[] = [
+  {
+    id: 'warrior.overcharged-cartridges',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: { baseFactor: 1 },
+    factor: (context, _target, parameters) => parameters.baseFactor + cartridgeDamageBonus(context),
+    when: (context) => context.event?.damageKind === 'explosion' && cartridgeDamageBonus(context) > 0
+  }
+];

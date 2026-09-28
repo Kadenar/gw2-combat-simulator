@@ -4,7 +4,7 @@ export const VINDICATOR_AIRBORNE_MS = 600;
 export const VINDICATOR_LANDING_MS = 200;
 
 /** Replays a recorded jump from its endurance-spending input through the landing, including overlapping autos. */
-export const VINDICATOR_JUMP_SKILL: Skill = Object.freeze({
+export const VINDICATOR_JUMP_SKILL: Skill = Object.freeze<Skill>({
   id: 23275,
   name: 'Dodge Jump',
   displayName: 'Dodge + Landing',
@@ -21,5 +21,10 @@ export const VINDICATOR_JUMP_SKILL: Skill = Object.freeze({
   resourceCost: 50,
   cost: { resource: 'endurance' as const },
   cooldown: 0,
+  // Full jumps schedule from takeoff and retire airborne chains only at completion.
+  sideEffects: [
+    { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.vindicator-jump' } },
+    { on: 'castCommit', do: { type: 'revenant.vindicator-chain-reset' } }
+  ],
   effects: []
 });

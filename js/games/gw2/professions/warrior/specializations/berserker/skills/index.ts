@@ -1,4 +1,22 @@
 /** Berserker PvE packets use nearest-40 ms offsets to remove false timing precision. */
+import {
+  balanceProfileNumber,
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import {
+  berserkerState,
+  publishBerserk,
+  berserkExtensions
+} from '#gw2/professions/warrior/specializations/berserker/state.js';
+import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -40,7 +58,14 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       }
     ]),
     castTimeMs: 960,
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 10 } }]
+    sideEffects: [
+      // Base duration combines with selected trait extensions in the mode owner.
+      {
+        on: 'castCommit',
+        do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'threshold' } }
+      },
+      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 10 } }
+    ]
   },
   [ID.GUN_FLAME]: {
     effects: [
@@ -162,7 +187,14 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       }
     ],
     castTimeMs: 600,
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 5 } }]
+    sideEffects: [
+      // Base duration combines with selected trait extensions in the mode owner.
+      {
+        on: 'castCommit',
+        do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'maximumStacks' } }
+      },
+      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 5 } }
+    ]
   },
   [ID.SHATTERING_BLOW]: {
     // Share impact timing while preserving independent payloads and declaration order.
@@ -185,13 +217,25 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       }
     ]),
     castTimeMs: 520,
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 5 } }]
+    sideEffects: [
+      // Base duration combines with selected trait extensions in the mode owner.
+      {
+        on: 'castCommit',
+        do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'threshold' } }
+      },
+      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 5 } }
+    ]
   },
   [ID.BERSERK]: {
     castTimeMs: 0,
     effects: [],
     adrenalineCost: 30,
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 10 } }]
+    // Acceptance spends even when canceled; commitment grants before the new cap clamps the pool.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'warrior.berserk-spend' } },
+      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 10 } },
+      { on: 'castCommit', do: { type: 'warrior.berserk-enter' } }
+    ]
   },
   [ID.BLOOD_RECKONING]: {
     effects: [],
@@ -199,6 +243,11 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     dualWieldCastTimeMs: 240,
     // Reset live primal skills only after the completed heal's adrenaline grant.
     sideEffects: [
+      // Base duration combines with selected trait extensions in the mode owner.
+      {
+        on: 'castCommit',
+        do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'minimumStacks' } }
+      },
       { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 10 } },
       { on: 'castCommit', do: { type: 'warrior.reset-primal-bursts' } }
     ]
@@ -206,7 +255,14 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
   [ID.OUTRAGE]: {
     castTimeMs: 0,
     effects: [],
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 10 } }],
+    sideEffects: [
+      // Base duration combines with selected trait extensions in the mode owner.
+      {
+        on: 'castCommit',
+        do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'threshold' } }
+      },
+      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 10 } }
+    ],
     stunbreak: true
   },
   [ID.HEAD_BUTT]: {
@@ -224,7 +280,14 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]),
     castTimeMs: 800,
     interruptCommitMs: 760,
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 30 } }],
+    sideEffects: [
+      // Base duration combines with selected trait extensions in the mode owner.
+      {
+        on: 'castCommit',
+        do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'minimumStacks' } }
+      },
+      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 30 } }
+    ],
     // Head Butt stuns both the foe and the player. The self-stun holds the cast
     // lane for 1s unless broken by a stunbreak (Outrage) or negated by stability.
     selfStunMs: 1000
@@ -385,3 +448,43 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     primalBurst: true
   }
 });
+
+/** Intrinsic live modifiers retain critical semantics and the simulator's boonless-target assumption. */
+export const slicingMaelstromModifiers: readonly Gw2ModifierRule[] = [
+  {
+    id: 'warrior.slicing-maelstrom-boonless',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.5,
+    order: 100,
+    when: (context) => eventSkill(context)?.id === ID.SLICING_MAELSTROM
+  }
+];
+
+/** Skill-owned entry and base extensions leave expiry and combined trait publication with the mode owner. */
+export const berserkSkillActions: RuntimeProfession<WarriorRuntimeState>['sideEffectHandlers'] = {
+  'warrior.berserk-spend'(runtime, context) {
+    runtime.profession.core.adrenaline -= Number(context.skill.adrenalineCost ?? 0);
+  },
+  'warrior.berserk-enter'(runtime, context) {
+    if (context.kind !== 'cast') return;
+    const cast = context.cast;
+    const state = berserkerState.from(runtime);
+    const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
+    const effect = requireEffect(profile, 'buff', 'berserk');
+    if (effect && effectNumber(profile, effect, 'duration') > 0) {
+      state.berserkActive = true;
+      state.berserkUntil = gw2EffectExpiresAt(runtime.time, effectNumber(profile, effect, 'duration'));
+      runtime.profession.core.maximumAdrenaline = balanceProfileNumber(profile, 'maximumStacks');
+      runtime.profession.core.adrenaline = Math.min(
+        runtime.profession.core.adrenaline,
+        runtime.profession.core.maximumAdrenaline
+      );
+      publishBerserk(runtime, cast);
+    }
+  },
+  'warrior.berserk-extension'(runtime, context, action) {
+    if (context.kind === 'cast' && action.type === 'warrior.berserk-extension' && action.amount != null)
+      berserkExtensions.set(context.cast, sideEffectAmount(runtime, action.amount));
+  }
+};

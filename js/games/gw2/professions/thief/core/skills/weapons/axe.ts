@@ -58,6 +58,8 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ])
   },
   [ID.HARROWING_STORM]: {
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.recall-axes' } }],
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 4,
@@ -74,6 +76,8 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
     requiredOffHand: 'Dagger'
   },
   [ID.RECALL_AXES]: {
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.recall-axes' } }],
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 4,
@@ -90,6 +94,8 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
     requiredOffHand: false
   },
   [ID.ORCHESTRATED_ASSAULT]: {
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.recall-axes' } }],
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 4,
@@ -130,7 +136,6 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ])
   },
   [ID.CUNNING_SALVO]: {
-    // Custom: Consumes stealth and applies Revealed after the attack through `core/hooks.ts`.
     castTimeMs: 360,
     cooldown: 1,
     initiativeCost: 0,

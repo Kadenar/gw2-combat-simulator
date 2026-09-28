@@ -8,9 +8,25 @@ import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
+// Artifact acceptance spends the old pool; traits surround the skill's intrinsic identity at commitment.
+const ARTIFACT_START: NonNullable<Skill['sideEffects']> = [
+  { on: 'castStart', do: { type: 'thief.artifact-spend' } },
+  { on: 'castCommit', do: { type: 'thief.artifact-traits' } }
+];
+const ARTIFACT_END: NonNullable<Skill['sideEffects']> = [{ on: 'castCommit', do: { type: 'thief.repeat-ransacker' } }];
+
 // Both API IDs share the primary definition so future timing fixes cannot leave the alias behind.
 const METAL_LEGION_GUITAR_SKILL: Partial<Skill> = {
-  // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/hooks.ts`.
+  sideEffects: [
+    ...ARTIFACT_START,
+    {
+      on: 'castCommit',
+      when: (_runtime, cast) => cast.skill.id === ID.METAL_LEGION_GUITAR,
+      do: { type: 'thief.guitar' }
+    },
+    ...ARTIFACT_END
+  ],
+
   castTimeMs: 1920,
   cooldown: 0,
   initiativeCost: 0,
@@ -62,45 +78,24 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
   [ID.METAL_LEGION_GUITAR]: METAL_LEGION_GUITAR_SKILL,
   [ID.METAL_LEGION_GUITAR_ID_76591]: METAL_LEGION_GUITAR_SKILL,
   [ID.FORGED_SURFER_DASH]: {
+    sideEffects: [
+      ...ARTIFACT_START,
+      { on: 'castCommit', do: { type: 'thief.surfer-window' } },
+      ...ARTIFACT_END,
+      { on: 'castCommit', do: { type: 'thief.forged-surfer' } }
+    ],
     movementSkill: true,
-    // Custom: Replaces the cast with its task-driven movement/strike sequence through `antiquary/hooks.ts`.
+
     castTimeMs: 200,
     cooldown: 0,
     initiativeCost: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 2.4 }],
-        name: 'Forged Surfer Dash — Packet 1',
-        actorType: 'player'
-      },
-      {
-        type: 'strike',
-        ticks: [0, 120, 200, 320, 400].map((atMs) => ({ atMs, coefficient: 6 / 5 })),
-        name: 'Additional Bomb Damage',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        ticks: [0, 120, 200, 320, 400].map((atMs) => ({
-          atMs,
-          condition: 'Burning',
-          stacks: 1,
-          duration: 3.5
-        })),
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Burning', stacks: 1, duration: 6 }],
-        actorType: 'player'
-      }
-    ]),
+    effects: [],
     artifactKind: 'offensive'
   },
   [ID.HOLO_DANCER_DECOY]: {
-    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/hooks.ts`.
+    sideEffects: [...ARTIFACT_START, { on: 'castCommit', do: { type: 'thief.holo' } }, ...ARTIFACT_END],
+
     castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 0,
@@ -142,8 +137,9 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     artifactKind: 'defensive'
   },
   [ID.EXALTED_HAMMER]: {
+    sideEffects: [...ARTIFACT_START, ...ARTIFACT_END],
     movementSkill: true,
-    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/hooks.ts`.
+
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -166,6 +162,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     artifactKind: 'defensive'
   },
   [ID.STONE_SUMMIT_CANNON]: {
+    // Fix the outcome at acceptance; cancellation never rerolls or pays coins.
+    sideEffects: [{ on: 'castStart', do: { type: 'thief.double-edge' } }],
     // Acceptance fixes the outcome; even a cancelled use fires from its effective end with fixed profile offsets.
     usableWhileRecharging: true,
     castTimeMs: 520,
@@ -200,8 +198,9 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     }))
   },
   [ID.ZEPHYRITE_SUN_CRYSTAL_ID_76733]: {
+    sideEffects: [...ARTIFACT_START, ...ARTIFACT_END],
     movementSkill: true,
-    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/hooks.ts`.
+
     castTimeMs: 680,
     cooldown: 1,
     initiativeCost: 0,
@@ -224,7 +223,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     artifactKind: 'defensive'
   },
   [ID.CHAK_SHIELD]: {
-    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/hooks.ts`.
+    sideEffects: [...ARTIFACT_START, { on: 'castCommit', do: { type: 'thief.chak' } }, ...ARTIFACT_END],
+
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -250,7 +250,9 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     backfire: true
   },
   [ID.ANTIVENOM_DRAUGHT]: {
-    // Custom: Chooses success/backfire and materializes the selected outcome through `antiquary/hooks.ts`.
+    // Fix the outcome at acceptance; cancellation never rerolls or pays coins.
+    sideEffects: [{ on: 'castStart', do: { type: 'thief.double-edge' } }],
+
     usableWhileRecharging: true,
     castTimeMs: 520,
     cooldown: 10,
@@ -258,8 +260,9 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     effects: []
   },
   [ID.ZEPHYRITE_SUN_CRYSTAL]: {
+    sideEffects: [...ARTIFACT_START, ...ARTIFACT_END],
     movementSkill: true,
-    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/hooks.ts`.
+
     castTimeMs: 240,
     cooldown: 1,
     initiativeCost: 0,
@@ -309,7 +312,9 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     backfire: true
   },
   [ID.RESHUFFLE]: {
-    // Custom: Randomizes/refills the Antiquary artifact hand through `antiquary/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.reshuffle' } }],
+
     castTimeMs: 0,
     cooldown: 5,
     initiativeCost: 2,
@@ -323,7 +328,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     backfire: true
   },
   [ID.SUMMON_KRYPTIS_TURRET]: {
-    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/hooks.ts`.
+    sideEffects: [...ARTIFACT_START, { on: 'castCommit', do: { type: 'thief.kryptis' } }, ...ARTIFACT_END],
+
     castTimeMs: 440,
     cooldown: 0,
     initiativeCost: 0,
@@ -356,7 +362,13 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     effects: []
   },
   [ID.CANACH_COIN_TOSS]: {
-    // Custom: Chooses success/backfire and materializes the selected outcome through `antiquary/hooks.ts`.
+    // Fix the outcome at acceptance; cancellation never rerolls or pays coins.
+    sideEffects: [
+      { on: 'castStart', do: { type: 'thief.double-edge' } },
+      { on: 'castStart', do: { type: 'thief.roll-coins' } },
+      { on: 'castCommit', do: { type: 'thief.pay-coins' } }
+    ],
+
     usableWhileRecharging: true,
     castTimeMs: 0,
     cooldown: 15,
@@ -364,28 +376,17 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     effects: []
   },
   [ID.SKRITT_SCUFFLE]: {
-    // Custom: Replaces the cast with the delayed Skritt Scuffle sequence through `antiquary/hooks.ts`.
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.skritt-scuffle' } }],
+
     castTimeMs: 560,
     cooldown: 50,
     initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 3 }],
-        name: 'Skritt Scuffle',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        controlKind: 'launch'
-      }
-    ]
+    effects: []
   },
   [ID.MISTBURN_MORTAR]: {
-    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/hooks.ts`.
+    sideEffects: [...ARTIFACT_START, { on: 'castCommit', do: { type: 'thief.mortar' } }, ...ARTIFACT_END],
+
     // Measured Quickness timings make artifact use reserve the same cast-lane time seen in EVTC.
     castTimeMs: 600,
     cooldown: 0,
@@ -412,9 +413,11 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     artifactKind: 'offensive'
   },
   [ID.SKRITT_SWIPE]: {
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.skritt-swipe' } }],
     stealTraitSkill: true,
     movementSkill: true,
-    // Custom: Runs steal traits, pilfers artifacts, and applies swipe traits through `antiquary/hooks.ts`.
+
     castTimeMs: 200,
     cooldown: 25,
     initiativeCost: 0,

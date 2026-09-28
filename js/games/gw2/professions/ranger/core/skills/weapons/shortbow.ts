@@ -49,6 +49,8 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
     castTimeMs: 333
   },
   [ID.CRIPPLING_SHOT]: {
+    // Arm subsequent qualifying hits only on semantic commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.blood-thirst' } }],
     effects: [
       {
         type: 'strike',
@@ -83,7 +85,6 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
       }
     ],
     castTimeMs: 333
-    // Custom: Arms Blood Thirst charges after the shot; see `core/hooks.ts`.
   },
   [ID.CONCUSSION_SHOT]: {
     effects: [

@@ -37,6 +37,8 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ])
   },
   [ID.HEROIC_COMMAND]: {
+    // Skill-owned triggers delegate shared state transitions to the registered mechanic.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.heroic-command' } }],
     // Custom: Builds Heroic Command boons from live Kalla state and traits; see `renegade/hooks.ts`.
     castTimeMs: 480,
     cooldown: 10,

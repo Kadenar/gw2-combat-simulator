@@ -1,3 +1,7 @@
+import {
+  paragonRefrains,
+  PARAGON_COMMAND_ECHO_PROFILES
+} from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
@@ -8,10 +12,7 @@ import {
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import {
-  PARAGON_BALANCE_PROFILE_IDS as PROFILE,
-  PARAGON_COMMAND_ECHO_PROFILES
-} from '#gw2/professions/warrior/specializations/paragon/profiles.js';
+import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import type { BalanceProfile, Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
@@ -83,20 +84,9 @@ function pulseRefrain(runtime: Runtime): void {
       : state.motivation >= balanceProfileNumber(profile, 'minimumStacks')
         ? 2
         : 1;
-  let cost = 1;
-  const kinds: string[] = [];
-  if (skill.id === ID.CHANT_OF_ACTION) {
-    kinds.push('might');
-    if (level >= 2) kinds.push('fury');
-  } else if (skill.id === ID.CHANT_OF_RECUPERATION) {
-    cost = level === 3 ? 3 : 2;
-    if (level === 3) kinds.push('regeneration');
-  } else if (skill.id === ID.CHANT_OF_FREEDOM) {
-    cost = level;
-    kinds.push('swiftness');
-    if (level >= 2) kinds.push('resolution');
-    if (level === 3) kinds.push('protection');
-  }
+  const recipe = paragonRefrains[Number(skill.id)];
+  if (!recipe) throw new TypeError(`Missing refrain recipe for ${skill.name}.`);
+  const { cost, kinds } = recipe.pulse(level);
 
   const refrain = requireBalanceProfileFromContext(runtime, PROFILE.refrain);
   // Select the tier before spending; only Might scales its stacks with the tier and Enduring Refrain.
@@ -154,12 +144,7 @@ function activateChant(runtime: Runtime, cast: RuntimeCast): void {
         : 0)
   );
   startRefrain(runtime);
-  const kinds =
-    cast.skill.id === ID.CHANT_OF_ACTION
-      ? ['might', 'fury']
-      : cast.skill.id === ID.CHANT_OF_RECUPERATION
-        ? ['vigor']
-        : ['stability'];
+  const kinds = paragonRefrains[Number(cast.skill.id)].openingBoons;
   boon(
     runtime,
     cast.skill,
@@ -248,6 +233,15 @@ function activateCommand(runtime: Runtime, cast: RuntimeCast): void {
 
 /** Paragon mutates live state at combat entry, committed casts, swaps, and queued pulses without replay events. */
 export const paragonHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
+  // Declarations own eligibility; these actions retain shared motivation, replacement, and echo lifetimes.
+  sideEffectHandlers: {
+    'warrior.chant-activate'(runtime, context) {
+      if (context.kind === 'cast') activateChant(runtime, context.cast);
+    },
+    'warrior.command-arm'(runtime, context) {
+      if (context.kind === 'cast') activateCommand(runtime, context.cast);
+    }
+  },
   // Chant Alacrity is independent of the imperative refrain and recharge-reduction state.
   traitTriggers: [
     {
@@ -300,8 +294,6 @@ export const paragonHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
       );
   },
   onCastCommit(runtime, cast) {
-    if (cast.skill.categories?.includes('Chant')) activateChant(runtime, cast);
-    if (cast.skill.categories?.includes('Command')) activateCommand(runtime, cast);
     if (cast.skill.burst)
       for (const activationId of Object.keys(paragonState.from(runtime).commandEchoes))
         consumeEcho(runtime, activationId);

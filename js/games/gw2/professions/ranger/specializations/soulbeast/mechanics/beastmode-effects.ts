@@ -1,5 +1,4 @@
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { grantMaulAttackOfOpportunity } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
@@ -237,9 +236,6 @@ function handleSharedStanceHit(context: RangerResolverContext, event: Gw2Resolve
 
 export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
-  // The elite owns this gate; Core's shared weapon declaration cannot read merge state.
-  if (event.skillId === ID.MAUL_SOULBEAST && isPlayerStrike(event) && soulbeastState.from(context).beastmodeActive)
-    grantMaulAttackOfOpportunity(context, event, 'player');
   triggerMergedPoisonousStrikes(context, event);
 
   // One Wolf Pack must not trigger from its own echo or from effect-sourced hits to avoid infinite recursion.

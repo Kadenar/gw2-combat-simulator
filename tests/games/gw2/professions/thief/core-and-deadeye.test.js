@@ -1247,21 +1247,22 @@ test('Thief modifiers follow stable skill and packet IDs after display labels ch
     true
   );
 
-  const larcenous = thiefCoreModifierRules.find((rule) => rule.id === 'thief.larcenous-strike-boonless');
+  // The intrinsic factor now transforms the accepted packet, independently of its display label.
+  const result = runThief(
+    [ID.FLANKING_STRIKE, ID.LARCENOUS_STRIKE],
+    { primaryWeapon: 'Sword' },
+    {
+      catalog: (catalog) =>
+        withSkill(catalog, ID.LARCENOUS_STRIKE, {
+          name: 'Renamed skill',
+          effects: [{ type: 'strike', name: 'Renamed packet', coefficient: 2 }]
+        })
+    }
+  );
+  assert.deepEqual(result.warnings, []);
   assert.equal(
-    larcenous.when({
-      event: { type: 'damage', actorType: 'player', skillId: ID.LARCENOUS_STRIKE },
-      profession: {
-        catalog: {
-          skillsById: new Map([
-            [ID.LARCENOUS_STRIKE, { ...thiefCatalog.skillsById.get(ID.LARCENOUS_STRIKE), name: 'Renamed skill' }]
-          ])
-        }
-      },
-      config: { target: {} },
-      time: 0
-    }),
-    true
+    result.resolvedEvents.find((event) => event.skillId === ID.LARCENOUS_STRIKE && event.type === 'damage').coefficient,
+    2.4
   );
 });
 
@@ -1764,7 +1765,7 @@ test('Deadeye stolen effects capture malice and preserve party audience and Reve
         const packets = result.events.filter((event) => event.skillId === skillId);
         assert.equal(
           packets.some((event) => event.type === 'buff' && event.kind === 'stealth'),
-          malice === 3
+          malice === 3 && !revealed
         );
         assert.equal(result.planningState.profession.stealthUntil > 0, malice === 3 && !revealed);
         assert.equal(result.planningState.profession.storedStolenSkillCount, 0);

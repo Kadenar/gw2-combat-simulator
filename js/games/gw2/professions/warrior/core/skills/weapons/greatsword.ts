@@ -48,6 +48,8 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
     ]
   },
   [ID.RUSH]: {
+    // Movement classification drives completed Brave Stride rewards.
+    movementSkill: true,
     castTimeMs: 1000,
     effects: [
       {
@@ -58,6 +60,8 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
     ]
   },
   [ID.WHIRLWIND_ATTACK]: {
+    // Movement classification drives completed Brave Stride rewards.
+    movementSkill: true,
     castTimeMs: 200,
     effects: [
       {

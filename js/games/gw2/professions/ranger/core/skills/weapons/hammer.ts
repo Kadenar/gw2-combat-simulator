@@ -1,3 +1,5 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
@@ -212,3 +214,27 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial
     castTimeMs: 560
   }
 });
+
+/** Intrinsic live-impact policy stays beside its skill; the shared registry supplies resolution. */
+export const rangerHammerDisabledModifier: Gw2ModifierRule = {
+  id: 'ranger.disabled-skill-bonus',
+  target: MODIFIER_TARGET.STRIKE_DAMAGE,
+  operation: 'multiply',
+  factor: 1.2,
+  when: (context) =>
+    Boolean(
+      String(context.event?.damageKind || '').startsWith('ranger-unleashed-disabled') && context.config?.target?.defiant
+    )
+};
+
+/** Intrinsic live-impact policy stays beside its skill; the shared registry supplies resolution. */
+export const rangerHammerConditionsModifier: Gw2ModifierRule = {
+  id: 'ranger.condition-count-skill-bonus',
+  target: MODIFIER_TARGET.STRIKE_DAMAGE,
+  operation: 'multiply',
+  parameters: { baseFactor: 1, damagePerCondition: 0.02 },
+  // Canonical queries deduplicate aliases and count only conditions active at this observation time.
+  factor: (context, _target, parameters) =>
+    parameters.baseFactor + targetConditionCount(context) * parameters.damagePerCondition,
+  when: (context) => context.event?.damageKind === 'ranger-unleashed-disabled-condition-count'
+};

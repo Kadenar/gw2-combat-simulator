@@ -1,3 +1,10 @@
+import { signetOfTheWildBonus } from '#gw2/professions/ranger/core/skills/slot-skills.js';
+import { rangerConsumingBiteModifier } from '#gw2/professions/ranger/core/skills/pets/fanged-iboga.js';
+import { rangerHammerConditionsModifier } from '#gw2/professions/ranger/core/skills/weapons/hammer.js';
+import { rangerStalkersStrikeModifier } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
+import { rangerFalconsStoopModifier } from '#gw2/professions/ranger/core/skills/weapons/spear.js';
+import { rangerPounceModifier } from '#gw2/professions/ranger/core/skills/weapons/sword.js';
+import { rangerHammerDisabledModifier } from '#gw2/professions/ranger/core/skills/weapons/hammer.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -7,15 +14,8 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import {
-  eventSkill,
-  hasSelectedSkill,
-  targetConditionActive,
-  targetConditionCount,
-  targetHealthBelow
-} from '#gw2/platform/combat/query/runtime-query.js';
+import { eventSkill, hasSelectedSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { stalkersStrikeTargetImpaired } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { rangerAttackOfOpportunityModifier } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import {
   rangerActiveBoonCount,
@@ -125,13 +125,13 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
 
   modifyRangerPetAttributes(context, result, staticRulesApplied);
 
-  if (hasSelectedSkill(context, 'Signet of the Wild')) {
-    const active = !context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_THE_WILD, context.time);
-    const signetOfTheWildProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfTheWild);
-    const bonus = balanceProfileNumber(signetOfTheWildProfile, 'attributeBonus');
-    if (staticRulesApplied) adjust('ferocity', active ? 0 : -bonus);
-    if (!staticRulesApplied && active) adjust('ferocity', bonus);
-  }
+  const signetSelected = hasSelectedSkill(context, 'Signet of the Wild');
+  const signetReady = !context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_THE_WILD, context.time);
+  adjust(
+    'ferocity',
+    signetOfTheWildBonus(context, signetSelected, signetReady) -
+      signetOfTheWildBonus(context, signetSelected && staticRulesApplied)
+  );
 
   return result;
 }
@@ -316,83 +316,12 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     amount: 0.15,
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.SURVIVAL_INSTINCTS)
   },
-  {
-    id: 'ranger.disabled-skill-bonus',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.2,
-    when: (context) =>
-      Boolean(
-        String(context.event?.damageKind || '').startsWith('ranger-unleashed-disabled') &&
-        context.config?.target?.defiant
-      )
-  },
-  {
-    id: 'ranger.pounce-defiant',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.2,
-    when: (context) => context.event?.damageKind === 'ranger-pounce-defiant' && Boolean(context.config?.target?.defiant)
-  },
-  {
-    // Spear bonuses are evaluated at impact so live conditions and the health threshold affect the correct hit.
-    id: 'ranger.falcons-stoop-disabled',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.2,
-    when: (context) =>
-      eventSkill(context)?.id === ID.FALCONS_STOOP &&
-      (context.config?.target?.defiant || targetConditionActive(context, 'Immobilized'))
-  },
-  {
-    id: 'ranger.spear-leap-low-health',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.2,
-    when: (context) =>
-      (eventSkill(context)?.id === ID.WARCLAWS_ENGAGE || eventSkill(context)?.id === ID.PREDATORS_AMBUSH) &&
-      targetHealthBelow(context, 0.5)
-  },
-  {
-    id: 'ranger.stalkers-strike-movement-impaired',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: (context) =>
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(context, PROFILE.stalkersStrikeImpaired),
-        'damageMultiplier'
-      ),
-    // Double only this skill's strike when Cripple, Slow, or Immobilize is active.
-    when: (context) =>
-      eventSkill(context)?.id === ID.STALKERS_STRIKE &&
-      stalkersStrikeTargetImpaired(context.config, context.time, context.runtime)
-  },
-  {
-    id: 'ranger.condition-count-skill-bonus',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    parameters: { baseFactor: 1, damagePerCondition: 0.02 },
-    // Canonical queries deduplicate aliases and count only conditions active at this observation time.
-    factor: (context, _target, parameters) =>
-      parameters.baseFactor + targetConditionCount(context) * parameters.damagePerCondition,
-    when: (context) => context.event?.damageKind === 'ranger-unleashed-disabled-condition-count'
-  },
-  {
-    id: 'ranger.consuming-bite-condition-count',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    parameters: {
-      maximumConditions: 5,
-      coefficientPerCondition: 0.025
-    },
-    factor: (context, _target, parameters) => {
-      const coefficient = Number(context.event?.coefficient || 0);
-      if (!(coefficient > 0)) return 1;
-      const conditions = Math.min(parameters.maximumConditions, targetConditionCount(context));
-      return (coefficient + conditions * parameters.coefficientPerCondition) / coefficient;
-    },
-    when: (context) => Number(context.event?.skillId ?? context.skillId) === ID.CONSUMING_BITE
-  }
+  rangerHammerDisabledModifier,
+  rangerPounceModifier,
+  rangerFalconsStoopModifier,
+  rangerStalkersStrikeModifier,
+  rangerHammerConditionsModifier,
+  rangerConsumingBiteModifier
 ];
 
 // Keep player/shared and pet-audience collections distinct while preserving one public rule list.

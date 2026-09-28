@@ -1,6 +1,6 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 export const PARAGON_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'warrior.paragon.motivation',
@@ -19,13 +19,6 @@ export const PARAGON_BALANCE_PROFILE_IDS = Object.freeze({
   callToAction: TRAIT.CALL_TO_ACTION,
   rallyTheValiant: TRAIT.RALLY_THE_VALIANT,
   reverberation: TRAIT.REVERBERATION
-});
-
-/** Echo payloads are separate from command entry effects and share identities with their tooltips. */
-export const PARAGON_COMMAND_ECHO_PROFILES: Readonly<Partial<Record<number, string>>> = Object.freeze({
-  [ID.FIND_THEIR_WEAKNESS]: PARAGON_BALANCE_PROFILE_IDS.findTheirWeaknessEcho,
-  [ID.ON_YOUR_KNEES]: PARAGON_BALANCE_PROFILE_IDS.onYourKneesEcho,
-  [ID.WE_SHALL_RETURN]: PARAGON_BALANCE_PROFILE_IDS.weShallReturnEcho
 });
 
 export const PARAGON_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([

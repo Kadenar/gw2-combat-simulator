@@ -25,7 +25,21 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.BACKSTAB]: {
-    // Custom: Consumes stealth and applies Revealed after the attack through `core/hooks.ts`.
+    // Apply the intrinsic factor to the current packet, retaining coefficient patch semantics.
+    effectVariants: [
+      {
+        when: (runtime) => Boolean(runtime.config.target?.defiant),
+        transform: (_runtime, _cast, effects) =>
+          effects.map((effect) =>
+            effect.type !== 'strike'
+              ? effect
+              : effect.ticks?.length
+                ? { ...effect, ticks: effect.ticks.map((tick) => ({ ...tick, coefficient: tick.coefficient * 2 })) }
+                : { ...effect, coefficient: (effect.coefficient || 0) * 2 }
+          )
+      }
+    ],
+
     castTimeMs: 320,
     interruptCommitMs: 200,
     cooldown: 1,
@@ -144,6 +158,10 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
     requiredOffHand: 'Pistol'
   },
   [ID.WILD_STRIKE]: {
+    // Endurance is a commitment reward, independent of target contact.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'resourceGrant', resource: 'endurance', amount: { skillField: 'resourceGain' } } }
+    ],
     castTimeMs: 400,
     // Wild Strike commits its strike and bleeding on the ~160 ms impact before the chain animation ends.
     interruptCommitMs: 160,
@@ -244,6 +262,8 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
     requiredOffHand: false
   },
   [ID.CLOAK_AND_DAGGER]: {
+    // The skill owns this transition at successful commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.stealth' } }],
     castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 5,

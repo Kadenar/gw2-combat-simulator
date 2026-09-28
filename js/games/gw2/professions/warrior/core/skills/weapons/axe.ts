@@ -79,6 +79,11 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
+        // Impact-time health selects the narrowest execute threshold once.
+        coefficientModifiers: [
+          { kind: 'target-health-below', threshold: 0.25, multiplier: 2 },
+          { kind: 'target-health-below', threshold: 0.5, multiplier: 1.5 }
+        ],
         coefficient: 0.85,
         projectile: true
       },

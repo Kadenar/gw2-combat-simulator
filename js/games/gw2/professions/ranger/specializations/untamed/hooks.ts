@@ -8,7 +8,7 @@ import {
   requireEffect,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
@@ -23,6 +23,17 @@ function grantAmbush(runtime: RangerRuntime): void {
     runtime.time +
       balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'durationMultiplier')
   );
+}
+
+/** Both toggles share fixed recharge; only an eligible transfer to Ranger claims a new ambush. */
+function unleash(runtime: RangerRuntime, cast: RuntimeCast, rangerUnleashed: boolean): void {
+  untamedState.from(runtime).rangerUnleashed = rangerUnleashed;
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
+  const readyAt = cast.start + balanceProfileNumber(profile, 'recharge');
+  runtime.cooldownController.setReadyAt(ID.UNLEASH_RANGER, readyAt);
+  runtime.cooldownController.setReadyAt(ID.UNLEASH_PET, readyAt);
+  if (rangerUnleashed && runtime.procs.claim(PROFILE.resources, 'ranger.untamed.unleashedPower', runtime.time))
+    grantAmbush(runtime);
 }
 
 export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
@@ -75,26 +86,19 @@ export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
     }
   ],
   availability: untamedCastAvailability,
-  onCastStart(runtime, cast) {
-    // An attempted ambush consumes its occurrence even if its animation is canceled.
-    if (cast.skill.unleashedAmbushSkill) untamedState.from(runtime).ambushReadyUntil = 0;
+  sideEffectHandlers: {
+    'ranger.ambush-consume'(runtime) {
+      untamedState.from(runtime).ambushReadyUntil = 0;
+    },
+    'ranger.unleash-ranger'(runtime, context) {
+      if (context.kind === 'cast') unleash(runtime, context.cast, true);
+    },
+    'ranger.unleash-pet'(runtime, context) {
+      if (context.kind === 'cast') unleash(runtime, context.cast, false);
+    }
   },
   onCastCommit(runtime, cast) {
     const state = untamedState.from(runtime);
-    if (cast.skill.id === ID.UNLEASH_RANGER || cast.skill.id === ID.UNLEASH_PET) {
-      state.rangerUnleashed = cast.skill.id === ID.UNLEASH_RANGER;
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
-      const readyAt = cast.start + balanceProfileNumber(profile, 'recharge');
-      runtime.cooldownController.setReadyAt(ID.UNLEASH_RANGER, readyAt);
-      runtime.cooldownController.setReadyAt(ID.UNLEASH_PET, readyAt);
-      if (
-        state.rangerUnleashed &&
-        runtime.procs.claim(PROFILE.resources, 'ranger.untamed.unleashedPower', runtime.time)
-      ) {
-        grantAmbush(runtime);
-      }
-    }
-
     if (
       cast.skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS &&
       runtime.combatActive &&

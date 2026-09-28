@@ -1,3 +1,4 @@
+import { slicingMaelstromModifiers } from '#gw2/professions/warrior/specializations/berserker/skills/index.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -59,6 +60,7 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw
 }
 
 const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  ...slicingMaelstromModifiers,
   {
     id: 'warrior.smash-brawler-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,

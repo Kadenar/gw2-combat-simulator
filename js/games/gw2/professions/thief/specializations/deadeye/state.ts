@@ -1,3 +1,4 @@
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { DEADEYE_RESOURCE_PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -55,3 +56,11 @@ export const DEADEYE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 } satisfies Partial<DeadeyeState>);
 
 export const deadeyeState = defineProfessionSpecializationState('Deadeye', createDeadeyeState);
+
+/** Accepted raw and marked malice remain available until the skill's commitment actions finish. */
+export interface DeadeyeCastFacts {
+  readonly malice: number;
+  readonly markedMalice: number;
+}
+
+export const deadeyeCastFacts = new WeakMap<RuntimeCast, DeadeyeCastFacts>();

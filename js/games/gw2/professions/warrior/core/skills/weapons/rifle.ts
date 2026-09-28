@@ -102,6 +102,8 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   },
   [ID.BRUTAL_SHOT]: {
+    // Movement classification drives completed Brave Stride rewards.
+    movementSkill: true,
     comboFinishers: [
       {
         ownerId: 'warrior',

@@ -1,8 +1,14 @@
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/modifiers.js';
+import {
+  BEGUILING_HAZE_SKILL_IDS,
+  TWIN_MOON_SKILL_IDS
+} from '#gw2/professions/revenant/specializations/conduit/skill-groups.js';
 /**
  * Owns Conduit entity-legend weapon and stance skill fragments.
- * Cast behavior is routed through `conduit/hooks.ts`.
+ * Definitions own acceptance selection; registered actions retain commit and shared resource mechanics.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { effectFirstAt } from '#gw2/platform/engine/effects/materializer.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
@@ -12,17 +18,141 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { impactEffects, conditionEffectTicks, strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+
+// The accepted main/follow-up identity survives charge consumption and variant selection.
+const hazeMainCasts = new WeakSet<RuntimeCast>();
+
+/** A completed main cast arms the follow-up charges on the shared ammo pool, retaining its main recharge. */
+export function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCast): void {
+  const skill = cast.skill;
+  const state = conduitState.from(runtime);
+  if (hazeMainCasts.has(cast)) {
+    hazeMainCasts.delete(cast);
+    state.beguilingHazeCharges = Math.max(
+      0,
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeFollowUp), 'maximumStacks')
+    );
+    state.beguilingHazeRecharge = structuredClone(
+      runtime.rechargeProgress.get(skill.id) ?? runtime.ammo.get(skill.id)?.rechargeProgress ?? null
+    );
+    state.beguilingHazeReadyAt =
+      runtime.cooldowns.get(skill.id) ?? runtime.ammo.get(skill.id)?.nextRechargeAt ?? runtime.time;
+  }
+
+  const ammo = runtime.ammo.get(skill.id);
+  if (!ammo) return;
+  if (state.beguilingHazeCharges > 0) {
+    ammo.maximum = state.beguilingHazeCharges;
+    ammo.charges = state.beguilingHazeCharges;
+    ammo.nextRechargeAt = null;
+    delete ammo.rechargeProgress;
+    runtime.cooldownController.clear(skill.id);
+  } else {
+    ammo.maximum = 1;
+    ammo.charges = 0;
+    if (!state.beguilingHazeRecharge) throw new Error('Beguiling Haze follow-ups require a main-cast recharge.');
+    ammo.rechargeProgress = { ...state.beguilingHazeRecharge };
+    ammo.rechargeWork = ammo.rechargeProgress.work;
+    ammo.nextRechargeAt = runtime.cooldownController.project(skill, ammo.rechargeProgress);
+    state.beguilingHazeReadyAt = ammo.nextRechargeAt;
+    runtime.cooldownController.refreshAmmo(skill, runtime.time);
+  }
+}
+
+const hexEaterCleanses = new WeakMap<
+  RuntimeCast,
+  {
+    configured: number;
+    conditions: RevenantRuntime['profession']['core']['selfConditions'];
+  }
+>();
+
+/** Select projectiles now; defer removal of the selected conditions until commitment. */
+function hexEaterEffects(
+  runtime: RevenantRuntime,
+  cast: RuntimeCast,
+  effects: readonly SkillEffect[]
+): readonly SkillEffect[] {
+  if (cast.cancelled) return [];
+  const core = runtime.profession.core;
+  const maximum = Math.max(
+    0,
+    ...effects.map((effect) =>
+      effect.type === 'strike'
+        ? strikeEffectTicks(effect).length
+        : effect.type === 'condition'
+          ? conditionEffectTicks(effect).length
+          : 0
+    )
+  );
+  const configured = Math.min(maximum, core.selfConditionCount);
+  const conditions = core.selfConditions
+    .filter((condition) => condition.expiresAt > cast.effectiveEnd)
+    .slice(0, maximum - configured);
+  hexEaterCleanses.set(cast, { configured, conditions });
+
+  const projectiles = core.selectedLegendIds.includes(LEGEND.DEMON) ? maximum : configured + conditions.length;
+  if (projectiles === 0) return [];
+
+  // Omit empty components so the materializer cannot synthesize a fallback hit.
+  return effects.flatMap((effect): SkillEffect[] => {
+    if (effect.type === 'strike') {
+      const ticks = strikeEffectTicks(effect).slice(0, projectiles);
+      return ticks.length ? [{ ...effect, ticks }] : [];
+    }
+
+    if (effect.type === 'condition') {
+      const ticks = conditionEffectTicks(effect).slice(0, projectiles);
+      return ticks.length ? [{ ...effect, ticks }] : [];
+    }
+
+    return [effect];
+  });
+}
+
+/** Selection precedes charge spending, so the final follow-up keeps its profile and shared recharge. */
+function selectBeguilingHaze(
+  runtime: RevenantRuntime,
+  cast: RuntimeCast,
+  effects: readonly SkillEffect[]
+): readonly SkillEffect[] {
+  if (cast.cancelled) return [];
+  const state = conduitState.from(runtime);
+  if (state.beguilingHazeCharges > 0) state.beguilingHazeCharges -= 1;
+  else hazeMainCasts.add(cast);
+  return effects;
+}
+
+/** Cleanse only the condition objects reserved when this skill was accepted. */
+export function cleanseHexEater(runtime: RevenantRuntime, cast: RuntimeCast): void {
+  const selected = hexEaterCleanses.get(cast);
+  if (!selected) return;
+  const core = runtime.profession.core;
+  core.selfConditionCount = Math.max(0, core.selfConditionCount - selected.configured);
+  core.selfConditions = core.selfConditions.filter(
+    (condition) => condition.expiresAt > runtime.time && !selected.conditions.includes(condition)
+  );
+  hexEaterCleanses.delete(cast);
+}
 
 // Both API identities represent the same skill, so one fragment keeps their simulation behavior synchronized.
 const BEGUILING_HAZE_SKILL: Partial<Skill> = {
-  // Select the follow-up before Conduit consumes its charge; the shared scheduler owns either strike.
+  // Select the follow-up profile before its transform spends the final charge.
   effectVariants: [
     {
       when: (runtime: RevenantRuntime) => conduitState.from(runtime).beguilingHazeCharges > 0,
-      profileId: PROFILE.beguilingHazeFollowUp
-    }
+      profileId: PROFILE.beguilingHazeFollowUp,
+      transform: selectBeguilingHaze
+    },
+    { when: () => true, transform: selectBeguilingHaze }
   ],
   sideEffects: [
     {
@@ -34,7 +164,8 @@ const BEGUILING_HAZE_SKILL: Partial<Skill> = {
         effects: (effect) => effect.type === 'boon' && effect.name === 'beguiling-haze',
         attribution: { source: 'revenant', sourceId: TRAIT.SHARED_WISDOM, actorType: 'player' }
       }
-    }
+    },
+    { on: 'castCommit', do: { type: 'revenant.complete-haze' } }
   ],
   // Relic of Peitha impacts 320 ms after the strike, which lands 40 ms before either variant's cast end.
   shadowstepSkill: true,
@@ -104,7 +235,10 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
       ticks: [{ atMs: 880, coefficient: 2.5 }],
       name: 'Twin Moon Sweep — Player',
       actorType: 'player',
-      metadata: { affinityOnHit: true }
+      // Every resolved player packet earns affinity; fragments carry no such reaction.
+      reactions: [
+        { on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'revenant.entity-hit-affinity' } }
+      ]
     },
     {
       type: 'strike',
@@ -171,7 +305,9 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   [ID.TWIN_MOON_SWEEP_ID_77001]: TWIN_MOON_SWEEP_SKILL,
   [ID.BEGUILING_HAZE]: BEGUILING_HAZE_SKILL,
   [ID.HEX_EATER_VORTEX]: {
-    // Conduit selects the projectile count; the shared scheduler owns their authored impacts.
+    // Snapshot projectiles at acceptance; the commit action consumes only that selection.
+    effectVariants: [{ when: () => true, transform: hexEaterEffects }],
+    // The local variant selects the projectile count; the scheduler owns their authored impacts.
     castTimeMs: 520,
     cooldown: 5,
     energyCost: 15,
@@ -266,3 +402,28 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: []
   }
 });
+
+function equippedLegend(context: Gw2ModifierContext, legendId: string): boolean {
+  return (revenantRuntimeCoreState(context).selectedLegendIds || []).includes(legendId);
+}
+
+// Equipped-legend resonance retains the outgoing multiplier stage for every authored strike.
+export const conduitEntityModifierRules: readonly Gw2ModifierRule[] = [
+  {
+    id: 'revenant.beguiling-haze-assassin-resonance',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    // Assassin resonance doubles Beguiling Haze damage when Assassin is equipped (not necessarily active).
+    factor: 2,
+    when: (context) =>
+      BEGUILING_HAZE_SKILL_IDS.has(Number(context.event?.skillId)) && equippedLegend(context, LEGEND.ASSASSIN)
+  },
+  {
+    id: 'revenant.twin-moon-assassin-resonance',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.5,
+    when: (context) =>
+      TWIN_MOON_SKILL_IDS.has(Number(context.event?.skillId)) && equippedLegend(context, LEGEND.ASSASSIN)
+  }
+];

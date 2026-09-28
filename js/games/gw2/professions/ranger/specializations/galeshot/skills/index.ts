@@ -1,3 +1,17 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
+import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
+import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/index.js';
+import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 /** Explicit PvE skill mechanics owned by the Galeshot Ranger module. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -19,6 +33,8 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
   [ID.MISTRAL]: {
     // Accepted starts restore the live arrow amount through the existing capped recovery clock.
     sideEffects: [
+      // Open the enhancement before restoring arrows, matching the activation ordering.
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.mistral' } },
       {
         on: 'castStart',
         when: (_runtime, cast) => !cast.cancelled,
@@ -28,14 +44,14 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     castTimeMs: 320,
     effects: [],
     arrowsRestored: 1
-    // Custom: Opens the Mistral buff window; see `galeshot/hooks.ts`.
   },
   [ID.SUMMON_CYCLONE_BOW]: {
+    // Change bars and notify shared swap observers only after commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.cyclone-bow-enter' } }],
     castTimeMs: 0,
     paletteTileId: CYCLONE_BOW_PALETTE_TILE,
     paletteTileOrder: 1,
     effects: [],
-    // Custom: Equips Cyclone Bow, resets chains, and emits weapon-swap/state events; see `galeshot/hooks.ts`.
     inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
   },
   [ID.PERFECT_STORM]: {
@@ -88,11 +104,12 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     castTimeMs: 333
   },
   [ID.DISMISS_CYCLONE_BOW]: {
+    // Change bars and notify shared swap observers only after commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.cyclone-bow-dismiss' } }],
     castTimeMs: 0,
     paletteTileId: CYCLONE_BOW_PALETTE_TILE,
     paletteTileOrder: 2,
     effects: [],
-    // Custom: Stows Cyclone Bow, clears Wind Force, and emits weapon-swap/state events; see `galeshot/hooks.ts`.
     inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
   },
   [ID.PIERCING_GALES]: {
@@ -146,6 +163,8 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     castTimeMs: 480
   },
   [ID.HAWKEYE]: {
+    // An accepted Hawkeye attempt consumes Wind Force even when interrupted.
+    sideEffects: [{ on: 'castStart', do: { type: 'ranger.hawkeye' } }],
     paletteTileId: CYCLONE_BOW_ONE_PALETTE_TILE,
     paletteTileOrder: 2,
     effects: [
@@ -161,11 +180,15 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       }
     ],
     arrowCost: 0,
-    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/hooks.ts`.
 
     castTimeMs: 880
   },
   [ID.BLUSTER]: {
+    sideEffects: [
+      // Pay for accepted attempts; the guarded gain retains its precommit task deadline.
+      { on: 'castStart', do: { type: 'ranger.arrow-spend' } },
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.wind-force-start' } }
+    ],
     effects: [
       {
         type: 'strike',
@@ -179,13 +202,17 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       }
     ],
     arrowCost: 1,
-    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/hooks.ts`.
 
     castTimeMs: 680,
     windForceGain: 1,
     windForceApplyMs: 480
   },
   [ID.FLEETING_ZEPHYR]: {
+    sideEffects: [
+      // Pay for accepted attempts; the guarded gain retains its precommit task deadline.
+      { on: 'castStart', do: { type: 'ranger.arrow-spend' } },
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.wind-force-start' } }
+    ],
     evades: true,
     effects: [
       {
@@ -203,7 +230,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       }
     ],
     arrowCost: 1,
-    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/hooks.ts`.
 
     castTimeMs: 520,
     windForceGain: 1,
@@ -212,6 +238,9 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
   [ID.QUARRYS_PERIL]: {
     // Committed shortened casts retain Cloudburst's reset at their effective completion boundary.
     sideEffects: [
+      // Pay for accepted attempts; the guarded gain retains its precommit task deadline.
+      { on: 'castStart', do: { type: 'ranger.arrow-spend' } },
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.wind-force-start' } },
       {
         on: 'castCommit',
         when: (runtime, cast) => Boolean(cast.skill.cycloneBowSkill) && hasTrait(runtime, TRAIT.CLOUDBURST),
@@ -235,7 +264,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       }
     ],
     arrowCost: 2,
-    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/hooks.ts`.
 
     castTimeMs: 680,
     interruptCommitMs: 320,
@@ -244,6 +272,11 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     windForceApplyMs: 280
   },
   [ID.PELT]: {
+    sideEffects: [
+      // Pay for accepted attempts; the guarded gain retains its precommit task deadline.
+      { on: 'castStart', do: { type: 'ranger.arrow-spend' } },
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.wind-force-start' } }
+    ],
     effects: [
       {
         type: 'strike',
@@ -254,7 +287,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       }
     ],
     arrowCost: 1,
-    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/hooks.ts`.
 
     castTimeMs: 680,
     windForceGain: 1,
@@ -263,6 +295,9 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
   [ID.SUPERSONIC_ARROW]: {
     // Committed shortened casts retain Cloudburst's reset at their effective completion boundary.
     sideEffects: [
+      // Pay for accepted attempts; the guarded gain retains its precommit task deadline.
+      { on: 'castStart', do: { type: 'ranger.arrow-spend' } },
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.wind-force-start' } },
       {
         on: 'castCommit',
         when: (runtime, cast) => Boolean(cast.skill.cycloneBowSkill) && hasTrait(runtime, TRAIT.CLOUDBURST),
@@ -283,10 +318,70 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       }
     ],
     arrowCost: 3,
-    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/hooks.ts`.
 
     castTimeMs: 1000,
     windForceGain: 2,
     windForceApplyMs: 760
   }
 });
+
+/** Schedule at acceptance because authored tasks are registered too late for precommit Wind Force. */
+export function scheduleWindForce(runtime: RangerRuntime, cast: RuntimeCast): void {
+  const skill = cast.skill;
+  if (!(Number(skill.windForceGain) > 0)) return;
+  const at = canonicalTime(cast.start + Number(skill.windForceApplyMs ?? skill.castTimeMs) / 1000);
+  if (!castWasInterrupted(cast) || at <= cast.effectiveEnd)
+    runtime.schedule('ranger.wind-force', at, Number(skill.windForceGain));
+}
+
+/** Apply the scheduled gain against the live cap without coupling its lifetime to the current bar. */
+export function grantWindForce(runtime: RangerRuntime, gain: unknown): void {
+  const state = galeshotState.from(runtime);
+  state.windForce = Math.min(
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'minimumStacks'),
+    state.windForce + Number(gain)
+  );
+}
+
+/** Later projectiles consume this live window through the shared Mistral observer. */
+export function activateMistral(runtime: RangerRuntime): void {
+  galeshotState.from(runtime).mistralUntil = canonicalTime(
+    runtime.time +
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.mistral), 'durationMultiplier')
+  );
+}
+
+/** Keep bar state, dismiss-only resource clearing, chain reset, and swap notification ordered together. */
+export function setCycloneBow(runtime: RangerRuntime, skill: Skill, active: boolean): void {
+  const state = galeshotState.from(runtime);
+  state.cycloneBowActive = active;
+  if (!active) state.windForce = 0;
+  resetAutoattackChains(runtime);
+  runtime.emit(
+    rangerEvent(
+      { at: runtime.time, skillId: skill.id, skillName: skill.name, weaponSet: runtime.activeWeaponSet },
+      'weapon_set'
+    )
+  );
+  applyRangerWeaponSwapTraits(runtime, skill);
+}
+
+/** Piercing Gales reads live vulnerability in addition to the ordinary platform multiplier. */
+export const piercingGalesModifier: Gw2ModifierRule = {
+  id: 'ranger.piercing-gales-vulnerability',
+  target: MODIFIER_TARGET.STRIKE_DAMAGE,
+  operation: 'multiply',
+  // Piercing Gales applies its own doubled vulnerability multiplier (2% per
+  // stack) in addition to the standard vulnerability already baked into the
+  // platform strikeMultiplier, effectively tripling the vulnerability bonus
+  // for this skill.
+  parameters: {
+    baseFactor: 1,
+    vulnerabilityPerStack: 0.02
+  },
+  factor: (context, _target, parameters) =>
+    parameters.baseFactor +
+    (context.query?.vulnerabilityStacksAt(context.time, context.runtime || undefined) || 0) *
+      parameters.vulnerabilityPerStack,
+  when: (context) => Number(context.event?.skillId ?? context.skillId) === ID.PIERCING_GALES
+};

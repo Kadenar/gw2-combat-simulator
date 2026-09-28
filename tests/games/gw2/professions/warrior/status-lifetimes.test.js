@@ -34,9 +34,10 @@ const wait = (durationMs) => ({ type: 'wait', durationMs });
 const combat = { type: 'combat-start' };
 const state = (result) => observedRuntime(result).profession.specialization.state;
 
-test('Tactical Reload rounds an off-grid application and admits entry exactly at its displayed deadline', () => {
+test('Tactical Reload rounds an off-grid application and closes exactly at its displayed deadline', () => {
   for (const [delay, charges] of [
-    [10039, 2],
+    [10038, 2],
+    [10039, 1],
     [10040, 1]
   ]) {
     const result = run('Bladesworn', [wait(1), ID.TACTICAL_RELOAD, wait(delay), ID.DRAGON_TRIGGER, wait(240), combat]);
@@ -45,7 +46,7 @@ test('Tactical Reload rounds an off-grid application and admits entry exactly at
     assert.equal(Math.round((buff.expiresAt - buff.at) * 1000), 10039);
     assert.equal(state(result).dragonCharges, charges);
     if (charges === 2) assert.equal(state(result).tacticalReloadUntil, 0);
-    else assert.ok(state(result).tacticalReloadUntil < observedRuntime(result).time);
+    else assert.ok(state(result).tacticalReloadUntil <= observedRuntime(result).time);
   }
 });
 

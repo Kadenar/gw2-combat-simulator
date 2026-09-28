@@ -1,3 +1,5 @@
+import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
@@ -36,17 +38,7 @@ export function thiefBonusStealthAttack(runtime: ThiefRuntime, at = runtime.time
  * Extends stealth up to its cap unless Revealed blocks entry. Enter-stealth traits fire only on a transition from an
  * unstealthed state.
  */
-export function grantThiefStealth(
-  runtime: ThiefRuntime,
-  skill: ThiefSkill,
-  explicitDuration?: number,
-  at = runtime.time
-): void {
-  const duration =
-    explicitDuration ??
-    (skill.effects || [])
-      .filter((effect) => effect.type === 'buff' && effect.kind === 'stealth')
-      .reduce((sum, effect) => sum + Number(effect.duration || 0), 0);
+export function grantThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, duration: number, at = runtime.time): void {
   if (!(duration > 0)) return;
   const core = runtime.profession.core;
   if (core.revealedUntil > at) return;
@@ -109,7 +101,7 @@ export function reactThiefStealthBreakingStrike(runtime: ThiefRuntime, event: Gw
   if (event.actorType !== 'player') return;
   const skill = thiefSkill(runtime, event.skillId);
   if (!skill || skill.stealthAttack) return;
-  if (skill.effects?.some((effect) => effect.type === 'buff' && effect.kind === 'stealth')) return;
+  if (stealthGrantActivations.get(runtime)?.has(String(event.activationId))) return;
   if (breakThiefStealth(runtime, skill, runtime.time)) runtime.profession.core.strikeBrokeStealthAt = runtime.time;
 }
 
@@ -151,5 +143,55 @@ export function completeThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeC
     condition: String(vulnerability.condition),
     duration: effectNumber(profile, vulnerability, 'duration'),
     stacks: effectNumber(profile, vulnerability, 'stacks')
+  });
+}
+
+// Selected stealth packets are acceptance facts; one commit action owns both display and combat state.
+const stealthPackets = new WeakMap<RuntimeCast, readonly SkillEffect[]>();
+const stealthGrantActivations = new WeakMap<ThiefRuntime, Set<string>>();
+export function selectThiefStealth(
+  runtime: ThiefRuntime,
+  cast: RuntimeCast,
+  effects: readonly SkillEffect[]
+): readonly SkillEffect[] {
+  const stealth = effects.filter(
+    (effect) => effect.type === 'buff' && effect.kind === 'stealth' && (!effect.when || effect.when(runtime, cast))
+  );
+  if (stealth.length) {
+    stealthPackets.set(cast, stealth);
+    // A variant-selected stealth grant protects its own strike; a rejected conditional packet does not.
+    let activations = stealthGrantActivations.get(runtime);
+    if (!activations) stealthGrantActivations.set(runtime, (activations = new Set()));
+    activations.add(cast.id);
+  }
+
+  return effects.filter((effect) => effect.type !== 'buff' || effect.kind !== 'stealth');
+}
+
+/** A committed grant uses the selected duration and Revealed gate for both availability and its visible buff. */
+export function commitThiefStealth(runtime: ThiefRuntime, cast: RuntimeCast): void {
+  const effects = stealthPackets.get(cast) ?? [];
+  stealthPackets.delete(cast);
+  if (runtime.profession.core.revealedUntil > runtime.time) return;
+  const duration = effects.reduce((sum, effect) => sum + Number(effect.duration || 0), 0);
+  if (!(duration > 0)) return;
+  grantThiefStealth(runtime, cast.skill, duration);
+  emitEffects(runtime, {
+    owner: cast.skill,
+    effects: effects.map((effect) => ({
+      ...effect,
+      duration: runtime.profession.core.stealthUntil - runtime.time,
+      atMs: 0,
+      timingAnchor: 'castStart',
+      when: undefined
+    })),
+    baseEvent: {
+      source: 'thief',
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id
+    }
   });
 }

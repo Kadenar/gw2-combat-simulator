@@ -52,6 +52,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 500
   },
   [ID.UNLEASH_RANGER]: {
+    // Transfers require commitment; ambush attempts spend their opportunity even on cancellation.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.unleash-ranger' } }],
     castTimeMs: 0,
     cooldown: 1,
     // Both Unleash sides receive the same fixed, Alacrity-independent recharge.
@@ -59,7 +61,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     paletteTileId: UNLEASH_PALETTE_TILE,
     paletteTileOrder: 1,
     effects: []
-    // Custom: Transfers Unleash state to the ranger and may open an ambush window; see `untamed/hooks.ts`.
   },
   [ID.EXPLODING_SPORES]: {
     // Capture Unleash at acceptance, adding the selected live boon to the skill's hostile packets.
@@ -191,6 +192,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 500
   },
   [ID.UNLEASH_PET]: {
+    // Transfers require commitment; ambush attempts spend their opportunity even on cancellation.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.unleash-pet' } }],
     castTimeMs: 0,
     cooldown: 1,
     // Both Unleash sides receive the same fixed, Alacrity-independent recharge.
@@ -198,9 +201,10 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     paletteTileId: UNLEASH_PALETTE_TILE,
     paletteTileOrder: 2,
     effects: []
-    // Custom: Transfers Unleash state to the pet; see `untamed/hooks.ts`.
   },
   [ID.RELENTLESS_WHIRL]: {
+    // Transfers require commitment; ambush attempts spend their opportunity even on cancellation.
+    sideEffects: [{ on: 'castStart', do: { type: 'ranger.ambush-consume' } }],
     interruptMode: 'per-packet',
     effects: [
       {
@@ -253,9 +257,10 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       }
     ],
     castTimeMs: 1560
-    // Custom: Consumes the current unleashed-ambush window; see `untamed/hooks.ts`.
   },
   [ID.DEFT_STRIKE]: {
+    // Transfers require commitment; ambush attempts spend their opportunity even on cancellation.
+    sideEffects: [{ on: 'castStart', do: { type: 'ranger.ambush-consume' } }],
     effects: [
       ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
@@ -299,6 +304,5 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       }
     ],
     castTimeMs: 960
-    // Custom: Consumes the current unleashed-ambush window; see `untamed/hooks.ts`.
   }
 });

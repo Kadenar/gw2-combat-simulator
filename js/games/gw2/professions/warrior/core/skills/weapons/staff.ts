@@ -4,6 +4,8 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.LINE_BREAKER]: {
+    // Movement classification drives completed Brave Stride rewards.
+    movementSkill: true,
     castTimeMs: 1167,
     effects: [
       {
@@ -49,6 +51,8 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.VALIANT_LEAP]: {
+    // Movement classification drives completed Brave Stride rewards.
+    movementSkill: true,
     castTimeMs: 500,
     sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 5 } }],
     effects: [

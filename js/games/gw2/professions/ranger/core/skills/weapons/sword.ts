@@ -1,3 +1,4 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -109,3 +110,12 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<
     castTimeMs: 840
   }
 });
+
+/** Intrinsic live-impact policy stays beside its skill; the shared registry supplies resolution. */
+export const rangerPounceModifier: Gw2ModifierRule = {
+  id: 'ranger.pounce-defiant',
+  target: MODIFIER_TARGET.STRIKE_DAMAGE,
+  operation: 'multiply',
+  factor: 1.2,
+  when: (context) => context.event?.damageKind === 'ranger-pounce-defiant' && Boolean(context.config?.target?.defiant)
+};

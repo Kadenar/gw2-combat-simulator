@@ -1,3 +1,8 @@
+import {
+  completeBeguilingHaze,
+  cleanseHexEater
+} from '#gw2/professions/revenant/specializations/conduit/skills/entity-skills.js';
+import { completeRevenantCastTraits } from '#gw2/professions/revenant/core/traits/index.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
@@ -6,14 +11,12 @@ import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializati
 import { canonicalTime } from '#kernel/core/clock.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { conditionEffectTicks, strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
@@ -35,7 +38,7 @@ import {
   BEGUILING_HAZE_SKILL_IDS,
   TWIN_MOON_SKILL_IDS
 } from '#gw2/professions/revenant/specializations/conduit/skill-groups.js';
-import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -48,8 +51,6 @@ const MESMER_RELEASE = 'revenant.release-mesmer-conditions';
 const RELEASE_POTENTIAL_IDS = new Set<SkillId>(Object.values(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND));
 // A cast started in Dervish form keeps its scythe through form expiry or a concurrent legend swap.
 const dervishCasts = new WeakSet<RuntimeCast>();
-// A main Beguiling Haze arms follow-ups at its completion; follow-up casts never do.
-const hazeMainCasts = new WeakSet<RuntimeCast>();
 
 function conduit(runtime: RevenantRuntime) {
   return conduitState.from(runtime);
@@ -75,12 +76,6 @@ function gainAffinity(runtime: RevenantRuntime, amount: number): void {
 
 function hasLegend(runtime: RevenantRuntime, legendId: string): boolean {
   return runtime.profession.core.selectedLegendIds.includes(legendId);
-}
-
-/** Profession attacks inherit the active weapon; slot and triggered attacks use level-based strength. */
-function skillWeapon(runtime: RevenantRuntime, skill: Skill): string {
-  const set = runtime.activeWeaponSet === 2 ? 2 : 1;
-  return skill.weapon || (skill.type === 'Profession' ? (gw2PrimaryWeapon(runtime.config, set) ?? '') : 'Unequipped');
 }
 
 /** Numinous Gift grants its base and equipped-legend boons to the caster or, with Found Purpose, to allies. */
@@ -182,94 +177,6 @@ function dervishAttack(runtime: RevenantRuntime, cast: RuntimeCast, at: number, 
       triggeredBy: cast.skill.name
     },
     transform: (event) => ({ ...event, name, skillWeapon: 'Unequipped', icon: attack.icon || '' })
-  });
-}
-
-/** A completed main cast arms the follow-up charges on the shared ammo pool, retaining its main recharge. */
-function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill;
-  const state = conduit(runtime);
-  if (hazeMainCasts.has(cast)) {
-    hazeMainCasts.delete(cast);
-    state.beguilingHazeCharges = Math.max(
-      0,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeFollowUp), 'maximumStacks')
-    );
-    state.beguilingHazeRecharge = structuredClone(
-      runtime.rechargeProgress.get(skill.id) ?? runtime.ammo.get(skill.id)?.rechargeProgress ?? null
-    );
-    state.beguilingHazeReadyAt =
-      runtime.cooldowns.get(skill.id) ?? runtime.ammo.get(skill.id)?.nextRechargeAt ?? runtime.time;
-  }
-
-  const ammo = runtime.ammo.get(skill.id);
-  if (!ammo) return;
-  if (state.beguilingHazeCharges > 0) {
-    ammo.maximum = state.beguilingHazeCharges;
-    ammo.charges = state.beguilingHazeCharges;
-    ammo.nextRechargeAt = null;
-    delete ammo.rechargeProgress;
-    runtime.cooldownController.clear(skill.id);
-  } else {
-    ammo.maximum = 1;
-    ammo.charges = 0;
-    if (!state.beguilingHazeRecharge) throw new Error('Beguiling Haze follow-ups require a main-cast recharge.');
-    ammo.rechargeProgress = { ...state.beguilingHazeRecharge };
-    ammo.rechargeWork = ammo.rechargeProgress.work;
-    ammo.nextRechargeAt = runtime.cooldownController.project(skill, ammo.rechargeProgress);
-    state.beguilingHazeReadyAt = ammo.nextRechargeAt;
-    runtime.cooldownController.refreshAmmo(skill, runtime.time);
-  }
-}
-
-const hexEaterCleanses = new WeakMap<
-  RuntimeCast,
-  {
-    configured: number;
-    conditions: RevenantRuntime['profession']['core']['selfConditions'];
-  }
->();
-
-/** Select projectiles now; defer removal of the selected conditions until commitment. */
-function hexEaterEffects(
-  runtime: RevenantRuntime,
-  cast: RuntimeCast,
-  effects: readonly SkillEffect[]
-): readonly SkillEffect[] {
-  if (cast.cancelled) return [];
-  const core = runtime.profession.core;
-  const maximum = Math.max(
-    0,
-    ...effects.map((effect) =>
-      effect.type === 'strike'
-        ? strikeEffectTicks(effect).length
-        : effect.type === 'condition'
-          ? conditionEffectTicks(effect).length
-          : 0
-    )
-  );
-  const configured = Math.min(maximum, core.selfConditionCount);
-  const conditions = core.selfConditions
-    .filter((condition) => condition.expiresAt > cast.effectiveEnd)
-    .slice(0, maximum - configured);
-  hexEaterCleanses.set(cast, { configured, conditions });
-
-  const projectiles = hasLegend(runtime, LEGEND.DEMON) ? maximum : configured + conditions.length;
-  if (projectiles === 0) return [];
-
-  // Omit empty components so the materializer cannot synthesize a fallback hit.
-  return effects.flatMap((effect): SkillEffect[] => {
-    if (effect.type === 'strike') {
-      const ticks = strikeEffectTicks(effect).slice(0, projectiles);
-      return ticks.length ? [{ ...effect, ticks }] : [];
-    }
-
-    if (effect.type === 'condition') {
-      const ticks = conditionEffectTicks(effect).slice(0, projectiles);
-      return ticks.length ? [{ ...effect, ticks }] : [];
-    }
-
-    return [effect];
   });
 }
 
@@ -550,48 +457,14 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
       return Math.max(0, balanceProfileNumber(requireBalanceProfileFromContext(runtime, mesmerProfile), 'cooldown'));
     return conduitRecharge(runtime, skill, work);
   },
-  modifyEffects(runtime, cast, effects) {
-    if (cast.skill.id === ID.HEX_EATER_VORTEX) return hexEaterEffects(runtime, cast, effects);
-    if (BEGUILING_HAZE_SKILL_IDS.has(cast.skill.id)) {
-      if (cast.cancelled) return [];
-      // Variant selection has already captured the last follow-up before its charge is spent.
-      const state = conduit(runtime);
-      if (state.beguilingHazeCharges > 0) state.beguilingHazeCharges -= 1;
-      else hazeMainCasts.add(cast);
-    }
-
-    if (!RELEASE_POTENTIAL_IDS.has(cast.skill.id)) return effects;
-    const assassin = cast.skill.id === ID.RELEASE_POTENTIAL_ASSASSIN;
-    const affinity = assassin ? effectiveConduitAffinity(runtime) : 0;
-    // Releases retain active-weapon attribution; only Assassin snapshots condition duration at acceptance.
-    return effects.flatMap((effect): SkillEffect[] => {
-      if (effect.type === 'strike') return [{ ...effect, weapon: skillWeapon(runtime, cast.skill) }];
-      if (effect.type === 'condition') {
-        if (cast.skill.id === ID.RELEASE_POTENTIAL_MESMER) return [];
-        if (assassin) {
-          const multiplier = 1 + affinity * Number(effect.durationPerAffinity || 0);
-          const ticks = conditionEffectTicks(effect).map((tick) => ({ ...tick, duration: tick.duration * multiplier }));
-          return ticks.length ? [{ ...effect, ticks }] : [];
-        }
-      }
-
-      return [effect];
-    });
-  },
   onCastStart(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
     costAffinity(runtime, cast);
     if (skill.legendId === LEGEND.ENTITY && revenantConduitFormIsActive(conduit(runtime), 'Dervish', cast.start))
       dervishCasts.add(cast);
-    if (cast.cancelled) return;
-    if (skill.id === ID.RELEASE_POTENTIAL_MESMER) scheduleMesmerReleaseConditions(runtime, cast);
   },
   onCastCommit(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
-    if (BEGUILING_HAZE_SKILL_IDS.has(skill.id)) {
-      completeBeguilingHaze(runtime, cast);
-    }
-
     // Cosmic Wisdom form procs follow successful casts through the common completion path.
     if (skill.legendId === LEGEND.ASSASSIN) lesserDaggers(runtime, skill);
     if (dervishCasts.has(cast)) {
@@ -603,8 +476,7 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     // Shared Wisdom Swiftness belongs only to Entity legend skills.
     if (skill.legendId === LEGEND.ENTITY) completionSharedWisdom(runtime, cast, 'entity-skill');
 
-    if (skill.id === ID.COSMIC_WISDOM) cosmicWisdom(runtime, cast);
-    else if (skill.id === ID.SWAP_LEGENDS) swapLegend(runtime, cast);
+    if (skill.id === ID.SWAP_LEGENDS) swapLegend(runtime, cast);
     if (isRevenantUpkeep(skill) && activeRevenantUpkeep(runtime, skill.id, runtime.time)) {
       const data = { skillId: skill.id, startsAt: runtime.time };
       runtime.schedule(UPKEEP_AFFINITY, canonicalTime(runtime.time + 3), data, undefined, -200);
@@ -613,31 +485,33 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     }
   },
   sideEffectHandlers: {
+    'revenant.complete-haze'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      // Shared Wisdom is already published; Core traits precede the shared-ammo transition.
+      completeRevenantCastTraits(runtime, context.cast);
+      completeBeguilingHaze(runtime, context.cast);
+    },
     'revenant.hex-eater-cleanse'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Hex-Eater cleanse requires a cast.');
-      const selected = hexEaterCleanses.get(context.cast);
-      if (!selected) return;
-
-      // Remove the original selection, preserving conditions acquired during casting.
-      const core = runtime.profession.core;
-      core.selfConditionCount = Math.max(0, core.selfConditionCount - selected.configured);
-      core.selfConditions = core.selfConditions.filter(
-        (condition) => condition.expiresAt > runtime.time && !selected.conditions.includes(condition)
-      );
-      hexEaterCleanses.delete(context.cast);
+      cleanseHexEater(runtime, context.cast);
+    },
+    'revenant.mesmer-release'(runtime, context) {
+      if (context.kind === 'cast') scheduleMesmerReleaseConditions(runtime, context.cast);
+    },
+    'revenant.cosmic-wisdom'(runtime, context) {
+      if (context.kind !== 'cast') return;
+      // Core cast traits must see the pre-form attributes before Cosmic Wisdom opens its form.
+      completeRevenantCastTraits(runtime, context.cast);
+      cosmicWisdom(runtime, context.cast);
+    },
+    'revenant.entity-hit-affinity'(runtime, context) {
+      if (context.kind === 'effect') gainAffinity(runtime, Number(context.skill.energyCost || 0) >= 25 ? 2 : 1);
     }
   },
   onCooldownReset(runtime) {
     // A full cooldown reset makes Beguiling Haze immediately available.
     conduit(runtime).beguilingHazeReadyAt = runtime.time;
     conduit(runtime).beguilingHazeRecharge = null;
-  },
-  reactions: {
-    'damage.resolved'(runtime, event) {
-      if (event.metadata?.affinityOnHit !== true) return;
-      const skill = event.skillId == null ? undefined : runtime.helpers.skillsById.get(event.skillId);
-      gainAffinity(runtime, Number(skill?.energyCost || 0) >= 25 ? 2 : 1);
-    }
   },
   tasks: {
     [FORM_EXPIRY]: formExpiry,

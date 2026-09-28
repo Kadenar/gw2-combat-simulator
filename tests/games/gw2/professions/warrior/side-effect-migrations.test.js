@@ -64,12 +64,16 @@ test('Find Their Weakness grants initial adrenaline at commitment before its com
       profession: {
         ...native,
         catalog: withSkill(native.catalog, ID.FIND_THEIR_WEAKNESS, { castTimeMs: 1000, interruptCommitMs: 200 }),
-        onCastCommit(runtime, cast) {
-          before = [
-            runtime.profession.core.adrenaline,
-            Object.keys(runtime.profession.specialization.state.commandEchoes).length
-          ];
-          native.onCastCommit(runtime, cast);
+        sideEffectHandlers: {
+          ...native.sideEffectHandlers,
+          // Observe the actual arming boundary after the initial declared resource grant.
+          'warrior.command-arm'(runtime, context, action) {
+            before = [
+              runtime.profession.core.adrenaline,
+              Object.keys(runtime.profession.specialization.state.commandEchoes).length
+            ];
+            native.sideEffectHandlers['warrior.command-arm'](runtime, context, action);
+          }
         }
       }
     });

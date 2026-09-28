@@ -1,3 +1,4 @@
+import { signetOfTheWildBonus } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -98,7 +99,6 @@ export function applyRangerBuildAttributeRules(
   const naturalFortitudeProfile = requireBalanceProfileFromContext(profileContext, TRAIT.NATURAL_FORTITUDE);
   const wellspringProfile = requireBalanceProfileFromContext(profileContext, TRAIT.WELLSPRING);
   const viciousQuarryProfile = requireBalanceProfileFromContext(profileContext, TRAIT.VICIOUS_QUARRY);
-  const signetOfTheWildProfile = requireBalanceProfileFromContext(profileContext, 'ranger.core.signet-of-the-wild');
   attributeEffects.push(
     {
       kind: 'flat',
@@ -162,9 +162,8 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: 'Signet of the Wild',
       to: 'Ferocity',
-      amount: balanceProfileNumber(signetOfTheWildProfile, 'attributeBonus'),
-      feedsConversions: false,
-      enabled: hasSelectedSkill(ID.SIGNET_OF_THE_WILD)
+      amount: signetOfTheWildBonus(profileContext, hasSelectedSkill(ID.SIGNET_OF_THE_WILD)),
+      feedsConversions: false
     }
   );
 

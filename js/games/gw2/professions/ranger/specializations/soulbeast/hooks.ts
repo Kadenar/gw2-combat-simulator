@@ -21,10 +21,8 @@ import {
 import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { applyRangerBeastSkillTraits } from '#gw2/professions/ranger/core/traits/index.js';
-import {
-  applyUnstoppableUnion,
-  emitSoulbeastStance
-} from '#gw2/professions/ranger/specializations/soulbeast/traits/index.js';
+import { setBeastmode } from '#gw2/professions/ranger/specializations/soulbeast/skills/beastmode-skills.js';
+import { activateSoulbeastStance } from '#gw2/professions/ranger/specializations/soulbeast/skills/stance-skills.js';
 import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import { scheduleSharedStance } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 
@@ -98,47 +96,20 @@ export const soulbeastHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       scheduleSharedStance(runtime, event);
   },
   availability: soulbeastCastAvailability,
-  onCastStart(runtime, cast) {
-    const skill = cast.skill;
-    if (cast.cancelled) return;
-    if (skill.id === ID.BEASTMODE || skill.id === ID.LEAVE_BEASTMODE) {
-      soulbeastState.from(runtime).beastmodeActive = skill.id === ID.BEASTMODE;
-      setRangerPetActive(runtime, skill.id !== ID.BEASTMODE);
-      applyUnstoppableUnion(runtime, skill);
+  sideEffectHandlers: {
+    'ranger.beastmode-enter'(runtime, context) {
+      setBeastmode(runtime, context.skill, true);
+    },
+    'ranger.beastmode-leave'(runtime, context) {
+      setBeastmode(runtime, context.skill, false);
+    },
+    'ranger.vulture-stance'(runtime, context) {
+      activateSoulbeastStance(runtime, context.skill, 'vulture-stance', PROFILE.vultureStance);
+    },
+    'ranger.one-wolf-pack'(runtime, context) {
+      soulbeastState.from(runtime).oneWolfPackUntil =
+        runtime.time + activateSoulbeastStance(runtime, context.skill, 'one-wolf-pack', PROFILE.oneWolfPack);
     }
-
-    if (skill.id === ID.ONE_WOLF_PACK || skill.id === ID.VULTURE_STANCE) {
-      const wolf = skill.id === ID.ONE_WOLF_PACK;
-      const duration = emitSoulbeastStance(
-        runtime,
-        skill,
-        wolf ? 'one-wolf-pack' : 'vulture-stance',
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(runtime, wolf ? PROFILE.oneWolfPack : PROFILE.vultureStance),
-          'durationMultiplier'
-        )
-      );
-      if (wolf) soulbeastState.from(runtime).oneWolfPackUntil = runtime.time + duration;
-    }
-
-    if (soulbeastState.from(runtime).beastmodeActive && skill.id === ID.SIC_EM)
-      runtime.emitProcedural(
-        rangerEvent(
-          {
-            at: runtime.time,
-            skillId: skill.id,
-            skillName: skill.name,
-            kind: 'sic-em',
-            priority: -20,
-            stacks: 1,
-            duration: balanceProfileNumber(
-              requireBalanceProfileFromContext(runtime, CORE_PROFILE.sicEm),
-              'durationMultiplier'
-            )
-          },
-          'buff'
-        )
-      );
   },
   onCastCommit(runtime, cast) {
     const state = soulbeastState.from(runtime);

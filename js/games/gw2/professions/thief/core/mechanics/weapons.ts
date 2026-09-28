@@ -1,9 +1,7 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
-import { permanentTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { armSkillFlip, consumeSkillFlip, skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
@@ -17,20 +15,15 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { addVenomCharges, conditionEffects, venomForSkill } from '#gw2/professions/thief/core/mechanics/venoms.js';
-import { thiefSpecializationGuildSummon } from '#gw2/professions/thief/family-state.js';
+import { guildAttackConditions, thiefSpecializationGuildSummon } from '#gw2/professions/thief/family-state.js';
 import { emitThiefCondition, emitThiefDamage } from '#gw2/professions/thief/core/events.js';
-import {
-  grantThiefEndurance,
-  grantThiefInitiative,
-  setThiefKneeling
-} from '#gw2/professions/thief/core/mechanics/resources.js';
-import { grantThiefStealth } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { grantThiefInitiative, setThiefKneeling } from '#gw2/professions/thief/core/mechanics/resources.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { AutoattackChainTransitionResult } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import type { ThiefSkill, ThiefSummonDefinition, ThiefSummonStrike } from '#gw2/professions/thief/types.js';
+import type { ThiefSkill, ThiefSummonDefinition } from '#gw2/professions/thief/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
 export const THIEF_SCEPTER_CHAIN_EXPIRY = 'thief.scepter-chain-expire';
@@ -38,7 +31,6 @@ export const THIEF_GUILD_ATTACK = 'thief.thieves-guild-attack';
 export const THIEF_GUILD_EXPIRY = 'thief.thieves-guild-expire';
 
 const SPEAR_STEALTH_SKILLS = new Set<SkillId>([ID.ASHEN_ASSAULT]);
-const AXE_RECALL_SKILLS = new Set<SkillId>([ID.HARROWING_STORM, ID.ORCHESTRATED_ASSAULT, ID.RECALL_AXES]);
 
 interface TrapDefinition {
   readonly prepareId: SkillId;
@@ -74,7 +66,7 @@ export function thiefTrapAvailability(runtime: ThiefRuntime, skill: ThiefSkill):
 }
 
 /** A committed placement exposes its trigger immediately; the trigger arms after a recharge-scaled delay. */
-function prepareTrap(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function prepareTrap(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const trap = THIEF_PREPARATIONS.find((candidate) => candidate.prepareId === cast.skill.id);
   if (!trap) return;
   const skill = cast.skill as ThiefSkill;
@@ -83,7 +75,7 @@ function prepareTrap(runtime: ThiefRuntime, cast: RuntimeCast): void {
 }
 
 /** Triggering consumes the trap and mirrors its short rearm onto an already-recharged placement skill. */
-function activateTrap(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function activateTrap(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const trap = THIEF_PREPARATIONS.find((candidate) => candidate.triggerId === cast.skill.id);
   if (!trap) return;
   consumeSkillFlip(runtime.profession.core.availableFlips, trap.triggerId);
@@ -94,7 +86,7 @@ function activateTrap(runtime: ThiefRuntime, cast: RuntimeCast): void {
 }
 
 /** Arms the caster's finite venom charges and queues each assumed ally's bounded proc sequence. */
-function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const venom = venomForSkill(cast.skill.id);
   if (!venom) return;
   const core = runtime.profession.core;
@@ -133,7 +125,7 @@ function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast): void {
 }
 
 /** Spear stages advance on committed attacks; Distracting Throw after a finisher arms its damage window. */
-function updateSpearChain(runtime: ThiefRuntime, skill: ThiefSkill): void {
+export function updateSpearChain(runtime: ThiefRuntime, skill: ThiefSkill): void {
   const core = runtime.profession.core;
   const stage = spearChainStageForSkill(skill.id);
   if (stage != null) {
@@ -148,10 +140,8 @@ function updateSpearChain(runtime: ThiefRuntime, skill: ThiefSkill): void {
     core.spearChainStage = 1;
     core.spearLastWasFinisher = false;
     core.spearPreviousSkillId = skill.id;
-    if (followsFinisher)
-      core.distractingThrowBuffUntil =
-        runtime.time +
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.distractingThrow), 'durationMultiplier');
+    // The committed window follows the throw's own same-time packets, so it buffs subsequent damage only.
+    if (followsFinisher) runtime.schedule('thief.distracting-throw-window', runtime.time, undefined, undefined, 20);
     return;
   }
 
@@ -162,18 +152,11 @@ function updateSpearChain(runtime: ThiefRuntime, skill: ThiefSkill): void {
   }
 }
 
-/**
- * Completion-time weapon state: stealth grants, endurance refunds, spear stages, axe recall, and weapon follow-up
- * windows. A committed opener arms its follow-up; a committed follow-up consumes it.
- */
-export function completeThiefWeaponState(runtime: ThiefRuntime, cast: RuntimeCast, committed: boolean): void {
-  const skill = cast.skill as ThiefSkill;
-  const core = runtime.profession.core;
-  // Weapon state uses the same commitment gate as other cast rewards, including shortened casts.
-  if (committed && !(skill.categories || []).includes('stolen skill')) grantThiefStealth(runtime, skill);
-  if (committed && (skill.resourceGain || 0) > 0) grantThiefEndurance(runtime, Number(skill.resourceGain));
-  if (committed) updateSpearChain(runtime, skill);
-  if (committed && AXE_RECALL_SKILLS.has(skill.id)) core.spinningAxeExpirations = [];
+/** Open the finisher reward after the granting throw has resolved at the commitment instant. */
+export function grantDistractingThrowWindow(runtime: ThiefRuntime): void {
+  runtime.profession.core.distractingThrowBuffUntil =
+    runtime.time +
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.distractingThrow), 'durationMultiplier');
 }
 
 /** Each landed axe joins the shared ground pool for ten seconds, keeping the six newest. */
@@ -211,7 +194,7 @@ export function expireThiefScepterChain(runtime: ThiefRuntime, data: unknown): v
 }
 
 /** Swapping weapons stands up; Quick Pockets grants in-combat initiative once per its cooldown. */
-function completeThiefWeaponSwap(runtime: ThiefRuntime): void {
+export function completeThiefWeaponSwap(runtime: ThiefRuntime): void {
   setThiefKneeling(runtime, false);
   if (
     !runtime.combatStartedAt() ||
@@ -224,29 +207,11 @@ function completeThiefWeaponSwap(runtime: ThiefRuntime): void {
 }
 
 /** Assassin's Signet opens its active window and suppresses its passive until the signet recharges. */
-function activateAssassinsSignet(runtime: ThiefRuntime): void {
+export function activateAssassinsSignet(runtime: ThiefRuntime): void {
   const core = runtime.profession.core;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.assassinsSignet);
   core.assassinsSignetActiveUntil = runtime.time + balanceProfileNumber(profile, 'durationMultiplier');
   core.assassinsSignetPassiveDisabledUntil = runtime.cooldowns.get(ID.ASSASSINS_SIGNET) ?? runtime.time;
-}
-
-/** Utility, stance, and swap transitions owned by Core at the committed completion. */
-export function completeThiefCoreActions(runtime: ThiefRuntime, cast: RuntimeCast, committed: boolean): void {
-  const skill = cast.skill;
-  if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
-    completeThiefWeaponSwap(runtime);
-    return;
-  }
-
-  if (!committed) return;
-  if (skill.id === ID.KNEEL) setThiefKneeling(runtime, true);
-  else if (skill.id === ID.FREE_ACTION) setThiefKneeling(runtime, false);
-  else if (skill.id === ID.ASSASSINS_SIGNET) activateAssassinsSignet(runtime);
-  else if (skill.id === ID.THIEVES_GUILD) summonThievesGuild(runtime, cast);
-  else if (venomForSkill(skill.id)) activateVenom(runtime, cast);
-  prepareTrap(runtime, cast);
-  activateTrap(runtime, cast);
 }
 
 interface GuildAttackWork {
@@ -268,7 +233,7 @@ function thievesGuildSummons(runtime: ThiefRuntime): ThiefSummonDefinition[] {
 }
 
 /** A committed summon replaces any active guild; its streams start with combat. */
-function summonThievesGuild(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function summonThievesGuild(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const profile = (cast.skill as ThiefSkill).summonAttack;
   if (!profile) return;
   const core = runtime.profession.core;
@@ -300,26 +265,6 @@ export function startThievesGuild(runtime: ThiefRuntime): void {
           occurrence: 0
         } satisfies GuildAttackWork);
     }
-}
-
-const WELL_OF_SORROW = 67795;
-const WELL_OF_SORROW_PRIORITY = Object.freeze(['Poisoned', 'Bleeding', 'Torment']);
-const WELL_OF_SORROW_CONDITIONS = Object.freeze([
-  Object.freeze({ condition: 'Poisoned', stacks: 1, duration: 3 }),
-  Object.freeze({ condition: 'Bleeding', stacks: 2, duration: 4 }),
-  Object.freeze({ condition: 'Torment', stacks: 2, duration: 4 }),
-  Object.freeze({ condition: 'Torment', stacks: 1, duration: 4 })
-]);
-
-/** Well of Sorrow chooses the first missing condition from the target's state at its own impact. */
-function guildAttackConditions(runtime: ThiefRuntime, attack: ThiefSummonStrike) {
-  if (attack.skillId !== WELL_OF_SORROW) return attack.conditions || [];
-  if (WELL_OF_SORROW_PRIORITY.every((condition) => permanentTargetConditionStacks(runtime.config, condition) > 0))
-    return [WELL_OF_SORROW_CONDITIONS[3]];
-  const missing = WELL_OF_SORROW_PRIORITY.findIndex(
-    (condition) => !runtime.query.targetHasCondition(condition, runtime.time, runtime)
-  );
-  return [WELL_OF_SORROW_CONDITIONS[missing < 0 ? 3 : missing]];
 }
 
 /** One summon attack: its packets share a fresh activation, then the stream schedules its next occurrence. */

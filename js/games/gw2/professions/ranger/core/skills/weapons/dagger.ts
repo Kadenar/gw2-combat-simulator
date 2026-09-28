@@ -1,3 +1,10 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { stalkersStrikeTargetImpaired } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -99,6 +106,8 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     castTimeMs: 280
   },
   [ID.DOUBLE_ARC]: {
+    // Arm subsequent qualifying hits only on semantic commitment.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.poisonous-strikes' } }],
     effects: [
       {
         type: 'condition',
@@ -117,7 +126,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     cooldown: 6,
     castTimeMs: 600
     // Double Arc arms the pet's next two attacks; the weapon hit does not poison directly.
-    // Custom: Arms Poisonous Strikes charges and duration after the attack; see `core/hooks.ts`.
   },
   [ID.DEADLY_DELIVERY]: {
     effects: [
@@ -201,3 +209,16 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     castTimeMs: 840
   }
 });
+
+/** Intrinsic live-impact policy stays beside its skill; the shared registry supplies resolution. */
+export const rangerStalkersStrikeModifier: Gw2ModifierRule = {
+  id: 'ranger.stalkers-strike-movement-impaired',
+  target: MODIFIER_TARGET.STRIKE_DAMAGE,
+  operation: 'multiply',
+  factor: (context) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.stalkersStrikeImpaired), 'damageMultiplier'),
+  // Double only this skill's strike when Cripple, Slow, or Immobilize is active.
+  when: (context) =>
+    eventSkill(context)?.id === ID.STALKERS_STRIKE &&
+    stalkersStrikeTargetImpaired(context.config, context.time, context.runtime)
+};

@@ -122,8 +122,13 @@ function isLegendaryStanceSkill(skill: RevenantSkill): boolean {
   return skill.type === 'Profession';
 }
 
+// A skill action may need pre-transition traits; the common observer must not grant them twice.
+const completedCastTraits = new WeakSet<RuntimeCast>();
+
 /** Committed casts grant completion rewards even when shortened; cancelled reservations grant nothing. */
 export function completeRevenantCastTraits(runtime: RevenantRuntime, cast: RuntimeCast): void {
+  if (completedCastTraits.has(cast)) return;
+  completedCastTraits.add(cast);
   const skill = cast.skill as RevenantSkill;
   if (skill.slot === 'Heal' && hasTrait(runtime, TRAIT.BATTLE_SCARRED)) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.battleScarred);

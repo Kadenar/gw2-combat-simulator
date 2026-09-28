@@ -1,3 +1,4 @@
+import { berserkSkillActions } from '#gw2/professions/warrior/specializations/berserker/skills/index.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -12,13 +13,17 @@ import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
-import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
+import {
+  berserkerState,
+  publishBerserk,
+  berserkExtensions,
+  BERSERK_EXPIRE
+} from '#gw2/professions/warrior/specializations/berserker/state.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 type Runtime = Gw2Runtime<WarriorRuntimeState>;
-const EXPIRE = 'warrior.berserk-expiry';
 const DETONATE = 'warrior.king-of-fires-detonate';
 
 function isBerserkerSkill(skill: WarriorSkill): boolean {
@@ -51,66 +56,24 @@ function traitBoons(runtime: Runtime, cast: RuntimeCast, trait: number, party = 
   });
 }
 
-/** The status and expiry task share one deadline; older wakes cannot close a refreshed mode. */
-function publishBerserk(runtime: Runtime, cast: RuntimeCast): void {
-  const state = berserkerState.from(runtime);
-  runtime.emit({
-    type: 'buff',
-    at: runtime.time,
-    source: 'Berserker',
-    sourceId: ID.BERSERK,
-    actorType: 'effect',
-    activationId: cast.id,
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    name: 'Berserk',
-    kind: 'berserk',
-    stacks: 1,
-    duration: state.berserkUntil - runtime.time
-  });
-  runtime.schedule(EXPIRE, state.berserkUntil, state.berserkUntil, undefined, -220);
-}
-
 /** Completed activation opens or extends the current mode; expiring during a cast cannot revive it. */
 function completeBerserk(runtime: Runtime, cast: RuntimeCast): void {
   const state = berserkerState.from(runtime);
   const skill = cast.skill;
   if (skill.id === ID.BERSERK) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
-    const effect = requireEffect(profile, 'buff', 'berserk');
-    if (effect && effectNumber(profile, effect, 'duration') > 0) {
-      state.berserkActive = true;
-      state.berserkUntil = gw2EffectExpiresAt(runtime.time, effectNumber(profile, effect, 'duration'));
-      runtime.profession.core.maximumAdrenaline = balanceProfileNumber(profile, 'maximumStacks');
-      runtime.profession.core.adrenaline = Math.min(
-        runtime.profession.core.adrenaline,
-        runtime.profession.core.maximumAdrenaline
-      );
-      publishBerserk(runtime, cast);
-    }
-
     traitBoons(runtime, cast, TRAIT.BURST_OF_AGGRESSION);
     if (hasTrait(runtime, TRAIT.BLOODY_ROAR)) traitBoons(runtime, cast, TRAIT.BLOODY_ROAR);
     return;
   }
 
   if (!state.berserkActive) return;
-  let extension = 0;
+  let extension = berserkExtensions.get(cast) ?? 0;
   if (skill.primalBurst && hasTrait(runtime, TRAIT.SMASH_BRAWLER))
     extension += balanceProfileNumber(
       requireBalanceProfileFromContext(runtime, PROFILE.smashBrawler),
       skill.id === ID.DECAPITATE ? 'minimumStacks' : 'resourceGain'
     );
   if (skill.categories?.includes('Rage')) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.rageExtensions);
-    extension += balanceProfileNumber(
-      profile,
-      skill.id === ID.WILD_BLOW
-        ? 'maximumStacks'
-        : [ID.OUTRAGE, ID.SUNDERING_LEAP, ID.SHATTERING_BLOW].some((id) => id === skill.id)
-          ? 'threshold'
-          : 'minimumStacks'
-    );
     if (skill.id !== ID.OUTRAGE && hasTrait(runtime, TRAIT.LAST_BLAZE))
       extension += balanceProfileNumber(
         requireBalanceProfileFromContext(runtime, PROFILE.lastBlaze),
@@ -197,9 +160,6 @@ export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
       };
     return { ready: true };
   },
-  onCastStart(runtime, cast) {
-    if (cast.skill.id === ID.BERSERK) runtime.profession.core.adrenaline -= Number(cast.skill.adrenalineCost ?? 0);
-  },
   // Queue the profile's Burning on full completion; mode extension remains with its state owner.
   traitTriggers: [
     {
@@ -218,6 +178,7 @@ export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
     }
   ],
   sideEffectHandlers: {
+    ...berserkSkillActions,
     // The live catalog defines eligibility, including patched primal skills; ordinary recharges are untouched.
     'warrior.reset-primal-bursts'(runtime) {
       for (const skill of runtime.helpers.skills) if (skill.primalBurst) runtime.cooldownController.clear(skill.id);
@@ -233,7 +194,7 @@ export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
     }
   },
   tasks: {
-    [EXPIRE](runtime, deadline) {
+    [BERSERK_EXPIRE](runtime, deadline) {
       const state = berserkerState.from(runtime);
       if (state.berserkUntil !== deadline) return;
       state.berserkActive = false;

@@ -1,3 +1,9 @@
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { eventSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
 /** Core ranger spear mechanics; observed attacks separate contact offsets from their recovery windows. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
@@ -42,6 +48,8 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
     castTimeMs: 600
   },
   [ID.PANTHERS_PROWL]: {
+    // Prowess remains independent of stealth and Revealed, with one shared choice window.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.hunters-prowess' } }],
     ammo: 2,
     ammoRecharge: 10,
     // The API omits this skill's ammo count; keep its between-cast lockout with the authored charges.
@@ -69,6 +77,8 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
       {
         type: 'strike',
         coefficient: 2.75,
+        // Read remaining target health at impact, including strict exclusion of the threshold itself.
+        coefficientModifiers: [{ kind: 'target-health-below', threshold: 0.5, multiplier: 1.2 }],
         hits: 1,
         atMs: 840,
         timingAnchor: 'castStart',
@@ -150,6 +160,8 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     cooldown: 5,
     flipParentId: ID.MONGOOSES_FRENZY,
     stealthAttack: true,
+    // An accepted attempt consumes every choice, including an interrupted attack.
+    sideEffects: [{ on: 'castStart', do: { type: 'ranger.spear-opportunity' } }],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -181,6 +193,8 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     cooldown: 7,
     flipParentId: ID.FALCONS_STOOP,
     stealthAttack: true,
+    // An accepted attempt consumes every choice, including an interrupted attack.
+    sideEffects: [{ on: 'castStart', do: { type: 'ranger.spear-opportunity' } }],
     effects: [
       {
         type: 'strike',
@@ -218,11 +232,15 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     cooldown: 12,
     flipParentId: ID.WARCLAWS_ENGAGE,
     stealthAttack: true,
+    // An accepted attempt consumes every choice, including an interrupted attack.
+    sideEffects: [{ on: 'castStart', do: { type: 'ranger.spear-opportunity' } }],
     evades: true,
     effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         coefficient: 3.67,
+        // Read remaining target health at impact, including strict exclusion of the threshold itself.
+        coefficientModifiers: [{ kind: 'target-health-below', threshold: 0.5, multiplier: 1.2 }],
         hits: 1,
         comboFinishers: [
           {
@@ -252,6 +270,8 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     cooldown: 20,
     flipParentId: ID.PANTHERS_PROWL,
     stealthAttack: true,
+    // An accepted attempt consumes every choice, including an interrupted attack.
+    sideEffects: [{ on: 'castStart', do: { type: 'ranger.spear-opportunity' } }],
     effects: [
       {
         type: 'strike',
@@ -282,3 +302,39 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     ]
   }
 ]);
+
+/** Copy the live source recharge on commitment and cancellation, excluding Panther's independent ammo. */
+export function synchronizeSpearRecharge(runtime: RangerRuntime, cast: RuntimeCast): void {
+  for (const [parentId, flip] of Object.entries(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT)) {
+    const parent = Number(parentId);
+    if (parent === ID.PANTHERS_PROWL || (cast.skill.id !== parent && cast.skill.id !== flip)) continue;
+    runtime.cooldownController.copy(cast.skill.id, parent);
+    runtime.cooldownController.copy(cast.skill.id, flip);
+  }
+}
+
+/** Reuse the shared flip ledger so stale expiry cannot clear a later Prowess grant. */
+export function armHuntersProwess(runtime: RangerRuntime): void {
+  for (const flip of Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT))
+    armSkillFlip(runtime.profession.core.availableFlips, flip, runtime.time, runtime.time + 3);
+}
+
+/** Spending either Prowess or external stealth reveals the ranger and closes all spear alternatives. */
+export function consumeSpearOpportunity(runtime: RangerRuntime): void {
+  const state = runtime.profession.core;
+  for (const flip of Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT)) consumeSkillFlip(state.availableFlips, flip);
+  state.stealthUntil = runtime.time;
+  state.revealedUntil = runtime.time + 3;
+}
+
+/** Intrinsic live-impact policy stays beside its skill; the shared registry supplies resolution. */
+export const rangerFalconsStoopModifier: Gw2ModifierRule = {
+  // Spear bonuses are evaluated at impact so live conditions and the health threshold affect the correct hit.
+  id: 'ranger.falcons-stoop-disabled',
+  target: MODIFIER_TARGET.STRIKE_DAMAGE,
+  operation: 'multiply',
+  factor: 1.2,
+  when: (context) =>
+    eventSkill(context)?.id === ID.FALCONS_STOOP &&
+    (context.config?.target?.defiant || targetConditionActive(context, 'Immobilized'))
+};

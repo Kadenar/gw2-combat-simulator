@@ -51,6 +51,11 @@ function scheduleLanding(runtime: RevenantRuntime, cast: RuntimeCast, origin: nu
   });
 }
 
+/** The shared Dodge declaration delegates its Vindicator-only landing through family composition. */
+export function startVindicatorDodge(runtime: RevenantRuntime, cast: RuntimeCast): void {
+  scheduleLanding(runtime, cast, cast.start);
+}
+
 /** Landing consumes an armed Reaver's Curse, strikes with the Forerunner window it lands in, then renews it. */
 function land(runtime: RevenantRuntime, data: unknown): void {
   const { skillId, activationId, origin } = data as { skillId: SkillId; activationId: string; origin: number };
@@ -198,15 +203,16 @@ export const vindicatorHooks: Partial<RuntimeProfession<RevenantRuntimeState>> =
     }
   ],
   modifyEffects: (_runtime, cast, effects) => (cast.skill.id === VINDICATOR_JUMP_SKILL.id ? [] : effects),
-  onCastStart(runtime, cast) {
-    // Landing-only inputs begin at the landing animation; full jumps land after their airborne time.
-    if (cast.skill.id === SHARED_SKILL_IDS.DODGE) scheduleLanding(runtime, cast, cast.start);
-    else if (cast.skill.id === VINDICATOR_JUMP_SKILL.id && !cast.cancelled)
-      scheduleLanding(runtime, cast, cast.start + VINDICATOR_AIRBORNE_MS / 1000);
+  sideEffectHandlers: {
+    'revenant.vindicator-jump'(runtime, context) {
+      if (context.kind === 'cast')
+        scheduleLanding(runtime, context.cast, context.cast.start + VINDICATOR_AIRBORNE_MS / 1000);
+    },
+    'revenant.vindicator-chain-reset'(runtime) {
+      resetAutoattackChains(runtime);
+    }
   },
   onCastCommit(runtime, cast) {
-    // Airborne autos may advance the chain; landing resets it before the next serial input.
-    if (cast.skill.id === VINDICATOR_JUMP_SKILL.id) resetAutoattackChains(runtime);
     if (ENERGY_MELD_IDS.has(cast.skill.id)) energyMeld(runtime);
     if (cast.skill.id === ID.SWAP_LEGENDS) grantAllianceInvocationEndurance(runtime);
   },
