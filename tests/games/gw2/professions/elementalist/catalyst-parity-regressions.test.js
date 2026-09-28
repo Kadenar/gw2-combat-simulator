@@ -22,6 +22,33 @@ import {
   resolvedAndScheduledEvents
 } from '#tests/helpers/elementalist-simulation.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { catalystHooks } from '#gw2/professions/elementalist/specializations/catalyst/hooks.js';
+import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
+
+test('Catalyst baseline renewal rejects intervals that cannot advance the clock before emitting work', () => {
+  // Invalid tuning must fail at the mechanic, rather than enqueue a same-time renewal loop.
+  for (const duration of [0, -1, 0.0000001, 2]) {
+    const emitted = [],
+      scheduled = [];
+    const runtime = {
+      time: 7,
+      helpers: withProfile(elementalistCatalog, PROFILE.elementalEmpowerment, { durationMultiplier: duration }),
+      emitProcedural: (event) => emitted.push(event),
+      schedule: (...args) => scheduled.push(args)
+    };
+    const renew = () => catalystHooks.tasks['elementalist.catalyst-base-empowerment'](runtime);
+    if (duration === 2) {
+      renew();
+      assert.equal(emitted[0].duration, 2);
+      assert.deepEqual(scheduled, [['elementalist.catalyst-base-empowerment', 9, null]]);
+    } else {
+      assert.throws(renew, /Elemental Empowerment renewal must advance the simulation clock/);
+      assert.deepEqual(emitted, []);
+      assert.deepEqual(scheduled, []);
+    }
+  }
+});
 
 // Elemental Empowerment scales Condition Damage supplied before combat by traits and utility conversions.
 test('Catalyst includes build-time derived Condition Damage in its empowerment pool', () => {

@@ -36,8 +36,7 @@ import {
 import {
   ELEMENTALIST_ATTUNEMENTS,
   isElementalistAttunement,
-  setElementalistAttunementReadyAt,
-  type ElementalistAttunement
+  setElementalistAttunementReadyAt
 } from '#gw2/professions/elementalist/core/state.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 
@@ -56,7 +55,8 @@ import {
 import {
   weaverPistolSideEffects,
   weaverDualAttunements,
-  weaverHammerAvailability
+  weaverHammerAvailability,
+  weaverWeaponAttunementAvailable
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
 import {
   applyWeaveSelfAttunement,
@@ -123,25 +123,9 @@ function availability(context: ElementalistRuntime, skill: Skill): AvailabilityR
   if (skill.type === 'Weapon' && skill.attunement && !carriedLink) {
     const state = weaverState.from(context);
     const attunement = String(skill.attunement);
-    const dualAttunements = weaverDualAttunements(skill);
-    const required = dualAttunements || [attunement];
     const secondary = state.secondaryAttunement || core.primaryAttunement;
-    const slot = Number(String(skill.slot || '').match(/(\d+)$/)?.[1] || 0);
-    // Slots 1-2 come from the main hand and 4-5 from the off hand; slot 3 is the
-    // dual skill, which needs both of its elements attuned (a single-element
-    // slot 3 therefore needs both hands on that element). Unravel collapses the
-    // bar to single-element skills of the current primary attunement.
-    const unravelActive = weaverState.from(context).unravelUntil > context.time;
-    const available = unravelActive
-      ? required.length === 1 && required[0] === core.primaryAttunement
-      : dualAttunements
-        ? slot === 3 &&
-          required.every((element) => [core.primaryAttunement, secondary].includes(element as ElementalistAttunement))
-        : slot <= 2
-          ? required[0] === core.primaryAttunement
-          : slot >= 4
-            ? required[0] === secondary
-            : core.primaryAttunement === secondary && required[0] === core.primaryAttunement;
+    const unravelActive = state.unravelUntil > context.time;
+    const available = weaverWeaponAttunementAvailable(skill, core.primaryAttunement, secondary, unravelActive);
     if (!available) {
       return denyCast(
         unravelActive ? 'elementalist.unravel-attunement' : 'elementalist.weaver-attunement',

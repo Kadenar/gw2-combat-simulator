@@ -78,16 +78,82 @@ test('elemental commands and Lightning Jolt retain the final live microsecond wi
             r.config.selectedSkills = {};
             assert.equal(elementalistCoreAvailability(r, command).ready, at < 120.301);
             r.config.selectedSkills = { Elite: glyph.name };
+            assert.equal(elementalistCoreAvailability(r, command).ready, at < 120.301);
             assert.equal(elementalistCoreAvailability(r, glyph).ready, at >= 120.301);
             armElementalistElementalLightningJolt(r, { effectiveEnd: at }, 1, 0.5);
             assert.equal(elemental.pendingLightningJolt !== null, at < 120.301);
             ensureElementalistElemental(r);
-            assert.equal(r.profession.core.summonedElemental.summonGeneration, at < 120.301 ? 1 : 2);
+            assert.equal(r.profession.core.summonedElemental.summonGeneration, 1);
           }
         }))
       ]
     });
-    assert.equal(result.planningState.profession.summonedElemental.element, element);
+    assert.equal(result.planningState.profession.summonedElemental.element, null);
+  }
+});
+
+test('an expired automatic elemental stays absent until an explicit glyph clears recharge', () => {
+  // A short lifetime exercises expiry, an ordinary cast, the locked command, and a legal resummon for both glyphs.
+  const profession = withPatchPreview(elementalistProfession, {
+    id: 'elemental-lifecycle',
+    label: 'Elemental lifecycle',
+    professions: {
+      elementalist: {
+        balanceProfiles: { [PROFILE.summonedElemental]: { fields: { durationMultiplier: 2, recharge: 5 } } }
+      }
+    }
+  });
+  for (const element of ['Fire', 'Earth']) {
+    const glyph = glyphFor(element),
+      command = commandFor(element);
+    const result = runElementalist({
+      profession,
+      config: {
+        ...config,
+        patchId: 'elemental-lifecycle',
+        selectedSkills: { Elite: glyph.name },
+        selectedTraitIds: []
+      },
+      rotation: [
+        { type: 'combat-start' },
+        { type: 'wait', durationMs: 2100 },
+        { type: 'cast', skillId: ID.WATER_ATTUNEMENT },
+        { type: 'cast', skillId: glyph.id },
+        { type: 'wait', durationMs: 1000 }
+      ],
+      timeline: [
+        {
+          at: 1,
+          run(runtime) {
+            assert.equal(runtime.profession.core.summonedElemental.summonGeneration, 1);
+            assert.equal(elementalistCoreAvailability(runtime, command).ready, true);
+            assert.equal(runtime.cooldowns.has(glyph.id), false);
+          }
+        },
+        {
+          at: 3,
+          run(runtime) {
+            const elemental = runtime.profession.core.summonedElemental;
+            assert.equal(elemental.element, null);
+            assert.equal(elemental.summonGeneration, 1);
+            assert.equal(runtime.cooldowns.get(glyph.id), 6);
+            assert.equal(elementalistCoreAvailability(runtime, command).ready, false);
+          }
+        },
+        {
+          at: 7,
+          run(runtime) {
+            assert.equal(runtime.profession.core.summonedElemental.summonGeneration, 2);
+            assert.equal(elementalistCoreAvailability(runtime, command).ready, true);
+            assert.ok((runtime.cooldowns.get(glyph.id) ?? 0) <= runtime.time);
+          }
+        }
+      ]
+    });
+    assert.deepEqual(result.warnings, []);
+    const summon = result.events.find((event) => event.type === 'action' && event.skillId === glyph.id);
+    assert.equal(summon.at, 6);
+    assert.equal(result.planningState.profession.summonedElemental.activeUntil, summon.endsAt + 2);
   }
 });
 

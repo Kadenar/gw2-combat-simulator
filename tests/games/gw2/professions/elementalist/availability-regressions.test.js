@@ -10,6 +10,43 @@ import { pickUpConjure, captureConjurePickup } from '#gw2/professions/elementali
 import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
+import { weaverUi } from '#gw2/professions/elementalist/specializations/weaver/presentation.js';
+
+test('Weaver runtime and palette share hand eligibility through Unravel and full attunement', () => {
+  // Exercise each slot against explicit expected bars; surrounding availability gates stay in their callers.
+  for (const [secondary, unravel, expected] of [
+    ['Air', false, [['Fire'], ['Fire'], ['Fire+Air', 'Air+Fire'], ['Air'], ['Air']]],
+    ['Fire', false, [['Fire'], ['Fire'], ['Fire'], ['Fire'], ['Fire']]],
+    ['Air', true, [['Fire'], ['Fire'], ['Fire'], ['Fire'], ['Fire']]]
+  ]) {
+    const core = createElementalistCoreState({ startAttunement: 'Fire' });
+    const state = weaverState.create({ secondaryAttunement: secondary });
+    state.unravelUntil = unravel ? 2 : 0;
+    const runtime = {
+      profession: { core, specialization: { kind: 'Weaver', state } },
+      helpers: elementalistCatalog,
+      time: 1
+    };
+    for (let slot = 1; slot <= 5; slot++) {
+      for (const attunement of ['Fire', 'Air', 'Water', 'Fire+Air', 'Air+Fire', 'Fire+Water']) {
+        const skill = {
+          id: 'hand-fixture',
+          name: 'Hand fixture',
+          type: 'Weapon',
+          weapon: 'Sword',
+          slot: `Weapon_${slot}`,
+          attunement
+        };
+        const available = expected[slot - 1].includes(attunement);
+        assert.equal(weaverHooks.availability(runtime, skill).ready, available);
+        assert.equal(
+          weaverUi.paletteSkillAvailability({ professionState: { ...core, ...state }, time: 1 }, skill).available,
+          available
+        );
+      }
+    }
+  }
+});
 
 test('Arcane Echo requires an armed, unexpired window and consumes it only once', () => {
   const echo = elementalistCatalog.skillsByName.get('Arcane Echo');

@@ -35,6 +35,27 @@ export function weaverDualAttunements(skill: Skill): readonly [ElementalistAttun
   return [first, second];
 }
 
+/** Slots 1–2 use the primary hand, 3 requires both elements, and 4–5 use the secondary; Unravel uses only primary. */
+export function weaverWeaponAttunementAvailable(
+  skill: Skill,
+  primary: string,
+  secondary: string,
+  unravelActive: boolean
+): boolean {
+  const dual = weaverDualAttunements(skill);
+  const required = dual || [String(skill.attunement)];
+  const slot = Number(String(skill.slot || '').match(/(\d+)$/)?.[1] || 0);
+  return unravelActive
+    ? required.length === 1 && required[0] === primary
+    : dual
+      ? slot === 3 && required.every((element) => [primary, secondary].includes(element))
+      : slot <= 2
+        ? required[0] === primary
+        : slot >= 4
+          ? required[0] === secondary
+          : primary === secondary && required[0] === primary;
+}
+
 /** Checks the shared orb lockout and duplicate-orb restriction for Weaver dual skills. */
 export function weaverHammerAvailability(
   context: ElementalistRuntime,

@@ -30,6 +30,7 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -224,6 +225,9 @@ function applyEnergizedElements(context: ElementalistRuntime, event: SimulationE
 function renewBaseEmpowerment(runtime: ElementalistRuntime): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.elementalEmpowerment);
   const duration = balanceProfileNumber(profile, 'durationMultiplier');
+  // Recurring work must advance the canonical clock, including sub-microsecond profile overrides.
+  const renewAt = canonicalTime(runtime.time + duration);
+  if (renewAt <= runtime.time) throw new RangeError('Elemental Empowerment renewal must advance the simulation clock.');
   emitElementalistBuff(runtime, {
     at: runtime.time,
     source: 'Elemental Empowerment',
@@ -234,7 +238,7 @@ function renewBaseEmpowerment(runtime: ElementalistRuntime): void {
     stacks: balanceProfileNumber(profile, 'playerStacks'),
     duration
   });
-  runtime.schedule(CATALYST_BASE_EMPOWERMENT_TASK, runtime.time + duration, null);
+  runtime.schedule(CATALYST_BASE_EMPOWERMENT_TASK, renewAt, null);
 }
 
 /** Only accepted non-summon strikes grant energy, using the sphere window at impact. */

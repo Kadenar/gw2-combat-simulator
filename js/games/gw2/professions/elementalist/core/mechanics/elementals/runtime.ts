@@ -18,8 +18,7 @@ import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
  * Fire loop:  Fireball (auto) / Flame Burst (secondary, off cooldown) / Flame Barrage (player command).
  * Earth loop: Punch (auto) / Enervating Punch (secondary, off cooldown) / Stomp (player command).
  *
- * Auto-summon: when enabled and a glyph is slotted, the elemental is re-summoned on
- * combat start (or first offensive event) without an explicit cast in the rotation.
+ * Auto-summon supplies a slotted glyph's first companion; subsequent summons require an explicit glyph cast.
  */
 import {
   requireBalanceProfileFromContext,
@@ -720,12 +719,12 @@ export function armElementalistElementalLightningJolt(
   }
 }
 
-/** A slotted automatic companion exists for the opener, then begins attacking at combat start. */
+/** Generation zero permits one automatic opener; expiry never bypasses the glyph's recharge with another summon. */
 export function ensureElementalistElemental(context: ElementalistRuntime, skill?: Skill): void {
   const selected = selectedElemental(context);
   if (
     selected &&
-    context.profession.core.summonedElemental.activeUntil <= context.time &&
+    context.profession.core.summonedElemental.summonGeneration === 0 &&
     (!skill || !elementalForGlyph(skill))
   ) {
     const glyph = glyphSkillForElement(context, selected);
@@ -737,7 +736,7 @@ export function ensureElementalistElemental(context: ElementalistRuntime, skill?
 
 /**
  * Availability gate for this subsystem. Command flips (Flame Barrage / Stomp) are usable when
- * the matching elemental is active — or would be auto-summoned; the glyphs themselves are
+ * the matching elemental is active — or its automatic opener has not yet spawned; the glyphs themselves are
  * blocked (with a retry time) while their elemental lives. Returns null for unrelated skills.
  */
 export function elementalistElementalAvailability(
@@ -747,14 +746,14 @@ export function elementalistElementalAvailability(
   const elemental = professionCoreState(context).summonedElemental;
   if (skill.id === FLAME_BARRAGE_ID) {
     const active = elemental.element === 'Fire' && elemental.activeUntil > context.time;
-    return active || (elemental.activeUntil <= context.time && selectedElemental(context) === 'Fire')
+    return active || (elemental.summonGeneration === 0 && selectedElemental(context) === 'Fire')
       ? ready()
       : unavailable('an active Fire Elemental is required.');
   }
 
   if (skill.id === STOMP_ID) {
     const active = elemental.element === 'Earth' && elemental.activeUntil > context.time;
-    return active || (elemental.activeUntil <= context.time && selectedElemental(context) === 'Earth')
+    return active || (elemental.summonGeneration === 0 && selectedElemental(context) === 'Earth')
       ? ready()
       : unavailable('an active Earth Elemental is required.');
   }

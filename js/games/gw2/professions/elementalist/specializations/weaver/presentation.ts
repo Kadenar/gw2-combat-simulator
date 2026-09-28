@@ -29,7 +29,10 @@ import { getActiveTraits } from '#gw2/professions/elementalist/data/traits-data.
 
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
 import { elementalistUiState } from '#gw2/professions/elementalist/core/presentation.js';
-import { weaverDualAttunements } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
+import {
+  weaverDualAttunements,
+  weaverWeaponAttunementAvailable
+} from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
 import type { ElementalistBuildSpecialization } from '#gw2/professions/elementalist/build/types.js';
 
 const ATTUNEMENT_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS));
@@ -104,21 +107,8 @@ function weaverPaletteAvailability(context: ElementalistUiContext, skill: Skill)
 
   if (skill.type !== 'Weapon' || !skill.attunement) return { available: true, message: '' };
   if (isCarriedAutoattackSkill(context, skill)) return { available: true, message: '' };
-  // Same slot ladder the scheduler gate uses: 1-2 main hand, 3 dual, 4-5 off
-  // hand, with Unravel restricting the bar to the primary element.
-  const dualAttunements = weaverDualAttunements(skill);
-  const required = dualAttunements || [String(skill.attunement)];
-  const slot = Number(String(skill.slot || '').match(/(\d+)$/)?.[1] || 0);
   const unravelActive = (state.unravelUntil || 0) > now;
-  const available = unravelActive
-    ? required.length === 1 && required[0] === primary
-    : dualAttunements
-      ? slot === 3 && required.every((element) => [primary, secondary].includes(element))
-      : slot <= 2
-        ? required[0] === primary
-        : slot >= 4
-          ? required[0] === secondary
-          : primary === secondary && required[0] === primary;
+  const available = weaverWeaponAttunementAvailable(skill, primary, secondary, unravelActive);
   return {
     available,
     message: available ? '' : `Requires ${String(skill.attunement)} in the matching Weaver hand.`

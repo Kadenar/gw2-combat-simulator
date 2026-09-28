@@ -16,6 +16,7 @@ import {
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { elementalForGlyphId } from '#gw2/professions/elementalist/core/mechanics/elementals/attacks.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 
 // Weapon-only reductions share the compiler; delayed recharge and one-use reservations retain their owners.
@@ -50,7 +51,7 @@ export function elementalistRechargeWork(
 ): number {
   // The summon owns this recharge: `mechanics/elementals/runtime.ts` starts the glyph cooldown
   // when the elemental expires, so the cast itself must not start one.
-  if (skill.id === ID.GLYPH_OF_ELEMENTALS) return 0;
+  if (elementalForGlyphId(skill.id)) return 0;
   // Rock Barrier holds its recharge until the stored barrier is released; the
   // release handler re-requests the duration with that flag set.
   if (skill.id === ID.ROCK_BARRIER && !releasing) {
