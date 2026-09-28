@@ -5,7 +5,6 @@ import type {
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import {
   requireBalanceProfileFromContext,
@@ -49,23 +48,31 @@ function catalystPaletteAvailability(context: ElementalistUiContext, skill: Skil
   };
 }
 
-// Empowering Auras has no stored state, so replay its buff events up to the
-// inspected time to recover the live stack count and remaining duration.
+// Replay grants and refresh observations together so capped refreshes preserve
+// live stacks without adding stacks or reviving expired ones.
 function empoweringAurasAt(context: ElementalistUiContext, at: number): { stacks: number; remaining: number } | null {
   const empoweringAurasProfile = requireBalanceProfileFromContext(context, PROFILE.empoweringAuras);
   const maximum = balanceProfileNumber(empoweringAurasProfile, 'maximumStacks');
   let expiries: number[] = [];
-  const events = (context.result as { events?: readonly SimulationEvent[] } | undefined)?.events || [];
-  for (const event of events) {
-    const applicationAt = event.at || 0;
+  const applications = (context.result?.events || [])
+    .filter((event) => event.type === 'buff' && event.kind === 'empowering auras')
+    .map((event) => ({
+      at: event.at,
+      expiresAt: event.at + (event.duration || 0),
+      stacks: Math.max(1, event.stacks || 1)
+    }));
+  const refreshes = (context.result?.procSteps || [])
+    .filter((proc) => proc.type === 'trait_proc' && proc.skill === 'Empowering Auras')
+    .map((proc) => ({ at: proc.start / 1000, expiresAt: (proc.expiresAt || 0) / 1000, stacks: 0 }));
+  for (const event of [...applications, ...refreshes].sort((a, b) => a.at - b.at)) {
+    const applicationAt = event.at;
     if (applicationAt > at) break;
-    if (event.type !== 'buff' || event.kind !== 'empowering auras') continue;
     expiries = expiries.filter((expiry) => expiry > applicationAt);
-    const expiresAt = applicationAt + (event.duration || 0);
+    const expiresAt = event.expiresAt;
     // Empowering Auras refreshes every active stack whenever another aura is
     // gained, then adds one stack up to five; replay that refresh contract.
     expiries = expiries.map(() => expiresAt);
-    for (let stack = 0; stack < Math.max(1, event.stacks || 1) && expiries.length < maximum; stack += 1) {
+    for (let stack = 0; stack < event.stacks && expiries.length < maximum; stack += 1) {
       if (expiresAt > applicationAt) expiries.push(expiresAt);
     }
   }

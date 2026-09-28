@@ -62,7 +62,17 @@ export function applyCatalystResolverAura(context: ElementalistRuntime, event: G
       queueElementalistBuff(context, event, 'Empowering Auras', 1, duration, resolverSourceSkill(event));
     }
 
-    recordElementalistTraitProc(context, event, 'Empowering Auras');
+    // Report refreshes even at the cap, where no new gameplay stack is granted.
+    context.recordProc(
+      'trait',
+      'Empowering Auras',
+      event.at,
+      resolverSourceSkill(event),
+      '',
+      '',
+      null,
+      event.at + duration
+    );
   }
 
   if (

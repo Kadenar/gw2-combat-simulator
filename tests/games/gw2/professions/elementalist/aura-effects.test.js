@@ -10,6 +10,7 @@ import { applyResolverZephyrsBoon } from '#gw2/professions/elementalist/core/tra
 import { applyResolverElementalShielding } from '#gw2/professions/elementalist/core/traits/earth.js';
 import { applyTempestResolverAura } from '#gw2/professions/elementalist/specializations/tempest/mechanics/aura-effects.js';
 import { applyCatalystResolverAura } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
+import { catalystUi } from '#gw2/professions/elementalist/specializations/catalyst/presentation.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/elementalist/core/profiles.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as TEMPEST } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS as CATALYST } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
@@ -188,4 +189,47 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
     [{ kind: 'elemental empowerment', stacks: 2, duration: 7 }]
   );
   assert.deepEqual(procs, ['Empowering Auras', 'Empowering Auras']);
+});
+
+test('Catalyst snapshots retain capped aura refreshes without adding or reviving stacks', () => {
+  // Exercise real buff resolution and proc reporting, then inspect before and after each window.
+  const result = runElementalist({
+    config: { specialization: 'Catalyst', selectedTraitIds: [TRAIT.EMPOWERING_AURAS] },
+    rotation: [{ type: 'wait', durationMs: 30000 }],
+    timeline: [0, 1, 2, 3, 4, 8, 19].map((at) => ({
+      at,
+      run: (runtime) =>
+        applyCatalystResolverAura(runtime, {
+          type: 'elementalist.aura',
+          at,
+          skillName: 'Fixture Aura',
+          sourceId: 1,
+          actorType: 'player'
+        })
+    }))
+  });
+  assert.deepEqual(result.warnings, []);
+  const snapshot = (atSeconds) =>
+    catalystUi
+      .rotationStateSnapshot({
+        catalog: elementalistCatalog,
+        result,
+        atSeconds
+      })
+      .find((item) => item.id === 'catalyst-empowering-auras')?.value;
+  assert.equal(snapshot(0), '1/5 · 10.0s');
+  assert.equal(snapshot(4), '5/5 · 10.0s');
+  assert.equal(snapshot(7), '5/5 · 7.0s');
+  assert.equal(snapshot(8), '5/5 · 10.0s');
+  assert.equal(snapshot(15), '5/5 · 3.0s');
+  assert.equal(snapshot(18), undefined);
+  assert.equal(snapshot(19), '1/5 · 10.0s');
+  assert.equal(snapshot(29), undefined);
+  assert.ok(
+    !result.events.some((event) => event.type === 'buff' && event.kind === 'empowering auras' && event.at === 8)
+  );
+  assert.equal(
+    result.procSteps.find((proc) => proc.skill === 'Empowering Auras' && proc.start === 8000).expiresAt,
+    18000
+  );
 });

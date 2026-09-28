@@ -4,6 +4,8 @@ import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js'
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { ElementalistRuntimeState, ElementalistSimulationEvent } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -74,9 +76,15 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
       event.type === 'damage' &&
       event.actorType === 'player' &&
       Number(event.coefficient) > 0 &&
-      canonicalTime(event.at) > runtime.time
-    )
-      runtime.profession.core.freshAirCandidates.push({ at: canonicalTime(event.at), eventOrder: 0 });
+      canonicalTime(event.at) > runtime.time &&
+      hasTrait(runtime, TRAIT.FRESH_AIR)
+    ) {
+      // Only Fresh Air needs strike wakes; retire elapsed times as new work arrives.
+      const core = runtime.profession.core;
+      core.freshAirCandidates = core.freshAirCandidates.filter((at) => at > runtime.time);
+      core.freshAirCandidates.push(canonicalTime(event.at));
+    }
+
     // Orb contacts stay cancellable until impact, so Grand Finale can retire their pending work.
     if (
       HAMMER_ORB_SKILLS[Number(event.skillId)] &&

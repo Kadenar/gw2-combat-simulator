@@ -61,10 +61,7 @@ export interface ElementalistCoreState {
     root: number;
     attunement: ElementalistAttunement;
   } | null;
-  freshAirCandidates: Array<{
-    at: number;
-    eventOrder: number;
-  }>;
+  freshAirCandidates: number[];
   bountifulPowerProgress: number;
   endurance: number;
   enduranceUpdatedAt: number;

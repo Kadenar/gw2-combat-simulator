@@ -11,6 +11,54 @@ import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
+import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
+import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/air.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+
+test('Fresh Air keeps only future strike wakes for selected builds', () => {
+  // Wakes are candidates, including cancellable strikes; only resolved criticals reset recharge.
+  for (const selected of [false, true]) {
+    const core = createElementalistCoreState();
+    const runtime = { profession: { core }, time: 1, config: {}, traits: new Set(selected ? [TRAIT.FRESH_AIR] : []) };
+    const prepare = (at, overrides = {}) =>
+      elementalistCoreHooks.prepareEvent(runtime, {
+        type: 'damage',
+        actorType: 'player',
+        coefficient: 1,
+        at,
+        ...overrides
+      });
+    for (const at of [9, 3, 6, 3]) prepare(at);
+    prepare(1);
+    prepare(2, { actorType: 'summon' });
+    prepare(2, { coefficient: 0 });
+    prepare(2, { type: 'condition' });
+    prepare(4, { cancelled: true });
+    if (!selected) {
+      assert.deepEqual(core.freshAirCandidates, []);
+      assert.equal(projectedFreshAirReadyAt(runtime, 10), null);
+      continue;
+    }
+
+    assert.deepEqual(core.freshAirCandidates, [9, 3, 6, 3, 4]);
+    assert.equal(projectedFreshAirReadyAt(runtime, 2), null);
+    assert.equal(projectedFreshAirReadyAt(runtime, 3), 3);
+    runtime.time = 3;
+    assert.equal(projectedFreshAirReadyAt(runtime, 4), 4);
+    assert.deepEqual(core.freshAirCandidates, [9, 6, 4]);
+    runtime.time = 4;
+    prepare(8);
+    assert.deepEqual(core.freshAirCandidates, [9, 6, 8]);
+    core.primaryAttunement = 'Air';
+    assert.equal(projectedFreshAirReadyAt(runtime, 10), null);
+    core.primaryAttunement = 'Fire';
+    assert.equal(projectedFreshAirReadyAt(runtime, 10), 6);
+    runtime.time = 9;
+    assert.equal(projectedFreshAirReadyAt(runtime, 20), null);
+    assert.deepEqual(core.freshAirCandidates, []);
+  }
+});
 
 test('all native Elementalist specializations retain two equipped sets without combat swapping', () => {
   assert.equal(elementalistProfession.ui.weaponSwapChangesSet, false);
