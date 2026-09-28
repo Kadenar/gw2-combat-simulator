@@ -2,8 +2,8 @@ import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 import { constantName, mapConcurrent } from './lib/generator-utils.mjs';
+import { fetchGw2Api, fetchManyGw2 } from './lib/gw2-profession-snapshot.mjs';
 
-const API_ROOT = 'https://api.guildwars2.com/v2';
 const WIKI_API = 'https://wiki.guildwars2.com/api.php';
 
 const SOULBEAST_FAMILY_SKILL_IDS = Object.freeze({
@@ -171,24 +171,6 @@ const SOULBEAST_ARCHETYPE_SKILL_IDS = Object.freeze({
   supportive: 44626
 });
 
-async function fetchJson(pathname) {
-  const response = await fetch(`${API_ROOT}${pathname}${pathname.includes('?') ? '&' : '?'}lang=en`);
-
-  if (!response.ok) throw new Error(`${response.status} ${pathname}`);
-
-  return response.json();
-}
-
-async function fetchMany(endpoint, ids) {
-  const result = [];
-
-  for (let index = 0; index < ids.length; index += 100) {
-    result.push(...(await fetchJson(`/${endpoint}?ids=${ids.slice(index, index + 100).join(',')}`)));
-  }
-
-  return result;
-}
-
 async function fetchWikiPetMetadata(pet) {
   const query = new URLSearchParams({
     action: 'parse',
@@ -230,9 +212,9 @@ export async function generateRangerPetData({ skills: apiSkills }) {
 
   for (const skill of apiSkills) keyFor(skill);
 
-  const petIds = await fetchJson('/pets');
+  const petIds = await fetchGw2Api('/pets');
   // White Moa and its Icy Screech are unsupported; omit the pet before collecting its skills.
-  const pets = (await fetchMany('pets', petIds)).filter((pet) => pet.id !== 14);
+  const pets = (await fetchManyGw2('pets', petIds, { preserveIdOrder: true })).filter((pet) => pet.id !== 14);
   const wikiMetadata = await mapConcurrent(pets, 8, fetchWikiPetMetadata);
   const petSkillIds = [
     ...new Set([
@@ -240,7 +222,7 @@ export async function generateRangerPetData({ skills: apiSkills }) {
       ...Object.values(SIMULATED_FAMILY_SKILL_IDS).flat()
     ])
   ];
-  const fetchedSkills = await fetchMany('skills', petSkillIds);
+  const fetchedSkills = await fetchManyGw2('skills', petSkillIds, { preserveIdOrder: true });
   const fetchedSkillById = new Map(fetchedSkills.map((skill) => [skill.id, skill]));
   const skills = petSkillIds
     .map((id) => {

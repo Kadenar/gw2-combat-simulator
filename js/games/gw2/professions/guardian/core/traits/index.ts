@@ -152,7 +152,7 @@ export function guardianTraitEffects(
 }
 
 /** Core and elite-created effects receive the same Resolution adjustment exactly once. */
-export function guardianResolutionEffects(runtime: Runtime, effects: readonly SkillEffect[]): readonly SkillEffect[] {
+function guardianResolutionEffects(runtime: Runtime, effects: readonly SkillEffect[]): readonly SkillEffect[] {
   const multiplier = guardianResolutionMultiplier(runtime);
   return effects.map((effect) =>
     effect.type === 'boon' && String(effect.boon ?? effect.name).toLowerCase() === 'resolution'

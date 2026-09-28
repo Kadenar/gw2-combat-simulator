@@ -1,7 +1,6 @@
 import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
 import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import type { MesmerConfig } from '#gw2/professions/mesmer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
@@ -31,7 +30,8 @@ export interface MesmerChronomancerState {
   timeBombUntil: number;
 }
 
-function createChronomancerState(_config: Partial<MesmerConfig> = {}): MesmerChronomancerState {
+/** Starts each Chronomancer with no active continuum snapshot or time bomb. */
+function createChronomancerState(): MesmerChronomancerState {
   return {
     continuum: null,
     timeBombUntil: 0

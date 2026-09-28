@@ -58,7 +58,7 @@ export const DEADEYE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 export const deadeyeState = defineProfessionSpecializationState('Deadeye', createDeadeyeState);
 
 /** Accepted raw and marked malice remain available until the skill's commitment actions finish. */
-export interface DeadeyeCastFacts {
+interface DeadeyeCastFacts {
   readonly malice: number;
   readonly markedMalice: number;
 }

@@ -11,7 +11,6 @@ import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type {
   PaletteSkillAvailability,
   ProfessionEffectPresentation,
@@ -236,7 +235,3 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
       : { available: true, message: '' },
   targetHealthThresholds: () => [0.8, 0.5, 0.25]
 });
-
-export function bindWarriorCoreUi(_catalog: Readonly<CanonicalCatalog>): typeof warriorCoreUi {
-  return warriorCoreUi;
-}

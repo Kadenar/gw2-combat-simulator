@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { MODIFIER_HOOK_NAMES } from '#gw2/platform/engine/profession/contract.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { followUpOf, weaponFlipBlock, weaponFollowUpOpen } from '#gw2/platform/engine/skills/skill-flips.js';
+import { weaponFlipBlock, weaponFollowUpOpen } from '#gw2/platform/engine/skills/skill-flips.js';
 import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { testProfession } from '#tests/fixtures/profession.js';
@@ -268,8 +268,6 @@ test('the weapon follow-up rule hides a parent behind its open window and gates 
   const skillsById = new Map([parent, followUp, chained].map((skill) => [skill.id, skill]));
   const open = { 2: { identity: 1, visibleAt: 0, availableAt: 0, expiresAt: 5 } };
 
-  assert.equal(followUpOf(skillsById, parent), followUp);
-  assert.equal(followUpOf(skillsById, chained), undefined);
   assert.deepEqual(weaponFlipBlock({}, skillsById, followUp, 1), { kind: 'closed', parent });
   assert.equal(weaponFlipBlock(open, skillsById, followUp, 1), null);
   assert.deepEqual(weaponFlipBlock(open, skillsById, parent, 1), { kind: 'open' });

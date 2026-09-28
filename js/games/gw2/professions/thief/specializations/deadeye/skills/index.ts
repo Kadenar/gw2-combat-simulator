@@ -19,6 +19,24 @@ import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
+/** Rewrites only poison durations, keeping each malicious attack's formula and other effects intact. */
+function mapPoisonDurations(effects: readonly SkillEffect[], scaled: (duration: unknown) => number): SkillEffect[] {
+  return effects.map((effect) =>
+    effect.type !== 'condition'
+      ? effect
+      : effect.ticks?.length
+        ? {
+            ...effect,
+            ticks: effect.ticks.map((tick) =>
+              tick.condition === 'Poisoned' ? { ...tick, duration: scaled(tick.duration) } : tick
+            )
+          }
+        : effect.condition === 'Poisoned'
+          ? { ...effect, duration: scaled(effect.duration) }
+          : effect
+  );
+}
+
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.STEAL_WARMTH]: {
@@ -543,20 +561,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         transform: (_runtime, cast, effects) => {
           const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
           const scaled = (duration: unknown) => Number(duration || 0) * (1 + 0.2 * malice);
-          return effects.map((effect) =>
-            effect.type !== 'condition'
-              ? effect
-              : effect.ticks?.length
-                ? {
-                    ...effect,
-                    ticks: effect.ticks.map((tick) =>
-                      tick.condition === 'Poisoned' ? { ...tick, duration: scaled(tick.duration) } : tick
-                    )
-                  }
-                : effect.condition === 'Poisoned'
-                  ? { ...effect, duration: scaled(effect.duration) }
-                  : effect
-          );
+          return mapPoisonDurations(effects, scaled);
         }
       }
     ],
@@ -644,20 +649,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         transform: (_runtime, cast, effects) => {
           const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
           const scaled = (duration: unknown) => Number(duration || 0) + malice;
-          return effects.map((effect) =>
-            effect.type !== 'condition'
-              ? effect
-              : effect.ticks?.length
-                ? {
-                    ...effect,
-                    ticks: effect.ticks.map((tick) =>
-                      tick.condition === 'Poisoned' ? { ...tick, duration: scaled(tick.duration) } : tick
-                    )
-                  }
-                : effect.condition === 'Poisoned'
-                  ? { ...effect, duration: scaled(effect.duration) }
-                  : effect
-          );
+          return mapPoisonDurations(effects, scaled);
         }
       }
     ],

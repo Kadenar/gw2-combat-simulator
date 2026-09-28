@@ -59,6 +59,41 @@ const applyThiefPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(thie
 
 const authoringThiefProfession = withActivePatchPreview(thiefProfession);
 
+test('Thief weapon matching keeps hand requirements behind profession variant gates', () => {
+  // Minimal equipment cases cover shared matching; stance and specialization still reject otherwise valid hands.
+  const context = { catalog: thiefCatalog, specialization: 'Core' };
+  for (const [fields, hands, expected] of [
+    [{}, ['Dagger', 'Dagger'], false],
+    [{ weapon: 'Dagger', slot: 'Weapon_2' }, ['Dagger', 'Pistol'], true],
+    [{ weapon: 'Pistol', slot: 'Weapon_4' }, ['Dagger', 'Pistol'], true],
+    [{ weapon: 'Pistol', slot: 'Weapon_4' }, ['Pistol', 'Dagger'], false],
+    [{ weapon: 'Shortbow', slot: 'Weapon_5' }, ['Shortbow', ''], true],
+    [{ requiredMainHand: 'Dagger', requiredOffHand: 'Pistol' }, ['Dagger', 'Pistol'], true],
+    [{ requiredMainHand: 'Dagger', requiredOffHand: 'Pistol' }, ['Dagger', 'Dagger'], false],
+    [{ requiredMainHand: 'Dagger', requiredOffHand: false }, ['Dagger', ''], true],
+    [{ requiredMainHand: 'Dagger', requiredOffHand: false }, ['Dagger', 'Pistol'], false],
+    [{ requiredMainHand: 'Dagger', stealthAttack: true, malicious: true }, ['Dagger', ''], false]
+  ]) {
+    assert.equal(thiefWeaponSkillMatchesSet({ id: -1, type: 'Weapon', ...fields }, hands, context), expected);
+  }
+
+  const rifle = { id: -1, type: 'Weapon', weapon: 'Rifle', slot: 'Weapon_2', kneelSkill: true };
+  for (const kneeling of [false, true]) {
+    assert.equal(
+      thiefWeaponSkillMatchesSet(rifle, ['Rifle', ''], { ...context, professionState: { kneeling } }),
+      kneeling
+    );
+  }
+
+  const spear = thiefCatalog.skillsById.get(ID.ENTANGLING_ASP);
+  assert.equal(thiefWeaponSkillMatchesSet(spear, ['Spear', ''], context), true);
+  for (const spearChainStage of [0, 1]) {
+    const projected = { ...context, professionState: { spearChainStage } };
+    assert.equal(thiefWeaponSkillMatchesSet(spear, ['Spear', ''], projected), spearChainStage === 1);
+    assert.equal(thiefWeaponSkillMatchesSet(spear, ['Spear', ''], { ...projected, weaponBarPreview: true }), true);
+  }
+});
+
 test('bonus stealth attacks consume only active elite charges and prefer ordinary stealth', () => {
   // Legacy fields on Core must neither unlock attacks nor absorb elite charge consumption.
   for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']) {

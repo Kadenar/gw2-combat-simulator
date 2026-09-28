@@ -107,6 +107,8 @@ const thiefBuildCodec = createProfessionBuildCodec<ThiefCanonicalBuild>({
     for (const pair of [build.weapons, build.alternateWeapons]) {
       if (!Array.isArray(pair)) continue;
       const [mainHand] = pair;
+      // An unused weapon set needs no slot-3 skill; temporary-bar skills cannot stand in for equipment.
+      if (pair.every((hand) => !hand)) continue;
       if (thiefCatalog.weaponHands.get(mainHand) === '2h') continue;
       const hasThirdSkill = thiefCatalog.skills.some(
         (skill) =>

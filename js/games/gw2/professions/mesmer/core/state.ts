@@ -6,7 +6,6 @@ import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.j
 import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import type { MesmerConfig } from '#gw2/professions/mesmer/types.js';
 
 /** Core owns state present for every specialization runtime. */
 export interface MesmerCoreState {
@@ -22,7 +21,7 @@ export interface MesmerCoreState {
 }
 
 /** Creates state owned by every Mesmer build, excluding active-specialization fields. */
-export function createMesmerCoreState(_config: Partial<MesmerConfig> = {}): MesmerCoreState {
+export function createMesmerCoreState(): MesmerCoreState {
   return {
     clones: [],
     trackedSkillHits: {},

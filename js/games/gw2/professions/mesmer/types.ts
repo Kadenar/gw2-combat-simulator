@@ -50,7 +50,7 @@ import type {
 } from '#gw2/professions/mesmer/data/types.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
-export interface MesmerProfessionState
+interface MesmerProfessionState
   extends MesmerCoreState, MesmerChronomancerState, MesmerMirageState, MesmerVirtuosoState, MesmerTroubadourState {}
 
 export interface MesmerRuntimeState {
@@ -63,7 +63,7 @@ export interface MesmerRuntimeState {
     | { kind: 'Troubadour'; state: MesmerTroubadourState };
 }
 
-export interface MesmerPlanningState {
+interface MesmerPlanningState {
   readonly endurance?: number;
   readonly maximumEndurance?: number;
   readonly resource: number;

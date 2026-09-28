@@ -3,7 +3,6 @@ import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.j
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
-import type { MesmerConfig } from '#gw2/professions/mesmer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 
 interface MesmerMirageMirror {
@@ -24,7 +23,8 @@ export interface MesmerMirageState {
   mirrors: MesmerMirageMirror[];
 }
 
-function createMirageState(_config: Partial<MesmerConfig> = {}): MesmerMirageState {
+/** Seeds fresh Mirage resources and windows independently of build configuration. */
+function createMirageState(): MesmerMirageState {
   return {
     pendingMirrorAts: [],
     // Mirage starts with two dodges' worth of continuously regenerating endurance.

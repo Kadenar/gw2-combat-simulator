@@ -32,8 +32,8 @@ function englishPath(pathname) {
 }
 
 // Fetches a Guild Wars 2 API object by its path, throwing an error if the request fails.
-export async function fetchGw2Api(pathname, { fetchImpl = fetch, apiRoot = GW2_API_ROOT } = {}) {
-  const response = await fetchImpl(`${apiRoot}${englishPath(pathname)}`);
+export async function fetchGw2Api(pathname, { fetchImpl = fetch, apiRoot = GW2_API_ROOT, headers } = {}) {
+  const response = await fetchImpl(`${apiRoot}${englishPath(pathname)}`, headers ? { headers } : undefined);
 
   if (!response.ok) {
     throw new Error(`Guild Wars 2 API request failed (${response.status}): ${pathname}`);
@@ -45,7 +45,9 @@ export async function fetchGw2Api(pathname, { fetchImpl = fetch, apiRoot = GW2_A
 // Fetches multiple Guild Wars 2 API objects by their IDs, batching requests to avoid exceeding the API limit.
 export async function fetchManyGw2(endpoint, ids, options = {}) {
   const values = [];
-  const unique = [...new Set(ids.map(Number))].filter(Number.isFinite).sort((left, right) => left - right);
+  const unique = [...new Set(ids.map(Number))].filter(Number.isFinite);
+  // Generators with collision-suffixed names retain source order; snapshots keep numeric sorting.
+  if (!options.preserveIdOrder) unique.sort((left, right) => left - right);
 
   for (let index = 0; index < unique.length; index += 100) {
     const batch = unique.slice(index, index + 100);

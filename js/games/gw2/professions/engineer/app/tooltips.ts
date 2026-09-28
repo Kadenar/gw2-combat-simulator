@@ -27,6 +27,20 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 import type { SkillEffect, SkillId, TooltipFact } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 
+/** Both improved-inheritance traits read the same live mech caps and ratio. */
+function improvedMechInheritanceFacts(balanceContext: ProfessionBalanceContext) {
+  return [
+    profileFact(
+      balanceContext,
+      'engineer.mechanist.mech',
+      'improvedInheritanceRatio',
+      'Inheritance ratio',
+      tooltipPercent
+    ),
+    profileFact(balanceContext, 'engineer.mechanist.mech', 'improvedSecondaryAttributeCap', 'Cap for each attribute')
+  ];
+}
+
 const heatTiers = [
   `at or below ${HOLOSMITH_HEAT.highThreshold} heat`,
   `above ${HOLOSMITH_HEAT.highThreshold} heat`,
@@ -915,39 +929,11 @@ export const engineerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS]: traitTooltip(
       'Select Discharge Array as the second mech command. Improve mech condition-damage and expertise inheritance.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          'engineer.mechanist.mech',
-          'improvedInheritanceRatio',
-          'Inheritance ratio',
-          tooltipPercent
-        ),
-        profileFact(
-          balanceContext,
-          'engineer.mechanist.mech',
-          'improvedSecondaryAttributeCap',
-          'Cap for each attribute'
-        )
-      ]
+      improvedMechInheritanceFacts
     ),
     [TRAIT.MECH_FRAME_CHANNELING_CONDUITS]: traitTooltip(
       'Select Crisis Zone as the second mech command. Improve mech concentration and healing-power inheritance.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          'engineer.mechanist.mech',
-          'improvedInheritanceRatio',
-          'Inheritance ratio',
-          tooltipPercent
-        ),
-        profileFact(
-          balanceContext,
-          'engineer.mechanist.mech',
-          'improvedSecondaryAttributeCap',
-          'Cap for each attribute'
-        )
-      ]
+      improvedMechInheritanceFacts
     ),
     [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR]: traitTooltip(
       'Select Core Reactor Shot as the second mech command. The mech inherits player precision up to its cap.',

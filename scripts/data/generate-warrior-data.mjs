@@ -2,8 +2,9 @@ import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 import { constantName as baseConstantName, declaration, mapConcurrent } from './lib/generator-utils.mjs';
+import { fetchManyGw2 } from './lib/gw2-profession-snapshot.mjs';
 
-const API_ROOT = 'https://api.guildwars2.com/v2';
+const REQUEST_HEADERS = { 'User-Agent': 'gw2-combat-simulator/2.0 Warrior generator' };
 const WIKI_API = 'https://wiki.guildwars2.com/api.php';
 const SUPPLEMENTAL_NAMES = Object.freeze([
   'Swift Cut',
@@ -99,22 +100,12 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
 
 async function fetchJson(url) {
   const response = await fetch(url, {
-    headers: { 'User-Agent': 'gw2-combat-simulator/2.0 Warrior generator' }
+    headers: REQUEST_HEADERS
   });
 
   if (!response.ok) throw new Error(`${response.status} ${url}`);
 
   return response.json();
-}
-
-async function fetchMany(endpoint, ids) {
-  const result = [];
-
-  for (let index = 0; index < ids.length; index += 100) {
-    result.push(...(await fetchJson(`${API_ROOT}/${endpoint}?ids=${ids.slice(index, index + 100).join(',')}&lang=en`)));
-  }
-
-  return result;
 }
 
 function constantName(value) {
@@ -245,7 +236,15 @@ export async function generateWarriorData({ skills: apiSkills, specializations: 
     if (!skill.id) throw new Error(`Could not resolve ${skill.name} from the Guild Wars 2 Wiki.`);
   }
 
-  const rawSkills = await fetchMany('skills', [...new Set(canonicalSkills.map((skill) => skill.id))]);
+  // Use shared batching while retaining the generator's source order and API identification.
+  const rawSkills = await fetchManyGw2(
+    'skills',
+    canonicalSkills.map((skill) => skill.id),
+    {
+      preserveIdOrder: true,
+      headers: REQUEST_HEADERS
+    }
+  );
   const rawById = new Map(rawSkills.map((skill) => [skill.id, skill]));
   const supplemental = supplementalIds.map((identity) => normalizeRawSkill(rawById.get(identity.id), identity));
   const identities = [...canonicalSkills, ...supplemental];

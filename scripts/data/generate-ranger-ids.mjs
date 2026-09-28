@@ -2,6 +2,7 @@ import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 import { declaration, stableEntries } from './lib/generator-utils.mjs';
+import { fetchGw2Api, fetchManyGw2 } from './lib/gw2-profession-snapshot.mjs';
 
 const SUPPLEMENTAL_SKILLS = [
   ['Twin Darts', 12676],
@@ -25,32 +26,14 @@ const SUPPLEMENTAL_SKILLS = [
   ['Wuthering Wind', 76905]
 ];
 
-async function fetchJson(pathname) {
-  const response = await fetch(`https://api.guildwars2.com/v2${pathname}${pathname.includes('?') ? '&' : '?'}lang=en`);
-
-  if (!response.ok) throw new Error(`${response.status} ${pathname}`);
-
-  return response.json();
-}
-
 // Fetches all ranger pet skills from the GW2 API, returning an array of skill objects.
 async function rangerPetSkills() {
-  const petIds = await fetchJson('/pets');
-  const pets = [];
-
-  for (let index = 0; index < petIds.length; index += 100) {
-    pets.push(...(await fetchJson(`/pets?ids=${petIds.slice(index, index + 100).join(',')}`)));
-  }
+  const petIds = await fetchGw2Api('/pets');
+  const pets = await fetchManyGw2('pets', petIds, { preserveIdOrder: true });
 
   // Keep White Moa's Icy Screech out of generated constants as well as the pet catalog.
   const ids = [...new Set(pets.filter((pet) => pet.id !== 14).flatMap((pet) => pet.skills.map((skill) => skill.id)))];
-  const skills = [];
-
-  for (let index = 0; index < ids.length; index += 100) {
-    skills.push(...(await fetchJson(`/skills?ids=${ids.slice(index, index + 100).join(',')}`)));
-  }
-
-  return skills;
+  return fetchManyGw2('skills', ids, { preserveIdOrder: true });
 }
 
 // Generates only consumed skill and trait IDs from the freshly fetched snapshot so the update

@@ -51,7 +51,7 @@ export function selectedEngineerTraits(config: EngineerConfig = {}): Set<SkillId
 }
 
 /** Creates a fresh Core Engineer state with resources, kit state, flips, and proc windows reset. */
-export function createEngineerCoreState(_config: EngineerConfig = {}): EngineerCoreState {
+export function createEngineerCoreState(): EngineerCoreState {
   return {
     endurance: BASE_MAXIMUM_ENDURANCE,
 

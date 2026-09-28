@@ -1,7 +1,6 @@
 import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
 import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
-import type { MesmerConfig } from '#gw2/professions/mesmer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -14,7 +13,8 @@ export interface MesmerTroubadourState {
   lastInstrument: string;
 }
 
-function createTroubadourState(_config: Partial<MesmerConfig> = {}): MesmerTroubadourState {
+/** Starts Troubadour resources with no instrument performance carried into the simulation. */
+function createTroubadourState(): MesmerTroubadourState {
   return {
     numericResource: 0,
     endurance: 100,

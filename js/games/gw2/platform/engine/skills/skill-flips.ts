@@ -78,16 +78,6 @@ export function pruneSkillFlips(flips: SkillFlipWindows, at: number): void {
   for (const id of Object.keys(flips)) expireSkillFlip(flips, id, at);
 }
 
-/**
- * The follow-up a completed parent opens: its flip skill, unless that is merely the next autoattack chain step or a
- * skill that names another parent.
- */
-export function followUpOf(skillsById: ReadonlyMap<SkillId, Skill>, skill: Skill): Skill | undefined {
-  if (skill.flipSkillId == null || skill.flipSkillId === skill.nextChainId) return undefined;
-  const followUp = skillsById.get(Number(skill.flipSkillId)) ?? skillsById.get(skill.flipSkillId);
-  return followUp?.flipParentId === skill.id ? followUp : undefined;
-}
-
 /** Why the weapon follow-up rule blocks a skill: its window is closed, or its follow-up's window has replaced it. */
 type WeaponFlipBlock = { readonly kind: 'closed'; readonly parent: Skill } | { readonly kind: 'open' };
 

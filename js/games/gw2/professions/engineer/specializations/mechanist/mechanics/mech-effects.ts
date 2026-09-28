@@ -95,11 +95,7 @@ export const mechanistCriticalHitDefinitions = Object.freeze([
 >[]);
 
 /** Applies on-damage arm traits to qualifying mech strikes while maintaining their independent cooldowns. */
-function reactToMechanistDamage(
-  context: EngineerResolverContext,
-  event: EngineerResolverEvent,
-  _details: NativeResolvedDamageDetails = {}
-): void {
+function reactToMechanistDamage(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
   const state = context.procs.readyAt;
   if (!isEngineerMechEvent(context, event)) return;

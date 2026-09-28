@@ -47,7 +47,7 @@ export function createHarbingerState(config: NecromancerConfig = {}): HarbingerS
 }
 
 /** Keeps Harbinger's capped, expiry-backed Blight representation internally consistent. */
-export function syncHarbingerState(state: HarbingerState): void {
+function syncHarbingerState(state: HarbingerState): void {
   // Cap refreshes retain their consumption position; sorting by expiry would spend different stacks.
   state.blightExpiries = state.blightExpiries.slice(-BLIGHT_MAXIMUM_STACKS);
   state.blight = state.blightExpiries.length;

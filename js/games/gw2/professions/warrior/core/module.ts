@@ -10,7 +10,7 @@ import {
 import { warriorCoreModifiers } from '#gw2/professions/warrior/core/modifiers.js';
 import { warriorCoreHooks } from '#gw2/professions/warrior/core/hooks.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
-import { bindWarriorCoreUi } from '#gw2/professions/warrior/core/presentation.js';
+import { warriorCoreUi } from '#gw2/professions/warrior/core/presentation.js';
 import { WARRIOR_CORE_BALANCE_PROFILES } from '#gw2/professions/warrior/core/profiles.js';
 
 export const warriorCoreModule = defineNativeModule({
@@ -26,5 +26,6 @@ export const warriorCoreModule = defineNativeModule({
   },
   modifiers: warriorCoreModifiers,
   hooks: warriorCoreHooks,
-  presentation: bindWarriorCoreUi
+  // Core presentation is catalog-independent and can be registered directly.
+  presentation: warriorCoreUi
 });
