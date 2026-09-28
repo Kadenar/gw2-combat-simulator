@@ -1,7 +1,38 @@
 /** Owns Vindicator dodge attack skill fragments. */
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { VINDICATOR_LANDING_MS } from '#gw2/professions/revenant/data/vindicator-jump.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { effectFirstAtMs } from '#gw2/platform/engine/effects/authoring.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+
+export const VINDICATOR_LANDING_TASK = 'revenant.vindicator-landing';
+
+/** The grandmaster trait selects the dodge landing, so no separate dodge choice can drift from the build. */
+export function selectedDodge(runtime: RevenantRuntime): RevenantSkill | undefined {
+  const skillId = hasTrait(runtime, TRAIT.SAINT_OF_ZU_HELTZER)
+    ? ID.SAINTS_SHIELD
+    : hasTrait(runtime, TRAIT.VASSALS_OF_THE_EMPIRE)
+      ? ID.IMPERIAL_IMPACT
+      : ID.DEATH_DROP;
+  return runtime.helpers.skillsById.get(skillId);
+}
+
+/** Shared Dodge and Vindicator Jump resolve landings at the authored offset from their landing origin. */
+export function scheduleLanding(runtime: RevenantRuntime, cast: RuntimeCast, origin: number): void {
+  const profile = selectedDodge(runtime);
+  const effect = profile?.effects?.find((candidate) => candidate.type === 'strike' || candidate.type === 'boon');
+  if (!profile || !effect) return;
+  const offset = effect.type === 'strike' ? effectFirstAtMs(effect) : effect.atMs;
+  runtime.schedule(VINDICATOR_LANDING_TASK, canonicalTime(origin + Math.max(0, offset || 0) / 1000), {
+    origin,
+    skillId: cast.skill.id,
+    activationId: cast.id
+  });
+}
 
 export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Saint's Shield replaces dodge damage with a party alacrity application at the landing effect point.

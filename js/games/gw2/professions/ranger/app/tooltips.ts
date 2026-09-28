@@ -285,17 +285,7 @@ export const rangerTooltips: ProfessionTooltips = {
           )
         ]
       : []),
-    ...([ID.WARCLAWS_ENGAGE, ID.PREDATORS_AMBUSH].some((id) => id === entity.id)
-      ? [
-          modifierFact(
-            balanceContext,
-            'ranger.spear-leap-low-health',
-            'factor',
-            'Strike damage below half target health',
-            tooltipFactorChange
-          )
-        ]
-      : []),
+    // Spear leap health bonuses are rendered from their strike coefficient modifiers by the shared tooltip.
     ...(entity.id === ID.FALCONS_STOOP
       ? [
           modifierFact(

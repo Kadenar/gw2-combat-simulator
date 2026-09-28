@@ -1,8 +1,7 @@
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
+import { strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -20,41 +19,17 @@ import {
 import { VINDICATOR_AIRBORNE_MS, VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import { VINDICATOR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/vindicator/profiles.js';
 import { vindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
+import {
+  VINDICATOR_LANDING_TASK,
+  selectedDodge,
+  scheduleLanding
+} from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RevenantRuntimeState } from '#gw2/professions/revenant/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
-const LANDING = 'revenant.vindicator-landing';
 const ENERGY_MELD_IDS = new Set<SkillId>([ID.ENERGY_MELD, ID.ENERGY_MELD_ID_72058]);
-
-/** The grandmaster trait selects the dodge landing, so no separate dodge choice can drift from the build. */
-function selectedDodge(runtime: RevenantRuntime): RevenantSkill | undefined {
-  const skillId = hasTrait(runtime, TRAIT.SAINT_OF_ZU_HELTZER)
-    ? ID.SAINTS_SHIELD
-    : hasTrait(runtime, TRAIT.VASSALS_OF_THE_EMPIRE)
-      ? ID.IMPERIAL_IMPACT
-      : ID.DEATH_DROP;
-  return runtime.helpers.skillsById.get(skillId);
-}
-
-/** A dodge's landing resolves at its authored offset from the landing origin, not at acceptance. */
-function scheduleLanding(runtime: RevenantRuntime, cast: RuntimeCast, origin: number): void {
-  const profile = selectedDodge(runtime);
-  const effect = profile?.effects?.find((candidate) => candidate.type === 'strike' || candidate.type === 'boon');
-  if (!profile || !effect) return;
-  const offset = effect.type === 'strike' ? effectFirstAtMs(effect) : effect.atMs;
-  runtime.schedule(LANDING, canonicalTime(origin + Math.max(0, offset || 0) / 1000), {
-    origin,
-    skillId: cast.skill.id,
-    activationId: cast.id
-  });
-}
-
-/** The shared Dodge declaration delegates its Vindicator-only landing through family composition. */
-export function startVindicatorDodge(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  scheduleLanding(runtime, cast, cast.start);
-}
 
 /** Landing consumes an armed Reaver's Curse, strikes with the Forerunner window it lands in, then renews it. */
 function land(runtime: RevenantRuntime, data: unknown): void {
@@ -220,5 +195,5 @@ export const vindicatorHooks: Partial<RuntimeProfession<RevenantRuntimeState>> =
     // Ending a cancelled jump also retires any autoattack chain advanced while airborne.
     if (cast.skill.id === VINDICATOR_JUMP_SKILL.id) resetAutoattackChains(runtime);
   },
-  tasks: { [LANDING]: land }
+  tasks: { [VINDICATOR_LANDING_TASK]: land }
 };

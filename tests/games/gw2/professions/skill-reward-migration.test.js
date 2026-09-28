@@ -271,7 +271,15 @@ test('Mercy declares its Mark reset independently of the Malice refund', () => {
       ['Mercy'],
       { specialization: 'Deadeye', selectedSkills: ['Mercy'], initialInitiative: 0 },
       {
-        catalog: (catalog) => (removed ? withSkill(catalog, THIEF.MERCY, { sideEffects: [] }) : catalog),
+        // Remove only the reset declaration so the independently declared refund still executes.
+        catalog: (catalog) =>
+          removed
+            ? withSkill(catalog, THIEF.MERCY, {
+                sideEffects: catalog.skillsById
+                  .get(THIEF.MERCY)
+                  .sideEffects.filter((effect) => effect.do.type !== 'rechargeReset')
+              })
+            : catalog,
         initialize(runtime) {
           runtime.profession.specialization.state.malice = 3;
           runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(THIEF.DEADEYES_MARK), 0, 50);

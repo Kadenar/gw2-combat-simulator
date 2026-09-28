@@ -22,6 +22,7 @@ import {
   handleRangerBloodThirst
 } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
 import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
+import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
 import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
 import { reactToSoulbeastDamage } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
@@ -124,7 +125,13 @@ test('Blood Thirst grants twelve seconds, replaces remaining charges, and respec
   const skill = context.catalog.skillsById.get(RANGER.CRIPPLING_SHOT);
   const grant = (at) => {
     context.time = at;
-    rangerCoreHooks.onCastCommit(context, { skill, start: at, fullEnd: at, effectiveEnd: at });
+    // Dispatch the skill's declared commitment reward through the same path as the runtime.
+    applySkillSideEffects(
+      context,
+      { skill, start: at, fullEnd: at, effectiveEnd: at },
+      'castCommit',
+      rangerCoreHooks.sideEffectHandlers
+    );
     const event = context.events.at(-1);
     assert.equal(event.duration, 12);
     handleRangerBloodThirst(context, event);

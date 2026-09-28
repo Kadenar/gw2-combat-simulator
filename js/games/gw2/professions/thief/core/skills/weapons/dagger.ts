@@ -3,6 +3,9 @@ import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
+// The packet transform and tooltip share Backstab's intrinsic positional bonus.
+export const BACKSTAB_DEFIANT_MULTIPLIER = 2;
+
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -34,8 +37,14 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
             effect.type !== 'strike'
               ? effect
               : effect.ticks?.length
-                ? { ...effect, ticks: effect.ticks.map((tick) => ({ ...tick, coefficient: tick.coefficient * 2 })) }
-                : { ...effect, coefficient: (effect.coefficient || 0) * 2 }
+                ? {
+                    ...effect,
+                    ticks: effect.ticks.map((tick) => ({
+                      ...tick,
+                      coefficient: tick.coefficient * BACKSTAB_DEFIANT_MULTIPLIER
+                    }))
+                  }
+                : { ...effect, coefficient: (effect.coefficient || 0) * BACKSTAB_DEFIANT_MULTIPLIER }
           )
       }
     ],

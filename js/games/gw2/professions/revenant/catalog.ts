@@ -1,5 +1,5 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { startVindicatorDodge } from '#gw2/professions/revenant/specializations/vindicator/hooks.js';
+import { scheduleLanding } from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
 import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { revenantCoreModule } from '#gw2/professions/revenant/core/module.js';
 import { conduitModule } from '#gw2/professions/revenant/specializations/conduit/module.js';
@@ -17,7 +17,7 @@ export const revenantNativeModules = Object.freeze([
       sideEffectHandlers: {
         ...revenantCoreModule.hooks?.sideEffectHandlers,
         'revenant.vindicator-dodge'(runtime, context) {
-          if (context.kind === 'cast') startVindicatorDodge(runtime, context.cast);
+          if (context.kind === 'cast') scheduleLanding(runtime, context.cast, context.cast.start);
         }
       }
     }

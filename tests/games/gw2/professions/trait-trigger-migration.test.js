@@ -4,44 +4,30 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 
-// Shade Step belongs to commitment; its selected party boon must already exist when deferred completion runs.
-test('Shade Step grants only the committed skill boon before deferred Specter completion', () => {
+// Shade Step belongs to commitment; Dawn's boon must precede its independent barrier.
+test('Shade Step grants only the committed skill boon before the intrinsic barrier', () => {
   for (const [skillId, kind] of [
     [ID.GRASPING_SHADOWS, 'alacrity'],
     [ID.DAWNS_REPOSE, 'protection'],
     [ID.MIND_SHOCK, 'aegis']
   ]) {
-    const atCompletion = [];
-    const result = runThief(
-      [ID.ENTER_SHADOW_SHROUD, skillId, { type: 'wait', durationMs: 1000 }],
-      {
-        specialization: 'Specter',
-        initialShadowForce: 100,
-        selectedTraitIds: [TRAIT.SHADESTEP],
-        allies: { count: 2, strikesPerSecond: 0 }
-      },
-      {
-        extend: (native) => ({
-          tasks: {
-            ...native.tasks,
-            'thief.specter-complete'(runtime, data) {
-              atCompletion.push(runtime.history.filter((event) => event.sourceId === TRAIT.SHADESTEP));
-              native.tasks['thief.specter-complete'](runtime, data);
-            }
-          }
-        })
-      }
-    );
+    const result = runThief([ID.ENTER_SHADOW_SHROUD, skillId, { type: 'wait', durationMs: 1000 }], {
+      specialization: 'Specter',
+      initialShadowForce: 100,
+      selectedTraitIds: [TRAIT.SHADESTEP],
+      allies: { count: 2, strikesPerSecond: 0 }
+    });
     assert.deepEqual(result.warnings, []);
     const rewards = result.events.filter((event) => event.sourceId === TRAIT.SHADESTEP);
     assert.deepEqual(
       rewards.map((event) => event.kind),
       [kind]
     );
-    assert.deepEqual(
-      atCompletion.at(-1).map((event) => event.kind),
-      [kind]
-    );
+    if (skillId === ID.DAWNS_REPOSE) {
+      const barrierIndex = result.events.findIndex((event) => event.skillId === skillId && event.kind === 'barrier');
+      assert.ok(barrierIndex > result.events.indexOf(rewards[0]), 'Shade Step precedes the barrier');
+    }
+
     const action = result.events.find((event) => event.type === 'action' && event.skillId === skillId);
     assert.equal(rewards[0].at, action.endsAt);
     assert.equal(rewards[0].activationId, action.activationId);

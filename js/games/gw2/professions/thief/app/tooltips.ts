@@ -17,6 +17,7 @@ import {
   type DescribeSimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
+import { BACKSTAB_DEFIANT_MULTIPLIER } from '#gw2/professions/thief/core/skills/weapons/dagger.js';
 import { DAREDEVIL_BALANCE_PROFILE_IDS as DD } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as DE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { SPECTER_BALANCE_PROFILE_IDS as SPECTER } from '#gw2/professions/thief/specializations/specter/profiles.js';
@@ -40,11 +41,17 @@ const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity) => {
   if (selected.malicious)
     description +=
       ' Snapshots malice when the cast starts. The first hit against your active mark consumes malice; Malicious Intent can then seed the next cycle.';
-  if (selected.id === ID.BACKSTAB || selected.id === ID.MALICIOUS_BACKSTAB) {
+  // Core Backstab owns a packet transform; Malicious Backstab still owns a balance modifier.
+  if (selected.id === ID.BACKSTAB)
+    facts.push({
+      name: 'Strike damage against a defiant target',
+      detail: tooltipFactorChange(BACKSTAB_DEFIANT_MULTIPLIER)
+    });
+  if (selected.id === ID.MALICIOUS_BACKSTAB) {
     facts.push(
       modifierFact(
         balanceContext,
-        selected.malicious ? 'thief.malicious-backstab-position' : 'thief.backstab-position',
+        'thief.malicious-backstab-position',
         'factor',
         'Strike damage against a defiant target',
         tooltipFactorChange
