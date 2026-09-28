@@ -397,7 +397,7 @@ export function runGw2Runtime<T extends object>({
     },
     schedule(name: string, at: number, data: unknown = null, owner?: { id: string; generation: number }, priority = 0) {
       if (!profession.tasks?.[name]) throw new TypeError(`No task handler registered for ${name}.`);
-      return enqueueWork(makeWork({ type: 'runtime.task', at, priority, payload: { name, data }, owner })).id;
+      enqueueWork(makeWork({ type: 'runtime.task', at, priority, payload: { name, data }, owner }));
     },
     scheduleForCast(
       name: string,
@@ -411,7 +411,7 @@ export function runGw2Runtime<T extends object>({
       // Only reservation data crosses the clone boundary; callbacks stay on the catalog skill.
       const { skill, ...reservation } = cast;
       if (!profession.catalog.skillsById.has(skill.id)) throw new TypeError(`Unknown cast task skill ${skill.id}.`);
-      return enqueueWork(
+      enqueueWork(
         makeWork({
           type: 'runtime.cast-task',
           at,
@@ -419,7 +419,7 @@ export function runGw2Runtime<T extends object>({
           payload: { name, cast: reservation, skillId: skill.id, data },
           owner
         })
-      ).id;
+      );
     },
     cancelOwner(owner: { id: string; generation: number }) {
       queue.cancelWhere(
@@ -449,10 +449,9 @@ export function runGw2Runtime<T extends object>({
     .registerAll(profession.eventHandlers ?? {});
 
   /** Internal packets share queue ordering but cannot become public history or report rows. */
-  function enqueueWork(work: RuntimeWork): RuntimeWork {
+  function enqueueWork(work: RuntimeWork): void {
     if (work.at < runtime.time) throw new RangeError('Internal work cannot backdate the live clock.');
     queue.enqueue({ ...work, source: 'Runtime', sourceId: work.type, actorType: 'effect' });
-    return work;
   }
 
   internal.register('runtime.effect', (_context, work) => {
@@ -1112,6 +1111,7 @@ export function runGw2Runtime<T extends object>({
 
   const reportingStarted = onPhase ? performance.now() : 0;
   onPhase?.('execution', reportingStarted - started);
+  // Finalize condition presentation once at the shared boundary for both reporting modes.
   finalizeConditionApplications(runtime, runtime.deathTime ?? runtime.horizon!);
   const score = buildSimulationScore(runtime, runtime.rotationEndTime, explicitCombat);
   if (output === 'score') {

@@ -2,10 +2,22 @@
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 
-export type ComboFieldType =
-  'Dark' | 'Ethereal' | 'Fire' | 'Ice' | 'Light' | 'Lightning' | 'Poison' | 'Smoke' | 'Water';
+/** Keep validation, assumption choices, and type unions on the same combo vocabulary. */
+export const COMBO_FIELD_TYPES = Object.freeze([
+  'Dark',
+  'Ethereal',
+  'Fire',
+  'Ice',
+  'Light',
+  'Lightning',
+  'Poison',
+  'Smoke',
+  'Water'
+] as const);
+export const COMBO_FINISHER_TYPES = Object.freeze(['Blast', 'Leap', 'Projectile', 'Whirl'] as const);
 
-export type ComboFinisherType = 'Blast' | 'Leap' | 'Projectile' | 'Whirl';
+export type ComboFieldType = (typeof COMBO_FIELD_TYPES)[number];
+export type ComboFinisherType = (typeof COMBO_FINISHER_TYPES)[number];
 
 export type ComboFieldSelectionAnchor = 'event' | 'castStart';
 

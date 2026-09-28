@@ -4,6 +4,7 @@ import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/defin
 
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/engine/events/actors.js';
+import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
 import type {
   ComboEvent,
   ComboFieldBinding,
@@ -15,25 +16,6 @@ import type {
   Gw2ComboRuntimeState
 } from '#gw2/platform/combos/types.js';
 import { clamp } from '#kernel/core/numeric.js';
-
-export const COMBO_FIELD_TYPES: readonly ComboFieldType[] = Object.freeze([
-  'Dark',
-  'Ethereal',
-  'Fire',
-  'Ice',
-  'Light',
-  'Lightning',
-  'Poison',
-  'Smoke',
-  'Water'
-]);
-
-export const COMBO_FINISHER_TYPES: readonly ComboFinisherType[] = Object.freeze([
-  'Blast',
-  'Leap',
-  'Projectile',
-  'Whirl'
-]);
 
 const FIELD_TYPES_BY_LOWERCASE = new Map(COMBO_FIELD_TYPES.map((type) => [type.toLowerCase(), type]));
 const FINISHER_TYPES_BY_LOWERCASE = new Map(COMBO_FINISHER_TYPES.map((type) => [type.toLowerCase(), type]));

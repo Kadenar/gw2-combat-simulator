@@ -132,7 +132,8 @@ export interface Gw2Runtime<T extends object = object> extends Gw2ResolverRuntim
   consumeFlip(skillId: SkillId): SkillFlipWindow | undefined;
   /** True once combat has started: always without an explicit marker, otherwise from the executed marker onward. */
   combatStartedAt(at?: number): boolean;
-  schedule(name: string, at: number, data?: unknown, owner?: WorkOwner, priority?: number): number;
+  /** Queues private work; cancellation uses its owner and generation rather than a packet identity. */
+  schedule(name: string, at: number, data?: unknown, owner?: WorkOwner, priority?: number): void;
   /** Snapshots cast data without cloning executable skill declarations; handlers receive `{ ...data, cast }`. */
   scheduleForCast(
     name: string,
@@ -141,7 +142,7 @@ export interface Gw2Runtime<T extends object = object> extends Gw2ResolverRuntim
     data?: Record<string, unknown>,
     owner?: WorkOwner,
     priority?: number
-  ): number;
+  ): void;
   cancelOwner(owner: WorkOwner): void;
 }
 

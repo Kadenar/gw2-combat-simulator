@@ -1,5 +1,5 @@
 import { canonicalTime } from '#kernel/core/clock.js';
-import type { SimulationEventBase, SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
@@ -29,7 +29,6 @@ export function normalizeTransitionDelays(value: unknown): TransitionDelays {
 function emitTransitionLockout(
   context: {
     readonly config?: Gw2Config;
-    readonly action?: SimulationEvent | null;
     emit(event: SimulationEventBase): unknown;
   },
   kind: TransitionDelayKind,
@@ -37,7 +36,7 @@ function emitTransitionLockout(
   skill?: { readonly id: SkillId; readonly name: string }
 ): void {
   const duration = normalizeTransitionDelays(context.config?.transitionDelays)[kind] / 1000;
-  if (!duration || context.action?.cancelled) return;
+  if (!duration) return;
   context.emit({
     type: TRANSITION_LOCKOUT_EVENT,
     at,

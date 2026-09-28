@@ -1,6 +1,7 @@
 import { createProfessionAssumptionControls } from '#gw2/platform/builds/assumptions.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { ComboFieldEvent, ComboFieldType } from '#gw2/platform/combos/types.js';
+import { COMBO_FIELD_TYPES } from '#gw2/platform/combos/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 const PERMANENT_COMBO_FIELD_ASSUMPTION_KEYS = Object.freeze({
@@ -11,15 +12,7 @@ const NONE = 'none';
 
 const FIELD_TYPE_OPTIONS: readonly { value: string; label: string }[] = [
   { value: NONE, label: 'None' },
-  { value: 'Dark', label: 'Dark' },
-  { value: 'Ethereal', label: 'Ethereal' },
-  { value: 'Fire', label: 'Fire' },
-  { value: 'Ice', label: 'Ice' },
-  { value: 'Light', label: 'Light' },
-  { value: 'Lightning', label: 'Lightning' },
-  { value: 'Poison', label: 'Poison' },
-  { value: 'Smoke', label: 'Smoke' },
-  { value: 'Water', label: 'Water' }
+  ...COMBO_FIELD_TYPES.map((value) => ({ value, label: value }))
 ];
 
 /** Profession-agnostic testing assumption: keep one combo field of the chosen type up for the whole fight. */

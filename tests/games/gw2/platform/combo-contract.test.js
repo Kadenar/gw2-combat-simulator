@@ -8,14 +8,13 @@ import {
   validateComboDefinitions
 } from '#gw2/platform/combos/definitions.js';
 import {
-  COMBO_FIELD_TYPES,
-  COMBO_FINISHER_TYPES,
   createGw2ComboRuntimeState,
   isComboFieldActiveAt,
   registerComboField,
   resolveComboAttempt,
   selectComboFieldForFinisher
 } from '#gw2/platform/combos/events.js';
+import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 import { enqueueGw2OwnedComboFinisher } from '#gw2/platform/resolver/combo-resolution.js';
 

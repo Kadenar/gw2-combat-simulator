@@ -1,5 +1,4 @@
 import { playerDamageTotal } from '#gw2/platform/combat/state/target-health.js';
-import { finalizeConditionApplications } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -80,14 +79,13 @@ export function buildSimulationScore(
   return score;
 }
 
-/** Presentation consumes executed events bounded by the combat score. */
+/** Presentation consumes finalized combat state and executed events bounded by the combat score. */
 export function buildCombatResult(
   ctx: Gw2ResolverRuntime,
   score: Gw2SimulationScore,
   events: readonly Gw2ResolverEvent[]
 ): Gw2ResolverResult {
   const effectiveEnd = score.combatEndTime;
-  finalizeConditionApplications(ctx, effectiveEnd);
   const damagePerSecond = (damage: number): number => (score.dpsWindow > 0 ? damage / score.dpsWindow : 0);
   const environmentWindow = Math.max(0, effectiveEnd - (score.hasExplicitCombatStart ? score.combatStartTime || 0 : 0));
   const environmentDamagePerSecond = (damage: number): number =>

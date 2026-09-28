@@ -1,6 +1,7 @@
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ComboEvent, ComboFieldType, ComboFinisherType } from '#gw2/platform/combos/types.js';
+import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
 
 const COMBO_COMBAT_METADATA_FIELDS = Object.freeze([
   // A missed finisher can still grant self effects, but its hostile outcomes must also miss.
@@ -295,19 +296,6 @@ const definitions: readonly ComboDefinition[] = [
   }
 ].map((definition) => Object.freeze(definition) as ComboDefinition);
 
-const FIELD_TYPES: readonly ComboFieldType[] = [
-  'Dark',
-  'Ethereal',
-  'Fire',
-  'Ice',
-  'Light',
-  'Lightning',
-  'Poison',
-  'Smoke',
-  'Water'
-];
-const FINISHER_TYPES: readonly ComboFinisherType[] = ['Blast', 'Leap', 'Projectile', 'Whirl'];
-
 /** Validates combo definition uniqueness, coverage, and outcome data. */
 export function validateComboDefinitions(values: readonly ComboDefinition[]): readonly ComboDefinition[] {
   const keys = new Set<string>();
@@ -320,13 +308,13 @@ export function validateComboDefinitions(values: readonly ComboDefinition[]): re
     }
   }
 
-  const expected = FIELD_TYPES.length * FINISHER_TYPES.length;
+  const expected = COMBO_FIELD_TYPES.length * COMBO_FINISHER_TYPES.length;
   if (values.length !== expected || keys.size !== expected) {
     throw new TypeError(`Combo definitions require all ${expected} field/finisher pairs.`);
   }
 
-  for (const fieldType of FIELD_TYPES) {
-    for (const finisherType of FINISHER_TYPES) {
+  for (const fieldType of COMBO_FIELD_TYPES) {
+    for (const finisherType of COMBO_FINISHER_TYPES) {
       const key = `${fieldType}|${finisherType}`;
       if (!keys.has(key)) throw new TypeError(`Missing combo definition: ${key}.`);
     }

@@ -70,12 +70,12 @@ export function rotationApm(
     combatStartTime: number | null;
   },
   rotation: readonly unknown[],
-  catalog: CanonicalCatalog,
-  rotationStartTime = 0
+  catalog: CanonicalCatalog
 ): RotationApm {
   const commands = normalizeRotation(rotation, catalog, { strict: true });
   const { events, steps } = executed;
-  const start = executed.combatStartTime ?? rotationStartTime;
+  // An explicit combat boundary excludes precasts; otherwise input accounting begins at zero.
+  const start = executed.combatStartTime ?? 0;
   const end = executed.rotationEndTime;
   const durationSeconds = Math.max(0, end - start);
   // Action events retain exact seconds; step display timestamps are rounded to milliseconds.

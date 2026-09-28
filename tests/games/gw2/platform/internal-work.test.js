@@ -33,8 +33,6 @@ test('internal work validates its boundary and dispatches renewed owners without
   const projectile = create({ ...input, owner: { id: 'projectile', generation: 1 }, payload: { amount: 4 } });
   queue.enqueue(renewed);
   queue.enqueue(projectile);
-  assert.notEqual(old.id, renewed.id);
-  assert.notEqual(renewed.id, projectile.id);
   const state = { resource: 0 };
   while (queue.peek()) handlers.dispatch(queue.dequeue(), state);
   assert.equal(state.resource, 7);

@@ -27,7 +27,6 @@ export interface WorkOwner {
 /** Concrete handlers specialize type and payload into a discriminated union; internal work is never a log packet. */
 export interface InternalWork<TType extends string = string, TPayload = unknown> extends QueuedEvent {
   readonly kind: 'internal';
-  readonly id: number;
   readonly type: TType;
   readonly at: number;
   readonly priority: number;
@@ -44,7 +43,6 @@ type WorkInput<TWork extends InternalWork> = TWork extends InternalWork
 export function createInternalWorkFactory<TWork extends InternalWork>(
   handlers: Pick<HandlerRegistry<unknown, TWork>, 'has'>
 ): (input: WorkInput<TWork>) => TWork {
-  let sequence = 0;
   return (input) => {
     if (!handlers.has(input.type)) throw new TypeError(`No internal work handler registered for ${input.type}.`);
     const at = canonicalTime(input.at);
@@ -76,7 +74,6 @@ export function createInternalWorkFactory<TWork extends InternalWork>(
 
     return Object.freeze({
       kind: 'internal',
-      id: ++sequence,
       type: input.type,
       at,
       priority: input.priority,
