@@ -5,7 +5,6 @@ import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { elementalistCoreCriticalReactions } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 
 function canonicalRotation(rotation) {
   return rotation.map((entry) =>
@@ -16,7 +15,10 @@ function canonicalRotation(rotation) {
 }
 
 // Run the smallest Core rotation that reaches a migrated trait through the public dispatcher.
-function simulate(rotation, { traits, startAttunement = 'Fire', selectedSkills = {}, stats, ...buildOptions }) {
+function simulate(
+  rotation,
+  { traits, startAttunement = 'Fire', selectedSkills = {}, stats, initialize, ...buildOptions }
+) {
   // Trait reachability scenarios begin in combat so entry-only effects are eligible.
   const commands = [{ type: 'combat-start' }, ...canonicalRotation(rotation)];
   const defaults = elementalistProfession.createBuildDefaults();
@@ -46,6 +48,7 @@ function simulate(rotation, { traits, startAttunement = 'Fire', selectedSkills =
   return runElementalist({
     profession: elementalistProfession,
     rotation: commands,
+    initialize,
     config: {
       ...config,
       selectedTraitIds: traits,
@@ -309,14 +312,29 @@ for (const { name, traits, rotation, startAttunement, selectedSkills, stats, ver
   });
 }
 
-test('Elementalist critical reactions retain their registration order', () => {
-  assert.deepEqual(
-    elementalistCoreCriticalReactions.map((reaction) => reaction.id),
-    [
-      'elementalist.raging-storm',
-      'elementalist.arcane-precision',
-      'elementalist.renewing-stamina',
-      'elementalist.burning-precision'
-    ]
-  );
+test('Elementalist critical reactions emit effects in registration order', (t) => {
+  const expected = ['Raging Storm', 'Arcane Precision', 'Renewing Stamina', 'Burning Precision'];
+  const effects = [];
+
+  // One guaranteed critical proc per trait exposes dispatch order before queued boons and immediate conditions resolve.
+  simulate(['Charged Strike'], {
+    traits: [TRAIT.RAGING_STORM, TRAIT.ARCANE_PRECISION, TRAIT.RENEWING_STAMINA, TRAIT.BURNING_PRECISION],
+    startAttunement: 'Air',
+    stats: criticalStats,
+    initialize(runtime) {
+      t.mock.method(runtime.random, 'roll', () => true);
+      for (const [owner, method] of [
+        [runtime.queue, 'enqueue'],
+        [runtime, 'applyCondition']
+      ]) {
+        const original = owner[method].bind(owner);
+        t.mock.method(owner, method, (event) => {
+          if (expected.includes(event.source)) effects.push(event.source);
+          return original(event);
+        });
+      }
+    }
+  });
+
+  assert.deepEqual(effects, expected);
 });
