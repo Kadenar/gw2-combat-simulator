@@ -184,7 +184,7 @@ export function calculateBuffedAttributes(
   });
   // Seed an isolated active stack window so both displayed and conjure durations use the relic's combat formula.
   const relic = values.aristocracy ? createRelicRuntime('Aristocracy') : undefined;
-  if (relic) relic.state.activations = [{ at: 0, expiresAt: 60, stacks: Number(values.aristocracy), event }];
+  if (relic) relic.state.activations = [{ at: 0, expiresAt: 60, stacks: Number(values.aristocracy) }];
   const runtime = {
     profession: professionState,
     activeWeaponSet: weaponSet,

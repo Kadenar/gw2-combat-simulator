@@ -188,8 +188,7 @@ export const SIGIL_PROCS = Object.freeze({
     icon: SIGIL_DATA.Hydromancy.icon
   },
   Ice: {
-    // "Chill a foe for 2s after striking ... when they are defiant." The sim
-    // target is always defiant, so any player strike arms the 10s cooldown.
+    // Chills on a flanking strike or against a defiant foe; runtime checks the target before claiming the ICD.
     trigger: 'strike',
     cooldown: 10,
     effect: 'condition',

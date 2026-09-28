@@ -6,6 +6,39 @@ import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { applyRuntimeSigils } from '#gw2/platform/equipment/sigils/runtime.js';
+
+// Ice checks defiance before claiming its cooldown, independently of the sampled critical outcome.
+test('Ice rejects non-defiant hits without consuming its shared cooldown', () => {
+  for (const didCrit of [false, true]) {
+    const emitted = [];
+    const runtime = {
+      combatActive: true,
+      activeWeaponSet: 1,
+      config: { target: { defiant: false }, sigilSets: [{ names: ['Ice', 'Ice'] }] },
+      sigil: { readyAt: new Map() },
+      emitDerived: (_cause, event) => emitted.push(event),
+      recordProc() {}
+    };
+    const hit = { type: 'damage', at: 1, actorType: 'player', coefficient: 1, didCrit };
+    applyRuntimeSigils(runtime, 'strike', hit);
+    assert.equal(emitted.length, 0);
+    assert.equal(runtime.sigil.readyAt.has('Ice'), false);
+
+    runtime.config.target.defiant = true;
+    applyRuntimeSigils(runtime, 'strike', { ...hit, at: 2 });
+    assert.equal(emitted.length, 1);
+    assert.equal(emitted[0].condition, 'Chilled');
+    assert.equal(emitted[0].stacks, 1);
+    assert.equal(emitted[0].duration, 2);
+    assert.equal(runtime.sigil.readyAt.get('Ice'), 12);
+
+    applyRuntimeSigils(runtime, 'strike', { ...hit, at: 12 });
+    assert.equal(emitted.length, 1);
+    applyRuntimeSigils(runtime, 'strike', { ...hit, at: 12.001 });
+    assert.equal(emitted.length, 2);
+  }
+});
 
 // Equipment procs consume eligible hits, sampled critical outcomes, and the active weapon set.
 test('Thief relic progresses on individual hits instead of an aggregate hit', () => {

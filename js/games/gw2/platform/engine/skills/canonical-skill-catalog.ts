@@ -4,6 +4,7 @@
  * overrides, and resolver handlers become one validated immutable lookup.
  */
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
+import { ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
 import { deriveAutoattackChains, indexAutoattackChains } from '#gw2/platform/engine/skills/autoattack-chains.js';
 import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/engine/effects/contracts.js';
 import {
@@ -255,7 +256,6 @@ interface NormalizedAutoattackChains {
 // Closed vocabulary sets used for fast membership checks during catalog validation.
 // Any value outside these sets is rejected as an authoring error.
 const EFFECT_TYPES = new Set(['strike', 'condition', 'control', 'blind', 'boon', 'buff', 'custom']);
-const EFFECT_ACTOR_TYPES = new Set(['player', 'summon', 'effect', 'environment', 'unknown']);
 const TIMING_ANCHORS = new Set(['castStart', 'castEnd']);
 const TIMING_SCALES = new Set(['cast', 'fixed']);
 const RECHARGE_ANCHORS = new Set(['castStart', 'castEnd']);
@@ -601,11 +601,11 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
     throw new TypeError('Skill effect when must be a predicate.');
 
   // Effect ownership must already use the canonical actor vocabulary at catalog assembly.
-  if (normalizedEffect.actorType !== undefined && !EFFECT_ACTOR_TYPES.has(normalizedEffect.actorType)) {
+  if (normalizedEffect.actorType !== undefined && !ACTOR_TYPES.has(normalizedEffect.actorType)) {
     throw new TypeError('Skill effect actorType is invalid.');
   }
 
-  if (normalizedEffect.ownerActorType !== undefined && !EFFECT_ACTOR_TYPES.has(normalizedEffect.ownerActorType)) {
+  if (normalizedEffect.ownerActorType !== undefined && !ACTOR_TYPES.has(normalizedEffect.ownerActorType)) {
     throw new TypeError('Skill effect ownerActorType is invalid.');
   }
 

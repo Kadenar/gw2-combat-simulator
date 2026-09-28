@@ -115,7 +115,7 @@ test('offset combat starts respect the clock and keep sigil procs aligned with r
       ],
       config: {
         stats: { power: 1000, precision: 4000 },
-        target: { armor: 2597 },
+        target: { armor: 2597, defiant: true },
         sigilSets: [{ names: ['Ice'] }]
       }
     });

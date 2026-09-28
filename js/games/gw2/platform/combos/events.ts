@@ -3,7 +3,7 @@ import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/definitions.js';
 
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
+import { ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type {
   ComboEvent,
   ComboFieldBinding,
@@ -35,7 +35,6 @@ export const COMBO_FINISHER_TYPES: readonly ComboFinisherType[] = Object.freeze(
   'Whirl'
 ]);
 
-const ACTOR_TYPES = new Set<SimulationActorType>(['player', 'summon', 'effect', 'environment', 'unknown']);
 const FIELD_TYPES_BY_LOWERCASE = new Map(COMBO_FIELD_TYPES.map((type) => [type.toLowerCase(), type]));
 const FINISHER_TYPES_BY_LOWERCASE = new Map(COMBO_FINISHER_TYPES.map((type) => [type.toLowerCase(), type]));
 
@@ -154,6 +153,7 @@ export function prepareGw2ComboEvent(event: SimulationEventBase): SimulationEven
       throw new TypeError('Combo field comboBindingPriority must be a non-negative finite number.');
     }
 
+    // Combo ownership uses the same vocabulary as every other simulation event.
     if (!ACTOR_TYPES.has(event.ownerActorType as SimulationActorType)) {
       throw new TypeError('Combo field ownerActorType is invalid.');
     }

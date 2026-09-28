@@ -20,7 +20,6 @@ interface AristocracyActivation {
   readonly at: number;
   readonly expiresAt: number;
   readonly stacks: number;
-  readonly event: SimulationEvent;
 }
 
 interface AristocracyState extends Gw2RelicState {
@@ -60,11 +59,11 @@ function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent
   state.stacks = Math.min(ARISTOCRACY_MAX_STACKS, state.stacks + 1);
   state.expiresAt = gw2EffectExpiresAt(event.at, ARISTOCRACY_DURATION);
   state.readyAt = event.at + ARISTOCRACY_INTERNAL_COOLDOWN;
+  // Historical duration queries need stack windows, without retaining their triggering events.
   const activation = {
     at: event.at,
     expiresAt: state.expiresAt,
-    stacks: state.stacks,
-    event
+    stacks: state.stacks
   };
   state.activations.push(activation);
   return activation;

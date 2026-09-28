@@ -32,6 +32,8 @@ export function applyRuntimeSigils(
   for (const name of new Set(gw2SigilSet(runtime.config, set).names || [])) {
     const proc = procs[name];
     if (proc?.trigger !== trigger || !isInternalCooldownReady(event.at, runtime.sigil.readyAt.get(name) ?? 0)) continue;
+    // Defiance also represents flanking; ineligible Ice hits must leave the shared ICD untouched.
+    if (name === 'Ice' && !runtime.config.target?.defiant) continue;
     runtime.sigil.readyAt.set(name, event.at + proc.cooldown);
     const sourceSkill = event.skillName || (trigger === 'swap' ? 'Swap Weapons' : '');
     if (proc.effect === 'next-hit-condition') {
