@@ -4,6 +4,10 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import {
@@ -56,7 +60,10 @@ function modifyVindicatorAttributes(context: Gw2ModifierContext, attributes: Gw2
     !professionStaticRulesApplied(context.config) &&
     playerHealthFraction(context) > 0.5
   ) {
-    modified.power = (modified.power || 0) + 240;
+    // Runtime-only attributes use the same patchable bonus as the build calculator.
+    modified.power =
+      (modified.power || 0) +
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EMPIRE_DIVIDED), 'attributeBonus');
   }
 
   return modified;

@@ -28,12 +28,6 @@ export const REVENANT_CONDUIT_FORM_BY_LEGEND: Readonly<Record<string, string>> =
   [LEGEND.ENTITY]: 'Dervish'
 });
 
-export const REVENANT_RELEASE_POTENTIAL_BY_LEGEND: Readonly<Record<string, string>> = Object.freeze(
-  Object.fromEntries(
-    Object.entries(REVENANT_CONDUIT_FORM_BY_LEGEND).map(([id, form]) => [id, 'Release Potential: ' + form])
-  )
-);
-
 export const REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND: Readonly<Record<string, SkillId>> = Object.freeze({
   [LEGEND.ASSASSIN]: ID.RELEASE_POTENTIAL_ASSASSIN,
   [LEGEND.CENTAUR]: ID.RELEASE_POTENTIAL_MONK,

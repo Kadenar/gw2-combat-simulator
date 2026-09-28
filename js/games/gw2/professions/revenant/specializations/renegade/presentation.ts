@@ -1,4 +1,5 @@
-import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import {
   requireBalanceProfileFromContext,
@@ -13,6 +14,20 @@ import type {
 } from '#gw2/platform/profession-presentation/types.js';
 import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 
+/** Both displays select the same trait-dependent cap as runtime Fervor grants. */
+function fervorMaximum(context: RevenantUiContext): number {
+  return Math.max(
+    1,
+    balanceProfileNumber(
+      requireBalanceProfileFromContext(
+        context,
+        hasTrait(context, TRAIT.LASTING_LEGACY) ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor
+      ),
+      'maximumStacks'
+    )
+  );
+}
+
 /** Shows Kalla's Fervor stacks and the one-use Band Together enhancement window. */
 function renegadeStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
   const state = revenantUiState(context);
@@ -20,11 +35,12 @@ function renegadeStateSnapshot(context: RevenantUiContext): RotationStateSnapsho
   const items: RotationStateSnapshotItem[] = [];
   const fervor = (state.kallasFervor || []).filter((stack) => (stack.at || 0) <= at && (stack.expiresAt || 0) > at);
   if (fervor.length) {
+    const maximum = fervorMaximum(context);
     const remaining = Math.min(...fervor.map((stack) => stack.expiresAt)) - at;
     items.push({
       id: 'renegade-kallas-fervor',
       label: "Kalla's Fervor",
-      value: `${Math.min(5, fervor.length)}/5 · ${remaining.toFixed(1)}s`,
+      value: `${Math.min(maximum, fervor.length)}/${maximum} · ${remaining.toFixed(1)}s`,
       title: "Active Kalla's Fervor stacks and time until the next stack expires"
     });
   }
@@ -49,10 +65,7 @@ function renegadeEffectPresentations(context: RevenantUiContext): ProfessionEffe
       id: 'revenant-kallas-fervor',
       kind: 'kallas-fervor',
       name: "Kalla's Fervor",
-      maximumStacks: balanceProfileNumber(
-        requireBalanceProfileFromContext(context, PROFILE.kallasFervor),
-        'maximumStacks'
-      )
+      maximumStacks: fervorMaximum(context)
     }
   ];
 }

@@ -133,6 +133,7 @@ export function revenantCorePaletteSkillAvailability(
   const cost = effectiveRevenantEnergyCost(
     {
       specialization: context.specialization ?? 'Core',
+      time: context.time ?? context.atSeconds ?? 0,
       state,
       traits: context.traits ?? normalizeSelectedTraitIds(context.config?.selectedTraitIds)
     },
@@ -147,7 +148,10 @@ export function revenantCorePaletteSkillAvailability(
 }
 
 /** Reports shared Revenant drains and spear charges that directly constrain the next action. */
-function revenantCoreStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
+function revenantCoreStateSnapshot(
+  catalog: Readonly<CanonicalCatalog>,
+  context: RevenantUiContext
+): RotationStateSnapshotItem[] {
   const state = revenantUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
@@ -164,11 +168,16 @@ function revenantCoreStateSnapshot(context: RevenantUiContext): RotationStateSna
 
   const abyssExpiries = (state.crushingAbyss || []).map(Number).filter((expiry) => expiry > at);
   if (abyssExpiries.length) {
+    // Match runtime acquisition's cap from the selected spear skill.
+    const maximum = Math.max(
+      0,
+      Number((context.catalog ?? catalog).skillsById.get(SKILL.ABYSSAL_RAZE)?.maximumStacks || 0)
+    );
     const nextExpiry = Math.min(...abyssExpiries) - at;
     items.push({
       id: 'revenant-crushing-abyss',
       label: 'Crushing Abyss',
-      value: `${Math.min(3, abyssExpiries.length)}/3 · ${nextExpiry.toFixed(1)}s`,
+      value: `${Math.min(maximum, abyssExpiries.length)}/${maximum} · ${nextExpiry.toFixed(1)}s`,
       title: 'Active charges and time until the next charge expires'
     });
   }
@@ -189,7 +198,7 @@ export function bindRevenantCoreUi(catalog: Readonly<CanonicalCatalog>): Revenan
       return traits.some((trait) => trait.name === 'Swift Termination') ? [0.5] : [];
     },
     slotLoadout: revenantLegendLoadout,
-    rotationStateSnapshot: revenantCoreStateSnapshot,
+    rotationStateSnapshot: (context: RevenantUiContext) => revenantCoreStateSnapshot(catalog, context),
     timelineSkillIcon: revenantTimelineSkillIcon,
     paletteGroups: (context: RevenantUiContext) => {
       const loadout = revenantLegendLoadout.view(context);

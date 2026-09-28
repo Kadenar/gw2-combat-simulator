@@ -17,6 +17,7 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
 import { REVENANT_ELITE_INVOCATIONS } from '#gw2/professions/revenant/family-state.js';
+import { REVENANT_CORE_CALL_BY_LEGEND } from '#gw2/professions/revenant/core/skills/legend-call-skills.js';
 import { emitRevenantProfile, revenantBoonActive } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -183,14 +184,13 @@ export function applyRevenantInvocationTraits(runtime: RevenantRuntime): void {
   if (legendId && hasTrait(runtime, TRAIT.SPIRIT_BOON))
     emitRevenantInvocationProfile(runtime, elite?.spiritBoon ?? PROFILE.spiritBoon, TRAIT.SPIRIT_BOON, matchesLegend);
   if (legendId && hasTrait(runtime, TRAIT.SONG_OF_THE_MISTS)) {
-    if (elite) {
-      const song = runtime.helpers.skillsById.get(elite.song);
-      if (song)
-        emitRevenantProfile(runtime, song, {
-          sourceId: TRAIT.SONG_OF_THE_MISTS,
-          activationId: `legend-invocation:${TRAIT.SONG_OF_THE_MISTS}:${runtime.time}`
-        });
-    } else emitRevenantInvocationProfile(runtime, PROFILE.songOfTheMists, TRAIT.SONG_OF_THE_MISTS, matchesLegend);
+    // Calls share catalog mechanics while retaining the invocation trait as their triggering source.
+    const song = runtime.helpers.skillsById.get(elite?.song ?? REVENANT_CORE_CALL_BY_LEGEND[legendId]);
+    if (song)
+      emitRevenantProfile(runtime, song, {
+        sourceId: TRAIT.SONG_OF_THE_MISTS,
+        activationId: `legend-invocation:${TRAIT.SONG_OF_THE_MISTS}:${runtime.time}`
+      });
   }
 
   if (hasTrait(runtime, TRAIT.INVOKING_TORMENT)) {

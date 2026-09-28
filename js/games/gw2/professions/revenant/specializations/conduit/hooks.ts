@@ -246,18 +246,21 @@ const MESMER_FORM_COSTS = [
   [ID.EMBRACE_THE_DARKNESS, PROFILE.mesmerEmbraceTheDarkness]
 ] as const;
 
-/** Applies the current form's cost overrides; input aliases have already resolved to canonical skills. */
+/** Expired or removed windows clear the form immediately and restore native costs. */
 function syncConduitEnergyCostOverrides(runtime: RevenantRuntime): void {
   const state = conduit(runtime);
-  state.energyCostOverrides =
-    state.conduitForm === 'Mesmer'
-      ? Object.fromEntries(
-          MESMER_FORM_COSTS.map(([skillId, profileId]) => [
-            skillId,
-            balanceProfileNumber(requireBalanceProfileFromContext(runtime, profileId), 'energyCost')
-          ])
-        )
-      : {};
+  if (state.cosmicWisdomUntil <= runtime.time) {
+    state.cosmicWisdomUntil = 0;
+    state.conduitForm = '';
+  }
+  state.energyCostOverrides = revenantConduitFormIsActive(state, 'Mesmer', runtime.time)
+    ? Object.fromEntries(
+        MESMER_FORM_COSTS.map(([skillId, profileId]) => [
+          skillId,
+          balanceProfileNumber(requireBalanceProfileFromContext(runtime, profileId), 'energyCost')
+        ])
+      )
+    : {};
 }
 
 /** Form expiry clears the form and restores native Energy costs, unless an extension moved the deadline. */
@@ -295,8 +298,10 @@ function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast): void {
   }
 
   const window = requireEffect(cast.skill, 'buff', 'cosmic-wisdom');
-  // A removed window buff leaves the form and gift active for no duration.
-  state.cosmicWisdomUntil = runtime.time + (window ? effectNumber(cast.skill, window, 'duration') : 0);
+  // Only a positive window activates a form; the independent Numinous Gift still resolves.
+  state.cosmicWisdomUntil = canonicalTime(
+    runtime.time + (window ? Math.max(0, effectNumber(cast.skill, window, 'duration')) : 0)
+  );
   state.conduitForm = REVENANT_CONDUIT_FORM_BY_LEGEND[runtime.profession.core.activeLegendId] || '';
   syncConduitEnergyCostOverrides(runtime);
   scheduleFormExpiry(runtime);

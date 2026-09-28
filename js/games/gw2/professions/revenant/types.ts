@@ -70,8 +70,14 @@ export interface RevenantRuntimeState {
 /** Explicit cost inputs shared by simulation and palette calculations. */
 export interface RevenantEnergyCostInput {
   readonly specialization: string;
+  readonly time: number;
   readonly state: Readonly<
-    Partial<Pick<RevenantState, 'activeUpkeeps' | 'beguilingHazeCharges' | 'energyCostOverrides'>>
+    Partial<
+      Pick<
+        RevenantState,
+        'activeUpkeeps' | 'beguilingHazeCharges' | 'energyCostOverrides' | 'conduitForm' | 'cosmicWisdomUntil'
+      >
+    >
   >;
   readonly traits: ReadonlySet<SkillId>;
 }

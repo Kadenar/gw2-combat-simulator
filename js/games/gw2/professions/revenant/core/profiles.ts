@@ -19,7 +19,6 @@ export const REVENANT_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   enduringRecovery: TRAIT.ENDURING_RECOVERY,
   battleScars: 'revenant.core.battle-scars',
   spiritBoon: TRAIT.SPIRIT_BOON,
-  songOfTheMists: TRAIT.SONG_OF_THE_MISTS,
   chargedMists: TRAIT.CHARGED_MISTS,
   invokingTorment: TRAIT.INVOKING_TORMENT,
   battleScarred: TRAIT.BATTLE_SCARRED,
@@ -336,86 +335,6 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         stacks: 1,
         actorType: 'player',
         metadata: { legendId: LEGEND.CENTAUR }
-      }
-    ]
-  },
-  {
-    id: REVENANT_CORE_BALANCE_PROFILE_IDS.songOfTheMists,
-    name: 'Song of the Mists (Core Legends)',
-    profileKind: 'trait',
-    categories: ['Trait'],
-    skillFamily: 'Trait',
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.93,
-        hits: 1,
-        name: 'Call of the Assassin',
-        actorType: 'player',
-        metadata: { legendId: LEGEND.ASSASSIN }
-      },
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 8,
-        duration: 5,
-        name: 'Call of the Assassin',
-        actorType: 'player',
-        metadata: { legendId: LEGEND.ASSASSIN }
-      },
-      {
-        type: 'boon',
-        boon: 'quickness',
-        duration: 2,
-        stacks: 1,
-        name: 'Call of the Assassin',
-        actorType: 'player',
-        metadata: { legendId: LEGEND.ASSASSIN }
-      },
-      {
-        type: 'strike',
-        coefficient: 0.75,
-        hits: 1,
-        name: 'Call of the Dwarf',
-        actorType: 'player',
-        metadata: { legendId: LEGEND.DWARF }
-      },
-      {
-        type: 'condition',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 5,
-        name: 'Call of the Dwarf',
-        actorType: 'player',
-        metadata: { legendId: LEGEND.DWARF }
-      },
-      {
-        type: 'strike',
-        coefficient: 0.9,
-        hits: 1,
-        name: 'Call of the Demon',
-        actorType: 'player',
-        metadata: { legendId: LEGEND.DEMON }
-      },
-      {
-        type: 'condition',
-        condition: 'Slow',
-        stacks: 1,
-        duration: 3,
-        name: 'Call of the Demon - Slow',
-        skillName: 'Call of the Demon',
-        actorType: 'player',
-        metadata: { legendId: LEGEND.DEMON }
-      },
-      {
-        type: 'condition',
-        condition: 'Torment',
-        stacks: 2,
-        duration: 8,
-        name: 'Call of the Demon - Torment',
-        skillName: 'Call of the Demon',
-        actorType: 'player',
-        metadata: { legendId: LEGEND.DEMON }
       }
     ]
   },

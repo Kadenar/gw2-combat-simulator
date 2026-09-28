@@ -1,5 +1,6 @@
 import type { RevenantEnergyCostInput, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
+import { revenantConduitFormIsActive } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { BEGUILING_HAZE_SKILL_IDS } from '#gw2/professions/revenant/specializations/conduit/skill-groups.js';
 
 /** Identifies Beguiling Haze follow-ups so only their temporary charges waive the skill's Energy cost. */
@@ -9,13 +10,15 @@ function isBeguilingHazeFollowUp(state: Partial<ConduitState>, skill: RevenantSk
 
 /** Applies Conduit form overrides and Beguiling Haze follow-up charges to the shared base cost. */
 export function applyConduitEnergyCostRules(
-  { state }: RevenantEnergyCostInput,
+  { state, time }: RevenantEnergyCostInput,
   skill: RevenantSkill,
   baseCost: number
 ): number {
   if (baseCost <= 0) return 0;
   if (isBeguilingHazeFollowUp(state, skill)) return 0;
 
+  // A projected map cannot discount casts at or beyond the form's expiry.
+  if (!revenantConduitFormIsActive(state, 'Mesmer', time)) return baseCost;
   const override = state.energyCostOverrides?.[String(skill.id)];
   return override == null ? baseCost : Math.max(0, override);
 }

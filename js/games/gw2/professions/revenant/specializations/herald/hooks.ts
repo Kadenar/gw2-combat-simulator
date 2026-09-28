@@ -139,7 +139,12 @@ function elevatedCompassionActive(runtime: RevenantRuntime): boolean {
     (total, active) => total + Math.max(0, active.upkeepCost || 0),
     0
   );
-  return hasTrait(runtime, TRAIT.ELEVATED_COMPASSION) && upkeep >= threshold;
+  // A removed Quickness packet has no cadence to schedule, including on threshold re-entry.
+  return (
+    hasTrait(runtime, TRAIT.ELEVATED_COMPASSION) &&
+    upkeep >= threshold &&
+    Boolean(requireEffect(profile, 'boon', 'quickness'))
+  );
 }
 
 /** Grants one Quickness pulse and reserves the next legal pulse so threshold re-entry cannot bypass the ICD. */

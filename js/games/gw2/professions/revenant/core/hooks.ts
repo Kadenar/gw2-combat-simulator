@@ -30,7 +30,7 @@ import {
   revenantUpkeepPulse,
   starveRevenantUpkeeps,
   startRevenantEmbrace,
-  toggleRevenantUpkeep
+  activateRevenantUpkeep
 } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import {
   completeRevenantCrushingAbyssSwap,
@@ -246,7 +246,7 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
       const cost = upkeepCosts.get(context.cast);
       upkeepCosts.delete(context.cast);
       if (cost != null) runtime.resourceController.spend('energy', cost);
-      toggleRevenantUpkeep(runtime, context.cast);
+      activateRevenantUpkeep(runtime, context.cast);
     },
     'revenant.spear-recharge'(runtime, context) {
       if (context.kind === 'effect') reactRevenantSpearRecharge(runtime, context.trigger.event);

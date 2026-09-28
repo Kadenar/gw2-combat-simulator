@@ -45,13 +45,14 @@ export function effectiveRevenantEnergyCost(input: RevenantEnergyCostInput, skil
 
 /** Runtime hooks and the palette share one composed cost, read from the single runtime state. */
 export function revenantEnergyCost(
-  runtime: { readonly profession: RevenantRuntimeState; readonly config: RevenantConfig },
+  runtime: { readonly profession: RevenantRuntimeState; readonly config: RevenantConfig; readonly time: number },
   skill: RevenantSkill
 ): number {
   const { core, specialization } = runtime.profession;
   return effectiveRevenantEnergyCost(
     {
       specialization: specialization.kind,
+      time: runtime.time,
       state: {
         activeUpkeeps: core.activeUpkeeps,
         ...(specialization.kind === 'Conduit' ? specialization.state : {})

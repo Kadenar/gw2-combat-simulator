@@ -27,7 +27,7 @@ import {
   legalRevenantLegendIds,
   REVENANT_CORE_LEGEND_IDS,
   REVENANT_ELITE_LEGEND_BY_SPECIALIZATION,
-  REVENANT_RELEASE_POTENTIAL_BY_LEGEND
+  REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND
 } from '#gw2/professions/revenant/data/legends.js';
 import { REVENANT_LEGENDS, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -156,12 +156,12 @@ test('legend loadout exposes core legends plus only the active elite legend', ()
 });
 
 test('profession palette deduplicates actions and shows only active Conduit release', () => {
-  assert.deepEqual(REVENANT_RELEASE_POTENTIAL_BY_LEGEND, {
-    [LEGEND.ASSASSIN]: 'Release Potential: Assassin',
-    [LEGEND.CENTAUR]: 'Release Potential: Monk',
-    [LEGEND.DEMON]: 'Release Potential: Mesmer',
-    [LEGEND.DWARF]: 'Release Potential: Warrior',
-    [LEGEND.ENTITY]: 'Release Potential: Dervish'
+  assert.deepEqual(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND, {
+    [LEGEND.ASSASSIN]: SKILL.RELEASE_POTENTIAL_ASSASSIN,
+    [LEGEND.CENTAUR]: SKILL.RELEASE_POTENTIAL_MONK,
+    [LEGEND.DEMON]: SKILL.RELEASE_POTENTIAL_MESMER,
+    [LEGEND.DWARF]: SKILL.RELEASE_POTENTIAL_WARRIOR,
+    [LEGEND.ENTITY]: SKILL.RELEASE_POTENTIAL_DERVISH
   });
   const professionSkillIds = (specialization, selectedLegends, activeLegendId) =>
     revenantProfession.ui
@@ -199,7 +199,7 @@ test('profession palette deduplicates actions and shows only active Conduit rele
       .map((id) => revenantCatalog.skillsById.get(id)?.name)
       .filter((name) => name?.startsWith('Release Potential:'));
 
-    assert.deepEqual(releases, [REVENANT_RELEASE_POTENTIAL_BY_LEGEND[activeLegendId]]);
+    assert.deepEqual(releases, [revenantCatalog.skillsById.get(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND[activeLegendId]).name]);
   }
 });
 

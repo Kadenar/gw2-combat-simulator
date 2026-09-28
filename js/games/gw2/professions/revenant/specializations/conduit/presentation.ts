@@ -1,18 +1,8 @@
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
-import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
+import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
 import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
-
-// Bridges the string-keyed legend map to skill IDs; the legend map returns names, not IDs.
-const RELEASE_ID_BY_NAME: Readonly<Record<string, SkillId>> = Object.freeze({
-  'Release Potential: Monk': SKILL.RELEASE_POTENTIAL_MONK,
-  'Release Potential: Mesmer': SKILL.RELEASE_POTENTIAL_MESMER,
-  'Release Potential: Dervish': SKILL.RELEASE_POTENTIAL_DERVISH,
-  'Release Potential: Assassin': SKILL.RELEASE_POTENTIAL_ASSASSIN,
-  'Release Potential: Warrior': SKILL.RELEASE_POTENTIAL_WARRIOR
-});
 
 /** Reports both the legend-derived Cosmic Wisdom form and its remaining duration. */
 function conduitStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
@@ -34,8 +24,7 @@ export const conduitUi: RevenantUiSlice = Object.freeze({
   rotationStateSnapshot: conduitStateSnapshot,
   paletteGroups: (context: RevenantUiContext) => {
     // Release Potential variant depends on the currently active legend, so the palette rebuilds on legend swap.
-    const releaseName = REVENANT_RELEASE_POTENTIAL_BY_LEGEND[activeRevenantLegend(context)];
-    const releaseId = releaseName ? RELEASE_ID_BY_NAME[releaseName] : null;
+    const releaseId = REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND[activeRevenantLegend(context)];
     return [
       {
         id: 'revenant-profession-specialization',

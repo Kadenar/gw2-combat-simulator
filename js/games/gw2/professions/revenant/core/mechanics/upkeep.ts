@@ -179,14 +179,9 @@ export function startRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCast
 }
 
 /** Activation starts the sustained drain at completion, arms the release, and owns its recurring pulses. */
-export function toggleRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCast): void {
+export function activateRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const skill = cast.skill as RevenantSkill;
   const core = runtime.profession.core;
-  if (removeRevenantUpkeep(runtime, skill.id)) {
-    runtime.resourceController.refresh('energy');
-    return;
-  }
-
   const active: RevenantUpkeepState = {
     skillId: skill.id,
     upkeepCost: skill.upkeepCost || 0,

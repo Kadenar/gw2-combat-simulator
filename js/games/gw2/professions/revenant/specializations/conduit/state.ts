@@ -28,7 +28,9 @@ export const CONDUIT_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   cosmicWisdomUntil: 0,
   conduitForm: '',
   beguilingHazeCharges: 0,
-  beguilingHazeReadyAt: 0
+  beguilingHazeReadyAt: 0,
+  // Palette affordability consumes the same patched costs as the live form.
+  energyCostOverrides: {} as Record<string, number>
 } satisfies Partial<ConduitState>);
 
 export function revenantConduitFormIsActive(

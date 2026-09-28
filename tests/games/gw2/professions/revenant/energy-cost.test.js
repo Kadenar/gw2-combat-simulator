@@ -9,8 +9,8 @@ import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 
 // Cost policies consume explicit inputs regardless of where the state originated.
 test('Conduit costs respect follow-up charges, form overrides, and free active upkeep toggles', () => {
-  const state = { beguilingHazeCharges: 2, energyCostOverrides: {}, activeUpkeeps: [] };
-  const input = { specialization: 'Conduit', state, traits: new Set() };
+  const state = { beguilingHazeCharges: 2, energyCostOverrides: {}, activeUpkeeps: [], conduitForm: 'Mesmer', cosmicWisdomUntil: 10 };
+  const input = { specialization: 'Conduit', state, traits: new Set(), time: 0 };
   const haze = { id: SKILL.BEGUILING_HAZE, energyCost: 20 };
   const vortex = { id: SKILL.HEX_EATER_VORTEX, energyCost: 15 };
 
@@ -20,6 +20,8 @@ test('Conduit costs respect follow-up charges, form overrides, and free active u
   assert.equal(effectiveRevenantEnergyCost(input, haze), 20);
   state.energyCostOverrides[haze.id] = 5;
   assert.equal(effectiveRevenantEnergyCost(input, haze), 5);
+  // The map remains a snapshot; its form deadline still gates future insertion times.
+  assert.equal(effectiveRevenantEnergyCost({ ...input, time: 10 }, haze), 20);
   assert.equal(effectiveRevenantEnergyCost({ ...input, specialization: 'Core' }, haze), 20);
   const upkeep = { id: SKILL.IMPOSSIBLE_ODDS, energyCost: 5 };
   state.energyCostOverrides[upkeep.id] = 10;
@@ -30,6 +32,7 @@ test('Conduit costs respect follow-up charges, form overrides, and free active u
 test('Runtime costs use the owned specialization and current Conduit state', () => {
   const state = { beguilingHazeCharges: 2, energyCostOverrides: {} };
   const runtime = {
+    time: 0,
     config: { selectedTraitIds: [] },
     profession: { core: { activeUpkeeps: [] }, specialization: { kind: 'Conduit', state } }
   };
@@ -53,7 +56,7 @@ test('Beguiling Haze follow-ups remain available in the palette below their base
 });
 
 test("Angsiyah's Trust waives only Energy Meld's energy cost", () => {
-  const input = { specialization: 'Vindicator', state: {}, traits: new Set([TRAIT.ANGSIYANS_TRUST]) };
+  const input = { specialization: 'Vindicator', state: {}, traits: new Set([TRAIT.ANGSIYANS_TRUST]), time: 0 };
 
   // Both catalog variants keep the trait discount without a phase-handler registration.
   for (const id of [SKILL.ENERGY_MELD, SKILL.ENERGY_MELD_ID_72058]) {
