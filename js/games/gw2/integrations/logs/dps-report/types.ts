@@ -46,6 +46,7 @@ export interface DpsReportWeaponSet {
 export interface DpsReportMinion {
   readonly name: string;
   readonly id?: number;
+  readonly rotation?: readonly DpsReportRotationGroup[];
   readonly targetDamageDist?: readonly (readonly (readonly DpsReportDamageDistribution[])[])[];
 }
 

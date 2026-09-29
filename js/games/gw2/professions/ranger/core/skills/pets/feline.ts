@@ -145,7 +145,8 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: 'summon'
       }
     ]),
-    quicknessCastTimeMs: 800,
+    // Recorded pet activation timing keeps manual commands on the pet's independent lane.
+    quicknessCastTimeMs: 760,
     petSkill: true
   },
   [ID.FELINE_MAUL]: {
@@ -167,7 +168,7 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: 'summon'
       }
     ]),
-    quicknessCastTimeMs: 840,
+    quicknessCastTimeMs: 880,
     petSkill: true
   },
   [ID.SAVANNAH_STRIKE]: {

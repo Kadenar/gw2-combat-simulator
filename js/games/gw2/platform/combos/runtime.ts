@@ -29,7 +29,13 @@ export function bindRuntimeCombo(runtime: Gw2Runtime, event: Gw2ResolverEvent): 
 
 /** Emit field registrations and attempts from actual actions/impacts; the shared resolver alone rolls and applies combos. */
 export function produceRuntimeCombos(runtime: Gw2Runtime, catalog: CanonicalCatalog, event: Gw2ResolverEvent): void {
-  if (event.cancelled || !['action', 'damage', 'condition', 'control', 'buff'].includes(event.type)) return;
+  // Non-damaging activations can declare a finisher explicitly without inventing a strike or boon.
+  const explicitMarkerFinisher = event.type === 'marker' && Array.isArray(event.comboFinishers);
+  if (
+    event.cancelled ||
+    (!explicitMarkerFinisher && !['action', 'damage', 'condition', 'control', 'buff'].includes(event.type))
+  )
+    return;
   if (!Array.isArray(event.comboFields) || Number(event.hitIndex ?? event.applicationIndex ?? 1) === 1) {
     fieldDescriptors(catalog, event).forEach((descriptor, index) => {
       const at = canonicalTime(fieldAt(event, descriptor));

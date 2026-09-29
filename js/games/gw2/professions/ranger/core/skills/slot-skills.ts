@@ -15,7 +15,32 @@ import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ran
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+
+/** Identify slam packets so Nature's Vengeance repeats neither summon rewards nor boon shakes. */
+function spiritSlam(effects: readonly SkillEffect[]): SkillEffect[] {
+  return impactEffects(
+    { atMs: 760, timingAnchor: 'castEnd', timingScale: 'fixed' },
+    effects.map((effect) => ({ ...effect, metadata: { ...effect.metadata, packetKind: 'ranger.spirit-slam' } }))
+  );
+}
+
+/** All spirits finish four separate shakes; keep the provisional cadence shared with Sun Spirit. */
+function spiritShakes(boon: string, duration: number, stacks = 1): SkillEffect {
+  // ponytail: retain the existing Sun Spirit cadence until per-spirit shake timings are measured.
+  return {
+    type: 'boon',
+    boon,
+    duration,
+    stacks,
+    applications: 4,
+    atMs: 2840,
+    intervalMs: 1000,
+    timingAnchor: 'castStart',
+    timingScale: 'fixed',
+    audience: { recipients: 'party', maximumRecipients: 5 }
+  };
+}
 
 export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SPIKE_TRAP]: {
@@ -102,7 +127,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.STORM_SPIRIT]: {
-    // Apply vulnerability and the slam's daze before four shakes, using Sun Spirit's pulse timing.
+    // Summoning applies vulnerability; the spirit's delayed slam deals damage and dazes before its Fury shakes.
     effects: [
       {
         type: 'condition',
@@ -110,22 +135,11 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         stacks: 10,
         duration: 10
       },
-      {
-        type: 'control',
-        controlKind: 'daze'
-      },
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 2,
-        stacks: 1,
-        applications: 4,
-        atMs: 2840,
-        intervalMs: 1000,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 }
-      }
+      ...spiritSlam([
+        { type: 'control', controlKind: 'daze' },
+        { type: 'strike', coefficient: 2 }
+      ]),
+      spiritShakes('fury', 2)
     ],
     castTimeMs: 360
   },
@@ -137,18 +151,17 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         duration: 5,
         stacks: 1
       },
-      {
-        type: 'boon',
-        boon: 'protection',
-        duration: 2,
-        stacks: 4
-      },
-      {
-        type: 'boon',
-        boon: 'protection',
-        duration: 2,
-        stacks: 4
-      }
+      ...spiritSlam([
+        {
+          type: 'condition',
+          condition: 'Crippled',
+          stacks: 1,
+          duration: 6,
+          comboFinishers: [{ ownerId: 'ranger', finisherType: 'Blast' }]
+        },
+        { type: 'condition', condition: 'Weakness', stacks: 1, duration: 6 }
+      ]),
+      spiritShakes('protection', 2)
     ],
     castTimeMs: 167
   },
@@ -193,18 +206,16 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         duration: 4,
         stacks: 1
       },
-      {
-        type: 'boon',
-        boon: 'resolution',
-        duration: 2,
-        stacks: 4
-      },
-      {
-        type: 'boon',
-        boon: 'resolution',
-        duration: 2,
-        stacks: 4
-      }
+      // Cleansing is outside combat scope, but Cold Snap's blast still resolves combo fields.
+      ...spiritSlam([
+        {
+          type: 'custom',
+          eventType: 'marker',
+          event: { name: 'Cold Snap' },
+          comboFinishers: [{ ownerId: 'ranger', finisherType: 'Blast' }]
+        }
+      ]),
+      spiritShakes('resolution', 2)
     ],
     castTimeMs: 167
   },
@@ -212,18 +223,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     // Activate the intrinsic reward at its declared boundary, before common trait observers.
     sideEffects: [{ on: 'castCommit', do: { type: 'ranger.sun-spirit' } }],
     effects: [
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 15,
-        stacks: 2,
-        applications: 4,
-        atMs: 2840,
-        intervalMs: 1000,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        audience: { recipients: 'party' as const, maximumRecipients: 5 }
-      },
+      spiritShakes('might', 15, 2),
       {
         type: 'blind',
         duration: 5
@@ -318,13 +318,10 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     canCastConcurrently: true
   },
   [ID.SPIRIT_OF_NATURE]: {
+    // Revival has no combat payload while all players remain alive at full health.
     effects: [
-      {
-        type: 'boon',
-        boon: 'regeneration',
-        duration: 3,
-        stacks: 4
-      }
+      ...spiritSlam([{ type: 'custom', eventType: 'marker', event: { name: "Nature's Renewal" } }]),
+      spiritShakes('regeneration', 3)
     ],
     castTimeMs: 1000
   },
@@ -440,19 +437,10 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: []
   },
   [ID.WATER_SPIRIT]: {
+    // Healing has no combat payload under the fixed-full-health simulation assumption.
     effects: [
-      {
-        type: 'boon',
-        boon: 'vigor',
-        duration: 2,
-        stacks: 4
-      },
-      {
-        type: 'boon',
-        boon: 'vigor',
-        duration: 1,
-        stacks: 4
-      }
+      ...spiritSlam([{ type: 'custom', eventType: 'marker', event: { name: 'Aqua Surge' } }]),
+      spiritShakes('vigor', 2)
     ],
     castTimeMs: 500
   },

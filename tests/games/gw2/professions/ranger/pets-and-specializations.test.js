@@ -644,7 +644,7 @@ test('Ranger pet commands require received Alacrity', () => {
   assert.match(petAlacrityApplication.resolvedAudience.companionIds[0], /^ranger-pet:/);
 });
 
-test('Storm Spirit applies vulnerability and daze before four separate Fury shakes', () => {
+test('Storm Spirit applies vulnerability on summon, then a damaging daze before four Fury shakes', () => {
   // A single summon checks effect ordering and pulse scheduling without a saved rotation.
   const result = simulate('Core', ['Storm Spirit', { type: 'wait', durationMs: 6000 }], {
     selectedSkills: ['Storm Spirit'],
@@ -656,6 +656,7 @@ test('Storm Spirit applies vulnerability and daze before four separate Fury shak
   const action = events.find((event) => event.type === 'action');
   const vulnerability = events.find((event) => event.type === 'condition');
   const daze = events.find((event) => event.type === 'control');
+  const strike = events.find((event) => event.type === 'damage');
   const fury = events.filter((event) => event.type === 'buff' && event.kind === 'fury');
 
   assert.equal(vulnerability.condition, 'Vulnerability');
@@ -663,7 +664,9 @@ test('Storm Spirit applies vulnerability and daze before four separate Fury shak
   assert.equal(vulnerability.duration, 10);
   assert.equal(vulnerability.at, action.endsAt);
   assert.equal(daze.controlKind, 'daze');
-  assert.equal(daze.at, action.endsAt);
+  assert.equal(Math.round((daze.at - vulnerability.at) * 1000), 760);
+  assert.equal(strike.at, daze.at);
+  assert.equal(strike.coefficient, 2);
   assert.ok(daze.at < fury[0].at);
   assert.deepEqual(
     fury.map((event) => [event.at - action.at, event.stacks, event.duration]),
@@ -675,6 +678,62 @@ test('Storm Spirit applies vulnerability and daze before four separate Fury shak
     ]
   );
   assert.ok(fury.every((event) => event.audience.recipients === 'party' && event.audience.maximumRecipients === 5));
+});
+
+test("Nature's Vengeance repeats each spirit slam after its final shake without repeating summon effects", () => {
+  // Single summons cover selection, cancellation, and delayed effect ordering independently of saved rotations.
+  for (const skillId of [
+    ID.STORM_SPIRIT,
+    ID.SUN_SPIRIT,
+    ID.STONE_SPIRIT,
+    ID.FROST_SPIRIT,
+    ID.WATER_SPIRIT,
+    ID.SPIRIT_OF_NATURE
+  ]) {
+    for (const selected of [false, true]) {
+      for (const cancelled of [false, true]) {
+        const result = simulate(
+          'Core',
+          [
+            { type: 'cast', skillId, ...(cancelled ? { interruptAfterMs: 1 } : {}) },
+            { type: 'wait', durationMs: 7500 }
+          ],
+          {
+            selectedTraitIds: selected ? [TRAIT.NATURES_VENGEANCE] : []
+          }
+        );
+        assert.deepEqual(result.warnings, []);
+        const slams = result.events.filter((event) =>
+          skillId === ID.SUN_SPIRIT
+            ? event.skillId === ID.SOLAR_FLARE && event.type === 'condition'
+            : event.skillId === skillId && event.metadata?.packetKind === 'ranger.spirit-slam'
+        );
+        const packetsPerSlam = [ID.STORM_SPIRIT, ID.STONE_SPIRIT].includes(skillId) ? 2 : 1;
+        assert.equal(slams.length, cancelled ? 0 : packetsPerSlam * (selected ? 2 : 1));
+        if (cancelled) continue;
+        if ([ID.STONE_SPIRIT, ID.FROST_SPIRIT].includes(skillId))
+          assert.equal(
+            result.events.filter((event) => event.skillId === skillId && event.type === 'combo_finisher').length,
+            selected ? 2 : 1
+          );
+        const shakes = result.events.filter(
+          (event) => event.skillId === skillId && event.type === 'buff' && event.totalApplications === 4
+        );
+        assert.equal(shakes.length, 4);
+        if (selected) {
+          assert.ok(slams[packetsPerSlam].at > shakes.at(-1).at);
+        }
+
+        if (skillId === ID.STORM_SPIRIT)
+          assert.equal(
+            result.events.filter((event) => event.skillId === skillId && event.condition === 'Vulnerability').length,
+            1
+          );
+        if (skillId === ID.SUN_SPIRIT)
+          assert.equal(result.events.filter((event) => event.skillId === skillId && event.type === 'blind').length, 1);
+      }
+    }
+  }
 });
 
 test('Ranger party boons prioritize players before the active pet', () => {
@@ -1330,19 +1389,40 @@ test('Untamed exposes and executes all three natural pet commands only with the 
   );
 });
 
-test('Untamed manual and automatic pet skills share recharge and the pet action lane', () => {
-  // Exercise both automatic-before-command and command-before-automatic ordering.
-  for (const prefix of [[], ['__combat_start', { type: 'wait', durationMs: 2000 }]]) {
-    const result = simulate('Untamed', [...prefix, ID.FELINE_BITE, { type: 'wait', durationMs: 16000 }], {
+test('Untamed leaves F1/F3 idle until commanded in either unleash state', () => {
+  for (const initialUntamedState of ['Pet', 'Ranger']) {
+    const result = simulate('Untamed', ['__combat_start', { type: 'wait', durationMs: 20000 }], {
       selectedPet: 'Tiger',
-      initialUntamedState: 'Ranger'
+      initialUntamedState
     });
+    assert.deepEqual(result.warnings, []);
+    const actions = result.events.filter((event) => event.type === 'action' && event.source === 'ranger-pet');
+    assert.ok(actions.length > 0);
+    assert.ok(actions.every((event) => event.skillId === ID.FELINE_SLASH));
+  }
+
+  const core = simulate('Core', ['__combat_start', { type: 'wait', durationMs: 20000 }], { selectedPet: 'Tiger' });
+  assert.ok(core.events.some((event) => event.type === 'action' && event.skillId === ID.FELINE_BITE));
+  assert.ok(core.events.some((event) => event.type === 'action' && event.skillId === ID.FELINE_MAUL));
+});
+
+test('Untamed manual pet skills obey recharge and share the basic attack lane', () => {
+  // Commands before and after combat starts must never trigger additional autonomous special attacks.
+  for (const prefix of [[], ['__combat_start', { type: 'wait', durationMs: 2000 }]]) {
+    const result = simulate(
+      'Untamed',
+      [...prefix, ID.FELINE_BITE, ID.FELINE_BITE, { type: 'wait', durationMs: 16000 }],
+      {
+        selectedPet: 'Tiger',
+        initialUntamedState: 'Ranger'
+      }
+    );
     assert.deepEqual(result.warnings, []);
     const bites = result.events.filter(
       (event) => event.type === 'action' && event.skillId === ID.FELINE_BITE && event.actorType === 'summon'
     );
-    assert.ok(bites.some((event) => event.activationId));
-    assert.ok(bites.some((event) => !event.activationId));
+    assert.equal(bites.length, 2);
+    assert.ok(bites.every((event) => event.activationId));
     for (let index = 1; index < bites.length; index++) assert.ok(bites[index].at - bites[index - 1].at >= 8);
     const actions = result.events.filter((event) => event.type === 'action' && event.source === 'ranger-pet');
     for (let index = 1; index < actions.length; index++)

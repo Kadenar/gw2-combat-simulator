@@ -1,14 +1,78 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
+import { emitSunSpiritBurning } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { rangerActiveBoonCount, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
-import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+
+/** Repeat on the next action tick after the authored final shake, including patched pulse timings. */
+function finalSpiritShakeAt(cast: RuntimeCast): number {
+  return (
+    GW2_ACTION_TICK_MS / 1000 +
+    Math.max(
+      cast.fullEnd,
+      ...(cast.skill.effects ?? [])
+        .filter((effect) => effect.type === 'boon')
+        .flatMap((effect) =>
+          materializeSkillEffectApplications({
+            skill: cast.skill,
+            effect,
+            start: cast.start,
+            fullEnd: cast.fullEnd,
+            baseEvent: {
+              source: 'ranger',
+              sourceId: cast.skill.id,
+              actorType: 'player',
+              skillId: cast.skill.id,
+              skillName: cast.skill.name
+            }
+          }).map((application) => application.at)
+        )
+    )
+  );
+}
+
+/** Repeat only slam payloads after the last shake, without another cast, summon reward, or boon sequence. */
+export const naturesVengeance = defineTrait({
+  id: TRAIT.NATURES_VENGEANCE,
+  name: "Nature's Vengeance",
+  hooks: {
+    modifyEffects(runtime: RangerRuntime, cast: RuntimeCast, effects) {
+      if (!hasTrait(runtime, TRAIT.NATURES_VENGEANCE)) return effects;
+      const slams = effects.filter((effect) => effect.metadata?.packetKind === 'ranger.spirit-slam');
+      if (!slams.length) return effects;
+      const atMs = (finalSpiritShakeAt(cast) - cast.start) * 1000;
+      return [
+        ...effects,
+        ...slams.map((effect) => ({
+          ...effect,
+          atMs,
+          timingAnchor: 'castStart' as const,
+          timingScale: 'fixed' as const
+        }))
+      ];
+    },
+    onCastCommit(runtime: RangerRuntime, cast: RuntimeCast) {
+      // Solar Flare owns a separately patchable child profile rather than an inline slam packet.
+      if (hasTrait(runtime, TRAIT.NATURES_VENGEANCE) && cast.skill.id === ID.SUN_SPIRIT)
+        runtime.schedule('ranger.natures-vengeance-sun', finalSpiritShakeAt(cast), cast.skill);
+    },
+    tasks: {
+      'ranger.natures-vengeance-sun'(runtime: RangerRuntime, data: unknown) {
+        emitSunSpiritBurning(runtime, data as RuntimeCast['skill']);
+      }
+    }
+  }
+});
 
 /** Owns Wellspring's live tuning and trait behavior. */
 export const wellspring = defineTrait({

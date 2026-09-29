@@ -64,7 +64,8 @@ function equippedSkillCastTimeWarnings(app: ProfessionAppState): RotationWarning
   const suspectSkills = [
     ...new Set(
       equippedSkills.flatMap((skill) => {
-        const castTimeMs = Number(skill.castTimeMs || 0);
+        // Validate authored pet timing, rather than the derived duration without Quickness.
+        const castTimeMs = Number(skill.quicknessCastTimeMs ?? skill.castTimeMs ?? 0);
         return castTimeMs > 0 && Number.isFinite(castTimeMs) && castTimeMs % 40 !== 0
           ? [`${skill.name} (${castTimeMs} ms)`]
           : [];

@@ -24,6 +24,7 @@ import {
 import {
   bountifulHunter,
   lingeringMagic,
+  naturesVengeance,
   rejuvenation,
   spiritedArrival,
   wellspring,
@@ -84,6 +85,7 @@ export const rangerCoreTraits = [
   packAlpha,
   petsProwess,
   lingeringMagic,
+  naturesVengeance,
   huntersTactics,
   preciseStrike,
   ambidexterity,

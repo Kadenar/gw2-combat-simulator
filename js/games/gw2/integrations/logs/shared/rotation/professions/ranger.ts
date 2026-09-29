@@ -1,6 +1,5 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
 import { recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
 
@@ -64,9 +63,11 @@ function normalizeRangerSignals(
   const normalized = mergeWeaponAnimations(actions)
     .filter((action) => {
       if (SIMULATOR_OWNED_SKILL_IDS.has(action.rawSkillId)) return false;
+      const skill = recordedActionSkill(action, context);
+      // Natural F1/F3 pet skills are explicit replay inputs only for Untamed.
       return (
-        (recordedActionSkill(action, context) as (Skill & { readonly petAutonomousSkill?: boolean }) | null)
-          ?.petAutonomousSkill !== true
+        skill?.petAutonomousSkill !== true ||
+        (context.profile.specializationId === 'untamed' && rangerPetSkillCommandable(skill ?? undefined, 'Untamed'))
       );
     })
     .map((action) =>

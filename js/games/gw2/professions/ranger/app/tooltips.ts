@@ -551,7 +551,10 @@ export const rangerTooltips: ProfessionTooltips = {
       () => [],
       'party'
     ),
-    [TRAIT.NATURES_VENGEANCE]: outsideScopeTooltip,
+    [TRAIT.NATURES_VENGEANCE]: traitTooltip(
+      'Spirits repeat their slam after their final boon shake. Summon effects and boon pulses are not repeated.',
+      () => []
+    ),
     [TRAIT.PROTECTIVE_WARD]: outsideScopeTooltip,
     [TRAIT.INVIGORATING_BOND]: outsideScopeTooltip,
     [TRAIT.TAIL_WIND]: traitTooltip('Swapping weapons in combat grants swiftness.', (balanceContext, id) => [

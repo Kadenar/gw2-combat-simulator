@@ -18,6 +18,7 @@ function reportFixture(profession, rotation, skillMap, options = {}) {
         name: `Fixture ${profession}`,
         profession,
         rotation,
+        ...(options.minions ? { minions: options.minions } : {}),
         ...(options.damage ? { targetDamageDist: [[options.damage]] } : {})
       }
     ],
@@ -25,6 +26,146 @@ function reportFixture(profession, rotation, skillMap, options = {}) {
     skillMap
   });
 }
+
+test('Untamed imports pet F1/F3 on their independent timeline without duplicating player F2 or basic attacks', () => {
+  const rotation = [
+    { id: 63335, skills: [{ castTime: 0, duration: 480 }] },
+    { id: 31451, skills: [{ castTime: 50, duration: 0 }] }
+  ];
+  const skillMap = {
+    s63335: { name: 'Unleashed Wild Swing' },
+    s31451: { name: 'Furious Pounce' },
+    s12694: { name: 'Bite' },
+    s12657: { name: 'Maul' },
+    s12655: { name: 'Slash', autoAttack: true }
+  };
+  const minions = [
+    {
+      name: 'Juvenile Tiger',
+      rotation: [
+        { id: 12694, skills: [{ castTime: 100, duration: 1200 }] },
+        { id: 12657, skills: [{ castTime: 1500, duration: 1200 }] },
+        { id: 12655, skills: [{ castTime: 3000, duration: 1200 }] },
+        { id: 31451, skills: [{ castTime: 500, duration: 1200 }] }
+      ]
+    }
+  ];
+  for (const specialization of ['Untamed', 'Soulbeast']) {
+    const report = reportFixture(specialization, rotation, skillMap, { minions });
+    const result = reconstructDpsReportRotation(report, rangerCatalog);
+    const casts = result.rotation.filter((command) => command.type === 'cast');
+    assert.deepEqual(
+      casts.map((command) => command.skillId),
+      specialization === 'Untamed' ? [63335, 31451, 12694, 12657] : [63335, 31451]
+    );
+    if (specialization === 'Untamed') {
+      assert.deepEqual(
+        result.sourceActions.map((action) => action.startMs),
+        [0, 50, 100, 1500]
+      );
+      assert.ok(casts.slice(2).every((command) => command.concurrentOffsetMs != null));
+    }
+  }
+});
+
+test('Untamed pet casts respect player selection and phase intersection', () => {
+  const report = reportFixture(
+    'Untamed',
+    [{ id: 63147, skills: [{ castTime: 1000, duration: 0 }] }],
+    {
+      s63147: { name: 'Unleash Ranger' },
+      s12694: { name: 'Bite' }
+    },
+    {
+      start: 1000,
+      end: 2000,
+      minions: [
+        {
+          name: 'Juvenile Tiger',
+          rotation: [
+            {
+              id: 12694,
+              skills: [
+                { castTime: 0, duration: 100 },
+                { castTime: 900, duration: 300 },
+                { castTime: 2000, duration: 300 }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  );
+  const secondPlayer = { ...report.players[0], name: 'Other player', minions: [] };
+  const selected = reconstructDpsReportRotation(
+    { ...report, players: [secondPlayer, ...report.players] },
+    rangerCatalog,
+    { playerIndex: 1 }
+  );
+  assert.deepEqual(
+    selected.sourceActions.filter((action) => action.rawSkillId === 12694).map((action) => action.startMs),
+    [900]
+  );
+  const other = reconstructDpsReportRotation({ ...report, players: [secondPlayer, ...report.players] }, rangerCatalog, {
+    playerIndex: 0
+  });
+  assert.equal(
+    other.sourceActions.some((action) => action.rawSkillId === 12694),
+    false
+  );
+});
+
+test('weapon swaps cancel the overlapping player cast without cancelling the pet cast', () => {
+  const report = reportFixture(
+    'Untamed',
+    [
+      { id: 63335, skills: [{ castTime: 0, duration: 480 }] },
+      { id: -2, skills: [{ castTime: 300, duration: 0 }] }
+    ],
+    {
+      s63335: { name: 'Unleashed Wild Swing' },
+      s12694: { name: 'Bite' },
+      's-2': { name: 'Weapon Swap', isSwap: true }
+    },
+    { minions: [{ name: 'Juvenile Tiger', rotation: [{ id: 12694, skills: [{ castTime: 100, duration: 2000 }] }] }] }
+  );
+  const result = reconstructDpsReportRotation(report, rangerCatalog);
+  assert.ok(result.rotation.find((command) => command.skillId === 63335).interruptAfterMs > 0);
+  assert.equal(result.rotation.find((command) => command.skillId === 12694).interruptAfterMs, undefined);
+});
+
+test('report validation rejects malformed pet rotation data before reconstruction', () => {
+  for (const minions of [
+    {},
+    [{ name: 'Juvenile Tiger', rotation: {} }],
+    [{ name: 'Juvenile Tiger', rotation: [{ id: 12694, skills: [{ castTime: 'invalid', duration: 100 }] }] }]
+  ]) {
+    assert.throws(() => reportFixture('Untamed', [], {}, { minions }), /invalid/i);
+  }
+
+  assert.doesNotThrow(() => reportFixture('Untamed', [], {}, { minions: [{ name: 'Juvenile Tiger' }] }));
+});
+
+test('short completed pet animations do not become cancellations, but interrupted pet casts do', () => {
+  for (const timeGained of [0, -300]) {
+    const report = reportFixture(
+      'Untamed',
+      [{ id: 63147, skills: [{ castTime: 0, duration: 0 }] }],
+      {
+        s63147: { name: 'Unleash Ranger' },
+        s12694: { name: 'Bite' }
+      },
+      {
+        minions: [
+          { name: 'Juvenile Tiger', rotation: [{ id: 12694, skills: [{ castTime: 100, duration: 300, timeGained }] }] }
+        ]
+      }
+    );
+    const result = reconstructDpsReportRotation(report, rangerCatalog);
+    const command = result.rotation.find((entry) => entry.skillId === 12694);
+    assert.equal(command.interruptAfterMs != null, timeGained < 0);
+  }
+});
 
 test('merges Untamed smash rows and removes the simulator-owned Lesser Sic Em proc', () => {
   const report = reportFixture(

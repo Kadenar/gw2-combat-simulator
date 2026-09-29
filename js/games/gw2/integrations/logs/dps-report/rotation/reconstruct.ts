@@ -34,6 +34,7 @@ import { dpsReportRotationProfile } from '#gw2/integrations/logs/dps-report/rota
 import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
 import type { DpsReportRotationOptions } from '#gw2/integrations/logs/dps-report/rotation/types.js';
 import type { RecordedLogAction, ResolvedLogAction } from '#gw2/integrations/logs/shared/rotation/normalization.js';
+import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
 
 function automaticProc(metadata: DpsReportSkillMetadata | null): boolean {
   return Boolean(metadata?.isTraitProc || metadata?.isUnconditionalProc || metadata?.isGearProc);
@@ -92,11 +93,31 @@ function castStatus(cast: DpsReportCast): RotationActionStatus {
   return 'completed';
 }
 
-function recordedActions(report: ParsedDpsReport, player: DpsReportPlayer, phase: DpsReportPhase): RecordedLogAction[] {
+function recordedActions(
+  report: ParsedDpsReport,
+  player: DpsReportPlayer,
+  phase: DpsReportPhase,
+  profile: RotationProfessionProfile,
+  catalog: RotationCatalog | null
+): RecordedLogAction[] {
   const actions: RecordedLogAction[] = [];
+  // Untamed's F1/F3 live on the pet timeline; retain player-owned F2 and exclude basic attacks and duplicate sources.
+  const petGroups =
+    profile.specializationId === 'untamed'
+      ? (player.minions || []).flatMap((minion) =>
+          (minion.rotation || []).filter((group) => {
+            const skill = catalog?.skills.find((candidate) => candidate.id === group.id);
+            return (
+              skill?.petAutonomousSkill &&
+              rangerPetSkillCommandable(skill, 'Untamed') &&
+              !player.rotation.some((playerGroup) => playerGroup.id === group.id)
+            );
+          })
+        )
+      : [];
 
   let eventIndex = 0;
-  for (const group of player.rotation) {
+  for (const group of [...player.rotation, ...petGroups]) {
     const metadata = skillMetadata(report, group.id);
     if (automaticProc(metadata)) {
       continue;
@@ -164,6 +185,8 @@ function resolveAction(
 
 /** Preserves shortened inputs; the scheduler cancels damage unless explicit commit or per-packet rules permit it. */
 function observedInterruptMs(action: ResolvedLogAction): number | null {
+  // Completed pet animations can be shorter under pet Quickness; only recorded cancellations interrupt that lane.
+  if (action.skill?.independentCast && action.status !== 'interrupted') return null;
   const sourceDurationMs = action.end - action.start;
   // Match EVTC imports by snapping channel and atomic cancellations to the same action grid.
   const interruptMs = quantizeGw2ActionTimingMs(sourceDurationMs);
@@ -214,7 +237,8 @@ function applyCastInterrupts(actions: readonly ResolvedLogAction[]): ResolvedLog
 
     for (let castIndex = boundaryIndex - 1; castIndex >= 0; castIndex -= 1) {
       const cast = replay[castIndex];
-      if (instantReplayAction(cast)) continue;
+      // Weapon swaps cancel the player's lane, never an overlapping pet activation.
+      if (cast.skill?.independentCast || cast.independentTimeline || instantReplayAction(cast)) continue;
       if (cast.end <= boundary.start) break;
       // Weapon swaps are allowed during dodge and do not cancel its movement or trait effects.
       if (weaponSwap && actionKind(cast.skill, cast.name) === 'dodge') break;
@@ -306,7 +330,7 @@ export function reconstructDpsReportWithProfile(
   }
 
   const { phase, index: phaseIndex } = phaseFor(report, options.phaseIndex);
-  const recorded = recordedActions(report, player, phase);
+  const recorded = recordedActions(report, player, phase, profile, catalog);
   const professionActions = normalizeLogProfessionActions({
     profile,
     catalog,

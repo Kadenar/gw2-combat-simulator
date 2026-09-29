@@ -17,8 +17,14 @@ Mirage Cloak gains coincident with recorded shatters or cloak-granting Deception
 adding a dodge. Other cloak gains use the ordinary unsupported-action handling. Importing EVTC provides raw buff,
 teleport and mirror damage evidence to identify their source inputs.
 
-No additional cast is inferred from initial buffs, minions, aggregate damage, later repetitions, resources or dependent
-skills. No opener alignment or fixed preparation waits are applied. Users supply missing setup in the rotation editor.
+Untamed also imports supported natural F1/F3 skills from the selected player's minion rotations. These use recorded pet
+cast timestamps and the independent pet lane. Basic attacks remain automatic, and skills already present on the player
+timeline (including F2) are not imported again from the pet. Pet cast records do not distinguish manual commands from
+autocasts.
+
+No additional cast is inferred from initial buffs, minion presence, aggregate damage, later repetitions, resources or
+dependent skills. No opener alignment or fixed preparation waits are applied. Users supply missing setup in the rotation
+editor.
 
 Commands use catalog mechanics. Shorter observed durations are encoded as quantized interruptions where applicable;
 longer occupancy can become waits. These replay conversions do not rewrite the source evidence or grant missing state.

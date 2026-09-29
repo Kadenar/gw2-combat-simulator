@@ -1,6 +1,7 @@
 import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
 import type {
   DpsReportCast,
+  DpsReportMinion,
   DpsReportPhase,
   DpsReportPlayer,
   DpsReportRotationGroup,
@@ -38,19 +39,33 @@ function parseRotationGroup(value: unknown): DpsReportRotationGroup {
   };
 }
 
+/** Pet casts cross the same validation boundary as player casts before replay. */
+function parseMinion(value: unknown): DpsReportMinion {
+  if (!record(value) || typeof value.name !== 'string' || (value.rotation != null && !Array.isArray(value.rotation))) {
+    throw new DpsReportError('INVALID_MINION', 'The Elite Insights report contains an invalid minion entry.');
+  }
+
+  return {
+    ...(value as unknown as DpsReportMinion),
+    ...(Array.isArray(value.rotation) ? { rotation: value.rotation.map(parseRotationGroup) } : {})
+  };
+}
+
 function parsePlayer(value: unknown): DpsReportPlayer {
   if (
     !record(value) ||
     typeof value.name !== 'string' ||
     typeof value.profession !== 'string' ||
-    !Array.isArray(value.rotation)
+    !Array.isArray(value.rotation) ||
+    (value.minions != null && !Array.isArray(value.minions))
   ) {
     throw new DpsReportError('INVALID_PLAYER', 'The Elite Insights report contains an invalid player entry.');
   }
 
   return {
     ...(value as unknown as DpsReportPlayer),
-    rotation: value.rotation.map(parseRotationGroup)
+    rotation: value.rotation.map(parseRotationGroup),
+    ...(Array.isArray(value.minions) ? { minions: value.minions.map(parseMinion) } : {})
   };
 }
 

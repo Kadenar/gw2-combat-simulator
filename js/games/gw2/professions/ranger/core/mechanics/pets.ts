@@ -34,7 +34,10 @@ import {
   packAlphaPetRecharge
 } from '#gw2/professions/ranger/core/traits/pet-behavior.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+import {
+  rangerPetSkillCommandable,
+  rangerPetSkillsRequireCommands
+} from '#gw2/professions/ranger/data/pet-commands.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { EPSILON } from '#kernel/core/clock.js';
 
@@ -159,6 +162,12 @@ export function setRangerPetActive(context: RangerRuntime, active: boolean): voi
 
 function autonomousSkill(context: RangerRuntime, profile: PetAutoProfile, quickness: boolean): PetAutoSkill {
   const state = context.profession.core;
+  // Command-controlled pets retain their basic cadence without spending F1/F3, including the opener.
+  if (rangerPetSkillsRequireCommands(context.config.specialization || 'Core')) {
+    state.petAutoOpeningBasic = false;
+    return profile.basic;
+  }
+
   if (state.petAutoOpeningBasic) {
     state.petAutoOpeningBasic = false;
     // A precombat manual command may already have spent the opening skill's recharge.
@@ -231,9 +240,12 @@ function emitPetSkill(
 function petCommandStart(context: RangerRuntime, skill: RangerSkill): number {
   const state = context.profession.core;
   const profile = rangerPetAutoProfile(state.activePet);
+  const opening = rangerPetSkillsRequireCommands(context.config.specialization || 'Core')
+    ? profile?.basic
+    : profile?.opening || profile?.basic;
   const openingEnd =
-    profile && state.petAutoOpeningBasic && state.petAutoNextAt > context.time + EPSILON
-      ? state.petAutoNextAt + (profile.opening || profile.basic).recovery + (profile.openingRecoveryDelay || 0)
+    opening && state.petAutoOpeningBasic && state.petAutoNextAt > context.time + EPSILON
+      ? state.petAutoNextAt + opening.recovery + (profile?.openingRecoveryDelay || 0)
       : 0;
   return Math.max(
     context.time,
@@ -252,9 +264,11 @@ export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast)
   const state = context.profession.core;
   const profile = rangerPetAutoProfile(state.activePet);
   const start = petCommandStart(context, skill);
+  // Natural special attacks retain the same pet-owned recovery whether automatic or commanded.
+  const specialRecovery = profile?.specials.find((entry) => entry.id === skill.id)?.recovery || 0;
   const recovery =
     profile?.commandRecovery[String(skill.id)] ||
-    profile?.specials.find((entry) => entry.id === skill.id)?.recovery ||
+    specialRecovery / (petBuff(context, 'quickness') ? GW2_QUICKNESS_ACTION_RATE : 1) ||
     cast.effectiveEnd - cast.start;
   state.petCommandReadyAt = start + recovery;
   state.petCommandCooldowns[String(skill.id)] = context.cooldownController.project(skill, {
