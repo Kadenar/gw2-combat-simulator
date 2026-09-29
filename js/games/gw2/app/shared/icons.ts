@@ -149,6 +149,10 @@ export function tooltipFactIcon(name: string): string | undefined {
   const match = tooltipIconNames.find(({ pattern }) => pattern.test(label));
   return (
     match?.icon ||
+    // Generic durations use the book glyph; named effects keep their own icons.
+    (/\bduration\b/.test(label)
+      ? 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png'
+      : undefined) ||
     (/\b(?:damage|strikes?|coefficient)\b/.test(label) ? MODIFIER_EFFECT_ICONS['Strike damage'] : undefined)
   );
 }
