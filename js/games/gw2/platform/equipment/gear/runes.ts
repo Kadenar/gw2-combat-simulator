@@ -93,6 +93,7 @@ export const RUNE_DATA = {
   },
   Rage: { stats: { Ferocity: 300 }, durations: { 'Fury Duration': 30 } },
   // ── All Stat ──
+  // Include Healing Power in all-stat bonuses so build attributes remain complete without simulating healing.
   Leadership: {
     stats: {
       Power: 36,
@@ -102,7 +103,8 @@ export const RUNE_DATA = {
       'Condition Damage': 36,
       Expertise: 36,
       Toughness: 36,
-      Vitality: 36
+      Vitality: 36,
+      'Healing Power': 36
     },
     durations: { 'Boon Duration': 25 }
   },
@@ -115,7 +117,8 @@ export const RUNE_DATA = {
       'Condition Damage': 36,
       Expertise: 36,
       Toughness: 36,
-      Vitality: 36
+      Vitality: 36,
+      'Healing Power': 36
     },
     durations: { 'Condition Duration': 25 }
   },
@@ -128,7 +131,8 @@ export const RUNE_DATA = {
       'Condition Damage': 36,
       Expertise: 36,
       Toughness: 36,
-      Vitality: 36
+      Vitality: 36,
+      'Healing Power': 36
     },
     durations: { 'Condition Duration': 10, 'Burning Duration': 10 }
   },
@@ -141,7 +145,8 @@ export const RUNE_DATA = {
       'Condition Damage': 78,
       Expertise: 78,
       Toughness: 78,
-      Vitality: 78
+      Vitality: 78,
+      'Healing Power': 78
     },
     durations: {}
   }
