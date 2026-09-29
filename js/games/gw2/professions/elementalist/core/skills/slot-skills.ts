@@ -461,6 +461,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     slot: 'Utility',
     categories: ['Signet'],
     castTimeMs: 520,
+    // The active commits at 480 ms; earlier interruptions cancel its effects.
+    interruptCommitMs: 480,
     cooldown: 12,
     skillFamily: 'Signet',
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
