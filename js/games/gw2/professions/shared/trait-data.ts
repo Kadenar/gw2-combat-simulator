@@ -10,21 +10,10 @@ interface ProfessionTraitSpecialization<TTrait> {
   readonly majorTraits: readonly (readonly TTrait[])[];
 }
 
-interface TraitMapContext {
-  readonly specialization: string;
-  readonly kind: 'minor' | 'major';
-  readonly tier: number;
-  readonly position: number;
-}
-
 interface ProfessionTraitData<TTrait> {
   readonly traits: readonly TTrait[];
 
   getActiveTraits(selections?: readonly ProfessionTraitSelection[] | null): TTrait[];
-}
-
-interface ProfessionTraitDataOptions<TSourceTrait, TTrait> {
-  readonly mapTrait: (trait: TSourceTrait, context: TraitMapContext) => TTrait;
 }
 
 /**
@@ -46,56 +35,9 @@ function parseTraitChoices(value?: string | null): readonly number[] {
  */
 export function createProfessionTraitData<TTrait>(
   catalogSpecializations: readonly ProfessionTraitSpecialization<TTrait>[]
-): ProfessionTraitData<TTrait>;
-
-/**
- * Creates the common profession trait-data contract while projecting generated
- * API traits into a profession-specific representation.
- *
- * This is primarily useful when a profession adds local metadata to traits,
- * such as tier, position, specialization, or stat annotations.
- */
-export function createProfessionTraitData<TSourceTrait, TTrait>(
-  catalogSpecializations: readonly ProfessionTraitSpecialization<TSourceTrait>[],
-  options: ProfessionTraitDataOptions<TSourceTrait, TTrait>
-): ProfessionTraitData<TTrait>;
-
-/**
- * Creates the common profession trait-data contract while projecting generated
- * API traits into a profession-specific representation.
- */
-export function createProfessionTraitData<TSourceTrait, TTrait = TSourceTrait>(
-  catalogSpecializations: readonly ProfessionTraitSpecialization<TSourceTrait>[],
-  options?: ProfessionTraitDataOptions<TSourceTrait, TTrait>
 ): ProfessionTraitData<TTrait> {
-  const mapTrait = options?.mapTrait ? options.mapTrait : (trait: TSourceTrait) => trait as unknown as TTrait;
-
-  const mappedSpecializations = catalogSpecializations.map((specialization) => ({
-    name: specialization.name,
-
-    minorTraits: specialization.minorTraits.map((trait, tier) =>
-      mapTrait(trait, {
-        specialization: specialization.name,
-        kind: 'minor',
-        tier,
-        position: 0
-      })
-    ),
-
-    majorTraits: specialization.majorTraits.map((traits, tier) =>
-      traits.map((trait, position) =>
-        mapTrait(trait, {
-          specialization: specialization.name,
-          kind: 'major',
-          tier,
-          position: position + 1
-        })
-      )
-    )
-  }));
-
   const traits = Object.freeze(
-    mappedSpecializations.flatMap((specialization) => [
+    catalogSpecializations.flatMap((specialization) => [
       ...specialization.minorTraits,
       ...specialization.majorTraits.flat()
     ])
@@ -108,7 +50,7 @@ export function createProfessionTraitData<TSourceTrait, TTrait = TSourceTrait>(
     const active: TTrait[] = [];
 
     for (const selection of selections || []) {
-      const specialization = mappedSpecializations.find((candidate) => candidate.name === selection.name);
+      const specialization = catalogSpecializations.find((candidate) => candidate.name === selection.name);
 
       if (!specialization) continue;
 

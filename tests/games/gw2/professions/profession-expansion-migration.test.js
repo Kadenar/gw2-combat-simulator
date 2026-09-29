@@ -9,7 +9,6 @@ import { professionRegistry } from '#gw2/profession-registry.js';
 function assertCatalogMetadata(entry, catalog) {
   const traitById = new Map(catalog.traits.map((trait) => [trait.id, trait]));
   const referencedTraitIds = new Set();
-  const specializationNames = new Set(catalog.specializations.map((specialization) => specialization.name));
 
   for (const weapon of catalog.weapons) {
     assert.match(String(catalog.weaponHands.get(weapon) || ''), /^(?:mh|oh|mh\+oh|2h|-)$/, `${entry.id} ${weapon}`);
@@ -18,22 +17,25 @@ function assertCatalogMetadata(entry, catalog) {
   for (const specialization of catalog.specializations) {
     assert.equal(specialization.minorTraits.length, 3, specialization.name);
     assert.equal(specialization.majorTraits.length, 3, specialization.name);
-    for (const tier of specialization.majorTraits) {
-      assert.equal(tier.length, 3, specialization.name);
-    }
+    // Nested metadata and flattened catalog records must identify the same selectable trait position.
+    for (const [tier, majors] of specialization.majorTraits.entries()) {
+      assert.equal(majors.length, 3, specialization.name);
+      for (const [position, trait] of [specialization.minorTraits[tier], ...majors].entries()) {
+        assert.equal(traitById.has(trait.id), true, trait.name);
+        for (const record of [trait, traitById.get(trait.id)]) {
+          assert.equal(record.specialization, specialization.name, trait.name);
+          assert.equal(record.tier, tier + 1, trait.name);
+          assert.equal(record.position, position, trait.name);
+          assert.equal(record.slot, position === 0 ? 'Minor' : 'Major', trait.name);
+        }
 
-    for (const trait of [...specialization.minorTraits, ...specialization.majorTraits.flat()]) {
-      assert.equal(traitById.has(trait.id), true, trait.name);
-      referencedTraitIds.add(trait.id);
+        referencedTraitIds.add(trait.id);
+      }
     }
   }
 
   for (const trait of catalog.traits) {
     assert.equal(referencedTraitIds.has(trait.id), true, trait.name);
-    assert.equal(specializationNames.has(trait.specialization), true, trait.name);
-    assert.equal(Number.isInteger(Number(trait.position)), true, trait.name);
-    assert.equal(Number(trait.position) >= 0, true, trait.name);
-    assert.equal(Number(trait.position) <= 3, true, trait.name);
   }
 }
 

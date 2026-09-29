@@ -163,12 +163,8 @@ for (const [profession, traitName, controlName, value] of [
     await page.evaluate((name) => {
       const app = window.professionApp;
       const trait = app.activeCatalog.traits.find((trait) => trait.name === name);
-      const tier =
-        typeof trait.tier === 'number'
-          ? trait.tier
-          : ['Major Adept', 'Major Master', 'Major Grandmaster'].indexOf(trait.tier) + 1;
       const choices = [0, 0, 0];
-      if (trait.position > 0 && tier > 0) choices[tier - 1] = trait.position;
+      if (trait.position > 0 && trait.tier > 0) choices[trait.tier - 1] = trait.position;
       app.build.specializations = [{ name: trait.specialization, traits: choices.join('-') }];
       if (app.adapter.id === 'elementalist') app.build.weapons = ['Hammer', ''];
       app.changed();

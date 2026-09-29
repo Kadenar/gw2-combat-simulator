@@ -7,13 +7,11 @@ import type { CatalogEntity } from '#gw2/platform/engine/skills/types.js';
 export interface Gw2ApiTrait extends CatalogEntity {
   readonly description: string;
   readonly icon: string;
-  /** Legacy snapshots may derive this from their containing specialization. */
-  readonly specialization?: string;
+  readonly specialization: string;
   readonly tier: number;
-  /** Normalized snapshots use position; older snapshots retain the API order. */
-  readonly position?: number;
-  readonly order?: number;
-  readonly slot?: string;
+  /** Minor traits use zero; major traits use their one-based selection position. */
+  readonly position: number;
+  readonly slot: 'Minor' | 'Major';
 }
 
 export interface Gw2ApiSpecialization extends CatalogEntity {

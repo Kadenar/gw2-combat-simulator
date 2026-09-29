@@ -18,7 +18,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         description:
           'Inflict vulnerability when you interrupt a foe.<br><c=@reminder>This trait can only affect enemies with defiance bars once per interval.</c>',
         icon: 'https://render.guildwars2.com/file/1762C27D3D729F0EDBD4EAF7F4DBAB7FAD6CC2F1/1012495.png',
-        tier: 1
+        specialization: 'Domination',
+        tier: 1,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 694,
@@ -26,14 +29,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         description:
           'Disabling a foe also applies vulnerability.<br><c=@reminder>Disables include stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.</c>',
         icon: 'https://render.guildwars2.com/file/B4500EF704977F28CB059D40424B5B031DFC10B7/1012496.png',
-        tier: 2
+        specialization: 'Domination',
+        tier: 2,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 1941,
         name: 'Fragility',
         description: 'Deal increased strike damage for each stack of vulnerability on your target.',
         icon: 'https://render.guildwars2.com/file/DBA1050B30E4FBB4CEAFDF01217E7E07D4EF6459/1012497.png',
-        tier: 3
+        specialization: 'Domination',
+        tier: 3,
+        position: 0,
+        slot: 'Minor'
       }
     ],
     majorTraits: [
@@ -44,24 +53,30 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Improves greatsword skills. Mirror Blade bounces additional times, and Phantasmal Berserker summons an additional berserker and deals less damage.',
           icon: 'https://render.guildwars2.com/file/A6A23D55F25BF223A75AB62AA5D0E9C17D3BCB3C/1012492.png',
+          specialization: 'Domination',
           tier: 1,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 682,
           name: 'Empowered Illusions',
           description: 'Illusions deal increased strike damage.',
           icon: 'https://render.guildwars2.com/file/4337F2F9DCC4F7A6022997409400423F7A1BB946/1012487.png',
+          specialization: 'Domination',
           tier: 1,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 687,
           name: 'Rending Shatter',
           description: '<c=@abilitytype>Shatter</c> skills inflict vulnerability on hit.',
           icon: 'https://render.guildwars2.com/file/914DB240AB9CB47ADC437F9760B4D86BF838673A/1012488.png',
+          specialization: 'Domination',
           tier: 1,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -70,24 +85,30 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           name: 'Shattered Concentration',
           description: '<c=@abilitytype>Shatter</c> skills also remove a boon on hit.',
           icon: 'https://render.guildwars2.com/file/1F25AB72D072AE0FE9E3221A7D5D10AD7040406D/1012489.png',
+          specialization: 'Domination',
           tier: 2,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 713,
           name: 'Egotism',
           description: 'Deal increased strike damage to foes with a lower health percentage than you.',
           icon: 'https://render.guildwars2.com/file/B07D6EA99FEC210636A00E47B260F80D060DB546/1012530.png',
+          specialization: 'Domination',
           tier: 2,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 712,
           name: 'Furious Interruption',
           description: 'Gain quickness when you interrupt a foe.',
           icon: 'https://render.guildwars2.com/file/D83AA1E34F35E91D577752E07E1207A5F5713D57/1012491.png',
+          specialization: 'Domination',
           tier: 2,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -97,8 +118,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'You and your illusions deal increased strike damage. Strike damage is further increased against foes without boons. Disabling a foe removes boons from them.<br><c=@reminder>Disables include stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.</c>',
           icon: 'https://render.guildwars2.com/file/E9CB4990C405C00D34DB07C5C5291FD5E90EF90C/1012486.png',
+          specialization: 'Domination',
           tier: 3,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 680,
@@ -106,8 +129,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             '<c=@abilitytype>Shatter</c> skills deal more damage. This bonus damage is doubled against foes that are not activating skills.',
           icon: 'https://render.guildwars2.com/file/4614953C566CB8F9B7169DA6E8C4060C29E9F65B/1012493.png',
+          specialization: 'Domination',
           tier: 3,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 1688,
@@ -115,8 +140,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Interrupts deal damage and inflict weakness while granting you a damage increase.</c><br><c=@reminder>This trait can only damage enemies with defiance bars once per interval.</c>',
           icon: 'https://render.guildwars2.com/file/E029766272E10A957B954B12B20FD916474D5A01/1012494.png',
+          specialization: 'Domination',
           tier: 3,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ]
     ]
@@ -132,21 +159,30 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         name: 'Critical Infusion',
         description: 'Gain vigor when delivering a critical hit.',
         icon: 'https://render.guildwars2.com/file/ADBABE00177C2A79CA7725F2217D2165CB086239/1012507.png',
-        tier: 1
+        specialization: 'Dueling',
+        tier: 1,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 710,
         name: 'Sharper Images',
         description: 'Illusions inflict bleeding on critical hits.',
         icon: 'https://render.guildwars2.com/file/F71BE0901F0462F0374B297BCB08426194E51A56/1012508.png',
-        tier: 2
+        specialization: 'Dueling',
+        tier: 2,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 707,
         name: 'Master Fencer',
         description: 'Grant fury to yourself and nearby allies when you critically strike an enemy.',
         icon: 'https://render.guildwars2.com/file/26D50548E5A73BECA0A794A80645E5399C4D0367/1012509.png',
-        tier: 3
+        specialization: 'Dueling',
+        tier: 3,
+        position: 0,
+        slot: 'Minor'
       }
     ],
     majorTraits: [
@@ -156,16 +192,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           name: 'Phantasmal Fury',
           description: 'Your phantasms have fury.',
           icon: 'https://render.guildwars2.com/file/705378A42A30BE9912BE7D0910057C00CD1CDDF2/1012498.png',
+          specialization: 'Dueling',
           tier: 1,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 705,
           name: 'Mental Gymnastics',
           description: 'When you successfully evade an attack, gain vigor.',
           icon: 'https://render.guildwars2.com/file/AF760803BEBE1399784F02A05B4346F418AC66F3/1012499.png',
+          specialization: 'Dueling',
           tier: 1,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 700,
@@ -173,8 +213,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Interrupting a foe recharges pistol skills.<br><c=@reminder>This trait can only reduce recharge on enemies with defiance bars once per interval.</c>',
           icon: 'https://render.guildwars2.com/file/154231A3A76B322079386C6404702A6FB2179192/1012500.png',
+          specialization: 'Dueling',
           tier: 1,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -183,16 +225,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           name: 'Blinding Dissipation',
           description: 'Shatter skill 2 inflicts blindness.',
           icon: 'https://render.guildwars2.com/file/FE37FD6AB5F9F1AF63B89924E0DEF0904757524C/1012501.png',
+          specialization: 'Dueling',
           tier: 2,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 1960,
           name: 'Wandering Mind',
           description: 'Remove a nondamaging condition and gain swiftness whenever you evade an attack.',
           icon: 'https://render.guildwars2.com/file/34EDDCE436BD4A20F8F2B7674D24A5A53D56A4B9/1012502.png',
+          specialization: 'Dueling',
           tier: 2,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 708,
@@ -200,8 +246,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Gain a stacking ferocity effect when you or one of your illusions strikes with a one-handed sword or an underwater spear. Reduces recharge on sword and underwater spear skills.',
           icon: 'https://render.guildwars2.com/file/4DEE67F2B54D37C8ACEC0F235C94D0C140A77E0F/1012503.png',
+          specialization: 'Dueling',
           tier: 2,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -211,8 +259,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Your critical hits deal more damage. Critical hit damage against disabled foes, or foes below the health threshold, is further increased.<br><c=@reminder>Disabled foes are affected by stun, daze, knockback, pull, knockdown, sink, float, fear, taunt, or launch.',
           icon: 'https://render.guildwars2.com/file/AAD25BD0F7753D5B447E9654A4AE6A35057B2932/1012504.png',
+          specialization: 'Dueling',
           tier: 3,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 1950,
@@ -220,16 +270,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Interrupting a foe inflicts blind, and blinding a foe inflicts confusion.<br><c=@reminder>This trait can only activate on enemies with defiance bars once per interval.</c>',
           icon: 'https://render.guildwars2.com/file/0214C11C1C217134B2565C5201C70E9A653B2C06/1012516.png',
+          specialization: 'Dueling',
           tier: 3,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 704,
           name: 'Deceptive Evasion',
           description: 'Create a clone at your current position when you dodge.',
           icon: 'https://render.guildwars2.com/file/FDF3040EFF90CC6313E75292F47E0A652E1303B6/1012506.png',
+          specialization: 'Dueling',
           tier: 3,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ]
     ]
@@ -245,7 +299,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         name: 'Metaphysical Rejuvenation',
         description: 'Grant regeneration to nearby allies when you use a healing skill.',
         icon: 'https://render.guildwars2.com/file/9B6532A6F2ABBFB54649681E02B57F2313F3EF73/1012471.png',
-        tier: 1
+        specialization: 'Chaos',
+        tier: 1,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 667,
@@ -253,14 +310,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         description:
           'Gain chaos aura when you use your Shatter skill 2. Chaos aura grants you increased condition damage for a period of time.',
         icon: 'https://render.guildwars2.com/file/0DF6A27A24B01D069DCD7609ADD305C7C557A82A/1012472.png',
-        tier: 2
+        specialization: 'Chaos',
+        tier: 2,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 1865,
         name: 'Chaotic Persistence',
         description: 'Gain concentration and expertise while affected by regeneration.',
         icon: 'https://render.guildwars2.com/file/68A0B5BB7BA2BEDAD81167CFC95A9C6D551FE151/1012473.png',
-        tier: 3
+        specialization: 'Chaos',
+        tier: 3,
+        position: 0,
+        slot: 'Minor'
       }
     ],
     majorTraits: [
@@ -270,24 +333,30 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           name: 'Method of Madness',
           description: 'Cast Lesser Chaos Storm when you use a healing skill.',
           icon: 'https://render.guildwars2.com/file/319D02A993BE08CEFA0798C256AE6F972D623749/1012462.png',
+          specialization: 'Chaos',
           tier: 1,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 675,
           name: 'Illusionary Defense',
           description: 'Grant protection to nearby allies when you use Shatter skill 2.',
           icon: 'https://render.guildwars2.com/file/0E25FD2E32E05D360DB1785818965A4439C1F445/1012463.png',
+          specialization: 'Chaos',
           tier: 1,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 677,
           name: 'Master of Manipulation',
           description: '<c=@abilitytype>Manipulations</c> grant aegis to yourself and nearby allies.',
           icon: 'https://render.guildwars2.com/file/E875372EA24AF0529E29430D0F38A90F4AA5F4F9/1012464.png',
+          specialization: 'Chaos',
           tier: 1,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -297,16 +366,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Convert damaging conditions to boons whenever you gain Distortion or become disabled.<br><c=@reminder>This trait can only trigger when disabled once per interval.<br>Disables include stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.</c>',
           icon: 'https://render.guildwars2.com/file/67E22C14059400490834D1AF7F2C69A75D31E6AA/1012465.png',
+          specialization: 'Chaos',
           tier: 2,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 668,
           name: 'Chaotic Transference',
           description: 'Gaining chaos aura grants boons to nearby allies.',
           icon: 'https://render.guildwars2.com/file/C86C0AD576C6DDBBCC08D0110930E46FBC269908/1012466.png',
+          specialization: 'Chaos',
           tier: 2,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 669,
@@ -314,8 +387,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'When you interrupt a foe, recharge one of your equipped-weapon skills at random.<br><c=@reminder>Only affects weapon skills that are recharging.</c>',
           icon: 'https://render.guildwars2.com/file/0214AD1DC21171D73D24D25CD1EC71D14296F2F5/1012468.png',
+          specialization: 'Chaos',
           tier: 2,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -325,8 +400,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'When you grant yourself chaos aura, if you already have chaos aura, detonate your chaos aura to grant yourself boons and inflict conditions on enemies.',
           icon: 'https://render.guildwars2.com/file/4BAB6E9C6C672B740742CA1BCE8013C95F1829B6/1012467.png',
+          specialization: 'Chaos',
           tier: 3,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 674,
@@ -334,8 +411,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Increased stealth duration from mesmer skills. Shatter skill 4 grants stealth. Gain regeneration upon entering stealth, and gain protection and resolution upon exiting stealth.',
           icon: 'https://render.guildwars2.com/file/41F5AC92387E4CCAF30628E0A5FDB37FB5F50B34/1012469.png',
+          specialization: 'Chaos',
           tier: 3,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 1687,
@@ -343,8 +422,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Gain stability when you use a <c=@abilitytype>Shatter</c> skill. Grant an additional boon to nearby allies based on which <c=@abilitytype>Shatter</c> is used.',
           icon: 'https://render.guildwars2.com/file/CC2E110B0C40A8D3AF607F59099856760CA5E9DC/1012470.png',
+          specialization: 'Chaos',
           tier: 3,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ]
     ]
@@ -360,14 +441,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         name: "Mender's Purity",
         description: 'Cast Lesser Power Cleanse when you use a healing skill.',
         icon: 'https://render.guildwars2.com/file/05AB640373CFD462B305061165617C0D0FE0A878/1012531.png',
-        tier: 1
+        specialization: 'Inspiration',
+        tier: 1,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 1852,
         name: 'Inspiring Distortion',
         description: 'Grant aegis to other nearby allies whenever you give yourself distortion or use Shatter skill 4.',
         icon: 'https://render.guildwars2.com/file/7BA394DC345278D4912EEAE94F072A06B9C932F2/1012532.png',
-        tier: 2
+        specialization: 'Inspiration',
+        tier: 2,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 1915,
@@ -375,7 +462,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         description:
           'Increase healing to other allies. Summoning an illusion heals all allies around you.<br><br><c=@reminder>Virtuoso: Triggers when stocking a blade.</c>',
         icon: 'https://render.guildwars2.com/file/090D289158520416A4402EBE9C92257E1309020D/1012533.png',
-        tier: 3
+        specialization: 'Inspiration',
+        tier: 3,
+        position: 0,
+        slot: 'Minor'
       }
     ],
     majorTraits: [
@@ -385,24 +475,30 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           name: "Medic's Feedback",
           description: 'Cast Feedback while reviving an ally. Feedback revives allies inside its dome.',
           icon: 'https://render.guildwars2.com/file/4A1C386EE156DAACE137FB07060CC507EEE1E0B4/1012522.png',
+          specialization: 'Inspiration',
           tier: 1,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 738,
           name: 'Restorative Mantras',
           description: 'Heals allies around you when you use a charge of a <c=@abilitytype>mantra</c>.',
           icon: 'https://render.guildwars2.com/file/2636BEBF0E35923BC4407739D0DC7DC223932F0C/1012523.png',
+          specialization: 'Inspiration',
           tier: 1,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 744,
           name: 'Sympathetic Visage',
           description: '<c=@abilitytype>Phantasms</c> take conditions from you when summoned.',
           icon: 'https://render.guildwars2.com/file/FA0AE3A437419F325D682180687C5C7FF014602D/1012524.png',
+          specialization: 'Inspiration',
           tier: 1,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -411,16 +507,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           name: "Warden's Feedback",
           description: 'Focus weapon skills reflect projectiles. Reduces recharge on focus weapon skills.',
           icon: 'https://render.guildwars2.com/file/D4A345BC1A72A50B7C7449B7759BAB15664064F7/1012525.png',
+          specialization: 'Inspiration',
           tier: 2,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 740,
           name: 'Ego Restoration',
           description: 'Create a clone when you use a healing skill.',
           icon: 'https://render.guildwars2.com/file/A2B419927562110402010EEF084BF953905D54E5/1012529.png',
+          specialization: 'Inspiration',
           tier: 2,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 1980,
@@ -428,8 +528,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             ' When you cast a <c=abilitytype>glamour</c>, allies near the glamour gain resistance and superspeed.',
           icon: 'https://render.guildwars2.com/file/1503DDC5B62526D71901E3A7F891A6F4445D80C8/1012527.png',
+          specialization: 'Inspiration',
           tier: 2,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -438,8 +540,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           name: 'Mental Defense',
           description: 'Shatter skill 4 grants boons and breaks allies out of stuns.',
           icon: 'https://render.guildwars2.com/file/EC7602C0FABB72AFB01379563ED7FB76079BB9CA/1012528.png',
+          specialization: 'Inspiration',
           tier: 3,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 1866,
@@ -447,8 +551,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Heal and cleanse conditions from yourself and nearby allies when you use a <c=@abilitytype>Shatter</c> skill.',
           icon: 'https://render.guildwars2.com/file/99A30379D5040427FD0FBC5DEDB6950376AB5B1C/1012526.png',
+          specialization: 'Inspiration',
           tier: 3,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 752,
@@ -456,8 +562,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             '<c=@abilitytype>Signets</c> have improved active effects, and activating one grants you distortion.',
           icon: 'https://render.guildwars2.com/file/B6C6AAC9506E3904F7CEEDC82629D2BEE54A7EF3/1012490.png',
+          specialization: 'Inspiration',
           tier: 3,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ]
     ]
@@ -473,21 +581,30 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         name: 'Cry of Pain',
         description: 'Shatter skill 2 inflicts more stacks of confusion for an increased duration.',
         icon: 'https://render.guildwars2.com/file/3AA5FD383BE64BEFDCD1F011E2F526297DAA4868/1012519.png',
-        tier: 1
+        specialization: 'Illusions',
+        tier: 1,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 723,
         name: 'Compounding Power',
         description: 'Creating an illusion increases your outgoing damage and condition damage for a short duration.',
         icon: 'https://render.guildwars2.com/file/E9BA251055B444E693144A9AF5FD1CF8266BEFA6/1012520.png',
-        tier: 2
+        specialization: 'Illusions',
+        tier: 2,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 731,
         name: 'Master of Misdirection',
         description: '<c=@abilitytype>Shatter</c> skills gain recharge reduction.',
         icon: 'https://render.guildwars2.com/file/A03500F90501130C214507C2A9B4B5CAF7C5219C/1012521.png',
-        tier: 3
+        specialization: 'Illusions',
+        tier: 3,
+        position: 0,
+        slot: 'Minor'
       }
     ],
     majorTraits: [
@@ -497,24 +614,30 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           name: 'Shatter Storm',
           description: 'Shatter skill 1 becomes an ammo skill.',
           icon: 'https://render.guildwars2.com/file/D5969DA633174AC5F52AB700F937A524E6E95DDE/1012513.png',
+          specialization: 'Illusions',
           tier: 1,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 1869,
           name: 'Persistence of Memory',
           description: 'When a <c=@abilitytype>phantasm</c> becomes a clone, it transfers its boons to you.',
           icon: 'https://render.guildwars2.com/file/F225A021EB41754E4E0C9FCB46F40F7212DA41CE/1012511.png',
+          specialization: 'Illusions',
           tier: 1,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 691,
           name: 'The Pledge',
           description: 'Flame bursts from torch skills inflict additional burning.',
           icon: 'https://render.guildwars2.com/file/20D83E25D6A9D930AA01EB0D3ABAEAD6577B0762/1012512.png',
+          specialization: 'Illusions',
           tier: 1,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -523,24 +646,30 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           name: 'Escape Artist',
           description: 'When a <c=@abilitytype>phantasm</c> is created, grant it distortion.',
           icon: 'https://render.guildwars2.com/file/2C1BCA6C6F6763E90D0226BC2FD8DFA8403E9E47/1012510.png',
+          specialization: 'Illusions',
           tier: 2,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 729,
           name: 'Phantasmal Haste',
           description: '<c=@abilitytype>Phantasms</c> spawn with quickness. Gain quickness when you create a phantasm.',
           icon: 'https://render.guildwars2.com/file/EE4D54D0D53E4B57C00F179BD97ED990230736DE/1012514.png',
+          specialization: 'Illusions',
           tier: 2,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 1690,
           name: 'Maim the Disillusioned',
           description: '<c=@abilitytype>Shatter</c> skills inflict torment on hit.',
           icon: 'https://render.guildwars2.com/file/DBC6799E4A18BA9B9ABE280DAE35362DA9DAE00E/1012515.png',
+          specialization: 'Illusions',
           tier: 2,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -550,16 +679,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             '<c=@abilitytype>Phantasms</c> deal increased strike damage for each stack of might you have. Gain might when your phantasms become clones.',
           icon: 'https://render.guildwars2.com/file/E002FB5DEC3A010F03F2E8A7D5000DF778215F6C/1012505.png',
+          specialization: 'Illusions',
           tier: 3,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 2035,
           name: 'Master of Fragmentation',
           description: 'Your <c=@abilitytype>Shatter</c> skills are improved.',
           icon: 'https://render.guildwars2.com/file/E625ADB94CF699763B23A7A82E255B55A44C1B16/1012517.png',
+          specialization: 'Illusions',
           tier: 3,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 753,
@@ -567,8 +700,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Confusion you inflict has increased duration. When you dodge an attack, inflict confusion on your attacker.',
           icon: 'https://render.guildwars2.com/file/E1EFE39620B9A00D140A5C493ABB3180E2B2B511/1012518.png',
+          specialization: 'Illusions',
           tier: 3,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ]
     ]
@@ -584,7 +719,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         name: 'Time Splitter',
         description: 'Gain access to chronomancer shatter skills and <c=@abilitytype>Wells</c>.',
         icon: 'https://render.guildwars2.com/file/5A9347250FEF7B3431ECE3F6689EDCE20FB96CB6/1012483.png',
-        tier: 1
+        specialization: 'Chronomancer',
+        tier: 1,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 1927,
@@ -592,14 +730,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         description:
           'Gain alacrity for each clone you shatter. Gain increased critical-strike chance for you and your illusions when you have alacrity.',
         icon: 'https://render.guildwars2.com/file/54A00A0D36587A0245BD6400796CF130CE9970D7/1012484.png',
-        tier: 2
+        specialization: 'Chronomancer',
+        tier: 2,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 1859,
         name: 'Time Marches On',
         description: 'You move 25% faster. Alacrity applied to you is stronger.',
         icon: 'https://render.guildwars2.com/file/D343AA7E530448F37B20936FCD3163C9BF2CE665/1012485.png',
-        tier: 3
+        specialization: 'Chronomancer',
+        tier: 3,
+        position: 0,
+        slot: 'Minor'
       }
     ],
     majorTraits: [
@@ -610,8 +754,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Disabling a foe slows them.<br><c=@reminder>Disables include stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.</c><br><c=@reminder>This trait can only affect the same enemy with once per interval.</c>',
           icon: 'https://render.guildwars2.com/file/C26CBECA553C29091F1D2C9B05732847E4C3457D/1012475.png',
+          specialization: 'Chronomancer',
           tier: 1,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 1995,
@@ -619,16 +765,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Activating a <c=@abilitytype>Shatter</c> gives your illusions superspeed. Shatters deal increased damage to movement-impaired foes.',
           icon: 'https://render.guildwars2.com/file/3836E04A5BF0E8CCB815A8C1627904AB0CE5EE6A/1012474.png',
+          specialization: 'Chronomancer',
           tier: 1,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 1987,
           name: "All's Well That Ends Well",
           description: '<c=@abilitytype>Wells</c> heal allies when they end.',
           icon: 'https://render.guildwars2.com/file/46D30FCC070170B2F656C3D80005909CD8B0F3F4/1012476.png',
+          specialization: 'Chronomancer',
           tier: 1,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -638,8 +788,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             "When you inflict slow, you and your illusions' outgoing critical-strike damage is increased for a duration.",
           icon: 'https://render.guildwars2.com/file/E0A1FF012E170754030A0CB6DFDBAED3E81FAB5B/1012479.png',
+          specialization: 'Chronomancer',
           tier: 2,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 1913,
@@ -647,8 +799,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             '<c=@abilitytype>Shatter</c> skills generate a clone and grant alacrity if you have enough clones present.',
           icon: 'https://render.guildwars2.com/file/4B684BD7490D52689D9CF02D205CB03811D7BA06/1012477.png',
+          specialization: 'Chronomancer',
           tier: 2,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 1978,
@@ -656,8 +810,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Enemies struck by Time Sink are affixed with a time bomb. Time bombs increase your strike damage dealt to the target and explode when they expire.<br><c=@reminder>Only a certain number of time bombs may be active at once.</c>',
           icon: 'https://render.guildwars2.com/file/C9BC67D77E3D959723393BF0EC9B212B53D8362D/1012478.png',
+          specialization: 'Chronomancer',
           tier: 2,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -667,8 +823,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Nearby allies gain boons for each clone you shatter. Grant boons to nearby allies when you summon a <c=@abilitytype>phantasm</c>.',
           icon: 'https://render.guildwars2.com/file/1B7FF14574B92E6FFA71D03E3F0FEBE5FD4D2EB2/1012480.png',
+          specialization: 'Chronomancer',
           tier: 3,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 2022,
@@ -676,8 +834,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'You and nearby allies gain quickness for each clone you <c=@abilitytype>shatter</c>. Grant quickness to nearby allies when you summon a <c=@abilitytype>phantasm</c>.',
           icon: 'https://render.guildwars2.com/file/0FF56A2B51F9C30CDA540CC41F0A1FA30CED74A0/1012482.png',
+          specialization: 'Chronomancer',
           tier: 3,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 1890,
@@ -685,8 +845,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             "The first time a <c=@abilitytype>phantasm</c> would become a clone, it instead resummons itself and attacks again. Resummoned phantasms inflict a percentage of the original's damage.<br><c=@reminder>(Resummoned phantasms are briefly dazed.)</c>",
           icon: 'https://render.guildwars2.com/file/120E2199010315D0C1FACA9BBFB5DF9E5E47027F/1012481.png',
+          specialization: 'Chronomancer',
           tier: 3,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ]
     ]
@@ -703,7 +865,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         description:
           'Gain Mirage Cloak instead of dodge rolling. <c=@abilitytype>Ambush</c> skills become available for a short time whenever you gain Mirage Cloak. Gain access to <c=@abilitytype>Deception</c> skills.',
         icon: 'https://render.guildwars2.com/file/FAF3D0D195F36EBA2F11086A05A5BA75A6BDDDEC/1769960.png',
-        tier: 1
+        specialization: 'Mirage',
+        tier: 1,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 2069,
@@ -711,14 +876,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         description:
           '<c=@abilitytype>Shatter</c> skills give vigor. Strike and condition damage dealt is increased when you have vigor.',
         icon: 'https://render.guildwars2.com/file/EC4E5BEAD50EC6A5A91C312EE521B7C6EC56393B/1769961.png',
-        tier: 2
+        specialization: 'Mirage',
+        tier: 2,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 2117,
         name: 'Speed of Sand',
         description: 'Mirage Cloak increases your movement speed.',
         icon: 'https://render.guildwars2.com/file/FFB70F3D954E5A60CE03132778D310CA4824E4BF/1769962.png',
-        tier: 3
+        specialization: 'Mirage',
+        tier: 3,
+        position: 0,
+        slot: 'Minor'
       }
     ],
     majorTraits: [
@@ -729,8 +900,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Using a <c=@abilitytype>Deception</c> skill will create a clone if you have any other clones active.',
           icon: 'https://render.guildwars2.com/file/603C30B0D0F90E21BCCC569AE8B5A35BC9E0BDBC/1769951.png',
+          specialization: 'Mirage',
           tier: 1,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 2082,
@@ -738,8 +911,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Gain regeneration when you gain Mirage Cloak. The duration of incoming damaging conditions is reduced while you are regenerating.',
           icon: 'https://render.guildwars2.com/file/7F0307D7130523A57E75DC19C9A3DC0CED0A6FB3/1769952.png',
+          specialization: 'Mirage',
           tier: 1,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 2110,
@@ -747,8 +922,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'When entering combat, your first <c=@abilitytype>Ambush</c> attack applies confusion. This ability refreshes when you use a <c=@abilitytype>Shatter</c> skill.',
           icon: 'https://render.guildwars2.com/file/5E140DCE41A40CD852FA570E4250D825627F7708/1769953.png',
+          specialization: 'Mirage',
           tier: 1,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -758,16 +935,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Illusions shattered by Distortion become Mirage Mirrors. <c=@abilitytype>Ambush</c> skills become available for a short time whenever you grant distortion to yourself.',
           icon: 'https://render.guildwars2.com/file/FD373803E32D2311701C1EEEBC06A3D19A060FEC/1769954.png',
+          specialization: 'Mirage',
           tier: 2,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 2174,
           name: 'Mirage Mantle',
           description: '<c=@abilitytype>Ambush</c> skills you use grant boons to nearby allies.',
           icon: 'https://render.guildwars2.com/file/275DBDFD630099D49A76287DDD237709150C1D73/1769955.png',
+          specialization: 'Mirage',
           tier: 2,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 2098,
@@ -775,8 +956,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Gain a damage increase when you use a <c=@abilitytype>Shatter</c> skill, increasing per clone shattered.',
           icon: 'https://render.guildwars2.com/file/3999015BF80BA211F8AD463C50BEBD0826DC1D12/1769956.png',
+          specialization: 'Mirage',
           tier: 2,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -785,16 +968,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           name: 'Infinite Horizon',
           description: 'When you gain Mirage Cloak, your illusions also gain it.',
           icon: 'https://render.guildwars2.com/file/AE970495F2A5F7907CDBB836B5079911FC5A1064/1769957.png',
+          specialization: 'Mirage',
           tier: 3,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 2113,
           name: 'Elusive Mind',
           description: 'Lose conditions when you gain Mirage Cloak.',
           icon: 'https://render.guildwars2.com/file/75EDD136DA210F119A74C3D8DCE1AF0D58FB2F9F/1769958.png',
+          specialization: 'Mirage',
           tier: 3,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 2169,
@@ -802,8 +989,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             '<c=@abilitytype>Shatter</c> skills grant Mirage Cloak if you have enough clones present. Gaining Mirage Cloak recharges Mind Wrack and Cry of Frustration.',
           icon: 'https://render.guildwars2.com/file/5909B2013D16F1BF6F08B7BB341D295F4411DABA/1769959.png',
+          specialization: 'Mirage',
           tier: 3,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ]
     ]
@@ -820,7 +1009,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         description:
           'Whenever a clone would be summoned, you instead stock a <c=@abilitytype>blade</c>. Blades persist indefinitely until used. Your shatters are replaced with <c=@abilitytype>Bladesongs</c> that consume your stocked blades, but still count as shatters for the purposes of core traits.<br><br><c=@reminder>While out of combat, you will automatically stock a blade every 10 seconds.</c>',
         icon: 'https://render.guildwars2.com/file/D25E3C479F24BE357015AA03C4B8B2EBCBC01B1E/2479335.png',
-        tier: 1
+        specialization: 'Virtuoso',
+        tier: 1,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 2204,
@@ -828,14 +1020,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         description:
           '<c=@abilitytype>Blades</c> inflict vulnerability on critical hits. After successfully casting a <c=@abilitytype>Bladesong</c>, increase all damage dealt for a short time. This does not stack.',
         icon: 'https://render.guildwars2.com/file/C4AFBAAA039152A302C15B805CAD980EA9B5D006/2479337.png',
-        tier: 2
+        specialization: 'Virtuoso',
+        tier: 2,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 2193,
         name: 'Quiet Intensity',
         description: 'Fury gives an increased critical hit chance. Gain ferocity based on your vitality.',
         icon: 'https://render.guildwars2.com/file/34117EC942763960F40B372D5B07583D984C96D3/2479336.png',
-        tier: 3
+        specialization: 'Virtuoso',
+        tier: 3,
+        position: 0,
+        slot: 'Minor'
       }
     ],
     majorTraits: [
@@ -845,16 +1043,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           name: 'Bladeturn Refrain',
           description: '<c=@abilitytype>Bladesongs</c> grant aegis.',
           icon: 'https://render.guildwars2.com/file/72A0FCF7DE6E277E1160AA50F7C1E30BF2394CA0/2479326.png',
+          specialization: 'Virtuoso',
           tier: 1,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 2208,
           name: 'Mental Focus',
           description: 'Strike damage is increased against foes within the range threshold.',
           icon: 'https://render.guildwars2.com/file/B32B3E90552D3AE773E403D6D7AA00F50F750580/2479328.png',
+          specialization: 'Virtuoso',
           tier: 1,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 2202,
@@ -862,8 +1064,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             '<c=@abilitytype>Blade</c> attacks inflict bleeding on critical hits. A percentage of your condition damage dealt heals you.',
           icon: 'https://render.guildwars2.com/file/F3757C0FFD6F0912C2FD017E0E28E76137FA5F71/2479327.png',
+          specialization: 'Virtuoso',
           tier: 1,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -872,8 +1076,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           name: "Duelist's Reversal",
           description: 'Blocking or dodging an attack grants boons.',
           icon: 'https://render.guildwars2.com/file/5A036270324AE4F246D2086C92B23AF4354978F0/2479329.png',
+          specialization: 'Virtuoso',
           tier: 2,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 2205,
@@ -881,16 +1087,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Phantasms that successfully complete their attack launch a blade at their target and grant you fury when they expire.',
           icon: 'https://render.guildwars2.com/file/D5A30DB7ABDDCDE5B8731A5FFF20E9780C9E42A2/2479330.png',
+          specialization: 'Virtuoso',
           tier: 2,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 2207,
           name: 'Sharpening Sorrow',
           description: 'Gain fury when you activate Bladesong Sorrow. Fury increases your expertise.',
           icon: 'https://render.guildwars2.com/file/0409B10E0D9E42C80EABE235E94F500F45301551/2479331.png',
+          specialization: 'Virtuoso',
           tier: 2,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -899,8 +1109,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           name: 'Psychic Riposte',
           description: 'Blocking or evading an attack stocks <c=@abilitytype>blades</c>. Dodging stocks a blade.',
           icon: 'https://render.guildwars2.com/file/E89F2604C2E51F79E760F6DDB83E43E77078C13B/2479332.png',
+          specialization: 'Virtuoso',
           tier: 3,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 2206,
@@ -908,8 +1120,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Automatically stock <c=@abilitytype>blades</c> while in combat. When you use a <c=@abilitytype>bladesong</c> above the blade threshold, refund <c=@abilitytype>blades</c>. <c=@abilitytype>Blade</c> attacks deal more damage.',
           icon: 'https://render.guildwars2.com/file/DCEF7A9E2DA5E276D514B649F853CD67E3E7FBE4/2479333.png',
+          specialization: 'Virtuoso',
           tier: 3,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 2223,
@@ -917,8 +1131,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Bleeding you apply deals increased damage. Stock a <c=@abilitytype>blade</c> after applying enough stacks of bleeding to foes.',
           icon: 'https://render.guildwars2.com/file/D014E41E176D3B0B3B1168FF1A53DF6DE9D30D34/2479334.png',
+          specialization: 'Virtuoso',
           tier: 3,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ]
     ]
@@ -935,21 +1151,30 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
         description:
           'Build up notes instead of summoning clones. Shatters are replaced by <c=@abilitytype>Instrument</c> skills, which consume notes to continue playing. Gain access to <c=@abilitytype>Tales</c>.<br><br><c=@reminder>While out of combat, you will automatically generate a note every 10 seconds.</c>',
         icon: 'https://render.guildwars2.com/file/20B247166125BF0E03E65372F7C5ECE23207A208/3679976.png',
-        tier: 1
+        specialization: 'Troubadour',
+        tier: 1,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 2424,
         name: 'Symphonic Resonance',
         description: 'Instruments provide bonuses while playing in the background.',
         icon: 'https://render.guildwars2.com/file/AF276ECB07996BF5343A513FF2E52F3BE1CBAD0B/3679978.png',
-        tier: 2
+        specialization: 'Troubadour',
+        tier: 2,
+        position: 0,
+        slot: 'Minor'
       },
       {
         id: 2374,
         name: 'Harmonize',
         description: 'Gain a note when you use a <c=@abilitytype>phantasm</c> skill.',
         icon: 'https://render.guildwars2.com/file/4BE6ED63233DEB2D5801D5D66BB202E202A6A27F/3679977.png',
-        tier: 3
+        specialization: 'Troubadour',
+        tier: 3,
+        position: 0,
+        slot: 'Minor'
       }
     ],
     majorTraits: [
@@ -959,16 +1184,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           name: 'Mayhem',
           description: 'Flustering Flute now applies torment. Dodging reduces the recharge of Flustering Flute.',
           icon: 'https://render.guildwars2.com/file/A31842FADE40E64D553D230C0922E43D58495209/3679967.png',
+          specialization: 'Troubadour',
           tier: 1,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 2326,
           name: 'Raconteur',
           description: '<c=@abilitytype>Tales</c> heal and grant protection to nearby allies.',
           icon: 'https://render.guildwars2.com/file/77005B6DA7C4266CECE0BABD357E0F283D3E7F53/3679971.png',
+          specialization: 'Troubadour',
           tier: 1,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 2432,
@@ -976,8 +1205,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'Deafening Drum releases an additional quick wave after a delay. Deal damage to enemies you disable.',
           icon: 'https://render.guildwars2.com/file/42C9802D696B9670A0155DDF0FD2480CD9FBC473/3679969.png',
+          specialization: 'Troubadour',
           tier: 1,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -986,16 +1217,20 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           name: 'Shredding',
           description: "Lively Lute fires an additional wave at your enemy. The lute's damage bonus is increased.",
           icon: 'https://render.guildwars2.com/file/EF2D16FDF29BDCFEEC96503E0145BE1A9846F04C/3679970.png',
+          specialization: 'Troubadour',
           tier: 2,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 2367,
           name: 'Life of the Party',
           description: 'Lively Lute and Crescendo grant boons to affected allies.',
           icon: 'https://render.guildwars2.com/file/0D59A15F3F7F2671456A36C41A1737A94F050665/3679968.png',
+          specialization: 'Troubadour',
           tier: 2,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 2422,
@@ -1003,8 +1238,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             "Harmonious Harp's distortion lasts longer. Strike damage from nearby enemies is reduced while the harp is playing in the background.",
           icon: 'https://render.guildwars2.com/file/1CC50D6BDDE64580522F0D396D194C020AC50DCE/3679972.png',
+          specialization: 'Troubadour',
           tier: 2,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ],
       [
@@ -1014,8 +1251,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'After using Crescendo, gain a note every interval for a duration. Gain increased attributes for each instrument you have playing.',
           icon: 'https://render.guildwars2.com/file/57A93CAD1CDC7A45BA3B3BEB1739BDC7765109D6/3679973.png',
+          specialization: 'Troubadour',
           tier: 3,
-          order: 0
+          position: 1,
+          slot: 'Major'
         },
         {
           id: 2414,
@@ -1023,8 +1262,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             'When you use an instrument above the note threshold, create an afterimage that plays that instrument after a delay.',
           icon: 'https://render.guildwars2.com/file/1C96474AC3D5C74E05B724E8FF9DF9FC0ADCAFC2/3679974.png',
+          specialization: 'Troubadour',
           tier: 3,
-          order: 1
+          position: 2,
+          slot: 'Major'
         },
         {
           id: 2441,
@@ -1032,8 +1273,10 @@ export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
           description:
             "Crescendo prompts your last-played instrument to take the spotlight, augmenting Crescendo's effects. Playing an instrument recharges Crescendo if a note was consumed.",
           icon: 'https://render.guildwars2.com/file/57FB13067F3039331F0C03A63B0D07242F0C72C4/3679975.png',
+          specialization: 'Troubadour',
           tier: 3,
-          order: 2
+          position: 3,
+          slot: 'Major'
         }
       ]
     ]

@@ -27,11 +27,7 @@ function previewApp(name, traitNames = [], specialization = null) {
     const trait = adapter.profession.catalog.traits.find((trait) => trait.name === name);
     assert.ok(trait, name);
     const choices = selections.get(trait.specialization) || [0, 0, 0];
-    const tier =
-      typeof trait.tier === 'number'
-        ? trait.tier
-        : ['Major Adept', 'Major Master', 'Major Grandmaster'].indexOf(trait.tier) + 1;
-    if (trait.position > 0 && tier > 0) choices[tier - 1] = trait.position;
+    if (trait.position > 0 && trait.tier > 0) choices[trait.tier - 1] = trait.position;
     selections.set(trait.specialization, choices);
   }
 
