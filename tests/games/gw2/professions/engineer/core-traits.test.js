@@ -679,3 +679,63 @@ test('Energy Amplifier adds Power and Healing Power during regeneration', () => 
   assert.equal(attributes.power, 2250);
   assert.equal(attributes.healingPower, 750);
 });
+
+// Boiling Point reads Might after the triggering application and shares one ICD across Might sources.
+test('Boiling Point grants Fury from Might gains at the threshold on its ICD', () => {
+  const traitFury = (result) =>
+    result.resolvedEvents
+      .filter((event) => event.type === 'buff' && event.sourceId === TRAIT.BOILING_POINT)
+      .map((event) => [event.at, event.kind]);
+
+  const belowThreshold = simulate('Core', ['Positive Strike'], { selectedTraitIds: [TRAIT.BOILING_POINT] });
+
+  assert.deepEqual(traitFury(belowThreshold), []);
+
+  const result = simulate(
+    'Core',
+    ['Blunderbuss', 'Positive Strike', { type: 'wait', durationMs: 1000 }, 'Negative Bash', 'Equalizing Blow'],
+    { selectedTraitIds: [TRAIT.BOILING_POINT] }
+  );
+  const mightAt = (skillId) =>
+    result.resolvedEvents.find((event) => event.type === 'buff' && event.kind === 'might' && event.sourceId === skillId)
+      .at;
+
+  assert.equal(result.warnings.length, 0);
+  // Blunderbuss reaches the threshold by itself, Positive Strike lands inside the ICD, and Equalizing Blow procs again.
+  assert.deepEqual(traitFury(result), [
+    [mightAt(ID.BLUNDERBUSS), 'fury'],
+    [mightAt(ID.EQUALIZING_BLOW), 'fury']
+  ]);
+  assert.ok(mightAt(ID.POSITIVE_STRIKE) - mightAt(ID.BLUNDERBUSS) < 1);
+});
+
+// Equal and Opposite Reaction reacts only to the player's own disables and claims one ICD per multi-control skill.
+test('Equal and Opposite Reaction grants Quickness and Stability from player disables on its ICD', () => {
+  const result = simulate(
+    'Core',
+    [
+      'Essence of Borrowed Time',
+      { type: 'wait', durationMs: 1000 },
+      'Supply Crate',
+      { type: 'wait', durationMs: 1000 },
+      'Overcharged Shot'
+    ],
+    { selectedTraitIds: [TRAIT.EQUAL_AND_OPPOSITE_REACTION] }
+  );
+  const grants = result.resolvedEvents.filter(
+    (event) => event.type === 'buff' && event.sourceId === TRAIT.EQUAL_AND_OPPOSITE_REACTION
+  );
+  const castEnd = (skill) => result.steps.find((step) => step.skill === skill).end / 1000;
+
+  assert.equal(result.warnings.length, 0);
+  // Borrowed Time's simultaneous daze and stun share one ICD claim; Supply Crate's stun belongs to the summon.
+  assert.deepEqual(
+    grants.map((event) => [event.at, event.kind, event.duration]),
+    [
+      [castEnd('Essence of Borrowed Time'), 'quickness', 5],
+      [castEnd('Essence of Borrowed Time'), 'stability', 5],
+      [castEnd('Overcharged Shot'), 'quickness', 5],
+      [castEnd('Overcharged Shot'), 'stability', 5]
+    ]
+  );
+});

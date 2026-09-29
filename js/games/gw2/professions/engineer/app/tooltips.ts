@@ -655,7 +655,13 @@ export const engineerTooltips: ProfessionTooltips = {
     [TRAIT.PROTECTION_INJECTION]: outsideScopeTooltip,
     [TRAIT.HEALTH_INSURANCE]: outsideScopeTooltip,
     [TRAIT.COMEBACK_CURE]: outsideScopeTooltip,
-    [TRAIT.BOILING_POINT]: outsideScopeTooltip,
+    [TRAIT.BOILING_POINT]: traitTooltip(
+      'Gaining might while at or above the might threshold grants fury.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'threshold', 'Might needed for fury'),
+        profileFact(balanceContext, id, 'internalCooldown', 'Fury cooldown', tooltipSeconds)
+      ]
+    ),
     [TRAIT.BLAST_ZONE]: outsideScopeTooltip,
     [TRAIT.HGH]: traitTooltip(
       'Completing an elixir grants might and fury. Elixir boons, conditions, and combo fields last longer; Acid Bomb gains an additional strike pulse.',
@@ -669,7 +675,10 @@ export const engineerTooltips: ProfessionTooltips = {
         )
       ]
     ),
-    [TRAIT.EQUAL_AND_OPPOSITE_REACTION]: outsideScopeTooltip,
+    [TRAIT.EQUAL_AND_OPPOSITE_REACTION]: traitTooltip(
+      'Disabling an enemy with a player-owned stun, daze, knockback, pull, knockdown, launch, float, sink, taunt, or fear grants quickness and stability.',
+      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Cooldown', tooltipSeconds)]
+    ),
     [TRAIT.CHAIN_REACTIVITY]: outsideScopeTooltip,
     [TRAIT.SERRATED_STEEL]: traitTooltip(
       'Eligible critical hits can inflict bleeding. Bleeding lasts longer; the mech maintains its own critical-proc progress.',

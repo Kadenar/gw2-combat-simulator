@@ -1,4 +1,9 @@
-import { compoundingChemicals, hgh } from '#gw2/professions/engineer/core/traits/alchemy.js';
+import {
+  boilingPoint,
+  compoundingChemicals,
+  equalAndOppositeReaction,
+  hgh
+} from '#gw2/professions/engineer/core/traits/alchemy.js';
 import {
   aimAssistedRocket,
   bigBoomer,
@@ -77,5 +82,7 @@ export const engineerCoreTraits = [
   shapedCharge,
   modifiedAmmunition,
   excessiveEnergy,
-  takedownRound
+  takedownRound,
+  boilingPoint,
+  equalAndOppositeReaction
 ];
