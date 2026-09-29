@@ -719,7 +719,10 @@ export const warriorTooltips: ProfessionTooltips = {
         profileFact(balanceContext, id, 'resourceGain', 'Adrenaline per axe critical hit')
       ]
     ),
-    [TRAIT.HEIGHTENED_FOCUS]: outsideScopeTooltip,
+    [TRAIT.HEIGHTENED_FOCUS]: traitTooltip(
+      "A qualifying strike below the target's half-health threshold grants quickness and recharges every burst skill. Adrenaline-scaled outgoing healing is not simulated.",
+      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Trigger cooldown', tooltipSeconds)]
+    ),
     [TRAIT.BURST_MASTERY]: traitTooltip(
       'Bursts deal increased strike damage. Completing a burst refunds part of the resource spent and grants swiftness.',
       (balanceContext, id) => [

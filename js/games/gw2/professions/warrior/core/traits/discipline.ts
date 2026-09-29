@@ -5,6 +5,7 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { readyHeightenedFocusBurst, triggerHeightenedFocus } from '#gw2/professions/warrior/core/traits/behavior.js';
 import { warriorBoonActive } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
@@ -91,6 +92,20 @@ export const versatilePower = defineTrait({
       multiplier: { profile: TRAIT.VERSATILE_POWER, field: 'rechargeMultiplier' }
     }
   ]
+});
+
+/** Owns Heightened Focus's execute-range Quickness and Burst recharge; its healing stacks are out of scope. */
+export const heightenedFocus = defineTrait({
+  id: TRAIT.HEIGHTENED_FOCUS,
+  name: 'Heightened Focus',
+  balance: {
+    internalCooldown: 12,
+    effects: [{ name: 'quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 5 }]
+  },
+  hooks: {
+    reactions: { 'damage.resolved': triggerHeightenedFocus },
+    onCastCommit: readyHeightenedFocusBurst
+  }
 });
 
 /** Owns this trait's tuning and selected contributions. */

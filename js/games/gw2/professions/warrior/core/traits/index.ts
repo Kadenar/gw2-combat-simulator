@@ -21,6 +21,7 @@ import {
 import {
   axeMastery,
   burstMastery,
+  heightenedFocus,
   versatilePower,
   versatileRage,
   warriorsSprint
@@ -90,5 +91,6 @@ export const warriorCoreTraits = [
   versatilePower,
   empowered,
   warriorsCunning,
-  warriorsSprint
+  warriorsSprint,
+  heightenedFocus
 ] as const;

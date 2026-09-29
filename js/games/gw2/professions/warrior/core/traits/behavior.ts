@@ -222,6 +222,44 @@ export function cullTheWeakBurst(runtime: WarriorRuntime, event: Gw2ResolverEven
     traitEffects(runtime, event, TRAIT.CULL_THE_WEAK);
 }
 
+/**
+ * Heightened Focus: the first player strike after its internal cooldown that lands while the target is below half
+ * health grants Quickness and readies every Burst skill, so execute phases can chain bursts. The adrenaline-scaled
+ * outgoing-healing stacks are support-only and intentionally not modeled.
+ */
+export function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
+  if (
+    event.actorType !== 'player' ||
+    !((event.coefficient || 0) > 0) ||
+    !hasTrait(runtime, TRAIT.HEIGHTENED_FOCUS) ||
+    !remainingTargetHealthBelow(runtime.config, runtime, 0.5) ||
+    !runtime.procs.claim(TRAIT.HEIGHTENED_FOCUS)
+  )
+    return;
+  traitEffects(runtime, event, TRAIT.HEIGHTENED_FOCUS);
+  // The live catalog defines which skills are bursts, including elite primal bursts and chants.
+  for (const skill of runtime.helpers.skills) if (skill.burst) runtime.cooldownController.clear(skill.id);
+  runtime.recordProc('trait', 'Heightened Focus', event.at, event.skillName, 'quickness; Burst skills recharged');
+}
+
+/**
+ * In game a burst's recharge begins at activation, so a Heightened Focus trigger during that burst's own cast also
+ * readies it. The simulator commits recharge at completion, before this hook, so the burst is cleared again here when
+ * the latest trigger (recovered from the proc deadline) falls inside its cast window.
+ */
+export function readyHeightenedFocusBurst(runtime: WarriorRuntime, cast: RuntimeCast): void {
+  if (!cast.skill.burst || !hasTrait(runtime, TRAIT.HEIGHTENED_FOCUS)) return;
+  const readyAt = runtime.procs.deadline(TRAIT.HEIGHTENED_FOCUS);
+  if (!(readyAt > 0)) return;
+  // Canonicalize subtraction roundoff without admitting procs outside the cast window.
+  const triggeredAt = canonicalTime(
+    readyAt -
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.HEIGHTENED_FOCUS), 'internalCooldown')
+  );
+  if (triggeredAt >= canonicalTime(cast.start) && triggeredAt <= canonicalTime(runtime.time))
+    runtime.cooldownController.clear(cast.skill.id);
+}
+
 /** Apply line-owned rewards at the shared reaction boundary. */
 export function axeMasteryCritical(runtime: WarriorRuntime, event: Gw2ResolverEvent, criticals: number): void {
   if (criticals > 0 && hasTrait(runtime, TRAIT.AXE_MASTERY)) {

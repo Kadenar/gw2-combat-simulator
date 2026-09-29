@@ -18,7 +18,8 @@ for (const [key, trait, trigger, literalDuration] of [
   ['cullTheWeak', TRAIT.CULL_THE_WEAK, 'damage', 5],
   ['sunderingBurst', TRAIT.SUNDERING_BURST, 'damage'],
   ['furiousBurst', TRAIT.FURIOUS_BURST, 'swap'],
-  ['opportunist', TRAIT.OPPORTUNIST, 'control']
+  ['opportunist', TRAIT.OPPORTUNIST, 'control'],
+  ['heightenedFocus', TRAIT.HEIGHTENED_FOCUS, 'damage']
 ]) {
   test(key + ' preserves eligibility, exclusive readiness, and claim-before-effect ordering', () => {
     for (const duration of literalDuration == null ? [2, 0] : [literalDuration]) {
@@ -112,6 +113,44 @@ test('Opportunist ignores summons, effect immobilization, and unrelated player c
   assert.deepEqual(result.warnings, []);
   assert.deepEqual({ ...observedRuntime(result).procs.readyAt }, {});
   assert.equal(observedRuntime(result).profession.core.adrenaline, 0);
+});
+
+// Heightened Focus needs the trait and a below-half-health target; it readies the triggering burst and other bursts.
+test('Heightened Focus grants Quickness and recharges bursts only below half target health', () => {
+  for (const [selected, startingHealthFraction, expected] of [
+    [true, 0.4, true],
+    [true, 1, false],
+    [false, 0.4, false]
+  ]) {
+    const config = {
+      specialization: 'Core',
+      selectedTraitIds: selected ? [TRAIT.HEIGHTENED_FOCUS] : [],
+      initialResource: 30,
+      primaryWeapon: 'Rifle',
+      target: { health: 1000000, startingHealthFraction, armor: 2597 },
+      stats: { power: 2000, precision: 1500 }
+    };
+    const native = warriorProfession.runtimeFor(config);
+    const result = observeGw2Runtime({
+      config,
+      profession: {
+        ...native,
+        initialize(runtime) {
+          native.initialize(runtime);
+          // A burst recharging from an earlier cast must also become ready when the trait triggers.
+          runtime.cooldowns.set(ID.ARCING_SLICE, 100);
+        }
+      },
+      // Kill Shot hits before its cast completes, so its own recharge commits after the trigger.
+      rotation: ['Kill Shot', { type: 'wait', durationMs: 2000 }]
+    });
+    assert.deepEqual(result.warnings, []);
+    const runtime = observedRuntime(result);
+    const quickness = result.events.filter((event) => event.sourceId === TRAIT.HEIGHTENED_FOCUS);
+    assert.equal(quickness.length > 0, expected);
+    for (const id of [ID.KILL_SHOT, ID.ARCING_SLICE])
+      assert.equal((runtime.cooldowns.get(id) ?? 0) > runtime.time, !expected);
+  }
 });
 
 const baseConfig = Object.freeze({
