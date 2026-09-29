@@ -426,6 +426,25 @@ test('requested weapon flips require and consume their parent sequence skill', (
   }
 });
 
+// Both an early release and a full block window must arm the flip without inventing an incoming attack.
+test('Illusionary Riposte enables Counter Blade without block rewards', () => {
+  for (const specialization of ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']) {
+    for (const interruptAfterMs of [undefined, mesmerCatalog.skillsById.get(ID.ILLUSIONARY_RIPOSTE).castTimeMs]) {
+      const result = simulateMesmer(
+        [{ type: 'cast', skillId: ID.ILLUSIONARY_RIPOSTE, interruptAfterMs }, 'Counter Blade'],
+        { specialization, primaryWeapon: 'Sword', secondaryWeapon: 'Sword', initialResource: 0 }
+      );
+      assert.deepEqual(result.warnings, []);
+      assert.equal(result.planningState.profession.resource, 0);
+      assert.ok(result.steps.some((step) => step.skill === 'Counter Blade' && !step.invalid));
+      assert.equal(
+        result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.ILLUSIONARY_RIPOSTE),
+        false
+      );
+    }
+  }
+});
+
 test('Illusionary Riposte defaults to a 120ms interrupt before Counter Blade', () => {
   const config = defaultSimulationConfig({
     specialization: 'Core',

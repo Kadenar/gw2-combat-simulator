@@ -138,20 +138,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
     // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
     flipArm: { skillId: ID.COUNTER_BLADE, duration: 3, delay: 0, anchor: 'castStart' },
     sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }],
-    resource: {
-      mode: 'add',
-      count: 1
-    },
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2,
-        hits: 1,
-        name: 'Damage',
-        actorType: 'player',
-        weapon: 'sword'
-      }
-    ],
+    // No incoming attacks are simulated, so blocking grants neither a clone nor a counterattack.
+    effects: [],
     castTimeMs: 1480,
     defaultInterruptMs: 120,
     interruptCommitMs: 100
