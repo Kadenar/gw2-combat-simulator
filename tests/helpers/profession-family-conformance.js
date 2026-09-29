@@ -51,7 +51,7 @@ function reactionKeys(...modules) {
 function modifierRules(module) {
   const modifiers = module?.modifiers;
 
-  return Array.isArray(modifiers) ? modifiers : modifiers?.modifierRules || [];
+  return modifiers.modifierRules || [];
 }
 
 function assertUniqueOwners(modules, select, label) {

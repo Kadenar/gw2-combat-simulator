@@ -62,7 +62,7 @@ function eliteSpecializationNames(catalog) {
 function nativeModifierRules(module) {
   const modifiers = module.modifiers;
 
-  return Array.isArray(modifiers) ? modifiers : modifiers?.modifierRules || [];
+  return modifiers.modifierRules || [];
 }
 
 function collectTypeScriptSources(directoryUrl, relativeDirectory = '') {

@@ -114,6 +114,22 @@ function previewFamily() {
   });
 }
 
+// Every registered module exposes one modifier shape, including trait-free modules and preview clones.
+test('module registration normalizes modifiers and rejects invalid rule collections', () => {
+  const rules = [trait.modifierRules[0]];
+  const modifyStrikeDamage = (_context, damage) => damage + 1;
+  assert.deepEqual(moduleWith([]).modifiers, {});
+  const core = moduleWith([], { modifiers: rules });
+  assert.deepEqual(core.modifiers, { modifierRules: rules });
+  const imperative = moduleWith([], { modifiers: { modifierRules: rules, modifyStrikeDamage } });
+  assert.equal(imperative.modifiers.modifyStrikeDamage, modifyStrikeDamage);
+  assert.equal(familyWith(imperative).runtimeFor({}).modifyStrikeDamage({}, 10), 22);
+  assert.throws(() => moduleWith([], { modifiers: { modifierRules: {} } }), /modifierRules must be an array/);
+  assert.throws(() => moduleWith([], { modifiers: 1 }), /modifiers must be an object/);
+  assert.throws(() => familyWith({ ...core, modifiers: rules }), /modifiers must be an object/);
+  assert.throws(() => familyWith({ ...core, modifiers: { modifierRules: {} } }), /modifierRules must be an array/);
+});
+
 test('trait expansion preserves a custom compiler, imperative modifiers, and cached runtime selection isolation', () => {
   const compiled = [];
   const family = familyWith(

@@ -73,6 +73,8 @@ function assertNativeModuleDefinition(definition: object): void {
       readonly project?: (...args: never[]) => object;
     };
     readonly hooks?: object;
+    readonly kind?: string;
+    readonly modifiers?: ProfessionModifierDefinition | readonly unknown[];
   };
   if (!(candidate.id || '').trim()) {
     throw new TypeError('Native profession module id is required.');
@@ -101,6 +103,17 @@ function assertNativeModuleDefinition(definition: object): void {
 
   if (candidate.hooks != null) {
     assertObject(candidate.hooks, `${candidate.id}.hooks`);
+  }
+
+  // Authoring accepts rule arrays; registered modules and preview clones use one validated object shape.
+  if (
+    candidate.kind === 'native-profession-module' ||
+    (candidate.modifiers != null && !Array.isArray(candidate.modifiers))
+  ) {
+    assertObject(candidate.modifiers, `${candidate.id}.modifiers`);
+    const rules = (candidate.modifiers as ProfessionModifierDefinition).modifierRules;
+    if (rules != null && !Array.isArray(rules))
+      throw new TypeError(`${candidate.id} modifiers.modifierRules must be an array.`);
   }
 }
 
@@ -175,7 +188,7 @@ export function defineNativeModule<
     }),
     modifiers: traitRules.length
       ? { ...sourceModifiers, modifierRules: [...(sourceModifiers.modifierRules ?? []), ...traitRules] }
-      : definition.modifiers,
+      : sourceModifiers,
     state: Object.freeze({ ...definition.state }),
     hooks: hooks ? Object.freeze({ ...hooks }) : undefined,
     presentation:
@@ -214,11 +227,7 @@ function createModuleUi(
 
 /** Compiles merged active rules once, using standard GW2 buckets unless a module owns a custom compiler. */
 function composeModuleModifiers(modules: readonly AnyNativeModule[]): ProfessionModifierDefinition {
-  const modifiers = modules.map((module): ProfessionModifierDefinition =>
-    Array.isArray(module.modifiers)
-      ? { modifierRules: module.modifiers }
-      : ((module.modifiers as ProfessionModifierDefinition | undefined) ?? {})
-  );
+  const modifiers = modules.map((module) => module.modifiers);
   const result = Object.fromEntries(
     MODIFIER_HOOK_NAMES.map((name) => [
       name,
@@ -228,12 +237,7 @@ function composeModuleModifiers(modules: readonly AnyNativeModule[]): Profession
       })
     ])
   ) as Record<(typeof MODIFIER_HOOK_NAMES)[number], ProfessionHook[]>;
-  const declarations = modifiers.flatMap((source, index) => {
-    const value = source.modifierRules;
-    if (value == null) return [];
-    if (!Array.isArray(value)) throw new TypeError(`${modules[index].id} modifiers.modifierRules must be an array.`);
-    return value;
-  });
+  const declarations = modifiers.flatMap((source) => source.modifierRules ?? []);
   const owners = modifiers.flatMap((source, index) => (source.compileModifierRules == null ? [] : [index]));
   if (owners.length > 1) {
     throw new TypeError(
@@ -312,9 +316,7 @@ export function defineNativeProfession<
         throw new TypeError(`${module.id} trait definition ${trait.id} has no owned trait metadata.`);
     }
 
-    const rules = Array.isArray(module.modifiers)
-      ? module.modifiers
-      : ((module.modifiers as ProfessionModifierDefinition | undefined)?.modifierRules ?? []);
+    const rules = module.modifiers.modifierRules ?? [];
     for (const rule of rules) {
       if (ruleOwners.has(rule.id)) throw new TypeError(`Duplicate modifier rule ${rule.id}.`);
       ruleOwners.add(rule.id);
@@ -468,13 +470,7 @@ export function defineNativeProfession<
       const balanceContext = context.balanceContext ?? {
         catalog: assembly.catalog,
         modifierRulesById: new Map(
-          modules
-            .flatMap((module) =>
-              Array.isArray(module.modifiers)
-                ? module.modifiers
-                : ((module.modifiers as ProfessionModifierDefinition | undefined)?.modifierRules ?? [])
-            )
-            .map((rule) => [rule.id, rule])
+          modules.flatMap((module) => module.modifiers.modifierRules ?? []).map((rule) => [rule.id, rule])
         )
       };
       const active = new Set(

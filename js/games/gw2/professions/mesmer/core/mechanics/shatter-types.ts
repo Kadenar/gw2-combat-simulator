@@ -3,7 +3,7 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /** Leaf shatter contracts let Core and specialization mechanics share results without importing the family type root. */
 export interface MesmerShatterDefinition {
-  readonly balanceProfileId?: SkillId;
+  readonly balanceProfileId: SkillId;
   readonly effects?: readonly SkillEffect[];
   readonly durationPerTier?: number;
   readonly slot: number;

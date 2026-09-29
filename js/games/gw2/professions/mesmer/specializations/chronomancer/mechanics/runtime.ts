@@ -8,10 +8,7 @@ import { mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js
 import { masterOfFragmentationDuration } from '#gw2/professions/mesmer/core/traits/behavior.js';
 import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
 import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
-import {
-  CHRONOMANCER_SHATTER_PROFILE_IDS,
-  CHRONOMANCER_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
+import { CHRONOMANCER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
 import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
 import {
   chronophantasmaPolicy,
@@ -32,7 +29,7 @@ export function chronomancerControllerFor(runtime: MesmerMechanics): MesmerConti
 export function initializeChronomancerRuntime(context: MesmerRuntime): void {
   const runtime = mesmerMechanicsFor(context);
   applyMesmerRuntimeManifest(runtime, {
-    shatters: mesmerProfiledShatters(context, MESMER_CHRONOMANCER_SHATTERS, CHRONOMANCER_SHATTER_PROFILE_IDS),
+    shatters: mesmerProfiledShatters(context, MESMER_CHRONOMANCER_SHATTERS),
     shatterResolvedHandlers: [resolveChronomancerShatterBoons, resolveIllusionaryReversion],
     phantasmAttackTimings: MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
     phantasmPolicy: chronophantasmaPolicy(context)

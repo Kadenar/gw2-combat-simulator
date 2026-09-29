@@ -17,15 +17,9 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import {
-  MESMER_CORE_BALANCE_PROFILE_IDS as CORE,
-  MESMER_CORE_SHATTER_PROFILE_IDS
-} from '#gw2/professions/mesmer/core/profiles.js';
-import {
-  CHRONOMANCER_BALANCE_PROFILE_IDS as CHRONO,
-  CHRONOMANCER_SHATTER_PROFILE_IDS
-} from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
-import { VIRTUOSO_SHATTER_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/virtuoso/profiles.js';
+import { MESMER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/mesmer/core/profiles.js';
+import { CHRONOMANCER_BALANCE_PROFILE_IDS as CHRONO } from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
+
 import {
   MIRAGE_BALANCE_PROFILE_IDS as MIRAGE,
   MIRAGE_AMBUSH_PROFILE_IDS,
@@ -46,12 +40,9 @@ import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-toolt
 // Resource tiers are alternatives; ordinary clone shatters count the player as an additional source.
 const shatterTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const id = Number(entity.id);
-  const bladesong = VIRTUOSO_SHATTER_PROFILE_IDS[id] != null;
+  const bladesong = MESMER_VIRTUOSO_SHATTERS[id] != null;
   const definition = { ...MESMER_CORE_SHATTERS, ...MESMER_CHRONOMANCER_SHATTERS, ...MESMER_VIRTUOSO_SHATTERS }[id];
-  const profile = tooltipProfile(
-    balanceContext,
-    { ...MESMER_CORE_SHATTER_PROFILE_IDS, ...CHRONOMANCER_SHATTER_PROFILE_IDS, ...VIRTUOSO_SHATTER_PROFILE_IDS }[id]
-  );
+  const profile = tooltipProfile(balanceContext, definition.balanceProfileId);
   const native = balanceContext.catalog.skillsById.get(entity.id)!;
   // Resolve by resource tier so removing a strike cannot relabel its surviving neighbors.
   const facts = definition.coefficients.flatMap((_, tier) => {

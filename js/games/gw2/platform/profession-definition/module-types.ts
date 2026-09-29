@@ -90,7 +90,8 @@ export interface NativeModule<
   'modifiers'
 > {
   readonly kind: 'native-profession-module';
-  readonly modifiers?: readonly Gw2ModifierRule[] | ProfessionModifierDefinition;
+  /** Registration normalizes rule arrays to the same object shape as imperative modifiers. */
+  readonly modifiers: ProfessionModifierDefinition;
 }
 
 export interface NativeCatalogOptions {

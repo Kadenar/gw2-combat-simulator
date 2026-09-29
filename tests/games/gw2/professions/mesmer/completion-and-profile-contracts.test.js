@@ -7,7 +7,6 @@ import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profess
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
-import { VIRTUOSO_SHATTER_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/virtuoso/profiles.js';
 
 // Committed projectiles survive an ended animation; only skills with retained aftercast reserve the cast lane.
 test('committed dagger casts preserve projectiles and their declared cast occupancy', () => {
@@ -178,7 +177,7 @@ test('instrument commitment requires a performance that was not cancelled', () =
 
 // The supported patch API must change executable blade ticks without mutating the base or zero-blade tier.
 test('Virtuoso executes a patched shatter tick beside an empty zero-blade tier', () => {
-  const profileId = VIRTUOSO_SHATTER_PROFILE_IDS[ID.BLADESONG_HARMONY];
+  const profileId = MESMER_VIRTUOSO_SHATTERS[ID.BLADESONG_HARMONY].balanceProfileId;
   const original = mesmerCatalog.balanceProfilesById.get(profileId);
   const before = structuredClone(original);
   const patch = {
@@ -187,9 +186,7 @@ test('Virtuoso executes a patched shatter tick beside an empty zero-blade tier',
     }
   };
   const catalog = applyBalanceProfilePatch(mesmerCatalog, patch);
-  const shatter = mesmerProfiledShatters({ catalog }, MESMER_VIRTUOSO_SHATTERS, VIRTUOSO_SHATTER_PROFILE_IDS)[
-    ID.BLADESONG_HARMONY
-  ];
+  const shatter = mesmerProfiledShatters({ catalog }, MESMER_VIRTUOSO_SHATTERS)[ID.BLADESONG_HARMONY];
   const profession = {
     runtimeFor(config) {
       const runtime = mesmerProfession.runtimeFor(config);

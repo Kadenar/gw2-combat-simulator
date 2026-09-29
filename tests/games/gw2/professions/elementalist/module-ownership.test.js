@@ -20,7 +20,7 @@ const SPECIALIZATION_STATE_KEYS = Object.freeze({
 
 function modifierIds(module) {
   const modifiers = module.modifiers;
-  const rules = Array.isArray(modifiers) ? modifiers : modifiers.modifierRules;
+  const rules = modifiers.modifierRules;
   return new Set(rules.map((rule) => rule.id));
 }
 

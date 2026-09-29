@@ -26,7 +26,7 @@ import { createProfessionActionController } from '#gw2/professions/mesmer/core/m
 import type { MesmerPendingResource } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import { createResourceController } from '#gw2/professions/mesmer/core/mechanics/resources.js';
 import { resolveCloneShatter } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
-import { MESMER_CORE_SHATTER_PROFILE_IDS, mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
+import { mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerMechanics, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -64,7 +64,7 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
     traitDamage: {
       'Lesser Chaos Storm': methodOfMadnessDamage(context)
     },
-    shatters: mesmerProfiledShatters(context, MESMER_CORE_SHATTERS, MESMER_CORE_SHATTER_PROFILE_IDS),
+    shatters: mesmerProfiledShatters(context, MESMER_CORE_SHATTERS),
     shatterResolvers: {
       'mesmer.core.clone-shatter': resolveCloneShatter
     },

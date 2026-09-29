@@ -21,7 +21,6 @@ export const TROUBADOUR_BALANCE_PROFILE_IDS = Object.freeze({
   harmoniousHarp: 'mesmer.troubadour.harmonious-harp',
   harmoniousHarpAlternate: 'mesmer.troubadour.harmonious-harp-alternate',
   deafeningDrum: 'mesmer.troubadour.deafening-drum',
-  torturedMastermind: 'mesmer.troubadour.tale-tortured-mastermind',
   honorableRogue: 'mesmer.troubadour.tale-honorable-rogue',
   soulkeeper: 'mesmer.troubadour.tale-soulkeeper',
   valiantMarshal: 'mesmer.troubadour.tale-valiant-marshal'

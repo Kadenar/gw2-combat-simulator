@@ -18,7 +18,6 @@ export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   etherClone: 'mesmer.core.ether-clone',
   mindWrack: 'mesmer.core.mind-wrack',
   cryOfFrustration: 'mesmer.core.cry-of-frustration',
-  diversion: 'mesmer.core.diversion',
   distortion: 'mesmer.core.distortion',
   signetOfIllusions: 'mesmer.core.signet-of-illusions',
   signetOfDomination: 'mesmer.core.signet-of-domination-passive',
@@ -26,13 +25,13 @@ export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   mimic: 'mesmer.core.mimic'
 });
 
+/** The shatter definition owns the profile identity used by authoring and runtime lookup. */
 export function mesmerShatterProfile(
-  id: string,
   parentId: SkillId,
   name: string,
   shatter: MesmerShatterDefinition
 ): BalanceProfile {
-  return variant(id, parentId, `${name} - Shatter`, {
+  return variant(shatter.balanceProfileId, parentId, `${name} - Shatter`, {
     ...(shatter.rechargeReductionPerSource == null ? {} : { rechargeReduction: shatter.rechargeReductionPerSource }),
     effects: [
       ...shatter.coefficients.map((coefficient, resourceCount) =>
@@ -69,12 +68,6 @@ export function mesmerTraitDamageProfile(id: SkillId, name: string, damage: Mesm
   });
 }
 
-const SHATTER_PROFILE_BY_SKILL_ID: Readonly<Record<number, string>> = Object.freeze(
-  Object.fromEntries(
-    Object.entries(MESMER_CORE_SHATTERS).map(([id, shatter]) => [Number(id), String(shatter.balanceProfileId)])
-  )
-);
-
 export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   // The landed-hit reaction selects this ordinary condition profile instead of creating an excess clone.
   variant(MESMER_CORE_BALANCE_PROFILE_IDS.etherClone, ID.ETHER_CLONE, 'Ether Clone - Clone Limit', {
@@ -89,7 +82,6 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   },
   ...Object.entries(MESMER_CORE_SHATTERS).map(([skillId, shatter]) =>
     mesmerShatterProfile(
-      SHATTER_PROFILE_BY_SKILL_ID[Number(skillId)],
       Number(skillId),
       {
         [ID.MIND_WRACK]: 'Mind Wrack',
@@ -121,12 +113,11 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
 // Compile only selected effects; removed tiers retain their identity and unrelated mechanic metadata.
 export function mesmerProfiledShatters(
   context: unknown,
-  shatters: Readonly<Record<number, MesmerShatterDefinition>>,
-  profileIds: Readonly<Record<number, string>>
+  shatters: Readonly<Record<number, MesmerShatterDefinition>>
 ): Record<number, MesmerShatter> {
   return Object.fromEntries(
     Object.entries(shatters).map(([skillId, shatter]) => {
-      const balanceProfileId = profileIds[Number(skillId)];
+      const balanceProfileId = shatter.balanceProfileId;
       const { coefficients, ticks, ...mechanic } = shatter;
       const strikes = coefficients.map((_, tier) =>
         requireEffect(requireBalanceProfileFromContext(context, balanceProfileId), 'strike', `${tier} resources`)
@@ -174,5 +165,3 @@ export function mesmerProfiledTraitDamage(
     duration: profile.durationMultiplier === undefined ? undefined : balanceProfileNumber(profile, 'durationMultiplier')
   };
 }
-
-export { SHATTER_PROFILE_BY_SKILL_ID as MESMER_CORE_SHATTER_PROFILE_IDS };

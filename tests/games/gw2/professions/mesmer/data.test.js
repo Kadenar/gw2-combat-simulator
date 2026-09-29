@@ -16,11 +16,7 @@ import {
   validateMesmerBuild
 } from '#gw2/professions/mesmer/build/build.js';
 import { MESMER_CORE_CLONE_ATTACKS as CLONE_ATTACKS } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
-import {
-  MESMER_CORE_BALANCE_PROFILE_IDS,
-  MESMER_CORE_SHATTER_PROFILE_IDS,
-  mesmerProfiledShatters
-} from '#gw2/professions/mesmer/core/profiles.js';
+import { MESMER_CORE_BALANCE_PROFILE_IDS, mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_CORE_EXTRA_SKILLS } from '#gw2/professions/mesmer/core/skills/actions.js';
 import { MESMER_CORE_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
@@ -297,16 +293,13 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
   assert.equal(preview.balanceProfilesById.get(TROUBADOUR_BALANCE_PROFILE_IDS.crescendo).effects[0].coefficient, 2.5);
   assert.equal(preview.balanceProfilesById.get(TROUBADOUR_BALANCE_PROFILE_IDS.crescendo).damageIncreasePerStack, 0.3);
 
-  const profiledShatter = mesmerProfiledShatters(
-    { catalog: preview },
-    { [ID.MIND_WRACK]: SHATTERS[ID.MIND_WRACK] },
-    MESMER_CORE_SHATTER_PROFILE_IDS
-  )[ID.MIND_WRACK];
+  const profiledShatter = mesmerProfiledShatters({ catalog: preview }, { [ID.MIND_WRACK]: SHATTERS[ID.MIND_WRACK] })[
+    ID.MIND_WRACK
+  ];
 
   const originalShatter = mesmerProfiledShatters(
     { catalog: mesmerCatalog },
-    { [ID.MIND_WRACK]: SHATTERS[ID.MIND_WRACK] },
-    MESMER_CORE_SHATTER_PROFILE_IDS
+    { [ID.MIND_WRACK]: SHATTERS[ID.MIND_WRACK] }
   )[ID.MIND_WRACK];
   assert.deepEqual(
     profiledShatter.strikes,

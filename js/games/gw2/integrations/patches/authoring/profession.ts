@@ -40,22 +40,6 @@ function assertObject(value: object | null | undefined, label: string): void {
   }
 }
 
-function nativeModuleModifierRules(module: AnyNativeModule): readonly Gw2ModifierRule[] {
-  const modifiers = module.modifiers;
-  if (Array.isArray(modifiers)) {
-    return modifiers as readonly Gw2ModifierRule[];
-  }
-
-  if (!modifiers || typeof modifiers !== 'object') return [];
-  const rules = (modifiers as { readonly modifierRules?: unknown }).modifierRules;
-  if (rules == null) return [];
-  if (!Array.isArray(rules)) {
-    throw new TypeError(`${module.id} modifierRules must be an array.`);
-  }
-
-  return rules as readonly Gw2ModifierRule[];
-}
-
 function modifierAuthoringValue(value: Gw2ModifierRule['amount'] | Gw2ModifierRule['factor']): {
   readonly kind: 'static' | 'resolver' | 'absent';
   readonly value?: number;
@@ -119,7 +103,7 @@ function createPatchAuthoringMetadata(
             )
           ),
           modifierRules: Object.freeze(
-            nativeModuleModifierRules(module).map((rule) =>
+            (module.modifiers.modifierRules ?? []).map((rule) =>
               Object.freeze({
                 id: rule.id,
                 label: rule.label || null,
@@ -183,13 +167,13 @@ function preparePreviewModifierRules(
     return { byModule: new Map(), targets: Object.freeze([]) };
   }
 
-  const declarations = modules.flatMap((module) => [...nativeModuleModifierRules(module)]);
+  const declarations = modules.flatMap((module) => [...(module.modifiers.modifierRules ?? [])]);
   const patched = applyModifierRulePatch(declarations, patch);
   const patchedById = new Map(patched.map((rule) => [rule.id, rule]));
   const ownerById = new Map<string, string>();
   const byModule = new Map<string, readonly Gw2ModifierRule[]>();
   for (const module of modules) {
-    const rules = nativeModuleModifierRules(module);
+    const rules = module.modifiers.modifierRules ?? [];
     if (!rules.length) continue;
     for (const rule of rules) ownerById.set(rule.id, module.id);
     byModule.set(module.id, Object.freeze(rules.map((rule) => patchedById.get(rule.id) || rule)));
@@ -215,10 +199,7 @@ function modulesWithModifierRules(
   return modules.map((module) => {
     const modifierRules = modifierRulesByModule.get(module.id);
     if (!modifierRules) return module;
-    const existing = module.modifiers;
-    const modifiers = Array.isArray(existing)
-      ? modifierRules
-      : Object.freeze({ ...((existing || {}) as object), modifierRules });
+    const modifiers = Object.freeze({ ...module.modifiers, modifierRules });
 
     // Clone only declaration shells touched by a preview; catalog data and state factories stay shared.
     return Object.freeze({
@@ -242,7 +223,7 @@ export function withPatchPreview<
   const preview = candidatePreview ? validatePatchPreview(candidatePreview) : null;
   const professionPatch = professionPatchFor(preview, definition.id);
   const assembly = getNativeCatalogAssembly(modules, definition.catalog);
-  const modifierRules = modules.flatMap((module) => [...nativeModuleModifierRules(module)]);
+  const modifierRules = modules.flatMap((module) => [...(module.modifiers.modifierRules ?? [])]);
   const patchAuthoring = createPatchAuthoringMetadata(definition.id, definition.name, modules, assembly.fragments);
   const previewModifierRules = preparePreviewModifierRules(modules, professionPatch?.modifierRules);
   let previewFamily: NativeProfessionContract<TModules, TPresentation, TBuild> | null = null;
