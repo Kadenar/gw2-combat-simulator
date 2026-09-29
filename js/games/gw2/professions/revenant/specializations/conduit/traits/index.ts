@@ -27,7 +27,6 @@ export const bolsteredBonds = defineTrait({
       bolsteredBondsBonuses(balanceContext, (build as RevenantBuild).selectedLegends)
     ).map(([attribute, amount]) => ({
       kind: 'flat' as const,
-      source: 'Bolstered Bonds',
       to: BUILD_ATTRIBUTE_NAMES[attribute as keyof typeof BUILD_ATTRIBUTE_NAMES],
       amount,
       feedsConversions: false
@@ -36,7 +35,6 @@ export const bolsteredBonds = defineTrait({
   id: TRAIT.BOLSTERED_BONDS,
   name: 'Bolstered Bonds',
   balance: {
-    id: TRAIT.BOLSTERED_BONDS,
     assassinAttributeBonus: 75,
     centaurAttributeBonus: 150,
     demonAttributeBonus: 75,
@@ -94,7 +92,7 @@ export const foundPurpose = defineTrait({ id: TRAIT.FOUND_PURPOSE, name: 'Found 
 export const kineticInsight = defineTrait({
   id: TRAIT.KINETIC_INSIGHT,
   name: 'Kinetic Insight',
-  balance: { id: TRAIT.KINETIC_INSIGHT, rechargeMultiplier: 0.8, resourceGain: 2, effects: [] }
+  balance: { rechargeMultiplier: 0.8, resourceGain: 2, effects: [] }
 });
 
 /** Owns Lingering Determination tuning and behavior at its established execution boundaries. */

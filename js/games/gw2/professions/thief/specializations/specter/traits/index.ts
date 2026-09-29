@@ -68,7 +68,6 @@ export const secondOpinion = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Second Opinion',
           to: 'Condition Damage',
           amount:
             balanceProfileNumber(secondOpinionProfile, 'attributeBonus') +
@@ -77,7 +76,6 @@ export const secondOpinion = defineTrait({
         },
         {
           kind: 'conversion',
-          source: 'Second Opinion',
           from: 'Condition Damage',
           to: 'Healing Power',
           multiplier: balanceProfileNumber(secondOpinionProfile, 'attributeConversion'),
@@ -164,7 +162,6 @@ export const strengthOfShadows = defineTrait({
       attributeEffects: [
         {
           kind: 'conversion',
-          source: 'Strength of Shadows',
           from: 'Vitality',
           to: 'Expertise',
           multiplier: balanceProfileNumber(strengthOfShadowsProfile, 'attributeConversion'),

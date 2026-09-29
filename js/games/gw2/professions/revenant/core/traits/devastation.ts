@@ -14,7 +14,6 @@ export const assassinsPresence = defineTrait({
   id: TRAIT.ASSASSINS_PRESENCE,
   name: "Assassin's Presence",
   balance: {
-    id: TRAIT.ASSASSINS_PRESENCE,
     categories: ['Trait'],
     skillFamily: 'Trait',
     cooldown: 10,
@@ -36,7 +35,6 @@ export const battleScarred = defineTrait({
   id: TRAIT.BATTLE_SCARRED,
   name: 'Battle Scarred',
   balance: {
-    id: TRAIT.BATTLE_SCARRED,
     categories: ['Trait'],
     skillFamily: 'Trait',
     effects: [
@@ -57,7 +55,6 @@ export const brutality = defineTrait({
   id: TRAIT.BRUTALITY,
   name: 'Brutality',
   balance: {
-    id: TRAIT.BRUTALITY,
     categories: ['Trait'],
     skillFamily: 'Trait',
     cooldown: 9,
@@ -98,7 +95,6 @@ export const exposeDefensesTrait = defineTrait({
   id: TRAIT.EXPOSE_DEFENSES,
   name: 'Expose Defenses',
   balance: {
-    id: TRAIT.EXPOSE_DEFENSES,
     categories: ['Trait'],
     skillFamily: 'Trait',
     effects: [
@@ -119,7 +115,6 @@ export const notoriety = defineTrait({
   id: TRAIT.NOTORIETY,
   name: 'Notoriety',
   balance: {
-    id: TRAIT.NOTORIETY,
     attributePerStack: 10,
     categories: ['Trait'],
     skillFamily: 'Trait',
@@ -173,7 +168,6 @@ export const thrillOfCombatTrait = defineTrait({
   id: TRAIT.THRILL_OF_COMBAT,
   name: 'Thrill of Combat',
   balance: {
-    id: TRAIT.THRILL_OF_COMBAT,
     categories: ['Trait'],
     skillFamily: 'Trait',
     cooldown: 1,

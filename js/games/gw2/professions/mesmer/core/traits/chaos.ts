@@ -23,7 +23,6 @@ export const chaoticPersistence = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Chaotic Persistence',
           to: 'Expertise',
           amount: balanceProfileNumber(profile, 'expertiseBonus'),
           feedsConversions: false,
@@ -31,7 +30,6 @@ export const chaoticPersistence = defineTrait({
         },
         {
           kind: 'flat',
-          source: 'Chaotic Persistence',
           to: 'Concentration',
           amount: balanceProfileNumber(profile, 'concentrationBonus'),
           feedsConversions: false,

@@ -50,7 +50,6 @@ export const swindlersEquilibrium = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: "Swindler's Equilibrium",
           to: 'Power',
           amount: balanceProfileNumber(
             swindlersEquilibriumProfile,

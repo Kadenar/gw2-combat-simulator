@@ -71,7 +71,6 @@ export const noScope = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'No Scope',
           to: 'Ferocity',
           amount: balanceProfileNumber(noScopeProfile, 'attributeBonus'),
           feedsConversions: false,
@@ -141,7 +140,6 @@ export const thermalVision = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Thermal Vision',
           to: 'Expertise',
           amount: balanceProfileNumber(thermalVisionProfile, 'attributeBonus'),
           feedsConversions: true
@@ -196,7 +194,6 @@ export const chemicalRounds = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Chemical Rounds',
           to: 'Condition Damage',
           amount: balanceProfileNumber(chemicalRoundsProfile, 'attributeBonus'),
           feedsConversions: true

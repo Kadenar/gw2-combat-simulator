@@ -120,7 +120,6 @@ export const gatheredFocus = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: 'Gathered Focus',
         to: 'Concentration',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(balanceContext, TRAIT.GATHERED_FOCUS),

@@ -39,7 +39,6 @@ export function applyMesmerBuildAttributeRules(
   const attributeEffects: Gw2AttributeEffect[] = [
     {
       kind: 'flat',
-      source: 'Signet of Domination',
       to: 'Condition Damage',
       amount: balanceProfileNumber(signetOfDominationPassiveProfile, 'conditionDamageBonus'),
       feedsConversions: false,
@@ -47,7 +46,6 @@ export function applyMesmerBuildAttributeRules(
     },
     {
       kind: 'flat',
-      source: 'Signet of Midnight',
       to: 'Expertise',
       amount: balanceProfileNumber(signetOfMidnightPassiveProfile, 'expertiseBonus'),
       feedsConversions: false,

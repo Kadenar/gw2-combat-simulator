@@ -94,7 +94,6 @@ export const spitefulFortitude = defineTrait({
     attributeEffects: [
       {
         kind: 'conversion',
-        source: 'Spiteful Fortitude',
         from: 'Power',
         to: 'Vitality',
         multiplier: balanceProfileNumber(

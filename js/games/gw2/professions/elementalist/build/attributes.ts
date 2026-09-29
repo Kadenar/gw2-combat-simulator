@@ -37,7 +37,6 @@ export function applyElementalistBuildAttributeRules(
   const attributeEffects: readonly Gw2AttributeEffect[] = [
     {
       kind: 'flat',
-      source: 'Signet of Fire',
       to: 'Precision',
       amount: balanceProfileNumber(signetOfFirePassiveProfile, 'attributeBonus'),
       feedsConversions: false,

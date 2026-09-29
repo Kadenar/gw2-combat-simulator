@@ -53,7 +53,6 @@ export const axeMastery = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Axe Mastery',
           to: 'Ferocity',
           amount: balanceProfileNumber(
             requireBalanceProfileFromContext(context.balanceContext, TRAIT.AXE_MASTERY),

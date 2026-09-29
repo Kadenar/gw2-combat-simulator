@@ -72,7 +72,6 @@ export const ferociousWinds = defineTrait({
       attributeEffects: [
         {
           kind: 'conversion',
-          source: 'Ferocious Winds',
           from: 'Precision',
           to: 'Ferocity',
           multiplier: balanceProfileNumber(profile, 'attributeConversion'),
@@ -150,7 +149,6 @@ export const aeromancersTraining = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: "Aeromancer's Training",
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
           feedsConversions: false

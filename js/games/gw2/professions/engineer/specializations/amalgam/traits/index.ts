@@ -79,7 +79,6 @@ export const hybridVigor = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: 'Hybrid Vigor',
         to: 'Vitality',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(balanceContext, TRAIT.HYBRID_VIGOR),

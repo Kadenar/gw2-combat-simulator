@@ -66,7 +66,6 @@ export const arachnophobia = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Arachnophobia',
           to: 'Expertise',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
           feedsConversions: false
@@ -138,7 +137,6 @@ export const ambidexterity = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Ambidexterity',
           to: 'Condition Damage',
           amount: balanceProfileNumber(
             profile,

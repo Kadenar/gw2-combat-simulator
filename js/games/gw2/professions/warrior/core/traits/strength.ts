@@ -193,7 +193,6 @@ export const forcefulGreatsword = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Forceful Greatsword',
           to: 'Power',
           amount: balanceProfileNumber(
             requireBalanceProfileFromContext(context.balanceContext, TRAIT.FORCEFUL_GREATSWORD),
@@ -204,7 +203,6 @@ export const forcefulGreatsword = defineTrait({
         },
         {
           kind: 'flat',
-          source: 'Forceful Greatsword',
           to: 'Power',
           amount: balanceProfileNumber(
             requireBalanceProfileFromContext(context.balanceContext, TRAIT.FORCEFUL_GREATSWORD),
@@ -236,7 +234,6 @@ export const greatFortitude = defineTrait({
       attributeEffects: [
         {
           kind: 'conversion',
-          source: 'Great Fortitude',
           from: 'Power',
           to: 'Vitality',
           multiplier: balanceProfileNumber(
@@ -249,7 +246,6 @@ export const greatFortitude = defineTrait({
         },
         {
           kind: 'conversion',
-          source: 'Great Fortitude',
           from: 'Power',
           to: 'Ferocity',
           multiplier: balanceProfileNumber(

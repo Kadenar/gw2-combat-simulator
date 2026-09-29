@@ -187,7 +187,6 @@ export const zealousBlade = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Zealous Blade',
           to: 'Power',
           amount: balanceProfileNumber(
             zealousBladeProfile,
@@ -211,7 +210,6 @@ export const kindledZeal = defineTrait({
       attributeEffects: [
         {
           kind: 'conversion',
-          source: 'Kindled Zeal',
           from: 'Power',
           to: 'Condition Damage',
           multiplier: balanceProfileNumber(kindledZealProfile, 'attributeConversion'),

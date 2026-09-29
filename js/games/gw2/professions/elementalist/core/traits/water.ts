@@ -40,7 +40,6 @@ export const soothingPower = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Soothing Power',
           to: 'Vitality',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
           feedsConversions: false

@@ -183,7 +183,6 @@ export const deepStrikes = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Deep Strikes',
           to: 'Condition Damage',
           amount: balanceProfileNumber(
             requireBalanceProfileFromContext(context.balanceContext, TRAIT.DEEP_STRIKES),
@@ -227,7 +226,6 @@ export const woundingPrecision = defineTrait({
       attributeEffects: [
         {
           kind: 'conversion',
-          source: 'Wounding Precision',
           from: 'Precision',
           to: 'Expertise',
           multiplier: balanceProfileNumber(
@@ -256,7 +254,6 @@ export const blademaster = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Blademaster',
           to: 'Expertise',
           amount: balanceProfileNumber(
             requireBalanceProfileFromContext(context.balanceContext, TRAIT.BLADEMASTER),

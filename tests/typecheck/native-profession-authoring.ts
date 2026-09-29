@@ -35,7 +35,6 @@ const core = defineNativeModule({
         attributeEffects: [
           {
             kind: 'flat',
-            source: 'Typed trait',
             to: 'Power',
             amount: balanceContext.catalog.balanceProfiles.length,
             feedsConversions: false

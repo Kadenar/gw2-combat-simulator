@@ -156,7 +156,6 @@ export const noQuarter = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'No Quarter',
           to: 'Ferocity',
           amount: balanceProfileNumber(noQuarterProfile, 'attributeBonus'),
           feedsConversions: false,
@@ -178,7 +177,6 @@ export const practicedTolerance = defineTrait({
       attributeEffects: [
         {
           kind: 'conversion',
-          source: 'Practiced Tolerance',
           from: 'Precision',
           to: 'Ferocity',
           multiplier: balanceProfileNumber(practicedToleranceProfile, 'attributeConversion'),

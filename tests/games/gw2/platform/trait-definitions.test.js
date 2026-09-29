@@ -78,14 +78,12 @@ const trait = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: metadata.name,
         to: 'Power',
         amount: tuning(balanceContext, 'attributeBonus'),
         feedsConversions: true
       },
       {
         kind: 'conversion',
-        source: metadata.name,
         from: 'Power',
         to: 'Ferocity',
         multiplier: tuning(balanceContext, 'attributeConversion'),
@@ -223,7 +221,7 @@ test('definition build effects use resolved minors, eligible conversions, patch 
       common,
       {
         activeTraits,
-        attributeEffects: [{ kind: 'flat', source: 'Other owner', to: 'Power', amount: 10, feedsConversions: true }]
+        attributeEffects: [{ kind: 'flat', to: 'Power', amount: 10, feedsConversions: true }]
       },
       context
     );

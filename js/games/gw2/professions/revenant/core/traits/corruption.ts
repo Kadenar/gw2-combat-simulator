@@ -14,7 +14,6 @@ export const abyssalChill = defineTrait({
   id: TRAIT.ABYSSAL_CHILL,
   name: 'Abyssal Chill',
   balance: {
-    id: TRAIT.ABYSSAL_CHILL,
     categories: ['Trait'],
     skillFamily: 'Trait',
     effects: [
@@ -123,7 +122,7 @@ export const pactOfPain = defineTrait({
   }),
   id: TRAIT.PACT_OF_PAIN,
   name: 'Pact of Pain',
-  balance: { id: TRAIT.PACT_OF_PAIN, conditionDurationBonus: 0.15 }
+  balance: { conditionDurationBonus: 0.15 }
 });
 
 /** Owns Seething Malice tuning and behavior at its established execution boundaries. */
@@ -132,7 +131,6 @@ export const seethingMalice = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: 'Seething Malice',
         to: 'Condition Damage',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(balanceContext, TRAIT.SEETHING_MALICE),
@@ -144,7 +142,7 @@ export const seethingMalice = defineTrait({
   }),
   id: TRAIT.SEETHING_MALICE,
   name: 'Seething Malice',
-  balance: { id: TRAIT.SEETHING_MALICE, attributeBonus: 120 }
+  balance: { attributeBonus: 120 }
 });
 
 /** Owns Yearning Empowerment tuning and behavior at its established execution boundaries. */
@@ -163,5 +161,5 @@ export const yearningEmpowerment = defineTrait({
   }),
   id: TRAIT.YEARNING_EMPOWERMENT,
   name: 'Yearning Empowerment',
-  balance: { id: TRAIT.YEARNING_EMPOWERMENT, conditionDurationBonus: 0.1 }
+  balance: { conditionDurationBonus: 0.1 }
 });

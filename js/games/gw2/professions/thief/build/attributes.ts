@@ -35,7 +35,6 @@ export function applyThiefBuildAttributeRules(
       attributeEffects: [
         {
           kind: 'flat',
-          source: "Assassin's Signet",
           to: 'Power',
           amount: balanceProfileNumber(assassinsSignetProfile, 'attributeBonus'),
           feedsConversions: false,
@@ -44,7 +43,6 @@ export function applyThiefBuildAttributeRules(
         {
           // The equipped signet contributes panel precision while its passive is available.
           kind: 'flat',
-          source: 'Signet of Agility',
           to: 'Precision',
           amount: balanceProfileNumber(signetOfAgilityProfile, 'attributeBonus'),
           feedsConversions: false,

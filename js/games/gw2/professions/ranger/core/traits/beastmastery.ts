@@ -80,7 +80,6 @@ export const honedAxes = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Honed Axes',
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, weapons.includes('Axe') ? 'weaponAttributeBonus' : 'attributeBonus'),
           feedsConversions: false
@@ -109,7 +108,6 @@ export const packAlpha = defineTrait({
   buildAttributes: (_common, { balanceContext, build }) => ({
     attributeEffects: ['Power', 'Condition Damage', 'Precision', 'Toughness', 'Vitality'].map((to) => ({
       kind: 'flat' as const,
-      source: 'Pack Alpha',
       to,
       amount: balanceProfileNumber(
         requireBalanceProfileFromContext(balanceContext, TRAIT.PACK_ALPHA),
@@ -134,7 +132,6 @@ export const petsProwess = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: "Pet's Prowess",
           to: 'Ferocity',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
           feedsConversions: false,

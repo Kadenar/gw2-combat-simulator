@@ -128,7 +128,6 @@ export const maraudersResilience = defineTrait({
       attributeEffects: [
         {
           kind: 'conversion',
-          source: "Marauder's Resilience",
           from: 'Power',
           to: 'Vitality',
           multiplier: balanceProfileNumber(maraudersResilienceProfile, 'attributeConversion'),
@@ -156,7 +155,6 @@ export const staffMaster = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Staff Master',
           to: 'Power',
           amount: balanceProfileNumber(
             staffMasterProfile,

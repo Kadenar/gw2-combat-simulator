@@ -34,7 +34,6 @@ export function applyNecromancerBuildAttributeRules(
   const attributeEffects: readonly Gw2AttributeEffect[] = [
     {
       kind: 'flat',
-      source: 'Signet of Spite',
       to: 'Power',
       amount: balanceProfileNumber(signetOfSpitePassiveProfile, 'attributeBonus'),
       feedsConversions: false,

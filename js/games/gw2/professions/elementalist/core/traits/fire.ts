@@ -85,7 +85,6 @@ export const burningRage = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Burning Rage',
           to: 'Condition Damage',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
           feedsConversions: false

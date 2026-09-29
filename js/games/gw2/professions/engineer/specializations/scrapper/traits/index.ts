@@ -155,7 +155,6 @@ export const kineticAccelerators = defineTrait({
       attributeEffects: [
         {
           kind: 'conversion',
-          source: 'Kinetic Accelerators',
           from: 'Power',
           to: 'Concentration',
           multiplier: balanceProfileNumber(kineticAcceleratorsProfile, 'attributeConversion'),

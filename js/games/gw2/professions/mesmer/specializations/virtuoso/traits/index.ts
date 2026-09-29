@@ -120,7 +120,6 @@ export const quietIntensity = defineTrait({
       attributeEffects: [
         {
           kind: 'conversion',
-          source: 'Quiet Intensity',
           from: 'Vitality',
           to: 'Ferocity',
           multiplier: balanceProfileNumber(profile, 'vitalityConversion'),
@@ -161,7 +160,6 @@ export const sharpeningSorrow = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: 'Sharpening Sorrow',
         to: 'Expertise',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(balanceContext, TRAIT.SHARPENING_SORROW),

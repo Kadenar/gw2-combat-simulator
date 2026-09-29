@@ -117,7 +117,6 @@ export const premeditation = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Premeditation',
           to: 'Concentration',
           amount: balanceProfileNumber(premeditationProfile, 'attributeBonus'),
           feedsConversions: false
@@ -142,7 +141,6 @@ export const silentScope = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Silent Scope',
           to: 'Precision',
           amount: balanceProfileNumber(silentScopeProfile, 'attributeBonus'),
           feedsConversions: true

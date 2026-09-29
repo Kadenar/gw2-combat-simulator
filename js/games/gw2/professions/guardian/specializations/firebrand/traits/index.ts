@@ -122,7 +122,6 @@ export const imbuedHaste = defineTrait({
   buildAttributes: (_common, { build, balanceContext }) => ({
     attributeEffects: (['Condition Damage', 'Healing Power', 'Vitality'] as const).map((to) => ({
       kind: 'flat' as const,
-      source: 'Imbued Haste',
       to,
       amount: balanceProfileNumber(
         requireBalanceProfileFromContext(balanceContext, TRAIT.IMBUED_HASTE),

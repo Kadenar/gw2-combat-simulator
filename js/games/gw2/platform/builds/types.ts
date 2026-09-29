@@ -83,8 +83,8 @@ export interface Gw2AttributeProvenance {
   readonly calculatedPrimaryWeapon: string;
 }
 
+/** Controls whether an effect contributes to build totals and eligible conversion inputs. */
 interface Gw2AttributeEffectBase {
-  readonly source: string;
   readonly enabled?: boolean;
 }
 

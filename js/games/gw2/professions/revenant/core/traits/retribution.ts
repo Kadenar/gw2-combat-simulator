@@ -13,7 +13,6 @@ export const dwarvenBattleTraining = defineTrait({
   id: TRAIT.DWARVEN_BATTLE_TRAINING,
   name: 'Dwarven Battle Training',
   balance: {
-    id: TRAIT.DWARVEN_BATTLE_TRAINING,
     categories: ['Trait'],
     skillFamily: 'Trait',
     effects: [
@@ -60,7 +59,6 @@ export const enduringRecovery = defineTrait({
   id: TRAIT.ENDURING_RECOVERY,
   name: 'Enduring Recovery',
   balance: {
-    id: TRAIT.ENDURING_RECOVERY,
     enduranceRegenerationMultiplier: 1.25,
     effects: []
   }
@@ -72,7 +70,6 @@ export const versedInStone = defineTrait({
     attributeEffects: [
       {
         kind: 'conversion',
-        source: 'Versed in Stone',
         from: 'Toughness',
         to: 'Power',
         multiplier: balanceProfileNumber(
@@ -86,7 +83,7 @@ export const versedInStone = defineTrait({
   }),
   id: TRAIT.VERSED_IN_STONE,
   name: 'Versed in Stone',
-  balance: { id: TRAIT.VERSED_IN_STONE, attributeConversion: 0.13 }
+  balance: { attributeConversion: 0.13 }
 });
 
 /** Owns Vicious Reprisal tuning and behavior at its established execution boundaries. */
@@ -94,7 +91,6 @@ export const viciousReprisalTrait = defineTrait({
   id: TRAIT.VICIOUS_REPRISAL,
   name: 'Vicious Reprisal',
   balance: {
-    id: TRAIT.VICIOUS_REPRISAL,
     categories: ['Trait'],
     skillFamily: 'Trait',
     cooldown: 1,

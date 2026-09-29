@@ -20,7 +20,6 @@ export const elementalRefreshment = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: 'Elemental Refreshment',
         to: 'Vitality',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(balanceContext, TRAIT.ELEMENTAL_REFRESHMENT),

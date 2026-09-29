@@ -145,7 +145,6 @@ export const fellBeacon = defineTrait({
     attributeEffects: [
       {
         kind: 'conversion',
-        source: 'Fell Beacon',
         from: 'Condition Damage',
         to: 'Expertise',
         multiplier: balanceProfileNumber(

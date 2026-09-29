@@ -26,7 +26,6 @@ export const inspiringImplements = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Inspiring Implements',
           to: 'Concentration',
           amount: balanceProfileNumber(
             requireBalanceProfileFromContext(context.balanceContext, TRAIT.INSPIRING_IMPLEMENTS),

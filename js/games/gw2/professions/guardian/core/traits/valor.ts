@@ -27,7 +27,6 @@ export const stalwartDefender = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Stalwart Defender',
           to: 'Toughness',
           amount: balanceProfileNumber(stalwartDefenderProfile, 'attributeBonus'),
           feedsConversions: false,

@@ -36,7 +36,6 @@ export const naturalFortitude = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Natural Fortitude',
           to: 'Vitality',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
           feedsConversions: false

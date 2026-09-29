@@ -39,7 +39,6 @@ export const compoundingChemicals = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Compounding Chemicals',
           to: 'Concentration',
           amount: balanceProfileNumber(compoundingChemicalsProfile, 'attributeBonus'),
           feedsConversions: false

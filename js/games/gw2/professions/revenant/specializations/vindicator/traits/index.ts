@@ -14,7 +14,7 @@ import { enduranceNotFull } from '#gw2/professions/revenant/specializations/vind
 export const angsiyansTrust = defineTrait({
   id: TRAIT.ANGSIYANS_TRUST,
   name: "Angsiyan's Trust",
-  balance: { id: TRAIT.ANGSIYANS_TRUST, resourceGain: 25, effects: [] }
+  balance: { resourceGain: 25, effects: [] }
 });
 
 /** Owns Empire Divided tuning and behavior at its established execution boundaries. */
@@ -23,7 +23,6 @@ export const empireDivided = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: 'Empire Divided',
         to: 'Power',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(balanceContext, TRAIT.EMPIRE_DIVIDED),
@@ -35,7 +34,7 @@ export const empireDivided = defineTrait({
   }),
   id: TRAIT.EMPIRE_DIVIDED,
   name: 'Empire Divided',
-  balance: { id: TRAIT.EMPIRE_DIVIDED, attributeBonus: 240 }
+  balance: { attributeBonus: 240 }
 });
 
 /** Owns Forerunner of Death tuning and behavior at its established execution boundaries. */
@@ -43,7 +42,6 @@ export const forerunnerOfDeath = defineTrait({
   id: TRAIT.FORERUNNER_OF_DEATH,
   name: 'Forerunner of Death',
   balance: {
-    id: TRAIT.FORERUNNER_OF_DEATH,
     effects: [
       {
         name: 'forerunner-of-death',
@@ -95,7 +93,6 @@ export const reaversCurse = defineTrait({
   id: TRAIT.REAVERS_CURSE,
   name: "Reaver's Curse",
   balance: {
-    id: TRAIT.REAVERS_CURSE,
     rechargeMultiplier: 0.5,
     damageMultiplier: 2,
     effects: [
@@ -127,7 +124,6 @@ export const songOfArboreum = defineTrait({
   id: TRAIT.SONG_OF_ARBOREUM,
   name: 'Song of Arboreum',
   balance: {
-    id: TRAIT.SONG_OF_ARBOREUM,
     resourceGain: 40,
     effects: [
       {

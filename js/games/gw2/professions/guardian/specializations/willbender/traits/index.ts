@@ -150,7 +150,6 @@ export const powerForPower = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: 'Power for Power',
         to: 'Power',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(balanceContext, TRAIT.POWER_FOR_POWER),
@@ -171,7 +170,6 @@ export const conceitedCurate = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: 'Conceited Curate',
         to: 'Vitality',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(balanceContext, TRAIT.CONCEITED_CURATE),
@@ -215,7 +213,6 @@ export const searingPact = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: 'Searing Pact',
         to: 'Condition Damage',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(balanceContext, TRAIT.SEARING_PACT),

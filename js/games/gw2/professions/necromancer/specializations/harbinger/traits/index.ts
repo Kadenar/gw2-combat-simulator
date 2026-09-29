@@ -192,7 +192,6 @@ export const implacableFoe = defineTrait({
     attributeEffects: [
       {
         kind: 'conversion',
-        source: 'Implacable Foe',
         from: 'Vitality',
         to: 'Ferocity',
         multiplier: balanceProfileNumber(
@@ -235,7 +234,6 @@ export const alchemicVigor = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: 'Alchemic Vigor',
         to: 'Vitality',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(profileContext, TRAIT.ALCHEMIC_VIGOR),
@@ -258,7 +256,6 @@ export const twistedMedicine = defineTrait({
     attributeEffects: [
       {
         kind: 'conversion',
-        source: 'Twisted Medicine',
         from: 'Vitality',
         to: 'Concentration',
         multiplier: balanceProfileNumber(
@@ -312,7 +309,6 @@ export const darkGunslinger = defineTrait({
     attributeEffects: [
       {
         kind: 'conversion',
-        source: 'Dark Gunslinger',
         from: 'Vitality',
         to: 'Expertise',
         multiplier: balanceProfileNumber(

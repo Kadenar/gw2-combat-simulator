@@ -15,7 +15,6 @@ export const chargedMists = defineTrait({
   id: TRAIT.CHARGED_MISTS,
   name: 'Charged Mists',
   balance: {
-    id: TRAIT.CHARGED_MISTS,
     categories: ['Trait'],
     skillFamily: 'Trait',
     resourceGain: 75,
@@ -28,7 +27,7 @@ export const chargedMists = defineTrait({
 export const ferociousAggression = defineTrait({
   id: TRAIT.FEROCIOUS_AGGRESSION,
   name: 'Ferocious Aggression',
-  balance: { id: TRAIT.FEROCIOUS_AGGRESSION, damageIncrease: 0.1 },
+  balance: { damageIncrease: 0.1 },
   modifierRules: [
     {
       id: 'revenant.ferocious-aggression',
@@ -48,7 +47,6 @@ export const incensedResponse = defineTrait({
   id: TRAIT.INCENSED_RESPONSE,
   name: 'Incensed Response',
   balance: {
-    id: TRAIT.INCENSED_RESPONSE,
     effects: [{ name: 'might', type: 'boon', boon: 'might', duration: 8, stacks: 5 }]
   },
   triggers: [
@@ -78,7 +76,6 @@ export const invokersRage = defineTrait({
   id: TRAIT.INVOKERS_RAGE,
   name: "Invoker's Rage",
   balance: {
-    id: TRAIT.INVOKERS_RAGE,
     effects: [{ type: 'boon', boon: 'fury', duration: 5, stacks: 1 }]
   }
 });
@@ -103,7 +100,7 @@ export const risingTide = defineTrait({
 export const roilingMists = defineTrait({
   id: TRAIT.ROILING_MISTS,
   name: 'Roiling Mists',
-  balance: { id: TRAIT.ROILING_MISTS, criticalChance: 0.25 }
+  balance: { criticalChance: 0.25 }
 });
 
 /** Owns Song of the Mists tuning and behavior at its established execution boundaries. */

@@ -20,7 +20,6 @@ export const energyAmplifier = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Energy Amplifier',
           to: 'Power',
           amount: balanceProfileNumber(energyAmplifierProfile, 'attributeBonus'),
           feedsConversions: false,
@@ -28,7 +27,6 @@ export const energyAmplifier = defineTrait({
         },
         {
           kind: 'flat',
-          source: 'Energy Amplifier',
           to: 'Healing Power',
           amount: balanceProfileNumber(energyAmplifierProfile, 'attributeBonus'),
           feedsConversions: false,

@@ -108,7 +108,6 @@ export const furiousDemise = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: 'Furious Demise',
         to: 'Precision',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(profileContext, TRAIT.FURIOUS_DEMISE),
@@ -147,7 +146,6 @@ export const targetTheWeak = defineTrait({
     attributeEffects: [
       {
         kind: 'conversion',
-        source: 'Target the Weak',
         from: 'Precision',
         to: 'Condition Damage',
         multiplier: balanceProfileNumber(
@@ -173,7 +171,6 @@ export const lingeringCurse = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: 'Lingering Curse',
         to: 'Condition Damage',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(profileContext, TRAIT.LINGERING_CURSE),

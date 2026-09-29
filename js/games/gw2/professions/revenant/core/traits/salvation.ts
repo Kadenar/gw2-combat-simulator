@@ -11,7 +11,6 @@ export const lifeAttunement = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: 'Life Attunement',
         to: 'Healing Power',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(balanceContext, TRAIT.LIFE_ATTUNEMENT),
@@ -21,7 +20,6 @@ export const lifeAttunement = defineTrait({
       },
       {
         kind: 'conversion',
-        source: 'Life Attunement',
         from: 'Healing Power',
         to: 'Concentration',
         multiplier: balanceProfileNumber(
@@ -35,7 +33,7 @@ export const lifeAttunement = defineTrait({
   }),
   id: TRAIT.LIFE_ATTUNEMENT,
   name: 'Life Attunement',
-  balance: { id: TRAIT.LIFE_ATTUNEMENT, attributeConversion: 0.07, attributeBonus: 120 }
+  balance: { attributeConversion: 0.07, attributeBonus: 120 }
 });
 
 /** Owns Serene Rejuvenation tuning and behavior at its established execution boundaries. */
@@ -43,7 +41,6 @@ export const sereneRejuvenation = defineTrait({
   id: TRAIT.SERENE_REJUVENATION,
   name: 'Serene Rejuvenation',
   balance: {
-    id: TRAIT.SERENE_REJUVENATION,
     effects: [
       {
         type: 'boon',

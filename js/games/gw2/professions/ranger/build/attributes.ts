@@ -39,7 +39,6 @@ export function applyRangerBuildAttributeRules(
   const attributeEffects: Gw2AttributeEffect[] = [
     {
       kind: 'flat',
-      source: 'Signet of the Wild',
       to: 'Ferocity',
       amount: signetOfTheWildBonus(profileContext, hasSelectedSkill(ID.SIGNET_OF_THE_WILD)),
       feedsConversions: false
@@ -51,7 +50,6 @@ export function applyRangerBuildAttributeRules(
     for (const [attribute, amount] of Object.entries(soulbeastArchetypeAttributes(profileContext, archetype))) {
       attributeEffects.push({
         kind: 'flat',
-        source: `Soulbeast ${archetype}`,
         to: BUILD_ATTRIBUTE_NAMES[attribute],
         amount: amount,
         feedsConversions: false

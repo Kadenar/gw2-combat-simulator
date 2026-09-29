@@ -309,9 +309,8 @@ export function signetBuildAttributes(
     requireBalanceProfileFromContext(context, PROFILE.signetPassives),
     'attributeBonus'
   );
-  return signetPassives.map(({ name, id, label }) => ({
+  return signetPassives.map(({ id, label }) => ({
     kind: 'flat',
-    source: name,
     to: label,
     amount: bonus,
     feedsConversions: false,

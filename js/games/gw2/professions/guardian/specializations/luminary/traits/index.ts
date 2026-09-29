@@ -128,7 +128,6 @@ export const lightsGift = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: "Light's Gift",
         to: 'Vitality',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(balanceContext, TRAIT.LIGHTS_GIFT),

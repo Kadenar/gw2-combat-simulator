@@ -146,7 +146,6 @@ export const blastShield = defineTrait({
       attributeEffects: [
         {
           kind: 'conversion',
-          source: 'Blast Shield',
           from: 'Power',
           to: 'Vitality',
           multiplier: balanceProfileNumber(blastShieldProfile, 'attributeConversion'),

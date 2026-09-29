@@ -72,7 +72,6 @@ export const strengthOfStone = defineTrait({
       attributeEffects: [
         {
           kind: 'conversion',
-          source: 'Strength of Stone',
           from: 'Toughness',
           to: 'Condition Damage',
           multiplier: balanceProfileNumber(profile, 'attributeConversion'),

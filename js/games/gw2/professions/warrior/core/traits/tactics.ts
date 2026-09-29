@@ -90,7 +90,6 @@ export const roaringReveille = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Roaring Reveille',
           to: 'Concentration',
           amount: balanceProfileNumber(
             requireBalanceProfileFromContext(context.balanceContext, TRAIT.ROARING_REVEILLE),

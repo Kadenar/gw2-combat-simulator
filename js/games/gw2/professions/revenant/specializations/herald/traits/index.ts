@@ -21,7 +21,7 @@ import { draconicEchoActive } from '#gw2/professions/revenant/specializations/he
 export const coreValue = defineTrait({
   id: TRAIT.CORE_VALUE,
   name: 'Core Value',
-  balance: { id: TRAIT.CORE_VALUE, duration: 1 }
+  balance: { duration: 1 }
 });
 
 /** Owns Draconic Echo tuning and behavior at its established execution boundaries. */
@@ -78,7 +78,6 @@ export const elevatedCompassion = defineTrait({
     attributeEffects: [
       {
         kind: 'conversion',
-        source: 'Elevated Compassion',
         from: 'Power',
         to: 'Concentration',
         multiplier: balanceProfileNumber(
@@ -139,7 +138,6 @@ export const reinforcedPotency = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: 'Reinforced Potency',
         to: 'Concentration',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(balanceContext, TRAIT.REINFORCED_POTENCY),
@@ -151,7 +149,7 @@ export const reinforcedPotency = defineTrait({
   }),
   id: TRAIT.REINFORCED_POTENCY,
   name: 'Reinforced Potency',
-  balance: { id: TRAIT.REINFORCED_POTENCY, attributeBonus: 240 },
+  balance: { attributeBonus: 240 },
   modifierRules: [
     {
       id: 'revenant.reinforced-potency',

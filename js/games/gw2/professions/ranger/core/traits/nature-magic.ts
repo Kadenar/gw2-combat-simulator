@@ -46,7 +46,6 @@ export const wellspring = defineTrait({
     attributeEffects: [
       {
         kind: 'conversion',
-        source: 'Wellspring',
         from: 'Power',
         to: 'Healing Power',
         multiplier: balanceProfileNumber(
@@ -128,7 +127,6 @@ export const lingeringMagic = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Lingering Magic',
           to: 'Concentration',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
           feedsConversions: false

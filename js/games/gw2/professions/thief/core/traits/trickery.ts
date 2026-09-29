@@ -98,7 +98,6 @@ export const preparedness = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Preparedness',
           to: 'Expertise',
           amount: balanceProfileNumber(preparednessProfile, 'attributeBonus'),
           feedsConversions: true

@@ -137,7 +137,6 @@ export const defendersDogma = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: "Defender's Dogma",
           to: 'Vitality',
           amount: balanceProfileNumber(defendersDogmaProfile, 'attributeBonus'),
           feedsConversions: true

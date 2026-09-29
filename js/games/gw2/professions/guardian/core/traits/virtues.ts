@@ -145,7 +145,6 @@ export const powerOfTheVirtuous = defineTrait({
     attributeEffects: [
       {
         kind: 'conversion',
-        source: 'Power of the Virtuous',
         from: 'Vitality',
         to: 'Condition Damage',
         multiplier: balanceProfileNumber(

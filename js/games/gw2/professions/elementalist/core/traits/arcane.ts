@@ -87,7 +87,6 @@ export const elementalEnchantment = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Elemental Enchantment',
           to: 'Concentration',
           amount: balanceProfileNumber(profile, 'attributeBonus'),
           feedsConversions: false

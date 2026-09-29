@@ -45,7 +45,6 @@ export function applyGuardianBuildAttributeRules(
   const attributeEffects: readonly Gw2AttributeEffect[] = [
     {
       kind: 'flat',
-      source: 'Bane Signet',
       to: 'Power',
       amount: balanceProfileNumber(baneSignetPassiveProfile, 'attributeBonus') * signetMultiplier,
       feedsConversions: false,
@@ -53,7 +52,6 @@ export function applyGuardianBuildAttributeRules(
     },
     {
       kind: 'flat',
-      source: 'Signet of Wrath',
       to: 'Condition Damage',
       amount: balanceProfileNumber(signetOfWrathPassiveProfile, 'attributeBonus') * signetMultiplier,
       feedsConversions: false,

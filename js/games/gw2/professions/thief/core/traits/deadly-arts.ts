@@ -21,7 +21,6 @@ export const daggerTraining = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Dagger Training',
           to: 'Power',
           amount: balanceProfileNumber(
             daggerTrainingProfile,
@@ -49,7 +48,6 @@ export const deadlyAmbition = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Deadly Ambition',
           to: 'Condition Damage',
           amount: balanceProfileNumber(deadlyAmbitionProfile, 'attributeBonus'),
           feedsConversions: true
@@ -214,7 +212,6 @@ export const revealedTraining = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Revealed Training',
           to: 'Power',
           amount: balanceProfileNumber(revealedTrainingProfile, 'attributeBonus'),
           feedsConversions: false

@@ -89,21 +89,18 @@ test('attribute effects use explicit immutable conversion input pools', () => {
   const effects = [
     {
       kind: 'flat',
-      source: 'Eligible Power',
       to: 'Power',
       amount: 120,
       feedsConversions: true
     },
     {
       kind: 'flat',
-      source: 'Final-only Vitality',
       to: 'Vitality',
       amount: 180,
       feedsConversions: false
     },
     {
       kind: 'conversion',
-      source: 'Eligible Power Conversion',
       from: 'Power',
       to: 'Ferocity',
       multiplier: 0.1,
@@ -112,7 +109,6 @@ test('attribute effects use explicit immutable conversion input pools', () => {
     },
     {
       kind: 'conversion',
-      source: 'Common Power Conversion',
       from: 'Power',
       to: 'Expertise',
       multiplier: 0.1,
@@ -120,8 +116,8 @@ test('attribute effects use explicit immutable conversion input pools', () => {
       input: 'common'
     },
     {
+      // Converted Ferocity must not feed subsequent conversions.
       kind: 'conversion',
-      source: 'No Chained Conversion',
       from: 'Ferocity',
       to: 'Precision',
       multiplier: 1,
@@ -130,7 +126,6 @@ test('attribute effects use explicit immutable conversion input pools', () => {
     },
     {
       kind: 'conversion',
-      source: 'Unrounded Conversion',
       from: 'Power',
       to: 'Condition Damage',
       multiplier: 0.05,
@@ -149,7 +144,6 @@ test('attribute effects use explicit immutable conversion input pools', () => {
   assert.deepEqual(commonStats, { Power: 1000, Vitality: 1000 });
   assert.deepEqual(effects[0], {
     kind: 'flat',
-    source: 'Eligible Power',
     to: 'Power',
     amount: 120,
     feedsConversions: true

@@ -47,7 +47,6 @@ export const boonOfCreation = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: 'Boon of Creation',
         to: 'Concentration',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(profileContext, TRAIT.BOON_OF_CREATION),

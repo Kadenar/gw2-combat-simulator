@@ -52,7 +52,6 @@ export const vitalPersistence = defineTrait({
     attributeEffects: [
       {
         kind: 'flat',
-        source: 'Vital Persistence',
         to: 'Vitality',
         amount: balanceProfileNumber(
           requireBalanceProfileFromContext(profileContext, TRAIT.VITAL_PERSISTENCE),

@@ -118,7 +118,6 @@ export const forceOfWill = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Force of Will',
           to: 'Vitality',
           amount: balanceProfileNumber(forceOfWillProfile, 'attributeBonus'),
           feedsConversions: true
@@ -139,7 +138,6 @@ export const honorableStaff = defineTrait({
       attributeEffects: [
         {
           kind: 'flat',
-          source: 'Honorable Staff',
           to: 'Concentration',
           amount: balanceProfileNumber(honorableStaffProfile, 'attributeBonus'),
           feedsConversions: false
