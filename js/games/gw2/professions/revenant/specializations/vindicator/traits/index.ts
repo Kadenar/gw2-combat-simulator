@@ -1,6 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -66,7 +65,6 @@ export const forerunnerOfDeath = defineTrait({
       amount: 0.25,
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.FORERUNNER_OF_DEATH) &&
         // Prefer the event-baked flag when present; fall back to runtime state for non-dodge strikes.
         (context.event?.forerunnerOfDeathActive != null
           ? Boolean(context.event.forerunnerOfDeathActive)
@@ -87,10 +85,7 @@ export const leviathanStrength = defineTrait({
       // "multiply" runs after the damage-additive bucket, so Leviathan compounds on top of Forerunner.
       operation: 'multiply',
       factor: 1.1,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.LEVIATHAN_STRENGTH) &&
-        enduranceNotFull(context)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && enduranceNotFull(context)
     }
   ]
 });

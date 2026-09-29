@@ -44,7 +44,7 @@ export const bloodyRoar = defineTrait({
       operation: 'multiply',
       factor: 1.1,
       order: 100,
-      when: (context) => hasTrait(context, TRAIT.BLOODY_ROAR) && active(context)
+      when: (context) => active(context)
     }
   ]
 });
@@ -93,7 +93,7 @@ export const smashBrawler = defineTrait({
       operation: 'add',
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SMASH_BRAWLER), 'criticalChance'),
-      when: (context) => hasTrait(context, TRAIT.SMASH_BRAWLER) && active(context)
+      when: (context) => active(context)
     }
   ]
 });

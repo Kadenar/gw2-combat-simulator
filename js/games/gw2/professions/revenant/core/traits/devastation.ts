@@ -5,7 +5,6 @@ import {
   vulnerabilityStacks
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { activeOffhand } from '#gw2/professions/revenant/core/traits/behavior.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -89,7 +88,7 @@ export const destructiveImpulses = defineTrait({
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
       amount: (context) => (activeOffhand(context) ? 0.075 : 0.05),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.DESTRUCTIVE_IMPULSES)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
 });
@@ -148,10 +147,7 @@ export const swiftTermination = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.2,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.SWIFT_TERMINATION) &&
-        targetHealthBelow(context, 0.5)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetHealthBelow(context, 0.5)
     }
   ]
 });
@@ -167,7 +163,7 @@ export const targetedDestruction = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: (context) => 1 + vulnerabilityStacks(context) * 0.005,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.TARGETED_DESTRUCTION)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
 });
@@ -205,10 +201,7 @@ export const unsuspectingStrikes = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.2,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.UNSUSPECTING_STRIKES) &&
-        targetHealthFraction(context) > 0.8
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetHealthFraction(context) > 0.8
     }
   ]
 });

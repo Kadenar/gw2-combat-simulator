@@ -1,7 +1,6 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -35,10 +34,7 @@ export const dwarvenBattleTraining = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.DWARVEN_BATTLE_TRAINING) &&
-        targetConditionActive(context, 'Weakness')
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Weakness')
     }
   ],
   triggers: [
@@ -120,10 +116,7 @@ export const viciousReprisalTrait = defineTrait({
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
       amount: 0.1,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.VICIOUS_REPRISAL) &&
-        boonActive(context, 'resolution')
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, 'resolution')
     }
   ]
 });

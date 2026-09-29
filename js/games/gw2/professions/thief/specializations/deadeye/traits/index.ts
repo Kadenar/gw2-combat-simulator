@@ -1,7 +1,6 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -44,8 +43,7 @@ export const ironSight = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.IRON_SIGHT) && markedTarget(context)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && markedTarget(context)
     }
   ]
 });
@@ -90,7 +88,6 @@ export const oneInTheChamber = defineTrait({
       factor: 1.25,
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.ONE_IN_THE_CHAMBER) &&
         Boolean(eventSkill(context)?.categories?.includes('stolen skill'))
     }
   ]
@@ -108,7 +105,7 @@ export const premeditation = defineTrait({
       operation: 'multiply',
       parameters: { damagePerBoon: 0.01 },
       factor: (context, _target, parameters) => 1 + activeBoonCount(context) * parameters.damagePerBoon,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.PREMEDITATION)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ],
   balance: {

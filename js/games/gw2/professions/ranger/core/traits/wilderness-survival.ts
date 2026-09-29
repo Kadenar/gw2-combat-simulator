@@ -1,6 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -47,10 +46,7 @@ export const poisonMaster = defineTrait({
       operation: 'multiply',
       factor: 1.25,
       // The damage bonus is Ranger-owned; the separately triggered pet attack also resolves from Ranger stats.
-      when: (context) =>
-        context.condition === 'Poisoned' &&
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.POISON_MASTER)
+      when: (context) => context.condition === 'Poisoned' && isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
 });
@@ -168,7 +164,7 @@ export const survivalInstincts = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: 0.15,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.SURVIVAL_INSTINCTS)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
 });

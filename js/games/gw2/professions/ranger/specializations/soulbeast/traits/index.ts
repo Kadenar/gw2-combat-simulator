@@ -8,7 +8,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { activeBuff } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
+import { activeBuff } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 
 function oppressiveSuperiorityActive(context: RangerModifierContext): boolean {
@@ -87,18 +87,12 @@ export const twiceAsVicious = defineTrait({
       emit: TRAIT.TWICE_AS_VICIOUS,
       on: 'control.resolved',
 
+      // Removing the active profile's buff disables the control proc.
       when: (runtime) =>
-        ['twice-as-vicious'].some((effectName) =>
-          Boolean(
-            requireEffect(
-              requireBalanceProfileFromContext(runtime, TRAIT.TWICE_AS_VICIOUS),
-              effectName === 'twice-as-vicious' ? 'buff' : 'boon',
-              effectName
-            )
-          )
+        Boolean(
+          requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.TWICE_AS_VICIOUS), 'buff', 'twice-as-vicious')
         ),
-      effects: (effect) =>
-        (effect.type === 'boon' || effect.type === 'buff') && ['twice-as-vicious'].some((name) => name === effect.name),
+      effects: (effect) => (effect.type === 'boon' || effect.type === 'buff') && effect.name === 'twice-as-vicious',
       attribution: (_runtime, event) => ({
         skillId: TRAIT.TWICE_AS_VICIOUS,
         skillName: 'Twice as Vicious',
@@ -198,7 +192,7 @@ export const furiousStrength = defineTrait({
       operation: 'damage-additive',
       amount: 0.15,
       // Furious Strength requires the player to have Fury; pet fury does not count.
-      when: (context) => hasTrait(context, TRAIT.FURIOUS_STRENGTH) && boonActive(context, 'fury')
+      when: (context) => boonActive(context, 'fury')
     }
   ]
 });

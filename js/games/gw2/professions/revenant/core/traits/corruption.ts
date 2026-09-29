@@ -1,6 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import {
   balanceProfileNumber,
@@ -42,10 +41,7 @@ export const acolyteOfTorment = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        context.condition === 'Torment' &&
-        hasTrait(context, TRAIT.ACOLYTE_OF_TORMENT)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.condition === 'Torment'
     }
   ]
 });

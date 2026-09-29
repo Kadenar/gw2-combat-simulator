@@ -227,10 +227,7 @@ export const numinousGiftTrait = defineTrait({
         const base = 1 + vulnerabilityStacks(context) * parameters.vulnerabilityPerStack;
         return (base + parameters.bonus) / base;
       },
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.TARGETED_DESTRUCTION) &&
-        hasTrait(context, TRAIT.NUMINOUS_GIFT)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.TARGETED_DESTRUCTION)
     },
     {
       id: 'revenant.yearning-empowerment-numinous-gift',
@@ -245,7 +242,6 @@ export const numinousGiftTrait = defineTrait({
       when: (context) =>
         isDamagingCondition(context.condition) &&
         hasTrait(context, TRAIT.YEARNING_EMPOWERMENT) &&
-        hasTrait(context, TRAIT.NUMINOUS_GIFT) &&
         !professionStaticRulesApplied(context.config)
     }
   ]

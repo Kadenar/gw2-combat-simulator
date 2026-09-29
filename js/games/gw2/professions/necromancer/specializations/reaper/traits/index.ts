@@ -204,8 +204,7 @@ export const decimateDefenses = defineTrait({
               : configuredTargetConditionStacks(context.config || {}, 'Vulnerability', context.time, context.runtime)
           ) * balanceProfileNumber(decimateDefensesProfile, 'criticalChancePerStack')
         );
-      },
-      when: (context) => hasTrait(context, TRAIT.DECIMATE_DEFENSES)
+      }
     }
   ]
 });
@@ -248,7 +247,7 @@ export const coldShoulder = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.15,
-      when: (context) => hasTrait(context, TRAIT.COLD_SHOULDER) && necromancerTargetChilled(context)
+      when: (context) => necromancerTargetChilled(context)
     }
   ]
 });
@@ -263,8 +262,7 @@ export const soulEater = defineTrait({
       id: 'necromancer.soul-eater',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.15,
-      when: (context) => hasTrait(context, TRAIT.SOUL_EATER)
+      factor: 1.15
     }
   ]
 });

@@ -1,6 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -152,7 +151,7 @@ export const bountifulHunter = defineTrait({
       parameters: { baseFactor: 1, damagePerBoon: 0.01 },
       factor: (context, _target, parameters) =>
         parameters.baseFactor + rangerActiveBoonCount(context, 'player') * parameters.damagePerBoon,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.BOUNTIFUL_HUNTER)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     },
     {
       order: 32,
@@ -162,7 +161,7 @@ export const bountifulHunter = defineTrait({
       parameters: { baseFactor: 1, damagePerBoon: 0.01 },
       factor: (context, _target, parameters) =>
         parameters.baseFactor + rangerActiveBoonCount(context, 'pet') * parameters.damagePerBoon,
-      when: (context) => rangerPetEvent(context) && hasTrait(context, TRAIT.BOUNTIFUL_HUNTER)
+      when: (context) => rangerPetEvent(context)
     }
   ]
 });

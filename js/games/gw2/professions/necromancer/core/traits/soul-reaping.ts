@@ -1,5 +1,4 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -102,8 +101,7 @@ export const deathPerception = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DEATH_PERCEPTION), 'criticalChance'),
-      when: (context) => hasTrait(context, TRAIT.DEATH_PERCEPTION)
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DEATH_PERCEPTION), 'criticalChance')
     },
     {
       order: 105,
@@ -112,7 +110,7 @@ export const deathPerception = defineTrait({
       operation: 'multiply',
       factor: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DEATH_PERCEPTION), 'criticalDamage'),
-      when: (context) => hasTrait(context, TRAIT.DEATH_PERCEPTION) && Boolean(necromancerActiveShroud(context))
+      when: (context) => Boolean(necromancerActiveShroud(context))
     }
   ],
   buildAttributes: (_common, { balanceContext: profileContext }) => ({
@@ -134,10 +132,7 @@ export const soulBarbs = defineTrait({
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
       amount: 0.1,
-      when: (context) =>
-        Boolean(
-          hasTrait(context, TRAIT.SOUL_BARBS) && context.timeline?.timedActive('necromancer-soul-barbs', context.time)
-        )
+      when: (context) => Boolean(context.timeline?.timedActive('necromancer-soul-barbs', context.time))
     }
   ]
 });

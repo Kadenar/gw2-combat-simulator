@@ -88,9 +88,7 @@ export const blindingOutburst = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: 0.25,
-      when: (context) =>
-        hasTrait(context, TRAIT.BLINDING_OUTBURST) &&
-        BLINDING_OUTBURST_SKILL_IDS.has(Number(context.event?.skillId ?? context.skillId))
+      when: (context) => BLINDING_OUTBURST_SKILL_IDS.has(Number(context.event?.skillId ?? context.skillId))
     }
   ],
   triggers: [
@@ -146,9 +144,7 @@ export const ferociousSymbiosis = defineTrait({
             : 0;
         return parameters.baseFactor + Math.min(parameters.maximumStacks, stacks) * parameters.damagePerStack;
       },
-      when: (context) =>
-        hasTrait(context, TRAIT.FEROCIOUS_SYMBIOSIS) &&
-        (isGw2PlayerModifierOwnedEvent(context.event) || context.event?.source === 'ranger-pet')
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) || context.event?.source === 'ranger-pet'
     }
   ]
 });
@@ -270,8 +266,7 @@ export const vowOfTheUntamed = defineTrait({
         isGw2PlayerModifierOwnedEvent(context.event) &&
         // Pet strikes don't benefit from Vow even when Ranger is unleashed.
         context.event?.source !== 'ranger-pet' &&
-        rangerUnleashed(context) &&
-        hasTrait(context, TRAIT.VOW_OF_THE_UNTAMED)
+        rangerUnleashed(context)
     }
   ]
 });

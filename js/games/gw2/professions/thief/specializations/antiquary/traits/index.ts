@@ -1,7 +1,6 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/modifiers.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -30,7 +29,7 @@ export const combatHigh = defineTrait({
           thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').combatHighExpirations || [],
           context.time
         ) * parameters.damagePerStack,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.COMBAT_HIGH)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     },
     {
       order: 402,
@@ -45,7 +44,7 @@ export const combatHigh = defineTrait({
           thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').combatHighExpirations || [],
           context.time
         ) * parameters.damagePerStack,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.COMBAT_HIGH)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ],
   balance: {
@@ -140,7 +139,6 @@ export const meticulousCustodian = defineTrait({
       factor: meticulousArtifactStrikeFactor,
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.METICULOUS_CUSTODIAN) &&
         METICULOUS_ARTIFACT_STRIKE_IDS.has(Number(context.event?.skillId))
     },
     {
@@ -150,7 +148,6 @@ export const meticulousCustodian = defineTrait({
       operation: 'multiply',
       factor: 2 / 1.5,
       when: (context) =>
-        hasTrait(context, TRAIT.METICULOUS_CUSTODIAN) &&
         context.event?.skillId === ID.MISTBURN_MORTAR &&
         context.event.condition === 'Burning' &&
         context.event.triggeredBy == null // the Charged Strike bonus burn (applied by the landed strike) must not have its duration doubled a second time
@@ -162,7 +159,6 @@ export const meticulousCustodian = defineTrait({
       operation: 'multiply',
       factor: 5 / 4,
       when: (context) =>
-        hasTrait(context, TRAIT.METICULOUS_CUSTODIAN) &&
         context.event?.skillId === ID.ZEPHYRITE_SUN_CRYSTAL &&
         context.event.condition === 'Burning' &&
         context.event.triggeredBy == null // only the base skill packet needs enhancement

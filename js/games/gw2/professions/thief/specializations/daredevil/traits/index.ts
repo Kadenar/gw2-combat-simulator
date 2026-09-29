@@ -1,7 +1,6 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -34,7 +33,6 @@ export const boundingDodger = defineTrait({
       amount: 0.15,
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.BOUNDING_DODGER) &&
         (thiefRuntimeSpecializationState<DaredevilState>(context, 'Daredevil').boundingDamageUntil || 0) > context.time
     }
   ],
@@ -57,7 +55,6 @@ export const lotusTraining = defineTrait({
       amount: 0.15,
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.LOTUS_TRAINING) &&
         (thiefRuntimeSpecializationState<DaredevilState>(context, 'Daredevil').lotusConditionDamageUntil || 0) >
           context.time
     }
@@ -113,7 +110,6 @@ export const havocSpecialist = defineTrait({
       factor: 1.15,
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.HAVOC_SPECIALIST) &&
         // Trait activates whenever endurance is not at maximum — any spent dodge qualifies
         (thiefRuntimeState(context).endurance || 0) <
           balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks')
@@ -184,10 +180,7 @@ export const weakeningStrikes = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.WEAKENING_STRIKES) &&
-        targetConditionActive(context, 'Weakness')
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Weakness')
     }
   ],
   balance: {

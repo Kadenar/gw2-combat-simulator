@@ -55,8 +55,7 @@ export const burstPrecision = defineTrait({
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BURST_PRECISION), 'criticalChance'),
       when: (context) =>
-        hasTrait(context, TRAIT.BURST_PRECISION) &&
-        (Boolean(eventSkill(context)?.burst) || warriorActiveBuffStacks(context, 'burst-precision', 1) > 0)
+        Boolean(eventSkill(context)?.burst) || warriorActiveBuffStacks(context, 'burst-precision', 1) > 0
     }
   ]
 });
@@ -143,7 +142,7 @@ export const furiousBurst = defineTrait({
       operation: 'add',
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FURIOUS_BURST), 'criticalChance'),
-      when: (context) => hasTrait(context, TRAIT.FURIOUS_BURST) && warriorBoonActive(context, 'fury')
+      when: (context) => warriorBoonActive(context, 'fury')
     }
   ],
   triggers: [
@@ -176,7 +175,7 @@ export const deepStrikes = defineTrait({
       operation: 'add',
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DEEP_STRIKES), 'criticalChance'),
-      when: (context) => hasTrait(context, TRAIT.DEEP_STRIKES) && targetConditionActive(context, 'Bleeding')
+      when: (context) => targetConditionActive(context, 'Bleeding')
     }
   ],
   buildAttributes(_common, context) {
@@ -213,7 +212,7 @@ export const unsuspectingFoe = defineTrait({
       operation: 'add',
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.UNSUSPECTING_FOE), 'criticalChance'),
-      when: (context) => hasTrait(context, TRAIT.UNSUSPECTING_FOE) && Boolean(context.config?.target?.defiant)
+      when: (context) => Boolean(context.config?.target?.defiant)
     }
   ]
 });

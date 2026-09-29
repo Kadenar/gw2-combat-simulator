@@ -1,5 +1,4 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -35,7 +34,7 @@ export const demonicLore = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: 1.33,
-      when: (context) => context.condition === 'Torment' && hasTrait(context, TRAIT.DEMONIC_LORE)
+      when: (context) => context.condition === 'Torment'
     }
   ]
 });
@@ -139,7 +138,7 @@ export const fellBeacon = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) => context.condition === 'Burning' && hasTrait(context, TRAIT.FELL_BEACON)
+      when: (context) => context.condition === 'Burning'
     }
   ],
   buildAttributes: (_common, { balanceContext: profileContext }) => ({

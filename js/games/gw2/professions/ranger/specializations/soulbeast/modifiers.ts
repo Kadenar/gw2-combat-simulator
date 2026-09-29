@@ -2,19 +2,12 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2NumericStatKey, Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
-import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { applyPackAlphaMerged, applyPetsProwessMerged } from '#gw2/professions/ranger/core/traits/pet-behavior.js';
 import { soulbeastArchetypeAttributes } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
-import { activeBuff } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
+import { activeBuff, beastmodeActive } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
-
-function beastmodeActive(context: RangerModifierContext): boolean {
-  return Boolean(
-    readProfessionSpecializationState<{ beastmodeActive?: boolean }>(context.runtime?.profession, 'Soulbeast')
-      ?.beastmodeActive
-  );
-}
 
 // Resolve the merged pet archetype's live attribute contribution, including
 // trait adjustments, without mutating the shared base stats.

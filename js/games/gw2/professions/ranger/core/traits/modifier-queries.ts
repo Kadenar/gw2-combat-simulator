@@ -3,12 +3,29 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 
 /** Shares Ranger modifier queries across player and pet rule collections. */
+
+/** Custom damage windows share the same configured, timeline, and live-stack lookup across Core and Soulbeast. */
+export function activeBuff(context: RangerModifierContext, kind: string): boolean {
+  if (context.config?.boons?.[kind]) return true;
+  if (context.timeline?.timedActive(kind, context.time)) return true;
+  return (context.runtime?.boons?.get(kind) || []).some(
+    (application) => application.at <= context.time && application.expiresAt > context.time && application.stacks > 0
+  );
+}
+
+/** Core merged traits and Soulbeast attributes read the same live merge state. */
+export function beastmodeActive(context: RangerModifierContext): boolean {
+  return Boolean(
+    readProfessionSpecializationState<{ beastmodeActive?: boolean }>(context.runtime?.profession, 'Soulbeast')
+      ?.beastmodeActive
+  );
+}
 
 export function rangerPetEvent(context: Gw2ModifierContext): boolean {
   // Pet modifiers require both canonical summon classification and Ranger-specific source ownership.

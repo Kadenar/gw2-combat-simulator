@@ -2,7 +2,6 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionCount, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -88,10 +87,7 @@ export const executioner = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.2,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.EXECUTIONER) &&
-        targetHealthBelow(context, 0.5)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetHealthBelow(context, 0.5)
     }
   ]
 });
@@ -110,7 +106,7 @@ export const exposedWeakness = defineTrait({
         damagePerCondition: 0.02
       },
       factor: (context, _target, parameters) => 1 + targetConditionCount(context) * parameters.damagePerCondition,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.EXPOSED_WEAKNESS)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
 });
@@ -182,10 +178,7 @@ export const potentPoison = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: 1.33,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        context.event?.condition === 'Poisoned' &&
-        hasTrait(context, TRAIT.POTENT_POISON)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === 'Poisoned'
     },
     {
       order: 12,
@@ -195,10 +188,7 @@ export const potentPoison = defineTrait({
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.POTENT_POISON), 'conditionDurationBonus'),
       // Specific condition-duration bonuses add to Expertise and are skipped when panel stats already include them.
-      when: (context) =>
-        context.event?.condition === 'Poisoned' &&
-        hasTrait(context, TRAIT.POTENT_POISON) &&
-        !professionStaticRulesApplied(context.config)
+      when: (context) => context.event?.condition === 'Poisoned' && !professionStaticRulesApplied(context.config)
     }
   ],
   balance: {

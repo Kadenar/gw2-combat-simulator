@@ -102,8 +102,7 @@ export const bloodFury = defineTrait({
           'conditionDurationBonus'
         ),
       // Blood Fury shares the chronological player-Fury query used by Core Revenant modifiers.
-      when: (context) =>
-        context.condition === 'Bleeding' && hasTrait(context, TRAIT.BLOOD_FURY) && boonActive(context, 'fury')
+      when: (context) => context.condition === 'Bleeding' && boonActive(context, 'fury')
     }
   ]
 });
@@ -230,10 +229,7 @@ export const heartpiercer = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.15,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.HEARTPIERCER) &&
-        targetConditionActive(context, 'Bleeding')
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Bleeding')
     },
     {
       id: 'revenant.heartpiercer-bleeding',
@@ -241,10 +237,7 @@ export const heartpiercer = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: 1.25,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        context.condition === 'Bleeding' &&
-        hasTrait(context, TRAIT.HEARTPIERCER)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.condition === 'Bleeding'
     }
   ]
 });

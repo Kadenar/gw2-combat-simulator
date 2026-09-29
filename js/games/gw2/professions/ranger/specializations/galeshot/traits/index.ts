@@ -1,7 +1,6 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
@@ -88,10 +87,7 @@ export const flockTogether = defineTrait({
       operation: 'multiply',
       factor: 1.25,
       when: (context) =>
-        context.event?.actorType === 'summon' &&
-        context.event.source === 'ranger-pet' &&
-        hasTrait(context, TRAIT.FLOCK_TOGETHER) &&
-        activePetIsFeathered(context)
+        context.event?.actorType === 'summon' && context.event.source === 'ranger-pet' && activePetIsFeathered(context)
     }
   ]
 });
@@ -130,7 +126,6 @@ export const galeForce = defineTrait({
       amount: (context, _target, parameters) => galeForceAmount(context, parameters),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.GALE_FORCE) &&
         ((galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time || windForce(context) > 0)
     }
   ]
@@ -150,7 +145,6 @@ export const birdOfPrey = defineTrait({
       // Either movement buff activates the player bonus, including generated buffs until they expire.
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.BIRD_OF_PREY) &&
         (boonActive(context, 'swiftness') || boonActive(context, 'superspeed'))
     }
   ]

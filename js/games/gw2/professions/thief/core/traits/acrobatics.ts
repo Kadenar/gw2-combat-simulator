@@ -1,6 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -22,7 +21,6 @@ export const fluidStrikes = defineTrait({
       amount: 0.1,
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.FLUID_STRIKES) &&
         (thiefRuntimeState(context).fluidStrikesUntil || 0) > context.time
     }
   ],

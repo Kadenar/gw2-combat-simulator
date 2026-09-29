@@ -131,6 +131,7 @@ export function defineNativeModule<
     ? { modifierRules: definition.modifiers }
     : ((definition.modifiers as ProfessionModifierDefinition | undefined) ?? {});
   // Expand once at registration. Preview reconstruction consumes these views without reinstalling base declarations.
+  // Gate trait modifiers here so their predicates only need to describe additional combat conditions.
   const traitRules = traits.flatMap((trait) =>
     (trait.modifierRules ?? []).map(({ requiresSelection = true, ...rule }) => ({
       ...rule,

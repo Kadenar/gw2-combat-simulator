@@ -1,6 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -25,7 +24,6 @@ export const legSpecialist = defineTrait({
       factor: 1.05,
       order: 91,
       when: (context) =>
-        hasTrait(context, TRAIT.LEG_SPECIALIST) &&
         ['Crippled', 'Chilled', 'Immobilized'].some((condition) => targetConditionActive(context, condition))
     }
   ],
@@ -117,8 +115,7 @@ export const empowered = defineTrait({
       operation: 'multiply',
       parameters: { damagePerBoon: 0.01 },
       factor: (context, _target, parameters) => 1 + warriorActiveBoonCount(context) * parameters.damagePerBoon,
-      order: 90,
-      when: (context) => hasTrait(context, TRAIT.EMPOWERED)
+      order: 90
     }
   ]
 });
@@ -134,7 +131,7 @@ export const warriorsCunning = defineTrait({
       operation: 'multiply',
       factor: 1.25,
       order: 92,
-      when: (context) => hasTrait(context, TRAIT.WARRIORS_CUNNING) && targetHealthFraction(context) > 0.8
+      when: (context) => targetHealthFraction(context) > 0.8
     }
   ]
 });

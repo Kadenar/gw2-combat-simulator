@@ -1,7 +1,6 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill, playerHealthFraction, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -61,10 +60,7 @@ export const deadlyAim = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.DEADLY_AIM) &&
-        eventSkill(context)?.weapon === 'Pistol'
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && eventSkill(context)?.weapon === 'Pistol'
     }
   ]
 });
@@ -81,10 +77,7 @@ export const ferociousStrikes = defineTrait({
       operation: 'multiply',
       factor: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_STRIKES), 'criticalDamage'),
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.FEROCIOUS_STRIKES) &&
-        targetHealthFraction(context) > 0.5
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetHealthFraction(context) > 0.5
     }
   ],
   balance: {
@@ -108,7 +101,6 @@ export const hiddenKiller = defineTrait({
         const state = thiefRuntimeState(context);
         return (
           isGw2PlayerModifierOwnedEvent(context.event) &&
-          hasTrait(context, TRAIT.HIDDEN_KILLER) &&
           // The explicit expiry is armed by stealth, never by the initial Revealed sentinel.
           (state.stealthStartedAt || 0) <= context.time &&
           ((state.stealthUntil || 0) > context.time || (state.hiddenKillerUntil || 0) > context.time)
@@ -139,7 +131,7 @@ export const keenObserver = defineTrait({
           ? balanceProfileNumber(keenObserverProfile, 'criticalChance')
           : balanceProfileNumber(keenObserverProfile, 'lowHealthCriticalChance');
       },
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.KEEN_OBSERVER)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ],
   balance: {
@@ -240,7 +232,7 @@ export const twinFangs = defineTrait({
           requireBalanceProfileFromContext(context, TRAIT.TWIN_FANGS),
           playerHealthFraction(context) > 0.5 ? 'criticalDamage' : 'lowHealthCriticalDamage'
         ),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.TWIN_FANGS)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     },
     {
       order: 5,
@@ -249,10 +241,7 @@ export const twinFangs = defineTrait({
       operation: 'add',
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.TWIN_FANGS), 'criticalChance'),
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.TWIN_FANGS) &&
-        Boolean(context.config?.target?.defiant)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && Boolean(context.config?.target?.defiant)
     }
   ],
   balance: {

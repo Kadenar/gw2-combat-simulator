@@ -1,7 +1,6 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import {
   balanceProfileNumber,
@@ -34,10 +33,7 @@ export const deadlyAmbush = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: 1.25,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        context.event?.condition === 'Bleeding' &&
-        hasTrait(context, TRAIT.DEADLY_AMBUSH)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === 'Bleeding'
     }
   ],
   balance: {
@@ -74,7 +70,7 @@ export const leadAttacks = defineTrait({
           ) * balanceProfileNumber(profile, 'damageIncreasePerStack')
         );
       },
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.LEAD_ATTACKS)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ],
   balance: {

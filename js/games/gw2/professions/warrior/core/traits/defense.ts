@@ -1,6 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { warriorBoonActive } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -20,11 +19,9 @@ export const mercilessHammer = defineTrait({
       factor: 1.25,
       order: 94,
       when: (context) =>
-        hasTrait(context, TRAIT.MERCILESS_HAMMER) &&
         ['Hammer', 'Mace'].includes(
           String(context.event?.skillWeapon || eventSkill(context)?.skillWeapon || eventSkill(context)?.weapon || '')
-        ) &&
-        Boolean(context.config?.target?.defiant)
+        ) && Boolean(context.config?.target?.defiant)
     }
   ]
 });
@@ -44,7 +41,7 @@ export const stalwartStrength = defineTrait({
       operation: 'multiply',
       factor: 1.1,
       order: 95,
-      when: (context) => hasTrait(context, TRAIT.STALWART_STRENGTH) && warriorBoonActive(context, 'stability')
+      when: (context) => warriorBoonActive(context, 'stability')
     }
   ],
   triggers: [
@@ -75,7 +72,7 @@ export const cullTheWeak = defineTrait({
       operation: 'multiply',
       factor: 1.1,
       order: 93,
-      when: (context) => hasTrait(context, TRAIT.CULL_THE_WEAK) && targetConditionActive(context, 'Weakness')
+      when: (context) => targetConditionActive(context, 'Weakness')
     }
   ]
 });

@@ -1,5 +1,4 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -24,7 +23,7 @@ export const necromanticCorruption = defineTrait({
           requireBalanceProfileFromContext(context, TRAIT.NECROMANTIC_CORRUPTION),
           'damageMultiplier'
         ),
-      when: (context) => context.event?.summonKind === 'minion' && hasTrait(context, TRAIT.NECROMANTIC_CORRUPTION)
+      when: (context) => context.event?.summonKind === 'minion'
     }
   ]
 });
@@ -98,7 +97,7 @@ export const putridDefense = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: 1.15,
-      when: (context) => context.condition === 'Poisoned' && hasTrait(context, TRAIT.PUTRID_DEFENSE)
+      when: (context) => context.condition === 'Poisoned'
     }
   ]
 });

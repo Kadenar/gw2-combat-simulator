@@ -1,7 +1,6 @@
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -129,7 +128,7 @@ export const forcefulPersistence = defineTrait({
           (bonus, upkeep) => bonus + (HERALD_BASE_SKILL_MECHANICS[Number(upkeep.skillId)]?.facet ? 0.1 : 0.25),
           0
         ),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.FORCEFUL_PERSISTENCE)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
 });
@@ -161,7 +160,7 @@ export const reinforcedPotency = defineTrait({
       operation: 'damage-additive',
       // +1% per unique active boon; capped at 12 boon types so the theoretical maximum is +12%.
       amount: (context) => revenantActiveBoonCount(context) * 0.01,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.REINFORCED_POTENCY)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
 });

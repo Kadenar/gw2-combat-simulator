@@ -9,21 +9,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import { queueProfileBuff } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type {
-  RangerModifierContext,
-  RangerResolverContext,
-  RangerRuntime,
-  RangerSkill
-} from '#gw2/professions/ranger/types.js';
-
-export function activeBuff(context: RangerModifierContext, kind: string): boolean {
-  if (context.config?.boons?.[kind]) return true;
-  if (context.timeline?.timedActive(kind, context.time)) return true;
-  return (context.runtime?.boons?.get(kind) || []).some(
-    (application: { at: number; expiresAt: number; stacks: number }) =>
-      application.at <= context.time && application.expiresAt > context.time && application.stacks > 0
-  );
-}
+import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 // Called from both enter- and exit-beastmode handlers; protection fires on every toggle regardless of direction.
 export function applyUnstoppableUnion(context: RangerRuntime, skill: RangerSkill): void {

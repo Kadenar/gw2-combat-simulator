@@ -2,7 +2,6 @@ import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -10,25 +9,14 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { rangerBoonActive, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
+import {
+  activeBuff,
+  beastmodeActive,
+  rangerBoonActive,
+  rangerPetEvent
+} from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerBuild, RangerModifierContext, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
-
-function activeBuff(context: RangerModifierContext, kind: string): boolean {
-  if (context.config?.boons?.[kind]) return true;
-  if (context.timeline?.timedActive(kind, context.time)) return true;
-  return (context.runtime?.boons?.get(kind) || []).some(
-    (application: { at: number; expiresAt: number; stacks: number }) =>
-      application.at <= context.time && application.expiresAt > context.time && application.stacks > 0
-  );
-}
-
-function beastmodeActive(context: RangerModifierContext): boolean {
-  return Boolean(
-    readProfessionSpecializationState<{ beastmodeActive?: boolean }>(context.runtime?.profession, 'Soulbeast')
-      ?.beastmodeActive
-  );
-}
+import type { RangerBuild, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 
 /** Owns Resounding Timbre's live tuning and trait behavior. */
 export const resoundingTimbre = defineTrait({
@@ -200,7 +188,7 @@ export const loudWhistle = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.15,
-      when: (context) => rangerPetEvent(context) && hasTrait(context, TRAIT.LOUD_WHISTLE)
+      when: (context) => rangerPetEvent(context)
     }
   ]
 });
@@ -213,18 +201,13 @@ export const bestialRageControl = compileProfessionRules<RangerRuntimeState>({
       emit: TRAIT.BESTIAL_RAGE,
       on: 'control.resolved',
       icd: 'profile',
+      // Only the surviving boon effects can activate this trait's control proc.
       when: (runtime) =>
         ['might', 'fury'].some((effectName) =>
-          Boolean(
-            requireEffect(
-              requireBalanceProfileFromContext(runtime, TRAIT.BESTIAL_RAGE),
-              effectName === 'twice-as-vicious' ? 'buff' : 'boon',
-              effectName
-            )
-          )
+          Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.BESTIAL_RAGE), 'boon', effectName))
         ),
       effects: (effect) =>
-        (effect.type === 'boon' || effect.type === 'buff') && ['might', 'fury'].some((name) => name === effect.name),
+        (effect.type === 'boon' || effect.type === 'buff') && (effect.name === 'might' || effect.name === 'fury'),
       attribution: (_runtime, event) => ({
         skillId: TRAIT.BESTIAL_RAGE,
         skillName: 'Bestial Rage',

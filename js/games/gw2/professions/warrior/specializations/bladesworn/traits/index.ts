@@ -94,8 +94,7 @@ export const fierceAsFire = defineTrait({
           warriorActiveBuffStacks(context, 'fierce-as-fire', balanceProfileNumber(profile, 'maximumStacks')) *
           balanceProfileNumber(profile, 'damageIncreasePerStack')
         );
-      },
-      when: (context) => hasTrait(context, TRAIT.FIERCE_AS_FIRE)
+      }
     }
   ]
 });

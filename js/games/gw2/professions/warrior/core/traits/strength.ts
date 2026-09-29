@@ -1,5 +1,4 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -32,8 +31,7 @@ export const berserkersPower = defineTrait({
           warriorActiveBuffStacks(context, 'berserkers-power', balanceProfileNumber(profile, 'maximumStacks')) *
           balanceProfileNumber(profile, 'damageIncreasePerStack')
         );
-      },
-      when: (context) => hasTrait(context, TRAIT.BERSERKERS_POWER)
+      }
     }
   ]
 });
@@ -98,8 +96,7 @@ export const peakPerformance = defineTrait({
         activeBonus: 0.1
       },
       amount: (context, _target, parameters) =>
-        parameters.baseBonus + (warriorActiveBuffStacks(context, 'peak-performance', 1) ? parameters.activeBonus : 0),
-      when: (context) => hasTrait(context, TRAIT.PEAK_PERFORMANCE)
+        parameters.baseBonus + (warriorActiveBuffStacks(context, 'peak-performance', 1) ? parameters.activeBonus : 0)
     }
   ]
 });
@@ -173,8 +170,7 @@ export const pinnacleOfStrength = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PINNACLE_OF_STRENGTH), 'criticalChance'),
-      when: (context) => hasTrait(context, TRAIT.PINNACLE_OF_STRENGTH)
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PINNACLE_OF_STRENGTH), 'criticalChance')
     }
   ]
 });

@@ -2,7 +2,6 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
   balanceProfileNumber,
@@ -50,8 +49,7 @@ export const wolfsong = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) && targetVulnerable(context) && hasTrait(context, TRAIT.WOLFSONG)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetVulnerable(context)
     }
   ]
 });
@@ -171,7 +169,7 @@ export const preciseStrike = defineTrait({
       operation: 'add',
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PRECISE_STRIKE), 'criticalChance'),
-      when: (context) => openingStrikeReady(context) && hasTrait(context, TRAIT.PRECISE_STRIKE)
+      when: (context) => openingStrikeReady(context)
     }
   ]
 });
@@ -187,10 +185,7 @@ export const farsighted = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        eventSkill(context)?.type === 'Weapon' &&
-        hasTrait(context, TRAIT.FARSIGHTED)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && eventSkill(context)?.type === 'Weapon'
     }
   ]
 });
@@ -206,7 +201,7 @@ export const remorseless = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.25,
-      when: (context) => openingStrikeReady(context) && hasTrait(context, TRAIT.REMORSELESS)
+      when: (context) => openingStrikeReady(context)
     }
   ]
 });
@@ -222,10 +217,7 @@ export const predatorsOnslaught = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        rangerTargetImpaired(context) &&
-        hasTrait(context, TRAIT.PREDATORS_ONSLAUGHT)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && rangerTargetImpaired(context)
     },
     {
       order: 33,
@@ -233,8 +225,7 @@ export const predatorsOnslaught = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) =>
-        rangerPetEvent(context) && rangerTargetImpaired(context) && hasTrait(context, TRAIT.PREDATORS_ONSLAUGHT)
+      when: (context) => rangerPetEvent(context) && rangerTargetImpaired(context)
     }
   ]
 });

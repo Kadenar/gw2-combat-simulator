@@ -1,5 +1,4 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -35,9 +34,7 @@ export const magebaneTether = defineTrait({
       operation: 'multiply',
       factor: 1.15,
       order: 110,
-      when: (context) =>
-        hasTrait(context, TRAIT.MAGEBANE_TETHER) &&
-        (spellbreakerStateAt(context).magebaneTetherUntil || 0) > context.time
+      when: (context) => (spellbreakerStateAt(context).magebaneTetherUntil || 0) > context.time
     }
   ]
 });
@@ -79,8 +76,7 @@ export const pureStrike = defineTrait({
       operation: 'multiply',
       // The target never has boons, so the full bonus always applies.
       factor: (context) =>
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PURE_STRIKE), 'criticalDamage'),
-      when: (context) => hasTrait(context, TRAIT.PURE_STRIKE)
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PURE_STRIKE), 'criticalDamage')
     }
   ]
 });
@@ -97,7 +93,6 @@ export const sunAndMoonStyle = defineTrait({
       factor: 1.1,
       order: 100,
       when: (context) =>
-        hasTrait(context, TRAIT.SUN_AND_MOON_STYLE) &&
         gw2PrimaryWeapon(context.config, Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1) === 'Dagger'
     }
   ]

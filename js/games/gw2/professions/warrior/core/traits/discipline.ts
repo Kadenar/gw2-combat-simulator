@@ -1,6 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -24,7 +23,7 @@ export const burstMastery = defineTrait({
       operation: 'multiply',
       factor: 1.15,
       order: 100,
-      when: (context) => hasTrait(context, TRAIT.BURST_MASTERY) && Boolean(eventSkill(context)?.burst)
+      when: (context) => Boolean(eventSkill(context)?.burst)
     }
   ],
   profiles: [
@@ -106,7 +105,7 @@ export const warriorsSprint = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: 0.1,
-      when: (context) => hasTrait(context, TRAIT.WARRIORS_SPRINT) && warriorBoonActive(context, 'swiftness')
+      when: (context) => warriorBoonActive(context, 'swiftness')
     }
   ]
 });

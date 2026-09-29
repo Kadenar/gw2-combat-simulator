@@ -1,5 +1,4 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -24,8 +23,7 @@ export const spiritsStrength = defineTrait({
       when: (context) =>
         (context.event?.actorType === 'summon' || context.event?.summonKind === 'spirit') &&
         // Innervate attacks are player-buffed abilities, not spirit autonomous attacks; the trait does not apply to them
-        context.event.metadata?.spiritAttackType !== 'innervate' &&
-        hasTrait(context, TRAIT.SPIRITS_STRENGTH)
+        context.event.metadata?.spiritAttackType !== 'innervate'
     }
   ]
 });
@@ -119,9 +117,7 @@ export const lingeringSpirits = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: 0.05,
-      when: (context) =>
-        hasTrait(context, TRAIT.LINGERING_SPIRITS) &&
-        Boolean(necromancerRuntimeSpecializationState(context, 'Ritualist').activeSpirits?.anguish)
+      when: (context) => Boolean(necromancerRuntimeSpecializationState(context, 'Ritualist').activeSpirits?.anguish)
     }
   ]
 });

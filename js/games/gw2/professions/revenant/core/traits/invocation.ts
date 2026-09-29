@@ -2,7 +2,6 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -39,10 +38,7 @@ export const ferociousAggression = defineTrait({
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_AGGRESSION), 'damageIncrease'),
       // Grant the bonus only while permanent or simulated Fury affects the player.
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.FEROCIOUS_AGGRESSION) &&
-        boonActive(context, 'fury')
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, 'fury')
     }
   ]
 });
@@ -98,10 +94,7 @@ export const risingTide = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.RISING_TIDE) &&
-        playerHealthFraction(context) > 0.75
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && playerHealthFraction(context) > 0.75
     }
   ]
 });

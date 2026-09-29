@@ -1,6 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -214,8 +213,7 @@ export const dread = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: 0.2,
-      when: (context) =>
-        hasTrait(context, TRAIT.DREAD) && (necromancerRuntimeCoreState(context).dreadUntil || 0) > context.time
+      when: (context) => (necromancerRuntimeCoreState(context).dreadUntil || 0) > context.time
     }
   ]
 });
@@ -230,8 +228,7 @@ export const spitefulTalisman = defineTrait({
       id: 'necromancer.spiteful-talisman',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: 1.05,
-      when: (context) => hasTrait(context, TRAIT.SPITEFUL_TALISMAN)
+      factor: 1.05
     }
   ]
 });
@@ -247,7 +244,7 @@ export const closeToDeath = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.2,
-      when: (context) => hasTrait(context, TRAIT.CLOSE_TO_DEATH) && targetHealthBelow(context, 0.5)
+      when: (context) => targetHealthBelow(context, 0.5)
     }
   ]
 });

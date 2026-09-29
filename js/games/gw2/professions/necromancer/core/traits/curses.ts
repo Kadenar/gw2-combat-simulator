@@ -1,7 +1,6 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -44,10 +43,7 @@ export const barbedPrecision = defineTrait({
           requireBalanceProfileFromContext(context, TRAIT.BARBED_PRECISION),
           'conditionDurationMultiplier'
         ),
-      when: (context) =>
-        context.condition === 'Bleeding' &&
-        hasTrait(context, TRAIT.BARBED_PRECISION) &&
-        !professionStaticRulesApplied(context.config)
+      when: (context) => context.condition === 'Bleeding' && !professionStaticRulesApplied(context.config)
     }
   ],
   buildAttributes: (_common, { balanceContext: profileContext }) => ({
@@ -144,8 +140,7 @@ export const targetTheWeak = defineTrait({
         balanceProfileNumber(
           requireBalanceProfileFromContext(context, TRAIT.TARGET_THE_WEAK),
           'criticalChancePerCondition'
-        ),
-      when: (context) => hasTrait(context, TRAIT.TARGET_THE_WEAK)
+        )
     }
   ],
   buildAttributes: (_common, { balanceContext: profileContext }) => ({

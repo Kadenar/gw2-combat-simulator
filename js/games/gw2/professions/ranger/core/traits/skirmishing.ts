@@ -1,6 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -37,10 +36,7 @@ export const lightOnYourFeet = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) &&
-        rangerBoonActive(context, 'light-on-your-feet')
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && rangerBoonActive(context, 'light-on-your-feet')
     },
     {
       order: 4,
@@ -52,10 +48,7 @@ export const lightOnYourFeet = defineTrait({
           requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET),
           'conditionDurationBonus'
         ),
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) &&
-        rangerBoonActive(context, 'light-on-your-feet')
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && rangerBoonActive(context, 'light-on-your-feet')
     }
   ],
   rechargeRules: [
@@ -195,7 +188,7 @@ export const viciousQuarry = defineTrait({
       operation: 'add',
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.VICIOUS_QUARRY), 'criticalChance'),
-      when: (context) => hasTrait(context, TRAIT.VICIOUS_QUARRY) && rangerBoonActive(context, 'fury')
+      when: (context) => rangerBoonActive(context, 'fury')
     }
   ],
   buildAttributes: (_common, { balanceContext: profileContext, build }) => {
@@ -229,8 +222,7 @@ export const huntersTactics = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) && positional(context) && hasTrait(context, TRAIT.HUNTERS_TACTICS)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && positional(context)
     },
     {
       order: 2,
@@ -239,8 +231,7 @@ export const huntersTactics = defineTrait({
       operation: 'add',
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.HUNTERS_TACTICS), 'criticalChance'),
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) && positional(context) && hasTrait(context, TRAIT.HUNTERS_TACTICS)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && positional(context)
     }
   ]
 });
@@ -256,7 +247,7 @@ export const hiddenBarbs = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: 1.2,
-      when: (context) => context.condition === 'Bleeding' && hasTrait(context, TRAIT.HIDDEN_BARBS)
+      when: (context) => context.condition === 'Bleeding'
     }
   ]
 });

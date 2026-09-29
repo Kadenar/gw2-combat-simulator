@@ -159,9 +159,7 @@ export const strengtheningStanzas = defineTrait({
       },
       amount: (_context, target, parameters) =>
         target === MODIFIER_TARGET.CONDITION_DAMAGE ? parameters.conditionBonus : parameters.strikeBonus,
-      when: (context) =>
-        hasTrait(context, TRAIT.STRENGTHENING_STANZAS) &&
-        paragonRuntimeState(context).activeRefrainId === ID.CHANT_OF_ACTION
+      when: (context) => paragonRuntimeState(context).activeRefrainId === ID.CHANT_OF_ACTION
     }
   ]
 });
@@ -187,7 +185,7 @@ export const briskPacing = defineTrait({
         conditionHigh: 0.25
       },
       amount: briskPacingAmount,
-      when: (context) => hasTrait(context, TRAIT.BRISK_PACING) && motivation(context) > 0
+      when: (context) => motivation(context) > 0
     }
   ]
 });

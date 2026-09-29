@@ -1,7 +1,6 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -55,9 +54,7 @@ export const cascadingCorruption = defineTrait({
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
       amount: 0.1,
-      when: (context) =>
-        hasTrait(context, TRAIT.CASCADING_CORRUPTION) &&
-        (necromancerRuntimeSpecializationState(context, 'Harbinger').meltdownUntil || 0) > context.time
+      when: (context) => (necromancerRuntimeSpecializationState(context, 'Harbinger').meltdownUntil || 0) > context.time
     }
   ]
 });
@@ -85,8 +82,7 @@ export const septicCorruption = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
       parameters: { damagePerStack: 0.0025 },
-      amount: (context, _target, parameters) => activeBlight(context) * parameters.damagePerStack,
-      when: (context) => hasTrait(context, TRAIT.SEPTIC_CORRUPTION)
+      amount: (context, _target, parameters) => activeBlight(context) * parameters.damagePerStack
     }
   ]
 });
@@ -290,8 +286,7 @@ export const wickedCorruption = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       parameters: { damagePerStack: 0.01 },
-      amount: (context, _target, parameters) => activeBlight(context) * parameters.damagePerStack,
-      when: (context) => hasTrait(context, TRAIT.WICKED_CORRUPTION)
+      amount: (context, _target, parameters) => activeBlight(context) * parameters.damagePerStack
     },
     {
       order: 121,
@@ -300,7 +295,7 @@ export const wickedCorruption = defineTrait({
       operation: 'multiply',
       factor: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.WICKED_CORRUPTION), 'criticalDamage'),
-      when: (context) => hasTrait(context, TRAIT.WICKED_CORRUPTION) && targetConditionActive(context, 'Torment')
+      when: (context) => targetConditionActive(context, 'Torment')
     }
   ]
 });

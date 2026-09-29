@@ -152,10 +152,7 @@ export const strengthOfShadows = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
       amount: 0.2,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.STRENGTH_OF_SHADOWS) &&
-        context.event?.condition === 'Torment'
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === 'Torment'
     }
   ],
   balance: {
