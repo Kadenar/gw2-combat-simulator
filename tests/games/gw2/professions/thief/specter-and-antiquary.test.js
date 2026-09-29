@@ -1094,11 +1094,22 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
   assert.equal(artifact.planningState.profession.artifactUsesRemaining, 0);
   assert.ok(artifact.totalDamage > 0);
 
-  const reshuffled = simulate('Antiquary', ['Skritt Swipe', 'Reshuffle'], {
+  // Only Card Swap grants Reshuffle; without it the command is rejected before any artifact state changes.
+  const withoutCardSwap = simulate('Antiquary', ['Skritt Swipe', 'Reshuffle'], {
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Dagger'
   });
 
+  assert.equal(withoutCardSwap.steps[1].invalid, true);
+  assert.match(withoutCardSwap.warnings.join(' '), /Reshuffle is unavailable — requires the Card Swap trait\./);
+
+  const reshuffled = simulate('Antiquary', ['Skritt Swipe', 'Reshuffle'], {
+    primaryWeapon: 'Axe',
+    secondaryWeapon: 'Dagger',
+    selectedTraitIds: [TRAIT.CARD_SWAP]
+  });
+
+  assert.deepEqual(reshuffled.warnings, []);
   assert.deepEqual(
     reshuffled.planningState.profession.artifactSlots.map((slot) => slot.skillId),
     [...THIEF_ARTIFACT_IDS.OFFENSIVE, ...THIEF_ARTIFACT_IDS.DEFENSIVE]

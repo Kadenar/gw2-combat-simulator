@@ -170,10 +170,14 @@ export const antiquaryUi = Object.freeze({
     }
 
     if (skill.id === ID.RESHUFFLE) {
-      // Reshuffle is always greyed-out in the palette; it is queue-only and blocked by availability when there is nothing to reroll
+      // Reshuffle is always greyed-out in the palette; it is queue-only and blocked by availability when there is nothing to reroll.
+      // Without Card Swap the skill does not exist in game, so name the missing trait instead.
+      const cardSwap =
+        hasTrait(context, TRAIT.CARD_SWAP) ||
+        getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.CARD_SWAP);
       return {
         available: false,
-        message: 'All artifacts are already available to choose'
+        message: cardSwap ? 'All artifacts are already available to choose' : 'Requires the Card Swap trait'
       };
     }
 

@@ -1,6 +1,8 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/modifiers.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -10,6 +12,21 @@ import {
   METICULOUS_ARTIFACT_STRIKE_IDS,
   meticulousArtifactStrikeFactor
 } from '#gw2/professions/thief/specializations/antiquary/traits/meticulous-custodian.js';
+
+/**
+ * Card Swap is the only source of Reshuffle, so the skill is denied whenever the trait is not selected. Its condition
+ * removal on reshuffles and artifact use is outside the damage model and is intentionally not simulated.
+ */
+export const cardSwap = defineTrait({
+  id: TRAIT.CARD_SWAP,
+  name: 'Card Swap',
+  hooks: {
+    availability: (runtime, skill) =>
+      skill.id === ID.RESHUFFLE && !hasTrait(runtime, TRAIT.CARD_SWAP)
+        ? denySkillCast(skill, 'thief.card-swap', 'requires the Card Swap trait.')
+        : { ready: true }
+  }
+});
 
 /** Owns Combat High tuning and behavior at the existing execution boundaries. */
 export const combatHigh = defineTrait({
@@ -227,5 +244,6 @@ export const antiquaryTraits = Object.freeze([
   enterprisingAristocrat,
   exhilaratingEphemera,
   possessiveHoarder,
-  meticulousCustodian
+  meticulousCustodian,
+  cardSwap
 ]);

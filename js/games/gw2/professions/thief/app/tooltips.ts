@@ -519,7 +519,7 @@ const familyTooltips = {
   },
   'thief.artifact': artifactTooltip,
   'thief.reshuffle': skillTooltip(
-    'Replace the available artifact choices. Retains the number of artifact uses remaining.'
+    'Replace the available artifact choices. Retains the number of artifact uses remaining. Requires the Card Swap trait.'
   ),
   'thief.skritt-swipe': skillTooltip(
     'Trigger stealing traits and replace held artifacts with a new choice pool. Grants the base artifact use plus supported Skritt Swipe bonuses; resets the initiative-spending counter.',
@@ -1165,7 +1165,9 @@ export const thiefTooltips: ProfessionTooltips = {
     [TRAIT.ENTERPRISING_ARISTOCRAT]: traitTooltip('Using an artifact restores initiative.', (balanceContext, id) => [
       profileFact(balanceContext, id, 'resourceGain', 'Initiative restored')
     ]),
-    [TRAIT.CARD_SWAP]: outsideScopeTooltip,
+    [TRAIT.CARD_SWAP]: traitTooltip(
+      'Gain access to Reshuffle, which replaces the available artifact choices. Condition removal is not simulated.'
+    ),
     [TRAIT.REPEAT_RANSACKER]: traitTooltip(
       'Using an artifact reduces the active recharge of Skritt Swipe.',
       (balanceContext, id) => [profileFact(balanceContext, id, 'rechargeReduction', 'Recharge removed', tooltipSeconds)]
