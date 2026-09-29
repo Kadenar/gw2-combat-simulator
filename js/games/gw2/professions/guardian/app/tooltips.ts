@@ -563,7 +563,13 @@ export const guardianTooltips: ProfessionTooltips = {
         )
       ]
     ),
-    [TRAIT.INNER_FIRE]: outsideScopeTooltip,
+    [TRAIT.INNER_FIRE]: traitTooltip(
+      'Gain fury when your strike hits a target with enough burning stacks.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'threshold', 'Burning stack threshold'),
+        profileFact(balanceContext, id, 'internalCooldown', 'Cooldown', tooltipSeconds)
+      ]
+    ),
     [TRAIT.RIGHT_HAND_STRENGTH]: traitTooltip(
       'Gain precision and additional power with a one-handed main-hand weapon.',
       (balanceContext) => [
@@ -664,7 +670,13 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.VIGOROUS_PRECISION]: outsideScopeTooltip,
     [TRAIT.SELFLESS_DARING]: outsideScopeTooltip,
     [TRAIT.PURITY_OF_BODY]: outsideScopeTooltip,
-    [TRAIT.INVIGORATED_BULWARK]: outsideScopeTooltip,
+    [TRAIT.INVIGORATED_BULWARK]: traitTooltip(
+      'Mace skills have reduced recharge and increased base boon duration, before the normal boon-duration bonus cap.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'rechargeMultiplier', 'Mace recharge', tooltipFactorChange),
+        profileFact(balanceContext, id, 'durationMultiplier', 'Mace base boon duration', tooltipFactorChange)
+      ]
+    ),
     [TRAIT.PROTECTIVE_REVIVER]: outsideScopeTooltip,
     [TRAIT.PROTECTORS_RESTORATION]: (balanceContext, entity) => {
       const profile = tooltipProfile(balanceContext, entity.id);

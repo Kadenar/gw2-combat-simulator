@@ -1,4 +1,5 @@
 import {
+  beastlyWarden,
   bestialRage,
   goForTheEyes,
   goForTheThroat,
@@ -55,6 +56,7 @@ import {
 
 /** Register authored owners in a fixed order; runtime boundaries stay explicit. */
 export const rangerCoreTraits = [
+  beastlyWarden,
   lightOnYourFeet,
   childOfEarth,
   wellspring,

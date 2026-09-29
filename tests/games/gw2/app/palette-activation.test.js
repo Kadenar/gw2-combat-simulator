@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { dispatchPaletteActivation } from '#gw2/app/rotation/palette/interactions.js';
+import { hasConfigurableDoubleEdgeOutcome } from '#gw2/app/rotation/editing/double-edge-editor.js';
+import { dispatchPaletteActivation, resolvePaletteDrop } from '#gw2/app/rotation/palette/interactions.js';
+import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
+import { thiefCatalog } from '#gw2/professions/thief/profession.js';
+import { THIEF_SKILL_IDS } from '#gw2/professions/thief/data/ids.js';
 
 // Builds only the app surface used by palette activation so each branch stays isolated.
 function activationApp(skills) {
@@ -67,7 +71,13 @@ test('palette activation dispatches ordinary and exceptional actions', () => {
   const ordinary = { id: 1, name: 'Ordinary', type: 'Utility', castTimeMs: 500, interruptCommitMs: 240 };
   const instant = { id: 2, name: 'Instant', type: 'Utility', castTimeMs: 0 };
   const dragonSlash = { id: 3, name: 'Dragon Slash', type: 'Profession', castTimeMs: 0, dragonSlash: true };
-  const doubleEdge = { id: 4, name: 'Double Edge', type: 'Utility', usableWhileRecharging: true };
+  const doubleEdge = {
+    id: 4,
+    name: 'Double Edge',
+    type: 'Utility',
+    usableWhileRecharging: true,
+    sideEffects: [{ on: 'castStart', do: { type: 'thief.double-edge' } }]
+  };
   const { app, added, setProfessionAction } = activationApp([ordinary, instant, dragonSlash, doubleEdge]);
   const opened = {};
   const editors = {
@@ -126,6 +136,31 @@ test('palette activation dispatches ordinary and exceptional actions', () => {
   assert.deepEqual(added.pop(), {
     name: ordinary.name,
     options: { skillId: ordinary.id, interruptAfterMs: 120 }
+  });
+});
+
+test('pet recharge handling does not expose Double Edge outcomes', () => {
+  // Real catalog skills keep palette insertion and timeline badges tied to the authored Double Edge mechanic.
+  const pets = rangerCatalog.skills.filter((skill) => skill.petSkill);
+  assert.ok(pets.length > 0);
+  for (const skill of pets) assert.equal(hasConfigurableDoubleEdgeOutcome(skill), false, skill.name);
+  for (const id of [
+    THIEF_SKILL_IDS.STONE_SUMMIT_CANNON,
+    THIEF_SKILL_IDS.ANTIVENOM_DRAUGHT,
+    THIEF_SKILL_IDS.CANACH_COIN_TOSS
+  ]) {
+    assert.equal(hasConfigurableDoubleEdgeOutcome(thiefCatalog.skillsById.get(id)), true);
+  }
+
+  const maul = pets.find((skill) => skill.name === 'Maul');
+  assert.ok(maul);
+  assert.equal(maul.usableWhileRecharging, true);
+  const { app, added } = activationApp([maul]);
+  dispatchPaletteActivation(app, maul.name, activationEvent(maul.id), {});
+  assert.deepEqual(added, [{ name: maul.name, options: { skillId: maul.id } }]);
+  assert.deepEqual(resolvePaletteDrop(app, maul.name, { skillId: maul.id }, 0), {
+    type: 'cast',
+    skillId: maul.id
   });
 });
 

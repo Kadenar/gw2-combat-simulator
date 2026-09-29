@@ -1,4 +1,4 @@
-import { createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
+import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 
 /**
  * Owns synthetic Core Necromancer actions that do not come from the GW2 skill catalog.
@@ -9,6 +9,8 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 const extraSkills: Skill[] = [
   createWeaponSwapSkill(),
+  // Dodge uses the shared endurance controller and remains available in every transform.
+  { ...createDodgeSkill({ cost: { resource: 'endurance' }, resourceCost: 50 }), usableInShroud: true },
   {
     id: ID.EXIT_LICH_FORM,
     // Manual and timed exits share the same guarded life-force reward.

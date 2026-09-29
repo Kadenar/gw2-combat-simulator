@@ -199,7 +199,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
   return false;
 }
 
-// Double Edge is a warrior skill with a random success/backfire outcome in-game;
+// Antiquary Double Edge skills have a random success/backfire outcome in-game;
 // the sim lets users pin the outcome so benchmarks are deterministic. Defaults to
 // "success" for any value other than the explicit "backfire" string, including unset.
 function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: Event): boolean {

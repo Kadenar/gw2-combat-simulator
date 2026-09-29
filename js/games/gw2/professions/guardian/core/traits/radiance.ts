@@ -1,6 +1,7 @@
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { targetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -270,7 +271,31 @@ export const retribution = defineTrait({
   ]
 });
 
+/** Player strikes grant Fury only while the target has enough live or assumed Burning stacks. */
+export const innerFire = defineTrait({
+  id: TRAIT.INNER_FIRE,
+  name: 'Inner Fire',
+  balance: {
+    threshold: 3,
+    internalCooldown: 10,
+    effects: [{ type: 'boon', name: 'fury', boon: 'fury', duration: 8, stacks: 1 }]
+  },
+  triggers: [
+    {
+      on: 'damage.resolved',
+      emit: TRAIT.INNER_FIRE,
+      icd: 'profile',
+      when: (runtime, event, details) =>
+        event.actorType === 'player' &&
+        (details.hitContext?.damage ?? 0) > 0 &&
+        targetConditionStacks(runtime.config, 'Burning', event.at, runtime) >=
+          balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.INNER_FIRE), 'threshold')
+    }
+  ]
+});
+
 export const guardianRadianceTraits = [
+  innerFire,
   healersResolution,
   righteousInstincts,
   rightHandStrength,

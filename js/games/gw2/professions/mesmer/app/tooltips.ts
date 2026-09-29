@@ -475,7 +475,9 @@ export const mesmerTooltips: ProfessionTooltips = {
         )
       ]
     ),
-    [TRAIT.RENDING_SHATTER]: outsideScopeTooltip,
+    [TRAIT.RENDING_SHATTER]: traitTooltip(
+      'Shatter hits inflict vulnerability for each illusion or blade. Instrument hits also inflict vulnerability.'
+    ),
     [TRAIT.SHATTERED_CONCENTRATION]: outsideScopeTooltip,
     [TRAIT.EGOTISM]: traitTooltip(
       'Your strikes deal increased damage after the target has lost health. Your own health remains full in combat.',
@@ -510,7 +512,10 @@ export const mesmerTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.POWER_BLOCK]: outsideScopeTooltip,
-    [TRAIT.CRITICAL_INFUSION]: outsideScopeTooltip,
+    [TRAIT.CRITICAL_INFUSION]: traitTooltip(
+      'Your critical hits grant vigor. Critical hits from clones and phantasms do not trigger this trait.',
+      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
+    ),
     [TRAIT.SHARPER_IMAGES]: traitTooltip('Critical strikes from clones and phantasms inflict bleeding.'),
     [TRAIT.MASTER_FENCER]: traitTooltip(
       'Your eligible critical hits grant fury to yourself and nearby allies, with different durations.',
@@ -620,8 +625,12 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.MEDICS_FEEDBACK]: outsideScopeTooltip,
     [TRAIT.RESTORATIVE_MANTRAS]: outsideScopeTooltip,
     [TRAIT.SYMPATHETIC_VISAGE]: outsideScopeTooltip,
-    [TRAIT.WARDENS_FEEDBACK]: outsideScopeTooltip,
-    [TRAIT.EGO_RESTORATION]: outsideScopeTooltip,
+    [TRAIT.WARDENS_FEEDBACK]: traitTooltip('Focus weapon skills have reduced recharge.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'rechargeMultiplier', 'Focus recharge', tooltipFactorChange)
+    ]),
+    [TRAIT.EGO_RESTORATION]: traitTooltip(
+      'Using a healing skill in combat creates a clone, stocks a blade as Virtuoso, or grants a note as Troubadour.'
+    ),
     [TRAIT.TEMPORAL_ENCHANTER]: outsideScopeTooltip,
     [TRAIT.MENTAL_DEFENSE]: outsideScopeTooltip,
     [TRAIT.RESTORATIVE_ILLUSIONS]: outsideScopeTooltip,

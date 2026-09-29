@@ -1,8 +1,13 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
+import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Accepted player or summon control grants Vulnerability before imperative control reactions. */
@@ -137,7 +142,67 @@ export const bountifulBlades = defineTrait({
   }
 });
 
+/** Shatters apply Vulnerability per source; instrument impacts use their own resolved hit packets. */
+export const rendingShatter = defineTrait({
+  id: TRAIT.RENDING_SHATTER,
+  name: 'Rending Shatter',
+  balance: {
+    effects: [{ type: 'condition', name: 'Vulnerability', condition: 'Vulnerability', stacks: 1, duration: 8 }]
+  },
+  triggers: [
+    {
+      on: 'damage.resolved',
+      emit: TRAIT.RENDING_SHATTER,
+      when: (runtime, event) => {
+        const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
+        return (
+          !missesTarget(event) && event.sourceId === skill?.id && Boolean(skill.instrument || skill.crescendoProfileId)
+        );
+      }
+    }
+  ]
+});
+
+/** Preserve shatter impact timing while counting each clone or spent blade only once, including defensive shatters. */
+export function triggerRendingShatter(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
+  if (!hasTrait(context, TRAIT.RENDING_SHATTER) || !resolution.traitHits.length) return;
+  const effect = requireEffect(
+    requireBalanceProfileFromContext(context, TRAIT.RENDING_SHATTER),
+    'condition',
+    'Vulnerability'
+  );
+  if (!effect) return;
+  const mechanics = mesmerMechanicsFor(context);
+  const kind = mechanics.shatters[resolution.skill.id]?.kind;
+  const hits =
+    kind === 'blade-control' || kind === 'blade-defense'
+      ? [{ at: resolution.traitHits[0].at, count: resolution.spent }]
+      : kind?.startsWith('blade-')
+        ? resolution.traitHits.slice(0, resolution.spent)
+        : resolution.traitHits;
+  for (const hit of hits) {
+    if (hit.count <= 0) continue;
+    mechanics.addCondition(
+      resolution.skill.name,
+      hit.at,
+      {
+        name: 'Vulnerability',
+        duration: effect.duration,
+        stacks: Number(effect.stacks) * hit.count
+      },
+      'Player',
+      `${resolution.skill.name} — Rending Shatter`,
+      {
+        source: 'Trait',
+        sourceId: TRAIT.RENDING_SHATTER,
+        actorType: 'player'
+      }
+    );
+  }
+}
+
 export const mesmerDominationTraits = [
+  rendingShatter,
   dazzling,
   fragility,
   viciousExpression,

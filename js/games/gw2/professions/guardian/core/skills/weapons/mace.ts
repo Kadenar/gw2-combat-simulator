@@ -10,7 +10,10 @@ export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'strike',
         coefficient: 2,
         hits: 1
-      }
+      },
+      // The modeled counterattack grants its boons alongside the strike.
+      { type: 'boon', boon: 'protection', duration: 3, stacks: 1, audience: { recipients: 'party' } },
+      { type: 'boon', boon: 'aegis', duration: 6, stacks: 1, audience: { recipients: 'party' } }
     ]
   },
   [ID.FAITHFUL_STRIKE]: {
@@ -53,6 +56,19 @@ export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 760 + index * 1000, coefficient: 3.25 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
+      },
+      // Regeneration follows the symbol's pulses so mace boon-duration traits affect actual applications.
+      {
+        type: 'boon',
+        boon: 'regeneration',
+        duration: 1,
+        stacks: 1,
+        applications: 5,
+        atMs: 760,
+        intervalMs: 1000,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        audience: { recipients: 'party' }
       }
     ]
   }

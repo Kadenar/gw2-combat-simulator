@@ -1,4 +1,5 @@
 import {
+  blastZone,
   boilingPoint,
   compoundingChemicals,
   equalAndOppositeReaction,
@@ -84,5 +85,6 @@ export const engineerCoreTraits = [
   excessiveEnergy,
   takedownRound,
   boilingPoint,
+  blastZone,
   equalAndOppositeReaction
 ];

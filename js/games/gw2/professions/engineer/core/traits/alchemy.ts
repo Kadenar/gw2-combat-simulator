@@ -7,6 +7,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/traits/toolbelt.js';
 
 // In-game "disable" reminder: stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.
 const DISABLE_CONTROL_KINDS = new Set([
@@ -87,6 +88,40 @@ export const boilingPoint = defineTrait({
       attribution: { name: 'Boiling Point — fury' }
     }
   ]
+});
+
+/** Healing toolbelt activations create one player-owned blast, including issuance of F1 mech commands. */
+export const blastZone = defineTrait({
+  id: TRAIT.BLAST_ZONE,
+  name: 'Blast Zone',
+  balance: {
+    effects: [
+      {
+        type: 'custom',
+        eventType: 'marker',
+        event: {},
+        comboFinishers: [
+          {
+            ownerId: 'engineer',
+            finisherType: 'Blast',
+            chance: 1,
+            attemptGroup: 'blast-zone',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
+      }
+    ]
+  },
+  triggers: (['castStart', 'castCommit'] as const).map((on) => ({
+    on,
+    emit: TRAIT.BLAST_ZONE,
+    // Independent commands trigger when issued; ordinary casts must commit before granting the finisher.
+    when: (_runtime, cast) =>
+      isEngineerToolbeltSkill(cast.skill) &&
+      cast.skill.mechanicSlot === 1 &&
+      Boolean(cast.skill.independentCast) === (on === 'castStart'),
+    attribution: { actorType: 'player' }
+  }))
 });
 
 /** Owns Equal and Opposite Reaction tuning: player disables grant Quickness and Stability on a short ICD. */

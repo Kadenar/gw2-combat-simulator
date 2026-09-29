@@ -1,4 +1,6 @@
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -147,7 +149,40 @@ export const honorableStaff = defineTrait({
   }
 });
 
+/** Mace boons gain base duration before capped boon-duration bonuses; recharge uses the shared controller. */
+export const invigoratedBulwark = defineTrait({
+  id: TRAIT.INVIGORATED_BULWARK,
+  name: 'Invigorated Bulwark',
+  balance: { rechargeMultiplier: 0.8, durationMultiplier: 1.33 },
+  rechargeRules: [
+    {
+      when: (_runtime, skill) => skill.weapon === 'Mace',
+      multiplier: { profile: TRAIT.INVIGORATED_BULWARK, field: 'rechargeMultiplier' }
+    }
+  ],
+  hooks: {
+    prepareEvent(runtime, event) {
+      const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
+      if (
+        !hasTrait(runtime, TRAIT.INVIGORATED_BULWARK) ||
+        event.type !== 'buff' ||
+        !isStandardBoon(String(event.kind)) ||
+        skill?.weapon !== 'Mace' ||
+        event.sourceId !== skill.id
+      )
+        return event;
+      const multiplier = balanceProfileNumber(
+        requireBalanceProfileFromContext(runtime, TRAIT.INVIGORATED_BULWARK),
+        'durationMultiplier'
+      );
+      // Scaling the skill-owned packet also covers Writ's added pulses without consuming capped bonus duration.
+      return { ...event, duration: Number(event.duration) * multiplier };
+    }
+  }
+});
+
 export const guardianHonorTraits = [
+  invigoratedBulwark,
   empoweringMight,
   protectorsRestoration,
   writOfPersistence,

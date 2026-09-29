@@ -21,6 +21,7 @@ import {
 import {
   axeMastery,
   burstMastery,
+  crackShot,
   heightenedFocus,
   versatilePower,
   versatileRage,
@@ -36,7 +37,8 @@ import {
   greatFortitude,
   peakPerformance,
   pinnacleOfStrength,
-  recklessDodge
+  recklessDodge,
+  restorativeStrength
 } from '#gw2/professions/warrior/core/traits/strength.js';
 import {
   empowerAllies,
@@ -56,8 +58,10 @@ export const warriorCoreTraits = [
   signetMastery,
   burstPrecision,
   burstMastery,
+  crackShot,
   berserkersPower,
   recklessDodge,
+  restorativeStrength,
   braveStride,
   peakPerformance,
   bloodlust,

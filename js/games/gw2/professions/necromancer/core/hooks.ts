@@ -87,6 +87,12 @@ function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
 /** Core mechanics share one live queue and resource owner with the active specialization. */
 export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = {
   resources: { lifeForce: necromancerLifeForce },
+  // Standard endurance recovery applies equally inside and outside shroud.
+  endurance: {
+    state: (runtime) => runtime.profession.core,
+    maximum: () => 100,
+    regenerationRate: (_runtime, vigor) => 5 * (vigor ? 1.5 : 1)
+  },
   sideEffectHandlers: {
     'necromancer.corruption'(runtime, context) {
       if (context.kind === 'cast') completeNecromancerCorruption(runtime, context.cast);

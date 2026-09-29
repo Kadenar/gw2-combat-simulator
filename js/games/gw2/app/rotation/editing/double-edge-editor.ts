@@ -22,11 +22,14 @@ export type ConfigurableDoubleEdgeSkill = Skill & {
   readonly usableWhileRecharging: true;
 };
 
-/** Type guard: Double Edge skills are the ones usable while recharging, where the risky recast's outcome is authored. */
+/** Only casts that resolve Double Edge need an outcome editor; pets also bypass ordinary recharge checks. */
 export function hasConfigurableDoubleEdgeOutcome(
   skill: Skill | null | undefined
 ): skill is ConfigurableDoubleEdgeSkill {
-  return skill?.usableWhileRecharging === true;
+  return (
+    skill?.usableWhileRecharging === true &&
+    skill.sideEffects?.some((effect) => effect.do.type === 'thief.double-edge') === true
+  );
 }
 
 /** Human-readable label for a stored outcome value. */

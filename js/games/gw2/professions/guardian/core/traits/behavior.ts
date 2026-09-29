@@ -102,13 +102,13 @@ export function writOfPersistenceEffects(
 
   const selected = [...effects, ...extra];
   // A symbol's self boon belongs to each pulse even when its hostile packet misses the target.
-  if (skill.id === ID.SYMBOL_OF_RESOLUTION || skill.id === ID.LUMINOUS_STAFF)
+  if (skill.id === ID.SYMBOL_OF_RESOLUTION || skill.id === ID.LUMINOUS_STAFF || skill.id === ID.SYMBOL_OF_FAITH)
     for (const effect of extra) {
       if (effect.type !== 'strike') continue;
       for (const tick of strikeEffectTicks(effect))
         selected.push({
           type: 'boon',
-          boon: 'resolution',
+          boon: skill.id === ID.SYMBOL_OF_FAITH ? 'regeneration' : 'resolution',
           duration: 1,
           stacks: 1,
           atMs: tick.atMs,

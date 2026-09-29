@@ -1,5 +1,6 @@
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
+import { quantizeGw2ActionDurationUp } from '#gw2/platform/skills/timing.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
@@ -15,20 +16,35 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.LOCUST_SWARM]: {
     castTimeMs: 440,
-    // Share the siphon formula across pulses, preserving independently rounded half-second offsets.
+    // Each half-second siphon grants life force only when its impact lands.
     effects: [
       strikeTimeline(
-        [0, 520, 1000, 1520, 2000, 2520, 3000, 3520, 4000, 4520].map((atMs) => ({ atMs, coefficient: 0 })),
+        Array.from({ length: 10 }, (_, index) => ({ atMs: quantizeGw2ActionDurationUp(index * 500), coefficient: 0 })),
         {
           name: 'Locust Swarm — Life Siphon',
-          flatStrikeBase: 37,
-          flatStrikePowerCoeff: 0.012,
+          flatStrikeBase: 117,
+          flatStrikePowerCoeff: 0.08,
+          reactions: [
+            {
+              on: 'damage.resolved',
+              actor: 'player',
+              packets: 'each',
+              do: { type: 'necromancer.skill-life-force' }
+            }
+          ],
           canCrit: false,
           damageKind: 'life-steal',
           timingAnchor: 'castStart',
           timingScale: 'fixed'
         }
-      )
+      ),
+      {
+        type: 'boon',
+        boon: 'swiftness',
+        stacks: 1,
+        duration: 15,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
     ],
     lifeForceGain: 1.5
   }

@@ -662,7 +662,9 @@ export const engineerTooltips: ProfessionTooltips = {
         profileFact(balanceContext, id, 'internalCooldown', 'Fury cooldown', tooltipSeconds)
       ]
     ),
-    [TRAIT.BLAST_ZONE]: outsideScopeTooltip,
+    [TRAIT.BLAST_ZONE]: traitTooltip(
+      'Using your healing tool belt skill or first mech command creates a blast finisher at your location.'
+    ),
     [TRAIT.HGH]: traitTooltip(
       'Completing an elixir grants might and fury. Elixir boons, conditions, and combo fields last longer; Acid Bomb gains an additional strike pulse.',
       (balanceContext, id) => [

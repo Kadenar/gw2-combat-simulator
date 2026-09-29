@@ -25,6 +25,8 @@ interface NecromancerTasteForBloodApplication {
 }
 
 export interface NecromancerCoreState {
+  endurance: number;
+  enduranceUpdatedAt: number;
   lifeForce: ResourceClock;
   lifeForceWakeGeneration: number;
   /** Readiness reads the next actual passive wake without crediting a future grant. */
@@ -59,6 +61,7 @@ export interface NecromancerCoreState {
 
 /** Declares the Core fields exposed by every Necromancer end-state projection. */
 const NECROMANCER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
+  'endurance',
   'lifeForce',
   'lifeForceCostMultiplier',
   'activeShroud',

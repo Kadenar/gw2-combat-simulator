@@ -174,6 +174,14 @@ export const bestialRage = defineTrait({
   }
 });
 
+/** Owns the ursine and porcine pet strike bonus. */
+export const beastlyWarden = defineTrait({
+  id: TRAIT.BEASTLY_WARDEN,
+  name: 'Beastly Warden',
+  // Eligible pets snapshot this strike multiplier with their independent combat attributes.
+  balance: { damageMultiplier: 1.67 }
+});
+
 /** Owns Loud Whistle's live tuning and trait behavior. */
 export const loudWhistle = defineTrait({
   id: TRAIT.LOUD_WHISTLE,

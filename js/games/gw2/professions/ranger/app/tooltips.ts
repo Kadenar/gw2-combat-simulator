@@ -725,7 +725,12 @@ export const rangerTooltips: ProfessionTooltips = {
         profileFact(balanceContext, id, 'rechargeMultiplier', 'Axe recharge', tooltipFactorChange)
       ]
     ),
-    [TRAIT.BEASTLY_WARDEN]: outsideScopeTooltip,
+    [TRAIT.BEASTLY_WARDEN]: traitTooltip(
+      'Ursine and porcine pets deal increased strike damage.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'damageMultiplier', 'Pet strike damage', tooltipFactorChange)
+      ]
+    ),
     [TRAIT.ZEPHYRS_SPEED]: outsideScopeTooltip,
     [TRAIT.GO_FOR_THE_THROAT]: (balanceContext, entity) => ({
       description:

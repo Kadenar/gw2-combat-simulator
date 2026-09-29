@@ -5,6 +5,9 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { quantizeGw2ActionDurationUp } from '#gw2/platform/skills/timing.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { applyOverflowingThirstCast } from '#gw2/professions/necromancer/core/traits/life-steal.js';
 
@@ -174,4 +177,77 @@ export const transfusion = defineTrait({
   ]
 });
 
-export const bloodMagicTraits = [lastRites, vampiric, vampiricPresence, overflowingThirst, transfusion];
+/** A completed combat dodge triggers its mark at the landing position, without an internal cooldown. */
+export const markOfEvasion = defineTrait({
+  id: TRAIT.MARK_OF_EVASION,
+  name: 'Mark of Evasion',
+  balance: {
+    effects: [
+      { name: 'Strike', type: 'strike', coefficient: 0.33, hits: 1 },
+      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 2, duration: 8 },
+      {
+        name: 'Regeneration',
+        type: 'boon',
+        boon: 'regeneration',
+        stacks: 1,
+        duration: 5,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
+    ]
+  },
+  triggers: [
+    {
+      on: 'castCommit',
+      when: (runtime, cast) => cast.skill.id === SHARED_SKILL_IDS.DODGE && runtime.combatStartedAt(),
+      emit: TRAIT.MARK_OF_EVASION,
+      attribution: (_runtime, cast) => ({
+        skillId: undefined,
+        skillName: 'Lesser Mark of Blood',
+        name: 'Lesser Mark of Blood',
+        skillWeapon: 'Unequipped',
+        triggeredBy: cast.skill.name,
+        offTarget: cast.command.offTarget
+      })
+    }
+  ]
+});
+
+/** Extend the swarm and its swiftness while increasing siphon base damage, leaving Power scaling unchanged. */
+export const bansheesWail = defineTrait({
+  id: TRAIT.BANSHEES_WAIL,
+  name: "Banshee's Wail",
+  balance: { durationMultiplier: 1.5 },
+  hooks: {
+    modifyEffects(runtime, cast, effects) {
+      if (cast.skill.id !== ID.LOCUST_SWARM || !hasTrait(runtime, TRAIT.BANSHEES_WAIL)) return effects;
+      const multiplier = balanceProfileNumber(
+        requireBalanceProfileFromContext(runtime, TRAIT.BANSHEES_WAIL),
+        'durationMultiplier'
+      );
+      return effects.map((effect) => {
+        if (effect.type === 'boon') return { ...effect, duration: effect.duration * multiplier };
+        if (effect.type !== 'strike' || !effect.ticks?.length) return effect;
+        const ticks = effect.ticks;
+        const last = ticks[ticks.length - 1]!;
+        return {
+          ...effect,
+          flatStrikeBase: Math.floor((effect.flatStrikeBase ?? 0) * multiplier),
+          ticks: Array.from(
+            { length: Math.round(ticks.length * multiplier) },
+            (_, index) => ticks[index] ?? { ...last, atMs: quantizeGw2ActionDurationUp(index * 500) }
+          )
+        };
+      });
+    }
+  }
+});
+
+export const bloodMagicTraits = [
+  markOfEvasion,
+  lastRites,
+  vampiric,
+  vampiricPresence,
+  overflowingThirst,
+  bansheesWail,
+  transfusion
+];

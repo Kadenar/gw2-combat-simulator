@@ -8,7 +8,35 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/modifiers.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_MISC_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/misc-skills.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+
+/** Landed player attacks against defiant foes trigger Lesser Haste's self boons on one shared ICD. */
+export const burstOfAgility = defineTrait({
+  id: TRAIT.BURST_OF_AGILITY,
+  name: 'Burst of Agility',
+  balance: {
+    internalCooldown: THIEF_MISC_SKILL_MECHANICS[ID.LESSER_HASTE]!.cooldown,
+    effects: THIEF_MISC_SKILL_MECHANICS[ID.LESSER_HASTE]!.effects
+  },
+  triggers: [
+    {
+      on: 'damage.resolved',
+      emit: TRAIT.BURST_OF_AGILITY,
+      icd: 'profile',
+      when: (runtime, event) =>
+        event.actorType === 'player' && Number(event.coefficient) > 0 && Boolean(runtime.config.target?.defiant),
+      attribution: (runtime, event) => ({
+        skillId: ID.LESSER_HASTE,
+        skillName: 'Lesser Haste',
+        name: 'Lesser Haste',
+        icon: runtime.helpers.skillsById.get(ID.LESSER_HASTE)?.icon,
+        triggeredBy: event.skillName,
+        audience: { recipients: 'self' }
+      })
+    }
+  ]
+});
 
 /** Owns Bountiful Theft tuning and behavior at the existing execution boundaries. */
 export const bountifulTheft = defineTrait({

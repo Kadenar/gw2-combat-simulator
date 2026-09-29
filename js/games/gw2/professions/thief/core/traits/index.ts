@@ -1,6 +1,7 @@
 import {
   fluidStrikes,
   hardToCatch,
+  pumpingUp,
   swindlersEquilibrium,
   upperHand
 } from '#gw2/professions/thief/core/traits/acrobatics.js';
@@ -40,6 +41,7 @@ import {
 } from '#gw2/professions/thief/core/traits/shadow-arts.js';
 import {
   bountifulTheft,
+  burstOfAgility,
   deadlyAmbush,
   kleptomaniac,
   leadAttacks,
@@ -62,12 +64,14 @@ export const coreTraits = Object.freeze([
   deadlyAmbush,
   thrillOfTheCrime,
   bountifulTheft,
+  burstOfAgility,
   sleightOfHand,
   hiddenThief,
   kleptomaniac,
   leadAttacks,
   fluidStrikes,
   hardToCatch,
+  pumpingUp,
   deadlyAmbition,
   lotusPoison,
   noQuarter,

@@ -532,6 +532,12 @@ export const necromancerTooltips: ProfessionTooltips = {
     [ID.LIFE_SIPHON]: lifeSiphonTooltip,
     [ID.DEVOURING_DARKNESS]: devouringDarknessTooltip,
     [SHARED_SKILL_IDS.SWAP_WEAPONS]: weaponSwapTooltip,
+    [SHARED_SKILL_IDS.DODGE]: skillTooltip(
+      'Spend 50 endurance to dodge. Mark of Evasion triggers Lesser Mark of Blood when the dodge finishes in combat.'
+    ),
+    [ID.LOCUST_SWARM]: skillTooltip(
+      "Pulse life siphon every half second, gaining life force on each landed impact, and grant party swiftness. Banshee's Wail increases siphon base damage, pulse count, and swiftness duration."
+    ),
     // Passive signet packets have separate profile IDs and must accompany the active skill facts.
     [ID.SIGNET_OF_SPITE]: skillTooltip(
       'Passively grants power while its passive is available. Activate to inflict the listed conditions.',
@@ -762,7 +768,9 @@ export const necromancerTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.UNHOLY_SANCTUARY]: outsideScopeTooltip,
-    [TRAIT.MARK_OF_EVASION]: outsideScopeTooltip,
+    [TRAIT.MARK_OF_EVASION]: traitTooltip(
+      'Completing a dodge in combat triggers Lesser Mark of Blood, striking and bleeding the target and granting party regeneration.'
+    ),
     [TRAIT.VAMPIRIC]: traitTooltip(
       'Eligible player and creature attacks trigger life-steal damage. Healing is outside simulation scope.'
     ),
@@ -775,7 +783,12 @@ export const necromancerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.BLOOD_RENEWAL]: outsideScopeTooltip,
     [TRAIT.LIFE_FROM_DEATH]: outsideScopeTooltip,
-    [TRAIT.BANSHEES_WAIL]: outsideScopeTooltip,
+    [TRAIT.BANSHEES_WAIL]: traitTooltip(
+      'Increase Locust Swarm siphon base damage, pulse count, and swiftness duration. Power scaling is unchanged.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'durationMultiplier', 'Effectiveness', tooltipFactorChange)
+      ]
+    ),
     [TRAIT.VAMPIRIC_PRESENCE]: traitTooltip(
       'Eligible player, creature, and configured allied hits trigger life-steal damage. The stronger payload applies in shroud.',
       (balanceContext, id) => [

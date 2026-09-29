@@ -461,7 +461,7 @@ export const warriorTooltips: ProfessionTooltips = {
       'Completing a movement skill grants adrenaline and stability.',
       (balanceContext, id) => [profileFact(balanceContext, id, 'resourceGain', 'Adrenaline gained')]
     ),
-    [TRAIT.RESTORATIVE_STRENGTH]: outsideScopeTooltip,
+    [TRAIT.RESTORATIVE_STRENGTH]: traitTooltip('Using a healing skill grants might and resistance to yourself.'),
     [TRAIT.PEAK_PERFORMANCE]: traitTooltip(
       'Deal increased strike damage. Physical skills temporarily grant an additional bonus.',
       (balanceContext) => [
@@ -697,7 +697,13 @@ export const warriorTooltips: ProfessionTooltips = {
         tooltipPercent(1 - value)
       )
     ]),
-    [TRAIT.CRACK_SHOT]: outsideScopeTooltip,
+    [TRAIT.CRACK_SHOT]: traitTooltip(
+      'Enhance rifle and longbow autoattacks: Fierce Shot deals increased strike damage, and each Dual Shot arrow inflicts burning.',
+      (balanceContext) => [
+        modifierFact(balanceContext, 'warrior.crack-shot', 'factor', 'Fierce Shot damage', tooltipFactorChange)
+      ],
+      'per Dual Shot arrow'
+    ),
     [TRAIT.WARRIORS_SPRINT]: traitTooltip(
       'Deal increased strike damage while you have swiftness.',
       (balanceContext) => [

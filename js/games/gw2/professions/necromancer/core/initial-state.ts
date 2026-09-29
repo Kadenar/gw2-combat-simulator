@@ -11,6 +11,9 @@ import { necromancerCoreTraits } from '#gw2/professions/necromancer/core/traits/
 export function createNecromancerCoreState(config: NecromancerConfig = {}): NecromancerCoreState {
   // Seed every mutable subsystem independently and bound the initial life-force value.
   const state: NecromancerCoreState = {
+    // Begin with two dodges; the shared controller advances regeneration and Vigor.
+    endurance: 100,
+    enduranceUpdatedAt: 0,
     lifeForce: { value: clamp(config.initialResource ?? 100, 0, 100), maximum: 100, rate: 0, updatedAt: 0 },
     lifeForceCostMultiplier: necromancerLifeForceCostMultiplier(config, {
       // Standalone state creation reads canonical base tuning; runtime initialization supplies active patches.

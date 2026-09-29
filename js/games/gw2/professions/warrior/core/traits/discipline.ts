@@ -7,7 +7,33 @@ import {
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { readyHeightenedFocusBurst, triggerHeightenedFocus } from '#gw2/professions/warrior/core/traits/behavior.js';
 import { warriorBoonActive } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+
+/** Enhance the ranged autoattacks, applying Burning separately for each Dual Shot arrow that hits. */
+export const crackShot = defineTrait({
+  id: TRAIT.CRACK_SHOT,
+  name: 'Crack Shot',
+  balance: {
+    effects: [{ name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 1 }]
+  },
+  modifierRules: [
+    {
+      id: 'warrior.crack-shot',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: 1.1,
+      when: (context) => eventSkill(context)?.id === ID.FIERCE_SHOT
+    }
+  ],
+  triggers: [
+    {
+      on: 'damage.resolved',
+      when: (_runtime, event) =>
+        event.actorType === 'player' && event.skillId === ID.DUAL_SHOT && Number(event.coefficient) > 0,
+      emit: TRAIT.CRACK_SHOT
+    }
+  ]
+});
 
 /** Owns this trait's tuning and selected contributions. */
 export const burstMastery = defineTrait({

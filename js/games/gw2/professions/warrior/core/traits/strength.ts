@@ -8,6 +8,26 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
+/** Using a healing skill grants self boons even when the player is already at full health. */
+export const restorativeStrength = defineTrait({
+  id: TRAIT.RESTORATIVE_STRENGTH,
+  name: 'Restorative Strength',
+  balance: {
+    effects: [
+      { name: 'might', type: 'boon', boon: 'might', stacks: 5, duration: 6 },
+      { name: 'resistance', type: 'boon', boon: 'resistance', stacks: 1, duration: 6 }
+    ]
+  },
+  triggers: [
+    {
+      on: 'castStart',
+      when: (_runtime, cast) => cast.skill.type === 'Heal',
+      emit: TRAIT.RESTORATIVE_STRENGTH,
+      attribution: { audience: { recipients: 'self' } }
+    }
+  ]
+});
+
 /** Owns this trait's tuning and selected contributions. */
 export const berserkersPower = defineTrait({
   id: TRAIT.BERSERKERS_POWER,

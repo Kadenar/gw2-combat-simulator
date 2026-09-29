@@ -5,8 +5,30 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/modifiers.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+
+/** Every accepted dodge grants self Might immediately, including selected dodge variants. */
+export const pumpingUp = defineTrait({
+  id: TRAIT.PUMPING_UP,
+  name: 'Pumping Up',
+  balance: {
+    effects: [{ type: 'boon', name: 'Might', boon: 'might', stacks: 3, duration: 20, audience: { recipients: 'self' } }]
+  },
+  triggers: [
+    {
+      on: 'castStart',
+      when: (_runtime, cast) => cast.skill.id === SHARED_SKILL_IDS.DODGE,
+      emit: TRAIT.PUMPING_UP,
+      attribution: (_runtime, cast) => ({
+        skillId: TRAIT.PUMPING_UP,
+        skillName: 'Pumping Up',
+        triggeredBy: cast.skill.name
+      })
+    }
+  ]
+});
 
 /** Owns Fluid Strikes tuning and behavior at the existing execution boundaries. */
 export const fluidStrikes = defineTrait({

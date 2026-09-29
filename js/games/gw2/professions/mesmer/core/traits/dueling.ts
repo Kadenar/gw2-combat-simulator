@@ -129,7 +129,29 @@ export const blindingDissipation = defineTrait({ id: TRAIT.BLINDING_DISSIPATION,
 /** Mirage invokes this reward only after its dodge has granted cloak. */
 export const deceptiveEvasion = defineTrait({ id: TRAIT.DECEPTIVE_EVASION, name: 'Deceptive Evasion' });
 
+/** Only the player's resolved critical hits grant Vigor; illusion critical hits never claim the cooldown. */
+export const criticalInfusion = defineTrait({
+  id: TRAIT.CRITICAL_INFUSION,
+  name: 'Critical Infusion',
+  balance: {
+    internalCooldown: 10,
+    effects: [{ type: 'boon', name: 'vigor', boon: 'vigor', duration: 5, stacks: 1 }]
+  },
+  triggers: [
+    {
+      on: 'damage.resolved',
+      emit: TRAIT.CRITICAL_INFUSION,
+      icd: 'profile',
+      when: (_runtime, event, details) =>
+        event.actorType === 'player' &&
+        (details.hitContext?.damage ?? 0) > 0 &&
+        Boolean(details.hitContext?.critEligible && details.hitContext.critical.didCrit)
+    }
+  ]
+});
+
 export const mesmerDuelingTraits = [
+  criticalInfusion,
   fencersFinesse,
   ineptitude,
   masterFencer,

@@ -120,7 +120,7 @@ export function necromancerTransformPaletteGroups(
   groups.push({
     id: 'necromancer-actions',
     label: 'Act',
-    skillIds: [SHARED_SKILL_IDS.SWAP_WEAPONS],
+    skillIds: [SHARED_SKILL_IDS.SWAP_WEAPONS, SHARED_SKILL_IDS.DODGE],
     color: '#7fbd8b'
   });
   return groups;
@@ -134,6 +134,8 @@ function necromancerCorePaletteAvailability(
 ): PaletteSkillAvailability {
   const state = necromancerUiState(context);
   const active = state.activeShroud || '';
+  // Dodging never depends on the active weapon or transform bar.
+  if (skill.id === SHARED_SKILL_IDS.DODGE) return { available: true, message: '' };
   const activeTraitNames = new Set(getActiveTraits(context.build?.specializations || []).map((trait) => trait.name));
   // Apply trait replacements and living-minion restrictions before transform-wide gates.
   if (skill.id === ID.DEVOURING_DARKNESS && !activeTraitNames.has('Lingering Curse')) {

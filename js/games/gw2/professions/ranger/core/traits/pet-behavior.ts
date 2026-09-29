@@ -23,6 +23,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import { rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
+import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import {
   eventSkill,
   queueProfileBuff,
@@ -39,6 +40,14 @@ import type {
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Owns Core Ranger Beastmastery command and companion-attack trait behavior. */
+
+/** Snapshot the family-specific strike bonus so launched pet attacks retain it across swaps. */
+export function beastlyWardenPetDamageMultiplier(context: RangerRuntime | RangerResolverContext): number {
+  const family = rangerPetByName(professionCoreState(context).activePet).family;
+  return hasTrait(context, TRAIT.BEASTLY_WARDEN) && (family === 'ursine' || family === 'porcine')
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BEASTLY_WARDEN), 'damageMultiplier')
+    : 1;
+}
 
 // Snapshot the Ranger's configured and still-active boons at command completion,
 // then mirror their current duration and stacks to the active companion only.

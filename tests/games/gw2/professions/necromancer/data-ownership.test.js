@@ -39,6 +39,6 @@ test('Necromancer owner-local skill families compose without duplicates or omiss
   assert.deepEqual(NECROMANCER_CORE_EXTRA_SKILLS, [...CORE_ACTIONS, ...NECROMANCER_AXE_EXTRA_SKILLS]);
   assert.deepEqual(
     CORE_ACTIONS.map(({ id }) => id),
-    [SHARED_SKILL_IDS.SWAP_WEAPONS, ID.EXIT_LICH_FORM]
+    [SHARED_SKILL_IDS.SWAP_WEAPONS, SHARED_SKILL_IDS.DODGE, ID.EXIT_LICH_FORM]
   );
 });

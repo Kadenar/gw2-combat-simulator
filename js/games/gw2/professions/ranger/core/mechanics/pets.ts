@@ -31,6 +31,7 @@ import {
   applyHonedAxesPet,
   applyPackAlphaPet,
   applyPetsProwessPet,
+  beastlyWardenPetDamageMultiplier,
   packAlphaPetRecharge
 } from '#gw2/professions/ranger/core/traits/pet-behavior.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -96,7 +97,8 @@ export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverC
     summonOwner: rangerPetCompanionId(context),
     summonCriticalChance: (attributes.precision - 1000) / 2100,
     summonCriticalDamage: 1.5 + attributes.ferocity / 1500,
-    summonDamagePerCoefficient: (2880 * attributes.power) / STANDARD_TARGET_ARMOR
+    summonDamagePerCoefficient:
+      ((2880 * attributes.power) / STANDARD_TARGET_ARMOR) * beastlyWardenPetDamageMultiplier(context)
   };
 }
 

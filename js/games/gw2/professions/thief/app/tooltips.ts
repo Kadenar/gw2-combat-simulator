@@ -934,7 +934,10 @@ export const thiefTooltips: ProfessionTooltips = {
             : [{ name: `${effect.name} pulse interval`, detail: tooltipSeconds(effect.intervalMs / 1000) }]
         )
     ),
-    [TRAIT.BURST_OF_AGILITY]: outsideScopeTooltip,
+    [TRAIT.BURST_OF_AGILITY]: traitTooltip(
+      'Landing an attack against a defiant target triggers Lesser Haste, granting quickness, fury, and swiftness to yourself.',
+      (context, id) => [profileFact(context, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
+    ),
     [TRAIT.THRILL_OF_THE_CRIME]: traitTooltip('Stealing grants fury, might, and swiftness to yourself.'),
     [TRAIT.BOUNTIFUL_THEFT]: traitTooltip(
       'Stealing grants vigor and might to yourself. The simulated target has no boons to steal.'
@@ -964,7 +967,7 @@ export const thiefTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.INSTANT_REFLEXES]: outsideScopeTooltip,
-    [TRAIT.PUMPING_UP]: outsideScopeTooltip,
+    [TRAIT.PUMPING_UP]: traitTooltip('Dodging grants might to yourself.'),
     [TRAIT.PAIN_RESPONSE]: outsideScopeTooltip,
     [TRAIT.GUARDED_INITIATION]: outsideScopeTooltip,
     [TRAIT.SWINDLERS_EQUILIBRIUM]: traitTooltip(
