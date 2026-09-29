@@ -239,6 +239,23 @@ const familySkillIds: Record<keyof typeof familyTooltips, readonly (number | str
   'ranger.mistral': [ID.MISTRAL]
 };
 
+/** Spirit prose describes its slam marker; ordinary boon and combo facts still come from the selected catalog. */
+function spiritTooltip(description: string): DescribeSimulationTooltip {
+  return (context, entity) => {
+    const skill = context.catalog.skillsById.get(entity.id);
+    if (!skill) throw new Error(`Missing tooltip skill: ${entity.id}`);
+    const effects = (skill.effects ?? []).filter(
+      (effect) =>
+        !(
+          effect.type === 'custom' &&
+          effect.eventType === 'marker' &&
+          effect.metadata?.packetKind === 'ranger.spirit-slam'
+        )
+    );
+    return { ...simulationEffectFacts(effects), description };
+  };
+}
+
 /** Keep companion bonuses and form-dependent alternatives separate while sharing the simulation's balance inputs. */
 export const rangerTooltips: ProfessionTooltips = {
   skillFacts: (balanceContext, entity) => [
@@ -317,6 +334,15 @@ export const rangerTooltips: ProfessionTooltips = {
       : [])
   ],
   skills: {
+    [ID.FROST_SPIRIT]: spiritTooltip(
+      "Grant resistance on summon, perform Cold Snap's blast finisher, then grant resolution with four shakes. Nature's Vengeance repeats the slam after the final shake. Condition cleansing is outside combat simulation scope."
+    ),
+    [ID.WATER_SPIRIT]: spiritTooltip(
+      "Summon a water spirit and grant vigor with four shakes. Aqua Surge's slam is recorded and repeats after the final shake with Nature's Vengeance. Healing is outside combat simulation scope."
+    ),
+    [ID.SPIRIT_OF_NATURE]: spiritTooltip(
+      "Summon a spirit of nature and grant regeneration with four shakes. Nature's Renewal's slam is recorded and repeats after the final shake with Nature's Vengeance. Condition conversion and revival are outside combat simulation scope."
+    ),
     [ID.CRIPPLING_ANGUISH_PET]: skillTooltip(
       'The pet applies confusion and torment. Quickness uses a separate autonomous recharge.',
       (balanceContext) => [
