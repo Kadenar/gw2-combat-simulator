@@ -543,8 +543,9 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.MARTIAL_CADENCE]: traitTooltip(
       "Soldier's Focus grants stability to the party. Weapon swaps make Soldier's Focus ready again."
     ),
-    // Healing-only traits have no build or runtime effects in combat simulation.
-    [TRAIT.VIGOROUS_SHOUTS]: outsideScopeTooltip,
+    [TRAIT.VIGOROUS_SHOUTS]: traitTooltip('Gain healing power based on power.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'attributeConversion', 'Power converted to healing power', tooltipPercent)
+    ]),
     [TRAIT.PHALANX_STRENGTH]: outsideScopeTooltip,
     [TRAIT.THICK_SKIN]: traitTooltip('Starting a healing skill grants protection.'),
     [TRAIT.ADRENAL_HEALTH]: outsideScopeTooltip,

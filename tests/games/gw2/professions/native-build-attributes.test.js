@@ -553,6 +553,7 @@ test('Bolstered Bonds follows both selected legends in build attributes', () => 
   assert.equal(assassin.Precision.traits, 75);
   assert.equal(assassin.Ferocity.traits, 150);
   assert.equal(assassin['Condition Damage'].traits, 75);
+  assert.equal(assassin['Healing Power'].traits, 75);
 
   build.selectedLegends = [LEGEND.DWARF, LEGEND.ENTITY];
   revenantAppAdapter.recalculate(app);
@@ -562,6 +563,12 @@ test('Bolstered Bonds follows both selected legends in build attributes', () => 
   assert.equal(dwarf.Toughness.traits, 225);
   assert.equal(dwarf.Vitality.traits, 225);
   assert.equal(dwarf.Ferocity.traits, 75);
+
+  // Each selected legend contributes its own pair alongside Entity's all-attribute bonus.
+  build.selectedLegends = [LEGEND.CENTAUR, LEGEND.ENTITY];
+  revenantAppAdapter.recalculate(app);
+  assert.equal(app.attributeData.attributes['Healing Power'].traits, 225);
+  assert.equal(app.attributeData.attributes.Concentration.traits, 225);
 });
 
 test('Bolstered Bonds runtime only adds the temporary Cosmic Wisdom copy', () => {

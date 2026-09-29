@@ -1,3 +1,4 @@
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import {
@@ -8,6 +9,39 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { warriorActiveBoonCount } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { EMPOWER_PULSE, empowerPulse } from '#gw2/professions/warrior/core/traits/behavior.js';
+
+/** Convert Power to Healing Power once, preserving the build's existing conversion pool. */
+export const vigorousShouts = defineTrait({
+  id: TRAIT.VIGOROUS_SHOUTS,
+  name: 'Vigorous Shouts',
+  balance: { attributeConversion: 0.13 },
+  buildAttributes: (_common, { balanceContext }) => ({
+    attributeEffects: [
+      {
+        kind: 'conversion',
+        from: 'Power',
+        to: 'Healing Power',
+        multiplier: balanceProfileNumber(
+          requireBalanceProfileFromContext(balanceContext, TRAIT.VIGOROUS_SHOUTS),
+          'attributeConversion'
+        ),
+        rounding: 'none',
+        input: 'eligible'
+      }
+    ]
+  }),
+  modifierRules: [
+    {
+      id: 'warrior.vigorous-shouts-healing-power',
+      target: MODIFIER_TARGET.ATTRIBUTE_HEALING_POWER,
+      operation: 'add',
+      amount: (context) =>
+        (context.config?.stats?.power || 0) *
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.VIGOROUS_SHOUTS), 'attributeConversion'),
+      when: (context) => !professionStaticRulesApplied(context.config)
+    }
+  ]
+});
 
 /** Owns this trait's tuning and selected contributions. */
 export const legSpecialist = defineTrait({

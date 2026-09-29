@@ -975,7 +975,7 @@ export const elementalistTooltips: ProfessionTooltips = {
       (balanceContext, id) => [profileFact(balanceContext, id, 'attributeBonus', 'Vitality')]
     ),
     [TRAIT.ELEMENTAL_POLYPHONY]: traitTooltip(
-      'Gain attributes from each distinct active attunement: Fire grants power, Air ferocity, and Earth condition damage. Matching elements apply once.',
+      'Gain attributes from each distinct active attunement: Fire grants power, Water healing power, Air ferocity, and Earth condition damage. Matching elements apply once.',
       (balanceContext, id) => [profileFact(balanceContext, id, 'attributeBonus', 'Bonus per corresponding attribute')]
     ),
     [TRAIT.SUPERIOR_ELEMENTS]: traitTooltip(

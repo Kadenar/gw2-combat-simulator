@@ -45,6 +45,7 @@ import {
   martialCadence,
   roaringReveille,
   soldiersComfort,
+  vigorousShouts,
   warriorsCunning
 } from '#gw2/professions/warrior/core/traits/tactics.js';
 
@@ -69,6 +70,7 @@ export const warriorCoreTraits = [
   legSpecialist,
   marchingOrders,
   soldiersComfort,
+  vigorousShouts,
   martialCadence,
   buildingMomentum,
   empowerAllies,

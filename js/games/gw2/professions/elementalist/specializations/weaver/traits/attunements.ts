@@ -164,7 +164,7 @@ export function applyUnravelElementsOfRage(
   }
 }
 
-/** Apply each distinct active attunement once at the original live attribute boundary. */
+/** Apply each distinct active attunement once, including Water's Healing Power bonus. */
 export function applyElementalPolyphonyAttributes(
   context: ElementalistModifierContext,
   attributes: Gw2Stats
@@ -185,6 +185,10 @@ export function applyElementalPolyphonyAttributes(
 
   if (active.has('Air')) {
     modified.ferocity = (modified.ferocity || 0) + attributeBonus;
+  }
+
+  if (active.has('Water')) {
+    modified.healingPower = (modified.healingPower || 0) + attributeBonus;
   }
 
   if (active.has('Earth')) {

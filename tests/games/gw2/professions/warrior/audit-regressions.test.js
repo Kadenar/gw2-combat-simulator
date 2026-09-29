@@ -13,7 +13,6 @@ import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build
 import { applyWarriorBuildAttributeRules } from '#gw2/professions/warrior/build/attributes.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { modifyWarriorStrengthAttributes } from '#gw2/professions/warrior/core/traits/behavior.js';
-import { warriorCoreModifiers } from '#gw2/professions/warrior/core/modifiers.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 
@@ -233,27 +232,37 @@ test('mixed Warrior weapon sets keep static bonuses and conversion inputs separa
   }
 });
 
-// A healing-only trait stays selectable but contributes no build stats, runtime conversion, or balance profile.
-test('Vigorous Shouts is outside combat simulation scope', () => {
-  const build = createWarriorBuildDefaults();
-  build.specializations = [{ name: 'Tactics', traits: '1-1-2' }];
+// Healing Power remains a build attribute even though shout healing is not simulated.
+test('Vigorous Shouts converts Power to Healing Power once in builds and raw runtime stats', () => {
+  const build = { specializations: [{ name: 'Tactics', traits: '1-1-2' }] };
   const calculate = createCalculateAttributes(applyWarriorBuildAttributeRules, warriorProfession.traitBuildAttributes);
+  const preview = calculate(build).attributes;
   assert.equal(
-    calculate(build).attributes['Healing Power'].final,
-    calculate(build, [], 1, 'Vigorous Shouts').attributes['Healing Power'].final
+    preview['Healing Power'].final - calculate(build, [], 1, 'Vigorous Shouts').attributes['Healing Power'].final,
+    preview.Power.final * 0.13
   );
-  const attributes = warriorCoreModifiers.modifyAttributes(
-    { catalog: warriorCatalog, config: { stats: { power: 2000 } }, traits: new Set([TRAIT.VIGOROUS_SHOUTS]), time: 0 },
-    { power: 2000, healingPower: 50 }
+  const runtime = warriorProfession.runtimeFor({ specialization: 'Core' });
+  const seed = { power: 2000, healingPower: 50 };
+  const context = {
+    catalog: runtime.catalog,
+    config: { stats: seed, selectedTraitIds: [TRAIT.VIGOROUS_SHOUTS] },
+    time: 0
+  };
+  assert.equal(runtime.modifyAttributes(context, seed).healingPower, 310);
+  assert.equal(runtime.modifyAttributes({ ...context, config: { stats: seed } }, seed).healingPower, 50);
+  assert.equal(
+    runtime.modifyAttributes(
+      { ...context, config: { ...context.config, attributeProvenance: { professionStaticRulesApplied: true } } },
+      { ...seed, healingPower: 310 }
+    ).healingPower,
+    310
   );
-  assert.equal(attributes.healingPower, 50);
-  assert.equal(warriorCatalog.balanceProfilesById.has(TRAIT.VIGOROUS_SHOUTS), false);
   const tooltip = warriorTooltips.traits[TRAIT.VIGOROUS_SHOUTS](
     { catalog: warriorCatalog },
     { id: TRAIT.VIGOROUS_SHOUTS, name: 'Vigorous Shouts' }
   );
-  assert.match(tooltip.description, /outside the simulator's scope/);
-  assert.deepEqual(tooltip.facts, []);
+  assert.match(tooltip.description, /healing power based on power/);
+  assert.equal(tooltip.facts.find(({ name }) => name === 'Power converted to healing power').detail, '+13%');
 });
 
 test('endurance integration and Dodge readiness follow actual pooled Vigor windows', () => {

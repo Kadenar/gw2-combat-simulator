@@ -1,6 +1,42 @@
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { applyOverflowingThirstCast } from '#gw2/professions/necromancer/core/traits/life-steal.js';
+
+/** Grant Last Rites' full-health Healing Power once in either build or raw runtime attributes. */
+export const lastRites = defineTrait({
+  id: TRAIT.LAST_RITES,
+  name: 'Last Rites',
+  balance: { attributeBonus: 150 },
+  buildAttributes: (_common, { balanceContext }) => ({
+    attributeEffects: [
+      {
+        kind: 'flat',
+        to: 'Healing Power',
+        amount: balanceProfileNumber(
+          requireBalanceProfileFromContext(balanceContext, TRAIT.LAST_RITES),
+          'attributeBonus'
+        ),
+        feedsConversions: true
+      }
+    ]
+  }),
+  modifierRules: [
+    {
+      id: 'necromancer.last-rites-healing-power',
+      target: MODIFIER_TARGET.ATTRIBUTE_HEALING_POWER,
+      operation: 'add',
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LAST_RITES), 'attributeBonus'),
+      when: (context) => !professionStaticRulesApplied(context.config)
+    }
+  ]
+});
 
 /** Owns Vampiric tuning and behavior at its existing execution boundaries. */
 export const vampiric = defineTrait({
@@ -138,4 +174,4 @@ export const transfusion = defineTrait({
   ]
 });
 
-export const bloodMagicTraits = [vampiric, vampiricPresence, overflowingThirst, transfusion];
+export const bloodMagicTraits = [lastRites, vampiric, vampiricPresence, overflowingThirst, transfusion];

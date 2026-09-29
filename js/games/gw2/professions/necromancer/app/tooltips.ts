@@ -766,7 +766,9 @@ export const necromancerTooltips: ProfessionTooltips = {
     [TRAIT.VAMPIRIC]: traitTooltip(
       'Eligible player and creature attacks trigger life-steal damage. Healing is outside simulation scope.'
     ),
-    [TRAIT.LAST_RITES]: outsideScopeTooltip,
+    [TRAIT.LAST_RITES]: traitTooltip('Gain healing power at full player health.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'attributeBonus', 'Healing power')
+    ]),
     [TRAIT.RITUAL_OF_LIFE]: outsideScopeTooltip,
     [TRAIT.OVERFLOWING_THIRST]: traitTooltip(
       'Dagger skills grant Taste for Blood. Each recipient consumes their own stacks on eligible hits to deal life-steal damage.'
