@@ -315,6 +315,24 @@ test('stateful transforms select one live tile across professions', async () => 
   }
 });
 
+test('Untamed ambush tiles glow only while their window is open and recharge is ready', async () => {
+  const profession = await loadProfession('ranger');
+  for (const name of ['Relentless Whirl', 'Deft Strike']) {
+    const skill = profession.catalog.skillsByName.get(name);
+    for (const [time, rangerUnleashed, remaining, expected] of [
+      [3.999, true, 0, true],
+      [4, true, 0, false],
+      [3, false, 0, false],
+      [3, true, 1000, false]
+    ]) {
+      const context = { specialization: 'Untamed', time, professionState: { rangerUnleashed, ambushReadyUntil: 4 } };
+      const app = projectionApp(profession, { ...context, cooldowns: { [name]: { remaining, readyAt: 4000 } } });
+      const availability = profession.ui.paletteSkillAvailability(context, skill);
+      assert.equal(paletteSkillView(app, skill, availability.available).highlighted, expected, name);
+    }
+  }
+});
+
 test('Gunsaber tile shows the shared cooldown after direct or Dragon Trigger entry from sword', async () => {
   const profession = await loadProfession('warrior');
   // Use real simulation state so the visible flip and its cooldown cannot drift apart.

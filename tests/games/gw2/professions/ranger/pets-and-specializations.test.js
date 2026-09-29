@@ -26,6 +26,7 @@ import {
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import { RANGER_HAMMER_VARIANT_PAIRS } from '#gw2/professions/ranger/data/hammer-variants.js';
 import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/core/state.js';
 import { DRUID_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import { druidHooks } from '#gw2/professions/ranger/specializations/druid/hooks.js';
@@ -1199,7 +1200,7 @@ test('Ranger transformation availability follows skill IDs after display labels 
   assert.equal(check('Untamed', untamed, unleash, untamedCastAvailability).code, 'ranger.ranger-unleashed');
 });
 
-test('Hammer variants are selected for every Ranger specialization', () => {
+test('Untamed Hammer variants follow unleash state instead of build selections', () => {
   const blocked = simulate('Untamed', ['Unleashed Wild Swing'], {
     primaryWeapon: 'Hammer'
   });
@@ -1207,8 +1208,7 @@ test('Hammer variants are selected for every Ranger specialization', () => {
   assert.match(blocked.warnings[0], /required weapon is not equipped/);
 
   const result = simulate('Untamed', ['Unleash Ranger', 'Unleashed Wild Swing', 'Unleash Pet'], {
-    primaryWeapon: 'Hammer',
-    selectedHammerSkillIds: [ID.UNLEASHED_WILD_SWING, ID.OVERBEARING_SMASH, ID.SAVAGE_SHOCK_WAVE, ID.THUMP]
+    primaryWeapon: 'Hammer'
   });
 
   assert.deepEqual(result.warnings, []);
@@ -1218,7 +1218,7 @@ test('Hammer variants are selected for every Ranger specialization', () => {
 
   const standardWhileUnleashed = simulate('Untamed', ['Unleash Ranger', 'Wild Swing'], { primaryWeapon: 'Hammer' });
 
-  assert.deepEqual(standardWhileUnleashed.warnings, []);
+  assert.match(standardWhileUnleashed.warnings[0], /required weapon is not equipped/);
 
   const druidBlocked = simulate('Druid', ['Unleashed Wild Swing'], {
     primaryWeapon: 'Hammer'
@@ -1231,6 +1231,123 @@ test('Hammer variants are selected for every Ranger specialization', () => {
   });
 
   assert.deepEqual(druidSelected.warnings, []);
+});
+
+test('Untamed Hammer pairs retain recharge across unleash transfers in both directions', () => {
+  // A transfer changes every slot's identity without resetting or sharing recharge across different slots.
+  for (const pair of RANGER_HAMMER_VARIANT_PAIRS) {
+    for (const rangerUnleashed of [false, true]) {
+      const first = pair[rangerUnleashed ? 1 : 0];
+      const second = pair[rangerUnleashed ? 0 : 1];
+      const config = { primaryWeapon: 'Hammer', initialUntamedState: rangerUnleashed ? 'Ranger' : 'Pet' };
+      const initial = simulate('Untamed', [first], config);
+      assert.deepEqual(initial.warnings, []);
+      const firstName = rangerCatalog.skillsById.get(first).name;
+      const secondName = rangerCatalog.skillsById.get(second).name;
+      const readyAt = initial.planningState.cooldowns[firstName].readyAt;
+      assert.equal(initial.planningState.cooldowns[secondName].readyAt, readyAt);
+      const other = RANGER_HAMMER_VARIANT_PAIRS.find((candidate) => candidate !== pair)[0];
+      assert.equal(initial.planningState.cooldowns[rangerCatalog.skillsById.get(other).name], undefined);
+      const result = simulate('Untamed', [first, rangerUnleashed ? ID.UNLEASH_PET : ID.UNLEASH_RANGER, second], config);
+      assert.deepEqual(result.warnings, []);
+      assert.ok(result.steps.find((step) => step.skillId === second).start >= readyAt);
+    }
+  }
+});
+
+test('Untamed Hammer previews and availability follow initial and live states for every slot', () => {
+  for (const rangerUnleashed of [false, true]) {
+    const config = { specialization: 'Untamed', initialUntamedState: rangerUnleashed ? 'Ranger' : 'Pet' };
+    for (const professionState of [undefined, { rangerUnleashed: !rangerUnleashed }]) {
+      const context = { config, professionState, catalog: rangerCatalog };
+      const active = professionState?.rangerUnleashed ?? rangerUnleashed;
+      for (const pair of RANGER_HAMMER_VARIANT_PAIRS) {
+        for (const [index, id] of pair.entries()) {
+          const skill = rangerCatalog.skillsById.get(id);
+          assert.equal(rangerProfession.weaponSkillMatchesSet(skill, ['Hammer'], context), index === Number(active));
+          assert.equal(
+            rangerProfession.ui.paletteSkillAvailability(context, skill).available,
+            index === Number(active)
+          );
+        }
+      }
+    }
+  }
+});
+
+test('Cancelled Hammer casts also share their recharge with the other variant', () => {
+  const result = simulate('Untamed', [{ type: 'cast', skillId: ID.WILD_SWING, interruptMs: 1 }], {
+    primaryWeapon: 'Hammer'
+  });
+  assert.deepEqual(result.warnings, []);
+  const cooldowns = result.planningState.cooldowns;
+  assert.ok(cooldowns['Wild Swing'].readyAt > 0);
+  assert.equal(cooldowns['Wild Swing'].readyAt, cooldowns['Unleashed Wild Swing'].readyAt);
+});
+
+test('Untamed exposes and executes all three natural pet commands only with the ranger unleashed', () => {
+  const commands = [ID.FELINE_BITE, ID.FURIOUS_POUNCE, ID.FELINE_MAUL];
+  const config = { selectedPet: 'Tiger', initialUntamedState: 'Ranger' };
+  const defaults = createRangerBuildDefaults();
+  const build = {
+    ...defaults,
+    ...config,
+    specializations: [...defaults.specializations.slice(0, 2), { name: 'Untamed', traits: '1-1-1' }]
+  };
+  const context = { build, specialization: 'Untamed', professionState: { rangerUnleashed: true } };
+  const petSkills = rangerProfession.ui.paletteGroups(context).find((group) => group.id === 'ranger-pet').skillIds;
+  assert.deepEqual(new Set(petSkills), new Set([...commands, ID.PET_SWAP]));
+  for (const skillId of commands) {
+    const skill = rangerCatalog.skillsById.get(skillId);
+    assert.equal(rangerProfession.ui.paletteSkillAvailability(context, skill).available, true);
+    assert.equal(
+      rangerProfession.ui.paletteSkillAvailability({ ...context, professionState: { rangerUnleashed: false } }, skill)
+        .available,
+      false
+    );
+    const result = simulate('Untamed', [skillId, { type: 'wait', durationMs: 3000 }], config);
+    assert.deepEqual(result.warnings, []);
+    assert.ok(
+      result.events.some(
+        (event) =>
+          event.type === 'action' && event.skillId === skillId && event.actorType === 'summon' && event.activationId
+      )
+    );
+    const blocked = simulate('Untamed', [skillId], { ...config, initialUntamedState: 'Pet' });
+    assert.match(blocked.warnings.join(' '), /Unleash Ranger first/);
+  }
+
+  const loaded = migrateRangerBuild({ ...build, rotation: [...commands, ID.FELINE_SLASH] });
+  assert.deepEqual(
+    loaded.rotation.map((command) => command.skillId),
+    commands
+  );
+  assert.match(simulate('Untamed', [ID.FELINE_SLASH], config).warnings.join(' '), /automatically/);
+  assert.match(simulate('Core', [ID.FELINE_BITE], config).warnings.join(' '), /automatically/);
+  assert.match(
+    simulate('Untamed', [ID.FELINE_BITE], { ...config, selectedPet: 'Pig' }).warnings.join(' '),
+    /select the pet/
+  );
+});
+
+test('Untamed manual and automatic pet skills share recharge and the pet action lane', () => {
+  // Exercise both automatic-before-command and command-before-automatic ordering.
+  for (const prefix of [[], ['__combat_start', { type: 'wait', durationMs: 2000 }]]) {
+    const result = simulate('Untamed', [...prefix, ID.FELINE_BITE, { type: 'wait', durationMs: 16000 }], {
+      selectedPet: 'Tiger',
+      initialUntamedState: 'Ranger'
+    });
+    assert.deepEqual(result.warnings, []);
+    const bites = result.events.filter(
+      (event) => event.type === 'action' && event.skillId === ID.FELINE_BITE && event.actorType === 'summon'
+    );
+    assert.ok(bites.some((event) => event.activationId));
+    assert.ok(bites.some((event) => !event.activationId));
+    for (let index = 1; index < bites.length; index++) assert.ok(bites[index].at - bites[index - 1].at >= 8);
+    const actions = result.events.filter((event) => event.type === 'action' && event.source === 'ranger-pet');
+    for (let index = 1; index < actions.length; index++)
+      assert.ok(actions[index].at + 1e-9 >= actions[index - 1].endsAt);
+  }
 });
 
 test('Ranger Hammer autoattacks advance their palette chain', () => {

@@ -7,6 +7,7 @@ import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/
 import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/professions/ranger/build/assumptions.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   PaletteSkillAvailability,
@@ -25,6 +26,8 @@ import type {
 import {
   isRangerHammerVariant,
   normalizeRangerHammerSkillIds,
+  rangerHammerSkillIds,
+  rangerHammerUsesBuildSelection,
   RANGER_HAMMER_VARIANT_PAIRS
 } from '#gw2/professions/ranger/data/hammer-variants.js';
 import {
@@ -58,12 +61,10 @@ function activePetSkillIds(context: RangerUiContext): SkillId[] {
   return [...(selectedRangerUiPet(context)?.skillIds || [])];
 }
 
-function commandableSkillIds(catalog: Readonly<CanonicalCatalog>, skillIds: readonly SkillId[]): SkillId[] {
-  return skillIds.filter((skillId) => !catalog.skillsById.get(skillId)?.petAutonomousSkill);
-}
-
 function commandablePetSkillIds(catalog: Readonly<CanonicalCatalog>, context: RangerUiContext): SkillId[] {
-  return commandableSkillIds(catalog, activePetSkillIds(context));
+  return activePetSkillIds(context).filter((skillId) =>
+    rangerPetSkillCommandable(catalog.skillsById.get(skillId), rangerUiSpecialization(context))
+  );
 }
 
 interface RangerPetPaletteGroupOptions {
@@ -136,7 +137,7 @@ function hasHammerEquipped(context: RangerUiContext): boolean {
 // Replace exactly one hammer variant pair in build state after validating the
 // selected skill belongs to that slot.
 function updateHammerSelection(context: RangerUiContext, selection: RangerUiSelection): boolean {
-  if (selection.key !== 'selectedHammerSkillIds' || !context.build) {
+  if (selection.key !== 'selectedHammerSkillIds' || !context.build || !rangerHammerUsesBuildSelection(context)) {
     return false;
   }
 
@@ -168,7 +169,9 @@ function rangerCorePaletteAvailability(
   context: RangerUiContext,
   skill: RangerSkill
 ): PaletteSkillAvailability {
-  if (isRangerHammerVariant(skill.id) && !selectedHammerSkillIds(context).includes(Number(skill.id))) {
+  if (isRangerHammerVariant(skill.id) && !rangerHammerSkillIds(context).includes(Number(skill.id))) {
+    if (!rangerHammerUsesBuildSelection(context))
+      return { available: false, message: 'Use the Hammer variant for the current unleashed state' };
     return { available: false, message: 'Select this Hammer variant first' };
   }
 
@@ -195,12 +198,13 @@ function rangerCorePaletteAvailability(
   if (flipBlock?.kind === 'open') return { available: false, message: 'Use or wait out the active follow-up skill' };
 
   if (!skill.petSkill) return { available: true, message: '' };
-  const available = !skill.petAutonomousSkill && activePetSkillIds(context).includes(skill.id);
+  const commandable = rangerPetSkillCommandable(skill, rangerUiSpecialization(context));
+  const available = commandable && activePetSkillIds(context).includes(skill.id);
   return {
     available,
     message: available
       ? ''
-      : skill.petAutonomousSkill
+      : !commandable
         ? 'The active pet uses this skill automatically'
         : `Select the pet that owns this ${skill.petFamilySkill ? 'family attack' : 'Beast skill'}`
   };
@@ -266,7 +270,8 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog>): RangerUiS
           layout
         }
       ];
-      if (hasHammerEquipped(context)) {
+      // State-controlled hammer bars do not expose independent build selections.
+      if (rangerHammerUsesBuildSelection(context) && hasHammerEquipped(context)) {
         const selected = selectedHammerSkillIds(context);
         groups.push({
           id: 'ranger-hammer-selection',

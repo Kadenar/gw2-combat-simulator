@@ -4,6 +4,9 @@
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
+import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
 
 export const RANGER_HAMMER_VARIANT_PAIRS: readonly (readonly [number, number])[] = Object.freeze([
   Object.freeze([ID.WILD_SWING, ID.UNLEASHED_WILD_SWING]) as readonly [number, number],
@@ -28,4 +31,25 @@ export function normalizeRangerHammerSkillIds(value: unknown): number[] {
 
 export function isRangerHammerVariant(skillId: SkillId): boolean {
   return HAMMER_VARIANT_IDS.has(skillId);
+}
+
+/** Untamed follows live unleash state; other rangers retain their per-slot build choices. */
+export function rangerHammerSkillIds(context: Gw2WeaponMatcherContext & { readonly config?: RangerConfig }): number[] {
+  if (rangerHammerUsesBuildSelection(context)) {
+    return normalizeRangerHammerSkillIds(
+      context.build?.selectedHammerSkillIds || context.config?.selectedHammerSkillIds
+    );
+  }
+
+  const state = context.state as { readonly profession?: unknown } | undefined;
+  const profession: Partial<RangerState> = flattenProfessionState(state?.profession || context.professionState);
+  const rangerUnleashed =
+    profession.rangerUnleashed ??
+    (context.build?.initialUntamedState ?? context.config?.initialUntamedState) === 'Ranger';
+  return RANGER_HAMMER_VARIANT_PAIRS.map((pair) => pair[rangerUnleashed ? 1 : 0]);
+}
+
+/** Only non-Untamed builds choose hammer variants independently of combat state. */
+export function rangerHammerUsesBuildSelection(context: Gw2WeaponMatcherContext): boolean {
+  return (context.specialization || context.config?.specialization) !== 'Untamed';
 }

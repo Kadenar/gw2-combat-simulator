@@ -4,7 +4,12 @@ import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
-import { isRangerHammerVariant, normalizeRangerHammerSkillIds } from '#gw2/professions/ranger/data/hammer-variants.js';
+import {
+  isRangerHammerVariant,
+  rangerHammerSkillIds,
+  rangerHammerUsesBuildSelection
+} from '#gw2/professions/ranger/data/hammer-variants.js';
+import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
 
 import {
   RANGER_SPEAR_STEALTH_FLIP_BY_PARENT,
@@ -21,8 +26,14 @@ export function rangerCoreCastAvailability(context: RangerRuntime, skill: Ranger
 
   if (
     isRangerHammerVariant(skill.id) &&
-    !normalizeRangerHammerSkillIds(context.config.selectedHammerSkillIds).includes(Number(skill.id))
+    !rangerHammerSkillIds({ config: context.config, professionState: context.profession }).includes(Number(skill.id))
   ) {
+    if (!rangerHammerUsesBuildSelection(context))
+      return denySkillCast(
+        skill,
+        'ranger.hammer-unleash-state',
+        'use the Hammer variant for the current unleashed state.'
+      );
     return denySkillCast(skill, 'ranger.hammer-variant-not-selected', 'select this Hammer variant first.');
   }
 
@@ -38,7 +49,7 @@ export function rangerCoreCastAvailability(context: RangerRuntime, skill: Ranger
     return { ready: true };
   }
 
-  // Hammer variants are loadout choices, not follow-ups, so only other weapon pairs follow the shared slot rule.
+  // Hammer variants follow loadout or unleash state, so they never require a follow-up window.
   const flipBlock = isRangerHammerVariant(skill.id)
     ? null
     : weaponFlipBlock(state.availableFlips, context.helpers.skillsById, skill, context.time);
@@ -52,7 +63,7 @@ export function rangerCoreCastAvailability(context: RangerRuntime, skill: Ranger
     return denySkillCast(skill, 'ranger.flip-active', 'use or wait out the active follow-up skill.');
 
   if (!skill.petSkill) return { ready: true };
-  if (skill.petAutonomousSkill) {
+  if (!rangerPetSkillCommandable(skill, context.config.specialization || 'Core')) {
     return denySkillCast(skill, 'ranger.pet-autonomous', 'the active pet uses this skill automatically.');
   }
 

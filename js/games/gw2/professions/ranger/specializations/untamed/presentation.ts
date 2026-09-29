@@ -39,6 +39,11 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
     return { available: false, message: 'Unleash Pet first' };
   }
 
+  // Match the runtime replacement of natural pet commands by unleashed pet skills.
+  if (skill.petSkill && !rangerUnleashed) {
+    return { available: false, message: 'Unleash Ranger first' };
+  }
+
   if (skill.unleashedAmbushSkill) {
     if (!rangerUnleashed) {
       return { available: false, message: 'Unleash Ranger first' };

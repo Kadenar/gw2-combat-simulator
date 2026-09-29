@@ -399,13 +399,19 @@ export function describeSimulationSkill(
         : [])
     ])
   ];
-  // Only projectile finishers expose a chance; other finisher types are guaranteed by their type.
-  for (const finisher of new Map(comboFinishers.map((finisher) => [JSON.stringify(finisher), finisher])).values()) {
-    facts.push({
+  // Group identical displayed finishers so per-tick attempt IDs do not produce repeated tooltip rows.
+  const finisherFacts = new Map<string, TooltipFact>();
+  for (const finisher of comboFinishers) {
+    // Only projectile finishers expose a chance; other finisher types are guaranteed by their type.
+    const detail = `${String(finisher.finisherType)}${finisher.finisherType === 'Projectile' && typeof finisher.chance === 'number' ? ` · ${tooltipDecimal(finisher.chance * 100)}% chance` : ''}`;
+    finisherFacts.set(detail, {
       name: 'Combo finisher',
-      detail: `${String(finisher.finisherType)}${finisher.finisherType === 'Projectile' && typeof finisher.chance === 'number' ? ` · ${tooltipDecimal(finisher.chance * 100)}% chance` : ''}`
+      detail,
+      applications: (finisherFacts.get(detail)?.applications ?? 0) + Number(finisher.attempts ?? 1)
     });
   }
+
+  facts.push(...finisherFacts.values());
 
   return {
     ...model,

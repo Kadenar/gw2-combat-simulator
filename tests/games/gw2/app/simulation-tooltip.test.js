@@ -337,6 +337,40 @@ test('combo finisher tooltips show chance only for projectiles', () => {
   );
 });
 
+// Internal tick identities must not split identical facts, while distinct projectile chances stay visible.
+test('combo finisher tooltips group repeated attempts by displayed type and chance', () => {
+  const skill = {
+    id: 'repeated-finisher-tooltip',
+    name: 'Repeated finisher tooltip',
+    comboFinishers: [{ finisherType: 'Projectile', chance: 0.2, attempts: 2 }],
+    effects: [
+      {
+        type: 'strike',
+        comboFinishers: [
+          { finisherType: 'Projectile', chance: 0.2 },
+          { finisherType: 'Projectile', chance: 1 }
+        ],
+        ticks: [0, 500].map((atMs, index) => ({
+          atMs,
+          coefficient: 1,
+          comboFinishers: [{ finisherType: 'Whirl', attemptGroup: `tick:${index}` }]
+        }))
+      }
+    ]
+  };
+  const model = describeSimulationSkill({}, skill, { traits: {} });
+  assert.deepEqual(
+    model.facts
+      .filter(({ name }) => name === 'Combo finisher')
+      .map(({ detail, applications }) => [detail, applications]),
+    [
+      ['Projectile · 20% chance', 3],
+      ['Projectile · 100% chance', 1],
+      ['Whirl', 2]
+    ]
+  );
+});
+
 // Trait facts follow the same specialization overrides and selected patches as combat.
 test('Dhuumfire tooltips show specialization durations and the Scourge cooldown', () => {
   const profession = withPatchPreview(necromancerProfession, {

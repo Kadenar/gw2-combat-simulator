@@ -719,7 +719,9 @@ export function paletteSkillView(
   const displayedRemaining = remaining || Number(ammo?.remaining || 0);
   const cooldownLabel = displayedRemaining ? `${(displayedRemaining / 1000).toFixed(2)}s` : '';
   const unavailable = remaining > 0 || !contextAvailable;
-  const highlighted = (Boolean(skill.ambush) || Boolean(skill.stealthAttack)) && !unavailable;
+  // Available unleashed ambushes use the same glow as cloak and stealth attacks.
+  const highlighted =
+    (Boolean(skill.ambush) || Boolean(skill.stealthAttack) || Boolean(skill.unleashedAmbushSkill)) && !unavailable;
   const castTimeSeconds = Number(skill.castTimeMs || 0) / 1000;
   // Give each live cast detail its own label so availability and recharge values align without prose wrapping.
   const castDetails = [

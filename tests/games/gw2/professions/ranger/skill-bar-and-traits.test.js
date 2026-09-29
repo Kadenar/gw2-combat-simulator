@@ -133,7 +133,7 @@ describe('Ranger skill-bar selections', () => {
     );
   });
 
-  test('Untamed exposes pet and Hammer selections', () => {
+  test('Untamed exposes pet selections and reserves Hammer selections for other specializations', () => {
     const build = createRangerBuildDefaults();
     const untamedContext = {
       build,
@@ -157,7 +157,7 @@ describe('Ranger skill-bar selections', () => {
 
     assert.deepEqual(
       untamedGroups.map((group) => group.id),
-      ['ranger-pet-1-selection', 'ranger-pet-2-selection', 'ranger-hammer-selection']
+      ['ranger-pet-1-selection', 'ranger-pet-2-selection']
     );
     assert.equal(
       untamedGroups.find((group) => group.id === 'ranger-pet-1-selection').layout,
@@ -192,18 +192,17 @@ describe('Ranger skill-bar selections', () => {
         .skillBarGroups(context)
         .find((group) => group.id === 'ranger-hammer-selection');
 
-      assert.equal(hammer.label, 'Hammer', specialization);
-      assert.equal(hammer.selections.length, 4, specialization);
+      if (specialization === 'Untamed') {
+        assert.equal(hammer, undefined);
+      } else {
+        assert.equal(hammer.label, 'Hammer', specialization);
+        assert.deepEqual(
+          hammer.selections.map((selection) => selection.skillId),
+          build.selectedHammerSkillIds
+        );
+      }
     }
 
-    const hammerGroup = rangerProfession.ui
-      .skillBarGroups(untamedContext)
-      .find((group) => group.id === 'ranger-hammer-selection');
-
-    assert.deepEqual(
-      hammerGroup.selections.map((selection) => selection.skillId),
-      build.selectedHammerSkillIds
-    );
     assert.equal(
       rangerProfession.ui
         .skillBarGroups({
@@ -223,7 +222,7 @@ describe('Ranger skill-bar selections', () => {
         ['Hammer', ''],
         untamedContext
       ),
-      true
+      false
     );
     assert.equal(
       rangerProfession.ui.updateSkillBarSelection(untamedContext, {
@@ -231,12 +230,7 @@ describe('Ranger skill-bar selections', () => {
         index: 0,
         skillId: ID.UNLEASHED_WILD_SWING
       }),
-      true
-    );
-    assert.equal(
-      rangerProfession.ui.skillBarGroups(untamedContext).find((group) => group.id === 'ranger-hammer-selection')
-        .selections[0].skillId,
-      ID.UNLEASHED_WILD_SWING
+      false
     );
     assert.equal(
       rangerProfession.ui.paletteGroups(untamedContext).some((group) => group.id === 'ranger-hammer'),

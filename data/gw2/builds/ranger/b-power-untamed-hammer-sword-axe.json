@@ -48,7 +48,7 @@
   "selectedPet": "Tiger",
   "selectedPet2": "Tiger",
   "selectedHammerSkillIds": [63335, 63197, 63131, 63208],
-  "initialUntamedState": "Pet",
+  "initialUntamedState": "Ranger",
   "assumptions": {
     "might": 25,
     "fury": true,

@@ -38,6 +38,7 @@ import {
   releaseFrostTrap
 } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { synchronizePathOfScarsRecharge } from '#gw2/professions/ranger/core/skills/weapons/axe.js';
+import { synchronizeHammerRecharge } from '#gw2/professions/ranger/core/skills/weapons/hammer.js';
 import {
   armHuntersProwess,
   consumeSpearOpportunity,
@@ -76,6 +77,7 @@ function grantSkillCharges(runtime: RangerRuntime, cast: RuntimeCast, type: stri
 
 /** Commit and cancellation both synchronize the recharge already started by the runtime. */
 function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast): void {
+  synchronizeHammerRecharge(runtime, cast);
   synchronizeSpearRecharge(runtime, cast);
   synchronizePathOfScarsRecharge(runtime, cast);
 }
@@ -128,8 +130,7 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
     const state = runtime.profession.core;
     const skill = runtime.helpers.skillsById.get(event.skillId!);
     // The pet lane publishes its action only when the command actually starts in the current generation.
-    if (event.type === 'action' && skill?.petSkill && !skill.petAutonomousSkill && event.actorType !== 'summon')
-      return null;
+    if (event.type === 'action' && skill?.petSkill && event.actorType !== 'summon') return null;
     if (!prepareFrostTrapEvent(runtime, event)) return null;
 
     return prepareRangerPetEvent(

@@ -34,6 +34,7 @@ import {
   packAlphaPetRecharge
 } from '#gw2/professions/ranger/core/traits/pet-behavior.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { EPSILON } from '#kernel/core/clock.js';
 
@@ -160,7 +161,9 @@ function autonomousSkill(context: RangerRuntime, profile: PetAutoProfile, quickn
   const state = context.profession.core;
   if (state.petAutoOpeningBasic) {
     state.petAutoOpeningBasic = false;
-    return profile.opening || profile.basic;
+    // A precombat manual command may already have spent the opening skill's recharge.
+    const opening = profile.opening || profile.basic;
+    return (state.petCommandCooldowns[String(opening.id)] || 0) <= context.time + EPSILON ? opening : profile.basic;
   }
 
   const later = state.activePet === 'Fanged Iboga' && state.petAutoActivationCounts[state.activePetSlot - 1] > 1;
@@ -168,7 +171,8 @@ function autonomousSkill(context: RangerRuntime, profile: PetAutoProfile, quickn
     (later ? [...profile.specials].reverse() : profile.specials).find(
       (skill) =>
         (!later || quickness || (state.petAutoActivationUses[String(skill.id)] || 0) < 1) &&
-        (state.petAutoCooldowns[String(skill.id)] || 0) <= context.time + EPSILON
+        Math.max(state.petAutoCooldowns[String(skill.id)] || 0, state.petCommandCooldowns[String(skill.id)] || 0) <=
+          context.time + EPSILON
     ) || profile.basic
   );
 }
@@ -236,17 +240,22 @@ function petCommandStart(context: RangerRuntime, skill: RangerSkill): number {
     state.petAutoBusyUntil,
     state.petCommandReadyAt,
     state.petCommandCooldowns[String(skill.id)] || 0,
+    state.petAutoCooldowns[String(skill.id)] || 0,
     openingEnd
   );
 }
 
 export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast): void {
   const skill = cast.skill as RangerSkill;
-  if (!skill.petSkill || skill.petAutonomousSkill || !context.profession.core.petActive) return;
+  if (!rangerPetSkillCommandable(skill, context.config.specialization || 'Core') || !context.profession.core.petActive)
+    return;
   const state = context.profession.core;
   const profile = rangerPetAutoProfile(state.activePet);
   const start = petCommandStart(context, skill);
-  const recovery = profile?.commandRecovery[String(skill.id)] || cast.effectiveEnd - cast.start;
+  const recovery =
+    profile?.commandRecovery[String(skill.id)] ||
+    profile?.specials.find((entry) => entry.id === skill.id)?.recovery ||
+    cast.effectiveEnd - cast.start;
   state.petCommandReadyAt = start + recovery;
   state.petCommandCooldowns[String(skill.id)] = context.cooldownController.project(skill, {
     startedAt: start,
@@ -302,6 +311,9 @@ export const rangerPetTasks = {
             )
           : selected.cooldown * packAlphaPetRecharge(context);
       state.petAutoCooldowns[String(selected.id)] = context.time + cooldown / rate;
+      // Commandable automatic pet activations also publish recharge for manual commands.
+      if (rangerPetSkillCommandable(skill, context.config.specialization || 'Core'))
+        context.cooldownController.setReadyAt(selected.id, state.petAutoCooldowns[String(selected.id)]);
       state.petAutoActivationUses[String(selected.id)] = (state.petAutoActivationUses[String(selected.id)] || 0) + 1;
     }
 
@@ -317,6 +329,20 @@ export const rangerPetTasks = {
   [PET_COMMAND_START_TASK](context: RangerRuntime, data: unknown): void {
     const { cast, busyUntil } = data as { cast: RuntimeCast; busyUntil: number };
     const state = context.profession.core;
+    // Automatic attacks may start while a queued command waits for recharge; finish that action first.
+    if (context.time < state.petAutoBusyUntil - EPSILON) {
+      const delayedBusyUntil = busyUntil + state.petAutoBusyUntil - context.time;
+      state.petCommandReadyAt = Math.max(state.petCommandReadyAt, delayedBusyUntil);
+      context.scheduleForCast(
+        PET_COMMAND_START_TASK,
+        state.petAutoBusyUntil,
+        cast,
+        { busyUntil: delayedBusyUntil },
+        owner(context)
+      );
+      return;
+    }
+
     context.emit({
       type: 'action',
       at: context.time,

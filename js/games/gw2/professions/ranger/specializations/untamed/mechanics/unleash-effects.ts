@@ -24,6 +24,11 @@ export function untamedCastAvailability(context: RangerRuntime, skill: RangerSki
     return deny(skill, 'ranger.pet-not-unleashed', 'Unleash Pet first.');
   }
 
+  // Natural pet commands are replaced by the unleashed pet bar while the pet holds unleash.
+  if (skill.petSkill && !state.rangerUnleashed) {
+    return deny(skill, 'ranger.not-unleashed', 'Unleash Ranger first.');
+  }
+
   if (skill.unleashedAmbushSkill) {
     if (!state.rangerUnleashed) {
       return deny(skill, 'ranger.not-unleashed', 'Unleash Ranger first.');

@@ -14,11 +14,12 @@ import {
 } from '#gw2/professions/ranger/data/hammer-variants.js';
 import type { RangerCanonicalBuild } from '#gw2/professions/ranger/types.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
+import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
 
 const RANGER_BUILD_SCHEMA_VERSION = 4;
 const RANGER_PROFESSION_ID = 'ranger';
 
-function keepRangerRotationCommand(command: RangerCanonicalBuild['rotation'][number]): boolean {
+function keepRangerRotationCommand(command: RangerCanonicalBuild['rotation'][number], untamed: boolean): boolean {
   if (command.type !== 'cast') return true;
   if (command.skillId === ID.OVERBEARING_SMASH_SECOND_STRIKE || command.skillId === 'Overbearing Smash (Follow-Up)') {
     return false;
@@ -28,7 +29,8 @@ function keepRangerRotationCommand(command: RangerCanonicalBuild['rotation'][num
   const skill = Number.isFinite(numericId)
     ? rangerCatalog.skillsById.get(numericId)
     : rangerCatalog.skillsByName.get(String(command.skillId));
-  return skill?.petAutonomousSkill !== true;
+  // Preserve Untamed's explicit natural pet commands when loading saved rotations.
+  return skill?.petAutonomousSkill !== true || (untamed && rangerPetSkillCommandable(skill, 'Untamed'));
 }
 
 // Seed a complete, schema-current Ranger preset so migration and UI code can
@@ -123,7 +125,12 @@ const rangerBuildCodec = createProfessionBuildCodec<RangerCanonicalBuild>({
     const selectedPet2 = RANGER_PETS.some((pet) => pet.name === requestedPet2) ? requestedPet2 : 'Lynx';
     return {
       ...build,
-      rotation: build.rotation.filter(keepRangerRotationCommand),
+      rotation: build.rotation.filter((command) =>
+        keepRangerRotationCommand(
+          command,
+          build.specializations.some((entry) => entry.name === 'Untamed')
+        )
+      ),
       assumptions: supportedAssumptions,
       selectedPet,
       selectedPet2,
