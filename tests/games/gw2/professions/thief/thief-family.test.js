@@ -1,22 +1,29 @@
-import assert from 'node:assert/strict';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import test from 'node:test';
-
-import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
-import { runThief } from '#tests/helpers/thief-simulation.js';
-import { thiefCatalog, thiefNativeModules, thiefProfession } from '#gw2/professions/thief/profession.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
-import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { thiefCatalog, thiefNativeModules, thiefProfession } from '#gw2/professions/thief/profession.js';
+import { antiquaryModule } from '#gw2/professions/thief/specializations/antiquary/module.js';
+import { ANTIQUARY_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/antiquary/skills/index.js';
 import {
   ANTIQUARY_PUBLIC_STATE_PROJECTION,
   createAntiquaryState
 } from '#gw2/professions/thief/specializations/antiquary/state.js';
+import { daredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';
+import { DAREDEVIL_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/daredevil/skills/index.js';
 import {
-  DAREDEVIL_PUBLIC_STATE_PROJECTION,
-  createDaredevilState
+  createDaredevilState,
+  DAREDEVIL_PUBLIC_STATE_PROJECTION
 } from '#gw2/professions/thief/specializations/daredevil/state.js';
+import { deadeyeModule } from '#gw2/professions/thief/specializations/deadeye/module.js';
+import { DEADEYE_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
+import { specterModule } from '#gw2/professions/thief/specializations/specter/module.js';
+import { SPECTER_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/specter/skills/index.js';
+import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
+import assert from 'node:assert/strict';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import test from 'node:test';
 
 test('Antiquary projects its own charge fields and preserves the inactive initiative layout fallback', () => {
   // The slice must expose its charges without relying on Deadeye's contribution to the family metadata.
@@ -74,15 +81,6 @@ function collectTypeScriptSources(directoryUrl, relativeDirectory = '') {
 function combinedSource(entries) {
   return entries.map(({ source }) => source).join('\n');
 }
-
-import { antiquaryModule } from '#gw2/professions/thief/specializations/antiquary/module.js';
-import { ANTIQUARY_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/antiquary/skills/index.js';
-import { daredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';
-import { DAREDEVIL_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/daredevil/skills/index.js';
-import { deadeyeModule } from '#gw2/professions/thief/specializations/deadeye/module.js';
-import { DEADEYE_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
-import { specterModule } from '#gw2/professions/thief/specializations/specter/module.js';
-import { SPECTER_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/specter/skills/index.js';
 
 const slices = Object.freeze([
   ['core', thiefCoreModule],
@@ -204,15 +202,13 @@ test('Thief modules own vertical source slices', () => {
     false
   );
 
-  // Core trait lines stay private implementation details behind the ordered index dispatcher.
-  const traitLines = ['critical-strikes', 'deadly-arts', 'shadow-arts'];
+  // Native collectors declare owners; ordered runtime dispatch remains outside the index.
   const traitIndex = professionSourceEntries.find(({ relativePath }) => relativePath === 'core/traits/index.ts').source;
-  for (const traitLine of traitLines) {
-    const importPattern = new RegExp(`core/traits/${traitLine}\\.js`);
-    assert.match(traitIndex, importPattern, traitLine);
-    for (const { relativePath, source } of professionSourceEntries) {
-      if (relativePath !== 'core/traits/index.ts') assert.doesNotMatch(source, importPattern, relativePath);
-    }
+  assert.match(traitIndex, /coreTraits/);
+  assert.doesNotMatch(traitIndex, /\bfunction\b|hasTrait\(/);
+  for (const module of thiefNativeModules) {
+    assert.ok(module.traitDefinitions.length > 0, module.id);
+    assert.equal(new Set(module.traitDefinitions.map((trait) => trait.id)).size, module.traitDefinitions.length);
   }
 });
 

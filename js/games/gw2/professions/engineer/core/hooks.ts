@@ -1,70 +1,37 @@
-import { handleAirBlast } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
-import { isElixirSkill } from '#gw2/professions/engineer/core/traits/alchemy.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
-import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
-import type { RuntimeProfession, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { reduceEngineerRecharge } from '#gw2/professions/engineer/core/mechanics/recharge.js';
+import { handleAirBlast } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
+import { applyEngineerDodgeTraits } from '#gw2/professions/engineer/core/traits/toolbelt.js';
 
-import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { engineerEndurance } from '#gw2/professions/engineer/core/mechanics/resources.js';
+import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
-import { engineerRechargeRules } from '#gw2/professions/engineer/core/mechanics/recharge.js';
 import {
   handleConduitSurge,
   handleElectricArtillery,
   handleLightningRodPulse
 } from '#gw2/professions/engineer/core/mechanics/event-handlers.js';
-import { resetExplosiveEntrance } from '#gw2/professions/engineer/core/traits/explosives.js';
+import { engineerEndurance } from '#gw2/professions/engineer/core/mechanics/resources.js';
 import {
   applyEngineerCastTraits,
-  applyEngineerToolbeltTraits,
-  engineerCoreCriticalHitDefinitions,
-  isEngineerToolbeltSkill,
-  prepareEngineerHghEvent,
   reactToEngineerCondition,
   reactToEngineerDamage
-} from '#gw2/professions/engineer/core/traits/index.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
+} from '#gw2/professions/engineer/core/traits/dispatch.js';
 import {
   engineerSpearSideEffectHandlers,
   engineerTurretSideEffectHandlers,
   engineerWeaponTasks
 } from '#gw2/professions/engineer/core/mechanics/weapons.js';
+import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/critical-procs.js';
+import { applyEngineerToolbeltTraits } from '#gw2/professions/engineer/core/traits/toolbelt.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 const critical = engineerCoreCriticalHitDefinitions.map(criticalProcHandler);
 const customSpear = new Set<number>([ID.LIGHTNING_ROD, ID.CONDUIT_SURGE, ID.ELECTRIC_ARTILLERY]);
-
-/** Recharge reductions operate on live remaining work, including ammo recharge, and report only effective changes. */
-function reduceRecharge(
-  runtime: EngineerRuntime,
-  cast: RuntimeCast,
-  predicate: (skill: EngineerSkill) => boolean,
-  seconds: number,
-  sourceId: number | string,
-  name: string
-): void {
-  let reducedBy = 0;
-  for (const skill of runtime.helpers.skillsById.values())
-    if (predicate(skill)) reducedBy += runtime.cooldownController.reduceSkillRecharge(skill, seconds, runtime.time);
-  if (reducedBy > 0)
-    emitEngineerEvent(runtime, 'proc', {
-      at: runtime.time,
-      source: sourceId === cast.skill.id ? 'engineer' : 'Trait',
-      sourceId,
-      name,
-      procType: sourceId === cast.skill.id ? 'skill' : 'trait',
-      sourceSkill: cast.skill.name,
-      cooldownReduction: reducedBy
-    });
-}
 
 /** Precast mines retain activation ownership until the actual combat boundary permits detonation. */
 function detonatePrecastMines(runtime: EngineerRuntime): void {
@@ -89,7 +56,6 @@ function detonatePrecastMines(runtime: EngineerRuntime): void {
 export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
   endurance: engineerEndurance,
   availability: engineerCoreCastAvailability,
-  rechargeRules: engineerRechargeRules,
   sideEffectHandlers: {
     ...engineerSpearSideEffectHandlers,
     ...engineerTurretSideEffectHandlers,
@@ -117,7 +83,7 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
         throw new TypeError('Sword recharge reductions require an amount.');
       if (context.kind !== 'cast') throw new TypeError('Sword recharge requires a cast trigger.');
       const { cast } = context;
-      reduceRecharge(
+      reduceEngineerRecharge(
         runtime,
         cast,
         (candidate) => candidate.type === 'Weapon' && candidate.weapon === 'Sword' && candidate.id !== cast.skill.id,
@@ -128,17 +94,7 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
     }
   },
   reserveRecharge: (_runtime, skill, work) => (skill.id === ID.HEALING_TURRET ? 0 : work),
-  prepareEvent: prepareEngineerHghEvent,
   onCombatStart: detonatePrecastMines,
-  // HGH grants its own unextended boons only after an elixir finishes.
-  traitTriggers: ['might', 'fury'].map((boon) => ({
-    trait: TRAIT.HGH,
-    on: 'castCommit',
-    when: (_runtime, cast) => isElixirSkill(cast.skill),
-    emit: TRAIT.HGH,
-    effects: (effect) => effect.type === 'boon' && effect.name === boon,
-    attribution: { source: 'Trait', sourceId: TRAIT.HGH, actorType: 'player', name: `HGH — ${boon}` }
-  })),
   modifyEffects(_runtime, cast, effects) {
     return customSpear.has(Number(cast.skill.id)) ? [] : effects;
   },
@@ -146,28 +102,14 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
     if (cast.skill.independentCast) applyEngineerToolbeltTraits(runtime, cast.skill, runtime.time);
     if (cast.skill.id !== SHARED_SKILL_IDS.DODGE) return;
     emitEngineerEvent(runtime, 'engineer.dodge', { at: runtime.time, activationId: cast.id }, cast.skill);
-    for (const [trait, name, predicate] of [
-      [TRAIT.POWER_WRENCH, 'Power Wrench', (skill: EngineerSkill) => skill.type === 'Elite' || skill.slot === 'Elite'],
-      [TRAIT.ADRENAL_IMPLANT, 'Adrenal Implant', isEngineerToolbeltSkill]
-    ] as const)
-      if (hasTrait(runtime.config, trait))
-        reduceRecharge(
-          runtime,
-          cast,
-          predicate,
-          balanceProfileNumber(requireBalanceProfileFromContext(runtime, trait), 'rechargeReduction'),
-          trait,
-          name
-        );
+    applyEngineerDodgeTraits(runtime, cast);
   },
   onCastCommit(runtime, cast) {
     applyEngineerCastTraits(runtime, cast);
   },
   tasks: engineerWeaponTasks,
   eventHandlers: {
-    'engineer.kinetic-battery': OBSERVABLE_EVENT_HANDLER,
     'engineer.air-blast': handleAirBlast,
-    'engineer.dodge': resetExplosiveEntrance,
     'engineer.lightning-rod-pulse': handleLightningRodPulse,
     'engineer.conduit-surge': handleConduitSurge,
     'engineer.electric-artillery': handleElectricArtillery

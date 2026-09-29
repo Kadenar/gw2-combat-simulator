@@ -1,22 +1,22 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/revenant/core/profiles.js';
 import {
-  REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
+  REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/revenant/core/profiles.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as CONDUIT } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { HERALD_SHARED_EMPOWERMENT_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
+import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
+import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/behavior.js';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/mechanics/life-siphon.js';
-import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/state.js';
+import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const patched = (balanceProfiles) => (catalog) => applyBalanceProfilePatch(catalog, { balanceProfiles });
@@ -78,7 +78,7 @@ test('removed Brutality quickness leaves the weapon-swap cooldown unclaimed', ()
       secondaryWeapon: 'Sword',
       weaponSet2Primary: 'Hammer'
     },
-    { catalog: patched({ [CORE.brutality]: remove('boon', 'quickness') }) }
+    { catalog: patched({ [TRAIT.BRUTALITY]: remove('boon', 'quickness') }) }
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(observedRuntime(result).procs.readyAt.brutality, undefined);

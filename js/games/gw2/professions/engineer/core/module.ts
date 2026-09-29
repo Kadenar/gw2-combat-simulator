@@ -1,21 +1,23 @@
 import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
 import { ENGINEER_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/engineer/core/state.js';
+import { engineerCoreTraits } from '#gw2/professions/engineer/core/traits/index.js';
 
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { engineerCoreHooks } from '#gw2/professions/engineer/core/hooks.js';
 import { engineerCoreModifiers } from '#gw2/professions/engineer/core/modifiers.js';
+import { bindEngineerCoreUi } from '#gw2/professions/engineer/core/presentation.js';
+import { ENGINEER_CORE_BALANCE_PROFILES } from '#gw2/professions/engineer/core/profiles.js';
 import {
   ENGINEER_CORE_EXTRA_SKILLS,
   ENGINEER_CORE_SKILL_MECHANICS
 } from '#gw2/professions/engineer/core/skills/index.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
-import { ENGINEER_CORE_BALANCE_PROFILES } from '#gw2/professions/engineer/core/profiles.js';
-import { bindEngineerCoreUi } from '#gw2/professions/engineer/core/presentation.js';
-import { engineerCoreHooks } from '#gw2/professions/engineer/core/hooks.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
 
 export const engineerCoreModule = defineNativeModule({
   id: 'Core',
+  traitDefinitions: engineerCoreTraits,
   data: createEngineerModuleData('Core', {
     skillMechanics: ENGINEER_CORE_SKILL_MECHANICS,
     balanceProfiles: ENGINEER_CORE_BALANCE_PROFILES,

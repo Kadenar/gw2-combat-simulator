@@ -1,30 +1,33 @@
-import { canonicalTime } from '#kernel/core/clock.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { armSkillFlip, consumeSkillFlip, expireSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
+import { armSkillFlip, consumeSkillFlip, expireSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { guardianVirtueForSlot } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { emitGuardianBoon, triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/index.js';
-import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/shared.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
+import { guardianVirtueForSlot, refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import {
+  applyGuardianVirtueActivationTraits,
+  emitGuardianBoon,
+  indomitableCourageInterval,
+  triggerGuardianFuriousFocus
+} from '#gw2/professions/guardian/core/traits/behavior.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { reactToDragonhunterJusticeHit } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/virtue-effects.js';
+import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 import {
-  reactToDragonhunterJusticeHit,
+  bigGameHunterTetherDuration,
+  completeHuntersDetermination,
   reactToDragonhunterControl
-} from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/virtue-effects.js';
-import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+} from '#gw2/professions/guardian/specializations/dragonhunter/traits/behavior.js';
 import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
 const readyVirtues = new WeakSet<RuntimeCast>();
@@ -37,9 +40,7 @@ const EXPIRY = 'guardian.dragonhunter.tether-expiry';
 /** One recurring wake preserves Courage's cadence while actual recharge suppresses individual pulses. */
 function couragePulse(runtime: Runtime): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.passiveCourage);
-  const interval = hasTrait(runtime, TRAIT.INDOMITABLE_COURAGE)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.INDOMITABLE_COURAGE), 'pulseInterval')
-    : balanceProfileNumber(profile, 'pulseInterval');
+  const interval = indomitableCourageInterval(runtime, profile);
   const effect = requireEffect(profile, 'boon', 'aegis');
   if (!(interval > 0) || !effect) return;
   refreshGuardianVirtues(runtime);
@@ -69,9 +70,7 @@ function attachTether(runtime: Runtime, data: unknown): void {
   const event = data as Gw2ResolverEvent;
   const state = dragonhunterState.from(runtime);
   if (state.tetherActivationId === event.activationId) return;
-  const duration = hasTrait(runtime, TRAIT.BIG_GAME_HUNTER)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.bigGameHunter), 'pulseInterval')
-    : 6;
+  const duration = bigGameHunterTetherDuration(runtime, 6);
   if (!(duration > 0)) return;
   state.tetherActivationId = event.activationId ?? null;
   state.tetherUntil = canonicalTime(runtime.time + duration);
@@ -137,43 +136,6 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
       runtime.schedule(TETHER, Math.max(runtime.time, Number(action.endsAt)), event, undefined, -50);
     }
   },
-  // Vulnerability follows actual player damage during an existing tether; its lifecycle remains with Justice.
-  traitTriggers: [
-    // Trap rewards need no virtue state and retain the triggering skill's ownership.
-    {
-      trait: TRAIT.HUNTERS_PREMONITION,
-      emit: PROFILE.huntersPremonition,
-      on: 'castCommit',
-      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Trap')),
-      effects: (effect) => effect.type === 'boon' && effect.name === 'aegis',
-      attribution: (_runtime, cast) => ({
-        source: 'guardian',
-        sourceId: cast.skill.id,
-        actorType: 'player',
-        name: undefined
-      })
-    },
-    {
-      trait: TRAIT.BIG_GAME_HUNTER,
-      emit: PROFILE.bigGameHunter,
-      on: 'damage.resolved',
-      when: (runtime, event, details) =>
-        event.actorType === 'player' &&
-        Number(event.coefficient) > 0 &&
-        (details.hitContext?.damage ?? 0) > 0 &&
-        dragonhunterState.from(runtime).tetherUntil > runtime.time,
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Vulnerability',
-      attribution: (_runtime, event) => ({
-        source: 'guardian',
-        actorType: 'effect',
-        skillId: TRAIT.BIG_GAME_HUNTER,
-        skillName: 'Big Game Hunter',
-        name: 'Big Game Hunter \u2014 Vulnerability',
-        priority: 5,
-        triggeredBy: event.skillName
-      })
-    }
-  ],
   initialize(runtime) {
     runtime.schedule(COURAGE, runtime.time, undefined, undefined, -200);
   },
@@ -200,21 +162,7 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
       if (readyVirtues.has(cast)) applyGuardianVirtueActivationTraits(runtime, cast, virtue);
     }
 
-    if (cast.skill.slot === 'Elite' && hasTrait(runtime, TRAIT.HUNTERS_DETERMINATION)) {
-      const amount = balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, PROFILE.huntersDetermination),
-        'resourceGain'
-      );
-      runtime.endurance.grant(amount);
-      recordGuardianTraitProc(
-        runtime,
-        TRAIT.HUNTERS_DETERMINATION,
-        "Hunter's Determination",
-        runtime.time,
-        cast.skill.name,
-        `${amount} endurance`
-      );
-    }
+    completeHuntersDetermination(runtime, cast);
   },
   reactions: {
     'damage.resolved'(runtime, event, details) {

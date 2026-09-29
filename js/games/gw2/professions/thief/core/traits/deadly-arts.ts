@@ -1,188 +1,245 @@
-import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
-import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { targetConditionCount, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
-import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 
-/** The first landed strike of each dual attack applies poison, even when its cast is interrupted later. */
-export function applyDeadlyAmbition(context: ThiefResolverContext, event: ThiefResolverEvent): void {
-  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
-  const skill = skillForEvent(context.helpers, event);
-  if (!skill || event.sourceId !== skill.id) return;
-  const isDualWieldAttack =
-    skill.categories?.includes('DualWield') ||
-    Boolean(skill.requiredMainHand && typeof skill.requiredOffHand === 'string');
-  if (!isDualWieldAttack || !hasTrait(context.config, TRAIT.DEADLY_AMBITION)) return;
-  const state = professionCoreState(context);
-  const activation = `deadly-ambition:${event.activationId || `${skill.id}:${event.at}`}`;
-  if (state.traitProcProgress[activation]) return;
-
-  const deadlyAmbitionProfile = requireBalanceProfileFromContext(context, PROFILE.deadlyAmbition);
-  const poison = requireEffect(deadlyAmbitionProfile, 'condition', 'Poisoned');
-  // Explicit removal suppresses this packet without restoring baseline tuning.
-  if (!poison) return;
-  state.traitProcProgress[activation] = 1;
-  context.applyCondition(
-    buildResolverCondition({
-      at: event.at,
-      source: 'Trait',
-      actorType: 'player',
-      skillId: TRAIT.DEADLY_AMBITION,
-      skillName: 'Deadly Ambition',
-      activationId: event.activationId,
-      triggeredBy: event.skillName,
-      condition: String(poison.condition),
-      duration: effectNumber(deadlyAmbitionProfile, poison, 'duration'),
-      stacks: hasTrait(context.config, TRAIT.POTENT_POISON)
-        ? balanceProfileNumber(deadlyAmbitionProfile, 'playerStacks')
-        : effectNumber(deadlyAmbitionProfile, poison, 'stacks'),
-      sourceId: TRAIT.DEADLY_AMBITION,
-      name: 'Deadly Ambition — Poison'
-    })
-  );
-}
-
-/** Player-applied poison grants self Might and target Weakness once per shared ten-second cooldown. */
-export function applyLotusPoison(context: ThiefResolverContext, event: ThiefResolverEvent): void {
-  if (
-    event.condition !== 'Poisoned' ||
-    event.actorType !== 'player' ||
-    (event.metadata?.triggeredByAlly || 0) > 0 ||
-    !hasTrait(context.config, TRAIT.LOTUS_POISON)
-  )
-    return;
-
-  const lotusPoisonProfile = requireBalanceProfileFromContext(context, PROFILE.lotusPoison);
-  if (
-    !context.procs.claimCooldown(
-      TRAIT.LOTUS_POISON,
-      event.at,
-      balanceProfileNumber(lotusPoisonProfile, 'internalCooldown')
-    )
-  )
-    return;
-  const might = requireEffect(lotusPoisonProfile, 'boon', 'Might');
-  if (might) {
-    const boon = String(might.boon);
-    queueResolverBoon(
-      context,
-      event,
-      buildResolverBuff({
-        at: event.at,
-        source: 'Trait',
-        sourceId: TRAIT.LOTUS_POISON,
-        actorType: 'effect',
-        skillId: TRAIT.LOTUS_POISON,
-        skillName: 'Lotus Poison',
-        name: `Lotus Poison - ${boon}`,
-        kind: boon.toLowerCase(),
-        stacks: effectNumber(lotusPoisonProfile, might, 'stacks'),
-        duration: effectNumber(lotusPoisonProfile, might, 'duration'),
-        audience: { recipients: 'self' },
-        triggeredBy: event.skillName
-      })
-    );
+/** Owns Dagger Training tuning and behavior at the existing execution boundaries. */
+export const daggerTraining = defineTrait({
+  id: TRAIT.DAGGER_TRAINING,
+  name: 'Dagger Training',
+  balance: { attributeBonus: 80, weaponAttributeBonus: 160 },
+  buildAttributes(_common, { build, weaponSet, balanceContext }) {
+    const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
+    const daggerTrainingProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.DAGGER_TRAINING);
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          source: 'Dagger Training',
+          to: 'Power',
+          amount: balanceProfileNumber(
+            daggerTrainingProfile,
+            weapons.includes('Dagger') ? 'weaponAttributeBonus' : 'attributeBonus'
+          ),
+          feedsConversions: true
+        }
+      ]
+    };
   }
+});
 
-  const weakness = requireEffect(lotusPoisonProfile, 'condition', 'Weakness');
-  if (weakness)
-    context.queue.enqueue(
-      buildResolverCondition({
-        at: event.at,
-        source: 'Trait',
-        sourceId: TRAIT.LOTUS_POISON,
-        actorType: 'player',
-        skillId: TRAIT.LOTUS_POISON,
-        skillName: 'Lotus Poison',
-        name: 'Lotus Poison - Weakness',
-        condition: String(weakness.condition),
-        stacks: effectNumber(lotusPoisonProfile, weakness, 'stacks'),
-        duration: effectNumber(lotusPoisonProfile, weakness, 'duration'),
-        activationId: event.activationId,
-        triggeredBy: event.skillName
-      })
-    );
-}
+/** Owns Deadly Ambition tuning and behavior at the existing execution boundaries. */
+export const deadlyAmbition = defineTrait({
+  id: TRAIT.DEADLY_AMBITION,
+  name: 'Deadly Ambition',
+  balance: {
+    attributeBonus: 180,
+    playerStacks: 2,
+    effects: [{ type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 1, duration: 3 }]
+  },
+  buildAttributes(_common, { balanceContext }) {
+    const deadlyAmbitionProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.DEADLY_AMBITION);
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          source: 'Deadly Ambition',
+          to: 'Condition Damage',
+          amount: balanceProfileNumber(deadlyAmbitionProfile, 'attributeBonus'),
+          feedsConversions: true
+        }
+      ]
+    };
+  }
+});
 
-function targetConditionCount(context: ThiefResolverContext, at: number): number {
-  return CANONICAL_TARGET_CONDITIONS.filter((condition) => context.query.targetHasCondition(condition, at, context))
-    .length;
-}
+/** Owns Even the Odds tuning and behavior at the existing execution boundaries. */
+export const evenTheOdds = defineTrait({
+  id: TRAIT.EVEN_THE_ODDS,
+  name: 'Even the Odds',
+  balance: {
+    effects: [
+      {
+        type: 'condition',
+        name: 'Vulnerability',
+        condition: 'Vulnerability',
+        stacks: 10,
+        duration: 10
+      }
+    ]
+  }
+});
 
-export function applyPanicStrike(context: ThiefResolverContext, event: ThiefResolverEvent): void {
-  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || !hasTrait(context.config, TRAIT.PANIC_STRIKE))
-    return;
+/** Owns this trait's modifier eligibility. */
+export const executioner = defineTrait({
+  id: TRAIT.EXECUTIONER,
+  name: 'Executioner',
+  modifierRules: [
+    {
+      order: 2,
+      id: 'thief.executioner',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: 1.2,
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) &&
+        hasTrait(context, TRAIT.EXECUTIONER) &&
+        targetHealthBelow(context, 0.5)
+    }
+  ]
+});
 
-  const panicStrikeProfile = requireBalanceProfileFromContext(context, PROFILE.panicStrike);
-  if (targetConditionCount(context, event.at) < balanceProfileNumber(panicStrikeProfile, 'threshold')) return;
-  const immobilized = requireEffect(panicStrikeProfile, 'condition', 'Immobilized');
-  // Explicit removal suppresses this packet without restoring baseline tuning.
-  if (!immobilized) return;
-  // Claim this owner's ICD before effects or resource snapshots can re-enter the trait.
-  if (
-    !context.procs.claimCooldown(
-      TRAIT.PANIC_STRIKE,
-      event.at,
-      balanceProfileNumber(panicStrikeProfile, 'internalCooldown')
-    )
-  )
-    return;
-  context.applyCondition(
-    buildResolverCondition({
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.PANIC_STRIKE,
-      actorType: 'player',
-      skillId: TRAIT.PANIC_STRIKE,
-      skillName: 'Panic Strike',
-      name: 'Panic Strike - Immobilized',
-      condition: String(immobilized.condition),
-      stacks: effectNumber(panicStrikeProfile, immobilized, 'stacks'),
-      duration: effectNumber(panicStrikeProfile, immobilized, 'duration'),
-      activationId: `panic-strike:${event.at}`,
-      triggeredBy: event.skillName
-    })
-  );
-}
+/** Owns this trait's modifier eligibility. */
+export const exposedWeakness = defineTrait({
+  id: TRAIT.EXPOSED_WEAKNESS,
+  name: 'Exposed Weakness',
+  modifierRules: [
+    {
+      order: 1,
+      id: 'thief.exposed-weakness',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      parameters: {
+        damagePerCondition: 0.02
+      },
+      factor: (context, _target, parameters) => 1 + targetConditionCount(context) * parameters.damagePerCondition,
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.EXPOSED_WEAKNESS)
+    }
+  ]
+});
 
-export function applyPanicStrikePoison(context: ThiefResolverContext, application: ThiefResolverEvent): void {
-  if (
-    application.condition !== 'Immobilized' ||
-    application.actorType !== 'player' ||
-    !hasTrait(context.config, TRAIT.PANIC_STRIKE)
-  )
-    return;
+/** Owns Improvisation tuning and behavior at the existing execution boundaries. */
+export const improvisation = defineTrait({
+  id: TRAIT.IMPROVISATION,
+  name: 'Improvisation',
+  balance: {
+    maximumStacks: 2,
+    internalCooldown: 15,
+    rechargeMultiplier: 0.75,
+    resourceGain: 1,
+    lifeForceGain: 1
+  }
+});
 
-  const panicStrikeProfile = requireBalanceProfileFromContext(context, PROFILE.panicStrike);
-  const poison = requireEffect(panicStrikeProfile, 'condition', 'Poisoned');
-  // Explicit removal suppresses this packet without restoring baseline tuning.
-  if (!poison) return;
-  context.queue.enqueue(
-    buildResolverCondition({
-      at: application.at,
-      source: 'Trait',
-      sourceId: TRAIT.PANIC_STRIKE,
-      actorType: 'player',
-      skillId: TRAIT.PANIC_STRIKE,
-      skillName: 'Panic Strike',
-      name: 'Panic Strike - Poison',
-      condition: String(poison.condition),
-      stacks: hasTrait(context.config, TRAIT.POTENT_POISON)
-        ? balanceProfileNumber(panicStrikeProfile, 'playerStacks')
-        : effectNumber(panicStrikeProfile, poison, 'stacks'),
-      duration: effectNumber(panicStrikeProfile, poison, 'duration'),
-      activationId: application.activationId || `panic-strike:${application.at}`,
-      triggeredBy: application.skillName
-    })
-  );
-}
+/** Owns Lotus Poison tuning and behavior at the existing execution boundaries. */
+export const lotusPoison = defineTrait({
+  id: TRAIT.LOTUS_POISON,
+  name: 'Lotus Poison',
+  balance: {
+    internalCooldown: 10,
+    effects: [
+      { type: 'boon', name: 'Might', boon: 'Might', stacks: 3, duration: 10, audience: { recipients: 'self' } },
+      { type: 'condition', name: 'Weakness', condition: 'Weakness', stacks: 1, duration: 4 }
+    ]
+  }
+});
+
+/** Owns Mug tuning and behavior at the existing execution boundaries. */
+export const mug = defineTrait({
+  id: TRAIT.MUG,
+  name: 'Mug',
+  balance: {
+    effects: [{ type: 'strike', name: 'Mug', coefficient: 1.5, hits: 1 }]
+  }
+});
+
+/** Owns Panic Strike tuning and behavior at the existing execution boundaries. */
+export const panicStrike = defineTrait({
+  id: TRAIT.PANIC_STRIKE,
+  name: 'Panic Strike',
+  balance: {
+    threshold: 3,
+    internalCooldown: 20,
+    playerStacks: 2,
+    effects: [
+      {
+        type: 'condition',
+        name: 'Immobilized',
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 2.5
+      },
+      { type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 1, duration: 4 }
+    ]
+  }
+});
+
+/** Owns Potent Poison tuning and behavior at the existing execution boundaries. */
+export const potentPoison = defineTrait({
+  id: TRAIT.POTENT_POISON,
+  name: 'Potent Poison',
+  modifierRules: [
+    {
+      order: 10,
+      id: 'thief.potent-poison-damage',
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      operation: 'multiply',
+      factor: 1.33,
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) &&
+        context.event?.condition === 'Poisoned' &&
+        hasTrait(context, TRAIT.POTENT_POISON)
+    },
+    {
+      order: 12,
+      id: 'thief.potent-poison-duration',
+      target: MODIFIER_TARGET.CONDITION_DURATION,
+      operation: 'add',
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.POTENT_POISON), 'conditionDurationBonus'),
+      // Specific condition-duration bonuses add to Expertise and are skipped when panel stats already include them.
+      when: (context) =>
+        context.event?.condition === 'Poisoned' &&
+        hasTrait(context, TRAIT.POTENT_POISON) &&
+        !professionStaticRulesApplied(context.config)
+    }
+  ],
+  balance: {
+    conditionDurationBonus: 0.33
+  },
+  buildAttributes(_common, { balanceContext }) {
+    const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.POTENT_POISON);
+    return { traitDurations: { 'Poison Duration': 100 * balanceProfileNumber(profile, 'conditionDurationBonus') } };
+  }
+});
+
+/** Owns Revealed Training tuning and behavior at the existing execution boundaries. */
+export const revealedTraining = defineTrait({
+  id: TRAIT.REVEALED_TRAINING,
+  name: 'Revealed Training',
+  balance: {
+    attributeBonus: 80,
+    attributePerStack: 120
+  },
+  buildAttributes(_common, { balanceContext }) {
+    const revealedTrainingProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.REVEALED_TRAINING);
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          source: 'Revealed Training',
+          to: 'Power',
+          amount: balanceProfileNumber(revealedTrainingProfile, 'attributeBonus'),
+          feedsConversions: false
+        }
+      ]
+    };
+  }
+});
+
+/** Owns Serpent's Touch tuning and behavior at the existing execution boundaries. */
+export const serpentsTouch = defineTrait({
+  id: TRAIT.SERPENTS_TOUCH,
+  name: "Serpent's Touch",
+  balance: {
+    playerStacks: 3,
+    effects: [{ type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 2, duration: 10 }]
+  }
+});

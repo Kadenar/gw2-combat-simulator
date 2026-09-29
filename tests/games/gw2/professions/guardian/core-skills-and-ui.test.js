@@ -1,24 +1,27 @@
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
+import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
-import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { guardianVirtueForSlot } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/core/profiles.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
+import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import { WILLBENDER_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import { LUMINARY_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
+import { WILLBENDER_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 // Attribute assertions use the same calculator composed into the Guardian adapter.
-const calculateGuardianAttributes = createCalculateAttributes(applyGuardianBuildAttributeRules);
+const calculateGuardianAttributes = createCalculateAttributes(
+  applyGuardianBuildAttributeRules,
+  guardianProfession.traitBuildAttributes
+);
 
 const config = {
   stats: {
@@ -332,7 +335,7 @@ test('Guardian modules expose isolated balance-profile authoring', () => {
     modules.get('Core').modifierRules.find((rule) => rule.id === 'guardian.inspired-virtue').parameters,
     { damagePerBoon: 0.005 }
   );
-  assert.equal(profile('Firebrand', FIREBRAND_BALANCE_PROFILE_IDS.imbuedHaste).patchableFields.attributeBonus, 250);
+  assert.equal(profile('Firebrand', GUARDIAN_TRAIT_IDS.IMBUED_HASTE).patchableFields.attributeBonus, 250);
 
   const preview = applyGuardianPatch({
     skills: {

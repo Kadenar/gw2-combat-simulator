@@ -1,9 +1,9 @@
-import { buildResolverStrike, buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { activeBoonStacks as queryActiveBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import type { EnqueueGw2OwnedComboFinisherOptions } from '#gw2/platform/resolver/combo-resolution.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
+import type { EnqueueGw2OwnedComboFinisherOptions } from '#gw2/platform/resolver/combo-resolution.js';
+import { buildResolverBuff, buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { EngineerResolverContext, EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 interface QueueDamageOptions {
@@ -196,4 +196,11 @@ export function activeBoonStacks(context: EngineerResolverContext, kind: string,
     (kind || '').toLowerCase(),
     maximum
   );
+}
+
+// Keep shared explosion classification here so every later Explosives reaction consumes the same result.
+export function isExplosion(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
+  if (event.explosion || event.damageKind === 'explosion') return true;
+  const skill = resolverSkill(context, event.skillId ?? event.sourceId);
+  return Boolean(skill?.categories?.some((category) => category.toLowerCase() === 'explosion'));
 }

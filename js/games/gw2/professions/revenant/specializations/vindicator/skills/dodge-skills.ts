@@ -1,23 +1,21 @@
-/** Owns Vindicator dodge attack skill fragments. */
-import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { VINDICATOR_LANDING_MS } from '#gw2/professions/revenant/data/vindicator-jump.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { effectFirstAtMs } from '#gw2/platform/engine/effects/authoring.js';
-import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { VINDICATOR_LANDING_MS } from '#gw2/professions/revenant/data/vindicator-jump.js';
+import {
+  imperialImpactDodge,
+  saintsShieldDodge
+} from '#gw2/professions/revenant/specializations/vindicator/traits/behavior.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 export const VINDICATOR_LANDING_TASK = 'revenant.vindicator-landing';
 
 /** The grandmaster trait selects the dodge landing, so no separate dodge choice can drift from the build. */
 export function selectedDodge(runtime: RevenantRuntime): RevenantSkill | undefined {
-  const skillId = hasTrait(runtime, TRAIT.SAINT_OF_ZU_HELTZER)
-    ? ID.SAINTS_SHIELD
-    : hasTrait(runtime, TRAIT.VASSALS_OF_THE_EMPIRE)
-      ? ID.IMPERIAL_IMPACT
-      : ID.DEATH_DROP;
+  const skillId = saintsShieldDodge(runtime) ?? imperialImpactDodge(runtime) ?? ID.DEATH_DROP;
   return runtime.helpers.skillsById.get(skillId);
 }
 

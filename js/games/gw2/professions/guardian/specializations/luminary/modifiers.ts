@@ -1,9 +1,9 @@
-import { luminaryWeaponModifiers } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { guardianTimedBuffActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
-import { guardianTimedBuffActive, latestGuardianTimedBuff } from '#gw2/professions/guardian/core/modifiers.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { luminaryWeaponModifiers } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 
 /** Applies a stance modifier to its own impact or proc only when an older application was already active. */
 function stanceModifierActive(context: Gw2ModifierContext, kind: string, skillId: number, skillName: string): boolean {
@@ -19,30 +19,6 @@ function stanceModifierActive(context: Gw2ModifierContext, kind: string, skillId
 }
 
 export const luminaryModifiers: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    id: 'guardian.empowered-armaments',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    amount: 0.1,
-    when: (context) => guardianTimedBuffActive(context, 'guardian-empowered-armaments')
-  },
-  {
-    id: 'guardian.radiant-armaments',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    amount: 0.07,
-    when: (context) => {
-      const armament = latestGuardianTimedBuff(context, 'guardian-radiant-armaments');
-      // The buff is emitted for every radiant weapon, but the +7% bonus is
-      // exclusive to the hammer (Dazzling Hammer). The shared effect-clock expiry check is
-      // necessary because latestGuardianTimedBuff returns the most-recently
-      // applied record regardless of whether it has expired.
-      return (
-        armament?.metadata?.radiantWeapon === 'hammer' &&
-        gw2EffectExpiresAt(armament.at, armament.duration || 0) > context.time
-      );
-    }
-  },
   {
     id: 'guardian.piercing-stance',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,

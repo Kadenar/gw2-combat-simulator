@@ -3,7 +3,6 @@ import test from 'node:test';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
@@ -151,8 +150,8 @@ test('removed Insight and Tether packets cannot create their state or proc windo
     professions: {
       warrior: {
         balanceProfiles: {
-          [PROFILE.attackersInsight]: { removeEffects: [{ type: 'buff' }] },
-          [PROFILE.magebaneTether]: { removeEffects: [{ type: 'buff' }] }
+          [TRAIT.ATTACKERS_INSIGHT]: { removeEffects: [{ type: 'buff' }] },
+          [TRAIT.MAGEBANE_TETHER]: { removeEffects: [{ type: 'buff' }] }
         }
       }
     }
@@ -196,10 +195,10 @@ test('No Escape keeps Insight ordering, actor eligibility, and live profile payl
     const source = {
       runtimeFor(config) {
         const native = warriorProfession.runtimeFor(config);
-        const profile = native.catalog.balanceProfilesById.get(PROFILE.noEscape);
+        const profile = native.catalog.balanceProfilesById.get(TRAIT.NO_ESCAPE);
         return {
           ...native,
-          catalog: withProfile(native.catalog, PROFILE.noEscape, {
+          catalog: withProfile(native.catalog, TRAIT.NO_ESCAPE, {
             effects: removed ? [] : profile.effects.map((effect) => ({ ...effect, duration: 3 }))
           }),
           initialize(runtime) {

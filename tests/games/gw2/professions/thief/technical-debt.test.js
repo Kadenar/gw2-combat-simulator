@@ -1,17 +1,18 @@
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { thiefCoreModifierRules } from '#gw2/professions/thief/core/modifiers.js';
-import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
-import { grantThiefStealth, beginThiefStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
+
 import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
-import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
-import { runThief } from '#tests/helpers/thief-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
+import { beginThiefStealthAttack, grantThiefStealth } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/traits/behavior.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { deadeyeModule } from '#gw2/professions/thief/specializations/deadeye/module.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 
 // Exercise the public patch path so runtime and presentation must resolve the same selected tuning.
 function patched(balanceProfiles) {
@@ -24,8 +25,8 @@ function patched(balanceProfiles) {
 
 // State-only previews use canonical defaults; both tooltips follow the trait's selected replacement cap.
 test('Maleficent Seven owns the raised malice cap in previews and tooltips', () => {
-  assert.equal(deadeyeState.create({}).maximumMalice, 5);
-  assert.equal(deadeyeState.create({ selectedTraitIds: [TRAIT.MALEFICENT_SEVEN] }).maximumMalice, 7);
+  assert.equal(deadeyeModule.state.create({}).maximumMalice, 5);
+  assert.equal(deadeyeModule.state.create({ selectedTraitIds: [TRAIT.MALEFICENT_SEVEN] }).maximumMalice, 7);
   const context = patched({
     [TRAIT.MALEFICENT_SEVEN]: { fields: { maximumStacks: 11 } }
   }).balanceContextFor('thief-debt');
@@ -48,7 +49,7 @@ test('Lead Attacks selected cap and bonus govern grants, damage, siphons and fac
   assert.deepEqual(result.warnings, []);
   const runtime = observedRuntime(result);
   assert.equal(runtime.profession.core.leadAttackExpirations.length, 2);
-  const rule = thiefCoreModifierRules.find((rule) => rule.id === 'thief.lead-attacks');
+  const rule = thiefCoreModule.modifiers.modifierRules.find((rule) => rule.id === 'thief.lead-attacks');
   const context = profession.balanceContextFor('thief-debt');
   // An excess seeded stack also checks the modifier's cap independently of grant capping.
   runtime.profession.core.leadAttackExpirations.push(runtime.time + 10);

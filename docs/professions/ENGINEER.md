@@ -39,6 +39,23 @@ Holosmith, Mechanist, or Amalgam. Each specialization owns its data, state, mech
 - `core/skills/` and each specialization's `skills/` — skill packets, cooldowns, and timings.
 - `core/mechanics/` and specialization `mechanics/` directories — resources, availability, state transitions, and event
   behavior.
-- `core/traits/` and specialization `traits/` directories — modifiers and trait reactions.
+- `core/traits/` — five trait-line files own 36 definitions; `index.ts` preserves their registration order.
+  `dispatch.ts` preserves cross-line reactions through `behavior.ts`, `explosions.ts`, and `toolbelt.ts`;
+  `critical-procs.ts` retains player/mech critical dispatch. Mechanics retain kit/toolbelt state and cooldown execution.
+- `specializations/scrapper/traits/index.ts` — eight registered definitions own gyro triggers, Function Gyro ammo, combo
+  rewards, build conversion, and the live Stability pulse. `traits/behavior.ts` includes Kinetic Accelerators combo
+  rewards; Scrapper state retains the pending pulse timestamp.
+- `specializations/holosmith/traits/index.ts` — seven definitions own heat policies, Lens grants/consumption, Forge
+  action eligibility, and trait modifiers. `traits/behavior.ts` includes Solar Focusing Lens grants and consumption;
+  mechanics retain heat cadence and transition sequencing.
+- `specializations/mechanist/traits/index.ts` — ten definitions own command rows, arm procs, frame inheritance, and
+  core/signet adjustments; mechanics retain the independent mech lane and packet ownership.
+- `specializations/amalgam/traits/index.ts` — nine definitions own Morph/Evolve payoffs, trait build contributions,
+  variant selection, and accepted-control recharge reductions. `traits/behavior.ts` owns the shared Morph/Evolve and
+  Carbolic Composition helpers. The committed Morph task retains cross-trait ordering.
+- Supporting elite behavior remains under each `traits/` directory; mechanic callers import those helpers directly. The
+  [trait file organization](../architecture/TRAIT-FILE-ORGANIZATION.md) defines the Core and elite ownership rules.
+- See the [trait-definition plan](../architecture/TRAIT-DEFINITIONS-PLAN.md#s5-progress-engineer) for the full
+  inventory, retained timing boundaries, and validation record.
 - `specializations/mechanist/mechanics/mech.ts` — persistent mech attacks and commands.
 - `core/module.ts` and each specialization's `module.ts` — native module registration and phase ownership.

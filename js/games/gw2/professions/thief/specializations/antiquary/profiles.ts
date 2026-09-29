@@ -1,6 +1,6 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 export const ANTIQUARY_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'thief.antiquary.resources',
@@ -11,16 +11,7 @@ export const ANTIQUARY_BALANCE_PROFILE_IDS = Object.freeze({
   cannonSuccess: 'thief.antiquary.cannon-success',
   cannonBackfire: 'thief.antiquary.cannon-backfire',
   mistburnProc: 'thief.antiquary.mistburn-proc',
-  sunCrystalMeticulous: 'thief.antiquary.sun-crystal-meticulous',
-  repeatRansacker: TRAIT.REPEAT_RANSACKER,
-  scoundrelsLuck: TRAIT.SCOUNDRELS_LUCK,
-  combatHigh: TRAIT.COMBAT_HIGH,
-  prolificPlunderer: TRAIT.PROLIFIC_PLUNDERER,
-  prodigiousPincher: TRAIT.PRODIGIOUS_PINCHER,
-  enterprisingAristocrat: TRAIT.ENTERPRISING_ARISTOCRAT,
-  exhilaratingEphemera: TRAIT.EXHILARATING_EPHEMERA,
-  possessiveHoarder: TRAIT.POSSESSIVE_HOARDER,
-  meticulousCustodian: TRAIT.METICULOUS_CUSTODIAN
+  sunCrystalMeticulous: 'thief.antiquary.sun-crystal-meticulous'
 });
 
 export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
@@ -41,19 +32,6 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     effects: []
   },
   {
-    id: ANTIQUARY_BALANCE_PROFILE_IDS.artifactWindows,
-    name: 'Antiquary Artifact Windows',
-    profileKind: 'mechanic',
-    durationMultiplier: 10,
-    maximumStacks: 12,
-    minimumStacks: 8,
-    threshold: 10,
-    playerStacks: 5,
-    resourceGain: 3,
-    rechargeMultiplier: 0.2,
-    effects: []
-  },
-  {
     id: ANTIQUARY_BALANCE_PROFILE_IDS.forgedSurfer,
     name: 'Forged Surfer Dash',
     profileKind: 'skill-variant',
@@ -66,18 +44,6 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       { type: 'condition', name: 'Dash', condition: 'Burning', stacks: 1, duration: 6 },
       { type: 'strike', name: 'Bomb', coefficient: 1.2, hits: 1 },
       { type: 'condition', name: 'Bomb', condition: 'Burning', stacks: 1, duration: 3.5 }
-    ]
-  },
-  {
-    id: ANTIQUARY_BALANCE_PROFILE_IDS.forgedSurferMeticulous,
-    name: 'Forged Surfer Dash - Meticulous',
-    profileKind: 'skill-variant',
-    parentId: ID.FORGED_SURFER_DASH,
-    effects: [
-      { type: 'strike', name: 'Dash', coefficient: 2.8, hits: 1 },
-      { type: 'condition', name: 'Dash', condition: 'Burning', stacks: 2, duration: 12 },
-      { type: 'strike', name: 'Bomb', coefficient: 1.4, hits: 1 },
-      { type: 'condition', name: 'Bomb', condition: 'Burning', stacks: 1, duration: 4.5 }
     ]
   },
   {
@@ -134,43 +100,5 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     profileKind: 'skill-variant',
     parentId: ID.MISTBURN_MORTAR,
     effects: [{ type: 'condition', name: 'Burning', condition: 'Burning', stacks: 1, duration: 1 }]
-  },
-  {
-    id: ANTIQUARY_BALANCE_PROFILE_IDS.sunCrystalMeticulous,
-    name: 'Zephyrite Sun Crystal - Meticulous',
-    profileKind: 'skill-variant',
-    parentId: ID.ZEPHYRITE_SUN_CRYSTAL,
-    effects: [{ type: 'condition', name: 'Burning', condition: 'Burning', stacks: 1, duration: 5 }]
-  },
-  trait(ANTIQUARY_BALANCE_PROFILE_IDS.repeatRansacker, 'Repeat Ransacker', {
-    rechargeReduction: 2
-  }),
-  trait(ANTIQUARY_BALANCE_PROFILE_IDS.scoundrelsLuck, "Scoundrel's Luck", {
-    maximumStacks: 1,
-    internalCooldown: 20
-  }),
-  trait(ANTIQUARY_BALANCE_PROFILE_IDS.combatHigh, 'Combat High', {
-    maximumStacks: 10,
-    pulseInterval: 2,
-    durationMultiplier: 20
-  }),
-  trait(ANTIQUARY_BALANCE_PROFILE_IDS.prolificPlunderer, 'Prolific Plunderer', { resourceGain: 1 }),
-  trait(ANTIQUARY_BALANCE_PROFILE_IDS.prodigiousPincher, 'Prodigious Pincher', {
-    threshold: 15
-  }),
-  trait(ANTIQUARY_BALANCE_PROFILE_IDS.enterprisingAristocrat, 'Enterprising Aristocrat', { resourceGain: 2 }),
-  trait(ANTIQUARY_BALANCE_PROFILE_IDS.exhilaratingEphemera, 'Exhilarating Ephemera', {
-    durationMultiplier: 10,
-    maximumStacks: 20
-  }),
-  trait(ANTIQUARY_BALANCE_PROFILE_IDS.possessiveHoarder, 'Possessive Hoarder', {
-    effects: [
-      { type: 'boon', name: 'might', boon: 'might', stacks: 10, duration: 12 },
-      { type: 'boon', name: 'protection', boon: 'protection', stacks: 1, duration: 5 },
-      { type: 'boon', name: 'alacrity', boon: 'alacrity', stacks: 1, duration: 5 }
-    ]
-  }),
-  trait(ANTIQUARY_BALANCE_PROFILE_IDS.meticulousCustodian, 'Meticulous Custodian', {
-    effects: [{ type: 'strike', name: 'Meticulous Custodian', coefficient: 0.3, hits: 1 }]
-  })
+  }
 ]);

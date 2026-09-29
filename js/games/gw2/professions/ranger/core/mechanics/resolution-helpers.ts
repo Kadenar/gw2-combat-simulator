@@ -1,10 +1,14 @@
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
-import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
-import { rangerPetCombatMetadata, rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import type { Gw2RuntimeStateLike } from '#gw2/platform/combat/state/targets.js';
+import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { effectNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { BalanceProfile, ConditionEffect, StatusEffect } from '#gw2/platform/engine/skills/types.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { rangerPetCombatMetadata, rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import type { RangerResolverContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Restricts Stalker's Strike's bonus to its three documented movement-impairing conditions. */
@@ -87,4 +91,76 @@ export function isPlayerStrike(event: Gw2ResolverEvent): boolean {
 
 export function targetHealthFraction(context: RangerResolverContext): number {
   return remainingTargetHealthFraction(context.config, context) ?? 1;
+}
+
+/** Emit one surviving profile condition with its authored identity, stacks, and duration. */
+export function queueProfileCondition(
+  context: RangerResolverContext,
+  event: Gw2ResolverEvent,
+  profile: BalanceProfile,
+  effect: ConditionEffect,
+  sourceId: number,
+  name: string
+): void {
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      source: 'Trait',
+      sourceId,
+      actorType: 'effect',
+      skillId: sourceId,
+      skillName: name,
+
+      condition: String(effect.condition),
+      duration: effectNumber(profile, effect, 'duration'),
+      stacks: effectNumber(profile, effect, 'stacks'),
+      triggeredBy: event.skillName,
+      metadata: event.metadata?.triggeredByAlly ? { triggeredByAlly: event.metadata.triggeredByAlly } : undefined
+    })
+  );
+}
+
+/** Emit one surviving boon or buff; its identity comes from the authored boon or buff kind. */
+export function queueProfileBuff(
+  context: RangerResolverContext,
+  event: Gw2ResolverEvent,
+  profile: BalanceProfile,
+  effect: StatusEffect,
+  name: string,
+  sourceId: number
+): void {
+  for (const { event: packet } of materializeSkillEffectApplications({
+    skill: profile,
+    effect,
+    start: event.at,
+    fullEnd: event.at,
+    baseEvent: {
+      source: 'Trait',
+      sourceId,
+      actorType: 'effect',
+      skillId: sourceId,
+      skillName: name,
+      triggeredBy: event.skillName
+    }
+  }))
+    queueResolverBoon(context, event, {
+      ...packet,
+      type: 'buff',
+      name,
+      kind: String(packet.kind),
+      duration: Number(packet.duration),
+      audience: event.metadata?.triggeredByAlly
+        ? {
+            recipients: 'party',
+            alliedPlayerIndex: event.metadata.triggeredByAlly,
+            affectsSelf: false,
+            maximumRecipients: 1,
+            eligibleCompanionIds: []
+          }
+        : undefined,
+      metadata: {
+        ...packet.metadata,
+        ...(event.metadata?.triggeredByAlly ? { triggeredByAlly: event.metadata.triggeredByAlly } : {})
+      }
+    });
 }

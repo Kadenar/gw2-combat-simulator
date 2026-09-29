@@ -1,23 +1,20 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { EPSILON } from '#kernel/core/clock.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { armSkillFlip, skillFlipReady, weaponFlipBlock } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
+import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';
-import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
+import { armSkillFlip, skillFlipReady, weaponFlipBlock } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { AvailabilityResult, CastCommand } from '#gw2/platform/execution/types.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { completeRevenantEnchantedDaggers } from '#gw2/professions/revenant/core/mechanics/enchanted-daggers.js';
 import { modifyRevenantLifeSiphon } from '#gw2/professions/revenant/core/mechanics/life-siphon.js';
-import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
-import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
-import { isRevenantUpkeep, isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import {
+  activateRevenantUpkeep,
   clearRevenantLegendFlips,
   empowerRevenantEmbrace,
   reactRevenantImpossibleOdds,
@@ -28,41 +25,45 @@ import {
   REVENANT_UPKEEP_PULSE,
   revenantUpkeepDrain,
   revenantUpkeepPulse,
-  starveRevenantUpkeeps,
   startRevenantEmbrace,
-  activateRevenantUpkeep
+  starveRevenantUpkeeps
 } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import {
   completeRevenantCrushingAbyssSwap,
   completeRevenantImperialGuard,
   detonateRevenantBlossomingAura,
   reactRevenantSpearRecharge,
-  revenantAbyssalRazeImpact,
-  revenantBlossomingAuraPulse,
   REVENANT_ABYSSAL_RAZE,
   REVENANT_BLOSSOMING_AURA,
+  revenantAbyssalRazeImpact,
+  revenantBlossomingAuraPulse,
   startRevenantAbyssalRaze,
   startRevenantBlossomingAura,
   startRevenantImperialGuard
 } from '#gw2/professions/revenant/core/mechanics/weapons.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
+import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import {
-  applyRevenantInvocationTraits,
+  chargedMistsEnergy,
   completeRevenantBrutality,
-  completeRevenantCastTraits,
-  completeRevenantEnchantedDaggers,
-  reactRevenantConditionTraits,
-  reactRevenantPlayerStrike,
+  enduringRecoveryBonus,
   REVENANT_ASSASSINS_PRESENCE,
   revenantAssassinsPresencePulse,
   startRevenantAssassinsPresence
-} from '#gw2/professions/revenant/core/traits/index.js';
-import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
-import type { AvailabilityResult, CastCommand } from '#gw2/platform/execution/types.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+} from '#gw2/professions/revenant/core/traits/behavior.js';
+import {
+  applyRevenantInvocationTraits,
+  completeRevenantCastTraits,
+  reactRevenantConditionTraits,
+  reactRevenantPlayerStrike
+} from '#gw2/professions/revenant/core/traits/dispatch.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';
+import { isRevenantUpkeep, isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
+import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
+import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import type { RevenantConfig, RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { EPSILON } from '#kernel/core/clock.js';
 
 // Custom Core owners emit these skills' packets from live state; their authored effects are templates only.
 const CUSTOM_EFFECT_SKILL_IDS = new Set<SkillId>([
@@ -71,7 +72,9 @@ const CUSTOM_EFFECT_SKILL_IDS = new Set<SkillId>([
   ID.ENCHANTED_DAGGERS,
   ID.ABYSSAL_RAZE
 ]);
+
 const DODGE_IDS = new Set<SkillId>([SHARED_SKILL_IDS.DODGE, VINDICATOR_JUMP_SKILL.id]);
+
 // Deferred upkeep costs are immutable acceptance facts, spent only if the activation commits.
 const upkeepCosts = new WeakMap<RuntimeCast, number>();
 
@@ -99,12 +102,7 @@ const revenantEnergy: ResourcePolicy<RevenantRuntime> = {
 /** Vigor and Enduring Recovery add together; Vindicator shares the ten-per-second cap. */
 export function revenantEnduranceRate(runtime: RevenantRuntime, vigor: boolean): number {
   const profile = resourceProfile(runtime);
-  const enduring = hasTrait(runtime, TRAIT.ENDURING_RECOVERY)
-    ? balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, PROFILE.enduringRecovery),
-        'enduranceRegenerationMultiplier'
-      ) - 1
-    : 0;
+  const enduring = enduringRecoveryBonus(runtime);
   return Math.min(
     10,
     balanceProfileNumber(profile, 'enduranceRegenerationPerSecond') *
@@ -175,15 +173,7 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const previous = runtime.resourceController.value('energy');
   core.activeLegendId = core.selectedLegendIds.find((id) => id !== core.activeLegendId) || core.activeLegendId;
   core.activeLoadoutId = core.activeLegendId;
-  const chargedMists = hasTrait(runtime, TRAIT.CHARGED_MISTS)
-    ? requireBalanceProfileFromContext(runtime, PROFILE.chargedMists)
-    : undefined;
-  const energy = Math.min(
-    100,
-    chargedMists && Math.floor(previous) <= balanceProfileNumber(chargedMists, 'threshold')
-      ? balanceProfileNumber(chargedMists, 'resourceGain')
-      : cast.skill.resourceGain || 0
-  );
+  const energy = chargedMistsEnergy(runtime, cast, previous);
   if (energy > previous) runtime.resourceController.grant('energy', energy - previous);
   else if (energy < previous) runtime.resourceController.spend('energy', previous - energy);
   clearRevenantLegendFlips(runtime);
@@ -299,42 +289,7 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
     runtime.resourceController.grant('energy', runtime.profession.core.energy.maximum);
   },
   // Resolver triggers retain trait ownership and the accepted event's causal chain.
-  traitTriggers: [
-    {
-      trait: TRAIT.DWARVEN_BATTLE_TRAINING,
-      on: 'control.resolved',
-      when: () => true,
-      emit: PROFILE.dwarvenBattleTraining,
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Weakness',
-      attribution: {
-        source: 'revenant',
-        sourceId: TRAIT.DWARVEN_BATTLE_TRAINING,
-        actorType: 'player',
-        skillId: TRAIT.DWARVEN_BATTLE_TRAINING,
-        skillName: 'Dwarven Battle Training',
-        name: 'Dwarven Battle Training — Weakness'
-      }
-    },
-    {
-      trait: TRAIT.INCENSED_RESPONSE,
-      on: 'buff.applied',
-      when: (runtime, event) =>
-        event.kind === 'fury' &&
-        runtime.combatStartedAt() &&
-        isGw2PlayerModifierOwnedEvent(event) &&
-        gw2BoonApplicationRecipients(runtime.config, event).includesSelf,
-      emit: PROFILE.incensedResponse,
-      effects: (effect) => effect.type === 'boon' && effect.name === 'might',
-      attribution: {
-        source: 'revenant',
-        sourceId: PROFILE.incensedResponse,
-        actorType: 'player',
-        skillId: PROFILE.incensedResponse,
-        skillName: 'Incensed Response',
-        name: undefined
-      }
-    }
-  ],
+
   reactions: {
     'damage.resolving'(runtime, event) {
       return modifyRevenantLifeSiphon(runtime, event);

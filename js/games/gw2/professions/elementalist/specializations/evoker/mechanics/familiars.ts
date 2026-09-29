@@ -1,12 +1,10 @@
-import type { ActionContext, SideEffectAction } from '#gw2/platform/simulation/side-effects.js';
-import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
-import {
-  activeElementalistBuffs,
-  refreshElementalistBuffs
-} from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { RuntimeCast, RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import type { ActionContext, SideEffectAction } from '#gw2/platform/simulation/side-effects.js';
+import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
+import { applySpecializedElementsTrait } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+import { applyFamiliarTraitProcs } from '#gw2/professions/elementalist/specializations/evoker/traits/familiars.js';
 /**
  * Familiar cast lifecycle - the heart of the Evoker specialization.
  *
@@ -18,25 +16,19 @@ import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects
  * Elements), and the Evoker meditation payloads.
  */
 import {
-  requireBalanceProfileFromContext,
   balanceProfileNumber,
+  requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { GW2_QUICKNESS_ACTION_RATE, castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
 import {
   emitElementalistBuff,
   emitElementalistCondition,
   emitElementalistDamage
 } from '#gw2/professions/elementalist/core/events.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { GW2_QUICKNESS_ACTION_RATE, castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
-import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistRuntime, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
-import {
-  ELEMENTALIST_SKILL_IDS as ID,
-  ELEMENTALIST_TRAIT_IDS as TRAIT
-} from '#gw2/professions/elementalist/data/ids.js';
-import { emitElementalistProc, emitProfiledBuff } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import {
   BASIC_FAMILIARS,
   ELECTRIC_ENCHANTMENT_ICON,
@@ -45,15 +37,15 @@ import {
   FAMILIAR_EMPOWERED_BY_BASIC,
   FAMILIAR_PROFILE_BY_BASIC
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
-import { triggerSpecializedElementEntry } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import {
   emitResource,
   flushPendingWeaponChargeGains,
   grantWeaponSkillCharges,
   weaponSkillChargeGain
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
-import { evokerState, grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { evokerState, grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import type { ElementalistRuntime, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 
 // Replay all four empowered familiar effects with their native F5 strength so balance patches propagate here.
 export function releaseElementalProcession(context: ElementalistRuntime, cast: RuntimeCast, sourceSkill: Skill): void {
@@ -199,82 +191,6 @@ export function selectIgniteEffects(cast: RuntimeCast): readonly SkillEffect[] {
         ? [{ ...effect, duration: Number(burning.duration) }]
         : [];
   });
-}
-
-// refreshes the Familiar's Prowess damage buff, extending an active one rather than stacking a second
-function grantFamiliarProwess(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  const at = cast.effectiveEnd;
-  const familiarsProwessProfile = requireBalanceProfileFromContext(context, PROFILE.familiarsProwess);
-  const baseDuration = balanceProfileNumber(familiarsProwessProfile, 'durationMultiplier');
-  const extension = balanceProfileNumber(familiarsProwessProfile, 'durationPerTier');
-  const maximumDuration = balanceProfileNumber(familiarsProwessProfile, 'maximumStacks');
-  const current = activeElementalistBuffs(context, "familiar's-prowess", at).at(-1);
-  if (current) {
-    refreshElementalistBuffs(context, "familiar's-prowess", at, (expiry) =>
-      Math.min(expiry + extension, at + maximumDuration)
-    );
-    return;
-  }
-
-  emitElementalistBuff(context, {
-    at,
-    source: "Familiar's Prowess",
-    sourceId: skill.id,
-    actorType: 'player',
-    skillName: "Familiar's Prowess",
-    kind: "familiar's-prowess",
-    stacks: 1,
-    duration: baseDuration
-  });
-}
-
-// Specialized Elements removes the profiled fraction of each weapon skill's base recharge.
-function applyWeaponSkillRechargeMultiplier(context: ElementalistRuntime, cast: RuntimeCast, multiplier: number): void {
-  const at = cast.effectiveEnd;
-  for (const candidate of context.helpers.skills) {
-    if (candidate.type !== 'Weapon') continue;
-    const reduction = gw2BaseRecharge(candidate) * Math.max(0, 1 - multiplier);
-    context.cooldownController.reduceSkillRecharge(candidate, reduction, at);
-  }
-}
-
-// Familiar completions fan out through named steps so their ordering remains visible.
-function applyFamiliarTraitProcs(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  const state = evokerState.from(context);
-  const at = cast.effectiveEnd;
-  if (FAMILIAR_ELEMENTS.has(skill.id) && hasTrait(context, TRAIT.FAMILIARS_PROWESS)) {
-    grantFamiliarProwess(context, cast, skill);
-  }
-
-  const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
-  if (familiarElement && hasTrait(context, TRAIT.FAMILIARS_BLESSING)) {
-    const quick = familiarElement === 'Fire' || familiarElement === 'Air';
-    // Blessing stays after Prowess and before charge grants; only packet construction is shared.
-    emitProfiledBuff(
-      context,
-      at,
-      PROFILE.familiarsBlessing,
-      quick ? 'Quickness' : 'Alacrity',
-      "Familiar's Blessing",
-      skill.id
-    );
-  }
-
-  if (familiarElement && hasTrait(context, TRAIT.GALVANIC_ENCHANTMENT)) {
-    const galvanicEnchantmentProfile = requireBalanceProfileFromContext(context, PROFILE.galvanicEnchantment);
-    const stacks = balanceProfileNumber(galvanicEnchantmentProfile, 'playerStacks');
-    const duration = balanceProfileNumber(galvanicEnchantmentProfile, 'durationMultiplier');
-    grantElectricEnchantments(state, at, stacks, duration);
-    emitElementalistProc(context, {
-      at,
-      name: 'Electric Enchantment',
-      procType: 'trait',
-      sourceId: skill.id,
-      sourceSkill: skill.name,
-      detail: `+${stacks} stacks`,
-      icon: ELECTRIC_ENCHANTMENT_ICON
-    });
-  }
 }
 
 /** Skill-selected commit work runs after this cast's shared trait/bookkeeping hooks and before the next completion. */
@@ -468,29 +384,6 @@ export function finishEvokerCast(context: ElementalistRuntime, cast: RuntimeCast
   }
 
   applySpecializedElementsTrait(context, cast, skill);
-}
-
-function applySpecializedElementsTrait(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
-  // Basic familiars retain 90% weapon recharge; empowered familiars retain
-  // 67% and trigger the elemental entry effects.
-  if (familiarElement && hasTrait(context, TRAIT.SPECIALIZED_ELEMENTS)) {
-    const basic = BASIC_FAMILIARS.has(skill.id);
-    applyWeaponSkillRechargeMultiplier(
-      context,
-      cast,
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(
-          context,
-          basic ? PROFILE.specializedElementsBasicRecharge : PROFILE.specializedElementsEmpoweredRecharge
-        ),
-        'rechargeMultiplier'
-      )
-    );
-    if (!basic) {
-      triggerSpecializedElementEntry(context, cast, skill, familiarElement);
-    }
-  }
 }
 
 /**

@@ -1,27 +1,21 @@
-import { vampiricSlashModifier } from '#gw2/professions/thief/core/skills/weapons/spear.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import {
-  eventSkill,
-  hasSelectedSkill,
-  playerHealthFraction,
-  targetConditionCount,
-  targetHealthBelow,
-  targetHealthFraction
-} from '#gw2/platform/combat/query/runtime-query.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { vampiricSlashModifier } from '#gw2/professions/thief/core/skills/weapons/spear.js';
+import { applyRevealedTrainingAttributes } from '#gw2/professions/thief/core/traits/behavior.js';
+import { applyNoQuarterAttributes } from '#gw2/professions/thief/core/traits/critical-boons.js';
+
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
-import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
+import { hasSelectedSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 export function thiefRuntimeState(context: Gw2ModifierContext): Partial<ThiefCoreState> {
   return readProfessionCoreState<ThiefCoreState>(context.runtime?.profession);
@@ -39,98 +33,7 @@ export function thiefRuntimeSpecializationState<TState extends object = object>(
 export const thiefCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
   vampiricSlashModifier,
   {
-    id: 'thief.exposed-weakness',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    parameters: {
-      damagePerCondition: 0.02
-    },
-    factor: (context, _target, parameters) => 1 + targetConditionCount(context) * parameters.damagePerCondition,
-    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.EXPOSED_WEAKNESS)
-  },
-
-  {
-    id: 'thief.executioner',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.2,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      hasTrait(context, TRAIT.EXECUTIONER) &&
-      targetHealthBelow(context, 0.5)
-  },
-  {
-    id: 'thief.ferocious-strikes',
-    target: MODIFIER_TARGET.CRITICAL_DAMAGE,
-    operation: 'multiply',
-    factor: (context) =>
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_STRIKES), 'criticalDamage'),
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      hasTrait(context, TRAIT.FEROCIOUS_STRIKES) &&
-      targetHealthFraction(context) > 0.5
-  },
-  {
-    id: 'thief.twin-fangs-critical-damage',
-    target: MODIFIER_TARGET.CRITICAL_DAMAGE,
-    operation: 'multiply',
-    // Preserve low-health stat previews; simulation queries always return full player health.
-    factor: (context) =>
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(context, TRAIT.TWIN_FANGS),
-        playerHealthFraction(context) > 0.5 ? 'criticalDamage' : 'lowHealthCriticalDamage'
-      ),
-    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.TWIN_FANGS)
-  },
-  {
-    id: 'thief.twin-fangs-critical-chance',
-    target: MODIFIER_TARGET.CRITICAL_CHANCE,
-    operation: 'add',
-    amount: (context) =>
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.TWIN_FANGS), 'criticalChance'),
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      hasTrait(context, TRAIT.TWIN_FANGS) &&
-      Boolean(context.config?.target?.defiant)
-  },
-  {
-    id: 'thief.deadly-aim',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.1,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      hasTrait(context, TRAIT.DEADLY_AIM) &&
-      eventSkill(context)?.weapon === 'Pistol'
-  },
-
-  {
-    id: 'thief.lead-attacks',
-    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
-    operation: 'damage-additive',
-    // Grants, damage and siphons share selected tuning; each packet counts its own live stacks.
-    amount: (context) => {
-      const profile = requireBalanceProfileFromContext(context, PROFILE.leadAttacks);
-      return (
-        Math.min(
-          balanceProfileNumber(profile, 'maximumStacks'),
-          activeStackCount(thiefRuntimeState(context).leadAttackExpirations || [], context.time)
-        ) * balanceProfileNumber(profile, 'damageIncreasePerStack')
-      );
-    },
-    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.LEAD_ATTACKS)
-  },
-  {
-    id: 'thief.fluid-strikes',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    amount: 0.1,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      hasTrait(context, TRAIT.FLUID_STRIKES) &&
-      (thiefRuntimeState(context).fluidStrikesUntil || 0) > context.time
-  },
-  {
+    order: 9,
     id: 'thief.distracting-throw-finisher',
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: 'damage-additive',
@@ -138,69 +41,6 @@ export const thiefCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>(
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       (thiefRuntimeState(context).distractingThrowBuffUntil || 0) > context.time
-  },
-
-  {
-    id: 'thief.potent-poison-damage',
-    target: MODIFIER_TARGET.CONDITION_DAMAGE,
-    operation: 'multiply',
-    factor: 1.33,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      context.event?.condition === 'Poisoned' &&
-      hasTrait(context, TRAIT.POTENT_POISON)
-  },
-  {
-    id: 'thief.deadly-ambush-bleeding',
-    target: MODIFIER_TARGET.CONDITION_DAMAGE,
-    operation: 'multiply',
-    factor: 1.25,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      context.event?.condition === 'Bleeding' &&
-      hasTrait(context, TRAIT.DEADLY_AMBUSH)
-  },
-  {
-    id: 'thief.potent-poison-duration',
-    target: MODIFIER_TARGET.CONDITION_DURATION,
-    operation: 'add',
-    amount: (context) =>
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.POTENT_POISON), 'conditionDurationBonus'),
-    // Specific condition-duration bonuses add to Expertise and are skipped when panel stats already include them.
-    when: (context) =>
-      context.event?.condition === 'Poisoned' &&
-      hasTrait(context, TRAIT.POTENT_POISON) &&
-      !professionStaticRulesApplied(context.config)
-  },
-  {
-    id: 'thief.keen-observer',
-    target: MODIFIER_TARGET.CRITICAL_CHANCE,
-    operation: 'add',
-    // Preserve low-health stat previews; simulation queries always return full player health.
-    amount: (context) => {
-      const keenObserverProfile = requireBalanceProfileFromContext(context, TRAIT.KEEN_OBSERVER);
-      return playerHealthFraction(context) > 0.5
-        ? balanceProfileNumber(keenObserverProfile, 'criticalChance')
-        : balanceProfileNumber(keenObserverProfile, 'lowHealthCriticalChance');
-    },
-    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.KEEN_OBSERVER)
-  },
-  {
-    id: 'thief.hidden-killer',
-    target: MODIFIER_TARGET.CRITICAL_CHANCE,
-    operation: 'add',
-    amount: (context) =>
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.HIDDEN_KILLER), 'criticalChance'),
-    when: (context) => {
-      const state = thiefRuntimeState(context);
-      return (
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.HIDDEN_KILLER) &&
-        // The explicit expiry is armed by stealth, never by the initial Revealed sentinel.
-        (state.stealthStartedAt || 0) <= context.time &&
-        ((state.stealthUntil || 0) > context.time || (state.hiddenKillerUntil || 0) > context.time)
-      );
-    }
   }
 ]);
 
@@ -230,26 +70,9 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
     }
   }
 
-  if (hasTrait(context, TRAIT.REVEALED_TRAINING)) {
-    if (!staticRulesApplied) {
-      const revealedTrainingProfile = requireBalanceProfileFromContext(context, PROFILE.revealedTraining);
-      result.power += balanceProfileNumber(revealedTrainingProfile, 'attributeBonus');
-    }
+  applyRevealedTrainingAttributes(context, result);
 
-    if ((state.revealedUntil || 0) > context.time && !eventSkill(context)?.stealthAttack) {
-      const revealedTrainingProfile = requireBalanceProfileFromContext(context, PROFILE.revealedTraining);
-      result.power += balanceProfileNumber(revealedTrainingProfile, 'attributePerStack');
-    }
-  }
-
-  if (
-    hasTrait(context, TRAIT.NO_QUARTER) &&
-    context.query?.furyActiveAt(context.time, context.runtime, context.event) &&
-    !(staticRulesApplied && Boolean((context.config?.boons as Record<string, unknown>).fury))
-  ) {
-    const noQuarterProfile = requireBalanceProfileFromContext(context, PROFILE.noQuarter);
-    result.ferocity += balanceProfileNumber(noQuarterProfile, 'attributeBonus');
-  }
+  applyNoQuarterAttributes(context, result);
 
   return result;
 }

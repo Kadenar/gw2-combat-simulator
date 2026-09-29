@@ -1,6 +1,4 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 
 // Stable profile IDs let runtime mechanics request patchable values without
 // duplicating balance constants in the cast, resolver, and modifier layers.
@@ -8,12 +6,7 @@ export const AMALGAM_BALANCE_PROFILE_IDS = Object.freeze({
   morphs: 'engineer.amalgam.morphs',
   strains: 'engineer.amalgam.strains',
   evolve: 'engineer.amalgam.evolve',
-  carbolicComposition: TRAIT.CARBOLIC_COMPOSITION,
   rapaciousStrain: 'engineer.amalgam.rapacious-strain',
-  newGenes: TRAIT.NEW_GENES,
-  willingHost: TRAIT.WILLING_HOST,
-  hardenedChrome: TRAIT.HARDENED_CHROME,
-  mercurialTendencies: TRAIT.MERCURIAL_TENDENCIES,
   plasmaticState: 'engineer.amalgam.plasmatic-state'
 });
 
@@ -23,11 +16,6 @@ export const AMALGAM_BALANCE_PROFILE_IDS = Object.freeze({
 // Mechanic profiles collect protocol durations, strain scaling, and Evolve
 // tuning that would otherwise be spread across scheduler and modifier code.
 export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
-  // Resolver procs use these authored packets and cooldowns, including explicit zero edits.
-  trait(AMALGAM_BALANCE_PROFILE_IDS.carbolicComposition, 'Carbolic Composition', {
-    conditionDurationBonus: 0.33,
-    effects: [{ name: 'Poisoned', type: 'condition', condition: 'Poisoned', stacks: 1, duration: 3 }]
-  }),
   {
     id: AMALGAM_BALANCE_PROFILE_IDS.rapaciousStrain,
     name: 'Rapacious Strain',
@@ -122,32 +110,6 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     maximumStacks: 2,
     effects: []
   },
-  trait(AMALGAM_BALANCE_PROFILE_IDS.newGenes, 'New Genes', {
-    effects: [
-      { name: 'alacrity', type: 'boon', boon: 'alacrity', stacks: 1, duration: 5 },
-      { name: 'might', type: 'boon', boon: 'might', stacks: 4, duration: 12 },
-      { name: 'cleanse', type: 'boon', boon: 'aegis', stacks: 1, duration: 4, metadata: { trigger: 'cleanse' } },
-      { name: 'protect', type: 'boon', boon: 'protection', stacks: 1, duration: 4, metadata: { trigger: 'protect' } },
-      { name: 'thorns', type: 'boon', boon: 'stability', stacks: 2, duration: 4, metadata: { trigger: 'thorns' } },
-      { name: 'demolish', type: 'boon', boon: 'swiftness', stacks: 1, duration: 6, metadata: { trigger: 'demolish' } },
-      { name: 'obliterate', type: 'boon', boon: 'might', stacks: 5, duration: 12, metadata: { trigger: 'obliterate' } },
-      { name: 'pierce', type: 'boon', boon: 'vigor', stacks: 1, duration: 4, metadata: { trigger: 'pierce' } },
-      { name: 'shred', type: 'boon', boon: 'fury', stacks: 1, duration: 6, metadata: { trigger: 'shred' } }
-    ]
-  }),
-  trait(AMALGAM_BALANCE_PROFILE_IDS.willingHost, 'Willing Host', {
-    durationMultiplier: 10
-  }),
-  trait(AMALGAM_BALANCE_PROFILE_IDS.hardenedChrome, 'Hardened Chrome', {
-    minimumStacks: 2.5,
-    maximumStacks: 4
-  }),
-  // Trait tuning is shared by build calculations, combat, and tooltips.
-  trait(TRAIT.HYBRID_VIGOR, 'Hybrid Vigor', { attributeBonus: 240 }),
-  trait(AMALGAM_BALANCE_PROFILE_IDS.mercurialTendencies, 'Mercurial Tendencies', {
-    internalCooldown: 0.24,
-    rechargeReduction: 2.5
-  }),
   {
     id: AMALGAM_BALANCE_PROFILE_IDS.plasmaticState,
     name: 'Plasmatic State',

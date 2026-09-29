@@ -1,347 +1,41 @@
-import { spendWarriorMagazine } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
-import { signetOfRageLifecycle } from '#gw2/professions/warrior/core/skills/slot-skills.js';
-import { fierceBlowDamage } from '#gw2/professions/warrior/core/skills/weapons/hammer.js';
-import { combustiveShotFields } from '#gw2/professions/warrior/core/skills/profession-skills.js';
-import { counterblowActions } from '#gw2/professions/warrior/core/skills/weapons/mace.js';
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { applySideEffect, sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
-import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { scaleCastBoundTiming, materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import { reactToWarriorBuff } from '#gw2/professions/warrior/core/traits/strength.js';
-import { reactToWarriorDamage } from '#gw2/professions/warrior/core/traits/arms.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   balanceProfileNumber,
-  procChanceFromContext,
-  requireBalanceProfileFromContext,
-  requireEffect
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { applySideEffect, sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   burstAdrenalineSpend,
   grantWarriorAdrenaline,
   warriorBurstSpends,
   warriorBurstTier
 } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
-
-type WarriorRuntime = Gw2Runtime<WarriorRuntimeState>;
-const EMPOWER_PULSE = 'warrior.empower-allies-pulse';
-
-/** Actual reactions emit fresh trait packets, retaining only the triggering activation and causal placement. */
-function traitEffects(
-  runtime: WarriorRuntime,
-  event: Gw2ResolverEvent,
-  trait: number,
-  overrides: Partial<
-    Pick<
-      Gw2ResolverEvent,
-      'stacks' | 'duration' | 'audience' | 'priority' | 'name' | 'skillName' | 'triggeredBy' | 'metadata'
-    >
-  > = {},
-  quantity = 1,
-  effects?: readonly SkillEffect[]
-): void {
-  const profile = requireBalanceProfileFromContext(runtime, trait);
-  emitEffects(runtime, {
-    owner: profile,
-    effects: effects ?? profile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
-    baseEvent: {
-      source: 'Trait',
-      sourceId: trait,
-      actorType: 'effect',
-      skillId: event.skillId,
-      skillName: event.skillName
-    },
-    cause: event,
-    transform: (packet) => ({
-      ...packet,
-      priority: 5,
-      name: profile.name,
-      stacks: quantity * Number(packet.stacks),
-      ...overrides
-    })
-  });
-}
-
-/** A selected trait claims its own deadline only after its trigger has actually been accepted. */
-function claimTrait(runtime: WarriorRuntime, trait: number): boolean {
-  return hasTrait(runtime, trait) && runtime.procs.claim(trait);
-}
-
-/** Player control and player immobilization share Opportunist's single cooldown and live resource grant. */
-function opportunist(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || !claimTrait(runtime, TRAIT.OPPORTUNIST)) return;
-  grantWarriorAdrenaline(
-    runtime,
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.opportunist), 'resourceGain')
-  );
-  traitEffects(runtime, event, TRAIT.OPPORTUNIST);
-}
-
-/** Control events trigger Defense and Strength rewards; derived conditions reenter the common queue. */
-function controlTraits(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player') return;
-  opportunist(runtime, event);
-  if (hasTrait(runtime, TRAIT.MERCILESS_HAMMER))
-    grantWarriorAdrenaline(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.mercilessHammer), 'resourceGain')
-    );
-}
-
-/** The first surviving burst strike claims its activation once, even when earlier packets missed or traveled. */
-function firstBurstHit(runtime: WarriorRuntime, event: Gw2ResolverEvent): boolean {
-  const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
-  if (!skill?.burst || event.activationId == null) return false;
-  const state = runtime.profession.core;
-  const key = event.activationId;
-  if (state.burstHitActivations[key]) return false;
-  state.burstHitActivations[key] = true;
-  const attribution = {
-    at: runtime.time,
-    priority: 5,
-    source: 'Trait',
-    actorType: 'effect' as const,
-    skillId: event.skillId,
-    skillName: event.skillName,
-    stacks: 1
-  };
-  if (hasTrait(runtime, TRAIT.CULL_THE_WEAK) && runtime.procs.claim(TRAIT.CULL_THE_WEAK))
-    traitEffects(runtime, event, TRAIT.CULL_THE_WEAK);
-  if (hasTrait(runtime, TRAIT.BURST_PRECISION)) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.burstPrecision);
-    runtime.emitDerived(event, {
-      ...attribution,
-      sourceId: TRAIT.BURST_PRECISION,
-      type: 'buff',
-      name: 'Burst Precision',
-      kind: 'burst-precision',
-      duration: balanceProfileNumber(
-        profile,
-        Number(event.metadata?.warriorAdrenalineSpent) >= 30 ? 'maximumStacks' : 'minimumStacks'
-      )
-    });
-  }
-
-  if (hasTrait(runtime, TRAIT.BUILDING_MOMENTUM))
-    runtime.endurance.grant(
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.buildingMomentum), 'resourceGain')
-    );
-  if (
-    hasTrait(runtime, TRAIT.MARCHING_ORDERS) &&
-    runtime.procs.claim(PROFILE.marchingOrders, 'warrior.core.soldierFocus', runtime.time)
-  ) {
-    // All Soldier's Focus rewards share the claim; Martial Cadence still owns its explicit swap resets.
-    const audience = { recipients: 'party' as const };
-    traitEffects(runtime, event, TRAIT.MARCHING_ORDERS, { audience });
-    if (hasTrait(runtime, TRAIT.SOLDIERS_COMFORT)) traitEffects(runtime, event, TRAIT.SOLDIERS_COMFORT, { audience });
-    if (hasTrait(runtime, TRAIT.MARTIAL_CADENCE)) traitEffects(runtime, event, TRAIT.MARTIAL_CADENCE, { audience });
-  }
-
-  // Dragon Slash owns its charge-converted reward at completion rather than first impact.
-  if (
-    !skill.dragonSlash &&
-    hasTrait(runtime, TRAIT.BERSERKERS_POWER) &&
-    Number(event.metadata?.warriorAdrenalineSpent) > 0
-  )
-    traitEffects(runtime, event, TRAIT.BERSERKERS_POWER, { stacks: Number(event.metadata?.warriorBurstTier) + 1 });
-  return true;
-}
-
-/** Every critical consumer uses the same resolved hit fact; only independent trait chances draw additional rolls. */
-function criticalTraits(
-  runtime: WarriorRuntime,
-  event: Gw2ResolverEvent,
-  hit: Gw2HitResolutionContext,
-  firstBurst: boolean
-): void {
-  const opportunity = criticalOpportunity(
-    hit.critEligible ? hit.critical.chance : 0,
-    hit.critical.didCrit,
-    Math.max(1, event.hits ?? 1)
-  );
-  const criticals = opportunity.sampledCriticals;
-
-  if (hasTrait(runtime, TRAIT.BLOODLUST)) {
-    const proc = advanceCriticalProc(opportunity, {
-      id: 'warrior.core.bloodlust',
-      at: runtime.time,
-      chanceOnCriticalHit: procChanceFromContext(runtime, PROFILE.bloodlust),
-      randomStream: 'warrior.bloodlust',
-      roll: (chance, stream) => runtime.random.roll(chance, stream)
-    });
-    if (proc) {
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.bloodlust);
-      const bleeding = requireEffect(profile, 'condition', 'Bleeding');
-      if (bleeding)
-        traitEffects(
-          runtime,
-          event,
-          TRAIT.BLOODLUST,
-          {
-            name: 'Bloodlust \u2014 Bleeding',
-            skillName: 'Bloodlust',
-            triggeredBy: event.skillName,
-            metadata: { procCount: proc.quantity }
-          },
-          proc.quantity,
-          [bleeding]
-        );
-    }
-  }
-
-  if (criticals > 0 && hasTrait(runtime, TRAIT.FURIOUS)) {
-    grantWarriorAdrenaline(
-      runtime,
-      criticals * balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.furious), 'resourceGain')
-    );
-    traitEffects(runtime, event, TRAIT.FURIOUS, {}, criticals);
-  }
-
-  if (firstBurst && claimTrait(runtime, TRAIT.SUNDERING_BURST)) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.sunderingBurst);
-    const effect = requireEffect(profile, 'condition', criticals > 0 ? 'Critical burst' : 'Burst');
-    if (effect)
-      traitEffects(runtime, event, TRAIT.SUNDERING_BURST, { name: 'Sundering Burst — Vulnerability' }, 1, [effect]);
-  }
-
-  if (criticals > 0 && hasTrait(runtime, TRAIT.AXE_MASTERY)) {
-    const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
-    if ((skill?.skillWeapon || skill?.weapon || event.skillWeapon) === 'Axe')
-      grantWarriorAdrenaline(
-        runtime,
-        criticals * balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.axeMastery), 'resourceGain')
-      );
-  }
-
-  if (hasTrait(runtime, TRAIT.FORCEFUL_GREATSWORD)) {
-    const weapons = gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet);
-    const chance = balanceProfileNumber(
-      requireBalanceProfileFromContext(runtime, PROFILE.forcefulGreatsword),
-      'procChance'
-    );
-    const proc = advanceCriticalProc(opportunity, {
-      id: 'warrior.core.forceful-greatsword',
-      at: runtime.time,
-      chanceOnCriticalHit: Math.min(1, chance * (weapons.includes('Greatsword') ? 2 : 1)),
-      randomStream: 'warrior.forceful-greatsword',
-      roll: (chance, stream) => runtime.random.roll(chance, stream)
-    });
-    if (proc) traitEffects(runtime, event, TRAIT.FORCEFUL_GREATSWORD, {}, proc.quantity);
-  }
-}
-
-/** Selected trait components use the common buff queue; standard boons sample current duration modifiers. */
-function castTraitBuff(
-  runtime: WarriorRuntime,
-  cast: RuntimeCast,
-  trait: number,
-  profileId: string | number,
-  name: string,
-  kind: string,
-  type: 'boon' | 'buff',
-  at = runtime.time,
-  priority = 0
-): void {
-  const profile = requireBalanceProfileFromContext(runtime, profileId);
-  const effect = requireEffect(profile, type, kind);
-  if (!effect) return;
-  // Shared expansion preserves authored repeats while this owner retains modifier-before-impact ordering.
-  for (const { event } of materializeSkillEffectApplications({
-    skill: profile,
-    effect,
-    start: at,
-    fullEnd: at,
-    baseEvent: {
-      source: 'Trait',
-      sourceId: trait,
-      actorType: 'effect',
-      skillId: cast.skill.id,
-      skillName: cast.skill.name,
-      activationId: cast.id
-    }
-  })) {
-    const packet = { ...event, name, priority };
-    // A modifier opening at a future impact is queued now, so it precedes the same-instant hits it modifies.
-    if (event.at > runtime.time) runtime.emit(packet);
-    else runtime.emitProcedural(packet);
-  }
-}
-
-/** Acceptance rewards survive later cancellation; Kick opens its modifier at the first authored impact. */
-function startTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill;
-  if (!skill.categories?.includes('Physical') || !hasTrait(runtime, TRAIT.PEAK_PERFORMANCE)) return;
-  let at = cast.effectiveEnd;
-  if (skill.id === ID.KICK) {
-    const strike = skill.effects?.find((effect) => effect.type === 'strike');
-    const timing = strike && scaleCastBoundTiming(cast, skill, strike);
-    const firstTick = Array.isArray(timing?.ticks) ? timing.ticks[0] : undefined;
-    const offsetMs = Number(firstTick?.atMs ?? timing?.atMs ?? skill.castTimeMs ?? 0);
-    at = Math.min(at, cast.start + offsetMs / 1000);
-  }
-
-  castTraitBuff(
-    runtime,
-    cast,
-    TRAIT.PEAK_PERFORMANCE,
-    PROFILE.peakPerformance,
-    'Peak Performance',
-    'peak-performance',
-    'buff',
-    at
-  );
-}
-
-/** Only completed activations earn signet, movement, and dodge rewards, using the live resource owner. */
-function completeTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill;
-  if (hasTrait(runtime, TRAIT.BRAVE_STRIDE) && skill.movementSkill) {
-    grantWarriorAdrenaline(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.braveStride), 'resourceGain')
-    );
-    castTraitBuff(runtime, cast, TRAIT.BRAVE_STRIDE, PROFILE.braveStride, 'Brave Stride', 'stability', 'boon');
-  }
-}
-
-/** Empower Allies owns one next wake; removing its Might or disabling cadence cannot leave a recurring task. */
-function empowerPulse(runtime: WarriorRuntime): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.empowerAllies);
-  const interval = balanceProfileNumber(profile, 'pulseInterval');
-  const might = requireEffect(profile, 'boon', 'might');
-  if (!hasTrait(runtime, TRAIT.EMPOWER_ALLIES) || interval <= 0 || !might) return;
-  traitEffects(
-    runtime,
-    { type: 'buff', at: runtime.time, source: 'Trait', sourceId: TRAIT.EMPOWER_ALLIES, actorType: 'effect' },
-    TRAIT.EMPOWER_ALLIES,
-    { priority: 0, audience: { recipients: 'party' } },
-    1,
-    [might]
-  );
-  runtime.schedule(EMPOWER_PULSE, canonicalTime(runtime.time + interval), null, undefined, -210);
-}
-
-/** The shared swap commits its destination first; Core then resets Focus and grants adrenaline. */
-function weaponSwapTraits(runtime: WarriorRuntime): void {
-  if (hasTrait(runtime, TRAIT.MARTIAL_CADENCE)) runtime.procs.readyAt['warrior.core.soldierFocus'] = runtime.time;
-  if (hasTrait(runtime, TRAIT.VERSATILE_RAGE))
-    grantWarriorAdrenaline(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.VERSATILE_RAGE), 'resourceGain')
-    );
-}
+import { spendWarriorMagazine } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
+import { traitEffects } from '#gw2/professions/warrior/core/mechanics/emission.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
+import { combustiveShotFields } from '#gw2/professions/warrior/core/skills/profession-skills.js';
+import { signetOfRageLifecycle } from '#gw2/professions/warrior/core/skills/slot-skills.js';
+import { fierceBlowDamage } from '#gw2/professions/warrior/core/skills/weapons/hammer.js';
+import { counterblowActions } from '#gw2/professions/warrior/core/skills/weapons/mace.js';
+import {
+  reactToWarriorDamage,
+  triggerOpportunist,
+  burstMasteryCommit,
+  completeTraits,
+  reactToWarriorBuff,
+  startTraits,
+  initializeEmpowerAllies,
+  controlTraits,
+  firstBurstHit,
+  criticalTraits,
+  weaponSwapTraits
+} from '#gw2/professions/warrior/core/traits/behavior.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Core resources and burst packets execute in the Core hooks; elite behavior composes at the family boundary. */
 export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
@@ -373,16 +67,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
       });
     }
   },
-  // Only an authored measurement and an eligible active offhand can replace the selected duration.
-  castDurationMs(runtime, skill, durationMs) {
-    const measured = Number(skill.dualWieldCastTimeMs);
-    const offhand = gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet)[1];
-    return measured > 0 &&
-      hasTrait(runtime, TRAIT.DUAL_WIELDING) &&
-      ['Axe', 'Dagger', 'Mace', 'Sword'].includes(String(offhand))
-      ? measured
-      : durationMs;
-  },
+
   initialize(runtime) {
     // Select the Core pool before elite initialization replaces its resource policy.
     const state = runtime.profession.core;
@@ -391,7 +76,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
       'maximumStacks'
     );
     state.adrenaline = boundedNumber(runtime.config.initialResource ?? 0, 0, 0, state.maximumAdrenaline);
-    if (hasTrait(runtime, TRAIT.EMPOWER_ALLIES)) runtime.schedule(EMPOWER_PULSE, 0, null, undefined, -210);
+    initializeEmpowerAllies(runtime);
   },
   endurance: {
     state: (runtime) => runtime.profession.core,
@@ -405,103 +90,9 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     }
   },
   onCombatStart: signetOfRageLifecycle.onCombatStart,
-  // Selected weapon and burst traits share live, patchable recharge rules.
-  rechargeRules: [
-    {
-      trait: TRAIT.VERSATILE_POWER,
-      when: (_runtime, skill) => Boolean(skill.burst),
-      multiplier: { profile: TRAIT.VERSATILE_POWER, field: 'rechargeMultiplier' }
-    },
-    ...(
-      [
-        ['Greatsword', TRAIT.FORCEFUL_GREATSWORD],
-        ['Sword', TRAIT.BLADEMASTER],
-        ['Axe', TRAIT.AXE_MASTERY]
-      ] as const
-    ).map(([weapon, trait]) => ({
-      trait,
-      when: (_runtime: WarriorRuntime, skill: WarriorSkill) => skill.weapon === weapon,
-      multiplier: { profile: trait, field: 'rechargeMultiplier' }
-    }))
-  ],
+
   rechargeWork: (_runtime, skill, work) => (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS ? Math.min(5, work) : work),
-  traitTriggers: [
-    // Independent control rewards share accepted-event ownership; resource transactions stay in the hook.
-    {
-      trait: TRAIT.STALWART_STRENGTH,
-      on: 'control.resolved',
-      when: (_runtime, event) => event.actorType === 'player',
-      emit: PROFILE.stalwartStrength,
-      icd: 'profile',
-      attribution: { priority: 5 }
-    },
-    {
-      trait: TRAIT.BODY_BLOW,
-      on: 'control.resolved',
-      when: (_runtime, event) =>
-        event.actorType === 'player' &&
-        ['stun', 'daze', 'knockback', 'pull', 'push', 'launch'].includes(String(event.controlKind).toLowerCase()),
-      emit: PROFILE.bodyBlow,
-      attribution: { priority: 5 }
-    },
-    {
-      trait: TRAIT.AGGRESSIVE_ONSLAUGHT,
-      on: 'control.resolved',
-      when: (_runtime, event) => event.actorType === 'player',
-      emit: PROFILE.aggressiveOnslaught,
-      icd: 'profile',
-      attribution: { priority: 5 }
-    },
-    // A completed dodge emits independent strike and Might packets with their original owners.
-    {
-      trait: TRAIT.RECKLESS_DODGE,
-      on: 'castCommit',
-      when: (_runtime, cast) => cast.skill.id === SHARED_SKILL_IDS.DODGE,
-      emit: PROFILE.recklessDodge,
-      effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
-      attribution: { source: 'Warrior', actorType: 'player', name: 'Reckless Dodge', skillWeapon: '' }
-    },
-    {
-      trait: TRAIT.RECKLESS_DODGE,
-      on: 'castCommit',
-      when: (_runtime, cast) => cast.skill.id === SHARED_SKILL_IDS.DODGE,
-      emit: PROFILE.recklessDodge,
-      effects: (effect) => effect.type === 'boon' && effect.name === 'might',
-      attribution: { name: 'Reckless Dodge — Might', priority: 0 }
-    },
-    // Completed weapon swaps grant Fury once per the selected profile's cooldown.
-    {
-      trait: TRAIT.FURIOUS_BURST,
-      on: 'castCommit',
-      when: (_runtime, cast) => cast.skill.inputCategory === 'weapon-swap',
-      emit: PROFILE.furiousBurst,
-      icd: 'profile',
-      effects: (effect) => effect.type === 'boon' && effect.name === 'fury',
-      attribution: { name: 'Furious Burst' }
-    },
-    {
-      trait: TRAIT.THICK_SKIN,
-      on: 'castStart',
-      when: (_runtime, cast) => cast.skill.type === 'Heal',
-      emit: TRAIT.THICK_SKIN,
-      attribution: { name: 'Thick Skin', priority: 0 }
-    },
-    {
-      trait: TRAIT.SIGNET_MASTERY,
-      on: 'castCommit',
-      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Signet')),
-      emit: PROFILE.signetMastery,
-      effects: (effect) => effect.type === 'buff' && effect.kind === 'signet-mastery',
-      attribution: { name: 'Signet Mastery', priority: 0 }
-    },
-    {
-      trait: TRAIT.LEG_SPECIALIST,
-      on: 'condition.applied',
-      when: (_runtime, event) => event.condition === 'Crippled',
-      emit: TRAIT.LEG_SPECIALIST,
-      attribution: { priority: 5 }
-    }
-  ],
+
   availability(runtime, rawSkill) {
     const skill = rawSkill as WarriorSkill;
     const state = runtime.profession.core;
@@ -559,24 +150,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
   onCastCommit(runtime, cast) {
     // Successful bursts refund the captured spend at completion, independently of target acceptance.
     const spent = warriorBurstSpends.get(cast) ?? 0;
-    if (cast.skill.burst && cast.skill.id !== ID.FULL_COUNTER && spent > 0 && hasTrait(runtime, TRAIT.BURST_MASTERY)) {
-      grantWarriorAdrenaline(
-        runtime,
-        spent * balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.burstMastery), 'resourceGain')
-      );
-      // The refund is live now; Swiftness resolves after same-time burst damage, preserving reward ordering.
-      castTraitBuff(
-        runtime,
-        cast,
-        TRAIT.BURST_MASTERY,
-        PROFILE.burstMastery,
-        'Burst Mastery — Swiftness',
-        'swiftness',
-        'boon',
-        runtime.time,
-        5
-      );
-    }
+    burstMasteryCommit(runtime, cast, spent);
 
     completeTraits(runtime, cast);
     if (cast.skill.inputCategory === 'weapon-swap') weaponSwapTraits(runtime);
@@ -585,8 +159,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     runtime.profession.core.adrenaline = runtime.profession.core.maximumAdrenaline;
   },
   tasks: {
-    ...signetOfRageLifecycle.tasks,
-    [EMPOWER_PULSE]: empowerPulse
+    ...signetOfRageLifecycle.tasks
   },
   reactions: {
     'damage.resolving': fierceBlowDamage,
@@ -607,7 +180,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     'buff.applied': reactToWarriorBuff,
     'control.resolved': controlTraits,
     'condition.applied'(runtime, event) {
-      if (event.condition === 'Immobilized') opportunist(runtime, event);
+      if (event.condition === 'Immobilized') triggerOpportunist(runtime, event);
     }
   }
 };

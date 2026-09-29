@@ -393,6 +393,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
 
 /** Only the siphon packet samples live Vulnerability at impact. */
 export const vampiricSlashModifier: Gw2ModifierRule = {
+  order: 0,
   id: 'thief.vampiric-slash-vulnerable',
   target: MODIFIER_TARGET.STRIKE_DAMAGE,
   operation: 'multiply',

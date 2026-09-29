@@ -1,25 +1,25 @@
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { applyMesmerRuntimeManifest, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
+import { masterOfFragmentationDuration } from '#gw2/professions/mesmer/core/traits/behavior.js';
 import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
+import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
 import {
+  CHRONOMANCER_SHATTER_PROFILE_IDS,
+  CHRONOMANCER_BALANCE_PROFILE_IDS as PROFILE
+} from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
+import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
+import {
+  chronophantasmaPolicy,
   resolveChronomancerShatterBoons,
   resolveIllusionaryReversion
-} from '#gw2/professions/mesmer/specializations/chronomancer/traits/shatters.js';
-import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
-import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
-import type { MesmerMechanics, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import {
-  CHRONOMANCER_BALANCE_PROFILE_IDS as PROFILE,
-  CHRONOMANCER_SHATTER_PROFILE_IDS
-} from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
-import { mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
+} from '#gw2/professions/mesmer/specializations/chronomancer/traits/behavior.js';
 import type { MesmerContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/types.js';
+import type { MesmerMechanics, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set<number>([SHARED_SKILL_IDS.SWAP_WEAPONS]);
 
@@ -35,18 +35,7 @@ export function initializeChronomancerRuntime(context: MesmerRuntime): void {
     shatters: mesmerProfiledShatters(context, MESMER_CHRONOMANCER_SHATTERS, CHRONOMANCER_SHATTER_PROFILE_IDS),
     shatterResolvedHandlers: [resolveChronomancerShatterBoons, resolveIllusionaryReversion],
     phantasmAttackTimings: MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
-    phantasmPolicy: hasTrait(context, TRAIT.CHRONOPHANTASMA)
-      ? {
-          repeat: {
-            label: 'Chronophantasma',
-            traitName: 'Chronophantasma',
-            damageMultiplier: balanceProfileNumber(
-              requireBalanceProfileFromContext(context, PROFILE.chronophantasma),
-              'damageMultiplier'
-            )
-          }
-        }
-      : undefined
+    phantasmPolicy: chronophantasmaPolicy(context)
   });
   for (const skill of context.helpers.skills) {
     context.cooldownController.ensureAmmo(skill, 0);
@@ -62,12 +51,7 @@ export function initializeChronomancerRuntime(context: MesmerRuntime): void {
     triggerShatterTraits: runtime.actions.triggerShatterTraits,
     addEvent: runtime.addEvent,
     durationPerSource: balanceProfileNumber(continuumSplitProfile, 'durationPerTier'),
-    bonusDuration: hasTrait(context, TRAIT.MASTER_OF_FRAGMENTATION)
-      ? balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION),
-          'durationMultiplier'
-        )
-      : 0,
+    bonusDuration: masterOfFragmentationDuration(context),
     scheduleExpiry: (at) => context.schedule('mesmer.continuum-expire', at, at, undefined, -30)
   });
   runtime.continuum = continuum;

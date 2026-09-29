@@ -1,19 +1,15 @@
-import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
-import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/shared.js';
-import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import {
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/professions/guardian/types.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
+import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/professions/guardian/types.js';
 
 export function reactToDragonhunterJusticeHit(
   context: GuardianResolverContext,
@@ -53,66 +49,4 @@ export function reactToDragonhunterJusticeHit(
       );
     }
   }
-}
-
-export function reactToDragonhunterControl(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  if (hasTrait(context, GUARDIAN_TRAIT_IDS.DULLED_SENSES)) {
-    const dulledSensesProfile = requireBalanceProfileFromContext(context, PROFILE.dulledSenses);
-    const crippled = requireEffect(dulledSensesProfile, 'condition', 'Crippled');
-    // Control-triggered conditions resolve immediately so their reactions
-    // share the originating control timestamp.
-    if (crippled) {
-      context.applyCondition(
-        buildResolverCondition({
-          at: event.at,
-          source: 'guardian',
-          sourceId: GUARDIAN_TRAIT_IDS.DULLED_SENSES,
-          activationId: event.activationId,
-          causalOrder: event.causalOrder ?? event.eventOrder,
-          actorType: 'effect',
-          skillId: GUARDIAN_TRAIT_IDS.DULLED_SENSES,
-          skillName: 'Dulled Senses',
-          name: 'Dulled Senses — Crippled',
-          condition: String(crippled.condition),
-          stacks: effectNumber(dulledSensesProfile, crippled, 'stacks'),
-          duration: effectNumber(dulledSensesProfile, crippled, 'duration')
-        })
-      );
-    }
-  }
-
-  if (!hasTrait(context, GUARDIAN_TRAIT_IDS.HEAVY_LIGHT)) return;
-
-  // 1-second internal cooldown on Heavy Light stability; not exposed by the trait's game tooltip.
-
-  const heavyLightProfile = requireBalanceProfileFromContext(context, PROFILE.heavyLight);
-  const stability = requireEffect(heavyLightProfile, 'boon', 'stability');
-  // Removing Stability leaves Heavy Light's interval unclaimed.
-  if (!stability || !context.procs.claim(PROFILE.heavyLight, 'guardian.dragonhunter.heavyLight', event.at)) return;
-  queueResolverBoon(
-    context,
-    event,
-    buildResolverBuff({
-      at: event.at,
-      priority: 5,
-      source: 'guardian',
-      sourceId: GUARDIAN_TRAIT_IDS.HEAVY_LIGHT,
-      activationId: event.activationId,
-      causalOrder: event.causalOrder ?? event.eventOrder,
-      actorType: 'player',
-      skillId: GUARDIAN_TRAIT_IDS.HEAVY_LIGHT,
-      skillName: 'Heavy Light',
-      kind: 'stability',
-      stacks: effectNumber(heavyLightProfile, stability, 'stacks'),
-      duration: effectNumber(heavyLightProfile, stability, 'duration')
-    })
-  );
-  context.recordProc(
-    'trait',
-    'Heavy Light',
-    event.at,
-    event.skillName,
-    'Stability',
-    guardianTraitIcon(GUARDIAN_TRAIT_IDS.HEAVY_LIGHT)
-  );
 }

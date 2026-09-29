@@ -1,34 +1,32 @@
-import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { ENGINEER_TRAIT_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
-import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
-import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
-import {
-  applyElementalistResolverBuff,
-  applyElementalistResolvedDamage
-} from '#gw2/professions/elementalist/core/mechanics/reactions.js';
-import {
-  holosmithResolverEventHandlers,
-  consumeSolarFocusingLens
-} from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge-effects.js';
-import {
-  handleRangerPoisonousStrikes,
-  handleRangerBloodThirst
-} from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
-import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
 import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import {
+  applyElementalistResolvedDamage,
+  applyElementalistResolverBuff
+} from '#gw2/professions/elementalist/core/mechanics/reactions.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { ENGINEER_TRAIT_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { consumeSolarFocusingLens } from '#gw2/professions/engineer/specializations/holosmith/traits/behavior.js';
+import { solarFocusingLens } from '#gw2/professions/engineer/specializations/holosmith/traits/index.js';
+import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
+import {
+  handleRangerBloodThirst,
+  handleRangerPoisonousStrikes
+} from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
 import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
+import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { reactToSoulbeastDamage } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
+import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 // Real state owners and catalogs isolate grant contracts without relying on saved rotation packets.
 function contextFor(profession, specialization, selectedTraitIds = []) {
@@ -169,7 +167,7 @@ test('Blood Thirst grants twelve seconds, replaces remaining charges, and respec
 test('Solar Focusing Lens keeps not-before eligibility and live spending', () => {
   const context = contextFor(engineerProfession, 'Holosmith', [ENGINEER.SOLAR_FOCUSING_LENS]);
   const state = context.profession.specialization.state;
-  const grant = holosmithResolverEventHandlers['engineer.solar-focusing-lens'];
+  const grant = solarFocusingLens.hooks.eventHandlers['engineer.solar-focusing-lens'];
   grant(context, { at: 1.001, stacks: 2, duration: 1 });
   assert.equal(state.solarFocusingLens.expiresAt, 2.04);
   const hit = { at: 1, actorType: 'player', coefficient: 1 };

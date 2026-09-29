@@ -1,0 +1,76 @@
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { thiefRuntimeState } from '#gw2/professions/thief/core/modifiers.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+
+/** Owns Fluid Strikes tuning and behavior at the existing execution boundaries. */
+export const fluidStrikes = defineTrait({
+  id: TRAIT.FLUID_STRIKES,
+  name: 'Fluid Strikes',
+  modifierRules: [
+    {
+      order: 8,
+      id: 'thief.fluid-strikes',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'damage-additive',
+      amount: 0.1,
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) &&
+        hasTrait(context, TRAIT.FLUID_STRIKES) &&
+        (thiefRuntimeState(context).fluidStrikesUntil || 0) > context.time
+    }
+  ],
+  balance: {
+    durationMultiplier: 5
+  }
+});
+
+/** Owns Hard to Catch tuning and behavior at the existing execution boundaries. */
+export const hardToCatch = defineTrait({
+  id: TRAIT.HARD_TO_CATCH,
+  name: 'Hard to Catch',
+  balance: {
+    resourceGain: 8
+  }
+});
+
+/** Owns Swindler's Equilibrium tuning and behavior at the existing execution boundaries. */
+export const swindlersEquilibrium = defineTrait({
+  id: TRAIT.SWINDLERS_EQUILIBRIUM,
+  name: "Swindler's Equilibrium",
+  balance: { attributeBonus: 120, weaponAttributeBonus: 240 },
+  buildAttributes(_common, { build, weaponSet, balanceContext }) {
+    const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
+    const swindlersEquilibriumProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.SWINDLERS_EQUILIBRIUM);
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          source: "Swindler's Equilibrium",
+          to: 'Power',
+          amount: balanceProfileNumber(
+            swindlersEquilibriumProfile,
+            weapons.includes('Sword') ? 'weaponAttributeBonus' : 'attributeBonus'
+          ),
+          feedsConversions: true
+        }
+      ]
+    };
+  }
+});
+
+/** Owns Upper Hand tuning and behavior at the existing execution boundaries. */
+export const upperHand = defineTrait({
+  id: TRAIT.UPPER_HAND,
+  name: 'Upper Hand',
+  balance: {
+    internalCooldown: 2,
+    resourceGain: 1
+  }
+});

@@ -1,10 +1,11 @@
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+
 /**
  * Owns Firebrand tome and tome-page skill fragments.
  * Persistent tome page state and behavior remain under `mechanics/`.
  */
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SCORCHED_AFTERMATH]: {

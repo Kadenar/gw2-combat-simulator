@@ -1,13 +1,15 @@
 import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
-import { CATALYST_PUBLIC_STATE_PROJECTION } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import { catalystHooks } from '#gw2/professions/elementalist/specializations/catalyst/hooks.js';
 import { catalystModifiers } from '#gw2/professions/elementalist/specializations/catalyst/modifiers.js';
-import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { catalystUi } from '#gw2/professions/elementalist/specializations/catalyst/presentation.js';
-import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/catalyst/skills/index.js';
 import { CATALYST_BALANCE_PROFILES } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
+import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/catalyst/skills/index.js';
+import {
+  CATALYST_PUBLIC_STATE_PROJECTION,
+  catalystState
+} from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 
 /**
  * Assembles the Catalyst specialization module: Jade Sphere skill data and balance
@@ -17,6 +19,7 @@ import { CATALYST_BALANCE_PROFILES } from '#gw2/professions/elementalist/special
  */
 export const catalystModule = defineNativeModule({
   id: 'Catalyst',
+  traitDefinitions: catalystTraits,
   data: createElementalistModuleData('Catalyst', {
     skillMechanics: CATALYST_SKILL_MECHANICS,
     balanceProfiles: CATALYST_BALANCE_PROFILES
@@ -26,3 +29,5 @@ export const catalystModule = defineNativeModule({
   hooks: catalystHooks,
   presentation: catalystUi
 });
+
+import { catalystTraits } from '#gw2/professions/elementalist/specializations/catalyst/traits/index.js';

@@ -1,76 +1,216 @@
-import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
-import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { boonActive, playerHealthFraction, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
+import { activeBuff } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
+import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 
-import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
-
-// Called from both enter- and exit-beastmode handlers; protection fires on every toggle regardless of direction.
-export function applyUnstoppableUnion(context: RangerRuntime, skill: RangerSkill): void {
-  if (!hasTrait(context, TRAIT.UNSTOPPABLE_UNION)) return;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.unstoppableUnion);
-  const effect = requireEffect(profile, 'boon', 'protection');
-  if (!effect) return;
-  context.emitProcedural(
-    rangerEvent(
-      {
-        at: context.time,
-        source: 'Trait',
-        sourceId: TRAIT.UNSTOPPABLE_UNION,
-        actorType: 'effect',
-        skillId: skill.id,
-        skillName: 'Unstoppable Union',
-        kind: String(effect.boon),
-        duration: effectNumber(profile, effect, 'duration'),
-        stacks: effectNumber(profile, effect, 'stacks')
-      },
-      'buff'
-    )
+function oppressiveSuperiorityActive(context: RangerModifierContext): boolean {
+  return (
+    hasTrait(context, TRAIT.OPPRESSIVE_SUPERIORITY) && targetHealthFraction(context) < playerHealthFraction(context)
   );
 }
 
-/** Share half the player's extended stance window without shortening the personal application. */
-export function emitSoulbeastStance(
-  context: RangerRuntime,
-  skill: RangerSkill,
-  kind: string,
-  baseDuration: number
-): number {
-  const shared = hasTrait(context, TRAIT.LEADER_OF_THE_PACK);
-  const duration = shared
-    ? baseDuration *
-      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.leaderOfThePack), 'durationMultiplier')
-    : baseDuration;
-  const application = {
-    at: context.time,
-    source: 'ranger',
-    sourceId: skill.id,
-    actorType: 'player' as const,
-    skillId: skill.id,
-    skillName: skill.name,
-    kind,
-    duration,
-    stacks: 1
-  };
-  context.emitProcedural(rangerEvent(application, 'buff'));
-  if (shared) {
-    context.emitProcedural(
-      rangerEvent(
-        {
-          ...application,
-          duration: duration * 0.5,
-          audience: { recipients: 'party', affectsSelf: false, maximumRecipients: 4, eligibleCompanionIds: [] }
-        },
-        'buff'
-      )
-    );
+/** Owns Unstoppable Union's live tuning and trait behavior. */
+export const unstoppableUnion = defineTrait({
+  id: TRAIT.UNSTOPPABLE_UNION,
+  name: 'Unstoppable Union',
+  balance: {
+    effects: [{ name: 'protection', type: 'boon', boon: 'protection', duration: 2.5, stacks: 1 }]
   }
+});
 
-  return duration;
-}
+/** Owns Leader of the Pack's live tuning and trait behavior. */
+export const leaderOfThePack = defineTrait({
+  id: TRAIT.LEADER_OF_THE_PACK,
+  name: 'Leader of the Pack',
+  balance: {
+    durationMultiplier: 1.2
+  }
+});
+
+/** Owns Live Fast's live tuning and trait behavior. */
+export const liveFast = defineTrait({
+  id: TRAIT.LIVE_FAST,
+  name: 'Live Fast',
+  balance: {
+    effects: [
+      { name: 'fury', type: 'boon', boon: 'fury', duration: 6, stacks: 1 },
+      { name: 'quickness', type: 'boon', boon: 'quickness', duration: 3, stacks: 1 }
+    ]
+  }
+});
+
+/** Owns Twice as Vicious's live tuning and trait behavior. */
+export const twiceAsVicious = defineTrait({
+  id: TRAIT.TWICE_AS_VICIOUS,
+  name: 'Twice as Vicious',
+  balance: {
+    effects: [
+      {
+        name: 'twice-as-vicious',
+        type: 'buff',
+        kind: 'twice-as-vicious',
+        duration: 10,
+        stacks: 1
+      }
+    ]
+  },
+  modifierRules: [
+    {
+      order: 104,
+      requiresSelection: false,
+      id: 'ranger.twice-as-vicious-strike',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'damage-additive',
+      amount: 0.07,
+      when: (context) => activeBuff(context, 'twice-as-vicious')
+    },
+    {
+      order: 105,
+      requiresSelection: false,
+      id: 'ranger.twice-as-vicious-condition',
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      operation: 'damage-additive',
+      amount: 0.1,
+      when: (context) => activeBuff(context, 'twice-as-vicious')
+    }
+  ],
+  triggers: [
+    {
+      emit: TRAIT.TWICE_AS_VICIOUS,
+      on: 'control.resolved',
+
+      when: (runtime) =>
+        ['twice-as-vicious'].some((effectName) =>
+          Boolean(
+            requireEffect(
+              requireBalanceProfileFromContext(runtime, TRAIT.TWICE_AS_VICIOUS),
+              effectName === 'twice-as-vicious' ? 'buff' : 'boon',
+              effectName
+            )
+          )
+        ),
+      effects: (effect) =>
+        (effect.type === 'boon' || effect.type === 'buff') && ['twice-as-vicious'].some((name) => name === effect.name),
+      attribution: (_runtime, event) => ({
+        skillId: TRAIT.TWICE_AS_VICIOUS,
+        skillName: 'Twice as Vicious',
+        name: 'Twice as Vicious',
+        triggeredBy: event.skillName,
+        ...(event.metadata?.triggeredByAlly
+          ? {
+              audience: {
+                recipients: 'party' as const,
+                alliedPlayerIndex: event.metadata.triggeredByAlly,
+                affectsSelf: false,
+                maximumRecipients: 1,
+                eligibleCompanionIds: []
+              },
+              metadata: { triggeredByAlly: event.metadata.triggeredByAlly }
+            }
+          : {})
+      })
+    }
+  ]
+});
+
+/** Owns Predator's Cunning's live tuning and trait behavior. */
+export const predatorsCunning = defineTrait({
+  id: TRAIT.PREDATORS_CUNNING,
+  name: "Predator's Cunning",
+  balance: {
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.006, hits: 1, canCrit: false }]
+  },
+  triggers: [
+    {
+      emit: TRAIT.PREDATORS_CUNNING,
+      on: 'condition.applied',
+      when: (_runtime, event) => event.condition === 'Poisoned',
+      effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
+      attribution: (_runtime, event) => ({
+        skillId: TRAIT.PREDATORS_CUNNING,
+        skillName: "Predator's Cunning",
+        name: "Predator's Cunning",
+        skillWeapon: 'Unequipped',
+        triggeredBy: event.skillName
+      })
+    }
+  ]
+});
+
+/** Owns Oppressive Superiority's live tuning and trait behavior. */
+export const oppressiveSuperiority = defineTrait({
+  id: TRAIT.OPPRESSIVE_SUPERIORITY,
+  name: 'Oppressive Superiority',
+  balance: {
+    conditionDurationBonus: 0.1
+  },
+  modifierRules: [
+    {
+      order: 106,
+      id: 'ranger.oppressive-superiority',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: 1.1,
+      when: oppressiveSuperiorityActive
+    },
+    {
+      order: 107,
+      id: 'ranger.oppressive-superiority-condition-duration',
+      target: MODIFIER_TARGET.CONDITION_DURATION,
+      operation: 'add',
+      amount: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.OPPRESSIVE_SUPERIORITY),
+          'conditionDurationBonus'
+        ),
+      when: oppressiveSuperiorityActive
+    }
+  ]
+});
+
+/** Owns Essence of Speed's live tuning and trait behavior. */
+export const essenceOfSpeed = defineTrait({
+  id: TRAIT.ESSENCE_OF_SPEED,
+  name: 'Essence of Speed',
+  balance: {
+    internalCooldown: 5,
+    durationMultiplier: 2
+  }
+});
+
+/** Owns Furious Strength's live tuning and trait behavior. */
+export const furiousStrength = defineTrait({
+  id: TRAIT.FURIOUS_STRENGTH,
+  name: 'Furious Strength',
+  modifierRules: [
+    {
+      order: 101,
+      id: 'ranger.furious-strength',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'damage-additive',
+      amount: 0.15,
+      // Furious Strength requires the player to have Fury; pet fury does not count.
+      when: (context) => hasTrait(context, TRAIT.FURIOUS_STRENGTH) && boonActive(context, 'fury')
+    }
+  ]
+});
+
+/** Register authored owners in a fixed order; runtime boundaries stay explicit. */
+export const soulbeastTraits = [
+  unstoppableUnion,
+  leaderOfThePack,
+  liveFast,
+  twiceAsVicious,
+  predatorsCunning,
+  oppressiveSuperiority,
+  essenceOfSpeed,
+  furiousStrength
+];

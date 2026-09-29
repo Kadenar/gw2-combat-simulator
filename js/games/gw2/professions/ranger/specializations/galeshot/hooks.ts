@@ -1,21 +1,23 @@
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import {
-  scheduleWindForce,
-  grantWindForce,
+  galeshotCastAvailability,
+  reactToGaleshotMissile
+} from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
+import {
   activateMistral,
+  grantWindForce,
+  scheduleWindForce,
   setCycloneBow
 } from '#gw2/professions/ranger/specializations/galeshot/skills/index.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { RangerRuntimeState } from '#gw2/professions/ranger/types.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { galeshotState, galeshotArrows } from '#gw2/professions/ranger/specializations/galeshot/state.js';
-import { applyGaleshotCycloneBowTraits } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
-import { galeshotCastAvailability } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
+import { galeshotArrows, galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import {
+  applyGaleshotCycloneBowTraits,
   completeGaleshotSkill,
-  reactToGaleshotMissile,
-  reactToGaleshotPet,
-  reactToGaleshotControl
-} from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
+  reactToGaleshotControl,
+  reactToGaleshotPet
+} from '#gw2/professions/ranger/specializations/galeshot/traits/behavior.js';
+import type { RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 
 /** Arrow spending is immediate; Wind Force and completion traits become visible only at their own queue boundary. */
 export const galeshotHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {

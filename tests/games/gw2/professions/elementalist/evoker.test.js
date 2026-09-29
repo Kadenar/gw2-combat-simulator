@@ -1,21 +1,18 @@
-import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { runNative } from '#tests/helpers/elementalist-simulation.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
-import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/engine/skills/recharge.js';
-import { evokerState, grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
-import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { GW2_ALACRITY_RECHARGE_RATE, gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
+import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import {
   captureIgniteTier,
   selectIgniteEffects
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { evokerState, grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 test('Altruistic Aspect grants its meditation boon only when selected and the cast commits', () => {
   // Use one meditation with no other boon traits to expose the missing completion hook.
@@ -233,7 +230,7 @@ test('Elemental Balance reports the same patched duration used for its active wi
   const context = {
     helpers: applyBalanceProfilePatch(elementalistCatalog, {
       balanceProfiles: {
-        [EVOKER_BALANCE_PROFILE_IDS.elementalBalance]: {
+        [TRAIT.ELEMENTAL_BALANCE]: {
           fields: { durationMultiplier: { from: 5, to: 8 } }
         }
       }
@@ -324,7 +321,7 @@ test('Fire-specialized Evoker gives Sunspot and Flame Expulsion independent cool
   const fireEntries = attempts(fire, 'enter');
   const fireExits = attempts(fire, 'exit');
 
-  const cooldown = elementalistCatalog.balanceProfilesById.get(EVOKER_BALANCE_PROFILE_IDS.evocation).internalCooldown;
+  const cooldown = elementalistCatalog.balanceProfilesById.get(TRAIT.EVOCATION).internalCooldown;
 
   assert.deepEqual(fire.warnings, []);
   assert.equal(fireEntries.length, 2);
@@ -362,7 +359,7 @@ test('Air-specialized Evoker leaves Electric Discharge without an internal coold
     (event) => event.type === 'damage' && event.skillName === 'Electric Discharge'
   );
 
-  const cooldown = elementalistCatalog.balanceProfilesById.get(EVOKER_BALANCE_PROFILE_IDS.evocation).internalCooldown;
+  const cooldown = elementalistCatalog.balanceProfilesById.get(TRAIT.EVOCATION).internalCooldown;
 
   assert.deepEqual(result.warnings, []);
   assert.equal(entries.length, 2);
@@ -394,7 +391,7 @@ test('Earth-specialized Evoker gives Earthen Blast and Rock Solid independent co
   const earth = simulate('Earth');
   const entries = earthEntries(earth);
 
-  const cooldown = elementalistCatalog.balanceProfilesById.get(EVOKER_BALANCE_PROFILE_IDS.evocation).internalCooldown;
+  const cooldown = elementalistCatalog.balanceProfilesById.get(TRAIT.EVOCATION).internalCooldown;
 
   assert.deepEqual(earth.warnings, []);
   assert.equal(entries.length, 2);

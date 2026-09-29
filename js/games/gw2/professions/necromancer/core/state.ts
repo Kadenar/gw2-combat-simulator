@@ -1,21 +1,14 @@
-import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
-import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { cappedResource } from '#gw2/platform/combat/resources/pool.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { NECROMANCER_CORE_BALANCE_PROFILES } from '#gw2/professions/necromancer/core/profiles.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
-import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
-import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
-import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
-
+import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { cappedResource } from '#gw2/platform/combat/resources/pool.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import { clamp } from '#kernel/core/numeric.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import { soulBatteryCapacity, vitalPersistenceVitality } from '#gw2/professions/necromancer/core/traits/shroud.js';
+import { spitefulFortitudeVitality } from '#gw2/professions/necromancer/core/traits/behavior.js';
+import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 
 export interface NecromancerSelfCondition {
   readonly condition: string;
@@ -88,38 +81,13 @@ export const NECROMANCER_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
 const NECROMANCER_BASE_HEALTH = 9212;
 
 /** Scales fixed Scourge costs onto a 0–100 meter, applying build vitality traits and Soul Battery once. */
-export function necromancerLifeForceCostMultiplier(
-  config: NecromancerConfig,
-  balanceContext: unknown = {
-    balanceProfile: (id: string | number) => NECROMANCER_CORE_BALANCE_PROFILES.find((profile) => profile.id === id)
-  }
-): number {
-  const traits = normalizeSelectedTraitIds(config.selectedTraitIds);
+export function necromancerLifeForceCostMultiplier(config: NecromancerConfig, balanceContext: unknown): number {
   let vitality = config.stats?.vitality ?? 1000;
   if (!professionStaticRulesApplied(config)) {
-    if (hasTrait(traits, NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE)) {
-      const spitefulFortitudeProfile = requireBalanceProfileFromContext(
-        balanceContext,
-        NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE
-      );
-      vitality += (config.stats?.power ?? 1000) * balanceProfileNumber(spitefulFortitudeProfile, 'attributeConversion');
-    }
-
-    if (hasTrait(traits, NECROMANCER_TRAIT_IDS.VITAL_PERSISTENCE)) {
-      const vitalPersistenceProfile = requireBalanceProfileFromContext(
-        balanceContext,
-        NECROMANCER_TRAIT_IDS.VITAL_PERSISTENCE
-      );
-      vitality += balanceProfileNumber(vitalPersistenceProfile, 'attributeBonus');
-    }
+    vitality += spitefulFortitudeVitality(config, balanceContext) + vitalPersistenceVitality(config, balanceContext);
   }
 
-  const capacityMultiplier = hasTrait(traits, NECROMANCER_TRAIT_IDS.SOUL_BATTERY)
-    ? balanceProfileNumber(
-        requireBalanceProfileFromContext(balanceContext, NECROMANCER_TRAIT_IDS.SOUL_BATTERY),
-        'lifeForceCapacityMultiplier'
-      )
-    : 1;
+  const capacityMultiplier = soulBatteryCapacity(config, balanceContext);
   // Percentage costs require a nonzero capacity; reject invalid tuning before it creates infinite costs.
   if (capacityMultiplier <= 0) throw new RangeError('Life-force capacity multiplier must be positive.');
   return NECROMANCER_BASE_HEALTH / ((NECROMANCER_BASE_HEALTH + Math.max(0, vitality) * 10) * 0.69 * capacityMultiplier);
@@ -136,39 +104,6 @@ export function normalizedNecromancerLifeForceCost(
 /** Converts a base-health percentage into its raw life-force pool cost. */
 export function actualNecromancerLifeForceCost(baseHealthPercent: number): number {
   return (NECROMANCER_BASE_HEALTH * Math.max(0, baseHealthPercent || 0)) / 100;
-}
-
-/** Creates fresh Core Necromancer resources, transforms, summons, and trait proc state from a build config. */
-export function createNecromancerCoreState(config: NecromancerConfig = {}): NecromancerCoreState {
-  // Seed every mutable subsystem independently and bound the initial life-force value.
-  const state: NecromancerCoreState = {
-    lifeForce: { value: clamp(config.initialResource ?? 100, 0, 100), maximum: 100, rate: 0, updatedAt: 0 },
-    lifeForceCostMultiplier: necromancerLifeForceCostMultiplier(config),
-    lifeForceWakeGeneration: 0,
-    passiveNextAt: {},
-    activeShroud: '',
-    activeShroudEntryId: null,
-    activeShroudExitId: null,
-    activeShroudProfileId: '',
-    soulShardGrant: grantCharges(0, 0),
-    carapaceExpiries: [],
-    activeMinions: {},
-    minionGenerations: {},
-    minionAttackGenerations: {},
-    minionAttackCursors: {},
-    availableFlips: {},
-    autoattackChains: {},
-    swordChainGeneration: 0,
-    selfConditions: [],
-    plagueSendingArmed: false,
-    lichEndsAt: 0,
-    lichGeneration: 0,
-    targetChilledUntil: 0,
-    dreadUntil: 0,
-
-    tasteForBloodBuffs: {}
-  };
-  return state;
 }
 
 /** Publishes detached, current public values without mutating the live module state. */

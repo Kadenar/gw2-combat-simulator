@@ -1,147 +1,42 @@
-import { berserkSkillActions } from '#gw2/professions/warrior/specializations/berserker/skills/index.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import {
   balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/warrior/core/profiles.js';
-import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
-import {
-  berserkerState,
-  publishBerserk,
-  berserkExtensions,
-  BERSERK_EXPIRE
-} from '#gw2/professions/warrior/specializations/berserker/state.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/warrior/core/profiles.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { berserkSkillActions } from '#gw2/professions/warrior/specializations/berserker/skills/index.js';
+import {
+  BERSERK_EXPIRE,
+  berserkerState,
+  berserkExtensions,
+  publishBerserk
+} from '#gw2/professions/warrior/specializations/berserker/state.js';
+import {
+  berserkEntryTraits,
+  berserkerCompletionTraits,
+  berserkTraitExtension
+} from '#gw2/professions/warrior/specializations/berserker/traits/behavior.js';
+import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
 
 type Runtime = Gw2Runtime<WarriorRuntimeState>;
-const DETONATE = 'warrior.king-of-fires-detonate';
-
-function isBerserkerSkill(skill: WarriorSkill): boolean {
-  return skill.primalBurst || skill.categories?.includes('Rage') || skill.specialization === 'Berserker';
-}
-
-/** Selected entry and burst boons remain independent, with current duration modifiers and explicit recipients. */
-function traitBoons(runtime: Runtime, cast: RuntimeCast, trait: number, party = false): void {
-  const profile = requireBalanceProfileFromContext(runtime, trait);
-  emitEffects(runtime, {
-    owner: profile,
-    effects: profile.effects?.filter((effect) => effect.type === 'boon'),
-    baseEvent: {
-      source: 'Trait',
-      sourceId: trait,
-      actorType: 'effect',
-      activationId: cast.id,
-      skillId: cast.skill.id,
-      skillName: cast.skill.name
-    },
-    transform: (event) => ({
-      ...event,
-      name: profile.name,
-      duration:
-        trait === TRAIT.HEAT_THE_SOUL && event.kind === 'quickness' && cast.skill.id === ID.DECAPITATE
-          ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.smashBrawler), 'resourceGain')
-          : event.duration,
-      audience: { recipients: party ? 'party' : 'self' }
-    })
-  });
-}
 
 /** Completed activation opens or extends the current mode; expiring during a cast cannot revive it. */
 function completeBerserk(runtime: Runtime, cast: RuntimeCast): void {
   const state = berserkerState.from(runtime);
   const skill = cast.skill;
   if (skill.id === ID.BERSERK) {
-    traitBoons(runtime, cast, TRAIT.BURST_OF_AGGRESSION);
-    if (hasTrait(runtime, TRAIT.BLOODY_ROAR)) traitBoons(runtime, cast, TRAIT.BLOODY_ROAR);
+    berserkEntryTraits(runtime, cast);
     return;
   }
 
   if (!state.berserkActive) return;
-  let extension = berserkExtensions.get(cast) ?? 0;
-  if (skill.primalBurst && hasTrait(runtime, TRAIT.SMASH_BRAWLER))
-    extension += balanceProfileNumber(
-      requireBalanceProfileFromContext(runtime, PROFILE.smashBrawler),
-      skill.id === ID.DECAPITATE ? 'minimumStacks' : 'resourceGain'
-    );
-  if (skill.categories?.includes('Rage')) {
-    if (skill.id !== ID.OUTRAGE && hasTrait(runtime, TRAIT.LAST_BLAZE))
-      extension += balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, PROFILE.lastBlaze),
-        'durationMultiplier'
-      );
-  }
+  const extension = (berserkExtensions.get(cast) ?? 0) + berserkTraitExtension(runtime, cast);
 
   if (extension > 0) {
     state.berserkUntil = gw2EffectExpiresAt(state.berserkUntil, extension);
     publishBerserk(runtime, cast);
-  }
-}
-
-/** Aura acquisition extends one live window; expiry compares its deadline so an older wake cannot clear a refresh. */
-function armAura(runtime: Runtime, until: number): void {
-  const state = berserkerState.from(runtime);
-  state.fireAuraUntil = Math.max(state.fireAuraUntil, until);
-}
-
-/** Consume the actual aura once and emit independently selected damage components with player ownership. */
-function detonate(runtime: Runtime, payload: { activationId: string; skillId: number | string }): void {
-  const state = berserkerState.from(runtime);
-  if (state.fireAuraUntil <= runtime.time) return;
-  const skill = runtime.helpers.skillsById.get(payload.skillId);
-  if (!skill) return;
-  state.fireAuraUntil = 0;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.kingOfFires);
-  const strike = requireEffect(profile, 'strike', 'Strike');
-  const burning = requireEffect(profile, 'condition', 'Burning');
-  const fields = {
-    at: runtime.time,
-    // The detonation and its condition packets share one trait activation, separate from the triggering cast.
-    activationId: `${payload.activationId}:king-of-fires:${runtime.time}`,
-    source: 'Trait',
-    sourceId: TRAIT.KING_OF_FIRES,
-    actorType: 'effect' as const,
-    ownerActorType: 'player' as const,
-    skillId: skill.id,
-    skillName: skill.name
-  };
-  runtime.emit({
-    ...fields,
-    type: 'proc',
-    procType: 'trait',
-    name: 'King of Fires',
-    sourceSkill: skill.name,
-    detail: 'Fire Aura detonated'
-  });
-  if (strike)
-    runtime.emit(
-      buildResolverStrike({
-        ...fields,
-        name: 'King of Fires — Fire Aura Detonation',
-        coefficient: effectNumber(profile, strike, 'coefficient'),
-        canTriggerCriticalTraits: true,
-        skillWeapon: ''
-      })
-    );
-  if (burning) {
-    runtime.emit(
-      buildResolverCondition({
-        ...fields,
-        name: 'King of Fires — Burning',
-        condition: 'Burning',
-        stacks: effectNumber(profile, burning, 'stacks'),
-        duration: effectNumber(profile, burning, 'duration')
-      })
-    );
   }
 }
 
@@ -161,22 +56,7 @@ export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
     return { ready: true };
   },
   // Queue the profile's Burning on full completion; mode extension remains with its state owner.
-  traitTriggers: [
-    {
-      on: 'castCommit',
-      trait: TRAIT.LAST_BLAZE,
-      emit: PROFILE.lastBlaze,
-      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Rage')),
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Burning',
-      attribution: {
-        source: 'Trait',
-        sourceId: TRAIT.LAST_BLAZE,
-        actorType: 'effect',
-        ownerActorType: 'player',
-        name: 'Last Blaze — Burning'
-      }
-    }
-  ],
+
   sideEffectHandlers: {
     ...berserkSkillActions,
     // The live catalog defines eligibility, including patched primal skills; ordinary recharges are untouched.
@@ -186,12 +66,7 @@ export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
   },
   onCastCommit(runtime, cast) {
     completeBerserk(runtime, cast);
-    if (cast.skill.primalBurst && hasTrait(runtime, TRAIT.HEAT_THE_SOUL))
-      traitBoons(runtime, cast, TRAIT.HEAT_THE_SOUL, true);
-    if (isBerserkerSkill(cast.skill) && hasTrait(runtime, TRAIT.KING_OF_FIRES)) {
-      berserkerState.from(runtime).completedActivations[cast.id] = runtime.time;
-      runtime.schedule(DETONATE, runtime.time, { activationId: cast.id, skillId: cast.skill.id }, undefined, 5);
-    }
+    berserkerCompletionTraits(runtime, cast);
   },
   tasks: {
     [BERSERK_EXPIRE](runtime, deadline) {
@@ -207,61 +82,6 @@ export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
         runtime.profession.core.adrenaline,
         runtime.profession.core.maximumAdrenaline
       );
-    },
-    [DETONATE](runtime, payload) {
-      detonate(runtime, payload as { activationId: string; skillId: number | string });
-    }
-  },
-  reactions: {
-    'aura.applied'(runtime, event) {
-      if (event.aura === 'Fire Aura') armAura(runtime, gw2EffectExpiresAt(runtime.time, event.duration ?? 0));
-    },
-    'damage.resolved'(runtime, event, details) {
-      if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || !hasTrait(runtime, TRAIT.KING_OF_FIRES))
-        return;
-      const hit = details.hitContext as Gw2HitResolutionContext;
-      const state = berserkerState.from(runtime);
-      if (
-        !hit.critEligible ||
-        !hit.critical.didCrit ||
-        !runtime.procs.claim(PROFILE.kingOfFires, 'warrior.berserker.kingOfFires', runtime.time)
-      )
-        return;
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.kingOfFires);
-      // The qualifying critical hit owns the interval even when its optional aura packet is removed.
-      const aura = requireEffect(profile, 'buff', 'fire-aura');
-      if (!aura) return;
-      const duration = effectNumber(profile, aura, 'duration');
-      armAura(runtime, gw2EffectExpiresAt(runtime.time, duration));
-      runtime.emitDerived(event, {
-        type: 'buff',
-        at: runtime.time,
-        source: 'Trait',
-        sourceId: TRAIT.KING_OF_FIRES,
-        actorType: 'effect',
-        skillId: event.skillId,
-        skillName: event.skillName,
-        name: 'King of Fires — Fire Aura',
-        kind: 'fire-aura',
-        stacks: effectNumber(profile, aura, 'stacks'),
-        duration
-      });
-      runtime.recordProc(
-        'trait',
-        'Fire Aura',
-        runtime.time,
-        event.skillName,
-        'Granted by King of Fires',
-        'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Aura.png'
-      );
-      if (event.activationId != null && state.completedActivations[event.activationId] != null)
-        runtime.schedule(
-          DETONATE,
-          runtime.time,
-          { activationId: event.activationId, skillId: event.skillId },
-          undefined,
-          5
-        );
     }
   }
 };

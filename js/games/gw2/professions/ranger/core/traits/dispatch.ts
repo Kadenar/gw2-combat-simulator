@@ -1,0 +1,43 @@
+import {
+  applyClarionBond,
+  applyPoisonMasterBeastSkill,
+  applyRejuvenation,
+  applySpiritedArrival,
+  applyWolfsong,
+  emitChildOfEarth
+} from '#gw2/professions/ranger/core/traits/behavior.js';
+import { applyRangerCommandTraits } from '#gw2/professions/ranger/core/traits/pet-behavior.js';
+import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
+
+export function isBeastSkill(skill: RangerSkill): boolean {
+  return Boolean(skill.petSkill && !skill.petFamilySkill);
+}
+
+// Route completed casts through shared Ranger trait families while consuming
+// transient Quick Draw state only on the next qualifying weapon skill.
+export function completeRangerTraits(context: RangerRuntime, skill: RangerSkill): void {
+  if (skill.type === 'Heal') emitChildOfEarth(context, skill);
+
+  // Trait consumers share the authored category, independent of tooltip wording.
+  if (skill.categories?.includes('Command')) {
+    applyRangerCommandTraits(context, skill);
+  }
+
+  if (!isBeastSkill(skill)) return;
+  applyRangerBeastSkillTraits(context, skill, true);
+}
+
+export function applyRangerBeastSkillTraits(
+  context: RangerRuntime,
+  skill: RangerSkill,
+  triggerPoisonMaster: boolean
+): void {
+  applyRejuvenation(context, skill);
+  if (triggerPoisonMaster) applyPoisonMasterBeastSkill(context, skill);
+  applyWolfsong(context, skill);
+}
+
+export function applyRangerPetSwapTraits(context: RangerRuntime, skill: RangerSkill): void {
+  applySpiritedArrival(context, skill);
+  applyClarionBond(context, skill);
+}

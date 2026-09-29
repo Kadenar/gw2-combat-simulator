@@ -1,12 +1,9 @@
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
+  defineProfessionSpecializationState,
+  definePublicStateDefaults
 } from '#gw2/platform/engine/profession/state.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
-import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
+import { enhancedCapacityMaximumHeat } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
@@ -34,11 +31,7 @@ export const HOLOSMITH_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 
 /** Creates isolated Holosmith heat, Forge, trait-charge, and lockout state from a build configuration. */
 export function createHolosmithState(config: EngineerConfig = {}): HolosmithState {
-  const traits = selectedEngineerTraits(config);
-  // Resource capacity is structural Holosmith state, not patchable balance data.
-  const maximumHeat = hasTrait(traits, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
-    ? HOLOSMITH_HEAT.enhancedCapacityMaximum
-    : HOLOSMITH_HEAT.baseMaximum;
+  const maximumHeat = enhancedCapacityMaximumHeat(config);
   const initialHeat = boundedNumber(config.initialHeat, 0, 0, maximumHeat);
   return {
     heat: initialHeat,

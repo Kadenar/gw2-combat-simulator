@@ -1,20 +1,24 @@
+import { holosmithTraits } from '#gw2/professions/engineer/specializations/holosmith/traits/index.js';
 import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
-import { HOLOSMITH_PUBLIC_STATE_PROJECTION } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
-import { holosmithModifiers } from '#gw2/professions/engineer/specializations/holosmith/modifiers.js';
 import { holosmithHooks } from '#gw2/professions/engineer/specializations/holosmith/hooks.js';
+import { holosmithModifiers } from '#gw2/professions/engineer/specializations/holosmith/modifiers.js';
+import { bindHolosmithUi } from '#gw2/professions/engineer/specializations/holosmith/presentation.js';
+import { HOLOSMITH_BALANCE_PROFILES } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import {
   HOLOSMITH_AUTOATTACK_CHAINS,
   HOLOSMITH_SKILL_MECHANICS
 } from '#gw2/professions/engineer/specializations/holosmith/skills/index.js';
-import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import { HOLOSMITH_BALANCE_PROFILES } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
-import { bindHolosmithUi } from '#gw2/professions/engineer/specializations/holosmith/presentation.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import {
+  HOLOSMITH_PUBLIC_STATE_PROJECTION,
+  holosmithState
+} from '#gw2/professions/engineer/specializations/holosmith/state.js';
 
 export const holosmithModule = defineNativeModule({
   id: 'Holosmith',
+  traitDefinitions: holosmithTraits,
   data: createEngineerModuleData('Holosmith', {
     skillMechanics: HOLOSMITH_SKILL_MECHANICS,
     balanceProfiles: HOLOSMITH_BALANCE_PROFILES,

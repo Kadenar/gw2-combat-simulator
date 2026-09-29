@@ -1,19 +1,24 @@
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { createNativeApp, runNative, resolvedAndScheduledEvents } from '#tests/helpers/elementalist-simulation.js';
-import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { paletteActionSkills } from '#gw2/app/rotation/palette/model.js';
+import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { applyElementalistBuildAttributeRules } from '#gw2/professions/elementalist/build/attributes.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { elementalistCoreModifierRules } from '#gw2/professions/elementalist/core/modifiers.js';
-import { weaverModifierRules } from '#gw2/professions/elementalist/specializations/weaver/modifiers.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import {
+  createNativeApp,
+  resolvedAndScheduledEvents,
+  runElementalist,
+  runNative
+} from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 // Shared expansion preserves completion attribution while honoring authored offsets and repeated boon grants.
 test('Gale Song and Bolstered Elements expand their selected boon profile at completion', () => {
   for (const [specialization, trait, name] of [
@@ -47,7 +52,10 @@ test('Gale Song and Bolstered Elements expand their selected boon profile at com
 });
 
 // Attribute assertions use the same calculator composed into the Elementalist adapter.
-const calculateAttributes = createCalculateAttributes(applyElementalistBuildAttributeRules);
+const calculateAttributes = createCalculateAttributes(
+  applyElementalistBuildAttributeRules,
+  elementalistProfession.traitBuildAttributes
+);
 
 test('Persisting Flames grants stacks from Fire Sphere without extending profession fields', () => {
   // Isolate the field trigger from Burning traits and autonomous elemental summons.
@@ -220,7 +228,12 @@ test("Fox's Fury applies its baseline coefficient and Might multipliers", () => 
 });
 
 test('core damage traits expose their exact resolver modifiers', () => {
-  const rules = new Map([...elementalistCoreModifierRules, ...weaverModifierRules].map((rule) => [rule.id, rule]));
+  const rules = new Map(
+    [...elementalistCoreModule.modifiers.modifierRules, ...weaverModule.modifiers.modifierRules].map((rule) => [
+      rule.id,
+      rule
+    ])
+  );
 
   assert.equal(rules.get('elementalist.pyromancers-training').factor, 1.07);
   assert.equal(rules.get('elementalist.serrated-stones').factor, 1.05);

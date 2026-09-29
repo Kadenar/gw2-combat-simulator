@@ -1,19 +1,21 @@
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { RechargeRule } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
-import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
+import {
+  forceSignetDamage,
+  ordinaryOverclockEligible,
+  signetPassiveAvailable,
+  superconductingSignetDamage
+} from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
+import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 /**
  * Owns Mechanist signet skill fragments.
  * Mech commands and autonomous attack identities live in their named catalogs.
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** Supplies Mechanist signet fragments to specialization composition. */
 export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
@@ -118,7 +120,7 @@ export function selectedSignet(context: Gw2ModifierContext, name: string): boole
 export function shiftSignetPassive(context: EngineerRuntime, at: number): boolean {
   return (
     selectedSkillNameSet(context.config.selectedSkills).has('Shift Signet') &&
-    (hasTrait(context.config, TRAIT.MECH_CORE_J_DRIVE) || (context.cooldowns.get(ID.SHIFT_SIGNET) || 0) <= at)
+    signetPassiveAvailable(context.config, (context.cooldowns.get(ID.SHIFT_SIGNET) || 0) <= at)
   );
 }
 
@@ -128,27 +130,20 @@ export const signetModifierRules: readonly Gw2ModifierRule[] = [
     id: 'engineer.force-signet',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
-    amount: (context) => {
-      const forceSignetProfile = requireBalanceProfileFromContext(context, PROFILE.forceSignet);
-      return hasTrait(context, TRAIT.MECH_CORE_J_DRIVE)
-        ? balanceProfileNumber(forceSignetProfile, 'activeDamageIncrease')
-        : balanceProfileNumber(forceSignetProfile, 'damageIncrease');
-    },
+    amount: forceSignetDamage,
     when: (context) =>
       selectedSignet(context, 'Force Signet') &&
-      (hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ||
-        !context.timeline?.skillOnCooldownAt(ID.FORCE_SIGNET, context.time))
+      signetPassiveAvailable(context, !context.timeline?.skillOnCooldownAt(ID.FORCE_SIGNET, context.time))
   },
   {
     id: 'engineer.superconducting-signet',
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: 'damage-additive',
     // Ordinary signets lose their passive on recharge; J-Drive retains and improves it.
-    amount: (context) => (hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ? 0.12 : 0.1),
+    amount: superconductingSignetDamage,
     when: (context) =>
       selectedSignet(context, 'Superconducting Signet') &&
-      (hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ||
-        !context.timeline?.skillOnCooldownAt(ID.SUPERCONDUCTING_SIGNET, context.time))
+      signetPassiveAvailable(context, !context.timeline?.skillOnCooldownAt(ID.SUPERCONDUCTING_SIGNET, context.time))
   }
 ];
 /** Overclock's selected passive affects other signets; trait precedence is applied by the recharge owner. */
@@ -159,3 +154,14 @@ export function overclockSignetApplies(context: EngineerRuntime, skill: Engineer
     selectedSkillNameSet(context.config.selectedSkills).has('Overclock Signet')
   );
 }
+
+/** The skill owns ordinary Overclock availability; traits independently supply their stronger recharge rules. */
+export const overclockRechargeRules: readonly RechargeRule<EngineerRuntimeState>[] = [
+  {
+    when: (context, skill) =>
+      ordinaryOverclockEligible(context, skill) &&
+      overclockSignetApplies(context, skill) &&
+      (context.cooldowns.get(ID.OVERCLOCK_SIGNET) || 0) <= context.time,
+    multiplier: { profile: PROFILE.overclock, field: 'rechargeMultiplier' }
+  }
+];

@@ -1,89 +1,60 @@
-import { guardianBoonDuration } from '#gw2/professions/guardian/core/traits/index.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/index.js';
-import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/shared.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
-import { firebrandPageTuning, firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import { reactToFirebrandJusticeHit } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import {
-  firebrandMantraActions,
+  applyGuardianVirtueActivationTraits,
+  powerOfTheVirtuousRechargeMultiplier,
+  triggerGuardianFuriousFocus
+} from '#gw2/professions/guardian/core/traits/behavior.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import {
+  boon,
+  firebrandEffectTasks,
+  startFirebrandAshes
+} from '#gw2/professions/guardian/specializations/firebrand/mechanics/effects.js';
+import {
   FIREBRAND_MANTRA_WAKE,
-  initializeFirebrandMantras,
+  firebrandMantraActions,
   firebrandMantraAvailability,
   firebrandMantraWake,
+  initializeFirebrandMantras,
   refreshFirebrandMantras
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/mantras.js';
+import { reactToAshesHit } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
+import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
+import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import {
-  firebrandEffectTasks,
-  startFirebrandAshes,
-  reactToFirebrandDamage,
+  activateSwiftScholar,
+  firebrandPageTuning,
   reactToFirebrandBuff,
-  reactToFirebrandControl
-} from '#gw2/professions/guardian/specializations/firebrand/mechanics/effects.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+  reactToFirebrandControl,
+  reactToFirebrandJusticeHit,
+  reactToUnrelentingCriticism,
+  resetSwiftScholar,
+  stoicDemeanorRetainsCourage
+} from '#gw2/professions/guardian/specializations/firebrand/traits/behavior.js';
 import type { GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
 const COURAGE = 'guardian.firebrand.courage';
-const refundByCast = new WeakMap<RuntimeCast, number>();
 const DORMANCY = { justice: PROFILE.tomeJustice, resolve: PROFILE.tomeResolve, courage: PROFILE.tomeCourage };
-
-/** Selected boon components use application-time attributes and retain their actual trigger's lineage. */
-function boon(
-  runtime: Runtime,
-  profileId: string | number,
-  kind: string,
-  cause: Gw2ResolverEvent,
-  party = false
-): boolean {
-  const profile = requireBalanceProfileFromContext(runtime, profileId);
-  const effect = requireEffect(profile, 'boon', kind);
-  if (!effect) return false;
-  emitEffects(runtime, {
-    owner: profile,
-    effects: [effect],
-    baseEvent: cause,
-    transform: (event) => ({
-      ...cause,
-      ...event,
-      duration: guardianBoonDuration(runtime, event),
-      audience: { recipients: party ? 'party' : 'self' }
-    })
-  });
-  return true;
-}
 
 /** Tome reopening changes only the current bar; it cannot restart a dormant passive or duplicate its activation traits. */
 function openTome(runtime: Runtime, cast: RuntimeCast, virtue: GuardianVirtue): void {
   const state = firebrandState.from(runtime);
   const ready = state.tomeDormantReadyAt[virtue] <= runtime.time;
   state.activeTome = virtue;
-  if (state.swiftScholarTome !== virtue) {
-    state.swiftScholarTome = virtue;
-    state.swiftScholarCount = 0;
-  }
+  resetSwiftScholar(runtime, virtue);
 
   if (ready) {
-    const multiplier = hasTrait(runtime, TRAIT.POWER_OF_THE_VIRTUOUS)
-      ? balanceProfileNumber(
-          requireBalanceProfileFromContext(runtime, CORE_PROFILE.powerOfTheVirtuous),
-          'rechargeMultiplier'
-        )
-      : 1;
+    const multiplier = powerOfTheVirtuousRechargeMultiplier(runtime);
     state.tomeDormantReadyAt[virtue] = canonicalTime(
       runtime.time +
         balanceProfileNumber(requireBalanceProfileFromContext(runtime, DORMANCY[virtue]), 'cooldown') * multiplier
@@ -91,15 +62,7 @@ function openTome(runtime: Runtime, cast: RuntimeCast, virtue: GuardianVirtue): 
     runtime.profession.core.virtueReadyAt[virtue] = state.tomeDormantReadyAt[virtue];
     applyGuardianVirtueActivationTraits(runtime, cast, virtue);
     if (virtue === 'justice') triggerGuardianFuriousFocus(runtime, cast);
-    if (boon(runtime, PROFILE.swiftScholar, 'quickness', guardianCastCause(runtime, cast)))
-      recordGuardianTraitProc(
-        runtime,
-        TRAIT.SWIFT_SCHOLAR,
-        'Swift Scholar',
-        runtime.time,
-        cast.skill.name,
-        'Tome activation'
-      );
+    activateSwiftScholar(runtime, cast);
   }
 
   runtime.emit({
@@ -115,7 +78,7 @@ function courage(runtime: Runtime): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.passiveCourage);
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   if (!(interval > 0) || !requireEffect(profile, 'boon', 'aegis')) return;
-  if (runtime.profession.core.virtueReadyAt.courage <= runtime.time || hasTrait(runtime, TRAIT.STOIC_DEMEANOR))
+  if (runtime.profession.core.virtueReadyAt.courage <= runtime.time || stoicDemeanorRetainsCourage(runtime))
     boon(runtime, PROFILE.passiveCourage, 'aegis', {
       type: 'buff',
       at: runtime.time,
@@ -148,8 +111,7 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
       const cast = context.cast;
       const state = firebrandState.from(runtime);
       state.activeTome = '';
-      state.swiftScholarTome = '';
-      state.swiftScholarCount = 0;
+      resetSwiftScholar(runtime);
       runtime.emit({
         ...guardianCastCause(runtime, cast),
         type: 'weapon_set',
@@ -188,86 +150,14 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
 
     return firebrandMantraAvailability(runtime, skill);
   },
-  onCastStart(runtime, cast) {
-    if (!cast.skill.tome || cast.cancelled) return;
-    const state = firebrandState.from(runtime);
-    if (state.swiftScholarTome !== cast.skill.tome) {
-      state.swiftScholarTome = String(cast.skill.tome);
-      state.swiftScholarCount = 0;
-    }
-
-    state.swiftScholarCount++;
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.swiftScholar);
-    if (state.swiftScholarCount >= balanceProfileNumber(profile, 'minimumStacks')) {
-      state.swiftScholarCount = 0;
-      // A later concurrent stow cannot revoke the refund already earned by this accepted page.
-      refundByCast.set(cast, balanceProfileNumber(profile, 'resourceGain'));
-    }
-  },
-  onCastCommit(runtime, cast) {
-    const skill = cast.skill;
-    if (skill.tome) {
-      const refund = refundByCast.get(cast) ?? 0;
-      if (refund > 0) {
-        runtime.resourceController.grant('tomePages', refund);
-        recordGuardianTraitProc(
-          runtime,
-          TRAIT.SWIFT_SCHOLAR,
-          'Swift Scholar',
-          runtime.time,
-          skill.name,
-          `+${refund} tome pages`
-        );
-      }
-
-      if (hasTrait(runtime, TRAIT.LEGENDARY_LORE))
-        boon(
-          runtime,
-          PROFILE.legendaryLore,
-          skill.tome === 'justice' ? 'might' : skill.tome === 'resolve' ? 'regeneration' : 'protection',
-          { ...guardianCastCause(runtime, cast), sourceId: TRAIT.LEGENDARY_LORE, name: 'Legendary Lore' }
-        );
-    }
-
-    if (
-      skill.type === 'Heal' &&
-      hasTrait(runtime, TRAIT.LIBERATORS_VOW) &&
-      isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.firebrand.liberatorsVow'))
-    ) {
-      if (boon(runtime, PROFILE.liberatorsVow, 'quickness', guardianCastCause(runtime, cast), true)) {
-        runtime.procs.readyAt['guardian.firebrand.liberatorsVow'] = canonicalTime(
-          runtime.time +
-            balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.liberatorsVow), 'internalCooldown')
-        );
-        recordGuardianTraitProc(
-          runtime,
-          TRAIT.LIBERATORS_VOW,
-          "Liberator's Vow",
-          runtime.time,
-          skill.name,
-          'Quickness'
-        );
-      }
-    }
-
-    if (hasTrait(runtime, TRAIT.WEIGHTY_TERMS) && MANTRAS.some(({ finalId }) => finalId === skill.id)) {
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.weightyTerms);
-      const gain = balanceProfileNumber(profile, 'resourceGain');
-      // Skill side effects own the rewards; retain only the existing proc report here.
-      recordGuardianTraitProc(
-        runtime,
-        TRAIT.WEIGHTY_TERMS,
-        'Weighty Terms',
-        runtime.time,
-        skill.name,
-        `+${gain} tome pages`
-      );
-    }
-  },
   onCooldownReset: refreshFirebrandMantras,
   reactions: {
     'damage.resolved'(runtime, event, details) {
-      reactToFirebrandDamage(runtime, event, details);
+      if (event.actorType === 'player' && ((details as NativeResolvedDamageDetails).hitContext?.damage ?? 0) > 0) {
+        reactToAshesHit(runtime, event, details);
+        reactToUnrelentingCriticism(runtime, event, details);
+      }
+
       reactToFirebrandJusticeHit(runtime, event, details);
     },
     'buff.applied'(runtime, event) {

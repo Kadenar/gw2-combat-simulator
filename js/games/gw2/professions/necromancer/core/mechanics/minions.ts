@@ -1,21 +1,11 @@
-import { NECROMANCER_MINION_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/core/profiles.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
-import { buildResolverStrike, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { quantizeGw2ActionDurationUp, summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import {
-  runCreatureSummonReactions,
-  necromancerCreatureStrikeMultiplier
-} from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { quantizeGw2ActionDurationUp, summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
 import {
   commandDefinitionFor,
   minionDefinitionFor,
@@ -24,9 +14,14 @@ import {
   type MinionAttack,
   type MinionDefinition
 } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import {
+  necromancerCreatureStrikeMultiplier,
+  runCreatureSummonReactions
+} from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { NECROMANCER_MINION_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/core/profiles.js';
+import { necromanticCorruptionMultiplier } from '#gw2/professions/necromancer/core/traits/carapace.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 const ATTACK = 'necromancer.minion-attack';
 const COMMAND = 'necromancer.minion-command-impact';
@@ -156,13 +151,7 @@ function emitAttack(
         summonDamagePerCoefficient: attack.damagePerCoefficient ?? definition.damagePerCoefficient,
         summonCriticalChance: definition.criticalChance,
         summonCriticalDamage: definition.criticalDamage,
-        summonStrikeMultiplier:
-          (hasTrait(runtime, TRAIT.NECROMANTIC_CORRUPTION)
-            ? balanceProfileNumber(
-                requireBalanceProfileFromContext(runtime, TRAIT.NECROMANTIC_CORRUPTION),
-                'damageMultiplier'
-              )
-            : 1) * necromancerCreatureStrikeMultiplier(runtime),
+        summonStrikeMultiplier: necromanticCorruptionMultiplier(runtime) * necromancerCreatureStrikeMultiplier(runtime),
         independentSummonStrike: true
       })
     );

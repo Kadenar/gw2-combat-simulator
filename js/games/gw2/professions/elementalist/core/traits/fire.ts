@@ -1,343 +1,171 @@
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
-/** Imperative Fire trait behavior; dispatch order remains centralized in the trait index. */
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { elementalistTimedBuffStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import {
-  emitElementalistBuff,
-  emitElementalistCondition,
-  emitElementalistDamage
-} from '#gw2/professions/elementalist/core/events.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+  extendPersistingFlamesEffects,
+  extendPersistingFlamesFields
+} from '#gw2/professions/elementalist/core/traits/persisting-flames.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import {
-  combatStarted,
-  elementalistEventSkill,
-  emitElementalistProc,
-  emitProfiledBuff,
-  emitProfiledCondition
-} from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import {
-  applyElementalistDerivedCondition,
-  queueElementalistBuff,
-  recordElementalistTraitProc
-} from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 
-const SUNSPOT_ICON = 'https://render.guildwars2.com/file/1405047ED70DE30F80B1F6304A787B215BB50878/1012316.png';
-const FLAME_EXPULSION_ICON = 'https://render.guildwars2.com/file/998095CB1FD2CF0164B8A36BABFDB911DF08DB02/1012313.png';
+/** Fire definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
+export const empoweringFlame = defineTrait({
+  id: TRAIT.EMPOWERING_FLAME,
+  name: 'Empowering Flame',
+  balance: { attributeBonus: 150 }
+});
 
-// Materialize Sunspot's aura, strike, Burning, and proc at the entry timestamp.
-export function triggerSunspot(
-  context: ElementalistRuntime,
-  at: number,
-  sourceId: Skill['id'],
-  applyAura: ElementalistAuraApplier
-): void {
-  if (!combatStarted(context, at) || !hasTrait(context, TRAIT.SUNSPOT)) return;
+export const inferno = defineTrait({
+  id: TRAIT.INFERNO,
+  name: 'Inferno',
+  balance: { coefficientMultiplier: 0.0825 / 0.155 }
+});
 
-  // Keep strike and Burning attribution aligned with the actual attunement or overload that triggered Sunspot.
-  const sourceSkill = context.helpers.skillsById.get(sourceId)?.name || '';
-  const sunspotProfile = requireBalanceProfileFromContext(context, PROFILE.sunspot);
-  const sunspotAura = requireEffect(sunspotProfile, 'buff', 'Sunspot Aura');
-  if (sunspotAura) {
-    applyAura(context, {
-      at,
-      aura: String(sunspotAura.kind),
-      duration: sunspotAura.duration,
-      skillName: 'Sunspot',
-      sourceId
-    });
-  }
-
-  const sunspotStrike = requireEffect(sunspotProfile, 'strike', 'Sunspot');
-  if (sunspotStrike) {
-    emitElementalistDamage(context, {
-      at,
-      source: 'Sunspot',
-      sourceId,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillName: 'Sunspot',
-      icon: SUNSPOT_ICON,
-      triggeredBy: sourceSkill,
-      coefficient: effectNumber(sunspotProfile, sunspotStrike, 'coefficient'),
-      skillWeapon: 'Unequipped',
-      canCrit: false
-    });
-  }
-
-  const burningEmitted =
-    hasTrait(context, TRAIT.BURNING_RAGE) &&
-    emitProfiledCondition(context, at, PROFILE.burningRage, 'Sunspot Burning', 'Sunspot', sourceId, sourceSkill);
-
-  if (sunspotAura || sunspotStrike || burningEmitted)
-    emitElementalistProc(context, {
-      at,
-      name: 'Sunspot',
-      procType: 'trait',
-      sourceId,
-      sourceSkill,
-      icon: SUNSPOT_ICON
-    });
-}
-
-// Snapshot capped Might on Fire exit; the delayed blast damages enemies and grants that Might to other allies.
-export function triggerFlameExpulsion(context: ElementalistRuntime, at: number, sourceId: Skill['id']): void {
-  if (!combatStarted(context, at) || !hasTrait(context, TRAIT.PYROMANCERS_PUISSANCE)) return;
-
-  const pyromancersPuissanceProfile = requireBalanceProfileFromContext(context, PROFILE.pyromancersPuissance);
-  const impactAt = at + balanceProfileNumber(pyromancersPuissanceProfile, 'initialDelay');
-  const cappedMight = Math.min(
-    balanceProfileNumber(pyromancersPuissanceProfile, 'maximumStacks'),
-    context.config.boons?.might
-      ? Number(context.config.boons.might)
-      : buffApplicationStacks(context.boons.get('might') ?? [], 'might', at, 25, {
-          includes: (application) => application.resolvedAudience.includesSelf
-        })
-  );
-  const flameExpulsionStrike = requireEffect(pyromancersPuissanceProfile, 'strike', 'Flame Expulsion');
-  const flameExpulsionCondition = requireEffect(pyromancersPuissanceProfile, 'condition', 'Flame Expulsion');
-  if (flameExpulsionStrike) {
-    const baseCoefficient = effectNumber(pyromancersPuissanceProfile, flameExpulsionStrike, 'coefficient');
-    const coefficientPerMight = balanceProfileNumber(pyromancersPuissanceProfile, 'damageIncreasePerStack');
-    emitElementalistDamage(context, {
-      at: impactAt,
-      source: 'Flame Expulsion',
-      sourceId,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillName: 'Flame Expulsion',
-      icon: FLAME_EXPULSION_ICON,
-      coefficient: baseCoefficient + coefficientPerMight * cappedMight,
-      skillWeapon: 'Unequipped'
-    });
-  }
-
-  if (flameExpulsionCondition) {
-    const baseBurningDuration = Number(flameExpulsionCondition.duration);
-    const burningDurationPerMight = balanceProfileNumber(pyromancersPuissanceProfile, 'durationPerTier');
-
-    emitElementalistCondition(context, {
-      skill: elementalistEventSkill(context, 'Flame Expulsion', sourceId),
-      at: impactAt,
-      source: 'Flame Expulsion',
-      sourceId,
-      condition: String(flameExpulsionCondition.condition),
-      stacks: Number(flameExpulsionCondition.stacks),
-      duration: Math.min(
-        baseBurningDuration + burningDurationPerMight * cappedMight,
-        baseBurningDuration +
-          burningDurationPerMight * balanceProfileNumber(pyromancersPuissanceProfile, 'maximumStacks')
-      ),
-      skillName: 'Flame Expulsion'
-    });
-  }
-
-  const pyromancersPuissanceFlameExpulsionMight = requireEffect(
-    pyromancersPuissanceProfile,
-    'boon',
-    'Flame Expulsion Might'
-  );
-  if (cappedMight > 0) {
-    if (pyromancersPuissanceFlameExpulsionMight) {
-      emitElementalistBuff(context, {
-        skill: elementalistEventSkill(context, 'Flame Expulsion', sourceId),
-        at: impactAt,
-        source: 'Flame Expulsion',
-        sourceId,
-        skillName: 'Flame Expulsion',
-        kind: String(pyromancersPuissanceFlameExpulsionMight.boon).toLowerCase(),
-        stacks: cappedMight,
-        duration: pyromancersPuissanceFlameExpulsionMight.duration,
-        audience: { recipients: 'party', affectsSelf: false, maximumRecipients: 5 }
-      });
+export const burningPrecision = defineTrait({
+  id: TRAIT.BURNING_PRECISION,
+  name: 'Burning Precision',
+  balance: {
+    procRate: {
+      id: 'elementalist.burning-precision',
+      traitId: TRAIT.BURNING_PRECISION,
+      field: 'procChance',
+      opportunity: 'eligible critical hit'
+    },
+    procChance: 0.33,
+    internalCooldown: 5,
+    durationMultiplier: 20,
+    effects: [{ type: 'condition', name: 'Burning Precision', condition: 'Burning', stacks: 1, duration: 3 }]
+  },
+  buildAttributes: (_common, { balanceContext }) => ({
+    traitDurations: {
+      'Burning Duration': balanceProfileNumber(
+        requireBalanceProfileFromContext(balanceContext, TRAIT.BURNING_PRECISION),
+        'durationMultiplier'
+      )
     }
+  })
+});
+
+export const conjurer = defineTrait({
+  id: TRAIT.CONJURER,
+  name: 'Conjurer',
+  balance: {
+    effects: [{ type: 'buff', name: 'Conjurer', kind: 'Fire Aura', stacks: 1, duration: 4 }]
   }
+});
 
-  if (flameExpulsionStrike || flameExpulsionCondition || (cappedMight > 0 && pyromancersPuissanceFlameExpulsionMight))
-    emitElementalistProc(context, {
-      at: impactAt,
-      name: 'Flame Expulsion',
-      procType: 'trait',
-      sourceId,
-      sourceSkill: context.helpers.skillsById.get(sourceId)?.name,
-      icon: FLAME_EXPULSION_ICON
-    });
-}
+export const sunspot = defineTrait({
+  id: TRAIT.SUNSPOT,
+  name: 'Sunspot',
+  balance: {
+    effects: [
+      { type: 'buff', name: 'Sunspot Aura', kind: 'Fire Aura', stacks: 1, duration: 3 },
+      { type: 'strike', name: 'Sunspot', coefficient: 0.6, hits: 1 }
+    ]
+  }
+});
 
-/** Grants Pyromancer's Puissance might after an in-combat Fire-attuned cast. */
-export function applyPyromancersPuissance(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  const at = cast.effectiveEnd;
-  if (
-    !hasTrait(context, TRAIT.PYROMANCERS_PUISSANCE) ||
-    professionCoreState(context).primaryAttunement !== 'Fire' ||
-    !combatStarted(context, at)
-  )
-    return;
-  emitProfiledBuff(context, at, PROFILE.pyromancersPuissance, 'Attunement Might', skill.name, skill.id);
-}
-
-/** Applies Smothering Auras' profile-driven duration multiplier once. */
-export function elementalistAuraDuration(context: unknown, duration: number): number {
-  return hasTrait(context, TRAIT.SMOTHERING_AURAS)
-    ? duration *
-        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.smotheringAuras), 'durationMultiplier')
-    : duration;
-}
-
-/** Extend authored weapon Fire fields without editing already queued packets. */
-export function extendPersistingFlamesEffects(
-  context: ElementalistRuntime,
-  skill: Skill,
-  effects: readonly SkillEffect[]
-): readonly SkillEffect[] {
-  if (
-    !hasTrait(context, TRAIT.PERSISTING_FLAMES) ||
-    skill.type !== 'Weapon' ||
-    !skill.comboFields?.some((field) => field.fieldType === 'Fire')
-  )
-    return effects;
-  const strikes = effects
-    .flatMap((effect) =>
-      effect.type !== 'strike'
-        ? []
-        : (
-            effect.ticks ?? [
-              {
-                atMs: 0,
-                coefficient: Number(effect.coefficient),
-                damageKind: effect.damageKind,
-                metadata: effect.metadata
-              }
-            ]
-          )
-            .filter((tick) => (tick.damageKind ?? effect.damageKind) === 'field-tick')
-            .map((tick) => ({ effect, tick, at: (effect.atMs ?? 0) + tick.atMs }))
-    )
-    .sort((a, b) => a.at - b.at);
-  const last = strikes.at(-1),
-    previous = strikes.at(-2);
-  if (!last || !previous || last.at <= previous.at) return effects;
-  const interval = last.at - previous.at;
-  const count = Math.max(
-    0,
-    Math.trunc(balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.persistingFlames), 'summons'))
-  );
-  const extra: SkillEffect[] = [];
-  for (let index = 1; index <= count; index++) {
-    extra.push({
-      ...last.effect,
-      atMs: 0,
-      ticks: [
-        { ...last.tick, atMs: last.at + interval * index, metadata: { ...last.tick.metadata, largeHitboxOnly: false } }
-      ]
-    });
-    for (const effect of effects) {
-      if (effect.type !== 'condition') continue;
-      for (const tick of effect.ticks ?? [
+export const burningRage = defineTrait({
+  id: TRAIT.BURNING_RAGE,
+  name: 'Burning Rage',
+  balance: {
+    attributeBonus: 180,
+    durationMultiplier: 20,
+    effects: [{ type: 'condition', name: 'Sunspot Burning', condition: 'Burning', stacks: 2, duration: 4 }]
+  },
+  buildAttributes: (_common, { balanceContext }) => {
+    const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.BURNING_RAGE);
+    return {
+      attributeEffects: [
         {
-          atMs: 0,
-          condition: String(effect.condition),
-          stacks: Number(effect.stacks),
-          duration: Number(effect.duration),
-          metadata: effect.metadata
+          kind: 'flat',
+          source: 'Burning Rage',
+          to: 'Condition Damage',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false
         }
-      ]) {
-        if ((effect.atMs ?? 0) + tick.atMs === last.at)
-          extra.push({
-            ...effect,
-            atMs: 0,
-            ticks: [
-              { ...tick, atMs: last.at + interval * index, metadata: { ...tick.metadata, largeHitboxOnly: false } }
-            ]
-          });
-      }
+      ]
+    };
+  }
+});
+
+export const smotheringAuras = defineTrait({
+  id: TRAIT.SMOTHERING_AURAS,
+  name: 'Smothering Auras',
+  balance: { durationMultiplier: 1.33 }
+});
+
+export const powerOverwhelming = defineTrait({
+  id: TRAIT.POWER_OVERWHELMING,
+  name: 'Power Overwhelming',
+  balance: {
+    minimumStacks: 10,
+    attributeBonus: 150,
+    weaponAttributeBonus: 300
+  }
+});
+
+export const pyromancersTraining = defineTrait({
+  id: TRAIT.PYROMANCERS_TRAINING,
+  name: "Pyromancer's Training",
+  balance: {
+    rechargeMultiplier: 0.8
+  },
+  modifierRules: [
+    {
+      order: -10,
+      id: 'elementalist.pyromancers-training',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: 1.07,
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, 'Burning')
     }
+  ]
+});
+
+export const pyromancersPuissance = defineTrait({
+  id: TRAIT.PYROMANCERS_PUISSANCE,
+  name: "Pyromancer's Puissance",
+  balance: {
+    // Measured Fire-exit-to-impact delay, separate from the instant attunement swap.
+    initialDelay: 0.68,
+    maximumStacks: 10,
+    damageIncreasePerStack: 0.1,
+    durationPerTier: 0.5,
+    effects: [
+      { type: 'boon', name: 'Attunement Might', boon: 'might', stacks: 1, duration: 15 },
+      { type: 'boon', name: 'Flame Expulsion Might', boon: 'might', stacks: 1, duration: 15 },
+      { type: 'strike', name: 'Flame Expulsion', coefficient: 1, hits: 1 },
+      { type: 'condition', name: 'Flame Expulsion', condition: 'Burning', stacks: 1, duration: 2 }
+    ]
   }
+});
 
-  return [...effects, ...extra];
-}
-
-/** Field registration uses the same extension as the extra authored pulses. */
-export function extendPersistingFlamesFields(
-  context: ElementalistRuntime,
-  cast: RuntimeCast,
-  fields: Skill['comboFields']
-): Skill['comboFields'] {
-  if (!hasTrait(context, TRAIT.PERSISTING_FLAMES) || cast.skill.type !== 'Weapon') return fields;
-  const extension = balanceProfileNumber(
-    requireBalanceProfileFromContext(context, PROFILE.persistingFlames),
-    'durationPerTier'
-  );
-  return fields?.map((field) =>
-    field.fieldType === 'Fire' ? { ...field, duration: Number(field.duration) + extension } : field
-  );
-}
-
-/** Materializes Burning Precision after its registered critical-hit reaction succeeds. */
-export function applyBurningPrecision(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  const burningPrecisionProfile = requireBalanceProfileFromContext(context, PROFILE.burningPrecision);
-  const burning = requireEffect(burningPrecisionProfile, 'condition', 'Burning Precision');
-  if (burning) {
-    applyElementalistDerivedCondition(context, event, {
-      source: 'Burning Precision',
-      procCount: 1,
-      sourceId: TRAIT.BURNING_PRECISION,
-      condition: String(burning.condition),
-      stacks: Number(burning.stacks),
-      duration: Number(burning.duration)
-    });
-
-    recordElementalistTraitProc(context, event, 'Burning Precision');
-  }
-}
-
-/** Grants one resolver-side Persisting Flames stack from a classified field tick or Burning application. */
-export function grantPersistingFlames(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  if (!hasTrait(context, TRAIT.PERSISTING_FLAMES)) return;
-  const persistingFlamesProfile = requireBalanceProfileFromContext(context, PROFILE.persistingFlames);
-  queueElementalistBuff(
-    context,
-    event,
-    'Persisting Flames',
-    1,
-    balanceProfileNumber(persistingFlamesProfile, 'durationMultiplier'),
-    resolverSourceSkill(event)
-  );
-}
-
-/** Conjurer grants its aura between bundle creation and the resulting swap events. */
-export function applyConjurerAura(
-  context: ElementalistRuntime,
-  cast: RuntimeCast,
-  skill: Skill,
-  applyAura: ElementalistAuraApplier
-): void {
-  const at = cast.effectiveEnd;
-  if (hasTrait(context, TRAIT.CONJURER)) {
-    const conjurerProfile = requireBalanceProfileFromContext(context, PROFILE.conjurer);
-    const conjurerBuff = requireEffect(conjurerProfile, 'buff', 'Conjurer');
-    if (conjurerBuff) {
-      applyAura(context, {
-        at,
-        aura: String(conjurerBuff.kind),
-        duration: conjurerBuff.duration,
-        skillName: 'Conjurer',
-        sourceId: skill.id
-      });
+/** Own field extensions, stack lifetime, and damage tuning while keeping ordered resolver calls explicit. */
+export const persistingFlames = defineTrait({
+  id: TRAIT.PERSISTING_FLAMES,
+  name: 'Persisting Flames',
+  balance: { durationMultiplier: 15, durationPerTier: 2, summons: 2 },
+  modifierRules: [
+    {
+      id: 'elementalist.persisting-flames',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'damage-additive',
+      order: -11,
+      parameters: { maximumStacks: 5, damagePerStack: 0.02 },
+      amount: (context, _target, parameters) =>
+        elementalistTimedBuffStacks(context, 'persisting flames', parameters.maximumStacks) * parameters.damagePerStack
     }
+  ],
+  hooks: {
+    modifyEffects: (runtime: ElementalistRuntime, cast, effects) =>
+      extendPersistingFlamesEffects(runtime, cast.skill, effects),
+    modifyComboFields: extendPersistingFlamesFields
   }
-}
+});

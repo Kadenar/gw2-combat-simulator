@@ -1,16 +1,49 @@
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
-import type { NativeProfessionRuntimeState } from '#gw2/platform/profession-definition/module-types.js';
 import type { ProfessionAppContract } from '#gw2/app/types.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import type { NativeProfessionRuntimeState } from '#gw2/platform/profession-definition/module-types.js';
+import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import type { Gw2ProfessionSource, Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import type { Gw2PlanningStateInput, Gw2ProfessionSource } from '#gw2/platform/simulation/types.js';
 
 type Assert<T extends true> = T;
 type Equal<TLeft, TRight> = (<T>() => T extends TLeft ? 1 : 2) extends <T>() => T extends TRight ? 1 : 2 ? true : false;
 
 const core = defineNativeModule({
   id: 'Core',
-  data: {},
+  data: { traits: [{ id: 1, name: 'Typed trait' }] },
+  // Trait callbacks retain typed runtime state and discriminated cast/resolved-hit boundaries.
+  traitDefinitions: [
+    defineTrait({
+      id: 1,
+      name: 'Typed trait',
+      balance: { effects: [] },
+      triggers: [
+        {
+          on: 'damage.resolved',
+          emit: 1,
+          when: (_runtime, event, details) => event.actorType === 'player' && Boolean(details.hitContext?.critEligible)
+        }
+      ],
+      hooks: {
+        onCastCommit(runtime: Gw2Runtime<{ core: { coreValue: number } }>, cast) {
+          runtime.profession.core.coreValue += cast.skill.id === 1 ? 1 : 0;
+        },
+        modifyEffects: (_runtime, _cast, effects) => effects
+      },
+      buildAttributes: (_common, { balanceContext }) => ({
+        attributeEffects: [
+          {
+            kind: 'flat',
+            source: 'Typed trait',
+            to: 'Power',
+            amount: balanceContext.catalog.balanceProfiles.length,
+            feedsConversions: false
+          }
+        ]
+      })
+    })
+  ],
   state: {
     create: () => ({ coreValue: 1, resolvedCoreValue: 2 })
   },
@@ -67,6 +100,35 @@ type NativeAuthoringAssertions = [
 export type NativeProfessionAuthoringAssertions = NativeAuthoringAssertions;
 
 if (false) {
+  defineTrait({
+    id: 2,
+    name: 'Invalid ownership',
+    triggers: [
+      {
+        on: 'castCommit',
+        emit: 2,
+        when: () => true,
+        // @ts-expect-error The enclosing trait owns the selection gate.
+        trait: 3
+      }
+    ]
+  });
+  defineTrait({
+    id: 2,
+    name: 'Invalid hook',
+    hooks: {
+      // @ts-expect-error Trait hooks cannot replace profession resource policies.
+      resources: {}
+    }
+  });
+  defineTrait({
+    id: 2,
+    name: 'Invalid transform',
+    hooks: {
+      // @ts-expect-error Effect transforms must return effects, not a notification result.
+      modifyEffects: () => undefined
+    }
+  });
   defineNativeProfession({
     id: 'invalid-order',
     name: 'Invalid order',

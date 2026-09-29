@@ -1,12 +1,5 @@
-import { completeRevenantCastTraits } from '#gw2/professions/revenant/core/traits/index.js';
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import {
-  gw2AlliedPlayerAssumptions,
-  gw2AlliedPlayerProcTimeline,
-  gw2BoonApplicationRecipients
-} from '#gw2/platform/combat/state/allied-players.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import {
   balanceProfileNumber,
@@ -14,85 +7,47 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import {
-  REVENANT_LEGEND_IDS as LEGEND,
-  REVENANT_SKILL_IDS as ID,
-  REVENANT_TRAIT_IDS as TRAIT
-} from '#gw2/professions/revenant/data/ids.js';
-import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
-import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/mechanics/life-siphon.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { emitRevenantProfile } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import {
+  grantRenegadeInvocationFervor,
+  revenantLifeSiphonBonus
+} from '#gw2/professions/revenant/core/traits/behavior.js';
+import { completeRevenantCastTraits } from '#gw2/professions/revenant/core/traits/dispatch.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
+import {
   activeKallasFervorStacks,
-  isBandTogetherReady
+  bandTogetherReady
 } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
-import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import {
+  ashenDemeanor,
+  criticalTraits,
+  fervorProfile,
+  furyTraits,
+  grantAllForOneEnergy,
+  grantKallasFervor,
+  heroicCommandProfile
+} from '#gw2/professions/revenant/specializations/renegade/traits/behavior.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 
 const SOULCLEAVE_ALLIES = 'revenant.soulcleave-allied-proc';
+
 // Band Together's selected profile is an acceptance fact: the window is consumed before effects are selected.
 const bandTogether = new WeakMap<RuntimeCast, { enhanced: boolean; profileSkillId: SkillId }>();
-
-function fervorProfile(runtime: RevenantRuntime): BalanceProfile {
-  return requireBalanceProfileFromContext(
-    runtime,
-    hasTrait(runtime, TRAIT.LASTING_LEGACY) ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor
-  );
-}
 
 function enhancedSkill(runtime: RevenantRuntime, skillId: SkillId): RevenantSkill | undefined {
   const enhancedId = RENEGADE_ENHANCED_SKILL_BY_ID[Number(skillId)];
   return enhancedId == null ? undefined : runtime.helpers.skillsById.get(enhancedId);
-}
-
-function bandTogetherReady(runtime: RevenantRuntime, skillId: SkillId): boolean {
-  return (
-    RENEGADE_ENHANCED_SKILL_BY_ID[Number(skillId)] != null &&
-    isBandTogetherReady(renegadeState.from(runtime), runtime.time)
-  );
-}
-
-/** Adds one Kalla's Fervor stack; at the cap it replaces the soonest-expiring stack so hits sustain Fervor. */
-export function grantKallasFervor(
-  runtime: RevenantRuntime,
-  { sourceId, sourceName, cause = null }: { sourceId: SkillId; sourceName: string; cause?: Gw2ResolverEvent | null }
-): void {
-  const state = renegadeState.from(runtime);
-  const profile = fervorProfile(runtime);
-  const effect = requireEffect(profile, 'buff', 'kallas-fervor');
-  // Fervor stacks are the buff, so a removed buff grants nothing.
-  if (!effect) return;
-  const maximum = Math.max(1, balanceProfileNumber(profile, 'maximumStacks'));
-  state.kallasFervorMaximumStacks = maximum;
-  state.kallasFervor = state.kallasFervor.filter((application) => application.expiresAt > runtime.time);
-  if (activeKallasFervorStacks(state, runtime.time, maximum) >= maximum)
-    state.kallasFervor.sort((left, right) => left.expiresAt - right.expiresAt).shift();
-  const duration = Math.max(0, effectNumber(profile, effect, 'duration'));
-  state.kallasFervor.push({ at: runtime.time, expiresAt: runtime.time + duration });
-  runtime.emitProcedural(
-    {
-      type: 'buff',
-      at: runtime.time,
-      source: 'revenant',
-      sourceId,
-      actorType: effect.actorType || 'player',
-      skillId: sourceId,
-      skillName: sourceName,
-      name: `${sourceName} — Kalla's Fervor`,
-      kind: String(effect.kind),
-      duration,
-      stacks: effectNumber(profile, effect, 'stacks')
-    },
-    { cause, fixedDuration: true }
-  );
 }
 
 /** Heroic Command refreshes every started Fervor stack and grants Might scaled by the active count. */
@@ -109,9 +64,7 @@ function heroicCommand(runtime: RevenantRuntime, cast: RuntimeCast): void {
     if (application.at <= runtime.time) application.expiresAt = runtime.time + duration;
   const stacks = activeKallasFervorStacks(state, runtime.time, maximum);
   if (!stacks) return;
-  const source = hasTrait(runtime, TRAIT.LASTING_LEGACY)
-    ? requireBalanceProfileFromContext(runtime, PROFILE.heroicCommandLastingLegacy)
-    : cast.skill;
+  const source = heroicCommandProfile(runtime, cast);
   const might = requireEffect(source, 'boon', 'might');
   if (!might) return;
   emitRevenantProfile(runtime, source, {
@@ -131,11 +84,7 @@ function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const profile = enhanced ? enhancedSkill(runtime, cast.skill.id) : undefined;
   state.bandTogetherReady = false;
   state.bandTogetherExpiresAt = 0;
-  if (enhanced && hasTrait(runtime, TRAIT.ALL_FOR_ONE))
-    runtime.resourceController.grant(
-      'energy',
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.allForOne), 'resourceGain')
-    );
+  grantAllForOneEnergy(runtime, enhanced);
   if (profile)
     emitRevenantProfile(runtime, profile, {
       at: cast.start,
@@ -199,41 +148,6 @@ function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast): void
   state.bandTogetherReady = true;
   state.bandTogetherExpiresAt = runtime.time + Math.max(0, effectNumber(window, effect, 'duration'));
   emitRevenantProfile(runtime, window, { sourceId: window.id, activationId: cast.id });
-}
-
-/** Ashen Demeanor grants its Fervor and self boons once per healing-skill cooldown. */
-function ashenDemeanor(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  if (cast.skill.slot !== 'Heal' || !hasTrait(runtime, TRAIT.ASHEN_DEMEANOR)) return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.ashenDemeanor);
-  if (!runtime.procs.claimCooldown('ashenDemeanor', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
-  for (let stack = 0; stack < Math.max(0, balanceProfileNumber(profile, 'fervorStacks')); stack += 1)
-    grantKallasFervor(runtime, { sourceId: TRAIT.ASHEN_DEMEANOR, sourceName: profile.name });
-  for (const effect of profile.effects?.filter((candidate) => candidate.type === 'boon') ?? [])
-    runtime.emitProcedural({
-      type: 'buff',
-      at: runtime.time,
-      source: 'revenant',
-      sourceId: TRAIT.ASHEN_DEMEANOR,
-      actorType: 'player',
-      skillId: TRAIT.ASHEN_DEMEANOR,
-      skillName: profile.name,
-      activationId: cast.id,
-      name: `${profile.name} — ${String(effect.boon)}`,
-      kind: String(effect.boon),
-      duration: effectNumber(profile, effect, 'duration'),
-      stacks: effectNumber(profile, effect, 'stacks'),
-      audience: effect.audience ?? { recipients: 'self' }
-    });
-}
-
-/** Actual critical and positional facts drive Ambush Commander and Endless Enmity. */
-function criticalTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent, hit?: Gw2HitResolutionContext): void {
-  const ambush = hasTrait(runtime, TRAIT.AMBUSH_COMMANDER);
-  if (!ambush) return;
-  const critical = Boolean(hit?.critEligible && hit.critical.didCrit);
-  // A defiant golem never rotates, so flanking/behind positional triggers always apply.
-  if (Boolean(runtime.config.target?.defiant) || critical)
-    grantKallasFervor(runtime, { sourceId: TRAIT.AMBUSH_COMMANDER, sourceName: 'Ambush Commander', cause: event });
 }
 
 /** A ready, unexpired Razorclaw charge becomes an empowered Bleeding on a landed player strike. */
@@ -334,33 +248,6 @@ function soulcleaveAllies(runtime: RevenantRuntime, data: unknown): void {
   );
 }
 
-/** Received Fury advances Blood Fury's Fervor on its own cooldown. */
-function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if ((event.kind || '').toLowerCase() !== 'fury') return;
-  if (hasTrait(runtime, TRAIT.BLOOD_FURY)) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.bloodFury);
-    // The Fury trigger claims its interval even if Fervor is already capped.
-    if (
-      !runtime.procs.claimCooldown(
-        'revenant.renegade.bloodFury',
-        runtime.time,
-        Math.max(0, balanceProfileNumber(profile, 'cooldown'))
-      )
-    )
-      return;
-    grantKallasFervor(runtime, { sourceId: TRAIT.BLOOD_FURY, sourceName: 'Blood Fury', cause: event });
-  }
-}
-
-/** Core emits the invocation packets; Kalla additionally grants two Fervor stacks for Song of the Mists. */
-function grantRenegadeInvocationFervor(runtime: RevenantRuntime): void {
-  if (runtime.profession.core.activeLegendId !== LEGEND.RENEGADE || !runtime.combatStartedAt()) return;
-  const song = runtime.helpers.skillsById.get(ID.CALL_OF_THE_RENEGADE);
-  if (!hasTrait(runtime, TRAIT.SONG_OF_THE_MISTS) || !song) return;
-  for (let index = 0; index < 2; index += 1)
-    grantKallasFervor(runtime, { sourceId: TRAIT.SONG_OF_THE_MISTS, sourceName: song.name });
-}
-
 /** Renegade owns Fervor, warband summons, Kalla's commands, and their actual hit/boon reactions. */
 export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   initialize(runtime) {
@@ -372,13 +259,7 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   // Enhanced Band Together is instant; normal summons keep their authored cast time.
   castDurationMs: (runtime, skill, duration) => (bandTogetherReady(runtime, skill.id) ? 0 : duration),
   // Band Together readiness is sampled before the accepted cast changes its state.
-  rechargeRules: [
-    {
-      trait: TRAIT.ALL_FOR_ONE,
-      when: (runtime, skill) => bandTogetherReady(runtime, skill.id),
-      multiplier: { profile: PROFILE.allForOne, field: 'rechargeMultiplier' }
-    }
-  ],
+
   modifyEffects(_runtime, cast, effects) {
     if (cast.skill.id === ID.HEROIC_COMMAND) return [];
     return bandTogether.get(cast)?.enhanced ? [] : effects;
@@ -425,65 +306,10 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   },
   onCastCommit(runtime, cast) {
     ashenDemeanor(runtime, cast);
-    if (cast.skill.id === ID.SWAP_LEGENDS) grantRenegadeInvocationFervor(runtime);
+    if (cast.skill.id === ID.SWAP_LEGENDS) grantRenegadeInvocationFervor(runtime, grantKallasFervor);
   },
   // Only Bombardment's first resolved hit emits Vindication's control packet.
-  traitTriggers: [
-    // Only actual eligible critical hits claim the profile ICD; removal leaves it ready.
-    {
-      trait: TRAIT.ENDLESS_ENMITY,
-      emit: PROFILE.endlessEnmity,
-      on: 'damage.resolved',
-      icd: 'profile',
-      when: (runtime, event, details) =>
-        event.actorType === 'player' &&
-        Number(event.coefficient) > 0 &&
-        Boolean(details.hitContext?.critEligible && details.hitContext.critical.didCrit) &&
-        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.endlessEnmity), 'boon', 'fury')),
-      effects: (effect) => effect.type === 'boon' && effect.name === 'fury',
-      attribution: {
-        source: 'revenant',
-        actorType: 'player',
-        skillId: TRAIT.ENDLESS_ENMITY,
-        skillName: 'Endless Enmity',
-        name: 'Endless Enmity \u2014 fury'
-      }
-    },
-    {
-      trait: TRAIT.BRUTAL_MOMENTUM,
-      emit: PROFILE.brutalMomentum,
-      on: 'buff.applied',
-      icd: 'profile',
-      when: (runtime, event) =>
-        (event.kind || '').toLowerCase() === 'fury' &&
-        gw2BoonApplicationRecipients(runtime.config, event).includesSelf &&
-        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.brutalMomentum), 'boon', 'vigor')),
-      effects: (effect) => effect.type === 'boon' && effect.name === 'vigor',
-      attribution: {
-        source: 'revenant',
-        actorType: 'player',
-        skillId: PROFILE.brutalMomentum,
-        skillName: 'Brutal Momentum',
-        name: undefined
-      }
-    },
 
-    {
-      trait: TRAIT.VINDICATION,
-      on: 'damage.resolved',
-      when: (_runtime, event) => event.skillId === ID.CITADEL_BOMBARDMENT && Number(event.hitIndex || 1) === 1,
-      emit: PROFILE.vindication,
-      effects: (effect) => effect.type === 'control' && effect.name === 'daze',
-      attribution: {
-        source: 'revenant',
-        sourceId: TRAIT.VINDICATION,
-        actorType: 'player',
-        skillId: TRAIT.VINDICATION,
-        skillName: 'Vindication',
-        name: 'Vindication — Daze'
-      }
-    }
-  ],
   reactions: {
     'damage.resolving'(runtime, event) {
       // Core already applied its additive bonus; Fervor joins the same additive life-steal sum.

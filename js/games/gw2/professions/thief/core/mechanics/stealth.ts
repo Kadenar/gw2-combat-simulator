@@ -1,21 +1,20 @@
+import {
+  enterCloakedInShadow,
+  enterShadowsRejuvenation,
+  exitShadowsRejuvenation,
+  hiddenKillerLinger
+} from '#gw2/professions/thief/core/traits/behavior.js';
+import { grantLeechingVenomCharges } from '#gw2/professions/thief/core/traits/leeching-venoms.js';
+
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
-import { emitThiefCondition, thiefSkill } from '#gw2/professions/thief/core/events.js';
-import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
+
+import { thiefSkill } from '#gw2/professions/thief/core/events.js';
+
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { ThiefSkill, ThiefStealthAttackChargeState } from '#gw2/professions/thief/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import type { ThiefSkill, ThiefStealthAttackChargeState } from '#gw2/professions/thief/types.js';
 
 /** Optional stealth-attack charges live on the active specialization when it grants them. */
 function thiefStealthAttackCharges(runtime: ThiefRuntime): Partial<ThiefStealthAttackChargeState> {
@@ -46,62 +45,26 @@ export function grantThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, dura
   if (entering) core.stealthStartedAt = at;
   core.stealthUntil = Math.min(at + 15, Math.max(at, core.stealthUntil) + duration);
   // Natural and forced exits use the same selected Hidden Killer linger.
-  core.hiddenKillerUntil =
-    core.stealthUntil +
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.HIDDEN_KILLER), 'duration');
+  core.hiddenKillerUntil = core.stealthUntil + hiddenKillerLinger(runtime);
   if (!entering) return;
-  if (hasTrait(runtime, TRAIT.SHADOWS_REJUVENATION)) grantThiefInitiative(runtime, 2);
+  enterShadowsRejuvenation(runtime);
   // Entry grants use the same selected charge count, lifetime and cap as forced exits.
-  if (hasTrait(runtime, TRAIT.LEECHING_VENOMS)) {
-    const leeching = requireBalanceProfileFromContext(runtime, PROFILE.leechingVenoms);
-    addVenomCharges(
-      core,
-      ID.SPIDER_VENOM,
-      at,
-      balanceProfileNumber(leeching, 'resourceGain'),
-      balanceProfileNumber(leeching, 'durationMultiplier'),
-      balanceProfileNumber(leeching, 'maximumStacks')
-    );
-  }
+  grantLeechingVenomCharges(runtime, at);
 
-  if (hasTrait(runtime, TRAIT.CLOAKED_IN_SHADOW))
-    emitThiefCondition(runtime, skill, {
-      at,
-      source: 'Trait',
-      sourceId: TRAIT.CLOAKED_IN_SHADOW,
-      name: 'Cloaked in Shadow — Blindness',
-      condition: 'Blindness',
-      stacks: 1,
-      duration: 5
-    });
+  enterCloakedInShadow(runtime, skill, at);
 }
 
 /** Removes active stealth, applies Revealed, and fires the traits shared by every attack that breaks stealth. */
 function breakThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, at: number): boolean {
   const core = runtime.profession.core;
   if (!thiefStealthed(runtime, at)) return false;
-  if (hasTrait(runtime, TRAIT.SHADOWS_REJUVENATION))
-    grantThiefInitiative(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.shadowsRejuvenation), 'resourceGain')
-    );
-  if (hasTrait(runtime, TRAIT.LEECHING_VENOMS)) {
-    const leeching = requireBalanceProfileFromContext(runtime, PROFILE.leechingVenoms);
-    addVenomCharges(
-      core,
-      ID.SPIDER_VENOM,
-      at,
-      balanceProfileNumber(leeching, 'resourceGain'),
-      balanceProfileNumber(leeching, 'durationMultiplier'),
-      balanceProfileNumber(leeching, 'maximumStacks')
-    );
-  }
+  exitShadowsRejuvenation(runtime);
+  grantLeechingVenomCharges(runtime, at);
 
   core.stealthStartedAt = at;
   core.stealthUntil = at;
   // Only a real stealth exit starts the linger; bonus attack charges do not.
-  core.hiddenKillerUntil =
-    at + balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.HIDDEN_KILLER), 'duration');
+  core.hiddenKillerUntil = at + hiddenKillerLinger(runtime);
   if (!skill.preservesStealth) core.revealedUntil = at + 3;
   return true;
 }
@@ -139,25 +102,6 @@ export function beginThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast
   core.stealthStartedAt = runtime.time;
   core.stealthUntil = runtime.time;
   if (!skill.preservesStealth) core.revealedUntil = runtime.time + 3;
-}
-
-/** Sundering Shade's Vulnerability follows the completed stealth attack. */
-export function completeThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  if (!hasTrait(runtime, TRAIT.SUNDERING_SHADE)) return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.sunderingShade);
-  const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
-  // Explicit removal suppresses this packet without restoring baseline tuning.
-  if (!vulnerability) return;
-  emitThiefCondition(runtime, cast.skill, {
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: TRAIT.SUNDERING_SHADE,
-    activationId: cast.id,
-    name: 'Sundering Shade — Vulnerability',
-    condition: String(vulnerability.condition),
-    duration: effectNumber(profile, vulnerability, 'duration'),
-    stacks: effectNumber(profile, vulnerability, 'stacks')
-  });
 }
 
 // Selected stealth packets are acceptance facts; one commit action owns both display and combat state.

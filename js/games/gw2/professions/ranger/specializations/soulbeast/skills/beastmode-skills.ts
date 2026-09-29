@@ -1,13 +1,14 @@
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
-import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { applyUnstoppableUnion } from '#gw2/professions/ranger/specializations/soulbeast/traits/index.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
+import { applyUnstoppableUnion } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
+import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+
 /**
  * Owns Soulbeast mode-toggle and pet-swap action fragments.
  * Persistent merge state and transitions remain in `mechanics/beastmode-effects.ts` and `hooks.ts`.
  */
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Entering and leaving Beastmode are two states of the same F5 palette tile.
 const BEASTMODE_PALETTE_TILE = 'ranger-soulbeast-beastmode-toggle';

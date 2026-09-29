@@ -1,33 +1,36 @@
 import {
-  paragonRefrains,
-  PARAGON_COMMAND_ECHO_PROFILES
-} from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
-import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
-import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import type { BalanceProfile, Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
+import {
+  REFRAIN,
+  gainMotivation,
+  startRefrain
+} from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
+import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
+import {
+  PARAGON_COMMAND_ECHO_PROFILES,
+  paragonRefrains
+} from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
+import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
+import {
+  applyFeverishPulse,
+  applyInspiringImplements,
+  applyInvigoratingTempo,
+  enduringRefrainMotivation,
+  enduringRefrainMultiplier,
+  reverberationEchoCount
+} from '#gw2/professions/warrior/specializations/paragon/traits/behavior.js';
 import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = Gw2Runtime<WarriorRuntimeState>;
-const REFRAIN = 'warrior.paragon-refrain';
-const ECHO = 'warrior.paragon-command-echo';
-const CHANTS = [ID.CHANT_OF_ACTION, ID.CHANT_OF_RECUPERATION, ID.CHANT_OF_FREEDOM];
 
-/** Motivation is a single capped live pool, immediately visible to damage modifiers. */
-function gainMotivation(runtime: Runtime, amount: number): void {
-  const state = paragonState.from(runtime);
-  state.motivation = grantCapped(state.motivation, amount, state.maximumMotivation);
-}
+const ECHO = 'warrior.paragon-command-echo';
 
 /** Opening packets, refrain pulses, and echoes share actual application-time duration and party ownership. */
 function boon(
@@ -50,22 +53,6 @@ function boon(
     },
     transform: (event) => ({ ...event, name: skill.name + ' — ' + event.kind, audience: { recipients: 'party' } })
   });
-}
-
-/** Replacing even the same chant invalidates the old pulse before arming a new cadence. */
-function startRefrain(runtime: Runtime): void {
-  const state = paragonState.from(runtime);
-  runtime.cancelOwner({ id: REFRAIN, generation: state.refrainGeneration });
-  state.refrainGeneration++;
-  const interval = balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'pulseInterval');
-  if (interval > 0)
-    runtime.schedule(
-      REFRAIN,
-      canonicalTime(runtime.time + interval),
-      null,
-      { id: REFRAIN, generation: state.refrainGeneration },
-      -200
-    );
 }
 
 /** Each pulse uses the tier before spending, rewards actual spend, and stops when Motivation is exhausted. */
@@ -98,27 +85,13 @@ function pulseRefrain(runtime: Runtime): void {
       ...event,
       name: `${skill.name} — ${event.kind}`,
       audience: { recipients: 'party' },
-      stacks:
-        event.kind === 'might'
-          ? Number(event.stacks) *
-            level *
-            (hasTrait(runtime, TRAIT.ENDURING_REFRAIN)
-              ? balanceProfileNumber(
-                  requireBalanceProfileFromContext(runtime, PROFILE.enduringRefrain),
-                  'stackMultiplier'
-                )
-              : 1)
-          : event.stacks
+      stacks: event.kind === 'might' ? Number(event.stacks) * level * enduringRefrainMultiplier(runtime) : event.stacks
     })
   });
 
   const spent = Math.min(cost, state.motivation);
   state.motivation -= spent;
-  if (hasTrait(runtime, TRAIT.INVIGORATING_TEMPO))
-    grantWarriorAdrenaline(
-      runtime,
-      spent * balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.invigoratingTempo), 'resourceGain')
-    );
+  applyInvigoratingTempo(runtime, spent);
   if (state.motivation <= 0) state.activeRefrainId = null;
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   if (state.activeRefrainId != null && interval > 0)
@@ -136,13 +109,7 @@ function activateChant(runtime: Runtime, cast: RuntimeCast): void {
   const state = paragonState.from(runtime);
   state.activeRefrainId = cast.skill.id;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.chants);
-  gainMotivation(
-    runtime,
-    balanceProfileNumber(profile, 'resourceGain') +
-      (hasTrait(runtime, TRAIT.ENDURING_REFRAIN)
-        ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.enduringRefrain), 'resourceGain')
-        : 0)
-  );
+  gainMotivation(runtime, balanceProfileNumber(profile, 'resourceGain') + enduringRefrainMotivation(runtime));
   startRefrain(runtime);
   const kinds = paragonRefrains[Number(cast.skill.id)].openingBoons;
   boon(
@@ -153,17 +120,7 @@ function activateChant(runtime: Runtime, cast: RuntimeCast): void {
     cast.id
   );
 
-  if (!hasTrait(runtime, TRAIT.FEVERISH_PULSE)) return;
-  const feverish = requireBalanceProfileFromContext(runtime, PROFILE.feverishPulse);
-  for (const id of CHANTS) {
-    const skill = runtime.helpers.skillsById.get(id);
-    if (skill && id !== cast.skill.id)
-      runtime.cooldownController.reduceSkillRecharge(
-        skill,
-        balanceProfileNumber(feverish, 'rechargeReduction'),
-        runtime.time
-      );
-  }
+  applyFeverishPulse(runtime, cast);
 }
 
 /** A consumed echo invalidates its old wake and starts any remaining repeat from the actual consumption time. */
@@ -216,9 +173,7 @@ function consumeEcho(runtime: Runtime, activationId: string): void {
 /** Command instances retain independent repeats; a successful burst consumes one repeat from each pending command. */
 function activateCommand(runtime: Runtime, cast: RuntimeCast): void {
   const interval = balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.commands), 'pulseInterval');
-  const remaining = hasTrait(runtime, TRAIT.REVERBERATION)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.reverberation), 'maximumStacks')
-    : 1;
+  const remaining = reverberationEchoCount(runtime);
   if (interval <= 0 || remaining <= 0) return;
   if (!Number.isSafeInteger(remaining)) throw new RangeError('Command echo counts must be positive integers.');
   paragonState.from(runtime).commandEchoes[cast.id] = { skillId: cast.skill.id, remaining, generation: 0 };
@@ -243,22 +198,7 @@ export const paragonHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
     }
   },
   // Chant Alacrity is independent of the imperative refrain and recharge-reduction state.
-  traitTriggers: [
-    {
-      trait: TRAIT.FEVERISH_PULSE,
-      emit: PROFILE.feverishPulse,
-      on: 'castCommit',
-      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Chant')),
-      effects: (effect) => effect.type === 'boon' && effect.boon === 'alacrity',
-      attribution: (_runtime, cast) => ({
-        source: 'Paragon',
-        sourceId: cast.skill.id,
-        actorType: 'player',
-        name: `${cast.skill.name} — alacrity`,
-        audience: { recipients: 'party' }
-      })
-    }
-  ],
+
   initialize(runtime) {
     const state = paragonState.from(runtime);
     state.maximumMotivation = balanceProfileNumber(
@@ -267,45 +207,11 @@ export const paragonHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
     );
     state.motivation = Math.min(state.motivation, state.maximumMotivation);
   },
-  onCombatStart(runtime) {
-    const state = paragonState.from(runtime);
-    if (state.callToActionActivated || !hasTrait(runtime, TRAIT.CALL_TO_ACTION)) return;
-    state.callToActionActivated = true;
-    gainMotivation(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.callToAction), 'resourceGain')
-    );
-    if (state.activeRefrainId == null) {
-      state.activeRefrainId = ID.CHANT_OF_ACTION;
-      startRefrain(runtime);
-    }
-  },
-  onCastStart(runtime, cast) {
-    if (cast.cancelled) return;
-    if (
-      cast.skill.burst &&
-      !cast.skill.categories?.includes('Chant') &&
-      hasTrait(runtime, TRAIT.RALLY_THE_VALIANT) &&
-      paragonState.from(runtime).activeRefrainId != null
-    )
-      gainMotivation(
-        runtime,
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.rallyTheValiant), 'resourceGain')
-      );
-  },
   onCastCommit(runtime, cast) {
     if (cast.skill.burst)
       for (const activationId of Object.keys(paragonState.from(runtime).commandEchoes))
         consumeEcho(runtime, activationId);
-    if (
-      cast.skill.inputCategory === 'weapon-swap' &&
-      hasTrait(runtime, TRAIT.INSPIRING_IMPLEMENTS) &&
-      runtime.procs.claim(PROFILE.inspiringImplements, 'warrior.paragon.inspiringImplements', runtime.time)
-    ) {
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.inspiringImplements);
-      grantWarriorAdrenaline(runtime, balanceProfileNumber(profile, 'resourceGain'));
-      gainMotivation(runtime, balanceProfileNumber(profile, 'minimumStacks'));
-    }
+    applyInspiringImplements(runtime, cast);
   },
   tasks: {
     [REFRAIN]: pulseRefrain,

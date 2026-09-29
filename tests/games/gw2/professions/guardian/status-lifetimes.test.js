@@ -1,15 +1,15 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { timedBuffAt } from '#gw2/platform/results/query.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
+import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { luminaryModifiers } from '#gw2/professions/guardian/specializations/luminary/modifiers.js';
+import { luminaryModule } from '#gw2/professions/guardian/specializations/luminary/module.js';
 import { bindLuminaryUi } from '#gw2/professions/guardian/specializations/luminary/presentation.js';
 import { LUMINARY_INITIAL_STATE_SKILL_IDS as INITIAL } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
-import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const config = { specialization: 'Luminary' };
 const wait = (durationMs) => ({ type: 'wait', durationMs });
@@ -80,7 +80,7 @@ test('Radiant Armaments damage and display agree through the final live microsec
   const result = runGuardian([wait(1), ID.ENTER_RADIANT_FORGE, ID.DAZZLING_HAMMER], settings);
   const buff = result.events.find((event) => event.kind === 'guardian-radiant-armaments');
   const expiry = boonApplicationsAt(result.events, buff.kind, buff.at)[0].expiresAt;
-  const rule = luminaryModifiers.find((entry) => entry.id === 'guardian.radiant-armaments');
+  const rule = luminaryModule.modifiers.modifierRules.find((entry) => entry.id === 'guardian.radiant-armaments');
   for (const time of [expiry - 0.000001, expiry, expiry + 0.000001]) {
     assert.equal(rule.when({ events: result.events, time }), time < expiry);
     assert.equal(Boolean(timedBuffAt(result, buff.kind, time)), time < expiry);

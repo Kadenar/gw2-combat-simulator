@@ -1,29 +1,27 @@
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import {
+  applyResolverElementalShielding,
+  applyResolverZephyrsBoon
+} from '#gw2/professions/elementalist/core/traits/behavior.js';
+import { applyElementalistAttunementTraits } from '#gw2/professions/elementalist/core/traits/dispatch.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
+import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
+import { catalystUi } from '#gw2/professions/elementalist/specializations/catalyst/presentation.js';
+import { triggerSpecializedElementEntry } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+import { applyTempestResolverAura } from '#gw2/professions/elementalist/specializations/tempest/traits/auras.js';
+import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
-import { applyElementalistAttunementTraits } from '#gw2/professions/elementalist/core/traits/index.js';
-import { triggerSpecializedElementEntry } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
-import { applyResolverZephyrsBoon } from '#gw2/professions/elementalist/core/traits/air.js';
-import { applyResolverElementalShielding } from '#gw2/professions/elementalist/core/traits/earth.js';
-import { applyTempestResolverAura } from '#gw2/professions/elementalist/specializations/tempest/mechanics/aura-effects.js';
-import { applyCatalystResolverAura } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
-import { catalystUi } from '#gw2/professions/elementalist/specializations/catalyst/presentation.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/elementalist/core/profiles.js';
-import { TEMPEST_BALANCE_PROFILE_IDS as TEMPEST } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
-import { CATALYST_BALANCE_PROFILE_IDS as CATALYST } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
-import { runNative } from '#tests/helpers/elementalist-simulation.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 test('real and synthetic Air entry honor trait gates and patched buff versus boon durations', () => {
   // Superspeed must read its buff profile without concentration scaling; Resistance scales once.
   for (const duration of [9, 1]) {
     const catalog = applyBalanceProfilePatch(elementalistCatalog, {
       balanceProfiles: {
-        [CORE.oneWithAir]: { effects: [{ type: 'buff', name: 'Superspeed', duration }] },
-        [CORE.inscription]: { effects: [{ type: 'boon', name: 'Air Entry', duration: 7, stacks: 2 }] }
+        [TRAIT.ONE_WITH_AIR]: { effects: [{ type: 'buff', name: 'Superspeed', duration }] },
+        [TRAIT.INSCRIPTION]: { effects: [{ type: 'boon', name: 'Air Entry', duration: 7, stacks: 2 }] }
       }
     });
     for (const selected of [[], [TRAIT.ONE_WITH_AIR], [TRAIT.INSCRIPTION], [TRAIT.ONE_WITH_AIR, TRAIT.INSCRIPTION]]) {
@@ -75,22 +73,22 @@ test('real and synthetic Air entry honor trait gates and patched buff versus boo
 // Every aura enters one reaction pipeline, including patched boon payloads and duration scaling.
 test('Core and Tempest aura boons use patched effects and scale once', () => {
   for (const [trait, traitId, profileId, names, resolve] of [
-    ["Zephyr's Boon", TRAIT.ZEPHYRS_BOON, CORE.zephyrsBoon, ['Fury', 'Swiftness'], applyResolverZephyrsBoon],
+    ["Zephyr's Boon", TRAIT.ZEPHYRS_BOON, TRAIT.ZEPHYRS_BOON, ['Fury', 'Swiftness'], applyResolverZephyrsBoon],
     [
       'Elemental Shielding',
       TRAIT.ELEMENTAL_SHIELDING,
-      CORE.elementalShielding,
+      TRAIT.ELEMENTAL_SHIELDING,
       ['Protection'],
       applyResolverElementalShielding
     ],
     [
       'Invigorating Torrents',
       TRAIT.INVIGORATING_TORRENTS,
-      TEMPEST.invigoratingTorrents,
+      TRAIT.INVIGORATING_TORRENTS,
       ['Vigor', 'Regeneration'],
       applyTempestResolverAura
     ],
-    ['Elemental Bastion', TRAIT.ELEMENTAL_BASTION, TEMPEST.elementalBastion, ['Alacrity'], applyTempestResolverAura]
+    ['Elemental Bastion', TRAIT.ELEMENTAL_BASTION, TRAIT.ELEMENTAL_BASTION, ['Alacrity'], applyTempestResolverAura]
   ]) {
     const effects = names.map((name, index) => ({
       type: 'boon',
@@ -167,22 +165,22 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
     boons: new Map([['empowering auras', [{ at: 0, expiresAt: 3, stacks: 1 }]]]),
     helpers: {
       balanceProfilesById: new Map([
-        [CATALYST.empoweringAuras, { maximumStacks: 1, durationMultiplier: 8 }],
-        [CATALYST.elementalEpitome, { effects: [{ type: 'buff', name: 'Empowerment', stacks: 2, duration: 7 }] }]
+        [TRAIT.EMPOWERING_AURAS, { maximumStacks: 1, durationMultiplier: 8 }],
+        [TRAIT.ELEMENTAL_EPITOME, { effects: [{ type: 'buff', name: 'Empowerment', stacks: 2, duration: 7 }] }]
       ])
     },
     queue: { enqueue: (event) => queued.push(event) },
     recordProc: (_type, name) => procs.push(name)
   };
   const event = { type: 'elementalist.aura', at: 1, skillName: 'Fixture Aura', sourceId: 1 };
-  applyCatalystResolverAura(context, event);
+  catalystModule.hooks.reactions['aura.applied'](context, event);
   assert.equal(context.boons.get('empowering auras')[0].expiresAt, 9);
   assert.deepEqual(
     queued.map((event) => event.kind),
     ['elemental empowerment']
   );
   queued.length = 0;
-  applyCatalystResolverAura(context, { ...event, at: 2, elementalistResolverGeneratedAura: true });
+  catalystModule.hooks.reactions['aura.applied'](context, { ...event, at: 2, elementalistResolverGeneratedAura: true });
   assert.equal(context.boons.get('empowering auras')[0].expiresAt, 10);
   assert.deepEqual(
     queued.map(({ kind, stacks, duration }) => ({ kind, stacks, duration })),
@@ -199,7 +197,7 @@ test('Catalyst snapshots retain capped aura refreshes without adding or reviving
     timeline: [0, 1, 2, 3, 4, 8, 19].map((at) => ({
       at,
       run: (runtime) =>
-        applyCatalystResolverAura(runtime, {
+        catalystModule.hooks.reactions['aura.applied'](runtime, {
           type: 'elementalist.aura',
           at,
           skillName: 'Fixture Aura',

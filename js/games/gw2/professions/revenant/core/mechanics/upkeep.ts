@@ -20,8 +20,11 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
 export const REVENANT_UPKEEP_PULSE = 'revenant.upkeep-pulse';
+
 export const REVENANT_ENERGY_DEPLETED = 'revenant.energy-depleted';
+
 const VENGEFUL_HAMMERS_IDS = new Set<SkillId>([ID.VENGEFUL_HAMMERS, ID.VENGEFUL_HAMMERS_ID_56752]);
+
 const STARVATION_OWNER = 'revenant.energy-depleted';
 
 interface UpkeepPulse {

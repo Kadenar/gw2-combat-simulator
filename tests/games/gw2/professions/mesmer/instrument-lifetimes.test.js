@@ -1,24 +1,22 @@
-import { projectObservedState } from '#tests/helpers/observed-runtime.js';
-import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createRuntimeEndurance } from '#gw2/platform/combat/resources/runtime-resources.js';
-import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { initializeTroubadourRuntime } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
-import { completeTroubadourPerformance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
-import {
-  applyTroubadourAttributes,
-  troubadourModifierRules
-} from '#gw2/professions/mesmer/specializations/troubadour/modifiers.js';
-import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
+import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
+import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
+import { completeTroubadourPerformance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
+import { initializeTroubadourRuntime } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
+import { troubadourModifierRules } from '#gw2/professions/mesmer/specializations/troubadour/modifiers.js';
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { applyTroubadourAttributes } from '#gw2/professions/mesmer/specializations/troubadour/traits/performance.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 // Keep real profiles and instrument handlers while isolating windows from cast speed, random damage, and cooldowns.
 function instrumentContext() {

@@ -1,18 +1,18 @@
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import { guardianUiSkillIdsByName, guardianUiSkillsByMode } from '#gw2/professions/guardian/core/presentation.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup
 } from '#gw2/platform/profession-presentation/types.js';
+import { guardianUiSkillIdsByName, guardianUiSkillsByMode } from '#gw2/professions/guardian/core/presentation.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
+import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import type {
   GuardianResolverEvent,
   GuardianSkill,
@@ -20,6 +20,7 @@ import type {
   GuardianUiContext,
   GuardianUiSlice
 } from '#gw2/professions/guardian/types.js';
+
 /** Render actual weapon-bar transitions at their executed boundary. */
 function firebrandEventLogRow(
   _context: GuardianUiContext,
@@ -161,7 +162,7 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog>): GuardianUi
           requireBalanceProfileFromContext(
             context,
             hasTrait(context.config, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS)
-              ? PROFILE.archivistOfWhispers
+              ? GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS
               : PROFILE.resources
           ),
           'maximumStacks'

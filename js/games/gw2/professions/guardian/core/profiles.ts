@@ -1,74 +1,17 @@
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
 export const GUARDIAN_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   justice: 'guardian.core.justice',
-  permeatingWrath: TRAIT.PERMEATING_WRATH,
   spearHelioRush: 'guardian.core.spear.helio-rush-illuminated',
   spearGleamingDisc: 'guardian.core.spear.gleaming-disc-illuminated',
   spearSolarStorm: 'guardian.core.spear.solar-storm-illuminated',
   spearLuminance: 'guardian.core.spear.symbol-of-luminance',
-  inspiredVirtue: TRAIT.INSPIRED_VIRTUE,
-  virtueOfResolution: TRAIT.VIRTUE_OF_RESOLUTION,
-  inspiringVirtue: TRAIT.INSPIRING_VIRTUE,
-  indomitableCourage: TRAIT.INDOMITABLE_COURAGE,
-  furiousFocus: TRAIT.FURIOUS_FOCUS,
-  masterOfConsecrations: TRAIT.MASTER_OF_CONSECRATIONS,
-  writOfPersistence: TRAIT.WRIT_OF_PERSISTENCE,
-  protectorsRestoration: TRAIT.PROTECTORS_RESTORATION,
   symbolOfIgnition: 'guardian.core.symbol-of-ignition-field',
-  symbolicExposure: TRAIT.SYMBOLIC_EXPOSURE,
-  symbolicAvenger: TRAIT.SYMBOLIC_AVENGER,
-  zealotsResolution: TRAIT.ZEALOTS_RESOLUTION,
-  righteousInstincts: TRAIT.RIGHTEOUS_INSTINCTS,
-  healersResolution: TRAIT.HEALERS_RESOLUTION,
-  zealousBlade: TRAIT.ZEALOUS_BLADE,
-  rightHandStrength: TRAIT.RIGHT_HAND_STRENGTH,
-  radiantPower: TRAIT.RADIANT_POWER,
-  powerOfTheVirtuous: TRAIT.POWER_OF_THE_VIRTUOUS,
-  signetOfWrath: 'guardian.core.signet-of-wrath-passive',
-  radiantFire: TRAIT.RADIANT_FIRE,
-  focusMastery: TRAIT.FOCUS_MASTERY,
-  amplifiedWrath: TRAIT.AMPLIFIED_WRATH,
-  eternalArmory: TRAIT.ETERNAL_ARMORY
+  signetOfWrath: 'guardian.core.signet-of-wrath-passive'
 });
 
 export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
-  // Critical hits share one cooldown and grant Might to the player and nearby allies.
-  trait(TRAIT.EMPOWERING_MIGHT, 'Empowering Might', {
-    internalCooldown: 1,
-    effects: [{ type: 'boon', name: 'might', boon: 'might', stacks: 1, duration: 8, audience: { recipients: 'party' } }]
-  }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.protectorsRestoration, "Protector's Restoration", {
-    internalCooldown: 20,
-    effects: [
-      {
-        type: 'strike',
-        name: 'Strike',
-        // The symbol strikes on placement and twice more at one-second intervals.
-        ticks: [0, 1000, 2000].map((atMs) => ({ atMs, coefficient: 0.6 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        actorType: 'player'
-      },
-      // Protection keeps its pulse cadence even if the strike is removed.
-      {
-        type: 'boon',
-        name: 'protection',
-        boon: 'protection',
-        duration: 1,
-        stacks: 1,
-        applications: 3,
-        intervalMs: 1000
-      }
-    ]
-  }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.healersResolution, "Healer's Resolution", {
-    internalCooldown: 20,
-    effects: [{ type: 'boon', name: 'resolution', boon: 'resolution', duration: 8, stacks: 1 }]
-  }),
   {
     id: GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice,
     name: 'Virtue of Justice',
@@ -95,7 +38,6 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
       }
     ]
   },
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.permeatingWrath, 'Permeating Wrath', { threshold: 3 }),
   {
     id: GUARDIAN_CORE_BALANCE_PROFILE_IDS.spearHelioRush,
     name: 'Helio Rush - Illuminated',
@@ -160,100 +102,6 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
       }
     ]
   },
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.inspiredVirtue, 'Inspired Virtue', {
-    effects: [
-      { type: 'boon', name: 'might', boon: 'might', stacks: 3, duration: 5 },
-      { type: 'boon', name: 'regeneration', boon: 'regeneration', stacks: 1, duration: 5 },
-      { type: 'boon', name: 'protection', boon: 'protection', stacks: 1, duration: 5 }
-    ]
-  }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.virtueOfResolution, 'Virtue of Resolution', {
-    durationMultiplier: 1.25,
-    effects: [{ type: 'boon', name: 'resolution', boon: 'resolution', stacks: 1, duration: 3 }]
-  }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.inspiringVirtue, 'Inspiring Virtue', {
-    effects: [
-      {
-        type: 'buff',
-        name: 'guardian-inspiring-virtue',
-        kind: 'guardian-inspiring-virtue',
-        stacks: 1,
-        duration: 6
-      }
-    ]
-  }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.indomitableCourage, 'Indomitable Courage', {
-    pulseInterval: 30,
-    effects: [{ type: 'boon', name: 'stability', boon: 'stability', stacks: 3, duration: 4 }]
-  }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.furiousFocus, 'Furious Focus', {
-    cooldown: 10,
-    effects: [
-      {
-        type: 'strike',
-        name: 'Strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: index * 1000, coefficient: 3.25 / 5 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        actorType: 'player'
-      }
-    ]
-  }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.masterOfConsecrations, 'Master of Consecrations', {
-    durationMultiplier: 1.4,
-    // Extend Purging Flames after its six base pulses, with independent cast-start timelines for each effect.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        name: 'Strike',
-        ticks: [6320, 7320].map((atMs) => ({ atMs, coefficient: 0.2 })),
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        name: 'Burning',
-        ticks: [6320, 7320].map((atMs) => ({ atMs, condition: 'Burning', stacks: 1, duration: 2 })),
-        actorType: 'player'
-      }
-    ])
-  }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.writOfPersistence, 'Writ of Persistence', {
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: [
-      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
-        {
-          type: 'strike',
-          name: 'Smite',
-          // Writ adds four more spatial Smite packets during its two-second symbol extension.
-          ticks: [4240, 4760, 5240, 5760].map((atMs) => ({ atMs, coefficient: 0.2 })),
-          actorType: 'player'
-        },
-        {
-          type: 'strike',
-          name: 'Symbol',
-          ticks: [5240, 6240].map((atMs) => ({ atMs, coefficient: 0.5 })),
-          actorType: 'player'
-        },
-        {
-          type: 'boon',
-          name: 'might',
-          boon: 'might',
-          stacks: 4,
-          duration: 5,
-          applications: 2,
-          atMs: 5240,
-          intervalMs: 1000,
-          actorType: 'player'
-        }
-      ]),
-      {
-        type: 'buff',
-        name: 'symbol-duration-extension',
-        duration: 2,
-        actorType: 'player'
-      }
-    ]
-  }),
   {
     id: GUARDIAN_CORE_BALANCE_PROFILE_IDS.symbolOfIgnition,
     name: 'Symbol of Ignition - Field',
@@ -279,61 +127,6 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
       }
     ]
   },
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.symbolicExposure, 'Symbolic Exposure', {
-    effects: [
-      {
-        type: 'condition',
-        name: 'Vulnerability',
-        condition: 'Vulnerability',
-        stacks: 2,
-        duration: 5,
-        actorType: 'effect'
-      }
-    ]
-  }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.symbolicAvenger, 'Symbolic Avenger', { maximumStacks: 5, pulseInterval: 15 }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.zealotsResolution, "Zealot's Resolution", {
-    cooldown: 30,
-    threshold: 0.25,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        name: 'Strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: index * 1000, coefficient: 2.5 / 5 })),
-        actorType: 'player'
-      },
-      {
-        type: 'boon',
-        name: 'resolution',
-        boon: 'resolution',
-        stacks: 1,
-        duration: 2,
-        applications: 5,
-        intervalMs: 1000,
-        actorType: 'player'
-      }
-    ])
-  }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.righteousInstincts, 'Righteous Instincts', {
-    criticalChance: 0.25,
-    pulseInterval: 1,
-    effects: [{ type: 'boon', name: 'might', boon: 'might', stacks: 1, duration: 6 }]
-  }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.zealousBlade, 'Zealous Blade', {
-    weaponAttributeBonus: 240,
-    attributeBonus: 120,
-    rechargeMultiplier: 0.8
-  }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.rightHandStrength, 'Right-Hand Strength', { attributeBonus: 80 }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.radiantPower, 'Radiant Power', {
-    criticalChance: 0.1,
-    attributeBonus: 150
-  }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.powerOfTheVirtuous, 'Power of the Virtuous', {
-    attributeConversion: 0.07,
-    rechargeMultiplier: 0.85
-  }),
   {
     id: GUARDIAN_CORE_BALANCE_PROFILE_IDS.signetOfWrath,
     name: 'Signet of Wrath - Passive',
@@ -342,18 +135,6 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     attributeBonus: 180,
     effects: []
   },
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.radiantFire, 'Radiant Fire', {
-    conditionDurationBonus: 0.2,
-    rechargeMultiplier: 0.8,
-    durationMultiplier: 1.5,
-    maximumStacks: 2
-  }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.focusMastery, 'Focus Mastery', {
-    rechargeMultiplier: 0.8
-  }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.amplifiedWrath, 'Amplified Wrath', {
-    durationMultiplier: 1.2
-  }),
   {
     id: 'guardian.core.bane-signet-passive',
     name: 'Bane Signet - Passive',
@@ -361,16 +142,5 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     parentId: ID.BANE_SIGNET,
     attributeBonus: 180,
     effects: []
-  },
-  trait(TRAIT.PERFECT_INSCRIPTIONS, 'Perfect Inscriptions', {
-    attributeMultiplier: 1.2
-  }),
-  // Trait tuning is shared by build calculations, combat, and tooltips.
-  trait(TRAIT.FORCE_OF_WILL, 'Force of Will', { attributeBonus: 300 }),
-  trait(TRAIT.HONORABLE_STAFF, 'Honorable Staff', { attributeBonus: 120 }),
-  trait(TRAIT.STALWART_DEFENDER, 'Stalwart Defender', { attributeBonus: 240 }),
-  trait(TRAIT.KINDLED_ZEAL, 'Kindled Zeal', { attributeConversion: 0.1 }),
-  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.eternalArmory, 'Eternal Armory', {
-    resourceGain: 1
-  })
+  }
 ]);

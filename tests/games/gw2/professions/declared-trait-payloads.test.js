@@ -1,24 +1,22 @@
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import {
-  ENGINEER_TRAIT_IDS as ENGINEER,
-  ENGINEER_SKILL_IDS as ENGINEER_SKILL
-} from '#gw2/professions/engineer/data/ids.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   ELEMENTALIST_TRAIT_IDS as ELEMENTALIST,
   ELEMENTALIST_SKILL_IDS as ELEMENTALIST_SKILL
 } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import {
+  ENGINEER_TRAIT_IDS as ENGINEER,
+  ENGINEER_SKILL_IDS as ENGINEER_SKILL
+} from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { GUARDIAN_TRAIT_IDS as GUARDIAN } from '#gw2/professions/guardian/data/ids.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { REVENANT_TRAIT_IDS as REVENANT } from '#gw2/professions/revenant/data/ids.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { GUARDIAN_TRAIT_IDS as GUARDIAN } from '#gw2/professions/guardian/data/ids.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/guardian/core/profiles.js';
-import { WILLBENDER_BALANCE_PROFILE_IDS as WILLBENDER } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { REVENANT_TRAIT_IDS as REVENANT } from '#gw2/professions/revenant/data/ids.js';
-import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 
 // Minimal actual strikes verify each migrated declaration's guard and its live profile payload.
 for (const [name, profession, specialization, trait, profile, effect, fields] of [
@@ -27,7 +25,7 @@ for (const [name, profession, specialization, trait, profile, effect, fields] of
     guardianProfession,
     'Core',
     GUARDIAN.SYMBOLIC_EXPOSURE,
-    CORE.symbolicExposure,
+    GUARDIAN.SYMBOLIC_EXPOSURE,
     { type: 'condition', name: 'Vulnerability' },
     { isSymbol: true }
   ],
@@ -36,7 +34,7 @@ for (const [name, profession, specialization, trait, profile, effect, fields] of
     guardianProfession,
     'Willbender',
     GUARDIAN.SEARING_PACT,
-    WILLBENDER.searingPact,
+    GUARDIAN.SEARING_PACT,
     { type: 'condition', name: 'Burning' },
     { willbenderFlames: true }
   ],

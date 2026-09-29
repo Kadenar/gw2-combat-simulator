@@ -1,9 +1,11 @@
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { thiefCoreModifiers, thiefCoreModifierRules } from '#gw2/professions/thief/core/modifiers.js';
+import { thiefCoreModifiers } from '#gw2/professions/thief/core/modifiers.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attributes.js';
@@ -121,7 +123,7 @@ test("Infiltrator's Signet pulses discrete initiative only while ready and resta
 
 test('Signet of Agility grants precision while ready and restores 100 endurance on its 30-second recharge', () => {
   const selectedSkills = ['Signet of Agility'];
-  const calculate = createCalculateAttributes(applyThiefBuildAttributeRules);
+  const calculate = createCalculateAttributes(applyThiefBuildAttributeRules, thiefProfession.traitBuildAttributes);
   const build = createThiefBuildDefaults();
   assert.equal(
     calculate(build, [thiefCatalog.skillsById.get(ID.SIGNET_OF_AGILITY)]).attributes.Precision.final -
@@ -282,7 +284,7 @@ test('permanent Vigor bypasses history for Thief advancement and readiness', () 
 });
 
 test('THF-001: Hidden Killer requires stealth and lingers after either natural expiry or an attack', () => {
-  const rule = thiefCoreModifierRules.find((entry) => entry.id === 'thief.hidden-killer');
+  const rule = thiefCoreModule.modifiers.modifierRules.find((entry) => entry.id === 'thief.hidden-killer');
   const skill = thiefCatalog.skillsById.get(ID.BACKSTAB);
   const config = { ...baseConfig, specialization: 'Core', selectedTraitIds: [TRAIT.HIDDEN_KILLER] };
   const run = (attack) =>
@@ -686,4 +688,20 @@ test('guild combat activation starts parallel streams once and replacement retir
   );
   assert.equal(new Set(packets.map((event) => event.activationId)).size, packets.length);
   assert.ok(packets.every((event) => event.at < 8.25));
+});
+
+// Selected owners honor disabled previews, live patch data, and conditional build assumptions.
+test('No Quarter build contribution follows Fury, disabled selection and the selected patch', () => {
+  const calculate = createCalculateAttributes(applyThiefBuildAttributeRules, thiefProfession.traitBuildAttributes);
+  const build = createThiefBuildDefaults();
+  build.specializations = [{ name: 'Critical Strikes', traits: '3-2-1' }];
+  build.assumptions.fury = true;
+  const contribution = (balanceContext) =>
+    calculate(build, [], 1, null, null, balanceContext).attributes.Ferocity.final -
+    calculate(build, [], 1, 'No Quarter', null, balanceContext).attributes.Ferocity.final;
+  assert.equal(contribution(), 250);
+  const catalog = withProfile(thiefCatalog, TRAIT.NO_QUARTER, { attributeBonus: 300 });
+  assert.equal(contribution({ catalog }), 300);
+  build.assumptions.fury = false;
+  assert.equal(contribution({ catalog }), 0);
 });

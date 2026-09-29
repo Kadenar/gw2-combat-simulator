@@ -1,15 +1,16 @@
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
-import { emitSoulbeastStance } from '#gw2/professions/ranger/specializations/soulbeast/traits/index.js';
 import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { emitSoulbeastStance } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
+import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+
 /**
  * Owns Soulbeast stance skill fragments and their handler selection.
  * Stance runtime windows remain under `hooks.ts` and specialization mechanics.
  */
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.VULTURE_STANCE]: {

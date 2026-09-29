@@ -35,7 +35,7 @@ function run(balanceProfiles, specialization, rotation, config = {}, skills = {}
 test('removed Marching Orders Might preserves Soldier Focus cooldown and sibling traits', () => {
   // The accepted hit claims Focus even when its Might component is removed.
   const result = run(
-    { [CORE.marchingOrders]: { ...remove('boon', 'might'), fields: { internalCooldown: { from: 10, to: 7 } } } },
+    { [TRAIT.MARCHING_ORDERS]: { ...remove('boon', 'might'), fields: { internalCooldown: { from: 10, to: 7 } } } },
     'Core',
     [ID.EVISCERATE],
     {
@@ -58,7 +58,7 @@ test('Sundering Burst removal cannot substitute its surviving critical variant',
   for (const precision of [0, 10000]) {
     const result = run(
       {
-        [CORE.sunderingBurst]: {
+        [TRAIT.SUNDERING_BURST]: {
           ...remove('condition', 'Burst'),
           effects: [{ type: 'condition', name: 'Critical burst', stacks: { from: 10, to: 13 } }]
         }
@@ -136,16 +136,11 @@ test('removed Berserk window retains resource spending and entry boons without a
 });
 
 test('removed Heat the Soul Quickness preserves Fury and Might', () => {
-  const result = run(
-    { [BERSERKER.heatTheSoul]: remove('boon', 'quickness') },
-    'Berserker',
-    [ID.BERSERK, ID.DECAPITATE],
-    {
-      initialResource: 30,
-      primaryWeapon: 'Axe',
-      selectedTraitIds: [TRAIT.HEAT_THE_SOUL]
-    }
-  );
+  const result = run({ [TRAIT.HEAT_THE_SOUL]: remove('boon', 'quickness') }, 'Berserker', [ID.BERSERK, ID.DECAPITATE], {
+    initialResource: 30,
+    primaryWeapon: 'Axe',
+    selectedTraitIds: [TRAIT.HEAT_THE_SOUL]
+  });
   const events = result.events.filter((e) => e.sourceId === TRAIT.HEAT_THE_SOUL);
   assert.equal(
     events.some((e) => e.kind === 'quickness'),
@@ -156,7 +151,7 @@ test('removed Heat the Soul Quickness preserves Fury and Might', () => {
 });
 
 test('removed King of Fires strike preserves Burning and consumes the aura', () => {
-  const result = run({ [BERSERKER.kingOfFires]: remove('strike', 'Strike') }, 'Berserker', ['Chop', ID.BERSERK], {
+  const result = run({ [TRAIT.KING_OF_FIRES]: remove('strike', 'Strike') }, 'Berserker', ['Chop', ID.BERSERK], {
     primaryWeapon: 'Axe',
     initialResource: 30,
     stats: { precision: 10000 },
@@ -247,7 +242,7 @@ test('Artillery Slash control removal retains its strike', () => {
 
 test('zero Empower Allies and Paragon intervals disable queued recurrence', () => {
   const allies = run(
-    { [CORE.empowerAllies]: { fields: { pulseInterval: 0 } } },
+    { [TRAIT.EMPOWER_ALLIES]: { fields: { pulseInterval: 0 } } },
     'Core',
     [{ type: 'wait', durationMs: 5000 }],
     { selectedTraitIds: [TRAIT.EMPOWER_ALLIES] }
@@ -325,19 +320,19 @@ test('Warrior live owners reject missing profiles and invalid required scalars c
   };
   const profession = warriorProfession.runtimeFor(config);
   const profiles = new Map(profession.catalog.balanceProfilesById);
-  const original = profiles.get(CORE.marchingOrders);
+  const original = profiles.get(TRAIT.MARCHING_ORDERS);
   const balanceDataContext = { professionId: 'warrior', patchId: 'broken' };
   const catalog = { ...profession.catalog, balanceProfilesById: profiles, balanceDataContext };
   const simulate = () =>
     observeGw2Runtime({ profession: { ...profession, catalog }, config, rotation: ['Eviscerate'] });
-  profiles.delete(CORE.marchingOrders);
+  profiles.delete(TRAIT.MARCHING_ORDERS);
   assert.throws(simulate, /profession=warrior patch=broken.*missing required profile/);
   for (const value of [undefined, null, '10', NaN, Infinity]) {
-    profiles.set(CORE.marchingOrders, { ...original, internalCooldown: value, balanceDataContext });
+    profiles.set(TRAIT.MARCHING_ORDERS, { ...original, internalCooldown: value, balanceDataContext });
     assert.throws(simulate, /profession=warrior patch=broken.*field=internalCooldown/);
   }
 
-  profiles.set(CORE.marchingOrders, { ...original, internalCooldown: 0 });
+  profiles.set(TRAIT.MARCHING_ORDERS, { ...original, internalCooldown: 0 });
   const result = simulate();
   assert.equal(
     observedRuntime(result).procs.deadline('warrior.core.soldierFocus'),

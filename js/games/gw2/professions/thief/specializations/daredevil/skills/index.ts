@@ -1,22 +1,10 @@
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { PHYSICAL_ENDURANCE } from '#gw2/professions/thief/specializations/daredevil/traits/behavior.js';
 
-// Brawler's Tenacity grants endurance when an eligible physical skill is accepted.
-const PHYSICAL_ENDURANCE: Skill['sideEffects'] = [
-  {
-    on: 'castStart',
-    when: (runtime) => hasTrait(runtime, TRAIT.BRAWLERS_TENACITY),
-    do: {
-      type: 'resourceGrant',
-      resource: 'endurance',
-      amount: { profile: PROFILE.brawlersTenacity, field: 'resourceGain' }
-    }
-  }
-];
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 
 export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.IMPACT_STRIKE]: {

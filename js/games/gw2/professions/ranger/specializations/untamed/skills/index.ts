@@ -2,11 +2,12 @@
  * Owns Untamed Unleash, ambush, and specialization skill catalog fragments only.
  * Persistent Unleash state and transitions live under `mechanics/`.
  */
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
-import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
+import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
+import { naturalFortitudeAmbushEffect } from '#gw2/professions/ranger/specializations/untamed/traits/behavior.js';
 
 // Both Unleash actions replace the same F5 tile as control passes between pet and ranger.
 const UNLEASH_PALETTE_TILE = 'ranger-untamed-unleash';
@@ -245,16 +246,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           parentSkillName: 'Relentless Whirl'
         }
       ]),
-      {
-        type: 'strike',
-        sourceId: TRAIT.NATURAL_FORTITUDE,
-        name: 'Natural Fortitude',
-        ticks: [{ atMs: 360, coefficient: 0.005 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        canCrit: false,
-        damageKind: 'life-steal'
-      }
+      naturalFortitudeAmbushEffect(360)
     ],
     castTimeMs: 1560
   },
@@ -292,16 +284,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           parentSkillName: 'Deft Strike'
         }
       ]),
-      {
-        type: 'strike',
-        sourceId: TRAIT.NATURAL_FORTITUDE,
-        name: 'Natural Fortitude',
-        ticks: [{ atMs: 800, coefficient: 0.005 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        canCrit: false,
-        damageKind: 'life-steal'
-      }
+      naturalFortitudeAmbushEffect(800)
     ],
     castTimeMs: 960
   }

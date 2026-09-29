@@ -1,77 +1,78 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { EPSILON } from '#kernel/core/clock.js';
-import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { pruneSkillFlips, skillFlipReady, weaponFollowUpOpen } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
-  balanceProfileNumber,
-  requireEffect,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+  completeThiefStealthAttack,
+  completeThiefWeaponSwap,
+  leadAttacksRechargeReduction,
+  startThiefDodge
+} from '#gw2/professions/thief/core/traits/behavior.js';
+import { sleightOfHandRechargeReduction } from '#gw2/professions/thief/core/traits/steal.js';
+
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/traits/behavior.js';
+import { EPSILON } from '#kernel/core/clock.js';
+
+import { pruneSkillFlips, skillFlipReady, weaponFollowUpOpen } from '#gw2/platform/engine/skills/skill-flips.js';
+
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
+
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import {
   restartThiefInfiltratorsSignet,
-  spendThiefCoreResources,
   setThiefKneeling,
+  spendThiefCoreResources,
   THIEF_INFILTRATORS_SIGNET_PULSE,
-  thiefInfiltratorsSignetPulse,
   thiefEndurance,
+  thiefInfiltratorsSignetPulse,
   thiefInitiative
 } from '#gw2/professions/thief/core/mechanics/resources.js';
 import {
+  completeThiefSteal,
+  consumeThiefStolenSkill,
+  storedStolenSkillChoices,
+  THIEF_STOLEN_SKILL_IDS
+} from '#gw2/professions/thief/core/mechanics/steal.js';
+import {
   beginThiefStealthAttack,
-  selectThiefStealth,
   commitThiefStealth,
-  completeThiefStealthAttack,
   reactThiefStealthBreakingStrike,
+  selectThiefStealth,
   thiefBonusStealthAttack,
   thiefSameInstantStealthBreak,
   thiefStealthed
 } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import {
-  completeThiefSteal,
-  consumeThiefStolenSkill,
-  emitThiefStealTraits,
-  storedStolenSkillChoices,
-  THIEF_STOLEN_SKILL_IDS
-} from '#gw2/professions/thief/core/mechanics/steal.js';
-import {
-  prepareTrap,
+  activateAssassinsSignet,
   activateTrap,
   activateVenom,
-  updateSpearChain,
-  completeThiefWeaponSwap,
-  activateAssassinsSignet,
-  summonThievesGuild,
-  expireThievesGuild,
   expireThiefScepterChain,
-  grantThiefGroundAxe,
+  expireThievesGuild,
   grantDistractingThrowWindow,
-  unsuspectingStrikeBonus,
+  grantThiefGroundAxe,
+  prepareTrap,
   startThievesGuild,
+  summonThievesGuild,
   THIEF_GUILD_ATTACK,
   THIEF_GUILD_EXPIRY,
   THIEF_SCEPTER_CHAIN_EXPIRY,
-  thievesGuildAttack,
   thiefTrapAvailability,
-  transitionThiefScepterChain
+  thievesGuildAttack,
+  transitionThiefScepterChain,
+  unsuspectingStrikeBonus,
+  updateSpearChain
 } from '#gw2/professions/thief/core/mechanics/weapons.js';
 import {
   completeThiefCastTraits,
   reactThiefCoreCondition,
-  reactThiefCoreDamage,
-  startThiefDodge
-} from '#gw2/professions/thief/core/traits/index.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+  reactThiefCoreDamage
+} from '#gw2/professions/thief/core/traits/dispatch.js';
+import { emitThiefStealTraits } from '#gw2/professions/thief/core/traits/steal.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
-import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
 /**
  * Core gates for endurance, follow-up windows, spear stages, preparations, stealth replacements, rifle stance, stored
@@ -147,17 +148,7 @@ function thiefAvailability(runtime: ThiefRuntime, rawSkill: Skill): Availability
 function thiefRechargeWork(runtime: ThiefRuntime, rawSkill: Skill, work: number): number {
   const skill = rawSkill as ThiefSkill;
   if (!skill.stealTraitSkill || skill.stealRechargeMode !== 'additive') return work;
-  const leadAttacks = hasTrait(runtime, TRAIT.LEAD_ATTACKS);
-  const sleightOfHand = hasTrait(runtime, TRAIT.SLEIGHT_OF_HAND);
-  const lead = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, PROFILE.leadAttacks),
-    'rechargeMultiplier'
-  );
-  const sleight = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, PROFILE.sleightOfHand),
-    'rechargeMultiplier'
-  );
-  return work * (1 - Number(leadAttacks) * (1 - lead) - Number(sleightOfHand) * (1 - sleight));
+  return work * (1 - leadAttacksRechargeReduction(runtime) - sleightOfHandRechargeReduction(runtime));
 }
 
 const THIEF_CORE_COMPLETE = 'thief.core-complete';
@@ -221,18 +212,6 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     startThievesGuild(runtime);
   },
   availability: thiefAvailability,
-  rechargeRules: [
-    {
-      trait: TRAIT.LEAD_ATTACKS,
-      when: (_runtime, skill) => Boolean(skill.stealTraitSkill) && skill.stealRechargeMode !== 'additive',
-      multiplier: { profile: PROFILE.leadAttacks, field: 'rechargeMultiplier' }
-    },
-    {
-      trait: TRAIT.SLEIGHT_OF_HAND,
-      when: (_runtime, skill) => Boolean(skill.stealTraitSkill) && skill.stealRechargeMode !== 'additive',
-      multiplier: { profile: PROFILE.sleightOfHand, field: 'rechargeMultiplier' }
-    }
-  ],
   rechargeWork: thiefRechargeWork,
   // A Double Edge recast while recharging keeps the running recharge instead of reserving a new one.
   reserveRecharge: (runtime, skill, work) =>
@@ -256,65 +235,6 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   onCooldownReset(runtime) {
     restartThiefInfiltratorsSignet(runtime);
   },
-  // Removed Might leaves Assassin's Fury's ICD untouched; accepted self Fury retains its causal identity.
-  traitTriggers: [
-    // Siphon profiles own critical-hit policy; only eligible stealth attacks claim the ICD.
-    {
-      trait: TRAIT.SHADOW_SIPHONING,
-      emit: PROFILE.shadowSiphoning,
-      on: 'damage.resolved',
-      icd: 'profile',
-      when: (runtime, event) =>
-        event.actorType === 'player' &&
-        Number(event.coefficient) > 0 &&
-        Boolean(
-          (runtime.helpers.skillsById.get(event.skillId!) || runtime.helpers.skillsByName.get(event.skillName!))
-            ?.stealthAttack
-        ) &&
-        Boolean(
-          requireEffect(
-            requireBalanceProfileFromContext(runtime, PROFILE.shadowSiphoning),
-            'strike',
-            'Shadow Siphoning'
-          )
-        ),
-      effects: (effect) => effect.type === 'strike' && effect.name === 'Shadow Siphoning',
-      attribution: (_runtime, event) => ({
-        skillId: TRAIT.SHADOW_SIPHONING,
-        skillName: 'Shadow Siphoning',
-        triggeredBy: event.skillName
-      })
-    },
-    {
-      trait: TRAIT.CLOAKED_IN_SHADOW,
-      emit: PROFILE.cloakedInShadow,
-      on: 'condition.applied',
-      when: (_runtime, event) => event.condition === 'Blindness',
-      effects: (effect) => effect.type === 'strike' && effect.name === 'Cloaked in Shadow',
-      attribution: (_runtime, event) => ({
-        skillId: TRAIT.CLOAKED_IN_SHADOW,
-        skillName: 'Cloaked in Shadow',
-        triggeredBy: event.skillName
-      })
-    },
-    {
-      trait: TRAIT.ASSASSINS_FURY,
-      on: 'buff.applied',
-      emit: PROFILE.assassinsFury,
-      icd: 'profile',
-      when: (runtime, event) =>
-        (event.kind || '').toLowerCase() === 'fury' &&
-        Boolean(event.resolvedAudience?.includesSelf) &&
-        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.assassinsFury), 'boon', 'Might')),
-      effects: (effect) => effect.type === 'boon' && effect.name === 'Might',
-      attribution: (_runtime, event) => ({
-        skillId: TRAIT.ASSASSINS_FURY,
-        skillName: "Assassin's Fury",
-        name: "Assassin's Fury - might",
-        triggeredBy: event.skillName
-      })
-    }
-  ],
   reactions: {
     'damage.resolving'(runtime, event) {
       return modifyThiefLifeSiphon(runtime, event);

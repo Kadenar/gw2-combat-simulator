@@ -1,18 +1,20 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-
 import { createDefaultBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { createGw2CombatQuery, gw2StatsForWeaponSet } from '#gw2/platform/combat/query/combat-query.js';
+import { resolveProfessionContract } from '#gw2/platform/engine/profession/contract.js';
+import { PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
+import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { resolveProfessionContract } from '#gw2/platform/engine/profession/contract.js';
-import { createGw2CombatQuery, gw2StatsForWeaponSet } from '#gw2/platform/combat/query/combat-query.js';
-import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
-import { PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 // Attribute assertions use the same calculator composed into the Mesmer adapter.
-const calculateAttributes = createCalculateAttributes(applyMesmerBuildAttributeRules);
+const calculateAttributes = createCalculateAttributes(
+  applyMesmerBuildAttributeRules,
+  mesmerProfession.traitBuildAttributes
+);
 const defaults = () => createDefaultBuild(mesmerAppAdapter);
 
 test('new prefixes load in every gear slot and use ascended attribute budgets', () => {

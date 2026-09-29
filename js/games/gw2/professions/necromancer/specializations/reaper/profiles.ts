@@ -1,16 +1,7 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 export const REAPER_BALANCE_PROFILE_IDS = Object.freeze({
-  resources: 'necromancer.reaper.resources',
-  deathlyChill: TRAIT.DEATHLY_CHILL,
-  chillingNova: TRAIT.CHILLING_NOVA,
-  shiversOfDread: TRAIT.SHIVERS_OF_DREAD,
-  auguryOfDeath: TRAIT.AUGURY_OF_DEATH,
-  chillingVictory: TRAIT.CHILLING_VICTORY,
-  blightersBoon: TRAIT.BLIGHTERS_BOON,
-  reapersOnslaught: TRAIT.REAPERS_ONSLAUGHT
+  resources: 'necromancer.reaper.resources'
 });
 
 export const REAPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
@@ -20,81 +11,5 @@ export const REAPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     profileKind: 'mechanic',
     lifeForceDrain: 4,
     effects: []
-  },
-  trait(REAPER_BALANCE_PROFILE_IDS.deathlyChill, 'Deathly Chill', {
-    effects: [
-      {
-        name: 'Bleeding',
-        type: 'condition',
-        condition: 'Bleeding',
-        stacks: 4,
-        duration: 4,
-        actorType: 'effect'
-      }
-    ]
-  }),
-  trait(REAPER_BALANCE_PROFILE_IDS.chillingNova, 'Chilling Nova', {
-    cooldown: 3,
-    criticalChance: 1,
-    effects: [
-      {
-        name: 'Strike',
-        type: 'strike',
-        coefficient: 1.125,
-        hits: 1,
-        actorType: 'effect'
-      },
-      {
-        name: 'Chilled',
-        type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 2,
-        actorType: 'effect'
-      }
-    ]
-  }),
-  trait(REAPER_BALANCE_PROFILE_IDS.shiversOfDread, 'Shivers of Dread', {
-    effects: [
-      {
-        name: 'Chilled',
-        type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 2,
-        actorType: 'effect'
-      }
-    ]
-  }),
-  trait(REAPER_BALANCE_PROFILE_IDS.auguryOfDeath, 'Augury of Death', {
-    effects: [
-      {
-        name: 'Strike',
-        type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        // The simulator assumes melee range, doubling the base siphon and its power scaling.
-        flatStrikeBase: 344,
-        flatStrikePowerCoeff: 0.025,
-        actorType: 'effect',
-        canCrit: false,
-        damageKind: 'life-steal'
-      }
-    ]
-  }),
-  trait(REAPER_BALANCE_PROFILE_IDS.chillingVictory, 'Chilling Victory', {
-    cooldown: 1,
-    lifeForceGain: 1
-  }),
-  trait(REAPER_BALANCE_PROFILE_IDS.blightersBoon, "Blighter's Boon", {
-    lifeForceGain: 1
-  }),
-  trait(TRAIT.DECIMATE_DEFENSES, 'Decimate Defenses', {
-    maximumStacks: 25,
-    criticalChancePerStack: 0.02
-  }),
-  trait(REAPER_BALANCE_PROFILE_IDS.reapersOnslaught, "Reaper's Onslaught", {
-    attributeBonus: 300,
-    rechargeReduction: 1
-  })
+  }
 ]);

@@ -1,23 +1,23 @@
-import { expireCharges } from '#gw2/platform/combat/resources/charges.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
+import { expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import {
   balanceProfileNumber,
   effectNumber,
-  requireEffect,
-  requireBalanceProfileFromContext
+  requireBalanceProfileFromContext,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
+import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   addSoulShards,
   consumeSoulShards,
   necromancerActiveBoonCompanionIds
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
+import { soulBarbsSiphonMultiplier } from '#gw2/professions/necromancer/core/traits/shroud.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
 const SHARD_EXPIRY = 'necromancer.soul-shards-expire';
 
@@ -48,11 +48,7 @@ export function perforate(runtime: NecromancerRuntime, event: Gw2ResolverEvent):
       skillWeapon: 'Unequipped',
       flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
       flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
-      flatStrikeMultiplier:
-        hasTrait(runtime, TRAIT.SOUL_BARBS) &&
-        runtime.query.timeline.timedActive('necromancer-soul-barbs', runtime.time)
-          ? 1.1
-          : 1,
+      flatStrikeMultiplier: soulBarbsSiphonMultiplier(runtime),
       flatStrikeHealthThreshold: balanceProfileNumber(profile, 'threshold'),
       flatStrikeThresholdMultiplier: balanceProfileNumber(profile, 'damageMultiplier'),
       canCrit: strike.canCrit !== false,

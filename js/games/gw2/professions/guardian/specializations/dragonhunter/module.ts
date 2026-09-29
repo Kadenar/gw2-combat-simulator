@@ -1,13 +1,14 @@
-import { projectDragonhunterPlanningState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
-import { dragonhunterModifiers } from '#gw2/professions/guardian/specializations/dragonhunter/modifiers.js';
 import { dragonhunterHooks } from '#gw2/professions/guardian/specializations/dragonhunter/hooks.js';
-import { DRAGONHUNTER_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/dragonhunter/skills/index.js';
-import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
-
 import { bindDragonhunterUi } from '#gw2/professions/guardian/specializations/dragonhunter/presentation.js';
 import { DRAGONHUNTER_BALANCE_PROFILES } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
+import { DRAGONHUNTER_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/dragonhunter/skills/index.js';
+import {
+  dragonhunterState,
+  projectDragonhunterPlanningState
+} from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
+import { dragonhunterTraits } from '#gw2/professions/guardian/specializations/dragonhunter/traits/index.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const dragonhunterModule = defineNativeModule({
@@ -21,7 +22,7 @@ export const dragonhunterModule = defineNativeModule({
     create: dragonhunterState.create,
     project: projectDragonhunterPlanningState
   },
-  modifiers: dragonhunterModifiers,
+  traitDefinitions: dragonhunterTraits,
   hooks: dragonhunterHooks,
   presentation: bindDragonhunterUi
 });

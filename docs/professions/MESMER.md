@@ -21,6 +21,30 @@ resources, and Continuum actions select registered `mesmer.*` handler strategies
 are labels only — routing, resource causes, flips, trait decisions, and timing all key off IDs, and legacy name
 rotations are resolved at the build-migration boundary.
 
+All 66 implemented traits have one native definition: 29 Core, nine Chronomancer, ten Mirage, eight Virtuoso, and ten
+Troubadour. Core definitions live in `traits/chaos.ts`, `domination.ts`, `dueling.ts`, and `illusions.ts`; the Core
+index collects them in registration order. Each elite owns its definitions and registration array in `traits/index.ts`.
+Owners supply profiles, modifiers, build callbacks, triggers, recharge rules, hooks, and imperative decisions. Shared
+mechanics retain illusion entities, resources, and packet emission.
+
+Runtime callers import supporting `traits/behavior.ts` functions directly. Core's `traits/dispatch.ts` preserves
+post-shatter ordering; Chronomancer retains `traits/time-bomb.ts` for delayed explosions, and Troubadour retains
+`traits/performance.ts` and `traits/syncopate.ts` for instrument rewards and delayed waves. Behavior never imports trait
+definitions. The Core hook registry directly owns the observable phantasm event markers.
+
+Critical reactions preserve Master Fencer before Sharper Images, then Fencer's Finesse; shatters preserve Maim before
+Illusionary Membrane. Master of Fragmentation owns each specialization's pre-emission transformation. Applied stack and
+buff windows retain their lifetime without current selection. Chronomancer keeps Continuum restoration in mechanics;
+Mirage passes lexical ambush and mirror callbacks to ordered trait helpers. Virtuoso retains Deadly Blades before Jagged
+Mind and its existing Bloodsong thresholds. Its modifier collector installs the Dueling-owned extra Phantasmal Fury rule
+at the original elite boundary. Troubadour keeps instrument snapshots and player/afterimage emission in mechanics;
+owners implement Crescendo, Syncopate, Harmonize, dodge, and note decisions.
+
+Build callbacks consume active patch values. Runtime attributes retain build provenance and the existing per-query
+fixed-value cache while reading live stacks. Intrinsic Harmonize and Symphonic Resonance preserve their existing
+selection-independent behavior. Generated identity metadata remains in `data/`. See the
+[S5 migration record](../architecture/TRAIT-DEFINITIONS-PLAN.md#s5-progress-mesmer).
+
 ## Implemented systems
 
 - **Core** — weapon sets with a ten-second in-combat swap recharge (none out of combat), clone/phantasm/shatter

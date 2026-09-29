@@ -17,10 +17,10 @@ Unless noted otherwise, paths below are relative to `js/games/gw2/professions/el
   but contain Core plus only the selected specialization.
 - `profession.ts` composes the build codec, modules, autoattack-chain transition policy, family UI, and catalog options
   into the stable profession contract. The browser adapter applies active patch-preview decoration separately.
-- `core/module.ts` registers Core through `defineNativeModule()`. Its `data`, `state`, `mechanics`, and `presentation`
-  sections are the Core ownership boundary.
-- `specializations/<name>/module.ts` registers each elite specialization through the same four sections. Elite state and
-  behavior stay inside the active specialization slice rather than leaking into Core.
+- `core/module.ts` registers Core through `defineNativeModule()`. Its `data`, `state`, `hooks`, `modifiers`,
+  `traitDefinitions`, and `presentation` sections are the Core ownership boundary.
+- `specializations/<name>/module.ts` registers each elite specialization through the same ownership sections. Elite
+  state and behavior stay inside the active specialization slice rather than leaking into Core.
 - `data/module-data.ts` joins owner-authored skill mechanics to generated GW2 API identity metadata, applies
   Elementalist-specific catalog transformations, and returns only the catalog entries owned by the requesting module.
 - `family-state.ts` projects the nested runtime state into the stable public end-state record exposed by simulation
@@ -30,6 +30,30 @@ Unless noted otherwise, paths below are relative to `js/games/gw2/professions/el
   bundle transitions rather than ordinary in-combat equipment swaps.
 - `app/app-definition.ts` adapts the profession contract for the shared browser shell, including build-time attributes,
   starting resources, weapon selection, and skill availability.
+
+Persisting Flames is defined in `core/traits/fire.ts`; `core/traits/persisting-flames.ts` retains its pre-emission
+effect/field transformations. Ordered calls in `core/mechanics/reactions.ts` grant its buffs before Shattering Stone on
+damage and after Strength of Stone on Burning applications; shared resolver state retains the buff lifetime. Tooltips
+read the modifier's authoritative stack cap. The remaining Core definitions live in their five `core/traits/<line>.ts`
+owners.
+
+Core registers 45 trait definitions; Tempest registers 11, Weaver 9, Catalyst 10, and Evoker 11 from their
+`specializations/<name>/traits/index.ts` owners, which also export each elite's registration array. Profiles,
+declarative modifiers, build contributions, and ordinary triggers live with those definitions. The Core index collects
+line definitions in registration order; `core/traits/dispatch.ts` preserves ordered runtime calls. Supporting behavior
+lives in `attunements.ts`, `critical-procs.ts`, and `behavior.ts`. Live attribute passes and critical procs retain
+explicit calls so resource and reaction order stay unchanged. Shared state still owns ICDs, Fresh Air wakes, Bountiful
+Power progress, and timed buff applications.
+
+Tempest keeps overload availability, lockouts, Lightning Jolt, and scheduler work in mechanics. Its trait helpers own
+hit-derived alacrity, completion auras, shout rewards, and aura windows. The shared overload profile retains its
+existing patch IDs and supplies singularity tuning to Transcendent Tempest. Weaver retains dual-attunement and stance
+execution in mechanics, with explicit trait calls at initialization, accepted entry, and committed completion. Catalyst
+traits own empowerment renewal and aura/combo reactions while sphere execution and resource accounting remain in
+mechanics. Evoker traits own familiar rewards, synthetic entry policy, recharge adjustments, and enchantment payloads;
+skill casts and deferred resource settlement retain their existing scheduler boundaries. See the
+[trait migration inventory](../architecture/TRAIT-DEFINITIONS-PLAN.md#s5-progress-elementalist) for retained state, call
+sites, and ordering.
 
 ## Owned systems
 

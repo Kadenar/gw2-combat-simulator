@@ -5,14 +5,14 @@ import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { migrateRangerBuild } from '#gw2/professions/ranger/build/build.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
+import { rangerCoreCriticalReactions } from '#gw2/professions/ranger/core/traits/behavior.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import { rangerCoreCriticalReactions } from '#gw2/professions/ranger/core/traits/skirmishing.js';
-import { rangerCoreModifierRules } from '#gw2/professions/ranger/core/modifiers.js';
-import { druidModifierRules } from '#gw2/professions/ranger/specializations/druid/modifiers.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { druidModule } from '#gw2/professions/ranger/specializations/druid/module.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 const baseConfig = Object.freeze({
   initialAstralForce: 100,
@@ -222,10 +222,12 @@ test('Ranger evade skills and dodges trigger Light on Your Feet', () => {
 });
 
 test('Light on Your Feet and Natural Balance add condition duration', () => {
-  const lightOnYourFeet = rangerCoreModifierRules.find(
+  const lightOnYourFeet = rangerCoreModule.modifiers.modifierRules.find(
     ({ id }) => id === 'ranger.light-on-your-feet-condition-duration'
   );
-  const naturalBalance = druidModifierRules.find(({ id }) => id === 'ranger.natural-balance-condition-duration');
+  const naturalBalance = druidModule.modifiers.modifierRules.find(
+    ({ id }) => id === 'ranger.natural-balance-condition-duration'
+  );
 
   for (const rule of [lightOnYourFeet, naturalBalance]) {
     assert.equal(rule.target, 'conditionDuration');

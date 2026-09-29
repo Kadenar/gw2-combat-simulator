@@ -1,31 +1,34 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-import { MODIFIER_HOOK_NAMES, assertDefinition, defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-contract.js';
-import { compileGw2ModifierRules } from '#gw2/platform/combat/modifiers.js';
-import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
-import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/compose.js';
-import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
-import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
-import type { RuntimeProfession, Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
-import { denyCast, selectedSlotSkillAvailability } from '#gw2/platform/engine/skills/availability.js';
+import type { Gw2Build, Gw2TraitBuildAttributeCalculator } from '#gw2/platform/builds/types.js';
+import { compileGw2ModifierRules } from '#gw2/platform/combat/modifiers.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
+import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
+import { MODIFIER_HOOK_NAMES, assertDefinition, defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import type {
   NormalizedProfessionContract,
   ProfessionHook,
   ProfessionModifierDefinition
 } from '#gw2/platform/engine/profession/types.js';
+import { denyCast, selectedSlotSkillAvailability } from '#gw2/platform/engine/skills/availability.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
+import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/compose.js';
+import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type { Gw2Build } from '#gw2/platform/builds/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { Gw2ProfessionContract } from '#gw2/platform/simulation/types.js';
 
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
 import {
-  getNativeCatalogAssembly,
-  assembleNativeRuntimeCatalog
+  assembleNativeRuntimeCatalog,
+  getNativeCatalogAssembly
 } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import { defineTraitProfile } from '#gw2/platform/profession-definition/balance-profiles.js';
 import type {
   AnyNativeModule,
   NativeModule,
@@ -34,10 +37,10 @@ import type {
   NativeProfessionDefinition,
   NativeProfessionRuntimeState
 } from '#gw2/platform/profession-definition/module-types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { validateAutoattackChainOptions } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
+import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { validateAutoattackChainOptions } from '#gw2/platform/skills/autoattack-chain-controller.js';
 
 /** Policies a family exposes for capacity previews; their maximum reads only configuration and catalog. */
 type ProfessionResourcePreview = ResourcePolicies & { readonly endurance?: EndurancePolicy };
@@ -49,7 +52,16 @@ function assertObject(value: object | null | undefined, label: string): void {
 }
 
 /** Every field a module shell may declare; `kind` is stamped by `defineNativeModule` itself. */
-const NATIVE_MODULE_FIELDS = Object.freeze(['id', 'kind', 'data', 'state', 'modifiers', 'hooks', 'presentation']);
+const NATIVE_MODULE_FIELDS = Object.freeze([
+  'id',
+  'kind',
+  'data',
+  'state',
+  'modifiers',
+  'hooks',
+  'presentation',
+  'traitDefinitions'
+]);
 
 function assertNativeModuleDefinition(definition: object): void {
   assertObject(definition, 'Native profession module');
@@ -112,12 +124,59 @@ export function defineNativeModule<
   definition: NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation>
 ): NativeModule<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation> {
   assertNativeModuleDefinition(definition);
+  if (definition.traitDefinitions != null && !Array.isArray(definition.traitDefinitions))
+    throw new TypeError(`${definition.id}.traitDefinitions must be an array.`);
+  const traits = definition.traitDefinitions?.map(defineTrait) ?? [];
+  const sourceModifiers: ProfessionModifierDefinition = Array.isArray(definition.modifiers)
+    ? { modifierRules: definition.modifiers }
+    : ((definition.modifiers as ProfessionModifierDefinition | undefined) ?? {});
+  // Expand once at registration. Preview reconstruction consumes these views without reinstalling base declarations.
+  const traitRules = traits.flatMap((trait) =>
+    (trait.modifierRules ?? []).map(({ requiresSelection = true, ...rule }) => ({
+      ...rule,
+      when: (context: Parameters<NonNullable<typeof rule.when>>[0]) =>
+        (!requiresSelection || hasTrait(context, trait.id)) && (rule.when?.(context) ?? true)
+    }))
+  );
+  const hooks = traits.length
+    ? {
+        ...composeRuntimeHooks<never>([
+          ...traits.flatMap((trait) => (trait.hooks ? [trait.hooks] : [])),
+          definition.hooks ?? {}
+        ]),
+        traitTriggers: [
+          ...(definition.hooks?.traitTriggers ?? []),
+          ...traits.flatMap((trait) => (trait.triggers ?? []).map((rule) => ({ ...rule, trait: trait.id })))
+        ],
+        rechargeRules: [
+          ...(definition.hooks?.rechargeRules ?? []),
+          ...traits.flatMap((trait) => (trait.rechargeRules ?? []).map((rule) => ({ ...rule, trait: trait.id })))
+        ]
+      }
+    : definition.hooks;
   return Object.freeze({
     ...definition,
     kind: 'native-profession-module' as const,
-    data: Object.freeze({ ...definition.data }),
+    ...(definition.traitDefinitions ? { traitDefinitions: Object.freeze(traits) } : {}),
+    data: Object.freeze({
+      ...definition.data,
+      ...(traits.length
+        ? {
+            balanceProfiles: Object.freeze([
+              ...(definition.data.balanceProfiles ?? []),
+              ...traits.flatMap((trait) => [
+                ...(trait.balance ? [defineTraitProfile(trait.balance.id ?? trait.id, trait.name, trait.balance)] : []),
+                ...(trait.profiles ?? [])
+              ])
+            ])
+          }
+        : {})
+    }),
+    modifiers: traitRules.length
+      ? { ...sourceModifiers, modifierRules: [...(sourceModifiers.modifierRules ?? []), ...traitRules] }
+      : definition.modifiers,
     state: Object.freeze({ ...definition.state }),
-    hooks: definition.hooks ? Object.freeze({ ...definition.hooks }) : undefined,
+    hooks: hooks ? Object.freeze({ ...hooks }) : undefined,
     presentation:
       typeof definition.presentation === 'function'
         ? definition.presentation
@@ -241,6 +300,43 @@ export function defineNativeProfession<
   const modules = definition.modules as readonly AnyNativeModule[];
   for (const module of modules) assertNativeModuleDefinition(module);
   const assembly = getNativeCatalogAssembly(modules, definition.catalog);
+  // Ownership and declarative references are checked before lazy runtime compilation, including inactive elites.
+  const traitOwners = new Set<string>();
+  const ruleOwners = new Set<string>();
+  for (const module of modules) {
+    for (const trait of module.traitDefinitions ?? []) {
+      if (traitOwners.has(String(trait.id))) throw new TypeError(`Duplicate trait definition ${trait.id}.`);
+      traitOwners.add(String(trait.id));
+      if (!module.data.traits?.some((entry) => String(entry.id) === String(trait.id)))
+        throw new TypeError(`${module.id} trait definition ${trait.id} has no owned trait metadata.`);
+    }
+
+    const rules = Array.isArray(module.modifiers)
+      ? module.modifiers
+      : ((module.modifiers as ProfessionModifierDefinition | undefined)?.modifierRules ?? []);
+    for (const rule of rules) {
+      if (ruleOwners.has(rule.id)) throw new TypeError(`Duplicate modifier rule ${rule.id}.`);
+      ruleOwners.add(rule.id);
+    }
+
+    // A Core rule cannot refer to an inactive elite profile; elite rules may use Core contributions.
+    const profiles = new Map(
+      [...(modules[0].data.balanceProfiles ?? []), ...(module.data.balanceProfiles ?? [])].map((profile) => [
+        profile.id,
+        profile
+      ])
+    );
+    for (const trigger of module.hooks?.traitTriggers ?? [])
+      if (!profiles.has(trigger.emit))
+        throw new TypeError(`Unknown trait trigger profile ${trigger.emit} in ${module.id}.`);
+    for (const rule of module.hooks?.rechargeRules ?? [])
+      if (typeof rule.multiplier === 'object') {
+        const { profile, field } = rule.multiplier;
+        if (typeof profiles.get(profile)?.[field] !== 'number')
+          throw new TypeError(`Invalid recharge profile reference ${profile}.${field} in ${module.id}.`);
+      }
+  }
+
   const core = modules[0];
   const specializations = new Map(modules.slice(1).map((module) => [module.id, module]));
   const build = normalizeProfessionBuild(definition.id, definition.build);
@@ -294,7 +390,7 @@ export function defineNativeProfession<
   }
 
   const resolveProfession = (config: Readonly<ProfessionConfig> = {}) =>
-    selectionFor((config.specialization || 'Core').trim() || 'Core').source;
+    selectionFor((config.specialization || 'Core').trim() || 'Core').source as Gw2ProfessionContract<State>;
   /** Composes Core and the selected specialization's hooks over the resolved profession's catalog and modifiers. */
   function runtimeFor(config: Gw2Config): RuntimeProfession<State> {
     const specialization = config.specialization ?? 'Core';
@@ -306,17 +402,9 @@ export function defineNativeProfession<
     const hooks = (selected.map((module) => module.hooks ?? {}) as Partial<RuntimeProfession<State>>[]).map(
       compileProfessionRules
     );
-    const merged = <K extends 'tasks' | 'eventHandlers' | 'sideEffectHandlers'>(
-      key: K
-    ): RuntimeProfession<State>[K] => {
-      const entries = hooks.flatMap((hook) => Object.entries(hook[key] ?? {}));
-      if (new Set(entries.map(([name]) => name)).size !== entries.length)
-        throw new TypeError(`Duplicate hook ${key} owner.`);
-      return Object.fromEntries(entries) as RuntimeProfession<State>[K];
-    };
-
-    const stages = new Set(hooks.flatMap((hook) => Object.keys(hook.reactions ?? {}))) as Set<Gw2ResolverStage>;
+    const composed = composeRuntimeHooks(hooks);
     const runtime: RuntimeProfession<State> = {
+      ...composed,
       id: definition.id,
       catalog: source.catalog,
       projectPlanningState: source.projectPlanningState,
@@ -330,130 +418,29 @@ export function defineNativeProfession<
       modifyConditionBaseDuration: source.modifyConditionBaseDuration,
       // Preview and simulation share the same validated Core/elite state composition.
       createState: source.createState,
-      resources: Object.assign({}, ...hooks.map((hook) => hook.resources)),
-      endurance: [...hooks].reverse().find((hook) => hook.endurance)?.endurance,
-      playerAlacrityRechargeRate: [...hooks].reverse().find((hook) => hook.playerAlacrityRechargeRate != null)
-        ?.playerAlacrityRechargeRate,
       autoattackChainOverrides: definition.autoattackChains?.overrides,
       weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
-      initialize(context) {
-        for (const hook of hooks) hook.initialize?.(context);
-      },
       availability(context, skill, command) {
-        // Build eligibility precedes profession mechanics, including transformed skill bars.
         if (!isBuildSkillAvailable(skill, context.config))
           return denyCast('gw2.build-unavailable', `${skill.name} is unavailable for this build.`);
-        // Unequipped slot skills are rejected before any profession state gate can wait on them.
         if (definition.requireEquippedSlotSkills) {
           const slot = selectedSlotSkillAvailability({ config: context.config, catalog: context.helpers }, skill);
           if (slot) return slot;
         }
 
-        // A declared cost is paid from the live pool, so it rejects or waits before profession state gates.
         const cost = skillCostAvailability(context, skill);
-        let retryAt = context.time;
-        let blocked: ReturnType<NonNullable<RuntimeProfession<State>['availability']>> = { ready: true };
-        if (cost && !cost.ready) {
-          if (cost.retryAt == null) return cost;
-          retryAt = Math.max(retryAt, cost.retryAt);
-          blocked = { ...cost, retryAt };
-        }
-
-        for (const hook of hooks) {
-          const result = hook.availability?.(context, skill, command);
-          if (result && !result.ready) {
-            if (result.retryAt == null) return result;
-            retryAt = Math.max(retryAt, result.retryAt);
-            blocked = { ...result, retryAt };
-          }
-        }
-
-        return blocked;
-      },
-      castDurationMs(context, skill, durationMs) {
-        for (const hook of hooks) durationMs = hook.castDurationMs?.(context, skill, durationMs) ?? durationMs;
-        return durationMs;
-      },
-      castDetail(context, cast) {
-        let detail: string | undefined;
-        for (const hook of hooks) detail = hook.castDetail?.(context, cast) ?? detail;
-        return detail;
-      },
-      modifySkillId(context, skillId) {
-        for (const hook of hooks) skillId = hook.modifySkillId?.(context, skillId) ?? skillId;
-        return skillId;
-      },
-      modifyComboFields(context, cast, fields) {
-        for (const hook of hooks) fields = hook.modifyComboFields?.(context, cast, fields) ?? fields;
-        return fields;
-      },
-      modifyEffects(context, cast, effects) {
-        for (const hook of hooks) effects = hook.modifyEffects?.(context, cast, effects) ?? effects;
-        return effects;
-      },
-      prepareEvent(context, event) {
-        for (const hook of hooks) {
-          const prepared = hook.prepareEvent ? hook.prepareEvent(context, event) : event;
-          if (prepared === null) return null;
-          event = prepared;
-        }
-
-        return event;
-      },
-      onCastStart(context: Gw2Runtime<State>, cast: RuntimeCast) {
-        for (const hook of hooks) hook.onCastStart?.(context, cast);
-      },
-      onCastCommit(context, cast) {
-        for (const hook of hooks) hook.onCastCommit?.(context, cast);
-      },
-      onCastCancel(context, cast) {
-        for (const hook of hooks) hook.onCastCancel?.(context, cast);
-      },
-      onAutoattackChainTransition(context, cast, result) {
-        for (const hook of hooks) hook.onAutoattackChainTransition?.(context, cast, result);
-      },
-      onCooldownReset(context) {
-        for (const hook of hooks) hook.onCooldownReset?.(context);
-      },
-      onCombatStart(context) {
-        for (const hook of hooks) hook.onCombatStart?.(context);
-      },
-      tasks: merged('tasks'),
-      sideEffectHandlers: merged('sideEffectHandlers'),
-      eventHandlers: merged('eventHandlers'),
-      reactions: Object.fromEntries(
-        [...stages].map((stage) => [
-          stage,
-          (context: Gw2Runtime<State>, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
-            let updates: Record<string, unknown> | undefined;
-            for (const hook of hooks) {
-              const result = hook.reactions?.[stage]?.(context, updates ? { ...event, ...updates } : event, details);
-              if (result) updates = { ...updates, ...result };
-            }
-
-            return updates;
-          }
-        ])
-      ),
-      rechargeWork(context, skill, work) {
-        // Core and specialization modifiers compose before the runtime reserves the selected work.
-        for (const hook of hooks) work = hook.rechargeWork?.(context, skill, work) ?? work;
-        return work;
-      },
-      rechargeStart(context, cast, at) {
-        for (const hook of hooks) at = hook.rechargeStart?.(context, cast, at) ?? at;
-        return at;
-      },
-      maximumAmmo(context, skill, maximum) {
-        // Selected modules adjust the same pool cap used by cast acceptance and serial recharge.
-        for (const hook of hooks) maximum = hook.maximumAmmo?.(context, skill, maximum) ?? maximum;
-        return maximum;
-      },
-      reserveRecharge(context, skill, work) {
-        for (const hook of hooks) work = hook.reserveRecharge?.(context, skill, work) ?? work;
-        return work;
+        if (cost && !cost.ready && cost.retryAt == null) return cost;
+        const result = composed.availability!(context, skill, command);
+        if (!result.ready && result.retryAt == null) return result;
+        if (cost && !cost.ready)
+          return {
+            ...(!result.ready ? result : cost),
+            retryAt: Math.max(context.time, cost.retryAt, !result.ready ? result.retryAt : context.time)
+          };
+        return result;
       }
     };
+
     // Bind actions on base and profile effects after Core and elite handlers have been composed.
     for (const owner of [...runtime.catalog.skills, ...runtime.catalog.balanceProfiles]) {
       const actions = [
@@ -476,6 +463,30 @@ export function defineNativeProfession<
     weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
     catalog: assembly.catalog,
     nativeDefinition: Object.freeze({ ...definition }),
+    traitBuildAttributes: ((common, context, activeTraits) => {
+      const balanceContext = context.balanceContext ?? {
+        catalog: assembly.catalog,
+        modifierRulesById: new Map(
+          modules
+            .flatMap((module) =>
+              Array.isArray(module.modifiers)
+                ? module.modifiers
+                : ((module.modifiers as ProfessionModifierDefinition | undefined)?.modifierRules ?? [])
+            )
+            .map((rule) => [rule.id, rule])
+        )
+      };
+      const active = new Set(
+        activeTraits.filter((trait) => trait.name !== context.disabledTrait).map((trait) => trait.id)
+      );
+      return modules.flatMap((module) =>
+        (module.traitDefinitions ?? []).flatMap((trait) =>
+          trait.buildAttributes && hasTrait(active, trait.id)
+            ? [trait.buildAttributes(common, { ...context, balanceContext })]
+            : []
+        )
+      );
+    }) satisfies Gw2TraitBuildAttributeCalculator,
     ...build,
     resolveProfession,
     runtimeFor,
@@ -500,5 +511,5 @@ export function defineNativeProfession<
         })
       ));
     }
-  }) as NativeProfessionContract<TModules, TPresentation, TBuild>;
+  });
 }

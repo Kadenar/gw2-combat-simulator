@@ -36,6 +36,37 @@ through Core for Weaponmaster Training.
 Core, Reaper, Harbinger, and Ritualist shroud skills stay visible while the matching shroud is inactive but are disabled
 until entry; weapon/slot skills are disabled while a transformed bar is active.
 
+## Trait ownership
+
+All implemented traits have registered `defineTrait` owners: 47 Core, 10 Reaper, 9 Scourge, 11 Harbinger, and 7
+Ritualist (84 total). Core groups definitions by trait line; each elite groups its definitions under its own `traits/`
+directory. Core `traits/index.ts` collects line definitions; each elite `traits/index.ts` owns its definitions and
+registration array. Runtime consumers import behavior directly from `traits/behavior.ts` or the Core life-steal,
+conditions, carapace, shroud, reactions, and shroud-entry helpers. Native modules expand their profiles, modifier rules,
+triggers, recharge rules, hooks, and build contributions once. Build calculators compose
+`necromancerProfession.traitBuildAttributes`; the profession build wrapper retains the skill-owned Signet of Spite
+passive. `core/initial-state.ts` supplies canonical default trait tuning to state construction without making runtime
+state depend on definitions. Generated trait metadata and existing balance-profile identities remain unchanged.
+
+Explicit calls into trait helpers retain the boundaries that matter for state and ordering:
+
+- Core shroud preparation samples Carapace before entry grants and condition removal, then arms Plague Sending.
+  Post-entry effects run after specialization callbacks and resource refresh; automatic exits also refresh Soul Barbs.
+- Resolved strikes preserve siphon, target-health, Dhuumfire, critical-proc, and recipient-pool ordering. Minion
+  multipliers and successful life-force grants call their trait owners before shared resource accounting.
+- Attribute dispatchers preserve flat bonuses before conversions and reconcile already-calculated build attributes. Soul
+  Battery, Spiteful Fortitude, and Vital Persistence also own the maximum-health-derived resource contributions.
+- Scourge keeps shade replacement, expiry, barrier scheduling, and resource spending in mechanics. Trait helpers observe
+  the actual barrier or shade event; shroud-like casts call the shared Core trait owners.
+- Harbinger keeps Blight accrual, expiry, spending, and snapshots in mechanics. Cascading Corruption observes consumed
+  stacks before publication; Doom Approaches owns Dark Barrage's replacement profile and effect transformation.
+- Ritualist keeps spirit generations, autonomous schedules, and weapon-spell pools in mechanics. Trait helpers own
+  summon rewards, Soul Twisting consumption, Lingering Spirits lifetime policy, allied charges, and spirit multipliers.
+
+Applied siphons, scheduled passive pulses, and committed delayed work keep their existing lifetime rules. Trait helpers
+resolve active balance context at execution; removing one patchable effect does not recreate it from base values or
+remove independent rewards.
+
 ## Modeling boundaries
 
 Single-target, outgoing-damage focused. Ally healing/revival/barrier, dynamic enemy-boon tracking, projectile

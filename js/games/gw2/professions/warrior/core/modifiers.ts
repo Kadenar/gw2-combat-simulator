@@ -1,21 +1,15 @@
-import { modifySignetAttributes } from '#gw2/professions/warrior/core/skills/slot-skills.js';
-import { warriorDaggerSkillModifiers } from '#gw2/professions/warrior/core/skills/weapons/dagger.js';
-import { warriorBurstSkillModifiers } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import { modifyWarriorArmsAttributes, warriorArmsModifierRules } from '#gw2/professions/warrior/core/traits/arms.js';
-import { warriorDefenseModifierRules } from '#gw2/professions/warrior/core/traits/defense.js';
-import { warriorDisciplineModifierRules } from '#gw2/professions/warrior/core/traits/discipline.js';
-import { type WarriorModifierAttributes } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
+import { warriorBurstSkillModifiers } from '#gw2/professions/warrior/core/skills/profession-skills.js';
+import { modifySignetAttributes } from '#gw2/professions/warrior/core/skills/slot-skills.js';
+import { warriorDaggerSkillModifiers } from '#gw2/professions/warrior/core/skills/weapons/dagger.js';
 import {
+  modifyWarriorArmsAttributes,
   modifyWarriorStrengthAttributes,
-  warriorStrengthModifierRules
-} from '#gw2/professions/warrior/core/traits/strength.js';
-import {
-  modifyWarriorTacticsAttributes,
-  warriorTacticsModifierRules
-} from '#gw2/professions/warrior/core/traits/tactics.js';
+  modifyWarriorTacticsAttributes
+} from '#gw2/professions/warrior/core/traits/behavior.js';
+import type { WarriorModifierAttributes } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 
 function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = { ...attributes } as WarriorModifierAttributes;
@@ -39,13 +33,8 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
 }
 
 const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
-  ...warriorStrengthModifierRules,
-  ...warriorTacticsModifierRules,
-  ...warriorDefenseModifierRules,
-  ...warriorArmsModifierRules,
   ...warriorBurstSkillModifiers,
-  ...warriorDaggerSkillModifiers,
-  ...warriorDisciplineModifierRules
+  ...warriorDaggerSkillModifiers
 ]);
 
 export const warriorCoreModifiers = Object.freeze({

@@ -1,40 +1,40 @@
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import assert from 'node:assert/strict';
-import { readFile, readdir } from 'node:fs/promises';
-import path from 'node:path';
-import test from 'node:test';
-
 import {
   loadProfession,
   loadProfessionAppAdapter,
   professionOptions,
   professionRegistry
 } from '#gw2/profession-registry.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import {
   ELEMENTALIST_BUILD_SCHEMA_VERSION,
   createElementalistBuildDefaults,
   migrateElementalistBuild,
   validateElementalistBuild
 } from '#gw2/professions/elementalist/build/build.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { elementalistAttunementRechargeDuration } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
+import { elementalistRechargeWork } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/index.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/index.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/core/profiles.js';
-import { elementalistAttunementRechargeDuration } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { elementalistRechargeWork } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
-import { TEMPEST_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
-import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { CATALYST_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { TEMPEST_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
+import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
+import { flowStateAttunementReduction } from '#gw2/professions/elementalist/specializations/weaver/traits/attunements.js';
+import assert from 'node:assert/strict';
+import { readFile, readdir } from 'node:fs/promises';
+import path from 'node:path';
+import test from 'node:test';
 
 const applyElementalistPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(elementalistCatalog, patch), patch);
 
@@ -66,12 +66,15 @@ test('attunement recharge applies trait reductions in order and stays free befor
     cooldownController: { rate: () => 1.25 }
   };
   const skill = elementalistCatalog.skillsById.get(ID.FIRE_ATTUNEMENT);
-  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4), 1.92);
+  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4, flowStateAttunementReduction(context)), 1.92);
   // Weave Self's two-second base still receives both selected traits: (2 * 0.85 - 1) / 1.25.
-  assert.ok(Math.abs(elementalistAttunementRechargeDuration(context, skill, 2) - 0.56) < 1e-12);
+  assert.ok(
+    Math.abs(elementalistAttunementRechargeDuration(context, skill, 2, flowStateAttunementReduction(context)) - 0.56) <
+      1e-12
+  );
   context.combatActive = false;
-  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4), 0);
-  assert.equal(elementalistAttunementRechargeDuration(context, skill, 2), 0);
+  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4, flowStateAttunementReduction(context)), 0);
+  assert.equal(elementalistAttunementRechargeDuration(context, skill, 2, flowStateAttunementReduction(context)), 0);
 });
 
 // Validate evaluated catalogs so shared/generated packets and direct statuses cannot reintroduce off-grid offsets.
@@ -179,7 +182,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
       [ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental]: {
         fields: { durationMultiplier: { from: 120, to: 100 } }
       },
-      [ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.elementalEnchantment]: {
+      [TRAIT.ELEMENTAL_ENCHANTMENT]: {
         fields: { rechargeMultiplier: { from: 0.85, to: 0.8 } }
       },
       [TEMPEST_BALANCE_PROFILE_IDS.lightningJolt]: {

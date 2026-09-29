@@ -1,21 +1,22 @@
-import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { runNative } from '#tests/helpers/elementalist-simulation.js';
-import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { rotationSelectedSlotSkills } from '#gw2/app/rotation/palette/model.js';
-import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import { elementalistPistolSideEffects } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { availability as evokerAvailability } from '#gw2/professions/elementalist/specializations/evoker/mechanics/availability.js';
+import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
+import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
+import { elementalistPistolSideEffects } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
+import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { evokerModule } from '#gw2/professions/elementalist/specializations/evoker/module.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
+import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
+import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 test('every Elementalist specialization can prepare attunements without precombat recharge', () => {
   // Cover each recharge override, including Weave Self, with and without an explicit future combat marker.
@@ -427,13 +428,13 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
   };
 
   assert.equal(targetAttunement(fireAttunement), 'Fire');
-  assert.deepEqual(evokerAvailability(context, ignite), { ready: true });
+  assert.deepEqual(evokerModule.hooks.availability(context, ignite), { ready: true });
   state.element = 'Water';
-  assert.equal(evokerAvailability(context, ignite).code, 'elementalist.evoker-element');
+  assert.equal(evokerModule.hooks.availability(context, ignite).code, 'elementalist.evoker-element');
 
   const unravel = { ...elementalistCatalog.skillsById.get(ID.UNRAVEL), name: 'Renamed unravel' };
   assert.equal(
-    weaverHooks.availability({ config: { selectedTraitIds: [] } }, unravel).code,
+    weaverModule.hooks.availability({ config: { selectedTraitIds: [] } }, unravel).code,
     'elementalist.weaver-elements-of-rage'
   );
 
@@ -467,7 +468,7 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
     ...elementalistCatalog.skillsById.get(ID.PURBLINDING_PLASMA),
     name: 'Renamed Weaver pistol skill'
   };
-  assert.equal(compileProfessionRules(weaverHooks).rechargeWork(pistolContext, purblindingPlasma, 15), 10);
+  assert.equal(compileProfessionRules(weaverModule.hooks).rechargeWork(pistolContext, purblindingPlasma, 15), 10);
 });
 
 // Fire exit starts a delayed proc; its strike and Burning must land together.

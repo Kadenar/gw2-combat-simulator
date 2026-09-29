@@ -1,4 +1,5 @@
-import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import type { ActionContext } from '#gw2/platform/simulation/side-effects.js';
 import { scheduleLanding } from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
 import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { revenantCoreModule } from '#gw2/professions/revenant/core/module.js';
@@ -10,13 +11,13 @@ import { vindicatorModule } from '#gw2/professions/revenant/specializations/vind
 // Kept apart from profession.ts because build/ reads the catalog while profession.ts imports build/.
 export const revenantNativeModules = Object.freeze([
   // Dodge is Core-owned in every catalog, so register its guarded elite action at the family boundary.
-  defineNativeModule({
+  Object.freeze({
     ...revenantCoreModule,
     hooks: {
       ...revenantCoreModule.hooks,
       sideEffectHandlers: {
         ...revenantCoreModule.hooks?.sideEffectHandlers,
-        'revenant.vindicator-dodge'(runtime, context) {
+        'revenant.vindicator-dodge'(runtime: RevenantRuntime, context: ActionContext) {
           if (context.kind === 'cast') scheduleLanding(runtime, context.cast, context.cast.start);
         }
       }

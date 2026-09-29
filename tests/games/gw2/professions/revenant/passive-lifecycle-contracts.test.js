@@ -1,3 +1,7 @@
+import { heraldModule } from '#gw2/professions/revenant/specializations/herald/module.js';
+const heraldPassiveModifierRules = heraldModule.modifiers.modifierRules.filter((rule) =>
+  rule.id.startsWith('revenant.draconic-echo-')
+);
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { revenantProfession, revenantCatalog } from '#gw2/professions/revenant/profession.js';
@@ -9,10 +13,7 @@ import {
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { createHeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
-import {
-  heraldPassiveModifierRules,
-  modifyHeraldPassiveAttributes
-} from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
+import { modifyHeraldPassiveAttributes } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
 import { revenantCoreModifiers } from '#gw2/professions/revenant/core/modifiers.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';

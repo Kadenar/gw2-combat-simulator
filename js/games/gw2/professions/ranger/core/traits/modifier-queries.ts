@@ -1,9 +1,14 @@
-/** Shares Ranger modifier queries across player and pet rule collections. */
 import { buffApplicationStacks, GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
-import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
+import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
+
+/** Shares Ranger modifier queries across player and pet rule collections. */
 
 export function rangerPetEvent(context: Gw2ModifierContext): boolean {
   // Pet modifiers require both canonical summon classification and Ranger-specific source ownership.
@@ -50,4 +55,20 @@ export function rangerTargetImpaired(context: Gw2ModifierContext): boolean {
   return ['Chilled', 'Crippled', 'Immobilized', 'Taunt', 'Fear'].some((condition) =>
     targetConditionActive(context, condition)
   );
+}
+
+export function weaponSetIncludes(context: Gw2ModifierContext, weaponSet: number, names: readonly string[]): boolean {
+  const weapons = gw2ConfiguredWeaponSet(context.config, weaponSet);
+  return weapons.some((weapon) => names.includes(weapon || ''));
+}
+
+export function activePetFamily(context: RangerModifierContext): string {
+  const activePet = readProfessionCoreState<{ activePet?: string }>(context.runtime?.profession).activePet;
+  return rangerPetByName(activePet || context.config?.selectedPet || 'Pig').family;
+}
+
+export function positional(context: Gw2ModifierContext): boolean {
+  // Defiant is the positional proxy: a defiant golem never rotates, so
+  // flanking/behind bonuses always apply and need no separate control.
+  return Boolean(context.config?.target?.defiant);
 }

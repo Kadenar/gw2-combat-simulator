@@ -1,20 +1,21 @@
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { skillTaskAt } from '#gw2/platform/simulation/internal-work.js';
 import type { SkillTask } from '#gw2/platform/engine/skills/types.js';
-import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
+import { skillTaskAt } from '#gw2/platform/simulation/internal-work.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { withMesmerCastEmission } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
+import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { triggerDeceptiveEvasion } from '#gw2/professions/mesmer/core/traits/behavior.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { completeMirageSkill } from '#gw2/professions/mesmer/specializations/mirage/traits/self-deception.js';
-import { mirageEndurance } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
-import { mirageAvailability } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
+import {
+  mirageAvailability,
+  mirageEndurance
+} from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import {
   initializeMirageRuntime,
   mirageControllerFor
 } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import { withMesmerCastEmission } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { completeMirageSkill } from '#gw2/professions/mesmer/specializations/mirage/traits/behavior.js';
+import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 type TriggerData = { cast: RuntimeCast; trigger: SkillTask };
 
@@ -72,11 +73,7 @@ export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       const { cast } = data as TriggerData;
       const mechanics = mesmerMechanicsFor(runtime);
       mirageControllerFor(mechanics).grantMirageCloak(runtime.time, cast.skill.name);
-      if (hasTrait(runtime, TRAIT.DECEPTIVE_EVASION))
-        mechanics.resources.queueResources(runtime.time, 1, mechanics.activePrimaryWeapon(), 'Deceptive Evasion', {
-          traitId: TRAIT.DECEPTIVE_EVASION,
-          traitName: 'Deceptive Evasion'
-        });
+      triggerDeceptiveEvasion(runtime);
     }
   }
 };

@@ -1,132 +1,174 @@
-import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-/** Owns Core Ranger Wilderness Survival condition and control-triggered trait behavior. */
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
+  balanceProfileNumber,
   requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber,
-  balanceProfileNumber
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { isPetStrike, queueCondition } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import type { RangerRuntime, RangerResolverContext, RangerSkill } from '#gw2/professions/ranger/types.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
-// On an eligible heal, consume Child of Earth's ICD and emit the initial
-// immobilize followed by the profile-defined Muddy Terrain condition pulses.
-export function emitChildOfEarth(context: RangerRuntime, skill: RangerSkill): void {
-  if (!hasTrait(context, TRAIT.CHILD_OF_EARTH)) return;
+/** Owns Child of Earth's live tuning and trait behavior. */
+export const childOfEarth = defineTrait({
+  id: TRAIT.CHILD_OF_EARTH,
+  name: 'Child of Earth',
+  balance: {
+    internalCooldown: 20,
+    pulseInterval: 2,
+    maximumStacks: 5,
+    effects: [
+      {
+        name: 'Immobilized',
+        type: 'condition',
+        condition: 'Immobilized',
+        duration: 1,
+        stacks: 1
+      },
+      { name: 'Crippled', type: 'condition', condition: 'Crippled', duration: 2, stacks: 1 },
+      { name: 'Slow', type: 'condition', condition: 'Slow', duration: 1, stacks: 1 }
+    ]
+  }
+});
 
-  const profile = requireBalanceProfileFromContext(context, PROFILE.childOfEarth);
-  const immobilized = requireEffect(profile, 'condition', 'Immobilized');
-  // Pulse conditions keep their own identities, so removing one never rebinds another.
-  const pulses = [requireEffect(profile, 'condition', 'Crippled'), requireEffect(profile, 'condition', 'Slow')].filter(
-    (effect) => effect !== undefined
-  );
-  // The cooldown gates the lesser field; with every packet removed there is nothing to gate.
-  if (!immobilized && !pulses.length) return;
-  if (!context.procs.claim(PROFILE.childOfEarth, 'ranger.core.childOfEarth', context.time)) return;
-  const at = context.time;
-  if (immobilized)
-    context.emit(
-      rangerEvent(
-        {
-          at,
-          source: 'Trait',
-          actorType: 'effect',
-          skillId: TRAIT.CHILD_OF_EARTH,
-          skillName: 'Child of Earth',
-          name: 'Lesser Muddy Terrain - Immobilized',
-          condition: String(immobilized.condition),
-          duration: effectNumber(profile, immobilized, 'duration'),
-          stacks: effectNumber(profile, immobilized, 'stacks'),
-          triggeredBy: skill.name
-        },
-        'condition'
-      )
-    );
-  const applications = balanceProfileNumber(profile, 'maximumStacks');
-  const interval = balanceProfileNumber(profile, 'pulseInterval');
-  for (let application = 0; application < applications; application += 1) {
-    for (const effect of pulses) {
-      const condition = String(effect.condition);
-      context.emit(
-        rangerEvent(
-          {
-            at: at + application * interval,
-            source: 'Trait',
-            actorType: 'effect',
-            skillId: TRAIT.CHILD_OF_EARTH,
-            skillName: 'Child of Earth',
-            name: `Lesser Muddy Terrain - ${condition}`,
-            condition,
-            duration: effectNumber(profile, effect, 'duration'),
-            stacks: effectNumber(profile, effect, 'stacks'),
-            triggeredBy: skill.name
-          },
-          'condition'
-        )
-      );
+/** Owns Poison Master's live tuning and trait behavior. */
+export const poisonMaster = defineTrait({
+  id: TRAIT.POISON_MASTER,
+  name: 'Poison Master',
+  balance: {
+    effects: [{ name: 'Poisoned', type: 'condition', condition: 'Poisoned', duration: 8, stacks: 2 }]
+  },
+  modifierRules: [
+    {
+      order: 13,
+      id: 'ranger.poison-master',
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      operation: 'multiply',
+      factor: 1.25,
+      // The damage bonus is Ranger-owned; the separately triggered pet attack also resolves from Ranger stats.
+      when: (context) =>
+        context.condition === 'Poisoned' &&
+        isGw2PlayerModifierOwnedEvent(context.event) &&
+        hasTrait(context, TRAIT.POISON_MASTER)
     }
+  ]
+});
+
+/** Owns Arachnophobia's live tuning and trait behavior. */
+export const arachnophobia = defineTrait({
+  id: TRAIT.ARACHNOPHOBIA,
+  name: 'Arachnophobia',
+  balance: {
+    attributeBonus: 150,
+    weaponAttributeBonus: 225,
+    effects: [{ name: 'Torment', type: 'condition', condition: 'Torment', duration: 3, stacks: 1 }]
+  },
+  buildAttributes: (_common, { balanceContext: profileContext }) => {
+    const profile = requireBalanceProfileFromContext(profileContext, TRAIT.ARACHNOPHOBIA);
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          source: 'Arachnophobia',
+          to: 'Expertise',
+          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          feedsConversions: false
+        }
+      ]
+    };
   }
-}
+});
 
-export function triggerPoisonMaster(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const state = professionCoreState(context);
-  if (!state.poisonMasterPetAttackReady || !isPetStrike(event) || !(Number(event.coefficient) > 0)) {
-    return;
+/** Owns Carnivore's live tuning and trait behavior. */
+export const carnivore = defineTrait({
+  id: TRAIT.CARNIVORE,
+  name: 'Carnivore',
+  balance: {
+    internalCooldown: 0.25,
+    // Life stealing cannot crit and uses its own damage category.
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.05, hits: 1, canCrit: false, damageKind: 'life-steal' }]
+  },
+  triggers: [
+    {
+      order: 0,
+      emit: TRAIT.CARNIVORE,
+      on: 'control.resolved',
+      icd: 'profile',
+      when: (runtime, event) =>
+        (isPlayerStrike(event) || isPetStrike(event)) &&
+        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.CARNIVORE), 'strike', 'Strike')),
+      effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
+      attribution: (_runtime, event) => ({
+        skillId: TRAIT.CARNIVORE,
+        skillName: 'Carnivore',
+        name: 'Carnivore',
+        skillWeapon: 'Unequipped',
+        triggeredBy: event.skillName
+      })
+    }
+  ]
+});
+
+/** Owns Natural Vigor's live tuning and trait behavior. */
+export const naturalVigor = defineTrait({
+  id: TRAIT.NATURAL_VIGOR,
+  name: 'Natural Vigor',
+  balance: {
+    vigorRegenerationMultiplier: 0.25
   }
+});
 
-  const profile = requireBalanceProfileFromContext(context, PROFILE.poisonMaster);
-  const poison = requireEffect(profile, 'condition', 'Poisoned');
-  // The armed pet attack exists only to deliver poison, so a removed packet leaves it armed.
-  if (!poison) return;
-  state.poisonMasterPetAttackReady = false;
-  context.queue.enqueue(
-    buildResolverCondition({
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.POISON_MASTER,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillId: TRAIT.POISON_MASTER,
-      skillName: 'Poison Master',
-      name: 'Poison Master - Poisoned',
-      condition: String(poison.condition),
-      duration: effectNumber(profile, poison, 'duration'),
-      stacks: effectNumber(profile, poison, 'stacks'),
-      triggeredBy: event.skillName
-    })
-  );
-}
-
-export function triggerArachnophobia(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  if (
-    !isPetStrike(event) ||
-    !hasTrait(context, TRAIT.ARACHNOPHOBIA) ||
-    (event.skillId !== ID.SPIT && event.skillId !== ID.TWIN_DARTS)
-  ) {
-    return;
+/** Owns Ambidexterity's live tuning and trait behavior. */
+export const ambidexterity = defineTrait({
+  id: TRAIT.AMBIDEXTERITY,
+  name: 'Ambidexterity',
+  balance: {
+    weaponAttributeBonus: 240,
+    attributeBonus: 120,
+    rechargeMultiplier: 0.8
+  },
+  rechargeRules: [
+    {
+      order: 4,
+      when: (_runtime, skill) => ['Dagger', 'Torch'].includes(String(skill.weapon)),
+      multiplier: { profile: TRAIT.AMBIDEXTERITY, field: 'rechargeMultiplier' }
+    }
+  ],
+  buildAttributes: (_common, { balanceContext: profileContext, build, weaponSet }) => {
+    const profile = requireBalanceProfileFromContext(profileContext, TRAIT.AMBIDEXTERITY);
+    const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          source: 'Ambidexterity',
+          to: 'Condition Damage',
+          amount: balanceProfileNumber(
+            profile,
+            weapons.some((weapon) => ['Dagger', 'Mace', 'Torch'].includes(weapon))
+              ? 'weaponAttributeBonus'
+              : 'attributeBonus'
+          ),
+          feedsConversions: false
+        }
+      ]
+    };
   }
+});
 
-  const profile = requireBalanceProfileFromContext(context, PROFILE.arachnophobia);
-  const torment = requireEffect(profile, 'condition', 'Torment');
-  if (!torment) return;
-  // Twin Darts splits the trait's per-attack Torment across its two projectiles;
-  // single-hit spider Spit keeps the full duration.
-  const duration =
-    effectNumber(profile, torment, 'duration') / (event.skillId === ID.TWIN_DARTS ? Number(event.totalHits || 2) : 1);
-  queueCondition(
-    context,
-    event,
-    String(torment.condition),
-    duration,
-    effectNumber(profile, torment, 'stacks'),
-    TRAIT.ARACHNOPHOBIA,
-    'Arachnophobia'
-  );
-}
+/** Owns Survival Instincts's live tuning and trait behavior. */
+export const survivalInstincts = defineTrait({
+  id: TRAIT.SURVIVAL_INSTINCTS,
+  name: 'Survival Instincts',
+  modifierRules: [
+    {
+      order: 14,
+      id: 'ranger.survival-instincts',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'damage-additive',
+      amount: 0.15,
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.SURVIVAL_INSTINCTS)
+    }
+  ]
+});

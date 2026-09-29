@@ -9,6 +9,8 @@ import type {
  * that renders the main-hand / off-hand split. Everything here is a read-only
  * projection of scheduler or end state; none of it may mutate the simulation.
  */
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
@@ -17,30 +19,29 @@ import type {
   ProfessionWeaponPaletteView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { escapeHtml as esc } from '#ui/shared/html.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
-  ELEMENTALIST_WEAVER_SKILL_IDS
+  ELEMENTALIST_WEAVER_SKILL_IDS,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
+import { escapeHtml as esc } from '#ui/shared/html.js';
 
-import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
+import type { ElementalistBuildSpecialization } from '#gw2/professions/elementalist/build/types.js';
 import { elementalistUiState } from '#gw2/professions/elementalist/core/presentation.js';
+import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
 import {
   weaverDualAttunements,
   weaverWeaponAttunementAvailable
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
-import type { ElementalistBuildSpecialization } from '#gw2/professions/elementalist/build/types.js';
 
 const ATTUNEMENT_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS));
 
 // Unravel and its F5 palette group only exist when the trait is selected.
 function hasElementsOfRage(context: ElementalistUiContext): boolean {
   const build = context.build as { specializations?: readonly ElementalistBuildSpecialization[] } | undefined;
-  return getActiveTraits(build?.specializations || []).some((trait) => trait.name === 'Elements of Rage');
+  return getActiveTraits(build?.specializations || []).some((trait) => trait.id === TRAIT.ELEMENTS_OF_RAGE);
 }
 
 // An attunement swap changes Weaver's primary-hand bar immediately, but GW2

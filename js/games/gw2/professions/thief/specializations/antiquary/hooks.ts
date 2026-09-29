@@ -1,34 +1,48 @@
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { consumeOldestStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import {
-  THIEF_ARTIFACT_IDS,
-  THIEF_SKILL_IDS as ID,
-  THIEF_TRAIT_IDS as TRAIT
-} from '#gw2/professions/thief/data/ids.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import { emitThiefBuff, emitThiefCondition, emitThiefDamage } from '#gw2/professions/thief/core/events.js';
-import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { emitThiefStealTraits } from '#gw2/professions/thief/core/mechanics/steal.js';
-import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
-import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { ThiefDoubleEdgeOutcome, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
-import type { ThiefArtifactSlot } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { emitThiefCondition, emitThiefDamage } from '#gw2/professions/thief/core/events.js';
+import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
+import {
+  applyKleptomaniac,
+  emitThiefStealTraits,
+  improvisationArtifactUses,
+  reduceUtilityRecharges
+} from '#gw2/professions/thief/core/traits/steal.js';
+import { THIEF_SKILL_IDS as ID, THIEF_ARTIFACT_IDS } from '#gw2/professions/thief/data/ids.js';
+import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
+import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
+import type { ThiefArtifactSlot } from '#gw2/professions/thief/specializations/antiquary/state.js';
+import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
+import {
+  applyEnterprisingAristocrat,
+  applyExhilaratingEphemera,
+  applyPossessiveHoarder,
+  applyRepeatRansacker,
+  consumeScoundrelsLuck,
+  grantCombatHigh,
+  grantScoundrelsLuck,
+  prodigiousPincherReady,
+  prolificPlundererUses
+} from '#gw2/professions/thief/specializations/antiquary/traits/behavior.js';
+import {
+  applyMeticulousChakShield,
+  artifactWindow,
+  forgedSurferProfile,
+  meticulousKryptisDuration
+} from '#gw2/professions/thief/specializations/antiquary/traits/meticulous-custodian.js';
+import type { ThiefDoubleEdgeOutcome, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 
 const FORGED_SURFER = 'thief.forged-surfer';
 const SKRITT_SCUFFLE = 'thief.skritt-scuffle';
@@ -47,48 +61,6 @@ function allArtifactChoices(): ThiefArtifactSlot[] {
   ];
 }
 
-/** Scoundrel's Luck refreshes to its cap only when its internal cooldown is ready, so charges never bank. */
-function grantScoundrelsLuck(runtime: ThiefRuntime): void {
-  const state = antiquaryState.from(runtime);
-  if (
-    !hasTrait(runtime, TRAIT.SCOUNDRELS_LUCK) ||
-    !runtime.procs.claim(PROFILE.scoundrelsLuck, 'thief.antiquary.scoundrelsLuck', runtime.time)
-  )
-    return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.scoundrelsLuck);
-  state.scoundrelsLuck = balanceProfileNumber(profile, 'maximumStacks');
-}
-
-/** Combat High replaces its stacks with staggered expiries, losing one stack per interval. */
-function grantCombatHigh(runtime: ThiefRuntime): void {
-  if (!hasTrait(runtime, TRAIT.COMBAT_HIGH)) return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.combatHigh);
-  const maximum = Math.max(0, Math.trunc(balanceProfileNumber(profile, 'maximumStacks')));
-  const interval = balanceProfileNumber(profile, 'pulseInterval');
-  const expiresAt = runtime.time + balanceProfileNumber(profile, 'durationMultiplier');
-  antiquaryState.from(runtime).combatHighExpirations =
-    interval > 0
-      ? purgeExpiredStacks(
-          Array.from({ length: maximum }, (_, index) => expiresAt - index * interval),
-          runtime.time
-        )
-      : [];
-}
-
-/** Improvisation shortens every selected, still-recharging utility once per internal cooldown. */
-function reduceUtilityRecharges(runtime: ThiefRuntime): void {
-  if (!hasTrait(runtime, TRAIT.IMPROVISATION)) return;
-  // An eligible pilfer claims the interval even when no selected utility is recharging.
-  if (!runtime.procs.claim(CORE_PROFILE.improvisation, 'thief.antiquary.improvisation', runtime.time)) return;
-  const profile = requireBalanceProfileFromContext(runtime, CORE_PROFILE.improvisation);
-  const multiplier = balanceProfileNumber(profile, 'rechargeMultiplier');
-  for (const name of selectedSkillNameSet(runtime.config.selectedSkills)) {
-    const skill = runtime.helpers.skillsByName.get(name);
-    if (skill?.type === 'Utility')
-      runtime.cooldownController.reduceSkillRecharge(skill, gw2BaseRecharge(skill) * (1 - multiplier), runtime.time);
-  }
-}
-
 /**
  * Replaces the held artifacts. Prolific Plunderer and Improvisation add a use only for a Skritt Swipe pilfer, which
  * also refreshes Scoundrel's Luck and Combat High and applies Improvisation's utility reduction.
@@ -98,54 +70,13 @@ function pilferArtifacts(runtime: ThiefRuntime, source: 'swipe' | 'initiative' |
   state.artifactSlots = allArtifactChoices();
   state.artifactUsesRemaining =
     balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks') +
-    (source === 'swipe' && hasTrait(runtime, TRAIT.PROLIFIC_PLUNDERER)
-      ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.prolificPlunderer), 'resourceGain')
-      : 0) +
-    (source === 'swipe' && hasTrait(runtime, TRAIT.IMPROVISATION)
-      ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, CORE_PROFILE.improvisation), 'resourceGain')
-      : 0);
+    prolificPlundererUses(runtime, source) +
+    improvisationArtifactUses(runtime, source);
   state.initiativeSpentSincePilfer = 0;
   if (source !== 'swipe') return;
   grantScoundrelsLuck(runtime);
   grantCombatHigh(runtime);
   reduceUtilityRecharges(runtime);
-}
-
-/** Identity lifetimes use the live Meticulous profile at commitment. */
-function artifactWindow(runtime: ThiefRuntime): {
-  windows: ReturnType<typeof requireBalanceProfileFromContext>;
-  duration: number;
-} {
-  const windows = requireBalanceProfileFromContext(runtime, PROFILE.artifactWindows);
-  const duration = balanceProfileNumber(
-    windows,
-    hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? 'maximumStacks' : 'durationMultiplier'
-  );
-  return { windows, duration };
-}
-
-/** Possessive Hoarder grants the artifact family's boon plus Alacrity. */
-function possessiveHoarder(runtime: ThiefRuntime, cast: RuntimeCast, slot: ThiefArtifactSlot | undefined): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.possessiveHoarder);
-  const boons = [
-    ...(slot?.kind === 'offensive' ? [requireEffect(profile, 'boon', 'might')] : []),
-    ...(slot?.kind === 'defensive' ? [requireEffect(profile, 'boon', 'protection')] : []),
-    requireEffect(profile, 'boon', 'alacrity')
-  ];
-  for (const effect of boons) {
-    if (!effect) continue;
-    const boon = String(effect.boon);
-    emitThiefBuff(runtime, cast.skill, {
-      at: runtime.time,
-      sourceId: 'Possessive Hoarder',
-      activationId: cast.id,
-      name: 'Possessive Hoarder',
-      kind: boon,
-      boon,
-      duration: effectNumber(profile, effect, 'duration'),
-      stacks: effectNumber(profile, effect, 'stacks')
-    });
-  }
 }
 
 /**
@@ -165,60 +96,17 @@ function spendArtifact(runtime: ThiefRuntime, cast: RuntimeCast): void {
 /** Notify family traits before the skill grants its identity window and invokes Repeat Ransacker. */
 function notifyArtifactTraits(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const slot = artifactSlotsUsed.get(cast);
-  const state = antiquaryState.from(runtime);
-  const skill = cast.skill as ThiefSkill;
-  if (hasTrait(runtime, TRAIT.ENTERPRISING_ARISTOCRAT))
-    grantThiefInitiative(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.enterprisingAristocrat), 'resourceGain')
-    );
-  if (hasTrait(runtime, TRAIT.EXHILARATING_EPHEMERA)) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.exhilaratingEphemera);
-    const remaining = Math.max(0, (state.antiquaryDamageUntil || 0) - runtime.time);
-    state.antiquaryDamageUntil =
-      runtime.time +
-      Math.min(
-        balanceProfileNumber(profile, 'maximumStacks'),
-        remaining + balanceProfileNumber(profile, 'durationMultiplier')
-      );
-  }
+  applyEnterprisingAristocrat(runtime);
+  applyExhilaratingEphemera(runtime);
 
-  if (hasTrait(runtime, TRAIT.POSSESSIVE_HOARDER)) possessiveHoarder(runtime, cast, slot);
-  if (skill.id === ID.CHAK_SHIELD && hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.meticulousCustodian);
-    const strike = requireEffect(profile, 'strike', 'Meticulous Custodian');
-    if (strike)
-      emitThiefDamage(runtime, null, {
-        at: runtime.time,
-        sourceId: skill.id,
-        skillId: skill.id,
-        skillName: skill.name,
-        activationId: cast.id,
-        name: 'Chak Shield',
-        coefficient: effectNumber(profile, strike, 'coefficient'),
-        hits: effectNumber(profile, strike, 'hits')
-      });
-  }
-}
-
-/** Repeat Ransacker follows the artifact identity grant. */
-function repeatRansacker(runtime: ThiefRuntime): void {
-  const swipe = runtime.helpers.skillsById.get(ID.SKRITT_SWIPE);
-  if (swipe && hasTrait(runtime, TRAIT.REPEAT_RANSACKER))
-    runtime.cooldownController.reduceSkillRecharge(
-      swipe,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.repeatRansacker), 'rechargeReduction'),
-      runtime.time
-    );
+  applyPossessiveHoarder(runtime, cast, slot);
+  applyMeticulousChakShield(runtime, cast);
 }
 
 /** The first Forged Surfer occurrence is the dash; later occurrences drop bombs until the assumed hit count. */
 function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
   const { skillId, occurrence, count } = data as { skillId: SkillId; occurrence: number; count: number };
-  const profile = requireBalanceProfileFromContext(
-    runtime,
-    hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? PROFILE.forgedSurferMeticulous : PROFILE.forgedSurfer
-  );
+  const profile = forgedSurferProfile(runtime);
   // Dash and bomb identities survive deletion of either strike or condition.
   const packet = occurrence === 0 ? 'Dash' : 'Bomb';
   const strike = requireEffect(profile, 'strike', packet);
@@ -304,11 +192,7 @@ function completeSkrittScuffle(runtime: ThiefRuntime): void {
 /** Double Edge is risky only while its recharge is running; Scoundrel's Luck turns one risky use into a success. */
 function acceptDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast): ThiefDoubleEdgeOutcome {
   if ((runtime.cooldowns.get(cast.skill.id) || 0) <= runtime.time + EPSILON) return 'success';
-  const state = antiquaryState.from(runtime);
-  if (state.scoundrelsLuck > 0) {
-    state.scoundrelsLuck -= 1;
-    return 'success';
-  }
+  if (consumeScoundrelsLuck(runtime)) return 'success';
 
   return cast.command.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success';
 }
@@ -348,24 +232,14 @@ function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast): voi
   state.initiativeSpentSincePilfer += cost;
   if ((state.chakInitiativeRefundUntil || 0) > runtime.time) grantThiefInitiative(runtime, cost);
   // Initiative spent before combat begins does not count toward the threshold.
-  if (
-    runtime.combatStartedAt() &&
-    hasTrait(runtime, TRAIT.PRODIGIOUS_PINCHER) &&
-    state.initiativeSpentSincePilfer >=
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.prodigiousPincher), 'threshold')
-  )
-    pilferArtifacts(runtime, 'initiative');
+  if (prodigiousPincherReady(runtime)) pilferArtifacts(runtime, 'initiative');
 }
 
 /** Swipe alone grants its steal package and swipe-only pilfer policies. */
 function completeSkrittSwipe(runtime: ThiefRuntime, cast: RuntimeCast): void {
   emitThiefStealTraits(runtime, cast);
   pilferArtifacts(runtime, 'swipe');
-  if (hasTrait(runtime, TRAIT.KLEPTOMANIAC))
-    grantThiefInitiative(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, CORE_PROFILE.kleptomaniac), 'resourceGain')
-    );
+  applyKleptomaniac(runtime);
 }
 
 /** Artifacts require a held slot; backfire variants are internal; Reshuffle rerolls only an existing pool. */
@@ -399,7 +273,7 @@ export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     'thief.artifact-traits'(runtime, context) {
       if (context.kind === 'cast') notifyArtifactTraits(runtime, context.cast);
     },
-    'thief.repeat-ransacker': repeatRansacker,
+    'thief.repeat-ransacker': applyRepeatRansacker,
     'thief.skritt-swipe'(runtime, context) {
       if (context.kind === 'cast') completeSkrittSwipe(runtime, context.cast);
     },
@@ -443,10 +317,7 @@ export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     'thief.kryptis'(runtime) {
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
-      const { windows } = artifactWindow(runtime);
-      state.kryptisDamageUntil =
-        at +
-        balanceProfileNumber(windows, hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? 'threshold' : 'minimumStacks');
+      state.kryptisDamageUntil = at + meticulousKryptisDuration(runtime);
     },
     'thief.chak'(runtime) {
       const state = antiquaryState.from(runtime);

@@ -1,10 +1,10 @@
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Exercise the registered family with one live Core and specialization owner.
 function run(rotation, overrides = {}, source = warriorProfession, output = 'detailed') {
@@ -198,7 +198,7 @@ test('Feverish Pulse reduces other chants even when its Alacrity component is re
     id: 'no-feverish-alacrity',
     label: 'No Alacrity',
     professions: {
-      warrior: { balanceProfiles: { [PROFILE.feverishPulse]: { removeEffects: [{ type: 'boon', all: true }] } } }
+      warrior: { balanceProfiles: { [TRAIT.FEVERISH_PULSE]: { removeEffects: [{ type: 'boon', all: true }] } } }
     }
   });
   const rotation = ['Chant of Action', 'Chant of Freedom'];
@@ -286,7 +286,7 @@ test('Action refrain reads patched Might and Enduring Refrain values', () => {
       warrior: {
         balanceProfiles: {
           [PROFILE.refrain]: { effects: [{ type: 'boon', name: 'might', duration: { from: 8, to: 11 } }] },
-          [PROFILE.enduringRefrain]: { fields: { stackMultiplier: 3 } }
+          [TRAIT.ENDURING_REFRAIN]: { fields: { stackMultiplier: 3 } }
         }
       }
     }

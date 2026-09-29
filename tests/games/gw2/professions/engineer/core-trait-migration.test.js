@@ -1,14 +1,14 @@
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+﻿import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/index.js';
-import { runEngineer } from '#tests/helpers/engineer-simulation.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/critical-procs.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { runEngineer } from '#tests/helpers/engineer-simulation.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],

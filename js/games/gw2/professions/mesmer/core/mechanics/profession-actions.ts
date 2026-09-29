@@ -5,23 +5,23 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
  * Returns: consumeResources, currentResource, handleShatter, triggerShatterTraits.
  * Profession action controller
  */
-import { mesmerNumericResourceState } from '#gw2/professions/mesmer/family-state.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
-import { triggerMesmerPostShatterTraits } from '#gw2/professions/mesmer/core/traits/index.js';
-import type {
-  MesmerAddCondition,
-  MesmerAddEvent,
-  MesmerAddTraitProc,
-  MesmerRuntime,
-  MesmerProfessionActionController,
-  MesmerShatterResolver
-} from '#gw2/professions/mesmer/types.js';
+import type { MesmerDestroyClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type {
   MesmerResourceDefinition,
   MesmerResourceSpendDetails
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import type { MesmerDestroyClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import { triggerMesmerPostShatterTraits } from '#gw2/professions/mesmer/core/traits/dispatch.js';
+import { mesmerNumericResourceState } from '#gw2/professions/mesmer/family-state.js';
+import type {
+  MesmerAddCondition,
+  MesmerAddEvent,
+  MesmerAddTraitProc,
+  MesmerProfessionActionController,
+  MesmerRuntime,
+  MesmerShatterResolver
+} from '#gw2/professions/mesmer/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 

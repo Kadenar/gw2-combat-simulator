@@ -1,26 +1,25 @@
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type {
+  PaletteSkillAvailability,
+  ProfessionEffectPresentation
+} from '#gw2/platform/profession-presentation/types.js';
 import {
   mesmerMechanicPaletteGroups,
   mesmerResourceViews,
   mesmerUiState
 } from '#gw2/professions/mesmer/core/presentation.js';
-import { MIRAGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
-import type {
-  PaletteSkillAvailability,
-  ProfessionEffectPresentation
-} from '#gw2/platform/profession-presentation/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
 
 const MIRAGE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]);
 
 /** Publishes Mirage-only timed effects and their chart limits. */
 function mirageEffectPresentations(context: MesmerUiContext): ProfessionEffectPresentation[] {
-  const phantomPainProfile = requireBalanceProfileFromContext(context, PROFILE.phantomPain);
+  const phantomPainProfile = requireBalanceProfileFromContext(context, TRAIT.PHANTOM_PAIN);
   return [
     {
       id: 'mesmer-phantom-pain',

@@ -1,4 +1,8 @@
 import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
+import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
+import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
 /** Returns whether the one-use Band Together enhancement is active at `at`. */
 export function isBandTogetherReady(state: Partial<RenegadeState>, at: number): boolean {
@@ -18,5 +22,12 @@ export function activeKallasFervorStacks(
     Math.max(1, Number(maximumStacks)),
     (state.kallasFervor || []).filter((application) => (application.at || 0) <= at && (application.expiresAt || 0) > at)
       .length
+  );
+}
+
+export function bandTogetherReady(runtime: RevenantRuntime, skillId: SkillId): boolean {
+  return (
+    RENEGADE_ENHANCED_SKILL_BY_ID[Number(skillId)] != null &&
+    isBandTogetherReady(renegadeState.from(runtime), runtime.time)
   );
 }

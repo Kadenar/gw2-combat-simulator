@@ -17,6 +17,7 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
 export const REVENANT_BLOSSOMING_AURA = 'revenant.blossoming-aura';
+
 export const REVENANT_ABYSSAL_RAZE = 'revenant.abyssal-raze-impact';
 
 interface AuraPulse {

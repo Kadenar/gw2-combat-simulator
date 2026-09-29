@@ -1,81 +1,78 @@
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
+import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';
+import {
+  completeNecromancerCorruption,
+  necromancerConditionTasks,
+  resolveNecromancerSkillConditions,
+  resolveNecromancerTransfer,
+  resolvePlagueSignetTransfer,
+  scheduleBloodIsPowerLaunch,
+  scheduleDevouringDarkness
+} from '#gw2/professions/necromancer/core/mechanics/conditions.js';
 import {
   enterLich,
-  exitLich,
   enterNecromancerShroud,
+  exitLich,
   exitNecromancerShroud,
   necromancerFormTasks
 } from '#gw2/professions/necromancer/core/mechanics/forms.js';
-import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';
-import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
-import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import { requireEffect, requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import {
+  grantNecromancerLifeForce,
+  grantNecromancerSkillLifeForce
+} from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import {
+  commandNecromancerMinion,
+  necromancerMinionAvailability,
+  necromancerMinionTasks,
+  summonNecromancerHorrors,
+  summonNecromancerMinion
+} from '#gw2/professions/necromancer/core/mechanics/minions.js';
+import {
+  initializeNecromancerPassives,
+  necromancerPassiveTasks
+} from '#gw2/professions/necromancer/core/mechanics/passives.js';
+import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
+import {
+  necromancerSwordTasks,
+  observeNecromancerAutoattackTransition
+} from '#gw2/professions/necromancer/core/mechanics/sword-chain.js';
+import {
+  grantNecromancerSoulShards,
+  necromancerWeaponTasks,
+  perforate,
+  resolveNecromancerOppressiveCollapse
+} from '#gw2/professions/necromancer/core/mechanics/weapons.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
+import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
 import {
   necromancerLifeForceCostMultiplier,
   normalizedNecromancerLifeForceCost
 } from '#gw2/professions/necromancer/core/state.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import {
+  reactToTasteForBloodGrant,
+  startNecromancerAlliedOpportunities
+} from '#gw2/professions/necromancer/core/traits/life-steal.js';
+import {
+  lingeringCurseAvailability,
+  reactToNecromancerConditions
+} from '#gw2/professions/necromancer/core/traits/conditions.js';
+import {
+  reactToNecromancerBlind,
+  reactToNecromancerCoreCondition,
+  reactToNecromancerCoreControl,
+  reactToNecromancerCoreDamage
+} from '#gw2/professions/necromancer/core/traits/reactions.js';
+import { applyFearOfDeath, soulMarksLifeForce } from '#gw2/professions/necromancer/core/traits/shroud.js';
+import { spitefulFortitudeLifeForce } from '#gw2/professions/necromancer/core/traits/behavior.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import {
-  applyOverflowingThirstCast,
-  reactToTasteForBloodGrant
-} from '#gw2/professions/necromancer/core/traits/blood-magic.js';
-import { applyDarkDefense } from '#gw2/professions/necromancer/core/traits/death-magic.js';
-import { applyFearOfDeath, soulMarksLifeForce } from '#gw2/professions/necromancer/core/traits/soul-reaping.js';
-import { spitefulFortitudeLifeForce } from '#gw2/professions/necromancer/core/traits/spite.js';
-import {
-  perforate,
-  resolveNecromancerOppressiveCollapse,
-  grantNecromancerSoulShards,
-  necromancerWeaponTasks
-} from '#gw2/professions/necromancer/core/mechanics/weapons.js';
-import {
-  completeNecromancerCorruption,
-  scheduleBloodIsPowerLaunch,
-  resolvePlagueSignetTransfer,
-  scheduleDevouringDarkness,
-  reactToNecromancerConditions,
-  resolveNecromancerSkillConditions,
-  resolveNecromancerTransfer,
-  necromancerConditionTasks
-} from '#gw2/professions/necromancer/core/mechanics/conditions.js';
-import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
-import {
-  observeNecromancerAutoattackTransition,
-  necromancerSwordTasks
-} from '#gw2/professions/necromancer/core/mechanics/sword-chain.js';
-import {
-  initializeNecromancerPassives,
-  startNecromancerAlliedOpportunities,
-  necromancerPassiveTasks
-} from '#gw2/professions/necromancer/core/mechanics/passives.js';
-import {
-  reactToNecromancerCoreDamage,
-  reactToNecromancerCoreCondition,
-  reactToNecromancerCoreControl,
-  reactToNecromancerBlind
-} from '#gw2/professions/necromancer/core/traits/index.js';
-import {
-  summonNecromancerMinion,
-  commandNecromancerMinion,
-  summonNecromancerHorrors,
-  necromancerMinionAvailability,
-  necromancerMinionTasks
-} from '#gw2/professions/necromancer/core/mechanics/minions.js';
-import {
-  grantNecromancerLifeForce,
-  grantNecromancerSkillLifeForce
-} from '#gw2/professions/necromancer/core/mechanics/life-force.js';
-import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 
 /** Landed player packets own weapon gains and the post-hit half-health test; no predicted observation is replayed. */
 function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
@@ -187,14 +184,8 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
   availability(runtime, rawSkill) {
     const skill = rawSkill as NecromancerSkill;
     const state = runtime.profession.core;
-    if (skill.id === ID.DEVOURING_DARKNESS && !hasTrait(runtime, TRAIT.LINGERING_CURSE))
-      return denySkillCast(skill, 'necromancer.trait-locked', 'requires Lingering Curse.');
-    if (skill.id === ID.FEAST_OF_CORRUPTION && hasTrait(runtime, TRAIT.LINGERING_CURSE))
-      return denySkillCast(
-        skill,
-        'necromancer.trait-replacement',
-        'Devouring Darkness replaces it while Lingering Curse is selected.'
-      );
+    const traitGate = lingeringCurseAvailability(runtime, skill);
+    if (traitGate) return traitGate;
     const minionGate = necromancerMinionAvailability(runtime, skill);
     if (minionGate) return minionGate;
     if (
@@ -240,78 +231,11 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
   },
   // Recharge traits select work once at acceptance; the shared controller applies permanent Alacrity.
   // Rules scale accepted work; shroud entry and minion death still own their recharge anchors.
-  rechargeRules: [
-    {
-      trait: TRAIT.MASTER_OF_CORRUPTION,
-      when: (_runtime, skill) => Boolean(skill.categories?.includes('Corruption')),
-      multiplier: { profile: TRAIT.MASTER_OF_CORRUPTION, field: 'rechargeMultiplier' }
-    },
-    {
-      trait: TRAIT.SINISTER_SHROUD,
-      when: (_runtime, skill) => Boolean(skill.shroud),
-      multiplier: { profile: PROFILE.sinisterShroud, field: 'rechargeMultiplier' }
-    }
-  ],
+
   rechargeWork: (_runtime, skill, work) => (skill.shroudEntry || skill.rechargeOnMinionDeath ? 0 : work),
-  onCastStart(runtime, cast) {
-    applyOverflowingThirstCast(runtime, cast);
-  },
+
   // Cast-derived attribution remains local to the declaration; balance profiles own all packets.
-  traitTriggers: [
-    {
-      trait: TRAIT.MALICIOUS_SWARM,
-      on: 'castCommit',
-      emit: TRAIT.MALICIOUS_SWARM,
-      icd: 'profile',
-      when: (runtime, cast) =>
-        cast.skill.type === 'Heal' &&
-        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.MALICIOUS_SWARM), 'strike', 'Strike')),
-      effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
-      attribution: (_runtime, cast) => ({
-        skillId: undefined,
-        skillName: 'Lesser Signet of the Locust',
-        name: 'Lesser Signet of the Locust',
-        skillWeapon: 'Unequipped',
-        triggeredBy: cast.skill.name,
-        offTarget: cast.command.offTarget
-      })
-    },
-    {
-      trait: TRAIT.SIGNETS_OF_SUFFERING,
-      on: 'castCommit',
-      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Signet')),
-      emit: TRAIT.SIGNETS_OF_SUFFERING,
-      effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
-      attribution: (_runtime, cast) => ({
-        skillId: undefined,
-        skillName: 'Signets of Suffering',
-        name: 'Signets of Suffering',
-        triggeredBy: cast.skill.name,
-        offTarget: cast.command.offTarget,
-        skillWeapon: 'Unequipped'
-      })
-    },
-    ...(['Strike', 'Poisoned', 'Chilled'] as const).map<
-      Extract<TraitTrigger<NecromancerRuntimeState>, { on: 'castCommit' }>
-    >((name) => ({
-      trait: TRAIT.TRANSFUSION,
-      on: 'castCommit' as const,
-      when: (_runtime, cast) => cast.skill.shroudSlot === 4,
-      emit: TRAIT.TRANSFUSION,
-      effects: (effect) => effect.type === (name === 'Strike' ? 'strike' : 'condition') && effect.name === name,
-      attribution: (runtime, cast) => ({
-        skillId: ID.LESSER_CHILBLAINS,
-        skillName: 'Lesser Chilblains',
-        name: name === 'Strike' ? 'Lesser Chilblains' : `Lesser Chilblains — ${name}`,
-        parentSkillName: cast.skill.name,
-        icon: runtime.helpers.skillsById.get(ID.CHILLBLAINS)?.icon,
-        triggeredBy: cast.skill.name,
-        offTarget: cast.command.offTarget,
-        skillWeapon: 'Unequipped'
-      })
-    }))
-  ],
-  onCastCommit: applyDarkDefense,
+
   onAutoattackChainTransition: observeNecromancerAutoattackTransition,
   onCooldownReset(runtime) {
     runtime.resourceController.grant('lifeForce', runtime.profession.core.lifeForce.maximum);

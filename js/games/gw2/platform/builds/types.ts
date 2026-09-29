@@ -322,6 +322,8 @@ export interface Gw2FinalizedAttributeResult {
 }
 
 export interface Gw2BuildAttributeRuleContext {
+  /** Native trait contributions join profession effects before conversions and finalization. */
+  readonly traitBuildAttributes?: Gw2TraitBuildAttributeCalculator;
   /** The selected patch's declarations; omitted only for a base-data attribute calculation. */
   readonly balanceContext?: ProfessionBalanceContext;
   readonly build: Gw2Build;
@@ -329,6 +331,22 @@ export interface Gw2BuildAttributeRuleContext {
   readonly weaponSet: number;
   readonly disabledTrait: string | null;
 }
+
+export interface Gw2BuildAttributeContributions {
+  readonly attributeEffects?: readonly Gw2AttributeEffect[];
+  readonly traitDurations?: Readonly<Gw2NumericAttributes>;
+  readonly traitCriticalChance?: number;
+}
+
+/** Active traits come from the profession's existing major/minor selection resolver. */
+export type Gw2TraitBuildAttributeCalculator = (
+  common: Gw2CommonAttributeResult,
+  context: Gw2BuildAttributeRuleContext,
+  activeTraits: readonly {
+    readonly id: import('#gw2/platform/engine/skills/types.js').SkillId;
+    readonly name: string;
+  }[]
+) => readonly Gw2BuildAttributeContributions[];
 
 export type Gw2ApplyBuildAttributeRules = (
   common: Gw2CommonAttributeResult,

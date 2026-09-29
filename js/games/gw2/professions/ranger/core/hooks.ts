@@ -1,56 +1,23 @@
-import {
-  copyHealingBoons,
-  emitSunSpiritBurning,
-  activateSicEm,
-  prepareFrostTrapEvent,
-  releaseFrostTrap
-} from '#gw2/professions/ranger/core/skills/slot-skills.js';
-import {
-  synchronizeSpearRecharge,
-  armHuntersProwess,
-  consumeSpearOpportunity
-} from '#gw2/professions/ranger/core/skills/weapons/spear.js';
-import { synchronizePathOfScarsRecharge } from '#gw2/professions/ranger/core/skills/weapons/axe.js';
-import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { triggerStalkersStrike } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
-import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { isPlayerStrike, isPetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-
-import type { RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import { rangerCoreCastAvailability } from '#gw2/professions/ranger/core/mechanics/availability.js';
-import { rangerEndurance } from '#gw2/professions/ranger/core/mechanics/resources.js';
-import { rangerRechargeRules } from '#gw2/professions/ranger/core/mechanics/recharge.js';
-import {
-  applyRangerDodgeTraits,
-  applyRangerPetSwapTraits,
-  applyRangerWeaponSwapTraits,
-  completeRangerTraits,
-  rangerCoreCriticalReactions,
-  reactToRangerCoreBuff
-} from '#gw2/professions/ranger/core/traits/index.js';
-import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
-import {
-  reactToRangerGreatswordDamage,
-  grantMaulAttackOfOpportunity
-} from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import {
   handleRangerBloodThirst,
-  handleRangerBeastSkillUsed,
   handleRangerPoisonousStrikes,
   handleRangerSharpeningStone
 } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
+import {
+  grantMaulAttackOfOpportunity,
+  reactToRangerGreatswordDamage
+} from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import {
   beginRangerPetCommand,
   prepareRangerPetEvent,
@@ -58,7 +25,34 @@ import {
   rangerPetTasks,
   startRangerPet
 } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
+import { rangerEndurance } from '#gw2/professions/ranger/core/mechanics/resources.js';
+import { triggerStalkersStrike } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
+import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
+import {
+  activateSicEm,
+  copyHealingBoons,
+  emitSunSpiritBurning,
+  prepareFrostTrapEvent,
+  releaseFrostTrap
+} from '#gw2/professions/ranger/core/skills/slot-skills.js';
+import { synchronizePathOfScarsRecharge } from '#gw2/professions/ranger/core/skills/weapons/axe.js';
+import {
+  armHuntersProwess,
+  consumeSpearOpportunity,
+  synchronizeSpearRecharge
+} from '#gw2/professions/ranger/core/skills/weapons/spear.js';
+import {
+  applyRangerDodgeTraits,
+  applyRangerWeaponSwapTraits,
+  handleRangerBeastSkillUsed,
+  rangerCoreCriticalReactions,
+  reactToRangerCoreBuff
+} from '#gw2/professions/ranger/core/traits/behavior.js';
+import { applyRangerPetSwapTraits, completeRangerTraits } from '#gw2/professions/ranger/core/traits/dispatch.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 
 const critical = criticalProcHandler(rangerCoreCriticalReactions);
 
@@ -130,13 +124,6 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
   },
   endurance: rangerEndurance,
   availability: rangerCoreCastAvailability,
-  rechargeRules: rangerRechargeRules,
-  reserveRecharge(runtime, skill, work) {
-    // Quick Draw is reserved at acceptance so concurrent casts cannot consume the same grant twice.
-    if (skill.type === 'Weapon' && skill.slot !== 'Weapon_1' && runtime.profession.core.quickDrawUntil > runtime.time)
-      runtime.profession.core.quickDrawUntil = 0;
-    return work;
-  },
   prepareEvent(runtime, event) {
     const state = runtime.profession.core;
     const skill = runtime.helpers.skillsById.get(event.skillId!);
@@ -162,60 +149,6 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
     beginRangerPetCommand(runtime, cast);
     if (cast.skill.evades) applyRangerDodgeTraits(runtime);
   },
-  // Completed skill boons keep trait identity and the triggering skill's display attribution.
-  traitTriggers: [
-    // Carnivore's profile owns the noncritical life-steal packet; accepted control supplies attribution.
-    {
-      trait: TRAIT.CARNIVORE,
-      emit: PROFILE.carnivore,
-      on: 'control.resolved',
-      icd: 'profile',
-      when: (runtime, event) =>
-        (isPlayerStrike(event) || isPetStrike(event)) &&
-        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.carnivore), 'strike', 'Strike')),
-      effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
-      attribution: (_runtime, event) => ({
-        skillId: TRAIT.CARNIVORE,
-        skillName: 'Carnivore',
-        name: 'Carnivore',
-        skillWeapon: 'Unequipped',
-        triggeredBy: event.skillName
-      })
-    },
-
-    ...(
-      [
-        ['Wellspring', TRAIT.WELLSPRING, PROFILE.wellspring],
-        ['Windborne Notes', TRAIT.WINDBORNE_NOTES, PROFILE.windborneNotes]
-      ] as const
-    ).map<Extract<TraitTrigger<RangerRuntimeState>, { on: 'castCommit' }>>(([name, trait, emit]) => ({
-      trait,
-      emit,
-      on: 'castCommit' as const,
-      when: (_runtime, cast) =>
-        trait === TRAIT.WELLSPRING ? cast.skill.type === 'Heal' : cast.skill.weapon === 'Warhorn',
-      effects: (effect) => effect.type === 'boon' && effect.name === 'regeneration',
-      attribution: (_runtime, cast) => ({
-        skillId: trait,
-        skillName: name,
-        name: `${name} - regeneration`,
-        triggeredBy: cast.skill.name
-      })
-    })),
-    ...['swiftness', 'quickness'].map<Extract<TraitTrigger<RangerRuntimeState>, { on: 'castCommit' }>>((boon) => ({
-      trait: TRAIT.LEAD_THE_WIND,
-      emit: PROFILE.leadTheWind,
-      on: 'castCommit' as const,
-      when: (_runtime, cast) => cast.skill.id === ID.POINT_BLANK_SHOT,
-      effects: (effect) => effect.type === 'boon' && effect.name === boon,
-      attribution: (_runtime, cast) => ({
-        skillId: TRAIT.LEAD_THE_WIND,
-        skillName: 'Lead the Wind',
-        name: `Lead the Wind - ${boon}`,
-        triggeredBy: cast.skill.name
-      })
-    }))
-  ],
   // Cancelled variants still synchronize their shared weapon recharge.
   onCastCancel: completeWeapon,
   onCastCommit(runtime, cast) {

@@ -1,13 +1,10 @@
-import { mesmerResourceProfileId } from '#gw2/professions/mesmer/family-state.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
@@ -15,12 +12,14 @@ import type {
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerResourceProfileId } from '#gw2/professions/mesmer/family-state.js';
 import type {
-  MesmerUiState,
   MesmerResolverEvent,
   MesmerUiContext,
-  MesmerUiSlice
+  MesmerUiSlice,
+  MesmerUiState
 } from '#gw2/professions/mesmer/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
@@ -135,8 +134,8 @@ const CORE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION
 
 /** Publishes Core Mesmer effect labels, colors, and patch-aware stack caps to result views. */
 function mesmerCoreEffectPresentations(context: MesmerUiContext): ProfessionEffectPresentation[] {
-  const compoundingPowerProfile = requireBalanceProfileFromContext(context, PROFILE.compoundingPower);
-  const fencersFinesseProfile = requireBalanceProfileFromContext(context, PROFILE.fencersFinesse);
+  const compoundingPowerProfile = requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER);
+  const fencersFinesseProfile = requireBalanceProfileFromContext(context, TRAIT.FENCERS_FINESSE);
   return [
     {
       id: 'mesmer-compounding-power',

@@ -12,7 +12,7 @@ import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/profes
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import { applyWarriorBuildAttributeRules } from '#gw2/professions/warrior/build/attributes.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { modifyWarriorStrengthAttributes } from '#gw2/professions/warrior/core/traits/strength.js';
+import { modifyWarriorStrengthAttributes } from '#gw2/professions/warrior/core/traits/behavior.js';
 import { warriorCoreModifiers } from '#gw2/professions/warrior/core/modifiers.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -198,7 +198,7 @@ test('Forceful Greatsword uses active weapon probability, isolated progress and 
 });
 
 test('mixed Warrior weapon sets keep static bonuses and conversion inputs separate', () => {
-  const calculate = createCalculateAttributes(applyWarriorBuildAttributeRules);
+  const calculate = createCalculateAttributes(applyWarriorBuildAttributeRules, warriorProfession.traitBuildAttributes);
   const build = createWarriorBuildDefaults();
   build.weapons = ['Axe', 'Axe'];
   build.alternateWeapons = ['Greatsword', ''];
@@ -237,7 +237,7 @@ test('mixed Warrior weapon sets keep static bonuses and conversion inputs separa
 test('Vigorous Shouts is outside combat simulation scope', () => {
   const build = createWarriorBuildDefaults();
   build.specializations = [{ name: 'Tactics', traits: '1-1-2' }];
-  const calculate = createCalculateAttributes(applyWarriorBuildAttributeRules);
+  const calculate = createCalculateAttributes(applyWarriorBuildAttributeRules, warriorProfession.traitBuildAttributes);
   assert.equal(
     calculate(build).attributes['Healing Power'].final,
     calculate(build, [], 1, 'Vigorous Shouts').attributes['Healing Power'].final

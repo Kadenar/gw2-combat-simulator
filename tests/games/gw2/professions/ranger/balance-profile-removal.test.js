@@ -1,22 +1,19 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/ranger/core/profiles.js';
+import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
+import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/behavior.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { SOULBEAST_BALANCE_PROFILE_IDS as SOULBEAST } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/ranger/core/profiles.js';
-import { DRUID_BALANCE_PROFILE_IDS as DRUID } from '#gw2/professions/ranger/specializations/druid/profiles.js';
-import { SOULBEAST_BALANCE_PROFILE_IDS as SOULBEAST } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
-import { UNTAMED_BALANCE_PROFILE_IDS as UNTAMED } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
-import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
-import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/index.js';
-import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const wait = (durationMs) => ({ type: 'wait', durationMs });
@@ -28,14 +25,14 @@ test('Untamed control declarations gate cooldowns on the selected surviving effe
     for (const [trait, profile, type, selected, sibling] of [
       [
         TRAIT.DEBILITATING_BLOWS,
-        UNTAMED.debilitatingBlows,
+        TRAIT.DEBILITATING_BLOWS,
         'condition',
         unleashed ? 'Poisoned' : 'Slow',
         unleashed ? 'Slow' : 'Poisoned'
       ],
       [
         TRAIT.ENHANCING_IMPACT,
-        UNTAMED.enhancingImpact,
+        TRAIT.ENHANCING_IMPACT,
         'boon',
         unleashed ? 'quickness' : 'stability',
         unleashed ? 'stability' : 'quickness'
@@ -114,7 +111,7 @@ test('removing one Eclipse pulse packet never rebinds another Celestial Avatar s
   const eclipse = (result) =>
     result.events.filter((event) => event.type === 'condition' && event.sourceId === TRAIT.ECLIPSE);
   const result = run(
-    { [DRUID.eclipse]: remove('condition', 'Natural Convergence final pulse') },
+    { [TRAIT.ECLIPSE]: remove('condition', 'Natural Convergence final pulse') },
     'Druid',
     ['Celestial Avatar', 'Natural Convergence', 'Lunar Impact'],
     { selectedTraitIds: [TRAIT.ECLIPSE] }
@@ -145,7 +142,7 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
   const context = {
     procs: createProcRegistry(() => context),
     config,
-    catalog: patched({ [CORE.quickDraw]: remove('boon', 'quickness') }),
+    catalog: patched({ [TRAIT.QUICK_DRAW]: remove('boon', 'quickness') }),
     combatStartTime: 0,
     effectiveEnd: 1,
     state: { time: 1, profession: { core: createRangerCoreState(config) } },
@@ -174,7 +171,7 @@ test('Bestial Rage keeps its sibling boon and cooldown, and releases the cooldow
       {
         extend: () => ({
           catalog: patched({
-            [SOULBEAST.bestialRage]: {
+            [TRAIT.BESTIAL_RAGE]: {
               removeEffects: [{ type: 'boon', name: 'might' }, ...(both ? [{ type: 'boon', name: 'fury' }] : [])]
             }
           })
@@ -197,19 +194,19 @@ test('Bestial Rage keeps its sibling boon and cooldown, and releases the cooldow
       result.events.filter((event) => event.sourceId === TRAIT.BESTIAL_RAGE).map((event) => event.kind),
       both ? [] : ['fury']
     );
-    assert.equal(observedRuntime(result).procs.deadline(SOULBEAST.bestialRage), both ? 0 : 1.25);
+    assert.equal(observedRuntime(result).procs.deadline(TRAIT.BESTIAL_RAGE), both ? 0 : 1.25);
     assert.deepEqual(result.warnings, []);
   }
 });
 
 test('a missing required Ranger scalar fails instead of using a local default', () => {
-  const profile = { ...rangerCatalog.balanceProfilesById.get(CORE.quickDraw) };
+  const profile = { ...rangerCatalog.balanceProfilesById.get(TRAIT.QUICK_DRAW) };
   delete profile.durationMultiplier;
   const config = { selectedTraitIds: [TRAIT.QUICK_DRAW] };
   const context = {
     procs: createProcRegistry(() => context),
     config,
-    catalog: { balanceProfilesById: new Map([[CORE.quickDraw, profile]]) },
+    catalog: { balanceProfilesById: new Map([[TRAIT.QUICK_DRAW, profile]]) },
     combatStartTime: 0,
     effectiveEnd: 1,
     state: { time: 1, profession: { core: createRangerCoreState(config) } },
@@ -254,7 +251,7 @@ test('pet recharge consumes patched Pack Alpha and Crippling Anguish values', ()
       {
         extend: () => ({
           catalog: patched({
-            [CORE.packAlpha]: { fields: { rechargeMultiplier: 0.5 } },
+            [TRAIT.PACK_ALPHA]: { fields: { rechargeMultiplier: 0.5 } },
             [CORE.cripplingAnguishQuickness]: { fields: { cooldown: 7 } }
           })
         }),

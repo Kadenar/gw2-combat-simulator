@@ -1,18 +1,19 @@
-/** Ashes of the Just consumes its live charges on accepted player strikes. */
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
-import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import {
+  balanceProfileNumber,
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/professions/guardian/types.js';
+
+/** Ashes of the Just consumes its live charges on accepted player strikes. */
 
 /**
  * Consumes an available Ashes of the Just charge on an eligible player strike

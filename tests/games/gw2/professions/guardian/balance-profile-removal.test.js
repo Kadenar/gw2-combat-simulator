@@ -1,14 +1,14 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SKILL_IDS as SKILL, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { lethalTempoParameters } from '#gw2/professions/guardian/specializations/willbender/mechanics/lethal-tempo.js';
-import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { bindFirebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
+import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
+import { lethalTempoParameters } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const willbenderUi = bindWillbenderUi(guardianCatalog);
 const firebrandUi = bindFirebrandUi(guardianCatalog);

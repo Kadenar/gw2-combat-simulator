@@ -1,5 +1,5 @@
+import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import type { RuntimeCast, RuntimeProfession, Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 /**
  * Owns Core pistol-bullet loading, consumption, and enhanced payloads.
  *
@@ -7,23 +7,23 @@ import type { RuntimeCast, RuntimeProfession, Gw2Runtime } from '#gw2/platform/s
  * already loaded one for an enhanced payload; this module owns that flip at
  * cast completion. Pistol skill fragments live in `skills/weapons/pistol.ts`.
  */
+import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
-  requireBalanceProfileFromContext,
-  requireEffect,
   balanceProfileNumber,
-  effectNumber
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import {
   emitElementalistBuff,
   emitElementalistDamage,
   withElementalistCast
 } from '#gw2/professions/elementalist/core/events.js';
-import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
-import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 import { emitProfiledBuff, emitProfiledCondition } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/index.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/dispatch.js';
+import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 
 /** Reads the completion-time bullet before the declaration's final load/spend action changes it. */
 export function hasPistolBullet(context: Gw2Runtime, cast: RuntimeCast): boolean {

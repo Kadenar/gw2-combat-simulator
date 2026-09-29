@@ -1,15 +1,12 @@
-import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import { NON_HOLOSMITH_SWORD_SKILL_IDS } from '#gw2/professions/engineer/data/module-data.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { denySkillCast as denyEngineerCast } from '#gw2/platform/engine/skills/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { NON_HOLOSMITH_SWORD_SKILL_IDS } from '#gw2/professions/engineer/data/module-data.js';
+import { HOLOSMITH_FORGE_TOGGLE_SKILL_IDS } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
+import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
+import { crystalStormAvailability } from '#gw2/professions/engineer/specializations/holosmith/traits/behavior.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
-import {
-  HOLOSMITH_FORGE_TOGGLE_SKILL_IDS,
-  HOLOSMITH_STORM_AUTOATTACK_SKILL_IDS
-} from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
+import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
 
 /** Enforces Holosmith sword replacement, Forge bar state, overheat, and kit-lockout cast rules. */
 export function holosmithCastAvailability(context: EngineerRuntime, skill: HolosmithSkill): AvailabilityResult {
@@ -20,17 +17,8 @@ export function holosmithCastAvailability(context: EngineerRuntime, skill: Holos
   }
 
   const state = holosmithState.from(context);
-  if (skill.forgeSkill && skill.slot === 'Weapon_1') {
-    const stormSelected = hasTrait(context.config, TRAIT.CRYSTAL_CONFIGURATION_STORM);
-    const stormSkill = HOLOSMITH_STORM_AUTOATTACK_SKILL_IDS.has(Number(skill.id));
-    if (stormSelected !== stormSkill) {
-      return denyEngineerCast(
-        skill,
-        'engineer.forge-auto-replaced',
-        stormSelected ? 'Crystal Configuration: Storm replaces this attack.' : 'requires Crystal Configuration: Storm.'
-      );
-    }
-  }
+  const storm = crystalStormAvailability(context, skill);
+  if (!storm.ready) return storm;
 
   if (skill.forgeSkill) {
     // Exhaustion blocks new attacks, including autoattack chains, while the explicit exit remains available.

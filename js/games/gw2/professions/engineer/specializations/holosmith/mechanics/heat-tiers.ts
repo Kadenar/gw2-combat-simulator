@@ -1,13 +1,15 @@
 import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
+import {
+  enhancedCapacityHeatTier,
+  enhancedCapacitySelected
+} from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
 
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import type { EngineerConfig, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 
 type HolosmithHeatTier = 'base' | 'high' | 'enhanced';
@@ -41,7 +43,7 @@ export function snapshotHolosmithHeat(context: unknown): HolosmithHeatSnapshot {
   const source = context as { readonly config?: EngineerConfig };
   return Object.freeze({
     heat: holosmithState.from(context).heat || 0,
-    enhancedCapacitySelected: hasTrait(source.config || {}, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
+    enhancedCapacitySelected: enhancedCapacitySelected(source.config || {})
   });
 }
 
@@ -56,7 +58,7 @@ export function holosmithHeatSnapshotFromEvent(event: unknown): HolosmithHeatSna
 
 /** Classifies a heat snapshot into base, high, or ECSU-enhanced skill tiers. */
 export function holosmithHeatTier(snapshot: HolosmithHeatSnapshot): HolosmithHeatTier {
-  if (snapshot.enhancedCapacitySelected && snapshot.heat > HOLOSMITH_HEAT.enhancedCapacityThreshold) {
+  if (enhancedCapacityHeatTier(snapshot.heat, snapshot.enhancedCapacitySelected)) {
     return 'enhanced';
   }
 

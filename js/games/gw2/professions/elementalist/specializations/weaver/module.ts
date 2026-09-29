@@ -1,13 +1,15 @@
 import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
-import { WEAVER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
 import { weaverModifiers } from '#gw2/professions/elementalist/specializations/weaver/modifiers.js';
-import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import { weaverUi } from '#gw2/professions/elementalist/specializations/weaver/presentation.js';
-import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
 import { WEAVER_BALANCE_PROFILES } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
+import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
+import {
+  WEAVER_PUBLIC_STATE_PROJECTION,
+  weaverState
+} from '#gw2/professions/elementalist/specializations/weaver/state.js';
 
 /**
  * Weaver specialization module.
@@ -23,7 +25,10 @@ export const weaverModule = defineNativeModule({
     balanceProfiles: WEAVER_BALANCE_PROFILES
   }),
   state: { create: weaverState.create, project: createPublicStateProjector(WEAVER_PUBLIC_STATE_PROJECTION) },
+  traitDefinitions: weaverTraits,
   modifiers: weaverModifiers,
   hooks: weaverHooks,
   presentation: weaverUi
 });
+
+import { weaverTraits } from '#gw2/professions/elementalist/specializations/weaver/traits/index.js';

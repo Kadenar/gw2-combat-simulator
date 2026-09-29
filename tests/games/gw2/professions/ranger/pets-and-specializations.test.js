@@ -26,7 +26,6 @@ import {
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/core/profiles.js';
 import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/core/state.js';
 import { DRUID_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import { druidHooks } from '#gw2/professions/ranger/specializations/druid/hooks.js';
@@ -115,10 +114,14 @@ test('Ranger Core shared mechanics stay specialization-agnostic', async () => {
   const files = (await readdir(directory, { recursive: true })).filter((file) => file.endsWith('.ts'));
   const sources = await Promise.all(files.map((file) => readFile(new URL(file, directory), 'utf8')));
   assert.doesNotMatch(sources.join('\n'), /specializations\//);
-  // Shared skill definitions may select an optional elite recipient; state machines still belong to the elite.
+  // Trait owners may reconcile optional elite state; shared mechanics and state machines remain specialization-agnostic.
   const recipientDefinitions = new Set(['skills/slot-skills.ts', 'skills/weapons/greatsword.ts']);
   const coreSource = sources
-    .filter((_source, index) => !recipientDefinitions.has(files[index].replaceAll('\\', '/')))
+    .filter(
+      (_source, index) =>
+        !files[index].replaceAll('\\', '/').startsWith('traits/') &&
+        !recipientDefinitions.has(files[index].replaceAll('\\', '/'))
+    )
     .join('\n');
   assert.doesNotMatch(coreSource, /\b(?:Druid|Soulbeast|Untamed|Galeshot|Beastmode)\b/);
   assert.doesNotMatch(coreSource, /\b(?:beastmodeActive|astralClock|rangerUnleashed|cycloneBowActive)\b/);
@@ -161,7 +164,7 @@ test('Ranger modules expose isolated balance-profile authoring', () => {
     return [...module.balanceProfiles, ...module.skillVariants].find((entry) => entry.id === profileId);
   };
 
-  assert.equal(profile('Core', RANGER_CORE_BALANCE_PROFILE_IDS.packAlpha).patchableFields.weaponAttributeBonus, 300);
+  assert.equal(profile('Core', TRAIT.PACK_ALPHA).patchableFields.weaponAttributeBonus, 300);
   assert.equal(profile('Druid', DRUID_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 100);
   assert.equal(profile('Soulbeast', SOULBEAST_BALANCE_PROFILE_IDS.oneWolfPack).profile.effects[0].coefficient, 0.95);
   assert.equal(profile('Untamed', UNTAMED_BALANCE_PROFILE_IDS.resources).patchableFields.durationMultiplier, 4);
@@ -188,7 +191,7 @@ test('Ranger modules expose isolated balance-profile authoring', () => {
       }
     },
     balanceProfiles: {
-      [RANGER_CORE_BALANCE_PROFILE_IDS.packAlpha]: {
+      [TRAIT.PACK_ALPHA]: {
         fields: { weaponAttributeBonus: { from: 300, to: 350 } }
       },
       [DRUID_BALANCE_PROFILE_IDS.resources]: {
@@ -207,7 +210,7 @@ test('Ranger modules expose isolated balance-profile authoring', () => {
   });
 
   assert.equal(preview.skillsById.get(ID.SUPERSONIC_ARROW).arrowCost, 2);
-  assert.equal(preview.balanceProfilesById.get(RANGER_CORE_BALANCE_PROFILE_IDS.packAlpha).weaponAttributeBonus, 350);
+  assert.equal(preview.balanceProfilesById.get(TRAIT.PACK_ALPHA).weaponAttributeBonus, 350);
   assert.equal(preview.balanceProfilesById.get(DRUID_BALANCE_PROFILE_IDS.resources).maximumStacks, 120);
   assert.equal(preview.balanceProfilesById.get(SOULBEAST_BALANCE_PROFILE_IDS.oneWolfPack).effects[0].coefficient, 1);
   assert.equal(preview.balanceProfilesById.get(UNTAMED_BALANCE_PROFILE_IDS.resources).durationMultiplier, 5);
@@ -233,10 +236,7 @@ test('Ranger modules expose isolated balance-profile authoring', () => {
   assert.equal(petMetadata.summonBasePower, 1874);
 
   assert.equal(rangerCatalog.skillsById.get(ID.SUPERSONIC_ARROW).arrowCost, 3);
-  assert.equal(
-    rangerCatalog.balanceProfilesById.get(RANGER_CORE_BALANCE_PROFILE_IDS.packAlpha).weaponAttributeBonus,
-    300
-  );
+  assert.equal(rangerCatalog.balanceProfilesById.get(TRAIT.PACK_ALPHA).weaponAttributeBonus, 300);
 });
 
 test('Ranger builds migrate and validate against the canonical catalog', () => {

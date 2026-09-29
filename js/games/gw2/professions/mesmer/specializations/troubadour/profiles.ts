@@ -1,16 +1,12 @@
-import { normalizeSkillEffects } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { normalizeSkillEffects } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import {
-  defineSkillVariantProfile as variant,
-  defineTraitProfile as trait
-} from '#gw2/platform/profession-definition/balance-profiles.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { SYNCOPATE_PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
-import {
+  HARMONIOUS_HARP_DISTORTION,
   MESMER_TROUBADOUR_INSTRUMENTS,
-  TROUBADOUR_TALE_PROFILES,
-  HARMONIOUS_HARP_DISTORTION
+  TROUBADOUR_TALE_PROFILES
 } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 
 import type { MesmerInstrument } from '#gw2/professions/mesmer/types.js';
@@ -28,15 +24,7 @@ export const TROUBADOUR_BALANCE_PROFILE_IDS = Object.freeze({
   torturedMastermind: 'mesmer.troubadour.tale-tortured-mastermind',
   honorableRogue: 'mesmer.troubadour.tale-honorable-rogue',
   soulkeeper: 'mesmer.troubadour.tale-soulkeeper',
-  valiantMarshal: 'mesmer.troubadour.tale-valiant-marshal',
-  harmonize: TRAIT.HARMONIZE,
-  mayhem: TRAIT.MAYHEM,
-  raconteur: TRAIT.RACONTEUR,
-  shredding: TRAIT.SHREDDING,
-  lifeOfTheParty: TRAIT.LIFE_OF_THE_PARTY,
-  fortissimo: TRAIT.FORTISSIMO,
-  callAndResponse: TRAIT.CALL_AND_RESPONSE,
-  alteredChord: TRAIT.ALTERED_CHORD
+  valiantMarshal: 'mesmer.troubadour.tale-valiant-marshal'
 });
 
 export const TROUBADOUR_INSTRUMENT_PROFILE_IDS: Readonly<Record<number, string>> = Object.freeze({
@@ -144,17 +132,6 @@ export const TROUBADOUR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     )
   ),
   ...TROUBADOUR_TALE_PROFILES,
-  trait(TROUBADOUR_BALANCE_PROFILE_IDS.harmonize, 'Harmonize', {
-    resourceGain: 1
-  }),
-  trait(TROUBADOUR_BALANCE_PROFILE_IDS.mayhem, 'Mayhem', {
-    rechargeReduction: 1.5,
-    effects: [{ name: 'Torment', type: 'condition', condition: 'Torment', duration: 5, stacks: 4 }]
-  }),
-  trait(TROUBADOUR_BALANCE_PROFILE_IDS.raconteur, 'Raconteur', {
-    effects: [{ name: 'protection', type: 'boon', boon: 'protection', duration: 3, stacks: 1 }]
-  }),
-  SYNCOPATE_PROFILE,
   {
     id: TROUBADOUR_BALANCE_PROFILE_IDS.crescendo,
     parentId: ID.CRESCENDO,
@@ -162,64 +139,5 @@ export const TROUBADOUR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     profileKind: 'skill-variant',
     damageIncreasePerStack: 0.25,
     effects: [{ name: 'Strike', type: 'strike', coefficient: 2.25, hits: 1 }]
-  },
-  trait(TROUBADOUR_BALANCE_PROFILE_IDS.shredding, 'Shredding', {
-    effects: [{ name: 'Strike', type: 'strike', coefficient: 1, hits: 1, atMs: 600 }]
-  }),
-  trait(TROUBADOUR_BALANCE_PROFILE_IDS.lifeOfTheParty, 'Life of the Party', {
-    effects: [
-      {
-        type: 'boon',
-        name: 'Lute Quickness',
-        boon: 'quickness',
-        duration: 6,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        name: 'Lute Might',
-        boon: 'might',
-        duration: 8,
-        stacks: 5
-      },
-      {
-        type: 'boon',
-        name: 'Crescendo Quickness',
-        boon: 'quickness',
-        duration: 8,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        name: 'Crescendo Might',
-        boon: 'might',
-        duration: 15,
-        stacks: 8
-      },
-      {
-        type: 'boon',
-        name: 'Crescendo Fury',
-        boon: 'fury',
-        duration: 8,
-        stacks: 1
-      }
-    ]
-  }),
-  trait(TROUBADOUR_BALANCE_PROFILE_IDS.fortissimo, 'Fortissimo', {
-    attributeConversion: 0.04,
-    maximumStacks: 5,
-    pulseInterval: 1,
-    resourceGain: 1
-  }),
-  trait(TROUBADOUR_BALANCE_PROFILE_IDS.callAndResponse, 'Call and Response', {
-    threshold: 3,
-    initialDelay: 1.5
-  }),
-  // Trait tuning is shared by build calculations, combat, and tooltips.
-  trait(TRAIT.SYMPHONIC_RESONANCE, 'Symphonic Resonance', { enduranceRegenerationMultiplier: 1.25 }),
-  trait(TROUBADOUR_BALANCE_PROFILE_IDS.alteredChord, 'Altered Chord', {
-    rechargeReduction: 2,
-    durationMultiplier: 10,
-    effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 8, stacks: 5 }]
-  })
+  }
 ]);

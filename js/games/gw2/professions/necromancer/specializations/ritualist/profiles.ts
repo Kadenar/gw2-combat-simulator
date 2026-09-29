@@ -1,6 +1,5 @@
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
 export const RITUALIST_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'necromancer.ritualist.resources',
@@ -9,15 +8,10 @@ export const RITUALIST_BALANCE_PROFILE_IDS = Object.freeze({
   preservation: 'necromancer.ritualist.spirit.preservation',
   painfulBond: 'necromancer.ritualist.painful-bond',
   nightmareWeaponProc: 'necromancer.ritualist.nightmare-weapon-proc',
-  splinterWeaponProc: 'necromancer.ritualist.splinter-weapon-proc',
-  explosiveGrowth: TRAIT.EXPLOSIVE_GROWTH,
-  boonOfCreation: TRAIT.BOON_OF_CREATION,
-  empoweringSpirits: TRAIT.EMPOWERING_SPIRITS
+  splinterWeaponProc: 'necromancer.ritualist.splinter-weapon-proc'
 });
 
 export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
-  // Creature hooks and ordinary summon modifiers share one trait multiplier.
-  trait(TRAIT.SPIRITS_STRENGTH, "Spirits' Strength", { damageMultiplier: 1.5 }),
   {
     id: RITUALIST_BALANCE_PROFILE_IDS.resources,
     name: 'Ritualist Spirit Cadence',
@@ -213,66 +207,6 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     parentId: ID.SPLINTER_WEAPON,
     internalCooldown: 0.32,
     effects: [{ name: 'Strike', type: 'strike', coefficient: 0.4, hits: 1, actorType: 'effect' }]
-  },
-  {
-    id: RITUALIST_BALANCE_PROFILE_IDS.explosiveGrowth,
-    name: 'Explosive Growth',
-    profileKind: 'trait',
-    categories: ['Trait'],
-    effects: [{ name: 'Strike', type: 'strike', coefficient: 1.2, hits: 1, actorType: 'effect' }]
-  },
-  {
-    id: RITUALIST_BALANCE_PROFILE_IDS.boonOfCreation,
-    name: 'Boon of Creation',
-    profileKind: 'trait',
-    categories: ['Trait'],
-    attributeBonus: 180,
-    lifeForceGain: 10,
-    effects: []
-  },
-  {
-    id: RITUALIST_BALANCE_PROFILE_IDS.empoweringSpirits,
-    name: 'Empowering Spirits',
-    profileKind: 'trait',
-    categories: ['Trait'],
-    effects: [
-      {
-        name: 'quickness',
-        type: 'boon',
-        boon: 'quickness',
-        stacks: 1,
-        duration: 3.75,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
-      },
-      {
-        name: 'might',
-        type: 'boon',
-        boon: 'might',
-        stacks: 8,
-        duration: 10,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
-      },
-      {
-        name: 'fury',
-        type: 'boon',
-        boon: 'fury',
-        stacks: 1,
-        duration: 5,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
-      },
-      {
-        name: 'resolution',
-        type: 'boon',
-        boon: 'resolution',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
-      }
-    ]
   }
 ]);
 

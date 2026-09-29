@@ -1,35 +1,37 @@
-import { canonicalTime } from '#kernel/core/clock.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
-import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
-import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
-import {
-  necromancerActiveBoonCompanionIds,
-  registerCreatureSummonReaction,
-  registerNecromancerCreatureStrikeMultiplier,
-  runCreatureSummonReactions
-} from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { spiritDefinition } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
-import { ritualistSpellHooks } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spells.js';
-import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
+import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
+import { runCreatureSummonReactions } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { attribution, boon } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/emission.js';
+import { ritualistSpellHooks } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spells.js';
+import { spiritDefinition } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
+import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
+import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
+import {
+  applyEmpoweringSpirits,
+  armSoulTwisting,
+  consumeSoulTwisting,
+  initializeRitualistSummonTraits,
+  lingeringSpiritsActive
+} from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
 import type { NecromancerRuntime, NecromancerRuntimeState } from '#gw2/professions/necromancer/types.js';
-import type { SkillId, Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 const AUTO = 'ritualist.spirit-auto';
 const PACKET = 'ritualist.spirit-packet';
@@ -62,20 +64,6 @@ function clearSpirits(runtime: NecromancerRuntime): void {
   runtime.resourceController.refresh('lifeForce');
 }
 
-function attribution(cast: RuntimeCast) {
-  return {
-    at: cast.effectiveEnd,
-    source: 'Spirit',
-    sourceId: cast.skill.id,
-    actorType: 'player' as const,
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    icon: cast.skill.icon,
-    activationId: cast.id,
-    offTarget: cast.command.offTarget
-  };
-}
-
 function spiritFields(key: string, attackType: string) {
   return {
     summonKind: 'spirit',
@@ -86,25 +74,6 @@ function spiritFields(key: string, attackType: string) {
       anguishConditionalDamage: key === 'anguish' && attackType !== 'innervate'
     }
   };
-}
-
-/** Boons choose current recipients and attributes when the spirit or Innervate actually completes. */
-function boon(runtime: NecromancerRuntime, cast: RuntimeCast, profile: Skill, effects: readonly SkillEffect[]): void {
-  emitEffects(runtime, {
-    owner: profile,
-    effects,
-    baseEvent: { ...attribution(cast), source: 'necromancer' },
-    transform: (event) => ({
-      ...event,
-      icon: cast.skill.icon,
-      offTarget: cast.command.offTarget,
-      audience: {
-        recipients: 'party',
-        maximumRecipients: 5,
-        eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime)
-      }
-    })
-  });
 }
 
 /** Finite player attacks are committed payloads; autonomous attacks alone retain spirit lifetime and busy-state checks. */
@@ -208,19 +177,10 @@ function summon(runtime: NecromancerRuntime, cast: RuntimeCast, spirit: Spirit):
   state.spiritInitialUntil[key] = canonicalTime(runtime.time + (key === 'anguish' ? 1.1 : 0));
   state.spiritBusyUntil[key] = canonicalTime(runtime.time + spirit.initialBusyMs / 1000);
   runtime.resourceController.refresh('lifeForce');
-  if (state.soulTwistingAvailable) {
-    state.soulTwistingAvailable = false;
-    runtime.cooldownController.clear(cast.skill.id);
-  }
+  consumeSoulTwisting(runtime, cast);
 
   runCreatureSummonReactions(runtime, cast.skill, runtime.time, 1, cast.id);
-  if (hasTrait(runtime, TRAIT.EMPOWERING_SPIRITS)) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.empoweringSpirits);
-    for (const kind of ['quickness', key === 'anguish' ? 'might' : key === 'wanderlust' ? 'fury' : 'resolution']) {
-      const effect = requireEffect(profile, 'boon', kind);
-      if (effect) boon(runtime, cast, profile, [effect]);
-    }
-  }
+  applyEmpoweringSpirits(runtime, cast, key);
 
   const resources = requireBalanceProfileFromContext(runtime, PROFILE.resources);
   const interval = balanceProfileNumber(resources, 'pulseInterval');
@@ -261,7 +221,7 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
         if (
           !runtime.profession.core.activeShroud &&
           Object.keys(ritualistState.from(runtime).activeSpirits).length &&
-          hasTrait(runtime, TRAIT.LINGERING_SPIRITS)
+          lingeringSpiritsActive(runtime)
         )
           return (
             (-runtime.profession.core.lifeForce.maximum *
@@ -279,47 +239,14 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
         const state = ritualistState.from(runtime);
         state.resummonedSpiritAutoCycle = Object.keys(state.activeSpirits).length > 0;
         state.spiritAutoAnchorAt = NaN;
-        state.soulTwistingAvailable = hasTrait(runtime, TRAIT.SOUL_TWISTING);
+        armSoulTwisting(runtime);
       },
       onExit: () => {
-        if (!hasTrait(runtime, TRAIT.LINGERING_SPIRITS)) clearSpirits(runtime);
+        if (!lingeringSpiritsActive(runtime)) clearSpirits(runtime);
       },
       onDepletion: () => clearSpirits(runtime)
     });
-    registerCreatureSummonReaction(runtime, 'ritualist.creature-summon-traits', (skill, at, count, activationId) => {
-      if (hasTrait(runtime, TRAIT.BOON_OF_CREATION))
-        grantNecromancerLifeForce(
-          runtime,
-          balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.boonOfCreation), 'lifeForceGain') *
-            count
-        );
-      if (!hasTrait(runtime, TRAIT.EXPLOSIVE_GROWTH)) return;
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.explosiveGrowth);
-      const strike = requireEffect(profile, 'strike', 'Strike');
-      if (strike)
-        runtime.emit(
-          buildResolverStrike({
-            type: 'damage',
-            at,
-            source: 'Trait',
-            sourceId: TRAIT.EXPLOSIVE_GROWTH,
-            actorType: 'effect',
-            skillId: TRAIT.EXPLOSIVE_GROWTH,
-            skillName: 'Explosive Growth',
-            parentSkillName: skill.name,
-            // The summon triggers an independent trait strike; it must not reuse the summon cast's weapon roll.
-            activationId: `${activationId}:explosive-growth:${at}`,
-            triggeredBy: skill.name,
-            coefficient: effectNumber(profile, strike, 'coefficient') * count,
-            skillWeapon: 'Unequipped'
-          })
-        );
-    });
-    registerNecromancerCreatureStrikeMultiplier(runtime, 'ritualist.spirits-strength', () =>
-      hasTrait(runtime, TRAIT.SPIRITS_STRENGTH)
-        ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SPIRITS_STRENGTH), 'damageMultiplier')
-        : 1
-    );
+    initializeRitualistSummonTraits(runtime);
   },
   availability(runtime, skill) {
     const key = INNERVATE.get(skill.id);

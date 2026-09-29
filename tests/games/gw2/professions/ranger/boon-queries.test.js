@@ -7,7 +7,7 @@ import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { handleRangerPetSwapped } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { rangerActiveBoonCount, rangerBoonActive } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
-import { soulbeastModifierRules } from '#gw2/professions/ranger/specializations/soulbeast/modifiers.js';
+import { soulbeastModule } from '#gw2/professions/ranger/specializations/soulbeast/module.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 // Use production recipient selection so boon queries honor sharing policy and party caps.
@@ -24,7 +24,7 @@ test('Ranger and Soulbeast standard boons use live player recipients and duratio
     timeline: createGw2TimelineIndex({ events: [self] }),
     runtime: { boons: new Map() }
   };
-  const furiousStrength = soulbeastModifierRules.find(({ id }) => id === 'ranger.furious-strength');
+  const furiousStrength = soulbeastModule.modifiers.modifierRules.find(({ id }) => id === 'ranger.furious-strength');
   assert.equal(rangerBoonActive({ ...context, runtime: undefined }, 'fury'), true);
   for (const audience of [
     { recipients: 'party', affectsSelf: false },

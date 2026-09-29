@@ -1,63 +1,43 @@
-/** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
-import { canonicalTime } from '#kernel/core/clock.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
-import { bladeswornState, activeCartridgeWindow } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
 import {
   dragonChargesToAdrenalineSpent,
   dragonSlashCoefficient,
-  maximumDragonCharges,
-  requestedDragonCharges,
-  exitDragonTrigger
+  exitDragonTrigger,
+  requestedDragonCharges
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
+import { activeCartridgeWindow, bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
+import { maximumDragonCharges } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { hasTrait, type Gw2TraitLookupContext } from '#gw2/platform/combat/state/traits.js';
-import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
-import type { Skill, SkillId, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+
+/** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
 
 type Runtime = Gw2Runtime<WarriorRuntimeState>;
+
 const CARTRIDGE_ACTIVATE = 'warrior.cartridges-activate';
+
 const furyBeforeCast = new WeakSet<RuntimeCast>();
 
-const SHARP_AS_THE_WIND_VARIANTS = new Map<number, number>([
-  [ID.SWIFT_CUT, ID.SHARP_SWIFT_CUT],
-  [ID.STEEL_DIVIDE, ID.SHARP_STEEL_DIVIDE],
-  [ID.EXPLOSIVE_THRUST, ID.SHARP_EXPLOSIVE_THRUST],
-  [ID.BLOOMING_FIRE, ID.SHARP_BLOOMING_FIRE],
-  [ID.ARTILLERY_SLASH, ID.SHARP_ARTILLERY_SLASH],
-  [ID.CYCLONE_TRIGGER, ID.SHARP_CYCLONE_TRIGGER],
-  [ID.BREAK_STEP, ID.SHARP_BREAK_STEP],
-  [ID.DRAGON_SLASH_FORCE, ID.SHARP_DRAGON_SLASH_FORCE],
-  [ID.DRAGON_SLASH_BOOST, ID.SHARP_DRAGON_SLASH_BOOST],
-  [ID.DRAGON_SLASH_REACH, ID.SHARP_DRAGON_SLASH_REACH]
-]);
-const SHARP_AS_THE_WIND_PARENTS = new Map(
-  [...SHARP_AS_THE_WIND_VARIANTS].map(([parentId, variantId]) => [variantId, parentId])
-);
-
 /** Both action identities select the version owned by the equipped adept trait. */
-export function resolveSharpAsTheWindSkillId(context: Gw2TraitLookupContext, skillId: SkillId): SkillId {
-  const parentId = SHARP_AS_THE_WIND_PARENTS.get(Number(skillId)) ?? Number(skillId);
-  const variantId = SHARP_AS_THE_WIND_VARIANTS.get(parentId);
-  if (!variantId) return skillId;
-  return hasTrait(context, TRAIT.SHARP_AS_THE_WIND) ? variantId : parentId;
-}
 
 export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.UNSHEATHE_GUNSABER]: {
@@ -828,6 +808,7 @@ export const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState>['sid
     }
   }
 };
+
 export const bladeswornSkillTasks: RuntimeProfession<WarriorRuntimeState>['tasks'] = {
   [CARTRIDGE_ACTIVATE](runtime, data) {
     activateCartridges(runtime, (data as { cast: RuntimeCast }).cast);

@@ -1,15 +1,16 @@
-import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
-import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
+import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
+import { masterAtArmsRecharges } from '#gw2/professions/guardian/specializations/luminary/traits/behavior.js';
 import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+
 /**
  * Owns Luminary Radiant Virtue skill fragments.
  * Persistent virtue state and behavior remain under Core and Luminary mechanics.
  */
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RADIANT_COURAGE]: {
@@ -17,11 +18,7 @@ export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     sideEffects: [
       // Commitment arms this virtue's next weapon entitlement.
       { on: 'castCommit', do: { type: 'guardian.arm-radiant-courage' } },
-      {
-        on: 'castCommit',
-        when: (runtime) => hasTrait(runtime, TRAIT.MASTER_AT_ARMS),
-        do: { type: 'rechargeReset', skillIds: [ID.GLEAMING_BLADE, ID.RADIANT_BULWARK] }
-      }
+      masterAtArmsRecharges[ID.RADIANT_COURAGE]
     ],
     castTimeMs: 0,
     // Courage's activation grants these boons to the player and nearby allies.
@@ -36,11 +33,7 @@ export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.resolve-aura' } },
       // Commitment arms this virtue's next weapon entitlement.
       { on: 'castCommit', do: { type: 'guardian.arm-radiant-resolve' } },
-      {
-        on: 'castCommit',
-        when: (runtime) => hasTrait(runtime, TRAIT.MASTER_AT_ARMS),
-        do: { type: 'rechargeReset', skillIds: [ID.LUMINOUS_STAFF] }
-      }
+      masterAtArmsRecharges[ID.RADIANT_RESOLVE]
     ],
     castTimeMs: 0,
     effects: []
@@ -50,11 +43,7 @@ export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     sideEffects: [
       // Commitment arms this virtue's next weapon entitlement.
       { on: 'castCommit', do: { type: 'guardian.arm-radiant-justice' } },
-      {
-        on: 'castCommit',
-        when: (runtime) => hasTrait(runtime, TRAIT.MASTER_AT_ARMS),
-        do: { type: 'rechargeReset', skillIds: [ID.DAZZLING_HAMMER] }
-      }
+      masterAtArmsRecharges[ID.RADIANT_JUSTICE]
     ],
     castTimeMs: 0,
     effects: []

@@ -1,14 +1,13 @@
 import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
-import { FIREBRAND_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
-import { firebrandModifiers } from '#gw2/professions/guardian/specializations/firebrand/modifiers.js';
 import { firebrandHooks } from '#gw2/professions/guardian/specializations/firebrand/hooks.js';
-import { FIREBRAND_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/firebrand/skills/index.js';
-import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-
 import { bindFirebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
 import { FIREBRAND_BALANCE_PROFILES } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
+import { FIREBRAND_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/firebrand/skills/index.js';
+import { FIREBRAND_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import { firebrandTraits } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
+import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const firebrandModule = defineNativeModule({
@@ -18,8 +17,8 @@ export const firebrandModule = defineNativeModule({
 
     balanceProfiles: FIREBRAND_BALANCE_PROFILES
   }),
-  state: { create: firebrandState.create, project: createPublicStateProjector(FIREBRAND_PUBLIC_STATE_PROJECTION) },
-  modifiers: firebrandModifiers,
+  state: { create: createFirebrandState, project: createPublicStateProjector(FIREBRAND_PUBLIC_STATE_PROJECTION) },
+  traitDefinitions: firebrandTraits,
   hooks: firebrandHooks,
   presentation: bindFirebrandUi
 });

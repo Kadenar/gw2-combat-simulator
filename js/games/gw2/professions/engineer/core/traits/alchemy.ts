@@ -1,58 +1,50 @@
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { isElixirSkill, prepareEngineerHghEvent } from '#gw2/professions/engineer/core/traits/behavior.js';
 import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-/** Owns HGH's elixir cast effects and scheduled-event duration extension. */
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 
-export function isElixirSkill(skill: EngineerSkill | undefined): boolean {
-  return Boolean(skill?.categories?.some((category) => category.toLowerCase() === 'elixir'));
-}
+/** Owns HGH tuning and behavior at its established runtime and build boundaries. */
+export const hgh = defineTrait({
+  id: TRAIT.HGH,
+  name: 'HGH',
+  balance: {
+    durationMultiplier: 1.2,
+    effects: [
+      { name: 'might', type: 'boon', boon: 'might', stacks: 2, duration: 12 },
+      { name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 4 },
+      { name: 'HGH', type: 'strike', coefficient: 0.85, hits: 1, packetLabel: 'additional Acid Bomb strike' }
+    ]
+  },
+  triggers: ['might', 'fury'].map((boon) => ({
+    on: 'castCommit',
+    when: (_runtime, cast) => isElixirSkill(cast.skill),
+    emit: TRAIT.HGH,
+    effects: (effect) => effect.type === 'boon' && effect.name === boon,
+    attribution: { source: 'Trait', sourceId: TRAIT.HGH, actorType: 'player', name: `HGH — ${boon}` }
+  })),
+  hooks: { prepareEvent: prepareEngineerHghEvent }
+});
 
-/** Schedules Acid Bomb's extended final pulse while HGH is selected. */
-export function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill;
-  if (!hasTrait(context.config, TRAIT.HGH) || skill.id !== ID.ACID_BOMB) return;
-
-  const hghProfile = requireBalanceProfileFromContext(context, TRAIT.HGH);
-  const strike = requireEffect(hghProfile, 'strike', 'HGH');
-  if (strike) {
-    emitEngineerEvent(
-      context,
-      'damage',
-      {
-        at: cast.fullEnd + 6,
-        activationId: cast.id,
-        coefficient: Number(strike.coefficient),
-        hits: Number(strike.hits),
-        name: 'Acid Bomb',
-        actorType: 'player'
-      },
-      skill
-    );
+/** Owns Compounding Chemicals tuning and behavior at its established runtime and build boundaries. */
+export const compoundingChemicals = defineTrait({
+  id: TRAIT.COMPOUNDING_CHEMICALS,
+  name: 'Compounding Chemicals',
+  balance: { attributeBonus: 240 },
+  buildAttributes: (_common, { balanceContext: profileContext }) => {
+    const compoundingChemicalsProfile = requireBalanceProfileFromContext(profileContext, TRAIT.COMPOUNDING_CHEMICALS);
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          source: 'Compounding Chemicals',
+          to: 'Concentration',
+          amount: balanceProfileNumber(compoundingChemicalsProfile, 'attributeBonus'),
+          feedsConversions: false
+        }
+      ]
+    };
   }
-}
-
-/** Extends scheduled elixir fields, boons, and conditions while HGH is selected. */
-export function prepareEngineerHghEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
-  if (!hasTrait(context.config, TRAIT.HGH) || event.sourceId === TRAIT.HGH) return event;
-  const skill = context.helpers.skillsById.get(event.skillId ?? event.sourceId);
-  if (!isElixirSkill(skill)) return event;
-  const hghProfile = requireBalanceProfileFromContext(context, TRAIT.HGH);
-  const durationMultiplier = balanceProfileNumber(hghProfile, 'durationMultiplier');
-
-  if (event.type === 'combo_field') {
-    const duration = Number(event.expiresAt) - event.at;
-    if (duration > 0) return { ...event, expiresAt: event.at + duration * durationMultiplier };
-  } else if ((event.type === 'buff' || event.type === 'condition') && Number(event.duration) > 0) {
-    return { ...event, duration: Number(event.duration) * durationMultiplier };
-  }
-
-  return event;
-}
+});

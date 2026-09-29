@@ -1,33 +1,31 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
-  tooltipFactorChange,
-  tooltipSeconds,
-  outsideScopeTooltip,
-  traitTooltip,
-  skillTooltip,
-  profileTooltip,
-  profileFact,
   modifierFact,
-  tooltipPercent,
-  tooltipDecimal,
-  tooltipNumber,
-  tooltipProfile,
+  outsideScopeTooltip,
+  profileFact,
+  profileTooltip,
   simulationEffectFacts,
+  skillTooltip,
+  tooltipDecimal,
+  tooltipFactorChange,
+  tooltipNumber,
+  tooltipPercent,
+  tooltipProfile,
+  tooltipSeconds,
+  traitTooltip,
   type DescribeSimulationTooltip,
   type ProfessionTooltips,
   type SimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as CONDUIT } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/revenant/core/profiles.js';
-import { VINDICATOR_BALANCE_PROFILE_IDS as VINDICATOR } from '#gw2/professions/revenant/specializations/vindicator/profiles.js';
-import { HERALD_NATURE_ASSASSIN_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
+import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { VINDICATOR_DODGE_AUTO_ACTION } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
-import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
+import { CONDUIT_BALANCE_PROFILE_IDS as CONDUIT } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
+import { HERALD_NATURE_ASSASSIN_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
+import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
+import { VINDICATOR_DODGE_AUTO_ACTION } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Put requirement-specific effects in tabs while shared effects stay visible with every selection. */
 function variantEffects(effects: readonly SkillEffect[] = [], context = '') {
@@ -70,10 +68,10 @@ const familyTooltips = {
     'Invoke your other equipped legend and reset energy. Ordinary upkeep skills stop; Facet of Nature can continue across legends. Combat invocation traits and swap sigils apply.',
     (balanceContext, entity) => [
       { name: 'Energy after invoking', detail: tooltipDecimal(tooltipNumber(entity, 'resourceGain')) },
-      profileFact(balanceContext, CORE.chargedMists, 'resourceGain', 'Energy with Charged Mists'),
+      profileFact(balanceContext, TRAIT.CHARGED_MISTS, 'resourceGain', 'Energy with Charged Mists'),
       profileFact(
         balanceContext,
-        CORE.chargedMists,
+        TRAIT.CHARGED_MISTS,
         'threshold',
         'Charged Mists threshold: previous energy rounded down'
       )
@@ -558,12 +556,12 @@ export const revenantTooltips: ProfessionTooltips = {
             { name: 'Base endurance restored', detail: tooltipDecimal(tooltipNumber(entity, 'resourceGain')) },
             profileFact(
               balanceContext,
-              VINDICATOR.songOfArboreum,
+              TRAIT.SONG_OF_ARBOREUM,
               'resourceGain',
               'Endurance with Song of Arboreum instead'
             ),
             ...simulationEffectFacts(
-              tooltipProfile(balanceContext, VINDICATOR.songOfArboreum).effects,
+              tooltipProfile(balanceContext, TRAIT.SONG_OF_ARBOREUM).effects,
               'with Song of Arboreum'
             ).facts
           ]

@@ -1,22 +1,22 @@
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
+import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { DRAGONHUNTER_BALANCE_PROFILE_IDS as DH_PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
+import { FIREBRAND_BALANCE_PROFILE_IDS as FB_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as LUM_PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import {
   LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID,
   LUMINARY_INITIAL_STATE_SKILL_IDS as LUM_INITIAL
 } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS as WB_PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as FB_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import { DRAGONHUNTER_BALANCE_PROFILE_IDS as DH_PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
-import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runGuardian as run } from '#tests/helpers/guardian-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const core = (result) => observedRuntime(result).profession.core;
@@ -717,8 +717,8 @@ test('removed Firebrand components preserve independent page grants and Might wi
       guardian: {
         balanceProfiles: {
           [FB_PROFILE.ashes]: { removeEffects: [{ type: 'condition', all: true }] },
-          [FB_PROFILE.weightyTerms]: { removeEffects: [{ type: 'condition', all: true }] },
-          [FB_PROFILE.stalwartSpeed]: { removeEffects: [{ type: 'boon', all: true }] }
+          [TRAIT.WEIGHTY_TERMS]: { removeEffects: [{ type: 'condition', all: true }] },
+          [TRAIT.STALWART_SPEED]: { removeEffects: [{ type: 'boon', all: true }] }
         }
       }
     }
@@ -1195,7 +1195,7 @@ test('heal traits commit independently, retain party scope, and sample later boo
   const resolution = committed.resolvedEvents.find(
     (event) => event.sourceId === TRAIT.HEALERS_RESOLUTION && event.type === 'buff'
   );
-  const profile = guardianProfession.catalog.balanceProfilesById.get(PROFILE.healersResolution);
+  const profile = guardianProfession.catalog.balanceProfilesById.get(TRAIT.HEALERS_RESOLUTION);
   assert.equal(resolution.duration, profile.effects.find((effect) => effect.type === 'boon').duration * 1.25);
 });
 
@@ -1303,14 +1303,14 @@ test('removed trait components neither claim heal cooldowns nor start recurring 
     professions: {
       guardian: {
         balanceProfiles: {
-          [PROFILE.healersResolution]: { removeEffects: [{ type: 'boon', all: true }] },
-          [PROFILE.protectorsRestoration]: {
+          [TRAIT.HEALERS_RESOLUTION]: { removeEffects: [{ type: 'boon', all: true }] },
+          [TRAIT.PROTECTORS_RESTORATION]: {
             removeEffects: [
               { type: 'strike', all: true },
               { type: 'boon', all: true }
             ]
           },
-          [PROFILE.righteousInstincts]: { removeEffects: [{ type: 'boon', all: true }] }
+          [TRAIT.RIGHTEOUS_INSTINCTS]: { removeEffects: [{ type: 'boon', all: true }] }
         }
       }
     }
@@ -1576,7 +1576,7 @@ test('Soaring Devastation uses the selected weapon set and survives removal of i
     label: 'Soaring strike only',
     professions: {
       guardian: {
-        balanceProfiles: { [DH_PROFILE.soaringDevastation]: { removeEffects: [{ type: 'condition', all: true }] } }
+        balanceProfiles: { [TRAIT.SOARING_DEVASTATION]: { removeEffects: [{ type: 'condition', all: true }] } }
       }
     }
   });
@@ -1695,7 +1695,7 @@ test('Big Game Hunter preserves hit eligibility, tether expiry, attribution, and
           professions: {
             guardian: {
               balanceProfiles: {
-                [DH_PROFILE.bigGameHunter]: { removeEffects: [{ type: 'condition', name: 'Vulnerability' }] }
+                [TRAIT.BIG_GAME_HUNTER]: { removeEffects: [{ type: 'condition', name: 'Vulnerability' }] }
               }
             }
           }

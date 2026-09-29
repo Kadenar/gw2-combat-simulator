@@ -1,20 +1,15 @@
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
+import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
+import { MESMER_CORE_SHATTER_PROFILE_IDS, mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
+import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
+import { methodOfMadnessDamage } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { createDefaultConfig, runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { mesmerProfession, mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { createDefaultConfig } from '#tests/helpers/mesmer-simulation.js';
-import {
-  mesmerProfiledShatters,
-  mesmerProfiledTraitDamage,
-  MESMER_CORE_SHATTER_PROFILE_IDS
-} from '#gw2/professions/mesmer/core/profiles.js';
-import { MESMER_CORE_TRAIT_DAMAGE } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
-import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
-import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
-import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 
 // Minimal scenarios keep removal, patch isolation, and resource contracts independent of benchmark rotations.
 function run(balanceProfiles, specialization, rotation, config = {}) {
@@ -273,8 +268,7 @@ test('removing Chronomancer boon preserves its sibling and clone refund', () => 
 
 test('required profiles and scalars reject malformed input while optional trait fields stay absent', () => {
   const id = TRAIT.METHOD_OF_MADNESS;
-  const compile = (profile) =>
-    mesmerProfiledTraitDamage({ balanceProfile: () => profile }, MESMER_CORE_TRAIT_DAMAGE['Lesser Chaos Storm'], id);
+  const compile = (profile) => methodOfMadnessDamage({ balanceProfile: () => profile });
   assert.throws(() => compile(undefined), /missing required profile/);
   for (const internalCooldown of [undefined, null, '', '10', NaN, Infinity]) {
     assert.throws(

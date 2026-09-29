@@ -1,35 +1,35 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
-  tooltipFactorChange,
-  tooltipSeconds,
-  outsideScopeTooltip,
-  traitTooltip,
-  skillTooltip,
-  tooltipNumber,
-  tooltipDecimal,
-  type DescribeSimulationTooltip,
-  profileFact,
   modifierFact,
+  outsideScopeTooltip,
+  profileFact,
+  simulationEffectFacts,
+  skillTooltip,
+  tooltipDecimal,
+  tooltipFactorChange,
+  tooltipNumber,
   tooltipPercent,
   tooltipProfile,
-  simulationEffectFacts,
+  tooltipSeconds,
+  traitTooltip,
+  type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
-  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  NECROMANCER_MINION_PROFILE_BY_SKILL_ID
+  NECROMANCER_MINION_PROFILE_BY_SKILL_ID,
+  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE
 } from '#gw2/professions/necromancer/core/profiles.js';
+import { actualNecromancerLifeForceCost } from '#gw2/professions/necromancer/core/state.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   HARBINGER_BALANCE_PROFILE_IDS as HARBINGER,
   HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID
 } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
-import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import {
   RITUALIST_BALANCE_PROFILE_IDS as RITUALIST,
   RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID
 } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
-import { actualNecromancerLifeForceCost } from '#gw2/professions/necromancer/core/state.js';
+import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 
 const lifeForce = (value: number) => `${value}% life force`;
 
@@ -107,9 +107,9 @@ const shadeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
               tooltipProfile(balanceContext, SCOURGE.shade).effects?.filter((effect) => effect.type === 'buff'),
               'ordinary shade'
             ).facts,
-            profileFact(balanceContext, SCOURGE.sandSavant, 'maximumStacks', 'Maximum shades with Sand Savant'),
+            profileFact(balanceContext, TRAIT.SAND_SAVANT, 'maximumStacks', 'Maximum shades with Sand Savant'),
             ...simulationEffectFacts(
-              tooltipProfile(balanceContext, SCOURGE.sandSavant).effects,
+              tooltipProfile(balanceContext, TRAIT.SAND_SAVANT).effects,
               'with Sand Savant; replaces ordinary shade'
             ).facts
           ]

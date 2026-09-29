@@ -1,38 +1,42 @@
-import { guardianTorchActions } from '#gw2/professions/guardian/core/skills/weapons/torch.js';
-import { guardianSpearActions } from '#gw2/professions/guardian/core/skills/weapons/spear.js';
-import { guardianIgnitionActions } from '#gw2/professions/guardian/core/skills/weapons/pistol.js';
-import { guardianJusticeActions } from '#gw2/professions/guardian/core/skills/profession-skills.js';
-import { isGuardianSymbolSkill } from '#gw2/professions/guardian/core/traits/shared.js';
-import { applySideEffect } from '#gw2/platform/simulation/side-effects.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { applySideEffect } from '#gw2/platform/simulation/side-effects.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import { guardianRechargeWork } from '#gw2/professions/guardian/core/mechanics/recharge.js';
+import { expireSpearIllumination, GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import {
-  applyGuardianVirtueActivationTraits,
   CORE_VIRTUES,
   guardianVirtueForSlot,
   reactToJusticeHitWithOptions,
   refreshGuardianVirtues
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { modifyGuardianMaximumAmmo } from '#gw2/professions/guardian/core/mechanics/recharge.js';
-import { guardianRechargeWork } from '#gw2/professions/guardian/core/mechanics/recharge.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import { expireSpearIllumination, GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
+import { guardianJusticeActions } from '#gw2/professions/guardian/core/skills/profession-skills.js';
 import {
-  completeGuardianHealTraits,
-  guardianComboFields,
-  guardianTraitEffects,
-  guardianTraitTasks,
-  triggerGuardianFuriousFocus,
-  reactToGuardianDamage,
-  reactToGuardianBuff,
+  guardianIgnitionActions,
+  guardianIgnitionFields,
   reactToSymbolOfIgnition
-} from '#gw2/professions/guardian/core/traits/index.js';
+} from '#gw2/professions/guardian/core/skills/weapons/pistol.js';
+import { guardianSpearActions } from '#gw2/professions/guardian/core/skills/weapons/spear.js';
+import { guardianTorchActions } from '#gw2/professions/guardian/core/skills/weapons/torch.js';
+import {
+  applyGuardianVirtueActivationTraits,
+  completeHealersResolution,
+  completeProtectorsRestoration,
+  eternalArmoryMaximumAmmo,
+  glacialHeartAvailability,
+  guardianResolutionEffects,
+  masterOfConsecrationsFields,
+  radiantFireMaximumAmmo,
+  reactToRighteousInstinctsBuff,
+  reactToZealDamage,
+  triggerGuardianFuriousFocus,
+  writOfPersistenceEffects,
+  writOfPersistenceFields
+} from '#gw2/professions/guardian/core/traits/behavior.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import type { GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
 const readyVirtueActivations = new WeakSet<RuntimeCast>();
@@ -98,66 +102,22 @@ export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
       }
     }
   },
-  // Only damaging symbol hits apply the profile's Vulnerability packet.
-  traitTriggers: [
-    // Only resolved player critical strikes claim Empowering Might's shared ICD.
-    {
-      trait: TRAIT.EMPOWERING_MIGHT,
-      emit: TRAIT.EMPOWERING_MIGHT,
-      on: 'damage.resolved',
-      icd: 'profile',
-      when: (_runtime, event, details) =>
-        event.actorType === 'player' &&
-        Number(event.coefficient) > 0 &&
-        (details.hitContext?.damage ?? 0) > 0 &&
-        Boolean(details.hitContext?.critEligible && details.hitContext.critical.didCrit),
-      attribution: {
-        source: 'guardian',
-        skillId: TRAIT.EMPOWERING_MIGHT,
-        skillName: 'Empowering Might'
-      }
-    },
-    {
-      trait: TRAIT.SYMBOLIC_EXPOSURE,
-      emit: PROFILE.symbolicExposure,
-      on: 'damage.resolved',
-      when: (runtime, event, details) =>
-        event.actorType === 'player' &&
-        Number(event.coefficient) > 0 &&
-        (details.hitContext?.damage ?? 0) > 0 &&
-        Boolean(
-          event.isSymbol ||
-          isGuardianSymbolSkill(
-            event.skillId == null ? undefined : runtime.helpers.skillsById.get(event.skillId),
-            event.skillName
-          )
-        ),
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Vulnerability',
-      attribution: {
-        source: 'guardian',
-        skillId: TRAIT.SYMBOLIC_EXPOSURE,
-        skillName: 'Symbolic Exposure',
-        name: 'Symbolic Exposure \u2014 Vulnerability',
-        priority: 5
-      }
-    }
-  ],
   endurance: { state: (runtime) => runtime.profession.core, maximum: () => 100, regenerationRate: () => 0 },
   rechargeWork: guardianRechargeWork,
   maximumAmmo: (runtime, skill, maximum) =>
-    modifyGuardianMaximumAmmo({ catalog: runtime.helpers, config: runtime.config, skill }, maximum),
-  modifyComboFields: guardianComboFields,
-  modifyEffects: guardianTraitEffects,
+    eternalArmoryMaximumAmmo(runtime, skill, radiantFireMaximumAmmo(runtime, skill, maximum)),
+  // Select weapon fields before trait extensions; Writ never changes an already executed field.
+  modifyComboFields(runtime, cast, fields) {
+    if (cast.skill.id === ID.SYMBOL_OF_IGNITION) fields = guardianIgnitionFields(runtime);
+    return writOfPersistenceFields(runtime, cast, masterOfConsecrationsFields(runtime, cast, fields));
+  },
+  // Added symbol boons receive the Resolution multiplier once, after pulse construction.
+  modifyEffects(runtime, cast, effects) {
+    return guardianResolutionEffects(runtime, writOfPersistenceEffects(runtime, cast, effects));
+  },
   availability(runtime, skill) {
-    const glacial = hasTrait(runtime, TRAIT.GLACIAL_HEART);
-    if (skill.id === ID.MIGHTY_BLOW && glacial)
-      return denySkillCast(
-        skill,
-        'guardian.trait-replacement',
-        'Glacial Blow replaces it while Glacial Heart is selected.'
-      );
-    if (skill.id === ID.GLACIAL_BLOW && !glacial)
-      return denySkillCast(skill, 'guardian.trait-replacement', 'requires the Glacial Heart trait.');
+    const replacement = glacialHeartAvailability(runtime, skill);
+    if (replacement) return replacement;
     const flips = runtime.profession.core.availableFlips;
     if (skill.id === ID.ZEALOTS_FLAME && skillFlipReady(flips[ID.ZEALOTS_FIRE], runtime.time))
       return denySkillCast(skill, 'guardian.flip-parent-active', 'use the active flip skill first.');
@@ -177,28 +137,32 @@ export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
   },
   onCastCommit(runtime, cast) {
     clearTorchLockout(runtime, cast);
-    completeGuardianHealTraits(runtime, cast);
+    completeHealersResolution(runtime, cast);
+    completeProtectorsRestoration(runtime, cast);
     const virtue = CORE_VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
     if (virtue) completeCoreVirtue(runtime, cast, virtue);
   },
   onCooldownReset: refreshGuardianVirtues,
   reactions: {
     'damage.resolved'(runtime, event, details) {
-      reactToGuardianDamage(runtime, event, (details as NativeResolvedDamageDetails).hitContext?.damage ?? 0);
+      const damage = (details as NativeResolvedDamageDetails).hitContext?.damage ?? 0;
+      // Weapon ignition precedes Zeal rewards, which precede Core passive Justice.
+      if (event.actorType === 'player' && Number(event.coefficient) > 0 && damage > 0)
+        reactToSymbolOfIgnition(runtime, event);
+      reactToZealDamage(runtime, event, damage);
       if (runtime.profession.specialization.kind !== 'Core') return;
       refreshGuardianVirtues(runtime);
       reactToJusticeHitWithOptions(runtime, event, details);
     },
     'buff.applied'(runtime, event) {
       if (event.kind === 'alacrity') refreshGuardianVirtues(runtime);
-      reactToGuardianBuff(runtime, event);
+      reactToRighteousInstinctsBuff(runtime, event);
     },
     'condition.applied'(runtime, event) {
       reactToSymbolOfIgnition(runtime, event);
     }
   },
   tasks: {
-    ...guardianTraitTasks,
     [GUARDIAN_SPEAR_EXPIRY]: expireSpearIllumination
   }
 };

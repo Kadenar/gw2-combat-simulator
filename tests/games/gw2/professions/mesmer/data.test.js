@@ -1,36 +1,41 @@
-import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { SKILLS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
 import { SKILLS as GUARDIAN_API_SKILLS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
+import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { SKILLS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 import {
   createMesmerBuildDefaults,
   migrateMesmerBuild,
   validateMesmerBuild
 } from '#gw2/professions/mesmer/build/build.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
+import { MESMER_CORE_CLONE_ATTACKS as CLONE_ATTACKS } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
 import {
   MESMER_CORE_BALANCE_PROFILE_IDS,
   MESMER_CORE_SHATTER_PROFILE_IDS,
   mesmerProfiledShatters
 } from '#gw2/professions/mesmer/core/profiles.js';
-import { MESMER_CORE_CLONE_ATTACKS as CLONE_ATTACKS } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
-import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
-import { MESMER_CORE_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { MESMER_CORE_EXTRA_SKILLS } from '#gw2/professions/mesmer/core/skills/actions.js';
+import { MESMER_CORE_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/index.js';
+import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/supplemental-skills.js';
-import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
+import {
+  MESMER_DUPLICATE_SKILL_NAMES,
+  defaultMesmerSkillIdForDuplicateName,
+  resolveMesmerSkillIdFromDuplicateName
+} from '#gw2/professions/mesmer/data/duplicate-skill-names.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
 import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
-import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
 import {
   MESMER_CHRONOMANCER_EXTRA_SKILLS,
+  MESMER_CHRONOMANCER_SHATTERS,
   MESMER_CHRONOMANCER_SKILL_MECHANICS,
   MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS
 } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
@@ -40,30 +45,27 @@ import {
   mesmerProfiledAmbush
 } from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
 import {
+  MESMER_MIRAGE_AMBUSH_SKILLS as AMBUSH_ATTACKS,
   MESMER_MIRAGE_EXTRA_SKILLS,
-  MESMER_MIRAGE_SKILL_MECHANICS,
-  MESMER_MIRAGE_AMBUSH_SKILLS as AMBUSH_ATTACKS
+  MESMER_MIRAGE_SKILL_MECHANICS
 } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
-import { VIRTUOSO_BALANCE_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/virtuoso/profiles.js';
-import { MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
-import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
-import { MESMER_VIRTUOSO_SKILL_MECHANICS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
 import {
   TROUBADOUR_BALANCE_PROFILE_IDS,
   TROUBADOUR_INSTRUMENT_PROFILE_IDS,
   mesmerProfiledInstrument
 } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
-import { MESMER_TROUBADOUR_INSTRUMENTS as INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 import {
+  MESMER_TROUBADOUR_INSTRUMENTS as INSTRUMENTS,
   MESMER_TROUBADOUR_EXTRA_SKILLS,
   MESMER_TROUBADOUR_SKILL_MECHANICS,
   MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS
 } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
+import { MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
+import { VIRTUOSO_BALANCE_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/virtuoso/profiles.js';
 import {
-  defaultMesmerSkillIdForDuplicateName,
-  MESMER_DUPLICATE_SKILL_NAMES,
-  resolveMesmerSkillIdFromDuplicateName
-} from '#gw2/professions/mesmer/data/duplicate-skill-names.js';
+  MESMER_VIRTUOSO_SHATTERS,
+  MESMER_VIRTUOSO_SKILL_MECHANICS
+} from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
 
 const MECHANIC_SKILLS = Object.freeze({
   Core: Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]),
@@ -231,9 +233,7 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
 
   // Keep the live catalog isolated while exercising skill, profile, and runtime projection patch consumers.
   const originalCooldown = mesmerCatalog.skillsById.get(ID.MIND_WRACK).cooldown;
-  const originalAttribute = mesmerCatalog.balanceProfilesById.get(
-    MESMER_CORE_BALANCE_PROFILE_IDS.fencersFinesse
-  ).attributePerStack;
+  const originalAttribute = mesmerCatalog.balanceProfilesById.get(TRAIT.FENCERS_FINESSE).attributePerStack;
   const preview = applyMesmerPatch({
     skills: {
       [ID.MIND_WRACK]: {
@@ -247,13 +247,13 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
       [MESMER_CORE_BALANCE_PROFILE_IDS.cryOfFrustration]: {
         effects: [{ effectIndex: 4, duration: 4 }]
       },
-      [MESMER_CORE_BALANCE_PROFILE_IDS.fencersFinesse]: {
+      [TRAIT.FENCERS_FINESSE]: {
         fields: { attributePerStack: 20 }
       },
-      [CHRONOMANCER_BALANCE_PROFILE_IDS.dangerTime]: {
+      [TRAIT.DANGER_TIME]: {
         fields: { durationMultiplier: 12 }
       },
-      [CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment]: {
+      [TRAIT.SEIZE_THE_MOMENT]: {
         fields: { durationPerTier: 2 },
         effects: [
           {
@@ -284,12 +284,11 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
     preview.balanceProfilesById.get(MESMER_CORE_BALANCE_PROFILE_IDS.cryOfFrustration).effects[4].duration,
     4
   );
-  assert.equal(preview.balanceProfilesById.get(MESMER_CORE_BALANCE_PROFILE_IDS.fencersFinesse).attributePerStack, 20);
-  assert.equal(preview.balanceProfilesById.get(CHRONOMANCER_BALANCE_PROFILE_IDS.dangerTime).durationMultiplier, 12);
-  assert.equal(preview.balanceProfilesById.get(CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment).durationPerTier, 2);
-  const originalBoon = mesmerCatalog.balanceProfilesById.get(CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment)
-    .effects[0];
-  assert.deepEqual(preview.balanceProfilesById.get(CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment).effects[0], {
+  assert.equal(preview.balanceProfilesById.get(TRAIT.FENCERS_FINESSE).attributePerStack, 20);
+  assert.equal(preview.balanceProfilesById.get(TRAIT.DANGER_TIME).durationMultiplier, 12);
+  assert.equal(preview.balanceProfilesById.get(TRAIT.SEIZE_THE_MOMENT).durationPerTier, 2);
+  const originalBoon = mesmerCatalog.balanceProfilesById.get(TRAIT.SEIZE_THE_MOMENT).effects[0];
+  assert.deepEqual(preview.balanceProfilesById.get(TRAIT.SEIZE_THE_MOMENT).effects[0], {
     ...originalBoon,
     duration: 4,
     audience: { ...originalBoon.audience, maximumRecipients: 10 }
@@ -329,10 +328,7 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
   );
 
   assert.equal(mesmerCatalog.skillsById.get(ID.MIND_WRACK).cooldown, originalCooldown);
-  assert.equal(
-    mesmerCatalog.balanceProfilesById.get(MESMER_CORE_BALANCE_PROFILE_IDS.fencersFinesse).attributePerStack,
-    originalAttribute
-  );
+  assert.equal(mesmerCatalog.balanceProfilesById.get(TRAIT.FENCERS_FINESSE).attributePerStack, originalAttribute);
 });
 
 test('Mesmer and Guardian API catalogs share common fields and explicit ammo lockouts', () => {

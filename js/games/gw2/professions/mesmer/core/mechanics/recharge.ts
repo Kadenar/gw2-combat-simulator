@@ -1,36 +1,14 @@
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
-/** Applies Core Mesmer availability, recharge, and shatter-ammunition policy. */
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+  fencersFinesseRecharge,
+  masterOfMisdirectionRecharge,
+  shatterStormMaximumAmmo
+} from '#gw2/professions/mesmer/core/traits/behavior.js';
+/** Applies Core Mesmer availability, recharge, and shatter-ammunition policy. */
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
-
-/** Both cast reservations and mantra parent adjustments use the same trait rules before flat shatter reductions. */
-const traitRecharge = compileRechargeRules<MesmerRuntimeState>([
-  {
-    trait: TRAIT.MASTER_OF_MISDIRECTION,
-    when: (runtime, skill) =>
-      Boolean(
-        mesmerMechanicsFor(runtime).shatters[Number(skill.id)] ||
-        mesmerMechanicsFor(runtime).instruments[Number(skill.id)]
-      ),
-    multiplier: { profile: PROFILE.masterOfMisdirection, field: 'rechargeMultiplier' }
-  },
-  {
-    trait: TRAIT.FENCERS_FINESSE,
-    when: (_runtime, skill) => skill.weapon === 'Sword',
-    multiplier: { profile: PROFILE.fencersFinesse, field: 'rechargeMultiplier' }
-  }
-]);
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /**
  * Calculates Mesmer recharge with special handling for ammo lockouts, weapon
@@ -43,7 +21,7 @@ export function mesmerRechargeWork(context: MesmerRuntime, skill: MesmerSkill, s
     return sharedDuration === 0 ? 0 : skill.cooldown || 0;
   }
 
-  const multiplier = traitRecharge(context, skill, 1);
+  const multiplier = fencersFinesseRecharge(context, skill, masterOfMisdirectionRecharge(context, skill, 1));
 
   const shatter = mesmerMechanicsFor(context).shatters[skill.id];
   if (shatter?.rechargeReductionPerSource) {
@@ -65,10 +43,5 @@ export function mesmerRechargeWork(context: MesmerRuntime, skill: MesmerSkill, s
 export function mesmerMaximumAmmo(context: MesmerRuntime, skill: MesmerSkill, maximum: number): number {
   // Inactive mantra flips have no charge pool; only their parent can rearm and refill them.
   if (skill.flipParentId && !context.profession.core.availableFlips[skill.id]) return 0;
-  const id = skill.id;
-  const runtime = mesmerMechanicsFor(context);
-  const isSlot1 = runtime.shatters[id]?.slot === 1 || runtime.instruments[id]?.slot === 1;
-  return isSlot1 && hasTrait(context, TRAIT.SHATTER_STORM)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.shatterStorm), 'maximumStacks')
-    : maximum;
+  return shatterStormMaximumAmmo(context, skill, maximum);
 }

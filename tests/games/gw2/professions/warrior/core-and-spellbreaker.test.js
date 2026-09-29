@@ -23,15 +23,12 @@ import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { warriorCoreModifiers } from '#gw2/professions/warrior/core/modifiers.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { berserkerModule } from '#gw2/professions/warrior/specializations/berserker/module.js';
-import { berserkerModifiers } from '#gw2/professions/warrior/specializations/berserker/modifiers.js';
 import { BERSERKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import { bladeswornModule } from '#gw2/professions/warrior/specializations/bladesworn/module.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { paragonModule } from '#gw2/professions/warrior/specializations/paragon/module.js';
 import { PARAGON_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import { spellbreakerModule } from '#gw2/professions/warrior/specializations/spellbreaker/module.js';
-import { SPELLBREAKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
-import { spellbreakerModifiers } from '#gw2/professions/warrior/specializations/spellbreaker/modifiers.js';
 import { assertProfessionFamilyConformance } from '#tests/helpers/profession-family-conformance.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
@@ -124,7 +121,7 @@ test('Warrior modules expose isolated balance-profile authoring', () => {
 
   assert.equal(profile('Core', WARRIOR_CORE_BALANCE_PROFILE_IDS.burstTiers).patchableFields.threshold, 20);
   assert.equal(profile('Berserker', BERSERKER_BALANCE_PROFILE_IDS.resources).profile.effects[0].duration, 20);
-  assert.equal(profile('Spellbreaker', SPELLBREAKER_BALANCE_PROFILE_IDS.magebaneTether).profile.effects[0].duration, 8);
+  assert.equal(profile('Spellbreaker', TRAIT.MAGEBANE_TETHER).profile.effects[0].duration, 8);
   assert.equal(profile('Bladesworn', BLADESWORN_BALANCE_PROFILE_IDS.dragonTrigger).patchableFields.maximumStacks, 10);
   assert.equal(profile('Paragon', PARAGON_BALANCE_PROFILE_IDS.resources).patchableFields.maximumStacks, 10);
 
@@ -141,7 +138,7 @@ test('Warrior modules expose isolated balance-profile authoring', () => {
     modules.get('Core').modifierRules.find((rule) => rule.id === 'warrior.berserkers-power').parameters,
     {}
   );
-  const berserkersPower = profile('Core', WARRIOR_CORE_BALANCE_PROFILE_IDS.berserkersPower).patchableFields;
+  const berserkersPower = profile('Core', TRAIT.BERSERKERS_POWER).patchableFields;
   assert.equal(berserkersPower.maximumStacks, 4);
   assert.equal(berserkersPower.damageIncreasePerStack, 0.0375);
 
@@ -153,7 +150,7 @@ test('Warrior modules expose isolated balance-profile authoring', () => {
       [BERSERKER_BALANCE_PROFILE_IDS.resources]: {
         effects: [{ effectIndex: 0, duration: { from: 20, to: 25 } }]
       },
-      [SPELLBREAKER_BALANCE_PROFILE_IDS.magebaneTether]: {
+      [TRAIT.MAGEBANE_TETHER]: {
         effects: [{ effectIndex: 0, duration: { from: 8, to: 9 } }]
       },
       [BLADESWORN_BALANCE_PROFILE_IDS.dragonTrigger]: {
@@ -167,7 +164,7 @@ test('Warrior modules expose isolated balance-profile authoring', () => {
 
   assert.equal(preview.balanceProfilesById.get(WARRIOR_CORE_BALANCE_PROFILE_IDS.burstTiers).threshold, 15);
   assert.equal(preview.balanceProfilesById.get(BERSERKER_BALANCE_PROFILE_IDS.resources).effects[0].duration, 25);
-  assert.equal(preview.balanceProfilesById.get(SPELLBREAKER_BALANCE_PROFILE_IDS.magebaneTether).effects[0].duration, 9);
+  assert.equal(preview.balanceProfilesById.get(TRAIT.MAGEBANE_TETHER).effects[0].duration, 9);
   assert.equal(preview.balanceProfilesById.get(BLADESWORN_BALANCE_PROFILE_IDS.dragonTrigger).maximumStacks, 12);
   assert.equal(preview.balanceProfilesById.get(PARAGON_BALANCE_PROFILE_IDS.resources).maximumStacks, 12);
 
@@ -681,7 +678,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
 
   assert.equal(arc.criticalChance, 0.4);
 
-  const attributes = berserkerModifiers.modifyAttributes(
+  const attributes = berserkerModule.modifiers.modifyAttributes(
     {
       catalog: warriorCatalog,
       config: { selectedTraitIds: [TRAIT.BLOOD_REACTION] },
@@ -704,7 +701,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
     conditionDamage: 390
   });
 
-  const bloodReactionOutsideBerserk = berserkerModifiers.modifyAttributes(
+  const bloodReactionOutsideBerserk = berserkerModule.modifiers.modifyAttributes(
     {
       catalog: warriorCatalog,
       config: { selectedTraitIds: [TRAIT.BLOOD_REACTION] },
@@ -727,7 +724,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
     conditionDamage: 120
   });
 
-  const greatFortitude = berserkerModifiers.modifyAttributes(
+  const greatFortitude = berserkerModule.modifiers.modifyAttributes(
     {
       catalog: warriorCatalog,
       config: { selectedTraitIds: [TRAIT.GREAT_FORTITUDE] },
@@ -1146,7 +1143,7 @@ test('Warrior dagger bursts always apply their boonless-target multiplier', () =
   // Each module composes the intrinsic rule exported beside its own burst.
   for (const [owner, id, skillId] of [
     [warriorCoreModifiers, 'warrior.breaching-strike-boonless', ID.BREACHING_STRIKE],
-    [berserkerModifiers, 'warrior.slicing-maelstrom-boonless', ID.SLICING_MAELSTROM]
+    [berserkerModule.modifiers, 'warrior.slicing-maelstrom-boonless', ID.SLICING_MAELSTROM]
   ]) {
     const rule = owner.modifierRules.find((rule) => rule.id === id);
     const context = { profession: warriorProfession, config: { target: { boonless: false } }, event: { skillId } };
@@ -1379,7 +1376,7 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
     true
   );
 
-  const attributes = spellbreakerModifiers.modifyAttributes(
+  const attributes = spellbreakerModule.modifiers.modifyAttributes(
     {
       catalog: warriorCatalog,
       time: 10,

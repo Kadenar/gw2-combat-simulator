@@ -1,13 +1,19 @@
-import { tempestOverloadDwell } from '#gw2/professions/elementalist/specializations/tempest/mechanics/overload-dwell.js';
-import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
-import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
-import { applyTempestResolverAura } from '#gw2/professions/elementalist/specializations/tempest/mechanics/aura-effects.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
+import { isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
+import { tempestOverloadDwell } from '#gw2/professions/elementalist/specializations/tempest/mechanics/overload-dwell.js';
+import {
+  applyGaleSong,
+  applyLatentStamina,
+  applyTempestResolverAura,
+  applyTempestShoutTraits
+} from '#gw2/professions/elementalist/specializations/tempest/traits/auras.js';
+import {
+  applyLucidSingularity,
+  applyUnstableConduit
+} from '#gw2/professions/elementalist/specializations/tempest/traits/conduits.js';
+import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 /**
  * Tempest hooks: the overload mechanic and its scheduler-phase traits.
  *
@@ -16,61 +22,36 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
  * around a channel, the attunement lockout an overload leaves behind, and the aura/attunement event
  * reactions the specialization's remaining traits need.
  */
+import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { denySkillCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import {
+  effectNumber,
   requireBalanceProfileFromContext,
-  requireEffect,
-  balanceProfileNumber,
-  effectNumber
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitElementalistBuff, emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
-import { EPSILON } from '#kernel/core/clock.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import { emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { armElementalistElementalLightningJolt } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
 import {
-  applyElementalistAura,
   triggerEarthenBlast,
   triggerElectricDischarge,
-  triggerFlameExpulsion,
-  triggerSunspot
-} from '#gw2/professions/elementalist/core/traits/index.js';
-import { elementalistEventSkill, emitProfiledBuff } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { armElementalistElementalLightningJolt } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
+  triggerFlameExpulsion
+} from '#gw2/professions/elementalist/core/traits/attunements.js';
+import { triggerSunspot } from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_OVERLOAD_SKILL_IDS,
-  ELEMENTALIST_SKILL_IDS as ID,
-  ELEMENTALIST_TRAIT_IDS as TRAIT
+  ELEMENTALIST_SKILL_IDS as ID
 } from '#gw2/professions/elementalist/data/ids.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import { EPSILON } from '#kernel/core/clock.js';
 
 // Every attunement's overload is attributed to the profession mechanic rather than the held weapon.
 const OVERLOAD_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_OVERLOAD_SKILL_IDS));
-
-/**
- * Shout after-effects hook: grants Tempestuous Aria's party might when a Tempest shout finishes.
- * This is the shout half of the trait; its damage buff is refreshed by auras in the resolver.
- */
-function applyTempestShoutTraits(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  if (!hasTrait(context, TRAIT.TEMPESTUOUS_ARIA)) return;
-  // Keep the party reward at this committed shout's completion while reusing named profile emission.
-  emitProfiledBuff(
-    context,
-    cast.effectiveEnd,
-    PROFILE.tempestuousAria,
-    'Shout Might',
-    skill.name,
-    skill.id,
-    0,
-    'party'
-  );
-}
 
 // Fire the traits that pay out as an overload begins: the conduit boons, and the core
 // attunement-entry proc matching the channeled element.
@@ -110,75 +91,15 @@ function availability(context: ElementalistRuntime, skill: Skill): AvailabilityR
     : { ready: true };
 }
 
-// Derive Lucid Singularity boon pulses from the overload's actual emitted hits,
-// preserving interruption behavior and the distinct final-pulse duration.
-function afterCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  if (!skill.overload || !hasTrait(context, TRAIT.LUCID_SINGULARITY)) return;
-  const lucidSingularityProfile = requireBalanceProfileFromContext(context, PROFILE.lucidSingularity);
-  const hits = (skill.effects ?? [])
-    .flatMap((effect) =>
-      materializeSkillEffectApplications({
-        skill,
-        effect: scaleCastBoundTiming(cast, skill, effect),
-        start: cast.start,
-        fullEnd: cast.fullEnd,
-        baseEvent: {
-          source: 'elementalist',
-          sourceId: skill.id,
-          actorType: 'player',
-          skillId: skill.id,
-          skillName: skill.name,
-          activationId: cast.id
-        }
-      })
-    )
-    .map((application) => application.event)
-    .filter(
-      (event) =>
-        event.type === 'damage' &&
-        Number(event.coefficient) > 0 &&
-        (cast.effectiveEnd >= cast.fullEnd || event.at <= cast.effectiveEnd)
-    )
-    .sort((a, b) => a.at - b.at)
-    .slice(0, balanceProfileNumber(lucidSingularityProfile, 'maximumStacks'));
-  hits.forEach((event, index: number) => {
-    const effectName = index === hits.length - 1 ? 'Final Alacrity' : 'Pulse Alacrity';
-    emitProfiledBuff(context, event.at, PROFILE.lucidSingularity, effectName, 'Lucid Singularity', skill.id);
-  });
-}
-
 // Resolve everything that happens when a Tempest cast finishes: the Gale Song heal payload, then
 // for overloads the attunement lockout and each completion trait.
 function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   // Committed shortened heals retain the same reward before overload-specific completion work.
-  if (skill.type === 'Heal' && hasTrait(context, TRAIT.GALE_SONG))
-    emitProfiledBuff(context, cast.effectiveEnd, PROFILE.galeSong, 'Protection', 'Gale Song', skill.id);
+  applyGaleSong(context, cast, skill);
 
   if (!skill.overload) return;
   const attunement = String(skill.attunement);
-  if (hasTrait(context, TRAIT.UNSTABLE_CONDUIT)) {
-    const aura =
-      attunement === 'Fire'
-        ? 'Fire Aura'
-        : attunement === 'Water'
-          ? 'Frost Aura'
-          : attunement === 'Air'
-            ? 'Shocking Aura'
-            : 'Magnetic Aura';
-    const unstableConduitProfile = requireBalanceProfileFromContext(context, PROFILE.unstableConduit);
-    const unstableConduitAttunement = requireEffect(unstableConduitProfile, 'buff', attunement);
-    if (unstableConduitAttunement) {
-      applyElementalistAura(context, {
-        at: cast.effectiveEnd,
-        aura,
-        duration: unstableConduitAttunement.duration,
-        skillName: 'Unstable Conduit',
-        sourceId: skill.id,
-        // The completion aura precedes the same-time Overload packet.
-        priority: -20
-      });
-    }
-  }
+  applyUnstableConduit(context, cast, skill);
 
   if (attunement === 'Fire') {
     triggerFlameExpulsion(context, cast.effectiveEnd, skill.id);
@@ -202,28 +123,7 @@ function onAttunementEvent(context: ElementalistRuntime, event: SimulationEvent)
   }
 
   // Attuning to Water claims Latent Stamina's interval even when its optional vigor packet is removed.
-  if (event.type === 'elementalist.attunement' && event.to === 'Water' && hasTrait(context, TRAIT.LATENT_STAMINA)) {
-    if (context.procs.claim(PROFILE.latentStamina, 'elementalist.tempest.latentStamina', event.at)) {
-      const latentStaminaProfile = requireBalanceProfileFromContext(context, PROFILE.latentStamina);
-      const vigor = requireEffect(latentStaminaProfile, 'boon', 'Vigor');
-      const sourceId = event.skillId ?? event.sourceId;
-      if (vigor) {
-        emitElementalistBuff(context, {
-          skill: elementalistEventSkill(context, 'Latent Stamina', sourceId),
-          at: event.at,
-          source: 'Latent Stamina',
-          sourceId,
-          actorType: 'player',
-          kind: String(vigor.boon).toLowerCase(),
-          stacks: Number(vigor.stacks),
-          duration: vigor.duration,
-          skillName: 'Latent Stamina'
-        });
-      }
-    }
-
-    return;
-  }
+  applyLatentStamina(context, event);
 }
 
 /** Tempest owns overload channels and reacts only to actual attunement and aura events. */
@@ -297,61 +197,17 @@ export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> 
     }
   },
   // Overload-start boons retain the triggering overload as source, including on interrupted channels.
-  traitTriggers: [
-    {
-      trait: TRAIT.TRANSCENDENT_TEMPEST,
-      emit: PROFILE.transcendentTempest,
-      on: 'castCommit',
-      when: (_runtime, cast) => Boolean(cast.skill.overload),
-      // Apply before final overload packets and same-time completion strikes.
-      attribution: (_runtime, cast) => ({
-        source: 'Transcendent Tempest',
-        sourceId: cast.skill.id,
-        actorType: 'player',
-        skillId: cast.skill.id,
-        skillName: 'Transcendent Tempest',
-        priority: -10,
-        offTarget: cast.command.offTarget
-      })
-    },
-    ...(
-      [
-        [TRAIT.HARDY_CONDUIT, 'Hardy Conduit', PROFILE.hardyConduit, ['Protection']],
-        [TRAIT.HARMONIOUS_CONDUIT, 'Harmonious Conduit', PROFILE.harmoniousConduit, ['Swiftness', 'Stability']]
-      ] as const
-    ).map<Extract<TraitTrigger<ElementalistRuntimeState>, { on: 'castStart' }>>(([trait, name, profile, effects]) => ({
-      trait,
-      on: 'castStart',
-      when: (_runtime, cast) => Boolean(cast.skill.overload),
-      emit: profile,
-      effects: (effect) => effect.type === 'boon' && effects.some((name) => name === effect.name),
-      attribution: (_runtime, cast) => ({
-        source: name,
-        sourceId: cast.skill.id,
-        actorType: 'player',
-        skillName: name,
-        name,
-        offTarget: cast.command.offTarget
-      })
-    }))
-  ],
+
   initialize(runtime) {
     registerElementalistEliteEvents(runtime, onAttunementEvent);
   },
   availability,
-  // Overload-only trait tuning uses the same live recharge rules as other professions.
-  rechargeRules: [
-    {
-      trait: TRAIT.ELEMENTAL_ENCHANTMENT,
-      when: (_context, skill) => Boolean(skill.overload),
-      multiplier: { profile: CORE_PROFILE.elementalEnchantment, field: 'rechargeMultiplier' }
-    }
-  ],
+
   prepareEvent,
   onCastStart(runtime, cast) {
     withElementalistCast(runtime, cast, () => {
       onCastStart(runtime, cast, cast.skill);
-      afterCast(runtime, cast, cast.skill);
+      applyLucidSingularity(runtime, cast, cast.skill);
     });
   },
   onCastCommit(runtime, cast) {

@@ -1,34 +1,29 @@
-import { guardianBoonDuration } from '#gw2/professions/guardian/core/traits/index.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { emitGuardianBoon } from '#gw2/professions/guardian/core/traits/index.js';
-import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/shared.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import { reactToAshesHit } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
+import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { emitGuardianBoon, guardianBoonDuration } from '#gw2/professions/guardian/core/traits/behavior.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
+import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
 const ASHES = 'guardian.firebrand.ashes';
-const EXPIRE = 'guardian.firebrand.ashes-expiry';
+export const FIREBRAND_ASHES_EXPIRE = 'guardian.firebrand.ashes-expiry';
 
 /** Derived trait effects inherit attribution and causality, never the triggering buff's recipients or duration. */
-function attribution(event: Gw2ResolverEvent) {
+export function attribution(event: Gw2ResolverEvent) {
   return {
     source: 'guardian',
     actorType: 'player' as const,
@@ -40,38 +35,13 @@ function attribution(event: Gw2ResolverEvent) {
   };
 }
 
-/** Expand the trait's surviving boons in authored order, preserving trigger lineage and recipients. */
-function traitBoons(
-  runtime: Runtime,
-  trait: number,
-  profileId: string | number,
-  event: Gw2ResolverEvent,
-  party = false
-): boolean {
-  const profile = requireBalanceProfileFromContext(runtime, profileId);
-  const effects = (profile.effects ?? []).filter((effect) => effect.type === 'boon');
-  emitEffects(runtime, {
-    owner: profile,
-    effects,
-    baseEvent: { ...attribution(event), sourceId: trait, skillId: trait, skillName: profile.name },
-    transform: (packet) => ({
-      ...packet,
-      duration: guardianBoonDuration(runtime, packet),
-      causalOrder: event.causalOrder ?? event.eventOrder,
-      audience: { recipients: party ? 'party' : 'self' }
-    })
-  });
-  if (effects.length) recordGuardianTraitProc(runtime, trait, profile.name, runtime.time, event.skillName, 'Boons');
-  return effects.length > 0;
-}
-
 /** Finite allied opportunities enter ordinary hostile resolution, which rejects precombat and post-death outcomes. */
-function alliedAshes(
+export function alliedAshes(
   runtime: Runtime,
   event: Gw2ResolverEvent,
   count: number,
   duration: number,
-  quickfire: boolean
+  source: { maximumAllies: number; priority: number; skillName: string; name: string }
 ): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.ashes);
   const burn = requireEffect(profile, 'condition', 'Burning');
@@ -79,7 +49,7 @@ function alliedAshes(
   const procs = gw2AlliedPlayerProcTimeline(runtime.config, {
     start: runtime.time,
     duration,
-    maximumAllies: quickfire ? 1 : Infinity,
+    maximumAllies: source.maximumAllies,
     maximumPerAlly: count,
     internalCooldown: balanceProfileNumber(profile, 'internalCooldown')
   });
@@ -88,12 +58,12 @@ function alliedAshes(
       buildResolverCondition({
         ...attribution(event),
         at: proc.at,
-        priority: quickfire ? 5 : 0,
+        priority: source.priority,
         sourceId: 'guardian.ashes-of-the-just',
         skillId: ID.ASHES_OF_THE_JUST,
-        skillName: quickfire ? 'Quickfire' : 'Epilogue: Ashes of the Just',
+        skillName: source.skillName,
         activationId: `${event.activationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
-        name: `${quickfire ? 'Quickfire' : 'Ashes of the Just'} — Ally ${proc.allyIndex} Burning`,
+        name: `${source.name} — Ally ${proc.allyIndex} Burning`,
         condition: String(burn.condition),
         stacks: effectNumber(profile, burn, 'stacks'),
         duration: effectNumber(profile, burn, 'duration'),
@@ -149,88 +119,45 @@ function grantFirebrandAshes(runtime: Runtime, cast: RuntimeCast): void {
     duration,
     audience: { recipients: 'party' }
   });
-  runtime.schedule(EXPIRE, state.ashes.expiresAt, undefined, undefined, 10);
-  alliedAshes(runtime, event, state.ashes.charges, state.ashes.expiresAt - runtime.time, false);
+  runtime.schedule(FIREBRAND_ASHES_EXPIRE, state.ashes.expiresAt, undefined, undefined, 10);
+  alliedAshes(runtime, event, state.ashes.charges, state.ashes.expiresAt - runtime.time, {
+    maximumAllies: Infinity,
+    priority: 0,
+    skillName: 'Epilogue: Ashes of the Just',
+    name: 'Ashes of the Just'
+  });
 }
 
 export const firebrandEffectTasks = {
   [ASHES](runtime: Runtime, data: unknown) {
     grantFirebrandAshes(runtime, (data as { cast: RuntimeCast }).cast);
   },
-  [EXPIRE](runtime: Runtime) {
+  [FIREBRAND_ASHES_EXPIRE](runtime: Runtime) {
     expireCharges(firebrandState.from(runtime).ashes, runtime.time);
   }
 };
 
-/** Player hit traits claim only accepted strikes; an off-target or pending axe packet cannot create Bleeding. */
-export function reactToFirebrandDamage(
+/** Selected boon components retain application-time attributes and trigger lineage. */
+export function boon(
   runtime: Runtime,
-  event: Gw2ResolverEvent,
-  details: NativeResolvedDamageDetails
-): void {
-  if (event.actorType !== 'player' || !((details.hitContext?.damage ?? 0) > 0)) return;
-  reactToAshesHit(runtime, event, details);
-  if (
-    !hasTrait(runtime, TRAIT.UNRELENTING_CRITICISM) ||
-    event.skillId == null ||
-    runtime.helpers.skillsById.get(event.skillId)?.weapon !== 'Axe'
-  )
-    return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.unrelentingCriticism);
-  const effect = requireEffect(profile, 'condition', 'Bleeding');
-  if (effect)
-    runtime.applyCondition(
-      buildResolverCondition({
-        ...attribution(event),
-        at: runtime.time,
-        sourceId: event.skillId,
-        name: 'Unrelenting Criticism — Bleeding',
-        triggeredBy: 'Unrelenting Criticism',
-        condition: String(effect.condition),
-        stacks: effectNumber(profile, effect, 'stacks'),
-        duration: effectNumber(profile, effect, 'duration')
-      })
-    );
-}
-
-/** Actual disables and qualifying condition applications own Stoic Demeanor, including selected component removal. */
-export function reactToFirebrandControl(runtime: Runtime, event: Gw2ResolverEvent): void {
-  if (event.actorType === 'player' && hasTrait(runtime, TRAIT.STOIC_DEMEANOR))
-    traitBoons(runtime, TRAIT.STOIC_DEMEANOR, PROFILE.stoicDemeanor, event);
-}
-
-/** Delivered boons own Stalwart Speed and Quickfire; eligibility precedes their one shared cooldown claim. */
-export function reactToFirebrandBuff(runtime: Runtime, event: Gw2ResolverEvent): void {
-  const state = firebrandState.from(runtime);
-  const self = event.resolvedAudience?.includesSelf === true;
-  const allies = event.resolvedAudience?.alliedPlayerCount ?? 0;
-  if (!self && allies <= 0) return;
-  if (
-    (event.kind === 'aegis' || event.kind === 'stability') &&
-    hasTrait(runtime, TRAIT.STALWART_SPEED) &&
-    isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.firebrand.stalwartSpeed'))
-  ) {
-    if (traitBoons(runtime, TRAIT.STALWART_SPEED, PROFILE.stalwartSpeed, event, true))
-      runtime.procs.readyAt['guardian.firebrand.stalwartSpeed'] = canonicalTime(
-        runtime.time +
-          balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.stalwartSpeed), 'internalCooldown')
-      );
-  }
-
-  if (event.kind !== 'quickness' || !hasTrait(runtime, TRAIT.QUICKFIRE)) return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.quickfire);
-  const buff = requireEffect(profile, 'buff', 'ashes-of-the-just');
-  const ashes = requireBalanceProfileFromContext(runtime, PROFILE.ashes);
-  const burn = requireEffect(ashes, 'condition', 'Burning');
-  // Both the charge and its Burning packet must survive before Quickfire claims an interval.
-  if (!buff || !burn || !runtime.procs.claim(PROFILE.quickfire, 'guardian.firebrand.quickfire', runtime.time)) return;
-  const expiresAt = gw2EffectExpiresAt(runtime.time, effectNumber(profile, buff, 'duration'));
-  if (allies > 0) alliedAshes(runtime, event, 1, expiresAt - runtime.time, true);
-  else {
-    state.ashes = grantCharges(1, expiresAt, state.ashes, runtime.time);
-    state.ashesBurnDuration = effectNumber(ashes, burn, 'duration');
-    runtime.schedule(EXPIRE, expiresAt, undefined, undefined, 10);
-  }
-
-  recordGuardianTraitProc(runtime, TRAIT.QUICKFIRE, 'Quickfire', runtime.time, event.skillName, '+1 Ashes of the Just');
+  profileId: string | number,
+  kind: string,
+  cause: Gw2ResolverEvent,
+  party = false
+): boolean {
+  const profile = requireBalanceProfileFromContext(runtime, profileId);
+  const effect = requireEffect(profile, 'boon', kind);
+  if (!effect) return false;
+  emitEffects(runtime, {
+    owner: profile,
+    effects: [effect],
+    baseEvent: cause,
+    transform: (event) => ({
+      ...cause,
+      ...event,
+      duration: guardianBoonDuration(runtime, event),
+      audience: { recipients: party ? 'party' : 'self' }
+    })
+  });
+  return true;
 }

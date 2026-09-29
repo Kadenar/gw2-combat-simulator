@@ -33,7 +33,10 @@ import { REVENANT_LEGENDS, revenantLegendLoadout } from '#gw2/professions/revena
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
-const calculateRevenantAttributes = createCalculateAttributes(applyRevenantBuildAttributeRules);
+const calculateRevenantAttributes = createCalculateAttributes(
+  applyRevenantBuildAttributeRules,
+  revenantProfession.traitBuildAttributes
+);
 
 const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {
@@ -1804,4 +1807,20 @@ test('Herald consume skills apply their full outgoing profiles', () => {
   );
   assert.ok(chaos.events.some((event) => event.type === 'control' && event.controlKind === 'knockback'));
   assert.ok(chaos.events.some((event) => event.type === 'buff' && event.kind === 'superspeed' && event.duration === 5));
+});
+
+// Cross-line duration contributions respect the effective selection used by isolated build previews.
+test('Numinous Gift augments Yearning Empowerment only while both owners are selected', () => {
+  const build = createRevenantBuildDefaults();
+  build.specializations = [
+    { name: 'Corruption', traits: '1-1-1' },
+    { name: 'Conduit', traits: '1-1-1' }
+  ];
+  const duration = (disabled) =>
+    calculateRevenantAttributes(build, [], 1, disabled).attributes['Torment Duration']?.final ?? 0;
+  assert.equal(duration(), 15);
+  assert.equal(duration('Numinous Gift'), 10);
+  assert.equal(duration('Yearning Empowerment'), 0);
+  build.specializations = [{ name: 'Conduit', traits: '1-1-1' }];
+  assert.equal(duration(), 0);
 });

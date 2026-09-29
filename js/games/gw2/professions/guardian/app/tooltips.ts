@@ -1,28 +1,28 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
-  tooltipFactorChange,
-  tooltipSeconds,
-  outsideScopeTooltip,
-  traitTooltip,
-  skillTooltip,
-  tooltipNumber,
-  profileFact,
   modifierFact,
-  tooltipPercent,
-  tooltipDecimal,
-  tooltipProfile,
+  outsideScopeTooltip,
+  profileFact,
   simulationEffectFacts,
+  skillTooltip,
+  tooltipDecimal,
+  tooltipFactorChange,
+  tooltipNumber,
+  tooltipPercent,
+  tooltipProfile,
+  tooltipSeconds,
+  traitTooltip,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/guardian/core/profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/guardian/core/profiles.js';
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as DRAGONHUNTER } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as FIREBRAND } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import { WILLBENDER_BALANCE_PROFILE_IDS as WILLBENDER } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as LUMINARY } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
+import { WILLBENDER_BALANCE_PROFILE_IDS as WILLBENDER } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 
 /** Label profile alternatives by their actual trigger rather than presenting them as simultaneous payloads. */
 function virtueBoons(description: string): DescribeSimulationTooltip {
@@ -231,7 +231,7 @@ export const guardianTooltips: ProfessionTooltips = {
               tooltipSeconds
             ),
             ...simulationEffectFacts(
-              tooltipProfile(balanceContext, FIREBRAND.swiftScholar).effects,
+              tooltipProfile(balanceContext, TRAIT.SWIFT_SCHOLAR).effects,
               'when the passive was ready'
             ).facts
           ]

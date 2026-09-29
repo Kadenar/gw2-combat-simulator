@@ -1,7 +1,5 @@
-import { canonicalTime } from '#kernel/core/clock.js';
-import { gw2AlliedEffectRecipients, gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import { gw2AlliedEffectRecipients, gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -9,18 +7,19 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import {
   ritualistResolverEventReactions,
   triggerRitualistWeaponSpell
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
+import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
+import { wieldersBoonCharges } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
 import type { NecromancerRuntime, NecromancerRuntimeState } from '#gw2/professions/necromancer/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 const EXPIRE = 'ritualist.weapon-spell-expiry';
 const ALLY = 'ritualist.weapon-spell-opportunity';
@@ -99,8 +98,7 @@ function grantWeaponSpell(
   if (previous) runtime.cancelOwner(owner(spell, previous.generation));
   const generation = ++state.weaponSpellGeneration;
   const expiresAt = canonicalTime(runtime.time + Number(effect.duration ?? 0));
-  const fullBenefit = hasTrait(runtime, TRAIT.WIELDERS_BOON);
-  const allyStacks = fullBenefit ? Number(effect.stacks ?? 0) : Number(effect.allyStacks ?? 0);
+  const allyStacks = wieldersBoonCharges(runtime, effect);
   const audience = gw2AlliedEffectRecipients(runtime.config, {
     ...effect.audience,
     recipients: 'party',

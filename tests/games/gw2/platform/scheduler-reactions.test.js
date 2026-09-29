@@ -3,7 +3,7 @@ import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS, ELEMENTALIST_TRAIT_IDS } from '#gw2/
 import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/air.js';
+import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/critical-procs.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 

@@ -1,4 +1,5 @@
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { evocationAllowsAttunementTrait } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
 /**
  * Evoker attunement behaviour layered over the Core Elementalist system.
  *
@@ -8,22 +9,12 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
  * is disabled - fire the entry effects from empowered familiar casts without any
  * attunement actually changing.
  */
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber,
-  requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import {
-  ELEMENTALIST_ATTUNEMENTS,
-  isElementalistAttunement,
-  setElementalistAttunementReadyAt,
-  type ElementalistAttunement
-} from '#gw2/professions/elementalist/core/state.js';
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import {
   elementalistAttunementRechargeDuration,
   onAttunementComplete,
@@ -31,38 +22,15 @@ import {
   type ElementalistAttunementTraitTrigger
 } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import {
-  grantElementalistRockSolid,
-  triggerEarthenBlast,
-  triggerElectricDischarge,
-  triggerSunspot
-} from '#gw2/professions/elementalist/core/traits/index.js';
-import { applyInscriptionAirEntry, applyOneWithAir } from '#gw2/professions/elementalist/core/traits/air.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
-import { evokerState, type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+  ELEMENTALIST_ATTUNEMENTS,
+  isElementalistAttunement,
+  setElementalistAttunementReadyAt,
+  type ElementalistAttunement
+} from '#gw2/professions/elementalist/core/state.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
-import {
-  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
-  ELEMENTALIST_TRAIT_IDS as TRAIT
-} from '#gw2/professions/elementalist/data/ids.js';
-
-// Evocation's five-second trait ICD applies to some Fire and Earth entry effects
-const EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES = new Set<Skill['id']>([
-  CORE_PROFILE.sunspot,
-  CORE_PROFILE.pyromancersPuissance,
-  CORE_PROFILE.earthenBlast,
-  CORE_PROFILE.rockSolid
-]);
-
-// reports whether the trait may proc now, arming its next Evocation ICD window when it may
-function consumeEvokerAttunementTraitCooldown(
-  context: ElementalistRuntime,
-  at: number,
-  profileId: Skill['id']
-): boolean {
-  const evocationProfile = requireBalanceProfileFromContext(context, PROFILE.evocation);
-  // Both real and familiar-triggered entries share a per-profile claim before downstream effects.
-  return context.procs.claimCooldown(String(profileId), at, balanceProfileNumber(evocationProfile, 'internalCooldown'));
-}
+import { type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /**
  * Runs Core's attunement completion with Evoker's proc policy attached, and
@@ -73,14 +41,8 @@ export function completeEvokerAttunement(context: ElementalistRuntime, cast: Run
   const target = targetAttunement(skill);
   if (!target) return false;
 
-  const state = evokerState.from(context);
-  const at = cast.effectiveEnd;
-  // Apply each configured ICD only when its element is the Evoker's selected specialization.
-  const shouldTriggerAttunementTrait = ({ attunement, profileId }: ElementalistAttunementTraitTrigger): boolean =>
-    !EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES.has(profileId) ||
-    state.element !== attunement ||
-    consumeEvokerAttunementTraitCooldown(context, at, profileId);
-
+  const shouldTriggerAttunementTrait = (trigger: ElementalistAttunementTraitTrigger): boolean =>
+    evocationAllowsAttunementTrait(context, cast.effectiveEnd, trigger);
   onAttunementComplete(context, cast, skill, target, { shouldTriggerAttunementTrait });
   return true;
 }
@@ -139,62 +101,5 @@ export function applyEvokerAttunementRechargePolicy(
         ? event.at + preservedRemaining
         : Math.max(existingReadyAt, defaultReadyAt);
     setElementalistAttunementReadyAt(context, attunement, nextReadyAt);
-  }
-}
-
-// fires the attunement-enter effects for Specialized Elements without actually swapping attunement
-export function triggerSpecializedElementEntry(
-  context: ElementalistRuntime,
-  cast: RuntimeCast,
-  skill: Skill,
-  element: ElementalistAttunement
-): void {
-  const at = cast.effectiveEnd;
-  const procReady = (profileId: Skill['id']): boolean => consumeEvokerAttunementTraitCooldown(context, at, profileId);
-
-  context.emit({
-    type: 'elementalist.attunement-enter',
-    at,
-    source: skill.name,
-    sourceId: skill.id,
-    actorType: 'player',
-    skillName: skill.name,
-    to: element
-  });
-  if (element === 'Fire') {
-    if (hasTrait(context, TRAIT.SUNSPOT) && procReady(CORE_PROFILE.sunspot)) {
-      triggerSunspot(context, at, skill.id);
-    }
-  } else if (element === 'Air') {
-    triggerElectricDischarge(context, at, skill.id);
-    // Synthetic entry shares the Air grants; Fresh Air below has its own entry semantics.
-    applyOneWithAir(context, at, skill);
-    applyInscriptionAirEntry(context, at, skill);
-
-    if (hasTrait(context, TRAIT.FRESH_AIR)) {
-      const freshAirProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.freshAir);
-      const freshAir = requireEffect(freshAirProfile, 'buff', 'fresh-air');
-      if (freshAir) {
-        emitElementalistBuff(context, {
-          skill: skill,
-          at,
-          source: skill.name,
-          sourceId: skill.id,
-          actorType: 'player',
-          kind: String(freshAir.kind).toLowerCase(),
-          stacks: Number(freshAir.stacks),
-          duration: freshAir.duration,
-          skillName: skill.name
-        });
-      }
-    }
-  } else if (element === 'Earth') {
-    if (hasTrait(context, TRAIT.EARTHEN_BLAST) && procReady(CORE_PROFILE.earthenBlast)) {
-      triggerEarthenBlast(context, at, skill.id);
-    }
-
-    if (hasTrait(context, TRAIT.ROCK_SOLID) && procReady(CORE_PROFILE.rockSolid)) {
-      grantElementalistRockSolid(context, at, skill.id);
-    }
   }
 }

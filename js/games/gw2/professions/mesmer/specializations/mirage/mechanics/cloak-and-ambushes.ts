@@ -1,36 +1,40 @@
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { emitMirageBoon, statusFromEffect } from '#gw2/professions/mesmer/specializations/mirage/mechanics/boons.js';
+import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
+import {
+  applyMirageAmbushTraits,
+  applyMirageCloakTraits,
+  applyMirageShatterTraits,
+  beginInfiniteHorizonAmbush
+} from '#gw2/professions/mesmer/specializations/mirage/traits/behavior.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime, EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
-import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Mirage-owned cloak, ambush, and deception behavior. */
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import type { ConditionEffect, StatusEffect } from '#gw2/platform/engine/skills/types.js';
 import {
+  balanceProfileNumber,
   requireBalanceProfileFromContext,
-  requireEffect,
-  balanceProfileNumber
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { MesmerClone, MesmerCloneAttack } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MIRAGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
+import type {
+  MesmerMirageCloakOptions,
+  MesmerMirageController
+} from '#gw2/professions/mesmer/specializations/mirage/types.js';
 import type {
   MesmerActivePrimaryWeapon,
   MesmerAddCondition,
   MesmerAddDamage,
   MesmerAddEvent,
-  MesmerAddTraitProc,
   MesmerAmbushAttack
 } from '#gw2/professions/mesmer/types.js';
-import type {
-  MesmerMirageCloakOptions,
-  MesmerMirageController
-} from '#gw2/professions/mesmer/specializations/mirage/types.js';
-import type { MesmerClone, MesmerCloneAttack } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 
-import type { MesmerConditionApplication, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 interface MirageActionControllerOptions {
   readonly state: MesmerRuntime;
@@ -38,11 +42,9 @@ interface MirageActionControllerOptions {
   readonly ambushAttacks: Readonly<Record<string, MesmerAmbushAttack>>;
   readonly cloneAttacks: Readonly<Record<string, MesmerCloneAttack>>;
   readonly addEvent: MesmerAddEvent;
-  readonly addTraitProc: MesmerAddTraitProc;
   readonly addCondition: MesmerAddCondition;
   readonly addDamage: MesmerAddDamage;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
-  readonly reduceSkillRecharge: (skill: MesmerSkill, reduction: number, at: number) => number;
 }
 
 /**
@@ -54,19 +56,10 @@ export function createMirageActionController({
   ambushAttacks,
   cloneAttacks,
   addEvent,
-  addTraitProc,
   addCondition,
   addDamage,
-  activePrimaryWeapon,
-  reduceSkillRecharge
+  activePrimaryWeapon
 }: MirageActionControllerOptions): MesmerMirageController {
-  // The selected effect already owns its identity and validated balance values.
-  const statusFromEffect = (effect: ConditionEffect | StatusEffect): MesmerConditionApplication => ({
-    name: String(effect.condition ?? effect.boon),
-    duration: effect.duration,
-    stacks: effect.stacks
-  });
-
   // Ground mirrors use exact half-open pickup windows; skill metadata owns any creation delay.
   const createMirrors = (at: number, count: number) => {
     const mechanicsProfile = requireBalanceProfileFromContext(state, PROFILE.mechanics);
@@ -84,41 +77,10 @@ export function createMirageActionController({
     }
   };
 
-  // Adds a boon to the event log at the specified time, with the given source skill and actor type, optionally for party recipients.
-  const addBoon = (
-    at: number,
-    boon: MesmerConditionApplication,
-    sourceSkill: string,
-    actorType: 'player' | 'summon' = 'player',
-    recipients: 'self' | 'party' = 'self'
-  ) => {
-    const boonRecipients = actorType === 'summon' ? 'party' : recipients;
-    addEvent({
-      type: 'buff',
-      at,
-      source: actorType === 'summon' ? 'Clone' : 'Player',
-      actorType,
-      kind: (boon.name || '').toLowerCase(),
-      stacks: Number(boon.stacks),
-      duration: Number(boon.duration),
-      skillName: sourceSkill,
-      sourceSkill,
-      audience: {
-        recipients: boonRecipients,
-        ...(boonRecipients === 'party' ? { maximumRecipients: 5 } : {})
-      }
-    });
-  };
-
   // Executes clone ambush attacks at the specified time, optionally for a given set of clones.
   const executeCloneAmbushes = (at: number, clones: readonly MesmerClone[] = professionCoreState(state).clones) => {
-    if (!hasTrait(state, TRAIT.INFINITE_HORIZON) || !clones.length) return;
-    addTraitProc(
-      'Infinite Horizon',
-      at,
-      activePrimaryWeapon(),
-      `${clones.length} clone${clones.length === 1 ? '' : 's'}`
-    );
+    if (!beginInfiniteHorizonAmbush(state, at, clones.length, activePrimaryWeapon())) return;
+
     for (const clone of clones) {
       const weapon = clone.weapon || activePrimaryWeapon();
       const ambush = ambushAttacks[weapon];
@@ -192,7 +154,7 @@ export function createMirageActionController({
       }
 
       for (const boon of ambush.clone.boons || []) {
-        addBoon(impactAt, boon, `${ambush.name} — Clone`, 'summon');
+        emitMirageBoon(addEvent, impactAt, boon, `${ambush.name} — Clone`, 'summon');
       }
     }
   };
@@ -215,21 +177,6 @@ export function createMirageActionController({
     });
   };
 
-  // Reduces the recharge of Mind Wrack and Cry of Frustration by 1 second if the Dune Cloak trait is present.
-  const reduceDuneCloakShatters = (at: number, source: string) => {
-    if (!hasTrait(state, TRAIT.DUNE_CLOAK)) return;
-    for (const id of [ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION]) {
-      const shatter = state.helpers.skillsById.get(id) as MesmerSkill | undefined;
-      const readyAt = shatter ? state.cooldowns.get(shatter.id) : null;
-      if (shatter && readyAt != null) {
-        const duneCloakProfile = requireBalanceProfileFromContext(state, PROFILE.duneCloak);
-        reduceSkillRecharge(shatter, balanceProfileNumber(duneCloakProfile, 'rechargeReduction'), at);
-      }
-    }
-
-    addTraitProc('Dune Cloak', at, source, 'Mind Wrack and Cry of Frustration recharge reduced by 1s');
-  };
-
   // Grants Mirage Cloak at the specified time
   const grantMirageCloak = (
     at: number,
@@ -249,29 +196,7 @@ export function createMirageActionController({
       duration,
       sourceSkill: source
     });
-    const renewingOasis = hasTrait(state, TRAIT.RENEWING_OASIS)
-      ? requireEffect(requireBalanceProfileFromContext(state, PROFILE.renewingOasis), 'boon', 'regeneration')
-      : undefined;
-    if (renewingOasis) {
-      addBoon(at, statusFromEffect(renewingOasis), source);
-      addTraitProc('Renewing Oasis', at, source, '4s regeneration');
-    }
-
-    if (hasTrait(state, TRAIT.ELUSIVE_MIND)) {
-      const elusiveMindProfile = requireBalanceProfileFromContext(state, PROFILE.elusiveMind);
-      addTraitProc(
-        'Elusive Mind',
-        at,
-        source,
-        `${balanceProfileNumber(elusiveMindProfile, 'maximumStacks')} conditions removed`
-      );
-    }
-
-    reduceDuneCloakShatters(at, source);
-    if (hasTrait(state, TRAIT.INFINITE_HORIZON)) {
-      mirageState.from(state).cloneAmbushUntil = canonicalTime(at + duration);
-      executeCloneAmbushes(at, professionCoreState(state).clones);
-    }
+    applyMirageCloakTraits(state, at, source, duration, executeCloneAmbushes);
   };
 
   // Accepted ambushes consume their window and schedule only trait-owned consequences.
@@ -282,23 +207,7 @@ export function createMirageActionController({
     const ambush = ambushAttacks[weapon];
     if (!ambush || skill.id !== ambush.id) return;
     const impactAt = ambush.player.damageAtMs == null ? at : castStart + ambush.player.damageAtMs / 1000;
-    const riddleOfSand =
-      mirageState.from(state).riddleOfSandReady && hasTrait(state, TRAIT.RIDDLE_OF_SAND)
-        ? requireEffect(requireBalanceProfileFromContext(state, PROFILE.riddleOfSand), 'condition', 'Confusion')
-        : undefined;
-    if (riddleOfSand) {
-      addCondition(ambush.name, impactAt, statusFromEffect(riddleOfSand), 'Player', `${ambush.name} — Riddle of Sand`);
-      addTraitProc('Riddle of Sand', impactAt, ambush.name, '2 confusion');
-      mirageState.from(state).riddleOfSandReady = false;
-    }
-
-    const mirageMantle = hasTrait(state, TRAIT.MIRAGE_MANTLE)
-      ? requireEffect(requireBalanceProfileFromContext(state, PROFILE.mirageMantle), 'boon', 'alacrity')
-      : undefined;
-    if (mirageMantle) {
-      addBoon(impactAt, statusFromEffect(mirageMantle), ambush.name, 'player', 'party');
-      addTraitProc('Mirage Mantle', impactAt, ambush.name, '4s alacrity');
-    }
+    applyMirageAmbushTraits(state, ambush, impactAt);
 
     mirageState.from(state).ambushUntil = 0;
     mirageState.from(state).ambushSource = '';
@@ -306,53 +215,7 @@ export function createMirageActionController({
 
   // Handles Mirage-only shatter effects after Core resolves the shared shatter packet and resource spend.
   const handleMirageShatter = (skill: MesmerSkill, at: number, spent: number) => {
-    if (config.specialization !== 'Mirage') return;
-    if (
-      hasTrait(state, TRAIT.RIDDLE_OF_SAND) &&
-      requireEffect(requireBalanceProfileFromContext(state, PROFILE.riddleOfSand), 'condition', 'Confusion')
-    ) {
-      mirageState.from(state).riddleOfSandReady = true;
-      addTraitProc('Riddle of Sand', at, skill.name, 'ambush primed');
-    }
-
-    const nominalEndurance = hasTrait(state, TRAIT.NOMADS_ENDURANCE)
-      ? requireEffect(requireBalanceProfileFromContext(state, PROFILE.nominalEndurance), 'boon', 'vigor')
-      : undefined;
-    if (nominalEndurance) {
-      addBoon(at, statusFromEffect(nominalEndurance), skill.name);
-      addTraitProc("Nomad's Endurance", at, skill.name, '3s vigor');
-    }
-
-    if (hasTrait(state, TRAIT.PHANTOM_PAIN)) {
-      const phantomPainProfile = requireBalanceProfileFromContext(state, PROFILE.phantomPain);
-      addEvent({
-        type: 'buff',
-        at,
-        // Phantom Pain starts after the same-time shatter packets resolve.
-        priority: 5,
-        kind: 'phantom-pain',
-        stacks: Math.min(balanceProfileNumber(phantomPainProfile, 'maximumStacks'), spent + 1),
-        duration: balanceProfileNumber(phantomPainProfile, 'durationMultiplier')
-      });
-      addTraitProc('Phantom Pain', at, skill.name);
-    }
-
-    if (skill.id === ID.DISTORTION && hasTrait(state, TRAIT.DESERT_DISTORTION)) {
-      grantAmbushWindow(at, 'Desert Distortion');
-      const desertDistortionProfile = requireBalanceProfileFromContext(state, PROFILE.desertDistortion);
-      createMirrors(at, spent * balanceProfileNumber(desertDistortionProfile, 'resourceGain'));
-      addTraitProc('Desert Distortion', at, skill.name, `${spent} Mirage Mirror${spent === 1 ? '' : 's'} created`);
-    }
-
-    if (
-      hasTrait(state, TRAIT.DUNE_CLOAK) &&
-      spent >= balanceProfileNumber(requireBalanceProfileFromContext(state, PROFILE.duneCloak), 'threshold')
-    ) {
-      const duneCloakProfile = requireBalanceProfileFromContext(state, PROFILE.duneCloak);
-      grantMirageCloak(at, 'Dune Cloak', {
-        duration: balanceProfileNumber(duneCloakProfile, 'durationMultiplier')
-      });
-    }
+    applyMirageShatterTraits(state, skill, at, spent, grantAmbushWindow, createMirrors, grantMirageCloak);
   };
 
   // Attempts to pick up a Mirage Mirror at the given time, applying damage and granting Mirage Cloak if successful.

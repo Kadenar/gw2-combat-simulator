@@ -1,18 +1,16 @@
+import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
+import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import { projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { reactToSymbolOfIgnition } from '#gw2/professions/guardian/core/skills/weapons/pistol.js';
+import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
+import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { FIREBRAND_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
+import { FIREBRAND_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
-import { reactToSymbolOfIgnition } from '#gw2/professions/guardian/core/traits/index.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import {
-  createFirebrandState,
-  FIREBRAND_PUBLIC_STATE_PROJECTION
-} from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import { projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
 
 const config = {
   stats: {

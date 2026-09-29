@@ -48,37 +48,45 @@ shared application views
 
 Use this table as the first place to look.
 
-| You're adding or changing...                                          | Usually belongs in...                                  |
-| --------------------------------------------------------------------- | ------------------------------------------------------ |
-| Skill coefficient, hit count, condition, boon, timing, cooldown, etc. | Owning `skills/index.ts` or `skills/<group>.ts`        |
-| Shared mechanic data used by several skills                           | Profession `profiles.ts`                               |
-| Profession runtime resource or state                                  | `state.ts` or `state/<concept>.ts`                     |
-| Skill availability rule                                               | The owning skill or mechanic module                    |
-| Resource gain/spend/regeneration                                      | `mechanics/<resource>.ts`                              |
-| Cast lifecycle behavior                                               | Owner-local `execution/<concept>.ts`                   |
-| Declarative trait modifier                                            | `modifiers.ts`, or `traits/<trait-line>.ts` it gathers |
-| Complex trait proc or imperative behavior                             | `traits/index.ts` or `traits/<trait-line>.ts`          |
-| Scheduler-specific skill implementation                               | Owner-local `execution/<concept>.ts`                   |
-| Custom scheduled event definitions                                    | `events.ts` or mechanic-specific file                  |
-| Resolver reaction or custom resolved event                            | The owning concept module, exposed under `resolution`  |
-| Profession UI, palette, skill-bar, or active-state display            | `presentation.ts` or a domain-only `ui/` module        |
-| Shared code used by several files within one profession               | `shared.ts`                                            |
-| New reusable GW2 mechanic                                             | `js/games/gw2/platform/`                               |
-| Generic scheduling primitive unrelated to GW2                         | `js/kernel/`                                           |
-| Game-neutral browser shell behavior                                   | `js/browser/`                                          |
-| GW2 browser behavior                                                  | `js/games/gw2/app/`                                    |
-| Shared presentation/view-model behavior                               | `js/ui/`                                               |
-| Source-neutral log reconstruction within the GW2 integration          | `js/games/gw2/integrations/logs/shared/`               |
-| EVTC parsing or evidence inference                                    | `js/games/gw2/integrations/logs/evtc/`                 |
-| dps.report / Elite Insights parsing or inference                      | `js/games/gw2/integrations/logs/dps-report/`           |
-| gw2wingman log fetch/reshape (rules stay in `dps-report/`)            | `js/games/gw2/integrations/logs/wingman/`              |
-| Upcoming balance changes                                              | Patch-preview system                                   |
-| Build migration/default/validation                                    | Profession `build/build.ts`                            |
-| New profession page/registry entry                                    | `js/games/gw2/profession-registry.ts`                  |
+| You're adding or changing...                                          | Usually belongs in...                                                            |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Skill coefficient, hit count, condition, boon, timing, cooldown, etc. | Owning `skills/index.ts` or `skills/<group>.ts`                                  |
+| Shared mechanic data used by several skills                           | Profession `profiles.ts`                                                         |
+| Profession runtime resource or state                                  | `state.ts` or `state/<concept>.ts`                                               |
+| Skill availability rule                                               | The owning skill or mechanic module                                              |
+| Resource gain/spend/regeneration                                      | `mechanics/<resource>.ts`                                                        |
+| Cast lifecycle behavior                                               | Owner-local `execution/<concept>.ts`                                             |
+| Declarative trait modifier                                            | Core `traits/<trait-line>.ts` or elite `traits/index.ts` through `defineTrait()` |
+| Complex trait proc or imperative behavior                             | Definition-local callbacks or `traits/behavior.ts` / concept helpers             |
+| Scheduler-specific skill implementation                               | Owner-local `execution/<concept>.ts`                                             |
+| Custom scheduled event definitions                                    | `events.ts` or mechanic-specific file                                            |
+| Resolver reaction or custom resolved event                            | The owning concept module, exposed under `resolution`                            |
+| Profession UI, palette, skill-bar, or active-state display            | `presentation.ts` or a domain-only `ui/` module                                  |
+| Shared code used by several files within one profession               | `shared.ts`                                                                      |
+| New reusable GW2 mechanic                                             | `js/games/gw2/platform/`                                                         |
+| Generic scheduling primitive unrelated to GW2                         | `js/kernel/`                                                                     |
+| Game-neutral browser shell behavior                                   | `js/browser/`                                                                    |
+| GW2 browser behavior                                                  | `js/games/gw2/app/`                                                              |
+| Shared presentation/view-model behavior                               | `js/ui/`                                                                         |
+| Source-neutral log reconstruction within the GW2 integration          | `js/games/gw2/integrations/logs/shared/`                                         |
+| EVTC parsing or evidence inference                                    | `js/games/gw2/integrations/logs/evtc/`                                           |
+| dps.report / Elite Insights parsing or inference                      | `js/games/gw2/integrations/logs/dps-report/`                                     |
+| gw2wingman log fetch/reshape (rules stay in `dps-report/`)            | `js/games/gw2/integrations/logs/wingman/`                                        |
+| Upcoming balance changes                                              | Patch-preview system                                                             |
+| Build migration/default/validation                                    | Profession `build/build.ts`                                                      |
+| New profession page/registry entry                                    | `js/games/gw2/profession-registry.ts`                                            |
 
 The main rule is:
 
 > Put behavior with the layer that owns the underlying game concept.
+
+Traits use `defineTrait()` under their Core or elite `traits/` directory and register once through the module's
+`traitDefinitions`. Core line files own definitions and Core indexes collect them in execution order. Each elite's
+`traits/index.ts` owns all its definitions and its registration array. Definitions own profiles, rules, triggers, hooks,
+and build effects. Short callbacks stay local; substantial or externally called behavior lives in `traits/behavior.ts`
+or a cohesive concept file. Mechanics import behavior directly without importing definitions. Generated `data.traits`
+continues to own selection metadata. See the [trait file contract](./TRAIT-FILE-ORGANIZATION.md) and
+[shared authoring contract](./TRAIT-DEFINITIONS-PLAN.md#shared-implementation-record-s0-s3).
 
 Do not move profession-specific mechanics into shared platform code simply because multiple files need them. Likewise,
 do not duplicate shared GW2 behavior inside individual professions.
@@ -829,19 +837,16 @@ it expresses one module's cast gate; split unrelated behavior into a named mecha
 
 ## `traits/`
 
-Imperative trait mechanics.
+Authored trait definitions and supporting runtime behavior, including declarative scalar modifiers.
 
-Use this when a trait does more than contribute a declarative scalar modifier.
+- Core: one definition file per implemented trait line; `index.ts` registers definitions in their existing order.
+- Elites: `index.ts` owns every definition and the single registration array consumed by `module.ts`.
+- Optional `behavior.ts` or concept files own substantial callbacks, proc dispatch, and helpers called by mechanics.
+  They contain no definitions and do not import definition files.
 
-Examples include:
-
-- proc cooldowns;
-- emitted events;
-- state transitions;
-- trait-triggered buffs;
-- reactions to casts or hits.
-
-Simple scalar trait modifiers should generally use the declarative modifier system instead.
+Keep short callbacks beside their definitions. Preserve explicit mechanic call sites and active balance reads;
+organization does not change selection, timing, or effect lifetimes. See
+[the full layout contract](./TRAIT-FILE-ORGANIZATION.md).
 
 ---
 

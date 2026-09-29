@@ -8,9 +8,10 @@ import {
   warriorActiveBoonCount,
   warriorBoonActive
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
-import { modifyWarriorArmsAttributes, warriorArmsModifierRules } from '#gw2/professions/warrior/core/traits/arms.js';
+import { modifyWarriorArmsAttributes } from '#gw2/professions/warrior/core/traits/behavior.js';
+import { furiousBurst } from '#gw2/professions/warrior/core/traits/arms.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { bladeswornModifiers } from '#gw2/professions/warrior/specializations/bladesworn/modifiers.js';
+import { fierceAsFire } from '#gw2/professions/warrior/specializations/bladesworn/traits/index.js';
 
 // Warrior's modifiers share duration semantics without gaining visibility into future timeline applications.
 test('Warrior Fury modifiers and boon counts survive individual packet expiry', () => {
@@ -32,7 +33,7 @@ test('Warrior Fury modifiers and boon counts survive individual packet expiry', 
     },
     timeline: { timedActive: () => true }
   };
-  const rule = warriorArmsModifierRules.find(({ id }) => id === 'warrior.furious-burst-fury-critical-chance');
+  const rule = furiousBurst.modifierRules.find(({ id }) => id === 'warrior.furious-burst-fury-critical-chance');
   assert.equal(warriorBoonActive(context, 'fury'), true);
   assert.equal(warriorActiveBoonCount(context), 2);
   assert.equal(rule.when(context), true);
@@ -117,7 +118,7 @@ test('Warrior and Bladesworn stacks preserve self audience, caps, expiry, and sa
     timeline: { timedStacks: () => 25, timedActive: () => true },
     runtime: { boons: new Map([['fierce-as-fire', applications]]) }
   };
-  const rule = bladeswornModifiers.modifierRules.find(({ id }) => id === 'warrior.fierce-as-fire');
+  const rule = fierceAsFire.modifierRules.find(({ id }) => id === 'warrior.fierce-as-fire');
   assert.equal(warriorActiveBuffStacks(context, 'fierce-as-fire', 10), 4);
   assert.equal(rule.amount(context), 0.04);
   assert.equal(warriorActiveBuffStacks(context, 'fierce-as-fire', 3), 3);

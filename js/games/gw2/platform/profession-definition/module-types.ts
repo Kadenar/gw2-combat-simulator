@@ -1,22 +1,24 @@
-import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
+import type { Gw2Build, ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
+import type { ProfessionFamilyContract, ProfessionModifierDefinition } from '#gw2/platform/engine/profession/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import type {
-  CanonicalCatalog,
   BalanceProfile,
+  CanonicalCatalog,
   CatalogEntity,
   Skill,
   SkillId
 } from '#gw2/platform/engine/skills/types.js';
-import type { ProfessionFamilyContract, ProfessionModifierDefinition } from '#gw2/platform/engine/profession/types.js';
-import type { Gw2Build, ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
+import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 
-import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
-import type { Gw2ProfessionContract } from '#gw2/platform/simulation/types.js';
-import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
+import type { Gw2TraitBuildAttributeCalculator } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2AutoattackChainOptions } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
+import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
+import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { Gw2ProfessionContract } from '#gw2/platform/simulation/types.js';
+import type { Gw2AutoattackChainOptions } from '#gw2/platform/skills/autoattack-chain-controller.js';
 
 export interface NativeModuleCatalogData {
   readonly generatedSkills?: readonly Skill[];
@@ -53,7 +55,7 @@ export interface NativeResolvedDamageDetails {
 }
 
 /** Runtime callbacks a module contributes; the platform composes Core and the selected specialization in order. */
-type NativeModuleHooks = Partial<
+export type NativeModuleHooks = Partial<
   Omit<RuntimeProfession<never>, 'id' | 'catalog' | 'createState' | 'projectPlanningState'>
 >;
 
@@ -68,6 +70,7 @@ export interface NativeModuleDefinition<
   readonly id: TId;
   readonly data: NativeModuleCatalogData;
   readonly state: NativeStateDefinition<TState, TProjectOptions, TProjectedState>;
+  readonly traitDefinitions?: readonly TraitDefinition[];
   /** Declarative modifier rules, or rules plus imperative `modify*` callbacks for ordered or stateful math. */
   readonly modifiers?: readonly Gw2ModifierRule[] | TModifiers;
   /** Runtime hooks execute against the single chronological owner. */
@@ -82,8 +85,12 @@ export interface NativeModule<
   TProjectedState extends object = object,
   TModifiers extends ProfessionModifierDefinition = object,
   TPresentation extends object = object
-> extends NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation> {
+> extends Omit<
+  NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation>,
+  'modifiers'
+> {
   readonly kind: 'native-profession-module';
+  readonly modifiers?: readonly Gw2ModifierRule[] | ProfessionModifierDefinition;
 }
 
 export interface NativeCatalogOptions {
@@ -156,4 +163,5 @@ export type NativeProfessionContract<
   /** Retains the immutable composition input so optional integrations can decorate the family without content imports. */
   readonly nativeDefinition: Readonly<NativeProfessionDefinition<TModules, TPresentation, TBuild>>;
   runtimeFor(config: Gw2Config): RuntimeProfession<NativeProfessionRuntimeState<TModules>>;
+  readonly traitBuildAttributes: Gw2TraitBuildAttributeCalculator;
 };

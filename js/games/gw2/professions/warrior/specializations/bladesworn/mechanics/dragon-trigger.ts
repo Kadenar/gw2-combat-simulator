@@ -1,15 +1,8 @@
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
-import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import type { Gw2TraitLookupContext } from '#gw2/platform/combat/state/traits.js';
 import type { CastCommand } from '#gw2/platform/execution/types.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
+import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 type Runtime = Gw2Runtime<WarriorRuntimeState>;
@@ -34,22 +27,6 @@ export function dragonChargesToAdrenalineSpent(charges: number): number {
   if (charges >= 10) return 30;
   if (charges >= 5) return 20;
   return charges > 0 ? 10 : 0;
-}
-
-export function maximumDragonCharges(context: Gw2TraitLookupContext): number {
-  const dragonTriggerProfile = requireBalanceProfileFromContext(context, PROFILE.dragonTrigger);
-  return hasTrait(context, TRAIT.DARING_DRAGON)
-    ? balanceProfileNumber(dragonTriggerProfile, 'minimumStacks')
-    : balanceProfileNumber(dragonTriggerProfile, 'maximumStacks');
-}
-
-export function dragonFlowPerInterval(context: Gw2TraitLookupContext): number {
-  const dragonTriggerProfile = requireBalanceProfileFromContext(context, PROFILE.dragonTrigger);
-  const cost = balanceProfileNumber(dragonTriggerProfile, 'resourceCost');
-  return hasTrait(context, TRAIT.DARING_DRAGON)
-    ? cost *
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DARING_DRAGON), 'resourceCostMultiplier')
-    : cost;
 }
 
 export function requestedDragonCharges(

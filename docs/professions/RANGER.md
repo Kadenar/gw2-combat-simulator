@@ -25,6 +25,37 @@ its data, state, mechanics, and UI under `specializations/<name>/`.
 
 `data/gw2/builds/ranger/manifest.json` and `data/gw2/rotations/ranger/` hold the supported build and rotation corpus.
 
+## Trait ownership
+
+Core defines traits in its five trait-line files; its `traits/index.ts` registers them in their original order. Each
+elite owns its definitions and registration array in `traits/index.ts`: 43 Core, 5 Druid, 8 Soulbeast, 7 Untamed, and 8
+Galeshot definitions. Owners contain trait balance profiles, modifiers, triggers, recharge rules, and build
+contributions. Runtime callers import supporting behavior directly from `traits/behavior.ts`, Core pet behavior,
+modifier queries, and pet modifiers. Core trait-only completion and swap dispatch lives in `traits/dispatch.ts`. Profile
+consumers use `RANGER_TRAIT_IDS` directly; module `profiles.ts` files retain only skill and mechanic packages. Build
+calculators compose `rangerProfession.traitBuildAttributes` alongside skill passives and Soulbeast archetype attributes.
+
+The following execution boundaries remain explicit to preserve ordering and actor ownership:
+
+- Core damage dispatch interleaves trait procs with weapon charges. Pet packet creation applies trait inheritance before
+  snapshotting independent pet attributes. Quick Draw recharge reads its window before cast acceptance consumes it; pet,
+  weapon, dodge, and Beast-skill reactions retain their existing dispatch order.
+- Druid mechanics own Avatar transitions and Astral Force. They call Natural Balance before swap observers and call
+  Avatar effect transformations before interruption filtering. Natural Mender owns its initialization and recurring
+  task, including recovery after Avatar expiration.
+- Soulbeast mechanics own merge state, archetype reconciliation, stance scheduling, and first Beast-ability-hit
+  tracking. Core Beastmastery owners supply merged attribute/proc helpers. Bestial Rage remains at the Soulbeast control
+  boundary after Twice as Vicious; the merged Loud Whistle and Lesser Sic 'Em modifiers remain installed at Soulbeast's
+  modifier boundary. Applied buff rules do not gain a new selection gate.
+- Untamed mechanics own unleash and ambush windows. Let Loose owns swap eligibility and its independent proc interval,
+  then calls the mechanical ambush grant. Natural Fortitude's definition follows its actual Untamed identity; its
+  existing Druid-only runtime attribute call uses the Untamed-owned `modifyNaturalFortitudeAttributes` helper. Its build
+  contribution remains available to selected Untamed builds. Its owner also supplies the unconditional ambush life-steal
+  packets, while skill declarations retain their first-hit timing and patch identity.
+- Galeshot mechanics own arrows, Wind Force, Cyclone Bow, and Mistral. Trait owners handle Shrike projectile counting,
+  Wuthering Wind pet charges, control refunds, bow completion rewards, and Perilous Skies availability. Cloudburst's
+  authored reset remains in the triggering skill's commit-side-effect phase.
+
 ## Modeling boundaries
 
 Single-target, outgoing-damage focused. Incoming attacks, active defense, ally healing/barrier/cleanse, pathing,

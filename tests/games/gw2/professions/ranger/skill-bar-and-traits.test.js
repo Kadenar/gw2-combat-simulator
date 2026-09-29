@@ -1,30 +1,32 @@
+import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
+import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { resolveProfessionContract } from '#gw2/platform/engine/profession/contract.js';
+import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/profession-registry.js';
+import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
+import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
+import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { rangerCoreModifiers } from '#gw2/professions/ranger/core/modifiers.js';
+import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { druidModule } from '#gw2/professions/ranger/specializations/druid/module.js';
+import { soulbeastModifiers } from '#gw2/professions/ranger/specializations/soulbeast/modifiers.js';
+import { soulbeastModule } from '#gw2/professions/ranger/specializations/soulbeast/module.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { describe, test } from 'node:test';
-import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/profession-registry.js';
-import { resolveProfessionContract } from '#gw2/platform/engine/profession/contract.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
-import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import { druidModifiers } from '#gw2/professions/ranger/specializations/druid/modifiers.js';
-import { rangerCoreModifiers, rangerCoreModifierRules } from '#gw2/professions/ranger/core/modifiers.js';
-import {
-  soulbeastModifiers,
-  soulbeastModifierRules
-} from '#gw2/professions/ranger/specializations/soulbeast/modifiers.js';
-import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
 
 // Attribute assertions use the same calculator composed into the Ranger adapter.
-const calculateAttributes = createCalculateAttributes(applyRangerBuildAttributeRules);
+const calculateAttributes = createCalculateAttributes(
+  applyRangerBuildAttributeRules,
+  rangerProfession.traitBuildAttributes
+);
 
 const baseConfig = Object.freeze({
   initialAstralForce: 100,
@@ -496,8 +498,8 @@ test('Cyclone Bow transitions trigger swap sigils and dedicated weapon lines', (
 });
 
 test('Ranger trait rules affect their owned damage and attributes', () => {
-  const coreOperations = new Map(rangerCoreModifierRules.map((rule) => [rule.id, rule.operation]));
-  const soulbeastOperations = new Map(soulbeastModifierRules.map((rule) => [rule.id, rule.operation]));
+  const coreOperations = new Map(rangerCoreModule.modifiers.modifierRules.map((rule) => [rule.id, rule.operation]));
+  const soulbeastOperations = new Map(soulbeastModule.modifiers.modifierRules.map((rule) => [rule.id, rule.operation]));
 
   for (const id of [
     'ranger.remorseless',
@@ -521,7 +523,10 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
 
   const baseAttributes = { power: 0, precision: 0, conditionDamage: 0, toughness: 0, vitality: 1000, ferocity: 0 };
   const druidContext = { config: {}, traits: new Set([TRAIT.NATURAL_FORTITUDE]) };
-  const druidAttributes = druidModifiers.modifyAttributes({ catalog: rangerCatalog, ...druidContext }, baseAttributes);
+  const druidAttributes = druidModule.modifiers.modifyAttributes(
+    { catalog: rangerCatalog, ...druidContext },
+    baseAttributes
+  );
   const coreAttributes = rangerCoreModifiers.modifyAttributes(druidContext, baseAttributes);
 
   assert.equal(druidAttributes.vitality, 1240);

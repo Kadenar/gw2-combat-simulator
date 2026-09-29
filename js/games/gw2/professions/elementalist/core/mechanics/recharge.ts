@@ -1,42 +1,33 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import {
+  aeromancersTrainingRecharge,
+  aquamancersTrainingRecharge,
+  geomancersTrainingRecharge,
+  pyromancersTrainingRecharge
+} from '#gw2/professions/elementalist/core/traits/behavior.js';
 /**
  * Owns Core Elementalist cross-cast recharge policy and one-shot modifier consumption.
  * Skill fragments declare base cooldowns; persistent systems decide when and how they recharge.
  */
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 
-import type { ElementalistRuntime, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
-import {
-  ELEMENTALIST_SKILL_IDS as ID,
-  ELEMENTALIST_TRAIT_IDS as TRAIT
-} from '#gw2/professions/elementalist/data/ids.js';
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { elementalForGlyphId } from '#gw2/professions/elementalist/core/mechanics/elementals/attacks.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistRuntime, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 
 // Weapon-only reductions share the compiler; delayed recharge and one-use reservations retain their owners.
 const weaponRecharge = compileRechargeRules<ElementalistRuntimeState>([
   {
     when: (_context, skill) => skill.id === ID.RIDE_THE_LIGHTNING,
     multiplier: { profile: PROFILE.rideTheLightning, field: 'rechargeMultiplier' }
-  },
-  ...(
-    [
-      ['Fire', TRAIT.PYROMANCERS_TRAINING, PROFILE.pyromancersTraining],
-      ['Air', TRAIT.AEROMANCERS_TRAINING, PROFILE.aeromancersTraining],
-      ['Earth', TRAIT.GEOMANCERS_TRAINING, PROFILE.geomancersTraining],
-      ['Water', TRAIT.AQUAMANCERS_TRAINING, PROFILE.aquamancersTraining]
-    ] as const
-  ).map(([attunement, trait, profile]) => ({
-    trait,
-    when: (_context: ElementalistRuntime, skill: Skill) => skill.attunement === attunement,
-    multiplier: { profile, field: 'rechargeMultiplier' }
-  }))
+  }
 ]);
 
 /**
@@ -63,7 +54,11 @@ export function elementalistRechargeWork(
     return duration;
   }
 
-  return weaponRecharge(context, skill, duration);
+  let adjusted = weaponRecharge(context, skill, duration);
+  adjusted = pyromancersTrainingRecharge(context, skill, adjusted);
+  adjusted = aeromancersTrainingRecharge(context, skill, adjusted);
+  adjusted = geomancersTrainingRecharge(context, skill, adjusted);
+  return aquamancersTrainingRecharge(context, skill, adjusted);
 }
 
 /** Spends the eligible empowerment when a cast is accepted; its reservation retains the selected duration. */

@@ -1,6 +1,5 @@
-import { canonicalTime } from '#kernel/core/clock.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { phantasmalHasteSpeed, triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/index.js';
+import { phantasmalHasteSpeed, triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/behavior.js';
 import type {
   MesmerAddCondition,
   MesmerAddDamage,
@@ -8,6 +7,7 @@ import type {
   MesmerAddTraitProc,
   MesmerRuntime
 } from '#gw2/professions/mesmer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 import type {
   MesmerPhantasmAttackTiming,

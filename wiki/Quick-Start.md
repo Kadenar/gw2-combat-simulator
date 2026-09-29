@@ -9,8 +9,8 @@
 5. Review the automatically calculated DPS beside the rotation.
 6. Switch from **Workspace** to **Analysis** for the full breakdown.
 
-The **•••** menu on a template can load only its build or only its rotation. Loading both is the safest default because a
-rotation may depend on specific weapons, skills, traits, or profession mechanics.
+The **•••** menu on a template can load only its build or only its rotation. Loading both is the safest default because
+a rotation may depend on specific weapons, skills, traits, or profession mechanics.
 
 ## Make a simple comparison
 
@@ -27,7 +27,7 @@ Change one variable at a time. Otherwise, the simulator can show that DPS change
 - **Save Rotation** downloads the current rotation as JSON.
 - **Import** and **Load Rotation** restore those files later.
 
-Build changes are also stored locally in the browser. Export both files before clearing browser data or moving to another
-device.
+Build changes are also stored locally in the browser. Export both files before clearing browser data or moving to
+another device.
 
 Next: [Builds and templates](Builds-and-Templates) or [Rotation builder](Rotation-Builder).

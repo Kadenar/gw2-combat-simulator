@@ -1,27 +1,26 @@
-import { PARAGON_COMMAND_ECHO_PROFILES } from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-
 import {
-  tooltipFactorChange,
-  tooltipSeconds,
-  outsideScopeTooltip,
-  traitTooltip,
-  skillTooltip,
-  tooltipNumber,
-  profileFact,
   modifierFact,
-  tooltipPercent,
-  tooltipDecimal,
-  tooltipProfile,
+  outsideScopeTooltip,
+  profileFact,
   simulationEffectFacts,
+  skillTooltip,
+  tooltipDecimal,
+  tooltipFactorChange,
+  tooltipNumber,
+  tooltipPercent,
+  tooltipProfile,
+  tooltipSeconds,
+  traitTooltip,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/warrior/core/profiles.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { BERSERKER_BALANCE_PROFILE_IDS as BERSERKER } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as BLADESWORN } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PARAGON } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { PARAGON_COMMAND_ECHO_PROFILES } from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
 
 /** Shared skill descriptions retain each selected variant's own effects and balance profiles. */
 const commandTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>

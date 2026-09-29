@@ -1,9 +1,16 @@
-import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
-import type { RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
-import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
-import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
+import type { RuntimeCast, RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
 import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
+import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
+import {
+  applyElementsOfRageAttunement,
+  applyUnravelElementsOfRage,
+  applyWeaverCastTraits,
+  applyWeaversProwess,
+  flowStateAttunementReduction,
+  initializeElementsOfRage
+} from '#gw2/professions/elementalist/specializations/weaver/traits/attunements.js';
+import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 /**
  * Weaver hooks: the dual-attunement mechanic.
  *
@@ -13,51 +20,45 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
  * imposes, the Unravel / Weave Self / Perfect Weave windows, Primordial Stance
  * pulses, and the traits that react to swaps and dual-skill completions.
  */
-import { denySkillCast, denyCast } from '#gw2/platform/engine/skills/availability.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { denyCast, denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
-  requireBalanceProfileFromContext,
   balanceProfileNumber,
+  requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
-import { EPSILON, canonicalTime } from '#kernel/core/clock.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 
-import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/index.js';
-import {
-  ELEMENTALIST_SKILL_IDS as ID,
-  ELEMENTALIST_TRAIT_IDS as TRAIT
-} from '#gw2/professions/elementalist/data/ids.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   isElementalistAttunement,
   setElementalistAttunementReadyAt
 } from '#gw2/professions/elementalist/core/state.js';
+import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/attunements.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 
-import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
-import {
-  elementalistEventSkill,
-  emitProfiledBuff,
-  emitProfiledCondition,
-  skillWeapon
-} from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   elementalistAttunementRechargeDuration,
   onAttunementComplete,
   targetAttunement
 } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
+import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
-  weaverPistolSideEffects,
   weaverDualAttunements,
   weaverHammerAvailability,
+  weaverPistolSideEffects,
   weaverWeaponAttunementAvailable
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
+import {
+  primordialStancePulse,
+  schedulePrimordialStance
+} from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
 import {
   applyWeaveSelfAttunement,
   handleWeaveSelfActivation,
@@ -65,10 +66,7 @@ import {
   startWeaveSelfCast,
   WEAVE_SELF_ACTIVATION_TASK
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
-import {
-  schedulePrimordialStance,
-  primordialStancePulse
-} from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
+import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 
 const WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS = 4;
 // Seed the off-hand element from the build (falling back to the starting
@@ -84,29 +82,12 @@ function initialize(context: ElementalistRuntime): void {
   state.secondaryAttunement = isElementalistAttunement(context.config.secondaryAttunement)
     ? context.config.secondaryAttunement
     : core.primaryAttunement;
-  if (core.primaryAttunement === state.secondaryAttunement && hasTrait(context, TRAIT.ELEMENTS_OF_RAGE)) {
-    const elementsOfRageProfile = requireBalanceProfileFromContext(context, PROFILE.elementsOfRage);
-    emitElementalistBuff(context, {
-      skill: elementalistEventSkill(context, 'Starting Attunement', 'starting-attunement'),
-      at: context.time,
-      source: 'Starting Attunement',
-      sourceId: 'starting-attunement',
-      actorType: 'player',
-      kind: 'elements of rage',
-      stacks: 1,
-      duration: balanceProfileNumber(elementsOfRageProfile, 'durationMultiplier'),
-      skillName: 'Starting Attunement'
-    });
-  }
+  initializeElementsOfRage(context);
 }
 
 // Enforce Weaver's dual-hand attunement model, Unravel replacement state, and
 // specialization-only skill gates before Core evaluates ordinary weapon rules.
 function availability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
-  if (skill.id === ID.UNRAVEL && !hasTrait(context, TRAIT.ELEMENTS_OF_RAGE)) {
-    return denySkillCast(skill, 'elementalist.weaver-elements-of-rage', `requires Elements of Rage.`);
-  }
-
   const hammerAvailability = weaverHammerAvailability(context, skill);
   // Eligible orbs still pass through the shared hand and Unravel replacement gates below.
   if (hammerAvailability && !hammerAvailability.ready) return hammerAvailability as AvailabilityResult;
@@ -161,7 +142,6 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
   const state = weaverState.from(context);
   const at = event.at;
   const target = event.to;
-  const previous = event.from;
   const sourceId = event.skillId ?? event.sourceId;
   const source = event.skillName || event.source || 'Attunement';
   const unravelActive = state.unravelUntil > at;
@@ -173,42 +153,13 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
   }
 
   // Fully attuned setup swaps can carry Elements of Rage into the opener.
-  if ((target === previous || unravelActive) && hasTrait(context, TRAIT.ELEMENTS_OF_RAGE)) {
-    const elementsOfRageProfile = requireBalanceProfileFromContext(context, PROFILE.elementsOfRage);
-    emitElementalistBuff(context, {
-      skill: elementalistEventSkill(context, source, sourceId),
-      at,
-      source,
-      sourceId,
-      actorType: 'player',
-      kind: 'elements of rage',
-      stacks: 1,
-      duration: balanceProfileNumber(elementsOfRageProfile, 'durationMultiplier'),
-      skillName: source
-    });
-  }
+  applyElementsOfRageAttunement(context, event);
 
   applyWeaveSelfAttunement(context, at, target, source, sourceId);
 
   // Pre-combat setup swaps must not generate trait procs.
   if (at < (context.combatStartTime || 0) - EPSILON) return;
-  if (hasTrait(context, TRAIT.WEAVERS_PROWESS) && (unravelActive || target === previous)) {
-    const weaversProwessProfile = requireBalanceProfileFromContext(context, PROFILE.weaversProwess);
-    const resistance = requireEffect(weaversProwessProfile, 'boon', 'Resistance');
-    if (resistance) {
-      emitElementalistBuff(context, {
-        skill: elementalistEventSkill(context, "Weaver's Prowess", sourceId),
-        at,
-        source: "Weaver's Prowess",
-        sourceId,
-        actorType: 'player',
-        kind: String(resistance.boon).toLowerCase(),
-        stacks: Number(resistance.stacks),
-        duration: resistance.duration,
-        skillName: "Weaver's Prowess"
-      });
-    }
-  }
+  applyWeaversProwess(context, event);
 
   // A normal Weaver swap moves both hands and so counts as two attunement
   // changes; under Unravel the hands move together and it counts as one.
@@ -232,7 +183,8 @@ function completeDualAttunement(context: ElementalistRuntime, cast: RuntimeCast)
         skill,
         state.weaveSelfUntil > at
           ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'initialDelay')
-          : WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS
+          : WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS,
+        flowStateAttunementReduction(context)
       )
     });
   }
@@ -249,33 +201,11 @@ function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast, skill: Sk
   // speed applied in order by the shared attunement-duration calculation.
   if (targetAttunement(skill)) return;
 
-  if (hasTrait(context, TRAIT.BOLSTERED_ELEMENTS) && skill.skillFamily === 'Stance') {
-    emitProfiledBuff(context, at, PROFILE.bolsteredElements, 'Protection', skill.name, skill.id);
-  }
+  applyWeaverCastTraits(context, cast, skill, dualAttunements);
 
   // Swift Revenge pays out per element of the dual skill that was just cast.
-  if (hasTrait(context, TRAIT.SWIFT_REVENGE) && dualAttunements) {
-    for (const element of dualAttunements) {
-      if (element === 'Fire') {
-        emitProfiledBuff(context, at, PROFILE.swiftRevenge, 'Fire', skill.name, skill.id);
-      } else if (element === 'Air') {
-        emitProfiledBuff(context, at, PROFILE.swiftRevenge, 'Air', skill.name, skill.id);
-      } else if (element === 'Earth') {
-        const swiftRevengeProfile = requireBalanceProfileFromContext(context, PROFILE.swiftRevenge);
-
-        context.endurance.grant(balanceProfileNumber(swiftRevengeProfile, 'resourceGain'));
-      }
-    }
-  }
 
   // Dual attacks claim Superior Elements at completion, before attempting its Weakness packet.
-  if (
-    hasTrait(context, TRAIT.SUPERIOR_ELEMENTS) &&
-    dualAttunements &&
-    context.procs.claim(PROFILE.superiorElements, 'elementalist.weaver.superiorElements', at)
-  ) {
-    emitProfiledCondition(context, at, PROFILE.superiorElements, 'Weakness', skill.name, skill.id);
-  }
 
   // Dual attacks grant Might only while the stance is armed and strictly unexpired.
   if (dualAttunements && state.ferventStanceUntil > 0 && state.ferventStanceUntil > at) {
@@ -306,11 +236,6 @@ export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
     {
       when: (context, skill) => skill.id === ID.PURBLINDING_PLASMA && professionCoreState(context).pistolBullets.Air,
       multiplier: { profile: PROFILE.purblindingPlasma, field: 'rechargeMultiplier' }
-    },
-    {
-      trait: TRAIT.FLOW_STATE,
-      when: (_context, skill) => String(skill.slot) === 'Weapon_3' && Boolean(weaverDualAttunements(skill)),
-      multiplier: { profile: PROFILE.flowState, field: 'rechargeMultiplier' }
     }
   ],
   rechargeStart: modifyWeaveSelfRechargeStart,
@@ -358,24 +283,7 @@ export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
   },
 
   // Accepted player control grants Swiftness; attunement transitions keep their separate observer.
-  traitTriggers: [
-    {
-      trait: TRAIT.ELEMENTAL_PURSUIT,
-      emit: PROFILE.elementalPursuit,
-      on: 'control.resolved',
-      when: (_runtime, event) => event.type === 'control' && event.actorType === 'player',
-      effects: (effect) => effect.type === 'boon' && effect.name === 'Swiftness',
-      attribution: (runtime, event) => ({
-        source: 'Elemental Pursuit',
-        sourceId: event.skillId ?? event.sourceId,
-        skillId: elementalistEventSkill(runtime, 'Elemental Pursuit', event.skillId ?? event.sourceId).id,
-        skillName: 'Elemental Pursuit',
-        actorType: 'player',
-        name: 'Elemental Pursuit',
-        priority: 0
-      })
-    }
-  ],
+
   tasks: {
     'elementalist.weaver.unravel'(context, data) {
       const { cast } = data as SkillTaskData;
@@ -425,20 +333,7 @@ export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
           });
         }
 
-        if (hasTrait(context, TRAIT.ELEMENTS_OF_RAGE) && previousPrimary !== previousSecondary) {
-          const elementsOfRageProfile = requireBalanceProfileFromContext(context, PROFILE.elementsOfRage);
-          emitElementalistBuff(context, {
-            skill: skill,
-            at: cast.effectiveEnd,
-            source: skill.name,
-            sourceId: skill.id,
-            actorType: 'player',
-            name: skill.name,
-            kind: 'elements of rage',
-            duration: balanceProfileNumber(elementsOfRageProfile, 'durationMultiplier'),
-            stacks: 1
-          });
-        }
+        applyUnravelElementsOfRage(context, cast, previousPrimary, previousSecondary);
       });
     },
     [WEAVE_SELF_ACTIVATION_TASK]: handleWeaveSelfActivation,

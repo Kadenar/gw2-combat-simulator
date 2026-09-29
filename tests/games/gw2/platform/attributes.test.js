@@ -1,30 +1,33 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import {
   createDefaultBuild as createDefaultBuildFor,
   replaceBuild as replaceBuildFor
 } from '#gw2/app/build/state/persistence.js';
-import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
-import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
-import {
-  calculateCommonAttributes,
-  createCalculateAttributes,
-  finalizeBuildAttributes
-} from '#gw2/platform/builds/attributes.js';
+import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
 import {
   calculateContributionComparisons,
   mergeModifierContributions,
   modifierContributionWorkerCount,
   partitionModifierComparisons
 } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
-import { aggregateSigilSet, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
-import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
-import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
-import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
 import { createModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/request.js';
+import {
+  calculateCommonAttributes,
+  createCalculateAttributes,
+  finalizeBuildAttributes
+} from '#gw2/platform/builds/attributes.js';
+import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
+import { aggregateSigilSet, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
+import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
+import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
+import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 // Attribute assertions use the same calculator composed into the Mesmer adapter.
-const calcAttributes = createCalculateAttributes(applyMesmerBuildAttributeRules);
+const calcAttributes = createCalculateAttributes(
+  applyMesmerBuildAttributeRules,
+  mesmerAppAdapter.profession.traitBuildAttributes
+);
 const createDefaultBuild = () => createDefaultBuildFor(mesmerAppAdapter);
 const replaceBuild = (saved) => replaceBuildFor(saved, mesmerAppAdapter);
 

@@ -1,14 +1,15 @@
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { engineerMechHasQuickness } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
+import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/state.js';
-import { engineerMechHasQuickness } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
-import { mechanistRechargeWork } from '#gw2/professions/engineer/specializations/mechanist/mechanics/recharge.js';
+
+const mechanistRechargeWork = engineerProfession.runtimeFor({ specialization: 'Mechanist' }).rechargeWork;
 
 // Mechanist contracts cover signet passives, mech boon state, inheritance, and command effects.
 const baseConfig = Object.freeze({

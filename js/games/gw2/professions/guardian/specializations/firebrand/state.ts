@@ -1,24 +1,20 @@
+import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
   createDiscreteResourceClock,
   type DiscreteResourceClock
 } from '#gw2/platform/combat/resources/resource-policy.js';
-import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import {
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
+  defineProfessionSpecializationState,
+  definePublicStateDefaults
 } from '#gw2/platform/engine/profession/state.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
-  FIREBRAND_BALANCE_PROFILE_IDS as PROFILE,
-  FIREBRAND_BALANCE_PROFILES
-} from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
+import { firebrandPageTuning } from '#gw2/professions/guardian/specializations/firebrand/traits/behavior.js';
 import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
@@ -35,59 +31,23 @@ export interface GuardianFirebrandState {
   mantraWakeGenerations: Record<string, number>;
 }
 
-/** Normalizes page overrides against trait capacity and starts regeneration only below the cap. */
-function initialTomePageState(
-  config: GuardianConfig,
-  archivistOfWhispers: boolean,
-  defaultMaximum: number,
-  traitMaximum: number,
-  tomePageInterval: number
-) {
-  const configuredInitialPages = config.initialTomePages ?? traitMaximum;
-  // Archivist upgrades the untraited default, while explicit nondefault page counts remain intact.
-  const initialPages =
-    archivistOfWhispers && configuredInitialPages === defaultMaximum ? traitMaximum : configuredInitialPages;
-  const tomePages = clamp(initialPages, 0, traitMaximum);
-  return {
-    tomePages: {
-      ...createDiscreteResourceClock(tomePages),
-      maximum: traitMaximum,
-      interval: tomePageInterval,
-      nextAt: tomePages < traitMaximum && tomePageInterval > 0 ? tomePageInterval : Infinity
-    }
-  };
-}
-
-export function createFirebrandState(config: GuardianConfig = {}): GuardianFirebrandState {
-  const archivistOfWhispers = hasTrait(config, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS);
-  // Standalone state starts from canonical declarations; live initialization selects the active patch.
-  const profileContext = {
-    balanceProfile: (id: string | number) => FIREBRAND_BALANCE_PROFILES.find((profile) => profile.id === id)
-  };
-  const resourcesProfile = requireBalanceProfileFromContext(profileContext, PROFILE.resources);
-  const maximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
+/** Initializes independent resource storage from the profiles supplied by module composition. */
+function createFirebrandState(profileContext: {
+  readonly config: GuardianConfig;
+  readonly balanceProfile: (id: string | number) => BalanceProfile | undefined;
+}): GuardianFirebrandState {
+  const { maximum, initial, interval } = firebrandPageTuning(profileContext);
+  const pages = clamp(initial, 0, maximum);
   const ashesProfile = requireBalanceProfileFromContext(profileContext, PROFILE.ashes);
   const burn = requireEffect(ashesProfile, 'condition', 'Burning');
   return {
     activeTome: '',
-    ...initialTomePageState(
-      config,
-      archivistOfWhispers,
+    tomePages: {
+      ...createDiscreteResourceClock(pages),
       maximum,
-      archivistOfWhispers
-        ? balanceProfileNumber(
-            requireBalanceProfileFromContext(profileContext, PROFILE.archivistOfWhispers),
-            'maximumStacks'
-          )
-        : maximum,
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(
-          profileContext,
-          hasTrait(config, GUARDIAN_TRAIT_IDS.LOREMASTER) ? PROFILE.loremaster : PROFILE.resources
-        ),
-        'pulseInterval'
-      )
-    ),
+      interval,
+      nextAt: pages < maximum && interval > 0 ? interval : Infinity
+    },
     ashes: grantCharges(0, 0),
     ashesBurnDuration: burn ? effectNumber(ashesProfile, burn, 'duration') : 0,
     tomeDormantReadyAt: { justice: 0, resolve: 0, courage: 0 },
@@ -112,23 +72,3 @@ export const FIREBRAND_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 } satisfies Partial<GuardianFirebrandState>);
 
 export const firebrandState = defineProfessionSpecializationState('Firebrand', createFirebrandState);
-
-/** Keeps page tuning local while the platform owns recovery, grants and spending. */
-export function firebrandPageTuning(context: { readonly config: GuardianConfig }) {
-  const archivistOfWhispers = hasTrait(context, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS);
-
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const defaultMaximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
-  const traitMaximum = archivistOfWhispers
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.archivistOfWhispers), 'maximumStacks')
-    : defaultMaximum;
-  const interval = hasTrait(context, GUARDIAN_TRAIT_IDS.LOREMASTER)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.loremaster), 'pulseInterval')
-    : balanceProfileNumber(resourcesProfile, 'pulseInterval');
-  const initial = context.config.initialTomePages ?? traitMaximum;
-  return {
-    maximum: traitMaximum,
-    initial: archivistOfWhispers && initial === defaultMaximum ? traitMaximum : initial,
-    interval
-  };
-}

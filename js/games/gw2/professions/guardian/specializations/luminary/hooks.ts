@@ -1,49 +1,54 @@
-import {
-  luminaryWeaponActions,
-  HAMMER,
-  BOON,
-  glaringBurstDuration,
-  glaringBurstDetail
-} from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
-import { luminaryVirtueActions } from '#gw2/professions/guardian/specializations/luminary/skills/virtue-skills.js';
-import { luminaryStanceActions } from '#gw2/professions/guardian/specializations/luminary/skills/stance-skills.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
-import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
 import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
+import { guardianRechargeWork } from '#gw2/professions/guardian/core/mechanics/recharge.js';
 import {
   guardianVirtueForSlot,
-  reactToJusticeHitWithOptions
+  reactToJusticeHitWithOptions,
+  refreshGuardianVirtues
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { emitGuardianBoon, triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/index.js';
-import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/shared.js';
-import { guardianRechargeWork } from '#gw2/professions/guardian/core/mechanics/recharge.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
-import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
+import {
+  applyGuardianVirtueActivationTraits,
+  emitGuardianBoon,
+  triggerGuardianFuriousFocus
+} from '#gw2/professions/guardian/core/traits/behavior.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import {
   countEffulgentHit,
   grantLuminaryAura,
   luminaryEffectTasks,
   startLuminaryEffects
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
+import {
+  BOON,
+  glaringBurstDetail,
+  glaringBurstDuration,
+  HAMMER,
+  luminaryWeaponActions
+} from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
+import { luminaryStanceActions } from '#gw2/professions/guardian/specializations/luminary/skills/stance-skills.js';
+import { luminaryVirtueActions } from '#gw2/professions/guardian/specializations/luminary/skills/virtue-skills.js';
+import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
+import {
+  completeLuminaryEquipTraits,
+  completeMasterAtArms,
+  startRadiantArmaments
+} from '#gw2/professions/guardian/specializations/luminary/traits/behavior.js';
 import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
 const EXIT = 'guardian.luminary.forge-expiry';
@@ -132,64 +137,6 @@ function enterForge(runtime: Runtime, cast: RuntimeCast): void {
   lockTransitionInput(runtime, 'forgeEntryMs', cast.skill);
 }
 
-/** Equip rewards use their real delayed boundary; future boons cannot pre-fill the current state or cooldowns. */
-function equipTraits(runtime: Runtime, data: unknown): void {
-  const { cast } = data as { cast: RuntimeCast };
-  const cause = guardianCastCause(runtime, cast);
-  const state = luminaryState.from(runtime);
-  if (hasTrait(runtime, TRAIT.RESPLENDENT_WEAPONRY)) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.resplendentWeaponry);
-    for (const effect of profile.effects ?? []) {
-      if (effect.type !== 'boon') continue;
-      emitGuardianBoon(runtime, {
-        ...cause,
-        sourceId: TRAIT.RESPLENDENT_WEAPONRY,
-        skillName: 'Resplendent Weaponry',
-        kind: effect.boon,
-        duration: effect.duration,
-        stacks: effectNumber(profile, effect, 'stacks'),
-        audience: { recipients: 'party' }
-      });
-    }
-  }
-
-  if (hasTrait(runtime, TRAIT.EMPOWERED_ARMAMENTS)) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.empoweredArmaments);
-    const duration = Math.min(
-      balanceProfileNumber(profile, 'maximumStacks'),
-      Math.max(0, state.empoweredArmamentsUntil - runtime.time) + balanceProfileNumber(profile, 'resourceGain')
-    );
-    state.empoweredArmamentsUntil = gw2EffectExpiresAt(runtime.time, duration);
-    emitGuardianBoon(runtime, { ...cause, kind: 'guardian-empowered-armaments', duration, stacks: 1 });
-    recordGuardianTraitProc(
-      runtime,
-      TRAIT.EMPOWERED_ARMAMENTS,
-      'Empowered Armaments',
-      runtime.time,
-      cast.skill.name,
-      'Radiant weapon equipped'
-    );
-  }
-
-  if (hasTrait(runtime, TRAIT.ILLUMINATING_INSPIRATION)) {
-    const reduction = balanceProfileNumber(
-      requireBalanceProfileFromContext(runtime, PROFILE.illuminatingInspiration),
-      'rechargeReduction'
-    );
-    for (const id of VIRTUES)
-      runtime.cooldownController.reduceSkillRecharge(runtime.helpers.skillsById.get(id)!, reduction, runtime.time);
-    refreshGuardianVirtues(runtime);
-    recordGuardianTraitProc(
-      runtime,
-      TRAIT.ILLUMINATING_INSPIRATION,
-      'Illuminating Inspiration',
-      runtime.time,
-      cast.skill.name,
-      `Virtue recharges reduced by ${reduction} seconds`
-    );
-  }
-}
-
 /** Justice is sampled at hammer impact, allowing a concurrent virtue to empower an already accepted cast. */
 function hammerImpact(runtime: Runtime, data: unknown): void {
   const state = luminaryState.from(runtime);
@@ -271,22 +218,6 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
         grantLuminaryAura(runtime, { ...context.trigger.event, type: 'combo', duration: undefined });
     }
   },
-
-  // Catalog stance categories include Daring Advance; missing skills need no synthetic entries.
-  traitTriggers: [
-    {
-      trait: TRAIT.SHIMMERING_STANCES,
-      emit: TRAIT.SHIMMERING_STANCES,
-      on: 'castCommit',
-      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Stance')),
-      attribution: (_runtime, cast) => ({
-        source: 'guardian',
-        skillId: TRAIT.SHIMMERING_STANCES,
-        skillName: 'Shimmering Stances',
-        offTarget: cast.command.offTarget === true
-      })
-    }
-  ],
   availability(runtime, skill) {
     const active = luminaryState.from(runtime).radiantForge;
     if (skill.type === 'Weapon' && active)
@@ -318,29 +249,7 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
       if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtues.add(cast);
     }
 
-    if (!cast.skill.radiantWeapon || cast.skill.flipParentId != null) return;
-    // Armament damage starts with the accepted equip animation, independently of its completion rewards.
-    if (hasTrait(runtime, TRAIT.RADIANT_ARMAMENTS)) {
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.radiantArmaments);
-      const effect = requireEffect(profile, 'buff', 'radiant-armaments');
-      if (effect) {
-        emitGuardianBoon(runtime, {
-          ...guardianCastCause(runtime, cast),
-          kind: 'guardian-radiant-armaments',
-          duration: effectNumber(profile, effect, 'duration'),
-          stacks: 1,
-          metadata: { radiantWeapon: String(cast.skill.radiantWeapon) }
-        });
-        recordGuardianTraitProc(
-          runtime,
-          TRAIT.RADIANT_ARMAMENTS,
-          'Radiant Armaments',
-          runtime.time,
-          cast.skill.name,
-          String(cast.skill.radiantWeapon)
-        );
-      }
-    }
+    startRadiantArmaments(runtime, cast);
   },
   onCastCommit(runtime, cast) {
     if (!VIRTUES.includes(Number(cast.skill.id))) return;
@@ -351,16 +260,7 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
       if (virtue === 'justice') triggerGuardianFuriousFocus(runtime, cast);
     }
 
-    if (hasTrait(runtime, TRAIT.MASTER_AT_ARMS)) {
-      recordGuardianTraitProc(
-        runtime,
-        TRAIT.MASTER_AT_ARMS,
-        'Master-at-Arms',
-        runtime.time,
-        cast.skill.name,
-        'Radiant weapons recharged'
-      );
-    }
+    completeMasterAtArms(runtime, cast);
   },
   reactions: {
     'damage.resolved'(runtime, event, details) {
@@ -381,7 +281,7 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
     [EXIT](runtime, data) {
       if (luminaryState.from(runtime).forgeActivationId === data) exitForge(runtime);
     },
-    [EQUIP]: equipTraits,
+    [EQUIP]: completeLuminaryEquipTraits,
     [HAMMER]: hammerImpact,
     [BOON](runtime, data) {
       const { cast, kind, duration, party } = data as {

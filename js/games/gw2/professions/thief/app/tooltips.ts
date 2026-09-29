@@ -182,7 +182,7 @@ const artifactTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
     window();
     facts.push(
       ...simulationEffectFacts(
-        tooltipProfile(balanceContext, ANTIQUARY.meticulousCustodian).effects,
+        tooltipProfile(balanceContext, TRAIT.METICULOUS_CUSTODIAN).effects,
         'additional strike with Meticulous Custodian'
       ).facts
     );
@@ -236,7 +236,7 @@ const familyTooltips = {
     'Spend endurance to dodge and trigger supported dodge traits. Daredevil applies only the selected dodge package. Silent Scope can grant a stealth-attack charge when malice exceeds its threshold.',
     (balanceContext) => [
       profileFact(balanceContext, CORE.resources, 'resourceCost', 'Endurance cost'),
-      ...[DD.boundingDodger, DD.lotusTraining, DD.unhinderedCombatant].flatMap((id) => {
+      ...[TRAIT.BOUNDING_DODGER, TRAIT.LOTUS_TRAINING, TRAIT.UNHINDERED_COMBATANT].flatMap((id) => {
         const profile = tooltipProfile(balanceContext, id);
         return simulationEffectFacts(profile.effects, `alternative: ${profile.name}`).facts;
       })
@@ -340,7 +340,7 @@ const familyTooltips = {
     (balanceContext) => [
       profileFact(balanceContext, DE.resources, 'durationMultiplier', 'Mark duration', tooltipSeconds),
       profileFact(balanceContext, DE.resources, 'maximumStacks', 'Maximum malice'),
-      profileFact(balanceContext, DE.maleficentSeven, 'maximumStacks', 'Maximum malice with Maleficent Seven'),
+      profileFact(balanceContext, TRAIT.MALEFICENT_SEVEN, 'maximumStacks', 'Maximum malice with Maleficent Seven'),
       profileFact(balanceContext, DE.resources, 'resourceGain', 'Malice per initiative attack'),
       profileFact(balanceContext, DE.resources, 'playerStacks', 'Additional malice from a critical hit')
     ]
@@ -441,7 +441,7 @@ const familyTooltips = {
       profileFact(balanceContext, SPECTER.resources, 'lifeForceGain', 'Shadow Force gained'),
       profileFact(
         balanceContext,
-        SPECTER.amplifiedSiphoning,
+        TRAIT.AMPLIFIED_SIPHONING,
         'resourceGain',
         'Additional Shadow Force with Amplified Siphoning'
       )
@@ -489,7 +489,7 @@ const familyTooltips = {
             ? 'aegis'
             : null;
     if (boonName) {
-      const profile = tooltipProfile(balanceContext, SPECTER.shadeStep);
+      const profile = tooltipProfile(balanceContext, TRAIT.SHADESTEP);
       const boon = requireEffect(profile, 'boon', boonName);
       if (boon) facts.push(...simulationEffectFacts([boon], 'party; requires Shadestep and a completed cast').facts);
     }
@@ -525,13 +525,8 @@ const familyTooltips = {
     'Trigger stealing traits and replace held artifacts with a new choice pool. Grants the base artifact use plus supported Skritt Swipe bonuses; resets the initiative-spending counter.',
     (balanceContext) => [
       profileFact(balanceContext, ANTIQUARY.resources, 'maximumStacks', 'Base artifact uses'),
-      profileFact(
-        balanceContext,
-        ANTIQUARY.prolificPlunderer,
-        'resourceGain',
-        'Additional uses with Prolific Plunderer'
-      ),
-      profileFact(balanceContext, CORE.improvisation, 'resourceGain', 'Additional uses with Improvisation')
+      profileFact(balanceContext, TRAIT.PROLIFIC_PLUNDERER, 'resourceGain', 'Additional uses with Prolific Plunderer'),
+      profileFact(balanceContext, TRAIT.IMPROVISATION, 'resourceGain', 'Additional uses with Improvisation')
     ]
   ),
   'thief.skritt-scuffle': profileTooltip(

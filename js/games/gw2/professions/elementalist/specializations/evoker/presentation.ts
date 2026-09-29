@@ -1,9 +1,9 @@
 import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { getActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { getActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import type { ElementalistUiContext, ElementalistUiSlice } from '#gw2/professions/elementalist/types.js';
 /**
@@ -14,6 +14,7 @@ import type { ElementalistUiContext, ElementalistUiSlice } from '#gw2/profession
  * the rotation snapshot. Reads a projected UI-side state record rather than live
  * simulation state, falling back to build defaults before a run exists.
  */
+import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
   PaletteSkillAvailability,
   ProfessionResourceView,
@@ -21,9 +22,8 @@ import type {
   ProfessionSkillBarSelectionChange,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
-import { ELEMENTALIST_FAMILIAR_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
+import { ELEMENTALIST_FAMILIAR_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import {
   BASIC_FAMILIARS,
   FAMILIAR_ELEMENTS
@@ -85,7 +85,7 @@ function familiarPaletteAvailability(context: ElementalistUiContext, skill: Skil
       requireBalanceProfileFromContext(
         context,
         getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.SPECIALIZED_ELEMENTS)
-          ? PROFILE.specializedElements
+          ? TRAIT.SPECIALIZED_ELEMENTS
           : PROFILE.resources
       ),
       'maximumStacks'
@@ -192,7 +192,7 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
         requireBalanceProfileFromContext(
           context,
           getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.SPECIALIZED_ELEMENTS)
-            ? PROFILE.specializedElements
+            ? TRAIT.SPECIALIZED_ELEMENTS
             : PROFILE.resources
         ),
         'maximumStacks'

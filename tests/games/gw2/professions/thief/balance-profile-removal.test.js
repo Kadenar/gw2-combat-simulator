@@ -1,18 +1,18 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { thiefProfession, thiefCatalog } from '#gw2/professions/thief/profession.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
+import { thiefInitiativeRegenerationRate } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
-import { SPECTER_BALANCE_PROFILE_IDS as SPECTER } from '#gw2/professions/thief/specializations/specter/profiles.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as ANTIQUARY } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as DEADEYE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
-import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { thiefInitiativeRegenerationRate } from '#gw2/professions/thief/core/mechanics/resources.js';
+import { SPECTER_BALANCE_PROFILE_IDS as SPECTER } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
-import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 // Small rotations exercise patched scheduler/resolver contracts without benchmark snapshots.
 function run(balanceProfiles, specialization, rotation, config = {}) {
@@ -43,7 +43,7 @@ test('Shade Step tooltips omit a removed boon without relabeling a surviving one
   const profession = withPatchPreview(thiefProfession, {
     id: 'thief-tooltip-removal',
     label: 'Thief tooltip removal',
-    professions: { thief: { balanceProfiles: { [SPECTER.shadeStep]: remove('boon', 'alacrity') } } }
+    professions: { thief: { balanceProfiles: { [TRAIT.SHADESTEP]: remove('boon', 'alacrity') } } }
   });
   const context = profession.balanceContextFor('thief-tooltip-removal');
   const describe = (id) => describeSimulationSkill(context, context.catalog.skillsById.get(id), thiefTooltips);
@@ -55,7 +55,7 @@ test('Shade Step tooltips omit a removed boon without relabeling a surviving one
 test('Shade Step retains skill identities and surviving edits after removing its first boon', () => {
   const result = run(
     {
-      [SPECTER.shadeStep]: {
+      [TRAIT.SHADESTEP]: {
         ...remove('boon', 'alacrity'),
         effects: [{ type: 'boon', name: 'protection', duration: { from: 5, to: 7 } }]
       }
@@ -111,7 +111,7 @@ for (const [type, name] of [
   ['condition', 'Torment']
 ]) {
   test(`Dark Sentry ${type} removal respects venom ownership`, () => {
-    const result = run({ [SPECTER.darkSentry]: remove(type, name) }, 'Specter', ['Enter Shadow Shroud'], {
+    const result = run({ [TRAIT.DARK_SENTRY]: remove(type, name) }, 'Specter', ['Enter Shadow Shroud'], {
       initialShadowForce: 100,
       allies: { count: 1, strikesPerSecond: 2 }
     });
@@ -132,7 +132,7 @@ for (const [type, name] of [
 
 test('removed Larcenous Torment strike preserves its independent shadow-force gain', () => {
   const result = run(
-    { [SPECTER.larcenousTorment]: remove('strike', 'Larcenous Torment') },
+    { [TRAIT.LARCENOUS_TORMENT]: remove('strike', 'Larcenous Torment') },
     'Specter',
     ['Twilight Combo'],
     {
@@ -151,10 +151,10 @@ test('removed Larcenous Torment strike preserves its independent shadow-force ga
 test('core steal removals preserve sibling conditions, boons, and initiative', () => {
   const result = run(
     {
-      [CORE.hiddenThief]: remove('condition', 'Blindness'),
-      [CORE.bountifulTheft]: remove('boon', 'Vigor'),
-      [CORE.mug]: remove('strike', 'Mug'),
-      [CORE.sleightOfHand]: remove('control', 'daze')
+      [TRAIT.HIDDEN_THIEF]: remove('condition', 'Blindness'),
+      [TRAIT.BOUNTIFUL_THEFT]: remove('boon', 'Vigor'),
+      [TRAIT.MUG]: remove('strike', 'Mug'),
+      [TRAIT.SLEIGHT_OF_HAND]: remove('control', 'daze')
     },
     'Core',
     ['Steal'],
@@ -186,7 +186,7 @@ test('core steal removals preserve sibling conditions, boons, and initiative', (
 });
 
 test('Uncatchable conditions own independent pulses and dodge still spends endurance', () => {
-  const result = run({ [CORE.uncatchable]: remove('condition', 'Bleeding') }, 'Core', ['Dodge'], {
+  const result = run({ [TRAIT.UNCATCHABLE]: remove('condition', 'Bleeding') }, 'Core', ['Dodge'], {
     selectedTraitIds: [TRAIT.UNCATCHABLE]
   });
   const conditions = packet(result, 'condition', TRAIT.UNCATCHABLE);
@@ -207,7 +207,7 @@ test('removed Weakening Strikes does not arm its grant or expiry', () => {
 });
 
 test('removed critical Fury leaves proc progress and cooldown unclaimed', () => {
-  const result = run({ [CORE.unrelentingStrikes]: remove('boon', 'Fury') }, 'Core', ['Double Strike'], {
+  const result = run({ [TRAIT.UNRELENTING_STRIKES]: remove('boon', 'Fury') }, 'Core', ['Double Strike'], {
     selectedTraitIds: [TRAIT.UNRELENTING_STRIKES]
   });
   assert.equal(packet(result, 'buff', TRAIT.UNRELENTING_STRIKES).length, 0);
@@ -287,7 +287,7 @@ for (const type of ['strike', 'condition']) {
 
 test('Possessive Hoarder removal preserves Alacrity without substituting Protection', () => {
   const result = run(
-    { [ANTIQUARY.possessiveHoarder]: remove('boon', 'might') },
+    { [TRAIT.POSSESSIVE_HOARDER]: remove('boon', 'might') },
     'Antiquary',
     ['Skritt Swipe', 'Mistburn Mortar'],
     {
@@ -338,7 +338,7 @@ test('required Thief tuning fails contextually and accepts a real zero', () => {
           { selectedTraitIds: [TRAIT.MUG] },
           {
             catalog: (live) =>
-              withProfile(live, CORE.mug, {
+              withProfile(live, TRAIT.MUG, {
                 effects: [{ type: 'strike', name: 'Mug', coefficient: value, hits: 1 }],
                 balanceDataContext
               })
@@ -367,7 +367,7 @@ test('patched Preparedness and Maleficent Seven capacities initialize before res
       {
         [CORE.resources]: { fields: { maximumStacks: 18, minimumStacks: 21 } },
         [DEADEYE.resources]: { fields: { maximumStacks: 9 } },
-        [DEADEYE.maleficentSeven]: { fields: { maximumStacks: 11 } }
+        [TRAIT.MALEFICENT_SEVEN]: { fields: { maximumStacks: 11 } }
       },
       'Deadeye',
       [],

@@ -8,9 +8,9 @@ import { BLADESWORN_BALANCE_PROFILE_IDS as BLADESWORN } from '#gw2/professions/w
 import { PARAGON_BALANCE_PROFILE_IDS as PARAGON } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import { SPELLBREAKER_BALANCE_PROFILE_IDS as SPELLBREAKER } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
-import { warriorStrengthModifierRules } from '#gw2/professions/warrior/core/traits/strength.js';
+import { berserkersPower } from '#gw2/professions/warrior/core/traits/strength.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
-import { bladeswornModifiers } from '#gw2/professions/warrior/specializations/bladesworn/modifiers.js';
+import { fierceAsFire as fierceAsFireTrait } from '#gw2/professions/warrior/specializations/bladesworn/traits/index.js';
 
 const patchId = 'warrior-ownership';
 const preview = (patch) =>
@@ -111,7 +111,7 @@ test('Warrior displays use selected stack caps and bonuses', () => {
   );
 
   // A single profile patch must change the capped damage formula and the trait's numeric tooltip together.
-  const rule = warriorStrengthModifierRules.find(({ id }) => id === 'warrior.berserkers-power');
+  const rule = berserkersPower.modifierRules.find(({ id }) => id === 'warrior.berserkers-power');
   for (const [stacks, expected] of [
     [0, 0],
     [2, 0.125],
@@ -135,7 +135,7 @@ test('Warrior displays use selected stack caps and bonuses', () => {
   assert.equal(tooltip.facts.find(({ name }) => name === 'Strike damage per stack').detail, '+6.25%');
   assert.equal(tooltip.facts.find(({ name }) => name === 'Maximum stacks').detail, '6');
 
-  const fierceAsFire = bladeswornModifiers.modifierRules.find(({ id }) => id === 'warrior.fierce-as-fire');
+  const fierceAsFire = fierceAsFireTrait.modifierRules.find(({ id }) => id === 'warrior.fierce-as-fire');
   for (const [stacks, expected] of [
     [0, 0],
     [2, 0.05],

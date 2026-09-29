@@ -1,17 +1,13 @@
-import { normalizeSkillEffects } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { normalizeSkillEffects } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import type {
   BalanceProfile,
-  SkillEffect,
-  StrikeEffect,
   ConditionEffect,
-  StatusEffect
+  SkillEffect,
+  StatusEffect,
+  StrikeEffect
 } from '#gw2/platform/engine/skills/types.js';
-import {
-  defineSkillVariantProfile as variant,
-  defineTraitProfile as trait
-} from '#gw2/platform/profession-definition/balance-profiles.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
 
 import {
   MESMER_MIRAGE_AMBUSH_SKILLS,
@@ -23,15 +19,6 @@ import type { MesmerAmbushAttack, MesmerAmbushStrike } from '#gw2/professions/me
 
 export const MIRAGE_BALANCE_PROFILE_IDS = Object.freeze({
   mechanics: 'mesmer.mirage.mechanics',
-  nominalEndurance: TRAIT.NOMADS_ENDURANCE,
-  selfDeception: TRAIT.SELF_DECEPTION,
-  renewingOasis: TRAIT.RENEWING_OASIS,
-  riddleOfSand: TRAIT.RIDDLE_OF_SAND,
-  desertDistortion: TRAIT.DESERT_DISTORTION,
-  mirageMantle: TRAIT.MIRAGE_MANTLE,
-  phantomPain: TRAIT.PHANTOM_PAIN,
-  elusiveMind: TRAIT.ELUSIVE_MIND,
-  duneCloak: TRAIT.DUNE_CLOAK,
   imaginaryAxes: 'mesmer.mirage.imaginary-axes',
   phantomRazor: 'mesmer.mirage.phantom-razor',
   splitSurge: 'mesmer.mirage.split-surge',
@@ -193,35 +180,5 @@ export const MIRAGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
   },
   ...Object.entries(MESMER_MIRAGE_AMBUSH_SKILLS).map(([weapon, attack]) =>
     mesmerAmbushProfile(MIRAGE_AMBUSH_PROFILE_IDS[weapon], attack)
-  ),
-  trait(MIRAGE_BALANCE_PROFILE_IDS.nominalEndurance, "Nomad's Endurance", {
-    effects: [{ name: 'vigor', type: 'boon', boon: 'vigor', duration: 3, stacks: 1 }]
-  }),
-  trait(MIRAGE_BALANCE_PROFILE_IDS.selfDeception, 'Self-Deception', {
-    resourceGain: 1
-  }),
-  trait(MIRAGE_BALANCE_PROFILE_IDS.renewingOasis, 'Renewing Oasis', {
-    effects: [{ name: 'regeneration', type: 'boon', boon: 'regeneration', duration: 4, stacks: 1 }]
-  }),
-  trait(MIRAGE_BALANCE_PROFILE_IDS.riddleOfSand, 'Riddle of Sand', {
-    effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 4, stacks: 2 }]
-  }),
-  trait(MIRAGE_BALANCE_PROFILE_IDS.desertDistortion, 'Desert Distortion', {
-    resourceGain: 1
-  }),
-  trait(MIRAGE_BALANCE_PROFILE_IDS.mirageMantle, 'Mirage Mantle', {
-    effects: [{ name: 'alacrity', type: 'boon', boon: 'alacrity', duration: 4, stacks: 1 }]
-  }),
-  trait(MIRAGE_BALANCE_PROFILE_IDS.phantomPain, 'Phantom Pain', {
-    maximumStacks: 4,
-    durationMultiplier: 10
-  }),
-  trait(MIRAGE_BALANCE_PROFILE_IDS.elusiveMind, 'Elusive Mind', {
-    maximumStacks: 3
-  }),
-  trait(MIRAGE_BALANCE_PROFILE_IDS.duneCloak, 'Dune Cloak', {
-    threshold: 3,
-    rechargeReduction: 1,
-    durationMultiplier: 1
-  })
+  )
 ]);

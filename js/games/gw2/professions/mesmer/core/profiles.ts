@@ -1,18 +1,17 @@
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
 import {
-  defineSkillVariantProfile as variant,
-  defineTraitProfile as trait
+  defineTraitProfile as trait,
+  defineSkillVariantProfile as variant
 } from '#gw2/platform/profession-definition/balance-profiles.js';
-import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { MESMER_CORE_TRAIT_DAMAGE } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
-import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
-import type { MesmerShatter, MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerShatter, MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'mesmer.core.resources',
@@ -24,24 +23,7 @@ export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   signetOfIllusions: 'mesmer.core.signet-of-illusions',
   signetOfDomination: 'mesmer.core.signet-of-domination-passive',
   signetOfMidnight: 'mesmer.core.signet-of-midnight-passive',
-  mimic: 'mesmer.core.mimic',
-  chaoticPersistence: 1865,
-  compoundingPower: TRAIT.COMPOUNDING_POWER,
-  cryOfPain: TRAIT.CRY_OF_PAIN,
-  fencersFinesse: TRAIT.FENCERS_FINESSE,
-  illusionaryMembrane: TRAIT.ILLUSIONARY_MEMBRANE,
-  ineptitude: TRAIT.INEPTITUDE,
-  maimTheDisillusioned: TRAIT.MAIM_THE_DISILLUSIONED,
-  maliciousSorcery: TRAIT.MALICIOUS_SORCERY,
-  masterFencer: TRAIT.MASTER_FENCER,
-  masterOfFragmentation: TRAIT.MASTER_OF_FRAGMENTATION,
-  masterOfMisdirection: TRAIT.MASTER_OF_MISDIRECTION,
-  methodOfMadness: TRAIT.METHOD_OF_MADNESS,
-  phantasmalHaste: TRAIT.PHANTASMAL_HASTE,
-  sharperImages: TRAIT.SHARPER_IMAGES,
-  shatterStorm: TRAIT.SHATTER_STORM,
-  bountifulBlades: TRAIT.BOUNTIFUL_BLADES,
-  thePledge: TRAIT.THE_PLEDGE
+  mimic: 'mesmer.core.mimic'
 });
 
 export function mesmerShatterProfile(
@@ -133,118 +115,6 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   }),
   variant(MESMER_CORE_BALANCE_PROFILE_IDS.mimic, ID.MIMIC, 'Mimic', {
     durationMultiplier: 10
-  }),
-  trait(MESMER_CORE_BALANCE_PROFILE_IDS.chaoticPersistence, 'Chaotic Persistence', {
-    expertiseBonus: 100,
-    concentrationBonus: 250
-  }),
-  trait(MESMER_CORE_BALANCE_PROFILE_IDS.compoundingPower, 'Compounding Power', {
-    maximumStacks: 5,
-    durationMultiplier: 8
-  }),
-  // Dazzling owns the debuff independently of any equipped relic.
-  trait(TRAIT.DAZZLING, 'Dazzling', {
-    effects: [{ name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 }]
-  }),
-  trait(MESMER_CORE_BALANCE_PROFILE_IDS.cryOfPain, 'Cry of Pain', {
-    effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 4, stacks: 2 }]
-  }),
-  trait(MESMER_CORE_BALANCE_PROFILE_IDS.fencersFinesse, "Fencer's Finesse", {
-    attributePerStack: 15,
-    maximumStacks: 10,
-    durationMultiplier: 6,
-    rechargeMultiplier: 0.8
-  }),
-  trait(MESMER_CORE_BALANCE_PROFILE_IDS.illusionaryMembrane, 'Illusionary Membrane', {
-    effects: [{ name: 'illusionary-membrane', type: 'buff', kind: 'illusionary-membrane', duration: 15, stacks: 1 }]
-  }),
-  trait(MESMER_CORE_BALANCE_PROFILE_IDS.ineptitude, 'Ineptitude', {
-    internalCooldown: 3,
-    effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 5, stacks: 2 }]
-  }),
-  trait(MESMER_CORE_BALANCE_PROFILE_IDS.maimTheDisillusioned, 'Maim the Disillusioned', {
-    effects: [{ name: 'Torment', type: 'condition', condition: 'Torment', duration: 6, stacks: 1 }]
-  }),
-  trait(MESMER_CORE_BALANCE_PROFILE_IDS.maliciousSorcery, 'Malicious Sorcery', { durationMultiplier: 0.25 }),
-  trait(MESMER_CORE_BALANCE_PROFILE_IDS.masterFencer, 'Master Fencer', {
-    internalCooldown: 8,
-    effects: [
-      {
-        type: 'boon',
-        name: 'Self Fury',
-        audience: { recipients: 'self' },
-        boon: 'fury',
-        duration: 8,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        name: 'Allied Fury',
-        boon: 'fury',
-        duration: 4,
-        stacks: 1,
-        // Personal Fury is separate, leaving all four recipient slots for allies.
-        audience: { recipients: 'party', maximumRecipients: 4, affectsSelf: false }
-      }
-    ]
-  }),
-  trait(MESMER_CORE_BALANCE_PROFILE_IDS.masterOfMisdirection, 'Master of Misdirection', { rechargeMultiplier: 0.85 }),
-  // Shared shatter improvements remain trait-owned across elite specializations.
-  trait(MESMER_CORE_BALANCE_PROFILE_IDS.masterOfFragmentation, 'Master of Fragmentation', {
-    criticalChance: 0.25,
-    durationMultiplier: 1,
-    damageIncreasePerStack: 0.3,
-    effects: [
-      { name: 'Cripple', type: 'condition', condition: 'Cripple', duration: 3, stacks: 1 },
-      // provisional 3s Weakness; replace when Deafening Drum's trait duration is confirmed.
-      { name: 'Weakness', type: 'condition', condition: 'Weakness', duration: 3, stacks: 1 }
-    ]
-  }),
-  mesmerTraitDamageProfile(
-    MESMER_CORE_BALANCE_PROFILE_IDS.methodOfMadness,
-    'Method of Madness',
-    MESMER_CORE_TRAIT_DAMAGE['Lesser Chaos Storm']
-  ),
-  trait(MESMER_CORE_BALANCE_PROFILE_IDS.phantasmalHaste, 'Phantasmal Haste', {
-    quicknessCastMultiplier: 1.5
-  }),
-  trait(MESMER_CORE_BALANCE_PROFILE_IDS.sharperImages, 'Sharper Images', {
-    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration: 5, stacks: 1 }]
-  }),
-  trait(MESMER_CORE_BALANCE_PROFILE_IDS.shatterStorm, 'Shatter Storm', {
-    maximumStacks: 2
-  }),
-  trait(MESMER_CORE_BALANCE_PROFILE_IDS.bountifulBlades, 'Bountiful Blades', {
-    summons: 2,
-    damageMultiplier: 0.66,
-    effects: [
-      {
-        name: 'Strike',
-        type: 'strike',
-        ticks: [
-          { atMs: 1240, coefficient: 0.0000064 },
-          { atMs: 1400, coefficient: 0.000000256 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
-    ]
-  }),
-
-  trait(TRAIT.PHANTASMAL_FURY, 'Phantasmal Fury', {
-    criticalChance: 0.25
-  }),
-  trait(TRAIT.CHAOTIC_INTERRUPTION, 'Chaotic Interruption', {
-    recharge: 5,
-    internalCooldown: 1
-  }),
-  trait(TRAIT.SUPERIORITY_COMPLEX, 'Superiority Complex', {
-    highHealthFactor: 1.15,
-    lowHealthOrDisabledFactor: 1.25,
-    threshold: 0.5
-  }),
-  trait(MESMER_CORE_BALANCE_PROFILE_IDS.thePledge, 'The Pledge', {
-    effects: [{ name: 'Burning', type: 'condition', condition: 'Burning', duration: 3, stacks: 2 }]
   })
 ]);
 
@@ -286,25 +156,22 @@ export function mesmerProfiledShatters(
 
 export function mesmerProfiledTraitDamage(
   context: unknown,
-  damage: MesmerTraitDamage,
+  metadata: { readonly weaponStrength?: number; readonly requiresCooldown?: boolean },
   balanceProfileId: SkillId
 ): MesmerTraitDamage {
   const profile = requireBalanceProfileFromContext(context, balanceProfileId);
   const strike = requireEffect(profile, 'strike', 'Strike');
-  // Balance attacks are replaceable; only mechanic metadata survives their removal.
+  // Runtime callers supply only mechanic metadata; all attack tuning comes from the active profile.
   return {
     balanceProfileId,
-    weaponStrength: damage.weaponStrength,
+    weaponStrength: metadata.weaponStrength,
     ...strike,
     name: undefined,
     cooldown:
-      damage.cooldown === undefined && profile.internalCooldown === undefined
+      !metadata.requiresCooldown && profile.internalCooldown === undefined
         ? undefined
         : balanceProfileNumber(profile, 'internalCooldown'),
-    duration:
-      damage.duration === undefined && profile.durationMultiplier === undefined
-        ? undefined
-        : balanceProfileNumber(profile, 'durationMultiplier')
+    duration: profile.durationMultiplier === undefined ? undefined : balanceProfileNumber(profile, 'durationMultiplier')
   };
 }
 

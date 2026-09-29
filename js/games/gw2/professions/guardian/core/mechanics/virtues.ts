@@ -1,21 +1,18 @@
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-/**
- * @fileoverview Implements shared Guardian virtue validation, activation and
- * refresh events, plus the reusable resolver-time Justice burning contract.
- */
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import {
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
+import { permeatingWrathThreshold } from '#gw2/professions/guardian/core/traits/behavior.js';
+import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type {
   GuardianResolverContext,
   GuardianResolverEvent,
@@ -23,9 +20,11 @@ import type {
   GuardianSkill,
   GuardianVirtue
 } from '#gw2/professions/guardian/types.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { emitGuardianBoon } from '#gw2/professions/guardian/core/traits/index.js';
+
+/**
+ * @fileoverview Implements shared Guardian virtue validation, activation and
+ * refresh events, plus the reusable resolver-time Justice burning contract.
+ */
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
 const VIRTUES_BY_SLOT: readonly (GuardianVirtue | null)[] = Object.freeze([null, 'justice', 'resolve', 'courage']);
@@ -130,13 +129,7 @@ export function reactToJusticeHitWithOptions(
   const justiceProfile = requireBalanceProfileFromContext(context, PROFILE.justice);
   if (!requireEffect(justiceProfile, 'condition', 'Burning (passive)')) return;
   state.justiceHitCount += 1;
-  const triggerHits = balanceProfileNumber(
-    requireBalanceProfileFromContext(
-      context,
-      hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH) ? PROFILE.permeatingWrath : PROFILE.justice
-    ),
-    'threshold'
-  );
+  const triggerHits = permeatingWrathThreshold(context, 'justice', PROFILE.justice);
   if (state.justiceHitCount < triggerHits) return;
   state.justiceHitCount = 0;
   applyJusticeBurn(context, event, {
@@ -185,44 +178,4 @@ export function refreshGuardianVirtues(runtime: Runtime): void {
   runtime.cooldownController.refresh(runtime.time);
   for (const [id, virtue] of virtues)
     runtime.profession.core.virtueReadyAt[virtue] = gw2CooldownReadyAt(runtime.cooldowns.get(id) ?? 0);
-}
-
-/** Committed activation boons sample live attributes and retain their selected component and party ownership. */
-function virtueBuff(runtime: Runtime, cast: RuntimeCast, trait: number, kind: string, party = false): void {
-  if (!hasTrait(runtime, trait)) return;
-  const profile = requireBalanceProfileFromContext(runtime, trait);
-  const type = kind === 'guardian-inspiring-virtue' ? 'buff' : 'boon';
-  const effect = requireEffect(profile, type, kind);
-  if (!effect) return;
-  const duration = effectNumber(profile, effect, 'duration');
-  const event = {
-    type: 'buff' as const,
-    at: runtime.time,
-    source: 'guardian',
-    sourceId: trait,
-    actorType: 'player' as const,
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id,
-    name: profile.name,
-    kind,
-    stacks: effectNumber(profile, effect, 'stacks'),
-    duration,
-    audience: { recipients: party ? ('party' as const) : ('self' as const) }
-  };
-  emitGuardianBoon(runtime, event);
-}
-
-/** Core and elite owners invoke the same activation boons after admitting their own passive-readiness gate. */
-export function applyGuardianVirtueActivationTraits(runtime: Runtime, cast: RuntimeCast, virtue: GuardianVirtue): void {
-  virtueBuff(
-    runtime,
-    cast,
-    GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
-    virtue === 'justice' ? 'might' : virtue === 'resolve' ? 'regeneration' : 'protection',
-    true
-  );
-  virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION, 'resolution');
-  virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE, 'guardian-inspiring-virtue');
-  if (virtue === 'courage') virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE, 'stability');
 }

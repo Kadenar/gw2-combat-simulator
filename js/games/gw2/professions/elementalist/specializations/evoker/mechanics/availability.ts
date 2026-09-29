@@ -7,21 +7,18 @@ import { EPSILON } from '#kernel/core/clock.js';
  */
 import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import {
   BASIC_FAMILIARS,
   FAMILIAR_ELEMENTS
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
-import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /**
  * Waits for in-flight familiar casts and charge grants; missing resources without
@@ -29,16 +26,6 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
  */
 export function availability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
   const state = evokerState.from(context);
-  const attunement = targetAttunement(skill);
-  if (attunement) {
-    if (hasTrait(context, TRAIT.SPECIALIZED_ELEMENTS)) {
-      return denyCast(
-        'elementalist.specialized-elements',
-        `${skill.name} is unavailable - attunement swapping is disabled by Specialized Elements.`
-      );
-    }
-  }
-
   // Nothing may start until the familiar cast in flight ends.
   if (state.activeFamiliarCast && context.time < state.activeFamiliarCast.endsAt - EPSILON) {
     return retryCast(

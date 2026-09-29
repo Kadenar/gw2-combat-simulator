@@ -1,58 +1,36 @@
 import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  bountifulBladesSpawnModifiers,
+  masterFencerBoonDuration,
+  methodOfMadnessDamage
+} from '#gw2/professions/mesmer/core/traits/behavior.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /** Connects Core Mesmer resources, profession actions, player effects, and illusions into one simulation runtime. */
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
+import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { emitMesmerPacket } from '#gw2/professions/mesmer/core/events.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
-import type { MesmerMechanics, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { createSkillEffectController } from '#gw2/professions/mesmer/core/execution/effect-controller.js';
+import type { MesmerActiveEmission, MesmerCastDetails } from '#gw2/professions/mesmer/core/execution/effect-types.js';
 import {
   MESMER_CORE_CLONE_ATTACKS,
-  MESMER_CORE_TRAIT_DAMAGE,
   MESMER_CORE_WEAPON_STRENGTH
 } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
-import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
-import { createProfessionActionController } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
-import { createResourceController } from '#gw2/professions/mesmer/core/mechanics/resources.js';
-import { resolveCloneShatter } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
-import {
-  MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  MESMER_CORE_SHATTER_PROFILE_IDS,
-  mesmerProfiledShatters,
-  mesmerProfiledTraitDamage
-} from '#gw2/professions/mesmer/core/profiles.js';
-import { createSkillEffectController } from '#gw2/professions/mesmer/core/execution/effect-controller.js';
 import { createCloneAttackScheduler } from '#gw2/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
 import { createCriticalTraitDispatcher } from '#gw2/professions/mesmer/core/mechanics/illusions/critical-traits.js';
 import { createMesmerEventEmitters } from '#gw2/professions/mesmer/core/mechanics/illusions/event-emission.js';
-import type { MesmerActiveEmission, MesmerCastDetails } from '#gw2/professions/mesmer/core/execution/effect-types.js';
 import type {
   MesmerClone,
   MesmerPhantasmAttackTiming
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import { createProfessionActionController } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MesmerPendingResource } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
+import { createResourceController } from '#gw2/professions/mesmer/core/mechanics/resources.js';
+import { resolveCloneShatter } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
+import { MESMER_CORE_SHATTER_PROFILE_IDS, mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
+import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
+import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
+import type { MesmerMechanics, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { clamp } from '#kernel/core/numeric.js';
-
-/** Builds Core trait variations consumed by the shared phantasm lifecycle. */
-function runtimeTraitsPhantasmSpawnModifiers(
-  context: MesmerRuntime
-): Record<number, { countMultiplier: number; damageMultiplier: number }> {
-  if (!hasTrait(context, TRAIT.BOUNTIFUL_BLADES)) return {};
-  const bountifulBladesProfile = requireBalanceProfileFromContext(context, PROFILE.bountifulBlades);
-  return {
-    [ID.PHANTASMAL_BERSERKER]: {
-      countMultiplier: balanceProfileNumber(bountifulBladesProfile, 'summons'),
-      damageMultiplier: balanceProfileNumber(bountifulBladesProfile, 'damageMultiplier')
-    }
-  };
-}
 
 /**
  * Creates and connects all Mesmer feature controllers for one simulation.
@@ -80,16 +58,11 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
       Object.entries(MESMER_CORE_PHANTASM_ATTACK_TIMINGS).map(([id, timing]) => [Number(id), { ...timing }])
     ) as Record<number, MesmerPhantasmAttackTiming>,
     phantasmPolicy: {
-      spawnModifiers: runtimeTraitsPhantasmSpawnModifiers(context),
+      spawnModifiers: bountifulBladesSpawnModifiers(context),
       conversionTiming: 'spawn' as const
     },
     traitDamage: {
-      ...MESMER_CORE_TRAIT_DAMAGE,
-      'Lesser Chaos Storm': mesmerProfiledTraitDamage(
-        context,
-        MESMER_CORE_TRAIT_DAMAGE['Lesser Chaos Storm'],
-        PROFILE.methodOfMadness
-      )
+      'Lesser Chaos Storm': methodOfMadnessDamage(context)
     },
     shatters: mesmerProfiledShatters(context, MESMER_CORE_SHATTERS, MESMER_CORE_SHATTER_PROFILE_IDS),
     shatterResolvers: {
@@ -163,13 +136,7 @@ export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
   const criticalTraits = createCriticalTraitDispatcher({
     state,
     emitEvent: (cause, event) => context.emitDerived(cause, event),
-    boonDuration: (boon, duration) =>
-      gw2ResolverBoonDuration(
-        context,
-        { type: 'buff', at: context.time, source: 'Trait', sourceId: TRAIT.MASTER_FENCER, actorType: 'player' },
-        boon,
-        duration
-      ),
+    boonDuration: (boon, duration) => masterFencerBoonDuration(context, boon, duration),
     addTraitProc
   });
   const actions = createProfessionActionController({

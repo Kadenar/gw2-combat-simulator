@@ -1,24 +1,25 @@
+import { soulbeastModule } from '#gw2/professions/ranger/specializations/soulbeast/module.js';
+import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
+import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-
-import { elementalistCoreModifierRules } from '#gw2/professions/elementalist/core/modifiers.js';
-import { weaverModifierRules } from '#gw2/professions/elementalist/specializations/weaver/modifiers.js';
+import { engineerCoreModifiers } from '#gw2/professions/engineer/core/modifiers.js';
+import { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
-import { engineerCoreModifiers, engineerCoreModifierRules } from '#gw2/professions/engineer/core/modifiers.js';
-import { amalgamModifierRules } from '#gw2/professions/engineer/specializations/amalgam/modifiers.js';
+import { amalgamModule } from '#gw2/professions/engineer/specializations/amalgam/module.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { modifyNecromancerCoreAttributes } from '#gw2/professions/necromancer/core/modifiers.js';
 import { reaperModifierRules } from '#gw2/professions/necromancer/specializations/reaper/modifiers.js';
+import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
-import { rangerCoreModifierRules } from '#gw2/professions/ranger/core/modifiers.js';
-import { galeshotModifiers } from '#gw2/professions/ranger/specializations/galeshot/modifiers.js';
-import { soulbeastModifierRules } from '#gw2/professions/ranger/specializations/soulbeast/modifiers.js';
+import { galeshotModule } from '#gw2/professions/ranger/specializations/galeshot/module.js';
+
+import { revenantCoreModule } from '#gw2/professions/revenant/core/module.js';
 import { REVENANT_TRAIT_IDS } from '#gw2/professions/revenant/data/ids.js';
-import { revenantCoreModifierRules } from '#gw2/professions/revenant/core/modifiers.js';
+import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
-import { thiefCoreModifierRules } from '#gw2/professions/thief/core/modifiers.js';
-import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const OWNERSHIP_CASES = Object.freeze([
   ['player actor', { actorType: 'player' }, true],
@@ -38,16 +39,19 @@ function modifierRule(rules, id) {
   return rule;
 }
 
-const elementalistStormsoul = modifierRule(elementalistCoreModifierRules, 'elementalist.stormsoul');
-const weaverSuperiorElements = modifierRule(weaverModifierRules, 'elementalist.superior-elements');
-const rangerSurvivalInstincts = modifierRule(rangerCoreModifierRules, 'ranger.survival-instincts');
-const soulbeastLoudWhistle = modifierRule(soulbeastModifierRules, 'ranger.loud-whistle-player');
-const galeshotBirdOfPrey = modifierRule(galeshotModifiers, 'ranger.bird-of-prey');
-const amalgamWillingHost = modifierRule(amalgamModifierRules, 'engineer.willing-host');
+const elementalistStormsoul = modifierRule(elementalistCoreModule.modifiers.modifierRules, 'elementalist.stormsoul');
+const weaverSuperiorElements = modifierRule(weaverModule.modifiers.modifierRules, 'elementalist.superior-elements');
+const rangerSurvivalInstincts = modifierRule(rangerCoreModule.modifiers.modifierRules, 'ranger.survival-instincts');
+const soulbeastLoudWhistle = modifierRule(soulbeastModule.modifiers.modifierRules, 'ranger.loud-whistle-player');
+const galeshotBirdOfPrey = modifierRule(galeshotModule.modifiers.modifierRules, 'ranger.bird-of-prey');
+const amalgamWillingHost = modifierRule(amalgamModule.modifiers.modifierRules, 'engineer.willing-host');
 const reaperShout = modifierRule(reaperModifierRules, 'necromancer.reaper-shout-melee');
-const engineerHighCaliber = modifierRule(engineerCoreModifierRules, 'engineer.high-caliber');
-const revenantFerociousAggression = modifierRule(revenantCoreModifierRules, 'revenant.ferocious-aggression');
-const thiefExposedWeakness = modifierRule(thiefCoreModifierRules, 'thief.exposed-weakness');
+const engineerHighCaliber = modifierRule(engineerCoreModule.modifiers.modifierRules, 'engineer.high-caliber');
+const revenantFerociousAggression = modifierRule(
+  revenantCoreModule.modifiers.modifierRules,
+  'revenant.ferocious-aggression'
+);
+const thiefExposedWeakness = modifierRule(thiefCoreModule.modifiers.modifierRules, 'thief.exposed-weakness');
 
 const PLAYER_MODIFIER_PREDICATES = Object.freeze([
   [

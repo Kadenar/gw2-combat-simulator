@@ -1,46 +1,47 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
-  tooltipFactorChange,
-  tooltipSeconds,
-  outsideScopeTooltip,
-  traitTooltip,
-  skillTooltip,
-  tooltipNumber,
-  profileFact,
   modifierFact,
-  tooltipPercent,
-  tooltipDecimal,
-  tooltipProfile,
+  outsideScopeTooltip,
+  profileFact,
   simulationEffectFacts,
+  skillTooltip,
+  tooltipDecimal,
+  tooltipFactorChange,
+  tooltipNumber,
+  tooltipPercent,
+  tooltipProfile,
+  tooltipSeconds,
+  traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { CATALYST_BALANCE_PROFILE_IDS as CATALYST } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
-import { EVOKER_BALANCE_PROFILE_IDS as EVOKER } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
-import { TEMPEST_BALANCE_PROFILE_IDS as TEMPEST } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/elementalist/core/profiles.js';
-import { WEAVER_BALANCE_PROFILE_IDS as WEAVER } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
-  ELEMENTALIST_SKILL_IDS as ID,
-  ELEMENTALIST_TRAIT_IDS as TRAIT,
-  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
-  ELEMENTALIST_OVERLOAD_SKILL_IDS,
-  ELEMENTALIST_JADE_SPHERE_SKILL_IDS
-} from '#gw2/professions/elementalist/data/ids.js';
-import {
-  HAMMER_ORB_SKILLS,
-  CONJURE_SKILLS,
-  CONJURE_PICKUP_WEAPONS,
   AURA_TRANSMUTE_SKILLS,
-  ETCHING_CHAINS
+  CONJURE_PICKUP_WEAPONS,
+  CONJURE_SKILLS,
+  ETCHING_CHAINS,
+  HAMMER_ORB_SKILLS
 } from '#gw2/professions/elementalist/core/constants.js';
 import {
-  FAMILIAR_ELEMENTS,
-  BASIC_FAMILIARS
-} from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
-import {
-  FIRE_ELEMENTAL_EVTC_PROFILE as FIRE_ELEMENTAL,
-  EARTH_ELEMENTAL_EVTC_PROFILE as EARTH_ELEMENTAL
+  EARTH_ELEMENTAL_EVTC_PROFILE as EARTH_ELEMENTAL,
+  FIRE_ELEMENTAL_EVTC_PROFILE as FIRE_ELEMENTAL
 } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/elementalist/core/profiles.js';
+import {
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
+  ELEMENTALIST_JADE_SPHERE_SKILL_IDS,
+  ELEMENTALIST_OVERLOAD_SKILL_IDS,
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
+import { CATALYST_BALANCE_PROFILE_IDS as CATALYST } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
+import {
+  BASIC_FAMILIARS,
+  FAMILIAR_ELEMENTS
+} from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import { EVOKER_BALANCE_PROFILE_IDS as EVOKER } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { SPECIALIZED_ELEMENTS_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+import { TEMPEST_BALANCE_PROFILE_IDS as TEMPEST } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
+import { WEAVER_BALANCE_PROFILE_IDS as WEAVER } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 
 const percentagePoints = (value: number) => tooltipPercent(value / 100);
 
@@ -795,7 +796,13 @@ export const elementalistTooltips: ProfessionTooltips = {
       'Eligible fire-field hits grant temporary strike-damage stacks. Weapon fire fields last longer and repeat their final damage and condition packets.',
       (balanceContext, id) => [
         modifierFact(balanceContext, 'elementalist.persisting-flames', 'damagePerStack', 'Strike damage per stack'),
-        profileFact(balanceContext, id, 'maximumStacks', 'Maximum stacks'),
+        modifierFact(
+          balanceContext,
+          'elementalist.persisting-flames',
+          'maximumStacks',
+          'Maximum stacks',
+          tooltipDecimal
+        ),
         profileFact(balanceContext, id, 'durationMultiplier', 'Stack duration', tooltipSeconds),
         profileFact(balanceContext, id, 'durationPerTier', 'Additional weapon field duration', tooltipSeconds),
         profileFact(balanceContext, id, 'summons', 'Additional weapon field packets')
@@ -1069,14 +1076,14 @@ export const elementalistTooltips: ProfessionTooltips = {
       (balanceContext) => [
         profileFact(
           balanceContext,
-          CATALYST.elementalEmpowerment,
+          TRAIT.ELEMENTAL_EMPOWERMENT,
           'coefficientMultiplier',
           'Attribute increase per stack below maximum',
           tooltipPercent
         ),
         profileFact(
           balanceContext,
-          CATALYST.elementalEmpowerment,
+          TRAIT.ELEMENTAL_EMPOWERMENT,
           'attributeConversion',
           'Attribute increase at maximum stacks',
           tooltipPercent
@@ -1092,7 +1099,7 @@ export const elementalistTooltips: ProfessionTooltips = {
         // Entry traits share Evocation's cooldown policy, separate from fire-familiar might.
         profileFact(
           balanceContext,
-          EVOKER.evocation,
+          TRAIT.EVOCATION,
           'internalCooldown',
           "Attunement-entry trait cooldown (Sunspot, Pyromancer's Puissance, Earthen Blast, Rock Solid)",
           tooltipSeconds
@@ -1176,14 +1183,14 @@ export const elementalistTooltips: ProfessionTooltips = {
         profileFact(balanceContext, id, 'playerStacks', 'Charges per matching weapon skill'),
         profileFact(
           balanceContext,
-          EVOKER.specializedElementsBasicRecharge,
+          SPECIALIZED_ELEMENTS_PROFILE_IDS.basicRecharge,
           'rechargeMultiplier',
           'Base weapon recharge removed by basic familiar',
           (value) => tooltipPercent(1 - value)
         ),
         profileFact(
           balanceContext,
-          EVOKER.specializedElementsEmpoweredRecharge,
+          SPECIALIZED_ELEMENTS_PROFILE_IDS.empoweredRecharge,
           'rechargeMultiplier',
           'Base weapon recharge removed by empowered familiar',
           (value) => tooltipPercent(1 - value)

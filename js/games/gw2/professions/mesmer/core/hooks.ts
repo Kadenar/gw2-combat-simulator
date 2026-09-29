@@ -1,52 +1,50 @@
-import {
-  armMesmerSkillFlip,
-  prepareMesmerMantra,
-  exhaustMesmerMantra,
-  extendMesmerParentRecharge
-} from '#gw2/professions/mesmer/core/mechanics/flips.js';
-import { scheduleAxesClones, completeAxesConfusion } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
-import { emitMesmerEffects } from '#gw2/professions/mesmer/core/events.js';
-import type { TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import type { MesmerPendingResource } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
-import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
-import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { createMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime-controller.js';
-import { mesmerMechanicsFor, registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
+import { emitMesmerEffects } from '#gw2/professions/mesmer/core/events.js';
 import {
-  completeMesmerCast,
   commitMesmerShatter,
-  startMesmerCast,
+  completeMesmerCast,
   scheduleMesmerPhantasmEffects,
+  startMesmerCast,
   withMesmerCastEmission
 } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { armMimic, completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
-import { consumeMesmerClarity, applyMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
-import { mesmerRechargeWork, mesmerMaximumAmmo } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
-import { mesmerCoreEventHandlers, mesmerCoreEventReactions } from '#gw2/professions/mesmer/core/mechanics/reactions.js';
+import { scheduleChaosStormPoison } from '#gw2/professions/mesmer/core/mechanics/chaos-storm.js';
+import { applyMesmerClarity, consumeMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
+import {
+  armMesmerSkillFlip,
+  exhaustMesmerMantra,
+  extendMesmerParentRecharge,
+  prepareMesmerMantra
+} from '#gw2/professions/mesmer/core/mechanics/flips.js';
+import { armMimic, completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
+import { mesmerMaximumAmmo, mesmerRechargeWork } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
+import type { MesmerPendingResource } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
+import { detonateInspiringImagery, expireInspiringImagery } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
+import { createMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime-controller.js';
+import { mesmerMechanicsFor, registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import {
   applyMesmerSignetReset,
   restartSignetIllusionsPassive,
   signetIllusionsPulse
 } from '#gw2/professions/mesmer/core/mechanics/signets.js';
-import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
-import { detonateInspiringImagery, expireInspiringImagery } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
-import { scheduleChaosStormPoison } from '#gw2/professions/mesmer/core/mechanics/chaos-storm.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
+import { completeAxesConfusion, scheduleAxesClones } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
 import {
-  emitFencersFinesseStacks,
-  recordFencersFinesseProc,
+  applyFencersFinesse,
   triggerChaoticInterruption,
+  triggerIneptitudeFromBlind,
+  triggerIneptitudeFromInterrupt,
   triggerThePledge
-} from '#gw2/professions/mesmer/core/traits/index.js';
-import { missesTarget } from '#gw2/platform/combat/state/targets.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+} from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Completion tasks apply state at the authored boundary, including committed shortened animations. */
 function complete(runtime: MesmerRuntime, cast: RuntimeCast): void {
@@ -206,58 +204,25 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
         runtime.cooldownController.startRecharge(cast.skill, runtime.time, cast.rechargeWork);
     }
   },
-  // Dazzling precedes other control reactions and keeps player ownership even for summon-triggered control.
-  traitTriggers: [
-    // Native shatter impacts inherit their triggering skill while selecting only the matching condition.
-    ...(['Weakness', 'Cripple'] as const).map<Extract<TraitTrigger<MesmerRuntimeState>, { on: 'damage.resolved' }>>(
-      (condition) => ({
-        trait: TRAIT.MASTER_OF_FRAGMENTATION,
-        on: 'damage.resolved' as const,
-        when: (_runtime, event) =>
-          event.type === 'damage' &&
-          isGw2PlayerActorEvent(event) &&
-          event.sourceId === event.skillId &&
-          !missesTarget(event) &&
-          (condition === 'Weakness'
-            ? event.skillId === ID.DEAFENING_DRUM
-            : [ID.CRY_OF_FRUSTRATION, ID.REWINDER, ID.BLADESONG_SORROW, ID.FLUSTERING_FLUTE].some(
-                (id) => id === event.skillId
-              )),
-        emit: TRAIT.MASTER_OF_FRAGMENTATION,
-        effects: (effect) => effect.type === 'condition' && effect.name === condition,
-        attribution: (_runtime, event) => ({
-          actorType: 'player',
-          name: `${event.skillName || TRAIT.MASTER_OF_FRAGMENTATION} — ${condition}`
-        })
-      })
-    ),
-    {
-      on: 'control.resolved',
-      trait: TRAIT.DAZZLING,
-      emit: TRAIT.DAZZLING,
-      when: (_runtime, event) => !missesTarget(event) && (event.actorType === 'player' || event.actorType === 'summon'),
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Vulnerability',
-      attribution: { source: 'Trait', sourceId: TRAIT.DAZZLING, actorType: 'effect', ownerActorType: 'player' }
-    }
-  ],
-  eventHandlers: mesmerCoreEventHandlers,
+  // Phantasm markers remain observable without applying resolver mutations.
+  eventHandlers: {
+    'mesmer.phantasm-summoned': OBSERVABLE_EVENT_HANDLER,
+    'mesmer.phantasm-attack': OBSERVABLE_EVENT_HANDLER
+  },
   reactions: {
     'buff.applied': applyMesmerClarity,
     'damage.resolved'(runtime, event, details) {
       const mechanics = mesmerMechanicsFor(runtime);
       const critical = (details as NativeResolvedDamageDetails).hitContext!.critical;
       mechanics.criticalTraits.process({ ...event, didCrit: critical.didCrit }, critical.chance);
-      const skill = runtime.helpers.skillsById.get(event.skillId ?? '') as MesmerSkill | undefined;
-      if (!skill) return;
-      const triggerAt = event.summonKind === 'clone' ? Infinity : emitFencersFinesseStacks(mechanics, skill, event.at);
-      if (Number(event.hitIndex ?? 1) === 1) recordFencersFinesseProc(mechanics, skill, triggerAt);
+      applyFencersFinesse(runtime, event);
     },
     'condition.applied': triggerThePledge,
     'control.resolved'(runtime, event) {
       const name = event.skillName ?? event.name ?? 'Control effect';
       triggerChaoticInterruption(runtime, event, name);
-      mesmerCoreEventReactions.control(runtime, event);
+      triggerIneptitudeFromInterrupt(runtime, event);
     },
-    'blind.resolved': mesmerCoreEventReactions.blind
+    'blind.resolved': triggerIneptitudeFromBlind
   }
 };

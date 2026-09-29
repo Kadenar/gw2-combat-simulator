@@ -1,487 +1,74 @@
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import { canonicalTime, EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
-import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { addTimedStacks, consumeNewestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+  abyssalChill,
+  acolyteOfTorment,
+  diabolicInferno,
+  invokingTorment,
+  pactOfPain,
+  seethingMalice,
+  yearningEmpowerment
+} from '#gw2/professions/revenant/core/traits/corruption.js';
 import {
-  REVENANT_LEGEND_IDS as LEGEND,
-  REVENANT_SKILL_IDS as ID,
-  REVENANT_TRAIT_IDS as TRAIT
-} from '#gw2/professions/revenant/data/ids.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
-import { REVENANT_ELITE_INVOCATIONS } from '#gw2/professions/revenant/family-state.js';
-import { REVENANT_CORE_CALL_BY_LEGEND } from '#gw2/professions/revenant/core/skills/legend-call-skills.js';
-import { emitRevenantProfile, revenantBoonActive } from '#gw2/professions/revenant/core/events.js';
-import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
-import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+  assassinsPresence,
+  battleScarred,
+  brutality,
+  danceOfDeath,
+  destructiveImpulses,
+  exposeDefensesTrait,
+  notoriety,
+  swiftTermination,
+  targetedDestruction,
+  thrillOfCombatTrait,
+  unsuspectingStrikes
+} from '#gw2/professions/revenant/core/traits/devastation.js';
+import {
+  chargedMists,
+  ferociousAggression,
+  incensedResponse,
+  invokersRage,
+  risingTide,
+  roilingMists,
+  songOfTheMists,
+  spiritBoon
+} from '#gw2/professions/revenant/core/traits/invocation.js';
+import {
+  dwarvenBattleTraining,
+  enduringRecovery,
+  versedInStone,
+  viciousReprisalTrait
+} from '#gw2/professions/revenant/core/traits/retribution.js';
+import { lifeAttunement, sereneRejuvenation } from '#gw2/professions/revenant/core/traits/salvation.js';
 
-export const REVENANT_ASSASSINS_PRESENCE = 'revenant.assassins-presence';
-
-interface TraitBuff {
-  readonly sourceId: SkillId;
-  readonly skillId: SkillId;
-  readonly skillName: string;
-  readonly name?: string;
-  readonly audience?: SkillEffect['audience'];
-  readonly activationId?: string;
-  readonly actorType?: 'player' | 'effect';
-}
-
-/** Trait boons apply at the current instant, retaining their trigger's attribution when one exists. */
-function traitBuff(runtime: RevenantRuntime, profile: Skill, effect: SkillEffect, fields: TraitBuff): void {
-  const { actorType = 'player', ...rest } = fields;
-  emitEffects(runtime, {
-    owner: profile,
-    effects: [effect],
-    baseEvent: { source: 'revenant', actorType, ...rest },
-    transform: (event) => ({ ...event, ...rest })
-  });
-}
-
-/** Invocation and legend packages share one profile materialization at the current instant. */
-function emitRevenantInvocationProfile(
-  runtime: RevenantRuntime,
-  profileId: SkillId,
-  sourceId: SkillId,
-  predicate: (effect: SkillEffect) => boolean = () => true
-): void {
-  emitRevenantProfile(runtime, requireBalanceProfileFromContext(runtime, profileId), {
-    sourceId,
-    activationId: `legend-invocation:${sourceId}:${runtime.time}`,
-    predicate
-  });
-}
-
-/** Adds expiring Battle Scars up to the shared cap and publishes only the stacks actually granted. */
-function grantBattleScars(
-  runtime: RevenantRuntime,
-  {
-    stacks,
-    sourceId,
-    sourceName,
-    duration: authored,
-    cause = null
-  }: {
-    readonly stacks: number;
-    readonly sourceId: SkillId;
-    readonly sourceName: string;
-    readonly duration?: number;
-    readonly cause?: Gw2ResolverEvent | null;
-  }
-): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.battleScars);
-  let duration = authored;
-  // Grants without their own duration inherit the core buff's; removing that buff leaves them nothing to grant.
-  if (duration === undefined) {
-    const buff = requireEffect(profile, 'buff', 'battle-scars');
-    if (!buff) return;
-    duration = effectNumber(profile, buff, 'duration');
-  }
-
-  duration = Math.max(0, duration);
-  const core = runtime.profession.core;
-  const { expiries, added } = addTimedStacks(
-    core.battleScars,
-    stacks,
-    runtime.time,
-    duration,
-    balanceProfileNumber(profile, 'maximumStacks')
-  );
-  core.battleScars = expiries;
-  if (!added) return;
-  runtime.emitProcedural(
-    {
-      type: 'buff',
-      at: runtime.time,
-      source: 'revenant',
-      sourceId,
-      actorType: 'player',
-      skillId: sourceId,
-      skillName: sourceName,
-      name: `${sourceName} — Battle Scars`,
-      kind: 'battle-scars',
-      duration,
-      stacks: added
-    },
-    { cause }
-  );
-}
-
-function isLegendaryStanceSkill(skill: RevenantSkill): boolean {
-  if (['Heal', 'Utility', 'Elite'].includes(String(skill.slot || '')) && skill.legendId) return true;
-  return skill.type === 'Profession';
-}
-
-// A skill action may need pre-transition traits; the common observer must not grant them twice.
-const completedCastTraits = new WeakSet<RuntimeCast>();
-
-/** Committed casts grant completion rewards even when shortened; cancelled reservations grant nothing. */
-export function completeRevenantCastTraits(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  if (completedCastTraits.has(cast)) return;
-  completedCastTraits.add(cast);
-  const skill = cast.skill as RevenantSkill;
-  if (skill.slot === 'Heal' && hasTrait(runtime, TRAIT.BATTLE_SCARRED)) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.battleScarred);
-    const buff = requireEffect(profile, 'buff', 'battle-scars');
-    if (buff)
-      grantBattleScars(runtime, {
-        stacks: effectNumber(profile, buff, 'stacks'),
-        sourceId: TRAIT.BATTLE_SCARRED,
-        sourceName: 'Battle Scarred',
-        duration: effectNumber(profile, buff, 'duration')
-      });
-  }
-
-  if (runtime.combatStartedAt() && isLegendaryStanceSkill(skill) && hasTrait(runtime, TRAIT.NOTORIETY)) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.notoriety);
-    const boon = requireEffect(profile, 'boon', 'might');
-    if (boon)
-      traitBuff(runtime, profile, boon, {
-        sourceId: TRAIT.NOTORIETY,
-        skillId: skill.id,
-        skillName: skill.name,
-        name: 'Notoriety — might',
-        activationId: cast.id
-      });
-  }
-
-  // Grant only the boon belonging to the committed Centaur skill; toggling off the shield grants nothing.
-  if (!hasTrait(runtime, TRAIT.SERENE_REJUVENATION)) return;
-  const skillId = skill.id === ID.PROTECTIVE_SOLACE_ID_29310 ? ID.PROTECTIVE_SOLACE : skill.id;
-  if (skillId === ID.PROTECTIVE_SOLACE && !activeRevenantUpkeep(runtime, skill.id)) return;
-  emitRevenantInvocationProfile(
-    runtime,
-    TRAIT.SERENE_REJUVENATION,
-    TRAIT.SERENE_REJUVENATION,
-    (effect) => effect.metadata?.trigger === String(skillId)
-  );
-}
-
-/** Core owns invocation traits for every legend; Entity inherits the paired legend's package. */
-export function applyRevenantInvocationTraits(runtime: RevenantRuntime): void {
-  if (!runtime.combatStartedAt()) return;
-  const core = runtime.profession.core;
-  const legendId =
-    core.activeLegendId === LEGEND.ENTITY
-      ? core.selectedLegendIds.find((id) => id !== LEGEND.ENTITY)
-      : core.activeLegendId;
-  const elite = legendId ? REVENANT_ELITE_INVOCATIONS[legendId] : undefined;
-  const matchesLegend = (effect: SkillEffect) => elite != null || effect.metadata?.legendId === legendId;
-  // Every in-combat invocation grants Fury; Invoker's Rage no longer has an internal cooldown.
-  if (hasTrait(runtime, TRAIT.INVOKERS_RAGE))
-    emitRevenantInvocationProfile(runtime, PROFILE.invokersRage, TRAIT.INVOKERS_RAGE);
-  if (legendId && hasTrait(runtime, TRAIT.SPIRIT_BOON))
-    emitRevenantInvocationProfile(runtime, elite?.spiritBoon ?? PROFILE.spiritBoon, TRAIT.SPIRIT_BOON, matchesLegend);
-  if (legendId && hasTrait(runtime, TRAIT.SONG_OF_THE_MISTS)) {
-    // Calls share catalog mechanics while retaining the invocation trait as their triggering source.
-    const song = runtime.helpers.skillsById.get(elite?.song ?? REVENANT_CORE_CALL_BY_LEGEND[legendId]);
-    if (song)
-      emitRevenantProfile(runtime, song, {
-        sourceId: TRAIT.SONG_OF_THE_MISTS,
-        activationId: `legend-invocation:${TRAIT.SONG_OF_THE_MISTS}:${runtime.time}`
-      });
-  }
-
-  if (hasTrait(runtime, TRAIT.INVOKING_TORMENT)) {
-    const diabolicInferno = hasTrait(runtime, TRAIT.DIABOLIC_INFERNO);
-    emitRevenantInvocationProfile(
-      runtime,
-      PROFILE.invokingTorment,
-      TRAIT.INVOKING_TORMENT,
-      (effect) => effect.metadata?.trigger !== 'diabolic-inferno' || diabolicInferno
-    );
-  }
-}
-
-/** A committed weapon swap grants Brutality's Quickness once per its internal cooldown. */
-export function completeRevenantBrutality(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  if (!hasTrait(runtime, TRAIT.BRUTALITY)) return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.brutality);
-  const boon = requireEffect(profile, 'boon', 'quickness');
-  // The cooldown gates only quickness, so a removed boon leaves it ready.
-  if (!boon) return;
-  if (!runtime.procs.claimCooldown('brutality', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
-  traitBuff(runtime, profile, boon, {
-    sourceId: TRAIT.BRUTALITY,
-    skillId: TRAIT.BRUTALITY,
-    skillName: 'Brutality',
-    name: 'Brutality — quickness',
-    activationId: cast.id
-  });
-}
-
-/** Accepted Chilled and Vulnerability applications drive Abyssal Chill and Dance of Death. */
-export function reactRevenantConditionTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if (event.condition === 'Chilled' && hasTrait(runtime, TRAIT.ABYSSAL_CHILL)) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.abyssalChill);
-    const condition = requireEffect(profile, 'condition', 'Torment');
-    if (condition) {
-      const name = String(condition.condition);
-      runtime.emitDerived(
-        event,
-        buildResolverCondition({
-          at: runtime.time,
-          source: 'revenant',
-          sourceId: TRAIT.ABYSSAL_CHILL,
-          actorType: 'player',
-          skillId: TRAIT.ABYSSAL_CHILL,
-          skillName: 'Abyssal Chill',
-          name: `Abyssal Chill — ${name}`,
-          condition: name,
-          stacks: Math.max(0, effectNumber(profile, condition, 'stacks')) * Math.max(1, event.stacks ?? 1),
-          duration: effectNumber(profile, condition, 'duration')
-        })
-      );
-    }
-  }
-
-  if (event.condition === 'Vulnerability' && hasTrait(runtime, TRAIT.DANCE_OF_DEATH))
-    grantBattleScars(runtime, {
-      stacks: event.stacks || 0,
-      sourceId: TRAIT.DANCE_OF_DEATH,
-      sourceName: 'Dance of Death',
-      cause: event
-    });
-}
-
-// Catch Thrill of Combat up to this hit, retaining only grants that can still be active under the shared cap.
-function thrillOfCombat(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if (!hasTrait(runtime, TRAIT.THRILL_OF_COMBAT)) return;
-  const core = runtime.profession.core;
-  const battleScars = requireBalanceProfileFromContext(runtime, PROFILE.battleScars);
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.thrillOfCombat);
-  const buff = requireEffect(profile, 'buff', 'battle-scars');
-  // The cadence exists only to grant this buff, so a removed buff neither grants nor advances it.
-  if (!buff) return;
-  const interval = Math.max(EPSILON, balanceProfileNumber(profile, 'cooldown'));
-  const duration = Math.max(0, effectNumber(profile, buff, 'duration'));
-  const maximum = balanceProfileNumber(battleScars, 'maximumStacks');
-  if (core.nextThrillOfCombatAt == null) core.nextThrillOfCombatAt = (core.combatBeganAt ?? runtime.time) + interval;
-  const next = core.nextThrillOfCombatAt;
-  if (!Number.isFinite(next) || next > runtime.time + EPSILON) return;
-  const elapsed = Math.floor((runtime.time - next + EPSILON) / interval) + 1;
-  let granted = 0;
-  for (let index = Math.max(0, elapsed - Math.ceil(duration / interval)); index < elapsed; index += 1) {
-    const result = addTimedStacks(core.battleScars, 1, next + index * interval, duration, maximum);
-    core.battleScars = result.expiries;
-    granted += result.added;
-  }
-
-  core.nextThrillOfCombatAt = next + elapsed * interval;
-  if (!granted) return;
-  runtime.emitProcedural(
-    {
-      type: 'buff',
-      at: runtime.time,
-      source: 'revenant',
-      actorType: 'player',
-      sourceId: TRAIT.THRILL_OF_COMBAT,
-      skillId: TRAIT.THRILL_OF_COMBAT,
-      skillName: 'Thrill of Combat',
-      name: 'Thrill of Combat — Battle Scars',
-      kind: 'battle-scars',
-      duration,
-      stacks: granted
-    },
-    { cause: event }
-  );
-}
-
-/** One active Battle Scar becomes a life siphon on a landed player strike. */
-function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.battleScars);
-  const strike = requireEffect(profile, 'strike', 'Battle Scars — Life Siphon');
-  // Scars are spent only to deliver the siphon, so a removed strike leaves them in place.
-  if (!strike) return;
-  const core = runtime.profession.core;
-  const { expiries, consumed } = consumeNewestStacks(core.battleScars, 1, runtime.time);
-  core.battleScars = expiries;
-  if (!consumed) return;
-  runtime.emitDerived(
-    event,
-    buildResolverStrike({
-      at: runtime.time,
-      source: 'revenant',
-      sourceId: 'revenant.battle-scars',
-      actorType: 'effect',
-      skillId: 'revenant.battle-scars',
-      skillName: 'Battle Scars',
-      name: 'Battle Scars — Life Siphon',
-      coefficient: 0,
-      damageKind: strike.damageKind,
-      flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
-      flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
-      canCrit: false,
-      skillWeapon: 'Unequipped'
-    })
-  );
-}
-
-/** Vicious Reprisal grants Might from landed strikes while Resolution is active, once per its cooldown. */
-function viciousReprisal(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if (!hasTrait(runtime, TRAIT.VICIOUS_REPRISAL) || !revenantBoonActive(runtime, 'resolution')) return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.viciousReprisal);
-  const boon = requireEffect(profile, 'boon', 'might');
-  // The cooldown gates only might, so a removed boon leaves it ready.
-  if (!boon) return;
-  if (!runtime.procs.claimCooldown('viciousReprisal', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
-  // Keep its position among resolved-hit traits while sharing profile expansion and causal placement.
-  emitRevenantProfile(runtime, profile, {
-    sourceId: TRAIT.VICIOUS_REPRISAL,
-    effects: [{ ...boon, name: 'Vicious Reprisal — might' }],
-    cause: event
-  });
-}
-
-/** Expose Defenses applies its opening Vulnerability on the first landed in-combat strike. */
-function exposeDefenses(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  const core = runtime.profession.core;
-  if (core.exposeDefensesUsed || !runtime.combatStartedAt() || !hasTrait(runtime, TRAIT.EXPOSE_DEFENSES)) return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.exposeDefenses);
-  const condition = requireEffect(profile, 'condition', 'Vulnerability');
-  // The one-use opener belongs to its packet, so a removed packet leaves it unspent.
-  if (!condition) return;
-  core.exposeDefensesUsed = true;
-  const name = String(condition.condition);
-  runtime.emitDerived(
-    event,
-    buildResolverCondition({
-      at: runtime.time,
-      source: 'revenant',
-      sourceId: TRAIT.EXPOSE_DEFENSES,
-      actorType: 'player',
-      skillId: TRAIT.EXPOSE_DEFENSES,
-      skillName: 'Expose Defenses',
-      name: `Expose Defenses — ${name}`,
-      condition: name,
-      stacks: effectNumber(profile, condition, 'stacks'),
-      duration: effectNumber(profile, condition, 'duration')
-    })
-  );
-}
-
-/** A ready, unexpired Enchanted Daggers charge becomes a delayed siphon after a landed player strike. */
-function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  const daggers = runtime.profession.core.enchantedDaggers;
-  if (
-    event.skillId === ID.ENCHANTED_DAGGERS ||
-    !((daggers.charges || 0) > 0) ||
-    !isInternalCooldownReady(runtime.time, daggers.readyAt || 0)
-  )
-    return;
-  const skill = runtime.helpers.skillsById.get(ID.ENCHANTED_DAGGERS);
-  if (!skill) throw new Error('Missing Enchanted Daggers skill declaration.');
-  const strike = requireEffect(skill, 'strike', 'Enchanted Daggers — Siphon Damage');
-  const buff = requireEffect(skill, 'buff', 'enchanted-daggers');
-  // Charges exist only to deliver the siphon, so a removed strike leaves them unspent.
-  if (!strike || !buff) return;
-  const totalHits = effectNumber(skill, buff, 'stacks');
-  const delay = (strike.atMs || 0) / 1000;
-  if (!consumeCharge(daggers, runtime.time, delay)) return;
-  // Preserve strict same-timestamp gating even when a patched strike has no delay.
-  if (delay === 0) daggers.readyAt = runtime.time;
-  runtime.emitDerived(
-    event,
-    buildResolverStrike({
-      at: canonicalTime(runtime.time + delay),
-      source: 'revenant',
-      sourceId: ID.ENCHANTED_DAGGERS,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillId: ID.ENCHANTED_DAGGERS,
-      skillName: 'Enchanted Daggers',
-      name: 'Enchanted Daggers — Siphon Damage',
-      coefficient: 0,
-      damageKind: strike.damageKind,
-      flatStrikeBase: effectNumber(skill, strike, 'flatStrikeBase'),
-      flatStrikePowerCoeff: effectNumber(skill, strike, 'flatStrikePowerCoeff'),
-      canCrit: false,
-      hitIndex: totalHits - daggers.charges,
-      totalHits
-    })
-  );
-}
-
-/** Landed player strikes drive Core on-hit traits in their established order. */
-export function reactRevenantPlayerStrike(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || !((event.coefficient || 0) > 0)) return;
-  thrillOfCombat(runtime, event);
-  consumeBattleScar(runtime, event);
-  viciousReprisal(runtime, event);
-  exposeDefenses(runtime, event);
-  enchantedDaggers(runtime, event);
-}
-
-/** A committed Enchanted Daggers arms its finite charge window at completion. */
-export function completeRevenantEnchantedDaggers(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const buff = requireEffect(cast.skill, 'buff', 'enchanted-daggers');
-  // Charges are the buff's stacks, so a removed buff arms nothing.
-  if (!buff) return;
-  const charges = Math.max(0, effectNumber(cast.skill, buff, 'stacks'));
-  const duration = Math.max(0, effectNumber(cast.skill, buff, 'duration'));
-  runtime.profession.core.enchantedDaggers = {
-    ...grantCharges(charges, runtime.time + duration),
-    readyAt: runtime.time
-  };
-  runtime.emitProcedural(
-    {
-      type: 'buff',
-      at: runtime.time,
-      source: 'revenant',
-      sourceId: cast.skill.id,
-      actorType: 'player',
-      skillId: cast.skill.id,
-      skillName: cast.skill.name,
-      activationId: cast.id,
-      name: 'Enchanted Daggers',
-      kind: 'enchanted-daggers',
-      duration,
-      stacks: charges
-    },
-    { fixedDuration: true }
-  );
-}
-
-/** Assassin's Presence pulses on its own combat-anchored cadence; attacks neither trigger nor delay it. */
-export function startRevenantAssassinsPresence(runtime: RevenantRuntime, anchor: number): void {
-  if (!hasTrait(runtime, TRAIT.ASSASSINS_PRESENCE)) return;
-  const core = runtime.profession.core;
-  runtime.cancelOwner({ id: REVENANT_ASSASSINS_PRESENCE, generation: core.assassinsPresenceGeneration });
-  core.assassinsPresenceGeneration++;
-  runtime.schedule(REVENANT_ASSASSINS_PRESENCE, anchor, null, {
-    id: REVENANT_ASSASSINS_PRESENCE,
-    generation: core.assassinsPresenceGeneration
-  });
-}
-
-export function revenantAssassinsPresencePulse(runtime: RevenantRuntime): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.assassinsPresence);
-  const core = runtime.profession.core;
-  runtime.schedule(
-    REVENANT_ASSASSINS_PRESENCE,
-    canonicalTime(runtime.time + Math.max(EPSILON, balanceProfileNumber(profile, 'cooldown'))),
-    null,
-    { id: REVENANT_ASSASSINS_PRESENCE, generation: core.assassinsPresenceGeneration }
-  );
-  if (!runtime.combatStartedAt()) return;
-  const boon = requireEffect(profile, 'boon', 'fury');
-  // The pulse cadence is trait-owned and continues; only the removed Fury packet is skipped.
-  if (!boon) return;
-  traitBuff(runtime, profile, boon, {
-    sourceId: TRAIT.ASSASSINS_PRESENCE,
-    skillId: TRAIT.ASSASSINS_PRESENCE,
-    skillName: profile.name,
-    audience: { recipients: 'party', maximumRecipients: 5 }
-  });
-}
+export const traitDefinitions = [
+  invokingTorment,
+  ferociousAggression,
+  sereneRejuvenation,
+  invokersRage,
+  incensedResponse,
+  enduringRecovery,
+  chargedMists,
+  battleScarred,
+  thrillOfCombatTrait,
+  abyssalChill,
+  assassinsPresence,
+  brutality,
+  dwarvenBattleTraining,
+  exposeDefensesTrait,
+  viciousReprisalTrait,
+  notoriety,
+  spiritBoon,
+  seethingMalice,
+  lifeAttunement,
+  versedInStone,
+  yearningEmpowerment,
+  roilingMists,
+  pactOfPain,
+  risingTide,
+  acolyteOfTorment,
+  destructiveImpulses,
+  unsuspectingStrikes,
+  targetedDestruction,
+  swiftTermination,
+  danceOfDeath,
+  songOfTheMists,
+  diabolicInferno
+];

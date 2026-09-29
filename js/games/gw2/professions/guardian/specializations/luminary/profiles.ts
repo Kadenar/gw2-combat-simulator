@@ -1,7 +1,6 @@
-import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
 export const LUMINARY_BALANCE_PROFILE_IDS = Object.freeze({
   forge: 'guardian.luminary.radiant-forge',
@@ -12,23 +11,10 @@ export const LUMINARY_BALANCE_PROFILE_IDS = Object.freeze({
   glaringBurstVulnerability: 'guardian.luminary.glaring-burst.vulnerability',
   radiantJusticeImpact: 'guardian.luminary.radiant-justice-impact',
   effulgentStance: 'guardian.luminary.effulgent-stance-detonation',
-  lightAura: 'guardian.luminary.light-aura',
-  sovereignOfLight: TRAIT.SOVEREIGN_OF_LIGHT,
-  radiantArmaments: TRAIT.RADIANT_ARMAMENTS,
-  empoweredArmaments: TRAIT.EMPOWERED_ARMAMENTS,
-  resplendentWeaponry: TRAIT.RESPLENDENT_WEAPONRY,
-  illuminatingInspiration: TRAIT.ILLUMINATING_INSPIRATION,
-  justiceIsBlind: TRAIT.JUSTICE_IS_BLIND
+  lightAura: 'guardian.luminary.light-aura'
 });
 
 export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
-  // Each completed stance supplies the trait's allied boon and hostile blind.
-  trait(TRAIT.SHIMMERING_STANCES, 'Shimmering Stances', {
-    effects: [
-      { type: 'boon', name: 'protection', boon: 'protection', duration: 3, audience: { recipients: 'party' } },
-      { type: 'blind', name: 'Blind', duration: 3 }
-    ]
-  }),
   // Support weapons replace the strike with a party boon; every weapon applies the shared vulnerability afterward.
   {
     id: LUMINARY_BALANCE_PROFILE_IDS.glaringBurstStaff,
@@ -124,29 +110,5 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     name: 'Luminary Light Aura',
     profileKind: 'mechanic',
     effects: [{ type: 'buff', name: 'light-aura', kind: 'light-aura', stacks: 1, duration: 4 }]
-  },
-  trait(LUMINARY_BALANCE_PROFILE_IDS.sovereignOfLight, 'Sovereign of Light', {
-    effects: [{ type: 'strike', name: 'Strike', coefficient: 1.5, hits: 1 }]
-  }),
-  trait(LUMINARY_BALANCE_PROFILE_IDS.radiantArmaments, 'Radiant Armaments', {
-    effects: [{ type: 'buff', name: 'radiant-armaments', kind: 'radiant-armaments', duration: 10 }]
-  }),
-  trait(LUMINARY_BALANCE_PROFILE_IDS.empoweredArmaments, 'Empowered Armaments', {
-    maximumStacks: 20,
-    resourceGain: 6
-  }),
-  // Equipping a radiant weapon grants the trait's PvE boon package to nearby allies.
-  trait(LUMINARY_BALANCE_PROFILE_IDS.resplendentWeaponry, 'Resplendent Weaponry', {
-    effects: [
-      { type: 'boon', name: 'alacrity', boon: 'alacrity', duration: 4 },
-      { type: 'boon', name: 'might', boon: 'might', duration: 8, stacks: 1 },
-      { type: 'boon', name: 'fury', boon: 'fury', duration: 5 }
-    ]
-  }),
-  trait(LUMINARY_BALANCE_PROFILE_IDS.illuminatingInspiration, 'Illuminating Inspiration', { rechargeReduction: 4 }),
-  // Trait tuning is shared by build calculations, combat, and tooltips.
-  trait(TRAIT.LIGHTS_GIFT, "Light's Gift", { attributeBonus: 180 }),
-  trait(LUMINARY_BALANCE_PROFILE_IDS.justiceIsBlind, 'Justice is Blind', {
-    effects: [{ type: 'blind', name: 'Blind', duration: 3 }]
-  })
+  }
 ]);

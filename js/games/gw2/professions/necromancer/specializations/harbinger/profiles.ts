@@ -1,24 +1,11 @@
-import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import {
-  defineSkillVariantProfile as variant,
-  defineTraitProfile as trait
-} from '#gw2/platform/profession-definition/balance-profiles.js';
 import { GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
 export const HARBINGER_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'necromancer.harbinger.resources',
   darkBarrageDoomApproaches: 'necromancer.harbinger.dark-barrage-doom-approaches',
-  cascadingCorruption: TRAIT.CASCADING_CORRUPTION,
-  septicCorruption: TRAIT.SEPTIC_CORRUPTION,
-  doomApproaches: TRAIT.DOOM_APPROACHES,
-  deathlyHaste: TRAIT.DEATHLY_HASTE,
-  corruptedTalent: TRAIT.CORRUPTED_TALENT,
-  implacableFoe: TRAIT.IMPLACABLE_FOE,
-  bolsteringBrew: TRAIT.BOLSTERING_BREW,
-  alchemicVigor: TRAIT.ALCHEMIC_VIGOR,
-  twistedMedicine: TRAIT.TWISTED_MEDICINE,
-  darkGunslinger: TRAIT.DARK_GUNSLINGER,
   elixirOfPromiseEmpowered: 'necromancer.harbinger.elixir-of-promise-empowered',
   elixirOfRiskEmpowered: 'necromancer.harbinger.elixir-of-risk-empowered',
   elixirOfBlissEmpowered: 'necromancer.harbinger.elixir-of-bliss-empowered',
@@ -31,14 +18,7 @@ export const HARBINGER_BALANCE_PROFILE_IDS = Object.freeze({
 
 export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   // Doom Approaches replaces the ordinary channel with this independently interruptible volley.
-  variant(HARBINGER_BALANCE_PROFILE_IDS.darkBarrageDoomApproaches, ID.DARK_BARRAGE, 'Dark Barrage — Doom Approaches', {
-    pulseCount: 8,
-    pulseInterval: 0.75 / 8,
-    effects: [
-      { name: 'Strike', type: 'strike', coefficient: 0.6 },
-      { name: 'Torment', type: 'condition', condition: 'Torment', stacks: 1, duration: 3 }
-    ]
-  }),
+
   {
     id: HARBINGER_BALANCE_PROFILE_IDS.resources,
     name: 'Harbinger Blight',
@@ -49,133 +29,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     pulseInterval: 1,
     effects: []
   },
-  trait(HARBINGER_BALANCE_PROFILE_IDS.cascadingCorruption, 'Cascading Corruption', {
-    minimumStacks: 20,
-    effects: [
-      {
-        name: 'meltdown',
-        type: 'buff',
-        kind: 'meltdown',
-        stacks: 1,
-        duration: 10,
-        actorType: 'player'
-      },
-      {
-        name: 'Strike',
-        type: 'strike',
-        coefficient: 4.5,
-        hits: 1,
-        // The explosion lands 17 action ticks after Meltdown activates.
-        atMs: 680,
-        actorType: 'effect'
-      },
-      {
-        name: 'Torment',
-        type: 'condition',
-        condition: 'Torment',
-        stacks: 6,
-        duration: 6,
-        atMs: 680,
-        actorType: 'effect'
-      }
-    ]
-  }),
-  trait(HARBINGER_BALANCE_PROFILE_IDS.septicCorruption, 'Septic Corruption', {
-    effects: [
-      {
-        name: 'Poisoned',
-        type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 3,
-        actorType: 'effect'
-      }
-    ]
-  }),
-  trait(HARBINGER_BALANCE_PROFILE_IDS.doomApproaches, 'Doom Approaches', {
-    blightGain: 4,
-    effects: [
-      {
-        name: 'Vulnerability',
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 2,
-        duration: 6,
-        actorType: 'effect'
-      }
-    ]
-  }),
-  trait(HARBINGER_BALANCE_PROFILE_IDS.deathlyHaste, 'Deathly Haste', {
-    effects: [
-      {
-        name: 'quickness',
-        type: 'boon',
-        boon: 'quickness',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
-      },
-      {
-        name: 'fury',
-        type: 'boon',
-        boon: 'fury',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
-      }
-    ]
-  }),
-  trait(HARBINGER_BALANCE_PROFILE_IDS.corruptedTalent, 'Corrupted Talent', {
-    lifeForceGain: 15
-  }),
-  trait(HARBINGER_BALANCE_PROFILE_IDS.implacableFoe, 'Implacable Foe', {
-    attributeConversion: 0.13,
-    effects: [
-      {
-        name: 'stability',
-        type: 'boon',
-        boon: 'stability',
-        stacks: 3,
-        duration: 5,
-        actorType: 'player'
-      },
-      {
-        name: 'implacable-foe',
-        type: 'buff',
-        kind: 'implacable-foe',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
-      }
-    ]
-  }),
-  trait(HARBINGER_BALANCE_PROFILE_IDS.bolsteringBrew, 'Bolstering Brew', {
-    effects: [
-      {
-        name: 'protection',
-        type: 'boon',
-        boon: 'protection',
-        stacks: 1,
-        duration: 3,
-        actorType: 'player'
-      }
-    ]
-  }),
-  trait(HARBINGER_BALANCE_PROFILE_IDS.alchemicVigor, 'Alchemic Vigor', {
-    attributeBonus: 240
-  }),
-  trait(HARBINGER_BALANCE_PROFILE_IDS.twistedMedicine, 'Twisted Medicine', {
-    attributeConversion: 0.13
-  }),
-  trait(TRAIT.WICKED_CORRUPTION, 'Wicked Corruption', {
-    criticalDamage: 1.1
-  }),
-  trait(HARBINGER_BALANCE_PROFILE_IDS.darkGunslinger, 'Dark Gunslinger', {
-    attributeConversion: 0.1,
-    rechargeMultiplier: 0.8
-  }),
+
   variant(
     HARBINGER_BALANCE_PROFILE_IDS.elixirOfPromiseEmpowered,
     ID.ELIXIR_OF_PROMISE,

@@ -1,5 +1,3 @@
-import { canonicalTime } from '#kernel/core/clock.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
 import { effectFirstAt, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
@@ -9,25 +7,32 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { emitGuardianBoon } from '#gw2/professions/guardian/core/traits/index.js';
-import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/shared.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import {
+  emitGuardianBoon,
+  emitJusticeIsBlind,
+  justiceIsBlindEligible
+} from '#gw2/professions/guardian/core/traits/behavior.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
+import {
+  LUMINARY_INITIAL_STATE_SKILL_IDS as INITIAL,
+  LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID
+} from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import {
-  LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID,
-  LUMINARY_INITIAL_STATE_SKILL_IDS as INITIAL
-} from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+  reactToSovereignAura,
+  restoreLuminaryArmaments,
+  startSovereignOfLight
+} from '#gw2/professions/guardian/specializations/luminary/traits/behavior.js';
 import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
 export const AURA_GRANT = 'guardian.luminary.aura-grant';
-const AURA_DETONATE = 'guardian.luminary.aura-detonate';
 export const EFFULGENT = 'guardian.luminary.effulgent';
 export const STANCE = 'guardian.luminary.stance';
 
@@ -36,54 +41,6 @@ export function luminaryImpactAt(cast: RuntimeCast): number {
   const effect = cast.skill.effects?.find((effect) => effect.type === 'strike' && strikeEffectCoefficient(effect) > 0);
   if (effect?.type !== 'strike') return cast.effectiveEnd;
   return canonicalTime(effectFirstAt(cast.start, cast.fullEnd, scaleCastBoundTiming(cast, cast.skill, effect)));
-}
-
-function detonator(skill: Skill): boolean {
-  return (
-    skill.id !== ID.GLARING_BURST &&
-    Boolean(
-      skill.id === ID.RADIANT_JUSTICE ||
-      skill.id === ID.RADIANT_RESOLVE ||
-      skill.id === ID.RADIANT_COURAGE ||
-      skill.radiantForgeSkill ||
-      (skill.specialization === 'Luminary' && skill.categories?.includes('Stance'))
-    )
-  );
-}
-
-/** Consume only an active aura with a selected detonation packet; misses still consume the self effect. */
-function detonate(runtime: Runtime, event: Gw2ResolverEvent): void {
-  const state = luminaryState.from(runtime);
-  if (state.lightAuraUntil <= runtime.time) return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.sovereignOfLight);
-  const strike = requireEffect(profile, 'strike', 'Strike');
-  if (!strike) return;
-  state.lightAuraUntil = 0;
-  runtime.emitDerived(
-    event,
-    buildGuardianStrike({
-      at: runtime.time,
-      priority: -15,
-      sourceId: ID.SOVEREIGN_OF_LIGHT_DAMAGE,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillId: ID.SOVEREIGN_OF_LIGHT_DAMAGE,
-      skillName: 'Sovereign of Light',
-      name: 'Sovereign of Light',
-      coefficient: effectNumber(profile, strike, 'coefficient'),
-      skillWeapon: 'Unequipped',
-      triggeredBy: event.skillName,
-      offTarget: event.offTarget === true
-    })
-  );
-  recordGuardianTraitProc(
-    runtime,
-    TRAIT.SOVEREIGN_OF_LIGHT,
-    'Sovereign of Light',
-    runtime.time,
-    event.skillName ?? '',
-    'Light aura detonated'
-  );
 }
 
 /** Actual combo outcomes refresh the single aura; only Luminary sources can detonate an existing one on grant. */
@@ -96,8 +53,7 @@ export function grantLuminaryAura(runtime: Runtime, event: Gw2ResolverEvent): vo
     duration = effectNumber(profile, aura, 'duration');
   }
 
-  const skill = event.skillId == null ? undefined : runtime.helpers.skillsById.get(event.skillId);
-  if (skill && detonator(skill) && hasTrait(runtime, TRAIT.SOVEREIGN_OF_LIGHT)) detonate(runtime, event);
+  reactToSovereignAura(runtime, event);
   luminaryState.from(runtime).lightAuraUntil = gw2EffectExpiresAt(runtime.time, duration);
 }
 
@@ -112,19 +68,8 @@ function initialState(runtime: Runtime, cast: RuntimeCast): void {
     return;
   }
 
-  const kind =
-    id === INITIAL.resolution
-      ? 'resolution'
-      : id === INITIAL.empoweredArmaments
-        ? 'guardian-empowered-armaments'
-        : id === INITIAL.radiantHammer
-          ? 'guardian-radiant-armaments'
-          : null;
-  if (!kind) return;
-  if (id === INITIAL.empoweredArmaments)
-    luminaryState.from(runtime).empoweredArmamentsUntil = gw2EffectExpiresAt(runtime.time, duration);
-  // Observed initial durations are already final and must not acquire boon-duration scaling a second time.
-  runtime.emit({ ...event, kind, ...(id === INITIAL.radiantHammer ? { metadata: { radiantWeapon: 'hammer' } } : {}) });
+  if (restoreLuminaryArmaments(runtime, cast, duration)) return;
+  if (id === INITIAL.resolution) runtime.emit({ ...event, kind: 'resolution' });
 }
 
 /** Schedule finite activation effects; all state mutations happen when their boundary executes. */
@@ -133,39 +78,11 @@ export function startLuminaryEffects(runtime: Runtime, cast: RuntimeCast): void 
   const skill = cast.skill;
   const event = guardianCastCause(runtime, cast);
   const hostile = { ...event, offTarget: cast.command.offTarget === true };
-  const impact = luminaryImpactAt(cast);
-  const sovereign = hasTrait(runtime, TRAIT.SOVEREIGN_OF_LIGHT);
-  if (sovereign && detonator(skill)) {
-    const at =
-      skill.radiantForgeSkill || skill.id === ID.PIERCING_STANCE || skill.id === ID.DARING_ADVANCE
-        ? impact
-        : cast.start;
-    runtime.schedule(AURA_DETONATE, at, hostile, undefined, -20);
-  }
-
-  const justiceBlind =
-    skill.categories?.includes('Virtue') && skill.slot === 'Profession_1' && hasTrait(runtime, TRAIT.JUSTICE_IS_BLIND);
-  if (
-    skill.id === LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID ||
-    (skill.id === ID.ENTER_RADIANT_FORGE && sovereign) ||
-    justiceBlind
-  )
+  const sovereignForgeAura = startSovereignOfLight(runtime, cast);
+  const justiceBlind = justiceIsBlindEligible(runtime, skill);
+  if (skill.id === LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID || sovereignForgeAura || justiceBlind)
     runtime.schedule(AURA_GRANT, cast.start, hostile, undefined, -10);
-  if (justiceBlind) {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.justiceIsBlind);
-    const blind = requireEffect(profile, 'blind', 'Blind');
-    if (blind)
-      runtime.emit({
-        ...hostile,
-        type: 'blind',
-        sourceId: TRAIT.JUSTICE_IS_BLIND,
-        skillId: TRAIT.JUSTICE_IS_BLIND,
-        actorType: 'effect',
-        skillName: 'Justice is Blind',
-        triggeredBy: skill.name,
-        duration: effectNumber(profile, blind, 'duration')
-      });
-  }
+  if (justiceBlind) emitJusticeIsBlind(runtime, hostile, skill);
 }
 
 /** Count only accepted strikes in the half-open window, excluding gear and summoned actors. */
@@ -182,7 +99,6 @@ export function countEffulgentHit(runtime: Runtime, event: Gw2ResolverEvent, dam
 
 export const luminaryEffectTasks = {
   [AURA_GRANT]: (runtime: Runtime, data: unknown) => grantLuminaryAura(runtime, data as Gw2ResolverEvent),
-  [AURA_DETONATE]: (runtime: Runtime, data: unknown) => detonate(runtime, data as Gw2ResolverEvent),
   [STANCE](runtime: Runtime, data: unknown) {
     const { cast, piercing } = data as { cast: RuntimeCast; piercing: boolean };
     const state = luminaryState.from(runtime);

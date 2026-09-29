@@ -1,123 +1,23 @@
-/** Owns shroud and Lich transitions, their trait effects, and automatic exits on the live runtime. */
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
-import { addCarapace } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { DEPLETION } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 import {
+  runNecromancerLifeForceDepletion,
   runNecromancerShroudEnter,
-  runNecromancerShroudExit,
-  runNecromancerLifeForceDepletion
+  runNecromancerShroudExit
 } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
+import { prepareShroudEntry, shroudEntryEffects } from '#gw2/professions/necromancer/core/traits/shroud-entry.js';
+import { applySoulBarbs } from '#gw2/professions/necromancer/core/traits/shroud.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+/** Owns shroud and Lich transitions, their trait effects, and automatic exits on the live runtime. */
 
 const LICH_EXPIRY = 'necromancer.lich-expiry';
-
-/** Entry and exit refresh Soul Barbs from the actual transition, including automatic depletion. */
-function soulBarbs(runtime: NecromancerRuntime): void {
-  if (!hasTrait(runtime, TRAIT.SOUL_BARBS)) return;
-  runtime.emit({
-    type: 'buff',
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: TRAIT.SOUL_BARBS,
-    actorType: 'player',
-    kind: 'necromancer-soul-barbs',
-    stacks: 1,
-    duration: balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SOUL_BARBS), 'duration')
-  });
-}
-
-/** Life force reads pre-entry Carapace; entry grants and successful removals then update the same stack collection. */
-function prepareShroudEntry(runtime: NecromancerRuntime): void {
-  const state = runtime.profession.core;
-  if (hasTrait(runtime, TRAIT.SOUL_COMPREHENSION)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.SOUL_COMPREHENSION);
-    const minionStacks = hasTrait(runtime, TRAIT.FLESH_OF_THE_MASTER)
-      ? Object.values(state.activeMinions).reduce((sum, count) => sum + count * 2, 0)
-      : 0;
-    grantNecromancerLifeForce(
-      runtime,
-      Math.min(
-        balanceProfileNumber(profile, 'maximumStacks'),
-        activeStackCount(state.carapaceExpiries, runtime.time) + minionStacks
-      ) * balanceProfileNumber(profile, 'lifeForcePerStack')
-    );
-  }
-
-  if (hasTrait(runtime, TRAIT.ARMORED_SHROUD)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.ARMORED_SHROUD);
-    addCarapace(
-      state,
-      balanceProfileNumber(profile, 'resourceGain'),
-      runtime.time,
-      balanceProfileNumber(profile, 'duration')
-    );
-  }
-
-  state.selfConditions = state.selfConditions.filter((application) =>
-    isTimeInWindow(runtime.time, application.appliedAt, application.expiresAt)
-  );
-  if (hasTrait(runtime, TRAIT.SHROUDED_REMOVAL)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.SHROUDED_REMOVAL);
-    const removed = state.selfConditions.splice(0, balanceProfileNumber(profile, 'maximumConditions'));
-    if (removed.length)
-      addCarapace(
-        state,
-        removed.length * balanceProfileNumber(profile, 'resourceGain'),
-        runtime.time,
-        balanceProfileNumber(profile, 'duration')
-      );
-  }
-
-  state.plagueSendingArmed = hasTrait(runtime, TRAIT.PLAGUE_SENDING) && state.selfConditions.length > 0;
-}
-
-/** Entry profiles emit after the form state and specialization callbacks are established. */
-function shroudEntryEffects(runtime: NecromancerRuntime, cast: RuntimeCast): void {
-  soulBarbs(runtime);
-  for (const trait of [
-    TRAIT.AWAKEN_THE_PAIN,
-    TRAIT.FURIOUS_DEMISE,
-    TRAIT.SPEED_OF_SHADOWS,
-    TRAIT.ETERNAL_LIFE,
-    TRAIT.WEAKENING_SHROUD,
-    TRAIT.SPITEFUL_SPIRIT
-  ]) {
-    if (!hasTrait(runtime, trait)) continue;
-    const profile = requireBalanceProfileFromContext(runtime, trait);
-    emitEffects(runtime, {
-      owner: profile,
-      baseEvent: {
-        source: 'Trait',
-        sourceId: trait,
-        actorType: 'effect',
-        skillName: profile.name,
-        activationId: cast.id,
-        triggeredBy: cast.skill.name
-      },
-      skillWeaponFallback: 'Unequipped',
-      // Target misses affect hostile packets only; entry boons still reach the player.
-      transform: (event) => ({
-        ...event,
-        name: profile.name,
-        ...(event.type === 'buff' ? {} : { offTarget: cast.command.offTarget })
-      })
-    });
-  }
-}
 
 /** Manual exit cancels the owned deadline so it cannot grant twice or end a replacement Lich Form. */
 export function exitLich(runtime: NecromancerRuntime): void {
@@ -173,7 +73,7 @@ export function exitNecromancerShroud(runtime: NecromancerRuntime): void {
   }
 
   transition(runtime, false);
-  soulBarbs(runtime);
+  applySoulBarbs(runtime);
 }
 
 /** Lich entry arms one generation-owned expiry shared with manual exit. */

@@ -1,18 +1,19 @@
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { preparednessCapacityField } from '#gw2/professions/thief/core/traits/behavior.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
+import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
-import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 
 export const THIEF_INFILTRATORS_SIGNET_PULSE = 'thief.infiltrators-signet';
 
@@ -32,7 +33,7 @@ export const thiefInitiative: ResourcePolicy<ThiefRuntime> = {
   maximum: (runtime) =>
     balanceProfileNumber(
       requireBalanceProfileFromContext(runtime, PROFILE.resources),
-      hasTrait(runtime, TRAIT.PREPAREDNESS) ? 'minimumStacks' : 'maximumStacks'
+      preparednessCapacityField(runtime)
     ),
   initial: (runtime) => (runtime.config as ThiefConfig).initialInitiative ?? 12,
   recovery: (runtime) => thiefInitiativeRegenerationRate(runtime.profession.core, runtime),

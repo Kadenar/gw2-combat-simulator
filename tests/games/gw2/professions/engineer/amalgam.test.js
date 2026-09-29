@@ -1,20 +1,19 @@
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
+import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { amalgamCastAvailability } from '#gw2/professions/engineer/specializations/amalgam/mechanics/availability.js';
+import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
+import { amalgamModifiers } from '#gw2/professions/engineer/specializations/amalgam/modifiers.js';
+import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
+import { amalgamMaximumAmmo } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
-import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { amalgamModifiers } from '#gw2/professions/engineer/specializations/amalgam/modifiers.js';
-import { amalgamMaximumAmmo } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
-import { amalgamCastAvailability } from '#gw2/professions/engineer/specializations/amalgam/mechanics/availability.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
-import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
-import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
@@ -45,7 +44,7 @@ test('Amalgam resolver procs honor positive poison fields and zero strike coeffi
   ]) {
     const catalog = applyBalanceProfilePatch(engineerCatalog, {
       balanceProfiles: {
-        [PROFILE.carbolicComposition]: { effects: [{ type: 'condition', duration, stacks }] },
+        [TRAIT.CARBOLIC_COMPOSITION]: { effects: [{ type: 'condition', duration, stacks }] },
         [PROFILE.rapaciousStrain]: {
           effects: [{ type: 'strike', coefficient }]
         }

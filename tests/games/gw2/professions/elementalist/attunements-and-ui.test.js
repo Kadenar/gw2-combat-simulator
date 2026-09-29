@@ -13,7 +13,7 @@ import { elementalistCatalog, elementalistProfession } from '#gw2/professions/el
 import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
-import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/air.js';
+import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/critical-procs.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 test('Fresh Air keeps only future strike wakes for selected builds', () => {

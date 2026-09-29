@@ -8,7 +8,7 @@ import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/profession
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { kineticAcceleratorBoons } from '#gw2/professions/engineer/specializations/scrapper/traits/kinetic-accelerators.js';
+import { kineticAcceleratorBoons } from '#gw2/professions/engineer/specializations/scrapper/traits/behavior.js';
 import { createScrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 

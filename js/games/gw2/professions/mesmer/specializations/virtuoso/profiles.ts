@@ -1,8 +1,6 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerShatterProfile, mesmerTraitDamageProfile } from '#gw2/professions/mesmer/core/profiles.js';
-import { MESMER_VIRTUOSO_TRAIT_DAMAGE } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
+import { mesmerShatterProfile } from '#gw2/professions/mesmer/core/profiles.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
 
 export const VIRTUOSO_BALANCE_PROFILE_IDS = Object.freeze({
@@ -11,14 +9,7 @@ export const VIRTUOSO_BALANCE_PROFILE_IDS = Object.freeze({
   bladesongDissonance: 'mesmer.virtuoso.bladesong-dissonance',
   bladesongSorrow: 'mesmer.virtuoso.bladesong-sorrow',
   bladesongHarmony: 'mesmer.virtuoso.bladesong-harmony',
-  bladesongDistortion: 'mesmer.virtuoso.bladesong-distortion',
-  deadlyBlades: TRAIT.DEADLY_BLADES,
-  quietIntensity: TRAIT.QUIET_INTENSITY,
-  jaggedMind: TRAIT.JAGGED_MIND,
-  phantasmalBlades: TRAIT.PHANTASMAL_BLADES,
-  sharpeningSorrow: 2207,
-  infiniteForge: TRAIT.INFINITE_FORGE,
-  bloodsong: TRAIT.BLOODSONG
+  bladesongDistortion: 'mesmer.virtuoso.bladesong-distortion'
 });
 
 export const VIRTUOSO_SHATTER_PROFILE_IDS: Readonly<Record<number, string>> = Object.freeze(
@@ -48,35 +39,5 @@ export const VIRTUOSO_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
       }[Number(skillId)] || `Virtuoso Shatter ${skillId}`,
       shatter
     )
-  ),
-  trait(VIRTUOSO_BALANCE_PROFILE_IDS.deadlyBlades, 'Deadly Blades', {
-    durationMultiplier: 7,
-    effects: [{ name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', duration: 5, stacks: 1 }]
-  }),
-  trait(VIRTUOSO_BALANCE_PROFILE_IDS.quietIntensity, 'Quiet Intensity', {
-    phantasmCriticalChance: 0.15,
-    criticalChance: 0.15,
-    vitalityConversion: 0.1
-  }),
-  trait(VIRTUOSO_BALANCE_PROFILE_IDS.jaggedMind, 'Jagged Mind', {
-    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration: 4, stacks: 1 }]
-  }),
-  mesmerTraitDamageProfile(
-    VIRTUOSO_BALANCE_PROFILE_IDS.phantasmalBlades,
-    'Phantasmal Blades',
-    MESMER_VIRTUOSO_TRAIT_DAMAGE['Phantasmal Blade']
-  ),
-  trait(VIRTUOSO_BALANCE_PROFILE_IDS.sharpeningSorrow, 'Sharpening Sorrow', {
-    expertiseBonus: 150
-  }),
-  trait(VIRTUOSO_BALANCE_PROFILE_IDS.infiniteForge, 'Infinite Forge', {
-    pulseInterval: 3,
-    threshold: 5,
-    playerStacks: 1,
-    resourceGain: 2
-  }),
-  trait(VIRTUOSO_BALANCE_PROFILE_IDS.bloodsong, 'Bloodsong', {
-    threshold: 5,
-    resourceGain: 1
-  })
+  )
 ]);

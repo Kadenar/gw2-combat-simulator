@@ -1,8 +1,8 @@
 /**
  * Core-owned formulas and mechanic classifications.
  */
+import type { MesmerCloneAttack } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerCloneAttack, MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 
 export const MESMER_CORE_WEAPON_STRENGTH: Readonly<Record<string, number>> = Object.freeze({
   Axe: 1000,
@@ -153,12 +153,5 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
         interval: 0.8266666666666667
       }
     ]
-  }
-});
-export const MESMER_CORE_TRAIT_DAMAGE: Readonly<Record<string, MesmerTraitDamage>> = Object.freeze({
-  'Lesser Chaos Storm': {
-    // Each storm pulse is a distinct strike packet, not an aggregate hit count.
-    ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: index * 1000, coefficient: 1.98 / 6 })),
-    cooldown: 28
   }
 });

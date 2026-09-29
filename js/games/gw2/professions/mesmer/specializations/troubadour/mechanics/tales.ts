@@ -1,11 +1,9 @@
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
-  requireBalanceProfileFromContext,
   balanceProfileNumber,
-  requireEffect
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { triggerRaconteur } from '#gw2/professions/mesmer/specializations/troubadour/traits/performance.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -47,20 +45,5 @@ export function resolveTroubadourTale({ context, skill, at, eligible }: Troubado
     );
   }
 
-  if (hasTrait(context, TRAIT.RACONTEUR)) {
-    const raconteurProfile = requireBalanceProfileFromContext(context, TRAIT.RACONTEUR);
-    const protection = requireEffect(raconteurProfile, 'boon', 'protection');
-    if (!protection) return;
-    runtime.addEvent({
-      type: 'buff',
-      at,
-      kind: String(protection.boon),
-      stacks: Number(protection.stacks),
-      duration: protection.duration,
-      skillName: skill.name,
-      sourceSkill: skill.name,
-      ...partyRecipients
-    });
-    runtime.addTraitProc('Raconteur', at, skill.name);
-  }
+  triggerRaconteur(context, skill, at);
 }

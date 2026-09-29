@@ -1,30 +1,27 @@
-import { createProcRegistry } from '#gw2/platform/combat/procs.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import { StableEventQueue } from '#kernel/events/queue.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { applyCatalystResolvedDamage } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
 import {
-  applyCatalystEmpowerment,
-  applyCatalystResolvedDamage
-} from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
-import { catalystModifiers } from '#gw2/professions/elementalist/specializations/catalyst/modifiers.js';
+  catalystModifierRules,
+  catalystModifiers
+} from '#gw2/professions/elementalist/specializations/catalyst/modifiers.js';
+import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import { catalystModifierRules } from '#gw2/professions/elementalist/specializations/catalyst/modifiers.js';
+import { applyCatalystEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import {
   createNativeApp,
-  runNative,
+  resolvedAndScheduledEvents,
   runElementalist,
-  resolvedAndScheduledEvents
+  runNative
 } from '#tests/helpers/elementalist-simulation.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { catalystHooks } from '#gw2/professions/elementalist/specializations/catalyst/hooks.js';
-import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 test('Catalyst baseline renewal rejects intervals that cannot advance the clock before emitting work', () => {
   // Invalid tuning must fail at the mechanic, rather than enqueue a same-time renewal loop.
@@ -33,11 +30,11 @@ test('Catalyst baseline renewal rejects intervals that cannot advance the clock 
       scheduled = [];
     const runtime = {
       time: 7,
-      helpers: withProfile(elementalistCatalog, PROFILE.elementalEmpowerment, { durationMultiplier: duration }),
+      helpers: withProfile(elementalistCatalog, TRAIT.ELEMENTAL_EMPOWERMENT, { durationMultiplier: duration }),
       emitProcedural: (event) => emitted.push(event),
       schedule: (...args) => scheduled.push(args)
     };
-    const renew = () => catalystHooks.tasks['elementalist.catalyst-base-empowerment'](runtime);
+    const renew = () => catalystModule.hooks.tasks['elementalist.catalyst-base-empowerment'](runtime);
     if (duration === 2) {
       renew();
       assert.equal(emitted[0].duration, 2);

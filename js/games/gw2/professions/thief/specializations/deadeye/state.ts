@@ -1,17 +1,13 @@
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import {
-  DEADEYE_RESOURCE_PROFILE,
-  MALEFICENT_SEVEN_PROFILE
-} from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { DEADEYE_RESOURCE_PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
+
 import {
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
+  defineProfessionSpecializationState,
+  definePublicStateDefaults
 } from '#gw2/platform/engine/profession/state.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { selectedThiefTraits } from '#gw2/professions/thief/core/state.js';
-import type { ThiefConfig, ThiefStealthAttackChargeState } from '#gw2/professions/thief/types.js';
+
+import type { ThiefStealthAttackChargeState } from '#gw2/professions/thief/types.js';
 
 export interface DeadeyeState extends ThiefStealthAttackChargeState {
   markedTargetId: string | null;
@@ -23,19 +19,15 @@ export interface DeadeyeState extends ThiefStealthAttackChargeState {
   maleficentSevenTriggered: boolean;
 }
 
-function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
-  const traits = selectedThiefTraits(config);
+function createDeadeyeState(maximumMalice: number): DeadeyeState {
   return {
     markedTargetId: null,
     markExpiresAt: 0,
     // Bumped each time Deadeye's Mark is applied; the expiry task checks this to ignore stale scheduled expirations
     markGeneration: 0,
     malice: 0,
-    // State-only previews use authored defaults; initialization applies the selected patch.
-    maximumMalice: balanceProfileNumber(
-      hasTrait(traits, TRAIT.MALEFICENT_SEVEN) ? MALEFICENT_SEVEN_PROFILE : DEADEYE_RESOURCE_PROFILE,
-      'maximumStacks'
-    ),
+    // Module composition supplies authored defaults; initialization applies the selected patch.
+    maximumMalice,
     // Tracks which activationIds have already had their malice effect applied to prevent multi-hit double-counting
     maliceResolvedActivations: {},
     // Prevents Maleficent Seven from firing more than once per mark application at full malice

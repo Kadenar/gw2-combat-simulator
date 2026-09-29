@@ -1,20 +1,20 @@
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import assert from 'node:assert/strict';
-import { assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import test from 'node:test';
-import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
-import { createDefaultConfig, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { prepareSimulationConfig } from '#tests/helpers/simulation-config.js';
-import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { formatConcurrentTimelineBadge, formatInterruptTimelineBadge } from '#gw2/app/rotation/timeline/model.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
-import { shatterResourceSpends } from '#gw2/app/rotation/timeline/model.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
-import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import {
+  formatConcurrentTimelineBadge,
+  formatInterruptTimelineBadge,
+  shatterResourceSpends
+} from '#gw2/app/rotation/timeline/model.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
+import { createDefaultConfig, runMesmer, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+import { prepareSimulationConfig } from '#tests/helpers/simulation-config.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 test('concurrent timeline badges show both delay and cast timestamp', () => {
   assert.equal(formatConcurrentTimelineBadge(100, '2.23s'), '⊙100ms\n2.23s');
@@ -310,7 +310,7 @@ test('Chronomancer shatter boons consume patched balance-profile values', () => 
         ...runtime,
         catalog: applyBalanceProfilePatch(runtime.catalog, {
           balanceProfiles: {
-            [CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment]: {
+            [TRAIT.SEIZE_THE_MOMENT]: {
               fields: { durationPerTier: { from: 1, to: 2 } },
               effects: [
                 {

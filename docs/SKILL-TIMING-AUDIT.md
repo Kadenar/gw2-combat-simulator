@@ -23,8 +23,8 @@ also have off-grid explicit Quickness durations.
   separate authored-offset findings.
 - Refreshed after the requested Guardian, Mesmer, Revenant, Necromancer, and Thief corrections; resolved entries are
   removed from this list.
-- Reassessed on 2026-09-24: entries whose cast times are now on the 40 ms grid (Mesmer, Ranger, and Warrior
-  corrections) and skills no longer in the assembled catalogs (Warrior aquatic and aquatic primal bursts) are removed.
+- Reassessed on 2026-09-24: entries whose cast times are now on the 40 ms grid (Mesmer, Ranger, and Warrior corrections)
+  and skills no longer in the assembled catalogs (Warrior aquatic and aquatic primal bursts) are removed.
 
 ## Cast summary
 
@@ -45,9 +45,9 @@ Summon Quickness counts overlap the summon base counts.
 
 ## Damage-offset findings
 
-| Profession  | Skill / profile                                                  | Off-grid offsets (ms)                        | Location                                                                                                                                                                                                                                         |
-| ----------- | ---------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Revenant    | Unrelenting Assault (26699)                                      | 260, 405, 550, 695                           | [sword.ts:21](../js/games/gw2/professions/revenant/core/skills/weapons/sword.ts#L21)                                                                                                                                         |
+| Profession  | Skill / profile                                                  | Off-grid offsets (ms)                        | Location                                                                                            |
+| ----------- | ---------------------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Revenant    | Unrelenting Assault (26699)                                      | 260, 405, 550, 695                           | [sword.ts:21](../js/games/gw2/professions/revenant/core/skills/weapons/sword.ts#L21)                |
 | Necromancer | Sandstorm Shroud - Pulses (necromancer.scourge.sandstorm-shroud) | 3500 for both strike and Torment application | [profiles.ts:157](../js/games/gw2/professions/necromancer/specializations/scourge/profiles.ts#L157) |
 
 Unrelenting Assault generates five strikes at 260, 405, 550, 695, and 840 ms from cast start; only the final packet is
@@ -286,8 +286,8 @@ Grouped by the weapon each skill belongs to, then primal bursts, then heal/utili
 from the assembled catalog entry. Bursts carry no weapon in the API data, so they are attached to a weapon through
 [`WARRIOR_REGULAR_BURSTS_BY_WEAPON`](../js/games/gw2/professions/warrior/core/presentation.ts) and the Berserker
 `PRIMAL_BURSTS_BY_WEAPON` map, matching by burst name so adrenaline-tier and Spellbreaker variants land with their
-weapon. **Module** is the native module that defines the fragment (Core, Berserker, Spellbreaker, Bladesworn,
-Paragon), which is not always the specialization that grants the skill.
+weapon. **Module** is the native module that defines the fragment (Core, Berserker, Spellbreaker, Bladesworn, Paragon),
+which is not always the specialization that grants the skill.
 
 #### Weapon skills
 
@@ -295,103 +295,103 @@ Each weapon lists its off-grid weapon skills by slot, followed by that weapon's 
 
 ##### Greatsword
 
-| Skill ID | Skill | Slot | Module | Cast ms | Explicit Quickness ms |
-| --- | --- | --- | --- | ---: | ---: |
-| 42707 | Arcing Slice | Burst (F1) | Spellbreaker | **333** | - |
+| Skill ID | Skill        | Slot       | Module       | Cast ms | Explicit Quickness ms |
+| -------- | ------------ | ---------- | ------------ | ------: | --------------------: |
+| 42707    | Arcing Slice | Burst (F1) | Spellbreaker | **333** |                     - |
 
 ##### Longbow
 
-| Skill ID | Skill | Slot | Module | Cast ms | Explicit Quickness ms |
-| --- | --- | --- | --- | ---: | ---: |
-| 42803 | Combustive Shot | Burst (F1) | Spellbreaker | **500** | - |
+| Skill ID | Skill           | Slot       | Module       | Cast ms | Explicit Quickness ms |
+| -------- | --------------- | ---------- | ------------ | ------: | --------------------: |
+| 42803    | Combustive Shot | Burst (F1) | Spellbreaker | **500** |                     - |
 
 ##### Rifle
 
-| Skill ID | Skill | Slot | Module | Cast ms | Explicit Quickness ms |
-| --- | --- | --- | --- | ---: | ---: |
-| 34296 | Brutal Shot | 4 | Core | **500** | - |
+| Skill ID | Skill       | Slot | Module | Cast ms | Explicit Quickness ms |
+| -------- | ----------- | ---- | ------ | ------: | --------------------: |
+| 34296    | Brutal Shot | 4    | Core   | **500** |                     - |
 
 ##### Shield
 
-| Skill ID | Skill | Slot | Module | Cast ms | Explicit Quickness ms |
-| --- | --- | --- | --- | ---: | ---: |
-| 14361 | Shield Bash | 4 | Core | **500** | - |
+| Skill ID | Skill       | Slot | Module | Cast ms | Explicit Quickness ms |
+| -------- | ----------- | ---- | ------ | ------: | --------------------: |
+| 14361    | Shield Bash | 4    | Core   | **500** |                     - |
 
 ##### Spear
 
-| Skill ID | Skill | Slot | Module | Cast ms | Explicit Quickness ms |
-| --- | --- | --- | --- | ---: | ---: |
-| 73006 | Harrier's Toss | Burst (F1) | Core | **333** | - |
-| 73014 | Harrier's Toss | Burst (F1) | Spellbreaker | **333** | - |
-| 73024 | Harrier's Toss | Burst (F1) | Core | **333** | - |
-| 73042 | Harrier's Toss | Burst (F1) | Core | **333** | - |
+| Skill ID | Skill          | Slot       | Module       | Cast ms | Explicit Quickness ms |
+| -------- | -------------- | ---------- | ------------ | ------: | --------------------: |
+| 73006    | Harrier's Toss | Burst (F1) | Core         | **333** |                     - |
+| 73014    | Harrier's Toss | Burst (F1) | Spellbreaker | **333** |                     - |
+| 73024    | Harrier's Toss | Burst (F1) | Core         | **333** |                     - |
+| 73042    | Harrier's Toss | Burst (F1) | Core         | **333** |                     - |
 
 ##### Staff
 
-| Skill ID | Skill | Slot | Module | Cast ms | Explicit Quickness ms |
-| --- | --- | --- | --- | ---: | ---: |
-| 72024 | Balanced Strike | 1 | Core | **333** | - |
-| 72049 | Inspiring Whirl | 1 | Core | **500** | - |
-| 72001 | Reverse Strike | 1 | Core | **333** | - |
-| 72002 | Valiant Leap | 2 | Core | **500** | - |
-| 71860 | Line Breaker | 3 | Core | **1167** | - |
-| 72026 | Snap Pull | 4 | Core | **500** | - |
-| 71889 | Defiant Roar | 5 | Core | **333** | - |
-| 71922 | Path to Victory | Burst (F1) | Core | **333** | - |
-| 71932 | Path to Victory | Burst (F1) | Core | **333** | - |
-| 71950 | Path to Victory | Burst (F1) | Core | **333** | - |
-| 72089 | Path to Victory | Burst (F1) | Spellbreaker | **333** | - |
+| Skill ID | Skill           | Slot       | Module       |  Cast ms | Explicit Quickness ms |
+| -------- | --------------- | ---------- | ------------ | -------: | --------------------: |
+| 72024    | Balanced Strike | 1          | Core         |  **333** |                     - |
+| 72049    | Inspiring Whirl | 1          | Core         |  **500** |                     - |
+| 72001    | Reverse Strike  | 1          | Core         |  **333** |                     - |
+| 72002    | Valiant Leap    | 2          | Core         |  **500** |                     - |
+| 71860    | Line Breaker    | 3          | Core         | **1167** |                     - |
+| 72026    | Snap Pull       | 4          | Core         |  **500** |                     - |
+| 71889    | Defiant Roar    | 5          | Core         |  **333** |                     - |
+| 71922    | Path to Victory | Burst (F1) | Core         |  **333** |                     - |
+| 71932    | Path to Victory | Burst (F1) | Core         |  **333** |                     - |
+| 71950    | Path to Victory | Burst (F1) | Core         |  **333** |                     - |
+| 72089    | Path to Victory | Burst (F1) | Spellbreaker |  **333** |                     - |
 
 ##### Sword
 
-| Skill ID | Skill | Slot | Module | Cast ms | Explicit Quickness ms |
-| --- | --- | --- | --- | ---: | ---: |
-| 14498 | Impale | 4 | Core | **333** | - |
-| 14501 | Rip | 4 | Core | **500** | - |
-| 14557 | Adrenaline Rush | 5 | Core | **333** | - |
-| 14400 | Riposte | 5 | Core | **1500** | - |
-| 80203 | Bloodthirster | Burst (F1) | Core | **500** | - |
+| Skill ID | Skill           | Slot       | Module |  Cast ms | Explicit Quickness ms |
+| -------- | --------------- | ---------- | ------ | -------: | --------------------: |
+| 14498    | Impale          | 4          | Core   |  **333** |                     - |
+| 14501    | Rip             | 4          | Core   |  **500** |                     - |
+| 14557    | Adrenaline Rush | 5          | Core   |  **333** |                     - |
+| 14400    | Riposte         | 5          | Core   | **1500** |                     - |
+| 80203    | Bloodthirster   | Burst (F1) | Core   |  **500** |                     - |
 
 ##### Warhorn
 
-| Skill ID | Skill | Slot | Module | Cast ms | Explicit Quickness ms |
-| --- | --- | --- | --- | ---: | ---: |
-| 14393 | Charge | 4 | Core | **333** | - |
-| 14394 | Call of Valor | 5 | Core | **333** | - |
+| Skill ID | Skill         | Slot | Module | Cast ms | Explicit Quickness ms |
+| -------- | ------------- | ---- | ------ | ------: | --------------------: |
+| 14393    | Charge        | 4    | Core   | **333** |                     - |
+| 14394    | Call of Valor | 5    | Core   | **333** |                     - |
 
 #### Primal bursts (Berserker)
 
-| Skill ID | Skill | Weapon | Cast ms | Explicit Quickness ms |
-| --- | --- | --- | ---: | ---: |
-| 69290 | Slicing Maelstrom | Dagger | **500** | - |
-| 29679 | Skull Grinder | Mace | **333** | - |
-| 29644 | Gun Flame | Rifle | **500** | - |
-| 71875 | Rampart Splitter | Staff | **333** | - |
+| Skill ID | Skill             | Weapon | Cast ms | Explicit Quickness ms |
+| -------- | ----------------- | ------ | ------: | --------------------: |
+| 69290    | Slicing Maelstrom | Dagger | **500** |                     - |
+| 29679    | Skull Grinder     | Mace   | **333** |                     - |
+| 29644    | Gun Flame         | Rifle  | **500** |                     - |
+| 71875    | Rampart Splitter  | Staff  | **333** |                     - |
 
 #### Heal, utility, and elite skills
 
-| Skill ID | Skill | Slot | Category | Module | Cast ms | Explicit Quickness ms |
-| --- | --- | --- | --- | --- | ---: | ---: |
-| 76755 | "We Shall Return!" | Heal | Command | Paragon | **667** | - |
-| 62978 | Combat Stimulant | Heal | - | Bladesworn | **500** | - |
-| 41100 | Natural Healing | Heal | Meditation | Spellbreaker | **667** | - |
-| 77040 | "Find Their Weakness!" | Utility | Command | Paragon | **333** | - |
-| 77114 | "On Your Knees!" | Utility | Command | Paragon | **167** | - |
-| 14407 | Banner of Discipline | Utility | Banner | Core | **500** | - |
-| 14405 | Banner of Strength | Utility | Banner | Core | **500** | - |
-| 43123 | Break Enchantments | Utility | Meditation | Spellbreaker | **167** | - |
-| 14502 | Kick | Utility | Physical | Core | **842** | - |
-| 14404 | Signet of Might | Utility | Signet | Core | **333** | - |
-| 14388 | Stomp | Utility | Physical | Core | **500** | - |
-| 14354 | Throw Bolas | Utility | Physical | Core | **333** | - |
-| 76562 | "We Will Never Yield!" | Elite | Command | Paragon | **667** | - |
-| 14419 | Battle Standard | Elite | Banner | Core | **1333** | - |
-| 14483 | Rampage | Elite | Physical | Core | **667** | - |
+| Skill ID | Skill                  | Slot    | Category   | Module       |  Cast ms | Explicit Quickness ms |
+| -------- | ---------------------- | ------- | ---------- | ------------ | -------: | --------------------: |
+| 76755    | "We Shall Return!"     | Heal    | Command    | Paragon      |  **667** |                     - |
+| 62978    | Combat Stimulant       | Heal    | -          | Bladesworn   |  **500** |                     - |
+| 41100    | Natural Healing        | Heal    | Meditation | Spellbreaker |  **667** |                     - |
+| 77040    | "Find Their Weakness!" | Utility | Command    | Paragon      |  **333** |                     - |
+| 77114    | "On Your Knees!"       | Utility | Command    | Paragon      |  **167** |                     - |
+| 14407    | Banner of Discipline   | Utility | Banner     | Core         |  **500** |                     - |
+| 14405    | Banner of Strength     | Utility | Banner     | Core         |  **500** |                     - |
+| 43123    | Break Enchantments     | Utility | Meditation | Spellbreaker |  **167** |                     - |
+| 14502    | Kick                   | Utility | Physical   | Core         |  **842** |                     - |
+| 14404    | Signet of Might        | Utility | Signet     | Core         |  **333** |                     - |
+| 14388    | Stomp                  | Utility | Physical   | Core         |  **500** |                     - |
+| 14354    | Throw Bolas            | Utility | Physical   | Core         |  **333** |                     - |
+| 76562    | "We Will Never Yield!" | Elite   | Command    | Paragon      |  **667** |                     - |
+| 14419    | Battle Standard        | Elite   | Banner     | Core         | **1333** |                     - |
+| 14483    | Rampage                | Elite   | Physical   | Core         |  **667** |                     - |
 
 #### Profession mechanic skills
 
-| Skill ID | Skill | Slot | Module | Cast ms | Explicit Quickness ms |
-| --- | --- | --- | --- | ---: | ---: |
-| 77342 | Chant of Action | Profession_2 | Paragon | **167** | - |
-| 76782 | Chant of Recuperation | Profession_3 | Paragon | **167** | - |
-| 77155 | Chant of Freedom | Profession_4 | Paragon | **167** | - |
+| Skill ID | Skill                 | Slot         | Module  | Cast ms | Explicit Quickness ms |
+| -------- | --------------------- | ------------ | ------- | ------: | --------------------: |
+| 77342    | Chant of Action       | Profession_2 | Paragon | **167** |                     - |
+| 76782    | Chant of Recuperation | Profession_3 | Paragon | **167** |                     - |
+| 77155    | Chant of Freedom      | Profession_4 | Paragon | **167** |                     - |

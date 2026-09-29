@@ -1,155 +1,29 @@
-import { signetBuildAttributes } from '#gw2/professions/warrior/core/skills/slot-skills.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-
-import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-
-import { getActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
+import type {
+  Gw2BuildAttributeRuleContext,
+  Gw2CommonAttributeResult,
+  Gw2FinalizedAttributeResult
+} from '#gw2/platform/builds/types.js';
 import {
   createBuildAttributeContext,
   finalizeProfessionBuildAttributes
 } from '#gw2/professions/shared/build-attributes.js';
-import type {
-  Gw2BuildAttributeRuleContext,
-  Gw2AttributeEffect,
-  Gw2CommonAttributeResult,
-  Gw2FinalizedAttributeResult,
-  Gw2NumericAttributes
-} from '#gw2/platform/builds/types.js';
+import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
+import { signetBuildAttributes } from '#gw2/professions/warrior/core/skills/slot-skills.js';
+import { getActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
 
-// Apply selected signets, weapon-sensitive traits, duration bonuses, and ordered
-// Warrior conversions to the shared build-time attribute result.
+/** Signet passives complement native trait contributions using the selected skill bar. */
 export function applyWarriorBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const { activeTraits, hasTrait, hasSelectedSkill, profileContext, weapons } = createBuildAttributeContext(
+  const { activeTraits, hasSelectedSkill, profileContext } = createBuildAttributeContext(
     context,
     warriorCatalog,
     getActiveTraits
   );
-
-  // Weapon bonuses follow the selected set; base bonuses retain their conversion eligibility.
-
-  const traitDurations: Gw2NumericAttributes = {};
-
-  const greatFortitudeProfile = requireBalanceProfileFromContext(profileContext, TRAIT.GREAT_FORTITUDE);
-  const forcefulGreatswordProfile = requireBalanceProfileFromContext(profileContext, TRAIT.FORCEFUL_GREATSWORD);
-  const roaringReveilleProfile = requireBalanceProfileFromContext(profileContext, TRAIT.ROARING_REVEILLE);
-  const deepStrikesProfile = requireBalanceProfileFromContext(profileContext, TRAIT.DEEP_STRIKES);
-  const woundingPrecisionProfile = requireBalanceProfileFromContext(profileContext, TRAIT.WOUNDING_PRECISION);
-  const blademasterProfile = requireBalanceProfileFromContext(profileContext, TRAIT.BLADEMASTER);
-  const axeMasteryProfile = requireBalanceProfileFromContext(profileContext, TRAIT.AXE_MASTERY);
-  const inspiringImplementsProfile = requireBalanceProfileFromContext(profileContext, TRAIT.INSPIRING_IMPLEMENTS);
-  const attributeEffects: readonly Gw2AttributeEffect[] = [
-    ...signetBuildAttributes(profileContext, hasSelectedSkill),
-    {
-      kind: 'flat',
-      source: 'Forceful Greatsword',
-      to: 'Power',
-      amount: balanceProfileNumber(forcefulGreatswordProfile, 'attributeBonus'),
-      feedsConversions: true,
-      enabled: hasTrait(TRAIT.FORCEFUL_GREATSWORD)
-    },
-    {
-      kind: 'flat',
-      source: 'Forceful Greatsword',
-      to: 'Power',
-      amount: balanceProfileNumber(forcefulGreatswordProfile, 'weaponAttributeBonus'),
-      feedsConversions: false,
-      enabled: hasTrait(TRAIT.FORCEFUL_GREATSWORD) && weapons.includes('Greatsword')
-    },
-    {
-      kind: 'conversion',
-      source: 'Great Fortitude',
-      from: 'Power',
-      to: 'Vitality',
-      multiplier: balanceProfileNumber(greatFortitudeProfile, 'attributeConversion'),
-      rounding: 'none',
-      input: 'eligible',
-      enabled: hasTrait(TRAIT.GREAT_FORTITUDE)
-    },
-    {
-      kind: 'conversion',
-      source: 'Great Fortitude',
-      from: 'Power',
-      to: 'Ferocity',
-      multiplier: balanceProfileNumber(greatFortitudeProfile, 'attributeConversion'),
-      rounding: 'none',
-      input: 'eligible',
-      enabled: hasTrait(TRAIT.GREAT_FORTITUDE)
-    },
-    {
-      kind: 'flat',
-      source: 'Roaring Reveille',
-      to: 'Concentration',
-      amount: balanceProfileNumber(roaringReveilleProfile, 'attributeBonus'),
-      feedsConversions: false,
-      enabled: hasTrait(TRAIT.ROARING_REVEILLE)
-    },
-    {
-      kind: 'flat',
-      source: 'Deep Strikes',
-      to: 'Condition Damage',
-      amount: balanceProfileNumber(deepStrikesProfile, 'attributeBonus'),
-      feedsConversions: false,
-      enabled: hasTrait(TRAIT.DEEP_STRIKES) && Boolean(context.build.assumptions?.fury)
-    },
-    {
-      kind: 'conversion',
-      source: 'Wounding Precision',
-      from: 'Precision',
-      to: 'Expertise',
-      multiplier: balanceProfileNumber(woundingPrecisionProfile, 'attributeConversion'),
-      rounding: 'none',
-      input: 'eligible',
-      enabled: hasTrait(TRAIT.WOUNDING_PRECISION)
-    },
-    {
-      kind: 'flat',
-      source: 'Blademaster',
-      to: 'Expertise',
-      amount: balanceProfileNumber(blademasterProfile, 'attributeBonus'),
-      feedsConversions: false,
-      enabled: hasTrait(TRAIT.BLADEMASTER)
-    },
-    {
-      kind: 'flat',
-      source: 'Axe Mastery',
-      to: 'Ferocity',
-      amount: balanceProfileNumber(
-        axeMasteryProfile,
-        weapons.includes('Axe') ? 'weaponAttributeBonus' : 'attributeBonus'
-      ),
-      feedsConversions: false,
-      enabled: hasTrait(TRAIT.AXE_MASTERY)
-    },
-    {
-      kind: 'flat',
-      source: 'Inspiring Implements',
-      to: 'Concentration',
-      amount: balanceProfileNumber(inspiringImplementsProfile, 'attributeBonus'),
-      feedsConversions: false,
-      enabled: hasTrait(TRAIT.INSPIRING_IMPLEMENTS)
-    }
-  ];
-
-  if (hasTrait(TRAIT.BLOODLUST)) {
-    const bloodlustProfile = requireBalanceProfileFromContext(profileContext, TRAIT.BLOODLUST);
-    traitDurations['Bleeding Duration'] = 100 * balanceProfileNumber(bloodlustProfile, 'conditionDurationBonus');
-  }
-
-  if (hasTrait(TRAIT.KING_OF_FIRES)) {
-    const kingOfFiresProfile = requireBalanceProfileFromContext(profileContext, TRAIT.KING_OF_FIRES);
-    traitDurations['Burning Duration'] = balanceProfileNumber(kingOfFiresProfile, 'durationMultiplier') * 100;
-  }
-
-  return finalizeProfessionBuildAttributes(common, {
-    activeTraits,
-    attributeEffects,
-    traitDurations
-  });
+  return finalizeProfessionBuildAttributes(
+    common,
+    { activeTraits, attributeEffects: signetBuildAttributes(profileContext, hasSelectedSkill) },
+    context
+  );
 }

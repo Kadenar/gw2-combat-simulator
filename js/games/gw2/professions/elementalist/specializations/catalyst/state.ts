@@ -1,25 +1,19 @@
+import {
+  defineProfessionSpecializationState,
+  definePublicStateDefaults
+} from '#gw2/platform/engine/profession/state.js';
 import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import {
   CATALYST_BALANCE_PROFILES,
   CATALYST_BALANCE_PROFILE_IDS as PROFILE
 } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import {
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
-import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Default ceiling for the Jade Sphere energy resource before balance profiles retune it. */
 const CATALYST_MAXIMUM_ENERGY = requireBalanceNumber(
   CATALYST_BALANCE_PROFILES.find((profile) => profile.id === PROFILE.resources)!.maximumStacks,
   'Catalyst resources maximumStacks'
-);
-/** Default ceiling on concurrent Elemental Empowerment stacks. */
-const CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS = requireBalanceNumber(
-  CATALYST_BALANCE_PROFILES.find((profile) => profile.id === PROFILE.elementalEmpowerment)!.maximumStacks,
-  'Elemental Empowerment maximumStacks'
 );
 
 /**
@@ -68,30 +62,3 @@ export const CATALYST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   sphereActiveUntil: 0,
   sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 }
 } satisfies Partial<CatalystState>);
-
-/**
- * Adds timed Elemental Empowerment stacks: expired stacks are dropped first, and
- * once the cap is reached each new stack evicts the soonest-expiring one.
- */
-export function grantCatalystElementalEmpowerment(
-  state: CatalystState,
-  at: number,
-  duration: number,
-  stacks = 1,
-  maximumStacks = CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS
-): void {
-  // Timed stacks use the same tick-aligned expiry as their emitted buff applications.
-  const expiresAt = gw2EffectExpiresAt(at, Math.max(0, duration));
-  const active = state.elementalEmpowermentExpiries.filter((expiry) => expiry > at).sort((left, right) => left - right);
-
-  for (let stack = 0; stack < Math.max(1, stacks); stack += 1) {
-    if (active.length >= maximumStacks) {
-      active.shift();
-    }
-
-    if (expiresAt > at) active.push(expiresAt);
-    active.sort((left, right) => left - right);
-  }
-
-  state.elementalEmpowermentExpiries = active;
-}

@@ -1,35 +1,42 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { test } from 'node:test';
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import { renderSkills } from '#gw2/app/build/panels/skills.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import {
   displayedSkillTiles,
+  paletteSkillView,
   paletteView,
   rotationSelectedSlotSkills,
   weaponSkills
 } from '#gw2/app/rotation/palette/model.js';
-import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
-import { applyRevenantBuildAttributeRules } from '#gw2/professions/revenant/build/attributes.js';
+import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
-import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/professions/revenant/data/revenant-supplemental-skills.js';
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
-import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
+import { applyRevenantBuildAttributeRules } from '#gw2/professions/revenant/build/attributes.js';
+import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
 import { revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
+import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
+import {
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_TRAIT_IDS,
+  REVENANT_SKILL_IDS as SKILL
+} from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/professions/revenant/data/revenant-supplemental-skills.js';
+import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { test } from 'node:test';
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
-const calculateRevenantAttributes = createCalculateAttributes(applyRevenantBuildAttributeRules);
+const calculateRevenantAttributes = createCalculateAttributes(
+  applyRevenantBuildAttributeRules,
+  revenantProfession.traitBuildAttributes
+);
 
 test('Beguiling Haze requires authored timing for both cast variants', () => {
   const main = { id: 'main', castTimeMs: 0 };
@@ -100,7 +107,7 @@ test('Core Revenant mechanics expose patch-authorable declarations', () => {
   const skill = (id) => core.skills.find((entry) => entry.id === id);
   const profile = (id) => core.balanceProfiles.find((entry) => entry.id === id);
   const resources = profile(REVENANT_CORE_BALANCE_PROFILE_IDS.resources);
-  const chargedMists = profile(REVENANT_CORE_BALANCE_PROFILE_IDS.chargedMists);
+  const chargedMists = profile(REVENANT_TRAIT_IDS.CHARGED_MISTS);
   const battleScars = profile(REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
 
   assert.equal(skill(SHARED_SKILL_IDS.DODGE).patchableFields.resourceCost, 50);
@@ -258,7 +265,9 @@ test('Beguiling Haze keeps runtime cast timing out of profile authoring metadata
 test('Herald invocation effects use patch-authorable skill declarations', () => {
   const herald = authoringRevenantProfession.patchAuthoring.modules.find((module) => module.id === 'Herald');
   const call = herald.skills.find((skill) => skill.id === SKILL.CALL_OF_THE_DRAGON);
-  const spiritBoon = herald.balanceProfiles.find((profile) => profile.name === 'Spirit Boon (Dragon)');
+  const spiritBoon = authoringRevenantProfession.patchAuthoring.modules
+    .find((module) => module.id === 'Core')
+    .balanceProfiles.find((profile) => profile.name === 'Spirit Boon (Dragon)');
 
   assert.deepEqual(
     call.skill.effects.map((effect) => [
@@ -314,7 +323,9 @@ test('Herald invocation effects use patch-authorable skill declarations', () => 
 test('Renegade invocation effects use patch-authorable skill declarations', () => {
   const renegade = authoringRevenantProfession.patchAuthoring.modules.find((module) => module.id === 'Renegade');
   const call = renegade.skills.find((skill) => skill.id === SKILL.CALL_OF_THE_RENEGADE);
-  const spiritBoon = renegade.balanceProfiles.find((profile) => profile.name === 'Spirit Boon (Renegade)');
+  const spiritBoon = authoringRevenantProfession.patchAuthoring.modules
+    .find((module) => module.id === 'Core')
+    .balanceProfiles.find((profile) => profile.name === 'Spirit Boon (Renegade)');
 
   assert.deepEqual(
     call.skill.effects.map((effect) => [

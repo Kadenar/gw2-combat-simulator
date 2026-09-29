@@ -17,8 +17,8 @@ profession modifiers resolve during simulation rather than being permanently add
 
 ## Templates
 
-Included templates provide a matching build and rotation. Select a template to load both, or use its **•••** menu to load
-only one part.
+Included templates provide a matching build and rotation. Select a template to load both, or use its **•••** menu to
+load only one part.
 
 Templates may display a reference DPS. Treat it as a regression target for that saved build and rotation, not a promised
 in-game benchmark.

@@ -1,21 +1,26 @@
-import type { RechargeRule } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/traits/tools.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-
-/** Toolbelt reductions take precedence over Gadgeteer when a skill belongs to both categories. */
-export const engineerRechargeRules: readonly RechargeRule<EngineerRuntimeState>[] = [
-  {
-    trait: TRAIT.MECHANIZED_DEPLOYMENT,
-    when: (_runtime, skill) => isEngineerToolbeltSkill(skill),
-    multiplier: { profile: TRAIT.MECHANIZED_DEPLOYMENT, field: 'rechargeMultiplier' }
-  },
-  {
-    trait: TRAIT.GADGETEER,
-    when: (runtime, skill) =>
-      !(isEngineerToolbeltSkill(skill) && hasTrait(runtime, TRAIT.MECHANIZED_DEPLOYMENT)) &&
-      Boolean(skill.categories?.some((category) => category.toLowerCase() === 'gadget')),
-    multiplier: { profile: TRAIT.GADGETEER, field: 'rechargeMultiplier' }
-  }
-];
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
+import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
+/** Recharge reductions operate on live remaining work, including ammo recharge, and report only effective changes. */
+export function reduceEngineerRecharge(
+  runtime: EngineerRuntime,
+  cast: RuntimeCast,
+  predicate: (skill: EngineerSkill) => boolean,
+  seconds: number,
+  sourceId: number | string,
+  name: string
+): void {
+  let reducedBy = 0;
+  for (const skill of runtime.helpers.skillsById.values())
+    if (predicate(skill)) reducedBy += runtime.cooldownController.reduceSkillRecharge(skill, seconds, runtime.time);
+  if (reducedBy > 0)
+    emitEngineerEvent(runtime, 'proc', {
+      at: runtime.time,
+      source: sourceId === cast.skill.id ? 'engineer' : 'Trait',
+      sourceId,
+      name,
+      procType: sourceId === cast.skill.id ? 'skill' : 'trait',
+      sourceSkill: cast.skill.name,
+      cooldownReduction: reducedBy
+    });
+}

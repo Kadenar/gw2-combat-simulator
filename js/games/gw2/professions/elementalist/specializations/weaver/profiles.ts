@@ -1,22 +1,9 @@
-/**
- * Weaver balance data: the tunable durations, recharges, trait bonuses, and
- * dual-skill bullet effects that Weaver mechanics look up by profile id at
- * runtime instead of hardcoding, so balance patches can override them.
- */
+/** Mechanic and skill-variant tuning for Weaver; traits own their profiles under traits/. */
 import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import {
-  defineSkillVariantProfile as variant,
-  defineTraitProfile as trait
-} from '#gw2/platform/profession-definition/balance-profiles.js';
-import {
-  ELEMENTALIST_SKILL_IDS as ID,
-  ELEMENTALIST_TRAIT_IDS as TRAIT
-} from '#gw2/professions/elementalist/data/ids.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
-/**
- * Stable lookup keys for the profiles below: mechanic and skill-variant profiles
- * use namespaced strings, while trait profiles are keyed by their trait id.
- */
+/** Stable mechanic and skill-variant patch identities. */
 export const WEAVER_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'elementalist.weaver.resources',
   primordialStance: 'elementalist.weaver.primordial-stance',
@@ -26,16 +13,7 @@ export const WEAVER_BALANCE_PROFILE_IDS = Object.freeze({
   purblindingPlasma: 'elementalist.weaver.purblinding-plasma-bullet',
   moltenMeteor: 'elementalist.weaver.molten-meteor-bullet',
   flowingFinesse: 'elementalist.weaver.flowing-finesse-bullets',
-  enervatingEarth: 'elementalist.weaver.enervating-earth-bullet',
-  elementalRefreshment: TRAIT.ELEMENTAL_REFRESHMENT,
-  elementalPolyphony: TRAIT.ELEMENTAL_POLYPHONY,
-  superiorElements: TRAIT.SUPERIOR_ELEMENTS,
-  elementalPursuit: TRAIT.ELEMENTAL_PURSUIT,
-  weaversProwess: TRAIT.WEAVERS_PROWESS,
-  swiftRevenge: TRAIT.SWIFT_REVENGE,
-  bolsteredElements: TRAIT.BOLSTERED_ELEMENTS,
-  elementsOfRage: TRAIT.ELEMENTS_OF_RAGE,
-  flowState: TRAIT.FLOW_STATE
+  enervatingEarth: 'elementalist.weaver.enervating-earth-bullet'
 });
 
 const boon = (name: string, boonName: string, stacks: number, duration: number): SkillEffect => ({
@@ -139,42 +117,5 @@ export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     profileKind: 'skill-variant',
     durationMultiplier: 8,
     effects: [boon('Might', 'might', 3, 8)]
-  },
-  trait(WEAVER_BALANCE_PROFILE_IDS.elementalRefreshment, 'Elemental Refreshment', { attributeBonus: 180 }),
-  trait(WEAVER_BALANCE_PROFILE_IDS.elementalPolyphony, 'Elemental Polyphony', {
-    attributeBonus: 200
-  }),
-  trait(WEAVER_BALANCE_PROFILE_IDS.superiorElements, 'Superior Elements', {
-    criticalChance: 0.2,
-    internalCooldown: 4,
-    effects: [
-      {
-        type: 'condition',
-        name: 'Weakness',
-        condition: 'Weakness',
-        stacks: 1,
-        duration: 5
-      }
-    ]
-  }),
-  trait(WEAVER_BALANCE_PROFILE_IDS.elementalPursuit, 'Elemental Pursuit', {
-    effects: [boon('Swiftness', 'swiftness', 1, 3)]
-  }),
-  trait(WEAVER_BALANCE_PROFILE_IDS.weaversProwess, "Weaver's Prowess", {
-    effects: [boon('Resistance', 'resistance', 1, 3)]
-  }),
-  trait(WEAVER_BALANCE_PROFILE_IDS.swiftRevenge, 'Swift Revenge', {
-    resourceGain: 25,
-    effects: [boon('Fire', 'might', 3, 5), boon('Air', 'swiftness', 1, 5)]
-  }),
-  trait(WEAVER_BALANCE_PROFILE_IDS.bolsteredElements, 'Bolstered Elements', {
-    effects: [boon('Protection', 'protection', 1, 3)]
-  }),
-  trait(WEAVER_BALANCE_PROFILE_IDS.elementsOfRage, 'Elements of Rage', {
-    durationMultiplier: 8
-  }),
-  trait(WEAVER_BALANCE_PROFILE_IDS.flowState, 'Flow State', {
-    rechargeReduction: 1, // flat seconds removed from attunement recharge
-    rechargeMultiplier: 0.8 // fraction of dual-skill recharge retained
-  })
+  }
 ]);

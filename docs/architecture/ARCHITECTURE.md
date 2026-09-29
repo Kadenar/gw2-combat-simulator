@@ -51,17 +51,30 @@ cooldowns stay inspectable.
 Every profession is authored with `platform/profession-definition/profession.ts`. A module is a vertical slice declared
 with `defineNativeModule()`:
 
-| Section        | Owns                                                                           |
-| -------------- | ------------------------------------------------------------------------------ |
-| `data`         | Generated identities, skill mechanics, traits, weapon hands, and chains        |
-| `state`        | One `create` factory and optional detached public `project` projection         |
-| `hooks`        | Availability, cast hooks, named tasks, resource policies, and combat reactions |
-| `modifiers`    | Declarative formula and attribute rules                                        |
-| `presentation` | UI contributions, optionally catalog-aware                                     |
+| Section            | Owns                                                                           |
+| ------------------ | ------------------------------------------------------------------------------ |
+| `data`             | Generated identities, skill mechanics, traits, weapon hands, and chains        |
+| `state`            | One `create` factory and optional detached public `project` projection         |
+| `hooks`            | Availability, cast hooks, named tasks, resource policies, and combat reactions |
+| `modifiers`        | Declarative formula and attribute rules                                        |
+| `traitDefinitions` | Trait-owned profiles, modifier rules, triggers, hooks, and build contributions |
+| `presentation`     | UI contributions, optionally catalog-aware                                     |
 
 TypeScript and native module validation reject unknown module fields and retired state sections.
 `defineNativeProfession()` composes Core with the selected specialization and exposes `runtimeFor(config)`. There is one
 mutable state instance per run.
+
+`defineTrait()` definitions expand once in `defineNativeModule()`. Ordinary rules receive live trait-selection gates;
+rules for already-created effects may opt out with `requiresSelection: false` and an explicit event predicate. Custom
+callbacks retain explicit eligibility and lifetime. Trait hooks and module hooks share the same ordered composer, and
+build contributions enter the existing attribute conversion pass. Patch previews consume expanded declarations. See
+[the shared trait contract and inventory](./TRAIT-DEFINITIONS-PLAN.md#shared-implementation-record-s0-s3).
+
+Guardian registers all 70 implemented traits through Core and elite trait owners. Its remaining raw profiles and
+modifiers describe skills or mechanics, and its build collector applies skill-owned signet passives. Ordered mechanic
+calls retain virtue, tome, and Forge transitions; the
+[Guardian ownership inventory](./TRAIT-DEFINITIONS-PLAN.md#s5-progress-guardian) records those boundaries and shared
+state.
 
 ### Catalog assembly
 
@@ -90,6 +103,10 @@ cooldowns, and dynamic state are separate checks.
 - `mechanics/*.ts` (or `mechanics.ts`) — owner-local, concept-named triggered effects and state machines.
 - `hooks.ts` — cast hooks, tasks, and reactions for behavior declarative effects cannot express.
 - `modifiers.ts` — the module's modifier rules plus imperative `modify*` attribute and damage callbacks.
+- `core/traits/<trait-line>.ts`: Core definitions; `core/traits/index.ts` preserves their registration order.
+- `specializations/<name>/traits/index.ts`: all elite definitions and their registration array.
+- `traits/behavior.ts` or concept files: optional supporting runtime functions, imported directly by mechanics. See
+  [trait file organization](./TRAIT-FILE-ORGANIZATION.md) for ownership and dependency rules.
 - `catalog.ts` — module tuple and assembled catalog, re-exported by `profession.ts`. Only `build/` imports it directly.
 
 ### Authoring workflow

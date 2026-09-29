@@ -1,22 +1,17 @@
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { effectFirstAtMs } from '#gw2/platform/engine/effects/authoring.js';
 import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
-import {
-  effectNumber,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
-import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { effectNumber, requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type { NecromancerCoreState, NecromancerSelfCondition } from '#gw2/professions/necromancer/core/state.js';
+import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 
 const CORRUPTION = 'necromancer.corruption';
 const DEVOURING = 'necromancer.devouring-impact';
@@ -69,7 +64,7 @@ function applySelfCondition(
 }
 
 /** A transfer removes actual applications and preserves their remaining duration, without scaling them a second time. */
-function transfer(
+export function transfer(
   runtime: NecromancerRuntime,
   skill: NecromancerSkill,
   maximum: number,
@@ -197,27 +192,6 @@ export function resolveNecromancerTransfer(runtime: NecromancerRuntime, event: G
     skillId: skill.id,
     activationId: event.activationId
   });
-}
-
-/** Plague Sending remains a shared consumer across accepted player strikes. */
-export function reactToNecromancerConditions(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
-  const skill = runtime.helpers.skillsById.get(event.skillId ?? event.sourceId);
-  if (!skill) return;
-  const work = { skillId: skill.id, activationId: event.activationId };
-  const state = runtime.profession.core;
-  if (
-    state.plagueSendingArmed &&
-    transfer(
-      runtime,
-      skill,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.PLAGUE_SENDING), 'maximumConditions'),
-      work,
-      true
-    )
-  ) {
-    state.plagueSendingArmed = false;
-  }
 }
 
 /** A committed Corruption applies local work without hostile travel or the remaining animation tail. */

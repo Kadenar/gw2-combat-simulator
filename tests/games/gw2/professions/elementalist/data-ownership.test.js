@@ -1,26 +1,22 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
-import test from 'node:test';
-
-import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/index.js';
-import { ELEMENTALIST_SKILL_IDS, ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { SPECIALIZATIONS as API_SPECIALIZATIONS } from '#gw2/professions/elementalist/data/elementalist-api-metadata.js';
+import { ELEMENTALIST_SKILL_IDS, ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { TRAITS } from '#gw2/professions/elementalist/data/traits-data.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
 import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/catalyst/skills/index.js';
 import { evokerModule } from '#gw2/professions/elementalist/specializations/evoker/module.js';
-import {
-  EVOKER_BALANCE_PROFILE_IDS,
-  EVOKER_BALANCE_PROFILES
-} from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { EVOKER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/index.js';
+import { SPECIALIZED_ELEMENTS_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
 import { tempestModule } from '#gw2/professions/elementalist/specializations/tempest/module.js';
 import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
 import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
 import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
+import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
+import assert from 'node:assert/strict';
+import { readdirSync } from 'node:fs';
+import test from 'node:test';
 
 const slices = [
   ['core', elementalistCoreModule, ELEMENTALIST_CORE_SKILL_MECHANICS],
@@ -117,10 +113,10 @@ test('Elementalist weapon skill fragments compose without duplicates or omission
 });
 
 test('Specialized Elements models percentage recharge changes as multipliers', () => {
-  const profiles = new Map(EVOKER_BALANCE_PROFILES.map((profile) => [profile.id, profile]));
-  const trait = profiles.get(EVOKER_BALANCE_PROFILE_IDS.specializedElements);
-  const basic = profiles.get(EVOKER_BALANCE_PROFILE_IDS.specializedElementsBasicRecharge);
-  const empowered = profiles.get(EVOKER_BALANCE_PROFILE_IDS.specializedElementsEmpoweredRecharge);
+  const profiles = new Map(evokerModule.data.balanceProfiles.map((profile) => [profile.id, profile]));
+  const trait = profiles.get(ELEMENTALIST_TRAIT_IDS.SPECIALIZED_ELEMENTS);
+  const basic = profiles.get(SPECIALIZED_ELEMENTS_PROFILE_IDS.basicRecharge);
+  const empowered = profiles.get(SPECIALIZED_ELEMENTS_PROFILE_IDS.empoweredRecharge);
 
   assert.equal(Object.hasOwn(trait, 'rechargeReduction'), false);
   assert.equal(basic.rechargeMultiplier, 0.9);

@@ -1,3 +1,4 @@
+import { traitDefinitions } from '#gw2/professions/revenant/specializations/herald/traits/index.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
 import { heraldModifiers } from '#gw2/professions/revenant/specializations/herald/modifiers.js';
@@ -9,6 +10,7 @@ import { heraldHooks } from '#gw2/professions/revenant/specializations/herald/ho
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const heraldModule = defineNativeModule({
+  traitDefinitions,
   id: 'Herald',
   data: createRevenantModuleData('Herald', {
     skillMechanics: HERALD_BASE_SKILL_MECHANICS,

@@ -7,13 +7,6 @@ export const HOLOSMITH_FORGE_TOGGLE_SKILL_IDS = new Set<number>([
   ID.DEACTIVATE_PHOTON_FORGE_HOT
 ]);
 
-/** Crystal Configuration: Storm selects these stable autoattack replacements. */
-export const HOLOSMITH_STORM_AUTOATTACK_SKILL_IDS = new Set<number>([
-  ID.LIGHT_STRIKE_STORM,
-  ID.BRIGHT_SLASH_STORM,
-  ID.FLASH_CUTTER_STORM
-]);
-
 export const HOLOSMITH_HEAT = Object.freeze({
   // Heat capacity and tier boundaries are fixed profession mechanics; balance
   // profiles tune only the effects activated at those tiers.

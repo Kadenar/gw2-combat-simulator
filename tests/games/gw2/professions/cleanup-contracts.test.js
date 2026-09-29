@@ -1,29 +1,30 @@
-import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
-import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { guardianProfession, guardianCatalog } from '#gw2/professions/guardian/profession.js';
+import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
 import { GUARDIAN_SKILL_IDS as G, GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
-import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as FB } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
-import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
+import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { FIREBRAND_BALANCE_PROFILE_IDS as FB } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
+import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
 import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
+import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { GALESHOT_BALANCE_PROFILE_IDS as GALE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { soulbeastModifiers } from '#gw2/professions/ranger/specializations/soulbeast/modifiers.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as SB } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
-import { GALESHOT_BALANCE_PROFILE_IDS as GALE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
-import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
-import { conduitModifierRules } from '#gw2/professions/revenant/specializations/conduit/modifiers.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
-import { REVENANT_SKILL_IDS as R, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as R } from '#gw2/professions/revenant/data/ids.js';
+import { conduitModule } from '#gw2/professions/revenant/specializations/conduit/module.js';
+import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { WARRIOR_SKILL_IDS as W, WARRIOR_TRAIT_IDS as WT } from '#gw2/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { paragonModule } from '#gw2/professions/warrior/specializations/paragon/module.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { paragonModifiers } from '#gw2/professions/warrior/specializations/paragon/modifiers.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 // Exercise exits directly so a large time advance cannot silently move the cooldown's origin.
 test('Forge exits finalize once at the actual transition and clear weapon state', () => {
@@ -84,7 +85,7 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
       guardian: {
         balanceProfiles: {
           [FB.resources]: { fields: { maximumStacks: 6, pulseInterval: 2 } },
-          [FB.archivistOfWhispers]: { fields: { maximumStacks: 10 } }
+          [GT.ARCHIVIST_OF_WHISPERS]: { fields: { maximumStacks: 10 } }
         }
       }
     }
@@ -142,7 +143,7 @@ test('Weighty Terms follows canonical mantra IDs and ignores names or final-char
 
 // A pet swap subtracts historical build stats, then adds the active pet's patched contribution.
 test('Soulbeast reconciles raw and precomputed archetypes across merge state and pet changes', () => {
-  const calculate = createCalculateAttributes(applyRangerBuildAttributeRules);
+  const calculate = createCalculateAttributes(applyRangerBuildAttributeRules, rangerProfession.traitBuildAttributes);
   const build = createRangerBuildDefaults();
   const pig = calculate({ ...build, selectedPet: 'Pig' }).attributes;
   const lynx = calculate({ ...build, selectedPet: 'Lynx' }).attributes;
@@ -232,7 +233,7 @@ test('Conduit modifiers and Peitha follow all supported button IDs after renamin
     ['beguiling-haze-assassin-resonance', [R.BEGUILING_HAZE, R.BEGUILING_HAZE_ID_76805]],
     ['twin-moon-assassin-resonance', [R.TWIN_MOON_SWEEP, R.TWIN_MOON_SWEEP_ID_77001]]
   ]) {
-    const rule = conduitModifierRules.find(({ id }) => id === 'revenant.' + suffix);
+    const rule = conduitModule.modifiers.modifierRules.find(({ id }) => id === 'revenant.' + suffix);
     for (const id of ids) assert.equal(rule.when({ ...context, event: { skillId: id, skillName: 'Renamed' } }), true);
     assert.equal(rule.when({ ...context, event: { skillId: 999999, skillName: 'Beguiling Haze' } }), false);
   }
@@ -274,7 +275,7 @@ test('Paragon renamed refrains replace, project, exhaust, and recover from missi
   const combat = { type: 'combat-start' };
   const action = run([combat]);
   const freedom = run([combat, W.CHANT_OF_FREEDOM]);
-  const rule = paragonModifiers.modifierRules.find(({ id }) => id === 'warrior.strengthening-stanzas');
+  const rule = paragonModule.modifiers.modifierRules.find(({ id }) => id === 'warrior.strengthening-stanzas');
   for (const [result, id, applies] of [
     [action, W.CHANT_OF_ACTION, true],
     [freedom, W.CHANT_OF_FREEDOM, false]

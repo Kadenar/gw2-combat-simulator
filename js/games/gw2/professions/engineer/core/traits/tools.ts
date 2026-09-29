@@ -1,164 +1,170 @@
-/** Owns imperative Core Engineer Tools effects while keeping hook registration in the public dispatcher. */
-/** Owns imperative Core Engineer Tools effects while keeping hook registration in the public dispatcher. */
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import {
-  requireBalanceProfileFromContext,
   balanceProfileNumber,
-  requireEffect
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
+import { activeBoonStacks, engineerRuntimeState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-
+import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/traits/toolbelt.js';
+import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
-import { resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
-import type {
-  EngineerResolverContext,
-  EngineerResolverEvent,
-  EngineerRuntime,
-  EngineerSkill
-} from '#gw2/professions/engineer/types.js';
 
-/** Detects explicit specialization toolbelt skills and ordinary parent-linked toolbelt skills. */
-export function isEngineerToolbeltSkill(skill: EngineerSkill | undefined): boolean {
-  return skill?.countsAsToolbeltSkill ?? Boolean(skill?.toolbeltParentName);
-}
-
-/** Applies Streamlined Kits on kit entry and adds Grenade Kit's mine strike when appropriate. */
-export function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  if (
-    skill.kitTransition !== 'equip' ||
-    !hasTrait(context.config, TRAIT.STREAMLINED_KITS) ||
-    !context.procs.claim(PROFILE.streamlinedKits, 'streamlinedKits', at)
-  )
-    return;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.streamlinedKits);
-  emitEffects(context, {
-    owner: profile,
-    effects: profile.effects?.filter(
-      (effect) => effect.type === 'boon' || (skill.id === ID.GRENADE_KIT && effect.type === 'strike')
-    ),
-    at,
-    baseEvent: (effect) => ({
-      source: 'Trait',
-      sourceId: TRAIT.STREAMLINED_KITS,
-      actorType: effect.type === 'strike' ? 'effect' : 'player',
-      ...(effect.type === 'strike' ? { ownerActorType: 'player' } : {}),
-      skillId: skill.id,
-      skillName: effect.type === 'strike' ? 'Drop Mine' : skill.name
-    }),
-    transform: (event) =>
-      event.type === 'damage'
-        ? {
-            ...event,
-            parentSkillName: skill.name,
-            name: 'Drop Mine',
-            skillWeapon: 'Unequipped',
-            explosion: true,
-            triggeredBy: skill.name
-          }
-        : { ...event, name: 'Streamlined Kits — ' + event.kind }
-  });
-}
-
-/** Materializes Vigor at the toolbelt dispatch boundary, including independent mech-command acceptance. */
-function applyOptimizedActivation(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  if (!hasTrait(context.config, TRAIT.OPTIMIZED_ACTIVATION)) return;
-  const optimizedActivationProfile = requireBalanceProfileFromContext(context, PROFILE.optimizedActivation);
-  const optimizedActivationVigor = requireEffect(optimizedActivationProfile, 'boon', 'vigor');
-  if (optimizedActivationVigor) {
-    emitEffects(context, {
-      owner: optimizedActivationProfile,
-      effects: [optimizedActivationVigor],
-      at,
-      baseEvent: {
-        source: 'Trait',
-        sourceId: TRAIT.OPTIMIZED_ACTIVATION,
-        actorType: 'player',
-        skillId: skill.id,
-        skillName: skill.name
-      },
-      transform: (event) => ({ ...event, name: 'Optimized Activation — vigor' })
-    });
+/** Owns Streamlined Kits tuning and behavior at its established runtime and build boundaries. */
+export const streamlinedKits = defineTrait({
+  id: TRAIT.STREAMLINED_KITS,
+  name: 'Streamlined Kits',
+  balance: {
+    internalCooldown: 20,
+    effects: [
+      { name: 'swiftness', type: 'boon', boon: 'swiftness', stacks: 1, duration: 20 },
+      { name: 'Streamlined Kits', type: 'strike', coefficient: 1.75, hits: 1 }
+    ]
   }
-}
+});
 
-/** Queues Static Discharge from a completed toolbelt cast. */
-function applyStaticDischarge(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  if (!hasTrait(context.config, TRAIT.STATIC_DISCHARGE)) return;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.staticDischarge);
-  emitEffects(context, {
-    owner: profile,
-    at,
-    baseEvent: {
-      source: 'Trait',
-      sourceId: TRAIT.STATIC_DISCHARGE,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillId: ID.STATIC_DISCHARGE_TRAIT_SKILL,
-      skillName: 'Static Discharge',
-      triggeredBy: skill.name
-    },
-    transform: (event) => ({
-      ...event,
-      parentSkillName: skill.name,
-      icon: context.helpers.skillsById.get(ID.STATIC_DISCHARGE_TRAIT_SKILL)?.icon || '',
-      name: 'Static Discharge',
-      skillWeapon: 'Unequipped',
-      staticDischarge: true
-    })
-  });
-}
-
-/** Advances Kinetic Battery and reports charge progress after its fifth-cast buff package. */
-function applyKineticBattery(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  if (!hasTrait(context.config, TRAIT.KINETIC_BATTERY)) return;
-  const state = professionCoreState(context);
-  const profile = requireBalanceProfileFromContext(context, PROFILE.kineticBattery);
-  const maximumCharges = balanceProfileNumber(profile, 'maximumStacks');
-  state.kineticCharges = Math.min(maximumCharges, (state.kineticCharges || 0) + 1);
-  if (state.kineticCharges >= maximumCharges) {
-    state.kineticCharges = 0;
-    emitEffects(context, {
-      owner: profile,
-      at,
-      baseEvent: {
-        source: 'Trait',
-        sourceId: TRAIT.KINETIC_BATTERY,
-        actorType: 'player',
-        skillId: skill.id,
-        skillName: skill.name
-      },
-      transform: (event) => ({
-        ...event,
-        name: event.kind === 'kinetic-battery' ? 'Kinetic Battery' : 'Kinetic Battery — ' + event.kind
-      })
-    });
+/** Owns Optimized Activation tuning and behavior at its established runtime and build boundaries. */
+export const optimizedActivation = defineTrait({
+  id: TRAIT.OPTIMIZED_ACTIVATION,
+  name: 'Optimized Activation',
+  balance: {
+    effects: [{ name: 'vigor', type: 'boon', boon: 'vigor', stacks: 1, duration: 4 }]
   }
+});
 
-  emitEngineerEvent(context, 'engineer.kinetic-battery', { at, kineticCharges: state.kineticCharges });
-}
+/** Owns Static Discharge tuning and behavior at its established runtime and build boundaries. */
+export const staticDischarge = defineTrait({
+  id: TRAIT.STATIC_DISCHARGE,
+  name: 'Static Discharge',
+  balance: {
+    criticalDamage: 2,
+    effects: [{ name: 'Static Discharge', type: 'strike', coefficient: 0.33, hits: 1 }]
+  },
+  modifierRules: [
+    {
+      order: -9,
+      requiresSelection: false,
+      // Static Discharge doubles its completed critical multiplier without affecting other strikes.
+      id: 'engineer.static-discharge-critical-damage',
+      target: MODIFIER_TARGET.CRITICAL_DAMAGE,
+      operation: 'multiply',
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.STATIC_DISCHARGE), 'criticalDamage'),
+      when: (context) => context.event?.staticDischarge === true
+    }
+  ]
+});
 
-/** Applies all Core Tools traits triggered by a completed toolbelt cast in contract order. */
-export function applyEngineerToolbeltTraits(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  if (!isEngineerToolbeltSkill(skill)) return;
-  applyOptimizedActivation(context, skill, at);
-  applyStaticDischarge(context, skill, at);
-  applyKineticBattery(context, skill, at);
-}
+/** Owns Kinetic Battery tuning and behavior at its established runtime and build boundaries. */
+export const kineticBattery = defineTrait({
+  id: TRAIT.KINETIC_BATTERY,
+  name: 'Kinetic Battery',
+  balance: {
+    maximumStacks: 5,
+    effects: [
+      { name: 'kinetic-battery', type: 'buff', kind: 'kinetic-battery', stacks: 1, duration: 5 },
+      { name: 'quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 5 },
+      // Superspeed accompanies the fifth charge without boon-duration scaling.
+      { name: 'superspeed', type: 'buff', kind: 'superspeed', stacks: 1, duration: 5 }
+    ]
+  },
+  modifierRules: [
+    {
+      order: -14,
+      id: 'engineer.kinetic-battery',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'damage-additive',
+      amount: 0.15,
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) && activeBoonStacks(context, 'kinetic-battery', 1) > 0
+    }
+  ],
+  hooks: { eventHandlers: { 'engineer.kinetic-battery': OBSERVABLE_EVENT_HANDLER } }
+});
 
-/** Records Static Discharge when its scheduled trait strike resolves. */
-export function recordStaticDischargeProc(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  if (event.staticDischarge !== true) return;
-  // Scheduled trait damage is not a rotation step, so expose it with its toolbelt trigger in Procs.
-  context.recordProc(
-    'trait',
-    'Static Discharge',
-    event.at,
-    event.parentSkillName || event.triggeredBy || event.skillName,
-    '',
-    resolverSkill(context, ID.STATIC_DISCHARGE_TRAIT_SKILL)?.icon || ''
-  );
-}
+/** Owns Adrenal Implant tuning and behavior at its established runtime and build boundaries. */
+export const adrenalImplant = defineTrait({
+  id: TRAIT.ADRENAL_IMPLANT,
+  name: 'Adrenal Implant',
+  balance: { rechargeReduction: 1 }
+});
+
+/** Owns Power Wrench tuning and behavior at its established runtime and build boundaries. */
+export const powerWrench = defineTrait({
+  id: TRAIT.POWER_WRENCH,
+  name: 'Power Wrench',
+  balance: { rechargeReduction: 3 }
+});
+
+/** Owns Gadgeteer tuning and behavior at its established runtime and build boundaries. */
+export const gadgeteer = defineTrait({
+  id: TRAIT.GADGETEER,
+  name: 'Gadgeteer',
+  balance: { rechargeMultiplier: 0.8 },
+  rechargeRules: [
+    {
+      when: (runtime, skill) =>
+        !(isEngineerToolbeltSkill(skill) && hasTrait(runtime, TRAIT.MECHANIZED_DEPLOYMENT)) &&
+        Boolean(skill.categories?.some((category) => category.toLowerCase() === 'gadget')),
+      multiplier: { profile: TRAIT.GADGETEER, field: 'rechargeMultiplier' }
+    }
+  ]
+});
+
+/** Owns Mechanized Deployment tuning and behavior at its established runtime and build boundaries. */
+export const mechanizedDeployment = defineTrait({
+  id: TRAIT.MECHANIZED_DEPLOYMENT,
+  name: 'Mechanized Deployment',
+  balance: { rechargeMultiplier: 0.85 },
+  rechargeRules: [
+    {
+      when: (_runtime, skill) => isEngineerToolbeltSkill(skill),
+      multiplier: { profile: TRAIT.MECHANIZED_DEPLOYMENT, field: 'rechargeMultiplier' }
+    }
+  ]
+});
+
+/** Owns Excessive Energy tuning and behavior at its established runtime and build boundaries. */
+export const excessiveEnergy = defineTrait({
+  id: TRAIT.EXCESSIVE_ENERGY,
+  name: 'Excessive Energy',
+  modifierRules: [
+    {
+      order: -16,
+      id: 'engineer.excessive-energy',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'damage-additive',
+      amount: 0.1,
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && activeBoonStacks(context, 'vigor', 1) > 0
+    }
+  ]
+});
+
+/** Owns Takedown Round tuning and behavior at its established runtime and build boundaries. */
+export const takedownRound = defineTrait({
+  id: TRAIT.TAKEDOWN_ROUND,
+  name: 'Takedown Round',
+  modifierRules: [
+    {
+      order: -15,
+      // Use the same endurance rule for live damage and isolated attribute previews.
+      id: 'engineer.takedown-round',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'damage-additive',
+      amount: 0.1,
+      when: (context) => {
+        const state = engineerRuntimeState(context);
+        return (
+          isGw2PlayerModifierOwnedEvent(context.event) &&
+          !resourceAtLeast(
+            state.endurance || 0,
+            balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks')
+          )
+        );
+      }
+    }
+  ]
+});

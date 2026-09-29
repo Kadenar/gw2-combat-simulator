@@ -1,17 +1,11 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 export const SPECTER_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'thief.specter.resources',
   enterShadowShroud: 'thief.specter.enter-shadow-shroud',
-  dawnsReposeBarrier: 'thief.specter.dawns-repose-barrier',
-  amplifiedSiphoning: TRAIT.AMPLIFIED_SIPHONING,
-  shadeStep: TRAIT.SHADESTEP,
-  larcenousTorment: TRAIT.LARCENOUS_TORMENT,
-  darkSentry: TRAIT.DARK_SENTRY,
-  secondOpinion: TRAIT.SECOND_OPINION,
-  strengthOfShadows: TRAIT.STRENGTH_OF_SHADOWS
+  dawnsReposeBarrier: 'thief.specter.dawns-repose-barrier'
 });
 
 export const SPECTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
@@ -41,38 +35,5 @@ export const SPECTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     // The caster occupies one of the five barrier recipient slots.
     maximumTargets: 5,
     effects: [{ type: 'buff', name: 'barrier', kind: 'barrier', stacks: 1, duration: 5 }]
-  },
-  trait(SPECTER_BALANCE_PROFILE_IDS.amplifiedSiphoning, 'Amplified Siphoning', { resourceGain: 10 }),
-  trait(SPECTER_BALANCE_PROFILE_IDS.shadeStep, 'Shadestep', {
-    effects: [
-      { type: 'boon', name: 'alacrity', boon: 'alacrity', stacks: 1, duration: 5 },
-      { type: 'boon', name: 'protection', boon: 'protection', stacks: 1, duration: 5 },
-      { type: 'boon', name: 'aegis', boon: 'aegis', stacks: 1, duration: 4 }
-    ]
-  }),
-  trait(SPECTER_BALANCE_PROFILE_IDS.larcenousTorment, 'Larcenous Torment', {
-    resourceGain: 0.5,
-    effects: [{ type: 'strike', name: 'Larcenous Torment', flatStrikeBase: 99, flatStrikePowerCoeff: 0.005, hits: 1 }]
-  }),
-  trait(SPECTER_BALANCE_PROFILE_IDS.darkSentry, 'Dark Sentry', {
-    internalCooldown: 1,
-    effects: [
-      {
-        type: 'buff',
-        name: 'rot-wallow-venom',
-        kind: 'rot-wallow-venom',
-        stacks: 1,
-        duration: 10
-      },
-      { type: 'condition', name: 'Torment', condition: 'Torment', stacks: 1, duration: 2 }
-    ]
-  }),
-  trait(SPECTER_BALANCE_PROFILE_IDS.secondOpinion, 'Second Opinion', {
-    attributeBonus: 90,
-    attributePerStack: 90,
-    attributeConversion: 0.07
-  }),
-  trait(SPECTER_BALANCE_PROFILE_IDS.strengthOfShadows, 'Strength of Shadows', {
-    attributeConversion: 0.13
-  })
+  }
 ]);

@@ -1,6 +1,6 @@
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import { EPSILON } from '#kernel/core/clock.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Core Elementalist cast availability.
  *
@@ -9,35 +9,35 @@ import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
  * A denial without a retry timestamp rejects the rotation command outright; a
  * denial carrying one asks the scheduler to retry the same command at that time.
  */
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { denySkillCast as unavailable } from '#gw2/platform/engine/skills/availability.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import {
   AURA_TRANSMUTE_SKILLS,
   CONJURE_PICKUP_WEAPONS,
   CONJURED_WEAPONS,
   HAMMER_ORB_SKILLS
 } from '#gw2/professions/elementalist/core/constants.js';
-import {
-  ELEMENTALIST_SKILL_IDS as ID,
-  ELEMENTALIST_ATTUNEMENT_SKILL_IDS
-} from '#gw2/professions/elementalist/data/ids.js';
-import { elementalistElementalAvailability } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
 import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/index.js';
+import { activeAura, etchingChain, skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { elementalistElementalAvailability } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
 import {
   activeHammerOrbElements,
   hammerOrbMatchesAttunement
 } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
-import { activeAura, etchingChain, skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
+import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/critical-procs.js';
+import {
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
+  ELEMENTALIST_SKILL_IDS as ID
+} from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 import {
   activeSecondaryAttunement,

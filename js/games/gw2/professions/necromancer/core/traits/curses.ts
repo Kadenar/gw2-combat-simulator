@@ -1,111 +1,242 @@
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-/** Owns imperative Core Necromancer Curses trait behavior for ordered dispatcher calls. */
-import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber,
-  balanceProfileNumber,
-  procChanceFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { applyTraitCondition } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
-/** Lets player and Ritualist spirit critical hits advance Barbed Precision, while excluding minions. */
-export const necromancerBarbedPrecisionReaction = criticalProcHandler<
-  NecromancerResolverContext,
-  NecromancerResolverEvent,
-  NativeResolvedDamageDetails
->({
-  id: 'necromancer.barbed-precision',
-  actorTypes: ['player', 'summon', 'unknown'],
-  chanceOnCriticalHit: (context) => procChanceFromContext(context, PROFILE.barbedPrecision),
-  randomStream: 'necromancer.barbed-precision',
-  when: (context, event) =>
-    Number(event.coefficient) > 0 &&
-    hasTrait(context, TRAIT.BARBED_PRECISION) &&
-    (event.actorType !== 'summon' || event.summonKind === 'spirit'),
-  handler: (context, event, _details, application) => {
-    // Barbed Precision emits one condition application per threshold proc.
-    for (let proc = 0; proc < application.quantity; proc += 1) {
-      const profile = requireBalanceProfileFromContext(context, PROFILE.barbedPrecision);
-      const effect = requireEffect(profile, 'condition', 'Bleeding');
-      if (!effect) return;
-      applyTraitCondition(context, event, {
-        name: 'Barbed Precision',
-        procCount: 1,
-        traitId: TRAIT.BARBED_PRECISION,
-        condition: String(effect.condition),
-        stacks: effectNumber(profile, effect, 'stacks'),
-        duration: effectNumber(profile, effect, 'duration')
-      });
+/** Owns Barbed Precision tuning and behavior at its existing execution boundaries. */
+export const barbedPrecision = defineTrait({
+  id: TRAIT.BARBED_PRECISION,
+  name: 'Barbed Precision',
+  balance: {
+    conditionDurationMultiplier: 1.2,
+    procRate: {
+      id: 'necromancer.barbed-precision',
+      traitId: TRAIT.BARBED_PRECISION,
+      field: 'criticalChance',
+      opportunity: 'eligible critical hit'
+    },
+    criticalChance: 0.33,
+    effects: [
+      {
+        name: 'Bleeding',
+        type: 'condition',
+        condition: 'Bleeding',
+        stacks: 1,
+        duration: 3,
+        actorType: 'effect'
+      }
+    ]
+  },
+  modifierRules: [
+    {
+      order: -9,
+      id: 'necromancer.barbed-precision-duration',
+      target: MODIFIER_TARGET.CONDITION_DURATION,
+      operation: 'multiply',
+      factor: (context) =>
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.BARBED_PRECISION),
+          'conditionDurationMultiplier'
+        ),
+      when: (context) =>
+        context.condition === 'Bleeding' &&
+        hasTrait(context, TRAIT.BARBED_PRECISION) &&
+        !professionStaticRulesApplied(context.config)
     }
+  ],
+  buildAttributes: (_common, { balanceContext: profileContext }) => ({
+    traitDurations: {
+      'Bleeding Duration':
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(profileContext, TRAIT.BARBED_PRECISION),
+          'conditionDurationMultiplier'
+        ) *
+          100 -
+        100
+    }
+  })
+});
+
+/** Owns Chilling Darkness tuning and behavior at its existing execution boundaries. */
+export const chillingDarkness = defineTrait({
+  id: TRAIT.CHILLING_DARKNESS,
+  name: 'Chilling Darkness',
+  balance: {
+    cooldown: 3,
+    effects: [
+      {
+        name: 'Chilled',
+        type: 'condition',
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 2,
+        actorType: 'effect'
+      }
+    ]
   }
 });
 
-export function applyBitterChill(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (event.condition !== 'Chilled' || !hasTrait(context, TRAIT.BITTER_CHILL)) return;
-  const profile = requireBalanceProfileFromContext(context, TRAIT.BITTER_CHILL);
-  const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
-  if (!vulnerability) return;
-  context.queue.enqueue(
-    buildResolverCondition({
-      at: event.at,
-      name: 'Bitter Chill',
-      skillName: 'Bitter Chill',
-      condition: String(vulnerability.condition),
-      stacks: effectNumber(profile, vulnerability, 'stacks'),
-      duration: effectNumber(profile, vulnerability, 'duration'),
-      source: 'Trait',
-      sourceId: TRAIT.BITTER_CHILL,
-      actorType: 'effect',
-      triggeredBy: event.skillName
-    })
-  );
-  context.recordProc('trait', 'Bitter Chill', event.at, event.skillName);
-}
+/** Owns Insidious Disruption tuning and behavior at its existing execution boundaries. */
+export const insidiousDisruption = defineTrait({
+  id: TRAIT.INSIDIOUS_DISRUPTION,
+  name: 'Insidious Disruption',
+  balance: {
+    effects: [
+      {
+        name: 'Torment',
+        type: 'condition',
+        condition: 'Torment',
+        stacks: 1,
+        duration: 5,
+        actorType: 'effect'
+      }
+    ]
+  }
+});
 
-export function applyChillingDarkness(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (!hasTrait(context, TRAIT.CHILLING_DARKNESS)) return;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.chillingDarkness);
-  const effect = requireEffect(profile, 'condition', 'Chilled');
-  // Claim only after local eligibility, before conditions, resources or queued strikes; the cooldown gates only
-  // Chill, so a removed packet leaves it ready.
-  if (!effect || !context.procs.claimCooldown('chillingDarkness', event.at, balanceProfileNumber(profile, 'cooldown')))
-    return;
-  applyTraitCondition(context, event, {
-    name: 'Chilling Darkness',
-    traitId: TRAIT.CHILLING_DARKNESS,
-    condition: effect.condition || 'Chilled',
-    stacks: effect.stacks ?? 1,
-    duration: effect.duration ?? 2
-  });
-}
+/** Owns Furious Demise tuning and behavior at its existing execution boundaries. */
+export const furiousDemise = defineTrait({
+  id: TRAIT.FURIOUS_DEMISE,
+  name: 'Furious Demise',
+  balance: {
+    effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 8, packetLabel: 'on shroud entry' }],
+    attributeBonus: 180
+  },
+  buildAttributes: (_common, { balanceContext: profileContext }) => ({
+    attributeEffects: [
+      {
+        kind: 'flat',
+        source: 'Furious Demise',
+        to: 'Precision',
+        amount: balanceProfileNumber(
+          requireBalanceProfileFromContext(profileContext, TRAIT.FURIOUS_DEMISE),
+          'attributeBonus'
+        ),
+        feedsConversions: true
+      }
+    ]
+  })
+});
 
-export function applyTerror(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if ((event.controlKind !== 'fear' && event.kind !== 'fear') || !hasTrait(context, TRAIT.TERROR)) return;
-  applyTraitCondition(context, event, {
-    name: 'Terror',
-    traitId: TRAIT.TERROR,
-    condition: 'Fear',
-    duration: event.duration ?? 1
-  });
-}
+/** Owns Target the Weak tuning and behavior at its existing execution boundaries. */
+export const targetTheWeak = defineTrait({
+  id: TRAIT.TARGET_THE_WEAK,
+  name: 'Target the Weak',
+  balance: {
+    criticalChancePerCondition: 0.02,
+    attributeConversion: 0.13
+  },
+  modifierRules: [
+    {
+      order: -19,
+      id: 'necromancer.target-the-weak-critical-chance',
+      label: 'Target the Weak',
+      target: MODIFIER_TARGET.CRITICAL_CHANCE,
+      operation: 'add',
+      amount: (context) =>
+        targetConditionCount(context) *
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.TARGET_THE_WEAK),
+          'criticalChancePerCondition'
+        ),
+      when: (context) => hasTrait(context, TRAIT.TARGET_THE_WEAK)
+    }
+  ],
+  buildAttributes: (_common, { balanceContext: profileContext }) => ({
+    attributeEffects: [
+      {
+        kind: 'conversion',
+        source: 'Target the Weak',
+        from: 'Precision',
+        to: 'Condition Damage',
+        multiplier: balanceProfileNumber(
+          requireBalanceProfileFromContext(profileContext, TRAIT.TARGET_THE_WEAK),
+          'attributeConversion'
+        ),
+        rounding: 'floor',
+        input: 'eligible'
+      }
+    ]
+  })
+});
 
-export function applyInsidiousDisruption(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (!hasTrait(context, TRAIT.INSIDIOUS_DISRUPTION)) return;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.insidiousDisruption);
-  const effect = requireEffect(profile, 'condition', 'Torment');
-  if (!effect) return;
-  applyTraitCondition(context, event, {
-    name: 'Insidious Disruption',
-    traitId: TRAIT.INSIDIOUS_DISRUPTION,
-    condition: String(effect.condition),
-    stacks: effectNumber(profile, effect, 'stacks'),
-    duration: effectNumber(profile, effect, 'duration')
-  });
-}
+/** Owns Lingering Curse tuning and behavior at its existing execution boundaries. */
+export const lingeringCurse = defineTrait({
+  id: TRAIT.LINGERING_CURSE,
+  name: 'Lingering Curse',
+  balance: {
+    attributeBonus: 200,
+    durationMultiplier: 1.5
+  },
+  buildAttributes: (_common, { balanceContext: profileContext }) => ({
+    attributeEffects: [
+      {
+        kind: 'flat',
+        source: 'Lingering Curse',
+        to: 'Condition Damage',
+        amount: balanceProfileNumber(
+          requireBalanceProfileFromContext(profileContext, TRAIT.LINGERING_CURSE),
+          'attributeBonus'
+        ),
+        feedsConversions: false
+      }
+    ]
+  })
+});
+
+/** Owns Weakening Shroud tuning and behavior at its existing execution boundaries. */
+export const weakeningShroud = defineTrait({
+  id: TRAIT.WEAKENING_SHROUD,
+  name: 'Weakening Shroud',
+  balance: {
+    effects: [
+      { name: 'Strike', type: 'strike', coefficient: 1.5, hits: 1 },
+      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10 },
+      { name: 'Weakness', type: 'condition', condition: 'Weakness', stacks: 1, duration: 6 }
+    ]
+  }
+});
+
+/** Owns Master of Corruption tuning and behavior at its existing execution boundaries. */
+export const masterOfCorruption = defineTrait({
+  id: TRAIT.MASTER_OF_CORRUPTION,
+  name: 'Master of Corruption',
+  balance: { rechargeMultiplier: 0.67 },
+  rechargeRules: [
+    {
+      order: 0,
+
+      when: (_runtime, skill) => Boolean(skill.categories?.includes('Corruption')),
+      multiplier: { profile: TRAIT.MASTER_OF_CORRUPTION, field: 'rechargeMultiplier' }
+    }
+  ]
+});
+
+/** Owns Plague Sending tuning and behavior at its existing execution boundaries. */
+export const plagueSending = defineTrait({
+  id: TRAIT.PLAGUE_SENDING,
+  name: 'Plague Sending',
+  balance: { maximumConditions: 2 }
+});
+
+/** Owns Terror's ordered mechanic integration. */
+export const terror = defineTrait({ id: TRAIT.TERROR, name: 'Terror' });
+
+export const cursesTraits = [
+  barbedPrecision,
+  chillingDarkness,
+  insidiousDisruption,
+  furiousDemise,
+  targetTheWeak,
+  lingeringCurse,
+  weakeningShroud,
+  masterOfCorruption,
+  plagueSending,
+  terror
+];

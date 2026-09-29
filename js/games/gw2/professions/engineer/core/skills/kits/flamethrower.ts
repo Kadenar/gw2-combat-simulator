@@ -1,5 +1,5 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { applyAimAssistedRocket } from '#gw2/professions/engineer/core/traits/explosives.js';
+import { applyAimAssistedRocket } from '#gw2/professions/engineer/core/traits/explosions.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';

@@ -1,6 +1,5 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
 export const WARRIOR_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'warrior.core.resources',
@@ -11,35 +10,7 @@ export const WARRIOR_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   bloodthirsterTiers: 'warrior.core.bloodthirster-tiers',
   combustiveShot: 'warrior.core.combustive-shot',
   dragonsRoar: 'warrior.core.dragons-roar',
-  signetMastery: TRAIT.SIGNET_MASTERY,
-  burstPrecision: TRAIT.BURST_PRECISION,
-  burstMastery: TRAIT.BURST_MASTERY,
-  berserkersPower: TRAIT.BERSERKERS_POWER,
-  recklessDodge: TRAIT.RECKLESS_DODGE,
-  braveStride: TRAIT.BRAVE_STRIDE,
-  peakPerformance: TRAIT.PEAK_PERFORMANCE,
-  bloodlust: TRAIT.BLOODLUST,
-  furious: TRAIT.FURIOUS,
-  sunderingBurst: TRAIT.SUNDERING_BURST,
-  opportunist: TRAIT.OPPORTUNIST,
-  mercilessHammer: TRAIT.MERCILESS_HAMMER,
-  stalwartStrength: TRAIT.STALWART_STRENGTH,
-  bodyBlow: TRAIT.BODY_BLOW,
-  aggressiveOnslaught: TRAIT.AGGRESSIVE_ONSLAUGHT,
-  legSpecialist: TRAIT.LEG_SPECIALIST,
-  marchingOrders: TRAIT.MARCHING_ORDERS,
-  soldiersComfort: TRAIT.SOLDIERS_COMFORT,
-  martialCadence: TRAIT.MARTIAL_CADENCE,
-  buildingMomentum: TRAIT.BUILDING_MOMENTUM,
-  empowerAllies: TRAIT.EMPOWER_ALLIES,
-  furiousBurst: TRAIT.FURIOUS_BURST,
-  pinnacleOfStrength: TRAIT.PINNACLE_OF_STRENGTH,
-  forcefulGreatsword: TRAIT.FORCEFUL_GREATSWORD,
-  axeMastery: TRAIT.AXE_MASTERY,
-  roaringReveille: TRAIT.ROARING_REVEILLE,
-  greatFortitude: TRAIT.GREAT_FORTITUDE,
-  deepStrikes: TRAIT.DEEP_STRIKES,
-  blademaster: TRAIT.BLADEMASTER,
+
   signetPassives: 'warrior.core.signet-passives',
   signetOfFuryActive: 'warrior.core.signet-of-fury-active'
 });
@@ -114,161 +85,9 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     packetIntervalRatio: 2 / 7,
     effects: [{ name: 'Strike', type: 'strike', coefficient: 0.75, hits: 1 }]
   },
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.signetMastery, 'Signet Mastery', {
-    internalCooldown: 20,
-    maximumStacks: 5,
-    attributeBonus: 100,
-    effects: [
-      { name: 'might', type: 'boon', boon: 'might', stacks: 10, duration: 6 },
-      { name: 'signet-mastery', type: 'buff', kind: 'signet-mastery', stacks: 1, duration: 60 }
-    ]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.burstPrecision, 'Burst Precision', {
-    criticalChance: 1,
-    minimumStacks: 2,
-    maximumStacks: 4,
-    attributeBonus: 250
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.burstMastery, 'Burst Mastery', {
-    resourceGain: 0.33,
-    effects: [{ name: 'swiftness', type: 'boon', boon: 'swiftness', stacks: 1, duration: 3 }]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.berserkersPower, "Berserker's Power", {
-    // Damage, presentation, and tooltip consumers share this trait's balance values.
-    maximumStacks: 4,
-    damageIncreasePerStack: 0.0375,
-    effects: [{ name: 'berserkers-power', type: 'buff', kind: 'berserkers-power', stacks: 1, duration: 15 }]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.recklessDodge, 'Reckless Dodge', {
-    effects: [
-      { name: 'Strike', type: 'strike', coefficient: 1.5, hits: 1 },
-      { name: 'might', type: 'boon', boon: 'might', stacks: 2, duration: 5 }
-    ]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.braveStride, 'Brave Stride', {
-    resourceGain: 5,
-    effects: [{ name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 5 }]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.peakPerformance, 'Peak Performance', {
-    effects: [{ name: 'peak-performance', type: 'buff', kind: 'peak-performance', stacks: 1, duration: 6 }]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.bloodlust, 'Bloodlust', {
-    conditionDurationBonus: 0.33,
-    procRate: {
-      id: 'warrior.bloodlust',
-      traitId: TRAIT.BLOODLUST,
-      field: 'procChance',
-      opportunity: 'eligible critical hit'
-    },
-    procChance: 0.33,
-    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 }]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.furious, 'Furious', {
-    resourceGain: 1,
-    maximumStacks: 25,
-    attributeBonus: 15,
-    effects: [{ name: 'furious-surge', type: 'buff', kind: 'furious-surge', stacks: 1, duration: 10 }]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.sunderingBurst, 'Sundering Burst', {
-    internalCooldown: 5,
-    effects: [
-      { name: 'Burst', type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 },
-      { name: 'Critical burst', type: 'condition', condition: 'Vulnerability', stacks: 10, duration: 8 }
-    ]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.opportunist, 'Opportunist', {
-    internalCooldown: 1,
-    resourceGain: 5,
-    effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 3 }]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.mercilessHammer, 'Merciless Hammer', {
-    resourceGain: 7
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.stalwartStrength, 'Stalwart Strength', {
-    internalCooldown: 0.32,
-    effects: [{ name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 5 }]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.bodyBlow, 'Body Blow', {
-    effects: [
-      { name: 'Weakness', type: 'condition', condition: 'Weakness', stacks: 1, duration: 3 },
-      { name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6 }
-    ]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.aggressiveOnslaught, 'Aggressive Onslaught', {
-    internalCooldown: 0.32,
-    effects: [{ name: 'quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 3 }]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.legSpecialist, 'Leg Specialist', {
-    effects: [{ name: 'Immobilized', type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1 }]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.marchingOrders, 'Marching Orders', {
-    internalCooldown: 10,
-    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 3, duration: 15 }]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.soldiersComfort, "Soldier's Comfort", {
-    effects: [{ name: 'protection', type: 'boon', boon: 'protection', stacks: 1, duration: 4 }]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.martialCadence, 'Martial Cadence', {
-    effects: [{ name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 3 }]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.buildingMomentum, 'Building Momentum', {
-    resourceGain: 15
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.empowerAllies, 'Empower Allies', {
-    pulseInterval: 10,
-    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 5, duration: 10 }]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.furiousBurst, 'Furious Burst', {
-    criticalChance: 0.05,
-    internalCooldown: 4,
-    effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 2.5 }]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.pinnacleOfStrength, 'Pinnacle of Strength', {
-    criticalChance: 0.05,
-    attributeBonus: 10
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.forcefulGreatsword, 'Forceful Greatsword', {
-    rechargeMultiplier: 0.8,
-    attributeBonus: 120,
-    weaponAttributeBonus: 120,
-    // Critical Might has twice the proc chance while wielding a greatsword.
-    procChance: 0.5,
-    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 1, duration: 5 }]
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.axeMastery, 'Axe Mastery', {
-    attributeBonus: 120,
-    weaponAttributeBonus: 240,
-    rechargeMultiplier: 0.8,
-    resourceGain: 2
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.roaringReveille, 'Roaring Reveille', {
-    attributeBonus: 120
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.greatFortitude, 'Great Fortitude', {
-    attributeConversion: 0.1
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.deepStrikes, 'Deep Strikes', {
-    criticalChance: 0.05,
-    attributeBonus: 180
-  }),
-  trait(TRAIT.UNSUSPECTING_FOE, 'Unsuspecting Foe', {
-    criticalChance: 0.25
-  }),
-  trait(TRAIT.CULL_THE_WEAK, 'Cull the Weak', {
-    internalCooldown: 5,
-    effects: [{ name: 'Weakness', type: 'condition', condition: 'Weakness', duration: 3.5, stacks: 1 }]
-  }),
+
   // Trait tuning is shared by build calculations, combat, and tooltips.
-  trait(TRAIT.VERSATILE_POWER, 'Versatile Power', { rechargeMultiplier: 0.85 }),
-  trait(TRAIT.VERSATILE_RAGE, 'Versatile Rage', { resourceGain: 5 }),
-  trait(TRAIT.THICK_SKIN, 'Thick Skin', {
-    effects: [{ name: 'protection', type: 'boon', boon: 'protection', stacks: 1, duration: 3 }]
-  }),
-  trait(TRAIT.WOUNDING_PRECISION, 'Wounding Precision', { attributeConversion: 0.07 }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.blademaster, 'Blademaster', {
-    rechargeMultiplier: 0.8,
-    attributeBonus: 120
-  }),
+
   {
     id: WARRIOR_CORE_BALANCE_PROFILE_IDS.signetPassives,
     name: 'Warrior Signet Passives',

@@ -1,3 +1,9 @@
+import {
+  gladiatorSharedWisdom,
+  hexEaterSharedWisdom,
+  twinMoonSharedWisdom,
+  beguilingHazeSharedWisdom
+} from '#gw2/professions/revenant/specializations/conduit/traits/shared-wisdom.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/modifiers.js';
@@ -5,19 +11,9 @@ import {
   BEGUILING_HAZE_SKILL_IDS,
   TWIN_MOON_SKILL_IDS
 } from '#gw2/professions/revenant/specializations/conduit/skill-groups.js';
-/**
- * Owns Conduit entity-legend weapon and stance skill fragments.
- * Definitions own acceptance selection; registered actions retain commit and shared resource mechanics.
- */
-import { effectFirstAt } from '#gw2/platform/engine/effects/materializer.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import {
-  REVENANT_LEGEND_IDS as LEGEND,
-  REVENANT_SKILL_IDS as ID,
-  REVENANT_TRAIT_IDS as TRAIT
-} from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { impactEffects, conditionEffectTicks, strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import {
@@ -154,19 +150,7 @@ const BEGUILING_HAZE_SKILL: Partial<Skill> = {
     },
     { when: () => true, transform: selectBeguilingHaze }
   ],
-  sideEffects: [
-    {
-      on: 'castCommit',
-      when: (runtime) => hasTrait(runtime, TRAIT.SHARED_WISDOM),
-      do: {
-        type: 'emitProfile',
-        profileId: PROFILE.sharedWisdom,
-        effects: (effect) => effect.type === 'boon' && effect.name === 'beguiling-haze',
-        attribution: { source: 'revenant', sourceId: TRAIT.SHARED_WISDOM, actorType: 'player' }
-      }
-    },
-    { on: 'castCommit', do: { type: 'revenant.complete-haze' } }
-  ],
+  sideEffects: [beguilingHazeSharedWisdom, { on: 'castCommit', do: { type: 'revenant.complete-haze' } }],
   // Relic of Peitha impacts 320 ms after the strike, which lands 40 ms before either variant's cast end.
   shadowstepSkill: true,
   peithaImpactAnchor: 'castEnd',
@@ -197,28 +181,7 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
   energyCost: 25,
   affinityOnHit: true,
   // Shared Wisdom adds its live profile's Might at the first surviving base impact, independently of hitting a target.
-  effectVariants: [
-    {
-      when: (runtime) => hasTrait(runtime, TRAIT.SHARED_WISDOM),
-      profileId: PROFILE.sharedWisdom,
-      transform: (_runtime, cast, effects) => {
-        const first = cast.skill.effects?.find((effect) => !effect.metadata?.legendId);
-        const impact = first ? effectFirstAt(cast.start, cast.fullEnd, first) : cast.fullEnd;
-        return [
-          ...(cast.skill.effects ?? []),
-          ...effects
-            .filter((effect) => effect.type === 'boon' && effect.name === 'twin-moon-sweep')
-            .map((effect) => ({
-              ...effect,
-              name: 'Shared Wisdom — Might',
-              atMs: (effectFirstAt(impact, impact, effect) - cast.start) * 1000,
-              timingAnchor: 'castStart' as const,
-              timingScale: 'fixed' as const
-            }))
-        ];
-      }
-    }
-  ],
+  effectVariants: [twinMoonSharedWisdom],
   comboFinishers: [
     {
       ownerId: 'revenant',
@@ -317,16 +280,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         on: 'castCommit',
         do: { type: 'revenant.hex-eater-cleanse' }
       },
-      {
-        on: 'castCommit',
-        when: (runtime) => hasTrait(runtime, TRAIT.SHARED_WISDOM),
-        do: {
-          type: 'emitProfile',
-          profileId: PROFILE.sharedWisdom,
-          effects: (effect) => effect.type === 'boon' && effect.name === 'hex-eater-vortex',
-          attribution: { source: 'revenant', sourceId: ID.HEX_EATER_VORTEX, actorType: 'player' }
-        }
-      }
+      hexEaterSharedWisdom
     ],
     // Keep each projectile's strike and Torment on the same fixed impact tick.
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -362,18 +316,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     cooldown: 5,
     energyCost: 10,
     // Shared Wisdom grants only this skill's Stability on a successful cast, using the live trait profile.
-    sideEffects: [
-      {
-        on: 'castCommit',
-        when: (runtime) => hasTrait(runtime, TRAIT.SHARED_WISDOM),
-        do: {
-          type: 'emitProfile',
-          profileId: PROFILE.sharedWisdom,
-          effects: (effect) => effect.type === 'boon' && effect.name === 'gladiators-defense',
-          attribution: { source: 'revenant', sourceId: ID.GLADIATORS_DEFENSE, actorType: 'player' }
-        }
-      }
-    ],
+    sideEffects: [gladiatorSharedWisdom],
     // Explicit impact timing lets the ordinary scheduler retain the packets when the animation is cancelled.
     effects: impactEffects({ atMs: 40, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {

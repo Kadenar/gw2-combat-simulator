@@ -1,22 +1,23 @@
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { canonicalTime } from '#kernel/core/clock.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/behavior.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
-import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/index.js';
-import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { cloudburstBlusterReset } from '#gw2/professions/ranger/specializations/galeshot/traits/behavior.js';
+import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+
 /** Explicit PvE skill mechanics owned by the Galeshot Ranger module. */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Cyclone Bow entry and exit are state-selected variants of one F5 UI tile.
 const CYCLONE_BOW_PALETTE_TILE = 'galeshot-cyclone-bow';
@@ -241,11 +242,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       // Pay for accepted attempts; the guarded gain retains its precommit task deadline.
       { on: 'castStart', do: { type: 'ranger.arrow-spend' } },
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.wind-force-start' } },
-      {
-        on: 'castCommit',
-        when: (runtime, cast) => Boolean(cast.skill.cycloneBowSkill) && hasTrait(runtime, TRAIT.CLOUDBURST),
-        do: { type: 'rechargeReset', skillIds: [ID.BLUSTER] }
-      }
+      cloudburstBlusterReset
     ],
     effects: [
       {
@@ -298,11 +295,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       // Pay for accepted attempts; the guarded gain retains its precommit task deadline.
       { on: 'castStart', do: { type: 'ranger.arrow-spend' } },
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.wind-force-start' } },
-      {
-        on: 'castCommit',
-        when: (runtime, cast) => Boolean(cast.skill.cycloneBowSkill) && hasTrait(runtime, TRAIT.CLOUDBURST),
-        do: { type: 'rechargeReset', skillIds: [ID.BLUSTER] }
-      }
+      cloudburstBlusterReset
     ],
     effects: [
       {

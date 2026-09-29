@@ -1,20 +1,11 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 export const SOULBEAST_BALANCE_PROFILE_IDS = Object.freeze({
   oneWolfPack: 'ranger.soulbeast.one-wolf-pack',
   vultureStance: 'ranger.soulbeast.vulture-stance',
   wintersBite: 'ranger.soulbeast.winters-bite',
-  unstoppableUnion: TRAIT.UNSTOPPABLE_UNION,
-  leaderOfThePack: TRAIT.LEADER_OF_THE_PACK,
-  liveFast: TRAIT.LIVE_FAST,
-  wiltingStrike: TRAIT.WILTING_STRIKE,
-  goForTheEyes: TRAIT.GO_FOR_THE_EYES,
-  twiceAsVicious: TRAIT.TWICE_AS_VICIOUS,
-  bestialRage: TRAIT.BESTIAL_RAGE,
-  predatorsCunning: TRAIT.PREDATORS_CUNNING,
-  essenceOfSpeed: TRAIT.ESSENCE_OF_SPEED,
+
   stoutArchetype: 'ranger.soulbeast.archetype.stout',
   deadlyArchetype: 'ranger.soulbeast.archetype.deadly',
   versatileArchetype: 'ranger.soulbeast.archetype.versatile',
@@ -60,53 +51,6 @@ export const SOULBEAST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     profileKind: 'skill-variant',
     effects: [{ name: 'Weakness', type: 'condition', condition: 'Weakness', duration: 10, stacks: 1 }]
   },
-  trait(SOULBEAST_BALANCE_PROFILE_IDS.unstoppableUnion, 'Unstoppable Union', {
-    effects: [{ name: 'protection', type: 'boon', boon: 'protection', duration: 2.5, stacks: 1 }]
-  }),
-  trait(SOULBEAST_BALANCE_PROFILE_IDS.leaderOfThePack, 'Leader of the Pack', {
-    durationMultiplier: 1.2
-  }),
-  trait(SOULBEAST_BALANCE_PROFILE_IDS.liveFast, 'Live Fast', {
-    effects: [
-      { name: 'fury', type: 'boon', boon: 'fury', duration: 6, stacks: 1 },
-      { name: 'quickness', type: 'boon', boon: 'quickness', duration: 3, stacks: 1 }
-    ]
-  }),
-  trait(SOULBEAST_BALANCE_PROFILE_IDS.wiltingStrike, 'Wilting Strike', {
-    effects: [{ name: 'Weakness', type: 'condition', condition: 'Weakness', duration: 4, stacks: 1 }]
-  }),
-  trait(SOULBEAST_BALANCE_PROFILE_IDS.goForTheEyes, 'Go for the Eyes', {
-    internalCooldown: 12,
-    effects: [{ name: 'Blind', type: 'blind', duration: 5 }]
-  }),
-  trait(SOULBEAST_BALANCE_PROFILE_IDS.twiceAsVicious, 'Twice as Vicious', {
-    effects: [
-      {
-        name: 'twice-as-vicious',
-        type: 'buff',
-        kind: 'twice-as-vicious',
-        duration: 10,
-        stacks: 1
-      }
-    ]
-  }),
-  trait(SOULBEAST_BALANCE_PROFILE_IDS.bestialRage, 'Bestial Rage', {
-    internalCooldown: 0.25,
-    effects: [
-      { name: 'might', type: 'boon', boon: 'might', duration: 8, stacks: 5 },
-      { name: 'fury', type: 'boon', boon: 'fury', duration: 3, stacks: 1 }
-    ]
-  }),
-  trait(SOULBEAST_BALANCE_PROFILE_IDS.predatorsCunning, "Predator's Cunning", {
-    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.006, hits: 1, canCrit: false }]
-  }),
-  trait(TRAIT.OPPRESSIVE_SUPERIORITY, 'Oppressive Superiority', {
-    conditionDurationBonus: 0.1
-  }),
-  trait(SOULBEAST_BALANCE_PROFILE_IDS.essenceOfSpeed, 'Essence of Speed', {
-    internalCooldown: 5,
-    durationMultiplier: 2
-  }),
   archetype(SOULBEAST_BALANCE_PROFILE_IDS.stoutArchetype, 'Stout', {
     attributeBonus: 200,
     weaponAttributeBonus: 100

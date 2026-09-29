@@ -1,7 +1,7 @@
-import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import type { RuntimeProfession, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
+import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 /**
  * Routes Core Elementalist casts to the skill families and persistent mechanics that own their behavior.
  * Catalog fragments remain in `skills/`; cross-cast state lives in `mechanics/`.
@@ -17,32 +17,29 @@ import {
 import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 
 import {
-  beginElementalistSpearCast,
-  completeElementalistSpearProgression,
-  openElementalistEtching,
-  consumeElementalistEtching
-} from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
-import { shareAttunementVariantRecharge } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
-import { replaceFulgor } from '#gw2/professions/elementalist/core/mechanics/fulgor.js';
-import {
-  applyElementalistAura,
-  applyGenericPostCast,
-  triggerEvasiveArcana
-} from '#gw2/professions/elementalist/core/traits/index.js';
-import type { ElementalistRuntime, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
-import {
-  equipConjure,
+  captureConjurePickup,
   dropConjure,
-  pickUpConjure,
-  captureConjurePickup
+  equipConjure,
+  pickUpConjure
 } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import {
-  ensureElementalistElemental,
   completeElementalistElementalCommand,
-  completeElementalistGlyphCast
+  completeElementalistGlyphCast,
+  ensureElementalistElemental
 } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
-import { createHammerOrbs, consumeHammerOrbs } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
+import { replaceFulgor } from '#gw2/professions/elementalist/core/mechanics/fulgor.js';
+import { consumeHammerOrbs, createHammerOrbs } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { elementalistPistolSideEffects } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
+import {
+  beginElementalistSpearCast,
+  completeElementalistSpearProgression,
+  consumeElementalistEtching,
+  openElementalistEtching
+} from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
+import { shareAttunementVariantRecharge } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
+import { triggerEvasiveArcana } from '#gw2/professions/elementalist/core/traits/behavior.js';
+import { applyElementalistAura, applyGenericPostCast } from '#gw2/professions/elementalist/core/traits/dispatch.js';
+import type { ElementalistRuntime, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 
 // Skill data encodes a granted aura as "Element|seconds"; malformed or
 // zero-length values grant nothing.

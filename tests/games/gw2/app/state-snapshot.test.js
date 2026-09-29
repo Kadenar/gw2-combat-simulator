@@ -1,14 +1,14 @@
+import { criticalChanceTooltip, rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { criticalChanceTooltip, rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { CATALYST_BALANCE_PROFILE_IDS as CATALYST_PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { runThief } from '#tests/helpers/thief-simulation.js';
 
 // Template rendering needs the selected catalog both before simulation and when replaying aura stacks.
 test('Catalyst snapshots use the active balance catalog before and after simulation', () => {
@@ -17,7 +17,7 @@ test('Catalyst snapshots use the active balance catalog before and after simulat
     label: 'Snapshot test',
     professions: {
       elementalist: {
-        balanceProfiles: { [CATALYST_PROFILE.empoweringAuras]: { fields: { maximumStacks: 2 } } }
+        balanceProfiles: { [TRAIT.EMPOWERING_AURAS]: { fields: { maximumStacks: 2 } } }
       }
     }
   });

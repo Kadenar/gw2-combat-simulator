@@ -1,18 +1,23 @@
-import { projectBladeswornPlanningState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
+import { cartridgeModifiers } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
+import { bladeswornHooks } from '#gw2/professions/warrior/specializations/bladesworn/hooks.js';
+import { modifyAttributes } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
+import { bladeswornUi } from '#gw2/professions/warrior/specializations/bladesworn/presentation.js';
+import { BLADESWORN_BALANCE_PROFILES } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import {
   BLADESWORN_SHARP_AS_THE_WIND_SKILLS,
   BLADESWORN_SKILL_MECHANICS
 } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
-import { bladeswornModifiers } from '#gw2/professions/warrior/specializations/bladesworn/modifiers.js';
-import { bladeswornHooks } from '#gw2/professions/warrior/specializations/bladesworn/hooks.js';
-import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import { bladeswornUi } from '#gw2/professions/warrior/specializations/bladesworn/presentation.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { BLADESWORN_BALANCE_PROFILES } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
+import {
+  bladeswornState,
+  projectBladeswornPlanningState
+} from '#gw2/professions/warrior/specializations/bladesworn/state.js';
+import { warriorBladeswornTraits } from '#gw2/professions/warrior/specializations/bladesworn/traits/index.js';
 
 export const bladeswornModule = defineNativeModule({
+  traitDefinitions: warriorBladeswornTraits,
   id: 'Bladesworn',
   data: createWarriorModuleData('Bladesworn', {
     skillMechanics: BLADESWORN_SKILL_MECHANICS,
@@ -29,7 +34,8 @@ export const bladeswornModule = defineNativeModule({
     create: bladeswornState.create,
     project: projectBladeswornPlanningState
   },
-  modifiers: bladeswornModifiers,
+  // Preserve live trait attributes alongside granted cartridge damage.
+  modifiers: { modifyAttributes, modifierRules: cartridgeModifiers },
   hooks: bladeswornHooks,
   presentation: bladeswornUi
 });

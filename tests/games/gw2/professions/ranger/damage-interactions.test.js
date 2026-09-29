@@ -1,7 +1,7 @@
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { rangerCoreModifierRules } from '#gw2/professions/ranger/core/modifiers.js';
+import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
@@ -105,8 +105,12 @@ test('Ranger condition-count bonuses use canonical active conditions and query p
     [{ config, runtime, query: { targetHasCondition: () => false } }, 0],
     [{ query: { targetHasCondition: (condition) => condition === 'Bleeding' } }, 1]
   ];
-  const bonus = rangerCoreModifierRules.find((rule) => rule.id === 'ranger.condition-count-skill-bonus');
-  const bite = rangerCoreModifierRules.find((rule) => rule.id === 'ranger.consuming-bite-condition-count');
+  const bonus = rangerCoreModule.modifiers.modifierRules.find(
+    (rule) => rule.id === 'ranger.condition-count-skill-bonus'
+  );
+  const bite = rangerCoreModule.modifiers.modifierRules.find(
+    (rule) => rule.id === 'ranger.consuming-bite-condition-count'
+  );
   for (const [inputs, count] of cases) {
     const context = { time: 5, ...inputs };
     const strike = { ...context, event: { damageKind: 'ranger-unleashed-disabled-condition-count' } };
@@ -123,8 +127,12 @@ test('Ranger condition bonuses retain the Consuming Bite cap and coefficient gua
   const config = {
     target: { conditions: { burn: true, bleed: true, poison: true, chill: true, slow: true, weakness: true } }
   };
-  const bonus = rangerCoreModifierRules.find((rule) => rule.id === 'ranger.condition-count-skill-bonus');
-  const bite = rangerCoreModifierRules.find((rule) => rule.id === 'ranger.consuming-bite-condition-count');
+  const bonus = rangerCoreModule.modifiers.modifierRules.find(
+    (rule) => rule.id === 'ranger.condition-count-skill-bonus'
+  );
+  const bite = rangerCoreModule.modifiers.modifierRules.find(
+    (rule) => rule.id === 'ranger.consuming-bite-condition-count'
+  );
   const context = { config, time: 5, event: { skillId: ID.CONSUMING_BITE, coefficient: 0.45 } };
   assert.equal(bonus.factor(context, bonus.target, bonus.parameters), 1.12);
   assert.equal(bite.factor(context, bite.target, bite.parameters), (0.45 + 0.125) / 0.45);

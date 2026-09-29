@@ -1,26 +1,26 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createProcRegistry } from '#gw2/platform/combat/procs.js';
-import { StableEventQueue } from '#kernel/events/queue.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
-import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { buildChartSeries } from '#gw2/app/results/model.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
+import { buildChartSeries } from '#gw2/app/results/model.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
-import { thiefCatalog } from '#gw2/professions/thief/profession.js';
-import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
-import { reactThiefCoreCondition, reactThiefCoreDamage } from '#gw2/professions/thief/core/traits/index.js';
+import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import {
   noQuarterCriticalReaction,
   unrelentingStrikesCriticalReaction
-} from '#gw2/professions/thief/core/traits/critical-strikes.js';
+} from '#gw2/professions/thief/core/traits/critical-boons.js';
+import { reactThiefCoreCondition, reactThiefCoreDamage } from '#gw2/professions/thief/core/traits/dispatch.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { thiefCatalog } from '#gw2/professions/thief/profession.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 
@@ -63,7 +63,7 @@ function internalCooldownClaims(traitId, action, duration, catalog) {
     [wait(1000), action, wait(duration * 1000), action, wait(1), action, wait(1)],
     { selectedTraitIds: traitId == null ? [] : [traitId], initialEndurance: 100 },
     {
-      catalog: (live) => withProfile(catalog(live), traitId ?? CORE.upperHand, { internalCooldown: duration }),
+      catalog: (live) => withProfile(catalog(live), traitId ?? TRAIT.UPPER_HAND, { internalCooldown: duration }),
       initialize(runtime) {
         runtime.procs.readyAt.unrelated = 99;
       },

@@ -1,32 +1,29 @@
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { elementalEnchantmentRecharge } from '#gw2/professions/elementalist/core/traits/behavior.js';
 /**
  * Owns Core Elementalist attunement selection, recharge, and cast-completion transitions.
  * Specializations may intercept the shared hooks but keep their extra state locally.
  */
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import {
-  ELEMENTALIST_ATTUNEMENTS,
-  setElementalistAttunementReadyAt,
-  type ElementalistAttunement
-} from '#gw2/professions/elementalist/core/state.js';
-import {
-  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
-  ELEMENTALIST_TRAIT_IDS as TRAIT
-} from '#gw2/professions/elementalist/data/ids.js';
 import { combatStarted } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { applyElementalistAttunementTraits } from '#gw2/professions/elementalist/core/traits/index.js';
 import {
   inFlightAutoattackCarryover,
   progressedAutoattackCarryover
 } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+import {
+  ELEMENTALIST_ATTUNEMENTS,
+  setElementalistAttunementReadyAt,
+  type ElementalistAttunement
+} from '#gw2/professions/elementalist/core/state.js';
+import { applyElementalistAttunementTraits } from '#gw2/professions/elementalist/core/traits/dispatch.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Identifies one shared attunement-entry trait effect so a specialization can veto it. */
 export interface ElementalistAttunementTraitTrigger {
@@ -55,21 +52,11 @@ export function targetAttunement(skill: Skill): ElementalistAttunement | null {
 export function elementalistAttunementRechargeDuration(
   context: ElementalistRuntime,
   skill: Skill,
-  seconds: number
+  seconds: number,
+  flatReduction = 0
 ): number {
   if (!context.combatActive) return 0;
-  let adjusted = seconds;
-  // Trait reductions also apply when Weaver supplies Weave Self's shorter base recharge.
-  if (hasTrait(context, TRAIT.ELEMENTAL_ENCHANTMENT)) {
-    const elementalEnchantmentProfile = requireBalanceProfileFromContext(context, PROFILE.elementalEnchantment);
-    adjusted *= balanceProfileNumber(elementalEnchantmentProfile, 'rechargeMultiplier');
-  }
-
-  if (hasTrait(context, TRAIT.FLOW_STATE)) {
-    const flowStateProfile = requireBalanceProfileFromContext(context, TRAIT.FLOW_STATE);
-    adjusted = Math.max(0, adjusted - balanceProfileNumber(flowStateProfile, 'rechargeReduction'));
-  }
-
+  const adjusted = Math.max(0, elementalEnchantmentRecharge(context, seconds) - flatReduction);
   return adjusted / context.cooldownController.rate(skill);
 }
 

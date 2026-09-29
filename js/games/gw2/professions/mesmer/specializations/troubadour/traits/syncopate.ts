@@ -1,25 +1,14 @@
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-/** Owns Syncopate's balance values, disable procs, and delayed Drum wave. */
-import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTraitProfile } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-
-export const SYNCOPATE_PROFILE = defineTraitProfile(TRAIT.SYNCOPATE, 'Syncopate', {
-  initialDelay: 3,
-  effects: [
-    { type: 'strike', name: 'Immediate wave', coefficient: 0.75, hits: 1 },
-    { type: 'strike', name: 'Delayed wave', coefficient: 1, hits: 1 },
-    { type: 'control', name: 'Delayed daze', controlKind: 'daze' }
-  ]
-});
+import type { MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Resolves Syncopate from accepted Troubadour control events. */
 export function observeSyncopateEvent(context: MesmerRuntime, event: SimulationEvent): void {
@@ -70,10 +59,12 @@ export function triggerMethodOfMadnessSyncopate(context: MesmerRuntime): void {
 export function scheduleSyncopateDrumWave(
   context: MesmerRuntime,
   skill: MesmerSkill,
+  instrument: MesmerInstrument,
   damageAt: number,
   source: string,
   actorType: 'player' | 'summon'
 ): void {
+  if (instrument.instrument !== 'Drum') return;
   const runtime = mesmerMechanicsFor(context);
   if (!hasTrait(context, TRAIT.SYNCOPATE)) return;
   const syncopateProfile = requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE);
@@ -123,4 +114,9 @@ export function scheduleSyncopateDrumWave(
       actorType
     });
   runtime.addTraitProc('Syncopate', delayedAt, skill.name, 'delayed drum wave');
+}
+
+/** Install the accepted-heal consequence after the Troubadour runtime has installed its instrument manifest. */
+export function initializeSyncopate(runtime: MesmerRuntime): void {
+  mesmerMechanicsFor(runtime).methodOfMadnessCommitted = (at) => runtime.schedule('mesmer.syncopate', at);
 }

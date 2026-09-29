@@ -1,22 +1,19 @@
-import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
-import type { EngineerModifierContext } from '#gw2/professions/engineer/types.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   activeBoonStacks,
   activeEngineerSpecializationState
 } from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { evolveAttributeFactor } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
+import type { EngineerModifierContext } from '#gw2/professions/engineer/types.js';
 
-import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
+import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 
 // Evolved adds 10% of its eligible stat pool, or 20% with Double Helix.
 // Derived armor/crit fields update from toughness, ferocity, and precision.
@@ -33,30 +30,11 @@ const EVOLVE_ATTRIBUTES = Object.freeze([
 ] as const);
 
 /** Limits Morph-only modifiers to eligible player strike packets from Morph skills. */
-function morphStrike(context: EngineerModifierContext): boolean {
-  return Boolean(isGw2PlayerModifierOwnedEvent(context.event) && eventSkill(context)?.categories?.includes('Morph'));
-}
 
 /** Defines Amalgam's event-level strike, condition, and duration modifiers. */
 export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
-    id: 'engineer.willing-host',
-    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
-    operation: 'damage-additive',
-    amount: 0.05,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      hasTrait(context, TRAIT.WILLING_HOST) &&
-      activeEngineerSpecializationState(context, 'Amalgam', 'willingHostUntil')
-  },
-  {
-    id: 'engineer.symbiotic-synergy',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    amount: 0.33,
-    when: (context) => hasTrait(context, TRAIT.SYMBIOTIC_SYNERGY) && morphStrike(context)
-  },
-  {
+    order: 1,
     id: 'engineer.plasmatic-state',
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: 'damage-additive',
@@ -64,21 +42,6 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       activeEngineerSpecializationState(context, 'Amalgam', 'plasmaticStateUntil')
-  },
-  {
-    id: 'engineer.carbolic-composition-duration',
-    target: MODIFIER_TARGET.CONDITION_DURATION,
-    operation: 'add',
-    amount: (context) =>
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(context, TRAIT.CARBOLIC_COMPOSITION),
-        'conditionDurationBonus'
-      ),
-    // Panel-derived simulation stats already contain this static bonus; provenance keeps direct simulations compatible.
-    when: (context) =>
-      context.condition === 'Poisoned' &&
-      hasTrait(context, TRAIT.CARBOLIC_COMPOSITION) &&
-      !professionStaticRulesApplied(context.config)
   }
 ]);
 
@@ -86,10 +49,7 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 function modifyAmalgamAttributes(context: EngineerModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   const modified = { ...attributes };
   if (activeEngineerSpecializationState(context, 'Amalgam', 'evolvedUntil')) {
-    const evolveProfile = requireBalanceProfileFromContext(context, PROFILE.evolve);
-    const evolveFactor = hasTrait(context, TRAIT.DOUBLE_HELIX)
-      ? balanceProfileNumber(evolveProfile, 'coefficientMultiplier')
-      : balanceProfileNumber(evolveProfile, 'damageMultiplier');
+    const evolveFactor = evolveAttributeFactor(context);
     const pool = context.config?.amalgamEvolveAttributePool;
     for (const [attribute, poolAttribute] of EVOLVE_ATTRIBUTES) {
       const eligible = pool?.[poolAttribute] ?? modified[attribute];

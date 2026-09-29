@@ -804,6 +804,7 @@ export function markedTarget(context: Gw2ModifierContext): boolean {
 /** Intrinsic damage rules retain live mark eligibility and additive malice composition. */
 export const deadeyeSkillModifiers: readonly Gw2ModifierRule[] = [
   {
+    order: 200,
     id: 'thief.shadow-flare-marked',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
@@ -814,6 +815,7 @@ export const deadeyeSkillModifiers: readonly Gw2ModifierRule[] = [
       SHADOW_FLARE_SKILL_IDS.has(Number(eventSkill(context)?.id))
   },
   {
+    order: 201,
     id: 'thief.malicious-backstab-position',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
@@ -825,6 +827,7 @@ export const deadeyeSkillModifiers: readonly Gw2ModifierRule[] = [
       Boolean(context.config?.target?.defiant)
   },
   {
+    order: 202,
     id: 'thief.malicious-stealth-attack',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',

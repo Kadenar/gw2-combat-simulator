@@ -1,66 +1,109 @@
-import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
-const VENOM_SKILL_IDS = new Set<number>([ID.SPIDER_VENOM, ID.SKALE_VENOM, ID.DEVOURER_VENOM]);
+/** Owns Cloaked in Shadow tuning and behavior at the existing execution boundaries. */
+export const cloakedInShadow = defineTrait({
+  id: TRAIT.CLOAKED_IN_SHADOW,
+  name: 'Cloaked in Shadow',
+  balance: {
+    effects: [
+      {
+        type: 'strike',
+        name: 'Cloaked in Shadow',
+        coefficient: 0.04,
+        hits: 1,
+        canCrit: false,
+        damageKind: 'life-steal'
+      }
+    ]
+  },
+  triggers: [
+    {
+      emit: TRAIT.CLOAKED_IN_SHADOW,
+      on: 'condition.applied',
+      when: (_runtime, event) => event.condition === 'Blindness',
+      effects: (effect) => effect.type === 'strike' && effect.name === 'Cloaked in Shadow',
+      attribution: (_runtime, event) => ({
+        skillId: TRAIT.CLOAKED_IN_SHADOW,
+        skillName: 'Cloaked in Shadow',
+        triggeredBy: event.skillName
+      })
+    }
+  ]
+});
 
-function enqueueSiphon(
-  context: ThiefResolverContext,
-  event: ThiefResolverEvent,
-  sourceId: SkillId,
-  name: string,
-  coefficient: number,
-  flatStrikeBase?: number
-): void {
-  context.queue.enqueue(
-    buildResolverStrike({
-      at: event.at,
-      source: 'Trait',
-      sourceId,
-      actorType: 'effect',
-      skillId: sourceId,
-      skillName: name,
-      coefficient,
-      // Flat life stealing bypasses armor, weapon strength, critical hits, and ordinary strike multipliers.
-      ...(flatStrikeBase == null ? {} : { flatStrikeBase, flatStrikePowerCoeff: coefficient }),
+/** Owns Hidden Thief tuning and behavior at the existing execution boundaries. */
+export const hiddenThief = defineTrait({
+  id: TRAIT.HIDDEN_THIEF,
+  name: 'Hidden Thief',
+  balance: {
+    internalCooldown: 2,
+    effects: [
+      { type: 'condition', name: 'Blindness', condition: 'Blindness', stacks: 1, duration: 3 },
+      { type: 'condition', name: 'Weakness', condition: 'Weakness', stacks: 1, duration: 3 }
+    ]
+  }
+});
 
-      canCrit: false,
-      damageKind: 'life-steal',
-      triggeredBy: event.skillName
-    })
-  );
-}
+/** Owns Leeching Venoms tuning and behavior at the existing execution boundaries. */
+export const leechingVenoms = defineTrait({
+  id: TRAIT.LEECHING_VENOMS,
+  name: 'Leeching Venoms',
+  balance: {
+    maximumStacks: 6,
+    resourceGain: 3,
+    durationMultiplier: 24,
+    // Leeching Venoms owns a flat life-steal formula, independent of weapon damage.
+    effects: [{ type: 'strike', name: 'Leeching Venoms', flatStrikeBase: 320, flatStrikePowerCoeff: 0.033, hits: 1 }]
+  }
+});
 
-export function applyLeechingVenoms(context: ThiefResolverContext, event: ThiefResolverEvent): void {
-  if (!hasTrait(context.config, TRAIT.LEECHING_VENOMS)) return;
-  const leechingVenomsProfile = requireBalanceProfileFromContext(context, PROFILE.leechingVenoms);
-  const strike = requireEffect(leechingVenomsProfile, 'strike', 'Leeching Venoms');
-  // Explicit removal suppresses this packet without restoring baseline tuning.
-  if (!strike) return;
-  enqueueSiphon(
-    context,
-    event,
-    TRAIT.LEECHING_VENOMS,
-    'Leeching Venoms',
-    effectNumber(leechingVenomsProfile, strike, 'flatStrikePowerCoeff'),
-    effectNumber(leechingVenomsProfile, strike, 'flatStrikeBase')
-  );
-}
+/** Owns Shadow Siphoning tuning and behavior at the existing execution boundaries. */
+export const shadowSiphoning = defineTrait({
+  id: TRAIT.SHADOW_SIPHONING,
+  name: 'Shadow Siphoning',
+  balance: {
+    internalCooldown: 1,
+    effects: [
+      {
+        type: 'strike',
+        name: 'Shadow Siphoning',
+        coefficient: 0.1,
+        hits: 1,
+        canCrit: false,
+        damageKind: 'life-steal'
+      }
+    ]
+  },
+  triggers: [
+    {
+      emit: TRAIT.SHADOW_SIPHONING,
+      on: 'damage.resolved',
+      icd: 'profile',
+      when: (runtime, event) =>
+        event.actorType === 'player' &&
+        Number(event.coefficient) > 0 &&
+        Boolean(
+          (runtime.helpers.skillsById.get(event.skillId!) || runtime.helpers.skillsByName.get(event.skillName!))
+            ?.stealthAttack
+        ) &&
+        Boolean(
+          requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.SHADOW_SIPHONING), 'strike', 'Shadow Siphoning')
+        ),
+      effects: (effect) => effect.type === 'strike' && effect.name === 'Shadow Siphoning',
+      attribution: (_runtime, event) => ({
+        skillId: TRAIT.SHADOW_SIPHONING,
+        skillName: 'Shadow Siphoning',
+        triggeredBy: event.skillName
+      })
+    }
+  ]
+});
 
-export function applyAlliedLeechingVenoms(context: ThiefResolverContext, application: ThiefResolverEvent): void {
-  if (
-    !application.metadata?.triggeredByAlly ||
-    !VENOM_SKILL_IDS.has(Number(application.skillId)) ||
-    (application.metadata.venomProcEffectIndex || 0) !== 0
-  )
-    return;
-  applyLeechingVenoms(context, application);
-}
+/** Owns Shadow's Rejuvenation tuning and behavior at the existing execution boundaries. */
+export const shadowsRejuvenation = defineTrait({
+  id: TRAIT.SHADOWS_REJUVENATION,
+  name: "Shadow's Rejuvenation",
+  balance: { resourceGain: 1 }
+});

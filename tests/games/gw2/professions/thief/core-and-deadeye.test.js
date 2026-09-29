@@ -1,3 +1,5 @@
+import { daredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';
+import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
@@ -13,11 +15,10 @@ import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession
 import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
 import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/professions/thief/data/thief-supplemental-skills.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { thiefCoreModifierRules } from '#gw2/professions/thief/core/modifiers.js';
+
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
-import { daredevilModifiers } from '#gw2/professions/thief/specializations/daredevil/modifiers.js';
+
 import { THIEF_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/core/profiles.js';
-import { DAREDEVIL_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
 import { deadeyeUi } from '#gw2/professions/thief/specializations/deadeye/presentation.js';
@@ -159,7 +160,7 @@ test('Endurance Thief is Daredevil-owned and grants its patched endurance with C
             active
               ? applyBalanceProfilePatch(catalog, {
                   balanceProfiles: {
-                    [DAREDEVIL_BALANCE_PROFILE_IDS.enduranceThief]: { fields: { resourceGain: { from: 50, to: 37 } } }
+                    [TRAIT.ENDURANCE_THIEF]: { fields: { resourceGain: { from: 50, to: 37 } } }
                   }
                 })
               : catalog
@@ -295,7 +296,7 @@ test('Thief modules expose isolated balance-profile authoring', () => {
       [THIEF_CORE_BALANCE_PROFILE_IDS.resources]: {
         fields: { maximumStacks: 13 }
       },
-      [DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining]: {
+      [TRAIT.LOTUS_TRAINING]: {
         effects: [{ effectIndex: 0, tickIndex: 'all', coefficient: 0.2 }]
       },
       [DEADEYE_BALANCE_PROFILE_IDS.resources]: {
@@ -313,10 +314,8 @@ test('Thief modules expose isolated balance-profile authoring', () => {
   assert.ok(preview.skillsById.get(ID.CALTROPS).effects[0].ticks.every((tick) => tick.duration === 12));
   assert.equal(preview.balanceProfilesById.get(THIEF_CORE_BALANCE_PROFILE_IDS.resources).maximumStacks, 13);
   assert.deepEqual(
-    preview.balanceProfilesById
-      .get(DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining)
-      .effects[0].ticks.map((tick) => tick.coefficient),
-    thiefCatalog.balanceProfilesById.get(DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining).effects[0].ticks.map(() => 0.2)
+    preview.balanceProfilesById.get(TRAIT.LOTUS_TRAINING).effects[0].ticks.map((tick) => tick.coefficient),
+    thiefCatalog.balanceProfilesById.get(TRAIT.LOTUS_TRAINING).effects[0].ticks.map(() => 0.2)
   );
   assert.equal(preview.balanceProfilesById.get(DEADEYE_BALANCE_PROFILE_IDS.resources).maximumStacks, 6);
   assert.equal(preview.balanceProfilesById.get(SPECTER_BALANCE_PROFILE_IDS.resources).resourceGain, 1.25);
@@ -1267,7 +1266,9 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
 });
 
 test('Thief modifiers follow stable skill and packet IDs after display labels change', () => {
-  const vampiric = thiefCoreModifierRules.find((rule) => rule.id === 'thief.vampiric-slash-vulnerable');
+  const vampiric = thiefCoreModule.modifiers.modifierRules.find(
+    (rule) => rule.id === 'thief.vampiric-slash-vulnerable'
+  );
   assert.equal(
     vampiric.when({
       event: {
@@ -1337,8 +1338,8 @@ test('Daredevil follow-ups, delayed impacts, and endurance traits resolve', () =
     Math.abs(withSteal.planningState.profession.endurance - withoutSteal.planningState.profession.endurance - 50) < 1e-9
   );
 
-  const havoc = daredevilModifiers.find((rule) => rule.id === 'thief.havoc-specialist');
-  const weakening = daredevilModifiers.find((rule) => rule.id === 'thief.weakening-strikes');
+  const havoc = daredevilModule.modifiers.modifierRules.find((rule) => rule.id === 'thief.havoc-specialist');
+  const weakening = daredevilModule.modifiers.modifierRules.find((rule) => rule.id === 'thief.weakening-strikes');
 
   assert.equal(havoc.operation, 'multiply');
   assert.equal(havoc.factor, 1.15);

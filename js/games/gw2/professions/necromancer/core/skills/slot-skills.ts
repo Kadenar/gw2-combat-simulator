@@ -1,26 +1,33 @@
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasSelectedSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { hasSelectedSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
-import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
-  requireBalanceProfileFromContext,
   balanceProfileNumber,
   effectNumber,
+  requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { isCorruptionCompletionEffect } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
+import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import {
+  masterOfCorruptionBloodIsPower,
+  masterOfCorruptionConsumeConditions,
+  masterOfCorruptionCorrosivePoisonCloud,
+  masterOfCorruptionPlaguelands
+} from '#gw2/professions/necromancer/core/traits/conditions.js';
+import { signetsOfSufferingPassive } from '#gw2/professions/necromancer/core/traits/behavior.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
+
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.WELL_OF_BLOOD]: {
@@ -85,16 +92,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
       ]),
       // Corruption completion owns self-conditions and boons independently of hostile impacts.
       { name: 'Self Bleeding', type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10, target: 'self' },
-      {
-        name: 'Self Torment',
-        type: 'condition',
-        condition: 'Torment',
-        stacks: 2,
-        duration: 10,
-        target: 'self',
-        requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
-        packetLabel: 'additional with Master of Corruption'
-      },
+      masterOfCorruptionBloodIsPower,
       {
         name: 'might',
         type: 'boon',
@@ -176,16 +174,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 4,
         target: 'self'
       },
-      {
-        name: 'Master of Corruption Vulnerability',
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 5,
-        duration: 4,
-        target: 'self',
-        requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
-        packetLabel: 'additional with Master of Corruption'
-      }
+      masterOfCorruptionConsumeConditions
     ]
   },
   [ID.PLAGUELANDS]: {
@@ -283,16 +272,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
       ]),
       // Corruption completion owns self-conditions and boons independently of hostile impacts.
       { name: 'Self Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 10, target: 'self' },
-      {
-        name: 'Self Poisoned',
-        type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 4,
-        target: 'self',
-        requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
-        packetLabel: 'additional with Master of Corruption'
-      }
+      masterOfCorruptionPlaguelands
     ]
   },
   [ID.LICH_FORM]: {
@@ -538,16 +518,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       // Corruption completion owns self-conditions and boons independently of hostile impacts.
       { name: 'Self Weakness', type: 'condition', condition: 'Weakness', stacks: 1, duration: 6, target: 'self' },
-      {
-        name: 'Self Crippled',
-        type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 2,
-        target: 'self',
-        requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
-        packetLabel: 'additional with Master of Corruption'
-      }
+      masterOfCorruptionCorrosivePoisonCloud
     ]
   },
   [ID.SIGNET_OF_VAMPIRISM]: {
@@ -631,8 +602,7 @@ export function applyNecromancerSignetPassive(
   const state = runtime.profession.core;
   const id = policy.skillId;
   const inShroud = Boolean(state.activeShroud && state.activeShroud !== 'lich');
-  if ((runtime.cooldowns.get(id) ?? 0) > runtime.time && !(hasTrait(runtime, TRAIT.SIGNETS_OF_SUFFERING) && inShroud))
-    return;
+  if ((runtime.cooldowns.get(id) ?? 0) > runtime.time && !signetsOfSufferingPassive(runtime, inShroud)) return;
   const profile = requireBalanceProfileFromContext(runtime, policy.profileId);
   if (policy.passive === 'undeath') grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
   else {

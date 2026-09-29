@@ -1,16 +1,9 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
 export const DRAGONHUNTER_BALANCE_PROFILE_IDS = Object.freeze({
   tether: 'guardian.dragonhunter.spear-of-justice-tether',
-  soaringDevastation: TRAIT.SOARING_DEVASTATION,
-  bigGameHunter: TRAIT.BIG_GAME_HUNTER,
-  huntersDetermination: TRAIT.HUNTERS_DETERMINATION,
-  huntersPremonition: TRAIT.HUNTERS_PREMONITION,
-  passiveCourage: 'guardian.dragonhunter.passive-courage',
-  dulledSenses: TRAIT.DULLED_SENSES,
-  heavyLight: TRAIT.HEAVY_LIGHT
+  passiveCourage: 'guardian.dragonhunter.passive-courage'
 });
 
 export const DRAGONHUNTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
@@ -40,56 +33,11 @@ export const DRAGONHUNTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
       }
     ]
   },
-  trait(DRAGONHUNTER_BALANCE_PROFILE_IDS.soaringDevastation, 'Soaring Devastation', {
-    effects: [
-      { type: 'strike', name: 'Strike', coefficient: 1.5, hits: 1 },
-      {
-        type: 'condition',
-        name: 'Immobilized',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 3
-      }
-    ]
-  }),
-  trait(DRAGONHUNTER_BALANCE_PROFILE_IDS.bigGameHunter, 'Big Game Hunter', {
-    pulseInterval: 12,
-    effects: [
-      {
-        type: 'condition',
-        name: 'Vulnerability',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 10
-      }
-    ]
-  }),
-  trait(DRAGONHUNTER_BALANCE_PROFILE_IDS.huntersDetermination, "Hunter's Determination", { resourceGain: 100 }),
-  trait(DRAGONHUNTER_BALANCE_PROFILE_IDS.huntersPremonition, "Hunter's Premonition", {
-    effects: [{ type: 'boon', name: 'aegis', boon: 'aegis', stacks: 1, duration: 3 }]
-  }),
   {
     id: DRAGONHUNTER_BALANCE_PROFILE_IDS.passiveCourage,
     name: 'Shield of Courage - Passive',
     profileKind: 'mechanic',
     pulseInterval: 40,
     effects: [{ type: 'boon', name: 'aegis', boon: 'aegis', stacks: 1, duration: 20 }]
-  },
-  trait(DRAGONHUNTER_BALANCE_PROFILE_IDS.dulledSenses, 'Dulled Senses', {
-    effects: [
-      {
-        type: 'condition',
-        name: 'Crippled',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 4
-      }
-    ]
-  }),
-  // Trait tuning is shared by build calculations, combat, and tooltips.
-  trait(TRAIT.DEFENDERS_DOGMA, "Defender's Dogma", { attributeBonus: 180 }),
-  trait(DRAGONHUNTER_BALANCE_PROFILE_IDS.heavyLight, 'Heavy Light', {
-    internalCooldown: 1,
-    effects: [{ type: 'boon', name: 'stability', boon: 'stability', stacks: 1, duration: 6 }]
-  })
+  }
 ]);

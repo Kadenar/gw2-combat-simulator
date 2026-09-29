@@ -1,57 +1,20 @@
-import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
+  balanceProfileNumber,
   requireBalanceProfileFromContext,
-  requireEffect,
-  balanceProfileNumber
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { queueDamage, recordTrait } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import {
-  applyEngineerDerivedCondition,
-  queueDamage,
-  recordTrait,
-  resolverSkill
-} from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
+import { applyCarbolicComposition } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
 import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
-
-/** Identifies player-owned Amalgam hits and the Rapacious effect hit that may chain Carbolic Composition. */
-function isAmalgamSkillHit(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
-  if (event.actorType === 'summon') return false;
-  // Rapacious Strain fires as an "effect" actor after player hits. Allow it
-  // through so Carbolic Composition also procs on Rapacious damage.
-  if (event.actorType === 'effect') {
-    return event.sourceId === 'engineer.rapacious-strain';
-  }
-
-  const skill = resolverSkill(context, event.skillId);
-  return Boolean(
-    skill?.specialization === 'Amalgam' ||
-    skill?.categories?.includes('Amalgam') ||
-    skill?.categories?.includes('Morph')
-  );
-}
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 
 /** Applies damage-triggered Carbolic Composition and Rapacious Strain reactions. */
 function reactToAmalgamDamage(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
   const state = context.procs.readyAt;
-  if (hasTrait(context, TRAIT.CARBOLIC_COMPOSITION) && isAmalgamSkillHit(context, event)) {
-    const carbolicCompositionProfile = requireBalanceProfileFromContext(context, PROFILE.carbolicComposition);
-    const poison = requireEffect(carbolicCompositionProfile, 'condition', 'Poisoned');
-    if (poison) {
-      applyEngineerDerivedCondition(context, event, {
-        name: 'Carbolic Composition',
-        condition: String(poison.condition),
-        stacks: Number(poison.stacks),
-        duration: Number(poison.duration),
-        sourceId: TRAIT.CARBOLIC_COMPOSITION,
-        actorType: 'effect',
-        ownerActorType: 'player'
-      });
-    }
-  }
+  applyCarbolicComposition(context, event);
 
   const rapaciousStrainProfile = requireBalanceProfileFromContext(context, PROFILE.rapaciousStrain);
   // Rapacious requires both states and cannot trigger itself, even with a zero authored ICD.

@@ -1,30 +1,41 @@
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-/** Soulbeast resolver-phase reactions and event handlers. */
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
 import {
-  requireBalanceProfileFromContext,
-  requireEffect,
+  balanceProfileNumber,
   effectNumber,
-  balanceProfileNumber
+  requireBalanceProfileFromContext,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { BalanceProfile, ConditionEffect, StatusEffect, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerResolverContext, RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
-import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
-import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profiles.js';
-import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
-import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import {
+  isPlayerStrike,
+  queueProfileBuff,
+  queueProfileCondition
+} from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profiles.js';
+import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
+import {
+  triggerMergedGoForTheEyes,
+  triggerMergedGoForTheThroat,
+  triggerMergedWiltingStrike
+} from '#gw2/professions/ranger/core/traits/pet-behavior.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
+import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
+import {
+  essenceOfSpeedExtension,
+  triggerMergedLiveFast
+} from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
+import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
+import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
+
+/** Soulbeast resolver-phase reactions and event handlers. */
 
 /** Shared stance opportunities resolve against the one live stance cooldown. */
 export const soulbeastEventHandlers = Object.freeze({ 'ranger.shared-stance-hit': handleSharedStanceHit });
@@ -50,78 +61,6 @@ function firstBeastAbilityHit(context: RangerResolverContext, event: Gw2Resolver
   if (activations[event.activationId]) return false;
   activations[event.activationId] = true;
   return true;
-}
-
-/** Emit one surviving profile condition with its authored identity, stacks, and duration. */
-function queueProfileCondition(
-  context: RangerResolverContext,
-  event: Gw2ResolverEvent,
-  profile: BalanceProfile,
-  effect: ConditionEffect,
-  sourceId: number,
-  name: string
-): void {
-  context.queue.enqueue(
-    buildResolverCondition({
-      at: event.at,
-      source: 'Trait',
-      sourceId,
-      actorType: 'effect',
-      skillId: sourceId,
-      skillName: name,
-
-      condition: String(effect.condition),
-      duration: effectNumber(profile, effect, 'duration'),
-      stacks: effectNumber(profile, effect, 'stacks'),
-      triggeredBy: event.skillName,
-      metadata: event.metadata?.triggeredByAlly ? { triggeredByAlly: event.metadata.triggeredByAlly } : undefined
-    })
-  );
-}
-
-/** Emit one surviving boon or buff; its identity comes from the authored boon or buff kind. */
-function queueProfileBuff(
-  context: RangerResolverContext,
-  event: Gw2ResolverEvent,
-  profile: BalanceProfile,
-  effect: StatusEffect,
-  name: string,
-  sourceId: number
-): void {
-  for (const { event: packet } of materializeSkillEffectApplications({
-    skill: profile,
-    effect,
-    start: event.at,
-    fullEnd: event.at,
-    baseEvent: {
-      source: 'Trait',
-      sourceId,
-      actorType: 'effect',
-      skillId: sourceId,
-      skillName: name,
-      triggeredBy: event.skillName
-    }
-  }))
-    queueResolverBoon(context, event, {
-      ...packet,
-      type: 'buff',
-      name,
-      kind: String(packet.kind),
-      duration: Number(packet.duration),
-      audience: event.metadata?.triggeredByAlly
-        ? {
-            recipients: 'party',
-            alliedPlayerIndex: event.metadata.triggeredByAlly,
-            affectsSelf: false,
-            maximumRecipients: 1,
-            eligibleCompanionIds: []
-          }
-        : undefined,
-      metadata: {
-        ...packet.metadata,
-        ...(event.metadata?.triggeredByAlly ? { triggeredByAlly: event.metadata.triggeredByAlly } : {})
-      }
-    });
 }
 
 /** Consumes Poisonous Strikes from player hits only while Soulbeast replaces its pet in Beastmode. */
@@ -265,84 +204,10 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
   }
 
   if (!firstBeastAbilityHit(context, event)) return;
-  if (hasTrait(context, TRAIT.LIVE_FAST)) {
-    const profile = requireBalanceProfileFromContext(context, PROFILE.liveFast);
-    const fury = requireEffect(profile, 'boon', 'fury');
-    const quickness = requireEffect(profile, 'boon', 'quickness');
-    if (fury) queueProfileBuff(context, event, profile, fury, 'Live Fast', TRAIT.LIVE_FAST);
-    if (quickness) queueProfileBuff(context, event, profile, quickness, 'Live Fast', TRAIT.LIVE_FAST);
-  }
-
-  if (hasTrait(context, TRAIT.WILTING_STRIKE)) {
-    const profile = requireBalanceProfileFromContext(context, PROFILE.wiltingStrike);
-    const weakness = requireEffect(profile, 'condition', 'Weakness');
-    if (weakness) queueProfileCondition(context, event, profile, weakness, TRAIT.WILTING_STRIKE, 'Wilting Strike');
-  }
-
-  if (hasTrait(context, TRAIT.GO_FOR_THE_EYES)) {
-    const profile = requireBalanceProfileFromContext(context, PROFILE.goForTheEyes);
-    const blind = requireEffect(profile, 'blind', 'Blind');
-    // The cooldown gates only the blind, so a removed blind leaves it ready.
-    if (blind && context.procs.claim(PROFILE.goForTheEyes, 'ranger.soulbeast.goForTheEyes', event.at)) {
-      context.queue.enqueue({
-        type: 'blind',
-        at: event.at,
-        source: 'Trait',
-        sourceId: TRAIT.GO_FOR_THE_EYES,
-        actorType: 'effect',
-        skillId: TRAIT.GO_FOR_THE_EYES,
-        skillName: 'Go for the Eyes',
-        duration: effectNumber(profile, blind, 'duration'),
-        triggeredBy: event.skillName
-      });
-    }
-  }
-
-  if (hasTrait(context, TRAIT.GO_FOR_THE_THROAT)) {
-    const profile = requireBalanceProfileFromContext(context, CORE_PROFILE.goForTheThroat);
-    // Merged Soulbeasts receive only the player's buff; the pet variant has no recipient here.
-    const lesserSicEm = requireEffect(profile, 'buff', 'lesser-sic-em');
-    if (lesserSicEm && context.procs.claim(CORE_PROFILE.goForTheThroat, 'ranger.soulbeast.goForTheThroat', event.at)) {
-      const duration = effectNumber(profile, lesserSicEm, 'duration');
-      context.recordProc(
-        'trait',
-        'Lesser "Sic \'Em!"',
-        event.at,
-        event.skillName,
-        `${duration}s, +15% strike damage`,
-        context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon ||
-          context.helpers.skillsById?.get(ID.SIC_EM)?.icon ||
-          ''
-      );
-      queueProfileBuff(context, event, profile, lesserSicEm, 'Lesser "Sic \'Em!"', ID.LESSER_SIC_EM);
-    }
-  }
-}
-
-// Essence of Speed reacts to each quickness application and extends all other boons by 2 s, with a 5 s ICD.
-// Quickness itself is excluded from the extension to prevent runaway stacking.
-function essenceOfSpeedExtension(context: RangerResolverContext, event: Gw2ResolverEvent): Gw2ResolverEvent | null {
-  if (
-    event.kind !== 'quickness' ||
-    !event.resolvedAudience?.includesSelf ||
-    !hasTrait(context, TRAIT.ESSENCE_OF_SPEED) ||
-    !context.procs.claim(PROFILE.essenceOfSpeed, 'ranger.soulbeast.essenceOfSpeed', event.at)
-  ) {
-    return null;
-  }
-
-  const profile = requireBalanceProfileFromContext(context, PROFILE.essenceOfSpeed);
-  return {
-    type: 'boon_extension',
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.ESSENCE_OF_SPEED,
-    actorType: 'effect',
-    skillId: TRAIT.ESSENCE_OF_SPEED,
-    skillName: 'Essence of Speed',
-    duration: balanceProfileNumber(profile, 'durationMultiplier'),
-    excludedKind: 'quickness'
-  };
+  triggerMergedLiveFast(context, event);
+  triggerMergedWiltingStrike(context, event);
+  triggerMergedGoForTheEyes(context, event);
+  triggerMergedGoForTheThroat(context, event);
 }
 
 /** Quickness extends existing boons once; shared attacks wait for an actual combat boundary. */

@@ -1,82 +1,81 @@
-/** Public Core Engineer trait dispatcher preserving cross-line reaction order. */
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
-import type {
-  EngineerRuntime,
-  EngineerResolverContext,
-  EngineerResolverEvent,
-  EngineerSkill
-} from '#gw2/professions/engineer/types.js';
-import { applyHghAcidBomb, prepareEngineerHghEvent } from '#gw2/professions/engineer/core/traits/alchemy.js';
+import { compoundingChemicals, hgh } from '#gw2/professions/engineer/core/traits/alchemy.js';
 import {
-  engineerCoreCriticalHitDefinitions,
-  applyHematicFocus,
-  applySanguineArray,
-  applyThermalVision
-} from '#gw2/professions/engineer/core/traits/firearms.js';
-import {
-  applyAimAssistedRocket,
-  applyExplosiveEntrance,
-  applyExplosiveTemper,
-  applyGrandEntrance,
-  applyGrenadier,
-  applyShrapnel,
-  applyShortFuse,
-  applySteelPackedPowder
+  aimAssistedRocket,
+  bigBoomer,
+  blastShield,
+  explosiveEntrance,
+  explosiveTemper,
+  glassCannon,
+  grandEntrance,
+  grenadier,
+  shapedCharge,
+  shortFuse,
+  shrapnel,
+  steelPackedPowder
 } from '#gw2/professions/engineer/core/traits/explosives.js';
 import {
-  applyEngineerToolbeltTraits,
-  applyStreamlinedKits,
-  isEngineerToolbeltSkill,
-  recordStaticDischargeProc
+  chemicalRounds,
+  heavyMetal,
+  hematicFocus,
+  highCaliber,
+  incendiaryPowder,
+  modifiedAmmunition,
+  noScope,
+  sanguineArray,
+  serratedSteel,
+  sharpshooter,
+  thermalVision
+} from '#gw2/professions/engineer/core/traits/firearms.js';
+import { energyAmplifier } from '#gw2/professions/engineer/core/traits/inventions.js';
+import {
+  adrenalImplant,
+  excessiveEnergy,
+  gadgeteer,
+  kineticBattery,
+  mechanizedDeployment,
+  optimizedActivation,
+  powerWrench,
+  staticDischarge,
+  streamlinedKits,
+  takedownRound
 } from '#gw2/professions/engineer/core/traits/tools.js';
 
-export {
-  applyEngineerToolbeltTraits,
-  engineerCoreCriticalHitDefinitions,
-  isEngineerToolbeltSkill,
-  prepareEngineerHghEvent
-};
-
-function isHealingSkill(skill: EngineerSkill | undefined): boolean {
-  return skill?.type === 'Heal' || skill?.slot === 'Heal';
-}
-
-/** Dispatches completed casts without regrouping the cross-line gameplay order. */
-export function applyEngineerCastTraits(context: EngineerRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill;
-  const at = context.time;
-  if (isHealingSkill(skill)) applyGrenadier(context, skill, at);
-  applyStreamlinedKits(context, skill, at);
-  // Issuing a mech command uses the tool-belt slot immediately while its animation runs independently.
-  if (!skill.independentCast) applyEngineerToolbeltTraits(context, skill, at);
-  applyHghAcidBomb(context, cast);
-}
-
-// Keep shared explosion classification here so every later Explosives reaction consumes the same result.
-function isExplosion(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
-  if (event.explosion || event.damageKind === 'explosion') return true;
-  const skill = resolverSkill(context, event.skillId ?? event.sourceId);
-  return Boolean(skill?.categories?.some((category) => category.toLowerCase() === 'explosion'));
-}
-
-/** Dispatches damage reactions in their established causal order. */
-export function reactToEngineerDamage(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  if (!(Number(event.coefficient) > 0)) return;
-  recordStaticDischargeProc(context, event);
-  applyExplosiveEntrance(context, event);
-  const explosion = isExplosion(context, event);
-  applySteelPackedPowder(context, event, explosion);
-  applyShortFuse(context, event, explosion);
-  applyExplosiveTemper(context, event, explosion);
-  applyGrandEntrance(context, event);
-  applyShrapnel(context, event, explosion);
-  applyAimAssistedRocket(context, event);
-}
-
-/** Dispatches condition reactions in their established Firearms definition order. */
-export function reactToEngineerCondition(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  applyThermalVision(context, event);
-  applySanguineArray(context, event);
-  applyHematicFocus(context, event);
-}
+/** Collects Core trait declarations; the trait dispatcher preserves runtime order. */
+export const engineerCoreTraits = [
+  grenadier,
+  streamlinedKits,
+  optimizedActivation,
+  staticDischarge,
+  kineticBattery,
+  explosiveEntrance,
+  steelPackedPowder,
+  shortFuse,
+  explosiveTemper,
+  shrapnel,
+  serratedSteel,
+  noScope,
+  incendiaryPowder,
+  aimAssistedRocket,
+  thermalVision,
+  sanguineArray,
+  hematicFocus,
+  chemicalRounds,
+  energyAmplifier,
+  highCaliber,
+  grandEntrance,
+  heavyMetal,
+  hgh,
+  adrenalImplant,
+  powerWrench,
+  mechanizedDeployment,
+  gadgeteer,
+  compoundingChemicals,
+  blastShield,
+  sharpshooter,
+  glassCannon,
+  bigBoomer,
+  shapedCharge,
+  modifiedAmmunition,
+  excessiveEnergy,
+  takedownRound
+];

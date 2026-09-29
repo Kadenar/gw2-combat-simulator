@@ -1,10 +1,10 @@
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 
 const base = {
   specialization: 'Harbinger',
@@ -177,7 +177,7 @@ test('Harbinger entry boons retain independent removal and actual party recipien
   const profession = {
     ...native,
     catalog: applyBalanceProfilePatch(native.catalog, {
-      balanceProfiles: { [PROFILE.deathlyHaste]: { removeEffects: [{ type: 'boon', name: 'quickness' }] } }
+      balanceProfiles: { [TRAIT.DEATHLY_HASTE]: { removeEffects: [{ type: 'boon', name: 'quickness' }] } }
     })
   };
   const result = run([cast(ID.SUMMON_BONE_MINIONS), cast(ID.HARBINGER_SHROUD)], config, { profession });

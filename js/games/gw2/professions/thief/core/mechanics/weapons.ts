@@ -2,7 +2,7 @@ import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+
 import { armSkillFlip, consumeSkillFlip, skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   balanceProfileNumber,
@@ -11,13 +11,13 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { addVenomCharges, conditionEffects, venomForSkill } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { guildAttackConditions, thiefSpecializationGuildSummon } from '#gw2/professions/thief/family-state.js';
 import { emitThiefCondition, emitThiefDamage } from '#gw2/professions/thief/core/events.js';
-import { grantThiefInitiative, setThiefKneeling } from '#gw2/professions/thief/core/mechanics/resources.js';
+
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -191,19 +191,6 @@ export function expireThiefScepterChain(runtime: ThiefRuntime, data: unknown): v
   if ((data as { at: number }).at !== core.scepterChainExpiresAt) return;
   core.scepterChainExpiresAt = null;
   resetAutoattackChains(runtime, [ID.SHADOW_BOLT]);
-}
-
-/** Swapping weapons stands up; Quick Pockets grants in-combat initiative once per its cooldown. */
-export function completeThiefWeaponSwap(runtime: ThiefRuntime): void {
-  setThiefKneeling(runtime, false);
-  if (
-    !runtime.combatStartedAt() ||
-    !hasTrait(runtime, TRAIT.QUICK_POCKETS) ||
-    !runtime.procs.claim(PROFILE.quickPockets, 'thief.core.quickPockets', runtime.time)
-  )
-    return;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.quickPockets);
-  grantThiefInitiative(runtime, balanceProfileNumber(profile, 'resourceGain'));
 }
 
 /** Assassin's Signet opens its active window and suppresses its passive until the signet recharges. */

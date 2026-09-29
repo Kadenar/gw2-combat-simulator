@@ -1,33 +1,13 @@
 import {
-  MECHANIST_BALANCE_PROFILES,
-  MECHANIST_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import {
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
+  defineProfessionSpecializationState,
+  definePublicStateDefaults
 } from '#gw2/platform/engine/profession/state.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
-import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { mechArmsCommand } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
+import { mechCoreCommand } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
+import { mechFrameCommand } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
-import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-
-interface EngineerMechAttributes {
-  power: number;
-  precision: number;
-  toughness: number;
-  vitality: number;
-  ferocity: number;
-  conditionDamage: number;
-  expertise: number;
-  concentration: number;
-  healingPower: number;
-}
 
 interface EngineerMechState {
   enabled: boolean;
@@ -52,87 +32,7 @@ export const MECHANIST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 
 /** Resolves the three mech command skills supplied by the active mechanist traits. */
 export function selectedMechCommands(traits: EngineerConfig | ReadonlySet<SkillId>): SkillId[] {
-  // Each trait row contributes one command and defaults to its first option
-  // when the build does not explicitly select another trait in that row.
-  const pick = (groups: readonly (readonly [SkillId, SkillId])[]): SkillId => {
-    for (const [traitId, skillId] of groups) {
-      if (hasTrait(traits, traitId)) return skillId;
-    }
-
-    return groups[0][1];
-  };
-
-  return [
-    pick([
-      [TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, ID.ROLLING_SMASH],
-      [TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, ID.EXPLOSIVE_KNUCKLE],
-      [TRAIT.MECH_ARMS_JADE_CANNONS, ID.SPARK_REVOLVER]
-    ]),
-    pick([
-      [TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS, ID.DISCHARGE_ARRAY],
-      [TRAIT.MECH_FRAME_CHANNELING_CONDUITS, ID.CRISIS_ZONE],
-      [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR, ID.CORE_REACTOR_SHOT]
-    ]),
-    pick([
-      [TRAIT.MECH_CORE_JADE_DYNAMO, ID.JADE_MORTAR],
-      [TRAIT.MECH_CORE_BARRIER_ENGINE, ID.BARRIER_BURST],
-      [TRAIT.MECH_CORE_J_DRIVE, ID.SKY_CIRCUS]
-    ])
-  ];
-}
-
-/** Reads a non-negative player attribute while supplying its baseline when absent. */
-function playerAttribute(stats: Partial<Gw2Stats>, key: keyof EngineerMechAttributes, fallback = 0): number {
-  return Math.max(0, stats[key] ?? fallback);
-}
-
-/** Calculates the jade mech's inherited combat attributes for the selected trait configuration. */
-export function engineerMechAttributes(
-  config: EngineerConfig = {},
-  playerStats: Partial<Gw2Stats> = {},
-  profile: BalanceProfile = MECHANIST_BALANCE_PROFILES.find((entry) => entry.id === PROFILE.resources)!
-): EngineerMechAttributes {
-  const traits = selectedEngineerTraits(config);
-  const conductive = hasTrait(traits, TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS);
-  const channeling = hasTrait(traits, TRAIT.MECH_FRAME_CHANNELING_CONDUITS);
-  const variable = hasTrait(traits, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR);
-
-  // Standalone initialization uses the canonical declaration; runtime callers pass their selected profile.
-  const balanceContext = { balanceProfile: () => profile };
-  const resourcesProfile = requireBalanceProfileFromContext(balanceContext, PROFILE.resources);
-  const baseAttribute = balanceProfileNumber(resourcesProfile, 'baseAttribute');
-  const inheritanceRatio = balanceProfileNumber(resourcesProfile, 'inheritanceRatio');
-  const secondaryCap = balanceProfileNumber(resourcesProfile, 'secondaryAttributeCap');
-  const improvedSecondaryCap = balanceProfileNumber(resourcesProfile, 'improvedSecondaryAttributeCap');
-  const improvedInheritanceRatio = balanceProfileNumber(resourcesProfile, 'improvedInheritanceRatio');
-  // Secondary stats inherit 50 % of the player's value up to 750.
-  // Conductive Alloys and Channeling Conduits each double the cap to 1500 and
-  // raise the inheritance ratio to 100 % for their respective stat groups.
-  const secondary = (key: keyof EngineerMechAttributes, improved = false): number =>
-    Math.min(
-      improved ? improvedSecondaryCap : secondaryCap,
-      playerAttribute(playerStats, key) * (improved ? improvedInheritanceRatio : inheritanceRatio)
-    );
-
-  return {
-    power: Math.min(
-      balanceProfileNumber(resourcesProfile, 'powerCap'),
-      baseAttribute + playerAttribute(playerStats, 'power', 1000) * inheritanceRatio
-    ),
-    precision: variable
-      ? Math.min(
-          balanceProfileNumber(resourcesProfile, 'precisionCap'),
-          balanceProfileNumber(resourcesProfile, 'basePrecision') + playerAttribute(playerStats, 'precision', 1000)
-        )
-      : balanceProfileNumber(resourcesProfile, 'basePrecision'),
-    toughness: baseAttribute + playerAttribute(playerStats, 'toughness', 1000),
-    vitality: baseAttribute + playerAttribute(playerStats, 'vitality', 1000),
-    ferocity: secondary('ferocity'),
-    conditionDamage: secondary('conditionDamage', conductive),
-    expertise: secondary('expertise', conductive),
-    concentration: secondary('concentration', channeling),
-    healingPower: secondary('healingPower', channeling)
-  };
+  return [mechArmsCommand(traits), mechFrameCommand(traits), mechCoreCommand(traits)];
 }
 
 /** The mech stays present throughout simulation; attack scheduling and live attributes belong to their runtime owners. */

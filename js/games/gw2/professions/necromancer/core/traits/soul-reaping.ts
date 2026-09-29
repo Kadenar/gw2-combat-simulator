@@ -1,92 +1,216 @@
-/** Owns imperative Core Necromancer Soul Reaping trait behavior for ordered dispatcher calls. */
-import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-
 import {
-  applyTraitCondition,
-  applyTraitVulnerability
-} from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
-import type {
-  NecromancerResolverContext,
-  NecromancerResolverEvent,
-  NecromancerRuntime,
-  NecromancerSkill
-} from '#gw2/professions/necromancer/types.js';
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { necromancerActiveShroud } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
-/** The first accepted player strike of a mark contributes to the shared percentage grant. */
-export function soulMarksLifeForce(
-  runtime: NecromancerRuntime,
-  skill: NecromancerSkill,
-  event: NecromancerResolverEvent
-): number {
-  return Number(event.hitIndex ?? 1) === 1 && skill.categories?.includes('Mark') && hasTrait(runtime, TRAIT.SOUL_MARKS)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SOUL_MARKS), 'lifeForceGain')
-    : 0;
-}
-
-/** Accepted non-summon fear grants life force under one cooldown; missed and travelling packets grant nothing. */
-export function applyFearOfDeath(runtime: NecromancerRuntime, event: NecromancerResolverEvent): void {
-  if (
-    event.controlKind !== 'fear' ||
-    event.actorType === 'summon' ||
-    !hasTrait(runtime, TRAIT.FEAR_OF_DEATH) ||
-    !runtime.procs.claim(TRAIT.FEAR_OF_DEATH, 'necromancer.core.fearOfDeath', runtime.time)
-  )
-    return;
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.FEAR_OF_DEATH);
-  grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
-}
-
-export function applyDhuumfire(
-  context: NecromancerResolverContext,
-  event: NecromancerResolverEvent,
-  skillDuration: unknown,
-  shroudSkillOne: boolean
-): void {
-  if (!hasTrait(context, TRAIT.DHUUMFIRE) || !shroudSkillOne) return;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.dhuumfire);
-  const effect = requireEffect(profile, 'condition', 'Burning');
-  const interval = event.metadata?.dhuumfireInterval || 0;
-  // Zero or absent intervals bypass the claim so same-time applications remain unrestricted; the claim gates only
-  // Burning, so a removed packet leaves it ready.
-  if (!effect) return;
-  if (interval > 0 && !context.procs.claimCooldown('dhuumfire', event.at, interval)) {
-    return;
+/** Owns Dhuumfire tuning and behavior at its existing execution boundaries. */
+export const dhuumfire = defineTrait({
+  id: TRAIT.DHUUMFIRE,
+  name: 'Dhuumfire',
+  balance: {
+    effects: [
+      {
+        name: 'Burning',
+        type: 'condition',
+        condition: 'Burning',
+        stacks: 1,
+        duration: 3,
+        actorType: 'effect'
+      }
+    ]
   }
+});
 
-  applyTraitCondition(context, event, {
-    name: 'Dhuumfire',
-    traitId: TRAIT.DHUUMFIRE,
-    condition: String(effect.condition),
-    stacks: effectNumber(profile, effect, 'stacks'),
-    duration: Number(event.metadata?.dhuumfireDuration ?? skillDuration ?? effect.duration ?? 3)
-  });
-}
+/** Owns Unyielding Blast tuning and behavior at its existing execution boundaries. */
+export const unyieldingBlast = defineTrait({
+  id: TRAIT.UNYIELDING_BLAST,
+  name: 'Unyielding Blast',
+  balance: {
+    effects: [
+      {
+        name: 'Vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
+        stacks: 2,
+        duration: 10,
+        actorType: 'effect'
+      }
+    ]
+  }
+});
 
-export function applyUnyieldingBlast(
-  context: NecromancerResolverContext,
-  event: NecromancerResolverEvent,
-  firstHit: boolean,
-  shroudSkillOne: boolean
-): void {
-  if (!hasTrait(context, TRAIT.UNYIELDING_BLAST) || !firstHit || !shroudSkillOne) return;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.unyieldingBlast);
-  const effect = requireEffect(profile, 'condition', 'Vulnerability');
-  if (!effect) return;
-  applyTraitVulnerability(context, event, {
-    name: 'Unyielding Blast',
-    traitId: TRAIT.UNYIELDING_BLAST,
-    stacks: effectNumber(profile, effect, 'stacks'),
-    duration: effectNumber(profile, effect, 'duration')
-  });
-}
+/** Owns Vital Persistence tuning and behavior at its existing execution boundaries. */
+export const vitalPersistence = defineTrait({
+  id: TRAIT.VITAL_PERSISTENCE,
+  name: 'Vital Persistence',
+  balance: { attributeBonus: 180 },
+  buildAttributes: (_common, { balanceContext: profileContext }) => ({
+    attributeEffects: [
+      {
+        kind: 'flat',
+        source: 'Vital Persistence',
+        to: 'Vitality',
+        amount: balanceProfileNumber(
+          requireBalanceProfileFromContext(profileContext, TRAIT.VITAL_PERSISTENCE),
+          'attributeBonus'
+        ),
+        feedsConversions: true
+      }
+    ]
+  })
+});
+
+/** Owns Sinister Shroud tuning and behavior at its existing execution boundaries. */
+export const sinisterShroud = defineTrait({
+  id: TRAIT.SINISTER_SHROUD,
+  name: 'Sinister Shroud',
+  balance: { rechargeMultiplier: 0.85 },
+  rechargeRules: [
+    {
+      order: 1,
+
+      when: (_runtime, skill) => Boolean(skill.shroud),
+      multiplier: { profile: TRAIT.SINISTER_SHROUD, field: 'rechargeMultiplier' }
+    },
+    {
+      order: 0,
+
+      when: (_runtime, skill) => SHADE_SKILLS.has(Number(skill.id)),
+      multiplier: { profile: TRAIT.SINISTER_SHROUD, field: 'rechargeMultiplier' }
+    }
+  ]
+});
+
+/** Owns Death Perception tuning and behavior at its existing execution boundaries. */
+export const deathPerception = defineTrait({
+  id: TRAIT.DEATH_PERCEPTION,
+  name: 'Death Perception',
+  balance: {
+    criticalDamage: 1.1,
+    criticalChance: 0.15
+  },
+  modifierRules: [
+    {
+      order: -18,
+      id: 'necromancer.death-perception-critical-chance',
+      label: 'Death Perception',
+      target: MODIFIER_TARGET.CRITICAL_CHANCE,
+      operation: 'add',
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DEATH_PERCEPTION), 'criticalChance'),
+      when: (context) => hasTrait(context, TRAIT.DEATH_PERCEPTION)
+    },
+    {
+      order: 105,
+      id: 'necromancer.death-perception-critical-hit-damage',
+      target: MODIFIER_TARGET.CRITICAL_DAMAGE,
+      operation: 'multiply',
+      factor: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DEATH_PERCEPTION), 'criticalDamage'),
+      when: (context) => hasTrait(context, TRAIT.DEATH_PERCEPTION) && Boolean(necromancerActiveShroud(context))
+    }
+  ],
+  buildAttributes: (_common, { balanceContext: profileContext }) => ({
+    traitCriticalChance:
+      balanceProfileNumber(requireBalanceProfileFromContext(profileContext, TRAIT.DEATH_PERCEPTION), 'criticalChance') *
+      100
+  })
+});
+
+/** Owns Soul Barbs tuning and behavior at its existing execution boundaries. */
+export const soulBarbs = defineTrait({
+  id: TRAIT.SOUL_BARBS,
+  name: 'Soul Barbs',
+  balance: { duration: 15 },
+  modifierRules: [
+    {
+      order: -17,
+      id: 'necromancer.soul-barbs',
+      target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+      operation: 'damage-additive',
+      amount: 0.1,
+      when: (context) =>
+        Boolean(
+          hasTrait(context, TRAIT.SOUL_BARBS) && context.timeline?.timedActive('necromancer-soul-barbs', context.time)
+        )
+    }
+  ]
+});
+
+/** Owns Eternal Life tuning and behavior at its existing execution boundaries. */
+export const eternalLife = defineTrait({
+  id: TRAIT.ETERNAL_LIFE,
+  name: 'Eternal Life',
+  balance: {
+    lifeForceGain: 3,
+    threshold: 0.66,
+    pulseInterval: 1,
+    effects: [
+      { name: 'protection', type: 'boon', boon: 'protection', stacks: 1, duration: 3, packetLabel: 'on shroud entry' }
+    ]
+  }
+});
+
+/** Owns Fear of Death tuning and behavior at its existing execution boundaries. */
+export const fearOfDeath = defineTrait({
+  id: TRAIT.FEAR_OF_DEATH,
+  name: 'Fear of Death',
+  balance: { lifeForceGain: 15, internalCooldown: 4 }
+});
+
+/** Owns Speed of Shadows tuning and behavior at its existing execution boundaries. */
+export const speedOfShadows = defineTrait({
+  id: TRAIT.SPEED_OF_SHADOWS,
+  name: 'Speed of Shadows',
+  balance: {
+    effects: [
+      { name: 'swiftness', type: 'boon', boon: 'swiftness', stacks: 1, duration: 10, packetLabel: 'on shroud entry' }
+    ]
+  }
+});
+
+/** Owns Soul Marks tuning and behavior at its existing execution boundaries. */
+export const soulMarks = defineTrait({ id: TRAIT.SOUL_MARKS, name: 'Soul Marks', balance: { lifeForceGain: 3 } });
+
+/** Owns Soul Battery tuning and behavior at its existing execution boundaries. */
+export const soulBattery = defineTrait({
+  id: TRAIT.SOUL_BATTERY,
+  name: 'Soul Battery',
+  balance: { lifeForceCapacityMultiplier: 1.2 }
+});
+
+/** Owns Gluttony tuning and behavior at its existing execution boundaries. */
+export const gluttony = defineTrait({
+  id: TRAIT.GLUTTONY,
+  name: 'Gluttony',
+  balance: { lifeForceGainMultiplier: 1.1 }
+});
+
+const SHADE_SKILLS = new Set<number>([
+  ID.NEFARIOUS_FAVOR,
+  ID.SAND_CASCADE,
+  ID.GARISH_PILLAR,
+  ID.DESERT_SHROUD,
+  ID.MANIFEST_SAND_SHADE,
+  ID.SANDSTORM_SHROUD
+]);
+
+export const soulReapingTraits = [
+  dhuumfire,
+  unyieldingBlast,
+  vitalPersistence,
+  sinisterShroud,
+  deathPerception,
+  soulBarbs,
+  eternalLife,
+  fearOfDeath,
+  speedOfShadows,
+  soulMarks,
+  soulBattery,
+  gluttony
+];

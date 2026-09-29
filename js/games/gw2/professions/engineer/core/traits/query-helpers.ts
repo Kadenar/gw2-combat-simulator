@@ -1,16 +1,11 @@
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import {
   activeBoonStacks,
   playerHealthFraction,
   targetConditionCount,
   targetHealthFraction
 } from '#gw2/platform/combat/query/runtime-query.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { EngineerSimulationEvent, EngineerState } from '#gw2/professions/engineer/types.js';
 
 /** Narrows the active modifier event to Engineer's extended simulation event shape. */
@@ -34,19 +29,6 @@ export function engineerSpecializationState(context: Gw2ModifierContext, expecte
 
 /** Re-exports shared boon, health, and target-condition queries for Engineer modifier rules. */
 export { activeBoonStacks, playerHealthFraction, targetConditionCount, targetHealthFraction };
-
-/** Selects Heavy Metal's critical bonus from the target's current health tier. */
-export function heavyMetalBonus(context: Gw2ModifierContext): number {
-  const fraction = targetHealthFraction(context);
-  const heavyMetalProfile = requireBalanceProfileFromContext(context, TRAIT.HEAVY_METAL);
-  if (fraction < balanceProfileNumber(heavyMetalProfile, 'lowerThreshold'))
-    return balanceProfileNumber(heavyMetalProfile, 'lowerBonus');
-  if (fraction < balanceProfileNumber(heavyMetalProfile, 'middleThreshold'))
-    return balanceProfileNumber(heavyMetalProfile, 'middleBonus');
-  if (fraction < balanceProfileNumber(heavyMetalProfile, 'upperThreshold'))
-    return balanceProfileNumber(heavyMetalProfile, 'upperBonus');
-  return 0;
-}
 
 /** Reports whether a timed field on the active Engineer specialization remains active. */
 export function activeEngineerSpecializationState(

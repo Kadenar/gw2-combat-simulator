@@ -1,12 +1,12 @@
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { MANTRAS, type MantraDefinition } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
 export const FIREBRAND_MANTRA_WAKE = 'guardian.firebrand.mantra';

@@ -1,23 +1,18 @@
 import { effectFirstAt } from '#gw2/platform/engine/effects/materializer.js';
 import type { RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
-import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
-import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { amalgamCastAvailability } from '#gw2/professions/engineer/specializations/amalgam/mechanics/availability.js';
-import { amalgamMaximumAmmo } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
+import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
 import {
-  activateAmalgamMorph,
-  scheduleThornsRetaliation,
   activatePlasmaticState,
   evolveAmalgam,
-  reactToMercurialTendencies
+  scheduleThornsRetaliation
 } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
-import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
+import { activateAmalgamMorph } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
+import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 
 /** Form grants occur at their commitment timestamp; only accepted control can reduce Evolve recharge. */
 export const amalgamHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
-  modifySkillId: (runtime, skillId) => resolveAmalgamSkillId(runtime.config, skillId),
   availability: amalgamCastAvailability,
-  maximumAmmo: amalgamMaximumAmmo,
   sideEffectHandlers: {
     'engineer.schedule-evolve'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Evolve requires a cast trigger.');
@@ -53,5 +48,5 @@ export const amalgamHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
       activateAmalgamMorph(runtime, (data as SkillTaskData).cast.skill);
     }
   },
-  reactions: { 'damage.resolved': amalgamResolverEventReactions.damage, 'control.resolved': reactToMercurialTendencies }
+  reactions: { 'damage.resolved': amalgamResolverEventReactions.damage }
 };

@@ -61,7 +61,7 @@ test('Empower Allies queues its selected party Might cadence and stops when the 
     const profession = withPatchPreview(warriorProfession, {
       id: 'empower-live',
       label: 'Empower live',
-      professions: { warrior: { balanceProfiles: { [PROFILE.empowerAllies]: edit } } }
+      professions: { warrior: { balanceProfiles: { [TRAIT.EMPOWER_ALLIES]: edit } } }
     });
     const removed = run(rotation, { ...config, patchId: 'empower-live' }, profession);
     assert.deepEqual(removed.warnings, []);
@@ -79,7 +79,7 @@ test('critical burst reactions share the resolved outcome for resources and inde
     professions: {
       warrior: {
         balanceProfiles: {
-          [PROFILE.bloodlust]: { fields: { procChance: 1 } }
+          [TRAIT.BLOODLUST]: { fields: { procChance: 1 } }
         }
       }
     }
@@ -143,7 +143,7 @@ test('accepted control shares Opportunist cooldown while independent control tra
     professions: {
       warrior: {
         balanceProfiles: {
-          [PROFILE.opportunist]: { fields: { internalCooldown: 100 } }
+          [TRAIT.OPPORTUNIST]: { fields: { internalCooldown: 100 } }
         }
       }
     }
@@ -305,7 +305,7 @@ test('Reckless Dodge components resolve independently and removed strikes cannot
     professions: {
       warrior: {
         balanceProfiles: {
-          [PROFILE.recklessDodge]: { removeEffects: [{ type: 'strike' }] }
+          [TRAIT.RECKLESS_DODGE]: { removeEffects: [{ type: 'strike' }] }
         }
       }
     }

@@ -1,26 +1,26 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
+import { tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import {
   describeSimulationSkill,
   describeSimulationTrait,
-  skillTooltip,
   simulationEffectFacts,
+  skillTooltip,
   tooltipDecimal,
   tooltipNumber
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
 import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
-import { tooltipFactIcon } from '#gw2/app/shared/icons.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { necromancerTooltips } from '#gw2/professions/necromancer/app/tooltips.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { necromancerTooltips } from '#gw2/professions/necromancer/app/tooltips.js';
 import { applyNecromancerBuildAttributeRules } from '#gw2/professions/necromancer/build/attributes.js';
 import { createNecromancerBuildDefaults, toApplicationBuild } from '#gw2/professions/necromancer/build/build.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as RITUALIST } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
+import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 // Removing any spirit strike must leave surviving summon and coordinated attacks in their original tooltip groups.
 test('Ritualist tooltip packet roles survive balance-profile removals', () => {
@@ -131,7 +131,10 @@ test('Radiant Power shares patched attribute and critical-chance values across c
   }).balanceContextFor('radiant-profile');
   const build = createGuardianBuildDefaults();
   build.specializations = [{ name: 'Radiance', traits: '2-3-3' }];
-  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules);
+  const calculate = createCalculateAttributes(
+    applyGuardianBuildAttributeRules,
+    guardianProfession.traitBuildAttributes
+  );
   const all = calculate(build, [], 1, null, null, preview).attributes;
   const without = calculate(build, [], 1, 'Radiant Power', null, preview).attributes;
   assert.equal(all.Ferocity.final - without.Ferocity.final, 237);
@@ -171,7 +174,10 @@ test('Carbolic Composition shares one patched duration bonus across consumers', 
   }).balanceContextFor('carbolic-profile');
   const build = createEngineerBuildDefaults();
   build.specializations = [{ name: 'Amalgam', traits: '1-1-1' }];
-  const calculated = createCalculateAttributes(applyEngineerBuildAttributeRules)(build, [], 1, null, null, preview);
+  const calculated = createCalculateAttributes(
+    applyEngineerBuildAttributeRules,
+    engineerProfession.traitBuildAttributes
+  )(build, [], 1, null, null, preview);
   assert.equal(calculated.attributes['Poison Duration'].traits, 42);
   const rule = preview.modifierRulesById.get('engineer.carbolic-composition-duration');
   const context = {
@@ -477,7 +483,7 @@ test('selected balance context keeps trait tooltips and attribute bonuses on the
 
   const build = createNecromancerBuildDefaults();
   build.specializations = [{ name: 'Soul Reaping', traits: '1-1-2' }];
-  const calculate = createCalculateAttributes(applyNecromancerBuildAttributeRules);
+  const calculate = createCalculateAttributes(applyNecromancerBuildAttributeRules, profession.traitBuildAttributes);
   const attributes = calculate(build, [], 1, null, null, preview);
   assert.equal(attributes.attributes['Critical Chance'].traits, 20);
 });

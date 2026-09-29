@@ -1,14 +1,15 @@
-import { THIEF_CORE_RESOURCE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import { balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { ChargePool } from '#gw2/platform/combat/resources/charges.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import { balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
+import { THIEF_CORE_RESOURCE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import { preparednessCapacityField } from '#gw2/professions/thief/core/traits/behavior.js';
+
+import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 interface ThievesGuildState {
   /** Combat activation starts the parallel streams once per summon. */
@@ -64,10 +65,7 @@ export function selectedThiefTraits(config: ThiefConfig = {}): Set<string | numb
 export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
   const traits = selectedThiefTraits(config);
   // Current-patch previews use the same authored capacity as the live resource policy.
-  const maximumInitiative = balanceProfileNumber(
-    THIEF_CORE_RESOURCE_PROFILE,
-    hasTrait(traits, TRAIT.PREPAREDNESS) ? 'minimumStacks' : 'maximumStacks'
-  );
+  const maximumInitiative = balanceProfileNumber(THIEF_CORE_RESOURCE_PROFILE, preparednessCapacityField(traits));
   return {
     initiative: {
       ...createResourceClock(

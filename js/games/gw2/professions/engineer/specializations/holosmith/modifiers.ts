@@ -1,13 +1,10 @@
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { engineerSpecializationState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import {
   holosmithEventMetadata,
   holosmithEventStrikeFactor
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
 /** Applies an authored skill factor before ordinary condition-duration bonuses are capped. */
 function modifyHolosmithConditionBaseDuration(context: Gw2ModifierContext, multiplier: number): number {
@@ -18,43 +15,9 @@ function modifyHolosmithConditionBaseDuration(context: Gw2ModifierContext, multi
 /** Defines Holosmith's heat- and trait-sensitive packet modifier rules. */
 export const holosmithModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
   {
-    id: 'engineer.lasers-edge',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    parameters: {
-      standardMaximum: 0.15,
-      enhancedMaximum: 0.225,
-      bonusPerHeat: 0.0015
-    },
-    factor: (context, _target, parameters) => {
-      const state = engineerSpecializationState(context, 'Holosmith');
-      const maximum = hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
-        ? parameters.enhancedMaximum
-        : parameters.standardMaximum;
-      return 1 + Math.min(maximum, (state.heat || 0) * parameters.bonusPerHeat);
-    },
-    when: (context) => {
-      const state = engineerSpecializationState(context, 'Holosmith');
-      return (
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        hasTrait(context, TRAIT.LASERS_EDGE) &&
-        ((Boolean(state.photonForgeActive) && !state.overheated) ||
-          (hasTrait(context, TRAIT.PHOTONIC_BLASTING_MODULE) && Boolean(state.overheated) && (state.heat || 0) > 0))
-      );
-    }
-  },
-  {
-    id: 'engineer.solar-focusing-lens',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    amount: 0.1,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      hasTrait(context, TRAIT.SOLAR_FOCUSING_LENS) &&
-      holosmithEventMetadata(context.event).solarFocusingLens === true
-  },
-  {
     id: 'engineer.enhanced-capacity-damage-tier',
+    // Skill heat factors follow Core's Flame Jet and the registered Holosmith trait modifiers.
+    order: 1,
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     parameters: { defaultFactor: 1 },

@@ -1,8 +1,9 @@
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import { applyMesmerCoreAttributes } from '#gw2/professions/mesmer/core/modifiers.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 // Cached build facts must not freeze signet recharge or timed stacks, or leak across simulation/patch queries.
 test('Mesmer reuses fixed query inputs while cooldowns and timed attribute stacks remain live', () => {
@@ -17,13 +18,13 @@ test('Mesmer reuses fixed query inputs while cooldowns and timed attribute stack
       }
     },
     time: 0,
-    traits: new Set([PROFILE.chaoticPersistence]),
+    traits: new Set([TRAIT.CHAOTIC_PERSISTENCE]),
     catalog: {
       balanceProfilesById: new Map([
         [PROFILE.signetOfMidnight, { expertiseBonus: 200 }],
         [PROFILE.signetOfDomination, { conditionDamageBonus: 220 }],
-        [PROFILE.chaoticPersistence, { expertiseBonus: 130, concentrationBonus: 270 }],
-        [PROFILE.fencersFinesse, { durationMultiplier: 7, maximumStacks: 8, attributePerStack: 12 }]
+        [TRAIT.CHAOTIC_PERSISTENCE, { expertiseBonus: 130, concentrationBonus: 270 }],
+        [TRAIT.FENCERS_FINESSE, { durationMultiplier: 7, maximumStacks: 8, attributePerStack: 12 }]
       ])
     },
     timeline: {

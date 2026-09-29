@@ -1,3 +1,4 @@
+import { specterTraits } from '#gw2/professions/thief/specializations/specter/traits/index.js';
 import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
 import { SPECTER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/specializations/specter/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
@@ -10,6 +11,7 @@ import { SPECTER_BALANCE_PROFILES } from '#gw2/professions/thief/specializations
 import { specterHooks } from '#gw2/professions/thief/specializations/specter/hooks.js';
 
 export const specterModule = defineNativeModule({
+  traitDefinitions: specterTraits,
   id: 'Specter',
   data: createThiefModuleData('Specter', {
     skillMechanics: SPECTER_SKILL_MECHANICS,

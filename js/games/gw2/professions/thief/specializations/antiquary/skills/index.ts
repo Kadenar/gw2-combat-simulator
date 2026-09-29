@@ -1,12 +1,12 @@
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
+import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 
 // Artifact acceptance spends the old pool; traits surround the skill's intrinsic identity at commitment.
 const ARTIFACT_START: NonNullable<Skill['sideEffects']> = [

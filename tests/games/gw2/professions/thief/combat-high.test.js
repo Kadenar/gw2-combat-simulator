@@ -1,10 +1,10 @@
+import { antiquaryModule } from '#gw2/professions/thief/specializations/antiquary/module.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { antiquaryModifiers } from '#gw2/professions/thief/specializations/antiquary/modifiers.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
+
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
@@ -18,8 +18,8 @@ test('Combat High shares staggered stack expiry across grants, modifiers, projec
   assert.deepEqual(result.warnings, []);
   const profession = observedRuntime(result).profession;
   const state = profession.specialization.state;
-  const strike = antiquaryModifiers.find((rule) => rule.id === 'thief.combat-high-strike');
-  const condition = antiquaryModifiers.find((rule) => rule.id === 'thief.combat-high-condition');
+  const strike = antiquaryModule.modifiers.modifierRules.find((rule) => rule.id === 'thief.combat-high-strike');
+  const condition = antiquaryModule.modifiers.modifierRules.find((rule) => rule.id === 'thief.combat-high-condition');
   for (const [time, count] of [
     [0, 10],
     [1.999999, 10],
@@ -47,7 +47,7 @@ test('Combat High shares staggered stack expiry across grants, modifiers, projec
     const expirations = observedRuntime(
       runThief(['Skritt Swipe'], config, {
         catalog: (catalog) =>
-          withProfile(instantSwipe(catalog), PROFILE.combatHigh, {
+          withProfile(instantSwipe(catalog), TRAIT.COMBAT_HIGH, {
             maximumStacks: 3,
             pulseInterval: interval,
             durationMultiplier: 3

@@ -1,15 +1,7 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 export const DRUID_BALANCE_PROFILE_IDS = Object.freeze({
-  resources: 'ranger.druid.resources',
-  naturalMender: TRAIT.NATURAL_MENDER,
-  naturalBalance: TRAIT.NATURAL_BALANCE,
-  graceOfTheLand: TRAIT.GRACE_OF_THE_LAND,
-  eclipse: TRAIT.ECLIPSE,
-  bloodMoon: TRAIT.BLOOD_MOON,
-  naturalFortitude: TRAIT.NATURAL_FORTITUDE
+  resources: 'ranger.druid.resources'
 });
 
 export const DRUID_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
@@ -23,45 +15,5 @@ export const DRUID_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
     resourceGain: 0.75,
     coefficientMultiplier: 2,
     effects: []
-  },
-  trait(DRUID_BALANCE_PROFILE_IDS.naturalMender, 'Natural Mender', {
-    pulseInterval: 3,
-    resourceGain: 8
-  }),
-  trait(DRUID_BALANCE_PROFILE_IDS.naturalBalance, 'Natural Balance', {
-    conditionDamageIncrease: 0.05,
-    conditionDurationBonus: 0.1,
-    effects: [{ name: 'natural-balance', type: 'buff', kind: 'natural-balance', duration: 10, stacks: 1 }]
-  }),
-  trait(DRUID_BALANCE_PROFILE_IDS.graceOfTheLand, 'Grace of the Land', {
-    effects: [{ name: 'alacrity', type: 'boon', boon: 'alacrity', duration: 1, stacks: 1 }]
-  }),
-  trait(DRUID_BALANCE_PROFILE_IDS.eclipse, 'Eclipse', {
-    effects: [
-      {
-        name: 'Cosmic Ray',
-        type: 'condition',
-        condition: 'Vulnerability',
-        duration: 8,
-        stacks: 1
-      },
-      { name: 'Seed of Life', type: 'condition', condition: 'Poisoned', duration: 8, stacks: 3 },
-      {
-        name: 'Lunar Impact',
-        type: 'condition',
-        condition: 'Immobilized',
-        duration: 3,
-        stacks: 1
-      },
-      { name: 'Rejuvenating Tides', type: 'condition', condition: 'Chilled', duration: 2, stacks: 1 },
-      { name: 'Natural Convergence', type: 'condition', condition: 'Burning', duration: 5, stacks: 1 },
-      { name: 'Natural Convergence final pulse', type: 'condition', condition: 'Burning', duration: 5, stacks: 3 }
-    ]
-  }),
-  trait(DRUID_BALANCE_PROFILE_IDS.bloodMoon, 'Blood Moon', {
-    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration: 4, stacks: 2 }]
-  }),
-  trait(DRUID_BALANCE_PROFILE_IDS.naturalFortitude, 'Natural Fortitude', {
-    attributeBonus: 240
-  })
+  }
 ]);

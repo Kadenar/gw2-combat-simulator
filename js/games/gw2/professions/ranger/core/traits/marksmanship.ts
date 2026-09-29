@@ -1,127 +1,240 @@
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
-/** Owns Core Ranger Marksmanship opening-strike and target-health trait behavior. */
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import {
-  isPetStrike,
-  isPlayerStrike,
-  queueCondition,
-  targetHealthFraction
-} from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { rangerPetEvent, rangerTargetImpaired } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 
-// Spend the player or pet Opening Strike independently on its first qualifying
-// hit and attach Vulnerability plus Alpha Focus when selected.
-export function consumeOpeningStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  if (!hasTrait(context, TRAIT.OPENING_STRIKE)) return;
-  const state = professionCoreState(context);
-  const player = isPlayerStrike(event);
-  const pet = isPetStrike(event);
-  if ((!player && !pet) || !(Number(event.coefficient) > 0)) return;
-  const ready = player ? state.playerOpeningStrikeReady : state.petOpeningStrikeReady;
-  if (!ready) return;
-  const openingStrikeProfile = requireBalanceProfileFromContext(context, PROFILE.openingStrike);
-  const openingStrike = requireEffect(openingStrikeProfile, 'condition', 'Vulnerability');
-  const alphaFocusProfile = hasTrait(context, TRAIT.ALPHA_FOCUS)
-    ? requireBalanceProfileFromContext(context, PROFILE.alphaFocus)
-    : undefined;
-  const alphaFocus = alphaFocusProfile && requireEffect(alphaFocusProfile, 'condition', 'Crippled');
-  // Readiness is spent by a delivered opener; with every opener packet removed it stays armed.
-  if (!openingStrike && !alphaFocus) return;
-  if (player) state.playerOpeningStrikeReady = false;
-  else state.petOpeningStrikeReady = false;
-  if (openingStrike)
-    context.queue.enqueue(
-      buildResolverCondition({
-        at: event.at,
-        source: 'Trait',
-        sourceId: TRAIT.OPENING_STRIKE,
-        actorType: 'effect',
-        skillId: TRAIT.OPENING_STRIKE,
-        skillName: 'Opening Strike',
-        name: 'Opening Strike - Vulnerability',
-        condition: String(openingStrike.condition),
-        duration: effectNumber(openingStrikeProfile, openingStrike, 'duration'),
-        stacks: effectNumber(openingStrikeProfile, openingStrike, 'stacks'),
-        triggeredBy: event.skillName
+function openingStrikeReady(context: Gw2ModifierContext): boolean {
+  const core = readProfessionCoreState<{
+    playerOpeningStrikeReady?: boolean;
+    petOpeningStrikeReady?: boolean;
+  }>(context.runtime?.profession);
+  return rangerPetEvent(context)
+    ? core.petOpeningStrikeReady === true
+    : isGw2PlayerModifierOwnedEvent(context.event) && core.playerOpeningStrikeReady === true;
+}
+
+function targetVulnerable(context: Gw2ModifierContext): boolean {
+  return (context.query?.vulnerabilityStacksAt(context.time, context.runtime || undefined) || 0) > 0;
+}
+
+/** Owns Wolfsong's live tuning and trait behavior. */
+export const wolfsong = defineTrait({
+  id: TRAIT.WOLFSONG,
+  name: 'Wolfsong',
+  balance: {
+    effects: [
+      {
+        name: 'Vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
+        duration: 6,
+        stacks: 6
+      }
+    ]
+  },
+  modifierRules: [
+    {
+      order: 8,
+      id: 'ranger.wolfsong',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: 1.1,
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) && targetVulnerable(context) && hasTrait(context, TRAIT.WOLFSONG)
+    }
+  ]
+});
+
+/** Owns Clarion Bond's live tuning and trait behavior. */
+export const clarionBond = defineTrait({
+  id: TRAIT.CLARION_BOND,
+  name: 'Clarion Bond',
+  balance: {
+    internalCooldown: 15,
+    effects: [
+      { name: 'fury', type: 'boon', boon: 'fury', duration: 5, stacks: 1 },
+      { name: 'might', type: 'boon', boon: 'might', duration: 5, stacks: 6 },
+      { name: 'swiftness', type: 'boon', boon: 'swiftness', duration: 5, stacks: 1 },
+      { name: 'Weakness', type: 'condition', condition: 'Weakness', duration: 5, stacks: 1 }
+    ]
+  }
+});
+
+/** Owns Opening Strike's live tuning and trait behavior. */
+export const openingStrike = defineTrait({
+  id: TRAIT.OPENING_STRIKE,
+  name: 'Opening Strike',
+  balance: {
+    effects: [
+      {
+        name: 'Vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
+        duration: 5,
+        stacks: 5
+      }
+    ]
+  }
+});
+
+/** Owns Alpha Focus's live tuning and trait behavior. */
+export const alphaFocus = defineTrait({
+  id: TRAIT.ALPHA_FOCUS,
+  name: 'Alpha Focus',
+  balance: {
+    effects: [{ name: 'Crippled', type: 'condition', condition: 'Crippled', duration: 2, stacks: 1 }]
+  }
+});
+
+/** Owns Hunter's Gaze's live tuning and trait behavior. */
+export const huntersGaze = defineTrait({
+  id: TRAIT.HUNTERS_GAZE,
+  name: "Hunter's Gaze",
+  balance: {
+    internalCooldown: 1,
+    maximumStacks: 3,
+    effects: [{ name: 'might', type: 'boon', boon: 'might', duration: 5, stacks: 1 }]
+  }
+});
+
+/** Owns Lead the Wind's live tuning and trait behavior. */
+export const leadTheWind = defineTrait({
+  id: TRAIT.LEAD_THE_WIND,
+  name: 'Lead the Wind',
+  balance: {
+    rechargeMultiplier: 0.8,
+    effects: [
+      { name: 'swiftness', type: 'boon', boon: 'swiftness', duration: 10, stacks: 1 },
+      { name: 'quickness', type: 'boon', boon: 'quickness', duration: 5, stacks: 1 }
+    ]
+  },
+  triggers: [
+    {
+      order: 3,
+      emit: TRAIT.LEAD_THE_WIND,
+      on: 'castCommit' as const,
+      when: (_runtime: RangerRuntime, cast: RuntimeCast) => cast.skill.id === ID.POINT_BLANK_SHOT,
+      effects: (effect) => effect.type === 'boon' && effect.name === 'swiftness',
+      attribution: (_runtime: RangerRuntime, cast: RuntimeCast) => ({
+        skillId: TRAIT.LEAD_THE_WIND,
+        skillName: 'Lead the Wind',
+        name: `Lead the Wind - swiftness`,
+        triggeredBy: cast.skill.name
       })
-    );
-  if (alphaFocusProfile && alphaFocus) {
-    queueCondition(
-      context,
-      event,
-      String(alphaFocus.condition),
-      effectNumber(alphaFocusProfile, alphaFocus, 'duration'),
-      effectNumber(alphaFocusProfile, alphaFocus, 'stacks'),
-      TRAIT.ALPHA_FOCUS,
-      'Alpha Focus'
-    );
-  }
-}
+    },
+    {
+      order: 4,
+      emit: TRAIT.LEAD_THE_WIND,
+      on: 'castCommit' as const,
+      when: (_runtime: RangerRuntime, cast: RuntimeCast) => cast.skill.id === ID.POINT_BLANK_SHOT,
+      effects: (effect) => effect.type === 'boon' && effect.name === 'quickness',
+      attribution: (_runtime: RangerRuntime, cast: RuntimeCast) => ({
+        skillId: TRAIT.LEAD_THE_WIND,
+        skillName: 'Lead the Wind',
+        name: `Lead the Wind - quickness`,
+        triggeredBy: cast.skill.name
+      })
+    }
+  ],
+  rechargeRules: [
+    {
+      order: 3,
+      when: (_runtime, skill) => skill.weapon === 'Longbow',
+      multiplier: { profile: TRAIT.LEAD_THE_WIND, field: 'rechargeMultiplier' }
+    }
+  ]
+});
 
-// Convert the target's current health tier into ICD-bound Might stacks on a
-// qualifying player strike, using the resolver's cumulative damage state.
-export function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  if (!isPlayerStrike(event) || !hasTrait(context, TRAIT.HUNTERS_GAZE)) return;
-  const health = targetHealthFraction(context);
-  const profile = requireBalanceProfileFromContext(context, PROFILE.huntersGaze);
-  const might = requireEffect(profile, 'boon', 'might');
-  // The cooldown and proc record exist only for the might packet.
-  if (!might) return;
-  const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
-  const stacks =
-    health < 0.25
-      ? maximumStacks
-      : health < 0.5
-        ? Math.max(0, maximumStacks - 1)
-        : health < 0.75
-          ? Math.max(0, maximumStacks - 2)
-          : 0;
-  // Target health must yield actual Might stacks before this hit claims the interval.
-  if (!stacks || !context.procs.claim(PROFILE.huntersGaze, 'ranger.core.huntersGaze', event.at)) return;
-  context.recordProc(
-    'trait',
-    "Hunter's Gaze",
-    event.at,
-    event.skillName,
-    `${stacks} might`,
-    context.helpers.skillsById?.get(TRAIT.HUNTERS_GAZE)?.icon || ''
-  );
-  queueResolverBoon(
-    context,
-    event,
-    buildResolverBuff({
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.HUNTERS_GAZE,
-      actorType: 'effect',
-      skillId: TRAIT.HUNTERS_GAZE,
-      skillName: "Hunter's Gaze",
-      name: "Hunter's Gaze - Might",
-      kind: String(might.boon),
-      duration: effectNumber(profile, might, 'duration'),
-      stacks,
-      triggeredBy: event.skillName
-    })
-  );
-}
+/** Owns Precise Strike's live tuning and trait behavior. */
+export const preciseStrike = defineTrait({
+  id: TRAIT.PRECISE_STRIKE,
+  name: 'Precise Strike',
+  balance: {
+    criticalChance: 1
+  },
+  modifierRules: [
+    {
+      order: 10,
+      id: 'ranger.precise-strike',
+      target: MODIFIER_TARGET.CRITICAL_CHANCE,
+      operation: 'add',
+      amount: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PRECISE_STRIKE), 'criticalChance'),
+      when: (context) => openingStrikeReady(context) && hasTrait(context, TRAIT.PRECISE_STRIKE)
+    }
+  ]
+});
 
-export function reactToRangerCoreBuff(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const kind = (event.kind || '').toLowerCase();
-  if (kind === 'fury' && event.resolvedAudience?.includesSelf && hasTrait(context, TRAIT.REMORSELESS)) {
-    const state = professionCoreState(context);
-    state.playerOpeningStrikeReady = true;
-    state.petOpeningStrikeReady = true;
-  }
-}
+/** Owns Farsighted's live tuning and trait behavior. */
+export const farsighted = defineTrait({
+  id: TRAIT.FARSIGHTED,
+  name: 'Farsighted',
+  modifierRules: [
+    {
+      order: 6,
+      id: 'ranger.farsighted',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: 1.1,
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) &&
+        eventSkill(context)?.type === 'Weapon' &&
+        hasTrait(context, TRAIT.FARSIGHTED)
+    }
+  ]
+});
+
+/** Owns Remorseless's live tuning and trait behavior. */
+export const remorseless = defineTrait({
+  id: TRAIT.REMORSELESS,
+  name: 'Remorseless',
+  modifierRules: [
+    {
+      order: 9,
+      id: 'ranger.remorseless',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: 1.25,
+      when: (context) => openingStrikeReady(context) && hasTrait(context, TRAIT.REMORSELESS)
+    }
+  ]
+});
+
+/** Owns Predator's Onslaught's live tuning and trait behavior. */
+export const predatorsOnslaught = defineTrait({
+  id: TRAIT.PREDATORS_ONSLAUGHT,
+  name: "Predator's Onslaught",
+  modifierRules: [
+    {
+      order: 11,
+      id: 'ranger.predators-onslaught-player',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: 1.1,
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) &&
+        rangerTargetImpaired(context) &&
+        hasTrait(context, TRAIT.PREDATORS_ONSLAUGHT)
+    },
+    {
+      order: 33,
+      id: 'ranger.predators-onslaught-pet',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: 1.1,
+      when: (context) =>
+        rangerPetEvent(context) && rangerTargetImpaired(context) && hasTrait(context, TRAIT.PREDATORS_ONSLAUGHT)
+    }
+  ]
+});

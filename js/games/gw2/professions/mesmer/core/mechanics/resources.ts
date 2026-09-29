@@ -1,9 +1,5 @@
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { mesmerNumericResourceState } from '#gw2/professions/mesmer/family-state.js';
-import { triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/index.js';
-import type { MesmerActivePrimaryWeapon, MesmerAddEvent, MesmerAddTraitProc } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerClone,
   MesmerCloneAttackScheduler,
@@ -15,6 +11,14 @@ import type {
   MesmerResourceCause,
   MesmerResourceDefinition
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
+import { triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { mesmerNumericResourceState } from '#gw2/professions/mesmer/family-state.js';
+import type {
+  MesmerActivePrimaryWeapon,
+  MesmerAddEvent,
+  MesmerAddTraitProc,
+  MesmerRuntime
+} from '#gw2/professions/mesmer/types.js';
 
 interface ResourceControllerOptions {
   readonly state: MesmerRuntime;

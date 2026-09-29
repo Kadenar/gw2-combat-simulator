@@ -33,13 +33,6 @@ export const EVOKER_NO_CHARGE_SKILLS: ReadonlySet<SkillId> = new Set([
 ]);
 /** Shared icon for every Electric Enchantment proc entry in the log. */
 export const ELECTRIC_ENCHANTMENT_ICON = 'https://wiki.guildwars2.com/images/7/7b/Hare%27s_Agility.png';
-/** Meditation skills whose named profile effects grant Altruistic Aspect boons. */
-export const ALTRUISTIC_ASPECT_SKILLS: ReadonlySet<SkillId> = new Set([
-  ID.FOXS_FURY,
-  ID.HARES_AGILITY,
-  ID.TOADS_FORTITUDE,
-  ID.ELEMENTAL_PROCESSION
-]);
 /** Lesser and completed spear etchings excluded from charge generation. */
 export const EVOKER_NO_CHARGE_SPEAR_SKILLS: ReadonlySet<SkillId> = new Set([
   ID.LESSER_VOLCANO,

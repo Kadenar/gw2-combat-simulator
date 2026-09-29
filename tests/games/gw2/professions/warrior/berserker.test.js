@@ -190,7 +190,7 @@ test('removing King of Fires strike preserves Burning while removing its aura pr
       label: 'King live',
       professions: {
         warrior: {
-          balanceProfiles: { [PROFILE.kingOfFires]: { removeEffects: [{ type }] } }
+          balanceProfiles: { [TRAIT.KING_OF_FIRES]: { removeEffects: [{ type }] } }
         }
       }
     });
@@ -219,10 +219,10 @@ test('Last Blaze preserves completion, profile edits, and mode-before-condition 
     const source = {
       runtimeFor(config) {
         const native = warriorProfession.runtimeFor(config);
-        const profile = native.catalog.balanceProfilesById.get(PROFILE.lastBlaze);
+        const profile = native.catalog.balanceProfilesById.get(TRAIT.LAST_BLAZE);
         return {
           ...native,
-          catalog: withProfile(native.catalog, PROFILE.lastBlaze, {
+          catalog: withProfile(native.catalog, TRAIT.LAST_BLAZE, {
             effects: removed ? [] : profile.effects.map((effect) => ({ ...effect, stacks: 2, duration: 3 }))
           }),
           initialize(runtime) {

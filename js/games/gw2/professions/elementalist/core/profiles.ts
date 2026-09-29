@@ -1,6 +1,6 @@
 /**
  * Balance profiles for Core Elementalist: the authored, patch-tunable numbers
- * behind every Core mechanic, weapon resource, and trait.
+ * behind Core mechanics and weapon resources. Traits own their profiles in traits/.
  *
  * Mechanic and skill-variant profiles carry their own ids; trait profiles are
  * keyed by trait id so a profile can be looked up straight from the trait. Code
@@ -8,18 +8,12 @@
  * authored catalog supplies baseline values when no patch is selected.
  */
 import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import {
-  defineSkillVariantProfile as variant,
-  defineTraitProfile as trait
-} from '#gw2/platform/profession-definition/balance-profiles.js';
-import {
-  ELEMENTALIST_SKILL_IDS as ID,
-  ELEMENTALIST_TRAIT_IDS as TRAIT
-} from '#gw2/professions/elementalist/data/ids.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * Stable profile handles for Core Elementalist. Mechanic and skill-variant
- * entries use namespaced string ids; trait entries alias the trait id itself.
+ * entries use namespaced string ids; traits use their generated IDs directly.
  */
 export const ELEMENTALIST_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'elementalist.core.resources',
@@ -39,48 +33,7 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   fulgor: 'elementalist.core.fulgor-pulses',
   signetOfFire: 'elementalist.core.signet-of-fire-passive',
   fieryGreatsword: 'elementalist.core.fiery-greatsword-attributes',
-  lightningHammer: 'elementalist.core.lightning-hammer-attributes',
-  empoweringFlame: TRAIT.EMPOWERING_FLAME,
-  burningPrecision: TRAIT.BURNING_PRECISION,
-  inferno: TRAIT.INFERNO,
-  conjurer: TRAIT.CONJURER,
-  sunspot: TRAIT.SUNSPOT,
-  burningRage: TRAIT.BURNING_RAGE,
-  smotheringAuras: TRAIT.SMOTHERING_AURAS,
-  powerOverwhelming: TRAIT.POWER_OVERWHELMING,
-  pyromancersTraining: TRAIT.PYROMANCERS_TRAINING,
-  persistingFlames: TRAIT.PERSISTING_FLAMES,
-  pyromancersPuissance: TRAIT.PYROMANCERS_PUISSANCE,
-  zephyrsSpeed: TRAIT.ZEPHYRS_SPEED,
-  freshAir: TRAIT.FRESH_AIR,
-  zephyrsBoon: TRAIT.ZEPHYRS_BOON,
-  oneWithAir: TRAIT.ONE_WITH_AIR,
-  ferociousWinds: TRAIT.FEROCIOUS_WINDS,
-  electricDischarge: TRAIT.ELECTRIC_DISCHARGE,
-  inscription: TRAIT.INSCRIPTION,
-  ragingStorm: TRAIT.RAGING_STORM,
-  aeromancersTraining: TRAIT.AEROMANCERS_TRAINING,
-  lightningRod: TRAIT.LIGHTNING_ROD,
-  earthsEmbrace: TRAIT.EARTHS_EMBRACE,
-  serratedStones: TRAIT.SERRATED_STONES,
-  elementalShielding: TRAIT.ELEMENTAL_SHIELDING,
-  earthenBlast: TRAIT.EARTHEN_BLAST,
-  strengthOfStone: TRAIT.STRENGTH_OF_STONE,
-  rockSolid: TRAIT.ROCK_SOLID,
-  geomancersTraining: TRAIT.GEOMANCERS_TRAINING,
-  writtenInStone: TRAIT.WRITTEN_IN_STONE,
-  soothingIce: TRAIT.SOOTHING_ICE,
-  aquamancersTraining: TRAIT.AQUAMANCERS_TRAINING,
-  soothingPower: TRAIT.SOOTHING_POWER,
-  arcaneProwess: TRAIT.ARCANE_PROWESS,
-  arcanePrecision: TRAIT.ARCANE_PRECISION,
-  renewingStamina: TRAIT.RENEWING_STAMINA,
-  elementalAttunement: TRAIT.ELEMENTAL_ATTUNEMENT,
-  elementalLockdown: TRAIT.ELEMENTAL_LOCKDOWN,
-  elementalEnchantment: TRAIT.ELEMENTAL_ENCHANTMENT,
-  evasiveArcana: TRAIT.EVASIVE_ARCANA,
-  arcaneLightning: TRAIT.ARCANE_LIGHTNING,
-  bountifulPower: TRAIT.BOUNTIFUL_POWER
+  lightningHammer: 'elementalist.core.lightning-hammer-attributes'
 });
 
 // Effect-literal builders keep the profile table below readable; the `name`
@@ -89,14 +42,6 @@ const namedBoon = (name: string, boon: string, stacks: number, duration: number)
   type: 'boon',
   name,
   boon,
-  stacks,
-  duration
-});
-
-const namedBuff = (name: string, kind: string, stacks: number, duration: number): SkillEffect => ({
-  type: 'buff',
-  name,
-  kind,
   stacks,
   duration
 });
@@ -256,221 +201,5 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     ID.CONJURE_LIGHTNING_HAMMER,
     'Lightning Hammer - Wielded Attributes',
     { attributeBonus: 75, weaponAttributeBonus: 180 }
-  ),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.empoweringFlame, 'Empowering Flame', { attributeBonus: 150 }),
-  // Convert Power to the equivalent Condition Damage input for Burning's canonical 0.155 coefficient.
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.inferno, 'Inferno', { coefficientMultiplier: 0.0825 / 0.155 }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.burningPrecision, 'Burning Precision', {
-    procRate: {
-      id: 'elementalist.burning-precision',
-      traitId: TRAIT.BURNING_PRECISION,
-      field: 'procChance',
-      opportunity: 'eligible critical hit'
-    },
-    procChance: 0.33,
-    internalCooldown: 5,
-    durationMultiplier: 20,
-    effects: [namedCondition('Burning Precision', 'Burning', 1, 3)]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.conjurer, 'Conjurer', {
-    effects: [aura('Conjurer', 'Fire Aura', 4)]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.sunspot, 'Sunspot', {
-    effects: [aura('Sunspot Aura', 'Fire Aura', 3), { type: 'strike', name: 'Sunspot', coefficient: 0.6, hits: 1 }]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.burningRage, 'Burning Rage', {
-    attributeBonus: 180,
-    durationMultiplier: 20,
-    effects: [namedCondition('Sunspot Burning', 'Burning', 2, 4)]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.smotheringAuras, 'Smothering Auras', { durationMultiplier: 1.33 }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.powerOverwhelming, 'Power Overwhelming', {
-    minimumStacks: 10,
-    attributeBonus: 150,
-    weaponAttributeBonus: 300
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.pyromancersTraining, "Pyromancer's Training", {
-    rechargeMultiplier: 0.8
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.persistingFlames, 'Persisting Flames', {
-    maximumStacks: 5,
-    damageIncreasePerStack: 0.02,
-    durationMultiplier: 15,
-    durationPerTier: 2,
-    summons: 2
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.pyromancersPuissance, "Pyromancer's Puissance", {
-    // Measured Fire-exit-to-impact delay, separate from the instant attunement swap.
-    initialDelay: 0.68,
-    maximumStacks: 10,
-    damageIncreasePerStack: 0.1,
-    durationPerTier: 0.5,
-    effects: [
-      namedBoon('Attunement Might', 'might', 1, 15),
-      namedBoon('Flame Expulsion Might', 'might', 1, 15),
-      { type: 'strike', name: 'Flame Expulsion', coefficient: 1, hits: 1 },
-      namedCondition('Flame Expulsion', 'Burning', 1, 2)
-    ]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.zephyrsSpeed, "Zephyr's Speed", { criticalChance: 0.05 }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.freshAir, 'Fresh Air', {
-    attributeBonus: 250,
-    effects: [{ name: 'fresh-air', type: 'buff', kind: 'fresh-air', stacks: 1, duration: 5 }]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.zephyrsBoon, "Zephyr's Boon", {
-    effects: [namedBoon('Fury', 'fury', 1, 5), namedBoon('Swiftness', 'swiftness', 1, 5)]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.oneWithAir, 'One with Air', {
-    effects: [namedBuff('Superspeed', 'superspeed', 1, 3)]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.ferociousWinds, 'Ferocious Winds', { attributeConversion: 0.07 }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.electricDischarge, 'Electric Discharge', {
-    criticalDamage: 2,
-    effects: [
-      {
-        type: 'strike',
-        name: 'Electric Discharge',
-        coefficient: 0.35,
-        hits: 1
-      },
-      namedCondition('Electric Discharge', 'Vulnerability', 1, 8)
-    ]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.inscription, 'Inscription', {
-    effects: [
-      namedBoon('Fire', 'might', 1, 10),
-      namedBoon('Water', 'regeneration', 1, 10),
-      namedBoon('Air', 'swiftness', 1, 10),
-      namedBoon('Earth', 'protection', 1, 3),
-      namedBoon('Air Entry', 'resistance', 1, 3)
-    ]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.ragingStorm, 'Raging Storm', {
-    internalCooldown: 8,
-    attributeBonus: 180,
-    effects: [namedBoon('Fury', 'fury', 1, 4)]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.aeromancersTraining, "Aeromancer's Training", {
-    attributeBonus: 150,
-    rechargeMultiplier: 0.8
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.lightningRod, 'Lightning Rod', {
-    effects: [
-      { name: 'Lightning Rod', type: 'strike', coefficient: 1.5, hits: 1 },
-      namedCondition('Lightning Rod', 'Weakness', 1, 4)
-    ]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.earthsEmbrace, "Earth's Embrace", {
-    internalCooldown: 15,
-    effects: [namedBoon('Resistance', 'resistance', 1, 4)]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.serratedStones, 'Serrated Stones', { durationMultiplier: 20 }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.elementalShielding, 'Elemental Shielding', {
-    effects: [namedBoon('Protection', 'protection', 1, 3)]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.earthenBlast, 'Earthen Blast', {
-    effects: [{ name: 'Earthen Blast', type: 'strike', coefficient: 0.36, hits: 1 }]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.strengthOfStone, 'Strength of Stone', {
-    attributeConversion: 0.1,
-    internalCooldown: 3,
-    effects: [namedCondition('Strength of Stone', 'Bleeding', 3, 10)]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.rockSolid, 'Rock Solid', {
-    effects: [namedBoon('Stability', 'stability', 1, 3)]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.geomancersTraining, "Geomancer's Training", { rechargeMultiplier: 0.8 }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.writtenInStone, 'Written in Stone', {
-    effects: [aura('Restoration', 'Frost Aura', 4), aura('Fire', 'Fire Aura', 4), aura('Earth', 'Magnetic Aura', 3)]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.soothingIce, 'Soothing Ice', {
-    internalCooldown: 15,
-    effects: [aura('Frost Aura', 'Frost Aura', 4), namedBoon('Regeneration', 'regeneration', 1, 4)]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.aquamancersTraining, "Aquamancer's Training", {
-    rechargeMultiplier: 0.8
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.soothingPower, 'Soothing Power', { attributeBonus: 300 }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.arcaneProwess, 'Arcane Prowess', {
-    effects: [namedBoon('Might', 'might', 1, 8)]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.arcanePrecision, 'Arcane Precision', {
-    procChance: 0.33,
-    internalCooldown: 3,
-    effects: [
-      namedCondition('Fire', 'Burning', 1, 1.5),
-      namedCondition('Water', 'Vulnerability', 1, 10),
-      namedCondition('Air', 'Weakness', 1, 3),
-      namedCondition('Earth', 'Bleeding', 1, 5)
-    ]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.renewingStamina, 'Renewing Stamina', {
-    internalCooldown: 10,
-    effects: [namedBoon('Vigor', 'vigor', 1, 5)]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.elementalAttunement, 'Elemental Attunement', {
-    effects: [
-      namedBoon('Fire', 'might', 1, 15),
-      namedBoon('Water', 'regeneration', 1, 5),
-      namedBoon('Air', 'swiftness', 1, 8),
-      namedBoon('Earth', 'protection', 1, 5)
-    ]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.elementalLockdown, 'Elemental Lockdown', {
-    internalCooldown: 1,
-    effects: [
-      namedBoon('Fire', 'might', 5, 5),
-      namedBoon('Water', 'regeneration', 1, 10),
-      namedBoon('Air', 'fury', 1, 5),
-      namedBoon('Earth', 'protection', 1, 4)
-    ]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.elementalEnchantment, 'Elemental Enchantment', {
-    attributeBonus: 180,
-    rechargeMultiplier: 0.85
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.evasiveArcana, 'Evasive Arcana', {
-    internalCooldown: 10,
-    effects: [
-      {
-        type: 'strike',
-        name: 'Fire',
-        coefficient: 1,
-        hits: 1
-      },
-      namedCondition('Fire Burning', 'Burning', 3, 6),
-      { type: 'strike', name: 'Earth', coefficient: 0.5, hits: 1 },
-      namedCondition('Earth Bleeding', 'Bleeding', 1, 20),
-      namedCondition('Earth Cripple', 'Cripple', 1, 2)
-    ]
-  }),
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.arcaneLightning, 'Arcane Lightning', {
-    attributeBonus: 150,
-    effects: [
-      {
-        type: 'buff',
-        name: 'Arcane Lightning',
-        kind: 'arcane-lightning',
-        stacks: 1,
-        duration: 15
-      },
-      namedBoon('Arcane Brilliance', 'protection', 1, 3.5),
-      namedCondition('Arcane Wave', 'Immobilized', 1, 2),
-      namedBoon('Arcane Echo', 'quickness', 1, 4)
-    ]
-  }),
-
-  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.bountifulPower, 'Bountiful Power', {
-    threshold: 5,
-    effects: [
-      namedBoon('Quickness', 'quickness', 1, 5),
-      {
-        type: 'buff',
-        name: 'Damage Window',
-        kind: 'bountiful-power-active',
-        stacks: 1,
-        duration: 7
-      }
-    ]
-  })
+  )
 ]);

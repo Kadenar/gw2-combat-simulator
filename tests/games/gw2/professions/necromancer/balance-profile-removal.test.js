@@ -1,18 +1,18 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { minionDefinitionForSkill } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/necromancer/core/profiles.js';
+import { applyVampiric } from '#gw2/professions/necromancer/core/traits/life-steal.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { RITUALIST_BALANCE_PROFILE_IDS as RITUALIST } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import {
   createObservedProfessionSimulator,
   observeGw2Runtime,
   observedRuntime
 } from '#tests/helpers/observed-runtime.js';
-import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/necromancer/core/profiles.js';
-import { RITUALIST_BALANCE_PROFILE_IDS as RITUALIST } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
-import { applyVampiric } from '#gw2/professions/necromancer/core/traits/blood-magic.js';
-import { minionDefinitionForSkill } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const patched = (balanceProfiles) => applyBalanceProfilePatch(necromancerCatalog, { balanceProfiles });
@@ -51,14 +51,14 @@ test('removed minion Vampiric siphon keeps the player siphon bound to its own va
   const context = {
     recordProc() {},
     config: { selectedTraitIds: [TRAIT.VAMPIRIC] },
-    catalog: patched({ [CORE.vampiric]: remove('strike', 'minion') }),
+    catalog: patched({ [TRAIT.VAMPIRIC]: remove('strike', 'minion') }),
     queue: { enqueue: (event) => queued.push(event) }
   };
   applyVampiric(context, { type: 'damage', at: 1, actorType: 'summon', summonKind: 'minion', skillName: 'Bite' });
   assert.deepEqual(queued, []);
   applyVampiric(context, { type: 'damage', at: 2, actorType: 'player', skillName: 'Strike' });
   const player = necromancerCatalog.balanceProfilesById
-    .get(CORE.vampiric)
+    .get(TRAIT.VAMPIRIC)
     .effects.find((effect) => effect.name === 'player');
   assert.equal(queued.length, 1);
   assert.equal(queued[0].flatStrikeBase, player.flatStrikeBase);

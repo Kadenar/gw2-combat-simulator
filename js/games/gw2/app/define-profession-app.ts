@@ -1,31 +1,30 @@
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import {
-  describeSimulationSkill,
-  describeSimulationTrait,
-  type SimulationTooltip
-} from '#gw2/app/shared/simulation-tooltip.js';
-import { createDefaultTargetConditions as createSharedDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
-import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
-import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
-import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import { renderRotationBuilder } from '#gw2/app/rotation/builder.js';
-import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
 import { gw2BuildEditor } from '#gw2/app/build/editor.js';
-import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
-import { renderGearOptimizerView } from '#gw2/app/optimizer/view.js';
-import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
-import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
-import type { DefineProfessionAppOptions, Gw2AppAdapter } from '#gw2/app/types.js';
 import type {
   ProfessionDefaultOffhand,
   ProfessionOffhandContext,
   ProfessionSkillAvailabilityContext
 } from '#gw2/app/build/types.js';
+import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
+import { renderGearOptimizerView } from '#gw2/app/optimizer/view.js';
+import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
+import { renderRotationBuilder } from '#gw2/app/rotation/builder.js';
+import {
+  describeSimulationSkill,
+  describeSimulationTrait,
+  type SimulationTooltip
+} from '#gw2/app/shared/simulation-tooltip.js';
+import type { DefineProfessionAppOptions, Gw2AppAdapter } from '#gw2/app/types.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
+import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { createDefaultTargetConditions as createSharedDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
+import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
+import type { Gw2Build, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
+import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
+import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
+import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
-import type { Gw2Build } from '#gw2/platform/builds/types.js';
-import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 
 /**
  * Creates an offhand selector that prefers one weapon when it is available.
@@ -69,7 +68,7 @@ export function defineProfessionApp<
 }): Readonly<Gw2AppAdapter> {
   // Apply previews before capturing catalogs and runtime behavior so every browser adapter uses the same patch.
   const profession = withActivePatchPreview(nativeProfession);
-  const calculateAttributes = createCalculateAttributes(applyBuildAttributeRules);
+  const calculateAttributes = createCalculateAttributes(applyBuildAttributeRules, profession.traitBuildAttributes);
   const runtimeApi = createProfessionRuntime({
     profession,
     calculateAttributes,

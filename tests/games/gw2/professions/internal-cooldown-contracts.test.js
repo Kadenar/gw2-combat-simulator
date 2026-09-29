@@ -1,33 +1,36 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { runThief } from '#tests/helpers/thief-simulation.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { StableEventQueue } from '#kernel/events/queue.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-
-import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import { applyViciousEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
+import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
+import { applyViciousEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
-import { reactToEngineerCondition } from '#gw2/professions/engineer/core/traits/index.js';
+import { reactToEngineerCondition } from '#gw2/professions/engineer/core/traits/dispatch.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
-import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
+import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
+import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { reactToAshesHit } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
-import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
+import { triggerIneptitudeFromInterrupt } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
+import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/initial-state.js';
 import {
-  reactToNecromancerCoreDamage,
-  reactToNecromancerBlind
-} from '#gw2/professions/necromancer/core/traits/index.js';
+  applyVampiricPresence,
+  reactToVampiricPresenceAlliedHit
+} from '#gw2/professions/necromancer/core/traits/life-steal.js';
+import {
+  reactToNecromancerBlind,
+  reactToNecromancerCoreDamage
+} from '#gw2/professions/necromancer/core/traits/reactions.js';
 import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
-import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
+import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { scourgeResolverEventReactions } from '#gw2/professions/necromancer/specializations/scourge/traits/behavior.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
+import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import {
   reactToSoulbeastBuff,
   reactToSoulbeastDamage,
@@ -35,23 +38,17 @@ import {
 } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { createSoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { REVENANT_LEGEND_IDS, REVENANT_TRAIT_IDS } from '#gw2/professions/revenant/data/ids.js';
-import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
-import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
+import { specterModule } from '#gw2/professions/thief/specializations/specter/module.js';
+import { WARRIOR_SKILL_IDS, WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { WARRIOR_TRAIT_IDS, WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
-import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
-import { MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
-import { triggerIneptitudeFromInterrupt } from '#gw2/professions/mesmer/core/traits/dueling.js';
-import {
-  applyVampiricPresence,
-  reactToVampiricPresenceAlliedHit
-} from '#gw2/professions/necromancer/core/traits/blood-magic.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/core/profiles.js';
-import { scourgeResolverEventReactions } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-effects.js';
-import { SCOURGE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
-import { specterHooks } from '#gw2/professions/thief/specializations/specter/hooks.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const READY_AT = 1;
 const AFTER_READY_AT = 1.001;
@@ -532,7 +529,7 @@ test('Ineptitude claims only surviving effects on defiant targets at the event t
         catalog,
         core: {},
         traits: [trait],
-        config: { target: { defiant } }
+        config: { target: { defiant, activatingSkills: true } }
       });
       context.time = 99;
       const event = { type: 'control', actorType: 'player', at: 1, skillName: 'Interrupt' };
@@ -562,7 +559,7 @@ test('Ineptitude claims only surviving effects on defiant targets at the event t
 
 // Non-ICD profile fields keep their own duration, and removed effects must leave the proc ready.
 test('Demonic Lore claims its cooldown field only for a surviving Burning packet', () => {
-  const id = SCOURGE_BALANCE_PROFILE_IDS.demonicLore;
+  const id = NECROMANCER_TRAIT_IDS.DEMONIC_LORE;
   const catalog = withProfile(necromancerCatalog, id, { cooldown: 2, internalCooldown: 99 });
   const { context, conditions } = professionContext({
     id: 'necromancer',
@@ -597,7 +594,7 @@ test('Demonic Lore claims its cooldown field only for a surviving Burning packet
 test('Vampiric Presence preserves recipient scopes and the pre-applied interval bypass', () => {
   const core = createNecromancerCoreState();
   core.activeMinions.fixture = 2;
-  const catalog = withProfile(necromancerCatalog, NECROMANCER_CORE_BALANCE_PROFILE_IDS.vampiricPresence, {
+  const catalog = withProfile(necromancerCatalog, NECROMANCER_TRAIT_IDS.VAMPIRIC_PRESENCE, {
     cooldown: 2
   });
   const { context } = professionContext({
@@ -635,7 +632,7 @@ test('Dark Sentry claims each eligible ally once and retains strict recipient de
   const runtime = observedRuntime(
     runThief([], { specialization: 'Specter', allies: { count: 2, strikesPerSecond: 0 } })
   );
-  const invoke = specterHooks.tasks['thief.specter-dark-sentry'];
+  const invoke = specterModule.hooks.tasks['thief.specter-dark-sentry'];
   runtime.time = 1;
   runtime.procs.readyAt['thief.specter.darkSentry:1'] = 1;
   invoke(runtime, { allyIndices: [0, 1, 2, 2, 3, 1.5] });

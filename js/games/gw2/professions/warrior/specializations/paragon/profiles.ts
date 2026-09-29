@@ -1,6 +1,4 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 export const PARAGON_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'warrior.paragon.motivation',
@@ -9,14 +7,7 @@ export const PARAGON_BALANCE_PROFILE_IDS = Object.freeze({
   commands: 'warrior.paragon.command-echoes',
   findTheirWeaknessEcho: 'warrior.paragon.find-their-weakness-echo',
   onYourKneesEcho: 'warrior.paragon.on-your-knees-echo',
-  weShallReturnEcho: 'warrior.paragon.we-shall-return-echo',
-  inspiringImplements: TRAIT.INSPIRING_IMPLEMENTS,
-  invigoratingTempo: TRAIT.INVIGORATING_TEMPO,
-  enduringRefrain: TRAIT.ENDURING_REFRAIN,
-  feverishPulse: TRAIT.FEVERISH_PULSE,
-  callToAction: TRAIT.CALL_TO_ACTION,
-  rallyTheValiant: TRAIT.RALLY_THE_VALIANT,
-  reverberation: TRAIT.REVERBERATION
+  weShallReturnEcho: 'warrior.paragon.we-shall-return-echo'
 });
 
 export const PARAGON_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
@@ -85,31 +76,5 @@ export const PARAGON_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     profileKind: 'mechanic',
     pulseInterval: 3,
     effects: []
-  },
-  trait(PARAGON_BALANCE_PROFILE_IDS.inspiringImplements, 'Inspiring Implements', {
-    attributeBonus: 180,
-    internalCooldown: 4,
-    resourceGain: 5,
-    minimumStacks: 2
-  }),
-  trait(PARAGON_BALANCE_PROFILE_IDS.invigoratingTempo, 'Invigorating Tempo', {
-    resourceGain: 1
-  }),
-  trait(PARAGON_BALANCE_PROFILE_IDS.enduringRefrain, 'Enduring Refrain', {
-    stackMultiplier: 2,
-    resourceGain: 1
-  }),
-  trait(PARAGON_BALANCE_PROFILE_IDS.feverishPulse, 'Feverish Pulse', {
-    rechargeReduction: 2,
-    effects: [{ name: 'alacrity', type: 'boon', boon: 'alacrity', stacks: 1, duration: 6 }]
-  }),
-  trait(PARAGON_BALANCE_PROFILE_IDS.callToAction, 'Call to Action', {
-    resourceGain: 4
-  }),
-  trait(PARAGON_BALANCE_PROFILE_IDS.rallyTheValiant, 'Rally the Valiant', {
-    resourceGain: 4
-  }),
-  trait(PARAGON_BALANCE_PROFILE_IDS.reverberation, 'Reverberation', {
-    maximumStacks: 2
-  })
+  }
 ]);

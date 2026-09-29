@@ -1,27 +1,26 @@
-import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
-import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
-import { INFUSION_BONUS } from '#gw2/platform/equipment/gear/infusions.js';
-import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
-import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
-import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
-import {
-  UTILITY_CONVERSION_RATES,
-  UTILITY_DATA,
-  UTILITY_STAT_DATA
-} from '#gw2/platform/equipment/consumables/utilities.js';
-import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 import {
   conditionDurationPercentFromExpertise,
   criticalChancePercentFromPrecision,
   criticalDamagePercentFromFerocity
 } from '#gw2/platform/combat/formulas.js';
+import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
+import {
+  UTILITY_CONVERSION_RATES,
+  UTILITY_DATA,
+  UTILITY_STAT_DATA
+} from '#gw2/platform/equipment/consumables/utilities.js';
+import { INFUSION_BONUS } from '#gw2/platform/equipment/gear/infusions.js';
+import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
+import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
+import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import {
   normalizeWeaponSigils,
   stackingSigilForBuild,
   weaponSigilsForSet
 } from '#gw2/platform/equipment/sigils/loadout.js';
+import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
   Gw2ApplyBuildAttributeRules,
   Gw2AttributeBreakdown,
@@ -33,6 +32,7 @@ import type {
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /** Level-80 character baseline that gear and food attributes build on top of. */
 const BASE_STATS: Readonly<Gw2NumericAttributes> = {
@@ -463,7 +463,8 @@ export function finalizeBuildAttributes(
  *
  */
 export function createCalculateAttributes(
-  applyBuildAttributeRules: Gw2ApplyBuildAttributeRules
+  applyBuildAttributeRules: Gw2ApplyBuildAttributeRules,
+  traitBuildAttributes?: import('#gw2/platform/builds/types.js').Gw2TraitBuildAttributeCalculator
 ): Gw2CalculateAttributes {
   return function calculateAttributes(
     build: Gw2Build,
@@ -483,7 +484,8 @@ export function createCalculateAttributes(
       selectedSkills,
       weaponSet,
       disabledTrait,
-      balanceContext
+      balanceContext,
+      traitBuildAttributes
     });
   };
 }

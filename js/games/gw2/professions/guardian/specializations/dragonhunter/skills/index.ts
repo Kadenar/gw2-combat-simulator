@@ -1,13 +1,12 @@
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { soaringDevastationEffects } from '#gw2/professions/guardian/specializations/dragonhunter/traits/behavior.js';
+
 /**
  * Owns Dragonhunter virtue and trap skill fragments.
  * Runtime virtue and trap behavior remains under `mechanics/` and `execution/virtues.ts`.
  */
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SPEAR_OF_JUSTICE]: {
@@ -60,26 +59,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   },
   [ID.WINGS_OF_RESOLVE]: {
     // The added strike and condition keep the weapon wielded at acceptance and the base virtue's effects.
-    effectVariants: [
-      {
-        when: (runtime) => hasTrait(runtime, TRAIT.SOARING_DEVASTATION),
-        profileId: PROFILE.soaringDevastation,
-        transform: (runtime, cast, effects) => [
-          ...(cast.skill.effects ?? []),
-          ...effects
-            .filter((effect) => effect.type === 'strike' || effect.type === 'condition')
-            .map((effect) => ({
-              ...effect,
-              name:
-                effect.type === 'strike'
-                  ? 'Wings of Resolve \u2014 Soaring Devastation'
-                  : 'Soaring Devastation \u2014 Immobilized',
-              weapon: gw2ActivePrimaryWeapon(runtime.config, runtime.activeWeaponSet),
-              timingAnchor: 'castEnd' as const
-            }))
-        ]
-      }
-    ],
+    effectVariants: [soaringDevastationEffects],
     castTimeMs: 0,
     cooldown: 25,
     effects: []

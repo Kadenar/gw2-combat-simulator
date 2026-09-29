@@ -1,28 +1,34 @@
-import { projectObservedState } from '#tests/helpers/observed-runtime.js';
-import { runGuardian } from '#tests/helpers/guardian-simulation.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { loadProfession } from '#gw2/profession-registry.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { loadProfession } from '#gw2/profession-registry.js';
+import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
+import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
 import {
   createGuardianBuildDefaults,
   migrateGuardianBuild,
   validateGuardianBuild
 } from '#gw2/professions/guardian/build/build.js';
-import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
-import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
+import { guardianCoreModule } from '#gw2/professions/guardian/core/module.js';
 import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
-import { guardianCoreModifiers } from '#gw2/professions/guardian/core/modifiers.js';
 import { snapshotGuardianState } from '#gw2/professions/guardian/core/state.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
+import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+import {
+  createObservedProfessionSimulator,
+  observedRuntime,
+  projectObservedState
+} from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const guardianCoreUi = bindGuardianCoreUi(guardianCatalog);
 
 // Attribute assertions use the same calculator composed into the Guardian adapter.
-const calculateGuardianAttributes = createCalculateAttributes(applyGuardianBuildAttributeRules);
+const calculateGuardianAttributes = createCalculateAttributes(
+  applyGuardianBuildAttributeRules,
+  guardianProfession.traitBuildAttributes
+);
 
 const config = {
   stats: {
@@ -130,7 +136,7 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
     );
   const result = run();
   const profession = observedRuntime(result).profession;
-  const rule = guardianCoreModifiers.modifierRules.find((entry) => entry.id === 'guardian.symbolic-avenger');
+  const rule = guardianCoreModule.modifiers.modifierRules.find((entry) => entry.id === 'guardian.symbolic-avenger');
   assert.equal(profession.core.symbolicAvengerExpirations.length, 5);
   for (const [at, stacks] of [
     [15, 5],

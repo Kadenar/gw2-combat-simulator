@@ -1,19 +1,19 @@
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import type {
+  ProfessionEffectPresentation,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
   guardianUiSkillIdsByName,
   guardianUiState
 } from '#gw2/professions/guardian/core/presentation.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
-import type {
-  ProfessionEffectPresentation,
-  RotationStateSnapshotItem
-} from '#gw2/platform/profession-presentation/types.js';
+import { GUARDIAN_TRAIT_IDS as WILLBENDER_TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianUiContext, GuardianUiSlice } from '#gw2/professions/guardian/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 
@@ -36,7 +36,7 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
   }
 
   const lethalRemaining = (state.lethalTempoUntil || 0) - at;
-  const lethalTempoProfile = requireBalanceProfileFromContext(context.balanceContext, PROFILE.lethalTempo);
+  const lethalTempoProfile = requireBalanceProfileFromContext(context.balanceContext, WILLBENDER_TRAIT.LETHAL_TEMPO);
   const maximum = balanceProfileNumber(lethalTempoProfile, 'maximumStacks');
   const lethalStacks = boundedInteger(state.lethalTempoStacks || 0, 0, 0, maximum);
   // Lethal Tempo remains available for damage and refreshes on its final tick.
@@ -54,7 +54,7 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
 
 /** Labels Willbender's timed effects and treats refreshed states as replacements rather than additive grants. */
 function willbenderEffectPresentations(context: GuardianUiContext): ProfessionEffectPresentation[] {
-  const lethalTempoProfile = requireBalanceProfileFromContext(context, PROFILE.lethalTempo);
+  const lethalTempoProfile = requireBalanceProfileFromContext(context, WILLBENDER_TRAIT.LETHAL_TEMPO);
   return [
     ...[
       ['justice', 'Rushing Justice'],

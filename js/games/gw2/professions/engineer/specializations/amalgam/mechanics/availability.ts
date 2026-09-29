@@ -1,6 +1,7 @@
-import { amalgamState, resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { denySkillCast as denyEngineerCast } from '#gw2/platform/engine/skills/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
+import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Rejects Amalgam actions that do not match the selected protocols or Double Helix trait. */

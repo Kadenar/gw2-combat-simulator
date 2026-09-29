@@ -1,22 +1,24 @@
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
-import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
+import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
+import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
+import {
+  jadeCannonsAttack,
+  triggerMechFighter
+} from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
 
-import { shiftSignetPassive } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
-import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
-import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
-import { GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/skills/timing.js';
-import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { EngineerRuntime, EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engineer/types.js';
+import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
+import { GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/skills/timing.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
+import { shiftSignetPassive } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
+import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
+import type { EngineerResolverEvent, EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 export { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 
 // Mech strikes use the mech's native damage packet rather than the engineer's
@@ -179,28 +181,9 @@ export function prepareEngineerMechEvent(context: EngineerRuntime, event: Simula
 }
 
 /** Emits the mech fighter trait's strike, burning, and defiance-damage packets as one activation. */
-function emitRocketPunch(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  // The trait invokes the skill payload with a separate summon activation and native weapon roll.
-  const punch = context.helpers.skillsById.get(ID.ROCKET_PUNCH_MECH)!;
-  emitEffects(context, {
-    owner: punch,
-    at,
-    skillWeaponFallback: 'Unequipped',
-    baseEvent: {
-      source: 'Trait',
-      sourceId: TRAIT.MECH_FIGHTER,
-      actorType: 'summon',
-      skillId: punch.id,
-      skillName: punch.name,
-      activationId: 'engineer.rocket-punch:' + at,
-      triggeredBy: skill.name,
-      metadata: { engineerMech: true }
-    }
-  });
-}
 
 /** Applies post-cast mech lane recovery and Mechanist trait procs for the completed skill. */
-export function applyEngineerMechCastTraits(context: EngineerRuntime, skill: EngineerSkill): void {
+export function completeEngineerMechCast(context: EngineerRuntime, skill: EngineerSkill): void {
   if (context.config.specialization !== 'Mechanist') return;
   const state = mechanistState.from(context);
   const at = context.time;
@@ -213,16 +196,7 @@ export function applyEngineerMechCastTraits(context: EngineerRuntime, skill: Eng
     state.mech.busyUntil = Math.max(state.mech.busyUntil || 0, busyUntil);
   }
 
-  if (
-    state.mech.active &&
-    skill.type === 'Weapon' &&
-    !skill.kit &&
-    skill.slot === 'Weapon_3' &&
-    context.procs.claim(PROFILE.rocketPunch, 'rocketPunch', at)
-  ) {
-    // The weapon trigger owns the interval even when Rocket Punch's optional strike is removed.
-    emitRocketPunch(context, skill, at);
-  }
+  triggerMechFighter(context, skill);
 }
 
 /** Starts the autonomous mech attack loop when the specialization begins with an active mech. */
@@ -245,13 +219,10 @@ export function stepMechAttack(
   const phase = payload.phase || 0;
   // Jade Cannons replaces the melee chain with alternating arm shots and
   // distinct within-pair and between-pair delays.
-  if (hasTrait(context.config, TRAIT.MECH_ARMS_JADE_CANNONS)) {
-    const firstArm = phase === 0;
-    emitMechAttack(context, firstArm ? ID.JADE_ENERGY_SHOT : ID.JADE_ENERGY_SHOT_ID_63348, at);
-
-    const nextAt =
-      at + (firstArm ? MECHANIST_ATTACK_TIMING.jadeCannonArmGap : MECHANIST_ATTACK_TIMING.jadeCannonCycleGap) / rate;
-    return { at: nextAt, state: { phase: firstArm ? 1 : 0 } };
+  const cannon = jadeCannonsAttack(context.config, phase);
+  if (cannon) {
+    emitMechAttack(context, cannon.skillId, at);
+    return { at: at + cannon.interval / rate, state: { phase: cannon.nextPhase } };
   }
 
   // The default chassis advances through its three-hit melee chain, wrapping

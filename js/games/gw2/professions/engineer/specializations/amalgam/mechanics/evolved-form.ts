@@ -1,22 +1,16 @@
-import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
 import {
-  requireBalanceProfileFromContext,
   balanceProfileNumber,
-  requireEffect,
-  effectNumber
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
-import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
 import type { AmalgamMorphKind } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { EngineerRuntime, EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engineer/types.js';
-
-const EVOLVE_SKILL_IDS = new Set<SkillId>([ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX]);
+import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
+import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
+import { applyAmalgamEvolveTraits } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
+import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Resolves the equipped protocol IDs to unique stable Morph kinds for strain application. */
 function selectedMorphKinds(context: EngineerRuntime): Set<AmalgamMorphKind> {
@@ -65,48 +59,6 @@ export function scheduleThornsRetaliation(context: EngineerRuntime, skill: Engin
   }
 }
 
-/** Resolves a completed Morph cast, including its protocol state and selected trait payoffs. */
-export function activateAmalgamMorph(context: EngineerRuntime, skill: EngineerSkill): void {
-  const at = context.time;
-  const state = amalgamState.from(context);
-  const morphKind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id);
-  // Resolve traits whose duration or strain depends on the chosen protocol.
-  if (hasTrait(context.config, TRAIT.WILLING_HOST)) {
-    const willingHostProfile = requireBalanceProfileFromContext(context, PROFILE.willingHost);
-    state.willingHostUntil = Math.max(
-      state.willingHostUntil,
-      at + balanceProfileNumber(willingHostProfile, 'durationMultiplier')
-    );
-  }
-
-  grantHardenedChrome(context, 'minimumStacks');
-
-  if (morphKind && hasTrait(context.config, TRAIT.SILVER_LINING)) {
-    applyAmalgamStrain(context, morphKind, at);
-  }
-
-  // New Genes combines universal boons with one protocol-specific boon.
-  if (hasTrait(context.config, TRAIT.NEW_GENES)) {
-    // Each selected boon survives independently, including the protocol-specific packet.
-    for (const name of ['alacrity', 'might', ...(morphKind ? [morphKind] : [])]) {
-      const newGenesProfile = requireBalanceProfileFromContext(context, PROFILE.newGenes);
-      const boon = requireEffect(newGenesProfile, 'boon', name);
-      if (!boon) continue;
-      emitEngineerEvent(context, 'buff', {
-        at,
-        source: 'engineer',
-        sourceId: TRAIT.NEW_GENES,
-        actorType: 'player',
-        skillName: 'New Genes',
-        name: 'New Genes',
-        kind: String(boon.boon),
-        duration: boon.duration,
-        stacks: boon.stacks
-      });
-    }
-  }
-}
-
 /** Activates Plasmatic State with its first strike. */
 export function activatePlasmaticState(context: EngineerRuntime): void {
   const at = context.time;
@@ -125,90 +77,5 @@ export function evolveAmalgam(context: EngineerRuntime): void {
   const evolveProfile = requireBalanceProfileFromContext(context, PROFILE.evolve);
   state.evolvedUntil = at + balanceProfileNumber(evolveProfile, 'durationMultiplier');
 
-  if (!hasTrait(context.config, TRAIT.SILVER_LINING)) {
-    for (const morphKind of selected) {
-      applyAmalgamStrain(context, morphKind, at);
-    }
-  }
-
-  if (hasTrait(context.config, TRAIT.SYMBIOTIC_SYNERGY)) {
-    // Evolve recharges its morph skills as part of its traited kit. This is not
-    // a discrete trait proc, so the reset is applied silently. Emitting a proc
-    // here misreported it as a single ~43s cooldown reduction (the summed
-    // remaining recharge of the three morphs) attributed to Evolve.
-    for (const skillId of state.selectedMorphSkillIds) {
-      context.cooldownController.clear(skillId);
-    }
-  }
-
-  grantHardenedChrome(context, 'maximumStacks');
-}
-
-/** Successful player control advances Evolve recharge once per internal cooldown. */
-export function reactToMercurialTendencies(context: EngineerRuntime, event: EngineerResolverEvent): void {
-  if (!hasTrait(context.config, TRAIT.MERCURIAL_TENDENCIES) || event.actorType === 'summon') return;
-  const at = event.at;
-  if (!isInternalCooldownReady(at, context.procs.readyAt.mercurialTendencies || 0)) return;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.mercurialTendencies);
-  let reducedBy = 0;
-  for (const id of EVOLVE_SKILL_IDS) {
-    const skill = context.helpers.skillsById.get(id);
-    if (skill)
-      reducedBy += context.cooldownController.reduceSkillRecharge(
-        skill,
-        balanceProfileNumber(profile, 'rechargeReduction'),
-        at
-      );
-  }
-
-  if (!(reducedBy > 0)) return;
-  context.procs.readyAt.mercurialTendencies = at + balanceProfileNumber(profile, 'internalCooldown');
-  emitEngineerEvent(context, 'proc', {
-    at,
-    source: 'Trait',
-    sourceId: TRAIT.MERCURIAL_TENDENCIES,
-    actorType: 'effect',
-    name: 'Mercurial Tendencies',
-    procType: 'trait',
-    sourceSkill: event.skillName || event.name,
-    cooldownReduction: reducedBy
-  });
-}
-
-/** Only the selected Double Helix variant may use Evolve ammo, including profiled capacity edits. */
-export function amalgamMaximumAmmo(context: EngineerRuntime, skill: EngineerSkill, maximum: number): number {
-  if (!EVOLVE_SKILL_IDS.has(Number(skill.id))) return maximum;
-  return skill.id === ID.EVOLVE_DOUBLE_HELIX && hasTrait(context.config, TRAIT.DOUBLE_HELIX)
-    ? Math.max(
-        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.evolve), 'maximumStacks'),
-        maximum || 0
-      )
-    : 0;
-}
-
-/** Morph and Evolve grant the same protection effect with their authored duration. */
-function grantHardenedChrome(context: EngineerRuntime, durationField: 'minimumStacks' | 'maximumStacks'): void {
-  if (hasTrait(context.config, TRAIT.HARDENED_CHROME)) {
-    const sourceSkill = context.helpers.skillsById.get(TRAIT.HARDENED_CHROME) || {
-      id: TRAIT.HARDENED_CHROME,
-      name: 'Hardened Chrome'
-    };
-    const hardenedChromeProfile = requireBalanceProfileFromContext(context, PROFILE.hardenedChrome);
-    emitEngineerEvent(
-      context,
-      'buff',
-      {
-        at: context.time,
-        source: 'engineer',
-        sourceId: TRAIT.HARDENED_CHROME,
-        actorType: 'player',
-        skillName: 'Hardened Chrome',
-        name: 'Hardened Chrome',
-        kind: 'protection',
-        duration: balanceProfileNumber(hardenedChromeProfile, durationField),
-        stacks: 1
-      },
-      sourceSkill
-    );
-  }
+  applyAmalgamEvolveTraits(context, selected);
 }

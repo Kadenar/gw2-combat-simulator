@@ -1,41 +1,40 @@
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
-  willbenderVirtueActions,
-  ACTIVATE,
-  FLAMES
-} from '#gw2/professions/guardian/specializations/willbender/skills/index.js';
-import { guardianBoonDuration } from '#gw2/professions/guardian/core/traits/index.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import {
-  balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/index.js';
-import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/shared.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
+import {
+  applyGuardianVirtueActivationTraits,
+  permeatingWrathThreshold,
+  triggerGuardianFuriousFocus
+} from '#gw2/professions/guardian/core/traits/behavior.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { willbenderBoon as boon } from '#gw2/professions/guardian/specializations/willbender/mechanics/boons.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
+import {
+  ACTIVATE,
+  FLAMES,
+  willbenderVirtueActions
+} from '#gw2/professions/guardian/specializations/willbender/skills/index.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import {
-  gainLethalTempo,
-  lethalTempoParameters
-} from '#gw2/professions/guardian/specializations/willbender/mechanics/lethal-tempo.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+  applyWillbenderActivationTraits,
+  applyWillbenderTriggerTraits,
+  triggerPhoenixProtocol,
+  willbenderVirtueWindowProfile
+} from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
 import type { GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
 const PULSE = 'guardian.willbender.pulse';
@@ -52,78 +51,10 @@ const FLAME_IDS = {
 };
 const flameOwner = (generation: number) => ({ id: 'willbender-flames', generation });
 
-/** Boons sample current attributes without inheriting the triggering packet's audience or hostile annotations. */
-function boon(
-  runtime: Runtime,
-  event: Gw2ResolverEvent,
-  profileId: string | number,
-  name: string,
-  sourceId: number,
-  party = false
-): void {
-  const profile = requireBalanceProfileFromContext(runtime, profileId);
-  const effect = requireEffect(profile, 'boon', name);
-  if (!effect) return;
-  emitEffects(runtime, {
-    owner: profile,
-    effects: [effect],
-    baseEvent: {
-      source: 'guardian',
-      sourceId,
-      actorType: 'player',
-      skillId: sourceId,
-      skillName: profile.name,
-      activationId: event.activationId,
-      triggeredBy: event.skillName
-    },
-    transform: (packet) => ({
-      ...packet,
-      duration: guardianBoonDuration(runtime, packet),
-      name: profile.name + ' — ' + name,
-      causalOrder: event.causalOrder ?? event.eventOrder,
-      audience: { recipients: party ? 'party' : 'self' }
-    })
-  });
-}
-
-/** Activation and hit-cycle grants share one inclusive stack window and one modifier owner. */
-function tempo(runtime: Runtime, event: Gw2ResolverEvent): void {
-  const parameters = lethalTempoParameters(runtime);
-  if (!parameters) return;
-  const stacks = gainLethalTempo(willbenderState.from(runtime), runtime.time, parameters);
-  runtime.emit({
-    type: 'buff',
-    at: runtime.time,
-    source: 'guardian',
-    sourceId: TRAIT.LETHAL_TEMPO,
-    actorType: 'player',
-    skillId: TRAIT.LETHAL_TEMPO,
-    skillName: 'Lethal Tempo',
-    name: 'Lethal Tempo',
-    kind: 'lethal-tempo',
-    stacks,
-    duration: parameters.duration,
-    activationId: event.activationId,
-    causalOrder: event.causalOrder ?? event.eventOrder,
-    triggeredBy: event.skillName
-  });
-  recordGuardianTraitProc(
-    runtime,
-    TRAIT.LETHAL_TEMPO,
-    'Lethal Tempo',
-    runtime.time,
-    event.skillName,
-    `${stacks}/${parameters.maximumStacks} stacks`
-  );
-}
-
 /** Windows open at their authored boundary without predicting hits or resetting partial hit progress. */
 function activate(runtime: Runtime, data: unknown): void {
   const { cast, virtue } = data as { cast: RuntimeCast; virtue: GuardianVirtue };
-  const profile = requireBalanceProfileFromContext(
-    runtime,
-    virtue === 'justice' && hasTrait(runtime, TRAIT.TYRANTS_MOMENTUM) ? PROFILE.tyrantsMomentum : PROFILE.virtueWindows
-  );
+  const profile = willbenderVirtueWindowProfile(runtime, virtue);
   const window = requireEffect(profile, 'buff', virtue);
   const state = willbenderState.from(runtime);
   const cause = guardianCastCause(runtime, cast);
@@ -136,22 +67,7 @@ function activate(runtime: Runtime, data: unknown): void {
       stacks: 1,
       audience: { recipients: 'self' }
     });
-  tempo(runtime, cause);
-  if (virtue === 'justice' && hasTrait(runtime, TRAIT.HOLY_RECKONING))
-    boon(runtime, cause, PROFILE.holyReckoning, 'fury', TRAIT.HOLY_RECKONING);
-  if (virtue === 'resolve') {
-    if (hasTrait(runtime, TRAIT.RESTORATIVE_VIRTUES))
-      boon(runtime, cause, PROFILE.restorativeVirtues, 'vigor', TRAIT.RESTORATIVE_VIRTUES);
-    if (hasTrait(runtime, TRAIT.PHOENIX_PROTOCOL))
-      boon(
-        runtime,
-        cause,
-        PROFILE.phoenixProtocol,
-        'alacrity',
-        TRAIT.PHOENIX_PROTOCOL,
-        hasTrait(runtime, TRAIT.BATTLE_PRESENCE)
-      );
-  }
+  applyWillbenderActivationTraits(runtime, cause, virtue);
 }
 
 /** Same-virtue fields overlap; a different virtue retires all pending work from the prior flame group. */
@@ -191,46 +107,6 @@ function flames(runtime: Runtime, data: unknown): void {
     );
 }
 
-/** Completed and reserved weapon recharges receive base work reductions, preserving ownership through the cast boundary. */
-function reduceWeapons(runtime: Runtime, cause: Gw2ResolverEvent): void {
-  const state = willbenderState.from(runtime);
-  const names = new Set(gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1).filter(Boolean));
-  const matches = (skill: Skill) => skill.type === 'Weapon' && (!names.size || names.has(String(skill.weapon)));
-  const amount = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, PROFILE.restorativeVirtues),
-    'rechargeReduction'
-  );
-  let reduction = 0;
-  for (const id of new Set([...runtime.cooldowns.keys(), ...runtime.ammo.keys()])) {
-    const skill = runtime.helpers.skillsById.get(id)!;
-    if (matches(skill)) reduction += runtime.cooldownController.reduceSkillRecharge(skill, amount, runtime.time);
-  }
-
-  for (const [id, cast] of Object.entries(state.weaponCastRecharge)) {
-    const skill = runtime.helpers.skillsById.get(cast.skillId)!;
-    if (!matches(skill)) continue;
-    const pending = state.pendingWeaponCooldownReduction[id] ?? 0;
-    const available = runtime.cooldownController.remaining(
-      skill,
-      { startedAt: cast.rechargeStart, work: cast.rechargeWork },
-      runtime.time
-    );
-    const gain = Math.min(amount, Math.max(0, available - pending));
-    state.pendingWeaponCooldownReduction[id] = pending + gain;
-    reduction += gain / runtime.cooldownController.rate(skill);
-  }
-
-  if (reduction > 0)
-    recordGuardianTraitProc(
-      runtime,
-      TRAIT.RESTORATIVE_VIRTUES,
-      'Restorative Virtues',
-      runtime.time,
-      cause.skillName,
-      `${Number(reduction.toFixed(3))}s weapon recharge`
-    );
-}
-
 /** Accepted player strikes and Air sigil procs advance each currently open virtue; no scheduler prediction is consulted. */
 function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedDamageDetails): void {
   if (
@@ -243,18 +119,12 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
   for (const virtue of ['justice', 'resolve', 'courage'] as const) {
     const until = state[`${virtue}Until`];
     if (!(until > 0) || runtime.time > until) continue;
-    const threshold =
-      virtue === 'justice' && hasTrait(runtime, TRAIT.PERMEATING_WRATH)
-        ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.PERMEATING_WRATH), 'threshold')
-        : balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.virtueWindows), 'threshold');
+    const threshold = permeatingWrathThreshold(runtime, virtue, PROFILE.virtueWindows);
     state.virtueHitCounts[virtue]++;
     if (state.virtueHitCounts[virtue] < threshold) continue;
     state.virtueHitCounts[virtue] = 0;
     state.triggeredVirtueEffects++;
-    tempo(runtime, event);
-    if (hasTrait(runtime, TRAIT.HOLY_RECKONING))
-      boon(runtime, event, PROFILE.holyReckoning, 'might', TRAIT.HOLY_RECKONING, true);
-    if (hasTrait(runtime, TRAIT.RESTORATIVE_VIRTUES)) reduceWeapons(runtime, event);
+    applyWillbenderTriggerTraits(runtime, event);
     if (virtue === 'justice') {
       const profile = requireBalanceProfileFromContext(runtime, CORE_PROFILE.justice);
       const burn = requireEffect(profile, 'condition', 'Burning (active)');
@@ -284,43 +154,13 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
     if (virtue === 'courage')
       for (const name of ['aegis', 'stability'])
         boon(runtime, event, PROFILE.courageTrigger, name, ID.CRASHING_COURAGE);
-    if (virtue === 'resolve' && hasTrait(runtime, TRAIT.PHOENIX_PROTOCOL))
-      boon(
-        runtime,
-        event,
-        PROFILE.phoenixProtocol,
-        'alacrity (triggered)',
-        TRAIT.PHOENIX_PROTOCOL,
-        hasTrait(runtime, TRAIT.BATTLE_PRESENCE)
-      );
+    triggerPhoenixProtocol(runtime, event, virtue);
   }
 }
 
 /** Virtue windows, flame lifetimes, and earned recharge reductions live beside the shared cast and damage owners. */
 export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
   sideEffectHandlers: willbenderVirtueActions,
-  // Searing Pact follows actual flame damage, independently of virtue hit counters.
-  traitTriggers: [
-    {
-      trait: TRAIT.SEARING_PACT,
-      emit: PROFILE.searingPact,
-      on: 'damage.resolved',
-      when: (_runtime, event, details) =>
-        Boolean(event.willbenderFlames) &&
-        (details.hitContext?.damage ?? 0) > 0 &&
-        Number(event.coefficient) > 0 &&
-        (event.actorType === 'player' || event.sourceId === 'sigil.air'),
-      effects: (effect) => effect.type === 'condition' && effect.name === 'Burning',
-      attribution: {
-        source: 'guardian',
-        actorType: 'player',
-        skillId: TRAIT.SEARING_PACT,
-        skillName: 'Searing Pact',
-        name: 'Searing Pact \u2014 Burning',
-        triggeredBy: 'Willbender Flames'
-      }
-    }
-  ],
   availability(runtime, skill) {
     return skill.id === ID.REPOSE && !skillFlipReady(runtime.profession.core.availableFlips[ID.REPOSE], runtime.time)
       ? denySkillCast(skill, 'guardian.flip-not-armed', 'not currently armed.')
@@ -328,23 +168,12 @@ export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> =
   },
   onCastStart(runtime, cast) {
     if (cast.cancelled) return;
-    if (cast.skill.type === 'Weapon')
-      willbenderState.from(runtime).weaponCastRecharge[cast.id] = {
-        skillId: cast.skill.id,
-        rechargeStart: cast.rechargeStart,
-        rechargeWork: cast.rechargeWork
-      };
     const virtue = VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
     if (!virtue) return;
     refreshGuardianVirtues(runtime);
     if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtues.add(cast);
   },
   onCastCommit(runtime, cast) {
-    const state = willbenderState.from(runtime);
-    const pending = state.pendingWeaponCooldownReduction[cast.id] ?? 0;
-    delete state.pendingWeaponCooldownReduction[cast.id];
-    delete state.weaponCastRecharge[cast.id];
-    if (pending > 0) runtime.cooldownController.reduceSkillRecharge(cast.skill, pending, runtime.time);
     const virtue = VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
     if (virtue) {
       refreshGuardianVirtues(runtime);

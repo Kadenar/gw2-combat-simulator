@@ -1,19 +1,20 @@
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { guardianTimedBuffActive } from '#gw2/professions/guardian/core/modifiers.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
+import { guardianTimedBuffActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+
 /**
  * Owns Radiant Forge weapon fragments and supplemental reconstruction identities.
  * Persistent forge resources and weapon behavior remain under `mechanics/`.
  */
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
 export const LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID = 25_518;
 export const LUMINARY_INITIAL_STATE_SKILL_IDS = Object.freeze({

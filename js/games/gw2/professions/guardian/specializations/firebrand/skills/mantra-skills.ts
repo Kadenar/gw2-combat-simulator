@@ -1,33 +1,11 @@
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { weightyTermsRewards } from '#gw2/professions/guardian/specializations/firebrand/traits/behavior.js';
+
 /**
  * Owns Firebrand mantra preparation and charge-variant skill fragments.
  * Persistent mantra state and behavior remain in `mechanics/mantras.ts`.
  */
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-
-// Final mantra charges own both Weighty Terms rewards at successful completion.
-const WEIGHTY_TERMS_REWARDS: Skill['sideEffects'] = [
-  {
-    on: 'castCommit',
-    when: (runtime) => hasTrait(runtime, TRAIT.WEIGHTY_TERMS),
-    do: {
-      type: 'resourceGrant',
-      resource: 'tomePages',
-      amount: { profile: PROFILE.weightyTerms, field: 'resourceGain' }
-    }
-  },
-  {
-    on: 'castCommit',
-    when: (runtime) => hasTrait(runtime, TRAIT.WEIGHTY_TERMS),
-    do: {
-      type: 'emitProfile',
-      profileId: PROFILE.weightyTerms,
-      attribution: { source: 'guardian', actorType: 'player', name: 'Weighty Terms — Slow' }
-    }
-  }
-];
 
 export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.PORTENT_OF_FREEDOM]: {
@@ -83,7 +61,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
   [ID.OVERWHELMING_CELERITY]: {
     // Weighty Terms rewards precede final-charge retirement.
     sideEffects: [
-      ...WEIGHTY_TERMS_REWARDS,
+      ...weightyTermsRewards,
       { on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_POTENCE}` } }
     ],
     castTimeMs: 0,
@@ -174,7 +152,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
   [ID.FLAME_SURGE]: {
     // Weighty Terms rewards precede final-charge retirement.
     sideEffects: [
-      ...WEIGHTY_TERMS_REWARDS,
+      ...weightyTermsRewards,
       { on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_FLAME}` } }
     ],
     castTimeMs: 0,
@@ -197,7 +175,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
   [ID.REJUVENATING_RESPITE]: {
     // Weighty Terms rewards precede final-charge retirement.
     sideEffects: [
-      ...WEIGHTY_TERMS_REWARDS,
+      ...weightyTermsRewards,
       { on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_SOLACE}` } }
     ],
     castTimeMs: 0,
@@ -212,7 +190,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, Partial<S
   [ID.UNHINDERED_DELIVERY]: {
     // Weighty Terms rewards precede final-charge retirement.
     sideEffects: [
-      ...WEIGHTY_TERMS_REWARDS,
+      ...weightyTermsRewards,
       { on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_LIBERATION}` } }
     ],
     castTimeMs: 0,

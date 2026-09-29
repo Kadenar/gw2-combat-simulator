@@ -1,3 +1,5 @@
+import { revenantCoreModule } from '#gw2/professions/revenant/core/module.js';
+const revenantCoreModifierRules = revenantCoreModule.modifiers.modifierRules;
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -7,10 +9,10 @@ import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import {
   revenantActiveBoonCount,
   revenantCoreModifiers,
-  revenantCoreModifierRules,
   revenantTimedBuff
 } from '#gw2/professions/revenant/core/modifiers.js';
-import { renegadeModifierRules } from '#gw2/professions/revenant/specializations/renegade/modifiers.js';
+import { renegadeModule } from '#gw2/professions/revenant/specializations/renegade/module.js';
+const renegadeModifierRules = renegadeModule.modifiers.modifierRules;
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
 // Recipient metadata keeps player boons distinct from party-only and companion-only applications.

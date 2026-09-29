@@ -1,3 +1,4 @@
+import { traitDefinitions } from '#gw2/professions/revenant/specializations/conduit/traits/index.js';
 import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
 import { CONDUIT_PUBLIC_STATE_PROJECTION } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
@@ -11,6 +12,7 @@ import { conduitHooks } from '#gw2/professions/revenant/specializations/conduit/
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const conduitModule = defineNativeModule({
+  traitDefinitions,
   id: 'Conduit',
   data: createRevenantModuleData('Conduit', {
     skillMechanics: CONDUIT_BASE_SKILL_MECHANICS,

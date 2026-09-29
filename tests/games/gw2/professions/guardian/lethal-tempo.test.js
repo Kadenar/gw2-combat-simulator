@@ -1,24 +1,20 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import {
   activeLethalTempo,
   gainLethalTempo,
   lethalTempoParameters
-} from '#gw2/professions/guardian/specializations/willbender/mechanics/lethal-tempo.js';
-import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
-import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+} from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 test('Lethal Tempo uses patched caps and trait windows without sharing phase state', () => {
   const catalog = {
     balanceProfilesById: new Map([
       [
-        PROFILE.lethalTempo,
+        TRAIT.LETHAL_TEMPO,
         { maximumStacks: 2, effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', duration: 9 }] }
       ],
-      [
-        PROFILE.tyrantsMomentum,
-        { effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', duration: 3 }] }
-      ]
+      [TRAIT.TYRANTS_MOMENTUM, { effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', duration: 3 }] }]
     ])
   };
   for (const [traits, duration] of [

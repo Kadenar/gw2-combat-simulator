@@ -1,9 +1,9 @@
 import {
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
+  defineProfessionSpecializationState,
+  definePublicStateDefaults
 } from '#gw2/platform/engine/profession/state.js';
-import type { GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { GuardianVirtue } from '#gw2/professions/guardian/types.js';
 
 export interface GuardianWillbenderState {
   flameVirtue: GuardianVirtue | null;

@@ -1,26 +1,23 @@
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { GUARDIAN_TRAIT_IDS as GUARDIAN_TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as NECROMANCER_PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
+import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS as REVENANT_PROFILE } from '#gw2/professions/revenant/core/profiles.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { THIEF_TRAIT_IDS as THIEF_TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS as WARRIOR_PROFILE } from '#gw2/professions/warrior/core/profiles.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { GUARDIAN_TRAIT_IDS as GUARDIAN_TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { THIEF_TRAIT_IDS as THIEF_TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as GUARDIAN_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as NECROMANCER_PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import { HARBINGER_BALANCE_PROFILE_IDS as HARBINGER_PROFILE } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS as REVENANT_PROFILE } from '#gw2/professions/revenant/core/profiles.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as THIEF_PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS as WARRIOR_PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 
 // Exercise authored edits through catalog composition and actual scheduling/resolution.
 function run(profession, balanceProfiles, specialization, rotation, config = {}, simulate = simulateGw2) {
@@ -66,7 +63,7 @@ test('Guardian zero recharge multiplier makes the trait-adjusted skill immediate
   const result = run(
     guardianProfession,
     {
-      [GUARDIAN_PROFILE.zealousBlade]: { fields: { rechargeMultiplier: 0 } }
+      [GUARDIAN_TRAIT.ZEALOUS_BLADE]: { fields: { rechargeMultiplier: 0 } }
     },
     'Core',
     ['Whirling Wrath', 'Whirling Wrath'],
@@ -104,7 +101,7 @@ test('Harbinger zero Meltdown coefficient emits no strike damage', () => {
   const result = run(
     necromancerProfession,
     {
-      [HARBINGER_PROFILE.cascadingCorruption]: { effects: [{ type: 'strike', coefficient: 0 }] }
+      [NECROMANCER_TRAIT.CASCADING_CORRUPTION]: { effects: [{ type: 'strike', coefficient: 0 }] }
     },
     'Harbinger',
     // Keep the observation open for Meltdown's delayed explosion, even when its coefficient is zero.
@@ -154,7 +151,7 @@ test('Thief zero Quick Pockets gain matches a swap without the trait', () => {
   const zero = run(
     thiefProfession,
     {
-      [THIEF_PROFILE.quickPockets]: { fields: { resourceGain: 0 } }
+      [THIEF_TRAIT.QUICK_POCKETS]: { fields: { resourceGain: 0 } }
     },
     'Core',
     rotation,

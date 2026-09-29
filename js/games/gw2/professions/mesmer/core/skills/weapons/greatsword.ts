@@ -1,7 +1,7 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { bountifulBladesMirrorBlade } from '#gw2/professions/mesmer/core/traits/behavior.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.MIND_STAB]: {
@@ -113,25 +113,7 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.MIRROR_BLADE]: {
     // Trait bounces share the base projectile's commitment, targeting, and impact delay.
-    effectVariants: [
-      {
-        when: (runtime) => hasTrait(runtime, TRAIT.BOUNTIFUL_BLADES),
-        profileId: TRAIT.BOUNTIFUL_BLADES,
-        transform: (_runtime, cast, effects) => [
-          ...(cast.skill.effects ?? []),
-          ...effects
-            .filter((effect) => effect.type === 'strike' && effect.name === 'Strike')
-            .map((effect) => ({
-              ...effect,
-              source: 'Player',
-              sourceId: TRAIT.BOUNTIFUL_BLADES,
-              actorType: 'player' as const,
-              name: 'Additional target hits from Bountiful Blades',
-              persistsAfterInterrupt: true
-            }))
-        ]
-      }
-    ],
+    effectVariants: [bountifulBladesMirrorBlade],
     castTimeMs: 600,
     // The projectile commits before the animation ends; its bounces and clone survive a later interrupt.
     interruptCommitMs: 560,

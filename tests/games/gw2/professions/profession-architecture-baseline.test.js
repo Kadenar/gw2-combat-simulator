@@ -1,7 +1,3 @@
-import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
-import test from 'node:test';
-
 import { elementalistNativeModules } from '#gw2/professions/elementalist/profession.js';
 import { engineerNativeModules } from '#gw2/professions/engineer/profession.js';
 import { guardianNativeModules } from '#gw2/professions/guardian/profession.js';
@@ -11,6 +7,9 @@ import { rangerNativeModules } from '#gw2/professions/ranger/profession.js';
 import { revenantNativeModules } from '#gw2/professions/revenant/profession.js';
 import { thiefNativeModules } from '#gw2/professions/thief/profession.js';
 import { warriorNativeModules } from '#gw2/professions/warrior/profession.js';
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync } from 'node:fs';
+import test from 'node:test';
 
 const PROFESSION_MODULES = Object.freeze({
   elementalist: elementalistNativeModules,
@@ -68,10 +67,10 @@ test('profession modules register runtime behavior only through hooks', () => {
   }
 });
 
-// Each manifest key maps to a same-named sibling file, so readers find a module's hooks and modifiers by name.
+// Authored hook/modifier tables use sibling files; traits can supply the entire contribution through registration.
 const MODULE_FILE_BY_KEY = Object.freeze({ hooks: 'hooks.js', modifiers: 'modifiers.js' });
 
-test('module manifests import hooks and modifiers from sibling hooks.ts and modifiers.ts', () => {
+test('module manifests import authored hook/modifier tables from siblings or register trait definitions', () => {
   const professionsUrl = new URL('../../../../js/games/gw2/professions/', import.meta.url);
   for (const profession of Object.keys(PROFESSION_MODULES)) {
     const specializations = readdirSync(new URL(`${profession}/specializations/`, professionsUrl));
@@ -80,7 +79,16 @@ test('module manifests import hooks and modifiers from sibling hooks.ts and modi
       const source = readFileSync(new URL(`${label}/module.ts`, professionsUrl), 'utf8');
       for (const [key, file] of Object.entries(MODULE_FILE_BY_KEY)) {
         const binding = source.match(new RegExp(`^\\s+${key}: (\\w+),?$`, 'm'))?.[1];
-        assert.ok(binding, `${label} declares ${key}`);
+        if (!binding) {
+          // Named and shorthand trait registrations both supply real owners through the same module contract.
+          const module = PROFESSION_MODULES[profession].find(
+            (entry) => entry.id.toLowerCase() === directory.split('/').at(-1)
+          );
+          assert.match(source, /^\s+traitDefinitions\s*[:,]/m, `${label} declares its trait owners`);
+          assert.ok(module.traitDefinitions?.length, `${label} derives ${key} from registered traits`);
+          continue;
+        }
+
         const specifier = [...source.matchAll(/import \{([^}]*)\} from '([^']+)';/g)].find(([, names]) =>
           new RegExp(`\\b${binding}\\b`).test(names)
         )?.[2];

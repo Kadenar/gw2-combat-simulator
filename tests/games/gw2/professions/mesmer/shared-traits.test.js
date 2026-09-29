@@ -1,12 +1,12 @@
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { mesmerCoreModule } from '#gw2/professions/mesmer/core/module.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
+import { runMesmer, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
-import { simulateMesmer, runMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerCoreModifierRules } from '#gw2/professions/mesmer/core/modifiers.js';
 
 // Accepted mechanics drive combat even if diagnostic logging is suppressed, in either output mode.
 test('Method of Madness commits Syncopate independently of its proc marker', () => {
@@ -64,7 +64,7 @@ test('Method of Madness commits Syncopate independently of its proc marker', () 
 
 test('Mental Anguish uses explicit nested shatter eligibility', () => {
   // Only explicitly eligible packets receive this modifier.
-  const rule = mesmerCoreModifierRules.find(({ id }) => id === 'mesmer.mental-anguish');
+  const rule = mesmerCoreModule.modifiers.modifierRules.find(({ id }) => id === 'mesmer.mental-anguish');
   for (const eligible of [undefined, false, true]) {
     const metadata = eligible === undefined ? {} : { shatterTraitEligible: eligible };
     assert.equal(

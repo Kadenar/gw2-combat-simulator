@@ -1,6 +1,5 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
 export const BLADESWORN_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'warrior.bladesworn.flow',
@@ -8,14 +7,7 @@ export const BLADESWORN_BALANCE_PROFILE_IDS = Object.freeze({
   dragonTrigger: 'warrior.bladesworn.dragon-trigger',
   artillerySlash: 'warrior.bladesworn.artillery-slash',
   sharpArtillerySlash: 'warrior.bladesworn.sharp-artillery-slash',
-  overchargedCartridges: 'warrior.bladesworn.overcharged-cartridges',
-  unseenSword: TRAIT.UNSEEN_SWORD,
-  sharpAsTheWind: TRAIT.SHARP_AS_THE_WIND,
-  riversFlow: TRAIT.RIVERS_FLOW,
-  dragonscaleDefense: TRAIT.DRAGONSCALE_DEFENSE,
-  fierceAsFire: TRAIT.FIERCE_AS_FIRE,
-  lushForest: TRAIT.LUSH_FOREST,
-  gunsAndGlory: TRAIT.GUNS_AND_GLORY
+  overchargedCartridges: 'warrior.bladesworn.overcharged-cartridges'
 });
 
 export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
@@ -68,13 +60,7 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     cooldown: 30,
     effects: []
   },
-  {
-    id: BLADESWORN_BALANCE_PROFILE_IDS.burstMastery,
-    name: 'Bladesworn Burst Mastery Conversion',
-    profileKind: 'mechanic',
-    resourceGain: 0.2,
-    effects: []
-  },
+
   {
     id: BLADESWORN_BALANCE_PROFILE_IDS.artillerySlash,
     name: 'Artillery Slash - Ammo Variants',
@@ -111,59 +97,7 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
       },
       { name: 'Supercharged Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 5 }
     ]
-  },
-  trait(BLADESWORN_BALANCE_PROFILE_IDS.unseenSword, 'Unseen Sword', {
-    internalCooldown: 4,
-    // Entry traits declare their own flow window so patches can remove it independently.
-    effects: [
-      { name: 'Strike', type: 'strike', coefficient: 1.2, hits: 1 },
-      { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 2, duration: 5 }
-    ]
-  }),
-  trait(BLADESWORN_BALANCE_PROFILE_IDS.sharpAsTheWind, 'Sharp as the Wind', {
-    internalCooldown: 4,
-    effects: [
-      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 3 },
-      { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 2, duration: 5 }
-    ]
-  }),
-  trait(BLADESWORN_BALANCE_PROFILE_IDS.riversFlow, "River's Flow", {
-    internalCooldown: 4,
-    effects: [
-      { name: 'might', type: 'boon', boon: 'might', stacks: 2, duration: 8 },
-      { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 2, duration: 5 }
-    ]
-  }),
-  trait(BLADESWORN_BALANCE_PROFILE_IDS.dragonscaleDefense, 'Dragonscale Defense', {
-    effects: [{ name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 3 }]
-  }),
-  trait(BLADESWORN_BALANCE_PROFILE_IDS.fierceAsFire, 'Fierce as Fire', {
-    // Damage, presentation, and tooltip consumers share this trait's balance values.
-    maximumStacks: 10,
-    damageIncreasePerStack: 0.01,
-    effects: [{ name: 'fierce-as-fire', type: 'buff', kind: 'fierce-as-fire', stacks: 1, duration: 15 }]
-  }),
-  trait(BLADESWORN_BALANCE_PROFILE_IDS.lushForest, 'Lush Forest', {
-    rechargeReduction: 0.75
-  }),
+  }
+
   // Trait tuning is shared by build calculations, combat, and tooltips.
-  trait(TRAIT.DARING_DRAGON, 'Daring Dragon', {
-    resourceCostMultiplier: 2,
-    effects: [
-      {
-        name: 'alacrity',
-        type: 'boon',
-        boon: 'alacrity',
-        stacks: 1,
-        duration: 10,
-        audience: { recipients: 'party' },
-        packetLabel: 'on Dragon Slash release'
-      }
-    ]
-  }),
-  trait(BLADESWORN_BALANCE_PROFILE_IDS.gunsAndGlory, 'Guns and Glory', {
-    attributeBonus: 250,
-    maximumStacks: 12,
-    resourceGain: 3
-  })
 ]);

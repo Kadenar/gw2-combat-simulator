@@ -5,25 +5,25 @@ import { EPSILON } from '#kernel/core/clock.js';
  * The cataloged weapon fragments live in
  * `skills/weapons/hammer.ts`.
  */
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import {
-  requireBalanceProfileFromContext,
   balanceProfileNumber,
+  requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import {
   emitElementalistBuff,
   emitElementalistControl,
   withElementalistCast
 } from '#gw2/professions/elementalist/core/events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistRuntime, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
-import { isElementalistAttunement, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { emitProfiledCondition, skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
-import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/index.js';
+import { isElementalistAttunement, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
+import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
+import type { ElementalistRuntime, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 
 /** Parses canonical skill metadata for a valid pair of distinct Weaver attunements. */
 export function weaverDualAttunements(skill: Skill): readonly [ElementalistAttunement, ElementalistAttunement] | null {

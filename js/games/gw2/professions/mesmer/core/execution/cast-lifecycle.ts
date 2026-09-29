@@ -1,14 +1,14 @@
-import { triggerMethodOfMadness } from '#gw2/professions/mesmer/core/traits/index.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { triggerMethodOfMadness } from '#gw2/professions/mesmer/core/traits/behavior.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /** Commits Core Mesmer shatters, flips, phantasms, skill effects, and cast-local resource state. */
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /** Notifies the active specialization after Core has committed a shatter's exact resource spend. */
 export function dispatchShatterResolved(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
@@ -145,13 +145,12 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast, sk
       );
     }
 
-    if (skill.type === 'Heal')
-      triggerMethodOfMadness(
-        { state: context, addDamage: runtime.addDamage, addTraitProc: runtime.addTraitProc },
-        skill,
-        at,
-        runtime.traitDamage['Lesser Chaos Storm']
-      );
+    triggerMethodOfMadness(
+      { state: context, addDamage: runtime.addDamage, addTraitProc: runtime.addTraitProc },
+      skill,
+      at,
+      runtime.traitDamage['Lesser Chaos Storm']
+    );
   } finally {
     runtime.activeEmission = null;
     runtime.castDetails.delete(cast.id);

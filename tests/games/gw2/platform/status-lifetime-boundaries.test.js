@@ -1,46 +1,44 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { runGuardian } from '#tests/helpers/guardian-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { aristocracy } from '#gw2/platform/equipment/relics/rules/aristocracy.js';
+import { nourys } from '#gw2/platform/equipment/relics/rules/nourys.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { ELEMENTALIST_SKILL_IDS as E, ELEMENTALIST_TRAIT_IDS as ET } from '#gw2/professions/elementalist/data/ids.js';
-import { ENGINEER_TRAIT_IDS as HT } from '#gw2/professions/engineer/data/ids.js';
-import { GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
-import { MESMER_SKILL_IDS as M, MESMER_TRAIT_IDS as MT } from '#gw2/professions/mesmer/data/ids.js';
-import { NECROMANCER_SKILL_IDS as N } from '#gw2/professions/necromancer/data/ids.js';
-import { REVENANT_TRAIT_IDS as RT } from '#gw2/professions/revenant/data/ids.js';
-import { grantCatalystElementalEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import {
-  applyCatalystEmpowerment,
-  applyCatalystResolvedDamage
+  applyCatalystResolvedDamage,
+  applyShatteringIce
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
-import { applyWeaveSelfAttunement } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
-import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
+import { grantCatalystElementalEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
-import { commitRechargeDuration } from '#gw2/professions/elementalist/specializations/evoker/mechanics/recharge.js';
 import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { consumeElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
-import {
-  holosmithResolverEventHandlers,
-  consumeSolarFocusingLens
-} from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge-effects.js';
-import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { commitRechargeDuration } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+import { consumeElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/traits/enchantments.js';
+import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
+import { applyWeaveSelfAttunement } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
+import { ENGINEER_TRAIT_IDS as HT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { consumeSolarFocusingLens } from '#gw2/professions/engineer/specializations/holosmith/traits/behavior.js';
+import { solarFocusingLens } from '#gw2/professions/engineer/specializations/holosmith/traits/index.js';
+import { GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
+import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
+import { MESMER_SKILL_IDS as M, MESMER_TRAIT_IDS as MT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/traits/time-bomb.js';
+import { NECROMANCER_SKILL_IDS as N } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { RANGER_SKILL_IDS as RI } from '#gw2/professions/ranger/data/ids.js';
 import { bindGaleshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
+import { REVENANT_TRAIT_IDS as RT } from '#gw2/professions/revenant/data/ids.js';
+import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
-import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
-import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/time-bomb.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
-import { nourys } from '#gw2/platform/equipment/relics/rules/nourys.js';
-import { aristocracy } from '#gw2/platform/equipment/relics/rules/aristocracy.js';
-import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const galeshotUi = bindGaleshotUi(rangerCatalog);
 
@@ -107,18 +105,18 @@ function elementalistContext(specialization, selectedTraitIds = []) {
 test('temporary Elemental Empowerment stacks survive the final microsecond and expire on their buff tick', () => {
   const context = elementalistContext('Catalyst');
   const state = context.profession.specialization.state;
-  grantCatalystElementalEmpowerment(state, 0.001, 1, 1);
+  grantCatalystElementalEmpowerment(state, 0.001, 1, 1, 10);
   assert.deepEqual(state.elementalEmpowermentExpiries, [1.04]);
-  grantCatalystElementalEmpowerment(state, 1.039999, 1, 1);
+  grantCatalystElementalEmpowerment(state, 1.039999, 1, 1, 10);
   assert.deepEqual(state.elementalEmpowermentExpiries, [1.04, 2.04]);
-  grantCatalystElementalEmpowerment(state, 1.04, 1, 1);
+  grantCatalystElementalEmpowerment(state, 1.04, 1, 1, 10);
   assert.deepEqual(state.elementalEmpowermentExpiries, [2.04, 2.04]);
 });
 
 test('Shattering Ice uses the same exclusive tick deadline for grants and hits', () => {
   for (const at of [1.039999, 1.04, 1.040001]) {
     const context = elementalistContext('Catalyst');
-    applyCatalystEmpowerment(context, {
+    applyShatteringIce(context, {
       kind: 'shattering ice',
       at: 0.001,
       duration: 1,
@@ -183,7 +181,11 @@ test('Electric Enchantment cannot consume hits before its grant, at its exact bo
 test('Solar Focusing Lens preserves inclusive expiry without early activation or a grace period', () => {
   for (const at of [0.000999, 0.001, 1.039999, 1.04, 1.040001]) {
     const context = contextFor(engineerProfession, 'Holosmith', [HT.SOLAR_FOCUSING_LENS]);
-    holosmithResolverEventHandlers['engineer.solar-focusing-lens'](context, { at: 0.001, duration: 1, stacks: 1 });
+    solarFocusingLens.hooks.eventHandlers['engineer.solar-focusing-lens'](context, {
+      at: 0.001,
+      duration: 1,
+      stacks: 1
+    });
     assert.equal(specialization(context).solarFocusingLens.expiresAt, 1.04);
     const hit = { actorType: 'player', coefficient: 1, at };
     assert.equal(Boolean(consumeSolarFocusingLens(context, hit)), at >= 0.001 && at <= 1.04);

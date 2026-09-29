@@ -1,17 +1,8 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 export const DAREDEVIL_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'thief.daredevil.resources',
-  palmStrike: 'thief.daredevil.palm-strike',
-  boundingDodger: TRAIT.BOUNDING_DODGER,
-  lotusTraining: TRAIT.LOTUS_TRAINING,
-  unhinderedCombatant: TRAIT.UNHINDERED_COMBATANT,
-  staffMaster: TRAIT.STAFF_MASTER,
-  enduranceThief: TRAIT.ENDURANCE_THIEF,
-  brawlersTenacity: TRAIT.BRAWLERS_TENACITY,
-  weakeningStrikes: TRAIT.WEAKENING_STRIKES
+  palmStrike: 'thief.daredevil.palm-strike'
 });
 
 export const DAREDEVIL_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
@@ -28,47 +19,6 @@ export const DAREDEVIL_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     profileKind: 'mechanic',
     durationMultiplier: 5,
     effects: []
-  },
-  trait(DAREDEVIL_BALANCE_PROFILE_IDS.boundingDodger, 'Bounding Dodger', {
-    durationMultiplier: 6,
-    effects: [{ type: 'strike', name: 'Bounding Dodger', coefficient: 3.5, hits: 1 }]
-  }),
-  trait(DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining, 'Lotus Training', {
-    durationMultiplier: 6,
-    effects: [
-      {
-        type: 'strike',
-        name: 'Lotus Training',
-        ticks: [
-          { atMs: 200, coefficient: 0.1875 },
-          { atMs: 360, coefficient: 0.1875 },
-          { atMs: 520, coefficient: 0.1875 }
-        ]
-      },
-      // Lotus conditions follow their individual projectiles from dodge start.
-      { type: 'condition', name: 'Bleeding', atMs: 200, condition: 'Bleeding', stacks: 2, duration: 4 },
-      { type: 'condition', name: 'Torment', atMs: 360, condition: 'Torment', stacks: 2, duration: 4 },
-      { type: 'condition', name: 'Crippled', atMs: 520, condition: 'Crippled', stacks: 1, duration: 3 }
-    ]
-  }),
-  trait(DAREDEVIL_BALANCE_PROFILE_IDS.unhinderedCombatant, 'Unhindered Combatant', {
-    effects: [{ type: 'boon', name: 'Swiftness', boon: 'Swiftness', stacks: 1, duration: 8 }]
-  }),
-  trait(DAREDEVIL_BALANCE_PROFILE_IDS.enduranceThief, 'Endurance Thief', {
-    resourceGain: 50
-  }),
-  trait(DAREDEVIL_BALANCE_PROFILE_IDS.staffMaster, 'Staff Master', {
-    attributeBonus: 120,
-    weaponAttributeBonus: 240,
-    resourceGain: 2
-  }),
-  trait(DAREDEVIL_BALANCE_PROFILE_IDS.brawlersTenacity, "Brawler's Tenacity", {
-    resourceGain: 15
-  }),
+  }
   // Trait tuning is shared by build calculations, combat, and tooltips.
-  trait(TRAIT.MARAUDERS_RESILIENCE, "Marauder's Resilience", { attributeConversion: 0.07 }),
-  trait(DAREDEVIL_BALANCE_PROFILE_IDS.weakeningStrikes, 'Weakening Strikes', {
-    durationMultiplier: 4,
-    effects: [{ type: 'condition', name: 'Weakness', condition: 'Weakness', stacks: 1, duration: 3 }]
-  })
 ]);

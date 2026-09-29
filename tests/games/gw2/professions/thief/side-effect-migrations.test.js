@@ -75,7 +75,7 @@ test('Uncatchable honors independent authored pulse timing and component removal
           catalog: (catalog) =>
             applyBalanceProfilePatch(catalog, {
               balanceProfiles: {
-                [PROFILE.uncatchable]: {
+                [TRAIT.UNCATCHABLE]: {
                   removeEffects: [{ type: 'condition', name: removed }],
                   effects: [{ type: 'condition', name: surviving, intervalMs: { from: 1000, to: 500 } }]
                 }

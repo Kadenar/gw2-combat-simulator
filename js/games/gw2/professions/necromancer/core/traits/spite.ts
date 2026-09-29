@@ -1,144 +1,268 @@
-import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
-/** Owns imperative Core Necromancer Spite trait behavior for ordered dispatcher calls. */
-import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { BalanceProfile, ConditionEffect } from '#gw2/platform/engine/skills/types.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
-
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { necromancerRuntimeCoreState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { queueTraitCoefficientDamage } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 
-import type {
-  NecromancerResolverContext,
-  NecromancerResolverEvent,
-  NecromancerRuntime
-} from '#gw2/professions/necromancer/types.js';
+/** Owns Reaper's Might tuning and behavior at its existing execution boundaries. */
+export const reapersMight = defineTrait({
+  id: TRAIT.REAPERS_MIGHT,
+  name: "Reaper's Might",
+  balance: {
+    effects: [
+      {
+        name: 'might',
+        type: 'boon',
+        boon: 'might',
+        stacks: 1,
+        duration: 15,
+        actorType: 'player'
+      }
+    ]
+  }
+});
 
-/** The accepted player strike reads post-hit target health before its shared percentage grant. */
-export function spitefulFortitudeLifeForce(runtime: NecromancerRuntime): number {
-  return hasTrait(runtime, TRAIT.SPITEFUL_FORTITUDE) && targetBelowHalfHealth(runtime)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.spitefulFortitude), 'lifeForceGain')
-    : 0;
-}
+/** Owns Siphoned Power tuning and behavior at its existing execution boundaries. */
+export const siphonedPower = defineTrait({
+  id: TRAIT.SIPHONED_POWER,
+  name: 'Siphoned Power',
+  balance: {
+    cooldown: 1,
+    effects: [
+      {
+        name: 'might',
+        type: 'boon',
+        boon: 'might',
+        stacks: 3,
+        duration: 8,
+        actorType: 'player'
+      }
+    ]
+  }
+});
 
-/** Reports whether the target is strictly below half health, using the shared threshold contract. */
-function targetBelowHalfHealth(context: NecromancerResolverContext): boolean {
-  return remainingTargetHealthBelow(context.config, context, 0.5);
-}
+/** Owns Chill of Death tuning and behavior at its existing execution boundaries. */
+export const chillOfDeath = defineTrait({
+  id: TRAIT.CHILL_OF_DEATH,
+  name: 'Chill of Death',
+  balance: {
+    cooldown: 16,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.6,
+        hits: 1,
+        name: 'Lesser Spinal Shivers - No Boons',
+        actorType: 'effect'
+      },
+      {
+        name: 'Chilled',
+        type: 'condition',
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 5,
+        actorType: 'effect'
+      }
+    ]
+  }
+});
 
-export function applyReapersMight(
-  context: NecromancerResolverContext,
-  event: NecromancerResolverEvent,
-  firstHit: boolean,
-  shroudSkillOne: boolean
-): void {
-  if (!hasTrait(context, TRAIT.REAPERS_MIGHT) || !firstHit || !shroudSkillOne) return;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.reapersMight);
-  const effect = requireEffect(profile, 'boon', 'might');
-  // The proc record reports only a delivered boon.
-  if (!effect) return;
-  queueResolverBoon(
-    context,
-    event,
-    buildResolverBuff({
-      at: event.at,
+/** Owns Awaken the Pain tuning and behavior at its existing execution boundaries. */
+export const awakenThePain = defineTrait({
+  id: TRAIT.AWAKEN_THE_PAIN,
+  name: 'Awaken the Pain',
+  balance: {
+    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 5, duration: 5, packetLabel: 'on shroud entry' }],
+    attributePerStack: 10
+  }
+});
 
-      skillName: "Reaper's Might",
-      kind: String(effect.boon),
-      stacks: effectNumber(profile, effect, 'stacks'),
-      duration: effectNumber(profile, effect, 'duration'),
-      source: 'Trait',
-      sourceId: TRAIT.REAPERS_MIGHT,
-      actorType: 'effect',
-      triggeredBy: event.skillName
-    })
-  );
-  context.recordProc('trait', "Reaper's Might", event.at, event.skillName);
-}
+/** Owns Spiteful Fortitude tuning and behavior at its existing execution boundaries. */
+export const spitefulFortitude = defineTrait({
+  id: TRAIT.SPITEFUL_FORTITUDE,
+  name: 'Spiteful Fortitude',
+  balance: {
+    attributeConversion: 0.1,
+    lifeForceGain: 1
+  },
+  buildAttributes: (_common, { balanceContext: profileContext }) => ({
+    attributeEffects: [
+      {
+        kind: 'conversion',
+        source: 'Spiteful Fortitude',
+        from: 'Power',
+        to: 'Vitality',
+        multiplier: balanceProfileNumber(
+          requireBalanceProfileFromContext(profileContext, TRAIT.SPITEFUL_FORTITUDE),
+          'attributeConversion'
+        ),
+        rounding: 'none',
+        input: 'common'
+      }
+    ]
+  })
+});
 
-export function applySiphonedPower(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (!hasTrait(context, TRAIT.SIPHONED_POWER) || !targetBelowHalfHealth(context)) return;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.siphonedPower);
-  const effect = requireEffect(profile, 'boon', 'might');
-  // Claim only after local eligibility, before conditions, resources or queued strikes; the cooldown gates only
-  // might, so a removed boon leaves it ready.
-  if (!effect || !context.procs.claimCooldown('siphonedPower', event.at, balanceProfileNumber(profile, 'cooldown')))
-    return;
-  queueResolverBoon(
-    context,
-    event,
-    buildResolverBuff({
-      at: event.at,
+/** Owns Signets of Suffering tuning and behavior at its existing execution boundaries. */
+export const signetsOfSuffering = defineTrait({
+  id: TRAIT.SIGNETS_OF_SUFFERING,
+  name: 'Signets of Suffering',
+  balance: {
+    effects: [
+      {
+        name: 'Strike',
+        type: 'strike',
+        coefficient: 0,
+        hits: 1,
+        flatStrikeBase: 1413,
+        canCrit: false,
+        damageKind: 'life-steal'
+      }
+    ]
+  },
+  triggers: [
+    {
+      order: 1,
 
-      skillName: 'Siphoned Power',
-      kind: String(effect.boon),
-      stacks: effectNumber(profile, effect, 'stacks'),
-      duration: effectNumber(profile, effect, 'duration'),
-      source: 'Trait',
-      sourceId: TRAIT.SIPHONED_POWER,
-      actorType: 'effect',
-      triggeredBy: event.skillName
-    })
-  );
-  context.recordProc('trait', 'Siphoned Power', event.at, event.skillName);
-}
+      on: 'castCommit',
+      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Signet')),
+      emit: TRAIT.SIGNETS_OF_SUFFERING,
+      effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
+      attribution: (_runtime, cast) => ({
+        skillId: undefined,
+        skillName: 'Signets of Suffering',
+        name: 'Signets of Suffering',
+        triggeredBy: cast.skill.name,
+        offTarget: cast.command.offTarget,
+        skillWeapon: 'Unequipped'
+      })
+    }
+  ]
+});
 
-export function applyChillOfDeath(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (!hasTrait(context, TRAIT.CHILL_OF_DEATH) || !targetBelowHalfHealth(context)) return;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.chillOfDeath);
-  // No target boons can be removed, so use only the zero-boon strike profile.
-  const strike = requireEffect(profile, 'strike', 'Lesser Spinal Shivers - No Boons');
-  const chilled = requireEffect(profile, 'condition', 'Chilled');
-  // Claim only after local eligibility, before conditions, resources or queued strikes; with both packets removed
-  // there is no proc to gate.
-  if (
-    (!strike && !chilled) ||
-    !context.procs.claimCooldown('chillOfDeath', event.at, balanceProfileNumber(profile, 'cooldown'))
-  )
-    return;
-  if (strike)
-    queueTraitCoefficientDamage(context, event, {
-      name: 'Lesser Spinal Shivers',
-      traitId: TRAIT.CHILL_OF_DEATH,
-      coefficient: effectNumber(profile, strike, 'coefficient'),
-      canCrit: false
-    });
-  // Without its strike, Chill has no resolved hit to follow and applies at the trigger instead.
-  else if (chilled) queueChillOfDeathCondition(context, event, profile, chilled);
-}
+/** Owns Bitter Chill tuning and behavior at its existing execution boundaries. */
+export const bitterChill = defineTrait({
+  id: TRAIT.BITTER_CHILL,
+  name: 'Bitter Chill',
+  balance: {
+    effects: [{ name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 3, duration: 8 }]
+  }
+});
 
-function queueChillOfDeathCondition(
-  context: NecromancerResolverContext,
-  event: NecromancerResolverEvent,
-  profile: BalanceProfile,
-  chilled: ConditionEffect
-): void {
-  context.queue.enqueue(
-    buildResolverCondition({
-      condition: String(chilled.condition),
-      stacks: effectNumber(profile, chilled, 'stacks'),
-      name: 'Lesser Spinal Shivers — Chilled',
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.CHILL_OF_DEATH,
-      actorType: 'effect',
-      skillName: 'Lesser Spinal Shivers',
-      duration: effectNumber(profile, chilled, 'duration')
-    })
-  );
-}
+/** Owns Malicious Swarm tuning and behavior at its existing execution boundaries. */
+export const maliciousSwarm = defineTrait({
+  id: TRAIT.MALICIOUS_SWARM,
+  name: 'Malicious Swarm',
+  balance: {
+    internalCooldown: 15,
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 1, hits: 1 }]
+  },
+  triggers: [
+    {
+      order: 0,
 
-/** Queue Chill from the resolved trait strike so sibling strikes keep their pre-Chill state. */
-export function applyChillOfDeathCondition(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (event.actorType !== 'effect' || event.sourceId !== TRAIT.CHILL_OF_DEATH) return;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.chillOfDeath);
-  const chilled = requireEffect(profile, 'condition', 'Chilled');
-  if (chilled) queueChillOfDeathCondition(context, event, profile, chilled);
-}
+      on: 'castCommit',
+      emit: TRAIT.MALICIOUS_SWARM,
+      icd: 'profile',
+      when: (runtime, cast) =>
+        cast.skill.type === 'Heal' &&
+        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.MALICIOUS_SWARM), 'strike', 'Strike')),
+      effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
+      attribution: (_runtime, cast) => ({
+        skillId: undefined,
+        skillName: 'Lesser Signet of the Locust',
+        name: 'Lesser Signet of the Locust',
+        skillWeapon: 'Unequipped',
+        triggeredBy: cast.skill.name,
+        offTarget: cast.command.offTarget
+      })
+    }
+  ]
+});
+
+/** Owns Spiteful Spirit tuning and behavior at its existing execution boundaries. */
+export const spitefulSpirit = defineTrait({
+  id: TRAIT.SPITEFUL_SPIRIT,
+  name: 'Spiteful Spirit',
+  balance: {
+    effects: [
+      {
+        name: 'Strike',
+        type: 'strike',
+        coefficient: 1,
+        hits: 1,
+        actorType: 'effect'
+      }
+    ]
+  }
+});
+
+/** Owns Dread tuning and behavior at its existing execution boundaries. */
+export const dread = defineTrait({
+  id: TRAIT.DREAD,
+  name: 'Dread',
+  modifierRules: [
+    {
+      order: -16,
+      id: 'necromancer.dread',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'damage-additive',
+      amount: 0.2,
+      when: (context) =>
+        hasTrait(context, TRAIT.DREAD) && (necromancerRuntimeCoreState(context).dreadUntil || 0) > context.time
+    }
+  ]
+});
+
+/** Owns Spiteful Talisman tuning and behavior at its existing execution boundaries. */
+export const spitefulTalisman = defineTrait({
+  id: TRAIT.SPITEFUL_TALISMAN,
+  name: 'Spiteful Talisman',
+  modifierRules: [
+    {
+      order: 106,
+      id: 'necromancer.spiteful-talisman',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: 1.05,
+      when: (context) => hasTrait(context, TRAIT.SPITEFUL_TALISMAN)
+    }
+  ]
+});
+
+/** Owns Close to Death tuning and behavior at its existing execution boundaries. */
+export const closeToDeath = defineTrait({
+  id: TRAIT.CLOSE_TO_DEATH,
+  name: 'Close to Death',
+  modifierRules: [
+    {
+      order: 107,
+      id: 'necromancer.close-to-death',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: 1.2,
+      when: (context) => hasTrait(context, TRAIT.CLOSE_TO_DEATH) && targetHealthBelow(context, 0.5)
+    }
+  ]
+});
+
+export const spiteTraits = [
+  reapersMight,
+  siphonedPower,
+  chillOfDeath,
+  awakenThePain,
+  spitefulFortitude,
+  signetsOfSuffering,
+  bitterChill,
+  maliciousSwarm,
+  spitefulSpirit,
+  dread,
+  spitefulTalisman,
+  closeToDeath
+];

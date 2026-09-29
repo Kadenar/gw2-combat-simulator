@@ -1,4 +1,8 @@
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import {
+  evokerChargeProfile,
+  initializeSpecializedElements
+} from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * The Evoker familiar-charge economy.
@@ -9,11 +13,9 @@ import { EPSILON } from '#kernel/core/clock.js';
  * familiar handlers; this module only accrues and reports them.
  */
 import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 // Use Core's bundle names so conjure availability and familiar-charge exclusions agree.
@@ -22,9 +24,8 @@ import {
   EVOKER_NO_CHARGE_SKILLS,
   EVOKER_NO_CHARGE_SPEAR_SKILLS
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
-import { evokerState, type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { evokerState, type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 
 /**
  * Seeds charge capacity from the active balance profile before the first cast,
@@ -33,16 +34,7 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
  */
 export function initialize(context: ElementalistRuntime): void {
   const state = evokerState.from(context);
-  const core = professionCoreState(context);
-  // Specialized Elements keeps the six-charge capacity but accelerates each
-  // matching weapon skill to three charges.
-  state.maximumCharges = balanceProfileNumber(
-    requireBalanceProfileFromContext(
-      context,
-      hasTrait(context, TRAIT.SPECIALIZED_ELEMENTS) ? PROFILE.specializedElements : PROFILE.resources
-    ),
-    'maximumStacks'
-  );
+  state.maximumCharges = balanceProfileNumber(evokerChargeProfile(context), 'maximumStacks');
   state.charges = Math.max(
     0,
     Math.min(state.maximumCharges, context.config.initialEvokerCharges ?? state.maximumCharges)
@@ -52,10 +44,7 @@ export function initialize(context: ElementalistRuntime): void {
     0,
     Math.min(balanceProfileNumber(resourcesProfile, 'minimumStacks'), context.config.initialEvokerEmpowered ?? 0)
   );
-  // locks the core attunement system to the fixed element so core trait procs key off the right element
-  if (hasTrait(context, TRAIT.SPECIALIZED_ELEMENTS)) {
-    core.primaryAttunement = state.element;
-  }
+  initializeSpecializedElements(context);
 }
 
 /** Publishes the current charge and empowered totals as an absolute reading at the cast's end. */
@@ -96,12 +85,10 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pic
 
   // Split-attunement skills gain the matching-element amount; Specialized
   // Elements raises that amount from two charges to three.
-  const specialized = hasTrait(context, TRAIT.SPECIALIZED_ELEMENTS);
-  const profile = specialized ? PROFILE.specializedElements : PROFILE.resources;
   return String(skill.attunement || '')
     .split('+')
     .includes(state.element)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, profile), 'playerStacks')
+    ? balanceProfileNumber(evokerChargeProfile(context), 'playerStacks')
     : balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'allyStacks');
 }
 

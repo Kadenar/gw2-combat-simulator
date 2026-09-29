@@ -1,7 +1,7 @@
-import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
-import type { Gw2BuildAttributeRuleContext } from '#gw2/platform/builds/types.js';
 import { finalizeBuildAttributes, resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
+import type { Gw2BuildAttributeRuleContext } from '#gw2/platform/builds/types.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
+import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 
 import type {
   Gw2AttributeEffect,
@@ -91,21 +91,32 @@ export interface FinalizeProfessionBuildAttributesOptions<TTrait> {
  * Profession files remain responsible for declaring their effects; this helper
  * only owns the repeated resolution/finalization pipeline.
  */
-export function finalizeProfessionBuildAttributes<TTrait>(
+export function finalizeProfessionBuildAttributes<TTrait extends BuildAttributeTrait>(
   common: Gw2CommonAttributeResult,
   {
     activeTraits,
     attributeEffects = [],
     traitDurations = {},
     traitCriticalChance
-  }: FinalizeProfessionBuildAttributesOptions<TTrait>
+  }: FinalizeProfessionBuildAttributesOptions<TTrait>,
+  context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const traitStats = resolveAttributeEffects(common.commonContext.conversionPool, attributeEffects);
+  // Resolve all authored flats and conversions together so eligible inputs and rounding keep their existing phases.
+  const contributions = context.traitBuildAttributes?.(common, context, activeTraits) ?? [];
+  const traitStats = resolveAttributeEffects(common.commonContext.conversionPool, [
+    ...attributeEffects,
+    ...contributions.flatMap((entry) => entry.attributeEffects ?? [])
+  ]);
+  const durations = { ...traitDurations };
+  for (const contribution of contributions)
+    for (const [name, amount] of Object.entries(contribution.traitDurations ?? {}))
+      durations[name] = (durations[name] ?? 0) + amount;
 
   return finalizeBuildAttributes(common, {
     activeTraits,
     traitStats,
-    traitDurations,
-    ...(traitCriticalChance == null ? {} : { traitCriticalChance })
+    traitDurations: durations,
+    traitCriticalChance:
+      (traitCriticalChance ?? 0) + contributions.reduce((sum, entry) => sum + (entry.traitCriticalChance ?? 0), 0)
   });
 }

@@ -1,7 +1,7 @@
+import { gadgeteerMineVariant } from '#gw2/professions/engineer/core/traits/toolbelt.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 // Cleansing Burst isn't linked to Healing Turret by the GW2 API's own flip-chain data, so the heal
 // slot needs a shared UI-only tile to keep showing whichever of the three is currently armed.
@@ -129,27 +129,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     // A committed follow-up consumes its window and restores the parent.
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DETONATE } }],
     // Gadgeteer adds one independent mine blast without duplicating the control packet.
-    effectVariants: [
-      {
-        profileId: TRAIT.GADGETEER,
-        when: (runtime) => hasTrait(runtime, TRAIT.GADGETEER),
-        transform: (_runtime, cast) =>
-          (cast.skill.effects ?? []).flatMap<SkillEffect>((effect) =>
-            effect.type === 'strike'
-              ? [
-                  effect,
-                  {
-                    ...effect,
-                    comboFinishers: effect.comboFinishers?.map((finisher) => ({
-                      ...finisher,
-                      attemptGroup: 'gadgeteer-mine'
-                    }))
-                  }
-                ]
-              : [effect]
-          )
-      }
-    ],
+    effectVariants: [gadgeteerMineVariant],
     // Availability requires the parent skill's exposed window.
 
     flipParentName: 'Throw Mine',

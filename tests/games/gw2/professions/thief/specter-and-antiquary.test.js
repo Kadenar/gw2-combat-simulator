@@ -19,7 +19,7 @@ import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
-import { applyAlliedLeechingVenoms } from '#gw2/professions/thief/core/traits/shadow-arts.js';
+import { applyAlliedLeechingVenoms } from '#gw2/professions/thief/core/traits/leeching-venoms.js';
 
 // Forced exits carry the depletion owner so they are distinct from an authored Exit Shadow Shroud.
 const DEPLETED = 'thief.shadow-shroud-depleted';

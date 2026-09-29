@@ -1,9 +1,7 @@
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
@@ -14,12 +12,6 @@ export function handleRangerBloodThirst(context: RangerResolverContext, event: G
     Math.max(0, Number(event.charges || 0)),
     event.at + (event.duration || 0)
   );
-}
-
-export function handleRangerBeastSkillUsed(context: RangerResolverContext, _event: Gw2ResolverEvent): void {
-  if (hasTrait(context, TRAIT.POISON_MASTER)) {
-    professionCoreState(context).poisonMasterPetAttackReady = true;
-  }
 }
 
 export function handleRangerPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {

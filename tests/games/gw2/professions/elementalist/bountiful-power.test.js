@@ -1,11 +1,12 @@
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/attunements.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
-import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/arcane.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 // Exercise authored thresholds with both callers' progress gains; bound emissions so regressions cannot hang the suite.
 for (const { threshold, progress, grants } of [
@@ -16,7 +17,7 @@ for (const { threshold, progress, grants } of [
 ]) {
   test(`Bountiful Power threshold ${threshold} preserves progress and grant semantics`, () => {
     const catalog = applyBalanceProfilePatch(elementalistCatalog, {
-      balanceProfiles: { [PROFILE.bountifulPower]: { fields: { threshold: { from: 5, to: threshold } } } }
+      balanceProfiles: { [TRAIT.BOUNTIFUL_POWER]: { fields: { threshold: { from: 5, to: threshold } } } }
     });
     const core = { bountifulPowerProgress: 0 };
     const events = [];

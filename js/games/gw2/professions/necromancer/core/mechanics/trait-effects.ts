@@ -1,8 +1,17 @@
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-/** Shares resolver-side Necromancer trait effects without coupling trait-line modules to the public dispatcher. */
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type {
+  NecromancerResolverContext,
+  NecromancerResolverEvent,
+  NecromancerRuntime
+} from '#gw2/professions/necromancer/types.js';
+
+/** Shares resolver-side Necromancer trait effects without coupling trait-line modules to the public dispatcher. */
 
 interface TraitConditionDefinition {
   readonly procCount?: number;
@@ -112,4 +121,28 @@ export function targetIsChilled(context: NecromancerResolverContext, at: number)
   if (context.config.target?.conditions?.Chilled === true || (context.config.target?.conditions?.Chilled || 0) > 0)
     return true;
   return (professionCoreState(context).targetChilledUntil || 0) > at;
+}
+
+/** Emits the selected entry profile after the form and specialization state are established. */
+export function emitNecromancerShroudTrait(runtime: NecromancerRuntime, cast: RuntimeCast, trait: number): void {
+  if (!hasTrait(runtime, trait)) return;
+  const profile = requireBalanceProfileFromContext(runtime, trait);
+  emitEffects(runtime, {
+    owner: profile,
+    baseEvent: {
+      source: 'Trait',
+      sourceId: trait,
+      actorType: 'effect',
+      skillName: profile.name,
+      activationId: cast.id,
+      triggeredBy: cast.skill.name
+    },
+    skillWeaponFallback: 'Unequipped',
+    // Target misses affect hostile packets only; entry boons still reach the player.
+    transform: (event) => ({
+      ...event,
+      name: profile.name,
+      ...(event.type === 'buff' ? {} : { offTarget: cast.command.offTarget })
+    })
+  });
 }

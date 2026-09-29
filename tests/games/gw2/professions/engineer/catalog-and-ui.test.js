@@ -1,43 +1,41 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { readFile } from 'node:fs/promises';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import assert from 'node:assert/strict';
-import { test } from 'node:test';
-import { loadProfession, loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { conditionEffectTicks, strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import {
   applyBalanceProfilePatch,
   applySkillPatch,
   validatePatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
-import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/state.js';
+import { conditionEffectTicks, strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
+import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { loadProfession, loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,
   toApplicationBuild,
   validateEngineerBuild
 } from '#gw2/professions/engineer/build/build.js';
-import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
 import { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 import { ENGINEER_CORE_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/index.js';
+import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { amalgamModule } from '#gw2/professions/engineer/specializations/amalgam/module.js';
-import { AMALGAM_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { holosmithModule } from '#gw2/professions/engineer/specializations/holosmith/module.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import { mechanistModule } from '#gw2/professions/engineer/specializations/mechanist/module.js';
 import { MECHANIST_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
+import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 import { scrapperModule } from '#gw2/professions/engineer/specializations/scrapper/module.js';
-import { SCRAPPER_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
-import { assertProfessionFamilyConformance } from '#tests/helpers/profession-family-conformance.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
-import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { assertProfessionFamilyConformance } from '#tests/helpers/profession-family-conformance.js';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { test } from 'node:test';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
@@ -278,9 +276,7 @@ test('Engineer catalog retains reviewed packet and profile mechanics', () => {
   assert.deepEqual(ventExhaust.effects.filter((effect) => effect.type === 'condition').flatMap(conditionEffectTicks), [
     { atMs: 0, condition: 'Burning', stacks: 2, duration: 6 }
   ]);
-  const thermalReleaseValve = engineerCatalog.balanceProfilesById.get(
-    HOLOSMITH_BALANCE_PROFILE_IDS.thermalReleaseValve
-  );
+  const thermalReleaseValve = engineerCatalog.balanceProfilesById.get(TRAIT.THERMAL_RELEASE_VALVE);
 
   assert.equal(thermalReleaseValve.resourceCost, undefined);
   assert.deepEqual(thermalReleaseValve.effects, [
@@ -336,17 +332,11 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
   };
 
   assert.equal(profile('Core', ENGINEER_CORE_BALANCE_PROFILE_IDS.resources).patchableFields.resourceCost, 50);
-  assert.equal(profile('Scrapper', SCRAPPER_BALANCE_PROFILE_IDS.appliedForce).patchableFields.attributePerStack, 30);
+  assert.equal(profile('Scrapper', TRAIT.APPLIED_FORCE).patchableFields.attributePerStack, 30);
   assert.equal(profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.heat).patchableFields.maximumStacks, undefined);
   assert.equal(profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.heat).patchableFields.threshold, undefined);
-  assert.equal(
-    profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.enhancedCapacity).patchableFields.maximumStacks,
-    undefined
-  );
-  assert.equal(
-    profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.enhancedCapacity).patchableFields.threshold,
-    undefined
-  );
+  assert.equal(profile('Holosmith', TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT).patchableFields.maximumStacks, undefined);
+  assert.equal(profile('Holosmith', TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT).patchableFields.threshold, undefined);
   assert.equal(
     profile('Holosmith', HOLOSMITH_BALANCE_PROFILE_IDS.laserDiskHeatTier).patchableFields.enhancedStrikeFactor,
     1.35
@@ -356,10 +346,7 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
     15
   );
   assert.equal(profile('Mechanist', MECHANIST_BALANCE_PROFILE_IDS.resources).patchableFields.inheritanceRatio, 0.5);
-  assert.equal(
-    profile('Amalgam', AMALGAM_BALANCE_PROFILE_IDS.mercurialTendencies).patchableFields.rechargeReduction,
-    2.5
-  );
+  assert.equal(profile('Amalgam', TRAIT.MERCURIAL_TENDENCIES).patchableFields.rechargeReduction, 2.5);
 
   const opaqueModifierRules = [...modules.values()].flatMap((module) =>
     module.modifierRules.filter(
@@ -376,7 +363,7 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
       [ENGINEER_CORE_BALANCE_PROFILE_IDS.resources]: {
         fields: { resourceCost: { from: 50, to: 45 } }
       },
-      [SCRAPPER_BALANCE_PROFILE_IDS.appliedForce]: {
+      [TRAIT.APPLIED_FORCE]: {
         fields: { attributePerStack: { from: 30, to: 35 } }
       },
       [HOLOSMITH_BALANCE_PROFILE_IDS.laserDiskHeatTier]: {
@@ -385,20 +372,20 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
       [MECHANIST_BALANCE_PROFILE_IDS.resources]: {
         fields: { inheritanceRatio: { from: 0.5, to: 0.6 } }
       },
-      [AMALGAM_BALANCE_PROFILE_IDS.mercurialTendencies]: {
+      [TRAIT.MERCURIAL_TENDENCIES]: {
         fields: { rechargeReduction: { from: 2.5, to: 3 } }
       }
     }
   });
 
   assert.equal(preview.balanceProfilesById.get(ENGINEER_CORE_BALANCE_PROFILE_IDS.resources).resourceCost, 45);
-  assert.equal(preview.balanceProfilesById.get(SCRAPPER_BALANCE_PROFILE_IDS.appliedForce).attributePerStack, 35);
+  assert.equal(preview.balanceProfilesById.get(TRAIT.APPLIED_FORCE).attributePerStack, 35);
   assert.equal(
     preview.balanceProfilesById.get(HOLOSMITH_BALANCE_PROFILE_IDS.laserDiskHeatTier).enhancedStrikeFactor,
     1.5
   );
   assert.equal(preview.balanceProfilesById.get(MECHANIST_BALANCE_PROFILE_IDS.resources).inheritanceRatio, 0.6);
-  assert.equal(preview.balanceProfilesById.get(AMALGAM_BALANCE_PROFILE_IDS.mercurialTendencies).rechargeReduction, 3);
+  assert.equal(preview.balanceProfilesById.get(TRAIT.MERCURIAL_TENDENCIES).rechargeReduction, 3);
 
   assert.equal(engineerCatalog.balanceProfilesById.get(ENGINEER_CORE_BALANCE_PROFILE_IDS.resources).resourceCost, 50);
 });

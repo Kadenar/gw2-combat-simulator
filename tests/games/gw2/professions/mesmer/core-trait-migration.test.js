@@ -1,14 +1,14 @@
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
-import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
-import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
+import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
-import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/index.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 // Critical trait handlers read selected traits and patched profiles from the same live runtime as the proc registry.
 test('Master Fencer only claims its strict ICD on a sampled critical hit', () => {

@@ -1,37 +1,14 @@
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 export const SCOURGE_BALANCE_PROFILE_IDS = Object.freeze({
-  demonicLore: TRAIT.DEMONIC_LORE,
   shade: 'necromancer.scourge.shade',
-  sandSavant: TRAIT.SAND_SAVANT,
-  abrasiveGrit: TRAIT.ABRASIVE_GRIT,
-  desertEmpowerment: TRAIT.DESERT_EMPOWERMENT,
-  sadisticSearing: TRAIT.SADISTIC_SEARING,
   garishPillar: 'necromancer.scourge.garish-pillar',
   desertShroud: 'necromancer.scourge.desert-shroud',
-  sandstormShroud: 'necromancer.scourge.sandstorm-shroud',
-  fellBeacon: TRAIT.FELL_BEACON,
-  sandSage: TRAIT.SAND_SAGE,
-  nourishingAshes: TRAIT.NOURISHING_ASHES
+  sandstormShroud: 'necromancer.scourge.sandstorm-shroud'
 });
 
 export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
-  trait(SCOURGE_BALANCE_PROFILE_IDS.demonicLore, 'Demonic Lore', {
-    cooldown: 3,
-    effects: [
-      {
-        name: 'Burning',
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 1,
-        actorType: 'effect'
-      }
-    ]
-  }),
   {
     id: SCOURGE_BALANCE_PROFILE_IDS.shade,
     name: 'Sand Shade',
@@ -66,58 +43,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
       }
     ]
   },
-  trait(SCOURGE_BALANCE_PROFILE_IDS.sandSavant, 'Sand Savant', {
-    maximumStacks: 1,
-    rechargePenalty: 1.25,
-    effects: [
-      {
-        name: 'active-shade',
-        type: 'buff',
-        kind: 'active-shade',
-        stacks: 1,
-        duration: 8,
-        actorType: 'player'
-      }
-    ]
-  }),
-  trait(SCOURGE_BALANCE_PROFILE_IDS.abrasiveGrit, 'Abrasive Grit', {
-    effects: [
-      {
-        name: 'might',
-        type: 'boon',
-        boon: 'might',
-        stacks: 2,
-        duration: 6,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
-      }
-    ]
-  }),
-  trait(SCOURGE_BALANCE_PROFILE_IDS.desertEmpowerment, 'Desert Empowerment', {
-    effects: [
-      {
-        name: 'alacrity',
-        type: 'boon',
-        boon: 'alacrity',
-        stacks: 1,
-        duration: 1.5,
-        actorType: 'player',
-        audience: { recipients: 'party' as const }
-      }
-    ]
-  }),
-  trait(SCOURGE_BALANCE_PROFILE_IDS.sadisticSearing, 'Sadistic Searing', {
-    effects: [
-      {
-        name: 'Burning',
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 4,
-        actorType: 'player'
-      }
-    ]
-  }),
+
   {
     id: SCOURGE_BALANCE_PROFILE_IDS.garishPillar,
     name: 'Garish Pillar - Fear',
@@ -184,15 +110,5 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         audience: { recipients: 'party' as const }
       }
     ]
-  },
-  trait(SCOURGE_BALANCE_PROFILE_IDS.fellBeacon, 'Fell Beacon', {
-    attributeConversion: 0.07
-  }),
-  trait(SCOURGE_BALANCE_PROFILE_IDS.sandSage, 'Sand Sage', {
-    attributeBonus: 225
-  }),
-  trait(SCOURGE_BALANCE_PROFILE_IDS.nourishingAshes, 'Nourishing Ashes', {
-    lifeForceGain: 5,
-    cooldown: 3
-  })
+  }
 ]);

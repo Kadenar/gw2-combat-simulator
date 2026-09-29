@@ -1,19 +1,13 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 export const DEADEYE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'thief.deadeye.resources',
   maliciousSneakAttack: 'thief.deadeye.malicious-sneak-attack',
   maliciousAshenAssault: 'thief.deadeye.malicious-ashen-assault',
   mercy: 'thief.deadeye.mercy',
-  shadowFlare: 'thief.deadeye.shadow-flare',
-  maliciousIntent: TRAIT.MALICIOUS_INTENT,
-  maleficentSeven: TRAIT.MALEFICENT_SEVEN,
-  beQuickOrBeKilled: TRAIT.BE_QUICK_OR_BE_KILLED,
-  fireForEffect: TRAIT.FIRE_FOR_EFFECT,
-  silentScope: TRAIT.SILENT_SCOPE,
-  premeditation: TRAIT.PREMEDITATION
+  shadowFlare: 'thief.deadeye.shadow-flare'
 });
 
 /** Canonical defaults also seed state-only previews; runtime initialization applies the selected patch. */
@@ -27,20 +21,6 @@ export const DEADEYE_RESOURCE_PROFILE: BalanceProfile = {
   durationMultiplier: 30,
   effects: []
 };
-
-/** Maleficent Seven owns its replacement malice cap and the rewards for reaching it. */
-export const MALEFICENT_SEVEN_PROFILE = trait(DEADEYE_BALANCE_PROFILE_IDS.maleficentSeven, 'Maleficent Seven', {
-  maximumStacks: 7,
-  resourceGain: 7,
-  effects: [
-    { type: 'boon', name: 'Might', boon: 'Might', stacks: 10, duration: 10 },
-    { type: 'boon', name: 'Fury', boon: 'Fury', stacks: 1, duration: 10 },
-    { type: 'boon', name: 'Protection', boon: 'Protection', stacks: 1, duration: 5 },
-    { type: 'boon', name: 'Regeneration', boon: 'Regeneration', stacks: 1, duration: 10 },
-    { type: 'boon', name: 'Swiftness', boon: 'Swiftness', stacks: 1, duration: 10 },
-    { type: 'boon', name: 'Vigor', boon: 'Vigor', stacks: 1, duration: 10 }
-  ]
-});
 
 export const DEADEYE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   DEADEYE_RESOURCE_PROFILE,
@@ -78,27 +58,5 @@ export const DEADEYE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     parentId: ID.SHADOW_FLARE,
     durationMultiplier: 4,
     effects: []
-  },
-  trait(DEADEYE_BALANCE_PROFILE_IDS.maliciousIntent, 'Malicious Intent', {
-    resourceGain: 2
-  }),
-  MALEFICENT_SEVEN_PROFILE,
-  trait(DEADEYE_BALANCE_PROFILE_IDS.beQuickOrBeKilled, 'Be Quick or Be Killed', {
-    attributeBonus: 200,
-    effects: [{ type: 'boon', name: 'Quickness', boon: 'Quickness', stacks: 1, duration: 4 }]
-  }),
-  trait(DEADEYE_BALANCE_PROFILE_IDS.fireForEffect, 'Fire for Effect', {
-    effects: [
-      { type: 'boon', name: 'Might', boon: 'Might', stacks: 8, duration: 12 },
-      { type: 'boon', name: 'Fury', boon: 'Fury', stacks: 1, duration: 12 }
-    ]
-  }),
-  trait(DEADEYE_BALANCE_PROFILE_IDS.silentScope, 'Silent Scope', {
-    threshold: 3,
-    durationMultiplier: 3,
-    attributeBonus: 120
-  }),
-  trait(DEADEYE_BALANCE_PROFILE_IDS.premeditation, 'Premeditation', {
-    attributeBonus: 180
-  })
+  }
 ]);

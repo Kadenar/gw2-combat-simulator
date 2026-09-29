@@ -1,17 +1,16 @@
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { procChanceFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { ELEMENTALIST_TRAIT_IDS as ELE } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { CATALYST_BALANCE_PROFILE_IDS as CATALYST } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
+import { EVOKER_BALANCE_PROFILE_IDS as EVOKER } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS as ENGINEER } from '#gw2/professions/engineer/core/profiles.js';
+import { ENGINEER_TRAIT_IDS as ENG, ENGINEER_SKILL_IDS as ENG_SKILL } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { HOLOSMITH_BALANCE_PROFILE_IDS as HOLO } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { ELEMENTALIST_TRAIT_IDS as ELE } from '#gw2/professions/elementalist/data/ids.js';
-import { ENGINEER_TRAIT_IDS as ENG, ENGINEER_SKILL_IDS as ENG_SKILL } from '#gw2/professions/engineer/data/ids.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/elementalist/core/profiles.js';
-import { HOLOSMITH_BALANCE_PROFILE_IDS as HOLO } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
-import { EVOKER_BALANCE_PROFILE_IDS as EVOKER } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
-import { CATALYST_BALANCE_PROFILE_IDS as CATALYST } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS as ENGINEER } from '#gw2/professions/engineer/core/profiles.js';
-import { procChanceFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 // Minimal casts exercise the same patched catalog in scheduler and resolver paths.
 function run(profession, balanceProfiles, specialization, rotation, config = {}, skills = {}) {
@@ -44,7 +43,7 @@ for (const [type, name] of [
   ['condition', 'Sunspot Burning']
 ]) {
   test(`Sunspot independently removes its ${type} and preserves siblings`, () => {
-    const id = type === 'condition' ? CORE.burningRage : CORE.sunspot;
+    const id = type === 'condition' ? ELE.BURNING_RAGE : ELE.SUNSPOT;
     const result = run(
       elementalistProfession,
       { [id]: { removeEffects: [{ type, name }] } },
@@ -132,7 +131,7 @@ test('removing Bountiful Power window preserves its independent Quickness', () =
   const result = run(
     elementalistProfession,
     {
-      [CORE.bountifulPower]: { fields: { threshold: 1 }, removeEffects: [{ type: 'buff', name: 'Damage Window' }] }
+      [ELE.BOUNTIFUL_POWER]: { fields: { threshold: 1 }, removeEffects: [{ type: 'buff', name: 'Damage Window' }] }
     },
     'Core',
     [{ type: 'combat-start' }, 'Air Attunement'],
@@ -158,7 +157,7 @@ test('proc overrides require a valid finite baseline and retain explicit zero', 
 test('empty Sunspot effects emit neither an aura nor a proc marker', () => {
   const result = run(
     elementalistProfession,
-    { [CORE.sunspot]: { removeEffects: [{ all: true }] } },
+    { [ELE.SUNSPOT]: { removeEffects: [{ all: true }] } },
     'Core',
     [{ type: 'combat-start' }, 'Fire Attunement'],
     { startAttunement: 'Air', selectedTraitIds: [ELE.SUNSPOT] }
@@ -232,7 +231,7 @@ test('patched resource capacities seed simulation and presentation from the same
     assert.equal(resource.value, 12);
   }
 
-  const balanceProfiles = { [EVOKER.specializedElements]: { fields: { maximumStacks: 8 } } };
+  const balanceProfiles = { [ELE.SPECIALIZED_ELEMENTS]: { fields: { maximumStacks: 8 } } };
   const specialized = run(elementalistProfession, balanceProfiles, 'Evoker', [], {
     selectedTraitIds: [ELE.SPECIALIZED_ELEMENTS]
   });

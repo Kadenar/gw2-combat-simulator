@@ -1,11 +1,14 @@
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { isCombatEntryEvent } from '#gw2/platform/combat/state/targets.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
-import { isCombatEntryEvent } from '#gw2/platform/combat/state/targets.js';
+import type {
+  PaletteSkillAvailability,
+  ProfessionResourceView,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
 import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
 import {
   formatSecondsRemaining,
@@ -13,14 +16,10 @@ import {
   warriorSnapshotAt,
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
-import type {
-  PaletteSkillAvailability,
-  ProfessionResourceView,
-  RotationStateSnapshotItem
-} from '#gw2/platform/profession-presentation/types.js';
-import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
-
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
+import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
+import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const PROFESSION_SKILLS = Object.freeze([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
 const DRAGON_SLASH_SKILLS = Object.freeze([ID.DRAGON_SLASH_FORCE, ID.DRAGON_SLASH_BOOST, ID.DRAGON_SLASH_REACH]);
@@ -152,7 +151,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     // Bladesworn's trait buffs live on the resolved buff timeline, which keeps
     // this snapshot aligned with the damage and ferocity modifier gates.
     const maximum = balanceProfileNumber(
-      requireBalanceProfileFromContext(context.balanceContext, PROFILE.fierceAsFire),
+      requireBalanceProfileFromContext(context.balanceContext, TRAIT.FIERCE_AS_FIRE),
       'maximumStacks'
     );
     const fierceAsFire = Math.min(maximum, timedBuffStacksAt(result, 'fierce-as-fire', at));

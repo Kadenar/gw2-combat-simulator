@@ -1,73 +1,19 @@
-import { reaperShoutMeleeModifier } from '#gw2/professions/necromancer/specializations/reaper/skills/shout-skills.js';
-import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-
-import { targetConditionStacks as configuredTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-
-import {
-  cloneNecromancerAttributes,
-  necromancerActiveShroud,
-  necromancerTargetChilled
-} from '#gw2/professions/necromancer/core/modifiers.js';
-import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/reaper/profiles.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+import { cloneNecromancerAttributes } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
+import { reaperShoutMeleeModifier } from '#gw2/professions/necromancer/specializations/reaper/skills/shout-skills.js';
+import { modifyReapersOnslaughtAttributes } from '#gw2/professions/necromancer/specializations/reaper/traits/behavior.js';
 
 /** Applies Reaper's Onslaught ferocity while Reaper Shroud is active. */
 function modifyReaperAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = cloneNecromancerAttributes(attributes);
-  if (hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) && necromancerActiveShroud(context) === 'reaper') {
-    const reapersOnslaughtProfile = requireBalanceProfileFromContext(context, PROFILE.reapersOnslaught);
-    result.ferocity += balanceProfileNumber(reapersOnslaughtProfile, 'attributeBonus');
-  }
+  modifyReapersOnslaughtAttributes(context, result);
 
   return result;
 }
 
 export const reaperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
-  reaperShoutMeleeModifier,
-  {
-    id: 'necromancer.decimate-defenses',
-    target: MODIFIER_TARGET.CRITICAL_CHANCE,
-    operation: 'add',
-    // Each stack of Vulnerability adds 2% crit chance, capped at 25 stacks (50% max bonus).
-    // Falls back to configured static stacks when a live query runtime isn't available.
-
-    amount: (context) => {
-      const decimateDefensesProfile = requireBalanceProfileFromContext(context, TRAIT.DECIMATE_DEFENSES);
-      return (
-        Math.min(
-          balanceProfileNumber(decimateDefensesProfile, 'maximumStacks'),
-          context.query?.targetConditionStacks
-            ? context.query.targetConditionStacks('Vulnerability', context.time, context.runtime)
-            : configuredTargetConditionStacks(context.config || {}, 'Vulnerability', context.time, context.runtime)
-        ) * balanceProfileNumber(decimateDefensesProfile, 'criticalChancePerStack')
-      );
-    },
-    when: (context) => hasTrait(context, TRAIT.DECIMATE_DEFENSES)
-  },
-  {
-    id: 'necromancer.cold-shoulder',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.15,
-    order: 100,
-    when: (context) => hasTrait(context, TRAIT.COLD_SHOULDER) && necromancerTargetChilled(context)
-  },
-  {
-    id: 'necromancer.soul-eater',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.15,
-    order: 100,
-    // Nearby range is a fixed simulation assumption.
-    when: (context) => hasTrait(context, TRAIT.SOUL_EATER)
-  }
+  { ...reaperShoutMeleeModifier, order: 0 }
 ]);
 
 export const reaperModifiers = Object.freeze({

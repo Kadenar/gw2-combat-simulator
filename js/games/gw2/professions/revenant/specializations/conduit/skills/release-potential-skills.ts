@@ -1,17 +1,15 @@
-import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/state.js';
+import { conditionEffectTicks, impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-/** Owns Conduit Release Potential skill variants. */
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import { conditionEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
+import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
+import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
 
 /** Capture equipped-legend eligibility at acceptance; full affinity unlocks every Dervish component. */
 const releaseLegend = (legend: string) => (runtime: RevenantRuntime) =>

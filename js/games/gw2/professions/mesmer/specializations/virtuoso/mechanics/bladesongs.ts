@@ -1,19 +1,13 @@
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { mesmerConditionFromProfile, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { emitMesmerEffects } from '#gw2/professions/mesmer/core/events.js';
-import { applyCryOfPain } from '#gw2/professions/mesmer/core/traits/index.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { mesmerConditionFromProfile, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import { applyCryOfPain, masterOfFragmentationRequiem } from '#gw2/professions/mesmer/core/traits/behavior.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Resolves Virtuoso Bladesong packets and reports their actual impact timing to shared shatter traits. */
 export function resolveBladesong(
@@ -92,17 +86,7 @@ export function resolveBladesong(
   }
 
   if (shatter.kind === 'blade-requiem') {
-    const ticks = [...packetTicks()];
-    // Fragmentation extends the spinning blades by one pulse with the same damage as the last pulse.
-    if (ticks.length && hasTrait(context, TRAIT.MASTER_OF_FRAGMENTATION)) {
-      const last = ticks[ticks.length - 1];
-      const masterOfFragmentationProfile = requireBalanceProfileFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION);
-      ticks.push({
-        ...last,
-        atMs: last.atMs + balanceProfileNumber(masterOfFragmentationProfile, 'durationMultiplier') * 1000
-      });
-    }
-
+    const ticks = masterOfFragmentationRequiem(context, packetTicks());
     return addBladeDamage(ticks).map((event) => ({ at: event.at, count: 1 }));
   }
 

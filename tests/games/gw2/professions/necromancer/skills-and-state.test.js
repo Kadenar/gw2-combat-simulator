@@ -1,32 +1,32 @@
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { effectFirstAtMs } from '#gw2/platform/engine/effects/authoring.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
-import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import {
-  actualNecromancerLifeForceCost,
-  createNecromancerCoreState,
-  normalizedNecromancerLifeForceCost
-} from '#gw2/professions/necromancer/core/state.js';
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { effectFirstAtMs } from '#gw2/platform/engine/effects/authoring.js';
+import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import {
   addSoulShards,
   consumeSoulShards,
   purgeTimedState
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/core/profiles.js';
-import { REAPER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/reaper/profiles.js';
-import { SCOURGE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
+import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/initial-state.js';
+import {
+  actualNecromancerLifeForceCost,
+  normalizedNecromancerLifeForceCost
+} from '#gw2/professions/necromancer/core/state.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { HARBINGER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
+import { REAPER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/reaper/profiles.js';
 import { RITUALIST_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
+import { SCOURGE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -194,10 +194,7 @@ test('Necromancer modules expose isolated balance-profile authoring', () => {
   assert.equal(blight.patchableFields.maximumStacks, 25);
   assert.equal(spirit.profile.effects[1].ticks.length, 7);
   assert.equal(reaper.patchableFields.lifeForceDrain, 4);
-  assert.equal(
-    profile('Core', NECROMANCER_CORE_BALANCE_PROFILE_IDS.targetTheWeak).patchableFields.criticalChancePerCondition,
-    0.02
-  );
+  assert.equal(profile('Core', TRAIT.TARGET_THE_WEAK).patchableFields.criticalChancePerCondition, 0.02);
   assert.deepEqual(
     modules.get('Ritualist').modifierRules.find((rule) => rule.id === 'necromancer.anguish-conditional-damage')
       .parameters,

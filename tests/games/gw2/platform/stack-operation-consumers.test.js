@@ -14,7 +14,6 @@ import { SCOURGE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specia
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { WARRIOR_SKILL_IDS, WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { SPELLBREAKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 
 test('axe materialization replaces the oldest grant without mutating earlier state or snapshots', () => {
   const prior = Object.freeze([1, 30, 31, 32, 33, 34, 35]);
@@ -100,9 +99,7 @@ test('Insight keeps newest grants in its single live state', () => {
       target: { defiant: true }
     };
     const native = warriorProfession.runtimeFor(config);
-    const profile = structuredClone(
-      native.catalog.balanceProfilesById.get(SPELLBREAKER_BALANCE_PROFILE_IDS.attackersInsight)
-    );
+    const profile = structuredClone(native.catalog.balanceProfilesById.get(WARRIOR_TRAIT_IDS.ATTACKERS_INSIGHT));
     profile.maximumStacks = maximumStacks;
     profile.effects.find((effect) => effect.type === 'buff' && effect.name === 'attackers-insight').duration = duration;
     const prior = Object.freeze([1, 30, 31, 32]);
