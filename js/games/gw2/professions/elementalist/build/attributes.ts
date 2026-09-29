@@ -2,8 +2,7 @@ import type {
   Gw2AttributeEffect,
   Gw2BuildAttributeRuleContext,
   Gw2CommonAttributeResult,
-  Gw2FinalizedAttributeResult,
-  Gw2NumericAttributes
+  Gw2FinalizedAttributeResult
 } from '#gw2/platform/builds/types.js';
 import {
   balanceProfileNumber,
@@ -17,19 +16,11 @@ import {
   finalizeProfessionBuildAttributes
 } from '#gw2/professions/shared/build-attributes.js';
 
-/**
- * The Elementalist's profession-specific half of attribute calculation: it declares the
- * trait and signet effects the shared calculator cannot know about, and returns the
- * finalized attribute set the simulation and the editor's attribute panel both read.
- */
-// Fold build-time trait, weapon, and selected-skill bonuses into the common
-// attributes while preserving trait-duration and provenance metadata.
+/** Combines the equipped signet passive with registered trait contributions for the panel and simulation. */
 export function applyElementalistBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const traitDurations: Gw2NumericAttributes = {};
-
   const { activeTraits, hasSelectedSkill, profileContext } = createBuildAttributeContext(
     context,
     elementalistCatalog,
@@ -58,9 +49,7 @@ export function applyElementalistBuildAttributeRules(
     common,
     {
       activeTraits,
-      attributeEffects,
-      traitDurations,
-      traitCriticalChance: 0
+      attributeEffects
     },
     context
   );

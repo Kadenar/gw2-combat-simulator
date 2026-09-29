@@ -27,9 +27,7 @@ export interface BuildAttributeTrait {
  */
 export interface BuildAttributeContext<TTrait extends BuildAttributeTrait> {
   readonly activeTraits: readonly TTrait[];
-  readonly weapons: readonly string[];
   readonly profileContext: Pick<ProfessionBalanceContext, 'catalog'>;
-  hasTrait(id: SkillId): boolean;
   hasSelectedSkill(id: SkillId): boolean;
 }
 
@@ -37,38 +35,31 @@ export interface BuildAttributeContext<TTrait extends BuildAttributeTrait> {
 const sameId = (left: SkillId, right: SkillId): boolean => String(left) === String(right);
 
 /**
- * Resolves active traits and exposes the common trait/skill lookup operations
+ * Resolves active traits and exposes the selected-skill lookup
  * used by profession build-attribute rules.
  *
  * disabledTrait is intentionally filtered here so every downstream lookup sees
  * the same effective trait set.
  */
 export function createBuildAttributeContext<TTrait extends BuildAttributeTrait>(
-  { build, selectedSkills, disabledTrait, weaponSet, balanceContext }: Gw2BuildAttributeRuleContext,
+  { build, selectedSkills, disabledTrait, balanceContext }: Gw2BuildAttributeRuleContext,
   catalog: CanonicalCatalog,
   getActiveTraits: (specializations: readonly ProfessionTraitSelection[]) => readonly TTrait[]
 ): BuildAttributeContext<TTrait> {
   const activeTraits = getActiveTraits((build.specializations || []) as ProfessionTraitSelection[]).filter(
     (trait) => trait.name !== disabledTrait
   );
-  // Resolve patch data and weapon selection once for all profession attribute rules.
+  // Share the active patch context across profession attribute rules.
   const profileContext = balanceContext ?? { catalog };
-  const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
 
-  // Rules identify traits and skills by stable catalog ID so renamed display names cannot silently disable them.
-  function hasTrait(id: SkillId): boolean {
-    return activeTraits.some((trait) => sameId(trait.id, id));
-  }
-
+  // Stable skill IDs keep renamed display names from disabling passives.
   function hasSelectedSkill(id: SkillId): boolean {
     return selectedSkills.some((skill) => sameId(skill.id, id));
   }
 
   return {
     activeTraits,
-    weapons,
     profileContext,
-    hasTrait,
     hasSelectedSkill
   };
 }
@@ -80,8 +71,6 @@ export function createBuildAttributeContext<TTrait extends BuildAttributeTrait>(
 export interface FinalizeProfessionBuildAttributesOptions<TTrait> {
   readonly activeTraits: readonly TTrait[];
   readonly attributeEffects?: readonly Gw2AttributeEffect[];
-  readonly traitDurations?: Readonly<Gw2NumericAttributes>;
-  readonly traitCriticalChance?: number;
 }
 
 /**
@@ -93,12 +82,7 @@ export interface FinalizeProfessionBuildAttributesOptions<TTrait> {
  */
 export function finalizeProfessionBuildAttributes<TTrait extends BuildAttributeTrait>(
   common: Gw2CommonAttributeResult,
-  {
-    activeTraits,
-    attributeEffects = [],
-    traitDurations = {},
-    traitCriticalChance
-  }: FinalizeProfessionBuildAttributesOptions<TTrait>,
+  { activeTraits, attributeEffects = [] }: FinalizeProfessionBuildAttributesOptions<TTrait>,
   context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
   // Resolve all authored flats and conversions together so eligible inputs and rounding keep their existing phases.
@@ -107,7 +91,8 @@ export function finalizeProfessionBuildAttributes<TTrait extends BuildAttributeT
     ...attributeEffects,
     ...contributions.flatMap((entry) => entry.attributeEffects ?? [])
   ]);
-  const durations = { ...traitDurations };
+  // Registered trait owners supply duration and critical-chance bonuses once.
+  const durations: Gw2NumericAttributes = {};
   for (const contribution of contributions)
     for (const [name, amount] of Object.entries(contribution.traitDurations ?? {}))
       durations[name] = (durations[name] ?? 0) + amount;
@@ -116,7 +101,6 @@ export function finalizeProfessionBuildAttributes<TTrait extends BuildAttributeT
     activeTraits,
     traitStats,
     traitDurations: durations,
-    traitCriticalChance:
-      (traitCriticalChance ?? 0) + contributions.reduce((sum, entry) => sum + (entry.traitCriticalChance ?? 0), 0)
+    traitCriticalChance: contributions.reduce((sum, entry) => sum + (entry.traitCriticalChance ?? 0), 0)
   });
 }

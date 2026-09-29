@@ -12,8 +12,8 @@ import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 
 function naturalBalanceActive(context: Gw2ModifierContext): boolean {
-  // Natural Balance modifies the Druid, not independently scaled pet conditions.
-  if (!isGw2PlayerModifierOwnedEvent(context.event) || !hasTrait(context, TRAIT.NATURAL_BALANCE)) return false;
+  // Registration gates selection; only the Druid's own packets receive the active buff bonus.
+  if (!isGw2PlayerModifierOwnedEvent(context.event)) return false;
   // Scheduler path uses a timeline; resolver path reads from the runtime boon list
   if (context.timeline?.timedActive('natural-balance', context.time)) return true;
   return (context.runtime?.boons?.get('natural-balance') || []).some(

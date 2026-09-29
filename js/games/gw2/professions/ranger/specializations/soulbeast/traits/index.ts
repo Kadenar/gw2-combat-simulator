@@ -1,6 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, playerHealthFraction, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -12,9 +11,8 @@ import { activeBuff } from '#gw2/professions/ranger/core/traits/modifier-queries
 import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 
 function oppressiveSuperiorityActive(context: RangerModifierContext): boolean {
-  return (
-    hasTrait(context, TRAIT.OPPRESSIVE_SUPERIORITY) && targetHealthFraction(context) < playerHealthFraction(context)
-  );
+  // Registration gates selection; the remaining condition compares player and target health.
+  return targetHealthFraction(context) < playerHealthFraction(context);
 }
 
 /** Owns Unstoppable Union's live tuning and trait behavior. */
