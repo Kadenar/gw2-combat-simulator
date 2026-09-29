@@ -106,7 +106,7 @@ test('Axe variants retain acceptance snapshots versus live pre-cast clone select
   runtime.profession.core.clones.push({ id: 2, weapon: 'Axe', createdAt: 1 }, { id: 3, weapon: 'Axe', createdAt: 1.1 });
   completeAxesConfusion(runtime, {
     ...cast,
-    skill: mesmerCatalog.skillsById.get(ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY)
+    skill: mesmerCatalog.skillsById.get(ID.AXES_OF_SYMMETRY_NON_MIRAGE)
   });
   assert.deepEqual(
     strikes.map((event) => event.metadata.cloneId),

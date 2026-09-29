@@ -7,6 +7,7 @@ import {
 import { MESMER_NATIVE_CATALOG_OPTIONS } from '#gw2/professions/mesmer/data/module-data.js';
 import { mesmerNativeModules } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerWeaponSkillMatchesSet } from '#gw2/professions/mesmer/build/weapon-matching.js';
 
 export { mesmerCatalog, mesmerNativeModules } from '#gw2/professions/mesmer/catalog.js';
 
@@ -21,6 +22,7 @@ export const mesmerProfession = defineNativeProfession({
     validateBuild: validateMesmerBuild
   },
   modules: mesmerNativeModules,
+  weaponSkillMatchesSet: mesmerWeaponSkillMatchesSet,
   autoattackChains: {
     // Mesmer roots have deliberately different persistence contracts; each
     // override is evaluated against the pending root instead of the profession globally.

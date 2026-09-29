@@ -1,9 +1,12 @@
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
-import { resolveMesmerSkillIdFromDuplicateName } from '#gw2/professions/mesmer/data/duplicate-skill-names.js';
-import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
+import { mesmerCatalog, mesmerNativeModules } from '#gw2/professions/mesmer/catalog.js';
+import { MESMER_NATIVE_CATALOG_OPTIONS } from '#gw2/professions/mesmer/data/module-data.js';
+import {
+  assembleNativeRuntimeCatalog,
+  getNativeCatalogAssembly
+} from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import type { MesmerCanonicalBuild } from '#gw2/professions/mesmer/types.js';
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
@@ -62,10 +65,6 @@ export function createMesmerBuildDefaults(): MesmerCanonicalBuild {
   };
 }
 
-function plainObject(value: unknown): UnvalidatedFields {
-  return value && typeof value === 'object' && !Array.isArray(value) ? (value as UnvalidatedFields) : {};
-}
-
 const mesmerBuildCodec = createProfessionBuildCodec<MesmerCanonicalBuild>({
   professionId: PROFESSION_ID,
   schemaVersion: BUILD_SCHEMA_VERSION,
@@ -80,64 +79,25 @@ const mesmerBuildCodec = createProfessionBuildCodec<MesmerCanonicalBuild>({
     }
   },
   normalizeExtra(build, { saved }) {
+    // Load names through the same Core + elite catalog used by simulation, preserving explicit IDs.
+    const specialization =
+      saved.specialization ||
+      build.specializations.find(({ name }) =>
+        mesmerCatalog.specializations.some((entry) => entry.elite && entry.name === name)
+      )?.name ||
+      'Core';
+    const { fragments } = getNativeCatalogAssembly(mesmerNativeModules, MESMER_NATIVE_CATALOG_OPTIONS);
+    const catalog = assembleNativeRuntimeCatalog(
+      mesmerNativeModules
+        .filter((module) => module.id === 'Core' || module.id === specialization)
+        .map((module) => fragments.get(module.id)!)
+    );
     return {
       ...build,
-      rotation: normalizeRotation(disambiguateMesmerRotationSkillNames(saved), mesmerCatalog)
+      rotation: normalizeRotation(saved.rotation, catalog)
     };
   }
 });
-
-function configuredSpecialization(candidate: unknown = {}): string {
-  const saved = plainObject(candidate);
-  if (saved.specialization) return String(saved.specialization);
-  const eliteNames = new Set(
-    mesmerCatalog.specializations
-      .filter((specialization) => specialization.elite)
-      .map((specialization) => specialization.name)
-  );
-  return (
-    (Array.isArray(saved.specializations) ? saved.specializations : [])
-      .flatMap((selection) => {
-        const name = plainObject(selection).name;
-        return name == null ? [] : [String(name)];
-      })
-      .find((name) => eliteNames.has(name)) || 'Core'
-  );
-}
-
-/**
- * Uses the selected specialization to disambiguate only duplicated names.
- * Stable-ID entries and unique names pass through to shared normalization.
- */
-function disambiguateMesmerRotationSkillNames(candidate: unknown = {}): unknown[] {
-  const saved = plainObject(candidate);
-  const specialization = configuredSpecialization(saved);
-  const rotation = Array.isArray(saved.rotation) ? saved.rotation : [];
-  return rotation.map((entry: unknown) => {
-    if (typeof entry === 'string') {
-      const resolved = resolveMesmerSkillIdFromDuplicateName(entry, { specialization });
-      return resolved === undefined
-        ? entry
-        : resolved == null
-          ? { type: 'cast', skillId: entry }
-          : { type: 'cast', skillId: resolved };
-    }
-
-    const record = plainObject(entry);
-    if (!entry || typeof entry !== 'object' || record.skillId != null || record.id != null) {
-      return entry;
-    }
-
-    const resolved = resolveMesmerSkillIdFromDuplicateName(String(record.name || ''), {
-      specialization
-    });
-    if (resolved === undefined) return entry;
-    return {
-      ...record,
-      skillId: resolved ?? record.name
-    };
-  });
-}
 
 export const migrateMesmerBuild = mesmerBuildCodec.migrateBuild;
 export const validateMesmerBuild = mesmerBuildCodec.validateBuild;

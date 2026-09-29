@@ -9,10 +9,6 @@ import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalo
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
 import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import {
-  defaultMesmerSkillIdForDuplicateName,
-  MESMER_DUPLICATE_SKILL_NAMES
-} from '#gw2/professions/mesmer/data/duplicate-skill-names.js';
 import { TRAITS } from '#gw2/professions/mesmer/data/traits-data.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NativeCatalogOptions } from '#gw2/platform/profession-definition/module-types.js';
@@ -24,12 +20,27 @@ const flipParentById = createFlipParentMap(allSkills, {
   include: (parent, child) => parent.name !== child.name
 });
 
-const generated: readonly Skill[] = allSkills.map((skill) =>
-  normalizeGeneratedSkill(skill, flipParentById.get(skill.id) ?? null)
-);
+/** Shared Axe identities are replaced by Mirage in both equipment and cast selection. */
+export const NON_MIRAGE_AXE_SKILL_IDS: ReadonlySet<SkillId> = new Set([
+  ID.AXES_OF_SYMMETRY_NON_MIRAGE,
+  ID.LINGERING_THOUGHTS_NON_MIRAGE
+]);
+
+// Correct stale API specialization labels before palette ranking and module assembly.
+const generated: readonly Skill[] = allSkills.map((skill) => ({
+  ...normalizeGeneratedSkill(skill, flipParentById.get(skill.id) ?? null),
+  specialization:
+    NON_MIRAGE_AXE_SKILL_IDS.has(skill.id) || skill.id === ID.BLADECALL_NON_VIRTUOSO
+      ? ''
+      : skill.id === ID.BLADECALL
+        ? 'Virtuoso'
+        : skill.specialization
+}));
 
 const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> = Object.freeze({
   Mirage: [
+    ID.AXES_OF_SYMMETRY,
+    ID.LINGERING_THOUGHTS,
     ID.DODGE_MIRAGE_CLOAK,
     ID.PICK_UP_MIRAGE_MIRROR,
     ID.ETHER_BARRAGE,
@@ -41,7 +52,8 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
     ID.SPLIT_SURGE,
     ID.CHAOS_VORTEX
   ],
-  Troubadour: [ID.TROUBADOUR_BLADECALL, SHARED_SKILL_IDS.DODGE]
+  Virtuoso: [ID.BLADECALL],
+  Troubadour: [SHARED_SKILL_IDS.DODGE]
 });
 
 const WEAPON_DATA = defineProfessionWeapons({
@@ -61,18 +73,18 @@ const WEAPON_DATA = defineProfessionWeapons({
 
 export const MESMER_NATIVE_CATALOG_OPTIONS: NativeCatalogOptions = Object.freeze({
   skillNameCollision: 'first',
-  skillNameOverrides: Object.freeze(
-    Object.fromEntries(
-      MESMER_DUPLICATE_SKILL_NAMES.flatMap((name) => {
-        const id = defaultMesmerSkillIdForDuplicateName(name);
-
-        return id == null ? [] : [[name, id]];
-      })
-    )
-  )
+  // Application-wide names use Core defaults; active modules override their replacements.
+  skillNameOverrides: Object.freeze({
+    'Axes of Symmetry': ID.AXES_OF_SYMMETRY_NON_MIRAGE,
+    'Lingering Thoughts': ID.LINGERING_THOUGHTS_NON_MIRAGE,
+    Bladecall: ID.BLADECALL_NON_VIRTUOSO,
+    'Lively Lute': ID.LIVELY_LUTE,
+    'Harmonious Harp': ID.HARMONIOUS_HARP_ALTERNATE
+  })
 });
 
 interface MesmerModuleDataOptions extends ProfessionModuleDataOptions {
+  readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
   readonly supplementalSkillMechanics?: Readonly<Record<string, Partial<Skill>>>;
 }
 

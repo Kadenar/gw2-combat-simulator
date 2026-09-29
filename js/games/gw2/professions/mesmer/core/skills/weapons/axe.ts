@@ -39,33 +39,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
       }
     ]
   },
-  [ID.AXES_OF_SYMMETRY]: {
-    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.axes-clones' } }],
-    shadowstepSkill: true,
-    peithaImpactDelayMs: 520,
-    // Both weapon variants are shadowsteps and use the same movement-relic projectile timing.
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.75,
-        hits: 1,
-        atMs: 920,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        name: 'Damage',
-        actorType: 'player',
-        weapon: 'axe'
-      },
-      {
-        type: 'condition',
-        condition: 'confusion',
-        duration: 6,
-        stacks: 5,
-        atMs: -80
-      }
-    ],
-    castTimeMs: 1000
-  },
   [ID.LACERATING_CHOP]: {
     nextChainId: ID.ETHEREAL_CHOP,
     effects: [
@@ -106,51 +79,8 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
       }
     ]
   },
-  [ID.LINGERING_THOUGHTS]: {
-    cooldown: 0.25,
-    ammo: 2,
-    ammoRecharge: 6,
-    comboFinishers: [
-      {
-        ownerId: 'mesmer',
-        finisherType: 'Whirl',
-        applications: 2,
-        ambiguousFieldSelection: 'oldest'
-      }
-    ],
-    resource: {
-      mode: 'add',
-      count: 1,
-      timingAnchor: 'castEnd',
-      atMs: 160
-    },
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.2,
-        hits: 3,
-        atMs: 0,
-        name: 'Damage',
-        actorType: 'player',
-        weapon: 'axe'
-      },
-      {
-        type: 'condition',
-        condition: 'Torment',
-        duration: 4,
-        stacks: 3
-      },
-      {
-        type: 'condition',
-        condition: 'Crippled',
-        duration: 1,
-        stacks: 3
-      }
-    ],
-    castTimeMs: 920
-  },
-  // Virtuoso and Troubadour Axe variants retain separate IDs so their conditions and finishers resolve independently.
-  [ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS]: {
+  // Shared Axe skills apply outside Mirage; Mirage owns its replacement declarations.
+  [ID.LINGERING_THOUGHTS_NON_MIRAGE]: {
     cooldown: 0.25,
     ammo: 2,
     ammoRecharge: 6,
@@ -192,7 +122,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
     // The shared replacement keeps the same measured Axe cast timing as Mirage.
     castTimeMs: 920
   },
-  [ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY]: {
+  [ID.AXES_OF_SYMMETRY_NON_MIRAGE]: {
     sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.axes-confusion' } }],
     // The shared weapon variant retains the same shadowstep and relic response timing.
     shadowstepSkill: true,

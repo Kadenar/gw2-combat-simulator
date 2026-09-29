@@ -3,6 +3,77 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.BLADECALL_NON_VIRTUOSO]: {
+    resource: {
+      mode: 'add',
+      count: 1
+    },
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 200,
+            coefficient: 0.25
+          },
+          {
+            atMs: 200,
+            coefficient: 0.25
+          },
+          {
+            atMs: 200,
+            coefficient: 0.25
+          }
+        ],
+        name: 'Outgoing damage',
+        actorType: 'player',
+        weapon: 'dagger',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'mesmer',
+            finisherType: 'Projectile',
+            chance: 0.2,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
+      },
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 2720,
+            coefficient: 0.25
+          },
+          {
+            atMs: 2720,
+            coefficient: 0.25
+          },
+          {
+            atMs: 2760,
+            coefficient: 0.25
+          }
+        ],
+        name: 'Returning damage',
+        actorType: 'player',
+        weapon: 'dagger',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'mesmer',
+            finisherType: 'Projectile',
+            chance: 0.2,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
+      }
+    ],
+    castTimeMs: 440
+  },
   [ID.FLYING_CUTTER]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     specialization: '',
@@ -92,83 +163,5 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Part
         persistsAfterInterrupt: true
       }
     ]
-  },
-  [ID.BLADECALL]: {
-    interruptCommitMs: 280,
-    retainsCastLockoutAfterInterrupt: true,
-    resource: {
-      mode: 'add',
-      count: 1,
-      timingAnchor: 'castStart',
-      atMs: 200
-    },
-    blade: true,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 200,
-            coefficient: 0.25
-          },
-          {
-            atMs: 200,
-            coefficient: 0.25
-          },
-          {
-            atMs: 200,
-            coefficient: 0.25
-          }
-        ],
-        name: 'Outgoing damage',
-        persistsAfterInterrupt: true,
-        actorType: 'player',
-        weapon: 'dagger',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        comboFinishers: [
-          {
-            ownerId: 'mesmer',
-            finisherType: 'Projectile',
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
-          }
-        ],
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 2720,
-            coefficient: 0.25
-          },
-          {
-            atMs: 2720,
-            coefficient: 0.25
-          },
-          {
-            atMs: 2760,
-            coefficient: 0.25
-          }
-        ],
-        name: 'Returning damage',
-        persistsAfterInterrupt: true,
-        actorType: 'player',
-        weapon: 'dagger',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        comboFinishers: [
-          {
-            ownerId: 'mesmer',
-            finisherType: 'Projectile',
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
-          }
-        ],
-        metadata: {}
-      }
-    ],
-    castTimeMs: 440
   }
 });

@@ -1,3 +1,4 @@
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { virtuosoPhantasmalFuryRule } from '#gw2/professions/mesmer/core/traits/dueling.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
@@ -12,6 +13,10 @@ import { virtuosoTraits } from '#gw2/professions/mesmer/specializations/virtuoso
 export const virtuosoModule = defineNativeModule({
   id: 'Virtuoso',
   data: createMesmerModuleData('Virtuoso', {
+    // Select this specialization's weapon replacements for runtime name lookup.
+    skillNameOverrides: {
+      Bladecall: ID.BLADECALL
+    },
     skillMechanics: MESMER_VIRTUOSO_SKILL_MECHANICS,
     balanceProfiles: VIRTUOSO_BALANCE_PROFILES
   }),

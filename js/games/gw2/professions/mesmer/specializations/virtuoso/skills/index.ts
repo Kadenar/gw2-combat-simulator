@@ -11,7 +11,7 @@ function bladePacketTiers(coefficients: readonly number[], atMs: readonly number
 }
 
 /**
- * Owns Virtuoso slot-skill and bladesong catalog fragments only.
+ * Owns Virtuoso dagger, slot-skill, and bladesong catalog fragments.
  * Blade storage and bladesong runtime behavior lives under `mechanics/`.
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
@@ -19,6 +19,84 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Skill>>> = Object.freeze({
+  [ID.BLADECALL]: {
+    interruptCommitMs: 280,
+    retainsCastLockoutAfterInterrupt: true,
+    resource: {
+      mode: 'add',
+      count: 1,
+      timingAnchor: 'castStart',
+      atMs: 200
+    },
+    blade: true,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 200,
+            coefficient: 0.25
+          },
+          {
+            atMs: 200,
+            coefficient: 0.25
+          },
+          {
+            atMs: 200,
+            coefficient: 0.25
+          }
+        ],
+        name: 'Outgoing damage',
+        persistsAfterInterrupt: true,
+        actorType: 'player',
+        weapon: 'dagger',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'mesmer',
+            finisherType: 'Projectile',
+            chance: 0.2,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
+      },
+      {
+        type: 'strike',
+        ticks: [
+          {
+            atMs: 2720,
+            coefficient: 0.25
+          },
+          {
+            atMs: 2720,
+            coefficient: 0.25
+          },
+          {
+            atMs: 2760,
+            coefficient: 0.25
+          }
+        ],
+        name: 'Returning damage',
+        persistsAfterInterrupt: true,
+        actorType: 'player',
+        weapon: 'dagger',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'mesmer',
+            finisherType: 'Projectile',
+            chance: 0.2,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
+      }
+    ],
+    castTimeMs: 440
+  },
   [ID.THOUSAND_CUTS]: {
     castTimeMs: 0,
     blade: true,

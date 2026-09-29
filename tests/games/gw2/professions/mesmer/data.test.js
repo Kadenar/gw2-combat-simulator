@@ -2,6 +2,7 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { SKILLS as GUARDIAN_API_SKILLS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
+import { createRotationItem } from '#gw2/app/rotation/editing/actions.js';
 import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { SKILLS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
@@ -21,11 +22,8 @@ import { MESMER_CORE_EXTRA_SKILLS } from '#gw2/professions/mesmer/core/skills/ac
 import { MESMER_CORE_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/supplemental-skills.js';
-import {
-  MESMER_DUPLICATE_SKILL_NAMES,
-  defaultMesmerSkillIdForDuplicateName,
-  resolveMesmerSkillIdFromDuplicateName
-} from '#gw2/professions/mesmer/data/duplicate-skill-names.js';
+import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
 import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
@@ -354,9 +352,9 @@ test('Mesmer mechanics are the sole simulation source and use stable skill ids',
   // Bladecall variants share strike definitions; interruption persistence belongs to each specialization's cast.
   const bladecallEffects = (id) =>
     MESMER_SKILL_MECHANICS[id].effects.map((effect) => ({ ...effect, persistsAfterInterrupt: undefined }));
-  assert.deepEqual(bladecallEffects(ID.TROUBADOUR_BLADECALL), bladecallEffects(ID.BLADECALL));
+  assert.deepEqual(bladecallEffects(ID.BLADECALL_NON_VIRTUOSO), bladecallEffects(ID.BLADECALL));
   assert.equal(
-    MESMER_SKILL_MECHANICS[ID.TROUBADOUR_BLADECALL].castTimeMs,
+    MESMER_SKILL_MECHANICS[ID.BLADECALL_NON_VIRTUOSO].castTimeMs,
     MESMER_SKILL_MECHANICS[ID.BLADECALL].castTimeMs
   );
   assert.equal(
@@ -381,7 +379,7 @@ test('Mesmer mechanics are the sole simulation source and use stable skill ids',
       .filter(([, mechanics]) => Object.hasOwn(mechanics, 'cooldown'))
       .map(([id]) => Number(id))
       .sort((left, right) => left - right),
-    [ID.LINGERING_THOUGHTS, ID.JAUNT, ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS, ID.TALE_OF_THE_HONORABLE_ROGUE].sort(
+    [ID.LINGERING_THOUGHTS, ID.JAUNT, ID.LINGERING_THOUGHTS_NON_MIRAGE, ID.TALE_OF_THE_HONORABLE_ROGUE].sort(
       (left, right) => left - right
     )
   );
@@ -397,7 +395,7 @@ test('every Mesmer catalog skill exposes normalized effects', () => {
     mesmerCatalog.skills.every((skill) => Array.isArray(skill.effects)),
     true
   );
-  assert.equal(mesmerCatalog.skillsByName.get('Bladecall').id, ID.BLADECALL);
+  assert.equal(mesmerCatalog.skillsByName.get('Bladecall').id, ID.BLADECALL_NON_VIRTUOSO);
 });
 
 test('Mesmer relic options exclude profession-inapplicable relics', () => {
@@ -656,59 +654,77 @@ test('every Mesmer specialization registers native owners without scheduler hand
   }
 });
 
-test('duplicate Mesmer skill names resolve explicitly by specialization', () => {
-  assert.deepEqual(MESMER_DUPLICATE_SKILL_NAMES, [
-    'Axes of Symmetry',
-    'Lingering Thoughts',
-    'Bladecall',
-    'Lively Lute',
-    'Harmonious Harp'
-  ]);
+test('Mesmer module overrides select weapon replacements for loading, editing, and simulation', () => {
   const specializationCases = [
-    ['Axes of Symmetry', 'Core', ID.AXES_OF_SYMMETRY],
-    ['Axes of Symmetry', 'Chronomancer', ID.AXES_OF_SYMMETRY],
-    ['Axes of Symmetry', 'Virtuoso', ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY],
+    ['Axes of Symmetry', 'Core', ID.AXES_OF_SYMMETRY_NON_MIRAGE],
+    ['Axes of Symmetry', 'Chronomancer', ID.AXES_OF_SYMMETRY_NON_MIRAGE],
+    ['Axes of Symmetry', 'Virtuoso', ID.AXES_OF_SYMMETRY_NON_MIRAGE],
     ['Axes of Symmetry', 'Mirage', ID.AXES_OF_SYMMETRY],
-    ['Axes of Symmetry', 'Troubadour', ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY],
+    ['Axes of Symmetry', 'Troubadour', ID.AXES_OF_SYMMETRY_NON_MIRAGE],
     ['Lingering Thoughts', 'Mirage', ID.LINGERING_THOUGHTS],
-    ['Lingering Thoughts', 'Core', ID.LINGERING_THOUGHTS],
-    ['Lingering Thoughts', 'Chronomancer', ID.LINGERING_THOUGHTS],
-    ['Lingering Thoughts', 'Virtuoso', ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS],
-    ['Lingering Thoughts', 'Troubadour', ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS],
+    ['Lingering Thoughts', 'Core', ID.LINGERING_THOUGHTS_NON_MIRAGE],
+    ['Lingering Thoughts', 'Chronomancer', ID.LINGERING_THOUGHTS_NON_MIRAGE],
+    ['Lingering Thoughts', 'Virtuoso', ID.LINGERING_THOUGHTS_NON_MIRAGE],
+    ['Lingering Thoughts', 'Troubadour', ID.LINGERING_THOUGHTS_NON_MIRAGE],
+    ['Bladecall', 'Core', ID.BLADECALL_NON_VIRTUOSO],
+    ['Bladecall', 'Chronomancer', ID.BLADECALL_NON_VIRTUOSO],
+    ['Bladecall', 'Mirage', ID.BLADECALL_NON_VIRTUOSO],
     ['Bladecall', 'Virtuoso', ID.BLADECALL],
-    ['Bladecall', 'Troubadour', ID.TROUBADOUR_BLADECALL],
+    ['Bladecall', 'Troubadour', ID.BLADECALL_NON_VIRTUOSO],
     ['Lively Lute', 'Troubadour', ID.LIVELY_LUTE],
     ['Harmonious Harp', 'Troubadour', ID.HARMONIOUS_HARP_ALTERNATE]
   ];
 
   for (const [name, specialization, expectedId] of specializationCases) {
-    assert.equal(
-      resolveMesmerSkillIdFromDuplicateName(name, { specialization }),
-      expectedId,
-      `${specialization} ${name}`
-    );
+    // Names, loaded rotations, and selectable weapons must agree with the active runtime catalog.
+    const runtime = mesmerProfession.runtimeFor({ specialization });
+    assert.equal(runtime.catalog.skillsByName.get(name)?.id, expectedId, `${specialization} runtime ${name}`);
+    const loaded = migrateMesmerBuild({ ...createMesmerBuildDefaults(), specialization, rotation: [name] });
+    assert.equal(loaded.rotation[0].skillId, expectedId, `${specialization} loaded ${name}`);
+    const app = {
+      adapter: mesmerAppAdapter,
+      profession: mesmerProfession,
+      skills: mesmerCatalog.skills,
+      build: {
+        ...createMesmerBuildDefaults(),
+        specializations: [{ name: specialization, traits: '1-1-1' }],
+        weapons: [runtime.catalog.skillsById.get(expectedId).weapon || 'Axe', 'Sword']
+      },
+      skillById: mesmerCatalog.skillsById,
+      skillByName: mesmerCatalog.skillsByName
+    };
+    assert.equal(createRotationItem(app, name).skillId, expectedId, `${specialization} editor ${name}`);
+    if (runtime.catalog.skillsById.get(expectedId).type === 'Weapon') {
+      assert.deepEqual(
+        weaponSkills(app)
+          .filter((skill) => skill.name === name)
+          .map((skill) => skill.id),
+        [expectedId]
+      );
+    }
   }
 
-  for (const name of ['Axes of Symmetry', 'Lingering Thoughts', 'Lively Lute', 'Harmonious Harp']) {
-    assert.equal(resolveMesmerSkillIdFromDuplicateName(name), null, name);
-    assert.equal(
-      resolveMesmerSkillIdFromDuplicateName(name, {
-        specialization: 'Unknown'
-      }),
-      null,
-      name
-    );
+  for (const specialization of ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']) {
+    const catalog = mesmerProfession.runtimeFor({ specialization }).catalog;
+    assert.equal(catalog.skillsById.has(ID.AXES_OF_SYMMETRY), specialization === 'Mirage');
+    assert.equal(catalog.skillsById.has(ID.LINGERING_THOUGHTS), specialization === 'Mirage');
+    assert.equal(catalog.skillsById.has(ID.BLADECALL), specialization === 'Virtuoso');
   }
+});
 
-  assert.equal(resolveMesmerSkillIdFromDuplicateName('Bladecall'), ID.BLADECALL);
-  assert.equal(
-    resolveMesmerSkillIdFromDuplicateName('Mind Stab', {
-      specialization: 'Mirage'
-    }),
-    undefined
-  );
-  for (const name of MESMER_DUPLICATE_SKILL_NAMES) {
-    assert.ok(Number.isInteger(defaultMesmerSkillIdForDuplicateName(name)), name);
+// Direct IDs cannot bypass the same replacement rules enforced by the weapon palette.
+test('Mesmer rejects shared weapon IDs replaced by the active specialization', () => {
+  for (const [specialization, skillId, primaryWeapon] of [
+    ['Mirage', ID.AXES_OF_SYMMETRY_NON_MIRAGE, 'Axe'],
+    ['Mirage', ID.LINGERING_THOUGHTS_NON_MIRAGE, 'Axe'],
+    ['Virtuoso', ID.BLADECALL_NON_VIRTUOSO, 'Dagger']
+  ]) {
+    const result = simulateMesmer([{ type: 'cast', skillId }], { specialization, primaryWeapon });
+    assert.ok(result.warnings.length > 0, `${specialization} rejects ${skillId}`);
+    assert.equal(
+      result.events.some((event) => event.type === 'damage' && event.skillId === skillId),
+      false
+    );
   }
 });
 
@@ -716,8 +732,8 @@ test('duplicate Mesmer skill names resolve explicitly by specialization', () => 
 test('Virtuoso Axe name migration is equivalent to ID migration', () => {
   const build = { ...createMesmerBuildDefaults(), weapons: ['Axe', 'Sword'] };
   for (const [name, skillId] of [
-    ['Lingering Thoughts', ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS],
-    ['Axes of Symmetry', ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY]
+    ['Lingering Thoughts', ID.LINGERING_THOUGHTS_NON_MIRAGE],
+    ['Axes of Symmetry', ID.AXES_OF_SYMMETRY_NON_MIRAGE]
   ]) {
     const byId = migrateMesmerBuild({ ...build, rotation: [{ type: 'cast', skillId }] });
     for (const entry of [name, { type: 'cast', name }]) {

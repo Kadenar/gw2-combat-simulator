@@ -363,7 +363,7 @@ export const mesmerTooltips: ProfessionTooltips = {
         ];
       }
     ),
-    [ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY]: skillTooltip(
+    [ID.AXES_OF_SYMMETRY_NON_MIRAGE]: skillTooltip(
       'Strike and confuse your target. Add further player-owned confusion for each clone present when this cast begins.'
     ),
     [ID.BLADE_RENEWAL]: skillTooltip(

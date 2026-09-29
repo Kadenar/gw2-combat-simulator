@@ -419,7 +419,7 @@ export function assembleNativeRuntimeCatalog(
   const overrides = new Map<string, SkillId>();
   for (const fragment of fragments) {
     for (const [name, skillId] of Object.entries(fragment.skillNameOverrides || {})) {
-      if (overrides.has(name)) throw new TypeError(`Duplicate skill-name override ${name}.`);
+      // Fragments are ordered Core then elite, so specialization replacements supersede default names.
       overrides.set(name, skillId);
     }
   }

@@ -35,6 +35,8 @@ import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import { NON_MIRAGE_AXE_SKILL_IDS } from '#gw2/professions/mesmer/data/module-data.js';
 
 interface MirageActionControllerOptions {
   readonly state: MesmerRuntime;
@@ -263,6 +265,11 @@ export function createMirageActionController({
 
 /** Gates mirror pickups on an available mirror and ambushes on an active or queued ambush window. */
 export function mirageAvailability(context: MesmerRuntime, skill: MesmerSkill): AvailabilityResult {
+  // Explicit IDs must obey the same weapon replacement as the palette.
+  if (NON_MIRAGE_AXE_SKILL_IDS.has(skill.id)) {
+    return denySkillCast(skill, 'mesmer.mirage-axe-replaced', 'Mirage replaces this axe skill.');
+  }
+
   if (skill.id === ID.PICK_UP_MIRAGE_MIRROR) {
     const mirrors = mirageState.from(context).mirrors;
     if (mirrors.some((mirror) => isTimeInWindow(context.time, mirror.availableAt, mirror.expiresAt))) {

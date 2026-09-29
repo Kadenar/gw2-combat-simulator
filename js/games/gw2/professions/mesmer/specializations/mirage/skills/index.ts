@@ -1,5 +1,5 @@
 /**
- * Owns Mirage slot-skill, ambush, and simulator-action catalog data.
+ * Owns Mirage axe, slot-skill, ambush, and simulator-action catalog data.
  * Mirage Cloak, mirror, and ambush runtime behavior lives under `mechanics/`.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -10,6 +10,76 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerAmbushAttack } from '#gw2/professions/mesmer/types.js';
 
 export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Skill>>> = Object.freeze({
+  [ID.AXES_OF_SYMMETRY]: {
+    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.axes-clones' } }],
+    shadowstepSkill: true,
+    peithaImpactDelayMs: 520,
+    // Both weapon variants are shadowsteps and use the same movement-relic projectile timing.
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.75,
+        hits: 1,
+        atMs: 920,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'axe'
+      },
+      {
+        type: 'condition',
+        condition: 'confusion',
+        duration: 6,
+        stacks: 5,
+        atMs: -80
+      }
+    ],
+    castTimeMs: 1000
+  },
+  [ID.LINGERING_THOUGHTS]: {
+    cooldown: 0.25,
+    ammo: 2,
+    ammoRecharge: 6,
+    comboFinishers: [
+      {
+        ownerId: 'mesmer',
+        finisherType: 'Whirl',
+        applications: 2,
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
+    resource: {
+      mode: 'add',
+      count: 1,
+      timingAnchor: 'castEnd',
+      atMs: 160
+    },
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.2,
+        hits: 3,
+        atMs: 0,
+        name: 'Damage',
+        actorType: 'player',
+        weapon: 'axe'
+      },
+      {
+        type: 'condition',
+        condition: 'Torment',
+        duration: 4,
+        stacks: 3
+      },
+      {
+        type: 'condition',
+        condition: 'Crippled',
+        duration: 1,
+        stacks: 3
+      }
+    ],
+    castTimeMs: 920
+  },
   [ID.FALSE_OASIS]: {
     // Use the observed Quickness cast as the timing reference.
     castTimeMs: 960,

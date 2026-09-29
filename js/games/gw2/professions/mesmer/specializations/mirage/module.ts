@@ -1,3 +1,4 @@
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
 import { mirageHooks } from '#gw2/professions/mesmer/specializations/mirage/hooks.js';
@@ -13,6 +14,11 @@ import { mirageTraits } from '#gw2/professions/mesmer/specializations/mirage/tra
 export const mirageModule = defineNativeModule({
   id: 'Mirage',
   data: createMesmerModuleData('Mirage', {
+    // Select this specialization's weapon replacements for runtime name lookup.
+    skillNameOverrides: {
+      'Axes of Symmetry': ID.AXES_OF_SYMMETRY,
+      'Lingering Thoughts': ID.LINGERING_THOUGHTS
+    },
     skillMechanics: MESMER_MIRAGE_SKILL_MECHANICS,
     extraSkills: MESMER_MIRAGE_EXTRA_SKILLS,
     balanceProfiles: MIRAGE_BALANCE_PROFILES

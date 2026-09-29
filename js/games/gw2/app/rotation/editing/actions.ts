@@ -2,11 +2,12 @@ import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAppState, RotationActionOptions } from '#gw2/app/types.js';
 import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
+import { activeSpecialization } from '#gw2/app/rotation/context.js';
 
 /**
  * Resolves the catalog skill behind a rotation entry or palette item. Non-cast
  * commands (wait, combat-start, …) have no skill and return undefined. Prefers a
- * numeric skillId lookup and falls back to name-based lookup.
+ * numeric skillId lookup; duplicated names select the variant available to the build.
  */
 export function resolveEntrySkill(
   app: ProfessionAppState,
@@ -15,9 +16,14 @@ export function resolveEntrySkill(
   if ('type' in item && item.type !== 'cast') return undefined;
   const identity = 'type' in item ? item.skillId : (item.skillId ?? item.name);
   const skillId = identity == null ? null : Number(identity);
-  return skillId !== null && Number.isFinite(skillId)
-    ? app.skillById.get(skillId)
-    : app.skillByName.get(String(identity));
+  if (skillId !== null && Number.isFinite(skillId)) return app.skillById.get(skillId);
+  const name = String(identity);
+  const skill = app.skillByName.get(name);
+  if (skill?.type !== 'Weapon') return skill;
+  // Runtime catalog overrides already select specialization-specific weapon identities.
+  return app.profession
+    .runtimeFor({ specialization: activeSpecialization(app), patchId: app.patchId })
+    .catalog.skillsByName.get(name);
 }
 
 /**

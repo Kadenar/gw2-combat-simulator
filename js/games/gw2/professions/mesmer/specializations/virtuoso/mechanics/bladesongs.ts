@@ -8,6 +8,8 @@ import type {
 import { applyCryOfPain, masterOfFragmentationRequiem } from '#gw2/professions/mesmer/core/traits/behavior.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Resolves Virtuoso Bladesong packets and reports their actual impact timing to shared shatter traits. */
 export function resolveBladesong(
@@ -99,6 +101,11 @@ export function resolveBladesong(
 
 /** Requires at least one stocked blade before a Virtuoso bladesong can begin. */
 export function virtuosoAvailability(context: MesmerRuntime, skill: MesmerSkill): AvailabilityResult {
+  // Explicit IDs must obey the same weapon replacement as the palette.
+  if (skill.id === ID.BLADECALL_NON_VIRTUOSO) {
+    return denySkillCast(skill, 'mesmer.virtuoso-dagger-replaced', 'Virtuoso replaces this dagger skill.');
+  }
+
   if (!mesmerMechanicsFor(context).shatters[skill.id] || mesmerMechanicsFor(context).actions.currentResource() >= 1) {
     return { ready: true };
   }

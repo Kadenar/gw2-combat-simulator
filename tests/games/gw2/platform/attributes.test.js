@@ -613,7 +613,7 @@ test('Mesmer rotations accept names and stable IDs while disambiguating duplicat
   });
 
   assert.deepEqual(migrated.rotation, [
-    { type: 'cast', skillId: MESMER_SKILL_IDS.TROUBADOUR_BLADECALL },
+    { type: 'cast', skillId: MESMER_SKILL_IDS.BLADECALL_NON_VIRTUOSO },
     { type: 'cast', skillId: MESMER_SKILL_IDS.MIND_STAB }
   ]);
 });

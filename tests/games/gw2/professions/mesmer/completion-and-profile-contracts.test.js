@@ -11,7 +11,7 @@ import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specialization
 // Committed projectiles survive an ended animation; only skills with retained aftercast reserve the cast lane.
 test('committed dagger casts preserve projectiles and their declared cast occupancy', () => {
   for (const name of ['Bladecall', 'Flying Cutter']) {
-    const skill = mesmerCatalog.skillsByName.get(name);
+    const skill = mesmerProfession.runtimeFor({ specialization: 'Virtuoso' }).catalog.skillsByName.get(name);
     const interruptMs = (skill.interruptCommitMs + skill.castTimeMs) / 2;
     const rotation = (cast) => [cast, 'Flying Cutter', { type: 'wait', durationMs: 3000 }];
     const full = simulateMesmer(rotation(name), { initialResource: 0 });
