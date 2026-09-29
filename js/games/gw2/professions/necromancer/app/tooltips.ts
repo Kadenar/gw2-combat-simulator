@@ -1089,7 +1089,9 @@ export const necromancerTooltips: ProfessionTooltips = {
         profileFact(balanceContext, id, 'lifeForceGain', 'Life force per creature summoned', lifeForce)
       ]
     ),
-    [TRAIT.CHARGED_SOULS]: outsideScopeTooltip,
+    [TRAIT.CHARGED_SOULS]: traitTooltip(
+      'Unlock Innervate skills that command your active spirits. Each Innervate restores life force.'
+    ),
     [TRAIT.WANDERING_SPIRITS]: outsideScopeTooltip,
     [TRAIT.SPIRITS_GIFT]: outsideScopeTooltip,
     [TRAIT.EXPLOSIVE_GROWTH]: traitTooltip('Summoning a creature triggers a strike.'),

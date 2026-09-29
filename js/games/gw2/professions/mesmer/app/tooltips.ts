@@ -721,7 +721,9 @@ export const mesmerTooltips: ProfessionTooltips = {
         )
       ]
     ),
-    [TRAIT.TIME_MARCHES_ON]: outsideScopeTooltip,
+    [TRAIT.TIME_MARCHES_ON]: traitTooltip(
+      'Alacrity applied to you is stronger: it increases your recharge rate by 50% instead of 25%. Movement speed is not simulated.'
+    ),
     [TRAIT.DELAYED_REACTIONS]: traitTooltip(
       'Control effects from other skills can activate Danger Time, in addition to Time Sink.'
     ),

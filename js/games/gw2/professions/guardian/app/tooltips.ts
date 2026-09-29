@@ -773,7 +773,9 @@ export const guardianTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.ABSOLUTE_RESOLVE]: outsideScopeTooltip,
-    [TRAIT.GLACIAL_HEART]: outsideScopeTooltip,
+    [TRAIT.GLACIAL_HEART]: traitTooltip(
+      'Glacial Blow replaces Mighty Blow. Healing when you disable, immobilize, or chill a foe is not simulated.'
+    ),
     [TRAIT.PERMEATING_WRATH]: traitTooltip(
       'Justice triggers burning after fewer qualifying hits.',
       (balanceContext, id) => [profileFact(balanceContext, id, 'threshold', 'Hits per trigger')]
