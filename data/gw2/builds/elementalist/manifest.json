@@ -105,7 +105,7 @@
         "label": "Power Alacrity (Hammer) - FA",
         "build": "data/gw2/builds/elementalist/b-power-alac-tempest-hammer.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-alac-tempest-hammer.json",
-        "benchmarkDps": 29874,
+        "benchmarkDps": 29799,
         "upToDate": false,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-alacrity-tempest-hammer"
       },
@@ -129,7 +129,7 @@
         "label": "Condition Alacrity (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-alac-tempest-pistol.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-tempest-pistol.json",
-        "benchmarkDps": 32642,
+        "benchmarkDps": 32624,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-tempest-pistol-warhorn"
       },
