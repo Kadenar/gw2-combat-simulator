@@ -35,6 +35,7 @@ import {
   activateSicEm,
   copyHealingBoons,
   emitSunSpiritBurning,
+  RANGER_SPIRIT_SLAM_DELAY_MS,
   prepareFrostTrapEvent,
   releaseFrostTrap
 } from '#gw2/professions/ranger/core/skills/slot-skills.js';
@@ -101,7 +102,8 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       runtime.profession.core.winterBiteReady = true;
     },
     'ranger.sun-spirit'(runtime, context) {
-      emitSunSpiritBurning(runtime, context.skill);
+      // Solar Flare lands with the first shake, after the same summon delay as every other spirit.
+      emitSunSpiritBurning(runtime, context.skill, runtime.time + RANGER_SPIRIT_SLAM_DELAY_MS / 1000);
     },
     'ranger.sic-em'(runtime, context) {
       activateSicEm(runtime, context.skill);

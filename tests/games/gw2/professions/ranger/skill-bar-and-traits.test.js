@@ -934,8 +934,8 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
   assert.deepEqual(
     twinDartsBleeding.ticks.map(({ stacks, duration }) => [stacks, duration]),
     [
-      [2, 2],
-      [2, 2]
+      [1, 2],
+      [1, 2]
     ]
   );
 

@@ -29,26 +29,28 @@ export function modifyStormSpiritAttributes(
     : attributes;
 }
 
+/** All spirit slams and their first shakes share this delay after the summoning cast completes. */
+export const RANGER_SPIRIT_SLAM_DELAY_MS = 920;
+
 /** Identify slam packets so Nature's Vengeance repeats neither summon rewards nor boon shakes. */
 function spiritSlam(effects: readonly SkillEffect[]): SkillEffect[] {
   return impactEffects(
-    { atMs: 760, timingAnchor: 'castEnd', timingScale: 'fixed' },
+    { atMs: RANGER_SPIRIT_SLAM_DELAY_MS, timingAnchor: 'castEnd', timingScale: 'fixed' },
     effects.map((effect) => ({ ...effect, metadata: { ...effect.metadata, packetKind: 'ranger.spirit-slam' } }))
   );
 }
 
-/** All spirits finish four separate shakes; keep the provisional cadence shared with Sun Spirit. */
+/** Every spirit starts four one-second boon shakes alongside its initial slam. */
 function spiritShakes(boon: string, duration: number, stacks = 1): SkillEffect {
-  // ponytail: retain the existing Sun Spirit cadence until per-spirit shake timings are measured.
   return {
     type: 'boon',
     boon,
     duration,
     stacks,
     applications: 4,
-    atMs: 2840,
+    atMs: RANGER_SPIRIT_SLAM_DELAY_MS,
     intervalMs: 1000,
-    timingAnchor: 'castStart',
+    timingAnchor: 'castEnd',
     timingScale: 'fixed',
     audience: { recipients: 'party', maximumRecipients: 5 }
   };
@@ -139,7 +141,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.STORM_SPIRIT]: {
-    // Summoning applies vulnerability; the spirit's delayed slam deals damage and dazes before its Fury shakes.
+    // The measured Quickness timeline lands the slam and first Fury pulse together at 1.28 seconds.
     effects: [
       {
         type: 'condition',
@@ -233,7 +235,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 167
   },
   [ID.SUN_SPIRIT]: {
-    // Activate the intrinsic reward at its declared boundary, before common trait observers.
+    // A committed summon schedules Solar Flare alongside its first shake.
     sideEffects: [{ on: 'castCommit', do: { type: 'ranger.sun-spirit' } }],
     effects: [
       spiritShakes('might', 15, 2),
@@ -528,15 +530,15 @@ export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast): voi
   }
 }
 
-/** Solar Flare is a commit-time child emission, independent of the spirit pulse schedule. */
-export function emitSunSpiritBurning(runtime: RangerRuntime, skill: Skill): void {
+/** Attribute Solar Flare's separately patchable burning to the initial or repeated slam time. */
+export function emitSunSpiritBurning(runtime: RangerRuntime, skill: Skill, at: number): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.sunSpirit);
   const burning = requireEffect(profile, 'condition', 'Burning');
   if (burning) {
     runtime.emit(
       rangerEvent(
         {
-          at: runtime.time,
+          at,
           skillId: ID.SOLAR_FLARE,
           skillName: 'Solar Flare',
           name: 'Solar Flare - Burning',

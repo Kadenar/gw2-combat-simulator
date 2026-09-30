@@ -12,7 +12,7 @@ const POISONOUS_CLOUD_PULSE_TIMES_MS = [1160, 2160, 3160, 4160, 5160, 6160];
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.POISONOUS_CLOUD]: {
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    // In-game bug: both strikes and poison use Ranger stats instead of pet stats; preserve that behavior.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -159,12 +159,12 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, P
         ]
       },
       {
-        // Each projectile applies the tooltip's two Bleeding stacks.
+        // The tooltip's two Bleeding stacks are split across the two projectiles, one per hit.
         type: 'condition',
         ticks: [840, 920].map((atMs) => ({
           atMs,
           condition: 'Bleeding',
-          stacks: 2,
+          stacks: 1,
           duration: 2
         })),
         source: 'ranger-pet',

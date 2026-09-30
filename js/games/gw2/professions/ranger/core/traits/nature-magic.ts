@@ -8,16 +8,15 @@ import {
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
 import { emitSunSpiritBurning } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { rangerActiveBoonCount, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 
-/** Repeat on the next action tick after the authored final shake, including patched pulse timings. */
-function finalSpiritShakeAt(cast: RuntimeCast): number {
+/** Every spirit repeats its slam one second after the final authored shake, including patched pulse timings. */
+function spiritRepeatSlamAt(cast: RuntimeCast): number {
   return (
-    GW2_ACTION_TICK_MS / 1000 +
+    1 +
     Math.max(
       cast.fullEnd,
       ...(cast.skill.effects ?? [])
@@ -50,11 +49,15 @@ export const naturesVengeance = defineTrait({
       if (!hasTrait(runtime, TRAIT.NATURES_VENGEANCE)) return effects;
       const slams = effects.filter((effect) => effect.metadata?.packetKind === 'ranger.spirit-slam');
       if (!slams.length) return effects;
-      const atMs = (finalSpiritShakeAt(cast) - cast.start) * 1000;
+      const atMs = (spiritRepeatSlamAt(cast) - cast.start) * 1000;
       return [
         ...effects,
         ...slams.map((effect) => ({
           ...effect,
+          // Paired critical and noncritical hits support half damage for Storm's second slam only.
+          ...(cast.skill.id === ID.STORM_SPIRIT && effect.type === 'strike'
+            ? { coefficient: (effect.coefficient ?? 0) / 2 }
+            : {}),
           atMs,
           timingAnchor: 'castStart' as const,
           timingScale: 'fixed' as const
@@ -64,11 +67,11 @@ export const naturesVengeance = defineTrait({
     onCastCommit(runtime: RangerRuntime, cast: RuntimeCast) {
       // Solar Flare owns a separately patchable child profile rather than an inline slam packet.
       if (hasTrait(runtime, TRAIT.NATURES_VENGEANCE) && cast.skill.id === ID.SUN_SPIRIT)
-        runtime.schedule('ranger.natures-vengeance-sun', finalSpiritShakeAt(cast), cast.skill);
+        runtime.schedule('ranger.natures-vengeance-sun', spiritRepeatSlamAt(cast), cast.skill);
     },
     tasks: {
       'ranger.natures-vengeance-sun'(runtime: RangerRuntime, data: unknown) {
-        emitSunSpiritBurning(runtime, data as RuntimeCast['skill']);
+        emitSunSpiritBurning(runtime, data as RuntimeCast['skill'], runtime.time);
       }
     }
   }

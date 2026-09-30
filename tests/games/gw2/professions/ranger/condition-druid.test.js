@@ -171,7 +171,8 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
     ]
   );
   assert.equal(sunSpirit.effects[0].applications, 4);
-  assert.equal(sunSpirit.effects[0].atMs, 2840);
+  assert.equal(sunSpirit.effects[0].atMs, 920);
+  assert.equal(sunSpirit.effects[0].timingAnchor, 'castEnd');
   assert.equal(sunSpirit.effects[0].intervalMs, 1000);
   assert.equal(sunSpirit.effects[0].audience.recipients, 'party');
   assert.equal(sunSpirit.effects[0].audience.maximumRecipients, 5);
@@ -719,7 +720,7 @@ test("Sun Spirit emits Solar Flare's individual burning stacks", () => {
     (event) => event.type === 'condition' && event.sourceId === ID.SOLAR_FLARE
   );
 
-  // The spirit activation preserves Solar Flare's player-owned total and attribution across three applications.
+  // Solar Flare shares the first shake while preserving player ownership and three burning applications.
   assert.equal(solarFlare.length, 3);
   assert.ok(
     solarFlare.every((event) => event.stacks === 1 && event.duration === 6 && event.triggeredBy === 'Sun Spirit')
@@ -730,12 +731,13 @@ test("Sun Spirit emits Solar Flare's individual burning stacks", () => {
   assert.deepEqual(
     might.map(({ at, stacks }) => [at, stacks]),
     [
-      [2.84, 2],
-      [3.84, 2],
-      [4.84, 2],
-      [5.84, 2]
+      [1.28, 2],
+      [2.28, 2],
+      [3.28, 2],
+      [4.28, 2]
     ]
   );
+  assert.equal(solarFlare[0].at, might[0].at);
   assert.ok(might.every(({ resolvedAudience }) => resolvedAudience.includesSummons));
 });
 

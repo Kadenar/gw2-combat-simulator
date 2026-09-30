@@ -726,7 +726,7 @@ test('Ranger pet commands require received Alacrity', () => {
   assert.match(petAlacrityApplication.resolvedAudience.companionIds[0], /^ranger-pet:/);
 });
 
-test('Storm Spirit applies vulnerability on summon, then a damaging daze before four Fury shakes', () => {
+test('Storm Spirit applies vulnerability on summon and starts four Fury shakes alongside its damaging daze', () => {
   // A single summon checks effect ordering and pulse scheduling without a saved rotation.
   const result = simulate('Core', ['Storm Spirit', { type: 'wait', durationMs: 6000 }], {
     selectedSkills: ['Storm Spirit'],
@@ -746,17 +746,17 @@ test('Storm Spirit applies vulnerability on summon, then a damaging daze before 
   assert.equal(vulnerability.duration, 10);
   assert.equal(vulnerability.at, action.endsAt);
   assert.equal(daze.controlKind, 'daze');
-  assert.equal(Math.round((daze.at - vulnerability.at) * 1000), 760);
+  assert.equal(Math.round((daze.at - vulnerability.at) * 1000), 920);
   assert.equal(strike.at, daze.at);
   assert.equal(strike.coefficient, 2);
-  assert.ok(daze.at < fury[0].at);
+  assert.equal(daze.at, fury[0].at);
   assert.deepEqual(
-    fury.map((event) => [event.at - action.at, event.stacks, event.duration]),
+    fury.map((event) => [Math.round((event.at - strike.at) * 1000), event.stacks, event.duration]),
     [
-      [2.84, 1, 2],
-      [3.84, 1, 2],
-      [4.84, 1, 2],
-      [5.84, 1, 2]
+      [0, 1, 2],
+      [1000, 1, 2],
+      [2000, 1, 2],
+      [3000, 1, 2]
     ]
   );
   assert.ok(fury.every((event) => event.audience.recipients === 'party' && event.audience.maximumRecipients === 5));
@@ -802,8 +802,22 @@ test("Nature's Vengeance repeats each spirit slam after its final shake without 
           (event) => event.skillId === skillId && event.type === 'buff' && event.totalApplications === 4
         );
         assert.equal(shakes.length, 4);
+        // All spirits share one summon delay, first-shake impact, pulse interval, and repeat delay.
+        const action = result.events.find((event) => event.type === 'action' && event.skillId === skillId);
+        assert.equal(Math.round((slams[0].at - action.endsAt) * 1000), 920);
+        assert.equal(slams[0].at, shakes[0].at);
+        assert.deepEqual(
+          shakes.map((event) => Math.round((event.at - slams[0].at) * 1000)),
+          [0, 1000, 2000, 3000]
+        );
         if (selected) {
-          assert.ok(slams[packetsPerSlam].at > shakes.at(-1).at);
+          assert.equal(Math.round((slams[packetsPerSlam].at - shakes.at(-1).at) * 1000), 1000);
+          if (skillId === ID.STORM_SPIRIT) {
+            assert.deepEqual(
+              slams.filter((event) => event.type === 'damage').map((event) => event.coefficient),
+              [2, 1]
+            );
+          }
         }
 
         if (skillId === ID.STORM_SPIRIT)

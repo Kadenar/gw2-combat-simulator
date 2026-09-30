@@ -23,7 +23,7 @@ const wait = (durationMs) => ({ type: 'wait', durationMs });
 const copied = (result) =>
   result.events.filter((event) => event.type === 'buff' && event.skillId === ID.WE_HEAL_AS_ONE);
 
-// Both spirit slams use fixed power while retaining the Ranger's live critical attributes and outgoing bonuses.
+// The repeat halves the coefficient while retaining spirit Power and the Ranger's live critical stats and modifiers.
 test('Storm Spirit uses spirit power and weapon strength with Ranger critical stats and modifiers', () => {
   for (const [power, precision, ferocity, might, vow] of [
     [1000, 1000, 0, 0, false],
@@ -45,10 +45,12 @@ test('Storm Spirit uses spirit power and weapon strength with Ranger critical st
     );
     const chance = 0.3 + (precision - 1000) / 2100;
     const criticalMultiplier = 1 + chance * (0.5 + ferocity / 1500);
-    const expected = Math.floor(((2 * 1580 * 2553.5) / 2597) * criticalMultiplier * 1.25 * (vow ? 1.25 : 1));
+    const expected = [2, 1].map((coefficient) =>
+      Math.floor(((coefficient * 1580 * 2553.5) / 2597) * criticalMultiplier * 1.25 * (vow ? 1.25 : 1))
+    );
     assert.deepEqual(
       strikes.map((event) => event.damage),
-      [expected, expected]
+      expected
     );
   }
 

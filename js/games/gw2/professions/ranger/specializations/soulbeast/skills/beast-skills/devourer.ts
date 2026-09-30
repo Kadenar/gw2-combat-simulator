@@ -17,6 +17,11 @@ export const SOULBEAST_DEVOURER_BEAST_SKILL_MECHANICS: Readonly<Record<number, P
         type: 'strike',
         coefficient: 0.5,
         hits: 1
+      },
+      {
+        // The merged Tail Lash disables foes just like the pet skill, including on-disable trait triggers.
+        type: 'control',
+        controlKind: 'knockback'
       }
     ]
   }

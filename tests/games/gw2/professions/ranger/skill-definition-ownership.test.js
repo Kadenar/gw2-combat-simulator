@@ -68,8 +68,8 @@ test('declared charge grants preserve replacement, additive expiry, and cancella
   }
 });
 
-// Solar Flare remains a separately attributed child at commitment and honors removal of its profile packet.
-test('Sun Spirit emits its surviving child only on commitment', () => {
+// Only committed summons schedule Solar Flare's delayed slam, honoring removal of its profile packet.
+test('committed Sun Spirit emits its surviving child on the first slam', () => {
   for (const removed of [false, true]) {
     for (const cancelled of [false, true]) {
       const result = runRanger(
@@ -89,7 +89,7 @@ test('Sun Spirit emits its surviving child only on commitment', () => {
       const children = result.events.filter((event) => event.type === 'condition' && event.skillId === ID.SOLAR_FLARE);
       assert.equal(children.length > 0, !removed && !cancelled);
       for (const event of children) {
-        assert.equal(event.at, result.steps[0].end / 1000);
+        assert.equal(Math.round(event.at * 1000 - result.steps[0].end), 920);
         assert.equal(event.source, 'ranger');
         assert.equal(event.actorType, 'player');
         assert.equal(event.triggeredBy, 'Sun Spirit');
