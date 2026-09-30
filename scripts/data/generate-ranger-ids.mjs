@@ -5,6 +5,14 @@ import { declaration, stableEntries } from './lib/generator-utils.mjs';
 import { fetchGw2Api, fetchManyGw2 } from './lib/gw2-profession-snapshot.mjs';
 
 const SUPPLEMENTAL_SKILLS = [
+  // Bird AI identities are absent from the public skill endpoint.
+  ['Bird Slash', 12682],
+  ['Bird Swoop', 12719],
+  ['Quickening Screech Pet', 12720],
+  // Wallow's autonomous skills are absent from the public skill endpoint.
+  ['Vampiric Bite', 64891],
+  ['Wallow Maul', 67277],
+  ['Undead Plague Pet', 67084],
   ['Twin Darts', 12676],
   ['Pet Tail Lash', 12673],
   ['Crippling Anguish Pet', 41864],

@@ -258,6 +258,9 @@ export const RANGER_SKILL_IDS = Object.freeze({
   CHILLING_WHIRL: 12748, // Chilling Whirl
   IMMOBILIZING_WHIRL: 12749, // Immobilizing Whirl
   LACERATING_SLASH: 20975, // Lacerating Slash
+  BIRD_SLASH: 12682, // Slash (bird pet AI)
+  BIRD_SWOOP: 12719, // Swoop (bird pet AI)
+  QUICKENING_SCREECH_PET: 12720, // Quickening Screech (bird pet AI)
   SONIC_SHRIEK: 16426, // Sonic Shriek
   SONIC_BARRIER: 16427, // Sonic Barrier
   SMOKE_CLOUD: 31568, // Smoke Cloud
@@ -277,6 +280,9 @@ export const RANGER_SKILL_IDS = Object.freeze({
   NARCOTIC_SPORES_PET: 45262, // Narcotic Spores (pet AI)
   GUARDIANS_ROAR: 65109, // Guardian's Roar
   BLOODTHIRSTY_CHARGE: 66622, // Bloodthirsty Charge
+  VAMPIRIC_BITE: 64891, // Vampiric Bite (Wallow pet AI)
+  WALLOW_MAUL: 67277, // Maul (Wallow pet AI)
+  UNDEAD_PLAGUE_PET: 67084, // Undead Plague (Wallow pet AI)
   GALE_BREATH: 63716, // Gale Breath
   HUNKER_DOWN: 65418, // Hunker Down
   DIMENSION_BREACH: 71002, // Dimension Breach

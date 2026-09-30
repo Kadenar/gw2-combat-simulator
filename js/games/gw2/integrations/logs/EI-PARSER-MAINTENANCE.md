@@ -14,6 +14,8 @@ claim of complete parity or the latest upstream version. The pinned links below 
 - Raw EVTC imports decode recorded casts and apply supported, explicit EI finders with their actual evidence checks.
 - dps.report imports use the selected player's supplied rotation and selected phase, including EI-inferred casts. Older
   reports remain authoritative for their own contents — updating our EVTC rules does not authorize adding rows to them.
+  Untamed commands prefer the selected player's owned pet animations, including F2, over duplicate player markers;
+  Soulbeast retains the player rotation. Apply the same source selection to EVTC pet animations.
 - Shared normalization maps represented actions into simulator inputs. Keep `sourceActions`, normalized `actions`, and
   replay commands distinct so a replay change can't silently rewrite evidence.
 - Missing setup stays missing. Initial buffs, existing minions, later skills, damage totals, and simulation requirements

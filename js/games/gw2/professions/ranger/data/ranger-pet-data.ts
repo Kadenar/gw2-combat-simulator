@@ -4,6 +4,98 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerPetDefinition, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
+  // Hawk exposes its bird AI separately from the commanded Beast skill.
+  {
+    id: ID.BIRD_SLASH,
+    name: 'Slash',
+    description: 'Slash your foe.',
+    icon: 'https://wiki.guildwars2.com/images/b/b6/Slash_%28bird%29.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Hawk']
+  },
+  {
+    id: ID.BIRD_SWOOP,
+    name: 'Swoop',
+    description: 'Swoop at your foe, making them vulnerable.',
+    icon: 'https://render.guildwars2.com/file/FCCA3C61C308E1D625C70BD4CCB9F05051AE6F6F/104047.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 8,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Hawk']
+  },
+  {
+    id: ID.QUICKENING_SCREECH_PET,
+    name: 'Quickening Screech',
+    description: 'Grant swiftness to nearby allies and remove movement-impairing conditions from them.',
+    icon: 'https://render.guildwars2.com/file/69F1291534027E0937A5C020FFEBCC96F301EC54/104048.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 20,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Hawk']
+  },
+  // Wallow uses its own AI skills while retaining the Porcine family for traits.
+  {
+    id: ID.VAMPIRIC_BITE,
+    name: 'Vampiric Bite',
+    description: 'Bite your foe, siphoning health.',
+    icon: 'https://wiki.guildwars2.com/images/6/67/Vampiric_Bite.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Wallow']
+  },
+  {
+    id: ID.WALLOW_MAUL,
+    name: 'Maul',
+    description: 'Maul your foes and make them bleed.',
+    icon: 'https://wiki.guildwars2.com/images/f/fb/Maul_%28wallow%29.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 12,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Wallow']
+  },
+  {
+    id: ID.UNDEAD_PLAGUE_PET,
+    name: 'Undead Plague',
+    description: 'Emit noxious fumes that poison foes. Poison duration is increased on disabled foes.',
+    icon: 'https://render.guildwars2.com/file/28CBACDF0A6D07087766675435495E087F67BE6F/2604859.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 20,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Wallow']
+  },
   {
     id: ID.FELINE_SLASH,
     name: 'Slash',
@@ -1708,7 +1800,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'This hawk is a crafty ally. He is a fierce and deadly predator that inflicts bleeding wounds with its claws and beak, while evading counterattacks.—Acht',
     family: 'avian',
     archetype: 'Deadly',
-    skillIds: [ID.LACERATING_SLASH],
+    skillIds: [ID.BIRD_SLASH, ID.BIRD_SWOOP, ID.QUICKENING_SCREECH_PET, ID.LACERATING_SLASH],
     beastmodeSkillIds: [ID.SWOOP_ID_44991, ID.QUICKENING_SCREECH, ID.PRIMAL_CRY]
   },
   {
@@ -1851,8 +1943,8 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Despite their ferocious appearance, wallows are actually quite docile and make for lovely companions. Canthan farmers use them to dig up truffles, as well as to protect themselves from hostile wildlife. —Acht',
     family: 'porcine',
     archetype: 'Supportive',
-    skillIds: [ID.BLOODTHIRSTY_CHARGE],
-    beastmodeSkillIds: [ID.MAUL_ID_41406, ID.BRUTAL_CHARGE_ID_46432, ID.SPIRITUAL_REPRIEVE]
+    skillIds: [ID.VAMPIRIC_BITE, ID.WALLOW_MAUL, ID.UNDEAD_PLAGUE_PET, ID.BLOODTHIRSTY_CHARGE],
+    beastmodeSkillIds: [ID.MAUL_ID_41406, ID.UNDEAD_PLAGUE, ID.SPIRITUAL_REPRIEVE]
   },
   {
     id: 65,

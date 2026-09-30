@@ -4,6 +4,28 @@ import type {
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import type { ParsedEvtcEvent } from '#gw2/integrations/logs/evtc/types.js';
 import { agentOwners, effectEvidence, isBuffApply } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
+import { usesModernAnimations } from '#gw2/integrations/logs/evtc/recording.js';
+import { legacyActivationActions, modernAnimationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
+import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+
+/** Untamed's pet animations locate commanded casts more precisely than EI's delayed player-command buff markers. */
+export function untamedPetActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
+  if (context.profile.specializationId !== 'untamed') return [];
+  const { log, playerAddress, catalog } = context;
+  const owners = agentOwners(log);
+  const names = new Map(log.skills.map((skill) => [skill.id, skill.name]));
+  const decode = usesModernAnimations(log) ? modernAnimationActions : legacyActivationActions;
+  return log.agents
+    .filter((agent) => agent.elite === 0xffffffff && owners.get(agent.address) === playerAddress)
+    .flatMap((agent) => decode(log, agent.address, names))
+    .filter((action) =>
+      rangerPetSkillCommandable(
+        catalog?.skills.find((skill) => skill.id === action.rawSkillId),
+        'Untamed'
+      )
+    );
+}
+
 const CLONES = new Set([
   8108, 8109, 18894, 8110, 8111, 9058, 6479, 25569, 10542, 26153, 8107, 15090, 15114, 15233, 15199, 15181, 8106, 15084,
   15131, 15117, 15003, 15032, 15044, 15156, 15196, 15240, 15249, 18922, 18939, 19134, 19257, 25576, 25570, 25573, 25575,

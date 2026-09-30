@@ -151,10 +151,52 @@ test('Resounding Timbre copies live boon pools and rejects other recipients and 
   );
   assert.equal(boons[0].duration, 1);
   assert.equal(boons[1].duration, 5);
-  assert.equal(boons[2].duration, 7);
+  assert.equal(boons[2].duration, 27);
   for (const event of boons) {
     assert.equal(event.resolvedAudience.includesSelf, false);
     assert.deepEqual(event.resolvedAudience.companionIds, [petId]);
+  }
+});
+
+test('Resounding Timbre combines configured and generated duration boons without copying other recipients', () => {
+  // A configured source must not replace the live self pool, and the combined copy still obeys the duration cap.
+  for (const [grants, expected] of [
+    [[0.4, 0.4], 27.8],
+    [[40], 29.4]
+  ]) {
+    const result = runRanger(
+      [wait(3000), ID.SIC_EM],
+      {
+        ...config,
+        selectedTraitIds: [TRAIT.RESOUNDING_TIMBRE],
+        boons: { quickness: true }
+      },
+      {
+        initialize(runtime) {
+          for (const [duration, audience] of [
+            ...grants.map((duration) => [duration, { recipients: 'self' }]),
+            [20, { recipients: 'summons', affectsSelf: false, eligibleCompanionIds: [rangerPetCompanionId(runtime)] }]
+          ])
+            runtime.emit({
+              type: 'buff',
+              at: 2.4,
+              source: 'test',
+              sourceId: 'test-boon',
+              actorType: 'effect',
+              kind: 'quickness',
+              duration,
+              stacks: 1,
+              audience
+            });
+        }
+      }
+    );
+    const quickness = result.events.find(
+      (event) => event.sourceId === TRAIT.RESOUNDING_TIMBRE && event.kind === 'quickness'
+    );
+
+    assert.deepEqual(result.warnings, []);
+    assert.equal(quickness.duration, expected);
   }
 });
 
@@ -167,16 +209,18 @@ test('configured golem boons copy finite duration across refresh boundaries for 
       [10040, 9.96],
       [20000, 10]
     ]) {
-      const result = runRanger([wait(atMs), ID.SIC_EM, wait(20000)], {
+      const result = runRanger([wait(atMs), ID.SIC_EM, wait(65000)], {
         ...config,
         selectedPet,
         selectedTraitIds: [TRAIT.RESOUNDING_TIMBRE],
-        boons: { might: 25, quickness: true }
+        boons: { might: 25, quickness: true, alacrity: true, swiftness: true }
       });
       assert.deepEqual(result.warnings, []);
       const copied = result.events.filter((event) => event.sourceId === TRAIT.RESOUNDING_TIMBRE);
       assert.equal(copied.find((event) => event.kind === 'might').duration, remaining);
-      assert.equal(copied.find((event) => event.kind === 'quickness').duration, remaining);
+      assert.equal(copied.find((event) => event.kind === 'quickness').duration, 20 + remaining);
+      assert.equal(copied.find((event) => event.kind === 'alacrity').duration, 20 + remaining);
+      assert.equal(copied.find((event) => event.kind === 'swiftness').duration, 50 + remaining);
       const runtime = observedRuntime(result);
       assert.equal(
         remainingDurationStackSeconds(runtime.boons.get('quickness'), runtime.time, {

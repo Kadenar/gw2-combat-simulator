@@ -13,7 +13,9 @@ export const SOULBEAST_AVIAN_BEAST_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'boon',
         boon: 'swiftness',
         duration: 10,
-        stacks: 1
+        stacks: 1,
+        // Merging makes the ranger the boon source, retaining normal player duration scaling.
+        audience: { recipients: 'party', maximumRecipients: 5 }
       }
     ]
   },
@@ -23,7 +25,9 @@ export const SOULBEAST_AVIAN_BEAST_SKILL_MECHANICS: Readonly<Record<number, Part
       {
         type: 'strike',
         coefficient: 1.2,
-        hits: 1
+        hits: 1,
+        // The merged leap can finish the same fields as its pet counterpart.
+        comboFinishers: [{ ownerId: 'ranger', finisherType: 'Leap', ambiguousFieldSelection: 'oldest' }]
       },
       {
         type: 'condition',

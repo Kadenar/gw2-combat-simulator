@@ -20,9 +20,9 @@ import { SOULBEAST_STANCE_SKILL_MECHANICS } from '#gw2/professions/ranger/specia
 
 const professionRoot = new URL('../../../../../js/games/gw2/professions/ranger/', import.meta.url);
 
-// Unowned legacy identities must not enter either simulation or catalog-based patch authoring.
+// Unowned legacy identities stay excluded; Wallow now owns the active Undead Plague skill.
 test('Soulbeast legacy skills without pet membership are not admitted', () => {
-  for (const id of [ID.WORLDLY_IMPACT_ID_42809, ID.ETERNAL_BOND, ID.UNDEAD_PLAGUE, ID.PHASE_POUNCE]) {
+  for (const id of [ID.WORLDLY_IMPACT_ID_42809, ID.ETERNAL_BOND, ID.PHASE_POUNCE]) {
     assert.equal(rangerCatalog.skillsById.has(id), false);
     assert.equal(
       rangerCatalog.skills.some((skill) => skill.id === id),

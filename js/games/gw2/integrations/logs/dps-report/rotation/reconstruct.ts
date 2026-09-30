@@ -101,23 +101,21 @@ function recordedActions(
   catalog: RotationCatalog | null
 ): RecordedLogAction[] {
   const actions: RecordedLogAction[] = [];
-  // Untamed's F1/F3 live on the pet timeline; retain player-owned F2 and exclude basic attacks and duplicate sources.
+  // Untamed commands use pet animations when present; player F2 markers can occur after the pet has already started.
+  // Other specializations retain the player rotation, including merged Beast skills.
   const petGroups =
     profile.specializationId === 'untamed'
       ? (player.minions || []).flatMap((minion) =>
           (minion.rotation || []).filter((group) => {
             const skill = catalog?.skills.find((candidate) => candidate.id === group.id);
-            return (
-              skill?.petAutonomousSkill &&
-              rangerPetSkillCommandable(skill, 'Untamed') &&
-              !player.rotation.some((playerGroup) => playerGroup.id === group.id)
-            );
+            return rangerPetSkillCommandable(skill, 'Untamed');
           })
         )
       : [];
+  const petSkillIds = new Set(petGroups.filter((group) => group.skills.length > 0).map((group) => group.id));
 
   let eventIndex = 0;
-  for (const group of [...player.rotation, ...petGroups]) {
+  for (const group of [...player.rotation.filter((group) => !petSkillIds.has(group.id)), ...petGroups]) {
     const metadata = skillMetadata(report, group.id);
     if (automaticProc(metadata)) {
       continue;

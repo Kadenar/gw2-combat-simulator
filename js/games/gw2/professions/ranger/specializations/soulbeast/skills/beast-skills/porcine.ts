@@ -14,14 +14,28 @@ export const SOULBEAST_PORCINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [400, 440].map((atMs) => ({ atMs, coefficient: 1.11 }))
+        ticks: [400, 440].map((atMs) => ({ atMs, coefficient: 1.1 }))
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 400, condition: 'Bleeding', stacks: 2, duration: 6 }]
+        // Each impact applies one stack, keeping partial casts consistent with their landed hits.
+        ticks: [400, 440].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 6 }))
       }
     ]),
     castTimeMs: 560
+  },
+  [ID.UNDEAD_PLAGUE]: {
+    interruptCommitMs: 680,
+    // The cast launches a five-pulse poison field; later pulses survive the next player action.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
+      { type: 'strike', ticks: [680, 1680, 2680, 3680, 4680].map((atMs) => ({ atMs, coefficient: 0.2 })) },
+      {
+        type: 'condition',
+        ticks: [680, 1680, 2680, 3680, 4680].map((atMs) => ({ atMs, condition: 'Poisoned', stacks: 1, duration: 4 }))
+      }
+    ]),
+    comboFields: [{ ownerId: 'ranger', fieldType: 'Poison', duration: 5, startMs: 680, startAnchor: 'castStart' }],
+    castTimeMs: 680
   },
   [ID.BRUTAL_CHARGE_ID_46432]: {
     castTimeMs: 0,

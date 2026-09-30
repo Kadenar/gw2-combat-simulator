@@ -27,7 +27,7 @@ function reportFixture(profession, rotation, skillMap, options = {}) {
   });
 }
 
-test('Untamed imports pet F1/F3 on their independent timeline without duplicating player F2 or basic attacks', () => {
+test('Untamed prefers pet F1/F2/F3 animations while Soulbeast retains the player rotation', () => {
   const rotation = [
     { id: 63335, skills: [{ castTime: 0, duration: 480 }] },
     { id: 31451, skills: [{ castTime: 50, duration: 0 }] }
@@ -56,14 +56,69 @@ test('Untamed imports pet F1/F3 on their independent timeline without duplicatin
     const casts = result.rotation.filter((command) => command.type === 'cast');
     assert.deepEqual(
       casts.map((command) => command.skillId),
-      specialization === 'Untamed' ? [63335, 31451, 12694, 12657] : [63335, 31451]
+      specialization === 'Untamed' ? [63335, 12694, 31451, 12657] : [63335, 31451]
     );
     if (specialization === 'Untamed') {
       assert.deepEqual(
         result.sourceActions.map((action) => action.startMs),
-        [0, 50, 100, 1500]
+        [0, 100, 500, 1500]
       );
-      assert.ok(casts.slice(2).every((command) => command.concurrentOffsetMs != null));
+      assert.equal(result.sourceActions.find((action) => action.rawSkillId === 31451).durationMs, 1200);
+      assert.ok(casts.slice(1).every((command) => command.concurrentOffsetMs != null));
+    } else {
+      assert.equal(result.sourceActions.find((action) => action.rawSkillId === 31451).startMs, 50);
+    }
+  }
+});
+
+test('Untamed EVTC F2 uses owned pet animations instead of delayed command markers', () => {
+  // Both encodings identify the pet's actual start; another owner's pet cannot replace the selected player's cast.
+  for (const modern of [false, true]) {
+    for (const elite of [72, 55]) {
+      const player = { ...log().agents[0], profession: 4, elite };
+      const pet = { ...player, address: 0x2000n, profession: 15380, elite: 0xffffffff };
+      const foreignPet = { ...pet, address: 0x3000n };
+      const cast = (source, time, stop = false) =>
+        event({
+          source,
+          time,
+          sourceInstance: source === pet.address ? 2 : 3,
+          sourceMasterInstance: source === pet.address ? 1 : 0,
+          skillId: 31451,
+          value: 1200,
+          stateChange: modern ? (stop ? 68 : 67) : 0,
+          activation: stop ? 5 : modern ? 0 : 1
+        });
+      const fixture = log({
+        header: { ...log().header, arcdpsBuild: modern ? '20260815' : '20240401' },
+        agents: [player, pet, foreignPet],
+        skills: [{ id: 31451, name: 'Furious Pounce' }],
+        events: [
+          event({ time: 0, stateChange: 1 }),
+          cast(foreignPet.address, 100),
+          cast(pet.address, 1000),
+          cast(foreignPet.address, 1300, true),
+          event({
+            time: 1480,
+            source: pet.address,
+            target: pet.address,
+            sourceInstance: 2,
+            sourceMasterInstance: 1,
+            skillId: 59536,
+            value: 1000,
+            buff: 1,
+            stateChange: modern ? 69 : 0
+          }),
+          cast(pet.address, 2200, true)
+        ]
+      });
+      const result = reconstructEvtcRotation(fixture, rangerCatalog, { includeCombatStart: false });
+      const actions = result.sourceActions.filter((action) => action.rawSkillId === 31451);
+
+      assert.equal(actions.length, 1);
+      assert.equal(actions[0].startMs, elite === 72 ? 1000 : 1480);
+      assert.equal(actions[0].durationMs, elite === 72 ? 1200 : 0);
+      assert.equal(result.rotation.filter((command) => command.skillId === 31451).length, 1);
     }
   }
 });

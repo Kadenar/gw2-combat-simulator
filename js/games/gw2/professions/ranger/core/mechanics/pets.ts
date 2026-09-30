@@ -1,5 +1,6 @@
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
+import { buffApplicationStacks, gw2BoonDurationMultiplier, isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
@@ -42,7 +43,7 @@ import {
   beastlyWardenPetDamageMultiplier,
   packAlphaPetRecharge
 } from '#gw2/professions/ranger/core/traits/pet-behavior.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import {
   rangerPetSkillCommandable,
   rangerPetSkillsRequireCommands
@@ -55,6 +56,7 @@ export { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanic
 const PET_AUTO_TASK = 'ranger.pet-autonomous-skill';
 const PET_COMMAND_START_TASK = 'ranger.pet-command-start';
 const PET_AUTO_OWNER = 'ranger.active-pet';
+const PET_AI_ATTACK_OWNER = 'ranger.pet-ai-attack';
 
 export function rangerPetCompanionId(context: RangerRuntime | RangerResolverContext): string {
   const state = professionCoreState(context);
@@ -133,8 +135,8 @@ export function prepareRangerPetEvent(context: RangerRuntime, event: SimulationE
 }
 
 /** Every renewed pet owns a fresh generation; already launched persistent effects have no pet-loop owner. */
-function owner(context: RangerRuntime) {
-  return { id: PET_AUTO_OWNER, generation: context.profession.core.petAutoGeneration };
+function owner(context: RangerRuntime, id = PET_AUTO_OWNER) {
+  return { id, generation: context.profession.core.petAutoGeneration };
 }
 
 function petBuff(context: RangerRuntime, kind: string): boolean {
@@ -202,9 +204,11 @@ export function startRangerPet(context: RangerRuntime): void {
 export function resetRangerPet(context: RangerRuntime): void {
   const state = context.profession.core;
   context.cancelOwner(owner(context));
+  context.cancelOwner(owner(context, PET_AI_ATTACK_OWNER));
   state.petAutoGeneration += 1;
   state.petAutoNextAt = 0;
   state.petAutoBusyUntil = context.time;
+  state.petAutoAction = null;
   state.petCommandReadyAt = context.time;
   if (context.combatActive) startRangerPet(context);
 }
@@ -213,6 +217,13 @@ export function setRangerPetActive(context: RangerRuntime, active: boolean): voi
   if (context.profession.core.petActive === active) return;
   context.profession.core.petActive = active;
   resetRangerPet(context);
+}
+
+/** Reproject command recharge from earned work so copied Alacrity cannot leave a stale deadline. */
+function petCommandRechargeReadyAt(context: RangerRuntime, skillId: string | number): number {
+  const progress = context.profession.core.petCommandRecharges[String(skillId)];
+  const skill = context.helpers.skillsById.get(skillId);
+  return progress && skill ? context.cooldownController.project(skill, progress) : 0;
 }
 
 function autonomousSkill(context: RangerRuntime, profile: PetAutoProfile, quickness: boolean): PetAutoSkill {
@@ -227,7 +238,7 @@ function autonomousSkill(context: RangerRuntime, profile: PetAutoProfile, quickn
     state.petAutoOpeningBasic = false;
     // A precombat manual command may already have spent the opening skill's recharge.
     const opening = profile.opening || profile.basic;
-    return (state.petCommandCooldowns[String(opening.id)] || 0) <= context.time + EPSILON ? opening : profile.basic;
+    return petCommandRechargeReadyAt(context, opening.id) <= context.time + EPSILON ? opening : profile.basic;
   }
 
   const later = state.activePet === 'Fanged Iboga' && state.petAutoActivationCounts[state.activePetSlot - 1] > 1;
@@ -235,7 +246,7 @@ function autonomousSkill(context: RangerRuntime, profile: PetAutoProfile, quickn
     (later ? [...profile.specials].reverse() : profile.specials).find(
       (skill) =>
         (!later || quickness || (state.petAutoActivationUses[String(skill.id)] || 0) < 1) &&
-        Math.max(state.petAutoCooldowns[String(skill.id)] || 0, state.petCommandCooldowns[String(skill.id)] || 0) <=
+        Math.max(state.petAutoCooldowns[String(skill.id)] || 0, petCommandRechargeReadyAt(context, skill.id)) <=
           context.time + EPSILON
     ) || profile.basic
   );
@@ -292,7 +303,7 @@ function emitPetSkill(
         'ranger.pet-effect',
         at,
         { ...prepareRangerPetEvent(context, event), at, icon: skill.icon },
-        cast || effect.persistsAfterInterrupt ? undefined : owner(context),
+        cast || effect.persistsAfterInterrupt ? undefined : owner(context, PET_AI_ATTACK_OWNER),
         -20
       );
     }
@@ -303,9 +314,8 @@ function emitPetSkill(
 function petCommandStart(context: RangerRuntime, skill: RangerSkill): number {
   const state = context.profession.core;
   const profile = rangerPetAutoProfile(state.activePet);
-  const opening = rangerPetSkillsRequireCommands(context.config.specialization || 'Core')
-    ? profile?.basic
-    : profile?.opening || profile?.basic;
+  const interruptsAI = rangerPetSkillsRequireCommands(context.config.specialization || 'Core');
+  const opening = interruptsAI ? undefined : profile?.opening || profile?.basic;
   const openingEnd =
     opening && state.petAutoOpeningBasic && state.petAutoNextAt > context.time + EPSILON
       ? state.petAutoNextAt +
@@ -315,9 +325,9 @@ function petCommandStart(context: RangerRuntime, skill: RangerSkill): number {
   return gw2CooldownReadyAt(
     Math.max(
       context.time,
-      state.petAutoBusyUntil,
+      interruptsAI && state.petAutoAction ? context.time : state.petAutoBusyUntil,
       state.petCommandReadyAt,
-      state.petCommandCooldowns[String(skill.id)] || 0,
+      petCommandRechargeReadyAt(context, skill.id),
       state.petAutoCooldowns[String(skill.id)] || 0,
       openingEnd
     )
@@ -332,10 +342,10 @@ export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast)
   const start = petCommandStart(context, skill);
   const recovery = petCommandRecovery(context, cast);
   state.petCommandReadyAt = start + recovery;
-  state.petCommandCooldowns[String(skill.id)] = context.cooldownController.project(skill, {
+  state.petCommandRecharges[String(skill.id)] = {
     startedAt: start,
     work: cast.rechargeWork
-  });
+  };
   context.scheduleForCast(PET_COMMAND_START_TASK, start, cast, {}, owner(context));
 }
 
@@ -375,6 +385,7 @@ export const rangerPetTasks = {
         icon: skill.icon
       });
       const activationId = 'ranger-pet:' + action.eventOrder;
+      state.petAutoAction = action;
       emitPetSkill(context, skill, context.time, fullEnd, activationId);
     }
 
@@ -408,6 +419,18 @@ export const rangerPetTasks = {
   [PET_COMMAND_START_TASK](context: RangerRuntime, data: unknown): void {
     let { cast } = data as { cast: RuntimeCast };
     const state = context.profession.core;
+    // Command-controlled pets preempt AI windups and recovery, cancelling only unlaunched AI effects.
+    // Queued commands and already launched persistent effects retain their separate ownership.
+    if (rangerPetSkillsRequireCommands(context.config.specialization || 'Core') && state.petAutoAction) {
+      context.cancelOwner(owner(context, PET_AI_ATTACK_OWNER));
+      if (Number(state.petAutoAction.endsAt) > context.time) {
+        Object.assign(state.petAutoAction, { endsAt: context.time, interrupted: true });
+      }
+
+      state.petAutoBusyUntil = context.time;
+      state.petAutoAction = null;
+    }
+
     // Automatic attacks may start while a queued command waits for recharge; finish that action first.
     if (context.time < state.petAutoBusyUntil - EPSILON) {
       context.scheduleForCast(PET_COMMAND_START_TASK, state.petAutoBusyUntil, cast, {}, owner(context));
@@ -443,17 +466,27 @@ export const rangerPetTasks = {
       cancelled: castWasInterrupted(cast)
     });
     state.petAutoBusyUntil = Math.max(state.petAutoBusyUntil, busyUntil);
+    state.petAutoAction = null;
     state.petAutoNextAt = 0;
-    state.petCommandCooldowns[String(cast.skill.id)] = context.cooldownController.startRecharge(
-      cast.skill,
-      context.time,
-      cast.rechargeWork
-    );
+    state.petCommandRecharges[String(cast.skill.id)] = { startedAt: context.time, work: cast.rechargeWork };
+    context.cooldownController.startRecharge(cast.skill, context.time, cast.rechargeWork);
     emitPetSkill(context, cast.skill, context.time, cast.fullEnd + context.time - cast.start, cast.id, cast);
     schedulePet(context, state.petAutoBusyUntil);
   },
   'ranger.pet-effect'(context: RangerRuntime, data: unknown): void {
     const event = data as SimulationEventBase;
+    // Pet boons inherit only Lingering Magic, never the ranger's equipment, sigils, or precomputed boon duration.
+    if (event.type === 'buff' && event.actorType === 'summon' && isStandardBoon(String(event.kind))) {
+      const concentration = hasTrait(context, TRAIT.LINGERING_MAGIC)
+        ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LINGERING_MAGIC), 'attributeBonus')
+        : 0;
+      context.emit({
+        ...event,
+        duration: Number(event.duration) * gw2BoonDurationMultiplier(String(event.kind), { concentration })
+      });
+      return;
+    }
+
     context.emit(
       event.type === 'buff'
         ? {

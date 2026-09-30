@@ -10,7 +10,8 @@ import {
   eiChronomancerShatters,
   eiMesmerPhaseRetreat,
   eiMesmerShatters,
-  eiMinionSpawns
+  eiMinionSpawns,
+  untamedPetActions
 } from '#gw2/integrations/logs/evtc/rotation/ei-minions.js';
 import { evtcRecordingWindow } from '#gw2/integrations/logs/evtc/recording.js';
 import {
@@ -71,6 +72,8 @@ interface ResolvedAction extends RecordedAction {
 
 /** Preserves shortened inputs so the scheduler applies explicit commit or per-packet cancellation rules. */
 function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof findRotationSkill>): number | null {
+  // Independent pet animations only cancel on an explicit interruption, not a shorter completed animation.
+  if (skill?.independentCast && action.status !== 'interrupted') return null;
   if (action.replayCastEnd != null && action.replayInterruptMs == null) {
     return null;
   }
@@ -312,7 +315,10 @@ function reconstructWithProfile(
     recordedActions: genericActions,
     professionConfig: options.professionConfig
   };
-  const sourceActions = [
+  const petActions = untamedPetActions(professionContext);
+  const petSkillIds = new Set(petActions.map((action) => action.rawSkillId));
+  // Prefer owned pet animation evidence over duplicate player command markers only for represented pet skills.
+  const playerActions = [
     ...genericActions,
     ...eiInstantActions(professionContext),
     ...eiCustomAnimatedActions(professionContext),
@@ -320,7 +326,10 @@ function reconstructWithProfile(
     ...eiMesmerShatters(professionContext),
     ...eiChronomancerShatters(professionContext),
     ...eiMinionSpawns(professionContext)
-  ].sort((a, b) => a.start - b.start || a.eventIndex - b.eventIndex);
+  ];
+  const sourceActions = [...playerActions.filter((action) => !petSkillIds.has(action.rawSkillId)), ...petActions].sort(
+    (a, b) => a.start - b.start || a.eventIndex - b.eventIndex
+  );
   const normalized = reconstructProfessionActions({
     ...professionContext,
     recordedActions: sourceActions.filter((a) => a.castOrigin == null || a.castOrigin === 'skill')

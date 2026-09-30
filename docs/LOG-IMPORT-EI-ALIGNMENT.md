@@ -11,8 +11,10 @@ not a claim of complete parity.
 ## Objective
 
 Do not automatically reconstruct unrecorded precasts or preparation sequences. Align EVTC cast detection with Elite
-Insights (EI), and use the rotation exported by dps.report as the authoritative cast timeline for report imports. Users
-repair incomplete openers themselves after importing.
+Insights (EI), and use the rotation exported by dps.report as the authoritative cast timeline for report imports.
+Untamed pet commands use the selected player's owned pet rotations when present, including F2; the player-side inferred
+command marker can occur after the pet animation starts. Soulbeast continues to use the player rotation. Users repair
+incomplete openers themselves after importing.
 
 An import is successful when it faithfully converts the available cast evidence. It does not need to produce a complete
 benchmark opener or a rotation that immediately simulates without missing-state or availability warnings.
@@ -104,7 +106,10 @@ command buff. For example,
 [RangerHelper's Carrion Devourer registrations](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/ProfHelpers/Ranger/RangerHelper.cs#L333)
 produce both Poisonous Cloud and Regenerate. `MinionCommandCastFinder` checks species and ownership, and the shared buff
 finder and dispatcher preserve both outputs without disambiguating build gates. This is an upstream ambiguity, not a
-local parity defect; removing either registration would change the reference behavior.
+local parity defect; removing either registration would change the reference behavior. For Untamed skills with recorded
+owned-pet animations, those animations replace the player-side command markers in imported source actions and replay.
+This deliberate source-selection exception preserves pet start, duration, and interruption evidence without adding a
+second command or applying a guessed time offset. Skills without pet animation evidence retain their existing source.
 
 Weaver attunement inference ports the application-evidence portion of
 [WeaverHelper.TransformWeaverAttunements](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/ProfHelpers/Elementalist/WeaverHelper.cs#L458).

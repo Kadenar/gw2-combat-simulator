@@ -618,6 +618,85 @@ test('queued Beast commands never delay player skills', () => {
   assert.equal(poisonActions[1].at - poisonActions[0].at >= 23.999, true);
 });
 
+test('Untamed commands interrupt AI attacks without cancelling landed hits or queued commands', () => {
+  // Exercise each natural command on either side of an AI impact, independently of a benchmark rotation.
+  for (const skillId of [ID.FELINE_BITE, ID.FELINE_MAUL, ID.FURIOUS_POUNCE]) {
+    for (const delay of [600, 1000]) {
+      const nextSkillId = skillId === ID.FELINE_BITE ? ID.FURIOUS_POUNCE : ID.FELINE_BITE;
+      const result = runRanger(
+        [
+          '__combat_start',
+          { type: 'wait', durationMs: delay },
+          skillId,
+          nextSkillId,
+          { type: 'wait', durationMs: 5000 }
+        ],
+        { specialization: 'Untamed', initialUntamedState: 'Ranger', selectedPet: 'Tiger' }
+      );
+      const actions = result.events.filter((event) => event.type === 'action');
+      const auto = actions.find((event) => event.skillId === ID.FELINE_SLASH);
+      const command = actions.find((event) => event.skillId === skillId);
+      const next = actions.find((event) => event.skillId === nextSkillId);
+      const autoHit = result.resolvedEvents.find(
+        (event) => event.type === 'damage' && event.activationId === `ranger-pet:${auto.eventOrder}`
+      );
+
+      assert.deepEqual(result.warnings, []);
+      assert.equal(command.at, delay / 1000);
+      assert.equal(auto.endsAt, command.at);
+      assert.equal(auto.interrupted, true);
+      assert.equal(Boolean(autoHit), delay === 1000);
+      assert.ok(next.at >= command.endsAt);
+      assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === nextSkillId));
+      assert.ok(actions.some((event) => event.skillId === ID.FELINE_SLASH && event.at >= next.endsAt));
+    }
+  }
+});
+
+test('Untamed commands waiting for recharge interrupt the AI at execution', () => {
+  // The second command must preempt an AI attack that began after the request was queued.
+  const result = runRanger(
+    ['__combat_start', ID.FURIOUS_POUNCE, ID.FURIOUS_POUNCE, { type: 'wait', durationMs: 25000 }],
+    { specialization: 'Untamed', initialUntamedState: 'Ranger', selectedPet: 'Tiger' }
+  );
+  const commands = result.events.filter((event) => event.type === 'action' && event.skillId === ID.FURIOUS_POUNCE);
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(commands.length, 2);
+  assert.equal(commands[0].at, 0);
+  assert.equal(commands[1].at, rangerCatalog.skillsById.get(ID.FURIOUS_POUNCE).cooldown);
+  assert.ok(result.events.some((event) => event.skillId === ID.FELINE_SLASH && event.interrupted));
+});
+
+test('pet command readiness includes Alacrity received after recharge started', () => {
+  // A later Command copies Alacrity; the pet must not retain its original unbuffed deadline.
+  const result = runRanger(
+    [
+      '__combat_start',
+      ID.FURIOUS_POUNCE,
+      { type: 'wait', durationMs: 2000 },
+      ID.SIC_EM,
+      { type: 'wait', durationMs: 15000 },
+      ID.FURIOUS_POUNCE,
+      { type: 'wait', durationMs: 4000 }
+    ],
+    {
+      specialization: 'Untamed',
+      initialUntamedState: 'Ranger',
+      selectedPet: 'Tiger',
+      selectedTraitIds: [TRAIT.RESOUNDING_TIMBRE],
+      selectedSkills: ['"Sic \'Em!"'],
+      boons: { alacrity: true }
+    }
+  );
+  const commands = result.steps.filter((step) => step.skillId === ID.FURIOUS_POUNCE);
+  const requestAt = result.steps.filter((step) => step.skill === 'Wait')[1].end;
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(commands[1].start, requestAt);
+  assert.ok(commands[1].start < rangerCatalog.skillsById.get(ID.FURIOUS_POUNCE).cooldown * 1000);
+});
+
 test('Ranger pet commands require received Alacrity', () => {
   const config = {
     selectedPet: 'Fanged Iboga',

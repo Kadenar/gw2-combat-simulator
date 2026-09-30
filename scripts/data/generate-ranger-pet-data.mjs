@@ -44,8 +44,79 @@ const SIMULATED_FAMILY_SKILL_IDS = Object.freeze({
   'fanged iboga': [43734, 41864, 45262],
   spider: [12724]
 });
-const AUTONOMOUS_PET_SKILL_IDS = new Set([12655, 12657, 12676, 12673, 12694, 12703, 43734, 41864, 41156]);
+// Modeled pets retain family membership while receiving their specific AI and merged overrides.
+const SIMULATED_PET_SKILL_IDS = Object.freeze({ Wallow: [64891, 67277, 67084], Hawk: [12682, 12719, 12720] });
+const SOULBEAST_PET_SKILL_IDS = Object.freeze({ Wallow: [41406, 64882] });
+const AUTONOMOUS_PET_SKILL_IDS = new Set([
+  12655, 12657, 12676, 12673, 12694, 12703, 43734, 41864, 41156, 64891, 67277, 67084, 12682, 12719, 12720
+]);
 const SIMULATED_SKILL_FALLBACKS = new Map([
+  [
+    12682,
+    {
+      id: 12682,
+      name: 'Slash',
+      description: 'Slash your foe.',
+      icon: 'https://wiki.guildwars2.com/images/b/b6/Slash_%28bird%29.png',
+      recharge: 0,
+      petNames: ['Hawk']
+    }
+  ],
+  [
+    12719,
+    {
+      id: 12719,
+      name: 'Swoop',
+      description: 'Swoop at your foe, making them vulnerable.',
+      icon: 'https://render.guildwars2.com/file/FCCA3C61C308E1D625C70BD4CCB9F05051AE6F6F/104047.png',
+      recharge: 8,
+      petNames: ['Hawk']
+    }
+  ],
+  [
+    12720,
+    {
+      id: 12720,
+      name: 'Quickening Screech',
+      description: 'Grant swiftness to nearby allies and remove movement-impairing conditions from them.',
+      icon: 'https://render.guildwars2.com/file/69F1291534027E0937A5C020FFEBCC96F301EC54/104048.png',
+      recharge: 20,
+      petNames: ['Hawk']
+    }
+  ],
+  [
+    64891,
+    {
+      id: 64891,
+      name: 'Vampiric Bite',
+      description: 'Bite your foe, siphoning health.',
+      icon: 'https://wiki.guildwars2.com/images/6/67/Vampiric_Bite.png',
+      recharge: 0,
+      petNames: ['Wallow']
+    }
+  ],
+  [
+    67277,
+    {
+      id: 67277,
+      name: 'Maul',
+      description: 'Maul your foes and make them bleed.',
+      icon: 'https://wiki.guildwars2.com/images/f/fb/Maul_%28wallow%29.png',
+      recharge: 12,
+      petNames: ['Wallow']
+    }
+  ],
+  [
+    67084,
+    {
+      id: 67084,
+      name: 'Undead Plague',
+      description: 'Emit noxious fumes that poison foes. Poison duration is increased on disabled foes.',
+      icon: 'https://render.guildwars2.com/file/28CBACDF0A6D07087766675435495E087F67BE6F/2604859.png',
+      recharge: 20,
+      petNames: ['Wallow']
+    }
+  ],
   [
     12655,
     {
@@ -137,6 +208,11 @@ const SIMULATED_SKILL_OVERRIDES = new Map([
   ...SIMULATED_SKILL_FALLBACKS
 ]);
 const SIMULATED_SKILL_KEY_OVERRIDES = new Map([
+  [12682, 'BIRD_SLASH'],
+  [12719, 'BIRD_SWOOP'],
+  [12720, 'QUICKENING_SCREECH_PET'],
+  [67277, 'WALLOW_MAUL'],
+  [67084, 'UNDEAD_PLAGUE_PET'],
   [12655, 'FELINE_SLASH'],
   [12657, 'FELINE_MAUL'],
   [12673, 'PET_TAIL_LASH'],
@@ -219,7 +295,8 @@ export async function generateRangerPetData({ skills: apiSkills }) {
   const petSkillIds = [
     ...new Set([
       ...pets.flatMap((pet) => pet.skills.map((skill) => skill.id)),
-      ...Object.values(SIMULATED_FAMILY_SKILL_IDS).flat()
+      ...Object.values(SIMULATED_FAMILY_SKILL_IDS).flat(),
+      ...Object.values(SIMULATED_PET_SKILL_IDS).flat()
     ])
   ];
   const fetchedSkills = await fetchManyGw2('skills', petSkillIds, { preserveIdOrder: true });
@@ -266,7 +343,7 @@ export async function generateRangerPetData({ skills: apiSkills }) {
     const archetypeKey = metadata.archetype.toLowerCase();
     const archetype = archetypeKey ? `${archetypeKey[0].toUpperCase()}${archetypeKey.slice(1)}` : '';
     const beastmodeSkillIds = [
-      ...(SOULBEAST_FAMILY_SKILL_IDS[family] || []),
+      ...(SOULBEAST_PET_SKILL_IDS[name] || SOULBEAST_FAMILY_SKILL_IDS[family] || []),
       SOULBEAST_ARCHETYPE_SKILL_IDS[archetypeKey]
     ].filter((id) => keyById.has(id));
 
@@ -281,7 +358,10 @@ export async function generateRangerPetData({ skills: apiSkills }) {
     description: ${JSON.stringify(pet.description || '')},
     family: ${JSON.stringify(family)},
     archetype: ${JSON.stringify(archetype)},
-    skillIds: [${[...(SIMULATED_FAMILY_SKILL_IDS[family] || []), ...pet.skills.map((skill) => skill.id)]
+    skillIds: [${[
+      ...(SIMULATED_PET_SKILL_IDS[name] || SIMULATED_FAMILY_SKILL_IDS[family] || []),
+      ...pet.skills.map((skill) => skill.id)
+    ]
       .map((id) => `ID.${keyById.get(id)}`)
       .join(', ')}],
     beastmodeSkillIds: [${beastmodeSkillIds.map((id) => `ID.${keyById.get(id)}`).join(', ')}],

@@ -2,6 +2,7 @@ import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.j
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
 
@@ -34,12 +35,13 @@ export interface RangerCoreState {
   petAutoGeneration: number;
   petAutoNextAt: number;
   petAutoBusyUntil: number;
+  petAutoAction: SimulationEventBase | null;
   petAutoCooldowns: Record<string, number>;
   petAutoActivationUses: Record<string, number>;
   petAutoActivationCounts: [number, number];
   petAutoOpeningBasic: boolean;
   petCommandReadyAt: number;
-  petCommandCooldowns: Record<string, number>;
+  petCommandRecharges: Record<string, RechargeProgress>;
 }
 
 export function selectedRangerPet(config: RangerConfig = {}, slot: 1 | 2 = 1) {
@@ -85,12 +87,13 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     petAutoGeneration: 0,
     petAutoNextAt: 0,
     petAutoBusyUntil: 0,
+    petAutoAction: null,
     petAutoCooldowns: {},
     petAutoActivationUses: {},
     petAutoActivationCounts: [1, 0],
     petAutoOpeningBasic: true,
     petCommandReadyAt: 0,
-    petCommandCooldowns: {}
+    petCommandRecharges: {}
   };
 }
 

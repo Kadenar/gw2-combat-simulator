@@ -54,6 +54,13 @@ const PET_BASE_ATTRIBUTES: Readonly<Record<string, RangerPetAttributes>> = Objec
     vitality: 2211
   },
   'Fanged Iboga': DEFAULT_PET_BASE_ATTRIBUTES,
+  Hawk: {
+    ...DEFAULT_PET_BASE_ATTRIBUTES,
+    precision: 2211,
+    toughness: 1524,
+    vitality: 2211,
+    conditionDamage: 700
+  },
   Tiger: {
     ...DEFAULT_PET_BASE_ATTRIBUTES,
     precision: 2211,
@@ -67,6 +74,12 @@ const PET_BASE_ATTRIBUTES: Readonly<Record<string, RangerPetAttributes>> = Objec
     vitality: 3585,
     conditionDamage: 700,
     healingPower: 600
+  },
+  Wallow: {
+    ...DEFAULT_PET_BASE_ATTRIBUTES,
+    toughness: 2211,
+    vitality: 2898,
+    conditionDamage: 700
   },
   Jacaranda: {
     ...DEFAULT_PET_BASE_ATTRIBUTES,
@@ -84,7 +97,7 @@ export function rangerPetBaseAttributes(petName: string): RangerPetAttributes {
 }
 
 // Measured pet timelines override the generic action-rate model; recovery includes the next-action gap.
-// Current measurements cover Tiger. Pounce's stop records contain 3 s of work, not just its impact windup.
+// Tiger, Wallow, and Hawk have measured unbuffed timelines; Wallow/Hawk Quickness uses standard action-rate scaling.
 export const RANGER_PET_SKILL_TIMINGS: Readonly<
   Record<
     string,
@@ -97,6 +110,65 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<
     }
   >
 > = Object.freeze({
+  // 20260930-154237: stop records include the full animation; impacts occur well before the next AI decision.
+  [ID.BIRD_SLASH]: {
+    castTimeMs: 2600,
+    quicknessCastTimeMs: 1760,
+    recoveryMs: 2680,
+    quicknessRecoveryMs: 1800,
+    unbuffedImpactMs: { 280: 400, 320: 480 }
+  },
+  [ID.LACERATING_SLASH]: {
+    castTimeMs: 2600,
+    quicknessCastTimeMs: 1760,
+    recoveryMs: 2720,
+    quicknessRecoveryMs: 1840,
+    unbuffedImpactMs: { 280: 400, 320: 480 }
+  },
+  [ID.BIRD_SWOOP]: {
+    castTimeMs: 2280,
+    quicknessCastTimeMs: 1520,
+    recoveryMs: 2360,
+    quicknessRecoveryMs: 1600,
+    unbuffedImpactMs: { 520: 760 }
+  },
+  [ID.QUICKENING_SCREECH_PET]: {
+    castTimeMs: 2280,
+    quicknessCastTimeMs: 1520,
+    recoveryMs: 2360,
+    quicknessRecoveryMs: 1600,
+    unbuffedImpactMs: { 520: 760 }
+  },
+  // The focused Wallow log separates early impacts from animation stops and the next AI decision.
+  [ID.VAMPIRIC_BITE]: {
+    castTimeMs: 1400,
+    quicknessCastTimeMs: 960,
+    recoveryMs: 1480,
+    quicknessRecoveryMs: 1000,
+    unbuffedImpactMs: { 240: 360 }
+  },
+  [ID.WALLOW_MAUL]: {
+    castTimeMs: 2560,
+    quicknessCastTimeMs: 1720,
+    recoveryMs: 2640,
+    quicknessRecoveryMs: 1760,
+    unbuffedImpactMs: { 680: 1000 }
+  },
+  [ID.UNDEAD_PLAGUE_PET]: {
+    castTimeMs: 1200,
+    quicknessCastTimeMs: 800,
+    recoveryMs: 1280,
+    quicknessRecoveryMs: 880,
+    // Quickness changes the windup; the emitted cloud still pulses once per second.
+    unbuffedImpactMs: { 640: 920, 1640: 1920, 2640: 2920, 3640: 3920, 4640: 4920 }
+  },
+  [ID.BLOODTHIRSTY_CHARGE]: {
+    castTimeMs: 2480,
+    quicknessCastTimeMs: 1680,
+    recoveryMs: 3880,
+    quicknessRecoveryMs: 2600,
+    unbuffedImpactMs: { 400: 560 }
+  },
   [ID.FELINE_SLASH]: {
     castTimeMs: 1200,
     quicknessCastTimeMs: 840,
@@ -130,6 +202,25 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<
 });
 
 const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> = Object.freeze({
+  Hawk: {
+    // The command-controlled log measures cadence; autonomous pets use the existing ready-special priority.
+    openingDelay: 0.44,
+    basic: { id: ID.BIRD_SLASH, recovery: 2.68 },
+    specials: [
+      { id: ID.BIRD_SWOOP, recovery: 2.36, cooldown: 8 },
+      { id: ID.QUICKENING_SCREECH_PET, recovery: 2.36, cooldown: 20 }
+    ],
+    commandRecovery: { [ID.LACERATING_SLASH]: 2.72 }
+  },
+  Wallow: {
+    openingDelay: 0.44,
+    basic: { id: ID.VAMPIRIC_BITE, recovery: 1.48 },
+    specials: [
+      { id: ID.WALLOW_MAUL, recovery: 2.64, cooldown: 12 },
+      { id: ID.UNDEAD_PLAGUE_PET, recovery: 1.28, cooldown: 20 }
+    ],
+    commandRecovery: { [ID.BLOODTHIRSTY_CHARGE]: 3.88 }
+  },
   'Carrion Devourer': {
     openingDelay: 0.44,
     openingRecoveryDelay: 0.8,

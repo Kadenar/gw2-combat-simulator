@@ -68,27 +68,33 @@ export function applyRangerCommandTraits(
       permanent + buffApplicationStacks(applications, kind, at, maximum, { ordered: true })
     );
     if (!stacks) continue;
-    // Full player uptime comes from ten-second golem refreshes, not an infinite transferable duration.
+    // Golem refreshes refill duration-stacking boons to their cap; intensity grants retain their ten-second expiry.
     // This source assumption is internal, anchored to rotation start including precasts, rather than a user tuning knob.
     // ponytail: this steady pool cannot recover pre-recording state; log replay needs recorded source and pet boons.
     const phaseMs = ((Math.round(at * 1000) % 10000) + 10000) % 10000;
     const remaining = (10000 - phaseMs) / 1000;
-    // Duration boons copy their accumulated pool; intensity boons retain their longest live expiry.
-    const duration =
-      permanent > 0
-        ? Math.min(remaining, durationStackingBoonCapSeconds(kind))
-        : isDurationStackingBoon(kind)
-          ? remainingDurationStackSeconds(applications, at, {
-              includes: (application) => buffMatchesAudience(application, 'all'),
-              maximum: durationStackingBoonCapSeconds(kind),
-              ordered: true
-            })
-          : Math.max(
-              0,
-              ...applications
-                .filter((application) => application.at <= at && buffMatchesAudience(application, 'all'))
-                .map((application) => application.expiresAt - at)
-            );
+    const refreshAt = (Math.round(at * 1000) - phaseMs) / 1000;
+    const selfApplications = applications.filter((application) => buffMatchesAudience(application, 'all'));
+    // Replay self grants after the last refill through the same capped pool, rather than draining two pools separately.
+    const duration = isDurationStackingBoon(kind)
+      ? remainingDurationStackSeconds(
+          permanent > 0
+            ? [
+                { at: refreshAt, duration: durationStackingBoonCapSeconds(kind) },
+                ...selfApplications.filter((application) => application.at >= refreshAt)
+              ]
+            : selfApplications,
+          at,
+          { maximum: durationStackingBoonCapSeconds(kind), ordered: true }
+        )
+      : permanent > 0
+        ? remaining
+        : Math.max(
+            0,
+            ...selfApplications
+              .filter((application) => application.at <= at)
+              .map((application) => application.expiresAt - at)
+          );
     // Copied durations already include the original caster's boon duration.
     context.queue.enqueue(
       rangerEvent(
