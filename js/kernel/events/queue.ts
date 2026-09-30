@@ -90,6 +90,25 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     }
   }
 
+  /** Preserve heap keys, cancellations and the phase frontier without re-enqueueing work. */
+  snapshot() {
+    return {
+      heap: this.heap,
+      nextSequence: this.nextSequence,
+      current: this.current,
+      sameTimeCount: this.sameTimeCount,
+      currentCausalOrder: this.currentCausalOrder
+    };
+  }
+
+  restore(saved: ReturnType<StableEventQueue<T>['snapshot']>): void {
+    this.heap.splice(0, this.heap.length, ...saved.heap);
+    this.nextSequence = saved.nextSequence;
+    this.current = saved.current;
+    this.sameTimeCount = saved.sameTimeCount;
+    this.currentCausalOrder = saved.currentCausalOrder;
+  }
+
   get length(): number {
     this.discardCancelledHead();
     return this.heap.length;

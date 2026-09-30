@@ -48,6 +48,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "benchmarks:compare": "npm run build:modules && node scripts/analysis/compare-supported-build-dps.mjs",
+    "optimize:rotation": "npm run build:modules && node scripts/analysis/optimize-rotation.mjs",
     "preauthor:patch-preview": "npm run build:dev",
     "author:patch-preview": "node scripts/patch-preview/patch-preview-authoring-server.mjs",
     "patch-preview:report": "npm run build:modules && node scripts/patch-preview/patch-preview-report.mjs",

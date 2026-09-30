@@ -16,6 +16,8 @@ export interface SimulationRandom {
   readonly mode: 'deterministic' | 'stochastic';
   readonly seed: number;
   readonly stochastic: boolean;
+  snapshot(): Map<string, number>;
+  restore(states: ReadonlyMap<string, number>): void;
   next(stream?: string): number;
   roll(probability: number, stream?: string): boolean;
 }
@@ -104,6 +106,12 @@ export function createSimulationRandom(value: SimulationRandomnessConfig = {}): 
   return Object.freeze({
     ...config,
     stochastic: config.mode === SIMULATION_RANDOMNESS_MODES.STOCHASTIC,
+    // Branches copy consumed stream positions; selectors never receive this private state.
+    snapshot: () => new Map(states),
+    restore(saved: ReadonlyMap<string, number>) {
+      states.clear();
+      for (const [key, state] of saved) states.set(key, state);
+    },
     next,
     roll
   });

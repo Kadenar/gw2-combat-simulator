@@ -1,3 +1,4 @@
+import { SnapshotFacts } from '#gw2/platform/simulation/snapshot.js';
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -17,7 +18,7 @@ import { firebrandState } from '#gw2/professions/guardian/specializations/firebr
 import type { GuardianBuild } from '#gw2/professions/guardian/types.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 
-const refundByCast = new WeakMap<RuntimeCast, number>();
+const refundByCast = new SnapshotFacts<RuntimeCast, number>();
 
 /** Counts accepted pages and grants earned refunds even after the tome session ends. */
 export const swiftScholar = defineTrait({

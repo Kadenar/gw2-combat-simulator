@@ -1,3 +1,4 @@
+import { SnapshotFacts } from '#gw2/platform/simulation/snapshot.js';
 import { strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import { effectFirstAt, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import {
@@ -20,7 +21,7 @@ import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
-const consumedCharges = new WeakMap<RuntimeCast, number>();
+const consumedCharges = new SnapshotFacts<RuntimeCast, number>();
 
 /** Select illumination at acceptance so delayed packets cannot borrow a later charge or edit executed history. */
 function illuminatedSpearEffects(

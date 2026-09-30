@@ -1,3 +1,4 @@
+import { SnapshotFacts } from '#gw2/platform/simulation/snapshot.js';
 import { cappedResource } from '#gw2/platform/combat/resources/pool.js';
 import { timeKey } from '#kernel/core/clock.js';
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
@@ -12,7 +13,7 @@ export interface ResourceClock {
 }
 
 // Runtime observations retain one fixed segment; only resource mutations replace its anchor.
-const resourceAnchors = new WeakMap<ResourceClock, ResourceClock>();
+const resourceAnchors = new SnapshotFacts<ResourceClock, ResourceClock>();
 export function resourceAnchor(clock: ResourceClock): ResourceClock {
   return resourceAnchors.get(clock) ?? clock;
 }

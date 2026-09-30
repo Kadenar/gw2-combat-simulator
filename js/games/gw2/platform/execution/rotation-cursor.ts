@@ -18,6 +18,37 @@ export class RotationCursor {
 
   constructor(readonly commands: readonly RotationCommand[]) {}
 
+  /** Copy all lane reservations and the current request together with authored commands. */
+  snapshot() {
+    return {
+      commands: [...this.commands],
+      index: this.index,
+      previousCastStart: this.previousCastStart,
+      hasPreviousCast: this.hasPreviousCast,
+      serialReadyAt: this.serialReadyAt,
+      instantReadyAt: this.instantReadyAt,
+      independentReadyAt: this.independentReadyAt,
+      blockingEnd: this.blockingEnd,
+      reservedEnd: this.reservedEnd,
+      waitUntil: this.waitUntil,
+      requestedAt: this.requestedAt,
+      selfStunUntil: this.selfStunUntil
+    };
+  }
+
+  restore(saved: ReturnType<RotationCursor['snapshot']>): void {
+    Object.assign(this, saved);
+  }
+
+  /** Read a choice without reserving it; enumeration must not copy the growing authored rotation. */
+  requestFor(command: RotationCommand, now: number, skill?: Skill): number {
+    return now < this.waitUntil ? this.waitUntil : this.requestTime(command, now, skill);
+  }
+
+  concurrentOffsetAt(now: number): number {
+    return Math.max(0, (now - this.previousCastStart) * 1000);
+  }
+
   get command(): RotationCommand | undefined {
     return this.commands[this.index];
   }
@@ -31,7 +62,11 @@ export class RotationCursor {
   requestAt(now: number, skill?: Skill): number {
     if (now < this.waitUntil) return this.waitUntil;
     if (this.requestedAt != null) return Math.max(now, this.requestedAt, this.waitUntil);
-    const command = this.command;
+    this.requestedAt = this.requestTime(this.command, now, skill);
+    return this.requestedAt;
+  }
+
+  private requestTime(command: RotationCommand | undefined, now: number, skill?: Skill): number {
     let at = Math.max(now, this.waitUntil);
     if (command?.type === 'cast' && skill) {
       const independent = skill.independentCast === true;
@@ -47,8 +82,7 @@ export class RotationCursor {
     } else if (command?.type === 'combat-start' && command.concurrentOffsetMs != null && this.hasPreviousCast) {
       at = Math.max(at, this.previousCastStart + command.concurrentOffsetMs / 1000);
     } else at = Math.max(at, this.endTime());
-    this.requestedAt = canonicalTime(at);
-    return this.requestedAt;
+    return canonicalTime(at);
   }
 
   /** Accepted independent casts occupy only their own lane; authored waits still join every outstanding cast. */

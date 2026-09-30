@@ -324,8 +324,9 @@ milliseconds; ammo recharge timestamps retain seconds. The editor obtains rotati
 `rotationPlanningStateAt`, excluding observation tails when appending.
 
 Use `resolvedEvents` for committed combat effects and `planningState.profession` for observed resources. The planning
-projection is detached from the live runtime and is not a resumable checkpoint. There is no separate combat-state
-snapshot.
+projection is detached from the live runtime and is not a resumable checkpoint. Guardian incremental sessions expose
+separate opaque checkpoints through `initializeGw2Combat`; see [Rotation optimizer](ROTATION-OPTIMIZER.md) for its API,
+supported scope, CLI and fixed-window scoring.
 
 Use `skillBreakdownRows(result)` for a stable per-skill table instead of reimplementing aggregation over raw events.
 

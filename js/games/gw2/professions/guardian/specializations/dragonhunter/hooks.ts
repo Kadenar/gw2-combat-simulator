@@ -1,3 +1,4 @@
+import { SnapshotFacts } from '#gw2/platform/simulation/snapshot.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -30,7 +31,7 @@ import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
-const readyVirtues = new WeakSet<RuntimeCast>();
+const readyVirtues = new SnapshotFacts<RuntimeCast, boolean>();
 const COURAGE = 'guardian.dragonhunter.courage';
 const FURIOUS = 'guardian.dragonhunter.furious-focus';
 const TETHER = 'guardian.dragonhunter.tether';
@@ -145,7 +146,7 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
     if (!virtue) return;
     refreshGuardianVirtues(runtime);
     if (runtime.profession.core.virtueReadyAt[virtue] > runtime.time) return;
-    readyVirtues.add(cast);
+    readyVirtues.set(cast, true);
     if (cast.skill.id === ID.SPEAR_OF_JUSTICE && !cast.cancelled) {
       const at = canonicalTime(
         cast.start + projectCastRelativeEffectTimingMs(cast.skill, (cast.fullEnd - cast.start) * 1000, 480) / 1000

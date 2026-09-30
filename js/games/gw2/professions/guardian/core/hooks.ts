@@ -1,3 +1,4 @@
+import { SnapshotFacts } from '#gw2/platform/simulation/snapshot.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -39,7 +40,7 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 import type { GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
-const readyVirtueActivations = new WeakSet<RuntimeCast>();
+const readyVirtueActivations = new SnapshotFacts<RuntimeCast, boolean>();
 /** Virtue state changes once on commitment; report packets do not restore a second copy of that state. */
 function completeCoreVirtue(runtime: Runtime, cast: RuntimeCast, virtue: GuardianVirtue): void {
   refreshGuardianVirtues(runtime);
@@ -116,6 +117,9 @@ export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
     return guardianResolutionEffects(runtime, writOfPersistenceEffects(runtime, cast, effects));
   },
   availability(runtime, skill) {
+    // Elite bars replace Core virtues; allowing both gives search an impossible extra set of activations.
+    if (runtime.profession.specialization.kind !== 'Core' && CORE_VIRTUES.some(([id]) => id === skill.id))
+      return denySkillCast(skill, 'guardian.replaced-virtue', 'the active specialization replaces this virtue.');
     const replacement = glacialHeartAvailability(runtime, skill);
     if (replacement) return replacement;
     const flips = runtime.profession.core.availableFlips;
@@ -133,7 +137,7 @@ export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
     const virtue = CORE_VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
     if (!virtue) return;
     refreshGuardianVirtues(runtime);
-    if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtueActivations.add(cast);
+    if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtueActivations.set(cast, true);
   },
   onCastCommit(runtime, cast) {
     clearTorchLockout(runtime, cast);

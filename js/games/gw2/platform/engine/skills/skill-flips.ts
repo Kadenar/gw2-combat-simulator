@@ -1,3 +1,4 @@
+import { SnapshotFacts } from '#gw2/platform/simulation/snapshot.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
@@ -12,7 +13,7 @@ export interface SkillFlipWindow {
 export type SkillFlipWindows = Record<string, SkillFlipWindow>;
 
 // Per-registry sequences keep repeated simulations deterministic and do not reuse consumed occurrences.
-const sequences = new WeakMap<SkillFlipWindows, number>();
+const sequences = new SnapshotFacts<SkillFlipWindows, number>();
 
 /** Opens an authored follow-up without imposing parent, recharge, ammo, or cast-phase policy. */
 export function armSkillFlip(

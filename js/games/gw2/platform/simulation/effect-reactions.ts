@@ -38,8 +38,19 @@ export function createEffectReactions(
   handlers: RuntimeProfession<any>['sideEffectHandlers']
 ) {
   const groups: { skill: Skill; rules: readonly EffectReaction[] }[] = [];
-  const identities = new WeakMap<Skill, WeakMap<readonly EffectReaction[], number>>();
+  let identities = new WeakMap<Skill, WeakMap<readonly EffectReaction[], number>>();
   return {
+    // Dynamic effect groups retain their packet indices across a branch restore.
+    snapshot: () => groups,
+    restore(saved: typeof groups) {
+      groups.splice(0, groups.length, ...saved);
+      identities = new WeakMap();
+      groups.forEach(({ skill, rules }, index) => {
+        let byRules = identities.get(skill);
+        if (!byRules) identities.set(skill, (byRules = new WeakMap()));
+        byRules.set(rules, index);
+      });
+    },
     register(skill: Skill, effect: SkillEffect): number | undefined {
       if (effect.reactions === undefined) return undefined;
       validateEffectReactions(catalog, skill, effect);

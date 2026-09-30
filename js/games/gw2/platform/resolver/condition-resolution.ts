@@ -32,7 +32,7 @@ export function createGw2ConditionResolution({
   config = {}
 }: CreateGw2ConditionResolutionOptions): Readonly<Gw2ConditionResolution> {
   const permanentTargetConditionStacks = createPermanentTargetConditionStacks(config);
-  const environmentWakes = new Map<string, Gw2ResolverEvent>();
+  let environmentWakes = new Map<string, Gw2ResolverEvent>();
   let bufferWake: Gw2ResolverEvent | undefined;
 
   // First positive damage fixes the shared phase; integer arithmetic avoids drifting off that phase.
@@ -493,6 +493,12 @@ export function createGw2ConditionResolution({
   }
 
   return Object.freeze({
+    // Keep cancellation references aliased to the copied queue packets.
+    snapshot: () => ({ environmentWakes, bufferWake }),
+    restore(saved: { environmentWakes: typeof environmentWakes; bufferWake: typeof bufferWake }) {
+      environmentWakes = saved.environmentWakes;
+      bufferWake = saved.bufferWake;
+    },
     activeConditionStackCount,
     applyCondition,
     handleConditionTick,
@@ -566,6 +572,8 @@ interface Gw2ConditionTickResult {
 }
 
 export interface Gw2ConditionResolution {
+  snapshot(): { environmentWakes: Map<string, Gw2ResolverEvent>; bufferWake: Gw2ResolverEvent | undefined };
+  restore(saved: ReturnType<Gw2ConditionResolution['snapshot']>): void;
   activeConditionStackCount(context: Gw2ResolverRuntime, name: string, at: number): number;
   applyCondition(context: Gw2ResolverRuntime, event: Gw2EventDraft): Gw2ResolvedConditionApplication[];
   handleConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2ConditionTickResult | null;

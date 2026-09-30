@@ -1,3 +1,4 @@
+import { SnapshotFacts } from '#gw2/platform/simulation/snapshot.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   effectNumber,
@@ -38,7 +39,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
 const PULSE = 'guardian.willbender.pulse';
-const readyVirtues = new WeakSet<RuntimeCast>();
+const readyVirtues = new SnapshotFacts<RuntimeCast, boolean>();
 const VIRTUES = [
   [ID.RUSHING_JUSTICE, 'justice'],
   [ID.FLOWING_RESOLVE, 'resolve'],
@@ -171,7 +172,7 @@ export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> =
     const virtue = VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
     if (!virtue) return;
     refreshGuardianVirtues(runtime);
-    if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtues.add(cast);
+    if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtues.set(cast, true);
   },
   onCastCommit(runtime, cast) {
     const virtue = VIRTUES.find(([id]) => id === cast.skill.id)?.[1];

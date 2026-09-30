@@ -1,3 +1,4 @@
+import { SnapshotFacts } from '#gw2/platform/simulation/snapshot.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileNumber,
@@ -54,8 +55,8 @@ type Runtime = Gw2Runtime<GuardianRuntimeState>;
 const EXIT = 'guardian.luminary.forge-expiry';
 const EQUIP = 'guardian.luminary.equip-traits';
 const VIRTUES: readonly number[] = [ID.RADIANT_JUSTICE, ID.RADIANT_RESOLVE, ID.RADIANT_COURAGE];
-const readyVirtues = new WeakSet<RuntimeCast>();
-const equipForge = new WeakMap<RuntimeCast, string | null>();
+const readyVirtues = new SnapshotFacts<RuntimeCast, boolean>();
+const equipForge = new SnapshotFacts<RuntimeCast, string | null>();
 
 /** Forge exits start real recharge once, using distinct completed weapon equips and the shared rate controller. */
 function exitForge(runtime: Runtime, cast?: RuntimeCast): void {
@@ -246,7 +247,7 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
     if (VIRTUES.includes(Number(cast.skill.id))) {
       refreshGuardianVirtues(runtime);
       const virtue = guardianVirtueForSlot(cast.skill.slot)!;
-      if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtues.add(cast);
+      if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtues.set(cast, true);
     }
 
     startRadiantArmaments(runtime, cast);

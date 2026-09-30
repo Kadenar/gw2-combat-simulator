@@ -1,3 +1,6 @@
+import { cloneCombatGraph } from '#gw2/platform/simulation/snapshot.js';
+import type { CombatAction, CombatSession } from '#gw2/platform/simulation/combat.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { createEffectReactions, type EffectReactionStage } from '#gw2/platform/simulation/effect-reactions.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
 import { ACTION_SAFETY_LIMIT, canonicalTime, EPSILON } from '#kernel/core/clock.js';
@@ -111,7 +114,7 @@ function withoutInheritedReaction(event: SimulationEventBase, cause?: Gw2Resolve
 }
 
 /** One cursor, queue, profession instance and RNG own gameplay in both reporting modes. */
-export function runGw2Runtime<T extends object>({
+export function createGw2Runtime<T extends object>({
   profession,
   config = {},
   rotation = [],
@@ -166,9 +169,9 @@ export function runGw2Runtime<T extends object>({
   let eventOrder = 0;
   let lethalActivation: string | undefined;
   const executed: Gw2ResolverEvent[] = [];
-  const preparedCombos = new WeakSet<Gw2ResolverEvent>();
+  const preparedCombos = new Set<Gw2ResolverEvent>();
 
-  // Bind hooks to the same context used by commands. No hook receives a predicted or restored state.
+  // Hooks and commands share one live context, including after a checkpoint restores its gameplay data.
   const contributions = createGw2EquipmentReactionContributions();
   const effectReactions = createEffectReactions(profession.catalog, profession.sideEffectHandlers);
   // Skill-owned actions run immediately before the composed profession reactions, through the same acceptance gates.
@@ -912,157 +915,162 @@ export function runGw2Runtime<T extends object>({
     }
   }
 
-  // Each iteration either dispatches work, consumes one command, or advances to an actual boundary.
-  let finished = false;
-  for (let iteration = 0; iteration < ACTION_SAFETY_LIMIT; iteration++) {
-    // The next authored marker fixes a boundary, not a gameplay transition: opening packets at that instant remain eligible.
-    if (runtime.combatStartPending && cursor.command?.type === 'combat-start') {
-      runtime.combatStartTime = cursor.requestAt(runtime.time);
-      runtime.combatStartPending = false;
-    }
+  /** Authored replay and search share acceptance gates; the selector owns no profession mechanics. */
+  function castAvailability(skill: Skill, command: CastCommand): AvailabilityResult {
+    const denied = (reason: string): AvailabilityResult => ({
+      ready: false,
+      retryAt: null,
+      code: 'runtime.cast',
+      reason
+    });
+    if (
+      !isGw2WeaponSkillEquipped(
+        { config, weaponSet: runtime.activeWeaponSet, state: runtime, catalog: profession.catalog },
+        skill,
+        profession.weaponSkillMatchesSet
+      )
+    )
+      return denied(`${skill.name} is unavailable — its required weapon is not equipped.`);
+    const chain = autoattackChainAvailability(runtime, profession.catalog, skill);
+    if (!chain.ready) return chain;
+    const ammo = cooldownController.refreshAmmo(skill, runtime.time);
+    const at = Math.max(
+      runtime.time,
+      skill.usableWhileRecharging && !(ammo && ammo.charges <= 0)
+        ? 0
+        : gw2CooldownReadyAt(runtime.cooldowns.get(skill.id) ?? 0),
+      ...[...(skill.independentCastCanOverlap ? [] : (runtime.inFlight.get(skill.id) ?? []))].map(
+        (id) => reservations.get(id)!.effectiveEnd
+      ),
+      ...(skill.lockouts ?? []).map((lockout) => runtime.lockouts.get(lockout.group) ?? 0)
+    );
+    if (at > runtime.time)
+      return { ready: false, retryAt: at, code: 'runtime.recharge', reason: 'Cooldown or cast lockout.' };
+    return profession.availability?.(runtime, skill, command) ?? { ready: true };
+  }
 
-    const due = queue.peek();
-    if (due && due.at <= runtime.time) {
-      try {
-        dispatch(queue.dequeue()!);
-      } finally {
-        queue.currentCausalOrder = null;
+  // Each iteration dispatches work, consumes a command, or advances to an actual boundary.
+  function advance(decision = false, stopAt?: number): void {
+    let finished = false;
+    for (let iteration = 0; iteration < ACTION_SAFETY_LIMIT; iteration++) {
+      // The next authored marker fixes a boundary, not a gameplay transition: opening packets at that instant remain eligible.
+      if (runtime.combatStartPending && cursor.command?.type === 'combat-start') {
+        runtime.combatStartTime = cursor.requestAt(runtime.time);
+        runtime.combatStartPending = false;
       }
 
-      continue;
-    }
+      const due = queue.peek();
+      if (due && due.at <= runtime.time) {
+        try {
+          dispatch(queue.dequeue()!);
+        } finally {
+          queue.currentCausalOrder = null;
+        }
 
-    const command = cursor.command;
-    let nextCommandAt = Infinity;
-    if (command) {
-      // Reevaluate transformed actions after every actual boundary, before accepting their reservation.
-      const skill =
-        command.type === 'cast'
-          ? profession.catalog.skillsById.get(profession.modifySkillId?.(runtime, command.skillId) ?? command.skillId)
-          : undefined;
-      // A forbidden overlap is permanently invalid, so it cannot reserve a lane or wait for cooldown readiness.
-      if (command.type === 'cast' && command.concurrentOffsetMs != null && skill?.canCastConcurrently === false) {
-        queue.advanceFrontier(runtime.time, GW2_RESOLVER_PHASE.Ordinary, 'command rejection');
-        reject(`${skill.name} cannot be cast concurrently.`);
         continue;
       }
 
-      const requested = cursor.requestAt(runtime.time, skill);
-      if (requested < runtime.time || (command.type === 'cast' && !skill)) {
-        queue.advanceFrontier(runtime.time, GW2_RESOLVER_PHASE.Ordinary, 'command rejection');
-        reject(skill ? 'Concurrent command cannot backdate the clock.' : 'Unknown skill.');
-        continue;
-      }
-
-      nextCommandAt = Math.max(
-        requested,
-        command.type === 'cast' ? runtime.inputReadyAt : 0,
-        skill && !skill.independentCast && Number(skill.castTimeMs) > 0 && !skill.stunbreak ? cursor.selfStunUntil : 0
-      );
-      if (nextCommandAt <= runtime.time) {
-        queue.advanceFrontier(runtime.time, GW2_RESOLVER_PHASE.Ordinary, 'command');
-        if (command.type === 'wait') {
-          const end = canonicalTime(runtime.time + command.durationMs / 1000);
-          // Every authored command retains its timeline row, including waits and environment controls.
-          if (runtime.reporting)
-            runtime.steps.push({
-              ri: cursor.index,
-              skill: 'Wait',
-              start: Math.round(runtime.time * 1000),
-              end: Math.round(end * 1000)
-            });
-          cursor.acceptWait(end);
+      if (decision && !cursor.command && (stopAt == null || runtime.time >= stopAt)) return;
+      const command = cursor.command;
+      let nextCommandAt = Infinity;
+      if (command) {
+        // Reevaluate transformed actions after every actual boundary, before accepting their reservation.
+        const skill =
+          command.type === 'cast'
+            ? profession.catalog.skillsById.get(profession.modifySkillId?.(runtime, command.skillId) ?? command.skillId)
+            : undefined;
+        // A forbidden overlap is permanently invalid, so it cannot reserve a lane or wait for cooldown readiness.
+        if (command.type === 'cast' && command.concurrentOffsetMs != null && skill?.canCastConcurrently === false) {
+          queue.advanceFrontier(runtime.time, GW2_RESOLVER_PHASE.Ordinary, 'command rejection');
+          reject(`${skill.name} cannot be cast concurrently.`);
           continue;
         }
 
-        if (command.type === 'combat-start') {
-          if (runtime.reporting)
-            runtime.steps.push({
-              ri: cursor.index,
-              skill: 'Combat Start',
-              start: Math.round(runtime.time * 1000),
-              end: Math.round(runtime.time * 1000)
-            });
-          runtime.combatStartPending = false;
-          runtime.combatStartTime = runtime.time;
-          runtime.emit({
-            type: 'combat_start',
-            at: runtime.time,
-            source: 'Runtime',
-            sourceId: 'combat-start',
-            actorType: 'environment'
-          });
-          cursor.consume();
+        const requested = cursor.requestAt(runtime.time, skill);
+        if (requested < runtime.time || (command.type === 'cast' && !skill)) {
+          queue.advanceFrontier(runtime.time, GW2_RESOLVER_PHASE.Ordinary, 'command rejection');
+          reject(skill ? 'Concurrent command cannot backdate the clock.' : 'Unknown skill.');
           continue;
         }
 
-        if (command.type === 'cooldown-reset') {
-          if (runtime.reporting)
-            runtime.steps.push({
-              ri: cursor.index,
-              skill: 'Cooldown Reset',
-              start: Math.round(runtime.time * 1000),
-              end: Math.round(runtime.time * 1000)
-            });
-          runtime.cooldowns.clear();
-          runtime.rechargeProgress.clear();
-          runtime.ammo.clear();
-          runtime.lockouts.clear();
-          profession.onCooldownReset?.(runtime);
-          // Publish the accepted reset after its resource and recharge transitions.
-          runtime.emit({
-            type: 'marker',
-            at: runtime.time,
-            source: 'platform',
-            sourceId: 'cooldown-reset',
-            actorType: 'environment',
-            action: 'cooldown-reset',
-            name: 'Cooldown Reset'
-          });
-          cursor.consume();
-          continue;
-        }
-
-        if (!skill) throw new Error('Cast has no skill.');
-        if (
-          !isGw2WeaponSkillEquipped(
-            { config, weaponSet: runtime.activeWeaponSet, state: runtime, catalog: profession.catalog },
-            skill,
-            profession.weaponSkillMatchesSet
-          )
-        ) {
-          reject(`${skill.name} is unavailable — its required weapon is not equipped.`);
-          continue;
-        }
-
-        // A wrong chain command is invalid now; waiting for recharge must not let its flip expire into validity.
-        const chainAvailability = autoattackChainAvailability(runtime, profession.catalog, skill);
-        if (!chainAvailability.ready) {
-          reject(chainAvailability.reason);
-          continue;
-        }
-
-        cooldownController.refresh(runtime.time);
-        const ammo = cooldownController.refreshAmmo(skill, runtime.time);
         nextCommandAt = Math.max(
-          runtime.time,
-          skill.usableWhileRecharging && !(ammo && ammo.charges <= 0)
-            ? 0
-            : gw2CooldownReadyAt(runtime.cooldowns.get(skill.id) ?? 0),
-          ...[...(skill.independentCastCanOverlap ? [] : (runtime.inFlight.get(skill.id) ?? []))].map(
-            (id) => reservations.get(id)!.effectiveEnd
-          ),
-          ...(skill.lockouts ?? []).map((lockout) => runtime.lockouts.get(lockout.group) ?? 0)
+          requested,
+          command.type === 'cast' ? runtime.inputReadyAt : 0,
+          skill && !skill.independentCast && Number(skill.castTimeMs) > 0 && !skill.stunbreak ? cursor.selfStunUntil : 0
         );
-        // Cooldown, lane, and lockout waits settle first: intervening actual hits may change resource or form legality.
         if (nextCommandAt <= runtime.time) {
-          const availability = profession.availability?.(runtime, skill, command) ?? { ready: true };
-          if (!availability.ready && availability.retryAt == null) {
-            reject(availability.reason);
+          queue.advanceFrontier(runtime.time, GW2_RESOLVER_PHASE.Ordinary, 'command');
+          if (command.type === 'wait') {
+            const end = canonicalTime(runtime.time + command.durationMs / 1000);
+            // Every authored command retains its timeline row, including waits and environment controls.
+            if (runtime.reporting)
+              runtime.steps.push({
+                ri: cursor.index,
+                skill: 'Wait',
+                start: Math.round(runtime.time * 1000),
+                end: Math.round(end * 1000)
+              });
+            cursor.acceptWait(end);
             continue;
           }
 
+          if (command.type === 'combat-start') {
+            if (runtime.reporting)
+              runtime.steps.push({
+                ri: cursor.index,
+                skill: 'Combat Start',
+                start: Math.round(runtime.time * 1000),
+                end: Math.round(runtime.time * 1000)
+              });
+            runtime.combatStartPending = false;
+            runtime.combatStartTime = runtime.time;
+            runtime.emit({
+              type: 'combat_start',
+              at: runtime.time,
+              source: 'Runtime',
+              sourceId: 'combat-start',
+              actorType: 'environment'
+            });
+            cursor.consume();
+            continue;
+          }
+
+          if (command.type === 'cooldown-reset') {
+            if (runtime.reporting)
+              runtime.steps.push({
+                ri: cursor.index,
+                skill: 'Cooldown Reset',
+                start: Math.round(runtime.time * 1000),
+                end: Math.round(runtime.time * 1000)
+              });
+            runtime.cooldowns.clear();
+            runtime.rechargeProgress.clear();
+            runtime.ammo.clear();
+            runtime.lockouts.clear();
+            profession.onCooldownReset?.(runtime);
+            // Publish the accepted reset after its resource and recharge transitions.
+            runtime.emit({
+              type: 'marker',
+              at: runtime.time,
+              source: 'platform',
+              sourceId: 'cooldown-reset',
+              actorType: 'environment',
+              action: 'cooldown-reset',
+              name: 'Cooldown Reset'
+            });
+            cursor.consume();
+            continue;
+          }
+
+          if (!skill) throw new Error('Cast has no skill.');
+          cooldownController.refresh(runtime.time);
+          const availability = castAvailability(skill, command);
           if (!availability.ready) {
+            if (availability.retryAt == null) {
+              reject(availability.reason);
+              continue;
+            }
+
             if (!Number.isFinite(availability.retryAt) || canonicalTime(availability.retryAt) <= runtime.time) {
               reject(`${availability.reason} (no future retry boundary).`);
               continue;
@@ -1074,98 +1082,322 @@ export function runGw2Runtime<T extends object>({
             continue;
           }
         }
+      } else if (decision) {
+        nextCommandAt = stopAt ?? Infinity;
+      } else if (runtime.rotationEndTime == null) {
+        nextCommandAt = Math.max(cursor.endTime(), runtime.inputReadyAt);
+        if (nextCommandAt <= runtime.time) {
+          runtime.rotationEndTime = runtime.time;
+          runtime.horizon = canonicalTime(observationEndTime(policy, runtime.time));
+          nextCommandAt = Infinity;
+        }
       }
-    } else if (runtime.rotationEndTime == null) {
-      nextCommandAt = Math.max(cursor.endTime(), runtime.inputReadyAt);
-      if (nextCommandAt <= runtime.time) {
-        runtime.rotationEndTime = runtime.time;
-        runtime.horizon = canonicalTime(observationEndTime(policy, runtime.time));
-        nextCommandAt = Infinity;
+
+      if (runtime.horizon != null && runtime.time >= runtime.horizon) {
+        if (runtime.rotationEndTime == null)
+          throw new RangeError('Absolute observation endTimeMs cannot precede rotation end.');
+        finished = true;
+        break;
+      }
+
+      const next = Math.min(nextCommandAt, queue.peek()?.at ?? Infinity, runtime.horizon ?? Infinity);
+      if (!Number.isFinite(next) || next <= runtime.time) throw new Error('Live runtime has no advancing boundary.');
+      runtime.time = canonicalTime(next);
+      runtime.resourceController.advance();
+      runtime.endurance.advance();
+      cooldownController.refresh(runtime.time);
+    }
+
+    if (!finished || runtime.rotationEndTime == null) throw new Error('Live runtime exceeded its action safety limit.');
+  }
+
+  function finish() {
+    advance();
+    if (runtime.rotationEndTime == null) throw new Error('Combat did not finish.');
+    // Pending impacts beyond the horizon receive a diagnostic reason without executing or sampling them.
+    if (sigilDiagnostics) {
+      const names = gw2SigilSet(config, runtime.activeWeaponSet).names ?? [];
+      while (queue.peek()) {
+        const pending = queue.dequeue()!;
+        if (pending.kind !== 'internal') sigilDiagnostics.suppress(pending, 'observation-end', names);
       }
     }
 
-    if (runtime.horizon != null && runtime.time >= runtime.horizon) {
-      if (runtime.rotationEndTime == null)
-        throw new RangeError('Absolute observation endTimeMs cannot precede rotation end.');
-      finished = true;
-      break;
+    const reportingStarted = onPhase ? performance.now() : 0;
+    onPhase?.('execution', reportingStarted - started);
+    // Finalize condition presentation once at the shared boundary for both reporting modes.
+    finalizeConditionApplications(runtime, runtime.deathTime ?? runtime.horizon!);
+    const score = buildSimulationScore(runtime, runtime.rotationEndTime, explicitCombat);
+    if (output === 'score') {
+      onPhase?.('reporting', performance.now() - reportingStarted);
+      return score;
     }
 
-    const next = Math.min(nextCommandAt, queue.peek()?.at ?? Infinity, runtime.horizon ?? Infinity);
-    if (!Number.isFinite(next) || next <= runtime.time) throw new Error('Live runtime has no advancing boundary.');
-    runtime.time = canonicalTime(next);
-    runtime.resourceController.advance();
-    runtime.endurance.advance();
-    cooldownController.refresh(runtime.time);
-  }
-
-  if (!finished || runtime.rotationEndTime == null) throw new Error('Live runtime exceeded its action safety limit.');
-  // Pending impacts beyond the horizon receive a diagnostic reason without executing or sampling them.
-  if (sigilDiagnostics) {
-    const names = gw2SigilSet(config, runtime.activeWeaponSet).names ?? [];
-    while (queue.peek()) {
-      const pending = queue.dequeue()!;
-      if (pending.kind !== 'internal') sigilDiagnostics.suppress(pending, 'observation-end', names);
-    }
-  }
-
-  const reportingStarted = onPhase ? performance.now() : 0;
-  onPhase?.('execution', reportingStarted - started);
-  // Finalize condition presentation once at the shared boundary for both reporting modes.
-  finalizeConditionApplications(runtime, runtime.deathTime ?? runtime.horizon!);
-  const score = buildSimulationScore(runtime, runtime.rotationEndTime, explicitCombat);
-  if (output === 'score') {
-    onPhase?.('reporting', performance.now() - reportingStarted);
-    return score;
-  }
-
-  invokeRelicHook(runtime, 'passiveTimeline', score.combatEndTime);
-  // Queued companion commands can start later with a different speed; report the executed animation, not its reservation.
-  const companionActions = new Map(
-    executed
-      .filter(
-        (event) =>
-          event.type === 'action' &&
-          event.actorType === 'summon' &&
-          event.activationId &&
-          event.skillId != null &&
-          profession.catalog.skillsById.get(event.skillId)?.independentCast
+    invokeRelicHook(runtime, 'passiveTimeline', score.combatEndTime);
+    // Queued companion commands can start later with a different speed; report the executed animation, not its reservation.
+    const companionActions = new Map(
+      executed
+        .filter(
+          (event) =>
+            event.type === 'action' &&
+            event.actorType === 'summon' &&
+            event.activationId &&
+            event.skillId != null &&
+            profession.catalog.skillsById.get(event.skillId)?.independentCast
+        )
+        .map((event) => [event.activationId, event])
+    );
+    const steps = runtime.steps.map((step) => {
+      const action = companionActions.get(step.activationId);
+      if (step.invalid || !action || typeof action.endsAt !== 'number' || typeof action.fullEndsAt !== 'number')
+        return step;
+      return {
+        ...step,
+        start: Math.round(action.at * 1000),
+        end: Math.round(action.endsAt * 1000),
+        fullCastMs: Math.round((action.fullEndsAt - action.at) * 1000),
+        interrupted: action.endsAt < action.fullEndsAt - EPSILON
+      };
+    });
+    const result = {
+      ...buildCombatResult(runtime, score, executed),
+      output: 'detailed' as const,
+      steps,
+      rotationApm: rotationApm(
+        {
+          steps,
+          events: executed,
+          rotationEndTime: runtime.rotationEndTime,
+          combatStartTime: explicitCombat ? (runtime.combatStartTime ?? null) : null
+        },
+        rotation,
+        profession.catalog
+      ),
+      ...(sigilDiagnostics ? { criticalSigilDiagnostics: sigilDiagnostics.results() } : {}),
+      planningState: planningState(
+        { ...runtime, catalog: profession.catalog },
+        profession.projectPlanningState,
+        profession.endurance?.maximum(runtime)
       )
-      .map((event) => [event.activationId, event])
-  );
-  const steps = runtime.steps.map((step) => {
-    const action = companionActions.get(step.activationId);
-    if (step.invalid || !action || typeof action.endsAt !== 'number' || typeof action.fullEndsAt !== 'number')
-      return step;
-    return {
-      ...step,
-      start: Math.round(action.at * 1000),
-      end: Math.round(action.endsAt * 1000),
-      fullCastMs: Math.round((action.fullEndsAt - action.at) * 1000),
-      interrupted: action.endsAt < action.fullEndsAt - EPSILON
     };
-  });
-  const result = {
-    ...buildCombatResult(runtime, score, executed),
-    output: 'detailed' as const,
-    steps,
-    rotationApm: rotationApm(
-      {
-        steps,
-        events: executed,
-        rotationEndTime: runtime.rotationEndTime,
-        combatStartTime: explicitCombat ? (runtime.combatStartTime ?? null) : null
-      },
-      rotation,
-      profession.catalog
-    ),
-    ...(sigilDiagnostics ? { criticalSigilDiagnostics: sigilDiagnostics.results() } : {}),
-    planningState: planningState(
-      { ...runtime, catalog: profession.catalog },
-      profession.projectPlanningState,
-      profession.endurance?.maximum(runtime)
-    )
+    onPhase?.('reporting', performance.now() - reportingStarted);
+    return result;
+  }
+
+  // Services are rebuilt against the new runtime identity; other fields are mutable gameplay data.
+  const services = new Set([
+    'config',
+    'helpers',
+    'query',
+    'queue',
+    'cursor',
+    'cooldownController',
+    'resourceController',
+    'endurance',
+    'random',
+    'procs',
+    'effectReactions',
+    'history'
+  ]);
+  function capture() {
+    return cloneCombatGraph({
+      data: Object.fromEntries(
+        Object.entries(runtime).filter(([key, value]) => !services.has(key) && typeof value !== 'function')
+      ),
+      history,
+      queue: queue.snapshot(),
+      cursor: cursor.snapshot(),
+      reservations: reservations.snapshot(),
+      random: runtime.random.snapshot(),
+      procs: runtime.procs.readyAt,
+      conditions: conditions.snapshot(),
+      effects: effectReactions.snapshot(),
+      eventOrder,
+      lethalActivation,
+      executed,
+      preparedCombos,
+      zeroTimeActions,
+      actionTime
+    });
+  }
+
+  function restore(saved: ReturnType<typeof capture>) {
+    const state = cloneCombatGraph(saved);
+    for (const [key, value] of Object.entries(runtime))
+      if (!services.has(key) && typeof value !== 'function') Reflect.deleteProperty(runtime, key);
+    Object.assign(runtime, state.data);
+    history.splice(0, history.length, ...state.history);
+    queue.restore(state.queue);
+    cursor.restore(state.cursor);
+    reservations.restore(state.reservations);
+    runtime.random.restore(state.random);
+    for (const key of Object.keys(runtime.procs.readyAt)) delete runtime.procs.readyAt[key];
+    Object.assign(runtime.procs.readyAt, state.procs);
+    conditions.restore(state.conditions);
+    effectReactions.restore(state.effects);
+    eventOrder = state.eventOrder;
+    lethalActivation = state.lethalActivation;
+    executed.splice(0, executed.length, ...state.executed);
+    preparedCombos.clear();
+    for (const event of state.preparedCombos) preparedCombos.add(event);
+    zeroTimeActions = state.zeroTimeActions;
+    actionTime = state.actionTime;
+  }
+
+  let zeroTimeActions = 0;
+  let actionTime = -1;
+  let legalChoices: CombatAction[] | undefined;
+  /** Waits visit real queue, recharge and lane boundaries; a one-second idle choice covers intentional delays. */
+  function choices(): CombatAction[] {
+    if (legalChoices) return legalChoices;
+    if (runtime.horizon == null) throw new TypeError('Interactive combat requires an absolute observation window.');
+    if (runtime.time >= runtime.horizon) return [];
+    const actions: CombatAction[] = [];
+    cooldownController.refresh(runtime.time);
+    const boundaries = [
+      runtime.horizon,
+      runtime.time + 1,
+      queue.peek()?.at ?? Infinity,
+      cursor.endTime(),
+      runtime.inputReadyAt,
+      cursor.selfStunUntil
+    ];
+    for (const skill of profession.catalog.skills) {
+      if (skill.simulatorExcluded || skill.initialStateOnly) continue;
+      if ((profession.modifySkillId?.(runtime, skill.id) ?? skill.id) !== skill.id) continue;
+      const concurrent =
+        (Number(skill.castTimeMs) === 0 || skill.independentCast) &&
+        skill.canCastConcurrently !== false &&
+        runtime.time < cursor.endTime();
+      const command: CastCommand = {
+        type: 'cast',
+        skillId: skill.id,
+        ...(concurrent ? { concurrentOffsetMs: cursor.concurrentOffsetAt(runtime.time) } : {})
+      };
+      const requested = Math.max(
+        cursor.requestFor(command, runtime.time, skill),
+        runtime.inputReadyAt,
+        skill.independentCast || !Number(skill.castTimeMs) || skill.stunbreak ? 0 : cursor.selfStunUntil
+      );
+      boundaries.push(requested);
+      const availability = castAvailability(skill, command);
+      if (!availability.ready) {
+        if (availability.retryAt != null) boundaries.push(availability.retryAt);
+        continue;
+      }
+
+      const baseDuration =
+        skill.independentCast &&
+        (config.boons?.quickness || query.timeline.buffStacksAt('quickness', runtime.time, 0, 1) > 0)
+          ? summonQuicknessCastTimeMs(skill)
+          : (skill.castTimeMs ?? 0);
+      const duration = profession.castDurationMs?.(runtime, skill, baseDuration) ?? baseDuration;
+      // The importer requires the last cast reservation to fit inside the absolute endpoint.
+      if (
+        requested <= runtime.time &&
+        canonicalTime(runtime.time + duration / 1000) <= runtime.horizon &&
+        zeroTimeActions < 32
+      )
+        actions.push(command);
+    }
+
+    const next = Math.min(...boundaries.filter((at) => Number.isFinite(at) && canonicalTime(at) > runtime.time));
+    if (Number.isFinite(next))
+      actions.push({
+        type: 'wait',
+        durationMs: (canonicalTime(Math.min(next, runtime.horizon)) - runtime.time) * 1000
+      });
+    legalChoices = actions;
+    return actions;
+  }
+
+  const session: CombatSession = {
+    get time() {
+      return runtime.time;
+    },
+    get done() {
+      return runtime.time >= runtime.horizon!;
+    },
+    observe: () => ({
+      ...planningState(
+        { ...runtime, catalog: profession.catalog },
+        profession.projectPlanningState,
+        profession.endurance?.maximum(runtime)
+      ),
+      damage: runtime.totals.strike + runtime.totals.condition,
+      done: runtime.time >= runtime.horizon!
+    }),
+    actions: () => structuredClone(choices()),
+    apply(action) {
+      if (runtime.time >= runtime.horizon!) throw new RangeError('Combat has reached the observation endpoint.');
+      if (action.type === 'wait') {
+        const end = canonicalTime(runtime.time + action.durationMs / 1000);
+        if (!Number.isFinite(action.durationMs) || end <= runtime.time || end > runtime.horizon!)
+          throw new RangeError('Wait must advance within the observation window.');
+        advance(true, end);
+        zeroTimeActions = 0;
+        legalChoices = undefined;
+        return;
+      }
+
+      const normalized = normalizeRotation([action], profession.catalog, { strict: true })[0];
+      const legal = choices().find(
+        (choice) => choice.type === 'cast' && JSON.stringify(choice) === JSON.stringify(normalized)
+      );
+      if (!legal) throw new RangeError('Action is not legal at this decision.');
+      // Materialize idle time when accepting another cast; concurrent commands carry their own offset.
+      const idle = canonicalTime(runtime.time - Math.max(cursor.endTime(), runtime.inputReadyAt));
+      const commands = [...cursor.commands];
+      if (idle > 0) {
+        commands.push({ type: 'wait', durationMs: idle * 1000 });
+        cursor.restore({ ...cursor.snapshot(), commands });
+        cursor.acceptWait(runtime.time);
+      }
+
+      // Retain the engine-owned choice so caller mutations cannot rewrite an in-flight cast.
+      commands.push(legal);
+      cursor.restore({ ...cursor.snapshot(), commands });
+      if (runtime.time === actionTime) zeroTimeActions++;
+      else {
+        actionTime = runtime.time;
+        zeroTimeActions = 1;
+      }
+
+      advance(true);
+      legalChoices = undefined;
+    },
+    snapshot() {
+      const saved = capture();
+      const savedConfig = cloneCombatGraph(config);
+      return {
+        resume() {
+          const branch = createGw2Runtime({
+            profession,
+            config: cloneCombatGraph(savedConfig),
+            rotation: [],
+            observation: policy,
+            combatStartTime,
+            output
+          });
+          branch.restore(saved);
+          return branch.session;
+        }
+      };
+    },
+    clone: () => session.snapshot().resume(),
+    rotation: () => {
+      const commands = cloneCombatGraph([...cursor.commands]);
+      const idle = canonicalTime(runtime.time - Math.max(cursor.endTime(), runtime.inputReadyAt));
+      if (idle > 0) commands.push({ type: 'wait', durationMs: idle * 1000 });
+      return commands;
+    },
+    score: () =>
+      buildSimulationScore(runtime, Math.max(runtime.time, cursor.endTime(), runtime.inputReadyAt), explicitCombat)
   };
-  onPhase?.('reporting', performance.now() - reportingStarted);
-  return result;
+  return { finish, session, restore, start: () => advance(true) };
+}
+
+/** Normal replay and interactive sessions execute the same loop and acceptance gates. */
+export function runGw2Runtime<T extends object>(options: Parameters<typeof createGw2Runtime<T>>[0]) {
+  return createGw2Runtime(options).finish();
 }
