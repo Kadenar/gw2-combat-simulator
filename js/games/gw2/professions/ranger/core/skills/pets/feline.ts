@@ -5,6 +5,7 @@
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -94,7 +95,8 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
     petSkill: true
   },
   [ID.FURIOUS_POUNCE]: {
-    effects: [
+    // Impact precedes the remaining animation; the pet lane retains the full recovery.
+    effects: impactEffects({ atMs: 1080, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'boon',
         boon: 'fury',
@@ -110,8 +112,9 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         source: 'ranger-pet',
         actorType: 'summon'
       }
-    ],
-    quicknessCastTimeMs: 1000,
+    ]),
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FURIOUS_POUNCE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FURIOUS_POUNCE]!.quicknessCastTimeMs,
     petSkill: true
   },
   [ID.FELINE_SLASH]: {
@@ -125,7 +128,8 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: 'summon'
       }
     ],
-    quicknessCastTimeMs: 480,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_SLASH]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_SLASH]!.quicknessCastTimeMs,
     petSkill: true
   },
   [ID.FELINE_BITE]: {
@@ -146,11 +150,12 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       }
     ]),
     // Recorded pet activation timing keeps manual commands on the pet's independent lane.
-    quicknessCastTimeMs: 760,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_BITE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_BITE]!.quicknessCastTimeMs,
     petSkill: true
   },
   [ID.FELINE_MAUL]: {
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    // Each strike applies its own two stacks, so the second hit cannot bleed early.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -163,12 +168,13 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 4, duration: 10 }],
+        ticks: [360, 560].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 2, duration: 10 })),
         source: 'ranger-pet',
         actorType: 'summon'
       }
     ]),
-    quicknessCastTimeMs: 880,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_MAUL]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FELINE_MAUL]!.quicknessCastTimeMs,
     petSkill: true
   },
   [ID.SAVANNAH_STRIKE]: {

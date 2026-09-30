@@ -51,7 +51,11 @@ export function beastlyWardenPetDamageMultiplier(context: RangerRuntime | Ranger
 
 // Snapshot the Ranger's configured and still-active boons at command completion,
 // then mirror their current duration and stacks to the active companion only.
-export function applyRangerCommandTraits(context: RangerRuntime, skill: RangerSkill): void {
+export function applyRangerCommandTraits(
+  context: RangerRuntime | RangerResolverContext,
+  skill: Pick<RangerSkill, 'name'>,
+  at: number
+): void {
   if (!professionCoreState(context).petActive || !hasTrait(context, TRAIT.RESOUNDING_TIMBRE)) return;
 
   for (const kind of GW2_STANDARD_BOONS) {
@@ -61,15 +65,20 @@ export function applyRangerCommandTraits(context: RangerRuntime, skill: RangerSk
     const maximum = kind === 'might' || kind === 'stability' ? 25 : 1;
     const stacks = Math.min(
       maximum,
-      permanent + buffApplicationStacks(applications, kind, context.time, maximum, { ordered: true })
+      permanent + buffApplicationStacks(applications, kind, at, maximum, { ordered: true })
     );
     if (!stacks) continue;
+    // Full player uptime comes from ten-second golem refreshes, not an infinite transferable duration.
+    // This source assumption is internal, anchored to rotation start including precasts, rather than a user tuning knob.
+    // ponytail: this steady pool cannot recover pre-recording state; log replay needs recorded source and pet boons.
+    const phaseMs = ((Math.round(at * 1000) % 10000) + 10000) % 10000;
+    const remaining = (10000 - phaseMs) / 1000;
     // Duration boons copy their accumulated pool; intensity boons retain their longest live expiry.
     const duration =
       permanent > 0
-        ? 3600
+        ? Math.min(remaining, durationStackingBoonCapSeconds(kind))
         : isDurationStackingBoon(kind)
-          ? remainingDurationStackSeconds(applications, context.time, {
+          ? remainingDurationStackSeconds(applications, at, {
               includes: (application) => buffMatchesAudience(application, 'all'),
               maximum: durationStackingBoonCapSeconds(kind),
               ordered: true
@@ -77,13 +86,14 @@ export function applyRangerCommandTraits(context: RangerRuntime, skill: RangerSk
           : Math.max(
               0,
               ...applications
-                .filter((application) => application.at <= context.time && buffMatchesAudience(application, 'all'))
-                .map((application) => application.expiresAt - context.time)
+                .filter((application) => application.at <= at && buffMatchesAudience(application, 'all'))
+                .map((application) => application.expiresAt - at)
             );
-    context.emitProcedural(
+    // Copied durations already include the original caster's boon duration.
+    context.queue.enqueue(
       rangerEvent(
         {
-          at: context.time,
+          at,
           source: 'Trait',
           sourceId: TRAIT.RESOUNDING_TIMBRE,
           actorType: 'effect',
@@ -158,6 +168,8 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2
       triggeredBy: event.skillName
     })
   );
+  // Lesser Sic 'Em is a command too: its accepted proc copies boons at the beast skill's impact.
+  applyRangerCommandTraits(context, { name: 'Lesser "Sic \'Em!"' }, event.at);
 }
 
 /** Reconciles the live weapon bonus against the calculated weapon baseline. */
@@ -278,6 +290,7 @@ export function triggerMergedGoForTheThroat(context: RangerResolverContext, even
           ''
       );
       queueProfileBuff(context, event, profile, lesserSicEm, 'Lesser "Sic \'Em!"', ID.LESSER_SIC_EM);
+      applyMergedResoundingTimbre(context, { id: ID.LESSER_SIC_EM, categories: ['Command'] }, event.at);
     }
   }
 }
@@ -314,12 +327,16 @@ export function triggerMergedWiltingStrike(context: RangerResolverContext, event
 }
 
 /** Extends player boons for a completed command only at the merged Soulbeast boundary. */
-export function applyMergedResoundingTimbre(runtime: RangerRuntime, skill: RangerSkill): void {
+export function applyMergedResoundingTimbre(
+  runtime: RangerRuntime | RangerResolverContext,
+  skill: Pick<RangerSkill, 'id' | 'categories'>,
+  at: number
+): void {
   if (skill.categories?.includes('Command') && hasTrait(runtime, TRAIT.RESOUNDING_TIMBRE))
-    runtime.emit(
+    runtime.queue.enqueue(
       rangerEvent(
         {
-          at: runtime.time,
+          at,
           sourceId: TRAIT.RESOUNDING_TIMBRE,
           skillId: skill.id,
           skillName: 'Resounding Timbre',

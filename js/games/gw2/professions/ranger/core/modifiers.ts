@@ -4,7 +4,7 @@ import type { Gw2NumericStatKey, Gw2ResolvedStats } from '#gw2/platform/combat/q
 import { hasSelectedSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { rangerAttackOfOpportunityModifier } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import { rangerConsumingBiteModifier } from '#gw2/professions/ranger/core/skills/pets/fanged-iboga.js';
-import { signetOfTheWildBonus } from '#gw2/professions/ranger/core/skills/slot-skills.js';
+import { modifyStormSpiritAttributes, signetOfTheWildBonus } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { rangerStalkersStrikeModifier } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
 import {
   rangerHammerConditionsModifier,
@@ -85,7 +85,11 @@ const rangerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 ]);
 
 export const rangerCoreModifiers = Object.freeze({
-  modifyAttributes: modifyRangerAttributes,
+  modifyAttributes: [
+    modifyRangerAttributes,
+    // Resolve spirit Power after the ordinary Core, specialization, and trait attribute hooks (order 0).
+    { id: 'ranger.storm-spirit-attributes', order: 1, handler: modifyStormSpiritAttributes }
+  ],
   modifyConditionBaseDuration: modifyRangerConditionBaseDuration,
   modifierRules: rangerCoreModifierRules
 });

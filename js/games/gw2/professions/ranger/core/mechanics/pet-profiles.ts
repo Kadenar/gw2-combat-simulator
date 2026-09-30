@@ -83,6 +83,52 @@ export function rangerPetBaseAttributes(petName: string): RangerPetAttributes {
   return PET_BASE_ATTRIBUTES[petName] || DEFAULT_PET_BASE_ATTRIBUTES;
 }
 
+// Measured pet timelines override the generic action-rate model; recovery includes the next-action gap.
+// Current measurements cover Tiger. Pounce's stop records contain 3 s of work, not just its impact windup.
+export const RANGER_PET_SKILL_TIMINGS: Readonly<
+  Record<
+    string,
+    {
+      castTimeMs: number;
+      quicknessCastTimeMs: number;
+      recoveryMs: number;
+      quicknessRecoveryMs: number;
+      unbuffedImpactMs: Readonly<Record<number, number>>;
+    }
+  >
+> = Object.freeze({
+  [ID.FELINE_SLASH]: {
+    castTimeMs: 1200,
+    quicknessCastTimeMs: 840,
+    recoveryMs: 1280,
+    quicknessRecoveryMs: 920,
+    unbuffedImpactMs: { 280: 400 }
+  },
+  [ID.FELINE_BITE]: {
+    castTimeMs: 1080,
+    quicknessCastTimeMs: 760,
+    recoveryMs: 1200,
+    quicknessRecoveryMs: 840,
+    unbuffedImpactMs: { 400: 560 }
+  },
+  [ID.FELINE_MAUL]: {
+    castTimeMs: 1200,
+    quicknessCastTimeMs: 880,
+    recoveryMs: 1280,
+    quicknessRecoveryMs: 960,
+    unbuffedImpactMs: { 360: 520, 560: 760 }
+  },
+  [ID.FURIOUS_POUNCE]: {
+    // The input completes at impact; the pet's separate recovery includes the rest of its animation.
+    castTimeMs: 1560,
+    quicknessCastTimeMs: 1080,
+    // Unquickened log activations resume attacks at 2600 ms; impact remains earlier at 1560 ms.
+    recoveryMs: 2600,
+    quicknessRecoveryMs: 1760,
+    unbuffedImpactMs: { 1080: 1560 }
+  }
+});
+
 const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> = Object.freeze({
   'Carrion Devourer': {
     openingDelay: 0.44,
@@ -104,13 +150,13 @@ const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> = Object.freez
   Tiger: {
     ignoresAlacrity: true,
     openingDelay: 0.48,
-    opening: { id: ID.FELINE_BITE, recovery: 1.32, cooldown: 8 },
-    basic: { id: ID.FELINE_SLASH, recovery: 1.35 },
+    opening: { id: ID.FELINE_BITE, recovery: RANGER_PET_SKILL_TIMINGS[ID.FELINE_BITE]!.recoveryMs / 1000, cooldown: 8 },
+    basic: { id: ID.FELINE_SLASH, recovery: RANGER_PET_SKILL_TIMINGS[ID.FELINE_SLASH]!.recoveryMs / 1000 },
     specials: [
-      { id: ID.FELINE_MAUL, recovery: 1.44, cooldown: 16 },
-      { id: ID.FELINE_BITE, recovery: 1.32, cooldown: 8 }
+      { id: ID.FELINE_MAUL, recovery: RANGER_PET_SKILL_TIMINGS[ID.FELINE_MAUL]!.recoveryMs / 1000, cooldown: 16 },
+      { id: ID.FELINE_BITE, recovery: RANGER_PET_SKILL_TIMINGS[ID.FELINE_BITE]!.recoveryMs / 1000, cooldown: 8 }
     ],
-    commandRecovery: { [ID.FURIOUS_POUNCE]: 1.76 }
+    commandRecovery: { [ID.FURIOUS_POUNCE]: RANGER_PET_SKILL_TIMINGS[ID.FURIOUS_POUNCE]!.recoveryMs / 1000 }
   },
   Jacaranda: {
     openingDelay: 0.44,

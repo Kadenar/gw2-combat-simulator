@@ -46,6 +46,8 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial
     castTimeMs: 560
   },
   [ID.UNLEASHED_OVERBEARING_SMASH]: {
+    // Keep the opening impact when cancelled between hits; the follow-up requires reaching its own packet.
+    interruptMode: 'per-packet',
     effects: [
       ...impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {

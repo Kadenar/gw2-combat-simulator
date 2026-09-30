@@ -8,7 +8,6 @@ import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js'
 import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { rangerCoreModifiers } from '#gw2/professions/ranger/core/modifiers.js';
 import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
@@ -521,7 +520,10 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
     { catalog: rangerCatalog, ...druidContext },
     baseAttributes
   );
-  const coreAttributes = rangerCoreModifiers.modifyAttributes(druidContext, baseAttributes);
+  // Attribute checks consume the composed runtime hook, including ordered skill-owned attribute replacements.
+  const coreAttributes = rangerProfession
+    .runtimeFor({ specialization: 'Core' })
+    .modifyAttributes(druidContext, baseAttributes);
 
   assert.equal(druidAttributes.vitality, 1240);
   assert.equal(coreAttributes.vitality, 1000);
@@ -1018,7 +1020,7 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
     runtime: { activeWeaponSet: 1 },
     query: { mightStacksAt: () => 0 }
   };
-  const petAttributes = rangerCoreModifiers.modifyAttributes(
+  const petAttributes = rangerProfession.runtimeFor({ specialization: 'Core' }).modifyAttributes(
     { catalog: rangerCatalog, ...petTraitContext },
     {
       power: 2000,

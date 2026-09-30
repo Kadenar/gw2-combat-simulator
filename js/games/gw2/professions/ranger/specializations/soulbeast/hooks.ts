@@ -48,7 +48,7 @@ export const soulbeastHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
     const skill = cast.skill;
     if (skill.id === ID.PET_SWAP) state.archetype = rangerPetByName(runtime.profession.core.activePet).archetype;
     if (!state.beastmodeActive) return;
-    applyMergedResoundingTimbre(runtime, skill);
+    applyMergedResoundingTimbre(runtime, skill, runtime.time);
     if (skill.beastmodeSkill && skill.id !== ID.BEASTMODE && skill.id !== ID.LEAVE_BEASTMODE)
       applyRangerBeastSkillTraits(runtime, skill, false);
   },

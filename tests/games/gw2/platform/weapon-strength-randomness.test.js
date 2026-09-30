@@ -37,6 +37,7 @@ const EXPECTED_PROFILES = Object.freeze({
   'nonweapon.unequipped': [656, 725, 690.5],
   'nonweapon.profession-mechanic': [1034, 1166, 1100],
   'summon.weapon-type-1': [2427, 2680, 2553.5],
+  'summon.storm-spirit': [2426, 2681, 2553.5],
   'summon.weapon-type-2': [2706, 3050, 2878],
   'summon.weapon-type-3': [2448, 3050, 2749],
   'bundle.exotic': [876, 969, 922.5],

@@ -22,6 +22,7 @@ import {
   beginRangerPetCommand,
   prepareRangerPetEvent,
   rangerPetCompanionId,
+  rangerPetCastDurationMs,
   rangerPetTasks,
   startRangerPet
 } from '#gw2/professions/ranger/core/mechanics/pets.js';
@@ -126,6 +127,7 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
   },
   endurance: rangerEndurance,
   availability: rangerCoreCastAvailability,
+  castDurationMs: rangerPetCastDurationMs,
   prepareEvent(runtime, event) {
     const state = runtime.profession.core;
     const skill = runtime.helpers.skillsById.get(event.skillId!);

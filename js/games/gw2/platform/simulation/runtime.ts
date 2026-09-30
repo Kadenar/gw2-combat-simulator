@@ -1120,13 +1120,38 @@ export function runGw2Runtime<T extends object>({
   }
 
   invokeRelicHook(runtime, 'passiveTimeline', score.combatEndTime);
+  // Queued companion commands can start later with a different speed; report the executed animation, not its reservation.
+  const companionActions = new Map(
+    executed
+      .filter(
+        (event) =>
+          event.type === 'action' &&
+          event.actorType === 'summon' &&
+          event.activationId &&
+          event.skillId != null &&
+          profession.catalog.skillsById.get(event.skillId)?.independentCast
+      )
+      .map((event) => [event.activationId, event])
+  );
+  const steps = runtime.steps.map((step) => {
+    const action = companionActions.get(step.activationId);
+    if (step.invalid || !action || typeof action.endsAt !== 'number' || typeof action.fullEndsAt !== 'number')
+      return step;
+    return {
+      ...step,
+      start: Math.round(action.at * 1000),
+      end: Math.round(action.endsAt * 1000),
+      fullCastMs: Math.round((action.fullEndsAt - action.at) * 1000),
+      interrupted: action.endsAt < action.fullEndsAt - EPSILON
+    };
+  });
   const result = {
     ...buildCombatResult(runtime, score, executed),
     output: 'detailed' as const,
-    steps: runtime.steps,
+    steps,
     rotationApm: rotationApm(
       {
-        steps: runtime.steps,
+        steps,
         events: executed,
         rotationEndTime: runtime.rotationEndTime,
         combatStartTime: explicitCombat ? (runtime.combatStartTime ?? null) : null

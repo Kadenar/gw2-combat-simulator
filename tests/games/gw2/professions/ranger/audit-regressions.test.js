@@ -7,6 +7,7 @@ import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { rangerPetCombatMetadata, rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 
 const config = {
   primaryWeapon: 'Greatsword',
@@ -22,6 +23,83 @@ const wait = (durationMs) => ({ type: 'wait', durationMs });
 const copied = (result) =>
   result.events.filter((event) => event.type === 'buff' && event.skillId === ID.WE_HEAL_AS_ONE);
 
+// Both spirit slams use fixed power while retaining the Ranger's live critical attributes and outgoing bonuses.
+test('Storm Spirit uses spirit power and weapon strength with Ranger critical stats and modifiers', () => {
+  for (const [power, precision, ferocity, might, vow] of [
+    [1000, 1000, 0, 0, false],
+    [4000, 1000, 0, 25, false],
+    [1000, 2050, 0, 0, false],
+    [1000, 2050, 750, 0, false],
+    [1000, 2050, 750, 0, true]
+  ]) {
+    const result = simulate('Untamed', [ID.STORM_SPIRIT, wait(6500)], {
+      initialUntamedState: 'Ranger',
+      selectedTraitIds: [TRAIT.NATURES_VENGEANCE, ...(vow ? [TRAIT.VOW_OF_THE_UNTAMED] : [])],
+      stats: { power, precision, ferocity },
+      boons: { might, fury: true },
+      target: { conditions: { Vulnerability: 25 } }
+    });
+    assert.deepEqual(result.warnings, []);
+    const strikes = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillId === ID.STORM_SPIRIT
+    );
+    const chance = 0.3 + (precision - 1000) / 2100;
+    const criticalMultiplier = 1 + chance * (0.5 + ferocity / 1500);
+    const expected = Math.floor(((2 * 1580 * 2553.5) / 2597) * criticalMultiplier * 1.25 * (vow ? 1.25 : 1));
+    assert.deepEqual(
+      strikes.map((event) => event.damage),
+      [expected, expected]
+    );
+  }
+
+  // Spirit Power must also replace merged Soulbeast bonuses without changing the player's attribute preview.
+  for (const specialization of ['Core', 'Soulbeast']) {
+    const result = simulate(specialization, [ID.STORM_SPIRIT, wait(1500)], {
+      selectedTraitIds: [TRAIT.PACK_ALPHA, TRAIT.PETS_PROWESS],
+      stats: { power: 3000, precision: 2050, ferocity: 750 },
+      boons: { might: 25, fury: true }
+    });
+    assert.deepEqual(result.warnings, []);
+    const strike = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.STORM_SPIRIT);
+    const runtime = observedRuntime(result);
+    const spirit = runtime.query.statsAt(runtime.time, strike, runtime);
+    const player = runtime.query.statsAt(runtime.time, null, runtime);
+    assert.equal(spirit.power, 1580);
+    assert.ok(player.power >= 3750);
+    assert.equal(spirit.precision, player.precision);
+    assert.equal(spirit.ferocity, player.ferocity);
+  }
+});
+
+// Cancellation keeps completed impacts and their conditions without releasing the later follow-up.
+test('Unleashed Overbearing Smash retains only packets reached before cancellation', () => {
+  for (const [interruptAfterMs, expectedSources] of [
+    [200, []],
+    [240, [ID.UNLEASHED_OVERBEARING_SMASH]],
+    [320, [ID.UNLEASHED_OVERBEARING_SMASH]],
+    [undefined, [ID.UNLEASHED_OVERBEARING_SMASH, ID.OVERBEARING_SMASH_SECOND_STRIKE]]
+  ]) {
+    const result = simulate(
+      'Untamed',
+      [{ type: 'cast', skillId: ID.UNLEASHED_OVERBEARING_SMASH, interruptAfterMs }, wait(1500)],
+      { primaryWeapon: 'Hammer', initialUntamedState: 'Ranger' }
+    );
+    assert.deepEqual(result.warnings, []);
+    const packets = result.events.filter((event) => event.skillId === ID.UNLEASHED_OVERBEARING_SMASH);
+    const strikes = packets.filter((event) => event.type === 'damage');
+    assert.deepEqual(
+      strikes.map((event) => event.sourceId),
+      expectedSources
+    );
+    const blindness = packets.filter((event) => event.type === 'condition' && event.condition === 'Blindness');
+    assert.equal(blindness.length, expectedSources.length ? 1 : 0);
+    if (strikes.length) {
+      assert.equal(strikes[0].at, 0.24);
+      assert.equal(blindness[0].at, strikes[0].at);
+    }
+  }
+});
+
 // Commands copy the executed self pool, including duration stacking and permanent assumptions, to the active pet.
 test('Resounding Timbre copies live boon pools and rejects other recipients and expired grants', () => {
   let petId;
@@ -30,6 +108,7 @@ test('Resounding Timbre copies live boon pools and rejects other recipients and 
     {
       ...config,
       selectedTraitIds: [TRAIT.RESOUNDING_TIMBRE],
+      stats: { ...config.stats, concentration: 1500 },
       boons: { protection: true }
     },
     {
@@ -72,10 +151,113 @@ test('Resounding Timbre copies live boon pools and rejects other recipients and 
   );
   assert.equal(boons[0].duration, 1);
   assert.equal(boons[1].duration, 5);
+  assert.equal(boons[2].duration, 7);
   for (const event of boons) {
     assert.equal(event.resolvedAudience.includesSelf, false);
     assert.deepEqual(event.resolvedAudience.companionIds, [petId]);
   }
+});
+
+// A copied grant expires independently of the next external refresh; the source's uptime stays configured.
+test('configured golem boons copy finite duration across refresh boundaries for every pet', () => {
+  for (const selectedPet of ['Tiger', 'Lynx', 'Jacaranda']) {
+    for (const [atMs, remaining] of [
+      [9960, 0.04],
+      [10000, 10],
+      [10040, 9.96],
+      [20000, 10]
+    ]) {
+      const result = runRanger([wait(atMs), ID.SIC_EM, wait(20000)], {
+        ...config,
+        selectedPet,
+        selectedTraitIds: [TRAIT.RESOUNDING_TIMBRE],
+        boons: { might: 25, quickness: true }
+      });
+      assert.deepEqual(result.warnings, []);
+      const copied = result.events.filter((event) => event.sourceId === TRAIT.RESOUNDING_TIMBRE);
+      assert.equal(copied.find((event) => event.kind === 'might').duration, remaining);
+      assert.equal(copied.find((event) => event.kind === 'quickness').duration, remaining);
+      const runtime = observedRuntime(result);
+      assert.equal(
+        remainingDurationStackSeconds(runtime.boons.get('quickness'), runtime.time, {
+          includes: (application) => application.resolvedAudience.companionIds.includes(rangerPetCompanionId(runtime))
+        }),
+        0
+      );
+      assert.equal(runtime.config.boons.quickness, true);
+    }
+  }
+});
+
+// Trait-triggered commands must share command traits across species without proccing once per strike.
+test('Lesser Sic Em copies player boons once after the qualifying beast hit', () => {
+  for (const [selectedPet, skillId] of [
+    ['Tiger', ID.FURIOUS_POUNCE],
+    ['Lynx', ID.RENDING_POUNCE]
+  ]) {
+    for (const selectedTraitIds of [
+      [TRAIT.GO_FOR_THE_THROAT, TRAIT.RESOUNDING_TIMBRE],
+      [TRAIT.GO_FOR_THE_THROAT],
+      [TRAIT.RESOUNDING_TIMBRE]
+    ]) {
+      const result = runRanger([skillId, wait(4000)], {
+        ...config,
+        selectedPet,
+        selectedTraitIds,
+        boons: { might: 25 }
+      });
+      assert.deepEqual(result.warnings, []);
+      const copies = result.events.filter((event) => event.sourceId === TRAIT.RESOUNDING_TIMBRE);
+      if (selectedTraitIds.length === 1) {
+        assert.equal(copies.length, 0);
+        continue;
+      }
+
+      const might = copies.filter((event) => event.kind === 'might');
+      const hit = result.events.find((event) => event.type === 'damage' && event.skillId === skillId);
+      assert.equal(might.length, 1);
+      assert.equal(might[0].at, hit.at);
+      assert.ok(result.events.indexOf(might[0]) > result.events.indexOf(hit));
+      assert.equal(might[0].stacks, 25);
+      assert.equal(might[0].triggeredBy, 'Lesser "Sic \'Em!"');
+      assert.equal(might[0].resolvedAudience.includesSelf, false);
+      assert.deepEqual(might[0].resolvedAudience.companionIds, [hit.summonOwner]);
+    }
+  }
+});
+
+// The same proc extends existing player boons while merged instead of copying to an inactive pet.
+test('merged Lesser Sic Em extends player boons through Resounding Timbre', () => {
+  const result = runRanger(
+    ['Worldly Impact', wait(2000)],
+    {
+      ...config,
+      specialization: 'Soulbeast',
+      selectedPet: 'Pig',
+      selectedTraitIds: [TRAIT.GO_FOR_THE_THROAT, TRAIT.RESOUNDING_TIMBRE]
+    },
+    {
+      initialize(runtime) {
+        runtime.emit({
+          type: 'buff',
+          at: 0,
+          source: 'test',
+          sourceId: 'test-boon',
+          actorType: 'effect',
+          kind: 'vigor',
+          duration: 10,
+          stacks: 1,
+          audience: { recipients: 'self' }
+        });
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const effects = result.events.filter((event) => event.sourceId === TRAIT.RESOUNDING_TIMBRE);
+  assert.equal(effects.length, 1);
+  assert.equal(effects[0].type, 'boon_extension');
+  assert.equal(effects[0].duration, 2);
+  assert.equal(remainingDurationStackSeconds(observedRuntime(result).boons.get('vigor'), 3), 9);
 });
 
 test('Splitblade shares an impact without merging hit or condition application indices', () => {

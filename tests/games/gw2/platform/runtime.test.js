@@ -197,6 +197,42 @@ test('explicit overlaps use the previous player start and waits join independent
   assert.match(backdated.warnings[0], /cannot backdate/);
 });
 
+// Reporting follows the activation identity after deferral without retiming the player's command reservations.
+test('companion steps report executed animations instead of queued reservations', () => {
+  const result = run([cast(990005), cast(990003), wait(2000)], {
+    profession: fixture({
+      prepareEvent(_runtime, event) {
+        return event.type === 'action' && event.skillId === 990005 && event.actorType === 'player' ? null : event;
+      },
+      onCastStart(runtime, activation) {
+        if (activation.skill.id !== 990005) return;
+        const action = {
+          type: 'action',
+          source: 'companion',
+          sourceId: 990005,
+          skillId: 990005,
+          actorType: 'summon',
+          at: 0.4,
+          endsAt: 1.2,
+          fullEndsAt: 1.6,
+          activationId: activation.id
+        };
+        runtime.emit(action);
+        runtime.emit({ ...action, at: 2, endsAt: 3, fullEndsAt: 3, activationId: 'automatic' });
+      }
+    })
+  });
+  assert.deepEqual(result.warnings, []);
+  const companion = result.steps.find((step) => step.skillId === 990005);
+  assert.equal(companion.start, 400);
+  assert.equal(companion.end, 1200);
+  assert.equal(companion.fullCastMs, 1200);
+  assert.equal(companion.interrupted, true);
+  const player = result.steps.find((step) => step.skillId === 990003);
+  assert.equal(player.start, 0);
+  assert.equal(player.end, 2000);
+});
+
 test('default interruptions and authored overrides release the actual cast lane', () => {
   for (const [extra, end] of [
     [{}, 0.5],

@@ -62,9 +62,13 @@ function activePetSkillIds(context: RangerUiContext): SkillId[] {
 }
 
 function commandablePetSkillIds(catalog: Readonly<CanonicalCatalog>, context: RangerUiContext): SkillId[] {
-  return activePetSkillIds(context).filter((skillId) =>
+  const skillIds = activePetSkillIds(context).filter((skillId) =>
     rangerPetSkillCommandable(catalog.skillsById.get(skillId), rangerUiSpecialization(context))
   );
+  // Place the ordinary F2 beast command between the first and second commandable family skills (F1/F3).
+  const beastIndex = skillIds.findIndex((skillId) => !catalog.skillsById.get(skillId)?.petAutonomousSkill);
+  if (beastIndex > 1) skillIds.splice(1, 0, ...skillIds.splice(beastIndex, 1));
+  return skillIds;
 }
 
 interface RangerPetPaletteGroupOptions {

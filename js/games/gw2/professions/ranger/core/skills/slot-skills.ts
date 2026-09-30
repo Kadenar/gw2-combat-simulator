@@ -1,4 +1,6 @@
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
@@ -16,6 +18,16 @@ import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ran
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+
+/** The spirit supplies Power after player bonuses; Precision and Ferocity remain the Ranger's attributes. */
+export function modifyStormSpiritAttributes(
+  context: Gw2ModifierContext,
+  attributes: Gw2ResolvedStats
+): Gw2ResolvedStats {
+  return context.event?.type === 'damage' && context.event.skillId === ID.STORM_SPIRIT
+    ? { ...attributes, power: 1580 }
+    : attributes;
+}
 
 /** Identify slam packets so Nature's Vengeance repeats neither summon rewards nor boon shakes. */
 function spiritSlam(effects: readonly SkillEffect[]): SkillEffect[] {
@@ -137,7 +149,8 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       },
       ...spiritSlam([
         { type: 'control', controlKind: 'daze' },
-        { type: 'strike', coefficient: 2 }
+        // Storm Spirit supplies power and weapon strength; the Ranger supplies critical stats and strike modifiers.
+        { type: 'strike', coefficient: 2, weaponStrengthProfileId: 'summon.storm-spirit' }
       ]),
       spiritShakes('fury', 2)
     ],
@@ -306,7 +319,8 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       }
     ],
-    castTimeMs: 667
+    // The command completes on the 840 ms action tick before its buffs and command traits apply.
+    castTimeMs: 840
   },
   [ID.SHARPENING_STONE]: {
     // Activate the intrinsic reward at its declared boundary, before common trait observers.

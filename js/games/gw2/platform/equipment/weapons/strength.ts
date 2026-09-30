@@ -33,6 +33,8 @@ const PROFILE_ROWS: ReadonlyArray<readonly [string, number, number]> = Object.fr
   ['nonweapon.unequipped', 656, 725],
   ['nonweapon.profession-mechanic', 1034, 1166],
   ['summon.weapon-type-1', 2427, 2680],
+  // Storm Spirit has its own observed range while sharing type 1's midpoint.
+  ['summon.storm-spirit', 2426, 2681],
   ['summon.weapon-type-2', 2706, 3050],
   ['summon.weapon-type-3', 2448, 3050],
   ['bundle.exotic', 876, 969],

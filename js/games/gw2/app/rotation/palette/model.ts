@@ -14,6 +14,7 @@ import {
 } from '#gw2/app/rotation/context.js';
 import { ACTION_ICONS, PLACEHOLDER_ICON } from '#gw2/app/shared/icons.js';
 import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
+import { summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { ammoDisplayView, type AmmoDisplayView } from '#ui/rotation/ammo-display.js';
 
 import { paletteSkillResourceView, type PaletteResourceView } from '#gw2/app/rotation/palette/resource-view.js';
@@ -725,7 +726,10 @@ export function paletteSkillView(
   const castTimeSeconds = Number(skill.castTimeMs || 0) / 1000;
   // Give each live cast detail its own label so availability and recharge values align without prose wrapping.
   const castDetails = [
-    `Cast time: ${castTimeSeconds ? `${castTimeSeconds.toFixed(2)}s` : 'Instant'}`,
+    // A palette entry has no activation yet; show both speeds instead of presenting the base as a live duration.
+    skill.independentCast && castTimeSeconds > 0
+      ? `Cast time (normal): ${castTimeSeconds.toFixed(2)}s\nCast time (Quickness): ${(summonQuicknessCastTimeMs(skill) / 1000).toFixed(2)}s`
+      : `Cast time: ${castTimeSeconds ? `${castTimeSeconds.toFixed(2)}s` : 'Instant'}`,
     !contextAvailable
       ? remaining
         ? `Remaining: ${cooldownLabel}`

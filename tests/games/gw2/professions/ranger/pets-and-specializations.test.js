@@ -573,7 +573,9 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
   const pointBlankShot = result.steps.find((step) => step.skill === 'Point-Blank Shot');
   const poisonAction = result.events.find((event) => event.type === 'action' && event.skillId === ID.POISONOUS_CLOUD);
 
-  assert.equal(poison.start, rapidFire.start);
+  // The timeline follows the companion's actual start while the player retains its independent reservation.
+  assert.equal(poison.start, Math.round(poisonAction.at * 1000));
+  assert.equal(poison.end, Math.round(poisonAction.endsAt * 1000));
   assert.equal(pointBlankShot.start, rapidFire.end);
   assert.equal(poisonAction.actorType, 'summon');
   assert.equal(poisonAction.at > rapidFire.start / 1000, true);
@@ -1355,7 +1357,7 @@ test('Untamed exposes and executes all three natural pet commands only with the 
   };
   const context = { build, specialization: 'Untamed', professionState: { rangerUnleashed: true } };
   const petSkills = rangerProfession.ui.paletteGroups(context).find((group) => group.id === 'ranger-pet').skillIds;
-  assert.deepEqual(new Set(petSkills), new Set([...commands, ID.PET_SWAP]));
+  assert.deepEqual(petSkills, [...commands, ID.PET_SWAP]);
   for (const skillId of commands) {
     const skill = rangerCatalog.skillsById.get(skillId);
     assert.equal(rangerProfession.ui.paletteSkillAvailability(context, skill).available, true);

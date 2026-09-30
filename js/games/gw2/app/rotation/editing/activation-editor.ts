@@ -20,6 +20,8 @@ export interface ActivationEditorOptions {
   readonly interruptMs?: number | null;
   readonly concurrentOffsetMs?: number | null;
   readonly fullCastMs?: number | null;
+  /** Unplaced companion commands show both possible durations until an actual activation is available. */
+  readonly quicknessCastMs?: number;
   readonly suggestedInterruptMs?: number | null;
   readonly minimumConcurrentOffsetMs?: number | null;
   readonly damageCommitMs?: number | null;
@@ -335,7 +337,12 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   configuredRadio.checked = hasConfiguredTiming;
   input.value = String(hasConfiguredTiming ? Math.round(currentConfiguredMs) : suggestedMs);
   if (!isConcurrentBehavior && fullCastMs > 0) input.max = String(fullCastMs);
-  fullCast.textContent = !isConcurrentBehavior && fullCastMs > 0 ? `Full cast: ${fullCastMs} ms` : '';
+  fullCast.textContent =
+    !isConcurrentBehavior && fullCastMs > 0
+      ? options.quicknessCastMs != null
+        ? `Full cast: ${fullCastMs} ms normal / ${options.quicknessCastMs} ms with Quickness`
+        : `Full cast: ${fullCastMs} ms`
+      : '';
   fullCast.hidden = isConcurrentBehavior || fullCastMs <= 0;
   damageCommit.textContent = isConcurrentBehavior ? '' : activationDamageCommitLabel(options.damageCommitMs);
   damageCommit.hidden = !damageCommit.textContent;

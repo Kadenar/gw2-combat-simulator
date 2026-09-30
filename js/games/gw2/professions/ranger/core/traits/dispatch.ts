@@ -20,7 +20,7 @@ export function completeRangerTraits(context: RangerRuntime, skill: RangerSkill)
 
   // Trait consumers share the authored category, independent of tooltip wording.
   if (skill.categories?.includes('Command')) {
-    applyRangerCommandTraits(context, skill);
+    applyRangerCommandTraits(context, skill, context.time);
   }
 
   if (!isBeastSkill(skill)) return;

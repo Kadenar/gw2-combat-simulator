@@ -12,7 +12,7 @@ import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState, ProfessionRotationDragState, RotationActionOptions } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
+import { GW2_ACTION_TICK_MS, summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { openDurationEditor } from '#ui/rotation/editing/duration-editor.js';
 import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
@@ -249,6 +249,7 @@ export function dispatchPaletteActivation(
       icon: skill?.icon || icon.querySelector('img')?.getAttribute('src') || undefined,
       interruptMs: suggestedInterruptMs,
       fullCastMs: Number(skill?.castTimeMs) || null,
+      quicknessCastMs: skill?.independentCast ? summonQuicknessCastTimeMs(skill) : undefined,
       suggestedInterruptMs,
       damageCommitMs: activationDamageCommitMs(skill),
       onApply(interruptMs) {
