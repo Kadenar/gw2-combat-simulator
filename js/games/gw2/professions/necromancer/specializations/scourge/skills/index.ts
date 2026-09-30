@@ -6,6 +6,7 @@
  * makes elite weapon families profession-wide.
  */
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Herald of Sorrow swaps Desert Shroud for Sandstorm Shroud; both are state-selected variants of one UI tile.
@@ -45,26 +46,39 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   },
   [ID.GHASTLY_BREACH]: {
     castTimeMs: 680,
-    effects: [
+    comboFields: [{ ownerId: 'necromancer', fieldType: 'Dark', duration: 5, startAnchor: 'castEnd' }],
+    // Five fixed pulses share strike, condition, and ally-boon timing; boon-conversion Torment is not simulated.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: index * 1000, coefficient: 3.5 / 5 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: index * 1000, coefficient: 3.5 / 5 }))
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 3,
-        duration: 8
+        condition: 'Slow',
+        stacks: 1,
+        duration: 2,
+        applications: 5,
+        intervalMs: 1000
       },
       {
         type: 'condition',
         condition: 'Burning',
         stacks: 1,
-        duration: 2
+        duration: 2,
+        applications: 5,
+        intervalMs: 1000
+      },
+      {
+        type: 'boon',
+        boon: 'might',
+        stacks: 2,
+        duration: 6,
+        applications: 5,
+        intervalMs: 1000,
+        audience: { recipients: 'party', maximumRecipients: 5 }
       }
-    ]
+    ])
   },
   [ID.DESICCATE]: {
     castTimeMs: 360,
