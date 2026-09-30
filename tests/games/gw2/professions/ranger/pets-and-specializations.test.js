@@ -1835,6 +1835,42 @@ test("Panther's Prowl replaces all four Ranger spear stealth-attack slots", () =
   assert.ok(stealth.every((name) => !consumed.includes(name)));
 });
 
+// Isolate pet strike scaling from player gear, autonomous attacks, and rotation-specific boon windows.
+test('Unleashed pet strikes retain their own weapon profile, attributes, and family bonus', () => {
+  for (const [skillId, coefficient] of [
+    [ID.VENOMOUS_OUTBURST, 1],
+    [ID.RENDING_VINES, 1.3],
+    [ID.ENVELOPING_HAZE, 0.25]
+  ]) {
+    const strike = (config = {}) => {
+      const result = runRanger([skillId], {
+        specialization: 'Untamed',
+        initialUntamedState: 'Pet',
+        selectedPet: 'Tiger',
+        ...config
+      });
+      assert.deepEqual(result.warnings, []);
+
+      return result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === skillId);
+    };
+
+    const baseline = strike();
+    const geared = strike({
+      stats: { power: 5000, precision: 3000, ferocity: 2000 },
+      weapons: ['Hammer', '']
+    });
+    const criticalMultiplier = 1 + ((2211 - 1000) / 2100) * 0.5;
+    assert.equal(baseline.weaponStrengthProfileId, 'summon.weapon-type-1');
+    assert.equal(baseline.damage, Math.floor(((coefficient * 2553.5 * 1524) / 2597) * criticalMultiplier));
+    assert.equal(geared.damage, baseline.damage);
+    assertFlooredDamageMultiplier(
+      strike({ selectedPet: 'Pig', selectedTraitIds: [TRAIT.BEASTLY_WARDEN] }).damage,
+      strike({ selectedPet: 'Pig' }).damage,
+      1.67
+    );
+  }
+});
+
 // Authored eligibility retains pet attribution and suppresses only Vulnerability on non-defiant targets.
 test('Venomous Outburst applies authored Vulnerability only to defiant targets', () => {
   for (const defiant of [false, true]) {

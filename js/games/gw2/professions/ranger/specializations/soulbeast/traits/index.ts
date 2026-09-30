@@ -118,7 +118,20 @@ export const predatorsCunning = defineTrait({
   id: TRAIT.PREDATORS_CUNNING,
   name: "Predator's Cunning",
   balance: {
-    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.006, hits: 1, canCrit: false }]
+    // Resolve and display the siphon separately, using base damage plus Power without weapon or armor scaling.
+    effects: [
+      {
+        name: 'Strike',
+        type: 'strike',
+        coefficient: 0,
+        flatStrikeBase: 170,
+        flatStrikePowerCoeff: 0.006,
+        damageBreakdownName: "Life Siphon - Predator's Cunning",
+        hits: 1,
+        canCrit: false,
+        damageKind: 'life-steal'
+      }
+    ]
   },
   triggers: [
     {

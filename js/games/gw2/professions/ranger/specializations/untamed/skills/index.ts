@@ -20,9 +20,12 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        // Pet-side damage uses 0.25 per pulse; the command tooltip's aggregate is not this packet's coefficient.
+        // ponytail: use the unleashed-pet profile; tracking the pet's current AI weapon would cover inherited Haze rolls.
+        weaponStrengthProfileId: 'summon.weapon-type-1',
         ticks: [0, 1000, 2000, 3000, 4000, 5000].map((atMs) => ({
           atMs,
-          coefficient: 1.75 / 6
+          coefficient: 0.25
         })),
         source: 'ranger-pet',
         actorType: 'summon'
@@ -133,6 +136,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       {
         type: 'strike',
+        // Unleashed attacks use the pet's type-1 weapon, not the generic autonomous-attack strength.
+        weaponStrengthProfileId: 'summon.weapon-type-1',
         coefficient: 1,
         hits: 1,
         source: 'ranger-pet',
@@ -166,6 +171,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       {
         type: 'strike',
+        weaponStrengthProfileId: 'summon.weapon-type-1',
         coefficient: 1.3,
         hits: 1,
         source: 'ranger-pet',

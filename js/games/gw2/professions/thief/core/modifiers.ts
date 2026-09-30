@@ -6,7 +6,6 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { vampiricSlashModifier } from '#gw2/professions/thief/core/skills/weapons/spear.js';
 import { applyRevealedTrainingAttributes } from '#gw2/professions/thief/core/traits/behavior.js';
 import { applyNoQuarterAttributes } from '#gw2/professions/thief/core/traits/critical-boons.js';
 
@@ -31,7 +30,6 @@ export function thiefRuntimeSpecializationState<TState extends object = object>(
 }
 
 export const thiefCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
-  vampiricSlashModifier,
   {
     order: 9,
     id: 'thief.distracting-throw-finisher',

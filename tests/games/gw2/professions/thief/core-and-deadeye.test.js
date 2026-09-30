@@ -1,5 +1,4 @@
 import { daredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';
-import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
@@ -1266,22 +1265,23 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
 });
 
 test('Thief modifiers follow stable skill and packet IDs after display labels change', () => {
-  const vampiric = thiefCoreModule.modifiers.modifierRules.find(
-    (rule) => rule.id === 'thief.vampiric-slash-vulnerable'
+  // The siphon's live Vulnerability bonus follows its packet ID after renaming.
+  const vampiric = runThief(
+    ['Unsuspecting Strike', 'Vampiric Slash'],
+    { primaryWeapon: 'Spear', stats: { power: 2000 }, target: { conditions: { Vulnerability: 1 } } },
+    {
+      catalog: (catalog) =>
+        withSkill(catalog, ID.VAMPIRIC_SLASH, {
+          effects: catalog.skillsById
+            .get(ID.VAMPIRIC_SLASH)
+            .effects.map((effect) =>
+              effect.damageKind === 'life-steal' ? { ...effect, name: 'Renamed life-siphon packet' } : effect
+            )
+        })
+    }
   );
-  assert.equal(
-    vampiric.when({
-      event: {
-        type: 'damage',
-        actorType: 'player',
-        name: 'Renamed life-siphon packet',
-        metadata: { packetKind: 'thief.vampiric-slash-life-siphon' }
-      },
-      config: { target: { conditions: { Vulnerability: true } } },
-      time: 0
-    }),
-    true
-  );
+  assert.deepEqual(vampiric.warnings, []);
+  assert.equal(vampiric.resolvedEvents.find((event) => event.name === 'Renamed life-siphon packet').damage, 2715);
 
   // The intrinsic factor now transforms the accepted packet, independently of its display label.
   const result = runThief(

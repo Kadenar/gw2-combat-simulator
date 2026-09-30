@@ -1,6 +1,3 @@
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
@@ -277,7 +274,12 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
       ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
         {
           type: 'strike',
-          coefficient: 0.2,
+          // The siphon owns a flat Power formula and a separate row from the weapon strike.
+          coefficient: 0,
+          flatStrikeBase: 1410,
+          flatStrikePowerCoeff: 0.2,
+          damageKind: 'life-steal',
+          damageBreakdownName: 'Life Siphon - Vampiric Slash',
           hits: 1,
           name: 'Vampiric Slash — Life Siphon',
           // The vulnerability modifier targets this packet identity without depending on its display label.
@@ -390,16 +392,3 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   }
 });
-
-/** Only the siphon packet samples live Vulnerability at impact. */
-export const vampiricSlashModifier: Gw2ModifierRule = {
-  order: 0,
-  id: 'thief.vampiric-slash-vulnerable',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'multiply',
-  factor: 1.5,
-  when: (context) =>
-    isGw2PlayerModifierOwnedEvent(context.event) &&
-    context.event?.metadata?.packetKind === 'thief.vampiric-slash-life-siphon' &&
-    targetConditionActive(context, 'Vulnerability')
-};

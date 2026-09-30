@@ -64,27 +64,29 @@ export function hiddenKillerLinger(runtime: ThiefRuntime): number {
   return balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.HIDDEN_KILLER), 'duration');
 }
 
-/** Lead Attacks also boosts owned flat life steal, which bypasses ordinary strike modifiers. */
+/** Apply siphon-specific bonuses at impact because flat life steal bypasses ordinary strike modifiers. */
 export function modifyThiefLifeSiphon(context: ThiefResolverContext, event: ThiefResolverEvent) {
+  if (!isFlatLifeStealPacket(event) || !isGw2PlayerModifierOwnedEvent(event)) return;
+  let multiplier = event.flatStrikeMultiplier ?? 1;
+  // Vampiric Slash samples live Vulnerability for its siphon only, independently of the packet's label.
   if (
-    !isFlatLifeStealPacket(event) ||
-    !isGw2PlayerModifierOwnedEvent(event) ||
-    !hasTrait(context.config, TRAIT.LEAD_ATTACKS)
+    event.metadata?.packetKind === 'thief.vampiric-slash-life-siphon' &&
+    context.query.targetHasCondition('Vulnerability', event.at, context)
   )
-    return;
+    multiplier *= 1.5;
 
-  const state = readProfessionCoreState<ThiefCoreState>(context.profession);
-  const leadAttacksProfile = requireBalanceProfileFromContext(context, TRAIT.LEAD_ATTACKS);
-  // Stacks expire individually, so the siphon counts those active at its own impact.
-  const stacks = Math.min(
-    balanceProfileNumber(leadAttacksProfile, 'maximumStacks'),
-    activeStackCount(state.leadAttackExpirations || [], event.at)
-  );
-  return {
-    flatStrikeMultiplier:
-      (event.flatStrikeMultiplier ?? 1) *
-      (1 + stacks * balanceProfileNumber(leadAttacksProfile, 'damageIncreasePerStack'))
-  };
+  if (hasTrait(context.config, TRAIT.LEAD_ATTACKS)) {
+    const state = readProfessionCoreState<ThiefCoreState>(context.profession);
+    const leadAttacksProfile = requireBalanceProfileFromContext(context, TRAIT.LEAD_ATTACKS);
+    // Stacks expire individually, so the siphon counts those active at its own impact.
+    const stacks = Math.min(
+      balanceProfileNumber(leadAttacksProfile, 'maximumStacks'),
+      activeStackCount(state.leadAttackExpirations || [], event.at)
+    );
+    multiplier *= 1 + stacks * balanceProfileNumber(leadAttacksProfile, 'damageIncreasePerStack');
+  }
+
+  return { flatStrikeMultiplier: multiplier };
 }
 
 /** Initiative spent grants Lead Attacks stacks at completion, replacing the oldest at the cap. */

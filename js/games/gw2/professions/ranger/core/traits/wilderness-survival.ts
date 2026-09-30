@@ -81,8 +81,20 @@ export const carnivore = defineTrait({
   name: 'Carnivore',
   balance: {
     internalCooldown: 0.25,
-    // Life stealing cannot crit and uses its own damage category.
-    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.05, hits: 1, canCrit: false, damageKind: 'life-steal' }]
+    // Resolve and display the siphon separately, using base damage plus Power without weapon or armor scaling.
+    effects: [
+      {
+        name: 'Strike',
+        type: 'strike',
+        coefficient: 0,
+        flatStrikeBase: 3255,
+        flatStrikePowerCoeff: 0.05,
+        damageBreakdownName: 'Life Siphon - Carnivore',
+        hits: 1,
+        canCrit: false,
+        damageKind: 'life-steal'
+      }
+    ]
   },
   triggers: [
     {

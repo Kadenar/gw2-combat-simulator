@@ -11,7 +11,11 @@ export const cloakedInShadow = defineTrait({
       {
         type: 'strike',
         name: 'Cloaked in Shadow',
-        coefficient: 0.04,
+        // Keep the siphon's flat Power formula and breakdown separate from the triggering skill.
+        coefficient: 0,
+        flatStrikeBase: 130,
+        flatStrikePowerCoeff: 0.04,
+        damageBreakdownName: 'Life Siphon - Cloaked in Shadow',
         hits: 1,
         canCrit: false,
         damageKind: 'life-steal'
@@ -69,7 +73,11 @@ export const shadowSiphoning = defineTrait({
       {
         type: 'strike',
         name: 'Shadow Siphoning',
-        coefficient: 0.1,
+        // Keep the siphon's flat Power formula and breakdown separate from the stealth attack.
+        coefficient: 0,
+        flatStrikeBase: 412,
+        flatStrikePowerCoeff: 0.1,
+        damageBreakdownName: 'Life Siphon - Shadow Siphoning',
         hits: 1,
         canCrit: false,
         damageKind: 'life-steal'

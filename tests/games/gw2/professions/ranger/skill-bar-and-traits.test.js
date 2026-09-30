@@ -894,7 +894,8 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
   const stolen = carnivore.resolvedEvents.find((event) => event.sourceId === TRAIT.CARNIVORE);
 
   assert.equal(stolen.damageKind, 'life-steal');
-  assert.equal(stolen.coefficient, 0.05);
+  assert.equal(stolen.flatStrikeBase, 3255);
+  assert.equal(stolen.flatStrikePowerCoeff, 0.05);
 
   const spider = simulate('Core', ['Spit', { type: 'wait', durationMs: 4000 }], {
     selectedPet: 'Forest Spider',

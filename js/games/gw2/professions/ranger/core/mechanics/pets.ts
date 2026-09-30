@@ -118,7 +118,17 @@ export function prepareRangerPetEvent(context: RangerRuntime, event: SimulationE
   // Every pet-owned event needs concrete caster identity for audience resolution;
   // damaging packets additionally receive the pet's independent combat stats.
   return event.type === 'damage' || event.type === 'condition'
-    ? { ...event, ...rangerPetCombatMetadata(context) }
+    ? {
+        ...event,
+        ...rangerPetCombatMetadata(context),
+        // Authored pet weapon profiles replace the generic pet roll without losing the family strike bonus.
+        ...(event.weaponStrengthProfileId
+          ? {
+              weaponStrengthProfileId: event.weaponStrengthProfileId,
+              summonStrikeMultiplier: beastlyWardenPetDamageMultiplier(context)
+            }
+          : {})
+      }
     : { ...event, summonOwner: rangerPetCompanionId(context), independentConditionOwner: true };
 }
 
