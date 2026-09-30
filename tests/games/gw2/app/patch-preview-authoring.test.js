@@ -172,11 +172,12 @@ test('patch authoring omits unreachable skills for the remaining professions', (
 
   const rangerIds = idsFor(rangerProfession);
 
-  for (const unusedId of [42809, 59554, 64882, 67382]) {
+  for (const unusedId of [42809, 59554, 67382]) {
     assert.equal(rangerIds.has(unusedId), false, String(unusedId));
   }
 
-  for (const usedId of [40729, 63094, 63258]) {
+  // Wallow's merged Undead Plague now owns a simulated poison field and remains editable.
+  for (const usedId of [40729, 63094, 63258, 64882]) {
     assert.equal(rangerIds.has(usedId), true, String(usedId));
   }
 

@@ -5,6 +5,8 @@ export default defineConfig({
   testDir: './tests/browser',
   testMatch: '**/*.spec.js',
   outputDir: 'dist/playwright-results',
+  // Cold Vite transforms take about 40s on the first parallel pages; retain a finite deadline for stalled tests.
+  timeout: 60_000,
   // Parallel files stay within the host's cores alongside each page's own simulation workers: four lanes locally,
   // three on the four-vCPU CI runners where those in-page pools would otherwise oversubscribe every core.
   workers: process.env.CI ? 3 : 4,

@@ -7,7 +7,7 @@ import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
-import { rangerCoreModifiers } from '#gw2/professions/ranger/core/modifiers.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pets.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
@@ -228,12 +228,14 @@ test('Avatar re-entry survives its previous depletion task', () => {
 
 // Static player reconciliation and independent pet launch snapshots consume the same selected-and-ready value.
 test('Signet of the Wild preserves static provenance and pet launch snapshots', () => {
+  // Exercise the composed attribute hooks, including their declared ordering, as the runtime does.
+  const ranger = rangerProfession.runtimeFor({ specialization: 'Core' });
   const bonus = rangerCatalog.balanceProfilesById.get(PROFILE.signetOfTheWild).attributeBonus;
   for (const selected of [false, true]) {
     for (const preapplied of [false, true]) {
       for (const ready of [false, true]) {
         const context = {
-          helpers: rangerCatalog,
+          catalog: rangerCatalog,
           config: {
             selectedSkills: selected ? ['Signet of the Wild'] : [],
             selectedTraitIds: [],
@@ -242,7 +244,7 @@ test('Signet of the Wild preserves static provenance and pet launch snapshots', 
           time: 0,
           timeline: { skillOnCooldownAt: () => !ready }
         };
-        const result = rangerCoreModifiers.modifyAttributes(context, { ferocity: preapplied && selected ? bonus : 0 });
+        const result = ranger.modifyAttributes(context, { ferocity: preapplied && selected ? bonus : 0 });
         assert.equal(result.ferocity, selected && ready ? bonus : 0);
       }
     }

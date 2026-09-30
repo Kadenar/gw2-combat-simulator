@@ -938,6 +938,17 @@ test('Song of the Mists tooltip reads patched core invocation skills', async () 
   }
 });
 
+// Blast Zone's custom marker must expose its declared finisher rather than an incomplete generic effect.
+test('Blast Zone tooltip describes its combo finisher', async () => {
+  const { engineerProfession } = await import('#gw2/professions/engineer/profession.js');
+  const { engineerTooltips } = await import('#gw2/professions/engineer/app/tooltips.js');
+  const context = withPatchPreview(engineerProfession, null).balanceContextFor();
+  const trait = context.catalog.traits.find(({ name }) => name === 'Blast Zone');
+  const model = describeSimulationTrait(context, trait, engineerTooltips);
+  assert.ok(!model.incomplete);
+  assert.equal(model.facts.find(({ name }) => name === 'Combo finisher').detail, 'Blast');
+});
+
 // Every registered trait must resolve real declarations, including traits backed by separately named profiles.
 test('profession trait declarations resolve without missing references or invalid numeric facts', async () => {
   for (const name of [

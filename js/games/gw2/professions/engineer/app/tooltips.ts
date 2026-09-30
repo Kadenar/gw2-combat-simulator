@@ -662,9 +662,17 @@ export const engineerTooltips: ProfessionTooltips = {
         profileFact(balanceContext, id, 'internalCooldown', 'Fury cooldown', tooltipSeconds)
       ]
     ),
-    [TRAIT.BLAST_ZONE]: traitTooltip(
-      'Using your healing tool belt skill or first mech command creates a blast finisher at your location.'
-    ),
+    // This custom marker carries a finisher rather than an ordinary damage or boon payload.
+    [TRAIT.BLAST_ZONE]: (balanceContext, entity) => ({
+      description:
+        'Using your healing tool belt skill or first mech command creates a blast finisher at your location.',
+      facts: (tooltipProfile(balanceContext, entity.id).effects || []).flatMap((effect) =>
+        (effect.comboFinishers || []).map((finisher) => ({
+          name: 'Combo finisher',
+          detail: String(finisher.finisherType)
+        }))
+      )
+    }),
     [TRAIT.HGH]: traitTooltip(
       'Completing an elixir grants might and fury. Elixir boons, conditions, and combo fields last longer; Acid Bomb gains an additional strike pulse.',
       (balanceContext, id) => [
