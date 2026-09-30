@@ -1,4 +1,5 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
@@ -1611,6 +1612,40 @@ test('Untamed Unleash forms share a fixed one-second recharge', () => {
   );
 
   assert.equal(refreshed.planningState.profession.ambushReadyUntil, 14.001);
+});
+
+// Both ambushes use the flat siphon formula and retain separate breakdown attribution.
+test('Natural Fortitude uses base plus Power damage and a separate breakdown label', () => {
+  for (const [id, power, armor, expectedDamage] of [
+    [ID.RELENTLESS_WHIRL, 1000, 2597, 3522],
+    [ID.RELENTLESS_WHIRL, 3000, 5194, 3532],
+    [ID.DEFT_STRIKE, 1000, 5194, 3522],
+    [ID.DEFT_STRIKE, 3000, 2597, 3532]
+  ]) {
+    const skill = rangerCatalog.skillsById.get(id);
+    const result = simulate('Untamed', ['Unleash Ranger', skill.name], {
+      primaryWeapon: skill.weapon,
+      stats: { power, precision: 4000, ferocity: 1000 },
+      target: { armor }
+    });
+    assert.deepEqual(result.warnings, []);
+    const siphon = result.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.sourceId === TRAIT.NATURAL_FORTITUDE
+    );
+    assert.ok(siphon);
+    assert.equal(siphon.damage, expectedDamage);
+    assert.equal(siphon.critEligible, false);
+    assert.equal(siphon.skillId, id);
+    assert.equal(siphon.skillName, skill.name);
+    assert.equal(siphon.damageBreakdownName, 'Life Siphon - Natural Fortitude');
+    const rows = skillBreakdownRows(result);
+    const siphonRow = rows.find((row) => row.name === 'Life Siphon - Natural Fortitude');
+    assert.ok(siphonRow);
+    const traitIcon = rangerCatalog.traits.find((trait) => trait.id === TRAIT.NATURAL_FORTITUDE).icon;
+    assert.ok(traitIcon);
+    assert.equal(siphonRow.icon, traitIcon);
+    assert.ok(rows.some((row) => row.name === skill.name));
+  }
 });
 
 test('Untamed ambush skills require the specialization and an active unleash proc', () => {

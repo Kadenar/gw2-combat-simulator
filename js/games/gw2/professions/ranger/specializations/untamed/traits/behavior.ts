@@ -12,6 +12,7 @@ import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { TRAITS } from '#gw2/professions/ranger/data/traits-data.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 
@@ -21,7 +22,14 @@ export function naturalFortitudeAmbushEffect(atMs: number): SkillEffect {
     type: 'strike',
     sourceId: TRAIT.NATURAL_FORTITUDE,
     name: 'Natural Fortitude',
-    ticks: [{ atMs, coefficient: 0.005 }],
+    // Separate the siphon in the breakdown while retaining the ambush's combat attribution.
+    damageBreakdownName: 'Life Siphon - Natural Fortitude',
+    // Use the granting trait's artwork instead of the triggering ambush's icon.
+    icon: String(TRAITS.find((trait) => trait.id === TRAIT.NATURAL_FORTITUDE)?.icon || ''),
+    // Life siphon adds Power to its base damage without weapon, armor, or critical scaling.
+    ticks: [{ atMs, coefficient: 0 }],
+    flatStrikeBase: 3517,
+    flatStrikePowerCoeff: 0.005,
     timingAnchor: 'castStart',
     timingScale: 'fixed',
     canCrit: false,
