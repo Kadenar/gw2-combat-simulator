@@ -54,11 +54,13 @@ import {
   expireThievesGuild,
   grantDistractingThrowWindow,
   grantThiefGroundAxe,
+  landThiefAxe,
   recallThiefAxes,
   prepareTrap,
   startThievesGuild,
   summonThievesGuild,
   THIEF_GUILD_ATTACK,
+  THIEF_AXE_LAND,
   THIEF_GUILD_EXPIRY,
   THIEF_SCEPTER_CHAIN_EXPIRY,
   thiefTrapAvailability,
@@ -245,6 +247,7 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     'condition.applied': reactThiefCoreCondition
   },
   tasks: {
+    [THIEF_AXE_LAND]: landThiefAxe,
     'thief.distracting-throw-window': grantDistractingThrowWindow,
     [THIEF_CORE_COMPLETE](runtime, data) {
       const { cast } = data as { cast: RuntimeCast };

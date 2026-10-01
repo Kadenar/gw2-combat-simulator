@@ -30,15 +30,27 @@ function activeState(result, specialization = 'Core', config = {}) {
 }
 
 test('ground axes accumulate per emitted projectile, cap at six, and expire independently', () => {
-  assert.equal(activeState(simulate('Core', ['Venomous Volley']))['thief-spinning-axes'], '3/6');
+  const flying = activeState(simulate('Core', ['Venomous Volley']));
+  assert.equal(flying['thief-spinning-axes'], '0/6');
+  assert.equal(flying['thief-outbound-axes'], '3');
+  const landed = activeState(simulate('Core', ['Venomous Volley', { type: 'wait', durationMs: 1000 }]));
+  assert.equal(landed['thief-spinning-axes'], '3/6');
+  assert.equal(landed['thief-outbound-axes'], undefined);
   assert.equal(
-    activeState(simulate('Core', ['Venomous Volley', 'Venomous Volley', 'Spinning Axe']))['thief-spinning-axes'],
+    activeState(
+      simulate('Core', ['Venomous Volley', 'Venomous Volley', 'Spinning Axe', { type: 'wait', durationMs: 1000 }])
+    )['thief-spinning-axes'],
     '6/6'
   );
-  const expired = simulate('Core', ['Spinning Axe', { type: 'wait', durationMs: 10000 }, 'Spinning Axe']);
+  const expired = simulate('Core', [
+    'Spinning Axe',
+    { type: 'wait', durationMs: 11000 },
+    'Spinning Axe',
+    { type: 'wait', durationMs: 1000 }
+  ]);
   assert.equal(activeState(expired)['thief-spinning-axes'], '1/6');
   assert.equal(
-    activeState(simulate('Core', ['Spinning Axe', { type: 'wait', durationMs: 10000 }]))['thief-spinning-axes'],
+    activeState(simulate('Core', ['Spinning Axe', { type: 'wait', durationMs: 11000 }]))['thief-spinning-axes'],
     '0/6'
   );
   const interrupted = simulate('Core', [{ name: 'Venomous Volley', interruptMs: 300 }]);
@@ -53,7 +65,11 @@ test('all recall variants consume axes and cancelled recalls preserve the pool',
   ]) {
     const result = simulate('Core', ['Venomous Volley', recall], { secondaryWeapon });
     assert.equal(activeState(result)['thief-spinning-axes'], '0/6');
-    const interrupted = simulate('Core', ['Venomous Volley', { name: recall, interruptMs: 100 }], { secondaryWeapon });
+    const interrupted = simulate(
+      'Core',
+      ['Venomous Volley', { name: recall, interruptMs: 100 }, { type: 'wait', durationMs: 1000 }],
+      { secondaryWeapon }
+    );
     assert.equal(activeState(interrupted)['thief-spinning-axes'], '3/6');
   }
 
@@ -62,7 +78,10 @@ test('all recall variants consume axes and cancelled recalls preserve the pool',
     ['Deadeye', 'Malicious Cunning Salvo']
   ]) {
     assert.equal(
-      activeState(simulate(specialization, ['Hide in Shadows', salvo]), specialization)['thief-spinning-axes'],
+      activeState(
+        simulate(specialization, ['Hide in Shadows', salvo, { type: 'wait', durationMs: 1000 }]),
+        specialization
+      )['thief-spinning-axes'],
       '1/6'
     );
   }

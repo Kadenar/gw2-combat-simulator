@@ -5,7 +5,7 @@
     "benchmarkDurationSeconds": 90.773,
     "benchmarkDamage": 4003922,
     "benchmarkDps": 44109,
-    "note": "User-supplied build and rotation with six Shadow Swap activations restored at their EVTC damage timestamps relative to each Shadow Flare. The build starts with six autoattack axes. The shared six-axe cap is retained; the log shows additional returns that still need reconciliation."
+    "note": "User-supplied build and rotation with six Shadow Swap activations restored at their EVTC damage timestamps relative to each Shadow Flare. Target conditions match the EVTC: Blind and Immobilize replace Burning and Confusion. The build starts with six autoattack axes. Six grounded slots are shared; outgoing axes can be recalled before landing and returning axes no longer occupy those slots. Damage and missile evidence are documented in docs/LOG-IMPORT-EI-ALIGNMENT.md."
   },
   "rotation": [
     {

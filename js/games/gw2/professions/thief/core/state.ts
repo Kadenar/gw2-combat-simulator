@@ -40,6 +40,8 @@ export interface ThiefCoreState {
   distractingThrowBuffUntil: number;
   /** Retain each axe's source so recall repeats that projectile's damage and conditions. */
   spinningAxes: { skillId: SkillId; expiresAt: number }[];
+  /** Outgoing projectiles are recallable before landing, but do not occupy grounded slots yet. */
+  outboundAxes: { id: string; skillId: SkillId; landsAt: number }[];
   venomChargeBatches: ChargePool['grants'];
   venomAllyLastProcAt: Record<string, number>;
   activeThievesGuild: ThievesGuildState | null;
@@ -103,6 +105,7 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
       skillId: ID.SPINNING_AXE,
       expiresAt: 10
     })),
+    outboundAxes: [],
     venomChargeBatches: {},
     venomAllyLastProcAt: {},
     activeThievesGuild: null,
@@ -137,6 +140,7 @@ const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[] = Obje
   'spearLastWasFinisher',
   'distractingThrowBuffUntil',
   'spinningAxes',
+  'outboundAxes',
   'venomChargeBatches',
   'activeThievesGuild',
   'assassinsSignetActiveUntil',

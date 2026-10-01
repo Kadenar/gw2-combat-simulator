@@ -4,7 +4,7 @@ import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.j
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
-import { grantThiefGroundAxe } from '#gw2/professions/thief/core/mechanics/weapons.js';
+import { landThiefAxe } from '#gw2/professions/thief/core/mechanics/weapons.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { triggerSharpeningStone } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
@@ -24,20 +24,11 @@ test('axe materialization replaces the oldest grant without mutating earlier sta
     {
       initialize(runtime) {
         runtime.profession.core.spinningAxes = prior;
+        runtime.profession.core.outboundAxes = [{ id: 'landing-axe', skillId: 71854, landsAt: 1 }];
         snapshot = snapshotProfessionState(runtime.profession);
       },
-      // Exercise the resource owner directly; authored strike reactions now select eligible grants.
-      probes: [
-        [
-          1,
-          (runtime) =>
-            grantThiefGroundAxe(runtime, {
-              kind: 'effect',
-              skill: thiefCatalog.skillsByName.get('Spinning Axe'),
-              trigger: { on: 'damage.resolved' }
-            })
-        ]
-      ]
+      // Exercise landing directly: pending flight cannot mutate the earlier grounded snapshot.
+      probes: [[1, (runtime) => landThiefAxe(runtime, { id: 'landing-axe' })]]
     }
   );
   assert.deepEqual(

@@ -30,6 +30,7 @@ import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 export const THIEF_SCEPTER_CHAIN_EXPIRY = 'thief.scepter-chain-expire';
 export const THIEF_GUILD_ATTACK = 'thief.thieves-guild-attack';
 export const THIEF_GUILD_EXPIRY = 'thief.thieves-guild-expire';
+export const THIEF_AXE_LAND = 'thief.axe-land';
 
 const SPEAR_STEALTH_SKILLS = new Set<SkillId>([ID.ASHEN_ASSAULT]);
 
@@ -160,35 +161,64 @@ export function grantDistractingThrowWindow(runtime: ThiefRuntime): void {
     balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.distractingThrow), 'durationMultiplier');
 }
 
-/** Six slots are shared: Salvo replaces any axe, Volley replaces Volley/autos, and autos replace only autos. */
+/** A landed hit continues outward before occupying a ground slot; recall can intercept that flight. */
 export function grantThiefGroundAxe(runtime: ThiefRuntime, context: ActionContext): void {
   if (context.kind !== 'effect') return;
+  const event = context.trigger.event;
+  const axe = {
+    id: `${event.activationId}:${event.effectReaction?.packet}`,
+    skillId: context.skill.id,
+    // Melee EVTC missile lifetimes: ordinary axes continue ~560ms after hitting; Salvo ~720ms.
+    landsAt: canonicalTime(runtime.time + (context.skill.stealthAttack ? 0.72 : 0.56))
+  };
+  runtime.profession.core.outboundAxes.push(axe);
+  runtime.schedule(THIEF_AXE_LAND, axe.landsAt, { id: axe.id });
+}
+
+/** Lower-priority ground axes are replaced first; age breaks ties within a projectile type. */
+function axePriority(skillId: SkillId): number {
+  if (skillId === ID.CUNNING_SALVO || skillId === ID.MALICIOUS_CUNNING_SALVO) return 2;
+  return skillId === ID.VENOMOUS_VOLLEY ? 1 : 0;
+}
+
+/** Only landing claims one of six slots; a recalled flight makes its queued landing a no-op. */
+export function landThiefAxe(runtime: ThiefRuntime, data: unknown): void {
   const core = runtime.profession.core;
+  const index = core.outboundAxes.findIndex((axe) => axe.id === (data as { id: string }).id);
+  if (index < 0) return;
+  const [landed] = core.outboundAxes.splice(index, 1);
   core.spinningAxes = core.spinningAxes.filter((axe) => axe.expiresAt > runtime.time);
   if (core.spinningAxes.length >= 6) {
-    const replace = core.spinningAxes.findIndex(
-      (axe) =>
-        context.skill.stealthAttack ||
-        axe.skillId === ID.SPINNING_AXE ||
-        axe.skillId === ID.SPINNING_AXE_ID_71967 ||
-        (context.skill.id === ID.VENOMOUS_VOLLEY && axe.skillId === ID.VENOMOUS_VOLLEY)
-    );
-    // Fizzling leaves protected axes and their expiry times intact; replace the oldest eligible axe otherwise.
-    if (replace < 0) return;
+    const lowestPriority = Math.min(...core.spinningAxes.map((axe) => axePriority(axe.skillId)));
+    // Fizzling leaves protected axes and their expiry times intact.
+    if (lowestPriority > axePriority(landed.skillId)) return;
+    const replace = core.spinningAxes.findIndex((axe) => axePriority(axe.skillId) === lowestPriority);
     core.spinningAxes.splice(replace, 1);
   }
 
-  core.spinningAxes.push({ skillId: context.skill.id, expiresAt: runtime.time + 10 });
+  core.spinningAxes.push({ skillId: landed.skillId, expiresAt: canonicalTime(runtime.time + 10) });
 }
 
 /** Recall repeats each live projectile's base effects, without creating new axes or scaling poison by malice again. */
 export function recallThiefAxes(runtime: ThiefRuntime, context: ActionContext): void {
   if (context.kind !== 'cast') return;
-  const axes = runtime.profession.core.spinningAxes.filter((axe) => axe.expiresAt > runtime.time);
+  const axes = [
+    ...runtime.profession.core.spinningAxes.filter((axe) => axe.expiresAt > runtime.time),
+    ...runtime.profession.core.outboundAxes
+  ];
+  // Returning packets own the recalled generation; later throws start a fresh ground/flight pool.
   runtime.profession.core.spinningAxes = [];
+  runtime.profession.core.outboundAxes = [];
   const torment = context.skill.id === ID.HARROWING_STORM;
-  for (const [index, axe] of axes.entries()) {
+  const arrivals = axes.map((axe) => {
     const skill = runtime.helpers.skillsById.get(axe.skillId)!;
+    // Melee return travel differs by projectile; Harrowing Storm keeps its immediate target arrival.
+    const delay = torment ? 0 : skill.stealthAttack ? 0.04 : skill.id === ID.VENOMOUS_VOLLEY ? 0.48 : 0.52;
+    return { skill, at: canonicalTime(runtime.time + delay) };
+  });
+  // The fifth arriving projectile owns immobilize, even when a later-emitted Salvo returns first.
+  arrivals.sort((a, b) => a.at - b.at);
+  for (const [index, { skill, at }] of arrivals.entries()) {
     const projectiles = skill.id === ID.VENOMOUS_VOLLEY ? 3 : 1;
     emitEffects(runtime, {
       owner: skill,
@@ -215,14 +245,14 @@ export function recallThiefAxes(runtime: ThiefRuntime, context: ActionContext): 
       },
       transform: (event) => ({
         ...event,
-        at: runtime.time,
+        at,
         name: `${event.name} (Recall)`,
         offTarget: context.cast.command.offTarget
       })
     });
     // Recall adds its condition per returning axe; a target's condition cap can hide later applications in EVTC.
     emitThiefCondition(runtime, context.skill, {
-      at: runtime.time,
+      at,
       activationId: context.cast.id,
       offTarget: context.cast.command.offTarget,
       condition: torment ? 'Torment' : 'Weakness',
@@ -232,7 +262,7 @@ export function recallThiefAxes(runtime: ThiefRuntime, context: ActionContext): 
     // Five returning hits trigger one immobilize; five is a threshold, not a cap on returning axes.
     if (index === 4)
       emitThiefCondition(runtime, context.skill, {
-        at: runtime.time,
+        at,
         activationId: context.cast.id,
         offTarget: context.cast.command.offTarget,
         condition: 'Immobilized',

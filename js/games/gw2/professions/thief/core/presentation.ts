@@ -146,8 +146,18 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
       label: 'Spinning Axes',
       value: `${axes.length}/6`,
       title: axes.length
-        ? `Axes available to recall; next axe expires in ${(Math.min(...axes.map((axe) => axe.expiresAt)) - at).toFixed(1)}s`
-        : 'Axes available to recall'
+        ? `Grounded axes available to recall; next axe expires in ${(Math.min(...axes.map((axe) => axe.expiresAt)) - at).toFixed(1)}s`
+        : 'Grounded axes available to recall'
+    });
+  }
+
+  // Outgoing axes can be recalled without displacing a grounded axe until their flight finishes.
+  if (state.outboundAxes?.length) {
+    items.push({
+      id: 'thief-outbound-axes',
+      label: 'Axes in Flight',
+      value: String(state.outboundAxes.length),
+      title: 'Outgoing axes available to recall; occupy a spinning-axe slot only after landing'
     });
   }
 

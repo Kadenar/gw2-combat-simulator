@@ -79,9 +79,11 @@
     "targetMoving": false,
     "targetConditions": {
       "Bleeding": 1,
-      "Burning": true,
+      "Burning": false,
       "Torment": 1,
-      "Confusion": 1,
+      "Confusion": 0,
+      "Blinded": true,
+      "Immobilized": true,
       "Poisoned": true,
       "Chilled": true,
       "Cripple": true,

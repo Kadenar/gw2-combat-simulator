@@ -156,7 +156,9 @@ export function applyRevealedTrainingAttributes(
       result.power += balanceProfileNumber(revealedTrainingProfile, 'attributeBonus');
     }
 
-    if ((state.revealedUntil || 0) > context.time && !eventSkill(context)?.stealthAttack) {
+    // A recalled Salvo is a later recall hit, not the stealth attack that applied Revealed.
+    const revealingAttack = eventSkill(context)?.stealthAttack && context.event?.metadata?.recallSkillId == null;
+    if ((state.revealedUntil || 0) > context.time && !revealingAttack) {
       const revealedTrainingProfile = requireBalanceProfileFromContext(context, TRAIT.REVEALED_TRAINING);
       result.power += balanceProfileNumber(revealedTrainingProfile, 'attributePerStack');
     }
