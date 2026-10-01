@@ -1,6 +1,8 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
+  fromProfile,
+  fromModifier,
   tooltipFactorChange,
   tooltipSeconds,
   outsideScopeTooltip,
@@ -8,7 +10,6 @@ import {
   skillTooltip,
   profileTooltip,
   profileFact,
-  modifierFact,
   tooltipPercent,
   tooltipDecimal,
   tooltipNumber,
@@ -203,7 +204,7 @@ const familyTooltips = {
   'engineer.conduit-surge': profileTooltip(
     CORE.conduitSurge,
     'Strike and burn the target, establishing Focused for subsequent spear attacks. Refreshing Focused preserves a longer existing window.',
-    (balanceContext, id) => [profileFact(balanceContext, id, 'durationMultiplier', 'Focused duration', tooltipSeconds)]
+    [['durationMultiplier', 'Focused duration', tooltipSeconds]]
   ),
   'engineer.lightning-rod': (balanceContext) => ({
     description:
@@ -299,15 +300,9 @@ const familyTooltips = {
   }),
   'engineer.plasmatic-state': skillTooltip(
     'Strike and burn foes, starting a temporary outgoing-damage bonus with the first strike.',
-    (balanceContext) => [
-      profileFact(
-        balanceContext,
-        AMALGAM.plasmaticState,
-        'durationMultiplier',
-        'Damage bonus duration',
-        tooltipSeconds
-      ),
-      modifierFact(balanceContext, 'engineer.plasmatic-state', 'amount', 'Strike and condition damage')
+    [
+      fromProfile(AMALGAM.plasmaticState, 'durationMultiplier', 'Damage bonus duration', tooltipSeconds),
+      fromModifier('engineer.plasmatic-state', 'amount', 'Strike and condition damage')
     ]
   )
 } satisfies Record<string, DescribeSimulationTooltip>;
@@ -498,20 +493,9 @@ export const engineerTooltips: ProfessionTooltips = {
     [TRAIT.STEEL_PACKED_POWDER]: traitTooltip('Explosions inflict vulnerability.'),
     [TRAIT.SHAPED_CHARGE]: traitTooltip(
       'Player-owned strikes deal increased damage for each vulnerability stack on the target.',
-      (balanceContext) => [
-        modifierFact(
-          balanceContext,
-          'engineer.shaped-charge',
-          'damagePerStack',
-          'Strike damage per vulnerability stack'
-        ),
-        modifierFact(
-          balanceContext,
-          'engineer.shaped-charge',
-          'maximumStacks',
-          'Maximum stacks counted',
-          tooltipDecimal
-        )
+      [
+        fromModifier('engineer.shaped-charge', 'damagePerStack', 'Strike damage per vulnerability stack'),
+        fromModifier('engineer.shaped-charge', 'maximumStacks', 'Maximum stacks counted', tooltipDecimal)
       ]
     ),
     [TRAIT.GRENADIER]: (balanceContext, entity) => {
@@ -527,14 +511,12 @@ export const engineerTooltips: ProfessionTooltips = {
         ]
       };
     },
-    [TRAIT.SHORT_FUSE]: traitTooltip('Explosions grant fury.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)
+    [TRAIT.SHORT_FUSE]: traitTooltip('Explosions grant fury.', [
+      ['internalCooldown', 'Internal cooldown', tooltipSeconds]
     ]),
     [TRAIT.GLASS_CANNON]: traitTooltip(
       'Player-owned strikes deal increased damage at the full player health used by combat simulations.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'engineer.glass-cannon', 'factor', 'Strike damage', tooltipFactorChange)
-      ]
+      [fromModifier('engineer.glass-cannon', 'factor', 'Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.AIM_ASSISTED_ROCKET]: (balanceContext, entity) => ({
       description:
@@ -548,62 +530,39 @@ export const engineerTooltips: ProfessionTooltips = {
         )
       ]
     }),
-    [TRAIT.EXPLOSIVE_TEMPER]: traitTooltip('Explosions grant stacking ferocity.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'attributePerStack', 'Ferocity per stack'),
-      profileFact(balanceContext, id, 'maximumStacks', 'Maximum stacks')
+    [TRAIT.EXPLOSIVE_TEMPER]: traitTooltip('Explosions grant stacking ferocity.', [
+      ['attributePerStack', 'Ferocity per stack'],
+      ['maximumStacks', 'Maximum stacks']
     ]),
     // Build-only bonuses and imperative triggers need explicit facts alongside profile-owned packets.
-    [TRAIT.BLAST_SHIELD]: traitTooltip('Gain vitality from eligible power.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'attributeConversion', 'Eligible power converted to vitality', tooltipPercent)
+    [TRAIT.BLAST_SHIELD]: traitTooltip('Gain vitality from eligible power.', [
+      ['attributeConversion', 'Eligible power converted to vitality', tooltipPercent]
     ]),
     [TRAIT.GRAND_ENTRANCE]: traitTooltip(
       'Explosive Entrance opens a temporary critical-chance window and grants resistance.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          TRAIT.GRAND_ENTRANCE,
-          'criticalChance',
-          'Critical chance during the window',
-          tooltipPercent
-        )
-      ]
+      [['criticalChance', 'Critical chance during the window', tooltipPercent]]
     ),
-    [TRAIT.SHRAPNEL]: traitTooltip('Explosions can inflict bleeding and crippled.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'procChance', 'Chance per eligible explosion', tooltipPercent)
+    [TRAIT.SHRAPNEL]: traitTooltip('Explosions can inflict bleeding and crippled.', [
+      ['procChance', 'Chance per eligible explosion', tooltipPercent]
     ]),
     [TRAIT.BIG_BOOMER]: traitTooltip(
       "Player-owned strikes deal increased damage when your health percentage exceeds the target's. Player health stays full in combat simulations.",
-      (balanceContext) => [
-        modifierFact(balanceContext, 'engineer.big-boomer', 'factor', 'Strike damage', tooltipFactorChange)
-      ]
+      [fromModifier('engineer.big-boomer', 'factor', 'Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.OPTIMIZED_ACTIVATION]: traitTooltip('Completing a toolbelt skill grants vigor.'),
-    [TRAIT.MECHANIZED_DEPLOYMENT]: traitTooltip('Toolbelt skills recharge faster.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'rechargeMultiplier', 'Toolbelt recharge reduction', (value) =>
-        tooltipPercent(1 - value)
-      )
+    [TRAIT.MECHANIZED_DEPLOYMENT]: traitTooltip('Toolbelt skills recharge faster.', [
+      ['rechargeMultiplier', 'Toolbelt recharge reduction', (value) => tooltipPercent(1 - value)]
     ]),
-    [TRAIT.EXCESSIVE_ENERGY]: traitTooltip(
-      'Player-owned strikes deal increased damage while you have vigor.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'engineer.excessive-energy', 'amount', 'Strike damage with vigor')
-      ]
-    ),
+    [TRAIT.EXCESSIVE_ENERGY]: traitTooltip('Player-owned strikes deal increased damage while you have vigor.', [
+      fromModifier('engineer.excessive-energy', 'amount', 'Strike damage with vigor')
+    ]),
     [TRAIT.STATIC_DISCHARGE]: traitTooltip(
       'Completing a toolbelt skill fires an additional strike. Static Discharge has its own critical-damage multiplier.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          TRAIT.STATIC_DISCHARGE,
-          'criticalDamage',
-          'Static Discharge critical damage',
-          tooltipFactorChange
-        )
-      ]
+      [['criticalDamage', 'Static Discharge critical damage', tooltipFactorChange]]
     ),
     [TRAIT.REACTIVE_LENSES]: outsideScopeTooltip,
-    [TRAIT.POWER_WRENCH]: traitTooltip('Dodging reduces active elite-skill cooldowns.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'rechargeReduction', 'Elite recharge reduction per dodge', tooltipSeconds)
+    [TRAIT.POWER_WRENCH]: traitTooltip('Dodging reduces active elite-skill cooldowns.', [
+      ['rechargeReduction', 'Elite recharge reduction per dodge', tooltipSeconds]
     ]),
     [TRAIT.STREAMLINED_KITS]: (balanceContext, entity) => ({
       description: 'Equipping a kit grants swiftness. Equipping Grenade Kit also drops a mine.',
@@ -617,51 +576,33 @@ export const engineerTooltips: ProfessionTooltips = {
     [TRAIT.LOCK_ON]: outsideScopeTooltip,
     [TRAIT.TAKEDOWN_ROUND]: traitTooltip(
       'Player-owned strikes deal increased damage while endurance is below its maximum.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'engineer.takedown-round', 'amount', 'Strike damage below full endurance')
-      ]
+      [fromModifier('engineer.takedown-round', 'amount', 'Strike damage below full endurance')]
     ),
     [TRAIT.KINETIC_BATTERY]: traitTooltip(
       'Toolbelt activations build charge. Reaching the charge threshold grants quickness, superspeed, and a temporary strike-damage bonus.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'maximumStacks', 'Activations per trigger'),
-        modifierFact(balanceContext, 'engineer.kinetic-battery', 'amount', 'Strike damage during the bonus')
+      [
+        ['maximumStacks', 'Activations per trigger'],
+        fromModifier('engineer.kinetic-battery', 'amount', 'Strike damage during the bonus')
       ]
     ),
-    [TRAIT.ADRENAL_IMPLANT]: traitTooltip(
-      'Endurance regenerates faster. Dodging reduces active toolbelt cooldowns.',
-      (balanceContext, id) => [
-        profileFact(
-          balanceContext,
-          CORE.resources,
-          'coefficientMultiplier',
-          'Endurance regeneration',
-          tooltipFactorChange
-        ),
-        profileFact(balanceContext, id, 'rechargeReduction', 'Toolbelt recharge reduction per dodge', tooltipSeconds)
-      ]
-    ),
-    [TRAIT.GADGETEER]: traitTooltip('Gadget skills recharge faster.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'rechargeMultiplier', 'Gadget recharge reduction', (value) =>
-        tooltipPercent(1 - value)
-      )
+    [TRAIT.ADRENAL_IMPLANT]: traitTooltip('Endurance regenerates faster. Dodging reduces active toolbelt cooldowns.', [
+      fromProfile(CORE.resources, 'coefficientMultiplier', 'Endurance regeneration', tooltipFactorChange),
+      ['rechargeReduction', 'Toolbelt recharge reduction per dodge', tooltipSeconds]
+    ]),
+    [TRAIT.GADGETEER]: traitTooltip('Gadget skills recharge faster.', [
+      ['rechargeMultiplier', 'Gadget recharge reduction', (value) => tooltipPercent(1 - value)]
     ]),
     [TRAIT.HIDDEN_FLASK]: outsideScopeTooltip,
     [TRAIT.TRANSMUTE]: outsideScopeTooltip,
-    [TRAIT.COMPOUNDING_CHEMICALS]: traitTooltip('Gain concentration.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'attributeBonus', 'Concentration')
-    ]),
+    [TRAIT.COMPOUNDING_CHEMICALS]: traitTooltip('Gain concentration.', [['attributeBonus', 'Concentration']]),
     [TRAIT.INVIGORATING_SPEED]: outsideScopeTooltip,
     [TRAIT.PROTECTION_INJECTION]: outsideScopeTooltip,
     [TRAIT.HEALTH_INSURANCE]: outsideScopeTooltip,
     [TRAIT.COMEBACK_CURE]: outsideScopeTooltip,
-    [TRAIT.BOILING_POINT]: traitTooltip(
-      'Gaining might while at or above the might threshold grants fury.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'threshold', 'Might needed for fury'),
-        profileFact(balanceContext, id, 'internalCooldown', 'Fury cooldown', tooltipSeconds)
-      ]
-    ),
+    [TRAIT.BOILING_POINT]: traitTooltip('Gaining might while at or above the might threshold grants fury.', [
+      ['threshold', 'Might needed for fury'],
+      ['internalCooldown', 'Fury cooldown', tooltipSeconds]
+    ]),
     // This custom marker carries a finisher rather than an ordinary damage or boon payload.
     [TRAIT.BLAST_ZONE]: (balanceContext, entity) => ({
       description:
@@ -675,87 +616,59 @@ export const engineerTooltips: ProfessionTooltips = {
     }),
     [TRAIT.HGH]: traitTooltip(
       'Completing an elixir grants might and fury. Elixir boons, conditions, and combo fields last longer; Acid Bomb gains an additional strike pulse.',
-      (balanceContext, id) => [
-        profileFact(
-          balanceContext,
-          id,
-          'durationMultiplier',
-          'Elixir boon, condition, and field duration',
-          tooltipFactorChange
-        )
-      ]
+      [['durationMultiplier', 'Elixir boon, condition, and field duration', tooltipFactorChange]]
     ),
     [TRAIT.EQUAL_AND_OPPOSITE_REACTION]: traitTooltip(
       'Disabling an enemy with a player-owned stun, daze, knockback, pull, knockdown, launch, float, sink, taunt, or fear grants quickness and stability.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Cooldown', tooltipSeconds)]
+      [['internalCooldown', 'Cooldown', tooltipSeconds]]
     ),
     [TRAIT.CHAIN_REACTIVITY]: outsideScopeTooltip,
     [TRAIT.SERRATED_STEEL]: traitTooltip(
       'Eligible critical hits can inflict bleeding. Bleeding lasts longer; the mech maintains its own critical-proc progress.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'procChance', 'Chance on critical hit', tooltipPercent),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Bleeding duration', tooltipPercent)
+      [
+        ['procChance', 'Chance on critical hit', tooltipPercent],
+        ['durationMultiplier', 'Bleeding duration', tooltipPercent]
       ]
     ),
     [TRAIT.HEMATIC_FOCUS]: traitTooltip(
       'Player-owned bleeding applications grant fury. Fury grants additional player critical-strike chance.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'internalCooldown', 'Fury cooldown', tooltipSeconds),
-        profileFact(
-          balanceContext,
-          TRAIT.HEMATIC_FOCUS,
-          'criticalChance',
-          'Additional critical chance with fury',
-          tooltipPercent
-        )
+      [
+        ['internalCooldown', 'Fury cooldown', tooltipSeconds],
+        ['criticalChance', 'Additional critical chance with fury', tooltipPercent]
       ]
     ),
     [TRAIT.MODIFIED_AMMUNITION]: traitTooltip(
       'Player-owned strikes deal increased damage for each different condition on the target.',
-      (balanceContext) => [
-        modifierFact(
-          balanceContext,
-          'engineer.modified-ammunition',
-          'damagePerCondition',
-          'Strike damage per target condition'
-        )
-      ]
+      [fromModifier('engineer.modified-ammunition', 'damagePerCondition', 'Strike damage per target condition')]
     ),
     [TRAIT.CHEMICAL_ROUNDS]: traitTooltip(
       'Gain condition damage. Supported pistol conditions have longer base durations.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeBonus', 'Condition damage'),
-        profileFact(
-          balanceContext,
-          id,
+      [
+        ['attributeBonus', 'Condition damage'],
+        [
           'conditionDurationMultiplier',
           'Pistol condition base duration multiplier',
           (value) => `${tooltipDecimal(value)}×`
-        )
+        ]
       ]
     ),
     [TRAIT.SANGUINE_ARRAY]: traitTooltip('Player-owned bleeding applications grant might.'),
     [TRAIT.HIGH_CALIBER]: traitTooltip(
       "Gain player critical-strike chance within the simulator's fixed positioning assumptions.",
-      (balanceContext) => [
-        profileFact(balanceContext, TRAIT.HIGH_CALIBER, 'criticalChance', 'Critical chance', tooltipPercent)
-      ]
+      [['criticalChance', 'Critical chance', tooltipPercent]]
     ),
     [TRAIT.JUGGERNAUT]: outsideScopeTooltip,
     [TRAIT.THERMAL_VISION]: traitTooltip(
       'Gain expertise. Player-owned burning applications temporarily increase condition damage.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeBonus', 'Expertise'),
-        modifierFact(balanceContext, 'engineer.thermal-vision-damage', 'amount', 'Condition damage during the bonus')
+      [
+        ['attributeBonus', 'Expertise'],
+        fromModifier('engineer.thermal-vision-damage', 'amount', 'Condition damage during the bonus')
       ]
     ),
-    [TRAIT.NO_SCOPE]: traitTooltip(
-      'Eligible critical hits grant fury. Gain ferocity while you have fury.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeBonus', 'Ferocity with fury'),
-        profileFact(balanceContext, id, 'internalCooldown', 'Fury cooldown', tooltipSeconds)
-      ]
-    ),
+    [TRAIT.NO_SCOPE]: traitTooltip('Eligible critical hits grant fury. Gain ferocity while you have fury.', [
+      ['attributeBonus', 'Ferocity with fury'],
+      ['internalCooldown', 'Fury cooldown', tooltipSeconds]
+    ]),
     [TRAIT.HEAVY_METAL]: traitTooltip(
       'Gain player critical chance and critical damage as target health falls. Lower health tiers replace the preceding bonuses.',
       (balanceContext) =>
@@ -779,27 +692,19 @@ export const engineerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.SHARPSHOOTER]: traitTooltip(
       'Player-owned bleeding uses a fraction of current power in place of condition damage.',
-      (balanceContext, id) => [
-        profileFact(
-          balanceContext,
-          id,
-          'coefficientMultiplier',
-          'Power used as bleeding condition damage',
-          tooltipPercent
-        )
-      ]
+      [['coefficientMultiplier', 'Power used as bleeding condition damage', tooltipPercent]]
     ),
     [TRAIT.INCENDIARY_POWDER]: traitTooltip(
       'Eligible critical hits inflict burning. Burning lasts longer; the mech maintains its own proc cooldown.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Burning duration', tooltipPercent)
+      [
+        ['internalCooldown', 'Internal cooldown', tooltipSeconds],
+        ['durationMultiplier', 'Burning duration', tooltipPercent]
       ]
     ),
     [TRAIT.CLEANSING_SYNERGY]: outsideScopeTooltip,
     [TRAIT.RECONSTRUCTION_ENCLOSURE]: outsideScopeTooltip,
-    [TRAIT.ENERGY_AMPLIFIER]: traitTooltip('Regeneration grants power and healing power.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'attributeBonus', 'Each attribute with regeneration')
+    [TRAIT.ENERGY_AMPLIFIER]: traitTooltip('Regeneration grants power and healing power.', [
+      ['attributeBonus', 'Each attribute with regeneration']
     ]),
     [TRAIT.OVER_SHIELD]: outsideScopeTooltip,
     [TRAIT.AUTOMATED_MEDICAL_RESPONSE]: outsideScopeTooltip,
@@ -819,15 +724,14 @@ export const engineerTooltips: ProfessionTooltips = {
     [TRAIT.SYSTEM_SHOCKER]: traitTooltip('Function Gyro applies a daze control event.'),
     [TRAIT.MASS_MOMENTUM]: traitTooltip(
       'Function Gyro grants stability. While stability is active, periodically gain might.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'pulseInterval', 'Might interval', tooltipSeconds)]
+      [['pulseInterval', 'Might interval', tooltipSeconds]]
     ),
     [TRAIT.RAPID_REGENERATION]: outsideScopeTooltip,
     [TRAIT.EXPERT_EXAMINATION]: outsideScopeTooltip,
     [TRAIT.OBJECT_IN_MOTION]: traitTooltip(
       'Stability, swiftness, and superspeed each increase player strike damage. Their factors multiply when several are active.',
-      (balanceContext) => [
-        modifierFact(
-          balanceContext,
+      [
+        fromModifier(
           'engineer.object-in-motion',
           'damageFactorPerBoon',
           'Strike damage per active status',
@@ -835,55 +739,46 @@ export const engineerTooltips: ProfessionTooltips = {
         )
       ]
     ),
-    [TRAIT.EX_MACHINA]: traitTooltip('Function Gyro gains ammunition.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'maximumAmmo', 'Minimum Function Gyro ammunition')
+    [TRAIT.EX_MACHINA]: traitTooltip('Function Gyro gains ammunition.', [
+      ['maximumAmmo', 'Minimum Function Gyro ammunition']
     ]),
     [TRAIT.KINETIC_ACCELERATORS]: traitTooltip(
       'Successful blast, leap, and whirl combos grant quickness and might to the party. Function Gyro becomes a blast finisher. Gain concentration from eligible power.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'internalCooldown', 'Whirl-combo boon cooldown', tooltipSeconds),
-        profileFact(
-          balanceContext,
-          id,
-          'attributeConversion',
-          'Eligible power converted to concentration',
-          tooltipPercent
-        )
+      [
+        ['internalCooldown', 'Whirl-combo boon cooldown', tooltipSeconds],
+        ['attributeConversion', 'Eligible power converted to concentration', tooltipPercent]
       ]
     ),
     [TRAIT.APPLIED_FORCE]: traitTooltip(
       'Might grants additional power. Reaching the might threshold grants stability.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributePerStack', 'Additional power per might stack'),
-        profileFact(balanceContext, id, 'maximumStacks', 'Maximum might stacks counted'),
-        profileFact(balanceContext, id, 'threshold', 'Might needed for stability'),
-        profileFact(balanceContext, id, 'internalCooldown', 'Stability cooldown', tooltipSeconds)
+      [
+        ['attributePerStack', 'Additional power per might stack'],
+        ['maximumStacks', 'Maximum might stacks counted'],
+        ['threshold', 'Might needed for stability'],
+        ['internalCooldown', 'Stability cooldown', tooltipSeconds]
       ]
     ),
     [TRAIT.PHOTON_PROJECTOR]: traitTooltip('Unlock Photon Forge, its skill bar, and the heat resource.'),
     [TRAIT.HEAT_THERAPY]: outsideScopeTooltip,
     [TRAIT.LASERS_EDGE]: traitTooltip(
       'Heat increases player strike damage in Photon Forge. Photonic Blasting Module retains the bonus while cooling after overheating.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'engineer.lasers-edge', 'bonusPerHeat', 'Strike damage per heat'),
-        modifierFact(balanceContext, 'engineer.lasers-edge', 'standardMaximum', 'Normal maximum bonus'),
-        modifierFact(balanceContext, 'engineer.lasers-edge', 'enhancedMaximum', 'Enhanced Capacity maximum bonus')
+      [
+        fromModifier('engineer.lasers-edge', 'bonusPerHeat', 'Strike damage per heat'),
+        fromModifier('engineer.lasers-edge', 'standardMaximum', 'Normal maximum bonus'),
+        fromModifier('engineer.lasers-edge', 'enhancedMaximum', 'Enhanced Capacity maximum bonus')
       ]
     ),
-    [TRAIT.LIGHT_DENSITY_AMPLIFIER]: traitTooltip(
-      'Photon Forge passively generates additional heat.',
-      (balanceContext) => [
-        profileFact(balanceContext, 'engineer.holosmith.heat', 'resourceGain', 'Additional heat per second')
-      ]
-    ),
+    [TRAIT.LIGHT_DENSITY_AMPLIFIER]: traitTooltip('Photon Forge passively generates additional heat.', [
+      fromProfile('engineer.holosmith.heat', 'resourceGain', 'Additional heat per second')
+    ]),
     [TRAIT.PRISMATIC_CONVERTER]: outsideScopeTooltip,
     [TRAIT.SOLAR_FOCUSING_LENS]: traitTooltip(
       'Photon Forge transitions grant charges that empower subsequent eligible strikes and inflict burning. High-heat transitions grant more charges.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'minimumStacks', 'Base charges'),
-        profileFact(balanceContext, id, 'maximumStacks', 'High-heat charges'),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Charge window', tooltipSeconds),
-        modifierFact(balanceContext, 'engineer.solar-focusing-lens', 'amount', 'Empowered strike damage')
+      [
+        ['minimumStacks', 'Base charges'],
+        ['maximumStacks', 'High-heat charges'],
+        ['durationMultiplier', 'Charge window', tooltipSeconds],
+        fromModifier('engineer.solar-focusing-lens', 'amount', 'Empowered strike damage')
       ]
     ),
     [TRAIT.CRYSTAL_CONFIGURATION_STORM]: traitTooltip(
@@ -896,29 +791,28 @@ export const engineerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]: traitTooltip(
       'Raise the heat limit, unlock enhanced heat tiers on supported skills, and periodically gain might at high heat.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'pulseInterval', 'Might pulse interval', tooltipSeconds),
-        modifierFact(balanceContext, 'engineer.lasers-edge', 'enhancedMaximum', "Maximum Laser's Edge strike bonus")
+      [
+        ['pulseInterval', 'Might pulse interval', tooltipSeconds],
+        fromModifier('engineer.lasers-edge', 'enhancedMaximum', "Maximum Laser's Edge strike bonus")
       ]
     ),
     [TRAIT.PHOTONIC_BLASTING_MODULE]: traitTooltip(
       "Overheating triggers a delayed explosion and burning. Cooling occurs only after overheating; Laser's Edge remains active while heat remains.",
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'initialDelay', 'Explosion delay', tooltipSeconds),
-        profileFact(balanceContext, id, 'cooldown', 'Overheat recharge', tooltipSeconds)
+      [
+        ['initialDelay', 'Explosion delay', tooltipSeconds],
+        ['cooldown', 'Overheat recharge', tooltipSeconds]
       ]
     ),
     [TRAIT.MECHANICAL_GENIUS]: traitTooltip(
       'Replace toolbelt skills with mech commands. The mech remains present and inherits attributes from the player.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
+      [
+        fromProfile(
           'engineer.mechanist.mech',
           'inheritanceRatio',
           'Base power and secondary-attribute inheritance',
           tooltipPercent
         ),
-        profileFact(balanceContext, 'engineer.mechanist.mech', 'secondaryAttributeCap', 'Base secondary-attribute cap')
+        fromProfile('engineer.mechanist.mech', 'secondaryAttributeCap', 'Base secondary-attribute cap')
       ]
     ),
     [TRAIT.MECH_FIGHTER]: traitTooltip(
@@ -933,11 +827,11 @@ export const engineerTooltips: ProfessionTooltips = {
     [TRAIT.EXIGENCY_PROTOCOLS]: outsideScopeTooltip,
     [TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS]: traitTooltip(
       'Select Rolling Smash as the first mech command. Qualifying mech strikes inflict bleeding.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
+      [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
     ),
     [TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS]: traitTooltip(
       'Select Explosive Knuckle as the first mech command. Qualifying mech strikes grant might.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
+      [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
     ),
     [TRAIT.MECH_ARMS_JADE_CANNONS]: traitTooltip(
       'Select Spark Revolver as the first mech command. The mech uses ranged arm shots and gains critical-strike chance.',
@@ -958,20 +852,17 @@ export const engineerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR]: traitTooltip(
       'Select Core Reactor Shot as the second mech command. The mech inherits player precision up to its cap.',
-      (balanceContext) => [profileFact(balanceContext, 'engineer.mechanist.mech', 'precisionCap', 'Mech precision cap')]
+      [fromProfile('engineer.mechanist.mech', 'precisionCap', 'Mech precision cap')]
     ),
     [TRAIT.MECH_CORE_JADE_DYNAMO]: traitTooltip(
       'Select Jade Mortar as the third mech command. Mech commands recharge faster and grant quickness.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'rechargeMultiplier', 'Command recharge duration', tooltipFactorChange)
-      ]
+      [['rechargeMultiplier', 'Command recharge duration', tooltipFactorChange]]
     ),
     [TRAIT.MECH_CORE_BARRIER_ENGINE]: traitTooltip('Select Barrier Burst as the third mech command.'),
     [TRAIT.MECH_CORE_J_DRIVE]: traitTooltip(
       "Select Sky Circus as the third mech command. Supported signet passives remain active during recharge and gain their enhanced bonuses; Overclock Signet's recharge changes.",
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
+      [
+        fromProfile(
           'engineer.mechanist.force-signet',
           'activeDamageIncrease',
           'Force Signet strike bonus',
@@ -982,51 +873,31 @@ export const engineerTooltips: ProfessionTooltips = {
     [TRAIT.EXPERIMENTAL_UNION]: traitTooltip(
       'Replace toolbelt skills with selected protocols and Evolve. Protocols grant the corresponding Morph effects.'
     ),
-    [TRAIT.HYBRID_VIGOR]: traitTooltip('Gain vitality.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'attributeBonus', 'Vitality')
+    [TRAIT.HYBRID_VIGOR]: traitTooltip('Gain vitality.', [['attributeBonus', 'Vitality']]),
+    [TRAIT.WILLING_HOST]: traitTooltip('Using a protocol temporarily increases player strike and condition damage.', [
+      fromModifier('engineer.willing-host', 'amount', 'Strike and condition damage'),
+      ['durationMultiplier', 'Bonus duration', tooltipSeconds]
     ]),
-    [TRAIT.WILLING_HOST]: traitTooltip(
-      'Using a protocol temporarily increases player strike and condition damage.',
-      (balanceContext, id) => [
-        modifierFact(balanceContext, 'engineer.willing-host', 'amount', 'Strike and condition damage'),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Bonus duration', tooltipSeconds)
-      ]
-    ),
     [TRAIT.STAINLESS_STEEL]: outsideScopeTooltip,
     [TRAIT.INNERVATING_ALLOY]: outsideScopeTooltip,
-    [TRAIT.HARDENED_CHROME]: traitTooltip(
-      'Protocols and Evolve grant protection, with a longer duration on Evolve.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'minimumStacks', 'Protocol protection duration', tooltipSeconds),
-        profileFact(balanceContext, id, 'maximumStacks', 'Evolve protection duration', tooltipSeconds)
-      ]
-    ),
+    [TRAIT.HARDENED_CHROME]: traitTooltip('Protocols and Evolve grant protection, with a longer duration on Evolve.', [
+      ['minimumStacks', 'Protocol protection duration', tooltipSeconds],
+      ['maximumStacks', 'Evolve protection duration', tooltipSeconds]
+    ]),
     [TRAIT.CARBOLIC_COMPOSITION]: traitTooltip(
       'Eligible Amalgam and Rapacious Strain strikes inflict poison. Poison lasts longer.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          TRAIT.CARBOLIC_COMPOSITION,
-          'conditionDurationBonus',
-          'Poison duration',
-          tooltipPercent
-        )
-      ]
+      [['conditionDurationBonus', 'Poison duration', tooltipPercent]]
     ),
-    [TRAIT.MERCURIAL_TENDENCIES]: traitTooltip(
-      'Applying a control effect reduces active Evolve cooldowns.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds),
-        profileFact(balanceContext, id, 'rechargeReduction', 'Recharge reduction', tooltipSeconds)
-      ]
-    ),
+    [TRAIT.MERCURIAL_TENDENCIES]: traitTooltip('Applying a control effect reduces active Evolve cooldowns.', [
+      ['internalCooldown', 'Internal cooldown', tooltipSeconds],
+      ['rechargeReduction', 'Recharge reduction', tooltipSeconds]
+    ]),
     [TRAIT.SILVER_LINING]: traitTooltip(
       'Protocols grant their corresponding strain immediately. Evolve no longer grants the selected strains.'
     ),
-    [TRAIT.SYMBIOTIC_SYNERGY]: traitTooltip(
-      'Morph strikes deal increased damage. Evolve recharges Morph skills.',
-      (balanceContext) => [modifierFact(balanceContext, 'engineer.symbiotic-synergy', 'amount', 'Morph strike damage')]
-    ),
+    [TRAIT.SYMBIOTIC_SYNERGY]: traitTooltip('Morph strikes deal increased damage. Evolve recharges Morph skills.', [
+      fromModifier('engineer.symbiotic-synergy', 'amount', 'Morph strike damage')
+    ]),
     [TRAIT.NEW_GENES]: traitTooltip(
       'Protocols grant party alacrity, might, and an additional boon determined by the protocol.',
       (balanceContext) =>
@@ -1036,10 +907,9 @@ export const engineerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.DOUBLE_HELIX]: traitTooltip(
       'Evolve gains ammunition and a stronger attribute increase from its eligible attribute pool.',
-      (balanceContext) => [
-        profileFact(balanceContext, 'engineer.amalgam.evolve', 'maximumStacks', 'Evolve ammunition'),
-        profileFact(
-          balanceContext,
+      [
+        fromProfile('engineer.amalgam.evolve', 'maximumStacks', 'Evolve ammunition'),
+        fromProfile(
           'engineer.amalgam.evolve',
           'coefficientMultiplier',
           'Eligible attribute increase',

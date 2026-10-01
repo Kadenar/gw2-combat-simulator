@@ -64,12 +64,13 @@
       overlay 0.12s allow-discrete;
   }
 
-  ::picker(select):popover-open {
+  /* Use the select's open state to fade its picker in and out. */
+  select:open::picker(select) {
     opacity: 1;
   }
 
   @starting-style {
-    ::picker(select):popover-open {
+    select:open::picker(select) {
       opacity: 0;
     }
   }

@@ -1,5 +1,7 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
+  fromProfile,
+  fromModifier,
   tooltipFactorChange,
   tooltipSeconds,
   outsideScopeTooltip,
@@ -274,9 +276,9 @@ const familyTooltips = {
     return profileTooltip(
       id,
       'Grant venom charges to yourself and configured allies. Each eligible player strike consumes one charge from each active venom. Recasts add independently expiring charges; allied applications follow the configured venom assumptions.',
-      (_c, profileId) => [
-        profileFact(balanceContext, profileId, 'maximumStacks', 'Charges granted per recipient'),
-        profileFact(balanceContext, profileId, 'durationMultiplier', 'Charge lifetime', tooltipSeconds)
+      [
+        ['maximumStacks', 'Charges granted per recipient'],
+        ['durationMultiplier', 'Charge lifetime', tooltipSeconds]
       ],
       'per consumed charge'
     )(balanceContext, entity);
@@ -284,10 +286,10 @@ const familyTooltips = {
   'thief.assassins-signet': profileTooltip(
     CORE.assassinsSignet,
     'Passively grants power while ready. Activation temporarily replaces the passive bonus with the larger active bonus; the passive returns when recharge ends.',
-    (balanceContext, id) => [
-      profileFact(balanceContext, id, 'attributeBonus', 'Passive power'),
-      profileFact(balanceContext, id, 'attributePerStack', 'Active power'),
-      profileFact(balanceContext, id, 'durationMultiplier', 'Active duration', tooltipSeconds)
+    [
+      ['attributeBonus', 'Passive power'],
+      ['attributePerStack', 'Active power'],
+      ['durationMultiplier', 'Active duration', tooltipSeconds]
     ]
   ),
   'thief.thieves-guild': (balanceContext, entity) => {
@@ -326,60 +328,39 @@ const familyTooltips = {
   },
   'thief.kneel': skillTooltip(
     'Kneel to replace rifle skills with their kneeling variants and increase initiative regeneration. Free Action or swapping weapons ends Kneel.',
-    (balanceContext) => [
-      profileFact(
-        balanceContext,
-        CORE.resources,
-        'kneelingInitiativeRegenerationBonus',
-        'Additional initiative per second'
-      )
-    ]
+    [fromProfile(CORE.resources, 'kneelingInitiativeRegenerationBonus', 'Additional initiative per second')]
   ),
   'thief.free-action': skillTooltip(
     'Stand up, ending Kneel and restoring the standing rifle skills and initiative regeneration.'
   ),
   'thief.deadeyes-mark': skillTooltip(
     'Mark the target, trigger stealing traits, and grant the configured Deadeye stolen skill. Marked initiative attacks build malice on their first hit, with additional gain from critical hits. Remarking preserves existing malice; Malicious Intent adds its grant.',
-    (balanceContext) => [
-      profileFact(balanceContext, DE.resources, 'durationMultiplier', 'Mark duration', tooltipSeconds),
-      profileFact(balanceContext, DE.resources, 'maximumStacks', 'Maximum malice'),
-      profileFact(balanceContext, TRAIT.MALEFICENT_SEVEN, 'maximumStacks', 'Maximum malice with Maleficent Seven'),
-      profileFact(balanceContext, DE.resources, 'resourceGain', 'Malice per initiative attack'),
-      profileFact(balanceContext, DE.resources, 'playerStacks', 'Additional malice from a critical hit')
+    [
+      fromProfile(DE.resources, 'durationMultiplier', 'Mark duration', tooltipSeconds),
+      fromProfile(DE.resources, 'maximumStacks', 'Maximum malice'),
+      fromProfile(TRAIT.MALEFICENT_SEVEN, 'maximumStacks', 'Maximum malice with Maleficent Seven'),
+      fromProfile(DE.resources, 'resourceGain', 'Malice per initiative attack'),
+      fromProfile(DE.resources, 'playerStacks', 'Additional malice from a critical hit')
     ]
   ),
   'thief.deadeye-mercy': profileTooltip(
     DE.mercy,
     "Consume current malice, restore initiative, and recharge Deadeye's Mark. Clears the Maleficent Seven cycle so it can trigger again.",
-    (balanceContext, id) => [
-      profileFact(balanceContext, id, 'resourceGain', 'Base initiative restored'),
-      profileFact(balanceContext, id, 'attributePerStack', 'Additional initiative per malice')
+    [
+      ['resourceGain', 'Base initiative restored'],
+      ['attributePerStack', 'Additional initiative per malice']
     ]
   ),
   'thief.deadeye-shadow-flare': skillTooltip(
     'Create a damaging field and temporarily unlock Shadow Swap. Its strikes deal increased damage against your active mark.',
-    (balanceContext) => [
-      profileFact(balanceContext, DE.shadowFlare, 'durationMultiplier', 'Shadow Swap window', tooltipSeconds),
-      modifierFact(
-        balanceContext,
-        'thief.shadow-flare-marked',
-        'factor',
-        'Strike damage against your mark',
-        tooltipFactorChange
-      )
+    [
+      fromProfile(DE.shadowFlare, 'durationMultiplier', 'Shadow Swap window', tooltipSeconds),
+      fromModifier('thief.shadow-flare-marked', 'factor', 'Strike damage against your mark', tooltipFactorChange)
     ]
   ),
   'thief.deadeye-shadow-swap': skillTooltip(
     'Consume the Shadow Flare follow-up and shadowstep to the field. Its strike deals increased damage against your active mark.',
-    (balanceContext) => [
-      modifierFact(
-        balanceContext,
-        'thief.shadow-flare-marked',
-        'factor',
-        'Strike damage against your mark',
-        tooltipFactorChange
-      )
-    ]
+    [fromModifier('thief.shadow-flare-marked', 'factor', 'Strike damage against your mark', tooltipFactorChange)]
   ),
   'thief.deadeye-shadow-meld': skillTooltip(
     'Remove Revealed when activation begins, then grant stealth. Cantrip-use traits apply.'
@@ -440,14 +421,9 @@ const familyTooltips = {
   },
   'thief.siphon': skillTooltip(
     'Siphon the target, trigger stealing traits, and gain Shadow Force. Replaces the held stolen-skill pool without granting a stolen skill.',
-    (balanceContext) => [
-      profileFact(balanceContext, SPECTER.resources, 'lifeForceGain', 'Shadow Force gained'),
-      profileFact(
-        balanceContext,
-        TRAIT.AMPLIFIED_SIPHONING,
-        'resourceGain',
-        'Additional Shadow Force with Amplified Siphoning'
-      )
+    [
+      fromProfile(SPECTER.resources, 'lifeForceGain', 'Shadow Force gained'),
+      fromProfile(TRAIT.AMPLIFIED_SIPHONING, 'resourceGain', 'Additional Shadow Force with Amplified Siphoning')
     ]
   ),
   'thief.shadow-shroud-enter': (balanceContext) => {
@@ -526,18 +502,18 @@ const familyTooltips = {
   ),
   'thief.skritt-swipe': skillTooltip(
     'Trigger stealing traits and replace held artifacts with a new choice pool. Grants the base artifact use plus supported Skritt Swipe bonuses; resets the initiative-spending counter.',
-    (balanceContext) => [
-      profileFact(balanceContext, ANTIQUARY.resources, 'maximumStacks', 'Base artifact uses'),
-      profileFact(balanceContext, TRAIT.PROLIFIC_PLUNDERER, 'resourceGain', 'Additional uses with Prolific Plunderer'),
-      profileFact(balanceContext, TRAIT.IMPROVISATION, 'resourceGain', 'Additional uses with Improvisation')
+    [
+      fromProfile(ANTIQUARY.resources, 'maximumStacks', 'Base artifact uses'),
+      fromProfile(TRAIT.PROLIFIC_PLUNDERER, 'resourceGain', 'Additional uses with Prolific Plunderer'),
+      fromProfile(TRAIT.IMPROVISATION, 'resourceGain', 'Additional uses with Improvisation')
     ]
   ),
   'thief.skritt-scuffle': profileTooltip(
     ANTIQUARY.scuffle,
     'Summon an assistant that immediately pilfers artifacts and repeats while active. Each pilfer replaces artifact choices and resets base uses. Multiple assistants run independently.',
-    (balanceContext, id) => [
-      profileFact(balanceContext, id, 'durationMultiplier', 'Assistant duration', tooltipSeconds),
-      profileFact(balanceContext, id, 'pulseInterval', 'Pilfer interval', tooltipSeconds)
+    [
+      ['durationMultiplier', 'Assistant duration', tooltipSeconds],
+      ['pulseInterval', 'Pilfer interval', tooltipSeconds]
     ]
   ),
   'thief.forged-surfer': (balanceContext) => ({
@@ -690,25 +666,20 @@ export const thiefTooltips: ProfessionTooltips = {
     ),
     [ID.UNLOAD]: skillTooltip(
       'Fire the volley. Restore initiative only if the final bullet is reached and the attack is not cancelled.',
-      (balanceContext) => [
-        profileFact(balanceContext, CORE.unloadRefund, 'resourceGain', 'Initiative restored after the volley')
-      ]
+      [fromProfile(CORE.unloadRefund, 'resourceGain', 'Initiative restored after the volley')]
     ),
-    [ID.FIST_FLURRY]: skillTooltip(
-      'Land the completed flurry to unlock Palm Strike for a limited window.',
-      (balanceContext) => [
-        profileFact(balanceContext, DD.palmStrike, 'durationMultiplier', 'Palm Strike window', tooltipSeconds)
-      ]
-    ),
+    [ID.FIST_FLURRY]: skillTooltip('Land the completed flurry to unlock Palm Strike for a limited window.', [
+      fromProfile(DD.palmStrike, 'durationMultiplier', 'Palm Strike window', tooltipSeconds)
+    ]),
     [ID.PALM_STRIKE]: skillTooltip('Consume the follow-up unlocked by a completed Fist Flurry.'),
     [ID.INFILTRATORS_SIGNET]: skillTooltip(
       'Passively regenerates additional initiative while ready. Activation shadowsteps and pauses the passive until recharge completes.'
     ),
     [ID.SIGNET_OF_AGILITY]: skillTooltip(
       "Passively grants precision while ready. Activation restores endurance, capped by the specialization's endurance pool.",
-      (balanceContext) => [
-        profileFact(balanceContext, CORE.signetOfAgility, 'attributeBonus', 'Passive precision'),
-        profileFact(balanceContext, CORE.signetOfAgility, 'resourceGain', 'Endurance restored on activation')
+      [
+        fromProfile(CORE.signetOfAgility, 'attributeBonus', 'Passive precision'),
+        fromProfile(CORE.signetOfAgility, 'resourceGain', 'Endurance restored on activation')
       ]
     ),
     [ID.HARROWING_STORM]: skillTooltip(
@@ -735,20 +706,20 @@ export const thiefTooltips: ProfessionTooltips = {
     [TRAIT.MELD_WITH_SHADOWS]: outsideScopeTooltip,
     [TRAIT.SHADOW_SIPHONING]: traitTooltip(
       'Stealth attacks trigger an additional strike that cannot critically strike.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
+      [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
     ),
     [TRAIT.SHIELDING_RESTORATION]: outsideScopeTooltip,
     [TRAIT.SHADOWS_EMBRACE]: outsideScopeTooltip,
-    [TRAIT.HIDDEN_THIEF]: traitTooltip('Stealing inflicts blindness and weakness.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)
+    [TRAIT.HIDDEN_THIEF]: traitTooltip('Stealing inflicts blindness and weakness.', [
+      ['internalCooldown', 'Internal cooldown', tooltipSeconds]
     ]),
     [TRAIT.SHADOW_SAVIOR]: outsideScopeTooltip,
     [TRAIT.LEECHING_VENOMS]: traitTooltip(
       'Entering or breaking stealth grants Spider Venom charges. Your venom applications also siphon life; life siphons bypass armor and cannot critically strike.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'resourceGain', 'Spider Venom charges on breaking stealth'),
-        profileFact(balanceContext, id, 'maximumStacks', 'Maximum charges'),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Charge duration', tooltipSeconds)
+      [
+        ['resourceGain', 'Spider Venom charges on breaking stealth'],
+        ['maximumStacks', 'Maximum charges'],
+        ['durationMultiplier', 'Charge duration', tooltipSeconds]
       ],
       'life siphon per venom application'
     ),
@@ -756,137 +727,106 @@ export const thiefTooltips: ProfessionTooltips = {
       'Entering stealth inflicts blindness. Applying blindness triggers a strike that cannot critically strike.'
     ),
     [TRAIT.COVER_OF_SHADOW]: outsideScopeTooltip,
-    [TRAIT.SHADOWS_REJUVENATION]: traitTooltip(
-      'Entering and breaking stealth restore initiative.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'resourceGain', 'Initiative on breaking stealth')]
-    ),
+    [TRAIT.SHADOWS_REJUVENATION]: traitTooltip('Entering and breaking stealth restore initiative.', [
+      ['resourceGain', 'Initiative on breaking stealth']
+    ]),
     [TRAIT.RENDING_SHADE]: outsideScopeTooltip,
+    // The description already distinguishes the ordinary poison application from Potent Poison's stack bonus.
     [TRAIT.SERPENTS_TOUCH]: traitTooltip(
       'Stealing poisons the target. Potent Poison replaces the base application with more stacks.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'playerStacks', 'Poison stacks with Potent Poison')],
-      'base application'
+      [['playerStacks', 'Poison stacks with Potent Poison']]
     ),
-    [TRAIT.LOTUS_POISON]: traitTooltip(
-      'Applying your own poison grants might and weakens the target.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
-    ),
-    [TRAIT.EXPOSED_WEAKNESS]: traitTooltip(
-      'Deal increased strike damage for each different condition on the target.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'thief.exposed-weakness', 'damagePerCondition', 'Strike damage per condition')
-      ]
-    ),
+    [TRAIT.LOTUS_POISON]: traitTooltip('Applying your own poison grants might and weakens the target.', [
+      ['internalCooldown', 'Internal cooldown', tooltipSeconds]
+    ]),
+    [TRAIT.EXPOSED_WEAKNESS]: traitTooltip('Deal increased strike damage for each different condition on the target.', [
+      fromModifier('thief.exposed-weakness', 'damagePerCondition', 'Strike damage per condition')
+    ]),
     // State the full weapon-dependent bonus so build-only attributes are not hidden by empty profiles.
-    [TRAIT.DAGGER_TRAINING]: traitTooltip(
-      'Gain power and additional power while wielding a dagger.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeBonus', 'Power'),
-        profileFact(balanceContext, id, 'weaponAttributeBonus', 'Total power while wielding a dagger')
-      ]
-    ),
+    [TRAIT.DAGGER_TRAINING]: traitTooltip('Gain power and additional power while wielding a dagger.', [
+      ['attributeBonus', 'Power'],
+      ['weaponAttributeBonus', 'Total power while wielding a dagger']
+    ]),
     [TRAIT.MUG]: traitTooltip(
       'Stealing deals an additional strike that cannot critically strike. Healing is outside combat simulation scope.'
     ),
     [TRAIT.DEADLY_AMBITION]: traitTooltip(
       'Gain condition damage. The first landed player strike of a dual attack poisons the target. Potent Poison replaces the base application with more stacks.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeBonus', 'Condition damage'),
-        profileFact(balanceContext, id, 'playerStacks', 'Poison stacks with Potent Poison')
+      [
+        ['attributeBonus', 'Condition damage'],
+        ['playerStacks', 'Poison stacks with Potent Poison']
       ],
       'base application'
     ),
     [TRAIT.EVEN_THE_ODDS]: traitTooltip('Stealing inflicts vulnerability.'),
     [TRAIT.PANIC_STRIKE]: traitTooltip(
       'A strike against a target with enough different conditions immobilizes it. Your immobilize applications also poison the target; Potent Poison increases the poison stack count.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'threshold', 'Different conditions required'),
-        profileFact(balanceContext, id, 'internalCooldown', 'Immobilize cooldown', tooltipSeconds),
-        profileFact(balanceContext, id, 'playerStacks', 'Poison stacks with Potent Poison')
+      [
+        ['threshold', 'Different conditions required'],
+        ['internalCooldown', 'Immobilize cooldown', tooltipSeconds],
+        ['playerStacks', 'Poison stacks with Potent Poison']
       ]
     ),
-    [TRAIT.REVEALED_TRAINING]: traitTooltip('Gain power and additional power while revealed.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'attributeBonus', 'Power'),
-      profileFact(balanceContext, id, 'attributePerStack', 'Additional power while revealed')
+    [TRAIT.REVEALED_TRAINING]: traitTooltip('Gain power and additional power while revealed.', [
+      ['attributeBonus', 'Power'],
+      ['attributePerStack', 'Additional power while revealed']
     ]),
     [TRAIT.POTENT_POISON]: traitTooltip(
       "Poison deals increased damage and lasts longer. Serpent's Touch, Deadly Ambition, and Panic Strike apply additional poison stacks.",
-      (balanceContext) => [
-        modifierFact(balanceContext, 'thief.potent-poison-damage', 'factor', 'Poison damage', tooltipFactorChange),
-        profileFact(balanceContext, TRAIT.POTENT_POISON, 'conditionDurationBonus', 'Poison duration', tooltipPercent)
+      [
+        fromModifier('thief.potent-poison-damage', 'factor', 'Poison damage', tooltipFactorChange),
+        ['conditionDurationBonus', 'Poison duration', tooltipPercent]
       ]
     ),
     [TRAIT.IMPROVISATION]: traitTooltip(
       'Use the same stolen skill more than once. Increase Shadow Force gained from Siphon, including Amplified Siphoning. Skritt Swipe grants an additional artifact use, stacking with Prolific Plunderer, and reduces the active cooldowns of selected utility skills.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'maximumStacks', 'Stolen skill uses'),
-        profileFact(balanceContext, id, 'resourceGain', 'Additional artifact use from Skritt Swipe'),
-        profileFact(balanceContext, id, 'lifeForceGain', 'Additional Shadow Force gain from Siphon', tooltipPercent),
-        profileFact(
-          balanceContext,
-          id,
+      [
+        ['maximumStacks', 'Stolen skill uses'],
+        ['resourceGain', 'Additional artifact use from Skritt Swipe'],
+        ['lifeForceGain', 'Additional Shadow Force gain from Siphon', tooltipPercent],
+        [
           'rechargeMultiplier',
           'Utility recharge removed, as a fraction of base recharge',
           (value) => tooltipPercent(1 - value)
-        ),
-        profileFact(balanceContext, id, 'internalCooldown', 'Utility reduction cooldown', tooltipSeconds)
+        ],
+        ['internalCooldown', 'Utility reduction cooldown', tooltipSeconds]
       ]
     ),
-    [TRAIT.EXECUTIONER]: traitTooltip(
-      'Deal increased strike damage against targets below half health.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'thief.executioner', 'factor', 'Strike damage', tooltipFactorChange)
-      ]
-    ),
+    [TRAIT.EXECUTIONER]: traitTooltip('Deal increased strike damage against targets below half health.', [
+      fromModifier('thief.executioner', 'factor', 'Strike damage', tooltipFactorChange)
+    ]),
     [TRAIT.KEEN_OBSERVER]: traitTooltip(
       'Gain critical-strike chance. The full-health bonus applies in combat simulation.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'criticalChance', 'Critical chance at full player health', tooltipPercent)
-      ]
+      [['criticalChance', 'Critical chance at full player health', tooltipPercent]]
     ),
     [TRAIT.UNRELENTING_STRIKES]: traitTooltip(
       'Eligible critical hits grant fury to the party.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)
-      ],
+      [['internalCooldown', 'Internal cooldown', tooltipSeconds]],
       'party'
     ),
     [TRAIT.FEROCIOUS_STRIKES]: traitTooltip(
       'Critical strikes deal increased damage against targets above half health.',
-      (balanceContext) => [
-        profileFact(balanceContext, TRAIT.FEROCIOUS_STRIKES, 'criticalDamage', 'Critical damage', tooltipFactorChange)
-      ]
+      [['criticalDamage', 'Critical damage', tooltipFactorChange]]
     ),
-    [TRAIT.ASSASSINS_FURY]: traitTooltip('Receiving fury on yourself grants might.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)
+    [TRAIT.ASSASSINS_FURY]: traitTooltip('Receiving fury on yourself grants might.', [
+      ['internalCooldown', 'Internal cooldown', tooltipSeconds]
     ]),
-    [TRAIT.SIGNETS_OF_POWER]: traitTooltip('Activating a signet restores initiative.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'resourceGain', 'Initiative restored')
+    [TRAIT.SIGNETS_OF_POWER]: traitTooltip('Activating a signet restores initiative.', [
+      ['resourceGain', 'Initiative restored']
     ]),
     [TRAIT.TWIN_FANGS]: traitTooltip(
       'Gain critical-strike damage, with the full-health bonus active in combat. Gain critical-strike chance against defiant targets.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          TRAIT.TWIN_FANGS,
-          'criticalDamage',
-          'Critical damage at full health',
-          tooltipFactorChange
-        ),
-        profileFact(
-          balanceContext,
-          TRAIT.TWIN_FANGS,
-          'criticalChance',
-          'Critical chance against defiant targets',
-          tooltipPercent
-        )
+      [
+        ['criticalDamage', 'Critical damage at full health', tooltipFactorChange],
+        ['criticalChance', 'Critical chance against defiant targets', tooltipPercent]
       ]
     ),
     [TRAIT.SUNDERING_SHADE]: traitTooltip('Completing a stealth attack inflicts vulnerability.'),
-    [TRAIT.PRACTICED_TOLERANCE]: traitTooltip('Gain ferocity from eligible precision.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'attributeConversion', 'Eligible precision converted to ferocity', tooltipPercent)
+    [TRAIT.PRACTICED_TOLERANCE]: traitTooltip('Gain ferocity from eligible precision.', [
+      ['attributeConversion', 'Eligible precision converted to ferocity', tooltipPercent]
     ]),
-    [TRAIT.DEADLY_AIM]: traitTooltip('Pistol strikes deal increased damage.', (balanceContext) => [
-      modifierFact(balanceContext, 'thief.deadly-aim', 'factor', 'Pistol strike damage', tooltipFactorChange)
+    [TRAIT.DEADLY_AIM]: traitTooltip('Pistol strikes deal increased damage.', [
+      fromModifier('thief.deadly-aim', 'factor', 'Pistol strike damage', tooltipFactorChange)
     ]),
     [TRAIT.NO_QUARTER]: (balanceContext, entity) => ({
       description:
@@ -897,37 +837,23 @@ export const thiefTooltips: ProfessionTooltips = {
         ...simulationEffectFacts(tooltipProfile(balanceContext, entity.id).effects, 'extension of existing fury').facts
       ]
     }),
-    [TRAIT.HIDDEN_KILLER]: traitTooltip(
-      'Gain critical-strike chance during stealth and briefly after leaving it.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, TRAIT.HIDDEN_KILLER, 'criticalChance', 'Critical chance', tooltipPercent),
-        profileFact(balanceContext, id, 'duration', 'Bonus duration after leaving stealth', tooltipSeconds)
-      ]
-    ),
+    [TRAIT.HIDDEN_KILLER]: traitTooltip('Gain critical-strike chance during stealth and briefly after leaving it.', [
+      ['criticalChance', 'Critical chance', tooltipPercent],
+      ['duration', 'Bonus duration after leaving stealth', tooltipSeconds]
+    ]),
     [TRAIT.INVIGORATING_PRECISION]: outsideScopeTooltip,
-    [TRAIT.KLEPTOMANIAC]: traitTooltip('Stealing restores initiative.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'resourceGain', 'Initiative restored')
+    [TRAIT.KLEPTOMANIAC]: traitTooltip('Stealing restores initiative.', [['resourceGain', 'Initiative restored']]),
+    [TRAIT.PREPAREDNESS]: traitTooltip('Increase maximum initiative and gain expertise.', [
+      ['attributeBonus', 'Expertise'],
+      fromProfile(CORE.resources, 'minimumStacks', 'Maximum initiative with Preparedness'),
+      fromProfile(CORE.resources, 'maximumStacks', 'Maximum initiative without Preparedness')
     ]),
-    [TRAIT.PREPAREDNESS]: traitTooltip('Increase maximum initiative and gain expertise.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'attributeBonus', 'Expertise'),
-      profileFact(balanceContext, CORE.resources, 'minimumStacks', 'Maximum initiative with Preparedness'),
-      profileFact(balanceContext, CORE.resources, 'maximumStacks', 'Maximum initiative without Preparedness')
+    [TRAIT.LEAD_ATTACKS]: traitTooltip('Spending initiative grants temporary damage stacks. Steal recharges faster.', [
+      ['damageIncreasePerStack', 'Strike and condition damage per stack', tooltipPercent],
+      ['maximumStacks', 'Maximum stacks'],
+      ['durationMultiplier', 'Stack duration', tooltipSeconds],
+      ['rechargeMultiplier', 'Steal recharge', tooltipFactorChange]
     ]),
-    [TRAIT.LEAD_ATTACKS]: traitTooltip(
-      'Spending initiative grants temporary damage stacks. Steal recharges faster.',
-      (balanceContext, id) => [
-        profileFact(
-          balanceContext,
-          id,
-          'damageIncreasePerStack',
-          'Strike and condition damage per stack',
-          tooltipPercent
-        ),
-        profileFact(balanceContext, id, 'maximumStacks', 'Maximum stacks'),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Stack duration', tooltipSeconds),
-        profileFact(balanceContext, id, 'rechargeMultiplier', 'Steal recharge', tooltipFactorChange)
-      ]
-    ),
     [TRAIT.UNCATCHABLE]: traitTooltip(
       'Dodging drops Lesser Caltrops, repeatedly inflicting bleeding and cripple.',
       (context, id) =>
@@ -939,7 +865,7 @@ export const thiefTooltips: ProfessionTooltips = {
     ),
     [TRAIT.BURST_OF_AGILITY]: traitTooltip(
       'Landing an attack against a defiant target triggers Lesser Haste, granting quickness, fury, and swiftness to yourself.',
-      (context, id) => [profileFact(context, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
+      [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
     ),
     [TRAIT.THRILL_OF_THE_CRIME]: traitTooltip('Stealing grants fury, might, and swiftness to yourself.'),
     [TRAIT.BOUNTIFUL_THEFT]: traitTooltip(
@@ -947,46 +873,37 @@ export const thiefTooltips: ProfessionTooltips = {
     ),
     [TRAIT.TRICKSTER]: outsideScopeTooltip,
     [TRAIT.PRESSURE_STRIKING]: outsideScopeTooltip,
-    [TRAIT.QUICK_POCKETS]: traitTooltip('Weapon swapping restores initiative.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'resourceGain', 'Initiative restored'),
-      profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)
+    [TRAIT.QUICK_POCKETS]: traitTooltip('Weapon swapping restores initiative.', [
+      ['resourceGain', 'Initiative restored'],
+      ['internalCooldown', 'Internal cooldown', tooltipSeconds]
     ]),
-    [TRAIT.SLEIGHT_OF_HAND]: traitTooltip('Stealing dazes the target and recharges faster.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'rechargeMultiplier', 'Steal recharge', tooltipFactorChange)
+    [TRAIT.SLEIGHT_OF_HAND]: traitTooltip('Stealing dazes the target and recharges faster.', [
+      ['rechargeMultiplier', 'Steal recharge', tooltipFactorChange]
     ]),
-    [TRAIT.DEADLY_AMBUSH]: traitTooltip(
-      'Stealing inflicts bleeding. Bleeding deals increased damage.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'thief.deadly-ambush-bleeding', 'factor', 'Bleeding damage', tooltipFactorChange)
-      ]
-    ),
+    [TRAIT.DEADLY_AMBUSH]: traitTooltip('Stealing inflicts bleeding. Bleeding deals increased damage.', [
+      fromModifier('thief.deadly-ambush-bleeding', 'factor', 'Bleeding damage', tooltipFactorChange)
+    ]),
     [TRAIT.EXPEDITIOUS_DODGER]: outsideScopeTooltip,
     [TRAIT.FELINE_GRACE]: outsideScopeTooltip,
-    [TRAIT.FLUID_STRIKES]: traitTooltip(
-      'Completing a movement skill temporarily increases strike damage.',
-      (balanceContext, id) => [
-        modifierFact(balanceContext, 'thief.fluid-strikes', 'amount', 'Strike damage'),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Bonus duration', tooltipSeconds)
-      ]
-    ),
+    [TRAIT.FLUID_STRIKES]: traitTooltip('Completing a movement skill temporarily increases strike damage.', [
+      fromModifier('thief.fluid-strikes', 'amount', 'Strike damage'),
+      ['durationMultiplier', 'Bonus duration', tooltipSeconds]
+    ]),
     [TRAIT.INSTANT_REFLEXES]: outsideScopeTooltip,
     [TRAIT.PUMPING_UP]: traitTooltip('Dodging grants might to yourself.'),
     [TRAIT.PAIN_RESPONSE]: outsideScopeTooltip,
     [TRAIT.GUARDED_INITIATION]: outsideScopeTooltip,
-    [TRAIT.SWINDLERS_EQUILIBRIUM]: traitTooltip(
-      'Gain power and additional power while wielding a sword.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeBonus', 'Power'),
-        profileFact(balanceContext, id, 'weaponAttributeBonus', 'Total power while wielding a sword')
-      ]
-    ),
-    [TRAIT.HARD_TO_CATCH]: traitTooltip('Completing a movement skill restores endurance.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'resourceGain', 'Endurance restored')
+    [TRAIT.SWINDLERS_EQUILIBRIUM]: traitTooltip('Gain power and additional power while wielding a sword.', [
+      ['attributeBonus', 'Power'],
+      ['weaponAttributeBonus', 'Total power while wielding a sword']
+    ]),
+    [TRAIT.HARD_TO_CATCH]: traitTooltip('Completing a movement skill restores endurance.', [
+      ['resourceGain', 'Endurance restored']
     ]),
     [TRAIT.ASSASSINS_REWARD]: outsideScopeTooltip,
-    [TRAIT.UPPER_HAND]: traitTooltip('Completing a dodge restores initiative.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'resourceGain', 'Initiative restored'),
-      profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)
+    [TRAIT.UPPER_HAND]: traitTooltip('Completing a dodge restores initiative.', [
+      ['resourceGain', 'Initiative restored'],
+      ['internalCooldown', 'Internal cooldown', tooltipSeconds]
     ]),
     [TRAIT.DONT_STOP]: outsideScopeTooltip,
     [TRAIT.PHYSICAL_SUPREMACY]: traitTooltip(
@@ -994,51 +911,37 @@ export const thiefTooltips: ProfessionTooltips = {
     ),
     [TRAIT.WEAKENING_STRIKES]: traitTooltip(
       'After dodging, your next landed player strike inflicts weakness. Deal increased strike damage to weakened targets.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'durationMultiplier', 'Time to land the strike', tooltipSeconds),
-        modifierFact(
-          balanceContext,
-          'thief.weakening-strikes',
-          'factor',
-          'Strike damage against weakened targets',
-          tooltipFactorChange
-        )
+      [
+        ['durationMultiplier', 'Time to land the strike', tooltipSeconds],
+        fromModifier('thief.weakening-strikes', 'factor', 'Strike damage against weakened targets', tooltipFactorChange)
       ]
     ),
-    [TRAIT.ENDURANCE_THIEF]: traitTooltip('Stealing restores endurance.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'resourceGain', 'Endurance restored')
-    ]),
+    [TRAIT.ENDURANCE_THIEF]: traitTooltip('Stealing restores endurance.', [['resourceGain', 'Endurance restored']]),
     [TRAIT.MARAUDERS_RESILIENCE]: traitTooltip(
       'Gain vitality from eligible power. Incoming damage is outside combat simulation scope.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeConversion', 'Eligible power converted to vitality', tooltipPercent)
-      ]
+      [['attributeConversion', 'Eligible power converted to vitality', tooltipPercent]]
     ),
     [TRAIT.ESCAPISTS_FORTITUDE]: outsideScopeTooltip,
-    [TRAIT.BRAWLERS_TENACITY]: traitTooltip(
-      'Using an eligible physical utility or healing skill restores endurance.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'resourceGain', 'Endurance restored')]
-    ),
+    [TRAIT.BRAWLERS_TENACITY]: traitTooltip('Using an eligible physical utility or healing skill restores endurance.', [
+      ['resourceGain', 'Endurance restored']
+    ]),
     [TRAIT.STAFF_MASTER]: traitTooltip(
       'Gain power and additional power while wielding a staff. Spending initiative on staff skills restores endurance.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeBonus', 'Power'),
-        profileFact(balanceContext, id, 'weaponAttributeBonus', 'Total power while wielding a staff'),
-        profileFact(balanceContext, id, 'resourceGain', 'Endurance per initiative spent')
+      [
+        ['attributeBonus', 'Power'],
+        ['weaponAttributeBonus', 'Total power while wielding a staff'],
+        ['resourceGain', 'Endurance per initiative spent']
       ]
     ),
-    [TRAIT.HAVOC_SPECIALIST]: traitTooltip(
-      'Deal increased strike damage while endurance is below maximum.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'thief.havoc-specialist', 'factor', 'Strike damage', tooltipFactorChange)
-      ]
-    ),
+    [TRAIT.HAVOC_SPECIALIST]: traitTooltip('Deal increased strike damage while endurance is below maximum.', [
+      fromModifier('thief.havoc-specialist', 'factor', 'Strike damage', tooltipFactorChange)
+    ]),
     [TRAIT.IMPACTING_DISRUPTION]: outsideScopeTooltip,
     [TRAIT.LOTUS_TRAINING]: traitTooltip(
       'Replace your dodge with Impaling Lotus, striking and applying conditions. Completing the dodge temporarily increases condition damage.',
-      (balanceContext, id) => [
-        modifierFact(balanceContext, 'thief.lotus-training', 'amount', 'Condition damage'),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Bonus duration', tooltipSeconds)
+      [
+        fromModifier('thief.lotus-training', 'amount', 'Condition damage'),
+        ['durationMultiplier', 'Bonus duration', tooltipSeconds]
       ]
     ),
     [TRAIT.UNHINDERED_COMBATANT]: traitTooltip(
@@ -1046,61 +949,53 @@ export const thiefTooltips: ProfessionTooltips = {
     ),
     [TRAIT.BOUNDING_DODGER]: traitTooltip(
       'Replace your dodge with Bound, striking the target. Completing the dodge temporarily increases strike damage.',
-      (balanceContext, id) => [
-        modifierFact(balanceContext, 'thief.bounding-dodger', 'amount', 'Strike damage'),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Bonus duration', tooltipSeconds)
+      [
+        fromModifier('thief.bounding-dodger', 'amount', 'Strike damage'),
+        ['durationMultiplier', 'Bonus duration', tooltipSeconds]
       ]
     ),
     [TRAIT.DEADEYES_GAZE]: traitTooltip(
       "Unlock Deadeye, rifle, cantrips, and Deadeye's Mark. Initiative attacks build malice against the marked target; malicious attacks consume it."
     ),
     [TRAIT.RENEWING_GAZE]: outsideScopeTooltip,
-    [TRAIT.IRON_SIGHT]: traitTooltip('Deal increased strike damage to the marked target.', (balanceContext) => [
-      modifierFact(balanceContext, 'thief.iron-sight', 'factor', 'Strike damage', tooltipFactorChange)
+    [TRAIT.IRON_SIGHT]: traitTooltip('Deal increased strike damage to the marked target.', [
+      fromModifier('thief.iron-sight', 'factor', 'Strike damage', tooltipFactorChange)
     ]),
     [TRAIT.MALICIOUS_INTENT]: traitTooltip(
       'Gain malice when marking a target and after a malicious attack spends malice.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'resourceGain', 'Malice gained')]
+      [['resourceGain', 'Malice gained']]
     ),
     [TRAIT.COLLATERAL_DAMAGE]: outsideScopeTooltip,
     [TRAIT.ONE_IN_THE_CHAMBER]: traitTooltip(
       'Cantrips grant a new stolen skill choice, replacing the stored choice. Stolen skills deal increased strike damage.',
-      (balanceContext) => [
-        modifierFact(
-          balanceContext,
-          'thief.one-in-the-chamber',
-          'factor',
-          'Stolen skill strike damage',
-          tooltipFactorChange
-        )
-      ]
+      [fromModifier('thief.one-in-the-chamber', 'factor', 'Stolen skill strike damage', tooltipFactorChange)]
     ),
     [TRAIT.SILENT_SCOPE]: traitTooltip(
       'Gain precision. Dodging above the malice threshold grants one temporary stealth-attack use without entering stealth.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeBonus', 'Precision'),
-        profileFact(balanceContext, id, 'threshold', 'Malice must exceed'),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Attack availability', tooltipSeconds)
+      [
+        ['attributeBonus', 'Precision'],
+        ['threshold', 'Malice must exceed'],
+        ['durationMultiplier', 'Attack availability', tooltipSeconds]
       ]
     ),
     [TRAIT.PAYBACK]: outsideScopeTooltip,
     [TRAIT.PREMEDITATION]: traitTooltip(
       'Gain concentration and increased strike damage for each different boon on you.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeBonus', 'Concentration'),
-        modifierFact(balanceContext, 'thief.premeditation', 'damagePerBoon', 'Strike damage per boon')
+      [
+        ['attributeBonus', 'Concentration'],
+        fromModifier('thief.premeditation', 'damagePerBoon', 'Strike damage per boon')
       ]
     ),
     [TRAIT.MALEFICENT_SEVEN]: traitTooltip(
       'Increase maximum malice. Reaching maximum malice grants initiative and boons once until a malicious attack spends malice.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'maximumStacks', 'Maximum malice'),
-        profileFact(balanceContext, id, 'resourceGain', 'Initiative restored')
+      [
+        ['maximumStacks', 'Maximum malice'],
+        ['resourceGain', 'Initiative restored']
       ]
     ),
     [TRAIT.BE_QUICK_OR_BE_KILLED]: traitTooltip(
       'Marking a target grants quickness. Gain power and precision while quickness is active.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'attributeBonus', 'Power and precision with quickness')]
+      [['attributeBonus', 'Power and precision with quickness']]
     ),
     [TRAIT.FIRE_FOR_EFFECT]: traitTooltip(
       'Replace stolen skill choices with Steal Time. Using a stolen skill grants might and fury to the party.',
@@ -1112,45 +1007,33 @@ export const thiefTooltips: ProfessionTooltips = {
     ),
     [TRAIT.DARK_SENTRY]: traitTooltip(
       "Barrier grants from Enter Shadow Shroud and Dawn's Repose give eligible allies Rot Wallow Venom. Their next strike within the venom window inflicts torment.",
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'internalCooldown', 'Cooldown per ally', tooltipSeconds)
-      ],
+      [['internalCooldown', 'Cooldown per ally', tooltipSeconds]],
       'allied venom'
     ),
     [TRAIT.PANAKUS_AMBITION]: outsideScopeTooltip,
     [TRAIT.SECOND_OPINION]: traitTooltip(
       'Gain condition damage, with an additional bonus while wielding a scepter. Gain healing power from condition damage.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeBonus', 'Condition damage'),
-        profileFact(balanceContext, id, 'attributePerStack', 'Additional condition damage with scepter'),
-        profileFact(
-          balanceContext,
-          id,
-          'attributeConversion',
-          'Condition damage converted to healing power',
-          tooltipPercent
-        )
+      [
+        ['attributeBonus', 'Condition damage'],
+        ['attributePerStack', 'Additional condition damage with scepter'],
+        ['attributeConversion', 'Condition damage converted to healing power', tooltipPercent]
       ]
     ),
     [TRAIT.SHALLOW_GRAVE]: outsideScopeTooltip,
     [TRAIT.CONSUME_SHADOWS]: outsideScopeTooltip,
     [TRAIT.LARCENOUS_TORMENT]: traitTooltip(
       'Each stack of torment you apply siphons life and generates shadow force while outside Shadow Shroud. Life siphons bypass armor and cannot critically strike.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'resourceGain', 'Shadow force per torment stack')],
+      [['resourceGain', 'Shadow force per torment stack']],
       'per torment stack'
     ),
-    [TRAIT.AMPLIFIED_SIPHONING]: traitTooltip(
-      'Increase the shadow force generated by Siphon.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'resourceGain', 'Additional Shadow Force from Siphon')]
-    ),
+    [TRAIT.AMPLIFIED_SIPHONING]: traitTooltip('Increase the shadow force generated by Siphon.', [
+      ['resourceGain', 'Additional Shadow Force from Siphon']
+    ]),
     [TRAIT.TRAVERSING_DUSK]: outsideScopeTooltip,
-    [TRAIT.STRENGTH_OF_SHADOWS]: traitTooltip(
-      'Gain expertise from vitality. Torment deals more damage.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeConversion', 'Vitality converted to expertise', tooltipPercent),
-        modifierFact(balanceContext, 'thief.strength-of-shadows', 'amount', 'Torment damage')
-      ]
-    ),
+    [TRAIT.STRENGTH_OF_SHADOWS]: traitTooltip('Gain expertise from vitality. Torment deals more damage.', [
+      ['attributeConversion', 'Vitality converted to expertise', tooltipPercent],
+      fromModifier('thief.strength-of-shadows', 'amount', 'Torment damage')
+    ]),
     [TRAIT.HUNGERING_DARKNESS]: outsideScopeTooltip,
     [TRAIT.SHADESTEP]: (balanceContext, entity) => ({
       description: 'Completing a supported Shadow Shroud skill grants its corresponding boon to the party.',
@@ -1168,74 +1051,65 @@ export const thiefTooltips: ProfessionTooltips = {
       'Unlock Antiquary, artifacts, Skritt Swipe, and double-edge skills. Pilfering replaces held artifacts; each artifact use consumes its selected slot.'
     ),
     [TRAIT.MAGPIES_DEFENSE]: outsideScopeTooltip,
-    [TRAIT.ENTERPRISING_ARISTOCRAT]: traitTooltip('Using an artifact restores initiative.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'resourceGain', 'Initiative restored')
+    [TRAIT.ENTERPRISING_ARISTOCRAT]: traitTooltip('Using an artifact restores initiative.', [
+      ['resourceGain', 'Initiative restored']
     ]),
     [TRAIT.CARD_SWAP]: traitTooltip(
       'Gain access to Reshuffle, which replaces the available artifact choices. Condition removal is not simulated.'
     ),
-    [TRAIT.REPEAT_RANSACKER]: traitTooltip(
-      'Using an artifact reduces the active recharge of Skritt Swipe.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'rechargeReduction', 'Recharge removed', tooltipSeconds)]
-    ),
-    [TRAIT.PROLIFIC_PLUNDERER]: traitTooltip(
-      'Skritt Swipe grants an additional artifact use.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'resourceGain', 'Additional artifact uses')]
-    ),
+    [TRAIT.REPEAT_RANSACKER]: traitTooltip('Using an artifact reduces the active recharge of Skritt Swipe.', [
+      ['rechargeReduction', 'Recharge removed', tooltipSeconds]
+    ]),
+    [TRAIT.PROLIFIC_PLUNDERER]: traitTooltip('Skritt Swipe grants an additional artifact use.', [
+      ['resourceGain', 'Additional artifact uses']
+    ]),
     [TRAIT.SCOUNDRELS_LUCK]: traitTooltip(
       "Skritt Swipe grants Scoundrel's Luck, making a risky double-edge cast succeed. New grants replace the charge instead of accumulating.",
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'maximumStacks', 'Charges'),
-        profileFact(balanceContext, id, 'internalCooldown', 'Grant cooldown', tooltipSeconds)
+      [
+        ['maximumStacks', 'Charges'],
+        ['internalCooldown', 'Grant cooldown', tooltipSeconds]
       ]
     ),
     [TRAIT.METICULOUS_CUSTODIAN]: traitTooltip(
       'Enhance artifacts: extend their special-effect windows, improve eligible strikes and burning, and add a strike to Chak Shield.',
-      (balanceContext) => [
-        modifierFact(
-          balanceContext,
+      [
+        fromModifier(
           'thief.meticulous-custodian-artifact-strike',
           'guitarFactor',
           'Guitar strike damage',
           tooltipFactorChange
         ),
-        modifierFact(
-          balanceContext,
+        fromModifier(
           'thief.meticulous-custodian-artifact-strike',
           'guitarFinalFactor',
           'Guitar final strike damage',
           tooltipFactorChange
         ),
-        modifierFact(
-          balanceContext,
+        fromModifier(
           'thief.meticulous-custodian-artifact-strike',
           'mortarFactor',
           'Mortar strike damage',
           tooltipFactorChange
         ),
-        modifierFact(
-          balanceContext,
+        fromModifier(
           'thief.meticulous-custodian-artifact-strike',
           'holoFactor',
           'Holo Dancer strike damage',
           tooltipFactorChange
         ),
-        modifierFact(
-          balanceContext,
+        fromModifier(
           'thief.meticulous-custodian-artifact-strike',
           'kryptisFactor',
           'Kryptis Turret strike damage',
           tooltipFactorChange
         ),
-        modifierFact(
-          balanceContext,
+        fromModifier(
           'thief.meticulous-custodian-mortar-burning',
           'factor',
           'Mortar burning duration',
           tooltipFactorChange
         ),
-        modifierFact(
-          balanceContext,
+        fromModifier(
           'thief.meticulous-custodian-sun-crystal-burning',
           'factor',
           'Sun Crystal burning duration',
@@ -1246,15 +1120,15 @@ export const thiefTooltips: ProfessionTooltips = {
     ),
     [TRAIT.EXHILARATING_EPHEMERA]: traitTooltip(
       'Using an artifact extends a temporary strike-damage bonus, up to the maximum remaining duration.',
-      (balanceContext, id) => [
-        modifierFact(balanceContext, 'thief.antiquary-artifact-momentum', 'amount', 'Strike damage'),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Duration added', tooltipSeconds),
-        profileFact(balanceContext, id, 'maximumStacks', 'Maximum remaining duration', tooltipSeconds)
+      [
+        fromModifier('thief.antiquary-artifact-momentum', 'amount', 'Strike damage'),
+        ['durationMultiplier', 'Duration added', tooltipSeconds],
+        ['maximumStacks', 'Maximum remaining duration', tooltipSeconds]
       ]
     ),
     [TRAIT.PRODIGIOUS_PINCHER]: traitTooltip(
       'Spending enough initiative in combat pilfers a new set of artifacts and resets the spending counter.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'threshold', 'Initiative spent to pilfer')]
+      [['threshold', 'Initiative spent to pilfer']]
     ),
     [TRAIT.POSSESSIVE_HOARDER]: (balanceContext, entity) => ({
       description:
@@ -1271,12 +1145,12 @@ export const thiefTooltips: ProfessionTooltips = {
     }),
     [TRAIT.COMBAT_HIGH]: traitTooltip(
       'Skritt Swipe grants a full set of damage-bonus stacks, replacing earlier stacks. Stacks expire one at a time.',
-      (balanceContext, id) => [
-        modifierFact(balanceContext, 'thief.combat-high-strike', 'damagePerStack', 'Strike damage per stack'),
-        modifierFact(balanceContext, 'thief.combat-high-condition', 'damagePerStack', 'Condition damage per stack'),
-        profileFact(balanceContext, id, 'maximumStacks', 'Initial stacks'),
-        profileFact(balanceContext, id, 'pulseInterval', 'Time between stack expirations', tooltipSeconds),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Final stack duration', tooltipSeconds)
+      [
+        fromModifier('thief.combat-high-strike', 'damagePerStack', 'Strike damage per stack'),
+        fromModifier('thief.combat-high-condition', 'damagePerStack', 'Condition damage per stack'),
+        ['maximumStacks', 'Initial stacks'],
+        ['pulseInterval', 'Time between stack expirations', tooltipSeconds],
+        ['durationMultiplier', 'Final stack duration', tooltipSeconds]
       ]
     )
   }

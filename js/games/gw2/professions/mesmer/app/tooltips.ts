@@ -2,13 +2,14 @@ import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/cor
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
+  fromProfile,
+  fromModifier,
   tooltipFactorChange,
   tooltipSeconds,
   outsideScopeTooltip,
   traitTooltip,
   skillTooltip,
   profileFact,
-  modifierFact,
   tooltipPercent,
   tooltipDecimal,
   tooltipNumber,
@@ -198,15 +199,7 @@ export const mesmerTooltips: ProfessionTooltips = {
     }),
     [ID.CONTINUUM_SPLIT]: skillTooltip(
       'Spend your clones to open a window whose duration counts yourself and each clone spent. At expiry, restore the captured cooldown, ammunition, and autoattack-chain state. Clones, damage, and boons are not rewound. Fragmentation extends the window.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          CHRONO.continuumSplit,
-          'durationPerTier',
-          'Window per shatter source',
-          tooltipSeconds
-        )
-      ]
+      [fromProfile(CHRONO.continuumSplit, 'durationPerTier', 'Window per shatter source', tooltipSeconds)]
     ),
     [ID.CONTINUUM_SHIFT]: skillTooltip(
       'End the active Continuum Split and restore its captured cooldown, ammunition, and autoattack-chain state immediately.'
@@ -316,9 +309,9 @@ export const mesmerTooltips: ProfessionTooltips = {
     ),
     [ID.SIGNET_OF_ILLUSIONS]: skillTooltip(
       "Passively generate your specialization's resource while equipped and recharged. Activate to reset eligible shatter and instrument cooldowns, restoring one ammunition charge where applicable. Continuum Split is excluded. The passive restarts after the signet recharges.",
-      (balanceContext) => [
-        profileFact(balanceContext, CORE.signetOfIllusions, 'pulseInterval', 'Passive interval', tooltipSeconds),
-        profileFact(balanceContext, CORE.signetOfIllusions, 'resourceGain', 'Resources per passive pulse')
+      [
+        fromProfile(CORE.signetOfIllusions, 'pulseInterval', 'Passive interval', tooltipSeconds),
+        fromProfile(CORE.signetOfIllusions, 'resourceGain', 'Resources per passive pulse')
       ]
     ),
     [ID.SIGNET_OF_THE_ETHER]: skillTooltip(
@@ -326,19 +319,15 @@ export const mesmerTooltips: ProfessionTooltips = {
     ),
     [ID.SIGNET_OF_DOMINATION]: skillTooltip(
       'Passively gain condition damage while the signet is available. Activate to stun your target.',
-      (balanceContext) => [
-        profileFact(balanceContext, CORE.signetOfDomination, 'conditionDamageBonus', 'Passive condition damage')
-      ]
+      [fromProfile(CORE.signetOfDomination, 'conditionDamageBonus', 'Passive condition damage')]
     ),
     [ID.SIGNET_OF_MIDNIGHT]: skillTooltip(
       'Passively gain expertise while the signet is available. Activate to blind nearby enemies.',
-      (balanceContext) => [profileFact(balanceContext, CORE.signetOfMidnight, 'expertiseBonus', 'Passive expertise')]
+      [fromProfile(CORE.signetOfMidnight, 'expertiseBonus', 'Passive expertise')]
     ),
     [ID.MIMIC]: skillTooltip(
       "Arm a window for your next completed utility skill. If its cast begins within the window, clear that skill's cooldown and cast lockout. Follow-up skills do not consume Mimic; ammunition charges are not replenished.",
-      (balanceContext) => [
-        profileFact(balanceContext, CORE.mimic, 'durationMultiplier', 'Mimic window', tooltipSeconds)
-      ]
+      [fromProfile(CORE.mimic, 'durationMultiplier', 'Mimic window', tooltipSeconds)]
     ),
     [ID.MIND_THE_GAP]: skillTooltip('Strike, generate a resource, and gain Clarity for a subsequent spear skill.'),
     [ID.IMAGINARY_INVERSION]: skillTooltip(
@@ -449,90 +438,60 @@ export const mesmerTooltips: ProfessionTooltips = {
   traits: {
     [TRAIT.ILLUSION_OF_VULNERABILITY]: outsideScopeTooltip,
     [TRAIT.DAZZLING]: traitTooltip('Landed control effects from you or your summons inflict vulnerability.'),
-    [TRAIT.FRAGILITY]: traitTooltip(
-      'Your strikes deal increased damage for each vulnerability stack on the target.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'mesmer.fragility', 'damagePerStack', 'Strike damage per vulnerability stack')
-      ]
-    ),
+    [TRAIT.FRAGILITY]: traitTooltip('Your strikes deal increased damage for each vulnerability stack on the target.', [
+      fromModifier('mesmer.fragility', 'damagePerStack', 'Strike damage per vulnerability stack')
+    ]),
     [TRAIT.BOUNTIFUL_BLADES]: traitTooltip(
       'Mirror Blade gains additional target hits. Phantasmal Berserker summons additional phantasms, each with reduced damage.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'summons', 'Phantasm count multiplier', (value) => `${tooltipDecimal(value)}×`),
-        profileFact(balanceContext, id, 'damageMultiplier', 'Damage per phantasm', tooltipFactorChange)
+      [
+        ['summons', 'Phantasm count multiplier', (value) => `${tooltipDecimal(value)}×`],
+        ['damageMultiplier', 'Damage per phantasm', tooltipFactorChange]
       ],
       'additional Mirror Blade hits'
     ),
-    [TRAIT.EMPOWERED_ILLUSIONS]: traitTooltip(
-      'Clones and phantasms deal increased strike damage.',
-      (balanceContext) => [
-        modifierFact(
-          balanceContext,
-          'mesmer.empowered-illusions',
-          'factor',
-          'Illusion strike damage',
-          tooltipFactorChange
-        )
-      ]
-    ),
+    [TRAIT.EMPOWERED_ILLUSIONS]: traitTooltip('Clones and phantasms deal increased strike damage.', [
+      fromModifier('mesmer.empowered-illusions', 'factor', 'Illusion strike damage', tooltipFactorChange)
+    ]),
     [TRAIT.RENDING_SHATTER]: traitTooltip(
       'Shatter hits inflict vulnerability for each illusion or blade. Instrument hits also inflict vulnerability.'
     ),
     [TRAIT.SHATTERED_CONCENTRATION]: outsideScopeTooltip,
     [TRAIT.EGOTISM]: traitTooltip(
       'Your strikes deal increased damage after the target has lost health. Your own health remains full in combat.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'mesmer.egotism', 'factor', 'Strike damage', tooltipFactorChange)
-      ]
+      [fromModifier('mesmer.egotism', 'factor', 'Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.FURIOUS_INTERRUPTION]: outsideScopeTooltip,
     [TRAIT.VICIOUS_EXPRESSION]: traitTooltip(
       'Deal increased strike damage against the boonless simulated target, including illusion strikes.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'mesmer.vicious-expression', 'factor', 'Strike damage', tooltipFactorChange)
-      ]
+      [fromModifier('mesmer.vicious-expression', 'factor', 'Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.MENTAL_ANGUISH]: traitTooltip(
       'Eligible first-strike shatter packets deal increased damage, with a larger bonus while the target is not activating skills.',
-      (balanceContext) => [
-        modifierFact(
-          balanceContext,
+      [
+        fromModifier(
           'mesmer.mental-anguish',
           'activatingFactor',
           'Damage while target activates skills',
           tooltipFactorChange
         ),
-        modifierFact(
-          balanceContext,
-          'mesmer.mental-anguish',
-          'idleFactor',
-          'Damage while target is idle',
-          tooltipFactorChange
-        )
+        fromModifier('mesmer.mental-anguish', 'idleFactor', 'Damage while target is idle', tooltipFactorChange)
       ]
     ),
     [TRAIT.POWER_BLOCK]: outsideScopeTooltip,
     [TRAIT.CRITICAL_INFUSION]: traitTooltip(
       'Your critical hits grant vigor. Critical hits from clones and phantasms do not trigger this trait.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
+      [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
     ),
     [TRAIT.SHARPER_IMAGES]: traitTooltip('Critical strikes from clones and phantasms inflict bleeding.'),
     [TRAIT.MASTER_FENCER]: traitTooltip(
       'Your eligible critical hits grant fury to yourself and nearby allies, with different durations.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
+      [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
     ),
     [TRAIT.PHANTASMAL_FURY]: traitTooltip(
       'Phantasms gain critical-strike chance. Virtuoso grants an additional phantasm critical-chance bonus.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          TRAIT.PHANTASMAL_FURY,
-          'criticalChance',
-          'Phantasm critical chance',
-          tooltipPercent
-        ),
-        profileFact(
-          balanceContext,
+      [
+        ['criticalChance', 'Phantasm critical chance', tooltipPercent],
+        fromProfile(
           TRAIT.QUIET_INTENSITY,
           'phantasmCriticalChance',
           'Additional phantasm critical chance as Virtuoso',
@@ -546,63 +505,40 @@ export const mesmerTooltips: ProfessionTooltips = {
       'Eligible shatter hits blind the target. Blindness can trigger Ineptitude.'
     ),
     [TRAIT.WANDERING_MIND]: outsideScopeTooltip,
-    [TRAIT.FENCERS_FINESSE]: traitTooltip(
-      'Sword hits grant stacking ferocity. Sword skills recharge faster.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributePerStack', 'Ferocity per stack'),
-        profileFact(balanceContext, id, 'maximumStacks', 'Maximum stacks'),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Stack duration', tooltipSeconds),
-        profileFact(balanceContext, id, 'rechargeMultiplier', 'Sword recharge', tooltipFactorChange)
-      ]
-    ),
+    [TRAIT.FENCERS_FINESSE]: traitTooltip('Sword hits grant stacking ferocity. Sword skills recharge faster.', [
+      ['attributePerStack', 'Ferocity per stack'],
+      ['maximumStacks', 'Maximum stacks'],
+      ['durationMultiplier', 'Stack duration', tooltipSeconds],
+      ['rechargeMultiplier', 'Sword recharge', tooltipFactorChange]
+    ]),
     [TRAIT.SUPERIORITY_COMPLEX]: traitTooltip(
       'Your critical strikes deal increased damage. Use the larger bonus against low-health or targets affected by Fear or Taunt; defiance alone does not activate it.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          TRAIT.SUPERIORITY_COMPLEX,
-          'highHealthFactor',
-          'Base critical damage',
-          tooltipFactorChange
-        ),
-        profileFact(
-          balanceContext,
-          TRAIT.SUPERIORITY_COMPLEX,
-          'lowHealthOrDisabledFactor',
-          'Enhanced critical damage',
-          tooltipFactorChange
-        ),
-        profileFact(
-          balanceContext,
-          TRAIT.SUPERIORITY_COMPLEX,
-          'threshold',
-          'Target health threshold',
-          (value) => `${tooltipDecimal(value * 100)}%`
-        )
+      [
+        ['highHealthFactor', 'Base critical damage', tooltipFactorChange],
+        ['lowHealthOrDisabledFactor', 'Enhanced critical damage', tooltipFactorChange],
+        ['threshold', 'Target health threshold', (value) => `${tooltipDecimal(value * 100)}%`]
       ]
     ),
     [TRAIT.INEPTITUDE]: traitTooltip(
       'Blindness and qualifying interrupts inflict confusion. Only the interrupt trigger against a defiant target has an internal cooldown.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'internalCooldown', 'Defiant interrupt cooldown', tooltipSeconds)
-      ]
+      [['internalCooldown', 'Defiant interrupt cooldown', tooltipSeconds]]
     ),
     [TRAIT.DECEPTIVE_EVASION]: traitTooltip('Dodging as Mirage creates a clone.'),
     [TRAIT.METAPHYSICAL_REJUVENATION]: outsideScopeTooltip,
     [TRAIT.ILLUSIONARY_MEMBRANE]: traitTooltip(
       'Using your second shatter activates a temporary condition-damage bonus.',
-      (balanceContext) => [modifierFact(balanceContext, 'mesmer.illusionary-membrane', 'amount', 'Condition damage')]
+      [fromModifier('mesmer.illusionary-membrane', 'amount', 'Condition damage')]
     ),
     [TRAIT.CHAOTIC_PERSISTENCE]: traitTooltip(
       'Gain expertise and concentration while regeneration is assumed active.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'expertiseBonus', 'Expertise'),
-        profileFact(balanceContext, id, 'concentrationBonus', 'Concentration')
+      [
+        ['expertiseBonus', 'Expertise'],
+        ['concentrationBonus', 'Concentration']
       ]
     ),
     [TRAIT.METHOD_OF_MADNESS]: traitTooltip(
       'Completing a healing skill triggers Lesser Chaos Storm, repeatedly striking the target.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
+      [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
     ),
     [TRAIT.ILLUSIONARY_DEFENSE]: outsideScopeTooltip,
     [TRAIT.MASTER_OF_MANIPULATION]: outsideScopeTooltip,
@@ -611,9 +547,9 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.CHAOTIC_INTERRUPTION]: traitTooltip(
       "Interrupting a target that is activating a skill reduces the active weapon set's phantasm recharge. Repeated triggers against a defiant target are cooldown-limited.",
       // Use the same patchable recharge and proc interval as the interrupt handler.
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'recharge', 'Phantasm recharge reduction', tooltipSeconds),
-        profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown against defiant targets', tooltipSeconds)
+      [
+        ['recharge', 'Phantasm recharge reduction', tooltipSeconds],
+        ['internalCooldown', 'Internal cooldown against defiant targets', tooltipSeconds]
       ]
     ),
     [TRAIT.SHAPER_OF_CHAOS]: outsideScopeTooltip,
@@ -625,8 +561,8 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.MEDICS_FEEDBACK]: outsideScopeTooltip,
     [TRAIT.RESTORATIVE_MANTRAS]: outsideScopeTooltip,
     [TRAIT.SYMPATHETIC_VISAGE]: outsideScopeTooltip,
-    [TRAIT.WARDENS_FEEDBACK]: traitTooltip('Focus weapon skills have reduced recharge.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'rechargeMultiplier', 'Focus recharge', tooltipFactorChange)
+    [TRAIT.WARDENS_FEEDBACK]: traitTooltip('Focus weapon skills have reduced recharge.', [
+      ['rechargeMultiplier', 'Focus recharge', tooltipFactorChange]
     ]),
     [TRAIT.EGO_RESTORATION]: traitTooltip(
       'Using a healing skill in combat creates a clone, stocks a blade as Virtuoso, or grants a note as Troubadour.'
@@ -642,45 +578,33 @@ export const mesmerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.COMPOUNDING_POWER]: traitTooltip(
       'Creating illusion resources grants temporary stacks that increase your strike and condition damage. Illusion strikes do not inherit the personal strike bonus.',
-      (balanceContext, id) => [
-        modifierFact(balanceContext, 'mesmer.compounding-power', 'strikePerStack', 'Strike damage per stack'),
-        modifierFact(balanceContext, 'mesmer.compounding-power', 'conditionPerStack', 'Condition damage per stack'),
-        profileFact(balanceContext, id, 'maximumStacks', 'Maximum stacks'),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Stack duration', tooltipSeconds)
+      [
+        fromModifier('mesmer.compounding-power', 'strikePerStack', 'Strike damage per stack'),
+        fromModifier('mesmer.compounding-power', 'conditionPerStack', 'Condition damage per stack'),
+        ['maximumStacks', 'Maximum stacks'],
+        ['durationMultiplier', 'Stack duration', tooltipSeconds]
       ]
     ),
-    [TRAIT.MASTER_OF_MISDIRECTION]: traitTooltip(
-      'Shatters and instrument skills recharge faster.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'rechargeMultiplier', 'Recharge', tooltipFactorChange)]
-    ),
-    [TRAIT.SHATTER_STORM]: traitTooltip('The first shatter gains ammunition.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'maximumStacks', 'Ammunition')
+    [TRAIT.MASTER_OF_MISDIRECTION]: traitTooltip('Shatters and instrument skills recharge faster.', [
+      ['rechargeMultiplier', 'Recharge', tooltipFactorChange]
     ]),
+    [TRAIT.SHATTER_STORM]: traitTooltip('The first shatter gains ammunition.', [['maximumStacks', 'Ammunition']]),
     [TRAIT.PERSISTENCE_OF_MEMORY]: outsideScopeTooltip,
     [TRAIT.THE_PLEDGE]: traitTooltip(
       'Your own burning applications from The Prestige and Phantasmal Mage apply additional burning. Phantasm and trait-proc applications do not trigger this.'
     ),
     [TRAIT.ESCAPE_ARTIST]: outsideScopeTooltip,
-    [TRAIT.PHANTASMAL_HASTE]: traitTooltip('Phantasms perform their attacks faster.', (balanceContext, id) => [
-      profileFact(
-        balanceContext,
-        id,
-        'quicknessCastMultiplier',
-        'Phantasm action speed',
-        (value) => `${tooltipDecimal(value)}×`
-      )
+    [TRAIT.PHANTASMAL_HASTE]: traitTooltip('Phantasms perform their attacks faster.', [
+      ['quicknessCastMultiplier', 'Phantasm action speed', (value) => `${tooltipDecimal(value)}×`]
     ]),
     [TRAIT.MAIM_THE_DISILLUSIONED]: traitTooltip(
       'Eligible first-strike shatter packets inflict torment.',
       () => [],
       'per eligible shatter hit'
     ),
-    [TRAIT.PHANTASMAL_FORCE]: traitTooltip(
-      'Phantasms deal increased strike damage for each active might stack.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'mesmer.phantasmal-force', 'damagePerMight', 'Phantasm strike damage per might')
-      ]
-    ),
+    [TRAIT.PHANTASMAL_FORCE]: traitTooltip('Phantasms deal increased strike damage for each active might stack.', [
+      fromModifier('mesmer.phantasmal-force', 'damagePerMight', 'Phantasm strike damage per might')
+    ]),
     [TRAIT.MASTER_OF_FRAGMENTATION]: (balanceContext, entity) => ({
       description:
         "Improve native first-shatter critical chance, add cripple to supported second-shatter hits and weakness to Deafening Drum, extend supported defensive shatters, and improve Crescendo's scaling per active instrument.",
@@ -712,23 +636,13 @@ export const mesmerTooltips: ProfessionTooltips = {
         )
       ]
     }),
-    [TRAIT.MALICIOUS_SORCERY]: traitTooltip('Confusion lasts longer.', (balanceContext) => [
-      profileFact(balanceContext, TRAIT.MALICIOUS_SORCERY, 'durationMultiplier', 'Confusion duration')
-    ]),
+    [TRAIT.MALICIOUS_SORCERY]: traitTooltip('Confusion lasts longer.', [['durationMultiplier', 'Confusion duration']]),
     [TRAIT.TIME_SPLITTER]: traitTooltip(
       'Unlock Chronomancer, shield, wells, and its shatters. Continuum Split temporarily records cooldowns and illusion resources for restoration.'
     ),
     [TRAIT.FLOW_OF_TIME]: traitTooltip(
       'Gain critical-strike chance while alacrity is active, including for illusions.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          TRAIT.FLOW_OF_TIME,
-          'criticalChance',
-          'Critical chance with alacrity',
-          tooltipPercent
-        )
-      ]
+      [['criticalChance', 'Critical chance with alacrity', tooltipPercent]]
     ),
     [TRAIT.TIME_MARCHES_ON]: traitTooltip(
       'Alacrity applied to you is stronger: it increases your recharge rate by 50% instead of 25%. Movement speed is not simulated.'
@@ -738,78 +652,55 @@ export const mesmerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.TIME_CATCHES_UP]: traitTooltip(
       'Eligible shatter packets deal increased damage against chilled, crippled, immobilized, or slowed targets.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'mesmer.time-catches-up', 'factor', 'Shatter strike damage', tooltipFactorChange)
-      ]
+      [fromModifier('mesmer.time-catches-up', 'factor', 'Shatter strike damage', tooltipFactorChange)]
     ),
     [TRAIT.ALLS_WELL_THAT_ENDS_WELL]: outsideScopeTooltip,
     [TRAIT.DANGER_TIME]: traitTooltip(
       'Time Sink control effects temporarily increase critical damage for you and your illusions. Delayed Reactions allows other control effects to activate the bonus.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, TRAIT.DANGER_TIME, 'criticalDamage', 'Critical damage', tooltipPercent),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Bonus duration', tooltipSeconds)
+      [
+        ['criticalDamage', 'Critical damage', tooltipPercent],
+        ['durationMultiplier', 'Bonus duration', tooltipSeconds]
       ]
     ),
-    [TRAIT.ILLUSIONARY_REVERSION]: traitTooltip(
-      'Shattering exactly the required number of clones restores a clone.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'threshold', 'Clones spent'),
-        profileFact(balanceContext, id, 'resourceGain', 'Clones restored')
-      ]
-    ),
+    [TRAIT.ILLUSIONARY_REVERSION]: traitTooltip('Shattering exactly the required number of clones restores a clone.', [
+      ['threshold', 'Clones spent'],
+      ['resourceGain', 'Clones restored']
+    ]),
     [TRAIT.TIME_BOMB]: traitTooltip(
       'Completing Time Sink arms a delayed explosion. Your strike damage increases until it explodes; another bomb cannot be armed while the timer is active.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'durationMultiplier', 'Explosion delay / bonus duration', tooltipSeconds),
-        modifierFact(balanceContext, 'mesmer.time-bomb', 'factor', 'Strike damage while armed', tooltipFactorChange)
+      [
+        ['durationMultiplier', 'Explosion delay / bonus duration', tooltipSeconds],
+        fromModifier('mesmer.time-bomb', 'factor', 'Strike damage while armed', tooltipFactorChange)
       ]
     ),
     [TRAIT.STRETCHED_TIME]: traitTooltip(
       'Shattering grants alacrity to the party. Add duration for yourself and for each clone spent to the listed base duration.',
-      (balanceContext, id) => [
-        profileFact(
-          balanceContext,
-          id,
-          'durationPerTier',
-          'Additional duration per player / clone tier',
-          tooltipSeconds
-        )
-      ],
+      [['durationPerTier', 'Additional duration per player / clone tier', tooltipSeconds]],
       'base duration before tiers'
     ),
     [TRAIT.SEIZE_THE_MOMENT]: traitTooltip(
       'Shattering grants quickness to the party. Add duration for yourself and for each clone spent to the listed base duration.',
-      (balanceContext, id) => [
-        profileFact(
-          balanceContext,
-          id,
-          'durationPerTier',
-          'Additional duration per player / clone tier',
-          tooltipSeconds
-        )
-      ],
+      [['durationPerTier', 'Additional duration per player / clone tier', tooltipSeconds]],
       'base duration before tiers'
     ),
     [TRAIT.CHRONOPHANTASMA]: traitTooltip(
       'Phantasms attack again before becoming clones, with increased strike damage.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'damageMultiplier', 'Phantasm strike damage', tooltipFactorChange)
-      ]
+      [['damageMultiplier', 'Phantasm strike damage', tooltipFactorChange]]
     ),
     [TRAIT.MIRAGE_CLOAK]: traitTooltip(
       "Unlock Mirage, axe, deceptions, and Mirage Cloak. Dodging grants a temporary window for your weapon's ambush attack."
     ),
     [TRAIT.NOMADS_ENDURANCE]: traitTooltip(
       'Shattering grants vigor. While vigor is active, increase your strike and condition damage.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'mesmer.nomads-endurance', 'strikeBonus', 'Strike damage with vigor'),
-        modifierFact(balanceContext, 'mesmer.nomads-endurance', 'conditionBonus', 'Condition damage with vigor')
+      [
+        fromModifier('mesmer.nomads-endurance', 'strikeBonus', 'Strike damage with vigor'),
+        fromModifier('mesmer.nomads-endurance', 'conditionBonus', 'Condition damage with vigor')
       ]
     ),
     [TRAIT.SPEED_OF_SAND]: outsideScopeTooltip,
     [TRAIT.SELF_DECEPTION]: traitTooltip(
       'Completing a deception skill while you have a clone creates an additional clone.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'resourceGain', 'Clones created')]
+      [['resourceGain', 'Clones created']]
     ),
     [TRAIT.RENEWING_OASIS]: traitTooltip('Gaining Mirage Cloak grants regeneration.'),
     [TRAIT.RIDDLE_OF_SAND]: traitTooltip(
@@ -817,16 +708,16 @@ export const mesmerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.DESERT_DISTORTION]: traitTooltip(
       'Distortion opens an ambush window and creates Mirage Mirrors according to the clones spent.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'resourceGain', 'Mirrors per clone spent')]
+      [['resourceGain', 'Mirrors per clone spent']]
     ),
     [TRAIT.MIRAGE_MANTLE]: traitTooltip('Player ambush attacks grant alacrity to the party.', () => [], 'party'),
     [TRAIT.PHANTOM_PAIN]: traitTooltip(
       'Shattering grants damage stacks for yourself and each clone spent. Stacks increase personal strike damage and condition damage.',
-      (balanceContext, id) => [
-        modifierFact(balanceContext, 'mesmer.phantom-pain', 'strikePerStack', 'Strike damage per stack'),
-        modifierFact(balanceContext, 'mesmer.phantom-pain', 'conditionPerStack', 'Condition damage per stack'),
-        profileFact(balanceContext, id, 'maximumStacks', 'Maximum stacks'),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Stack duration', tooltipSeconds)
+      [
+        fromModifier('mesmer.phantom-pain', 'strikePerStack', 'Strike damage per stack'),
+        fromModifier('mesmer.phantom-pain', 'conditionPerStack', 'Condition damage per stack'),
+        ['maximumStacks', 'Maximum stacks'],
+        ['durationMultiplier', 'Stack duration', tooltipSeconds]
       ]
     ),
     [TRAIT.INFINITE_HORIZON]: traitTooltip(
@@ -837,10 +728,10 @@ export const mesmerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.DUNE_CLOAK]: traitTooltip(
       'Gaining Mirage Cloak reduces Mind Wrack and Cry of Frustration recharge. Shattering enough clones grants Mirage Cloak.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'rechargeReduction', 'Recharge removed', tooltipSeconds),
-        profileFact(balanceContext, id, 'threshold', 'Clones required'),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Granted Mirage Cloak duration', tooltipSeconds)
+      [
+        ['rechargeReduction', 'Recharge removed', tooltipSeconds],
+        ['threshold', 'Clones required'],
+        ['durationMultiplier', 'Granted Mirage Cloak duration', tooltipSeconds]
       ]
     ),
     [TRAIT.PSYCHIC_BLADES]: traitTooltip(
@@ -848,57 +739,49 @@ export const mesmerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.DEADLY_BLADES]: traitTooltip(
       'Blade critical hits inflict vulnerability. Completing a bladesong temporarily increases personal strike and condition damage.',
-      (balanceContext, id) => [
-        modifierFact(balanceContext, 'mesmer.deadly-blades', 'strikeBonus', 'Strike damage'),
-        modifierFact(balanceContext, 'mesmer.deadly-blades', 'conditionBonus', 'Condition damage'),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Damage-bonus duration', tooltipSeconds)
+      [
+        fromModifier('mesmer.deadly-blades', 'strikeBonus', 'Strike damage'),
+        fromModifier('mesmer.deadly-blades', 'conditionBonus', 'Condition damage'),
+        ['durationMultiplier', 'Damage-bonus duration', tooltipSeconds]
       ]
     ),
     [TRAIT.QUIET_INTENSITY]: traitTooltip(
       'Gain ferocity from vitality and additional personal critical-strike chance while fury is active.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'vitalityConversion', 'Vitality converted to ferocity', tooltipPercent),
-        profileFact(
-          balanceContext,
-          TRAIT.QUIET_INTENSITY,
-          'criticalChance',
-          'Additional critical chance with fury',
-          tooltipPercent
-        )
+      [
+        ['vitalityConversion', 'Vitality converted to ferocity', tooltipPercent],
+        ['criticalChance', 'Additional critical chance with fury', tooltipPercent]
       ]
     ),
     [TRAIT.BLADETURN_REFRAIN]: outsideScopeTooltip,
     [TRAIT.MENTAL_FOCUS]: traitTooltip(
       'Your strikes deal increased damage. The simulator always assumes a nearby target.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'mesmer.mental-focus', 'factor', 'Nearby strike damage', tooltipFactorChange)
-      ]
+      [fromModifier('mesmer.mental-focus', 'factor', 'Nearby strike damage', tooltipFactorChange)]
     ),
     [TRAIT.JAGGED_MIND]: traitTooltip('Critical blade strikes inflict bleeding.'),
     [TRAIT.DUELISTS_REVERSAL]: outsideScopeTooltip,
     [TRAIT.PHANTASMAL_BLADES]: traitTooltip(
       "A phantasm's completed attack lifecycle fires an additional blade strike."
     ),
-    [TRAIT.SHARPENING_SORROW]: traitTooltip('Gain expertise while fury is assumed active.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'expertiseBonus', 'Expertise')
+    [TRAIT.SHARPENING_SORROW]: traitTooltip('Gain expertise while fury is assumed active.', [
+      ['expertiseBonus', 'Expertise']
     ]),
     [TRAIT.PSYCHIC_RIPOSTE]: outsideScopeTooltip,
     [TRAIT.INFINITE_FORGE]: traitTooltip(
       'Periodically stock a blade. Spending enough blades on a bladesong refunds blades. Blade attacks deal increased strike damage.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'pulseInterval', 'Blade generation interval', tooltipSeconds),
-        profileFact(balanceContext, id, 'playerStacks', 'Blades per interval'),
-        profileFact(balanceContext, id, 'threshold', 'Blades spent to trigger refund'),
-        profileFact(balanceContext, id, 'resourceGain', 'Blades refunded'),
-        modifierFact(balanceContext, 'mesmer.infinite-forge', 'factor', 'Blade strike damage', tooltipFactorChange)
+      [
+        ['pulseInterval', 'Blade generation interval', tooltipSeconds],
+        ['playerStacks', 'Blades per interval'],
+        ['threshold', 'Blades spent to trigger refund'],
+        ['resourceGain', 'Blades refunded'],
+        fromModifier('mesmer.infinite-forge', 'factor', 'Blade strike damage', tooltipFactorChange)
       ]
     ),
     [TRAIT.BLOODSONG]: traitTooltip(
       'Bleeding deals increased damage. Applying enough bleeding stacks stocks a blade.',
-      (balanceContext, id) => [
-        modifierFact(balanceContext, 'mesmer.bloodsong', 'factor', 'Bleeding damage', tooltipFactorChange),
-        profileFact(balanceContext, id, 'threshold', 'Bleeding stacks to stock blades'),
-        profileFact(balanceContext, id, 'resourceGain', 'Blades stocked')
+      [
+        fromModifier('mesmer.bloodsong', 'factor', 'Bleeding damage', tooltipFactorChange),
+        ['threshold', 'Bleeding stacks to stock blades'],
+        ['resourceGain', 'Blades stocked']
       ]
     ),
     [TRAIT.WANDERING_MINSTREL]: traitTooltip(
@@ -906,34 +789,26 @@ export const mesmerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.SYMPHONIC_RESONANCE]: traitTooltip(
       'Active instruments grant their corresponding passive bonuses. Lute increases personal damage; Flute increases endurance regeneration.',
-      (balanceContext, id) => [
-        modifierFact(balanceContext, 'mesmer.lute', 'amount', 'Personal strike and condition damage with Lute'),
-        profileFact(
-          balanceContext,
-          id,
-          'enduranceRegenerationMultiplier',
-          'Endurance regeneration with Flute',
-          tooltipFactorChange
-        )
+      [
+        fromModifier('mesmer.lute', 'amount', 'Personal strike and condition damage with Lute'),
+        ['enduranceRegenerationMultiplier', 'Endurance regeneration with Flute', tooltipFactorChange]
       ]
     ),
-    [TRAIT.HARMONIZE]: traitTooltip('Successfully summoning a phantasm grants a note.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'resourceGain', 'Notes gained')
+    [TRAIT.HARMONIZE]: traitTooltip('Successfully summoning a phantasm grants a note.', [
+      ['resourceGain', 'Notes gained']
     ]),
     [TRAIT.MAYHEM]: traitTooltip(
       "Flustering Flute attacks apply torment. Dodging reduces Flustering Flute's active recharge.",
-      (balanceContext, id) => [profileFact(balanceContext, id, 'rechargeReduction', 'Recharge removed', tooltipSeconds)]
+      [['rechargeReduction', 'Recharge removed', tooltipSeconds]]
     ),
     [TRAIT.RACONTEUR]: traitTooltip('Resolving a tale grants protection.'),
     [TRAIT.SYNCOPATE]: traitTooltip(
       'Control effects and Method of Madness trigger an immediate strike. Deafening Drum also emits a delayed strike and daze.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'initialDelay', 'Drum wave delay', tooltipSeconds)]
+      [['initialDelay', 'Drum wave delay', tooltipSeconds]]
     ),
     [TRAIT.SHREDDING]: traitTooltip(
       'Lively Lute gains an additional strike. While Lute is playing, gain additional personal strike and condition damage.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'mesmer.shredding', 'amount', 'Additional strike and condition damage with Lute')
-      ],
+      [fromModifier('mesmer.shredding', 'amount', 'Additional strike and condition damage with Lute')],
       'additional Lute strike'
     ),
     [TRAIT.LIFE_OF_THE_PARTY]: traitTooltip(
@@ -944,32 +819,26 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.LOVE_SONG]: outsideScopeTooltip,
     [TRAIT.FORTISSIMO]: traitTooltip(
       'Each active instrument increases eligible attributes. Crescendo subsequently generates notes at regular intervals.',
-      (balanceContext, id) => [
-        profileFact(
-          balanceContext,
-          id,
-          'attributeConversion',
-          'Attribute increase per active instrument',
-          tooltipPercent
-        ),
-        profileFact(balanceContext, id, 'maximumStacks', 'Note-generation pulses'),
-        profileFact(balanceContext, id, 'pulseInterval', 'Pulse interval', tooltipSeconds),
-        profileFact(balanceContext, id, 'resourceGain', 'Notes per pulse')
+      [
+        ['attributeConversion', 'Attribute increase per active instrument', tooltipPercent],
+        ['maximumStacks', 'Note-generation pulses'],
+        ['pulseInterval', 'Pulse interval', tooltipSeconds],
+        ['resourceGain', 'Notes per pulse']
       ]
     ),
     [TRAIT.CALL_AND_RESPONSE]: traitTooltip(
       'Spending exactly the required notes on an instrument causes an afterimage to repeat its attack after a delay.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'threshold', 'Notes required'),
-        profileFact(balanceContext, id, 'initialDelay', 'Repeat delay', tooltipSeconds)
+      [
+        ['threshold', 'Notes required'],
+        ['initialDelay', 'Repeat delay', tooltipSeconds]
       ]
     ),
     [TRAIT.ALTERED_CHORD]: traitTooltip(
       'Spending notes on an instrument reduces Crescendo recharge. Crescendo grants a strike-damage bonus after Lute, applies confusion after Flute, or applies a control effect after Drum.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'rechargeReduction', 'Crescendo recharge removed', tooltipSeconds),
-        modifierFact(balanceContext, 'mesmer.altered-chord', 'amount', 'Strike damage after Lute'),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Lute bonus duration', tooltipSeconds)
+      [
+        ['rechargeReduction', 'Crescendo recharge removed', tooltipSeconds],
+        fromModifier('mesmer.altered-chord', 'amount', 'Strike damage after Lute'),
+        ['durationMultiplier', 'Lute bonus duration', tooltipSeconds]
       ],
       'Crescendo after Flute'
     )

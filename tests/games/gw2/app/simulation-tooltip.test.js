@@ -154,6 +154,27 @@ test('Fresh Air, Flame Expulsion, and Superspeed tooltip rows use their effect i
   }
 });
 
+// Trait-enhanced poison facts use the granting trait's icon while ordinary poison rows omit redundant qualifiers.
+test("Serpent's Touch distinguishes Potent Poison without repeating its base effect label", async () => {
+  const { thiefProfession } = await import('#gw2/professions/thief/profession.js');
+  const { thiefTooltips } = await import('#gw2/professions/thief/app/tooltips.js');
+  const context = withPatchPreview(thiefProfession, null).balanceContextFor();
+  const trait = context.catalog.traits.find(({ name }) => name === "Serpent's Touch");
+  const potentPoison = context.catalog.traits.find(({ name }) => name === 'Potent Poison');
+  const { facts } = describeSimulationTrait(context, trait, thiefTooltips);
+  assert.equal(facts.find(({ name }) => name === 'Poison stacks with Potent Poison').icon, potentPoison.icon);
+  assert.equal(facts.find(({ name }) => name === 'Poisoned').detail, '10s');
+  assert.equal(facts.find(({ name }) => name === 'Poisoned').icon, tooltipFactIcon('Poisoned'));
+
+  // Meaningful packet names and recipient qualifiers survive the shared duplicate-name filter.
+  const effects = simulationEffectFacts([
+    { type: 'condition', condition: 'Poisoned', name: 'poisoned', duration: 2, target: 'self' },
+    { type: 'condition', condition: 'Poisoned', name: 'bonus application', duration: 3 }
+  ]);
+  assert.equal(effects.facts[0].detail, '2s — on yourself');
+  assert.equal(effects.facts[1].detail, '3s — bonus application');
+});
+
 test('Specter barrier tooltips distinguish self recipients and use the barrier CDN glyph', async () => {
   const { thiefProfession } = await import('#gw2/professions/thief/profession.js');
   const { thiefTooltips } = await import('#gw2/professions/thief/app/tooltips.js');

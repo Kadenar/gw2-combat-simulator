@@ -1,4 +1,5 @@
 import {
+  fromModifier,
   modifierFact,
   outsideScopeTooltip,
   profileFact,
@@ -573,17 +574,13 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.INVOKERS_RAGE]: traitTooltip('Invoking a legend grants fury.'),
     [TRAIT.FEROCIOUS_AGGRESSION]: traitTooltip(
       'Player-owned strike, condition, and life-steal damage increases while you have fury.',
-      (balanceContext) => [
-        profileFact(balanceContext, TRAIT.FEROCIOUS_AGGRESSION, 'damageIncrease', 'Damage with fury', tooltipPercent)
-      ]
+      [['damageIncrease', 'Damage with fury', tooltipPercent]]
     ),
     [TRAIT.CONTAINED_TEMPER]: outsideScopeTooltip,
     [TRAIT.CLEANSING_CHANNEL]: outsideScopeTooltip,
     [TRAIT.RISING_TIDE]: traitTooltip(
       'Player-owned strikes deal increased damage at the full health used by combat simulations.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'revenant.rising-tide', 'factor', 'Strike damage', tooltipFactorChange)
-      ]
+      [fromModifier('revenant.rising-tide', 'factor', 'Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.GLARING_RESOLVE]: outsideScopeTooltip,
     [TRAIT.SPIRIT_BOON]: (balanceContext, entity) => {
@@ -673,17 +670,17 @@ export const revenantTooltips: ProfessionTooltips = {
     },
     [TRAIT.CHARGED_MISTS]: traitTooltip(
       'Swapping legends below the energy threshold resets energy to the increased starting amount.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'threshold', 'Energy threshold'),
-        profileFact(balanceContext, id, 'resourceGain', 'Energy after the swap')
+      [
+        ['threshold', 'Energy threshold'],
+        ['resourceGain', 'Energy after the swap']
       ]
     ),
     // Show the fixed bonuses applied by Revenant's runtime and build attribute rules.
-    [TRAIT.ROILING_MISTS]: traitTooltip('Fury grants additional critical-strike chance.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'criticalChance', 'Additional critical-strike chance with Fury', tooltipPercent)
+    [TRAIT.ROILING_MISTS]: traitTooltip('Fury grants additional critical-strike chance.', [
+      ['criticalChance', 'Additional critical-strike chance with Fury', tooltipPercent]
     ]),
-    [TRAIT.ENDURING_RECOVERY]: traitTooltip('Endurance regenerates faster.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'enduranceRegenerationMultiplier', 'Endurance regeneration', tooltipFactorChange)
+    [TRAIT.ENDURING_RECOVERY]: traitTooltip('Endurance regenerates faster.', [
+      ['enduranceRegenerationMultiplier', 'Endurance regeneration', tooltipFactorChange]
     ]),
     [TRAIT.UNWAVERING_AVOIDANCE]: outsideScopeTooltip,
     [TRAIT.DETERMINED_RESOLUTION]: outsideScopeTooltip,
@@ -694,9 +691,8 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.RESOLUTE_EVASION]: outsideScopeTooltip,
     [TRAIT.DWARVEN_BATTLE_TRAINING]: traitTooltip(
       'Control effects apply weakness. Player-owned strikes deal increased damage to weakened targets.',
-      (balanceContext) => [
-        modifierFact(
-          balanceContext,
+      [
+        fromModifier(
           'revenant.dwarven-battle-training',
           'factor',
           'Strike damage against weakened targets',
@@ -706,37 +702,20 @@ export const revenantTooltips: ProfessionTooltips = {
     ),
     [TRAIT.VICIOUS_REPRISAL]: traitTooltip(
       'Resolution increases player-owned strike and condition damage. Qualifying strikes with resolution grant might.',
-      (balanceContext, id) => [
-        modifierFact(
-          balanceContext,
-          'revenant.vicious-reprisal',
-          'amount',
-          'Strike and condition damage with resolution'
-        ),
-        profileFact(balanceContext, id, 'cooldown', 'Might cooldown', tooltipSeconds)
+      [
+        fromModifier('revenant.vicious-reprisal', 'amount', 'Strike and condition damage with resolution'),
+        ['cooldown', 'Might cooldown', tooltipSeconds]
       ]
     ),
-    [TRAIT.VERSED_IN_STONE]: traitTooltip(
-      'Gain power from the common toughness attribute pool.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeConversion', 'Toughness converted to power', tooltipPercent)
-      ]
-    ),
+    [TRAIT.VERSED_IN_STONE]: traitTooltip('Gain power from the common toughness attribute pool.', [
+      ['attributeConversion', 'Toughness converted to power', tooltipPercent]
+    ]),
     [TRAIT.STEADFAST_REJUVENATION]: outsideScopeTooltip,
     [TRAIT.HEALERS_GIFT]: outsideScopeTooltip,
-    [TRAIT.LIFE_ATTUNEMENT]: traitTooltip(
-      'Gain healing power and convert eligible healing power to concentration.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeBonus', 'Healing power'),
-        profileFact(
-          balanceContext,
-          id,
-          'attributeConversion',
-          'Eligible healing power converted to concentration',
-          tooltipPercent
-        )
-      ]
-    ),
+    [TRAIT.LIFE_ATTUNEMENT]: traitTooltip('Gain healing power and convert eligible healing power to concentration.', [
+      ['attributeBonus', 'Healing power'],
+      ['attributeConversion', 'Eligible healing power converted to concentration', tooltipPercent]
+    ]),
     // Show the supported skill-specific boons while explicitly excluding healing effectiveness.
     [TRAIT.SERENE_REJUVENATION]: (balanceContext, entity) => ({
       description:
@@ -762,24 +741,22 @@ export const revenantTooltips: ProfessionTooltips = {
       description: 'Invoking a legend triggers Invoke Torment. Diabolic Inferno adds its separate condition packets.',
       ...variantEffects(tooltipProfile(balanceContext, entity.id).effects)
     }),
-    [TRAIT.SEETHING_MALICE]: traitTooltip('Gain condition damage.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'attributeBonus', 'Condition Damage', (value) => '+' + tooltipDecimal(value))
+    [TRAIT.SEETHING_MALICE]: traitTooltip('Gain condition damage.', [
+      ['attributeBonus', 'Condition Damage', (value) => '+' + tooltipDecimal(value)]
     ]),
     [TRAIT.YEARNING_EMPOWERMENT]: traitTooltip(
       'Damaging conditions last longer. Numinous Gift strengthens this duration bonus.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'conditionDurationBonus', 'Damaging-condition duration', tooltipPercent)
-      ]
+      [['conditionDurationBonus', 'Damaging-condition duration', tooltipPercent]]
     ),
-    [TRAIT.ACOLYTE_OF_TORMENT]: traitTooltip('Player-owned torment deals increased damage.', (balanceContext) => [
-      modifierFact(balanceContext, 'revenant.acolyte-of-torment', 'factor', 'Torment damage', tooltipFactorChange)
+    [TRAIT.ACOLYTE_OF_TORMENT]: traitTooltip('Player-owned torment deals increased damage.', [
+      fromModifier('revenant.acolyte-of-torment', 'factor', 'Torment damage', tooltipFactorChange)
     ]),
     [TRAIT.DEMONIC_DEFIANCE]: outsideScopeTooltip,
     [TRAIT.REPLENISHING_DESPAIR]: outsideScopeTooltip,
     [TRAIT.ABYSSAL_CHILL]: traitTooltip('Applying chill also inflicts torment.'),
     [TRAIT.DEMONIC_RESISTANCE]: outsideScopeTooltip,
-    [TRAIT.PACT_OF_PAIN]: traitTooltip('Outgoing conditions last longer.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'conditionDurationBonus', 'Condition duration', tooltipPercent)
+    [TRAIT.PACT_OF_PAIN]: traitTooltip('Outgoing conditions last longer.', [
+      ['conditionDurationBonus', 'Condition duration', tooltipPercent]
     ]),
     [TRAIT.DIABOLIC_INFERNO]: (balanceContext) => ({
       description: 'Invoke Torment applies additional conditions.',
@@ -807,40 +784,28 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.AGGRESSIVE_ARRIVAL]: outsideScopeTooltip,
     [TRAIT.UNSUSPECTING_STRIKES]: traitTooltip(
       'Player-owned strikes deal increased damage while the target remains above its high-health threshold.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'revenant.unsuspecting-strikes', 'factor', 'Strike damage', tooltipFactorChange)
-      ]
+      [fromModifier('revenant.unsuspecting-strikes', 'factor', 'Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.BATTLE_SCARRED]: traitTooltip(
       'Completing a healing skill grants Battle Scars. Qualifying player strikes consume a scar to deal life-siphon damage.'
     ),
-    [TRAIT.ASSASSINS_PRESENCE]: traitTooltip(
-      'Periodically grant fury to the party during combat.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'cooldown', 'Fury interval', tooltipSeconds)]
-    ),
+    [TRAIT.ASSASSINS_PRESENCE]: traitTooltip('Periodically grant fury to the party during combat.', [
+      ['cooldown', 'Fury interval', tooltipSeconds]
+    ]),
     [TRAIT.NOTORIETY]: traitTooltip(
       'Legendary stance skills grant might. Your might grants more power and less condition damage.',
-      (balanceContext, id) => [
-        profileFact(
-          balanceContext,
-          id,
-          'attributePerStack',
-          'Additional power and reduced condition damage per might stack'
-        )
-      ]
+      [['attributePerStack', 'Additional power and reduced condition damage per might stack']]
     ),
     [TRAIT.THRILL_OF_COMBAT]: traitTooltip(
       'Periodically gain Battle Scars during combat. Qualifying player strikes consume a scar to deal life-siphon damage.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'cooldown', 'ICD', tooltipSeconds)]
+      [['cooldown', 'ICD', tooltipSeconds]]
     ),
-    [TRAIT.BRUTALITY]: traitTooltip('Completing a weapon swap grants quickness.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'cooldown', 'Internal cooldown', tooltipSeconds)
+    [TRAIT.BRUTALITY]: traitTooltip('Completing a weapon swap grants quickness.', [
+      ['cooldown', 'Internal cooldown', tooltipSeconds]
     ]),
     [TRAIT.SWIFT_TERMINATION]: traitTooltip(
       'Player-owned strikes deal increased damage while the target is below half health.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'revenant.swift-termination', 'factor', 'Strike damage', tooltipFactorChange)
-      ]
+      [fromModifier('revenant.swift-termination', 'factor', 'Strike damage', tooltipFactorChange)]
     ),
     [TRAIT.DANCE_OF_DEATH]: traitTooltip(
       'Applying vulnerability grants Battle Scars according to the stacks applied. Qualifying player strikes consume a scar to deal life-siphon damage.'
@@ -855,35 +820,34 @@ export const revenantTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.ELDERS_RESPITE]: outsideScopeTooltip,
-    [TRAIT.CORE_VALUE]: traitTooltip(
-      "Facet of Nature's boon-extension effect extends boons further.",
-      (balanceContext, id) => [profileFact(balanceContext, id, 'duration', 'Additional boon extension', tooltipSeconds)]
-    ),
+    [TRAIT.CORE_VALUE]: traitTooltip("Facet of Nature's boon-extension effect extends boons further.", [
+      ['duration', 'Additional boon extension', tooltipSeconds]
+    ]),
     [TRAIT.RISING_MOMENTUM]: outsideScopeTooltip,
     [TRAIT.SHARED_EMPOWERMENT]: profileTooltip(
       'revenant.shared-empowerment',
       'Applying a boon to an ally grants might to the party.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
+      [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
     ),
     [TRAIT.SHINING_ASPECTS]: outsideScopeTooltip,
     [TRAIT.HARDENING_PERSISTENCE]: outsideScopeTooltip,
     [TRAIT.ELEVATED_COMPASSION]: profileTooltip(
       'revenant.elevated-compassion',
       'Gain concentration from the common power attribute pool. Maintaining enough aggregate upkeep periodically grants party quickness.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeConversion', 'Power converted to concentration', tooltipPercent),
-        profileFact(balanceContext, id, 'threshold', 'Required aggregate upkeep'),
-        profileFact(balanceContext, id, 'cooldown', 'Quickness interval', tooltipSeconds)
+      [
+        ['attributeConversion', 'Power converted to concentration', tooltipPercent],
+        ['threshold', 'Required aggregate upkeep'],
+        ['cooldown', 'Quickness interval', tooltipSeconds]
       ]
     ),
     [TRAIT.DRACONIC_ECHO]: profileTooltip(
       'revenant.draconic-echo',
       'Consumed facets retain their passive effects temporarily. Strength grants strike damage, Elements grants condition damage, Darkness grants critical chance, and Nature grants boon duration.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'duration', 'Echo duration', tooltipSeconds),
-        profileFact(balanceContext, id, 'damageBonus', 'Strength strike / Elements condition damage', tooltipPercent),
-        profileFact(balanceContext, id, 'criticalChanceBonus', 'Darkness critical chance', tooltipPercent),
-        profileFact(balanceContext, id, 'boonDurationBonus', 'Nature boon duration', (value) => `${value}%`)
+      [
+        ['duration', 'Echo duration', tooltipSeconds],
+        ['damageBonus', 'Strength strike / Elements condition damage', tooltipPercent],
+        ['criticalChanceBonus', 'Darkness critical chance', tooltipPercent],
+        ['boonDurationBonus', 'Nature boon duration', (value) => `${value}%`]
       ]
     ),
     // Count each active upkeep skill, rather than its energy drain, using the runtime's two additive rates.
@@ -897,58 +861,39 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.AMBUSH_COMMANDER]: profileTooltip(
       RENEGADE.kallasFervor,
       "Qualifying critical or positional hits grant Kalla's Fervor. Defiant targets satisfy the simulator's positional condition.",
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'maximumStacks', 'Maximum stacks'),
-        modifierFact(balanceContext, 'revenant.kallas-fervor-strike', 'damagePerStack', 'Strike damage per stack'),
-        modifierFact(
-          balanceContext,
-          'revenant.kallas-fervor-condition',
-          'damagePerStack',
-          'Condition damage per stack'
-        ),
-        profileFact(balanceContext, id, 'lifeSiphonDamagePerStack', 'Life-siphon damage per stack', tooltipPercent)
+      [
+        ['maximumStacks', 'Maximum stacks'],
+        fromModifier('revenant.kallas-fervor-strike', 'damagePerStack', 'Strike damage per stack'),
+        fromModifier('revenant.kallas-fervor-condition', 'damagePerStack', 'Condition damage per stack'),
+        ['lifeSiphonDamagePerStack', 'Life-siphon damage per stack', tooltipPercent]
       ]
     ),
-    [TRAIT.ENDLESS_ENMITY]: profileTooltip(
-      RENEGADE.endlessEnmity,
-      'Eligible critical hits grant fury to the party.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
-    ),
+    [TRAIT.ENDLESS_ENMITY]: profileTooltip(RENEGADE.endlessEnmity, 'Eligible critical hits grant fury to the party.', [
+      ['internalCooldown', 'Internal cooldown', tooltipSeconds]
+    ]),
     [TRAIT.BRUTAL_MOMENTUM]: profileTooltip(
       RENEGADE.brutalMomentum,
       'Gain critical-strike chance. Receiving fury grants vigor.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'criticalChance', 'Critical chance', tooltipPercent),
-        profileFact(
-          balanceContext,
-          id,
-          'fullEnduranceCriticalChance',
-          'Critical chance at full endurance',
-          tooltipPercent
-        ),
-        profileFact(balanceContext, id, 'internalCooldown', 'Vigor cooldown', tooltipSeconds)
+      [
+        ['criticalChance', 'Critical chance', tooltipPercent],
+        ['fullEnduranceCriticalChance', 'Critical chance at full endurance', tooltipPercent],
+        ['internalCooldown', 'Vigor cooldown', tooltipSeconds]
       ]
     ),
     [TRAIT.ASHEN_DEMEANOR]: profileTooltip(
       RENEGADE.ashenDemeanor,
       "Using a healing skill grants boons and Kalla's Fervor.",
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'cooldown', 'Internal cooldown', tooltipSeconds),
-        profileFact(balanceContext, id, 'fervorStacks', 'Fervor stacks gained')
+      [
+        ['cooldown', 'Internal cooldown', tooltipSeconds],
+        ['fervorStacks', 'Fervor stacks gained']
       ]
     ),
     [TRAIT.BLOOD_FURY]: profileTooltip(
       RENEGADE.bloodFury,
       "Fury applications grant Kalla's Fervor. Bleeding lasts longer while you have fury.",
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'cooldown', 'Fervor cooldown', tooltipSeconds),
-        profileFact(
-          balanceContext,
-          RENEGADE.bloodFury,
-          'conditionDurationBonus',
-          'Bleeding duration with fury',
-          tooltipPercent
-        )
+      [
+        ['cooldown', 'Fervor cooldown', tooltipSeconds],
+        ['conditionDurationBonus', 'Bleeding duration with fury', tooltipPercent]
       ]
     ),
     [TRAIT.WROUGHT_IRON_WILL]: outsideScopeTooltip,
@@ -960,24 +905,19 @@ export const revenantTooltips: ProfessionTooltips = {
     ),
     [TRAIT.HEARTPIERCER]: traitTooltip(
       'Player-owned strikes deal increased damage to bleeding targets. Bleeding also deals increased damage.',
-      (balanceContext) => [
-        modifierFact(
-          balanceContext,
+      [
+        fromModifier(
           'revenant.heartpiercer-strike',
           'factor',
           'Strike damage against bleeding targets',
           tooltipFactorChange
         ),
-        modifierFact(balanceContext, 'revenant.heartpiercer-bleeding', 'factor', 'Bleeding damage', tooltipFactorChange)
+        fromModifier('revenant.heartpiercer-bleeding', 'factor', 'Bleeding damage', tooltipFactorChange)
       ]
     ),
-    [TRAIT.ALL_FOR_ONE]: profileTooltip(
-      RENEGADE.allForOne,
-      'An empowered Band Together skill recharges faster.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'rechargeMultiplier', 'Empowered summon recharge duration', tooltipFactorChange)
-      ]
-    ),
+    [TRAIT.ALL_FOR_ONE]: profileTooltip(RENEGADE.allForOne, 'An empowered Band Together skill recharges faster.', [
+      ['rechargeMultiplier', 'Empowered summon recharge duration', tooltipFactorChange]
+    ]),
     [TRAIT.VINDICATION]: profileTooltip(
       RENEGADE.vindication,
       "Citadel Bombardment's first impact applies a daze control event."
@@ -985,21 +925,11 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.LASTING_LEGACY]: profileTooltip(
       RENEGADE.kallasFervorLastingLegacy,
       "Kalla's Fervor lasts longer and grants stronger damage bonuses. Heroic Command grants additional might per Fervor stack.",
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'maximumStacks', 'Maximum stacks'),
-        modifierFact(
-          balanceContext,
-          'revenant.kallas-fervor-strike',
-          'improvedDamagePerStack',
-          'Strike damage per stack'
-        ),
-        modifierFact(
-          balanceContext,
-          'revenant.kallas-fervor-condition',
-          'improvedDamagePerStack',
-          'Condition damage per stack'
-        ),
-        profileFact(balanceContext, id, 'lifeSiphonDamagePerStack', 'Life-siphon damage per stack', tooltipPercent)
+      [
+        ['maximumStacks', 'Maximum stacks'],
+        fromModifier('revenant.kallas-fervor-strike', 'improvedDamagePerStack', 'Strike damage per stack'),
+        fromModifier('revenant.kallas-fervor-condition', 'improvedDamagePerStack', 'Condition damage per stack'),
+        ['lifeSiphonDamagePerStack', 'Life-siphon damage per stack', tooltipPercent]
       ]
     ),
     [TRAIT.RIGHTEOUS_REBEL]: profileTooltip(
@@ -1008,47 +938,31 @@ export const revenantTooltips: ProfessionTooltips = {
     ),
     [TRAIT.TENACIOUS_RUIN]: traitTooltip('Replace the ordinary dodge with the selected Vindicator dodge attack.'),
     [TRAIT.BALANCE_IN_DISCORD]: outsideScopeTooltip,
-    [TRAIT.EMPIRE_DIVIDED]: traitTooltip(
-      'Gain power at the full player health used by combat simulations.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeBonus', 'Power', (value) => '+' + tooltipDecimal(value))
-      ]
-    ),
+    [TRAIT.EMPIRE_DIVIDED]: traitTooltip('Gain power at the full player health used by combat simulations.', [
+      ['attributeBonus', 'Power', (value) => '+' + tooltipDecimal(value)]
+    ]),
     [TRAIT.LEVIATHAN_STRENGTH]: traitTooltip(
       'Player-owned strikes deal increased damage while endurance is below full.',
-      (balanceContext) => [
-        modifierFact(
-          balanceContext,
-          'revenant.leviathan-strength',
-          'factor',
-          'Strike damage below full endurance',
-          tooltipFactorChange
-        )
-      ]
+      [fromModifier('revenant.leviathan-strength', 'factor', 'Strike damage below full endurance', tooltipFactorChange)]
     ),
     [TRAIT.AMNESTY_OF_SHING_JEA]: outsideScopeTooltip,
     [TRAIT.REDEMPTORS_SERMON]: outsideScopeTooltip,
     [TRAIT.REAVERS_CURSE]: traitTooltip(
       'Energy Meld recharges faster and empowers the next dodge that lands within its buff window.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'rechargeMultiplier', 'Energy Meld recharge duration', tooltipFactorChange),
-        profileFact(balanceContext, id, 'damageMultiplier', 'Empowered dodge damage', tooltipFactorChange)
+      [
+        ['rechargeMultiplier', 'Energy Meld recharge duration', tooltipFactorChange],
+        ['damageMultiplier', 'Empowered dodge damage', tooltipFactorChange]
       ]
     ),
-    [TRAIT.ANGSIYANS_TRUST]: traitTooltip(
-      'Energy Meld costs no energy and grants energy during combat.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'resourceGain', 'Energy gained')]
-    ),
-    [TRAIT.SONG_OF_ARBOREUM]: traitTooltip(
-      'Energy Meld grants increased endurance and vigor.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'resourceGain', 'Endurance gained')]
-    ),
-    [TRAIT.FORERUNNER_OF_DEATH]: traitTooltip(
-      'Death Drop grants a temporary player strike-damage bonus.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'revenant.forerunner-of-death', 'amount', 'Strike damage during the bonus')
-      ]
-    ),
+    [TRAIT.ANGSIYANS_TRUST]: traitTooltip('Energy Meld costs no energy and grants energy during combat.', [
+      ['resourceGain', 'Energy gained']
+    ]),
+    [TRAIT.SONG_OF_ARBOREUM]: traitTooltip('Energy Meld grants increased endurance and vigor.', [
+      ['resourceGain', 'Endurance gained']
+    ]),
+    [TRAIT.FORERUNNER_OF_DEATH]: traitTooltip('Death Drop grants a temporary player strike-damage bonus.', [
+      fromModifier('revenant.forerunner-of-death', 'amount', 'Strike damage during the bonus')
+    ]),
     [TRAIT.VASSALS_OF_THE_EMPIRE]: traitTooltip(
       'Use Imperial Impact as the dodge skill, applying its strike and boon effects.'
     ),
@@ -1058,17 +972,14 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.ENIGMATIC_CONNECTION]: traitTooltip(
       'Unlock Legendary Entity, affinity, Release Potential, and Cosmic Wisdom forms determined by the equipped legends.'
     ),
-    [TRAIT.BOLSTERED_BONDS]: traitTooltip(
-      'Equipped legends grant attributes. Cosmic Wisdom increases these bonuses.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'assassinAttributeBonus', 'Assassin: power and ferocity'),
-        profileFact(balanceContext, id, 'demonAttributeBonus', 'Demon: condition damage and expertise'),
-        profileFact(balanceContext, id, 'dwarfAttributeBonus', 'Dwarf: toughness and vitality'),
-        profileFact(balanceContext, id, 'centaurAttributeBonus', 'Centaur: healing power and concentration'),
-        profileFact(balanceContext, id, 'entityAttributeBonus', 'Entity: each supported attribute'),
-        profileFact(balanceContext, id, 'attributeMultiplier', 'Cosmic Wisdom attribute increase', tooltipFactorChange)
-      ]
-    ),
+    [TRAIT.BOLSTERED_BONDS]: traitTooltip('Equipped legends grant attributes. Cosmic Wisdom increases these bonuses.', [
+      ['assassinAttributeBonus', 'Assassin: power and ferocity'],
+      ['demonAttributeBonus', 'Demon: condition damage and expertise'],
+      ['dwarfAttributeBonus', 'Dwarf: toughness and vitality'],
+      ['centaurAttributeBonus', 'Centaur: healing power and concentration'],
+      ['entityAttributeBonus', 'Entity: each supported attribute'],
+      ['attributeMultiplier', 'Cosmic Wisdom attribute increase', tooltipFactorChange]
+    ]),
     [TRAIT.NUMINOUS_GIFT]: (balanceContext) => {
       const effects = variantEffects(tooltipProfile(balanceContext, CONDUIT.numinousGift).effects);
       return {
@@ -1112,32 +1023,30 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.LINGERING_DETERMINATION]: profileTooltip(
       CONDUIT.lingeringDetermination,
       'Swapping legends in combat grants affinity after the swap resets it.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'resourceGain', 'Affinity gained')]
+      [['resourceGain', 'Affinity gained']]
     ),
     [TRAIT.KINETIC_INSIGHT]: traitTooltip(
       'Release Potential recharges faster. Affinity scaling includes a virtual bonus without increasing stored affinity.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'rechargeMultiplier', 'Release Potential recharge', tooltipFactorChange),
-        profileFact(balanceContext, id, 'resourceGain', 'Virtual affinity bonus')
+      [
+        ['rechargeMultiplier', 'Release Potential recharge', tooltipFactorChange],
+        ['resourceGain', 'Virtual affinity bonus']
       ]
     ),
     [TRAIT.EXPANDED_CONSCIOUSNESS]: profileTooltip(
       CONDUIT.expandedConsciousness,
       'Reaching maximum affinity grants energy.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'resourceGain', 'Energy gained')]
+      [['resourceGain', 'Energy gained']]
     ),
     [TRAIT.ETHEREAL_PURIFICATION]: outsideScopeTooltip,
     [TRAIT.MISTFIRE]: profileTooltip(
       CONDUIT.mistfire,
       'Control effects inflict burning. Twin Moon Sweep is excluded.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
+      [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
     ),
     [TRAIT.ENHANCED_EMBODIMENT]: profileTooltip(
       CONDUIT.enhancedEmbodiment,
       'Legend swaps in combat recharge faster and extend Cosmic Wisdom.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'rechargeMultiplier', 'Legend-swap recharge duration', tooltipFactorChange)
-      ]
+      [['rechargeMultiplier', 'Legend-swap recharge duration', tooltipFactorChange]]
     ),
     [TRAIT.FOUND_PURPOSE]: (balanceContext) => ({
       description: 'Swapping legends in combat shares the Numinous Gift boon package with nearby allies.',

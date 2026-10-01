@@ -37,6 +37,54 @@ export interface ProfessionTooltips {
   readonly skillFacts?: (context: ProfessionBalanceContext, skill: Skill) => readonly TooltipFact[];
 }
 
+/** Tuples read the described profile; named sources keep cross-profile and modifier facts explicit. */
+export type FactSpec =
+  | readonly [field: string, name: string, format?: (value: number) => string]
+  | {
+      readonly profile: SkillId;
+      readonly field: string;
+      readonly name: string;
+      readonly format?: (value: number) => string;
+    }
+  | {
+      readonly modifier: string;
+      readonly field: string;
+      readonly name: string;
+      readonly format?: (value: number) => string;
+    };
+
+/** Computed payloads still need callbacks; scalar declarations can use facts directly. */
+type TooltipFacts<T> = readonly FactSpec[] | ((context: ProfessionBalanceContext, entity: T) => readonly TooltipFact[]);
+
+/** Select another profile without repeating balance-context plumbing in every authored row. */
+export const fromProfile = (
+  profile: SkillId,
+  field: string,
+  name: string,
+  format?: (value: number) => string
+): FactSpec => ({ profile, field, name, format });
+
+/** Modifier facts retain their percentage default and may read named rule parameters. */
+export const fromModifier = (
+  modifier: string,
+  field: string,
+  name: string,
+  format?: (value: number) => string
+): FactSpec => ({ modifier, field, name, format });
+
+/** Resolve at render time so selected patches, numeric validation, and source-specific defaults stay authoritative. */
+function resolveFacts(
+  context: ProfessionBalanceContext,
+  id: SkillId,
+  facts: readonly FactSpec[]
+): readonly TooltipFact[] {
+  return facts.map((fact) => {
+    if ('profile' in fact) return profileFact(context, fact.profile, fact.field, fact.name, fact.format);
+    if ('modifier' in fact) return modifierFact(context, fact.modifier, fact.field, fact.name, fact.format);
+    return profileFact(context, id, ...fact);
+  });
+}
+
 const effectNames = new Map(Object.keys(MODIFIER_EFFECT_ICONS).map((name) => [name.toLowerCase(), name]));
 // Resolve authored buff IDs to display names so their facts receive the matching effect icons.
 effectNames.set('kallas-fervor', "Kalla's Fervor");
@@ -79,12 +127,13 @@ export function tooltipRule(context: ProfessionBalanceContext, id: string) {
 /** Reuse trait payload formatting while keeping each trait's explanation and scalar labels locally authored. */
 export function traitTooltip(
   description: string,
-  facts: (context: ProfessionBalanceContext, id: SkillId) => readonly TooltipFact[] = () => [],
+  facts: TooltipFacts<SkillId> = [],
   effectQualifier = ''
 ): DescribeSimulationTooltip {
   return (context, entity) => {
     const effects = simulationEffectFacts(context.catalog.balanceProfilesById.get(entity.id)?.effects, effectQualifier);
-    return { ...effects, description, facts: [...facts(context, entity.id), ...effects.facts] };
+    const custom = typeof facts === 'function' ? facts(context, entity.id) : resolveFacts(context, entity.id, facts);
+    return { ...effects, description, facts: [...custom, ...effects.facts] };
   };
 }
 
@@ -97,25 +146,24 @@ export const outsideScopeTooltip = traitTooltip(
 export function profileTooltip(
   profileId: SkillId,
   description: string,
-  facts: (context: ProfessionBalanceContext, id: SkillId) => readonly TooltipFact[] = () => [],
+  facts: TooltipFacts<SkillId> = [],
   qualifier = ''
 ): DescribeSimulationTooltip {
   return (context) => {
     const effects = simulationEffectFacts(tooltipProfile(context, profileId).effects, qualifier);
-    return { ...effects, description, facts: [...facts(context, profileId), ...effects.facts] };
+    const custom = typeof facts === 'function' ? facts(context, profileId) : resolveFacts(context, profileId, facts);
+    return { ...effects, description, facts: [...custom, ...effects.facts] };
   };
 }
 
 /** Skill-specific wording can augment the selected skill's ordinary declarative payload. */
-export function skillTooltip(
-  description: string,
-  facts: (context: ProfessionBalanceContext, skill: Skill) => readonly TooltipFact[] = () => []
-): DescribeSimulationTooltip {
+export function skillTooltip(description: string, facts: TooltipFacts<Skill> = []): DescribeSimulationTooltip {
   return (context, entity) => {
     const skill = context.catalog.skillsById.get(entity.id);
     if (!skill) throw new Error(`Missing tooltip skill: ${entity.id}`);
     const effects = simulationEffectFacts(skill.effects);
-    return { ...effects, description, facts: [...effects.facts, ...facts(context, skill)] };
+    const custom = typeof facts === 'function' ? facts(context, skill) : resolveFacts(context, skill.id, facts);
+    return { ...effects, description, facts: [...effects.facts, ...custom] };
   };
 }
 
@@ -153,7 +201,7 @@ export function tooltipEffectName(value: string): string {
 }
 
 /** Preserve recipient and actor differences when grouping repeated payloads into readable facts. */
-function effectContext(effect: SkillEffect): string {
+function effectContext(effect: SkillEffect, factName: string): string {
   const audience = effect.audience;
   const parts: string[] = [];
   if (effect.type === 'condition' && effect.target === 'self') parts.push('on yourself');
@@ -167,7 +215,8 @@ function effectContext(effect: SkillEffect): string {
   else if (audience?.recipients === 'self')
     parts.push(effect.actorType === 'summon' ? 'on the companion' : 'on yourself');
   if (effect.actorType === 'summon') parts.push('companion effect');
-  if (effect.name) parts.push(effect.name);
+  // Packet names distinguish variants, but repeating the displayed effect name adds no information.
+  if (effect.name && tooltipEffectName(effect.name).toLowerCase() !== factName.toLowerCase()) parts.push(effect.name);
   if (typeof effect.packetLabel === 'string') parts.push(effect.packetLabel);
   return parts.join(' · ');
 }
@@ -178,7 +227,7 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
   let incomplete = false;
   const add = (effect: SkillEffect, name: string, detail: string, stacks?: number) => {
     name = tooltipEffectName(name);
-    const qualifier = [context, effectContext(effect)].filter(Boolean).join(' · ');
+    const qualifier = [context, effectContext(effect, name)].filter(Boolean).join(' · ');
     const fullDetail = [detail, qualifier].filter(Boolean).join(' — ');
     const key = JSON.stringify([name, fullDetail, stacks, effect.sourceId, effect.actorType, effect.audience]);
     const applications = effect.applications ?? 1;

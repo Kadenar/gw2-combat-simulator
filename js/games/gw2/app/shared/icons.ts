@@ -67,6 +67,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   // Temporary Warrior damage buffs use their granting traits' icons in tooltip facts.
   'Peak Performance': 'https://render.guildwars2.com/file/08F60C11F460F3236DE65A445337290B7AAED96F/1012812.png',
   "Berserker's Power": 'https://render.guildwars2.com/file/A795EE78B8DAA836F3C0650CFC037BB71D3517BA/1012816.png',
+  // Additional poison stacks granted by Potent Poison use the granting trait's icon.
+  'Potent Poison': 'https://render.guildwars2.com/file/2678F1C70CB07E090FC7F4ACCCDCA9750AA0040F/1012744.png',
   // Control facts use the game's distinct disable glyphs; unspecified controls use the defiance glyph.
   Daze: 'https://render.guildwars2.com/file/9AE125E930C92FEA0DD99E7EBAEDE4CF5EC556B6/433474.png',
   Stun: 'https://render.guildwars2.com/file/1999B9DB355005D2DD19F66DFFBAA6D466057508/522727.png',
