@@ -60,6 +60,10 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   // These temporary Ranger buffs use their granting traits' icons.
   'Quick Draw': 'https://render.guildwars2.com/file/CBCB2EC86BC85CC02DA7AAB25CBFB226B8956D1E/1012648.png',
   'Light on your Feet': 'https://render.guildwars2.com/file/4D37A694088038DA9266F6107C9604AD9CBC2752/1012649.png',
+  // Named Elementalist effects use their own icons in both buff rows and qualified facts.
+  'Fresh Air': 'https://render.guildwars2.com/file/FA64C9F2750F986E52E8376F22EDBA3844A8C603/1012277.png',
+  'Flame Expulsion': 'https://render.guildwars2.com/file/998095CB1FD2CF0164B8A36BABFDB911DF08DB02/1012313.png',
+  Superspeed: 'https://render.guildwars2.com/file/E04392C3D8ED985125973AEB99D8460C483263F9/103458.png',
   // Temporary Warrior damage buffs use their granting traits' icons in tooltip facts.
   'Peak Performance': 'https://render.guildwars2.com/file/08F60C11F460F3236DE65A445337290B7AAED96F/1012812.png',
   "Berserker's Power": 'https://render.guildwars2.com/file/A795EE78B8DAA836F3C0650CFC037BB71D3517BA/1012816.png',
@@ -78,6 +82,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   Ammunition: 'https://render.guildwars2.com/file/B4490FB81AA1E7C06F1B22056AE09A0F54CBE2C4/1770201.png',
   Combo: 'https://render.guildwars2.com/file/A513F3653D33FBA4220D2D307799F8A327A36A3B/156656.png',
   // Resource amounts and stack limits share the book icon; energy costs keep their own glyph.
+  // Trigger chances use the book glyph; critical-strike chance bonuses retain the precision icon.
+  Chance: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   Affinity: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   Energy: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   Endurance: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
@@ -114,6 +120,14 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   Swiftness: 'https://render.guildwars2.com/file/20CFC14967E67F7A3FD4A4B8722B4CF5B8565E11/102836.png',
   Vigor: 'https://render.guildwars2.com/file/58E92EBAF0DB4DA7C4AC04D9B22BCA5ECF0100DE/102843.png',
   Aegis: 'https://render.guildwars2.com/file/DFB4D1B50AE4D6A275B349E15B179261EE3EB0AF/102854.png',
+  // Named aura facts share their effect icons across traits and skills, including qualified duration labels.
+  'Chaos Aura': 'https://render.guildwars2.com/file/FEF378D8A91D0523A04A380ED0547F0BF944A967/2261518.png',
+  'Dark Aura': 'https://render.guildwars2.com/file/9471B12401BB04730A0614E277FEFD6AE43C5251/2261519.png',
+  'Fire Aura': 'https://render.guildwars2.com/file/2E7050E44690AFE0A396FA0DAD526699392743F3/2261521.png',
+  'Frost Aura': 'https://render.guildwars2.com/file/719B80E35C276D68EF0AABB79126CF4CD42E3AF6/2261522.png',
+  'Light Aura': 'https://render.guildwars2.com/file/62405ED2322E80A4A95663BA6C6804DB0962E6B0/867451.png',
+  'Magnetic Aura': 'https://render.guildwars2.com/file/33D27C7FE0017F70749DE84576F56F381DDF0C30/2261524.png',
+  'Shocking Aura': 'https://render.guildwars2.com/file/79F60BF40AB3F306E7367CF3479A4163F76F3944/2261527.png',
   Burning: 'https://render.guildwars2.com/file/B47BF5803FED2718D7474EAF9617629AD068EE10/102849.png',
   Bleeding: 'https://render.guildwars2.com/file/79FF0046A5F9ADA3B4C4EC19ADB4CB124D5F0021/102848.png',
   Torment: 'https://render.guildwars2.com/file/10BABF2708CA3575730AC662A2E72EC292565B08/598887.png',

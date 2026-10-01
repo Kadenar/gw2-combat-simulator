@@ -264,13 +264,19 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 440,
+    // Commit the cast and bullet interaction before the remaining animation ends.
+    interruptCommitMs: 400,
     cooldown: 8,
     skillFamily: 'Weapon skill',
-    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 0.75, canCrit: true },
-      { type: 'condition', condition: 'Vulnerability', stacks: 8, duration: 10, metadata: {} },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
-    ])
+    // Preserve the committed strike, Vulnerability, and crowd control after interruption.
+    effects: impactEffects(
+      { atMs: 280, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 0.75, canCrit: true },
+        { type: 'condition', condition: 'Vulnerability', stacks: 8, duration: 10, metadata: {} },
+        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      ]
+    )
   },
   // First link of the three-step Aerial Agility flipover chain. The zero-coefficient packet exists only
   // to fire the leap finisher. The chain reads the Air bullet without spending it, and the two later

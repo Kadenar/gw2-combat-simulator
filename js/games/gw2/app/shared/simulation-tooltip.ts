@@ -44,6 +44,7 @@ effectNames.set('razorclaws-rage', "Razorclaw's Rage");
 effectNames.set('battle-scars', 'Battle Scars');
 effectNames.set('peak-performance', 'Peak Performance');
 effectNames.set('berserkers-power', "Berserker's Power");
+effectNames.set('fresh-air', 'Fresh Air');
 // All ordinary descriptions use the same locale, so reuse its formatter across skills.
 const effectListFormat = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' });
 

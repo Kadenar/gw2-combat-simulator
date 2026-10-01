@@ -92,6 +92,68 @@ test('attribute bonuses, adrenaline, and skill recharge use game CDN icons', asy
   assert.match(tooltipFactIcon('Internal cooldown'), /\/156651\.png$/);
 });
 
+// Aura effects and proc chances keep their own glyphs through shared facts and authored trait/skill tooltips.
+test('aura tooltips use effect icons and critical-hit proc chances use the book icon', async () => {
+  const { elementalistProfession } = await import('#gw2/professions/elementalist/profession.js');
+  const { elementalistTooltips } = await import('#gw2/professions/elementalist/app/tooltips.js');
+  const context = withPatchPreview(elementalistProfession, null).balanceContextFor();
+  const auraIcons = {
+    'Chaos Aura': 2261518,
+    'Dark Aura': 2261519,
+    'Fire Aura': 2261521,
+    'Frost Aura': 2261522,
+    'Light Aura': 867451,
+    'Magnetic Aura': 2261524,
+    'Shocking Aura': 2261527
+  };
+  for (const [kind, iconId] of Object.entries(auraIcons)) {
+    const pattern = new RegExp(`/${iconId}\\.png$`);
+    assert.match(simulationEffectFacts([{ type: 'buff', kind, duration: 4 }]).facts[0].icon, pattern);
+    assert.match(tooltipFactIcon(`${kind} duration`), pattern);
+  }
+
+  for (const name of ['Written in Stone', 'Elemental Epitome', 'Soothing Ice', 'Sunspot', 'Conjurer']) {
+    const trait = context.catalog.traits.find((trait) => trait.name === name);
+    const facts = describeSimulationTrait(context, trait, elementalistTooltips).facts.filter(
+      (fact) => fact.name in auraIcons
+    );
+    assert.ok(facts.length > 0, `${name} has aura facts`);
+    for (const fact of facts) assert.match(fact.icon, new RegExp(`/${auraIcons[fact.name]}\\.png$`));
+  }
+
+  const skill = context.catalog.skills.find((skill) => skill.name === 'Frost Aura');
+  const aura = describeSimulationSkill(context, skill, elementalistTooltips).facts.find(
+    (fact) => fact.name === 'Frost Aura'
+  );
+  assert.match(aura.icon, /\/2261522\.png$/);
+  const trait = context.catalog.traits.find((trait) => trait.name === 'Burning Precision');
+  const chance = describeSimulationTrait(context, trait, elementalistTooltips).facts.find(
+    (fact) => fact.name === 'Chance on critical hit'
+  );
+  assert.match(chance.icon, /\/156661\.png$/);
+  assert.match(tooltipFactIcon('Critical chance against weakened targets'), /\/2229323\.png$/);
+});
+
+// Named effect rows resolve authored buff IDs and qualified labels to the same game icons.
+test('Fresh Air, Flame Expulsion, and Superspeed tooltip rows use their effect icons', async () => {
+  const { elementalistProfession } = await import('#gw2/professions/elementalist/profession.js');
+  const { elementalistTooltips } = await import('#gw2/professions/elementalist/app/tooltips.js');
+  const context = withPatchPreview(elementalistProfession, null).balanceContextFor();
+  for (const [traitName, factName, iconId] of [
+    ['Fresh Air', 'Fresh Air', 1012277],
+    ['Fresh Air', 'Ferocity during Fresh Air', 1012277],
+    ["Pyromancer's Puissance", 'Flame Expulsion delay', 1012313],
+    ['One with Air', 'Superspeed', 103458]
+  ]) {
+    const trait = context.catalog.traits.find((trait) => trait.name === traitName);
+    const fact = describeSimulationTrait(context, trait, elementalistTooltips).facts.find(
+      (fact) => fact.name === factName
+    );
+    assert.ok(fact, `${traitName}: ${factName}`);
+    assert.match(fact.icon, new RegExp(`/${iconId}\\.png$`));
+  }
+});
+
 test('Specter barrier tooltips distinguish self recipients and use the barrier CDN glyph', async () => {
   const { thiefProfession } = await import('#gw2/professions/thief/profession.js');
   const { thiefTooltips } = await import('#gw2/professions/thief/app/tooltips.js');

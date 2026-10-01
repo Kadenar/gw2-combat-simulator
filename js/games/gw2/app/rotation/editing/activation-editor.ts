@@ -30,6 +30,8 @@ export interface ActivationEditorOptions {
   readonly impactOffsetsMs?: readonly number[] | null;
   /** Milliseconds from this cast's start to Combat Start, for showing whether a precast lands after the marker. */
   readonly combatStartAfterCastMs?: number | null;
+  /** Resolves the combat boundary for an unsaved concurrent timing change. */
+  readonly previewCombatStartAfterCastMs?: (timingMs: number | null) => number | null;
   readonly allowTargeting?: boolean;
   readonly offTarget?: boolean;
   readonly impactDelayMs?: number | null;
@@ -365,7 +367,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
     return validation.valid ? validation.value : 0;
   };
 
-  // Recompute the landing preview on every targeting edit; simulated results only refresh after Apply.
+  // Recompute landings for unsaved timing and targeting edits while the saved rotation stays unchanged.
   const updateImpactPreview = (): void => {
     combatRelation.hidden = true;
     combatRelation.classList.remove('is-ignored');
@@ -378,8 +380,16 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
       const impactOffsetsMs = baseImpactOffsetsMs.map((offset) => offset + delayMs);
       targetImpact.textContent = `First hit: ${impactOffsetsMs[0]} ms`;
       // Hits before Combat Start are discarded, so precasts show which side of the marker they land on.
-      if (options.combatStartAfterCastMs != null) {
-        const relation = activationCombatStartRelation(impactOffsetsMs, Math.round(options.combatStartAfterCastMs));
+      let combatStartAfterCastMs = options.combatStartAfterCastMs;
+      if (isConcurrentBehavior && options.previewCombatStartAfterCastMs) {
+        const timing = normalRadio.checked
+          ? { valid: true as const, value: null }
+          : validateActivationConcurrentOffsetMs(input.value, minimumMs);
+        combatStartAfterCastMs = timing.valid ? options.previewCombatStartAfterCastMs(timing.value) : null;
+      }
+
+      if (combatStartAfterCastMs != null) {
+        const relation = activationCombatStartRelation(impactOffsetsMs, Math.round(combatStartAfterCastMs));
         combatRelation.textContent = relation.text;
         combatRelation.classList.toggle('is-ignored', relation.missedHits > 0);
         combatRelation.hidden = false;
@@ -442,6 +452,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
     inputRow.classList.toggle('is-disabled', !configured);
     error.textContent = '';
     updateDamageCommitWarning();
+    updateImpactPreview();
   };
 
   normalRadio.addEventListener('change', updateMode);
@@ -455,6 +466,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   input.addEventListener('input', () => {
     error.textContent = '';
     updateDamageCommitWarning();
+    updateImpactPreview();
   });
   updateMode();
 

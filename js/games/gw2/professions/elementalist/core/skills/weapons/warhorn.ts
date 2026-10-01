@@ -78,6 +78,8 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 840,
+    // Commit the field before the remaining cast animation ends.
+    interruptCommitMs: 720,
     cooldown: 30,
     comboFields: [
       {
@@ -88,8 +90,8 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ],
     skillFamily: 'Weapon skill',
-    // Both field timelines share timing while keeping the final two pulses restricted to large targets.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+    // Committed field pulses survive interruption; the final two pulses remain restricted to large targets.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
       strikeTimeline(
         WILDFIRE_TICKS.map((tick) => ({
           ...tick,

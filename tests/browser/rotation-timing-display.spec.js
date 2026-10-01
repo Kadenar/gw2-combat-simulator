@@ -1,5 +1,76 @@
 import { expect, test } from '@playwright/test';
 
+// Unsaved overlap edits must preview the same combat-relative landing that Apply produces, without changing the build.
+test('concurrent precast landing updates while editing timing', async ({ page }) => {
+  await page.goto('/mesmer.html');
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.build.selectedSkills.Utility1 = 'Signet of Midnight';
+    app.build.selectedSkills.Elite = 'Mass Invisibility';
+    app.build.targetHealth = 0;
+    app.build.rotation = [
+      { type: 'cast', skillId: app.skillByName.get('Mass Invisibility').id },
+      {
+        type: 'cast',
+        skillId: app.skillByName.get('Signet of Midnight').id,
+        concurrentOffsetMs: 80,
+        impactDelayMs: 1000
+      },
+      { type: 'combat-start' },
+      { type: 'wait', durationMs: 2000 }
+    ];
+    app.changed();
+  });
+  const ready = () =>
+    page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await ready();
+  const openEditor = async () => {
+    const pencil = page.locator('#rotation-timeline .rot-skill[data-idx="1"] .rot-edit-activation');
+    await pencil.focus();
+    await pencil.press('Enter');
+  };
+
+  await openEditor();
+  const editor = page.locator('.rotation-activation-editor:visible');
+  const input = editor.locator('.activation-editor-input').first();
+  const relation = editor.locator('.activation-editor-combat-relation');
+  const original = await relation.textContent();
+  await input.fill('480');
+  await expect(relation).not.toHaveText(original);
+  const edited = await relation.textContent();
+  await input.press('ArrowUp');
+  await expect(relation).not.toHaveText(edited);
+  await input.fill('');
+  await expect(relation).toBeHidden();
+  await input.fill('480');
+  await expect(relation).toHaveText(edited);
+  expect(await page.evaluate(() => window.professionApp.build.rotation[1].concurrentOffsetMs)).toBe(80);
+  await editor.getByRole('button', { name: 'Apply', exact: true }).click();
+  await ready();
+  await openEditor();
+  await expect(relation).toHaveText(edited);
+
+  // Offsets beyond the preceding cast also move the marker; a fixed delta would give the wrong landing.
+  await input.fill('4000');
+  const beyondCast = await relation.textContent();
+  await editor.getByRole('button', { name: 'Apply', exact: true }).click();
+  await ready();
+  await openEditor();
+  await expect(relation).toHaveText(beyondCast);
+  await editor.getByRole('radio', { name: 'Normal cast', exact: true }).check();
+  const normal = await relation.textContent();
+  await editor.getByRole('radio', { name: 'During previous cast', exact: true }).check();
+  await input.fill('80');
+  await expect(relation).toHaveText(original);
+  await editor.getByRole('button', { name: 'Reset to normal', exact: true }).click();
+  await expect(relation).toHaveText(normal);
+  await editor.getByRole('button', { name: 'Apply', exact: true }).click();
+  await ready();
+  await openEditor();
+  await expect(relation).toHaveText(normal);
+});
+
 // Native increments must snap saved or typed off-grid timings before applying an edit.
 test('activation timing controls snap and validate 40 ms ticks', async ({ page }) => {
   await page.goto('/mesmer.html');

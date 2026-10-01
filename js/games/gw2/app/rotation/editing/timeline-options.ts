@@ -175,6 +175,23 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     targetImpactDetails: targetImpact && isCombatStart ? `${impactStep?.skill}\n${targetImpact}` : targetImpact,
     impactOffsetsMs,
     combatStartAfterCastMs,
+    previewCombatStartAfterCastMs:
+      isPrecast && behavior === 'concurrent'
+        ? (timingMs) => {
+            if (timingMs === (item.concurrentOffsetMs ?? null)) return combatStartAfterCastMs;
+            // Reuse the scheduler through Combat Start: changing a precast can move both the cast and marker.
+            const rotation = app.build.rotation.slice(0, combatStartIndex + 1);
+            rotation[index] = updateRotationEntry(entry, { concurrentOffsetMs: timingMs ?? undefined });
+            const preview = app.adapter.rotationPreviewAt(
+              { ...app, build: { ...app.build, rotation } },
+              rotation.length
+            );
+            const previewStep = preview.steps.find((candidate) => candidate.ri === index && !candidate.invalid);
+            return previewStep && preview.combatStartTime != null
+              ? Math.round(preview.combatStartTime * 1000 - previewStep.start)
+              : null;
+          }
+        : undefined,
     allowTargeting,
     offTarget: item.offTarget === true,
     impactDelayMs: item.impactDelayMs ?? null,

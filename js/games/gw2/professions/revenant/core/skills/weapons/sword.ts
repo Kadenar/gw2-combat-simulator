@@ -190,7 +190,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
   [ID.CHILLING_ISOLATION]: {
     castTimeMs: 680,
 
-    interruptCommitMs: 360,
+    interruptCommitMs: 320,
     cooldown: 5,
     energyCost: 5,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
