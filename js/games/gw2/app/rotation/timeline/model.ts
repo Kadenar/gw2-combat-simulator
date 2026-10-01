@@ -7,6 +7,7 @@ import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metric
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import { TRANSITION_LOCKOUT_EVENT } from '#gw2/platform/skills/transition-delays.js';
+import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
 
 export interface TimelineCastOrdinal {
   readonly matchingIndex: number;
@@ -79,8 +80,8 @@ export function timelineTargetImpactDetails(
 }
 
 /**
- * Distinct cast-relative impact times in ascending milliseconds, keyed by activation. Packets sharing a timestamp
- * (a strike and its condition) form one hit, so editors can count how many hits land before Combat Start. Only the
+ * Distinct cast-relative impact times in ascending milliseconds, keyed by activation. Damaging activations count
+ * only strikes and damaging conditions; control-only casts retain their hostile timings for targeting edits. Only the
  * cast's own packets count: procs it triggers (sigils, traits, relics) carry its lineage but are derived from a hit,
  * so they follow that hit instead of being hits of the skill.
  */
@@ -88,6 +89,16 @@ export function timelineImpactOffsets(
   steps: readonly SimulationStep[],
   events: readonly SimulationEvent[]
 ): Map<string, number[]> {
+  const damagingActivations = new Set(
+    events
+      .filter(
+        (event) =>
+          !event.cancelled &&
+          event.parentEventOrder == null &&
+          (event.type === 'damage' || (event.type === 'condition' && isDamagingCondition(event.condition)))
+      )
+      .map((event) => event.activationId)
+  );
   const impactTimes = new Map<string, Set<number>>();
   for (const event of events) {
     if (
@@ -96,7 +107,9 @@ export function timelineImpactOffsets(
       event.parentEventOrder != null ||
       event.cancelled === true ||
       !['damage', 'condition', 'control', 'blind'].includes(event.type) ||
-      event.controlKind === 'initial-state'
+      event.controlKind === 'initial-state' ||
+      (damagingActivations.has(event.activationId) &&
+        !(event.type === 'damage' || (event.type === 'condition' && isDamagingCondition(event.condition))))
     )
       continue;
     const times = impactTimes.get(event.activationId) ?? new Set<number>();

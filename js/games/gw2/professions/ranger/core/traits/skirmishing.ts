@@ -187,7 +187,8 @@ export const viciousQuarry = defineTrait({
       operation: 'add',
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.VICIOUS_QUARRY), 'criticalChance'),
-      when: (context) => rangerBoonActive(context, 'fury')
+      // Vicious Quarry improves the ranger's Fury; the pet retains its own independent critical chance.
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && rangerBoonActive(context, 'fury')
     }
   ],
   buildAttributes: (_common, { balanceContext: profileContext, build }) => {

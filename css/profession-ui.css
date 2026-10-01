@@ -1461,8 +1461,169 @@
   color: var(--text);
 }
 
-.perma-group-content .boon-control {
+#perma-boons .boon-control {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 6px 12px;
   margin-right: 0;
+  font-size: 12px;
+}
+
+/* Settings share aligned rows and a single control height, independent of compact gear dropdown styles. */
+#perma-boons .boon-control:has(> input[type='checkbox']) {
+  display: flex;
+  gap: 8px;
+}
+
+#perma-boons .boon-control input[type='checkbox'] {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+#perma-boons :is(.boon-control, .transition-delay-table) :is(input[type='number'], select),
+#perma-boons .assumption-icon-select summary {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: 28px;
+  padding: 3px 7px;
+  border: 1px solid var(--border-light);
+  border-radius: 3px;
+  background: var(--bg-panel-alt);
+  color: var(--text-bright);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: normal;
+}
+
+#perma-boons :is(input, select, summary):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+#perma-boons #target-armor {
+  grid-column: 2;
+}
+
+.critical-damage-control {
+  position: relative;
+}
+
+.critical-damage-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+#critical-damage-help {
+  grid-column: 2;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+#critical-damage-details summary {
+  /* A centered vector icon stays crisp without relying on the font's circled-i glyph. */
+  display: flex;
+  align-items: center;
+  color: var(--text-dim);
+  cursor: pointer;
+  list-style: none;
+}
+
+#critical-damage-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.critical-damage-description {
+  position: absolute;
+  z-index: 1;
+  top: 28px;
+  right: 0;
+  left: 0;
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  background: var(--bg-panel-alt);
+  box-shadow: 0 4px 12px #0008;
+  line-height: 1.5;
+}
+
+.critical-damage-description p + p {
+  margin-top: 8px;
+}
+
+#perma-boons .assumption-icon-select summary {
+  height: auto;
+  min-height: 28px;
+  padding-right: 22px;
+}
+
+#perma-boons .perma-group-content {
+  row-gap: 10px;
+}
+
+#rotation-display-controls .perma-group-content {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 10px 12px;
+}
+
+#rotation-display-controls .boon-control {
+  align-items: start;
+}
+
+#rotation-display-controls input {
+  margin-top: 2px;
+}
+
+.transition-delay-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.transition-delay-table caption {
+  padding-bottom: 8px;
+  color: var(--text-dim);
+  text-align: left;
+}
+
+.transition-delay-table :is(th, td) {
+  padding: 5px 4px;
+  text-align: left;
+}
+
+.transition-delay-table th:first-child {
+  width: 54%;
+  padding-left: 0;
+}
+
+.transition-delay-table thead {
+  border-bottom: 1px solid var(--border);
+}
+
+.transition-delay-table tbody th {
+  font-weight: normal;
+}
+
+.transition-delay-table td {
+  text-align: center;
+}
+
+.transition-delay-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.transition-delay-actions .btn {
+  min-height: 28px;
 }
 
 .proc-rate-controls {

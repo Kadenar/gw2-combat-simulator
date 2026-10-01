@@ -542,7 +542,11 @@ export const rangerTooltips: ProfessionTooltips = {
       ],
       'party'
     ),
-    [TRAIT.FORTIFYING_BOND]: outsideScopeTooltip,
+    [TRAIT.FORTIFYING_BOND]: traitTooltip(
+      "Boons received from players are shared with your active pet using the ranger's boon duration. Permanent boon settings represent training-console pulses and also trigger sharing. Inactive in Beastmode; other NPC boons do not trigger sharing.",
+      () => [],
+      'summons'
+    ),
     [TRAIT.LINGERING_MAGIC]: traitTooltip('Gain concentration.', (balanceContext, id) => [
       profileFact(balanceContext, id, 'attributeBonus', 'Concentration')
     ]),

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  activationCombatStartRelation,
   activationDamageCommitLabel,
   activationDamageCommitMs,
   activationDamageCommitWarning,
@@ -19,6 +20,7 @@ import {
   rotationEntryName,
   shatterResourceSpends,
   timelineDeadTimeMarkers,
+  timelineImpactOffsets,
   timelineSkillCastOrdinals,
   timelineStepsWithChargeFills,
   timelineTargetImpactDetails,
@@ -93,9 +95,17 @@ test('target impact details preserve precombat applications and distinguish sepa
     ],
     [
       { activationId: 'first', type: 'damage', at: 1.8 },
-      { activationId: 'first', type: 'condition', at: 1.3, eventOrder: 2, causalOrder: 2 },
+      { activationId: 'first', type: 'condition', condition: 'Burning', at: 1.3, eventOrder: 2, causalOrder: 2 },
       // An explicit parent marks derived proc work; causal placement alone also belongs to ordinary live packets.
-      { activationId: 'first', type: 'condition', at: 1.1, eventOrder: 3, causalOrder: 1, parentEventOrder: 1 },
+      {
+        activationId: 'first',
+        type: 'condition',
+        condition: 'Burning',
+        at: 1.1,
+        eventOrder: 3,
+        causalOrder: 1,
+        parentEventOrder: 1
+      },
       { activationId: 'first', type: 'damage', at: 1.1, cancelled: true },
       { activationId: 'first', type: 'control', controlKind: 'initial-state', at: 1 },
       { activationId: 'second', type: 'damage', at: 3.6, offTarget: true },
@@ -107,6 +117,28 @@ test('target impact details preserve precombat applications and distinguish sepa
   assert.equal(details.get('second'), 'First hit: 600 ms');
   assert.equal(details.has('buff-only'), false);
   assert.equal(details.has('invalid'), false);
+});
+
+// Precombat debuffs can miss without implying that a later damaging hit is lost.
+test('activation hit counts exclude non-damaging debuffs and control applications', () => {
+  const activationId = 'cast';
+  const offsets = timelineImpactOffsets(
+    [{ activationId, start: 0, end: 400 }],
+    [
+      { activationId, type: 'condition', condition: 'Vulnerability', at: 0.4 },
+      { activationId, type: 'condition', condition: 'Crippled', at: 0.5 },
+      { activationId, type: 'control', controlKind: 'daze', at: 0.6 },
+      { activationId, type: 'blind', at: 0.7 },
+      { activationId, type: 'damage', at: 1 },
+      { activationId, type: 'condition', condition: 'Bleeding', at: 1 },
+      { activationId, type: 'damage', at: 2 }
+    ]
+  ).get(activationId);
+  assert.deepEqual(offsets, [1000, 2000]);
+  assert.deepEqual(activationCombatStartRelation(offsets, 800), {
+    text: 'Lands 200 ms after Combat Start',
+    missedHits: 0
+  });
 });
 
 test('timeline dead time includes explicit waits and excludes concurrent casts and gap-fill attacks', () => {

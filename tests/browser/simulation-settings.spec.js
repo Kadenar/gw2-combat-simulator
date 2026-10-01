@@ -82,13 +82,30 @@ test('simulation seed and critical damage settings persist with the build', asyn
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.getByRole('button', { name: 'Open simulation config', exact: true }).click();
   const seed = page.getByRole('spinbutton', { name: 'Simulation seed', exact: true });
-  const criticalDamage = page.getByRole('combobox', { name: 'Deterministic critical damage', exact: true });
+  const criticalDamage = page.getByRole('combobox', { name: 'Critical damage', exact: true });
   await expect(criticalDamage).toHaveValue('averaged');
-  // Keep the mode distinction visible and attached to the control for keyboard and screen-reader users.
+  // Show a short mode summary and make the full explanation available by hover, click, and keyboard.
   await expect(page.locator('#critical-damage-help')).toBeVisible();
-  await expect(criticalDamage).toHaveAccessibleDescription(/Averaged: Every hit includes its expected critical damage/);
-  await expect(page.locator('#critical-damage-help')).toContainText('RNG simulations always use Rolled.');
+  await expect(criticalDamage).toHaveAccessibleDescription('Uses expected critical damage for consistent comparisons.');
+  const info = page.getByLabel('About critical damage', { exact: true });
+  const explanation = page.locator('.critical-damage-description');
+  await expect(explanation).toBeHidden();
+  await info.hover();
+  await expect(explanation).toBeVisible();
+  await expect(explanation).toContainText('RNG simulations always use Rolled.');
+  await criticalDamage.hover();
+  await expect(explanation).toBeHidden();
+  await info.click();
+  await criticalDamage.hover();
+  await expect(explanation).toBeVisible();
+  await info.press('Escape');
+  await expect(explanation).toBeHidden();
+  await expect(page.locator('#simulation-config-panel')).toBeVisible();
+  await criticalDamage.focus();
+  await info.focus();
+  await expect(explanation).toBeVisible();
   await criticalDamage.selectOption('rolled');
+  await expect(criticalDamage).toHaveAccessibleDescription('Uses individual critical rolls for each hit.');
   await page.waitForFunction(() => window.professionApp.build.assumptions.criticalDamageMode === 'rolled');
   expect(
     await page.evaluate(() => window.professionApp.adapter.simulationConfig(window.professionApp).criticalDamageMode)

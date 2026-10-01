@@ -237,11 +237,14 @@ export function simulationEventLogRows(
 
         break;
       case 'buff':
-        push(
-          event,
-          'trigger',
-          `BUFF ${effectName(event.kind, event, effectPresentations)} x${event.stacks || 1}${event.duration ? ` (${Number(Number(event.duration).toFixed(3))}s)` : ''}`,
-          'trigger'
+        // Let professions hide automatic bookkeeping grants without removing them from the simulation.
+        pushProfessionRow(event, () =>
+          push(
+            event,
+            'trigger',
+            `BUFF ${effectName(event.kind, event, effectPresentations)} x${event.stacks || 1}${event.duration ? ` (${Number(Number(event.duration).toFixed(3))}s)` : ''}`,
+            'trigger'
+          )
         );
         break;
       default:

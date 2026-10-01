@@ -7,7 +7,7 @@
         "build": "data/gw2/builds/ranger/b-condi-alac-druid-dagger-torch-axe-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-alac-druid-dagger-torch-axe-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/condition-alacrity-druid-dagger-torch-axe-dagger",
-        "benchmarkDps": 39338,
+        "benchmarkDps": 38968,
         "upToDate": true
       }
     ]
@@ -44,11 +44,25 @@
     "section": "Untamed",
     "presets": [
       {
-        "label": "Power (Hammer / Sword-Axe)",
+        "label": "Power (Hammer / Sword-Axe) (Beastmastery)",
         "build": "data/gw2/builds/ranger/b-power-untamed-hammer-sword-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-untamed-hammer-sword-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-untamed-beastmastery-hammer-sword-axe",
-        "benchmarkDps": 44800,
+        "benchmarkDps": 44626,
+        "upToDate": true
+      },
+      {
+        "label": "Power Quickness (Sword-Axe / Hammer) (Beastmastery)",
+        "build": "data/gw2/builds/ranger/b-power-quick-untamed-beastmastery-sword-axe-hammer.json",
+        "rotation": "data/gw2/rotations/ranger/r-power-quick-untamed-beastmastery-sword-axe-hammer-bench.json",
+        "benchmarkDps": 33707,
+        "upToDate": true
+      },
+      {
+        "label": "Power Quickness (Sword-Axe / Hammer) (Nature Magic)",
+        "build": "data/gw2/builds/ranger/b-power-quick-untamed-nature-magic-sword-axe-hammer.json",
+        "rotation": "data/gw2/rotations/ranger/r-power-quick-untamed-nature-magic-sword-axe-hammer-bench.json",
+        "benchmarkDps": 33683,
         "upToDate": true
       }
     ]
@@ -61,7 +75,7 @@
         "build": "data/gw2/builds/ranger/b-power-galeshot-longbow-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-galeshot-longbow-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-galeshot-longbow-axe-axe",
-        "benchmarkDps": 42532,
+        "benchmarkDps": 42457,
         "upToDate": true
       },
       {
@@ -69,7 +83,7 @@
         "build": "data/gw2/builds/ranger/b-power-quick-galeshot-longbow-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-quick-galeshot-longbow-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-quickness-galeshot-longbow-axe-axe",
-        "benchmarkDps": 35370,
+        "benchmarkDps": 35167,
         "upToDate": true
       }
     ]

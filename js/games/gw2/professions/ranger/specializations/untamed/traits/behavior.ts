@@ -11,6 +11,7 @@ import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { TRAITS } from '#gw2/professions/ranger/data/traits-data.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
@@ -99,7 +100,12 @@ export function triggerLetLoose(context: RangerResolverContext, event: Gw2Resolv
         kind: String(packet.kind),
         duration: Number(packet.duration),
         name: 'Let Loose - ' + packet.kind,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        // Resolver-generated party boons need the same active-pet candidate as cast-generated boons.
+        audience: {
+          recipients: 'party',
+          maximumRecipients: 5,
+          eligibleCompanionIds: context.profession.core.petActive ? [rangerPetCompanionId(context)] : []
+        }
       });
   }
 }

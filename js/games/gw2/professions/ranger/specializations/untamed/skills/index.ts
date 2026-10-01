@@ -129,7 +129,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         stacks: 1
       }
     ],
-    castTimeMs: 667
+    // Use the effective cast duration so defensive boons begin at the corrected completion time.
+    castTimeMs: 840
   },
   [ID.VENOMOUS_OUTBURST]: {
     castTimeMs: 0,

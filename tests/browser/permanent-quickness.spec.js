@@ -19,16 +19,15 @@ test('quickness and alacrity stay active after restoring a build that disabled i
   await page.getByRole('button', { name: 'Open simulation config', exact: true }).click();
 
   const boons = page.locator('#perma-boons');
-  await expect(boons.getByText('Alacrity — always active', { exact: true })).toBeVisible();
-  await expect(boons.getByRole('checkbox', { name: 'Alacrity', exact: true })).toHaveCount(0);
+  const alacrity = boons.getByRole('checkbox', { name: 'Alacrity', exact: true });
+  await expect(alacrity).toBeChecked();
+  await expect(alacrity).toBeDisabled();
   expect(await page.evaluate(() => window.professionApp.build.assumptions.alacrity)).toBe(true);
-  const quickness = boons.getByText('Quickness — always active', { exact: true });
+  const quickness = boons.getByRole('checkbox', { name: 'Quickness', exact: true });
   await expect(quickness).toBeVisible();
-  await expect(quickness).toHaveAttribute(
-    'data-wiki-description',
-    'Skill timings are calibrated with permanent quickness.'
-  );
-  await expect(boons.getByRole('checkbox', { name: 'Quickness', exact: true })).toHaveCount(0);
+  await expect(boons.locator('.perma-item[data-wiki-name]')).toHaveCount(0);
+  await expect(quickness).toBeChecked();
+  await expect(quickness).toBeDisabled();
   expect(await page.evaluate(() => window.professionApp.build.assumptions.quickness)).toBe(true);
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2500);
   await expect(boons.getByRole('checkbox', { name: 'Fury', exact: true })).not.toBeChecked();

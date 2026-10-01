@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 4,
+  "profession": "ranger",
+  "gear": {
+    "Helm": "Diviner's",
+    "Shoulders": "Berserker's",
+    "Chest": "Berserker's",
+    "Gloves": "Berserker's",
+    "Leggins": "Berserker's",
+    "Boots": "Berserker's",
+    "Amulet": "Berserker's",
+    "Ring1": "Berserker's",
+    "Ring2": "Berserker's",
+    "Accessory1": "Berserker's",
+    "Accessory2": "Berserker's",
+    "Back": "Berserker's",
+    "Weapon1": "Berserker's",
+    "Weapon2": "Berserker's"
+  },
+  "alternateWeaponPrefixes": ["Berserker's", "Berserker's"],
+  "weapons": ["Hammer", ""],
+  "alternateWeapons": ["Sword", "Axe"],
+  "rune": "Fireworks",
+  "weaponSigils": [
+    ["Force", "Concentration"],
+    ["Force", "Concentration"]
+  ],
+  "relic": "Claw",
+  "food": "Cilantro Lime Sous-Vide Steak",
+  "utility": "Superior Sharpening Stone",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Power",
+      "count": 18
+    },
+    {
+      "stat": "Precision",
+      "count": 0
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Beastmastery",
+      "traits": "3-3-1"
+    },
+    {
+      "name": "Skirmishing",
+      "traits": "1-2-3"
+    },
+    {
+      "name": "Untamed",
+      "traits": "3-3-1"
+    }
+  ],
+  "selectedSkills": {
+    "Heal": "\"We Heal As One!\"",
+    "Utility1": "Storm Spirit",
+    "Utility2": "\"Sic 'Em!\"",
+    "Utility3": "Signet of the Wild",
+    "Elite": "\"Strength of the Pack!\""
+  },
+  "selectedPet": "Wallow",
+  "selectedPet2": "Boar",
+  "selectedHammerSkillIds": [63335, 63197, 63131, 63208],
+  "initialUntamedState": "Pet",
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "simulationSeed": 1,
+    "permanentComboField": "none",
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": true,
+    "targetMoving": false,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    },
+    "targetDefiant": true,
+    "sharePlayerBoonsWithSummons": false
+  },
+  "startingWeaponSet": 1,
+  "targetHealth": 4000000,
+  "targetStartingHealthPercent": 100,
+  "targetArmor": 2597,
+  "initialAstralForce": 100,
+  "initialArrows": 8,
+  "precastRelics": []
+}

@@ -1618,35 +1618,95 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   padding: 1px 11px 11px;
 }
 
+/* Named effects share three aligned columns; fixed boons sit in their own divided row. */
+.perma-effect-grid {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(3, max-content);
+  justify-content: space-between;
+  gap: 6px 3px;
+}
+
+/* Narrow drawers need two columns to keep names and stack counts readable. */
+@media (max-width: 360px) {
+  .perma-effect-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.perma-boon-label {
+  width: 100%;
+  color: var(--text-dim);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.perma-fixed-boons {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.perma-fixed-boons small {
+  display: block;
+  color: var(--text-dim);
+  font-size: 9px;
+  font-style: italic;
+}
+
 .perma-item {
   display: inline-flex;
+  min-width: 0;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
+  color: var(--text);
+  font-size: 10px;
   cursor: pointer;
 }
 
 .perma-item input[type='checkbox'] {
-  width: 13px;
-  height: 13px;
+  width: 12px;
+  height: 12px;
+  margin: 0;
+  flex-shrink: 0;
   cursor: pointer;
+}
+
+.perma-fixed-boons .perma-item,
+.perma-item input:disabled {
+  cursor: default;
 }
 
 .perma-icon {
   display: block;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
   object-fit: contain;
 }
 
 .perma-stacks {
-  width: 42px;
-  padding: 1px 3px;
-  font-size: 11px;
+  width: 26px;
+  min-width: 0;
+  flex-shrink: 0;
+  padding: 1px 2px;
+  font-size: 10px;
+  appearance: textfield;
   background: var(--bg-panel);
   color: #ddd;
   border: 1px solid var(--border-light);
   border-radius: 3px;
   text-align: center;
+}
+
+.perma-stacks::-webkit-inner-spin-button,
+.perma-stacks::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
 }
 
 .perma-stacks:disabled {

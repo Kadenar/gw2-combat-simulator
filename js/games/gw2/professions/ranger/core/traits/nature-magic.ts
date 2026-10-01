@@ -1,5 +1,6 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { gw2EventOwnerActorType, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
@@ -7,11 +8,101 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { emitSunSpiritBurning } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { rangerActiveBoonCount, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+
+/** Both live player grants and configured console pulses use the same ranger-scaled pet application. */
+function shareFortifyingBond(runtime: RangerRuntime, kind: string, stacks: number, cause?: Gw2ResolverEvent): void {
+  if (!runtime.profession.core.petActive) return;
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.FORTIFYING_BOND);
+  emitEffects(runtime, {
+    owner: profile,
+    effects: profile.effects?.filter((effect) => effect.type === 'boon' && effect.boon === kind),
+    cause,
+    baseEvent: {
+      source: 'Trait',
+      sourceId: TRAIT.FORTIFYING_BOND,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillId: TRAIT.FORTIFYING_BOND,
+      skillName: 'Fortifying Bond',
+      triggeredBy: cause?.skillName ?? 'Training console'
+    },
+    transform: (packet) => ({
+      ...packet,
+      stacks,
+      audience: {
+        recipients: 'summons',
+        affectsSelf: false,
+        maximumRecipients: 1,
+        eligibleCompanionIds: [rangerPetCompanionId(runtime)]
+      }
+    })
+  });
+}
+
+/** Share received player boons with the active pet using the trait's durations and the ranger's concentration. */
+export const fortifyingBond = defineTrait({
+  id: TRAIT.FORTIFYING_BOND,
+  name: 'Fortifying Bond',
+  balance: {
+    effects: Object.entries({
+      aegis: 5,
+      alacrity: 3,
+      fury: 5,
+      might: 10,
+      protection: 3,
+      quickness: 2.5,
+      regeneration: 6,
+      resistance: 2,
+      resolution: 5,
+      stability: 5,
+      swiftness: 6,
+      vigor: 3
+    }).map(([boon, duration]) => ({ name: boon, type: 'boon' as const, boon, duration, stacks: 1 }))
+  },
+  hooks: {
+    initialize(runtime: RangerRuntime) {
+      if (
+        hasTrait(runtime, TRAIT.FORTIFYING_BOND) &&
+        Object.entries(runtime.config.boons ?? {}).some(([kind, value]) => isStandardBoon(kind) && Number(value) > 0)
+      )
+        runtime.schedule('ranger.fortifying-bond-console', 0, null);
+    },
+    tasks: {
+      'ranger.fortifying-bond-console'(runtime: RangerRuntime) {
+        // Model configured console boons as three-second refreshes, each of which triggers Bond.
+        // Emit only the trait's pet grant: the configured player boon already exists in the permanent-boon layer.
+        for (const [kind, value] of Object.entries(runtime.config.boons ?? {}))
+          if (isStandardBoon(kind) && Number(value) > 0) shareFortifyingBond(runtime, kind, Number(value));
+        runtime.schedule('ranger.fortifying-bond-console', runtime.time + 3, null);
+      }
+    },
+    reactions: {
+      'buff.applied'(runtime: RangerRuntime, event) {
+        if (
+          !hasTrait(runtime, TRAIT.FORTIFYING_BOND) ||
+          !runtime.profession.core.petActive ||
+          !event.resolvedAudience?.includesSelf ||
+          !isStandardBoon(String(event.kind)) ||
+          !(Number(event.duration) > 0) ||
+          !(Number(event.stacks) > 0) ||
+          // Trait and equipment effects are player grants; NPCs and pet-cast boons cannot trigger sharing.
+          !['player', 'effect'].includes(event.actorType) ||
+          !['player', 'effect'].includes(gw2EventOwnerActorType(event))
+        )
+          return;
+        shareFortifyingBond(runtime, String(event.kind), Number(event.stacks), event);
+      }
+    }
+  }
+});
 
 /** Every spirit repeats its slam one second after the final authored shake, including patched pulse timings. */
 function spiritRepeatSlamAt(cast: RuntimeCast): number {

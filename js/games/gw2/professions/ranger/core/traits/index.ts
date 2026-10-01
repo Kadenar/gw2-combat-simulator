@@ -24,6 +24,7 @@ import {
 } from '#gw2/professions/ranger/core/traits/marksmanship.js';
 import {
   bountifulHunter,
+  fortifyingBond,
   lingeringMagic,
   naturesVengeance,
   rejuvenation,
@@ -87,6 +88,7 @@ export const rangerCoreTraits = [
   packAlpha,
   petsProwess,
   lingeringMagic,
+  fortifyingBond,
   naturesVengeance,
   huntersTactics,
   preciseStrike,

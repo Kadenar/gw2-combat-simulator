@@ -5,7 +5,7 @@ import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/professions/ranger/build/assumptions.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -42,6 +42,9 @@ const RANGER_HIDDEN_EVENT_TYPES = new Set([
   'ranger.poisonous-strikes',
   'ranger.sharpening-stone'
 ]);
+
+// Boon-copy mechanics retain their simulation events without duplicating whole boon lists in the readable log.
+const RANGER_HIDDEN_BOON_SOURCES = new Set<number>([TRAIT.FORTIFYING_BOND, TRAIT.RESOUNDING_TIMBRE, ID.WE_HEAL_AS_ONE]);
 
 /** Flatten runtime or projected state while retaining the declared Ranger fields. */
 export function rangerUiState(context: RangerUiContext): Partial<RangerState> {
@@ -321,6 +324,9 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog>): RangerUiS
     paletteSkillAvailability: (context: RangerUiContext, skill: RangerSkill) =>
       rangerCorePaletteAvailability(catalog, context, skill),
     eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
-      RANGER_HIDDEN_EVENT_TYPES.has(event.type) ? null : undefined
+      RANGER_HIDDEN_EVENT_TYPES.has(event.type) ||
+      (event.type === 'buff' && RANGER_HIDDEN_BOON_SOURCES.has(Number(event.sourceId)))
+        ? null
+        : undefined
   });
 }

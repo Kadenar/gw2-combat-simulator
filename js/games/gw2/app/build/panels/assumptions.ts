@@ -1,6 +1,5 @@
 import { option } from '#gw2/app/shared/html.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
-import { wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
 import { isSimulationRandomnessControl } from '#gw2/platform/simulation/randomness.js';
@@ -64,10 +63,12 @@ export function renderAssumptions(app: ProfessionAppState): void {
         <summary class="perma-group-label">${esc(label)}</summary>
         <div class="perma-group-content">${contents}</div>
     </details>`;
+  // Named simulation effects stay readable without hover cards obscuring adjacent controls.
   const item = ({ name, checked, type, key = name, stacks = null }: EffectItemOptions): string =>
-    `<label class="perma-item" ${wikiTooltipAttributes(name)}>
+    `<label class="perma-item">
             <input type="checkbox" aria-label="${esc(name)}" data-effect-type="${type}" data-effect-key="${esc(key)}"${checked ? ' checked' : ''}>
             <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS[name])}" alt="">
+            <span class="perma-name">${esc(name)}</span>
             ${stacks == null ? '' : `<input type="number" class="perma-stacks" aria-label="${esc(`${name} stacks`)}" data-effect-type="${type}" data-effect-key="${esc(key)}" min="0" max="25" value="${stacks}"${checked ? '' : ' disabled'}>`}
         </label>`;
   const boonItems = [
@@ -85,17 +86,21 @@ export function renderAssumptions(app: ProfessionAppState): void {
         type: 'boon',
         key
       })
-    ),
-    // Explain fixed console boons without exposing editable controls.
-    `<span class="boon-control" tabindex="0" ${wikiTooltipAttributes('Quickness', 'Skill timings are calibrated with permanent quickness.')}>
-      <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS.Quickness)}" alt="">
-      Quickness — always active
-    </span>`,
-    `<span class="boon-control" tabindex="0" ${wikiTooltipAttributes('Alacrity', 'Skill cooldowns assume permanent alacrity.')}>
-      <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS.Alacrity)}" alt="">
-      Alacrity — always active
-    </span>`
+    )
   ].join('');
+  // Fixed simulation boons remain visibly checked but cannot be changed by the user.
+  const fixedBoonItems = `<div class="perma-fixed-boons">
+    <label class="perma-item">
+      <input type="checkbox" aria-label="Quickness" checked disabled>
+      <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS.Quickness)}" alt="">
+      <span>Quickness<small>Always active</small></span>
+    </label>
+    <label class="perma-item">
+      <input type="checkbox" aria-label="Alacrity" checked disabled>
+      <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS.Alacrity)}" alt="">
+      <span>Alacrity<small>Always active</small></span>
+    </label>
+  </div>`;
   const conditionGroups = TARGET_CONDITION_GROUPS.map((group) => {
     const conditionItems = group.conditions
       .map((name) => {
@@ -110,7 +115,11 @@ export function renderAssumptions(app: ProfessionAppState): void {
       })
       .join('');
     const label = group.label === 'Damaging' ? 'Conditions' : group.label;
-    return section(`conditions-${group.label.toLowerCase()}`, label, conditionItems);
+    return section(
+      `conditions-${group.label.toLowerCase()}`,
+      label,
+      `<div class="perma-effect-grid">${conditionItems}</div>`
+    );
   }).join('');
   const assumptionOptionIcon = (option: ProfessionAssumptionOption): string =>
     option.icon || app.skillById.get(Number(option.skillId))?.icon || '';
@@ -151,16 +160,39 @@ export function renderAssumptions(app: ProfessionAppState): void {
                     </div>`;
       }
 
-      return `<label class="boon-control">${esc(control.label)}
-                    <select class="gear-select" data-assumption-key="${esc(control.key)}"${control.key === 'criticalDamageMode' ? ' aria-describedby="critical-damage-help"' : ''}>
+      const select = `<select id="assumption-${esc(control.key)}" class="gear-select" data-assumption-key="${esc(control.key)}"${control.key === 'criticalDamageMode' ? ' aria-describedby="critical-damage-help"' : ''}>
                         ${control.options
                           .map(
                             (option) =>
                               `<option value="${esc(option.value)}"${String(value) === option.value ? ' selected' : ''}>${esc(option.label)}</option>`
                           )
                           .join('')}
-                    </select>
-                </label>`;
+                    </select>`;
+      if (control.key === 'criticalDamageMode') {
+        // Keep the everyday explanation short; expose the full mode distinction only on request.
+        return `<div class="boon-control critical-damage-control">
+          <label for="assumption-criticalDamageMode">Critical damage</label>
+          <div class="critical-damage-picker">${select}
+            <details id="critical-damage-details">
+              <summary aria-label="About critical damage">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 11v6" />
+                  <circle cx="12" cy="7.5" r="0.75" fill="currentColor" stroke="none" />
+                </svg>
+              </summary>
+              <div class="critical-damage-description">
+                <p><strong>Averaged:</strong> Every hit includes its expected critical damage, smoothing out crit luck for comparisons. Critical Yes/No still records the roll used for on-critical effects.</p>
+                <p><strong>Rolled:</strong> A successful critical roll deals extra damage; a failed roll deals normal damage.</p>
+                <p>RNG simulations always use Rolled. The same inputs and seed reproduce the same outcomes.</p>
+              </div>
+            </details>
+          </div>
+          <p id="critical-damage-help">${value === 'rolled' ? 'Uses individual critical rolls for each hit.' : 'Uses expected critical damage for consistent comparisons.'}</p>
+        </div>`;
+      }
+
+      return `<label class="boon-control">${esc(control.label)}${select}</label>`;
     }
 
     return `<label class="boon-control">${esc(control.label)}
@@ -197,7 +229,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
     )
     .join('');
   container.innerHTML = `
-            ${section('boons', 'Boons', boonItems)}
+            ${section('boons', 'Effects', `<div class="perma-boon-label">Boons</div><div class="perma-effect-grid">${boonItems}</div>${fixedBoonItems}`)}
             ${conditionGroups}
             ${section(
               'target',
@@ -242,14 +274,36 @@ export function renderAssumptions(app: ProfessionAppState): void {
                     Share player boons with summons
                 </label>
                 ${simulationAssumptionItems}
-                <p id="critical-damage-help" class="condition-tick-note">
-                    <strong>Averaged:</strong> Every hit includes its expected critical damage, smoothing out crit luck for comparisons.
-                    Critical Yes/No still records the roll used for on-critical effects.<br>
-                    <strong>Rolled:</strong> A successful critical roll deals extra damage; a failed roll deals normal damage.
-                    RNG simulations always use Rolled. The same inputs and seed reproduce the same outcomes.
-                </p>
             `
             )}`;
+
+  // Hover and keyboard focus preview the explanation; clicking keeps it open for reading.
+  const criticalDetails = container.querySelector<HTMLDetailsElement>('#critical-damage-details');
+  const criticalSummary = criticalDetails?.querySelector('summary');
+  if (criticalDetails && criticalSummary) {
+    let pinned = false;
+    criticalDetails.addEventListener('pointerenter', () => {
+      criticalDetails.open = true;
+    });
+    criticalDetails.addEventListener('pointerleave', () => {
+      if (!pinned && !criticalDetails.contains(document.activeElement)) criticalDetails.open = false;
+    });
+    criticalSummary.addEventListener('focus', () => {
+      criticalDetails.open = true;
+    });
+    criticalSummary.addEventListener('click', (event) => {
+      event.preventDefault();
+      criticalDetails.open = pinned = !pinned;
+    });
+    criticalDetails.addEventListener('focusout', () => {
+      criticalDetails.open = pinned = false;
+    });
+    criticalDetails.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      event.stopPropagation();
+      criticalDetails.open = pinned = false;
+    });
+  }
 
   container.querySelectorAll('input[type="checkbox"][data-effect-type]').forEach((check) => {
     if (!(check instanceof HTMLInputElement)) return;
