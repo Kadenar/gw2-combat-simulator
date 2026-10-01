@@ -162,6 +162,15 @@ export function mountSimulatorNavigation(root: Document = document): void {
     professionMenu.append(option);
   }
 
+  // Anchor the open picker below the selector, clamped inside the viewport.
+  const positionProfessionMenu = (): void => {
+    const window = root.defaultView;
+    if (!window || !professionMenu.matches(':popover-open')) return;
+    const bounds = selector.getBoundingClientRect();
+    professionMenu.style.left = `${clamp(bounds.left, 8, window.innerWidth - professionMenu.offsetWidth - 8)}px`;
+    professionMenu.style.top = `${clamp(bounds.bottom + 6, 8, window.innerHeight - professionMenu.offsetHeight - 8)}px`;
+  };
+
   professionMenu.addEventListener('beforetoggle', (event) => {
     selector.setAttribute('aria-expanded', String(event.newState === 'open'));
     if (event.newState !== 'open') return;
@@ -172,17 +181,13 @@ export function mountSimulatorNavigation(root: Document = document): void {
         root.defaultView?.location.search
       );
     }
+
+    // The menu is only measurable once open, and the async toggle event can land after the first paint, which
+    // flashed the unpositioned popover at the viewport origin. An animation frame runs after the popover opens but
+    // before that first paint.
+    root.defaultView?.requestAnimationFrame(positionProfessionMenu);
   });
   // Keep an open picker inside the viewport when the header reflows after a resize.
-  const positionProfessionMenu = (): void => {
-    const window = root.defaultView;
-    if (!window || !professionMenu.matches(':popover-open')) return;
-    const bounds = selector.getBoundingClientRect();
-    professionMenu.style.left = `${clamp(bounds.left, 8, window.innerWidth - professionMenu.offsetWidth - 8)}px`;
-    professionMenu.style.top = `${clamp(bounds.bottom + 6, 8, window.innerHeight - professionMenu.offsetHeight - 8)}px`;
-  };
-
-  professionMenu.addEventListener('toggle', positionProfessionMenu);
   root.defaultView?.addEventListener('resize', positionProfessionMenu);
   professionControl.append(selector, professionMenu);
   navigation.append(professionControl);
