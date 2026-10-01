@@ -33,6 +33,8 @@ async function begin(name, label, landing = false) {
   caption = '';
   recordings.push({ name, frames });
   await page.goto(`${baseURL}/${landing ? '' : 'mesmer.html'}`, { waitUntil: 'networkidle' });
+  // Reserve the caption banner's height below the page so sections at the very bottom can scroll clear of it.
+  await page.addStyleTag({ content: 'body { padding-bottom: 100px !important; }' });
   if (!landing) await ready();
   console.log(`Recording ${label}`);
 }
@@ -70,16 +72,25 @@ async function frame(duration = 2200) {
 
 async function show(text, locator, duration = 2600) {
   caption = text;
+  // The simulator header stays pinned to the top, so page content must land below it; header and dialog targets sit above it.
+  let headerBottom = 0;
   if (locator)
-    await locator.evaluate((el) =>
-      el.scrollIntoView({ block: el.getBoundingClientRect().height > 650 ? 'start' : 'center', behavior: 'instant' })
-    );
+    headerBottom = await locator.evaluate((el) => {
+      const header = document.querySelector('#app > header');
+      const covered =
+        header && !header.contains(el) && !el.closest('dialog') ? header.getBoundingClientRect().height : 0;
+      const tall = el.getBoundingClientRect().height > 650;
+      // Top-aligned tall sections reserve the header height; centered targets already clear it.
+      if (tall) el.style.scrollMarginTop = `${covered + 8}px`;
+      el.scrollIntoView({ block: tall ? 'start' : 'center', behavior: 'instant' });
+      return covered;
+    });
   await page.waitForTimeout(350);
   if (locator) {
     const box = await locator.boundingBox();
     assert.ok(
-      box && box.y >= -1 && box.y + Math.min(box.height, 40) < 805,
-      `Caption covers ${text}: ${JSON.stringify(box)}`
+      box && box.y >= headerBottom - 1 && box.y + Math.min(box.height, 40) < 805,
+      `Header or caption covers ${text}: ${JSON.stringify(box)}`
     );
     const chart = await locator.evaluate((el) => el.matches('canvas, svg'));
     pointer = {
@@ -183,12 +194,17 @@ try {
   await click(page.locator('#btn-sim-redo'), '10. Redo restores it.');
   await ready();
   await show('11. The timeline shows the queued casts and their timing.', page.locator('#rotation-timeline'), 3500);
+  // Save Rotation names the file in an export dialog first; the download starts only when Export is submitted.
+  await click(page.locator('#btn-export-rotation'), '12. Save Rotation opens a dialog to name the JSON file.');
   const download = page.waitForEvent('download');
-  await click(page.locator('#btn-export-rotation'), '12. Save Rotation downloads the sequence as a JSON file.');
+  await click(
+    page.locator('.file-export-dialog').getByRole('button', { name: 'Export', exact: true }),
+    '13. Click Export to download the rotation sequence.'
+  );
   await (await download).saveAs(`${output}/example-rotation.json`);
-  await click(page.locator('#btn-import-rotation'), '13. Load Rotation opens the file and combat-log import dialog.');
+  await click(page.locator('#btn-import-rotation'), '14. Load Rotation opens the file and combat-log import dialog.');
   await show(
-    '14. Load saved JSON, an EVTC log, or a dps.report link here.',
+    '15. Load saved JSON, an EVTC log, or a dps.report link here.',
     page.locator('[data-rotation-import-drop]'),
     3500
   );
@@ -291,8 +307,8 @@ try {
     3500
   );
   await click(
-    page.locator('[data-preview="0"] [data-apply]'),
-    '11. Apply equips that result and recalculates the build.'
+    page.locator('[data-role="optimizer-preview"] [data-apply]'),
+    '11. Apply gear equips that result and recalculates the build.'
   );
   await ready();
   await show('12. Scroll down to Relic break-even comparison.', page.locator('#optimizer-relic-comparison'));
