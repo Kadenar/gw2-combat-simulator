@@ -278,8 +278,8 @@ test('control and Revenant buff facts use game icons with concise details', asyn
     sink: 2440714,
     fear: 102869,
     taunt: 1228472,
-    immobilize: 102844,
-    blind: 102837,
+    Immobilized: 102844,
+    Blindness: 102837,
     control: 1938788,
     'crowd-control': 1938788,
     defiance: 1938788
@@ -293,7 +293,12 @@ test('control and Revenant buff facts use game icons with concise details', asyn
     const controlSkill = {
       id: 'control-icons',
       name: 'Control icons',
-      effects: Object.keys(controls).map((controlKind) => ({ type: 'control', controlKind }))
+      // Condition and blind facts use their authored effect types and canonical labels, not control-name aliases.
+      effects: Object.keys(controls).map((controlKind) => {
+        if (controlKind === 'Immobilized') return { type: 'condition', condition: controlKind, duration: 1 };
+        if (controlKind === 'Blindness') return { type: 'blind', duration: 1 };
+        return { type: 'control', controlKind };
+      })
     };
     wrapper.innerHTML =
       `<button ${skillTooltipAttributes(controlSkill, describeSimulationSkill({}, controlSkill, { traits: {} }))}>Inspect controls</button>` +
