@@ -224,8 +224,7 @@ const ROTATION_IMPORT_STYLES = `
     .rotation-import-report input { min-width:0; flex:1; padding:7px 9px; border:1px solid var(--border-light);
       border-radius:5px; background:var(--bg-panel-alt); color:var(--text); }
     .rotation-import-preset { display:flex; gap:6px; margin-top:10px; }
-    .rotation-import-preset select { min-width:0; flex:1; padding:7px 9px; border:1px solid var(--border-light);
-      border-radius:5px; background:var(--bg-panel-alt); color:var(--text); }
+    .rotation-import-preset select { min-width:0; flex:1; padding:7px 9px; }
     .rotation-import-observations { display:grid; gap:6px; margin:10px 0 0; padding:0; list-style:none; font-size:11px; }
     .rotation-import-observations li { padding:9px 10px; border:1px solid var(--border);
       border-radius:5px; background:rgba(102,170,255,.06); line-height:1.45; }

@@ -61,8 +61,7 @@ const BUILD_TEMPLATE_IMPORT_STYLES = `
       letter-spacing:.08em; text-transform:uppercase; }
     .build-template-preview-profession { color:var(--text-bright); font-size:17px; font-weight:700; }
     .build-template-preview-weapons { color:var(--accent); font-size:13px; font-weight:600; text-align:right; }
-    .build-template-preview-weapon-select { min-width:180px; padding:5px 8px; border:1px solid var(--border-light);
-      border-radius:5px; background:var(--bg-panel-alt); color:var(--text-bright); font-size:12px; }
+    .build-template-preview-weapon-select { min-width:180px; padding:5px 8px; color:var(--text-bright); font-size:12px; }
     .build-template-preview-grid { display:grid; grid-template-columns:minmax(0, .9fr) minmax(0, 1.1fr);
       gap:0; }
     .build-template-preview-card { padding:14px; }

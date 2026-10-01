@@ -16,6 +16,9 @@
   --radius: 4px;
   /* Use one monospace stack for numeric controls and readouts. */
   --mono: 'Consolas', 'Courier New', monospace;
+  /* Every dropdown menu floats on one raised surface so native selects and custom pickers read as one control family. */
+  --menu-surface: oklch(0.24 0.006 285.885);
+  --menu-border: var(--border-light);
 }
 
 * {
@@ -32,14 +35,35 @@ body {
   line-height: 1.4;
 }
 
-/* Native dropdown popups cannot composite translucent control surfaces, so keep their menu rows opaque and dark. */
+/*
+ * Every native select shares one dark field look, so feature rules only need to size it. State rules use
+ * `:enabled` to outrank feature-level border declarations and keep hover/open feedback consistent everywhere.
+ */
 select {
   color-scheme: dark;
+  padding: 3px 7px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  background-color: var(--bg-panel-alt);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.12s ease;
 }
 
-select :is(option, optgroup) {
-  background-color: var(--bg-deep);
-  color: var(--text);
+select:enabled:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border-light));
+}
+
+select:enabled:focus-visible {
+  border-color: var(--accent);
+  outline: 2px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  outline-offset: 1px;
+}
+
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 #app {

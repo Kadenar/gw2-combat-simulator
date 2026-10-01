@@ -259,23 +259,13 @@
   border-top: 1px solid var(--border-light, #3a3a4a);
 }
 
+/* The shared select look picks up the editor's mode color through the local accent. */
 .activation-editor-select {
-  box-sizing: border-box;
+  --accent: var(--activation-editor-accent);
   width: 100%;
   padding: 5px 7px;
-  border: 1px solid var(--border-light, #3a3a4a);
-  border-radius: 4px;
-  outline: none;
-  background: var(--bg-panel-alt, #1a1a28);
   color: var(--text-bright, #f0f0ff);
-  font: inherit;
   font-size: 12px;
-  cursor: pointer;
-}
-
-.activation-editor-select:focus {
-  border-color: var(--activation-editor-accent);
-  box-shadow: 0 0 0 1px rgba(157, 123, 208, 0.35);
 }
 
 .activation-editor-targeting .activation-editor-input-row {

@@ -1,3 +1,5 @@
+@import url('./dropdowns.css');
+
 :root {
   color-scheme: dark;
   --bg: #0b0d12;
@@ -13,6 +15,8 @@
   --success: #63c58d;
   --danger: #e97878;
   --radius: 8px;
+  --menu-surface: var(--panel-raised);
+  --menu-border: var(--border-strong);
 }
 
 * {

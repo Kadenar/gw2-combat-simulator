@@ -1,0 +1,152 @@
+/*
+ * Owns the open menu of every native select. Browsers with customizable selects render the picker in-page so it
+ * matches the custom gear and assumption menus; other browsers keep the OS popup with opaque dark rows.
+ * Pages provide --menu-surface, --menu-border, --accent, --text, and --text-dim tokens.
+ */
+
+/* Shape tokens are page-independent, so custom menus elsewhere reuse them without redefining. */
+:root {
+  --menu-radius: 6px;
+  --menu-option-radius: 4px;
+  --menu-shadow: 0 12px 32px rgb(0 0 0 / 55%), 0 2px 6px rgb(0 0 0 / 35%);
+  /* Stroke chevron used as a mask so each dropdown can tint it with its own state color. */
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+@supports (appearance: base-select) {
+  select,
+  ::picker(select) {
+    appearance: base-select;
+  }
+
+  /* Base-select drops the native arrow, so draw the shared chevron and flip it while the menu is open. */
+  select::picker-icon {
+    content: '';
+    display: block;
+    flex: 0 0 auto;
+    align-self: center;
+    width: 9px;
+    height: 5px;
+    margin-inline-start: auto;
+    background-color: var(--text-dim);
+    mask: var(--chevron) center / contain no-repeat;
+    transition:
+      rotate 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  select:enabled:open {
+    border-color: var(--accent);
+  }
+
+  select:open::picker-icon {
+    rotate: 180deg;
+    background-color: var(--accent);
+  }
+
+  /* Long labels wrap inside a capped width rather than stretching the menu past the viewport. */
+  ::picker(select) {
+    max-inline-size: min(480px, calc(100vw - 16px));
+    max-block-size: min(360px, 70vh);
+    margin-block: 3px;
+    padding: 4px;
+    overflow-y: auto;
+    border: 1px solid var(--menu-border);
+    border-radius: var(--menu-radius);
+    background: var(--menu-surface);
+    box-shadow: var(--menu-shadow);
+    color: var(--text);
+    scrollbar-width: thin;
+    opacity: 0;
+    transition:
+      opacity 0.12s ease,
+      display 0.12s allow-discrete,
+      overlay 0.12s allow-discrete;
+  }
+
+  ::picker(select):popover-open {
+    opacity: 1;
+  }
+
+  @starting-style {
+    ::picker(select):popover-open {
+      opacity: 0;
+    }
+  }
+
+  /* Rows tint with the page accent on hover; the chosen row keeps a stronger tint plus a trailing check. */
+  select option {
+    gap: 10px;
+    padding: 5px 8px;
+    border-radius: var(--menu-option-radius);
+    background: transparent;
+    color: var(--text);
+    white-space: normal;
+    cursor: pointer;
+  }
+
+  select option:enabled:is(:hover, :focus-visible) {
+    background: color-mix(in srgb, var(--accent) 16%, var(--menu-surface));
+    color: var(--text-bright, var(--text));
+    outline: none;
+  }
+
+  select option:enabled:checked {
+    background: color-mix(in srgb, var(--accent) 26%, var(--menu-surface));
+    color: var(--text-bright, var(--text));
+  }
+
+  select option::checkmark {
+    order: 1;
+    margin-inline-start: auto;
+    color: var(--accent);
+    font-size: 0.9em;
+  }
+
+  select option:disabled {
+    color: var(--text-dim);
+    opacity: 0.55;
+    cursor: default;
+  }
+
+  /* Group labels match the gear menu headings; rows reset the inherited label styling. */
+  select optgroup {
+    padding-top: 4px;
+    font-size: 0.82em;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  select optgroup option {
+    padding-inline-start: 14px;
+    font-size: calc(1em / 0.82);
+    letter-spacing: normal;
+    text-transform: none;
+  }
+}
+
+/* Accented group headings keep grouped choices scannable in both the custom and the OS menu. */
+select optgroup {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+select optgroup option {
+  color: var(--text);
+  font-weight: 400;
+}
+
+/* OS popups cannot composite translucent surfaces, so fallback rows stay opaque and dark. */
+@supports not (appearance: base-select) {
+  select :is(option, optgroup) {
+    background-color: var(--menu-surface);
+    color: var(--text);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::picker(select),
+  select::picker-icon {
+    transition: none;
+  }
+}

@@ -451,9 +451,10 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.gear-optimizer button,
+/* Dropdown menu rows keep the shared menu styling, so optimizer button chrome skips them without raising specificity. */
+.gear-optimizer button:where(:not(.gear-select-option)),
 .gear-optimizer select,
-.optimizer-picker button,
+.optimizer-picker button:where(:not(.gear-select-option)),
 .optimizer-picker select,
 .gear-optimizer input[type='number'] {
   font: inherit;
@@ -476,9 +477,9 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 }
 .optimizer-picker .gear-select-trigger:not(.gear-icon-trigger) {
   min-height: 34px;
-  padding: 6px 8px;
+  padding: 6px 22px 6px 8px;
 }
-.gear-optimizer button {
+.gear-optimizer button:where(:not(.gear-select-option)) {
   min-height: 32px;
   padding: 6px 12px;
   cursor: pointer;
@@ -492,8 +493,8 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   color: var(--text-dim);
   font-size: 16px;
 }
-.gear-optimizer :is(button, select, input):focus-visible,
-.optimizer-picker :is(button, select, input):focus-visible,
+.gear-optimizer :is(button:where(:not(.gear-select-option)), select, input):focus-visible,
+.optimizer-picker :is(button:where(:not(.gear-select-option)), select, input):focus-visible,
 .gear-optimizer summary:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;

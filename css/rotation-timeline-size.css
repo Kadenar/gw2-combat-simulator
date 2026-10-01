@@ -28,18 +28,11 @@
 
 .rotation-size-control select {
   padding: 3px 6px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--bg-panel-alt);
-  color: var(--text);
-  font: inherit;
-  cursor: pointer;
 }
 
-.rotation-size-control select:focus-visible {
-  border-color: var(--accent);
-  outline: 1px solid var(--accent);
-  outline-offset: 1px;
+/* Customizable selects size to the chosen label, so reserve the longest one to keep the toolbar still. */
+#rotation-timing-display {
+  min-inline-size: 9.6em;
 }
 
 .rotation-panel[data-rotation-size='large'] .rot-row-skills {

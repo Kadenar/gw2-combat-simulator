@@ -1370,6 +1370,12 @@ span.hit-group {
   font-size: 12px;
 }
 
+/* Customizable selects size to the chosen label, so reserve the longest view name to keep the toolbar still. */
+.condition-tick-toolbar select {
+  min-inline-size: 11.5em;
+  margin-left: 6px;
+}
+
 .condition-tick-attribution {
   min-width: 0;
   border: 1px solid var(--border);
