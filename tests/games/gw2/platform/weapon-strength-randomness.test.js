@@ -266,7 +266,7 @@ test('derived proc activations own their strength roll independently of the trig
   assert.equal(result.totalDamage, simulateGw2({ ...options, output: 'score' }).totalDamage);
 });
 
-function simulateFixture(mode, seed = 1, casts = 1, precision = 0) {
+function simulateFixture(mode, seed = 1, casts = 1, precision = 0, criticalDamageMode) {
   return simulateGw2({
     profession: fixtureProfession(),
     rotation: Array.from({ length: casts }, () => 'Dagger Flurry'),
@@ -279,6 +279,7 @@ function simulateFixture(mode, seed = 1, casts = 1, precision = 0) {
         conditionDamage: 0
       },
       target: { armor: 2597 },
+      criticalDamageMode,
       randomness: { mode, seed }
     }
   });
@@ -406,10 +407,10 @@ test('unprofiled coefficient packets are rejected instead of receiving legacy fi
   );
 });
 
-// Critical proc rolls must not turn average damage into a random normal/critical damage outcome.
-test('both modes share seeded crit outcomes and average crit damage while deterministic strength stays midpoint', () => {
+// The reported crit outcome scales damage in both modes without changing weapon-strength sampling.
+test('both modes share seeded crit damage outcomes while deterministic strength stays midpoint', () => {
   const run = (mode, seed) =>
-    simulateFixture(mode, seed, 10, 1945).resolvedEvents.filter((event) => event.type === 'damage');
+    simulateFixture(mode, seed, 10, 1945, 'rolled').resolvedEvents.filter((event) => event.type === 'damage');
   const deterministic = run('deterministic', 42),
     repeat = run('deterministic', 42),
     stochastic = run('stochastic', 42);
@@ -421,9 +422,44 @@ test('both modes share seeded crit outcomes and average crit damage while determ
   assert.ok(deterministic.every((hit) => hit.resolvedWeaponStrength === 1000 && !hit.weaponStrengthSampled));
   for (const hit of [...deterministic, ...stochastic]) {
     assert.equal(hit.criticalChance, 0.5);
-    assert.equal(hit.damage, Math.floor(((hit.resolvedWeaponStrength * 1000) / 2597) * 1.25));
+    assert.equal(hit.damage, Math.floor(((hit.resolvedWeaponStrength * 1000) / 2597) * (hit.didCrit ? 1.5 : 1)));
   }
 
-  assert.equal(new Set(deterministic.map((hit) => hit.damage)).size, 1);
+  assert.deepEqual(
+    deterministic.map((hit) => hit.damage),
+    repeat.map((hit) => hit.damage)
+  );
+  assert.equal(new Set(deterministic.map((hit) => hit.damage)).size, 2);
   assert.ok(stochastic.every((hit) => hit.weaponStrengthSampled));
+});
+
+// Choosing averaged baseline damage leaves RNG/proc outcomes alone, and cannot disable real crit damage in trials.
+test('averaged damage is the deterministic default while stochastic trials always use rolled critical damage', () => {
+  const run = (mode, criticalDamageMode) => simulateFixture(mode, 42, 10, 1945, criticalDamageMode);
+  const baseline = run('deterministic');
+  const averaged = run('deterministic', 'averaged');
+  const rolled = run('deterministic', 'rolled');
+  assert.equal(baseline.totalDamage, averaged.totalDamage);
+  const hits = (result) => result.resolvedEvents.filter((event) => event.type === 'damage');
+  assert.deepEqual(
+    hits(averaged).map((hit) => hit.didCrit),
+    hits(rolled).map((hit) => hit.didCrit)
+  );
+  assert.equal(new Set(hits(averaged).map((hit) => hit.damage)).size, 1);
+  assert.ok(
+    hits(averaged).every(
+      (hit) => hit.averagedCriticalDamage && hit.damage === Math.floor(((1000 * 1000) / 2597) * 1.25)
+    )
+  );
+  assert.ok(hits(rolled).every((hit) => !hit.averagedCriticalDamage));
+  const stochastic = run('stochastic', 'averaged');
+  assert.deepEqual(hits(stochastic), hits(run('stochastic', 'rolled')));
+  assert.ok(
+    hits(stochastic).every(
+      (hit) =>
+        !hit.averagedCriticalDamage &&
+        hit.damage === Math.floor(((hit.resolvedWeaponStrength * 1000) / 2597) * (hit.didCrit ? 1.5 : 1))
+    )
+  );
+  assert.throws(() => run('deterministic', 'invalid'), /Invalid critical damage mode/);
 });

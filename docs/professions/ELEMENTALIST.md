@@ -85,4 +85,6 @@ UI tests live under `tests/games/gw2/professions/elementalist/`; saved-build sim
 
 The simulator is single-target and outgoing-damage focused. Incoming attacks, active defense, ally healing and
 cleansing, pathing, secondary targets, and competitive PvP/WvW splits are outside the model. Deterministic simulations
-use expected critical damage, so an EVTC log can differ when its realized critical-hit count is unusually high or low.
+average critical damage by default, with rolled critical damage available in simulation settings. RNG simulations always
+use rolled critical damage. An EVTC can differ from either the expected damage or the simulated seed's critical-hit
+outcomes.

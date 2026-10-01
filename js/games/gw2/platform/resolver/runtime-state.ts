@@ -22,7 +22,8 @@ import type {
   Gw2ResolverReactionRegistry,
   Gw2ResolverStage
 } from '#gw2/platform/resolver/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2Config, Gw2CriticalDamageMode } from '#gw2/platform/simulation/config.js';
+import { normalizeCriticalDamageMode } from '#gw2/platform/simulation/randomness.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
@@ -48,7 +49,10 @@ export function createGw2ResolverRuntimeState({
   onFirstDamage,
   reactions
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
+  const criticalDamageMode = normalizeCriticalDamageMode(config.criticalDamageMode);
   const runtime: Gw2ResolverRuntime = {
+    // Distribution trials always couple damage to crit outcomes, regardless of the baseline preference.
+    criticalDamageMode: config.randomness?.mode === 'stochastic' ? 'rolled' : criticalDamageMode,
     reporting,
     damageDiagnostics: reporting && damageDiagnostics,
     sigilDiagnostics: reporting ? sigilDiagnostics : undefined,
@@ -223,6 +227,7 @@ export function createGw2ResolverRuntimeState({
 // Resolution consumes kernel randomness and generic records without execution dependencies.
 
 export interface Gw2ResolverRuntime {
+  readonly criticalDamageMode: Gw2CriticalDamageMode;
   readonly procs: ReturnType<typeof createProcRegistry>;
   readonly sigilDiagnostics?: CriticalSigilDiagnostics;
   readonly reporting: boolean;

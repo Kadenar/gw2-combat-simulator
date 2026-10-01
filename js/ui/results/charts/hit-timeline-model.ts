@@ -13,6 +13,8 @@ export interface SkillHit {
   readonly t: number;
   readonly v: number;
   readonly crit?: boolean | null;
+  /** When true, critical outcomes apply to procs and the displayed damage is averaged. */
+  readonly averagedCriticalDamage?: boolean;
   // Presentation-only pulse state; absent for hits without a matching application.
   readonly empowered?: boolean;
   readonly activationId?: string;

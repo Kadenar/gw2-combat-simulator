@@ -605,8 +605,9 @@ Difference     -1,250 (-2.97%)
 ```
 
 The automatic comparison uses deterministic mode and the same seed for both data sets. Weapon strength stays at its
-midpoint and critical damage stays averaged, but proc outcomes are sampled. Changes to eligibility or event order can
-change which rolls are consumed, so a single-seed comparison can include proc variation as well as the balance change.
+midpoint and the selected deterministic critical-damage policy is preserved (averaged by default). Proc outcomes are
+sampled. Changes to eligibility or event order can change which rolls are consumed, so a single-seed comparison can
+include proc variation and, with rolled damage selected, critical-damage variation as well as the balance change.
 
 The normal detailed result follows whichever data set is selected by the user.
 

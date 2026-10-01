@@ -30,8 +30,9 @@ Holosmith, Mechanist, or Amalgam. Each specialization owns its data, state, mech
   secondary targets, and competitive (PvP/WvW) splits are out of model.
 - Mech summon/recall, health, death, pathing, target acquisition, and autonomous command use are not modeled; commands
   are explicit rotation actions and the mech is assumed in Mechanical Genius range.
-- Deterministic simulations use expected critical damage, so a supplied EVTC can differ when it realizes an unusually
-  high or low crit count.
+- Deterministic simulations average critical damage by default, with rolled critical damage available in simulation
+  settings. RNG simulations always use rolled critical damage. An EVTC can differ from either the expected damage or the
+  simulated seed's critical-hit outcomes.
 
 ## Authoritative locations
 

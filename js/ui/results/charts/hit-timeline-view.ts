@@ -361,6 +361,8 @@ function mountHitTimelineLane(
     const showEmpowered = group.some((hit) => hit.empowered != null);
     // Omit the critical column when the selected packets have no per-hit verdict.
     const showCritical = group.some((hit) => hit.crit != null);
+    // Explain why an averaged hit can share its damage with a different critical outcome.
+    const averagedCriticalDamage = group.some((hit) => hit.averagedCriticalDamage);
     const showAttribution = detailHits.some((hit) => hit.contributions?.length);
     const showTriggeredBy = detailHits.some((hit) => hit.triggeredBy);
     const heading =
@@ -376,7 +378,7 @@ function mountHitTimelineLane(
             ? conditionTickTotalsHtml(detailHits, timeOffsetMs)
             : `<p class="condition-tick-note">Buffered time is per stack. Damage includes all stacks and shared rounding.</p>
         <div class="condition-payouts">${detailHits.map((hit) => tickAttributionHtml(hit.contributions || [], hit.t + timeOffsetMs, hit.v)).join('')}</div>`
-          : `<div class="hit-detail-table"><table>
+          : `${averagedCriticalDamage ? '<p class="condition-tick-note">Critical damage is averaged. Critical Yes/No shows the rolled outcome used for on-critical effects.</p>' : ''}<div class="hit-detail-table"><table>
         <caption>${escapeHtml(detailLabel)}</caption>
         <thead><tr><th scope="col">${isCondition ? 'Tick' : 'Hit'}</th><th scope="col">Time</th>${isCondition ? '<th scope="col">Condition type</th>' : ''}<th scope="col">Damage</th>${showEmpowered ? '<th scope="col">Pulse</th>' : ''}${showCritical ? '<th scope="col">Critical</th>' : ''}${showTriggeredBy ? '<th scope="col">Triggered by</th>' : ''}</tr></thead>
         <tbody>${detailHits
@@ -456,6 +458,7 @@ function mountHitTimelineLane(
           ${isCondition && group.length === 1 ? `<div>Condition type: ${escapeHtml(first.conditionType || 'Unknown')}</div>` : ''}
           ${group.length === 1 && first.empowered != null ? `<div>Pulse: ${first.empowered ? 'Empowered' : 'Normal'}</div>` : ''}
           ${group.length === 1 && first.crit != null ? `<div>Critical: ${first.crit ? 'Yes' : 'No'}</div>` : ''}
+          ${group.some((hit) => hit.averagedCriticalDamage) ? '<div>Damage uses averaged critical hits.</div>' : ''}
           ${group.length === 1 && first.triggeredBy ? `<div>Triggered by: ${escapeHtml(first.triggeredBy)}</div>` : ''}`;
         tooltip.style.display = 'block';
         tooltip.style.left = `${clamp(layout.cssWidth - tooltip.offsetWidth, 0, left)}px`;

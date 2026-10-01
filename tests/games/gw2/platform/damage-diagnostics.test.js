@@ -114,6 +114,8 @@ test('diagnostic factors reconstruct actual rounded packets without changing que
     assert.equal(calculation.power, 1000);
     assert.equal(calculation.precision, 1800);
     assert.equal(calculation.ferocity, 500);
+    // Diagnostics must describe the same crit outcome used for damage, including summon and flat packets.
+    assert.equal(calculation.criticalMultiplier, hit.didCrit ? hit.criticalDamage : 1);
   }
 
   assert.equal(hits[0].damageCalculation.targetHealthBefore, 40000);

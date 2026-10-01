@@ -7,6 +7,7 @@ import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assump
 import { aggregateSigilSet, weaponSigilsForSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import {
   isSimulationRandomnessControl,
+  normalizeCriticalDamageMode,
   simulationRandomnessFromAssumptions
 } from '#gw2/platform/simulation/randomness.js';
 import type { Gw2SimulationConfigOptions } from '#gw2/app/types.js';
@@ -147,10 +148,14 @@ export function createGw2SimulationConfig({
     initialResource,
     deterministicChoices: Object.fromEntries(
       professionAssumptionControls
-        .filter((control) => control.type === 'select' && !isSimulationRandomnessControl(control))
+        .filter(
+          (control) =>
+            control.type === 'select' && !isSimulationRandomnessControl(control) && control.key !== 'criticalDamageMode'
+        )
         .map((control) => [control.key, assumptions[control.key]])
     ),
     randomness: simulationRandomnessFromAssumptions(assumptions),
+    criticalDamageMode: normalizeCriticalDamageMode(assumptions.criticalDamageMode),
     professionAssumptions: Object.fromEntries(
       professionAssumptionControls.map((control) => [control.key, assumptions[control.key] ?? control.defaultValue])
     ),

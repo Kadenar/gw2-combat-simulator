@@ -6,6 +6,7 @@ import {
 } from '#kernel/core/simulation-random.js';
 import { createProfessionAssumptionControls } from '#gw2/platform/builds/assumptions.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
+import type { Gw2CriticalDamageMode } from '#gw2/platform/simulation/config.js';
 
 type SimulationRandomnessAssumptions = Record<string, unknown>;
 
@@ -43,8 +44,26 @@ export const SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS: ReadonlyArray<Profession
       maximum: 0xffff_ffff,
       step: 1,
       section: 'simulation'
+    },
+    // Baselines can average crit damage while RNG trials always resolve actual critical outcomes.
+    {
+      key: 'criticalDamageMode',
+      label: 'Deterministic critical damage',
+      type: 'select',
+      defaultValue: 'averaged',
+      section: 'simulation',
+      options: [
+        { value: 'averaged', label: 'Averaged' },
+        { value: 'rolled', label: 'Rolled' }
+      ]
     }
   ]);
+
+/** Reject unknown policies at the simulation boundary; absent settings use the averaged baseline. */
+export function normalizeCriticalDamageMode(mode: unknown = 'averaged'): Gw2CriticalDamageMode {
+  if (mode !== 'averaged' && mode !== 'rolled') throw new TypeError(`Invalid critical damage mode: ${String(mode)}`);
+  return mode;
+}
 
 export const DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS: Readonly<SimulationRandomnessAssumptions> = Object.freeze(
   Object.fromEntries(SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS.map((control) => [control.key, control.defaultValue]))

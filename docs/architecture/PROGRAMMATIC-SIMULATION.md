@@ -344,25 +344,30 @@ console.table(simulationEventLogRows(result, null, engineerProfession));
 
 ## Deterministic and stochastic runs
 
-Both modes use seeded rolls for critical-proc eligibility, secondary proc chances, and combo attempts. Both use average
-critical damage. Deterministic mode uses midpoint weapon strength:
+Both modes use seeded critical-hit outcomes for on-critical proc eligibility and reporting, plus separate rolls for
+secondary proc chances and combo attempts. Deterministic mode uses midpoint weapon strength and defaults to averaged
+critical damage. Set `config.criticalDamageMode` to `"rolled"` to make its damage follow those same outcomes:
 
 ```js
 randomness: { mode: "deterministic", seed: 1 }
 ```
 
-Stochastic mode additionally samples weapon strength per activation:
+Stochastic mode samples weapon strength per activation and always uses rolled critical damage, regardless of
+`criticalDamageMode`:
 
 ```js
 randomness: { mode: "stochastic", seed: 42 }
 ```
 
+The UI's **Deterministic critical damage** setting persists as `assumptions.criticalDamageMode` (`"averaged"` or
+`"rolled"`). Averaged hit details identify the critical outcomes as proc rolls rather than damage multipliers.
+
 The default seed is `1`. The application saves the player's chosen seed in `assumptions.simulationSeed` and converts it
 to `config.randomness.seed`. Identical inputs and seed reproduce the same result within a simulator revision. One run in
-either mode represents one set of proc outcomes, not an average across seeds. Combo RNG streams follow the caster,
-skill, activation, and finisher type; packets within a stream consume successive draws. Queue event numbers are used for
-attempt deduplication, not for selecting random streams, so unrelated boon emissions do not reroll combos. Scripts that
-compare random outcomes should run multiple seeds and summarize their results, as done by
+either mode represents one set of critical-hit and proc outcomes, not an average across seeds. Combo RNG streams follow
+the caster, skill, activation, and finisher type; packets within a stream consume successive draws. Queue event numbers
+are used for attempt deduplication, not for selecting random streams, so unrelated boon emissions do not reroll combos.
+Scripts that compare random outcomes should run multiple seeds and summarize their results, as done by
 `js/games/gw2/app/simulation/random-distribution/random-distribution.ts`.
 
 ## Current API status

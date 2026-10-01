@@ -7,6 +7,8 @@ import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 
+export type Gw2CriticalDamageMode = 'averaged' | 'rolled';
+
 export interface Gw2Config {
   /** Active elite specialization, or "Core"; profession runtimes resolve their module set from it. */
   readonly specialization?: string;
@@ -36,6 +38,8 @@ export interface Gw2Config {
   readonly utility?: string;
   readonly timeOfDay?: 'day' | 'night';
   readonly randomness?: SimulationRandomnessConfig;
+  /** Deterministic strike damage policy; stochastic trials always use rolled critical damage. */
+  readonly criticalDamageMode?: Gw2CriticalDamageMode;
   /** Selected value of each profession select-control assumption, keyed by control key. */
   readonly deterministicChoices?: Readonly<Record<string, unknown>>;
   /** Allied players sharing the encounter, for boon sharing and allied proc rules. */

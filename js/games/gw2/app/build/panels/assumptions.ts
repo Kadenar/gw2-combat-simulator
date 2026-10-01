@@ -152,7 +152,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
       }
 
       return `<label class="boon-control">${esc(control.label)}
-                    <select class="gear-select" data-assumption-key="${esc(control.key)}">
+                    <select class="gear-select" data-assumption-key="${esc(control.key)}"${control.key === 'criticalDamageMode' ? ' aria-describedby="critical-damage-help"' : ''}>
                         ${control.options
                           .map(
                             (option) =>
@@ -242,6 +242,12 @@ export function renderAssumptions(app: ProfessionAppState): void {
                     Share player boons with summons
                 </label>
                 ${simulationAssumptionItems}
+                <p id="critical-damage-help" class="condition-tick-note">
+                    <strong>Averaged:</strong> Every hit includes its expected critical damage, smoothing out crit luck for comparisons.
+                    Critical Yes/No still records the roll used for on-critical effects.<br>
+                    <strong>Rolled:</strong> A successful critical roll deals extra damage; a failed roll deals normal damage.
+                    RNG simulations always use Rolled. The same inputs and seed reproduce the same outcomes.
+                </p>
             `
             )}`;
 

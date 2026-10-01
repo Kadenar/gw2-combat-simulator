@@ -447,6 +447,7 @@ export function buildTimeSeries(
             t: time,
             v: value,
             crit: damageType === 'condition' ? null : crit,
+            averagedCriticalDamage: event.averagedCriticalDamage,
             activationId,
             damageType,
             conditionType,

@@ -97,7 +97,7 @@ test('chart projection preserves activation ownership across burst grouping', ()
       deathTime: 5,
       combatEndTime: 5,
       resolvedEvents: [
-        { type: 'damage', at: 1, damage: 10, activationId: 'cast:1' },
+        { type: 'damage', at: 1, damage: 10, activationId: 'cast:1', didCrit: true, averagedCriticalDamage: true },
         { type: 'damage', at: 2, damage: 20, activationId: 'cast:2' },
         { type: 'damage', at: 3, damage: 30, activationId: 'cast:1' },
         { type: 'damage', at: 3, damage: 40 },
@@ -116,6 +116,9 @@ test('chart projection preserves activation ownership across burst grouping', ()
     { skillKey: () => 'skill' }
   );
   const hits = series.skillDamage.skill;
+  // Preserve the averaging marker independently of the actual proc roll for hit-detail explanations.
+  assert.equal(hits[0].crit, true);
+  assert.equal(hits[0].averagedCriticalDamage, true);
   assert.deepEqual(
     groupSkillHits(hits).map((group) => group.map((hit) => hit.v)),
     [

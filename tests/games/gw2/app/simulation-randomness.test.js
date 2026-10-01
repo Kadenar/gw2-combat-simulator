@@ -109,7 +109,7 @@ test('every native profession exposes persisted simulation randomness', () => {
       profession.ui.assumptionControls
         .filter((control) => control.section === 'simulation')
         .map((control) => control.key),
-      ['simulationMode', 'simulationSeed', 'permanentComboField']
+      ['simulationMode', 'simulationSeed', 'criticalDamageMode', 'permanentComboField']
     );
     assert.equal(
       profession.ui.assumptionControls.find((control) => control.key === 'simulationMode')?.label,
@@ -129,6 +129,7 @@ test('every native profession exposes persisted simulation randomness', () => {
   for (const build of builds) {
     assert.equal(build.assumptions.simulationMode, 'deterministic');
     assert.equal(build.assumptions.simulationSeed, 1);
+    assert.equal(build.assumptions.criticalDamageMode, 'averaged');
   }
 
   const engineer = createEngineerBuildDefaults();
@@ -166,6 +167,23 @@ test('shared UI assumptions map to the resolver randomness config', () => {
     seed: 1
   });
   assert.equal(Object.hasOwn(config.deterministicChoices, 'simulationMode'), false);
+  assert.equal(Object.hasOwn(config.deterministicChoices, 'criticalDamageMode'), false);
+  assert.equal(config.criticalDamageMode, 'averaged');
+});
+
+// Save and validate the baseline policy separately from the mode that drives RNG trials.
+test('critical damage settings survive export and load and reach baseline and comparison configs', () => {
+  const build = createEngineerBuildDefaults();
+  build.assumptions.criticalDamageMode = 'rolled';
+  build.assumptions.simulationMode = 'stochastic';
+  const reloaded = migrateEngineerBuild(JSON.parse(JSON.stringify(getBuildExportPayload(build))));
+  assert.equal(validateEngineerBuild(reloaded).valid, true);
+  assert.equal(reloaded.assumptions.criticalDamageMode, 'rolled');
+  const config = simulationConfig(engineerProfession, reloaded, 'Holosmith');
+  assert.equal(config.criticalDamageMode, 'rolled');
+  assert.equal(deterministicSimulationConfig(config).criticalDamageMode, 'rolled');
+  reloaded.assumptions.criticalDamageMode = 'invalid';
+  assert.equal(validateEngineerBuild(reloaded).valid, false);
 });
 
 // Saved seed values must survive loading and reach both baseline and comparison configurations.
@@ -447,7 +465,8 @@ test('Mesmer distributions explain illusion criticals and their bleeding damage'
   const labels = distribution.explanation?.drivers.map((driver) => driver.label);
 
   assert.ok(labels?.includes('Illusion critical hits'));
-  assert.ok(labels?.includes('Sharper Images bleeding damage'));
+  // Critical damage can change which metric ranks highest within the same bleeding contribution group.
+  assert.ok(labels?.some((label) => label.startsWith('Sharper Images bleeding')));
 });
 
 test('Engineer random trait procs repeat by seed and vary across seeds', () => {

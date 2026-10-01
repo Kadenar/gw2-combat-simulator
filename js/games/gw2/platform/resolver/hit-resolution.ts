@@ -47,8 +47,7 @@ export function createGw2HitResolution({
     return Math.max(1, ctx.config.target?.armor || STANDARD_TARGET_ARMOR);
   }
 
-  // Both modes share seeded crit outcomes for reactions while retaining average critical damage.
-  // Strike damage stays expected-valued, so didCrit only isolates proc RNG.
+  // Sample once for proc eligibility and reporting; rolled damage reuses this same outcome.
   function resolveCritical(
     ctx: Gw2ResolverRuntime,
     event: Gw2ResolverEvent,
@@ -100,8 +99,13 @@ export function createGw2HitResolution({
     power: number,
     critical: Gw2HitResolutionContext['critical']
   ): ResolvedStrikeParts {
-    // Damage retains the average crit multiplier; the sampled outcome governs proc eligibility only.
-    const criticalMultiplier = expectedCritMultiplier(critical.chance, critical.damage);
+    // Averaged baselines smooth damage; rolled baselines and RNG trials use the reported crit outcome.
+    const criticalMultiplier =
+      ctx.criticalDamageMode === 'averaged'
+        ? expectedCritMultiplier(critical.chance, critical.damage)
+        : critical.didCrit
+          ? critical.damage
+          : 1;
     const outgoingMultiplier =
       ctx.query.strikeMultiplier(event, event.at, ctx) *
       (event.summonUsesEquipmentModifiers === false ? 1 : equipmentStrikeMultiplier(ctx, event));
@@ -231,6 +235,7 @@ export function createGw2HitResolution({
         : {}),
       damage,
       didCrit: hitContext.critical.didCrit,
+      averagedCriticalDamage: ctx.criticalDamageMode === 'averaged' && hitContext.critEligible,
       criticalChance: hitContext.critical.chance,
       criticalChanceBeforeCap: hitContext.critical.chanceBeforeCap,
       criticalChanceContributors: hitContext.critical.contributors,

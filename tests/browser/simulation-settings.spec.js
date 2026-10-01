@@ -76,12 +76,23 @@ test('transition delay preferences are global and imported waits overlap them', 
   expect(warnings.filter((message) => message.includes('UNPRESENTED CUSTOM EVENT'))).toEqual([]);
 });
 
-// The seed belongs to the build, reaches the simulation, and survives workspace reloads.
-test('simulation seed edits persist with the build and reach the result', async ({ page }) => {
+// Seed and baseline crit policy belong to the build and survive workspace reloads.
+test('simulation seed and critical damage settings persist with the build', async ({ page }) => {
   await page.goto('/elementalist.html');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.getByRole('button', { name: 'Open simulation config', exact: true }).click();
   const seed = page.getByRole('spinbutton', { name: 'Simulation seed', exact: true });
+  const criticalDamage = page.getByRole('combobox', { name: 'Deterministic critical damage', exact: true });
+  await expect(criticalDamage).toHaveValue('averaged');
+  // Keep the mode distinction visible and attached to the control for keyboard and screen-reader users.
+  await expect(page.locator('#critical-damage-help')).toBeVisible();
+  await expect(criticalDamage).toHaveAccessibleDescription(/Averaged: Every hit includes its expected critical damage/);
+  await expect(page.locator('#critical-damage-help')).toContainText('RNG simulations always use Rolled.');
+  await criticalDamage.selectOption('rolled');
+  await page.waitForFunction(() => window.professionApp.build.assumptions.criticalDamageMode === 'rolled');
+  expect(
+    await page.evaluate(() => window.professionApp.adapter.simulationConfig(window.professionApp).criticalDamageMode)
+  ).toBe('rolled');
   await expect(seed).toHaveValue('1');
   await seed.fill('3576928633');
   await seed.press('Tab');
@@ -97,6 +108,7 @@ test('simulation seed edits persist with the build and reach the result', async 
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.getByRole('button', { name: 'Open simulation config', exact: true }).click();
   await expect(seed).toHaveValue('3576928633');
+  await expect(criticalDamage).toHaveValue('rolled');
   await page.waitForFunction(() => window.professionApp.results?.randomness.seed === 3576928633);
   await seed.fill('0');
   await seed.press('Tab');

@@ -14,6 +14,8 @@ import type { StableEventQueue } from '#kernel/events/queue.js';
 export type Gw2ResolverEvent = SimulationEvent &
   Gw2ConditionWork & {
     readonly damageBreakdownName?: string;
+    /** The displayed critical outcome controls procs while this hit's damage uses an average multiplier. */
+    readonly averagedCriticalDamage?: boolean;
     readonly condition?: string;
     readonly fraction?: number;
     readonly fixedDuration?: boolean;

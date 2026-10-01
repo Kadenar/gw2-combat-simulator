@@ -220,7 +220,9 @@ hooks: {
 **Chance-based effects.** Both outputs use the same seeded streams. An eligible resolved hit samples its critical
 outcome once; suppressed impacts make no draw or claim. Sigils and traits reuse the hit's outcome for critical
 eligibility, then roll any separate proc chance. Combo attempts and Shrapnel also use seeded rolls rather than
-accumulation. Critical damage stays expected-valued; `didCrit` only decides on-critical proc eligibility.
+accumulation. Deterministic damage defaults to the expected critical multiplier, with an optional rolled policy.
+Stochastic runs always use the same `didCrit` outcome for damage, proc eligibility, and reporting. Averaged hit details
+label the distinction between proc outcomes and averaged damage.
 
 **Activations and weapon strength.** Each cast gets a stable `activationId` shared by all its packets; triggered traits,
 sigils, relics, equipment, and summons get their own. `weaponStrengthProfileId` is snapshotted while the
