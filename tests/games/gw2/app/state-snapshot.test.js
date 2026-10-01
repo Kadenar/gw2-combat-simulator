@@ -146,7 +146,8 @@ test('Aristocracy shows current stacks with the remaining duration in its toolti
     skill: 'Relic of Aristocracy',
     start,
     expiresAt: start + 8000,
-    detail: `${stacks}/5 stacks`
+    detail: `${stacks}/5 stacks`,
+    effectState: { stacks, maximumStacks: 5 }
   });
   const app = {
     build: { rotation: ['a', 'b'] },

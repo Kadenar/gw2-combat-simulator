@@ -62,6 +62,11 @@ export interface TimelineRowRender {
   readonly html: string;
 }
 
+// Circular-arrow glyph marks relic activations that only extended an active effect window.
+// Drawn on a 12px grid with 2px strokes and a filled head so it stays legible at badge size.
+const PROC_REFRESH_ICON =
+  '<svg viewBox="0 0 12 12" focusable="false"><path class="proc-refresh-arc" d="M9.3 7.7A3.5 3.5 0 1 1 6 3"/><path d="M5.5 0.75V5.25L9 3Z"/></svg>';
+
 const timelineCommandKeys = new WeakMap<object, number>();
 let nextTimelineCommandKey = 1;
 
@@ -337,17 +342,22 @@ export function timelineRowsView(
     const color = procColors[marker.type] || '#9d7bd0';
     const count = marker.activations.length;
     const badgeLabel = expired ? '' : procBadgeLabel(marker.activations);
+    // Live activations show the stack state they left behind and whether they only extended an active window.
+    const stackLabel = expired ? '' : procStackLabel(marker.activations.at(-1) || marker);
+    const refreshed = !expired && marker.refreshed === true;
     const detail = expired
       ? [marker.skill, `Relic effect expired at ${time}`, count > 1 ? `After ${count} activations or refreshes` : '']
           .filter(Boolean)
           .join('\n')
       : procActivationDetail(marker, marker.activations);
     return `<div class="rot-entry rot-proc-entry" data-proc-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'}>
-        <div class="rot-skill rot-injected rot-proc-overlay ${className}${expired ? ' rot-relic-expired' : ''}" data-proc-key="${esc(key)}" data-skill-highlight-key="${esc(key)}"
+        <div class="rot-skill rot-injected rot-proc-overlay ${className}${expired ? ' rot-relic-expired' : ''}${refreshed ? ' rot-relic-refreshed' : ''}" data-proc-key="${esc(key)}" data-skill-highlight-key="${esc(key)}"
             title="${esc(detail)}" style="--att-border:${color};--proc-color:${color}">
             <img src="${esc(icon)}" alt="" />
             ${expired ? '<span class="proc-expired-cross" aria-hidden="true"></span>' : ''}
             ${badgeLabel ? `<span class="proc-count">${esc(badgeLabel)}</span>` : ''}
+            ${stackLabel ? `<span class="proc-stack">${esc(stackLabel)}</span>` : ''}
+            ${refreshed ? `<span class="proc-refresh" aria-hidden="true">${PROC_REFRESH_ICON}</span>` : ''}
             <span class="rot-injected-badge">${type.toUpperCase()}</span>
             <span class="rot-time">${time}</span>
         </div>

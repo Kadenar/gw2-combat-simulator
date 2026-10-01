@@ -526,6 +526,8 @@ export interface ProcTimelineMarker extends Gw2ProcStep {
   readonly insertionIndex: number;
   readonly activations: readonly Gw2ProcStep[];
   readonly expired?: boolean;
+  /** Every activation only extended an effect window that was already active. */
+  readonly refreshed?: boolean;
 }
 
 function procMarkerInsertionIndex(steps: readonly SimulationStep[], start: number, rotationLength: number): number {
@@ -570,11 +572,39 @@ export function sigilProcTimelineMarkers(
   return matchingProcTimelineMarkers(result, 'sigil_proc', rotationLength);
 }
 
+/**
+ * Finds timed relic activations that land while an earlier activation of the
+ * same relic is still active. Gaining a stack changes the effect, so only
+ * activations that keep the previous stack count count as pure refreshes.
+ */
+function relicRefreshActivations(procSteps: readonly Gw2ProcStep[]): Set<Gw2ProcStep> {
+  const refreshes = new Set<Gw2ProcStep>();
+  const windows = new Map<string, { expiresAt: number; stacks: number }>();
+  for (const proc of [...procSteps]
+    .filter((step) => step.type === 'relic_proc' && Number(step.expiresAt) > step.start)
+    .sort((left, right) => left.start - right.start)) {
+    const key = procFilterKey(proc);
+    const window = windows.get(key);
+    const stacks = proc.effectState?.stacks ?? 0;
+    // The window is strictly open, matching the relic rules: an activation at
+    // the exact expiry starts a fresh effect rather than refreshing it.
+    const active = window !== undefined && proc.start < window.expiresAt;
+    if (active && stacks <= window.stacks) refreshes.add(proc);
+    windows.set(key, { expiresAt: Math.max(active ? window.expiresAt : 0, Number(proc.expiresAt)), stacks });
+  }
+
+  return refreshes;
+}
+
 export function relicProcTimelineMarkers(
   result: Gw2SimulationResult | null | undefined,
   rotationLength = 0
 ): ProcTimelineMarker[] {
-  return matchingProcTimelineMarkers(result, 'relic_proc', rotationLength);
+  const refreshes = relicRefreshActivations(result?.procSteps || []);
+  return matchingProcTimelineMarkers(result, 'relic_proc', rotationLength).map((marker) => ({
+    ...marker,
+    refreshed: marker.activations.every((activation) => refreshes.has(activation))
+  }));
 }
 
 /** Places simulated trait procs after the rotation command that triggered them. */
@@ -641,9 +671,9 @@ export function rotationSkillHighlightKey(entry: RotationCommand): string {
   return `skill:${entry.type === 'cast' ? String(entry.skillId) : entry.type}`;
 }
 
+/** Reads the recorded stack state so every stacking proc labels itself without parsing display text. */
 export function procStackLabel(proc: Gw2ProcStep): string {
-  if (proc.skill !== 'Relic of Aristocracy') return '';
-  return String(proc.detail || '').match(/^(\d+\/\d+)\s+stacks$/)?.[1] || '';
+  return proc.effectState ? `${proc.effectState.stacks}/${proc.effectState.maximumStacks}` : '';
 }
 
 export function procBadgeLabel(procSteps: readonly Gw2ProcStep[] = []): string {

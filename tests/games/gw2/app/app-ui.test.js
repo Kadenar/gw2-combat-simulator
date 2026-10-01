@@ -38,6 +38,7 @@ import {
   groupConsecutiveProcSteps,
   procBadgeLabel,
   procFilterLabel,
+  procStackLabel,
   relicProcExpirationTimelineMarkers,
   relicProcTimelineMarkers,
   rotationSkillHighlightKey,
@@ -479,6 +480,47 @@ test('timed relic expiration markers merge refreshes and stay within the rotatio
         activations: 2,
         expired: true
       }
+    ]
+  );
+});
+
+test('relic overlay markers flag activations that only refresh an active window', () => {
+  const relic = (skill, start, expiresAt, effectState) => ({
+    type: 'relic_proc',
+    skill,
+    sourceSkill: 'Strike',
+    start,
+    end: start,
+    expiresAt,
+    ...(effectState ? { effectState } : {})
+  });
+  const result = {
+    steps: [{ ri: 0, skill: 'Strike', start: 0, end: 500 }],
+    procSteps: [
+      relic('Relic of the Claw', 1000, 9000),
+      relic('Relic of the Claw', 4000, 12000),
+      // An activation at the exact expiry starts a fresh window.
+      relic('Relic of the Claw', 12000, 20000),
+      relic('Relic of the Thief', 1000, 7000, { stacks: 4, maximumStacks: 5 }),
+      relic('Relic of the Thief', 2000, 8000, { stacks: 5, maximumStacks: 5 }),
+      relic('Relic of the Thief', 3000, 9000, { stacks: 5, maximumStacks: 5 })
+    ]
+  };
+
+  assert.deepEqual(
+    relicProcTimelineMarkers(result, 1).map((marker) => ({
+      skill: marker.skill,
+      start: marker.start,
+      refreshed: marker.refreshed,
+      stacks: procStackLabel(marker)
+    })),
+    [
+      { skill: 'Relic of the Claw', start: 1000, refreshed: false, stacks: '' },
+      { skill: 'Relic of the Thief', start: 1000, refreshed: false, stacks: '4/5' },
+      { skill: 'Relic of the Thief', start: 2000, refreshed: false, stacks: '5/5' },
+      { skill: 'Relic of the Thief', start: 3000, refreshed: true, stacks: '5/5' },
+      { skill: 'Relic of the Claw', start: 4000, refreshed: true, stacks: '' },
+      { skill: 'Relic of the Claw', start: 12000, refreshed: false, stacks: '' }
     ]
   );
 });
