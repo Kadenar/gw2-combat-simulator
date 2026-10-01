@@ -5,7 +5,7 @@ export const DEFAULT_TARGET_CONDITIONS: Readonly<Record<string, number | boolean
   Confusion: 1,
   Poisoned: true,
   Chilled: true,
-  Cripple: true,
+  Crippled: true,
   Slow: true,
   Weakness: true,
   Vulnerability: 25

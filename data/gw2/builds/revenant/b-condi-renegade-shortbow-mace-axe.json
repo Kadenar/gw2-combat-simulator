@@ -82,7 +82,7 @@
       "Blindness": true,
       "Slow": true,
       "Chilled": true,
-      "Cripple": true
+      "Crippled": true
     },
     "targetSkillActivationsPerSecond": 0
   },

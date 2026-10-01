@@ -444,7 +444,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        ticks: [160, 1160, 2160].map((atMs) => ({ atMs, condition: 'Cripple', stacks: 1, duration: 1.5 })),
+        ticks: [160, 1160, 2160].map((atMs) => ({ atMs, condition: 'Crippled', stacks: 1, duration: 1.5 })),
         persistsAfterInterrupt: true,
         metadata: {}
       }

@@ -10,6 +10,13 @@
         "upToDate": true
       },
       {
+        "label": "Power Quickness (Axe / Pistol + Dagger / Pistol)",
+        "build": "data/gw2/builds/thief/b-power-quick-deadeye-axe-pistol-dagger-pistol.json",
+        "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-axe-pistol-dagger-pistol-bench.json",
+        "benchmarkDps": 40723,
+        "upToDate": true
+      },
+      {
         "label": "Power Quickness (Sword / Pistol)",
         "build": "data/gw2/builds/thief/b-power-quick-deadeye-sword-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-sword-pistol-bench.json",

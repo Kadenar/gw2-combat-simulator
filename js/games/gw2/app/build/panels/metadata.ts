@@ -21,6 +21,7 @@ export const PERCENT_ATTRIBUTES = new Set(DERIVED_ATTRIBUTES);
 
 export const SPECIFIC_CONDITION_DURATION_ATTRIBUTES = new Set([...CONDITION_DURATION_ATTRIBUTES]);
 
+// Controls use runtime condition names so saved assumptions and result icons share the same keys.
 export const TARGET_CONDITION_GROUPS = Object.freeze([
   Object.freeze({
     label: 'Damaging',
@@ -34,8 +35,8 @@ export const TARGET_CONDITION_GROUPS = Object.freeze([
       'Blindness',
       'Slow',
       'Chilled',
-      'Cripple',
-      'Immobilize',
+      'Crippled',
+      'Immobilized',
       'Fear',
       'Taunt'
     ])

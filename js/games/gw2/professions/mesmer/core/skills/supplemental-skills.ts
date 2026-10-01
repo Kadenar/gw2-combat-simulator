@@ -148,7 +148,7 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
         weapon: 'rifle'
       },
       { type: 'condition', condition: 'Weakness', stacks: 1, duration: 5 },
-      { type: 'condition', condition: 'Blinded', stacks: 1, duration: 5 }
+      { type: 'condition', condition: 'Blindness', stacks: 1, duration: 5 }
     ]
   }
 });

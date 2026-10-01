@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "profession": "engineer",
+  "profession": "thief",
   "gear": {
     "Helm": "Berserker's",
     "Shoulders": "Berserker's",
@@ -17,55 +17,55 @@
     "Weapon1": "Berserker's",
     "Weapon2": "Berserker's"
   },
-  "weapons": ["Sword", "Pistol"],
-  "alternateWeapons": ["", ""],
+  "alternateWeaponPrefixes": ["Berserker's", "Berserker's"],
+  "weapons": ["Axe", "Pistol"],
+  "alternateWeapons": ["Dagger", "Pistol"],
   "rune": "Dragonhunter",
   "weaponSigils": [
     ["Force", "Impact"],
-    ["Force", "Accuracy"]
+    ["Force", "Impact"]
   ],
-  "relic": "Bloodstone",
+  "relic": "Deadeye",
   "food": "Cilantro Lime Sous-Vide Steak",
   "utility": "Superior Sharpening Stone",
   "jadeBotCore": true,
   "infusions": [
     {
       "stat": "Power",
-      "count": 18
+      "count": 13
     },
     {
       "stat": "Precision",
-      "count": 0
-    },
-    {
-      "stat": "Condition Damage",
-      "count": 0
+      "count": 5
     }
   ],
   "specializations": [
     {
-      "name": "Explosives",
-      "traits": "3-1-3"
+      "name": "Deadly Arts",
+      "traits": "1-3-3"
     },
     {
-      "name": "Firearms",
-      "traits": "3-3-1"
+      "name": "Critical Strikes",
+      "traits": "3-2-1"
     },
     {
-      "name": "Mechanist",
-      "traits": "3-3-1"
+      "name": "Deadeye",
+      "traits": "3-3-3"
     }
   ],
   "selectedSkills": {
-    "Heal": "Rectifier Signet",
-    "Utility1": "Bomb Kit",
-    "Utility2": "Shift Signet",
-    "Utility3": "Force Signet",
-    "Elite": "Overclock Signet"
+    "Heal": "Malicious Restoration",
+    "Utility1": "Assassin's Signet",
+    "Utility2": "Mercy",
+    "Utility3": "Shadow Flare",
+    "Elite": "Shadow Meld"
   },
-  "selectedMorphSkillIds": [77103, 77203, 76954],
+  "selectedDodge": "Dodge",
   "assumptions": {
     "simulationMode": "deterministic",
+    "simulationSeed": 1,
+    "criticalDamageMode": "averaged",
+    "permanentComboField": "none",
     "might": 25,
     "fury": true,
     "quickness": true,
@@ -77,23 +77,29 @@
     "vigor": true,
     "aegis": true,
     "targetMoving": false,
-    "inDamagingField": false,
     "targetConditions": {
       "Bleeding": 1,
-      "Burning": true,
+      "Burning": false,
       "Torment": 1,
-      "Confusion": 1,
+      "Confusion": 0,
+      "Blindness": true,
+      "Immobilized": true,
       "Poisoned": true,
       "Chilled": true,
       "Crippled": true,
       "Slow": true,
       "Weakness": true,
       "Vulnerability": 25
-    }
+    },
+    "targetDefiant": true,
+    "forgedSurferBombsHit": "5"
   },
-  "initialHeat": 0,
   "startingWeaponSet": 1,
   "targetHealth": 4000000,
+  "targetStartingHealthPercent": 100,
   "targetArmor": 2597,
-  "rotation": []
+  "initialInitiative": 12,
+  "initialSpinningAxes": 6,
+  "initialShadowForce": 0,
+  "precastRelics": []
 }

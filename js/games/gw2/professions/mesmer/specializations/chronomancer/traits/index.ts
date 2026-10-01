@@ -86,7 +86,7 @@ export const timeCatchesUp = defineTrait({
       // Time Catches Up affects only first-strike shatter packets against a movement-impaired target.
       when: (context) =>
         Boolean(context.event?.metadata?.shatterTraitEligible) &&
-        ['Chilled', 'Cripple', 'Immobilized', 'Slow'].some((condition) => targetConditionActive(context, condition))
+        ['Chilled', 'Crippled', 'Immobilized', 'Slow'].some((condition) => targetConditionActive(context, condition))
     }
   ]
 });

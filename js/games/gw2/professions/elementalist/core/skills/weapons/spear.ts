@@ -659,7 +659,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         ],
         metadata: {}
       },
-      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 5, metadata: {} }
+      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 5, metadata: {} }
     ])
   },
   [ID.HARDEN]: {
@@ -694,7 +694,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 3.375 },
       { type: 'condition', condition: 'Weakness', stacks: 1, duration: 4, metadata: {} },
-      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 4, metadata: {} }
+      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 4, metadata: {} }
     ])
   },
   // Earth's etching root is the odd one out: it lays a Dark field rather than an elemental one.
@@ -735,7 +735,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.75 },
       { type: 'blind', applications: 1, controlKind: 'blind' },
-      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 5, metadata: {} }
+      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 5, metadata: {} }
     ])
   },
   // Full payoff retains five-second Cripple and adds Vulnerability and Weakness to the Lesser version's effects.
@@ -756,7 +756,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
       { type: 'blind', applications: 1, controlKind: 'blind' },
       { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 6, metadata: {} },
       { type: 'condition', condition: 'Weakness', stacks: 1, duration: 4, metadata: {} },
-      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 5, metadata: {} }
+      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 5, metadata: {} }
     ])
   }
 });

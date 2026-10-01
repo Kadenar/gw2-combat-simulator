@@ -87,7 +87,7 @@ function queueCatalystBuff(
  * before combat start.
  */
 export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  const immobilize = ['Immobilize', 'Immobilized'].includes(event.condition || '');
+  const immobilize = event.condition === 'Immobilized';
   if (
     !hasTrait(context, TRAIT.VICIOUS_EMPOWERMENT) ||
     event.actorType !== 'player' ||

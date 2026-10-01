@@ -439,7 +439,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
           metadata: {}
         },
         { type: 'condition', condition: 'Bleeding', stacks: 5, duration: 8, metadata: {} },
-        { type: 'condition', condition: 'Immobilize', stacks: 1, duration: 1.5, metadata: {} }
+        { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1.5, metadata: {} }
       ]
     )
   },
@@ -482,7 +482,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
       ]),
       ...impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         { type: 'strike', coefficient: 0.2 },
-        { type: 'condition', condition: 'Cripple', stacks: 1, duration: 4, metadata: {} }
+        { type: 'condition', condition: 'Crippled', stacks: 1, duration: 4, metadata: {} }
       ])
     ]
   }

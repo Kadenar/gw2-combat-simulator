@@ -444,7 +444,7 @@ test('target condition and vulnerability queries use canonical combat-query fact
 });
 
 test('target condition activity prefers the query adapter and falls back to canonical target state', () => {
-  const configured = context({ config: { target: { conditions: { burn: true } } } });
+  const configured = context({ config: { target: { conditions: { Burning: true } } } });
   const runtime = context({
     runtime: {
       conditionState: new Map([['Weakness', { stacks: [{ appliedAt: 0, expiresAt: 10, weight: 1 }] }]])

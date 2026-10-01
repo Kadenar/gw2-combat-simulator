@@ -523,7 +523,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   [ID.MALICIOUS_BACKSTAB]: {
     castTimeMs: 440,
     // Once the stab commits, preserve its strike and the remaining cast lockout after interruption.
-    interruptCommitMs: 360,
+    interruptCommitMs: 320,
     retainsCastLockoutAfterInterrupt: true,
     cooldown: 1,
     initiativeCost: 0,

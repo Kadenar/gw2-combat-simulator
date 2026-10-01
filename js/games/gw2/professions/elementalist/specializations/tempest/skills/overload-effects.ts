@@ -109,9 +109,9 @@ function overloadEarthEffects(): readonly SkillEffect[] {
           : {}
       ),
       condition('Bleeding', 1, 9),
-      condition('Cripple', 1, 3),
+      condition('Crippled', 1, 3),
       ...(index === 0 ? [boon('Stability', 3, 4)] : []),
-      ...(index === 4 ? [condition('Immobilize', 1, 4)] : []),
+      ...(index === 4 ? [condition('Immobilized', 1, 4)] : []),
       boon('Protection', 1, 1)
     ])
   );

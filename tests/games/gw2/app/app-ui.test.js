@@ -812,7 +812,7 @@ test('shared app metadata owns common attributes and target conditions', () => {
       ['Damaging', ['Burning', 'Bleeding', 'Torment', 'Confusion', 'Poisoned']],
       [
         'Control',
-        ['Vulnerability', 'Weakness', 'Blindness', 'Slow', 'Chilled', 'Cripple', 'Immobilize', 'Fear', 'Taunt']
+        ['Vulnerability', 'Weakness', 'Blindness', 'Slow', 'Chilled', 'Crippled', 'Immobilized', 'Fear', 'Taunt']
       ]
     ]
   );

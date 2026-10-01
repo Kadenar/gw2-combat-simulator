@@ -539,7 +539,7 @@ test('Abstraction replaces boons with damage and conditions and blasts only its 
       events.filter((event) => event.type === 'condition').map((event) => [event.condition, event.duration]),
       [
         ['Weakness', 5],
-        ['Blinded', 5]
+        ['Blindness', 5]
       ]
     );
     assert.equal(

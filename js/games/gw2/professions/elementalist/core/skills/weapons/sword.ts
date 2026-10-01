@@ -460,7 +460,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.4 },
       { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8, metadata: {} },
-      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 3, metadata: {} }
     ])
   },
   [ID.EARTHEN_VORTEX]: {
@@ -488,7 +488,7 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Pa
         metadata: {}
       },
       { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 8, metadata: {} },
-      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 3, metadata: {} }
     ])
   },
   // Eight paired packets, each applying its own six-second Bleeding stack on the same timestamps.

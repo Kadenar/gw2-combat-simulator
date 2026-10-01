@@ -29,36 +29,7 @@ export function missesTarget(event: SimulationEvent): boolean {
   return event.offTarget === true && isHostileTargetEvent(event);
 }
 
-const CONDITION_ALIASES = Object.freeze({
-  bleed: 'Bleeding',
-  bleeding: 'Bleeding',
-  blind: 'Blinded',
-  blinded: 'Blinded',
-  burn: 'Burning',
-  burning: 'Burning',
-  chill: 'Chilled',
-  chilled: 'Chilled',
-  confusion: 'Confusion',
-  cripple: 'Crippled',
-  crippled: 'Crippled',
-  fear: 'Fear',
-  feared: 'Fear',
-  immobilize: 'Immobilized',
-  immobilized: 'Immobilized',
-  poison: 'Poisoned',
-  poisoned: 'Poisoned',
-  slow: 'Slow',
-  slowed: 'Slow',
-  taunt: 'Taunt',
-  taunted: 'Taunt',
-  torment: 'Torment',
-  vulnerability: 'Vulnerability',
-  weakness: 'Weakness',
-  weakened: 'Weakness'
-});
-
-// The canonical damaging subset uses runtime condition names so resolution and
-// profession rules cannot disagree about aliases such as Poison and Poisoned.
+// Producers and consumers share runtime condition names without spelling aliases.
 export const GW2_DAMAGING_CONDITIONS = Object.freeze([
   'Bleeding',
   'Burning',
@@ -68,24 +39,33 @@ export const GW2_DAMAGING_CONDITIONS = Object.freeze([
 ] as const);
 const DAMAGING_CONDITION_SET = new Set<string>(GW2_DAMAGING_CONDITIONS);
 
-export const CANONICAL_TARGET_CONDITIONS = Object.freeze([...new Set(Object.values(CONDITION_ALIASES))].sort());
+export const CANONICAL_TARGET_CONDITIONS = Object.freeze(
+  [
+    ...GW2_DAMAGING_CONDITIONS,
+    'Blindness',
+    'Chilled',
+    'Crippled',
+    'Fear',
+    'Immobilized',
+    'Slow',
+    'Taunt',
+    'Vulnerability',
+    'Weakness'
+  ].sort()
+);
 
 /**
- * Normalizes simulator and wiki condition spellings to the canonical runtime
- * vocabulary. Unknown values retain a stable title-cased form so supplemental
- * profession data remains queryable without inventing per-condition flags.
+ * Normalizes casing and whitespace; condition producers must use the canonical vocabulary.
+ * Supplemental names retain a stable title-cased form without accepting obsolete synonyms.
  */
 export function canonicalTargetConditionName(value: unknown): string {
   const text = String(value || '').trim();
   if (!text) return '';
   const normalized = text.toLowerCase();
-  return (
-    (CONDITION_ALIASES as Readonly<Record<string, string>>)[normalized] ||
-    normalized.charAt(0).toUpperCase() + normalized.slice(1)
-  );
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
-/** Checks damaging-condition membership after applying the shared alias normalization contract. */
+/** Checks damaging-condition membership independently of casing and whitespace. */
 export function isDamagingCondition(value: unknown): boolean {
   return DAMAGING_CONDITION_SET.has(canonicalTargetConditionName(value));
 }
@@ -103,7 +83,7 @@ function normalizeTargetConditions(
 }
 
 /**
- * Resolves a configured target condition with canonical and alias-aware matching.
+ * Resolves a configured target condition independently of casing and whitespace.
  * Configured value or 0 if not found
  * @private
  */

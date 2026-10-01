@@ -176,7 +176,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.55 },
       { type: 'blind', applications: 1, controlKind: 'blind' },
-      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 5, metadata: {} }
+      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 5, metadata: {} }
     ]),
     specialization: 'Weaver'
   }

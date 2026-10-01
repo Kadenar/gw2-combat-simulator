@@ -95,7 +95,7 @@ test('Ranger condition-count bonuses use canonical active conditions and query p
   // Both formulas must count condition variety at the observation time, not raw names or inactive stacks.
   const stack = { appliedAt: 5, expiresAt: 10, weight: 2 };
   const runtime = { conditionState: new Map([['Burning', { stacks: [stack] }]]) };
-  const config = { target: { conditions: { burn: true } } };
+  const config = { target: { conditions: { Burning: true } } };
   const cases = [
     [{ config, runtime }, 1],
     ...[{ appliedAt: 6 }, { removedAt: 5 }, { expiresAt: 5 }, { weight: 0 }].map((patch) => [
@@ -125,7 +125,7 @@ test('Ranger condition-count bonuses use canonical active conditions and query p
 test('Ranger condition bonuses retain the Consuming Bite cap and coefficient guard', () => {
   // Only Consuming Bite caps condition variety; its coefficient conversion must remain safe for nonpositive inputs.
   const config = {
-    target: { conditions: { burn: true, bleed: true, poison: true, chill: true, slow: true, weakness: true } }
+    target: { conditions: { Burning: true, Bleeding: true, Poisoned: true, Chilled: true, Slow: true, Weakness: true } }
   };
   const bonus = rangerCoreModule.modifiers.modifierRules.find(
     (rule) => rule.id === 'ranger.condition-count-skill-bonus'

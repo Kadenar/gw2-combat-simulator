@@ -31,7 +31,9 @@ test('Mirage Advance applies one blind and disable at impact, with no invented i
       })
     );
     const cast = result.events.find((event) => event.type === 'action');
-    const blind = result.resolvedEvents.filter((event) => event.type === 'condition' && event.condition === 'Blinded');
+    const blind = result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.condition === 'Blindness'
+    );
     assert.equal(blind.length, offTarget ? 0 : 1);
     assert.equal(procs(result, 'Ineptitude').length, offTarget ? 0 : 1);
     assert.equal(procs(result, 'Relic of Aristocracy').length, offTarget ? 0 : 1);
@@ -48,7 +50,7 @@ test('Mirage Advance applies one blind and disable at impact, with no invented i
   }
 
   const bare = simulateMesmer(['Mirage Advance', wait(1000)], config());
-  assert.equal(bare.resolvedEvents.filter((event) => event.condition === 'Blinded').length, 1);
+  assert.equal(bare.resolvedEvents.filter((event) => event.condition === 'Blindness').length, 1);
 });
 
 test('cancelled Mirage casts create neither hostile effects nor movement procs', () => {

@@ -337,7 +337,7 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
     } else if (effect.type === 'blind') {
       add(
         effect,
-        'Blinded',
+        'Blindness',
         effect.duration == null ? 'Applies blindness; duration is not modeled' : `${tooltipDecimal(effect.duration)}s`
       );
     } else if (effect.type === 'control') {

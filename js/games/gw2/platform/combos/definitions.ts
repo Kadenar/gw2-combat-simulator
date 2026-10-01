@@ -258,7 +258,7 @@ const definitions: readonly ComboDefinition[] = [
     outcome: Object.freeze({
       kind: 'condition',
       name: 'Blindness',
-      condition: 'Blinded',
+      condition: 'Blindness',
       stacks: 1,
       duration: 3
     })
@@ -269,7 +269,7 @@ const definitions: readonly ComboDefinition[] = [
     outcome: Object.freeze({
       kind: 'condition',
       name: 'Blinding Bolts',
-      condition: 'Blinded',
+      condition: 'Blindness',
       stacks: 1,
       duration: 3
     })

@@ -205,7 +205,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Pa
         ],
         metadata: {}
       },
-      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 5, metadata: {} }
+      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 5, metadata: {} }
     ])
   },
   // Defensive channel with no packets; its long cast time is the cost the rotation has to pay for it.

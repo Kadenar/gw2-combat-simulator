@@ -547,7 +547,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         metadata: {}
       },
       { type: 'condition', condition: 'Bleeding', stacks: 6, duration: 12, metadata: {} },
-      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 3, metadata: {} }
     ])
   },
   // Aura/transmute flip pair: Magnetic Aura grants the aura and flips to Transmute Earth, which
@@ -648,7 +648,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         metadata: {}
       },
       { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 20, metadata: {} },
-      { type: 'condition', condition: 'Immobilize', stacks: 1, duration: 2, metadata: {} }
+      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2, metadata: {} }
     ])
   }
 });

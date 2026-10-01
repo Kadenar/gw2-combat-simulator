@@ -226,7 +226,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         metadata: {}
       },
       { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3, metadata: {} },
-      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 4, metadata: {} }
+      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 4, metadata: {} }
     ]),
     specialization: 'Weaver'
   }

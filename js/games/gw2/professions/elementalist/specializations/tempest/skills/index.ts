@@ -214,7 +214,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: [
       ...impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.75 },
-        { type: 'condition', condition: 'Cripple', stacks: 1, duration: 6, metadata: {} },
+        { type: 'condition', condition: 'Crippled', stacks: 1, duration: 6, metadata: {} },
         { type: 'boon', boon: 'Protection', stacks: 1, duration: 5, metadata: {} },
         { type: 'boon', boon: 'Aegis', stacks: 1, duration: 5, metadata: {} }
       ]),
@@ -232,7 +232,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
           ],
           metadata: {}
         },
-        { type: 'condition', condition: 'Immobilize', stacks: 1, duration: 2, metadata: {} }
+        { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2, metadata: {} }
       ])
     ]
   }

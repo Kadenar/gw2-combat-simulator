@@ -49,7 +49,7 @@ test('Fragmentation applies three seconds of Cripple per F2 impact only while se
         target: { conditions: {} }
       });
       const hits = result.events.filter((event) => event.type === 'damage' && event.skillName === skill);
-      const cripples = result.events.filter((event) => event.type === 'condition' && event.condition === 'Cripple');
+      const cripples = result.events.filter((event) => event.type === 'condition' && event.condition === 'Crippled');
       assert.ok(hits.length, skill);
       assert.deepEqual(
         cripples.map((event) => event.at),
@@ -78,7 +78,7 @@ test('Fragmentation excludes afterimage critical chance and Cripple', () => {
     );
     assert.ok(afterimages.length);
     assert.ok(afterimages.every((event) => Math.abs(event.criticalChance - 0.05) < 1e-12));
-    assert.ok(!result.events.some((event) => event.condition === 'Cripple' && event.actorType === 'summon'));
+    assert.ok(!result.events.some((event) => event.condition === 'Crippled' && event.actorType === 'summon'));
   }
 });
 

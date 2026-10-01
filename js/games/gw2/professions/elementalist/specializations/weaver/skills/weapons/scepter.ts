@@ -174,7 +174,7 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         { type: 'strike', coefficient: 0.3 },
         { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3, metadata: {} },
         { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 3, metadata: {} },
-        { type: 'condition', condition: 'Cripple', stacks: 1, duration: 4, metadata: {} }
+        { type: 'condition', condition: 'Crippled', stacks: 1, duration: 4, metadata: {} }
       ]),
       ...impactEffects({ atMs: 1040, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.3 },

@@ -489,7 +489,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5 },
       { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 9, metadata: {} },
-      { type: 'condition', condition: 'Immobilize', stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 3, metadata: {} }
     ])
   },
   // --- Elites --------------------------------------------------------------------

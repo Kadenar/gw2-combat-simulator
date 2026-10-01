@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
+import { TARGET_CONDITION_GROUPS } from '#gw2/app/build/panels/metadata.js';
+import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
@@ -34,19 +36,25 @@ const SIMULATION_EFFECTS = [
   'Blindness',
   'Slow',
   'Chilled',
-  'Cripple',
-  'Immobilize',
+  'Crippled',
+  'Immobilized',
   'Fear',
   'Taunt'
 ];
 
 test('every configurable boon and condition has a canonical icon', () => {
+  // Build controls must address the same condition keys used by runtime queries and result icons.
+  for (const name of TARGET_CONDITION_GROUPS.flatMap((group) => group.conditions)) {
+    assert.equal(name, canonicalTargetConditionName(name));
+    assert.ok(MODIFIER_EFFECT_ICONS[name]);
+  }
+
   assert.deepEqual(
     SIMULATION_EFFECTS.filter((name) => !MODIFIER_EFFECT_ICONS[name]),
     []
   );
   assert.match(MODIFIER_EFFECT_ICONS.Blindness, /102837\.png$/);
-  assert.match(MODIFIER_EFFECT_ICONS.Immobilize, /102844\.png$/);
+  assert.match(MODIFIER_EFFECT_ICONS.Immobilized, /102844\.png$/);
 });
 
 test('common modifier contributions use their canonical icons', () => {

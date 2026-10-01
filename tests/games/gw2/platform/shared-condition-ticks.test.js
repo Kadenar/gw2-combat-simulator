@@ -510,7 +510,7 @@ test('same-owner conditions sum across skills before one half-even rounding in b
   for (const output of ['detailed', 'score']) {
     assert.equal(resolve([condition()], { output }).conditionDamage, 30);
     const result = resolve(
-      [condition(), condition(0, { sourceId: 'other-skill', name: 'Other', condition: 'bleed' })],
+      [condition(), condition(0, { sourceId: 'other-skill', name: 'Other', condition: 'Bleeding' })],
       { output }
     );
     assert.equal(result.conditionDamage, 59);

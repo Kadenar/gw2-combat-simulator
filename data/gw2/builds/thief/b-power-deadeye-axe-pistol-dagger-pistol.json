@@ -82,11 +82,11 @@
       "Burning": false,
       "Torment": 1,
       "Confusion": 0,
-      "Blinded": true,
+      "Blindness": true,
       "Immobilized": true,
       "Poisoned": true,
       "Chilled": true,
-      "Cripple": true,
+      "Crippled": true,
       "Slow": true,
       "Weakness": true,
       "Vulnerability": 25

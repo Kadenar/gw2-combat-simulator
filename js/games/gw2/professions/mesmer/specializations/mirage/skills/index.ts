@@ -140,7 +140,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Ski
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
-      { type: 'condition', condition: 'Blinded', stacks: 1, duration: 5 },
+      { type: 'condition', condition: 'Blindness', stacks: 1, duration: 5 },
 
       {
         type: 'strike',

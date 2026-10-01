@@ -112,7 +112,7 @@ export const evasiveArcana = defineTrait({
       { type: 'condition', name: 'Fire Burning', condition: 'Burning', stacks: 3, duration: 6 },
       { type: 'strike', name: 'Earth', coefficient: 0.5, hits: 1 },
       { type: 'condition', name: 'Earth Bleeding', condition: 'Bleeding', stacks: 1, duration: 20 },
-      { type: 'condition', name: 'Earth Cripple', condition: 'Cripple', stacks: 1, duration: 2 }
+      { type: 'condition', name: 'Earth Cripple', condition: 'Crippled', stacks: 1, duration: 2 }
     ]
   }
 });

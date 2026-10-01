@@ -33,7 +33,7 @@ export function defaultSimulationConfig(overrides = {}) {
         Confusion: 1,
         Poisoned: true,
         Chilled: true,
-        Cripple: true,
+        Crippled: true,
         Slow: true,
         Weakness: true,
         Vulnerability: 25

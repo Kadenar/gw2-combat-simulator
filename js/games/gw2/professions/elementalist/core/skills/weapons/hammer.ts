@@ -662,7 +662,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
         metadata: {}
       },
       { type: 'condition', condition: 'Bleeding', stacks: 5, duration: 6, metadata: {} },
-      { type: 'condition', condition: 'Immobilize', stacks: 1, duration: 3, metadata: {} }
+      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 3, metadata: {} }
     ])
   },
   // Snapshot each active orb at acceptance so consuming it at completion does not erase its delayed projectile.

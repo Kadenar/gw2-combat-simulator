@@ -15,13 +15,6 @@ import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 // Trusted static disclosure glyph (Lucide trend line).
 const DPS_SNAPSHOTS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>`;
 
-// Runtime condition names differ from the build-control labels used by the shared artwork catalog.
-const CONDITION_ICON_LABELS: Readonly<Record<string, string>> = {
-  Blinded: 'Blindness',
-  Crippled: 'Cripple',
-  Immobilized: 'Immobilize'
-};
-
 const metricDetailsDismissalRoots = new WeakSet<Document>();
 
 export interface ResultRow {
@@ -692,7 +685,7 @@ export function mountRotationResults(
             .map((condition) => {
               const selectable = Boolean(chartSeries?.conditionDamage?.[condition.name]?.length);
               // Keep condition labels tooltip-free while retaining the row's keyboard-accessible tick inspector.
-              const icon = MODIFIER_EFFECT_ICONS[CONDITION_ICON_LABELS[condition.name] || condition.name];
+              const icon = MODIFIER_EFFECT_ICONS[condition.name];
               return `<div class="res-row${selectable ? ' res-row-selectable' : ''}"${selectable ? ` role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" aria-label="Inspect ${escapeHtml(condition.name)} ticks" data-condition-name="${escapeHtml(condition.name)}"` : ''}>
           <span class="res-skill condi">${icon ? `<img src="${escapeHtml(icon)}" alt="" />` : ''}${escapeHtml(condition.name)}</span>
           ${

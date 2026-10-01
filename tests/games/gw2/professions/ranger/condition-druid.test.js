@@ -427,7 +427,7 @@ test("Stalker's Strike bonuses require Cripple, Slow, or Immobilize", () => {
   assert.equal(poisonStacks(defiant), 3);
   assert.equal(strikeDamage(defiant), strikeDamage(base));
 
-  for (const condition of ['Cripple', 'Slow', 'Immobilize']) {
+  for (const condition of ['Crippled', 'Slow', 'Immobilized']) {
     const impaired = run({ defiant: false, conditions: { [condition]: true } });
 
     assert.equal(poisonStacks(impaired), 5);

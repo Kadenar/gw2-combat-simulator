@@ -82,7 +82,7 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
         metadata: {}
       },
       { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 20, metadata: {} },
-      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 2, metadata: {} }
+      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 2, metadata: {} }
     ])
   }
 });

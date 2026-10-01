@@ -219,7 +219,7 @@ test('a missing required Ranger scalar fails instead of using a local default', 
 });
 
 test("removed Stalker's Strike impaired Poison keeps the skill's own Poison and the doubled strike", () => {
-  const impaired = { defiant: false, conditions: { Cripple: true } };
+  const impaired = { defiant: false, conditions: { Crippled: true } };
   const config = { target: impaired, primaryWeapon: 'Axe', secondaryWeapon: 'Dagger', selectedTraitIds: [] };
   const poisonStacks = (result) =>
     result.resolvedEvents

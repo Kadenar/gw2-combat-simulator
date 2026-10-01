@@ -411,7 +411,7 @@ export function createGw2ConditionResolution({
         activeConditionStackCount
       });
       // Blind consumers observe the successful condition application exactly once.
-      if (name === 'Blinded') reactions.dispatch('blind.resolved', ctx, application);
+      if (name === 'Blindness') reactions.dispatch('blind.resolved', ctx, application);
       applications.push(application);
     }
 

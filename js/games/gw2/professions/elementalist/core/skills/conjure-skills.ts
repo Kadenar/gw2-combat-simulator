@@ -512,7 +512,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
         conditionTimeline(
           [280, 400, 520, 640, 760, 880, 1000, 1120].map((atMs) => ({
             atMs,
-            condition: 'Cripple',
+            condition: 'Crippled',
             stacks: 1,
             duration: 3
           }))

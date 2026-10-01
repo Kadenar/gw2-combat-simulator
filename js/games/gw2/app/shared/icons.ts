@@ -108,7 +108,6 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   Concentration: 'https://render.guildwars2.com/file/6574560606F6BA1B32E9CF0F6C9709D1C1F2D9A6/2207782.png',
   Stability: 'https://render.guildwars2.com/file/3D3A1C2D6D791C05179AB871902D28782C65C244/415959.png',
   Resistance: 'https://render.guildwars2.com/file/50BAC1B8E10CFAB9E749A5D910D4A9DCF29EBB7C/961398.png',
-  Blinded: 'https://render.guildwars2.com/file/09770136BB76FD0DBE1CC4267DEED54774CB20F6/102837.png',
   Crippled: 'https://render.guildwars2.com/file/070325E519C178D502A8160523766070D30C0C19/102838.png',
   Immobile: 'https://render.guildwars2.com/file/397A613651BFCA2832B6469CE34735580A2C120E/102844.png',
   Immobilized: 'https://render.guildwars2.com/file/397A613651BFCA2832B6469CE34735580A2C120E/102844.png',
@@ -140,8 +139,6 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   Blindness: 'https://render.guildwars2.com/file/09770136BB76FD0DBE1CC4267DEED54774CB20F6/102837.png',
   Slow: 'https://render.guildwars2.com/file/F60D1EF5271D7B9319610855676D320CD25F01C6/961397.png',
   Chilled: 'https://render.guildwars2.com/file/28C4EC547A3516AF0242E826772DA43A5EAC3DF3/102839.png',
-  Cripple: 'https://render.guildwars2.com/file/070325E519C178D502A8160523766070D30C0C19/102838.png',
-  Immobilize: 'https://render.guildwars2.com/file/397A613651BFCA2832B6469CE34735580A2C120E/102844.png',
   Fear: 'https://render.guildwars2.com/file/30307A6E766D74B6EB09EDA12A4A2DE50E4D76F4/102869.png',
   Taunt: 'https://render.guildwars2.com/file/02EED459AD65FAF7DF32A260E479C625070841B9/1228472.png'
 };

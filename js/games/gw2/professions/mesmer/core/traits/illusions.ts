@@ -108,7 +108,7 @@ export const masterOfFragmentation = defineTrait({
     durationMultiplier: 1,
     damageIncreasePerStack: 0.3,
     effects: [
-      { name: 'Cripple', type: 'condition', condition: 'Cripple', duration: 3, stacks: 1 },
+      { name: 'Crippled', type: 'condition', condition: 'Crippled', duration: 3, stacks: 1 },
       // provisional 3s Weakness; replace when Deafening Drum's trait duration is confirmed.
       { name: 'Weakness', type: 'condition', condition: 'Weakness', duration: 3, stacks: 1 }
     ]
@@ -135,7 +135,7 @@ export const masterOfFragmentation = defineTrait({
   ],
   triggers: [
     // Native shatter impacts inherit their triggering skill while selecting only the matching condition.
-    ...(['Weakness', 'Cripple'] as const).map<
+    ...(['Weakness', 'Crippled'] as const).map<
       Extract<NonNullable<TraitDefinition['triggers']>[number], { on: 'damage.resolved' }>
     >((condition) => ({
       on: 'damage.resolved' as const,

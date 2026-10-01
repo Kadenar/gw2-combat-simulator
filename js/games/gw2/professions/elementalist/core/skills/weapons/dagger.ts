@@ -525,12 +525,12 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
       ...impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.33 },
         { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 6, metadata: {} },
-        { type: 'condition', condition: 'Cripple', stacks: 1, duration: 2, metadata: {} }
+        { type: 'condition', condition: 'Crippled', stacks: 1, duration: 2, metadata: {} }
       ]),
       ...impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1.9 },
         { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 6, metadata: {} },
-        { type: 'condition', condition: 'Cripple', stacks: 1, duration: 2, metadata: {} }
+        { type: 'condition', condition: 'Crippled', stacks: 1, duration: 2, metadata: {} }
       ])
     ]
   },
@@ -558,7 +558,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         ],
         metadata: {}
       },
-      { type: 'condition', condition: 'Immobilize', stacks: 1, duration: 2, metadata: {} }
+      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2, metadata: {} }
     ])
   },
   [ID.EARTHQUAKE]: {
@@ -625,7 +625,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
       ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 3 },
         { type: 'condition', condition: 'Bleeding', stacks: 10, duration: 8, metadata: {} },
-        { type: 'condition', condition: 'Cripple', stacks: 1, duration: 4, metadata: {} }
+        { type: 'condition', condition: 'Crippled', stacks: 1, duration: 4, metadata: {} }
       ])
     ]
   }

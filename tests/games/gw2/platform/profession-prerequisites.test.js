@@ -105,7 +105,7 @@ test('target-condition queries combine assumptions and chronological runtime sta
     config: {
       target: {
         conditions: {
-          Cripple: true,
+          Crippled: true,
           Vulnerability: 2
         }
       }
@@ -138,14 +138,14 @@ test('target-condition queries combine assumptions and chronological runtime sta
     boons: new Map()
   };
 
-  assert.equal(canonicalTargetConditionName('poison'), 'Poisoned');
-  assert.equal(canonicalTargetConditionName('cripple'), 'Crippled');
+  assert.equal(canonicalTargetConditionName('poisoned'), 'Poisoned');
+  assert.equal(canonicalTargetConditionName('crippled'), 'Crippled');
   assert.equal(query.targetConditionStacks('Crippled', 1, runtime), 1);
-  assert.equal(query.targetConditionStacks('Poison', 0.5, runtime), 2);
+  assert.equal(query.targetConditionStacks('Poisoned', 0.5, runtime), 2);
   assert.equal(query.targetConditionStacks('Poisoned', 1, runtime), 5);
   assert.equal(query.targetConditionStacks('Poisoned', 2, runtime), 3);
   assert.equal(query.targetConditionStacks('Poisoned', 2.5, runtime), 0);
-  assert.equal(query.targetHasCondition('Chill', 1, runtime), true);
+  assert.equal(query.targetHasCondition('Chilled', 1, runtime), true);
   assert.equal(query.targetHasCondition('Chilled', 1.5, runtime), false);
   assert.equal(query.targetConditionStacks('Vulnerability', 1, runtime), 5);
   assert.equal(query.targetConditionStacks('Vulnerability', 2, runtime), 2);
@@ -154,7 +154,7 @@ test('target-condition queries combine assumptions and chronological runtime sta
 test('combat lookups normalize once per query without stale cross-query state', () => {
   const config = {
     selectedTraitIds: [123],
-    target: { conditions: { poison: 1 } }
+    target: { conditions: { poisoned: 1 } }
   };
   const traits = normalizeSelectedTraitIds(config.selectedTraitIds);
 
@@ -167,7 +167,7 @@ test('combat lookups normalize once per query without stale cross-query state', 
   const first = createGw2CombatQuery({ profession: queryProfession, config });
 
   assert.equal(first.targetConditionStacks('Poisoned', 0), 1);
-  config.target.conditions.poison = 2;
+  config.target.conditions.poisoned = 2;
   const second = createGw2CombatQuery({ profession: queryProfession, config });
 
   assert.equal(second.targetConditionStacks('Poisoned', 0), 2);

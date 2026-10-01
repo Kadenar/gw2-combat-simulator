@@ -218,14 +218,14 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
       },
       {
         type: 'condition',
-        ticks: [1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, condition: 'Cripple', stacks: 1, duration: 2 })),
+        ticks: [1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, condition: 'Crippled', stacks: 1, duration: 2 })),
         metadata: {}
       },
       {
         type: 'condition',
         ticks: [1280, 2280, 3280, 4280, 5280].map((atMs) => ({
           atMs,
-          condition: 'Immobilize',
+          condition: 'Immobilized',
           stacks: 1,
           duration: 2
         })),
