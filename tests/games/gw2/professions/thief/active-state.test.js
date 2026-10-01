@@ -106,7 +106,14 @@ test('Surfer exposes the buff window independently of the bomb-hit assumption', 
 });
 
 test('Distracting Throw stays visible alongside Revealed and disappears at expiry', () => {
-  const professionState = { distractingThrowBuffUntil: 10, revealedUntil: 8, spinningAxeExpirations: [5, 9] };
+  const professionState = {
+    distractingThrowBuffUntil: 10,
+    revealedUntil: 8,
+    spinningAxes: [
+      { skillId: 71854, expiresAt: 5 },
+      { skillId: 71854, expiresAt: 9 }
+    ]
+  };
   const values = (atSeconds) =>
     Object.fromEntries(
       thiefProfession.ui

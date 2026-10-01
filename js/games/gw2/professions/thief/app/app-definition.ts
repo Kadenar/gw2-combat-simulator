@@ -23,6 +23,7 @@ export const thiefAppAdapter = defineProfessionApp({
     }),
     buildConfigExtras: (app) => ({
       initialInitiative: (app.build as ThiefCanonicalBuild).initialInitiative,
+      initialSpinningAxes: (app.build as ThiefCanonicalBuild).initialSpinningAxes,
       initialShadowForce: (app.build as ThiefCanonicalBuild).initialShadowForce,
       selectedDodge: (app.build as ThiefCanonicalBuild).selectedDodge
     })

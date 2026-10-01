@@ -67,14 +67,8 @@ mutable state instance per run.
 `defineTrait()` definitions expand once in `defineNativeModule()`. Ordinary rules receive live trait-selection gates;
 rules for already-created effects may opt out with `requiresSelection: false` and an explicit event predicate. Custom
 callbacks retain explicit eligibility and lifetime. Trait hooks and module hooks share the same ordered composer, and
-build contributions enter the existing attribute conversion pass. Patch previews consume expanded declarations. See
-[the shared trait contract and inventory](./TRAIT-DEFINITIONS-PLAN.md#shared-implementation-record-s0-s3).
-
-Guardian registers all 70 implemented traits through Core and elite trait owners. Its remaining raw profiles and
-modifiers describe skills or mechanics, and its build collector applies skill-owned signet passives. Ordered mechanic
-calls retain virtue, tome, and Forge transitions; the
-[Guardian ownership inventory](./TRAIT-DEFINITIONS-PLAN.md#s5-progress-guardian) records those boundaries and shared
-state.
+build contributions enter the existing attribute conversion pass. Patch previews consume expanded declarations.
+[MODULES.md](./MODULES.md#profession-file-roles) describes where trait definitions and their supporting behavior live.
 
 ### Catalog assembly
 
@@ -94,20 +88,10 @@ cooldowns, and dynamic state are separate checks.
 
 ### Source roles
 
-- `data/<profession>-api-metadata.ts` — generated identity/presentation metadata; never coefficients or conditions.
-- `data/<profession>-supplemental-skills.ts` — identity/presentation for skills missing from the API snapshot.
-- `data/traits-data.ts` — the only export of flattened runtime `TRAITS`.
-- `data/module-data.ts` — generated metadata, catalog transforms, and module data selector options.
-- Core/specialization `skills.ts` or `skills/*.ts` — authoritative ID-keyed declarative skill fields. No production-wide
-  skill aggregate; tests compose inventories under `tests/`.
-- `mechanics/*.ts` (or `mechanics.ts`) — owner-local, concept-named triggered effects and state machines.
-- `hooks.ts` — cast hooks, tasks, and reactions for behavior declarative effects cannot express.
-- `modifiers.ts` — the module's modifier rules plus imperative `modify*` attribute and damage callbacks.
-- `core/traits/<trait-line>.ts`: Core definitions; `core/traits/index.ts` preserves their registration order.
-- `specializations/<name>/traits/index.ts`: all elite definitions and their registration array.
-- `traits/behavior.ts` or concept files: optional supporting runtime functions, imported directly by mechanics. See
-  [trait file organization](./TRAIT-FILE-ORGANIZATION.md) for ownership and dependency rules.
-- `catalog.ts` — module tuple and assembled catalog, re-exported by `profession.ts`. Only `build/` imports it directly.
+Generated API metadata carries identity and presentation only, never coefficients or conditions. Skill files hold the
+authoritative ID-keyed declarative fields; there is no production-wide skill aggregate, and tests compose inventories
+under `tests/`. The full list of file roles inside a profession is in
+[MODULES.md](./MODULES.md#profession-file-roles).
 
 ### Authoring workflow
 
@@ -126,7 +110,9 @@ policies, and stage-specific reactions. The application surface stays separate f
 Standalone fixtures can use `defineProfession({ id, name, catalog, resources: { createState }, hooks })`. Optional hooks
 default to no-op or identity behavior. A module with only declarative skill data needs no hooks.
 
-- `paletteSkillAvailability(context, skill)` returns `{ available, message, retryAt? }`; retry times are seconds.
+- `paletteSkillAvailability(context, skill)` returns `{ available, message, retryAt? }`; retry times are seconds. It is
+  evaluated against the detached planning state, so today it restates runtime availability rules; see
+  [PALETTE-RUNTIME-AVAILABILITY.md](../cleanup/PALETTE-RUNTIME-AVAILABILITY.md).
 - Event presenters return `{ type, description, className, order, flags }`; null hides an event and undefined delegates.
 
 ### Families
@@ -232,11 +218,14 @@ Explicit numeric strength, flat damage, conditions, and profile-less summon form
 
 ## Skills and rotations
 
-Behavior keys on stable IDs. The catalog merges generated metadata, mechanics, overrides, and extra skills; callable
-`skillHandlers` are dispatched by handler ID. Validation rejects duplicate IDs, missing handlers/parents, invalid
-effects or slots, and unavailable weapon metadata. Display-name lookup exists only for legacy streams and rotation
-migration at the application boundary. Profession catalogs own exact `weaponHands`; shared weapon data owns broad
-capabilities; app adapters combine both.
+Behavior keys on stable IDs. The catalog merges generated metadata, mechanics, overrides, and extra skills, then
+rejects duplicate IDs, unknown skill fields, missing parents or variant profiles, invalid effects or slots, and
+unavailable weapon metadata. Imperative behavior lives in module hooks, not in the catalog. Display-name lookup is used
+only when normalizing rotation input that names skills (see [Rotation commands](#rotation-commands)). Profession catalogs
+own exact `weaponHands`; shared weapon data owns broad capabilities; app adapters combine both.
+
+Skills and balance profiles are open records today, so field names are checked by runtime lists rather than types; see
+[SKILL-CATALOG-FIELDS.md](../cleanup/SKILL-CATALOG-FIELDS.md).
 
 ### Timing contract
 
@@ -262,10 +251,16 @@ skills not on the active set unless the caller supplies no equipment config (mec
 { type: "cast", skillId }
 { type: "wait", durationMs }
 { type: "combat-start" }
+{ type: "cooldown-reset" }
 { type: "cast", skillId, concurrentOffsetMs: 100 }
 { type: "cast", skillId, interruptAfterMs: 500 }
 { type: "cast", skillId, releaseAtCharges: 3 }
 ```
+
+`platform/execution/rotation.ts` normalizes every rotation input to these commands. It also accepts the documented
+shorthand (a numeric skill ID or a skill-name string; see [PROGRAMMATIC-SIMULATION.md](./PROGRAMMATIC-SIMULATION.md))
+and several undocumented aliases. Many saved presets still use skill-name strings. The inventory and removal plan are in
+[LEGACY-INPUT-HANDLING.md](../cleanup/LEGACY-INPUT-HANDLING.md).
 
 - Concurrent and interrupted timing is decided before effects and cooldowns are scheduled.
 - Serial casts and queued concurrent instants wait for finite cooldown, ammo, or profession availability; permanent
@@ -287,11 +282,13 @@ for Elementalist and Ranger, 3 elsewhere):
 }
 ```
 
-Professions own defaults, version migrations, and resource validation. The shared `platform/builds/codec.ts` factory
-handles common migration, sanitization, and validation (gear, weapons, sigils, relics, infusions, runes, consumables,
-specializations, slot skills, targets, rotation timing). Storage and the simulator use normalized commands; browser
-state uses a compatibility view. Unreadable local data falls back to defaults; explicit imports surface wrong-profession
-and future-version errors.
+Professions own defaults, profession-specific fields and normalization, and resource validation. The shared
+`platform/builds/codec.ts` factory handles common normalization and validation (gear, weapons, sigils, relics,
+infusions, runes, consumables, specializations, slot skills, targets, rotation timing). Its `migrateBuild()` accepts
+older schema versions, but no profession registers a version migration, so older builds are simply renumbered and
+normalized. `toApplicationBuild()` additionally turns on console Quickness and Alacrity. Storage and the simulator use
+normalized commands. Unreadable local data falls back to defaults; explicit imports surface wrong-profession and
+future-version errors.
 
 `platform/builds/attributes.ts` owns attribute assembly: `calculateCommonAttributes()` handles equipment, consumables,
 infusions, sigils, and base derived stats; professions pass their trait/skill deltas to `finalizeBuildAttributes()`,
@@ -318,8 +315,7 @@ which recomputes crit chance, crit damage, boon duration, and condition duration
 1. Create `js/games/gw2/professions/<id>/` with a build codec, a Core module, owner-local elite modules, and a
    Core-first `defineNativeProfession()` composition exporting `assembleNativeApplicationCatalog(modules)` from
    `catalog.ts`.
-2. Register stable skill/trait IDs, namespaced event handlers, needed standard reactions, `weaponHands`, and
-   `skillHandlers`.
+2. Register stable skill/trait IDs, namespaced event handlers, needed standard reactions, and `weaponHands`.
 3. Add the page and a lazy `loadProfession`/`loadAppAdapter` entry to `js/games/gw2/profession-registry.ts`.
 4. Add an end-to-end fixture that imports no other profession.
 5. Run `npm run check`.

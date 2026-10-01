@@ -1,6 +1,7 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
+import type { ActionContext } from '#gw2/platform/simulation/side-effects.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 
 import { armSkillFlip, consumeSkillFlip, skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
@@ -159,16 +160,86 @@ export function grantDistractingThrowWindow(runtime: ThiefRuntime): void {
     balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.distractingThrow), 'durationMultiplier');
 }
 
-/** Each landed axe joins the shared ground pool for ten seconds, keeping the six newest. */
-export function grantThiefGroundAxe(runtime: ThiefRuntime): void {
+/** Six slots are shared: Salvo replaces any axe, Volley replaces Volley/autos, and autos replace only autos. */
+export function grantThiefGroundAxe(runtime: ThiefRuntime, context: ActionContext): void {
+  if (context.kind !== 'effect') return;
   const core = runtime.profession.core;
-  core.spinningAxeExpirations = grantTimedStacks(core.spinningAxeExpirations, {
-    at: runtime.time,
-    expiresAt: runtime.time + 10,
-    count: 1,
-    maximumStacks: 6,
-    retain: 'newest-grant'
-  });
+  core.spinningAxes = core.spinningAxes.filter((axe) => axe.expiresAt > runtime.time);
+  if (core.spinningAxes.length >= 6) {
+    const replace = core.spinningAxes.findIndex(
+      (axe) =>
+        context.skill.stealthAttack ||
+        axe.skillId === ID.SPINNING_AXE ||
+        axe.skillId === ID.SPINNING_AXE_ID_71967 ||
+        (context.skill.id === ID.VENOMOUS_VOLLEY && axe.skillId === ID.VENOMOUS_VOLLEY)
+    );
+    // Fizzling leaves protected axes and their expiry times intact; replace the oldest eligible axe otherwise.
+    if (replace < 0) return;
+    core.spinningAxes.splice(replace, 1);
+  }
+
+  core.spinningAxes.push({ skillId: context.skill.id, expiresAt: runtime.time + 10 });
+}
+
+/** Recall repeats each live projectile's base effects, without creating new axes or scaling poison by malice again. */
+export function recallThiefAxes(runtime: ThiefRuntime, context: ActionContext): void {
+  if (context.kind !== 'cast') return;
+  const axes = runtime.profession.core.spinningAxes.filter((axe) => axe.expiresAt > runtime.time);
+  runtime.profession.core.spinningAxes = [];
+  const torment = context.skill.id === ID.HARROWING_STORM;
+  for (const [index, axe] of axes.entries()) {
+    const skill = runtime.helpers.skillsById.get(axe.skillId)!;
+    const projectiles = skill.id === ID.VENOMOUS_VOLLEY ? 3 : 1;
+    emitEffects(runtime, {
+      owner: skill,
+      effects: skill.effects?.map((effect) => ({
+        ...effect,
+        // Keep impact refunds, but returning projectiles never replenish the ground pool.
+        reactions: effect.reactions?.filter(
+          (reaction) => !('type' in reaction.do && reaction.do.type === 'thief.ground-axe')
+        ),
+        ...(effect.type === 'strike'
+          ? { coefficient: (Number(effect.coefficient) / projectiles) * (torment ? 1 : 1.33), hits: 1 }
+          : {}),
+        ...(effect.type === 'condition' ? { stacks: Number(effect.stacks) / projectiles } : {})
+      })),
+      skillWeaponFallback: 'Axe',
+      baseEvent: {
+        source: 'thief',
+        sourceId: skill.id,
+        skillId: skill.id,
+        skillName: skill.name,
+        actorType: 'player',
+        activationId: context.cast.id,
+        metadata: { recallSkillId: context.skill.id }
+      },
+      transform: (event) => ({
+        ...event,
+        at: runtime.time,
+        name: `${event.name} (Recall)`,
+        offTarget: context.cast.command.offTarget
+      })
+    });
+    // Recall adds its condition per returning axe; a target's condition cap can hide later applications in EVTC.
+    emitThiefCondition(runtime, context.skill, {
+      at: runtime.time,
+      activationId: context.cast.id,
+      offTarget: context.cast.command.offTarget,
+      condition: torment ? 'Torment' : 'Weakness',
+      stacks: 1,
+      duration: torment ? 2 : 1
+    });
+    // Five returning hits trigger one immobilize; five is a threshold, not a cap on returning axes.
+    if (index === 4)
+      emitThiefCondition(runtime, context.skill, {
+        at: runtime.time,
+        activationId: context.cast.id,
+        offTarget: context.cast.command.offTarget,
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 1.5
+      });
+  }
 }
 
 /** Only a successful scepter chain step refreshes its three-second window from cast completion. */

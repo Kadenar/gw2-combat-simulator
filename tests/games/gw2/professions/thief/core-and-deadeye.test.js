@@ -836,6 +836,39 @@ test('stealth replaces weapon skill 1 without a separate palette group', () => {
   assert.equal(stealthed.includes('Double Strike'), false);
 });
 
+// Stolen skills share the PvE formula even when their API entries also contain a competitive damage fact.
+test('Deadeye stolen skills use the PvE damage formula and apply One in the Chamber once', () => {
+  for (const skillId of DEADEYE_STOLEN_SKILL_IDS) {
+    const strike = (selectedTraitIds) =>
+      runThief([ID.DEADEYES_MARK, skillId], {
+        specialization: 'Deadeye',
+        selectedTraitIds,
+        stats: { power: 2000, precision: 1000, ferocity: 0, criticalChanceBonus: -100 },
+        target: { armor: 1000, conditions: {} }
+      }).resolvedEvents.find((event) => event.type === 'damage' && event.skillId === skillId);
+    const base = strike([]);
+    const traited = strike([TRAIT.ONE_IN_THE_CHAMBER]);
+    assert.equal(base.coefficient, 1);
+    assertFlooredDamageMultiplier(traited.damage, base.damage, 1.25);
+  }
+});
+
+// An opening stolen hit must be observed at impact even when its cast still occupies the player lane.
+test('stolen skill impacts keep their timestamp when the cast aftercast changes', () => {
+  for (const skillId of DEADEYE_STOLEN_SKILL_IDS) {
+    const result = runThief(
+      [ID.DEADEYES_MARK, skillId, { type: 'combat-start', concurrentOffsetMs: 200 }],
+      { specialization: 'Deadeye' },
+      { catalog: (catalog) => withSkill(catalog, skillId, { castTimeMs: 800 }) }
+    );
+    assert.deepEqual(result.warnings, []);
+    const hit = result.events.find((event) => event.type === 'damage' && event.skillId === skillId);
+    assert.equal(hit.at, 0.2);
+    assert.ok(hit.at < result.rotationEndTime);
+    assert.ok(result.totalDamage > 0);
+  }
+});
+
 test('Deadeye palette uses malicious stealth attacks and one stateful rifle bar', () => {
   const deadeyesMark = thiefCatalog.skillsByName.get("Deadeye's Mark");
   const deadeyeStolenSkillIds = [

@@ -14,6 +14,8 @@ import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { agentOwners, eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
+import { deadeyeMarkActions } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
+import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import {
   eiMesmerPhaseRetreat,
   eiMesmerShatters,
@@ -30,6 +32,34 @@ function context(profession, specialization, events, agents = log().agents) {
     recordedActions: []
   };
 }
+
+// A target-applied Gaze proves a Mark; snapshots, removals, other players, and existing casts must not add inputs.
+test('Deadeye Mark reconstruction uses Gaze applications without duplicating recorded casts', () => {
+  const gaze = event({ time: 1500, stateChange: 69, skillId: 46333, source: 0x2000n, target: PLAYER, value: 30000 });
+  const ctx = context('thief', 'deadeye', [
+    { ...gaze, time: 1000, stateChange: 18 },
+    gaze,
+    { ...gaze, time: 1600, stateChange: 71 },
+    { ...gaze, time: 1700, target: 0x3000n }
+  ]);
+  const inferred = deadeyeMarkActions(ctx);
+  assert.equal(inferred.length, 1);
+  assert.equal(inferred[0].rawSkillId, 43390);
+  assert.equal(inferred[0].start, gaze.time);
+  assert.deepEqual(deadeyeMarkActions({ ...ctx, recordedActions: inferred }), []);
+  assert.deepEqual(deadeyeMarkActions(context('thief', 'daredevil', [gaze])), []);
+
+  const result = reconstructEvtcRotation(
+    log({
+      agents: [{ ...log().agents[0], profession: 5, elite: 58 }],
+      skills: [{ id: 46333, name: "Deadeye's Gaze" }],
+      events: [event({ time: 1000, stateChange: 1 }), ...ctx.log.events]
+    }),
+    thiefCatalog
+  );
+  assert.ok(result.rotation.some((command) => command.skillId === 43390));
+  assert.match(result.warnings.join('\n'), /Mark was already active/);
+});
 
 test('packet evidence distinguishes empty, partial, and explicitly timed matches', () => {
   const explicit = { type: 'strike', atMs: 100 };

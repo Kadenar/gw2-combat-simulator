@@ -51,9 +51,12 @@ Shared `../shared/rotation/professions/` rules convert represented identities, c
 remain separate, including cast origin and EI rule provenance. Automatic procs do not become independent replay inputs.
 Read-only packet/proc observations remain available and never inject casts or simulator state.
 
-Combat start uses the selected player's enter-combat record, falling back to recording start. It is not moved to a first
-damage packet. Encounter-end filtering retains starts strictly before the existing target death/exit boundary; full
-evidence can still finish a retained animation. This target heuristic is not EI encounter-specific fight logic.
+Training golems with `LogNPCUpdate` use the target's first nonzero damage as combat start, following the pinned EI
+`Golem.GetLogOffset` rule. This includes stolen skills, trait damage and conditions, independently of weapon animations.
+Other logs use the selected player's enter-combat record, falling back to recording start. Recorded pre-combat casts,
+including cancelled autos, remain in the rotation. Encounter-end filtering retains starts strictly before the existing
+target death/exit boundary; full evidence can still finish a retained animation. This target heuristic is not EI
+encounter-specific fight logic.
 
 Commands preserve waits and observed overlap, using simulator timing and quantized cancellations where needed. Missing
 setup, initial summons, dependent skills, resources and later repeats never construct extra preparation or reset state.

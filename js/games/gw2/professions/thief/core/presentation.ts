@@ -2,7 +2,7 @@ import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { skillFlipVisible, skillFlipReady, weaponFollowUpOpen } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { activeStackCount, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -138,14 +138,15 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   const state = thiefUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
-  const axes = purgeExpiredStacks(state.spinningAxeExpirations || [], at);
+  // Count at the insertion cursor's time so expired axes disappear even without another axe cast.
+  const axes = (state.spinningAxes || []).filter((axe) => axe.expiresAt > at);
   if (axes.length || [context.build?.weapons?.[0], context.build?.alternateWeapons?.[0]].includes('Axe')) {
     items.push({
       id: 'thief-spinning-axes',
       label: 'Spinning Axes',
       value: `${axes.length}/6`,
       title: axes.length
-        ? `Axes available to recall; next axe expires in ${(Math.min(...axes) - at).toFixed(1)}s`
+        ? `Axes available to recall; next axe expires in ${(Math.min(...axes.map((axe) => axe.expiresAt)) - at).toFixed(1)}s`
         : 'Axes available to recall'
     });
   }
@@ -248,6 +249,30 @@ export const thiefCoreUi = Object.freeze({
         shortLabel: 'Init',
         statusLabel: 'Current'
       },
+      // Reuse the starting-resource editor; the active-state bar already displays the live axe count.
+      ...([
+        context.build?.weapons?.[0],
+        context.build?.alternateWeapons?.[0],
+        context.config?.primaryWeapon,
+        context.config?.weaponSet2Primary
+      ].includes('Axe') || (context.build?.initialSpinningAxes ?? context.config?.initialSpinningAxes ?? 0) > 0
+        ? [
+            {
+              id: 'spinning-axes',
+              singular: 'precast autoattack axe',
+              plural: 'precast autoattack axes',
+              maximum: 6,
+              value: (state.spinningAxes || []).filter((axe) => axe.expiresAt > (context.simulationTime ?? 0)).length,
+              canStart: true,
+              buildKey: 'initialSpinningAxes' as const,
+              step: 1,
+              displayMode: 'counter',
+              showInPalette: false,
+              shortLabel: 'Axes',
+              statusLabel: 'Current'
+            }
+          ]
+        : []),
       {
         id: 'endurance',
         singular: 'endurance',

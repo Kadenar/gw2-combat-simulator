@@ -54,7 +54,12 @@ export function reactThiefCoreDamage(
   const resolved = details as unknown as NativeResolvedDamageDetails;
   applyUnrelentingStrikes(context, event, resolved);
   noQuarter(context, event, resolved);
-  applyDeadlyAmbition(context, event);
+  // Returned projectile damage keeps its original skill label while the dual-wield recall owns this trait proc.
+  const recallId = event.metadata?.recallSkillId;
+  applyDeadlyAmbition(
+    context,
+    recallId == null ? event : { ...event, skillId: Number(recallId), sourceId: Number(recallId) }
+  );
   // Multiple venom types consume their charges but share one siphon per player strike.
   if (applyActiveVenoms(context, event) > 0) applyLeechingVenoms(context, event);
   applyPanicStrike(context, event);

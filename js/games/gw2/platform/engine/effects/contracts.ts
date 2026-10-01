@@ -15,6 +15,7 @@ const METADATA_VALUE_KINDS = Object.freeze({
   shatterTraitEligible: 'boolean',
   triggeredByAlly: 'number',
   venomProcEffectIndex: 'number',
+  recallSkillId: 'skillId',
   procCount: 'number',
   activeSpirits: 'number',
   affinityOnHit: 'boolean',

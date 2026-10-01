@@ -9,7 +9,8 @@ import { preparednessCapacityField } from '#gw2/professions/thief/core/traits/be
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
+import { boundedInteger, boundedNumber } from '#kernel/core/numeric.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 interface ThievesGuildState {
   /** Combat activation starts the parallel streams once per summon. */
@@ -37,7 +38,8 @@ export interface ThiefCoreState {
   spearPreviousSkillId: SkillId | null;
   spearLastWasFinisher: boolean;
   distractingThrowBuffUntil: number;
-  spinningAxeExpirations: number[];
+  /** Retain each axe's source so recall repeats that projectile's damage and conditions. */
+  spinningAxes: { skillId: SkillId; expiresAt: number }[];
   venomChargeBatches: ChargePool['grants'];
   venomAllyLastProcAt: Record<string, number>;
   activeThievesGuild: ThievesGuildState | null;
@@ -96,7 +98,11 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     spearPreviousSkillId: null,
     spearLastWasFinisher: false,
     distractingThrowBuffUntil: 0,
-    spinningAxeExpirations: [],
+    // Starting axes are fresh autoattack axes: no outgoing damage or initiative cost, ten seconds to recall them.
+    spinningAxes: Array.from({ length: boundedInteger(config.initialSpinningAxes, 0, 0, 6) }, () => ({
+      skillId: ID.SPINNING_AXE,
+      expiresAt: 10
+    })),
     venomChargeBatches: {},
     venomAllyLastProcAt: {},
     activeThievesGuild: null,
@@ -130,7 +136,7 @@ const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[] = Obje
   'spearPreviousSkillId',
   'spearLastWasFinisher',
   'distractingThrowBuffUntil',
-  'spinningAxeExpirations',
+  'spinningAxes',
   'venomChargeBatches',
   'activeThievesGuild',
   'assassinsSignetActiveUntil',

@@ -22,7 +22,8 @@ import {
 } from '#gw2/integrations/logs/evtc/rotation/players.js';
 
 import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
-import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
+import { encounterEndTime, encounterStartTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
+import { deadeyeMarkActions } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
 
 import {
   EVTC_STATE_CHANGE,
@@ -303,9 +304,11 @@ function reconstructWithProfile(
   const combatStartEvent = log.events.find(
     (event) => selectedPlayerEvent(event, agent.address) && event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT
   );
-  // Preserve the recorded combat marker; absent encounter-specific parsing, the recording boundary is the fallback.
+  // Encounter evidence takes precedence over player combat snapshots; retain the generic boundary for other logs.
   const combatStart =
-    options.includeCombatStart === false ? null : (combatStartEvent?.time ?? evtcRecordingWindow(log).start);
+    options.includeCombatStart === false
+      ? null
+      : (encounterStartTime(log) ?? combatStartEvent?.time ?? evtcRecordingWindow(log).start);
   const genericActions = [...castActions, ...weaponSwapActions(log, agent.address)];
   const professionContext = {
     log,
@@ -320,6 +323,7 @@ function reconstructWithProfile(
   // Prefer owned pet animation evidence over duplicate player command markers only for represented pet skills.
   const playerActions = [
     ...genericActions,
+    ...deadeyeMarkActions(professionContext),
     ...eiInstantActions(professionContext),
     ...eiCustomAnimatedActions(professionContext),
     ...eiMesmerPhaseRetreat(professionContext),
@@ -388,7 +392,22 @@ function reconstructWithProfile(
     combatStartTimestampMs: combatStart == null ? null : Math.max(0, combatStart - origin),
     actions,
     rotation: buildRotation(resolved, origin, combatStart),
-    warnings: [...warningList(actions), ...missingInterruptCommitWarnings(professionContext, resolved)]
+    warnings: [
+      ...warningList(actions),
+      ...missingInterruptCommitWarnings(professionContext, resolved),
+      // A Gaze snapshot proves an existing mark, but cannot reconstruct the missing opener or its stored resources.
+      ...(profile.specializationId === 'deadeye' &&
+      log.events.some(
+        (event) =>
+          event.skillId === 46333 &&
+          event.target === agent.address &&
+          event.stateChange === EVTC_STATE_CHANGE.BUFF_INITIAL
+      )
+        ? [
+            "Deadeye's Mark was already active when recording began. Review the missing pre-combat Mark and opener before simulating."
+          ]
+        : [])
+    ]
   };
 }
 

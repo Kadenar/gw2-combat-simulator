@@ -184,6 +184,8 @@ export interface EffectMetadata {
   readonly shatterTraitEligible?: boolean;
   readonly triggeredByAlly?: number;
   readonly venomProcEffectIndex?: number;
+  /** A returned thief axe retains its projectile attribution while the recall owns malice and dual-wield procs. */
+  readonly recallSkillId?: SkillId;
   /** Proc activations represented by this one primary effect, independent of stacks and damage ticks. */
   readonly procCount?: number;
   readonly activeSpirits?: number;

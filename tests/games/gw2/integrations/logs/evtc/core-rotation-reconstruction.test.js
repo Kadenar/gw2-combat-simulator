@@ -9,12 +9,64 @@ import {
 import { applyRotationImportPreview } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { parseEvtc } from '#gw2/integrations/logs/evtc/parser.js';
 import { event, log, expandedEvtcFixture } from '#tests/helpers/evtc-fixture.js';
+import { encounterStartTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 
 const catalog = { skills: [{ id: 1000, name: 'Mind Stab', castTimeMs: 400, type: 'Weapon', effects: [] }] };
 const cast = (start = 0, end = 400) => [
   event({ time: start, stateChange: 67, skillId: 1000, value: end - start }),
   event({ time: end, stateChange: 68, skillId: 1000, value: end - start, activation: 5 })
 ];
+
+// Golem damage starts the observation window, while an aborted auto remains a pre-combat input.
+test('golem combat start follows damage inside a cast instead of the initial player combat snapshot', () => {
+  const target = { ...log().agents[0], address: 0x2000n, profession: 16199, elite: 0xffffffff };
+  const fixture = log({
+    agents: [...log().agents, target],
+    events: [
+      event({ time: 0, stateChange: 47, target: target.address }),
+      event({ time: 0, stateChange: 1 }),
+      ...cast(40, 80).map((e) => (e.stateChange === 68 ? { ...e, activation: 4 } : e)),
+      ...cast(80, 480),
+      event({ time: 280, target: target.address, skillId: 1000, value: 100 })
+    ].sort((a, b) => a.time - b.time)
+  });
+  const out = reconstructEvtcRotation(fixture, catalog);
+  assert.equal(out.combatStartTimestampMs, 240);
+  assert.deepEqual(out.rotation, [
+    { type: 'cast', skillId: 1000, interruptAfterMs: 40 },
+    { type: 'cast', skillId: 1000 },
+    { type: 'combat-start', concurrentOffsetMs: 200 }
+  ]);
+  assert.equal(reconstructEvtcRotation(fixture, catalog, { includeCombatStart: false }).combatStartTimestampMs, null);
+});
+
+test('golem start accepts strike and condition damage from any source but rejects buff and animation payloads', () => {
+  const target = { ...log().agents[0], address: 0x2000n, profession: 16199, elite: 0xffffffff };
+  const setup = [
+    event({ time: 0, stateChange: 47, target: target.address }),
+    event({ time: 20, stateChange: 69, skillId: 46333, source: target.address, value: 30000 }),
+    event({ time: 30, stateChange: 67, target: target.address, value: 400 }),
+    event({ time: 40, target: target.address, skillId: 43390, value: 0 }),
+    event({ time: 50, target: 0x3000n, value: 100 })
+  ];
+  // Stolen skills and trait/Mark damage require no weapon cast to define the encounter boundary.
+  for (const hit of [
+    { skillId: 43373, value: 100 },
+    { skillId: 43390, value: 100 },
+    { skillId: 13014, value: 100 },
+    { skillId: 736, buff: 1, buffDamage: 100 }
+  ]) {
+    const fixture = log({
+      agents: [...log().agents, target],
+      events: [...setup, event({ time: 100, source: 0x4000n, target: target.address, ...hit })]
+    });
+    assert.equal(encounterStartTime(fixture), 100);
+    assert.equal(encounterStartTime({ ...fixture, events: fixture.events.slice(1) }), null);
+    assert.equal(encounterStartTime({ ...fixture, header: { ...fixture.header, encounterId: 123 } }), null);
+  }
+
+  assert.equal(encounterStartTime(log({ agents: [...log().agents, target], events: setup })), null);
+});
 
 // Stow is idle time, including at the end of a log where no later cast can recover its duration.
 test('EVTC weapon stows become waits for Warrior and other professions', () => {

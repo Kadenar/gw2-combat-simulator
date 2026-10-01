@@ -49,9 +49,9 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    // Sample Malice at acceptance; authored boons share their impact with the party.
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Warmth', actorType: 'player' },
+    // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Warmth', actorType: 'player' },
       {
         type: 'buff',
         kind: 'stealth',
@@ -70,12 +70,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
     ],
     // The selected stealth grant commits before consuming the stored use.
-    castTimeMs: 200,
+    castTimeMs: 280,
     cooldown: 0.5,
     initiativeCost: 0,
-    // Sample Malice at acceptance; authored boons share their impact with the party.
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Resistance', actorType: 'player' },
+    // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Resistance', actorType: 'player' },
       {
         type: 'buff',
         kind: 'stealth',
@@ -100,12 +100,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
     ],
     // The selected stealth grant commits before consuming the stored use.
-    castTimeMs: 200,
+    castTimeMs: 280,
     cooldown: 0.5,
     initiativeCost: 0,
-    // Sample Malice at acceptance; authored boons share their impact with the party.
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Precision', actorType: 'player' },
+    // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Precision', actorType: 'player' },
       {
         type: 'buff',
         kind: 'stealth',
@@ -127,9 +127,9 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    // Sample Malice at acceptance; authored boons share their impact with the party.
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Health', actorType: 'player' },
+    // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Health', actorType: 'player' },
       {
         type: 'buff',
         kind: 'stealth',
@@ -147,12 +147,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
     ],
     // The selected stealth grant commits before consuming the stored use.
-    castTimeMs: 200,
+    castTimeMs: 280,
     cooldown: 0.5,
     initiativeCost: 0,
-    // Sample Malice at acceptance; authored boons share their impact with the party.
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Strength', actorType: 'player' },
+    // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Strength', actorType: 'player' },
       {
         type: 'buff',
         kind: 'stealth',
@@ -250,8 +250,8 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     castTimeMs: 280,
     cooldown: 0.5,
     initiativeCost: 0,
-    // Sample Malice at acceptance; authored boons share their impact with the party.
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+    // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1,
@@ -284,12 +284,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
       { on: 'castCommit', do: { type: 'thief.consume-stolen' } }
     ],
     // The selected stealth grant commits before consuming the stored use.
-    castTimeMs: 200,
+    castTimeMs: 280,
     cooldown: 0.5,
     initiativeCost: 0,
-    // Sample Malice at acceptance; authored boons share their impact with the party.
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Durability', actorType: 'player' },
+    // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Durability', actorType: 'player' },
       {
         type: 'buff',
         kind: 'stealth',
@@ -328,9 +328,9 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    // Sample Malice at acceptance; authored boons share their impact with the party.
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Defenses', actorType: 'player' },
+    // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Defenses', actorType: 'player' },
       {
         type: 'buff',
         kind: 'stealth',
@@ -370,9 +370,9 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    // Sample Malice at acceptance; authored boons share their impact with the party.
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Mobility', actorType: 'player' },
+    // Use the PvE stolen-skill coefficient (1.0); the API also lists the competitive 0.5 split.
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 1, hits: 1, name: 'Steal Mobility', actorType: 'player' },
       {
         type: 'buff',
         kind: 'stealth',
@@ -522,6 +522,9 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   },
   [ID.MALICIOUS_BACKSTAB]: {
     castTimeMs: 440,
+    // Once the stab commits, preserve its strike and the remaining cast lockout after interruption.
+    interruptCommitMs: 360,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 1,
     initiativeCost: 0,
     effects: [
@@ -530,6 +533,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         ticks: [{ atMs: 0, coefficient: 1.5 }],
         name: 'Front damage',
         actorType: 'player',
+        persistsAfterInterrupt: true,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       }
@@ -642,30 +646,48 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.MALICIOUS_CUNNING_SALVO]: {
+    // A committed axe preserves its impact and the remaining cast lockout after interruption.
+    interruptCommitMs: 400,
+    retainsCastLockoutAfterInterrupt: true,
+    // The stealth attack's one-second reuse lockout is independent of Alacrity.
+    rechargeIgnoresAlacrity: true,
     // Transform the selected base packet so coefficient and duration patches remain authoritative.
     effectVariants: [
       {
         when: () => true,
         transform: (_runtime, cast, effects) => {
           const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
-          const scaled = (duration: unknown) => Number(duration || 0) + malice;
+          // Without consumed malice the outgoing axe has no poison application; recall uses the base packet.
+          if (malice === 0)
+            return effects.filter((effect) => effect.type !== 'condition' || effect.condition !== 'Poisoned');
+          const scaled = (duration: unknown) => Number(duration || 0) * malice;
           return mapPoisonDurations(effects, scaled);
         }
       }
     ],
 
-    castTimeMs: 360,
+    castTimeMs: 440,
     cooldown: 1,
     initiativeCost: 0,
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         // Each accepted axe packet contributes one expiring ground axe.
-        reactions: [{ on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'thief.ground-axe' } }],
+        reactions: [
+          { on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'thief.ground-axe' } },
+          // Refund on impact so misses and cancelled casts grant nothing.
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            do: { type: 'resourceGrant', resource: 'initiative', amount: 2 }
+          }
+        ],
         coefficient: 1.5,
         hits: 1,
         name: 'Malicious Cunning Salvo',
-        actorType: 'player'
+        actorType: 'player',
+        comboFinishers: [{ ownerId: 'thief', finisherType: 'Blast', ambiguousFieldSelection: 'oldest' }]
       },
       {
         type: 'condition',

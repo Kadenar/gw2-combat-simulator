@@ -98,7 +98,10 @@ const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity) => {
 
   if (selected.id === ID.MALICIOUS_TACTICAL_STRIKE)
     description += ' Its first marked hit also restores endurance in proportion to consumed malice.';
-  if (selected.id === ID.MALICIOUS_CUNNING_SALVO || selected.id === ID.MALICIOUS_SHADOWSQUALL)
+  if (selected.id === ID.MALICIOUS_CUNNING_SALVO)
+    description +=
+      ' Outgoing poison lasts one second per consumed malice; recalled poison uses the base duration without consuming malice.';
+  if (selected.id === ID.MALICIOUS_SHADOWSQUALL)
     description += " Malice extends this attack's poison duration; the values below are before malice scaling.";
   if (selected.id === ID.CUNNING_SALVO || selected.id === ID.MALICIOUS_CUNNING_SALVO)
     description += ' Its landed axe enters the shared ground-axe pool.';
@@ -709,13 +712,13 @@ export const thiefTooltips: ProfessionTooltips = {
       ]
     ),
     [ID.HARROWING_STORM]: skillTooltip(
-      'Recall and consume the shared ground-axe pool when the cast completes. Apply the authored recall packets.'
+      'Shadowstep and recall live axes, repeating their damage and conditions with two seconds of Torment per axe. Five returning hits immobilize once for 1.5 seconds.'
     ),
     [ID.ORCHESTRATED_ASSAULT]: skillTooltip(
-      'Recall and consume the shared ground-axe pool when the cast completes. Apply the authored recall packets.'
+      "Recall live axes with 33% increased strike damage and one second of Weakness per axe. Reapply each axe's conditions. Five returning hits immobilize once for 1.5 seconds."
     ),
     [ID.RECALL_AXES]: skillTooltip(
-      'Recall and consume the shared ground-axe pool when the cast completes. Apply the authored recall packets.'
+      "Recall live axes with 33% increased strike damage and one second of Weakness per axe. Reapply each axe's conditions. Five returning hits immobilize once for 1.5 seconds."
     ),
     [ID.SPINNING_AXE]: skillTooltip(
       'Throw an axe. Landed axes remain in the shared ground-axe pool until recalled or expired.'

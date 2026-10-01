@@ -3,39 +3,33 @@ import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-// Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
-// Share each impact's timing while preserving effect order and effect-local payloads.
+// Cast-end impacts follow the authored cast duration while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.VENOMOUS_VOLLEY]: {
-    castTimeMs: 520,
+    castTimeMs: 600,
+    // Committed projectiles survive interruption while the next input can start immediately.
+    interruptCommitMs: 560,
     cooldown: 0,
     initiativeCost: 3,
-    effects: [
+    // The fan lands three projectiles, each carrying one third of the total strike and its own poison.
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        // Each accepted axe packet contributes one expiring ground axe.
         reactions: [{ on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'thief.ground-axe' } }],
-        ticks: [160, 360, 520].map((atMs) => ({
-          atMs,
-          coefficient: 3.6 / 3
-        })),
+        coefficient: 1.2,
+        hits: 3,
         name: 'Venomous Volley',
         actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        comboFinishers: [
+          { ownerId: 'thief', finisherType: 'Projectile', chance: 0.2, ambiguousFieldSelection: 'oldest' }
+        ]
       },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
+      { type: 'condition', condition: 'Poisoned', stacks: 3, duration: 2, actorType: 'player' }
+    ])
   },
   [ID.SPINNING_AXE]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 360,
+    castTimeMs: 440,
     cooldown: 0,
     initiativeCost: 0,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
@@ -58,20 +52,15 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ])
   },
   [ID.HARROWING_STORM]: {
+    shadowstepSkill: true,
+    movementSkill: true,
     // The skill owns this transition at successful commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.recall-axes' } }],
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 4,
-    effects: [
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Torment', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ],
+    // Return packets depend on the live axe pool and are emitted by the recall owner.
+    effects: [],
     requiredMainHand: 'Axe',
     requiredOffHand: 'Dagger'
   },
@@ -81,39 +70,28 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 4,
-    effects: [
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Weakness', stacks: 1, duration: 1 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ],
+    // Return packets depend on the live axe pool and are emitted by the recall owner.
+    effects: [],
     requiredMainHand: 'Axe',
     requiredOffHand: false
   },
   [ID.ORCHESTRATED_ASSAULT]: {
     // The skill owns this transition at successful commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.recall-axes' } }],
-    castTimeMs: 360,
+    castTimeMs: 560,
+    // A committed recall survives interruption and keeps its remaining cast lockout.
+    interruptCommitMs: 520,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 0,
     initiativeCost: 4,
-    effects: [
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Weakness', stacks: 1, duration: 1 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ],
+    // Return packets depend on the live axe pool and are emitted by the recall owner.
+    effects: [],
     requiredMainHand: 'Axe',
     requiredOffHand: 'Pistol'
   },
   [ID.SPINNING_AXE_ID_71967]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 360,
+    castTimeMs: 440,
     cooldown: 0,
     initiativeCost: 0,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
@@ -138,12 +116,23 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
   [ID.CUNNING_SALVO]: {
     castTimeMs: 360,
     cooldown: 1,
+    // The stealth attack's one-second reuse lockout is independent of Alacrity.
+    rechargeIgnoresAlacrity: true,
     initiativeCost: 0,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         // Each accepted axe packet contributes one expiring ground axe.
-        reactions: [{ on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'thief.ground-axe' } }],
+        reactions: [
+          { on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'thief.ground-axe' } },
+          // Salvo refunds initiative only on a landed hit, including a returned axe.
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            do: { type: 'resourceGrant', resource: 'initiative', amount: 2 }
+          }
+        ],
         coefficient: 1.5,
         hits: 1,
         name: 'Cunning Salvo',

@@ -16,27 +16,40 @@ import { WARRIOR_SKILL_IDS, WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/d
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 
 test('axe materialization replaces the oldest grant without mutating earlier state or snapshots', () => {
-  const prior = Object.freeze([1, 30, 31, 32, 33, 34, 35]);
+  const prior = Object.freeze([1, 30, 31, 32, 33, 34, 35].map((expiresAt) => ({ skillId: 71854, expiresAt })));
   let snapshot;
   const result = runThief(
     [{ type: 'wait', durationMs: 1000 }],
     { primaryWeapon: 'Axe' },
     {
       initialize(runtime) {
-        runtime.profession.core.spinningAxeExpirations = prior;
+        runtime.profession.core.spinningAxes = prior;
         snapshot = snapshotProfessionState(runtime.profession);
       },
       // Exercise the resource owner directly; authored strike reactions now select eligible grants.
-      probes: [[1, grantThiefGroundAxe]]
+      probes: [
+        [
+          1,
+          (runtime) =>
+            grantThiefGroundAxe(runtime, {
+              kind: 'effect',
+              skill: thiefCatalog.skillsByName.get('Spinning Axe'),
+              trigger: { on: 'damage.resolved' }
+            })
+        ]
+      ]
     }
   );
-  assert.deepEqual(observedRuntime(result).profession.core.spinningAxeExpirations, [31, 32, 33, 34, 35, 11]);
-  assert.deepEqual(snapshot.spinningAxeExpirations, prior);
+  assert.deepEqual(
+    observedRuntime(result).profession.core.spinningAxes,
+    [31, 32, 33, 34, 35, 11].map((expiresAt) => ({ skillId: 71854, expiresAt }))
+  );
+  assert.deepEqual(snapshot.spinningAxes, prior);
 
   // A cast cancelled before its commit point never lands a strike, so it cannot grant axes.
   const cancelled = runThief([{ name: 'Spinning Axe', interruptMs: 1 }], { primaryWeapon: 'Axe' });
   assert.deepEqual(cancelled.warnings, []);
-  assert.deepEqual(observedRuntime(cancelled).profession.core.spinningAxeExpirations, []);
+  assert.deepEqual(observedRuntime(cancelled).profession.core.spinningAxes, []);
 });
 
 test('Holo-Dancer commits spend grant order even when the newest charge expires first', () => {

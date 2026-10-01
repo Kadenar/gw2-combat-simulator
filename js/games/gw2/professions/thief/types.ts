@@ -29,6 +29,7 @@ export interface ThiefBuild extends Gw2Build {
 export interface ThiefCanonicalBuild extends Gw2CanonicalBuild {
   selectedDodge: ThiefDodge;
   initialInitiative: number;
+  initialSpinningAxes: number;
   initialShadowForce: number;
 }
 
@@ -41,6 +42,7 @@ export interface ThiefConfig extends Gw2Config {
   readonly professionAssumptions?: ProfessionBuildAssumptions;
   readonly selectedDodge?: ThiefDodge;
   readonly initialInitiative?: number;
+  readonly initialSpinningAxes?: number;
   readonly initialShadowForce?: number;
   readonly deterministicChoices?: ThiefDeterministicChoices;
 }

@@ -98,8 +98,11 @@ Ranger/Reaper spawn detection, Engineer kit swaps and Chronomancer shatter check
 this is not a complete EI parity certification. Extension healing/barrier and unported custom predicates are omitted; no
 generic catalog or damage guess replaces them. Mechanist summon/recall skills are intentionally outside simulator scope.
 Time-aware ownership changes and reused instance IDs are conservatively rejected. ArcDPS encoding selection currently
-uses the header build, and encounter start/end use the documented adapter boundaries rather than EI encounter-specific
-logic.
+uses the header build. Training golems with `LogNPCUpdate` use the target's first nonzero damage for combat start,
+following the pinned EI
+[Golem.GetLogOffset](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/LogLogic/Golem/Golem.cs#L183).
+Without target damage, the existing player/recording boundary remains the fallback. Other encounter start/end boundaries
+remain the documented adapter heuristics rather than full EI encounter-specific logic.
 
 Pet-command inference retains the pinned EI behavior: some species have multiple skill registrations for the same
 command buff. For example,
@@ -234,6 +237,37 @@ receive this notice.
 
 Application entry points are `js/games/gw2/app/import-export/logs/evtc-rotation-import.ts`,
 `dps-report-rotation-import.ts`, and `rotation-import-dialog.ts`.
+
+## Axe Deadeye preset investigation: 20260731-110141
+
+The supplied `thief-build.json` and `thief-rotation (1).json` form the first Deadeye manifest preset, Power (Axe /
+Pistol + Dagger / Pistol). The saved rotation restores six Shadow Swap activations observed in EVTC damage events but
+absent from both the supplied rotation and EI's cast list. Their placement uses damage timestamps relative to each
+Shadow Flare, rounded to the simulator's 40 ms input grid. This is a correction to the saved preset, not an additional
+inference rule for fresh imports.
+
+The [report](https://dps.report/zels-20260731-110141_golem) records 4,003,922 damage over 90.773 seconds, or 44,109 DPS.
+The original supplied setup simulated at 40,825 DPS. Two confirmed discrepancies explain most of that difference:
+
+- Eight stolen skills used the competitive 0.5 coefficient instead of the PvE 1.0 coefficient. Steal Time already used
+  1.0. The
+  [official skill API](https://api.guildwars2.com/v2/skills?ids=39960,40133,40888,40903,40904,42863,43373,43768,44526)
+  includes both mode values; One in the Chamber separately multiplies the PvE coefficient by 1.25. Correcting the base
+  coefficients raises the simulation to 42,785 DPS.
+- Restoring the six Shadow Swaps raises it to 43,683 DPS, with 3,978,640 damage over 91.080 seconds and no simulation
+  warnings. The remaining gap is 426 DPS (0.97%): 25,282 less damage and a 0.307-second longer observation window.
+
+The axe-return discrepancy remains unresolved. Relative to combat start, the second Orchestrated Assault starts at 3.116
+seconds, followed by a Malicious Cunning Salvo hit at 3.640, three Volley hits at 4.039, and three more at 4.083. The
+outgoing Salvo already hit at 2.957. The next Volley starts at 3.957; the two three-hit groups arrive before its normal
+outgoing hit timing. This supports seven return hits, but does not prove seven simultaneously stored axes. The axe
+counter shows six stacks.
+
+A diagnostic allowing six ordinary axes plus one Salvo produces all 63 observed Volley returns and 44,176 DPS. Matching
+aggregate damage does not establish that storage rule. At the user's request, the implementation retains six axes total
+across all types; the diagnostic rule is not shipped. The preset remains marked `upToDate: false` while the return
+behavior and remaining timing gap need reconciliation. Do not change the cap or tune coefficients merely to match this
+benchmark.
 
 ## Pinned EI references
 

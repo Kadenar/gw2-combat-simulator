@@ -123,7 +123,10 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || typeof event.activationId !== 'string')
     return;
   if (event.offTarget === true || !marked(runtime)) return;
-  const skill = runtime.helpers.skillsById.get(Number(event.skillId ?? event.sourceId));
+  // A returned axe belongs to the recall activation; it must never consume malice as a new stealth attack.
+  const skill = runtime.helpers.skillsById.get(
+    Number(event.metadata?.recallSkillId ?? event.skillId ?? event.sourceId)
+  );
   if (!skill) return;
   const initiativeAttack = skill.type === 'Weapon' && Number(skill.initiativeCost || 0) > 0 && !skill.stealthAttack;
   if (!skill.malicious && !initiativeAttack) return;

@@ -54,6 +54,7 @@ import {
   expireThievesGuild,
   grantDistractingThrowWindow,
   grantThiefGroundAxe,
+  recallThiefAxes,
   prepareTrap,
   startThievesGuild,
   summonThievesGuild,
@@ -170,9 +171,7 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     'thief.assassins-signet': activateAssassinsSignet,
     'thief.kneel': (runtime) => setThiefKneeling(runtime, true),
     'thief.stand': (runtime) => setThiefKneeling(runtime, false),
-    'thief.recall-axes': (runtime) => {
-      runtime.profession.core.spinningAxeExpirations = [];
-    },
+    'thief.recall-axes': recallThiefAxes,
     'thief.spear-chain': (runtime, context) => updateSpearChain(runtime, context.skill),
     'thief.consume-stolen': (runtime, context) => consumeThiefStolenSkill(runtime, context.skill),
     'thief.steal'(runtime, context) {

@@ -1,0 +1,293 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { runThief } from '#tests/helpers/thief-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { createThiefBuildDefaults, validateThiefBuild } from '#gw2/professions/thief/build/build.js';
+import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
+import { resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
+import { thiefCatalog } from '#gw2/professions/thief/profession.js';
+
+const axeConfig = { primaryWeapon: 'Axe', secondaryWeapon: 'Pistol' };
+const returned = (result, type) =>
+  result.events.filter((event) => event.type === type && event.metadata?.recallSkillId);
+
+// Interrupting a committed projectile must preserve its pool/refund reactions; early cancellation must leave no axe.
+test('committed axe throws and recalls preserve their state transitions after interruption', () => {
+  for (const skillId of [ID.VENOMOUS_VOLLEY, ID.MALICIOUS_CUNNING_SALVO, ID.ORCHESTRATED_ASSAULT]) {
+    const skill = thiefCatalog.skillsById.get(skillId);
+    for (const committed of [false, true]) {
+      const recall = skillId === ID.ORCHESTRATED_ASSAULT;
+      const result = runThief(
+        [
+          { skillId, interruptAfterMs: committed ? skill.interruptCommitMs : 40 },
+          { type: 'wait', durationMs: 1000 }
+        ],
+        { ...axeConfig, specialization: 'Deadeye', initialSpinningAxes: recall ? 2 : 0 },
+        {
+          initialize(runtime) {
+            runtime.profession.core.stealthUntil = 10;
+          }
+        }
+      );
+      assert.deepEqual(result.warnings, []);
+      const impacts = result.events.filter((event) => event.type === 'damage');
+      assert.equal(impacts.length, committed ? (recall ? 2 : skillId === ID.VENOMOUS_VOLLEY ? 3 : 1) : 0);
+      assert.equal(
+        observedRuntime(result).profession.core.spinningAxes.length,
+        recall ? (committed ? 0 : 2) : impacts.length
+      );
+      assert.equal(
+        result.events.some((event) => event.type === 'condition'),
+        committed
+      );
+    }
+  }
+});
+
+// Saved starting axes must reach both the starting-resource control and the first recall without casting an opener.
+test('precast autoattack axes survive build loading and initialize a recallable pool', () => {
+  const saved = {
+    ...createThiefBuildDefaults(),
+    weapons: ['Axe', 'Pistol'],
+    initialSpinningAxes: 4,
+    initialInitiative: 7
+  };
+  assert.equal(validateThiefBuild(saved).valid, true);
+  const build = thiefAppAdapter.toApplicationBuild(JSON.parse(JSON.stringify(saved)));
+  const profession = thiefAppAdapter.profession;
+  const app = {
+    build,
+    adapter: thiefAppAdapter,
+    profession,
+    skillByName: profession.catalog.skillsByName,
+    skillById: profession.catalog.skillsById,
+    attributeWeaponSet: 1
+  };
+  thiefAppAdapter.recalculate(app);
+  const config = thiefAppAdapter.simulationConfig(app);
+  assert.equal(config.initialSpinningAxes, 4);
+  const initial = runThief([], config);
+  const core = observedRuntime(initial).profession.core;
+  assert.equal(core.initiative.value, 7);
+  assert.deepEqual(core.spinningAxes, Array(4).fill({ skillId: ID.SPINNING_AXE, expiresAt: 10 }));
+  assert.equal(initial.events.filter((event) => event.type === 'damage').length, 0);
+  const control = resourceDisplayViews(profession, {
+    build,
+    config,
+    professionState: initial.planningState.profession
+  }).find((view) => view.id === 'spinning-axes');
+  assert.equal(control.buildKey, 'initialSpinningAxes');
+  assert.equal(control.maximum, 6);
+  assert.equal(control.canStart, true);
+  assert.equal(control.value, 4);
+
+  const recalled = runThief(['Orchestrated Assault'], config);
+  assert.deepEqual(recalled.warnings, []);
+  assert.equal(returned(recalled, 'damage').length, 4);
+  assert.deepEqual(observedRuntime(recalled).profession.core.spinningAxes, []);
+  const expired = runThief([{ type: 'wait', durationMs: 10000 }, 'Orchestrated Assault'], config);
+  assert.equal(returned(expired, 'damage').length, 0);
+});
+
+test('starting axes default to zero and accept only whole counts within the shared cap', () => {
+  const defaults = createThiefBuildDefaults();
+  assert.equal(defaults.initialSpinningAxes, 0);
+  for (const initialSpinningAxes of [-1, 1.5, 7]) {
+    assert.equal(validateThiefBuild({ ...defaults, initialSpinningAxes }).valid, false);
+  }
+
+  for (const [initialSpinningAxes, count] of [
+    [undefined, 0],
+    [-1, 0],
+    [2.9, 2],
+    [99, 6],
+    [NaN, 0]
+  ]) {
+    const result = runThief([], { ...axeConfig, initialSpinningAxes });
+    assert.equal(observedRuntime(result).profession.core.spinningAxes.length, count);
+  }
+});
+
+// Replacement is shared across axe types and never refreshes a protected axe's lifetime.
+test('the shared six-axe pool protects Salvo and Volley axes from lower-priority throws', () => {
+  for (const [specialization, salvo] of [
+    ['Core', ID.CUNNING_SALVO],
+    ['Deadeye', ID.MALICIOUS_CUNNING_SALVO]
+  ]) {
+    const protectedIds = [salvo, ID.VENOMOUS_VOLLEY, salvo, ID.VENOMOUS_VOLLEY, salvo, ID.VENOMOUS_VOLLEY];
+    const mixedIds = [salvo, ID.VENOMOUS_VOLLEY, ID.SPINNING_AXE, ID.SPINNING_AXE_ID_71967, salvo, ID.VENOMOUS_VOLLEY];
+    for (const [skillId, poolIds, retainedIndices, added] of [
+      [ID.SPINNING_AXE, protectedIds, [0, 1, 2, 3, 4, 5], 0],
+      [ID.SPINNING_AXE_ID_71967, protectedIds, [0, 1, 2, 3, 4, 5], 0],
+      [ID.SPINNING_AXE, mixedIds, [0, 1, 3, 4, 5], 1],
+      [ID.SPINNING_AXE_ID_71967, mixedIds, [0, 1, 3, 4, 5], 1],
+      [ID.VENOMOUS_VOLLEY, mixedIds, [0, 4, 5], 3],
+      [ID.VENOMOUS_VOLLEY, protectedIds, [0, 2, 4], 3],
+      [ID.VENOMOUS_VOLLEY, Array(6).fill(salvo), [0, 1, 2, 3, 4, 5], 0],
+      [ID.VENOMOUS_VOLLEY, [...Array(5).fill(salvo), ID.SPINNING_AXE], [0, 1, 2, 3, 4], 1],
+      [salvo, protectedIds, [1, 2, 3, 4, 5], 1],
+      [salvo, protectedIds.toReversed(), [1, 2, 3, 4, 5], 1],
+      [salvo, Array(6).fill(ID.SPINNING_AXE), [1, 2, 3, 4, 5], 1]
+    ]) {
+      const prior = Object.freeze(poolIds.map((id, index) => Object.freeze({ skillId: id, expiresAt: 10 + index })));
+      const result = runThief(
+        [skillId],
+        { ...axeConfig, specialization },
+        {
+          initialize(runtime) {
+            runtime.profession.core.spinningAxes = prior;
+            if (skillId === salvo) runtime.profession.core.stealthUntil = 10;
+          }
+        }
+      );
+      assert.deepEqual(result.warnings, []);
+      const runtime = observedRuntime(result);
+      assert.deepEqual(runtime.profession.core.spinningAxes, [
+        ...retainedIndices.map((index) => prior[index]),
+        ...Array.from({ length: added }, () => ({ skillId, expiresAt: runtime.time + 10 }))
+      ]);
+      assert.equal(prior.length, 6);
+    }
+  }
+});
+
+test('an expired protected axe frees a slot for an autoattack before replacement is considered', () => {
+  const result = runThief([ID.SPINNING_AXE], axeConfig, {
+    initialize(runtime) {
+      runtime.profession.core.spinningAxes = Array.from({ length: 6 }, (_, index) => ({
+        skillId: ID.VENOMOUS_VOLLEY,
+        expiresAt: index === 0 ? 0 : 10
+      }));
+    }
+  });
+  assert.deepEqual(result.warnings, []);
+  const axes = observedRuntime(result).profession.core.spinningAxes;
+  assert.equal(axes.length, 6);
+  assert.equal(axes.at(-1).skillId, ID.SPINNING_AXE);
+});
+
+// Small scenarios verify projectile formulas and live pool transitions independently of the supplied benchmark.
+test('Volley divides its coefficient across three poisonous axes and recall repeats each projectile once', () => {
+  const result = runThief(['Venomous Volley', 'Orchestrated Assault'], axeConfig);
+  assert.deepEqual(result.warnings, []);
+  const outgoing = result.events.filter((event) => event.type === 'damage' && !event.metadata?.recallSkillId);
+  assert.equal(outgoing.length, 3);
+  assert.ok(outgoing.every((event) => Math.abs(event.coefficient - 0.4) < 1e-12));
+  assert.equal(returned(result, 'damage').length, 3);
+  assert.ok(returned(result, 'damage').every((event) => Math.abs(event.coefficient - 0.4 * 1.33) < 1e-12));
+  assert.deepEqual(
+    returned(result, 'condition').map(({ condition, stacks, duration }) => [condition, stacks, duration]),
+    Array(3).fill(['Poisoned', 1, 2])
+  );
+  assert.deepEqual(observedRuntime(result).profession.core.spinningAxes, []);
+  assert.equal(result.events.filter((event) => event.type === 'condition' && event.condition === 'Weakness').length, 3);
+});
+
+test('recall excludes expired axes, preserves axe identity, and immobilizes once after five returns', () => {
+  for (const [secondaryWeapon, recall, multiplier, extraCondition] of [
+    ['Pistol', 'Orchestrated Assault', 1.33, 'Weakness'],
+    ['', 'Recall Axes', 1.33, 'Weakness'],
+    ['Dagger', 'Harrowing Storm', 1, 'Torment']
+  ]) {
+    const result = runThief(
+      [recall],
+      { ...axeConfig, secondaryWeapon },
+      {
+        initialize(runtime) {
+          runtime.profession.core.spinningAxes = [
+            { skillId: ID.MALICIOUS_CUNNING_SALVO, expiresAt: 0 },
+            ...Array.from({ length: 6 }, () => ({ skillId: ID.SPINNING_AXE, expiresAt: 10 }))
+          ];
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(returned(result, 'damage').length, 6);
+    assert.ok(returned(result, 'damage').every((event) => Math.abs(event.coefficient - 0.8 * multiplier) < 1e-12));
+    assert.equal(
+      result.events.filter((event) => event.type === 'condition' && event.condition === extraCondition).length,
+      6
+    );
+    assert.equal(
+      result.events.filter((event) => event.type === 'condition' && event.condition === 'Immobilized').length,
+      1
+    );
+  }
+
+  const empty = runThief(['Orchestrated Assault'], axeConfig);
+  assert.equal(empty.events.filter((event) => ['damage', 'condition'].includes(event.type)).length, 0);
+});
+
+test('Salvo refunds on impact and recalled malicious axes use base poison without consuming malice', () => {
+  for (const [specialization, skillId] of [
+    ['Core', ID.CUNNING_SALVO],
+    ['Deadeye', ID.MALICIOUS_CUNNING_SALVO]
+  ]) {
+    const result = runThief(
+      [skillId],
+      { ...axeConfig, specialization, initialInitiative: 0, boons: { alacrity: true } },
+      {
+        initialize(runtime) {
+          runtime.profession.core.stealthUntil = 10;
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.ok(observedRuntime(result).resourceController.value('initiative') >= 2);
+    const runtime = observedRuntime(result);
+    assert.ok(Math.abs(runtime.cooldowns.get(skillId) - runtime.time - 1) < 1e-9);
+    const miss = runThief(
+      [{ skillId, offTarget: true }],
+      { ...axeConfig, specialization, initialInitiative: 0 },
+      {
+        initialize(runtime) {
+          runtime.profession.core.stealthUntil = 10;
+        }
+      }
+    );
+    assert.deepEqual(miss.warnings, []);
+    assert.ok(observedRuntime(miss).resourceController.value('initiative') < 2);
+  }
+
+  const result = runThief(
+    ['Orchestrated Assault'],
+    { ...axeConfig, specialization: 'Deadeye', initialInitiative: 4 },
+    {
+      initialize(runtime) {
+        runtime.profession.core.spinningAxes = [{ skillId: ID.MALICIOUS_CUNNING_SALVO, expiresAt: 10 }];
+        Object.assign(runtime.profession.specialization.state, {
+          markedTargetId: 'primary-target',
+          markExpiresAt: 30,
+          malice: 4
+        });
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(returned(result, 'condition').find((event) => event.condition === 'Poisoned').duration, 1);
+  assert.equal(observedRuntime(result).profession.specialization.state.malice, 5);
+  assert.ok(observedRuntime(result).resourceController.value('initiative') >= 2);
+});
+
+test('outgoing malicious poison lasts exactly the consumed malice and is absent without a mark', () => {
+  for (const marked of [false, true]) {
+    const result = runThief(
+      [ID.MALICIOUS_CUNNING_SALVO],
+      { ...axeConfig, specialization: 'Deadeye' },
+      {
+        initialize(runtime) {
+          runtime.profession.core.stealthUntil = 10;
+          Object.assign(runtime.profession.specialization.state, {
+            markedTargetId: marked ? 'primary-target' : null,
+            markExpiresAt: 30,
+            malice: 4
+          });
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const poison = result.events.find((event) => event.type === 'condition' && event.condition === 'Poisoned');
+    assert.equal(poison?.duration, marked ? 4 : undefined);
+  }
+});
