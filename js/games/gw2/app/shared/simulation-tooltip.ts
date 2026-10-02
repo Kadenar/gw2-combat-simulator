@@ -92,7 +92,21 @@ effectNames.set('razorclaws-rage', "Razorclaw's Rage");
 effectNames.set('battle-scars', 'Battle Scars');
 effectNames.set('peak-performance', 'Peak Performance');
 effectNames.set('berserkers-power', "Berserker's Power");
+// Cartridge buff IDs resolve to their skill-icon entries for both charge tiers.
+effectNames.set('overcharged-cartridges', 'Overcharged Cartridges');
+effectNames.set('supercharged-cartridges', 'Supercharged Cartridges');
 effectNames.set('fresh-air', 'Fresh Air');
+// Match named buff IDs to their display names so generated facts keep the granting skill or trait icon.
+effectNames.set('fierce-as-fire', 'Fierce as Fire');
+effectNames.set('signet-mastery', 'Signet Mastery');
+effectNames.set('ashes-of-the-just', 'Ashes of the Just');
+effectNames.set('lethal-tempo', 'Lethal Tempo');
+effectNames.set('enchanted-daggers', 'Enchanted Daggers');
+effectNames.set('burst-of-strength', 'Burst of Strength');
+effectNames.set('explosive-temper', 'Explosive Temper');
+effectNames.set('twice-as-vicious', 'Twice as Vicious');
+effectNames.set('relentless-fire', 'Relentless Fire');
+effectNames.set('shattering-ice', 'Shattering Ice');
 // All ordinary descriptions use the same locale, so reuse its formatter across skills.
 const effectListFormat = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' });
 

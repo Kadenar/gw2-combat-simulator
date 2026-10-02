@@ -51,6 +51,18 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Energy cost': 'https://assets.gw2dat.com/156647.png',
   'Crushing Abyss': 'https://render.guildwars2.com/file/632F757C2309C12BCFE99FCCE4BB761FA59AECEE/3379187.png',
   'Battle Scars': 'https://render.guildwars2.com/file/12FFBBD82F3BB8C057E95AB7E907AD3EACFDF221/2261517.png',
+  // Named profession buffs use their granting skill or trait icons in tooltip line items.
+  Berserk: 'https://render.guildwars2.com/file/1354D8FC07F9F859DC7F0E7B61C0724FD4927C4E/1058638.png',
+  'Fierce as Fire': 'https://render.guildwars2.com/file/630362D11956CB69199DE9CE0EEA03232DC9DA38/2491547.png',
+  'Signet Mastery': 'https://render.guildwars2.com/file/3D117C0158CD7A55BE740D6B072807A3121C90A1/1012775.png',
+  'Ashes of the Just': 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Epilogue-%20Ashes%20of%20the%20Just.png',
+  'Lethal Tempo': 'https://render.guildwars2.com/file/08351965141B6F3013600B3B9CC7F880DEFF05D4/2479325.png',
+  'Enchanted Daggers': 'https://render.guildwars2.com/file/A01907F923B160E6261174BEF5975D070D4D6511/1012989.png',
+  'Burst of Strength': 'https://render.guildwars2.com/file/91F9252B1F3C71C934B75502B8DD070A064115D8/1013008.png',
+  'Explosive Temper': 'https://render.guildwars2.com/file/273E26303F072C3EEEF0DA25D5ACC1E59AECACF6/2261504.png',
+  'Twice as Vicious': 'https://render.guildwars2.com/file/42AE5234142F3045D5B665EC60D6E3FF7C564D62/1769986.png',
+  'Relentless Fire': 'https://render.guildwars2.com/file/31372EE16EAB80BDB213EB99D1BF4C6C3B67B6AF/2491601.png',
+  'Shattering Ice': 'https://render.guildwars2.com/file/A1C20E2CE05D80B5A9DDF47ED0780301FC2C7477/2491603.png',
   // Fervor facts use the effect's icon wherever its stack duration is displayed.
   "Kalla's Fervor": 'https://render.guildwars2.com/file/4DDE151C71EDB6120E3454036C4C3504EADB02D8/1770161.png',
   // Razorclaw's party buff shares its originating skill's icon in both base and enhanced tooltips.
@@ -67,6 +79,9 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   // Temporary Warrior damage buffs use their granting traits' icons in tooltip facts.
   'Peak Performance': 'https://render.guildwars2.com/file/08F60C11F460F3236DE65A445337290B7AAED96F/1012812.png',
   "Berserker's Power": 'https://render.guildwars2.com/file/A795EE78B8DAA836F3C0650CFC037BB71D3517BA/1012816.png',
+  // Both cartridge buff tiers use their granting skill's icon in tooltip line items.
+  'Overcharged Cartridges': 'https://render.guildwars2.com/file/EF1D6D09A1B403972F721F1A073154E2F01CD0A5/2491652.png',
+  'Supercharged Cartridges': 'https://render.guildwars2.com/file/EF1D6D09A1B403972F721F1A073154E2F01CD0A5/2491652.png',
   // Additional poison stacks granted by Potent Poison use the granting trait's icon.
   'Potent Poison': 'https://render.guildwars2.com/file/2678F1C70CB07E090FC7F4ACCCDCA9750AA0040F/1012744.png',
   // Control facts use the game's distinct disable glyphs; unspecified controls use the defiance glyph.
