@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import assert from 'node:assert/strict';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
@@ -318,7 +319,9 @@ test('Impossible Odds follows Shackles damage while its upkeep is active', () =>
       relic: 'Shackles'
     }
   );
-  const shackles = result.events.find((event) => event.type === 'damage' && event.sourceId === 'relic.shackles');
+  const shackles = result.events.find(
+    (event) => event.type === 'damage' && event.sourceId === `relic.${RELIC_IDS.SHACKLES}`
+  );
   const followups = result.events.filter(
     (event) =>
       event.type === 'damage' && event.skillName === 'Impossible Odds' && event.triggeredBy === shackles?.skillName

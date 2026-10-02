@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Shackles relic rules. */
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
@@ -25,7 +26,7 @@ export const shackles = defineRelic({
       sourceSkill: application.skillName,
       detail: 'tethered',
       source: 'Relic',
-      sourceId: 'relic.shackles',
+      sourceId: `relic.${RELIC_IDS.SHACKLES}`,
       actorType: 'effect'
     });
     ctx.emitDerived(application, {
@@ -38,7 +39,7 @@ export const shackles = defineRelic({
       hitIndex: 1,
       totalHits: 1,
       source: 'Relic',
-      sourceId: 'relic.shackles',
+      sourceId: `relic.${RELIC_IDS.SHACKLES}`,
       actorType: 'effect',
       ownerActorType: 'player',
       skillWeapon: 'Unequipped',
@@ -52,14 +53,14 @@ export const shackles = defineRelic({
       skillName: 'Relic of the Shackles',
       controlKind: 'stun',
       source: 'Relic',
-      sourceId: 'relic.shackles',
+      sourceId: `relic.${RELIC_IDS.SHACKLES}`,
       actorType: 'effect',
       triggeredBy: application.skillName
     });
   },
   damageResolved(ctx, _state, event) {
     // The relic emits exactly one damage packet under its source ID, so the ID alone identifies it.
-    if (event.type !== 'damage' || event.sourceId !== 'relic.shackles') return;
+    if (event.type !== 'damage' || event.sourceId !== `relic.${RELIC_IDS.SHACKLES}`) return;
 
     ctx.recordProc('relic', 'Relic of the Shackles', event.at, event.triggeredBy, 'damage');
   }

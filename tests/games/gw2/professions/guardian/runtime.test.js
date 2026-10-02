@@ -1,3 +1,4 @@
+import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
@@ -324,7 +325,7 @@ test('Willbender counts accepted player and Air impacts through the inclusive vi
       strike(runtime, 0.2, { offTarget: true });
       strike(runtime, 0.3, { actorType: 'summon' });
       strike(runtime, 0.4, { actorType: 'effect', sourceId: 'sigil.fire' });
-      strike(runtime, 1, { actorType: 'effect', sourceId: 'sigil.air' });
+      strike(runtime, 1, { actorType: 'effect', sourceId: `sigil.${SIGIL_IDS.AIR}` });
       strike(runtime, 1.000001);
     }
   });

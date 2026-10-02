@@ -1,24 +1,25 @@
+import { SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 
 /** Both adapters use the same supported packet kinds; unsupported authored effects cannot silently become conditions. */
-export function createCriticalSigilEvent(name: string, proc: Gw2SigilProc, sourceSkill: string): SimulationEventBase {
-  if (proc.effect === 'strike') return createSigilStrikeEvent(name, proc, sourceSkill);
-  if (proc.effect === 'condition') return createSigilConditionEvent(name, proc, sourceSkill);
-  throw new TypeError(`Unsupported critical sigil effect: ${name} (${proc.effect}).`);
+export function createCriticalSigilEvent(id: number, proc: Gw2SigilProc, sourceSkill: string): SimulationEventBase {
+  if (proc.effect === 'strike') return createSigilStrikeEvent(id, proc, sourceSkill);
+  if (proc.effect === 'condition') return createSigilConditionEvent(id, proc, sourceSkill);
+  throw new TypeError(`Unsupported critical sigil effect: ${SIGIL_BY_ID[id]?.name ?? id} (${proc.effect}).`);
 }
 
 function commonSigilEvent(
-  name: string,
+  id: number,
   sourceSkill: string
 ): Pick<SimulationEventBase, 'name' | 'skillName' | 'source' | 'sourceId' | 'actorType' | 'ownerActorType'> & {
   readonly triggeredBy: string;
 } {
   return {
-    name: `Sigil of ${name}`,
-    skillName: `Sigil of ${name}`,
+    name: `Sigil of ${SIGIL_BY_ID[id]?.name ?? id}`,
+    skillName: `Sigil of ${SIGIL_BY_ID[id]?.name ?? id}`,
     source: 'Sigil',
-    sourceId: `sigil.${name.toLowerCase()}`,
+    sourceId: `sigil.${id}`,
     actorType: 'effect',
     ownerActorType: 'player',
     triggeredBy: sourceSkill
@@ -26,9 +27,9 @@ function commonSigilEvent(
 }
 
 /** Builds the canonical strike packet shared by scheduler and resolver sigils. */
-export function createSigilStrikeEvent(name: string, proc: Gw2SigilProc, sourceSkill: string): SimulationEventBase {
+export function createSigilStrikeEvent(id: number, proc: Gw2SigilProc, sourceSkill: string): SimulationEventBase {
   return {
-    ...commonSigilEvent(name, sourceSkill),
+    ...commonSigilEvent(id, sourceSkill),
     type: 'damage',
     at: 0,
     coefficient: proc.coefficient,
@@ -46,12 +47,12 @@ export function createSigilStrikeEvent(name: string, proc: Gw2SigilProc, sourceS
 }
 
 /** Builds the canonical condition packet shared by scheduler and resolver sigils. */
-export function createSigilConditionEvent(name: string, proc: Gw2SigilProc, sourceSkill: string): SimulationEventBase {
+export function createSigilConditionEvent(id: number, proc: Gw2SigilProc, sourceSkill: string): SimulationEventBase {
   return {
-    ...commonSigilEvent(name, sourceSkill),
+    ...commonSigilEvent(id, sourceSkill),
     type: 'condition',
     at: 0,
-    name: `Sigil of ${name} — ${proc.condition || ''}`,
+    name: `Sigil of ${SIGIL_BY_ID[id]?.name ?? id} — ${proc.condition || ''}`,
     condition: proc.condition,
     duration: proc.duration,
     stacks: proc.stacks

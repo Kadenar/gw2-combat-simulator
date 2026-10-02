@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
@@ -1864,7 +1865,7 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
   assert.equal(
     resultSkillIcon(engineer, {
       name: 'Bloodstone Explosion',
-      sourceId: 'relic.bloodstone'
+      sourceId: `relic.${RELIC_IDS.BLOODSTONE}`
     }),
     'https://render.guildwars2.com/file/' + 'A7327A7EDB4705EA05261110526D72AFEAF7DAB4/3629397.png'
   );

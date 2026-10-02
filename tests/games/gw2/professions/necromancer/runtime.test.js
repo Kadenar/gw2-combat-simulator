@@ -1,3 +1,4 @@
+import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -61,7 +62,8 @@ test('live weapon swaps commit the destination set and its sigils before subsequ
   assert.deepEqual(result.planningState.profession.autoattackChains, {});
   assert.equal(result.events.filter((event) => event.type === 'weapon_set').length, 1);
   assert.equal(
-    result.resolvedEvents.filter((event) => event.type === 'condition' && event.sourceId === 'sigil.doom').length,
+    result.resolvedEvents.filter((event) => event.type === 'condition' && event.sourceId === `sigil.${SIGIL_IDS.DOOM}`)
+      .length,
     1
   );
 });

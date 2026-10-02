@@ -1,3 +1,5 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -62,15 +64,18 @@ test('combo boons and their relic grants settle before critical sampling in both
     };
     // Three combo Might plus the relic's fourth stack must all precede the two hits.
     const result = simulateGw2({ ...options, damageDiagnostics: true });
-    assert.equal(result.criticalSigilDiagnostics[0]?.claimed, true);
-    assert.equal(result.criticalSigilDiagnostics[0]?.chance, 1);
+    // Verify the accepted hit applies its sigil condition after the combo raises critical chance.
+    assert.ok(
+      result.resolvedEvents.some((event) => event.type === 'condition' && event.sourceId === `sigil.${SIGIL_IDS.EARTH}`)
+    );
     const hits = result.resolvedEvents.filter((event) => event.type === 'damage');
     assert.deepEqual(
       hits.map((event) => event.criticalChance),
       [1, 1]
     );
     assert.equal(
-      result.resolvedEvents.filter((event) => event.sourceId === 'relic.mistburn' && event.type === 'buff').length,
+      result.resolvedEvents.filter((event) => event.sourceId === `relic.${RELIC_IDS.MISTBURN}` && event.type === 'buff')
+        .length,
       1
     );
     assert.equal(
@@ -101,15 +106,20 @@ test('precombat combo boons carry into combat without counting precombat hits', 
   });
   // Both phases must see the setup Might, but the precombat strike cannot advance critical sigils.
   assert.ok(result.resolvedEvents.some((event) => event.type === 'combo' && event.at === 1));
-  assert.ok(result.resolvedEvents.some((event) => event.sourceId === 'relic.mistburn' && event.at === 1));
+  assert.ok(result.resolvedEvents.some((event) => event.sourceId === `relic.${RELIC_IDS.MISTBURN}` && event.at === 1));
   const hits = result.resolvedEvents.filter((event) => event.type === 'damage');
   assert.deepEqual(
     hits.map((event) => event.at),
     [2.5]
   );
   assert.equal(hits[0].criticalChance, 1);
-  assert.equal(result.criticalSigilDiagnostics[0].suppression, 'precombat');
-  assert.equal(result.criticalSigilDiagnostics[1].claimed, true);
+  // Only the combat hit may apply Earth; a precombat claim would block it on cooldown.
+  assert.deepEqual(
+    result.resolvedEvents
+      .filter((event) => event.type === 'condition' && event.sourceId === `sigil.${SIGIL_IDS.EARTH}`)
+      .map((event) => event.at),
+    [2.5]
+  );
 });
 
 test('precombat light finishers grant their aura even when aimed off target', () => {

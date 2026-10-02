@@ -298,7 +298,7 @@ export function sigilOptionLabel(name: string): string {
   const passiveDetails = Object.entries(SIGIL_PERCENT_FIELDS).flatMap(([field, label]) =>
     sigil?.[field] ? [`+${sigil[field]}% ${label}`] : []
   );
-  const proc = sigilProcDetail(name, sigilProcs[name]);
+  const proc = sigilProcDetail(name, sigilProcs[sigil?.id]);
   return optionLabel(name, [...passiveDetails, ...(proc ? [proc] : [])]);
 }
 

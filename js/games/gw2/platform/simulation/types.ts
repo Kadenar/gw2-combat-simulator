@@ -1,4 +1,3 @@
-import type { CriticalSigilDiagnostic } from '#gw2/platform/equipment/sigils/diagnostics.js';
 /** Owns the simulation/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { NormalizedProfessionContract, ProfessionFamilyContract } from '#gw2/platform/engine/profession/types.js';
 import type { AmmoState, AvailabilityResult, SimulationStep } from '#gw2/platform/execution/types.js';
@@ -52,8 +51,6 @@ export interface Gw2SimulationPlanningState {
 }
 
 export interface Gw2SimulationResult extends Gw2ResolverResult {
-  /** Actual sigil decisions are retained only in detailed diagnostic runs. */
-  readonly criticalSigilDiagnostics?: readonly CriticalSigilDiagnostic[];
   readonly rotationApm: RotationApm;
   readonly steps: readonly SimulationStep[];
   readonly planningState: Gw2SimulationPlanningState;

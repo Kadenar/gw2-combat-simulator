@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -535,8 +536,9 @@ test('Last Tyrant counts Necromancer trait Burning', () => {
     6
   );
   assert.equal(
-    dhuumfire.resolvedEvents.filter((event) => event.sourceId === 'relic.last-tyrant' && event.type === 'damage')
-      .length,
+    dhuumfire.resolvedEvents.filter(
+      (event) => event.sourceId === `relic.${RELIC_IDS.LAST_TYRANT}` && event.type === 'damage'
+    ).length,
     1
   );
   for (const [result, sourceId] of [

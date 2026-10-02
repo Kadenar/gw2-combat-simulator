@@ -4,11 +4,12 @@ import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
+import type { createProcRegistry } from '#gw2/platform/combat/procs.js';
 
-const PROCS = SIGIL_PROCS as Readonly<Record<string, Gw2SigilProc>>;
+const PROCS = SIGIL_PROCS as Readonly<Record<number, Gw2SigilProc>>;
 
 interface CriticalSigilIntent {
-  readonly name: string;
+  readonly id: number;
   readonly readyAt: number;
 }
 
@@ -17,19 +18,19 @@ export interface CriticalSigilDecision {
 }
 
 /** Authored trigger membership also determines resolver ownership, including Blight. */
-function isCriticalSigil(name: string): boolean {
-  return PROCS[name]?.trigger === 'crit';
+function isCriticalSigil(id: number): boolean {
+  return PROCS[id]?.trigger === 'crit';
 }
 
 /** Decide from phase-local facts without mutating state or drawing another critical outcome. */
 export function decideCriticalSigils(
   event: SimulationEvent,
-  names: readonly string[],
+  ids: readonly number[],
   critical: { readonly chance: number; readonly didCrit?: boolean },
-  state: { readonly readyAt: ReadonlyMap<string, number> }
+  procs: Pick<ReturnType<typeof createProcRegistry>, 'deadline'>
 ): CriticalSigilDecision {
   const next = { procs: [] as CriticalSigilIntent[] };
-  const active = [...new Set(names.filter(isCriticalSigil))];
+  const active = [...new Set(ids.filter(isCriticalSigil))];
   if (
     !active.length ||
     event.type !== 'damage' ||
@@ -47,9 +48,9 @@ export function decideCriticalSigils(
 
   // The shared seeded hit outcome decides eligibility in both modes; ICDs stay blocked through their deadline.
   if (critical.didCrit !== true) return next;
-  for (const name of active) {
-    if (isInternalCooldownReady(event.at, state.readyAt.get(name) ?? 0)) {
-      next.procs.push({ name, readyAt: event.at + PROCS[name].cooldown });
+  for (const id of active) {
+    if (isInternalCooldownReady(event.at, procs.deadline(`sigil.${id}`))) {
+      next.procs.push({ id, readyAt: event.at + PROCS[id].cooldown });
     }
   }
 

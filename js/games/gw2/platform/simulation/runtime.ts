@@ -1,5 +1,5 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { createEffectReactions, type EffectReactionStage } from '#gw2/platform/simulation/effect-reactions.js';
-import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
 import { ACTION_SAFETY_LIMIT, canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import {
@@ -12,7 +12,7 @@ import { prepareGw2ComboEvent } from '#gw2/platform/combos/events.js';
 import { finisherDescriptors, fieldDescriptors } from '#gw2/platform/combos/descriptors.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { createRuntimeResources, createRuntimeEndurance } from '#gw2/platform/combat/resources/runtime-resources.js';
-import { applyRuntimeSigils, consumeRuntimeDoom } from '#gw2/platform/equipment/sigils/runtime.js';
+import { applyRuntimeSigils, applyRuntimeSigilStrike } from '#gw2/platform/equipment/sigils/runtime.js';
 import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/equipment-reactions.js';
 import { normalizePrecastRelics, relicWeaponSwapRechargeReduction } from '#gw2/platform/equipment/relics/catalog.js';
 import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-matcher.js';
@@ -71,7 +71,6 @@ import {
   expireSkillFlip,
   type SkillFlipWindows
 } from '#gw2/platform/engine/skills/skill-flips.js';
-import { createCriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
 import type { Gw2SimulationOptions } from '#gw2/platform/simulation/types.js';
 import {
   castWasInterrupted,
@@ -131,7 +130,6 @@ export function runGw2Runtime<T extends object>({
   onPhase?: Gw2SimulationOptions['onPhase'];
 }) {
   const started = onPhase ? performance.now() : 0;
-  const sigilDiagnostics = damageDiagnostics && output === 'detailed' ? createCriticalSigilDiagnostics() : undefined;
   const policy = normalizeObservationPolicy(observation);
   const cursor = new RotationCursor(normalizeRotation(rotation, profession.catalog, { strict: true }));
   const markers = cursor.commands.filter((command) => command.type === 'combat-start');
@@ -197,8 +195,7 @@ export function runGw2Runtime<T extends object>({
           id: 'sigil.actual-strike',
           order: -300,
           handler(_context, event) {
-            consumeRuntimeDoom(runtime, event);
-            applyRuntimeSigils(runtime, 'strike', event);
+            applyRuntimeSigilStrike(runtime, event);
           }
         }
       ],
@@ -236,7 +233,6 @@ export function runGw2Runtime<T extends object>({
     traits: normalizeSelectedTraitIds(config.selectedTraitIds),
     reporting: output === 'detailed',
     damageDiagnostics,
-    sigilDiagnostics,
     horizon: policy.kind === 'absolute' ? canonicalTime(policy.endTimeMs / 1000) : null,
     query,
     queue,
@@ -443,7 +439,7 @@ export function runGw2Runtime<T extends object>({
       'relic.activate'(context, event) {
         // Delayed relic activations own their state only when this queue packet executes.
         for (const relic of [context.relic, ...(context.precastRelics ?? [])])
-          if (relic.name === event.sourceId) relic.rules.activate?.(context, relic.state, event);
+          if (relic.id === event.sourceId) relic.rules.activate?.(context, relic.state, event);
       }
     })
     .registerAll(profession.eventHandlers ?? {});
@@ -596,8 +592,8 @@ export function runGw2Runtime<T extends object>({
   const targetHealth = Number(config.target?.health) > 0 ? Number(config.target?.health) : Infinity;
   if (targetHealthLoss(config, runtime) >= targetHealth) runtime.deathTime = 0;
   runtime.precastRelics = normalizePrecastRelics(config.precastRelics)
-    .filter((name) => name !== runtime.relic.name)
-    .map(createRelicRuntime);
+    .map(createRelicRuntime)
+    .filter((relic) => relic.id !== runtime.relic.id);
   if (combatStartTime != null) {
     const marker = assertSimulationEvent({
       type: 'combat_start',
@@ -847,11 +843,6 @@ export function runGw2Runtime<T extends object>({
     if (missesTarget(event) || (precombat && isPrecombatTargetEffect(event) && event.type !== 'condition_tick')) {
       // Preserve attempted packets for targeting edits; only resolved rows contribute damage.
       if (runtime.reporting) executed.push(event);
-      sigilDiagnostics?.suppress(
-        event,
-        missesTarget(event) ? 'miss' : 'precombat',
-        gw2SigilSet(config, runtime.activeWeaponSet).names ?? []
-      );
       // A missed impact can still finish a field and grant self effects; hostile combo outcomes retain its miss.
       if (runtime.deathTime == null && !preparedCombos.has(event))
         produceRuntimeCombos(runtime, profession.catalog, event);
@@ -862,7 +853,6 @@ export function runGw2Runtime<T extends object>({
       const lethalSibling =
         event.type === 'damage' && lethalActivation != null && event.activationId === lethalActivation;
       if (event.at !== runtime.deathTime || (!lethalSibling && event.type !== 'condition_tick')) {
-        sigilDiagnostics?.suppress(event, 'target-death', gw2SigilSet(config, runtime.activeWeaponSet).names ?? []);
         return;
       }
     }
@@ -887,7 +877,7 @@ export function runGw2Runtime<T extends object>({
     if (event.type === 'action') invokeRelicHook(runtime, 'action', event);
     if (event.type === 'combat_start')
       for (const relic of [runtime.relic, ...(runtime.precastRelics ?? [])]) relic.state.combatMarker = event;
-    if (event.type === 'condition' && runtime.relic.name === 'Shackles')
+    if (event.type === 'condition' && runtime.relic.id === RELIC_IDS.SHACKLES)
       invokeRelicHook(runtime, 'emitConditionEffects', event);
     // Proc rows keep recharge reductions for timeline badges and timed procs keep their deadline.
     if (event.type === 'proc')
@@ -1100,15 +1090,6 @@ export function runGw2Runtime<T extends object>({
   }
 
   if (!finished || runtime.rotationEndTime == null) throw new Error('Live runtime exceeded its action safety limit.');
-  // Pending impacts beyond the horizon receive a diagnostic reason without executing or sampling them.
-  if (sigilDiagnostics) {
-    const names = gw2SigilSet(config, runtime.activeWeaponSet).names ?? [];
-    while (queue.peek()) {
-      const pending = queue.dequeue()!;
-      if (pending.kind !== 'internal') sigilDiagnostics.suppress(pending, 'observation-end', names);
-    }
-  }
-
   const reportingStarted = onPhase ? performance.now() : 0;
   onPhase?.('execution', reportingStarted - started);
   // Finalize condition presentation once at the shared boundary for both reporting modes.
@@ -1159,7 +1140,6 @@ export function runGw2Runtime<T extends object>({
       rotation,
       profession.catalog
     ),
-    ...(sigilDiagnostics ? { criticalSigilDiagnostics: sigilDiagnostics.results() } : {}),
     planningState: planningState(
       { ...runtime, catalog: profession.catalog },
       profession.projectPlanningState,

@@ -1,3 +1,4 @@
+import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
@@ -173,7 +174,7 @@ export const searingPact = defineTrait({
         Boolean(event.willbenderFlames) &&
         (details.hitContext?.damage ?? 0) > 0 &&
         Number(event.coefficient) > 0 &&
-        (event.actorType === 'player' || event.sourceId === 'sigil.air'),
+        (event.actorType === 'player' || event.sourceId === `sigil.${SIGIL_IDS.AIR}`),
       effects: (effect) => effect.type === 'condition' && effect.name === 'Burning',
       attribution: {
         source: 'guardian',

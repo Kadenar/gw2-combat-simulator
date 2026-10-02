@@ -1,4 +1,5 @@
-import type { CriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
+import { createSigilRuntimeState } from '#gw2/platform/equipment/sigils/runtime.js';
+import type { Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { Gw2CombatQuery, Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
@@ -36,7 +37,6 @@ import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 export function createGw2ResolverRuntimeState({
   reporting = true,
   damageDiagnostics = false,
-  sigilDiagnostics,
   config,
   traits = new Set(),
   horizon,
@@ -55,7 +55,6 @@ export function createGw2ResolverRuntimeState({
     criticalDamageMode: config.randomness?.mode === 'stochastic' ? 'rolled' : criticalDamageMode,
     reporting,
     damageDiagnostics: reporting && damageDiagnostics,
-    sigilDiagnostics: reporting ? sigilDiagnostics : undefined,
     config,
     traits,
     horizon,
@@ -85,8 +84,7 @@ export function createGw2ResolverRuntimeState({
     // Equipment state belongs to this resolution pass, including repeated runs with the same configuration.
     relic: createRelicRuntime(config.relic),
     profession: professionState,
-    sigil: { severanceUntil: 0, readyAt: new Map() },
-    food: { readyAt: 0 },
+    sigil: createSigilRuntimeState(),
     random: createSimulationRandom(config.randomness),
     weaponStrengthRolls: new Map(),
     weaponStrengthActivationOrder: 0,
@@ -229,7 +227,6 @@ export function createGw2ResolverRuntimeState({
 export interface Gw2ResolverRuntime {
   readonly criticalDamageMode: Gw2CriticalDamageMode;
   readonly procs: ReturnType<typeof createProcRegistry>;
-  readonly sigilDiagnostics?: CriticalSigilDiagnostics;
   readonly reporting: boolean;
   readonly damageDiagnostics: boolean;
   config: Gw2Config;
@@ -262,12 +259,7 @@ export interface Gw2ResolverRuntime {
   relic: Gw2RelicRuntime;
   precastRelics?: readonly Gw2RelicRuntime[];
   profession: object;
-  sigil: {
-    severanceUntil: number;
-    readyAt: Map<string, number>;
-    doomPending?: boolean;
-  };
-  food: { readyAt: number };
+  sigil: Gw2SigilRuntimeState;
   random: Readonly<SimulationRandom>;
   weaponStrengthRolls: Map<string, { profileId: string; value: number }>;
   weaponStrengthActivationOrder: number;
@@ -300,7 +292,6 @@ export interface Gw2ResolverRuntime {
 }
 
 interface CreateGw2ResolverRuntimeStateOptions {
-  readonly sigilDiagnostics?: CriticalSigilDiagnostics;
   readonly damageDiagnostics?: boolean;
   readonly reporting?: boolean;
   readonly config: Gw2Config;

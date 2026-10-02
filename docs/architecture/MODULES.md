@@ -112,8 +112,8 @@ Non-type imports:
 
 ## GW2 application (`js/games/gw2/app/`)
 
-The root holds only the composition root; everything else lives in one folder per page area.
-`profession-app.ts` coordinates the current GW2 browser application.
+The root holds only the composition root; everything else lives in one folder per page area. `profession-app.ts`
+coordinates the current GW2 browser application.
 
 | Module                     | Responsibility                                     |
 | -------------------------- | -------------------------------------------------- |
@@ -286,24 +286,29 @@ and target state, sigils, relics, profession module assembly, and modifier rules
 | `combat/boons.ts`                 | Standard boon metadata, shared stack queries, duration pools, and grant recording       |
 | `skills/timing.ts`                | Effect duration rounding, absolute expiry, and skill timing                             |
 | `equipment/weapons/strength.ts`   | Weapon-strength profiles                                                                |
-| `equipment/sigils/rules.ts`       | Shared sigil behavior                                                                   |
+| `equipment/sigils/loadout.ts`     | Sigil selection, modifier aggregation, and configured weapon-set lookup                 |
+| `equipment/sigils/runtime.ts`     | Sigil state initialization, pending hit effects, and swap/control/strike procs          |
+| `equipment/sigils/severance.ts`   | Severance buff queries and critical modifiers                                           |
 | `equipment/`                      | Gear, consumable, relic, sigil, and weapon data                                         |
 | `combat/state/targets.ts`         | Target assumptions                                                                      |
 | `combat/state/traits.ts`          | Shared selected-trait lookup                                                            |
 | `combat/state/event-ownership.ts` | Player/summon/effect ownership rules                                                    |
+
+Builds and public simulation configuration use readable sigil and relic names. Equipment catalogs resolve those names to
+item IDs for runtime rule dispatch, cooldown keys, and proc source attribution; display labels stay name-based.
 
 Combat queries select visible state and equipment, formulas and modifiers calculate, and resolver handlers commit
 effects and dispatch reactions:
 
 - Query contracts: `combat/query/combat-query.ts` and `timeline-index.ts`. Event payloads, validation, and the shared
   damage-diagnostic contract: `engine/events/events.ts`.
-- Internal work payloads and lifetime ownership: `simulation/internal-work.ts`. Hit diagnostics, condition
-  applications, and mutable runtime types live with `resolver/hit-resolution.ts`, `resolver/condition-resolution.ts`,
-  and `resolver/runtime-state.ts`; shared event/result/reaction contracts stay in `resolver/types.ts`.
+- Internal work payloads and lifetime ownership: `simulation/internal-work.ts`. Hit diagnostics, condition applications,
+  and mutable runtime types live with `resolver/hit-resolution.ts`, `resolver/condition-resolution.ts`, and
+  `resolver/runtime-state.ts`; shared event/result/reaction contracts stay in `resolver/types.ts`.
 - `execution/` owns reusable rotation, reservation, cooldown, ammo, and interruption services; `resolver/` owns hit and
   condition calculation and reaction services; `simulation/runtime.ts` composes them into one live loop.
-- `results/query.ts` indexes committed resolver effects and shares combat stacking/expiry semantics; report construction,
-  planning-state projection, and input-rate reporting (`results/rotation-apm.ts`) live in `results/`.
+- `results/query.ts` indexes committed resolver effects and shares combat stacking/expiry semantics; report
+  construction, planning-state projection, and input-rate reporting (`results/rotation-apm.ts`) live in `results/`.
 - `engine/skills/balance-profiles.ts` owns catalog profile lookup; `combat/query/event-skill.ts` owns event-to-skill
   lookup without depending on resolver implementations.
 - `skills/transition-delays.ts` owns bar-transition timing, `skills/autoattack-chain-controller.ts` owns live chain
@@ -313,14 +318,14 @@ Profession definitions expose weapon eligibility as `weaponSkillMatchesSet`, use
 adapter. Family-specific matching lives in `professions/<profession>/build/weapon-matching.ts`; it is not part of
 `ProfessionUiContract`.
 
-One runtime interleaves command acceptance with internal work and combat events. Availability, cast duration,
-cooldowns, ammo, resources, strike damage, conditions, target health, and triggered effects share one live state. See
+One runtime interleaves command acceptance with internal work and combat events. Availability, cast duration, cooldowns,
+ammo, resources, strike damage, conditions, target health, and triggered effects share one live state. See
 [Architecture](./ARCHITECTURE.md#runtime-and-simulation) and [Event clock](./SIMULATION-EVENT-CLOCK.md).
 
 ## Profession modules (`js/games/gw2/professions/<profession>/`)
 
-Each profession is a **Core module plus one module per elite specialization**. Core is always present; exactly one
-elite module is active for an elite build. `defineNativeProfession()` composes them into the executable profession.
+Each profession is a **Core module plus one module per elite specialization**. Core is always present; exactly one elite
+module is active for an elite build. `defineNativeProfession()` composes them into the executable profession.
 
 ### Layout
 
@@ -353,8 +358,8 @@ imports `build/`, and `build/` reads the catalog at module load; merging them cr
 Code outside a profession folder imports only `profession.js`, `app/app-definition.js`, `build/build.js`,
 `build/attributes.js`, `types.js`, `data/**`, and `profiles.js` files. Log integrations import helpers from `data/`,
 never `profession.js`, so lazy log chunks don't load the whole profession graph. Tests are exempt. The shared
-`professions/shared/` helpers are not a profession. `eslint.config.js` and `tests/architecture/profession-layout.test.js`
-enforce this layout.
+`professions/shared/` helpers are not a profession. `eslint.config.js` and
+`tests/architecture/profession-layout.test.js` enforce this layout.
 
 ### Module manifest
 
@@ -396,26 +401,26 @@ Ownership rules for the sections:
 
 ### Profession file roles
 
-| File or folder                            | Owns                                                                                                         |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `data/<profession>-api-metadata.ts`       | Generated identity and presentation metadata from the GW2 API. Never coefficients or conditions.             |
-| `data/<profession>-supplemental-skills.ts`| Identity and presentation for skills missing from the API snapshot                                          |
-| `data/ids.ts`                             | Skill and trait ID constants; Engineer, Ranger, Revenant, and Warrior generate theirs from `scripts/data/` |
-| `data/traits-data.ts`                     | The only export of the flattened runtime `TRAITS`                                                            |
-| `data/module-data.ts`                     | Generated metadata selection, catalog transforms, and module data options                                    |
-| `skills/index.ts`, `skills/<group>.ts`    | Authoritative ID-keyed declarative skill fields, grouped by weapon, slot family, or another GW2 concept     |
-| `skills/actions.ts`                       | Profession-owned synthetic actions (Core modules)                                                            |
-| `profiles.ts`                             | Balance profiles shared by several skills or mechanics; patch previews edit these directly                   |
-| `state.ts`                                | Module state, its factory, and its public projection                                                         |
-| `hooks.ts`                                | Cast hooks, named tasks, and reactions for behavior that declarative effects cannot express                  |
-| `modifiers.ts`                            | The module's modifier rules plus imperative `modify*` attribute and damage callbacks                         |
-| `mechanics/<concept>.ts`                  | Systems whose state or lifecycle spans casts, skills, traits, or events (`life-force.ts`, `pets.ts`, …)      |
-| `mechanics/resources.ts`                  | Profession resource policies, where a profession needs them                                                  |
-| `events.ts`                               | Custom scheduled event definitions shared by several Core mechanics                                          |
-| `traits/`                                 | Trait definitions and supporting behavior (see below)                                                        |
-| `presentation.ts`                         | Profession presentation hooks                                                                                |
-| `app/tooltips.ts`                         | Simulation tooltip descriptions and facts for traits and special skills                                      |
-| `execution/`                              | Mesmer Core only: shatter, flip, phantasm, and effect commitment and packet emission                         |
+| File or folder                             | Owns                                                                                                       |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `data/<profession>-api-metadata.ts`        | Generated identity and presentation metadata from the GW2 API. Never coefficients or conditions.           |
+| `data/<profession>-supplemental-skills.ts` | Identity and presentation for skills missing from the API snapshot                                         |
+| `data/ids.ts`                              | Skill and trait ID constants; Engineer, Ranger, Revenant, and Warrior generate theirs from `scripts/data/` |
+| `data/traits-data.ts`                      | The only export of the flattened runtime `TRAITS`                                                          |
+| `data/module-data.ts`                      | Generated metadata selection, catalog transforms, and module data options                                  |
+| `skills/index.ts`, `skills/<group>.ts`     | Authoritative ID-keyed declarative skill fields, grouped by weapon, slot family, or another GW2 concept    |
+| `skills/actions.ts`                        | Profession-owned synthetic actions (Core modules)                                                          |
+| `profiles.ts`                              | Balance profiles shared by several skills or mechanics; patch previews edit these directly                 |
+| `state.ts`                                 | Module state, its factory, and its public projection                                                       |
+| `hooks.ts`                                 | Cast hooks, named tasks, and reactions for behavior that declarative effects cannot express                |
+| `modifiers.ts`                             | The module's modifier rules plus imperative `modify*` attribute and damage callbacks                       |
+| `mechanics/<concept>.ts`                   | Systems whose state or lifecycle spans casts, skills, traits, or events (`life-force.ts`, `pets.ts`, …)    |
+| `mechanics/resources.ts`                   | Profession resource policies, where a profession needs them                                                |
+| `events.ts`                                | Custom scheduled event definitions shared by several Core mechanics                                        |
+| `traits/`                                  | Trait definitions and supporting behavior (see below)                                                      |
+| `presentation.ts`                          | Profession presentation hooks                                                                              |
+| `app/tooltips.ts`                          | Simulation tooltip descriptions and facts for traits and special skills                                    |
+| `execution/`                               | Mesmer Core only: shatter, flip, phantasm, and effect commitment and packet emission                       |
 
 Traits:
 
@@ -477,8 +482,8 @@ look symmetrical, and do not default to one file per skill or trait. Files such 
 
 Put a mechanic in **Core** when it applies regardless of the active elite (Warrior adrenaline, Elementalist attunements,
 Thief initiative, Revenant energy). Put it in the elite module when the specialization owns it (Berserker Berserk,
-Bladesworn Dragon Trigger, Reaper shroud behavior, Mechanist Jade Mech, Firebrand tomes). A specialization may reuse Core
-helpers, but Core must not depend on specialization modules.
+Bladesworn Dragon Trigger, Reaper shroud behavior, Mechanist Jade Mech, Firebrand tomes). A specialization may reuse
+Core helpers, but Core must not depend on specialization modules.
 
 ### `profession.ts` and `catalog.ts`
 
@@ -531,8 +536,8 @@ logs/
 ```
 
 Adapters do not import implementation code from one another, except that `wingman/` reshapes its document into the
-`dps-report/` shape and calls `dps-report/` for every reconstruction rule. Add new EI JSON rules to `dps-report/` so both
-URL importers share them. The simulator engine contains no log-specific assumptions; reconstructed actions become
+`dps-report/` shape and calls `dps-report/` for every reconstruction rule. Add new EI JSON rules to `dps-report/` so
+both URL importers share them. The simulator engine contains no log-specific assumptions; reconstructed actions become
 ordinary simulator rotations before execution. See [EVTC-ROTATION-RECONSTRUCTION.md](../EVTC-ROTATION-RECONSTRUCTION.md)
 and, for the planned shared back end, [LOG-IMPORTER-CONSOLIDATION.md](../cleanup/LOG-IMPORTER-CONSOLIDATION.md).
 
@@ -564,8 +569,8 @@ specialization metadata, tests, and the profession document under `docs/professi
 
 ### A new profession
 
-Follow [Adding another profession](./ARCHITECTURE.md#adding-another-profession), using the layout above and an
-existing native profession as the reference rather than a new composition pattern.
+Follow [Adding another profession](./ARCHITECTURE.md#adding-another-profession), using the layout above and an existing
+native profession as the reference rather than a new composition pattern.
 
 ## Tests
 
@@ -589,4 +594,3 @@ load and simulate. Architecture and typecheck tests enforce cross-module ownersh
 8. **Do not create empty files to satisfy a folder convention.**
 9. **Do not duplicate an existing source of truth.**
 10. **Keep headless engine imports independent of browser application code.**
-

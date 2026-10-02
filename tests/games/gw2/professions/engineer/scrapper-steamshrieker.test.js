@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { resolveProcIcon } from '#gw2/app/shared/icons.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
+import { RELIC_IDS, RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
 const scrapperConfig = Object.freeze({
@@ -42,7 +42,7 @@ test('Steamshrieker burns once for each affected Engineer blast or leap', () => 
       (event) => event.type === 'combo' && event.skillName === skillName && event.fieldType === 'Water'
     );
     const relicBurns = result.resolvedEvents.filter(
-      (event) => event.type === 'condition' && event.sourceId === 'relic.steamshrieker'
+      (event) => event.type === 'condition' && event.sourceId === `relic.${RELIC_IDS.STEAMSHRIEKER}`
     );
 
     assert.equal(result.warnings.length, 0, rotation.join(' -> '));

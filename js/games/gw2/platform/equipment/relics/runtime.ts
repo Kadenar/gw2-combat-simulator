@@ -1,3 +1,4 @@
+import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 /** Creates and invokes the selected relic's runtime. Per-relic behavior lives in `rules/`. */
 import { RELIC_RULES } from '#gw2/platform/equipment/relics/rules/index.js';
 
@@ -16,11 +17,11 @@ const STATELESS_RELIC: Readonly<Gw2RelicRule> = Object.freeze({});
  * state is created independently for each simulation.
  */
 export function createRelicRuntime(name: unknown): Readonly<Gw2RelicRuntime> {
-  const selectedName = String(name || '');
-  const rules = RELIC_RULES[selectedName] || STATELESS_RELIC;
+  const id = relicIdForName(name);
+  const rules = (id == null ? undefined : RELIC_RULES[id]) || STATELESS_RELIC;
   const state = rules.createState?.() || {};
   return Object.freeze({
-    name: selectedName,
+    id,
     rules,
     state
   });

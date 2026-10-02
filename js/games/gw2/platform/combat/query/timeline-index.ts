@@ -18,7 +18,7 @@ import {
   gw2RechargeIntervals,
   projectRecharge
 } from '#gw2/platform/engine/skills/recharge.js';
-import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
+import { gw2SigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { gw2CooldownReadyAt, gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';

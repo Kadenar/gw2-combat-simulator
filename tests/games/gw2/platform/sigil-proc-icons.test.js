@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import { SIGIL_DATA, SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { resolveProcIcon } from '#gw2/app/shared/icons.js';
@@ -17,8 +17,8 @@ test('all selectable sigils provide an icon', () => {
 });
 
 test('all proc sigils inherit their canonical sigil icon', () => {
-  for (const [name, proc] of Object.entries(SIGIL_PROCS)) {
-    assert.equal(proc.icon, SIGIL_DATA[name].icon, name);
+  for (const [id, proc] of Object.entries(SIGIL_PROCS)) {
+    assert.equal(proc.icon, SIGIL_BY_ID[Number(id)].icon, id);
   }
 });
 

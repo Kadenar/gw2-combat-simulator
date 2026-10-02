@@ -1,9 +1,10 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
-import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
+import { SIGIL_PROCS, SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
-import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
+import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
 import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
@@ -24,7 +25,7 @@ const GW2_REACTION_ORDER = Object.freeze({
   FINAL_COMMON: 200
 });
 
-const SIGIL_PROC_LOOKUP = SIGIL_PROCS as Readonly<Record<string, Gw2SigilProc>>;
+const SIGIL_PROC_LOOKUP = SIGIL_PROCS as Readonly<Record<number, Gw2SigilProc>>;
 
 interface CriticalFoodEffect {
   readonly type: 'boon' | 'condition';
@@ -67,23 +68,17 @@ function createResolvedCriticalSigilEffects(
 ): void {
   const critical = details.hitContext?.critical;
   if (!critical) return;
-  const decision = decideCriticalSigils(
-    event,
-    gw2SigilSet(ctx.config, ctx.activeWeaponSet).names || [],
-    critical,
-    ctx.sigil
-  );
-  ctx.sigilDiagnostics?.record(event, gw2SigilSet(ctx.config, ctx.activeWeaponSet).names || [], critical, decision);
+  const decision = decideCriticalSigils(event, gw2SigilIds(ctx.config, ctx.activeWeaponSet), critical, ctx.procs);
   const sourceSkill = event.skillName || '';
-  for (const { name, readyAt } of decision.procs) {
-    const proc = SIGIL_PROC_LOOKUP[name];
-    ctx.sigil.readyAt.set(name, readyAt);
+  for (const { id, readyAt } of decision.procs) {
+    const proc = SIGIL_PROC_LOOKUP[id];
+    // Decisions are synchronous; commit their deadlines before queueing any derived effects.
+    ctx.procs.readyAt[`sigil.${id}`] = readyAt;
     ctx.queue.enqueue({
-      ...createCriticalSigilEvent(name, proc, sourceSkill),
-      at: event.at,
-      sigilCauseEventOrder: event.eventOrder
+      ...createCriticalSigilEvent(id, proc, sourceSkill),
+      at: event.at
     } as Gw2ResolverEvent);
-    ctx.recordProc('sigil', `Sigil of ${name}`, event.at, sourceSkill, '', proc.icon || '');
+    ctx.recordProc('sigil', `Sigil of ${SIGIL_BY_ID[id].name}`, event.at, sourceSkill, '', proc.icon || '');
   }
 }
 
@@ -158,9 +153,10 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       isGw2PlayerActorEvent(event) && Number(event.coefficient) > 0 && criticalFoodProc(ctx) != null,
     internalCooldown: {
       duration: (ctx) => (criticalFoodProc(ctx)?.icdMs || 0) / 1000,
-      readyAt: (ctx) => ctx.food.readyAt,
+      // The critical-proc handler owns the sampled claim; equipment shares the registry's storage.
+      readyAt: (ctx) => ctx.procs.deadline('food.critical-strike'),
       setReadyAt: (ctx, readyAt) => {
-        ctx.food.readyAt = readyAt;
+        ctx.procs.readyAt['food.critical-strike'] = readyAt;
       }
     },
     randomStream: 'food.critical-strike',
@@ -184,14 +180,6 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       }
     ],
     'buff.applied': [
-      {
-        id: 'sigil.severance',
-        order: GW2_REACTION_ORDER.EARLY_COMMON,
-        handler(ctx, event) {
-          if ((event.kind || '').toLowerCase() !== 'sigil-severance') return;
-          ctx.sigil.severanceUntil = Math.max(ctx.sigil.severanceUntil, event.at + Math.max(0, event.duration || 0));
-        }
-      },
       {
         id: 'relic.boon',
         order: GW2_REACTION_ORDER.COMMON,
@@ -261,7 +249,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
     ],
     'peitha.resolved': [
       {
-        id: 'relic.peitha',
+        id: `relic.${RELIC_IDS.PEITHA}`,
         order: GW2_REACTION_ORDER.COMMON,
         handler(ctx, event, details = {}) {
           invokeRelicHook(ctx, 'peitha', event, conditionHelpers(ctx, details).applyCondition);

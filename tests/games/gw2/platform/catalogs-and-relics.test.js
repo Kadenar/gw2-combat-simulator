@@ -1,3 +1,6 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
+import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -15,7 +18,8 @@ import {
   relicOutgoingDamageBonus,
   relicStrikeMultiplier
 } from '#gw2/platform/equipment/relics/query.js';
-import { sigilCriticalContribution } from '#gw2/platform/equipment/sigils/rules.js';
+import { severanceCriticalContribution } from '#gw2/platform/equipment/sigils/severance.js';
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
@@ -343,6 +347,19 @@ test('shared relic behavior resolves triggering skills by stable id', () => {
   );
 });
 
+// Name-to-ID resolution belongs to the runtime boundary and must not rewrite authored equipment selections.
+test('named equipment inputs resolve item identities without changing the saved vocabulary', () => {
+  const config = {
+    relic: 'Thief',
+    sigilSets: [{ names: ['Force', 'Doom'] }, { names: ['Severance', 'Ice'] }]
+  };
+  const original = structuredClone(config);
+  assert.deepEqual(gw2SigilIds(config, 1), [SIGIL_IDS.FORCE, SIGIL_IDS.DOOM]);
+  assert.deepEqual(gw2SigilIds(config, 2), [SIGIL_IDS.SEVERANCE, SIGIL_IDS.ICE]);
+  assert.equal(createRelicRuntime(config.relic).id, RELIC_IDS.THIEF);
+  assert.deepEqual(config, original);
+});
+
 // Runtime construction owns fresh equipment state independently of shared relic rules.
 test('resolver runtimes create isolated state only for the selected relic', () => {
   const createRuntime = (relic) =>
@@ -354,7 +371,7 @@ test('resolver runtimes create isolated state only for the selected relic', () =
   const brawler = createRuntime('Brawler');
   const aristocracy = createRuntime('Aristocracy');
 
-  assert.equal(thief.relic.name, 'Thief');
+  assert.equal(thief.relic.id, RELIC_IDS.THIEF);
   assert.deepEqual(thief.relic.state, { stacks: 0, expiresAt: 0 });
   assert.deepEqual(brawler.relic.state, { readyAt: 0, buffUntil: 0 });
   assert.deepEqual(aristocracy.relic.state, {
@@ -367,21 +384,32 @@ test('resolver runtimes create isolated state only for the selected relic', () =
 
   thief.relic.state.stacks = 3;
   assert.equal(anotherThief.relic.state.stacks, 0);
-  thief.sigil.readyAt.set('Air', 5);
-  thief.food.readyAt = 0.5;
-  assert.equal(anotherThief.sigil.readyAt.size, 0);
-  assert.equal(anotherThief.food.readyAt, 0);
+  // Equipment deadlines and armed effects belong to one run, independently of shared rule definitions.
+  thief.procs.claimCooldown(`sigil.${SIGIL_IDS.AIR}`, 0, 5);
+  thief.procs.claimCooldown('food.critical-strike', 0, 0.5);
+  thief.sigil.doomPending = true;
+  assert.equal(anotherThief.procs.deadline(`sigil.${SIGIL_IDS.AIR}`), 0);
+  assert.equal(anotherThief.procs.deadline('food.critical-strike'), 0);
+  assert.equal(anotherThief.sigil.doomPending, false);
 });
 
 test('Severance critical contributions are data-driven and expire exactly', () => {
-  assert.deepEqual(sigilCriticalContribution(null, 0), {
+  assert.deepEqual(severanceCriticalContribution(null, 0), {
     chance: 0,
     damage: 0,
     chanceContributors: []
   });
-  const runtime = { sigil: { severanceUntil: 4 } };
+  const runtime = { boons: new Map() };
+  recordBuffApplication(runtime.boons, {
+    type: 'buff',
+    kind: 'sigil-severance',
+    at: 0,
+    duration: 4,
+    stacks: 1,
+    resolvedAudience: gw2BoonApplicationRecipients({}, {})
+  });
 
-  assert.deepEqual(sigilCriticalContribution(runtime, 3.999), {
+  assert.deepEqual(severanceCriticalContribution(runtime, 3.999), {
     chance: 250 / PRECISION_PER_CRITICAL_CHANCE_FRACTION,
     damage: 250 / FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
     chanceContributors: [
@@ -392,11 +420,36 @@ test('Severance critical contributions are data-driven and expire exactly', () =
       }
     ]
   });
-  assert.deepEqual(sigilCriticalContribution(runtime, 4), {
+  assert.deepEqual(severanceCriticalContribution(runtime, 4), {
     chance: 0,
     damage: 0,
     chanceContributors: []
   });
+});
+
+// Recorded applications preserve past windows, refresh without stacking bonuses, and share effect expiry rounding.
+test('Severance queries retain application windows across refreshes and gaps', () => {
+  const runtime = { boons: new Map() };
+  const grant = (at, duration) =>
+    recordBuffApplication(runtime.boons, {
+      type: 'buff',
+      kind: 'sigil-severance',
+      at,
+      duration,
+      stacks: 1,
+      resolvedAudience: gw2BoonApplicationRecipients({}, {})
+    });
+  grant(1, 4);
+  grant(3, 4);
+  grant(9.01, 4);
+  const chance = 250 / PRECISION_PER_CRITICAL_CHANCE_FRACTION;
+  for (const at of [1, 3, 5, 6.999, 9.01, 13.039]) {
+    assert.equal(severanceCriticalContribution(runtime, at).chance, chance);
+  }
+
+  for (const at of [0.999, 7, 9, 13.04]) {
+    assert.equal(severanceCriticalContribution(runtime, at).chance, 0);
+  }
 });
 
 test('Aristocracy rule state owns strict ICD, stack cap, and expiry', () => {
@@ -681,7 +734,7 @@ test('Relic of Mistburn grants one Might for eight seconds and applies its criti
     }
   });
   // Authoritative relic grants now originate from surviving resolver boon applications.
-  const bonusMight = result.resolvedEvents.filter((event) => event.sourceId === 'relic.mistburn');
+  const bonusMight = result.resolvedEvents.filter((event) => event.sourceId === `relic.${RELIC_IDS.MISTBURN}`);
   const strikes = result.resolvedEvents.filter((event) => event.skillName === 'Mistburn Fixture Strike');
 
   assert.deepEqual(
@@ -728,13 +781,15 @@ test('Mistburn also grants once per eligible resolver-created player Might appli
     rotation: [{ type: 'wait', durationMs: 3000 }],
     config: { relic: 'Mistburn' }
   });
-  const grants = result.resolvedEvents.filter((event) => event.type === 'buff' && event.sourceId === 'relic.mistburn');
+  const grants = result.resolvedEvents.filter(
+    (event) => event.type === 'buff' && event.sourceId === `relic.${RELIC_IDS.MISTBURN}`
+  );
   assert.deepEqual(
     grants.map((event) => event.at),
     [1, 2.001]
   );
   assert.equal(
-    result.events.some((event) => event.sourceId === 'relic.mistburn'),
+    result.events.some((event) => event.sourceId === `relic.${RELIC_IDS.MISTBURN}`),
     true
   );
 });

@@ -1,5 +1,10 @@
 /** Owns the equipment/sigils/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 
+/** Doom remains armed until an eligible hit consumes it, independently of its swap cooldown. */
+export interface Gw2SigilRuntimeState {
+  doomPending: boolean;
+}
+
 export interface Gw2SigilSet {
   readonly names?: readonly string[];
   readonly boonDurationBonus?: number;
@@ -31,6 +36,7 @@ export interface Gw2SigilProc {
 }
 
 export interface Gw2SigilDataEntry {
+  readonly id: number;
   readonly stackingStats?: Readonly<Record<string, number>>;
   readonly criticalChance?: number;
   readonly strikeDamageA?: number;

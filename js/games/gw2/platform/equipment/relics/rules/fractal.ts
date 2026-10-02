@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Fractal relic rules. */
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
@@ -27,7 +28,7 @@ export const fractal = defineRelic({
       duration: 8,
       stacks: 2,
       source: 'Relic',
-      sourceId: 'relic.fractal',
+      sourceId: `relic.${RELIC_IDS.FRACTAL}`,
       actorType: 'effect',
       ownerActorType: 'player'
     });
@@ -40,7 +41,7 @@ export const fractal = defineRelic({
       duration: 8,
       stacks: 3,
       source: 'Relic',
-      sourceId: 'relic.fractal',
+      sourceId: `relic.${RELIC_IDS.FRACTAL}`,
       actorType: 'effect',
       ownerActorType: 'player'
     });

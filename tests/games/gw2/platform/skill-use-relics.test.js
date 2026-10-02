@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -298,7 +299,7 @@ for (const [relic, skillType, cooldown, delay, multiplier] of [
     assert.equal(strike(4, { actorType: 'effect', ownerActorType: 'player' }), multiplier);
     if (relic === 'Director') {
       const applications = result.resolvedEvents.filter(
-        (event) => event.type === 'condition' && event.sourceId === 'relic.director'
+        (event) => event.type === 'condition' && event.sourceId === `relic.${RELIC_IDS.DIRECTOR}`
       );
       assert.ok(applications.length > 0);
       assert.ok(
@@ -364,12 +365,12 @@ test('Director off-target precasts grant the buff without preloading vulnerabili
   const onTarget = simulateMesmer(rotation(false), config);
   const offTarget = simulateMesmer(rotation(true), config);
   const baseline = simulateMesmer(rotation(true), { ...config, precastRelics: [] });
-  const applications = onTarget.resolvedEvents.filter((event) => event.sourceId === 'relic.director');
+  const applications = onTarget.resolvedEvents.filter((event) => event.sourceId === `relic.${RELIC_IDS.DIRECTOR}`);
   assert.equal(applications.length, 1);
   assert.equal(applications[0].stacks, 8);
   assert.equal(applications[0].effectiveDuration, 8);
   assert.equal(
-    offTarget.resolvedEvents.some((event) => event.sourceId === 'relic.director'),
+    offTarget.resolvedEvents.some((event) => event.sourceId === `relic.${RELIC_IDS.DIRECTOR}`),
     false
   );
   assert.equal(offTarget.strikeDamage, baseline.strikeDamage);

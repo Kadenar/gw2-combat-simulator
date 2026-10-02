@@ -27,7 +27,8 @@ import {
 } from '#gw2/platform/equipment/relics/query.js';
 import { createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
-import { gw2SigilSet, sigilCriticalContribution } from '#gw2/platform/equipment/sigils/rules.js';
+import { gw2SigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
+import { severanceCriticalContribution } from '#gw2/platform/equipment/sigils/severance.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -488,10 +489,10 @@ export function createGw2CombatQuery({
       addContributor('relic', 'Relic', relicBonus);
       let damage = criticalDamageMultiplier(stats.ferocity);
       damage = activeProfession.modifyCriticalDamage(hookContext(time, { event, runtime }), damage);
-      const sigilCritical = sigilCriticalContribution(runtime, time);
-      chance += sigilCritical.chance;
-      contributors.push(...sigilCritical.chanceContributors);
-      damage += sigilCritical.damage;
+      const severanceCritical = severanceCriticalContribution(runtime, time);
+      chance += severanceCritical.chance;
+      contributors.push(...severanceCritical.chanceContributors);
+      damage += severanceCritical.damage;
       let chanceBeforeCap = chance;
       if (event.canCrit === false) chance = 0;
       // forceCrit (e.g. Wild Blow) overrides everything including canCrit=false.
@@ -657,7 +658,6 @@ export function createGw2CombatQuery({
 export interface Gw2QueryRuntime extends Gw2RuntimeStateLike {
   readonly boons?: Map<string, Gw2TimedBuffApplication[]>;
   readonly activeWeaponSet?: number;
-  readonly sigil?: { readonly severanceUntil?: number };
   readonly relic?: Gw2RelicRuntime;
   readonly profession?: object | null;
 }

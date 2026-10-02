@@ -196,7 +196,7 @@ export interface Gw2RelicRule {
 }
 
 export interface Gw2RelicRuntime {
-  readonly name: string;
+  readonly id: number | null;
   readonly rules: Readonly<Gw2RelicRule>;
   readonly state: Gw2RelicState;
 }

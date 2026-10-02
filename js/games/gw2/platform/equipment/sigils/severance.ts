@@ -3,32 +3,32 @@ import {
   PRECISION_PER_CRITICAL_CHANCE_FRACTION
 } from '#gw2/platform/combat/formulas.js';
 import type { Gw2CriticalChanceContributor, Gw2QueryRuntime } from '#gw2/platform/combat/query/combat-query.js';
-import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
-import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { SIGIL_IDS, SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
+import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 
-interface Gw2SigilCriticalContribution {
+interface SeveranceCriticalContribution {
   readonly chance: number;
   readonly damage: number;
   readonly chanceContributors: readonly Gw2CriticalChanceContributor[];
 }
 
-const NO_CRITICAL_CONTRIBUTION: Readonly<Gw2SigilCriticalContribution> = Object.freeze({
+const NO_CRITICAL_CONTRIBUTION: Readonly<SeveranceCriticalContribution> = Object.freeze({
   chance: 0,
   damage: 0,
   chanceContributors: Object.freeze([])
 });
 
-/** Returns active, additive critical modifiers supplied by sigil effects. */
-export function sigilCriticalContribution(
+/** Converts Severance's active precision and ferocity buff into additive critical modifiers. */
+export function severanceCriticalContribution(
   runtime: Gw2QueryRuntime | null | undefined,
   at: number
-): Readonly<Gw2SigilCriticalContribution> {
-  if (!((runtime?.sigil?.severanceUntil || 0) > at)) {
+): Readonly<SeveranceCriticalContribution> {
+  // Query recorded windows so refreshes and historical observations share the canonical buff state.
+  if (!buffApplicationStacks(runtime?.boons?.get('sigil-severance') || [], 'sigil-severance', at, 1)) {
     return NO_CRITICAL_CONTRIBUTION;
   }
 
-  const severance = SIGIL_DATA.Severance;
+  const severance = SIGIL_BY_ID[SIGIL_IDS.SEVERANCE];
   const chance = (severance.procPrecision || 0) / PRECISION_PER_CRITICAL_CHANCE_FRACTION;
   return {
     chance,
@@ -41,9 +41,4 @@ export function sigilCriticalContribution(
       }
     ]
   };
-}
-
-export function gw2SigilSet(config: Gw2Config, weaponSet = 1): Gw2SigilSet {
-  // Public weapon sets are one-based; storage is a zero-based array.
-  return config.sigilSets?.[Math.max(1, weaponSet || 1) - 1] || {};
 }

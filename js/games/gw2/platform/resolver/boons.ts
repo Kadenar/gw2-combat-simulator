@@ -1,5 +1,5 @@
 import { isStandardBoon, gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
-import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
+import { gw2SigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 

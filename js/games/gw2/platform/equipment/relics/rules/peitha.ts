@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Peitha relic rules. */
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { clamp } from '#kernel/core/numeric.js';
@@ -53,7 +54,7 @@ export const peitha = defineRelic({
       source: 'Relic',
       actorType: 'effect',
       ownerActorType: 'player',
-      sourceId: 'relic.peitha',
+      sourceId: `relic.${RELIC_IDS.PEITHA}`,
       activationId: event.activationId,
       triggeredBy: event.skillName
     });

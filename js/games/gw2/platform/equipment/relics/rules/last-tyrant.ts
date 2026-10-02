@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Last Tyrant relic rules. */
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -16,7 +17,7 @@ export const lastTyrant = defineRelic({
     // The explosion's own burning cannot feed Tyrant's Fury.
     if (
       application.condition !== 'Burning' ||
-      application.sourceId === 'relic.last-tyrant' ||
+      application.sourceId === `relic.${RELIC_IDS.LAST_TYRANT}` ||
       missesTarget(application) ||
       !(
         isGw2PlayerActorEvent(application) ||
@@ -64,7 +65,7 @@ export const lastTyrant = defineRelic({
       hitIndex: 1,
       totalHits: 1,
       source: 'Relic',
-      sourceId: 'relic.last-tyrant',
+      sourceId: `relic.${RELIC_IDS.LAST_TYRANT}`,
       actorType: 'effect',
       ownerActorType: 'player',
       skillWeapon: 'Unequipped',
@@ -81,7 +82,7 @@ export const lastTyrant = defineRelic({
       duration: 8,
       stacks: 2,
       source: 'Relic',
-      sourceId: 'relic.last-tyrant',
+      sourceId: `relic.${RELIC_IDS.LAST_TYRANT}`,
       actorType: 'effect',
       ownerActorType: 'player',
       triggeredBy: application.skillName

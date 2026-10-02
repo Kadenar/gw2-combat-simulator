@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Bloodstone relic rules. */
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
@@ -49,7 +50,7 @@ export const bloodstone = defineRelic({
       hitIndex: 1,
       totalHits: 1,
       source: 'Relic',
-      sourceId: 'relic.bloodstone',
+      sourceId: `relic.${RELIC_IDS.BLOODSTONE}`,
       actorType: 'effect',
       ownerActorType: 'player',
       skillWeapon: 'Unequipped',
@@ -65,7 +66,7 @@ export const bloodstone = defineRelic({
       duration: 6,
       stacks: 6,
       source: 'Relic',
-      sourceId: 'relic.bloodstone',
+      sourceId: `relic.${RELIC_IDS.BLOODSTONE}`,
       actorType: 'effect',
       ownerActorType: 'player',
       triggeredBy: event.skillName

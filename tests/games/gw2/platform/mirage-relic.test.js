@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
@@ -46,7 +47,7 @@ test('Mirage follows executed rotation dodges with a one-second ICD', () => {
     });
     assert.deepEqual(result.warnings, []);
     const queued = result.resolvedEvents.filter(
-      (event) => event.type === 'condition' && event.sourceId === 'relic.mirage'
+      (event) => event.type === 'condition' && event.sourceId === `relic.${RELIC_IDS.MIRAGE}`
     );
     assert.deepEqual(
       queued.map((event) => event.at),
@@ -85,7 +86,7 @@ test('Death Blossom is an evade and shares Mirage cooldown with ordinary dodge',
   assert.ok(evades.every((event) => event.skillName === 'Death Blossom'));
   assert.ok(evades[0].at < 1 && evades[1].at > 1);
   const applications = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.sourceId === 'relic.mirage'
+    (event) => event.type === 'condition' && event.sourceId === `relic.${RELIC_IDS.MIRAGE}`
   );
   assert.deepEqual(
     applications.map((event) => event.at),
@@ -98,7 +99,7 @@ test('Death Blossom is an evade and shares Mirage cooldown with ordinary dodge',
     rotation: ['Heartseeker', { name: '__wait', waitMs: 8000 }]
   });
   assert.equal(
-    movementOnly.resolvedEvents.some((event) => event.sourceId === 'relic.mirage'),
+    movementOnly.resolvedEvents.some((event) => event.sourceId === `relic.${RELIC_IDS.MIRAGE}`),
     false
   );
 });
@@ -121,7 +122,7 @@ test('Mirage dodge Torment uses normal duration scaling and stops when there are
     config
   );
   const applications = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.sourceId === 'relic.mirage'
+    (event) => event.type === 'condition' && event.sourceId === `relic.${RELIC_IDS.MIRAGE}`
   );
   assert.deepEqual(
     applications.map((event) => event.at),
@@ -132,7 +133,7 @@ test('Mirage dodge Torment uses normal duration scaling and stops when there are
   assert.equal(result.procSteps.filter((proc) => proc.skill === 'Relic of the Mirage').length, 2);
   const withoutDodges = simulateMesmer(['Flying Cutter', { name: '__wait', waitMs: 8000 }], config);
   assert.equal(
-    withoutDodges.resolvedEvents.some((event) => event.sourceId === 'relic.mirage'),
+    withoutDodges.resolvedEvents.some((event) => event.sourceId === `relic.${RELIC_IDS.MIRAGE}`),
     false
   );
   const rapidDodges = simulateMesmer(

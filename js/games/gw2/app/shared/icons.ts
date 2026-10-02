@@ -1,5 +1,5 @@
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
-import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
+import { RELIC_DATA, RELIC_BY_ID } from '#gw2/platform/equipment/relics/data.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 export const PLACEHOLDER_ICON =
@@ -187,19 +187,14 @@ export function tooltipFactIcon(name: string): string | undefined {
 
 export function resolveRelicIcon(label: unknown): string {
   const value = String(label || '');
-  const sourceName = value
-    .match(/^relic[.:_-](.+)$/i)?.[1]
-    ?.replace(/[._-]+/g, ' ')
-    .trim()
-    .toLowerCase();
+  // Internal sources carry item IDs; display labels still resolve by their readable catalog names.
+  const sourceId = value.match(/^relic\.(\d+)$/)?.[1];
+  if (sourceId) return RELIC_BY_ID[Number(sourceId)]?.icon || '';
   const relicData = RELIC_DATA;
   for (const [name, relic] of Object.entries(relicData)) {
     if (
       relic.icon &&
-      (value === name ||
-        value.startsWith(`Relic of ${name}`) ||
-        value.startsWith(`Relic of the ${name}`) ||
-        sourceName === name.toLowerCase())
+      (value === name || value.startsWith(`Relic of ${name}`) || value.startsWith(`Relic of the ${name}`))
     ) {
       return String(relic.icon);
     }

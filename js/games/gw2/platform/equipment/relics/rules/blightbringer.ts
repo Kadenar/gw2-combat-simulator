@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Blightbringer relic rules. */
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -43,7 +44,7 @@ export const blightbringer = defineRelic({
         duration,
         stacks,
         source: 'Relic',
-        sourceId: 'relic.blightbringer',
+        sourceId: `relic.${RELIC_IDS.BLIGHTBRINGER}`,
         actorType: 'effect',
         ownerActorType: 'player'
       });

@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Mistburn relic rules. */
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -31,7 +32,7 @@ function mistburnGrant(state: Gw2RelicState, event: SimulationEvent): Simulation
     duration: 8,
     stacks: 1,
     source: 'Relic',
-    sourceId: 'relic.mistburn',
+    sourceId: `relic.${RELIC_IDS.MISTBURN}`,
     actorType: 'effect'
   };
 }
@@ -41,7 +42,7 @@ export const mistburn = defineRelic({
   boon(ctx, state, event) {
     const grant = mistburnGrant(state, event);
     if (grant) ctx.queue.enqueue(grant);
-    if (event.type !== 'buff' || event.sourceId !== 'relic.mistburn') {
+    if (event.type !== 'buff' || event.sourceId !== `relic.${RELIC_IDS.MISTBURN}`) {
       return;
     }
 

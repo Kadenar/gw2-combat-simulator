@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
@@ -31,7 +32,7 @@ function run(events, { endTime = 10, config = {}, query = {}, ...options } = {})
   });
 }
 
-const ticks = (result) => result.resolvedEvents.filter((event) => event.sourceId === 'relic.agony');
+const ticks = (result) => result.resolvedEvents.filter((event) => event.sourceId === `relic.${RELIC_IDS.AGONY}`);
 
 test('Agony is selectable and shares Severance control eligibility with a strict three-second ICD', () => {
   assert.ok(RELIC_NAMES.includes('Agony'));

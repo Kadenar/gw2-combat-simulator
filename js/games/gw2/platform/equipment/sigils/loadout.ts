@@ -1,8 +1,21 @@
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
+
+/** Reads configured sigil modifiers for a one-based weapon set without deciding which set is active. */
+export function gw2SigilSet(config: Gw2Config, weaponSet = 1): Gw2SigilSet {
+  return config.sigilSets?.[Math.max(1, weaponSet || 1) - 1] || {};
+}
+
+/** Resolve the selected build names once per lookup before dispatching ID-based sigil rules. */
+export function gw2SigilIds(config: Gw2Config, weaponSet = 1): number[] {
+  return (gw2SigilSet(config, weaponSet).names || []).flatMap((name) =>
+    SIGIL_DATA[name] ? [SIGIL_DATA[name].id] : []
+  );
+}
 
 /** Only one stacking bonus persists across sets; first equipped set/slot wins when several types are selected. */
 export function stackingSigilForBuild(build: Gw2Build): string | undefined {

@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Assembles the relic rule table from each relic's own module. */
 import { director } from '#gw2/platform/equipment/relics/rules/director.js';
 import { mountBalrior } from '#gw2/platform/equipment/relics/rules/mount-balrior.js';
@@ -27,30 +28,30 @@ import { thorns } from '#gw2/platform/equipment/relics/rules/thorns.js';
 
 import type { Gw2RelicRule } from '#gw2/platform/equipment/relics/types.js';
 
-export const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.freeze({
-  Director: director,
-  'Mount Balrior': mountBalrior,
-  Agony: agony,
-  Akeem: akeem,
-  Aristocracy: aristocracy,
-  Blightbringer: blightbringer,
-  Bloodstone: bloodstone,
-  Brawler: brawler,
-  Claw: claw,
-  Deadeye: deadeye,
-  Dragonhunter: dragonhunter,
-  Eagle: eagle,
-  Fireworks: fireworks,
-  Fractal: fractal,
-  'Last Tyrant': lastTyrant,
-  Mistburn: mistburn,
-  'Mist Stranger': mistStranger,
-  Mirage: mirage,
-  Nourys: nourys,
-  Peitha: peitha,
-  Shackles: shackles,
-  Steamshrieker: steamshrieker,
-  Thief: thief,
-  Visionary: visionary,
-  Thorns: thorns
+export const RELIC_RULES: Readonly<Record<number, Readonly<Gw2RelicRule>>> = Object.freeze({
+  [RELIC_IDS.DIRECTOR]: director,
+  [RELIC_IDS.MOUNT_BALRIOR]: mountBalrior,
+  [RELIC_IDS.AGONY]: agony,
+  [RELIC_IDS.AKEEM]: akeem,
+  [RELIC_IDS.ARISTOCRACY]: aristocracy,
+  [RELIC_IDS.BLIGHTBRINGER]: blightbringer,
+  [RELIC_IDS.BLOODSTONE]: bloodstone,
+  [RELIC_IDS.BRAWLER]: brawler,
+  [RELIC_IDS.CLAW]: claw,
+  [RELIC_IDS.DEADEYE]: deadeye,
+  [RELIC_IDS.DRAGONHUNTER]: dragonhunter,
+  [RELIC_IDS.EAGLE]: eagle,
+  [RELIC_IDS.FIREWORKS]: fireworks,
+  [RELIC_IDS.FRACTAL]: fractal,
+  [RELIC_IDS.LAST_TYRANT]: lastTyrant,
+  [RELIC_IDS.MISTBURN]: mistburn,
+  [RELIC_IDS.MIST_STRANGER]: mistStranger,
+  [RELIC_IDS.MIRAGE]: mirage,
+  [RELIC_IDS.NOURYS]: nourys,
+  [RELIC_IDS.PEITHA]: peitha,
+  [RELIC_IDS.SHACKLES]: shackles,
+  [RELIC_IDS.STEAMSHRIEKER]: steamshrieker,
+  [RELIC_IDS.THIEF]: thief,
+  [RELIC_IDS.VISIONARY]: visionary,
+  [RELIC_IDS.THORNS]: thorns
 });

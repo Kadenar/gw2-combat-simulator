@@ -1,3 +1,4 @@
+import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   effectNumber,
@@ -112,7 +113,7 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
   if (
     !((details.hitContext?.damage ?? 0) > 0) ||
     !(Number(event.coefficient) > 0) ||
-    (event.actorType !== 'player' && event.sourceId !== 'sigil.air')
+    (event.actorType !== 'player' && event.sourceId !== `sigil.${SIGIL_IDS.AIR}`)
   )
     return;
   const state = willbenderState.from(runtime);

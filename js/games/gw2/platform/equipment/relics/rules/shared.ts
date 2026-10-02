@@ -1,3 +1,5 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 /** Helpers shared by more than one relic rule module. */
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -75,7 +77,7 @@ export function timedStrikeBuff(
 /** Activates buffs from live completed slot skills, retaining precombat elapsed time and each relic's own cooldown. */
 export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2RelicRule> {
   const director = skillType === 'Heal';
-  const relicName = director ? 'Director' : 'Mount Balrior';
+  const relicId = director ? RELIC_IDS.DIRECTOR : RELIC_IDS.MOUNT_BALRIOR;
   const name = director ? 'Relic of the Director' : 'Relic of Mount Balrior';
   function activate(ctx: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) {
     const at = event.at;
@@ -86,7 +88,7 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
         type: 'condition',
         at,
         source: 'Relic',
-        sourceId: 'relic.director',
+        sourceId: `relic.${RELIC_IDS.DIRECTOR}`,
         actorType: 'effect',
         ownerActorType: 'player',
         skillName: name,
@@ -107,10 +109,15 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
       if (event.skillType !== skillType || event.cancelled || !isGw2PlayerActorEvent(event)) return;
       // The runtime supplies completion time and whether the marker has executed; pending casts cannot activate buffs.
       const precombat = event.precombat === true;
-      if (precombat ? !ctx.config.precastRelics?.includes(relicName) : ctx.config.relic !== relicName) return;
+      if (
+        precombat
+          ? !ctx.config.precastRelics?.some((name) => relicIdForName(name) === relicId)
+          : ctx.relic?.id !== relicId
+      )
+        return;
       if (!isInternalCooldownReady(event.at, state.readyAt)) return;
       state.readyAt = event.at + (director ? 15 : 30);
-      ctx.queue.enqueue({ ...event, type: 'relic.activate', sourceId: relicName, at: event.at + (director ? 0 : 1) });
+      ctx.queue.enqueue({ ...event, type: 'relic.activate', sourceId: relicId, at: event.at + (director ? 0 : 1) });
     },
     strikeMultiplier(ctx, state, event) {
       const active = (state.activationTimes as number[]).some((at) => at <= event.at && event.at < at + 6);

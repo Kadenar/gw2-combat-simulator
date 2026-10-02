@@ -1,3 +1,4 @@
+import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -7,33 +8,34 @@ import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { applyRuntimeSigils } from '#gw2/platform/equipment/sigils/runtime.js';
+import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 
 // Swap procs require combat and the destination sigil, with one cooldown shared across both weapon sets.
 test('Mischief shares its nine-second cooldown across equipped copies', () => {
   const emitted = [];
   const procs = [];
   const runtime = {
+    ...createGw2ResolverRuntimeState({ config: {} }),
     combatActive: false,
     activeWeaponSet: 1,
     config: { sigilSets: [{ names: ['Mischief'] }, { names: [] }] },
-    sigil: { readyAt: new Map() },
     emitDerived: (_cause, event) => emitted.push(event),
     recordProc: (...args) => procs.push(args)
   };
   const swap = { type: 'weapon_set', at: 1, weaponSet: 1, skillName: 'Swap Weapons' };
   applyRuntimeSigils(runtime, 'swap', swap);
   assert.equal(emitted.length, 0);
-  assert.equal(runtime.sigil.readyAt.has('Mischief'), false);
+  assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.MISCHIEF}`), 0);
 
   runtime.combatActive = true;
   applyRuntimeSigils(runtime, 'swap', { ...swap, weaponSet: 2 });
   assert.equal(emitted.length, 0);
-  assert.equal(runtime.sigil.readyAt.has('Mischief'), false);
+  assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.MISCHIEF}`), 0);
 
   runtime.config.sigilSets[1].names = ['Mischief', 'Mischief'];
   applyRuntimeSigils(runtime, 'swap', { ...swap, weaponSet: 2 });
   assert.equal(procs.length, 1);
-  assert.equal(runtime.sigil.readyAt.get('Mischief'), 10);
+  assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.MISCHIEF}`), 10);
   const firstProcPackets = emitted.length;
   assert.ok(firstProcPackets > 0);
 
@@ -43,7 +45,7 @@ test('Mischief shares its nine-second cooldown across equipped copies', () => {
   applyRuntimeSigils(runtime, 'swap', { ...swap, at: 10.001 });
   assert.equal(emitted.length, firstProcPackets * 2);
   assert.equal(procs.length, 2);
-  assert.ok(Math.abs(runtime.sigil.readyAt.get('Mischief') - 19.001) < 1e-9);
+  assert.ok(Math.abs(runtime.procs.deadline(`sigil.${SIGIL_IDS.MISCHIEF}`) - 19.001) < 1e-9);
 });
 
 // A single target receives one snowball, resolved through the normal critical-hit and blind condition paths.
@@ -84,17 +86,17 @@ test('Ice rejects non-defiant hits without consuming its shared cooldown', () =>
   for (const didCrit of [false, true]) {
     const emitted = [];
     const runtime = {
+      ...createGw2ResolverRuntimeState({ config: {} }),
       combatActive: true,
       activeWeaponSet: 1,
       config: { target: { defiant: false }, sigilSets: [{ names: ['Ice', 'Ice'] }] },
-      sigil: { readyAt: new Map() },
       emitDerived: (_cause, event) => emitted.push(event),
       recordProc() {}
     };
     const hit = { type: 'damage', at: 1, actorType: 'player', coefficient: 1, didCrit };
     applyRuntimeSigils(runtime, 'strike', hit);
     assert.equal(emitted.length, 0);
-    assert.equal(runtime.sigil.readyAt.has('Ice'), false);
+    assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.ICE}`), 0);
 
     runtime.config.target.defiant = true;
     applyRuntimeSigils(runtime, 'strike', { ...hit, at: 2 });
@@ -102,7 +104,7 @@ test('Ice rejects non-defiant hits without consuming its shared cooldown', () =>
     assert.equal(emitted[0].condition, 'Chilled');
     assert.equal(emitted[0].stacks, 1);
     assert.equal(emitted[0].duration, 2);
-    assert.equal(runtime.sigil.readyAt.get('Ice'), 12);
+    assert.equal(runtime.procs.deadline(`sigil.${SIGIL_IDS.ICE}`), 12);
 
     applyRuntimeSigils(runtime, 'strike', { ...hit, at: 12 });
     assert.equal(emitted.length, 1);

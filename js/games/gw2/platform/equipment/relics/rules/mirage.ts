@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Mirage relic rules. */
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -20,7 +21,7 @@ export const mirage = defineRelic({
       type: 'condition',
       at: dodge.at,
       source: 'Relic',
-      sourceId: 'relic.mirage',
+      sourceId: `relic.${RELIC_IDS.MIRAGE}`,
       actorType: 'effect',
       ownerActorType: 'player',
       triggeredBy: dodge.skillName,
@@ -32,7 +33,7 @@ export const mirage = defineRelic({
     });
   },
   condition(ctx, _state, application) {
-    if (application.sourceId === 'relic.mirage') {
+    if (application.sourceId === `relic.${RELIC_IDS.MIRAGE}`) {
       ctx.recordProc('relic', 'Relic of the Mirage', application.at, application.triggeredBy, '2 Torment for 6s');
     }
   }

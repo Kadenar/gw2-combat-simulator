@@ -1,3 +1,5 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
@@ -489,11 +491,13 @@ test('critical sigils and Mistburn claim only actual eligible effects, identical
   const rotation = [cast(991003), cast(991003), cast(991001), cast(991001), wait(1000)];
   const detailed = run(rotation, options);
   assert.equal(
-    detailed.resolvedEvents.filter((event) => event.type === 'damage' && event.sourceId === 'sigil.air').length,
+    detailed.resolvedEvents.filter((event) => event.type === 'damage' && event.sourceId === `sigil.${SIGIL_IDS.AIR}`)
+      .length,
     1
   );
   assert.equal(
-    detailed.resolvedEvents.filter((event) => event.type === 'buff' && event.sourceId === 'relic.mistburn').length,
+    detailed.resolvedEvents.filter((event) => event.type === 'buff' && event.sourceId === `relic.${RELIC_IDS.MISTBURN}`)
+      .length,
     1
   );
   const score = run(rotation, { ...options, output: 'score' });
@@ -520,7 +524,9 @@ test('Doom survives an off-target hit and is consumed once by the next actual hi
     { combatStartTime: 0, config: { ...config, sigilSets: [{ names: [] }, { names: ['Doom'] }] } },
     profession
   );
-  const poison = result.resolvedEvents.filter((event) => event.type === 'condition' && event.sourceId === 'sigil.doom');
+  const poison = result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.sourceId === `sigil.${SIGIL_IDS.DOOM}`
+  );
   assert.equal(poison.length, 1);
   assert.equal(poison[0].at, 0.2);
   assert.equal(live.sigil.doomPending, false);
@@ -885,7 +891,8 @@ test('Shackles claims an actual immobilize once and rejects missed applications'
   const options = { config: { ...config, relic: 'Shackles' } };
   const result = run([cast(991008), cast(991008), wait(5000)], options);
   assert.equal(
-    result.resolvedEvents.filter((event) => event.type === 'damage' && event.sourceId === 'relic.shackles').length,
+    result.resolvedEvents.filter((event) => event.type === 'damage' && event.sourceId === `relic.${RELIC_IDS.SHACKLES}`)
+      .length,
     1
   );
   const missed = run([{ ...cast(991008), offTarget: true }, wait(5000)], options);
@@ -896,7 +903,9 @@ test('Shackles claims an actual immobilize once and rejects missed applications'
 test('Mirage claims actual evades once per cooldown without a timeline replay', () => {
   const result = run([cast(991010), cast(991010), wait(1500)], { config: { ...config, relic: 'Mirage' } });
   assert.equal(
-    result.resolvedEvents.filter((event) => event.type === 'condition' && event.sourceId === 'relic.mirage').length,
+    result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.sourceId === `relic.${RELIC_IDS.MIRAGE}`
+    ).length,
     1
   );
   assert.ok(result.conditionDamage > 0);

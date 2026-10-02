@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -80,12 +81,12 @@ test('Last Tyrant explodes on the burning after five Fury stacks and respects it
   assert.equal(conditions.length, 1);
   assert.deepEqual(
     { stacks: conditions[0].stacks, duration: conditions[0].duration, sourceId: conditions[0].sourceId },
-    { stacks: 2, duration: 8, sourceId: 'relic.last-tyrant' }
+    { stacks: 2, duration: 8, sourceId: `relic.${RELIC_IDS.LAST_TYRANT}` }
   );
   // The explosion strike temporarily borrows Bloodstone Explosion's coefficient.
   assert.deepEqual(
     queued.filter((event) => event.type === 'damage').map((event) => [event.coefficient, event.sourceId]),
-    [[3, 'relic.last-tyrant']]
+    [[3, `relic.${RELIC_IDS.LAST_TYRANT}`]]
   );
   // The explosion's own burning does not start the next Fury cycle.
   assert.equal(relic.state.stacks, 0);
@@ -192,7 +193,7 @@ test('one-time multi-stack Burning skills expose each stack to Last Tyrant at th
       );
       const explosions = ctx.procSteps.filter((proc) => proc.detail === 'explosion');
       assert.equal(explosions.length, 1, skill.name);
-      const relicBurning = ctx.resolved.filter((event) => event.sourceId === 'relic.last-tyrant');
+      const relicBurning = ctx.resolved.filter((event) => event.sourceId === `relic.${RELIC_IDS.LAST_TYRANT}`);
       assert.equal(
         relicBurning.reduce((total, event) => total + event.stacks, 0),
         2,
@@ -271,7 +272,7 @@ test('bundled Burning triggers Tyrant on the fifth-stack impact and respects coo
       endTime: 15,
       professionReactions: {
         'damage.resolved'(_ctx, event) {
-          if (event.sourceId === 'relic.last-tyrant') explosions.push(event.at);
+          if (event.sourceId === `relic.${RELIC_IDS.LAST_TYRANT}`) explosions.push(event.at);
         }
       }
     });

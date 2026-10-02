@@ -1,3 +1,5 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 /** Brawler relic rules. */
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -14,7 +16,12 @@ export const brawler = defineRelic({
       (ctx.combatStartTime != null &&
         event.at <= ctx.combatStartTime &&
         (!marker || compareTimelineEvents(event, marker) < 0));
-    if (precombat ? !ctx.config.precastRelics?.includes('Brawler') : ctx.relic?.name !== 'Brawler') return;
+    if (
+      precombat
+        ? !ctx.config.precastRelics?.some((name) => relicIdForName(name) === RELIC_IDS.BRAWLER)
+        : ctx.relic?.id !== RELIC_IDS.BRAWLER
+    )
+      return;
     const kind = (event.kind || '').toLowerCase();
     // Player ownership is insufficient: the boon must reach the player to activate Brawler.
     if (

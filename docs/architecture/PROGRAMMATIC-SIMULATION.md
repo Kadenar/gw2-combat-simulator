@@ -29,8 +29,8 @@ present, including the six-decimal simulation timestamp and effective phase; its
 complete execution trace.
 
 Score output suppresses report collections and diagnostics. Both outputs execute the same runtime once, with the same
-state transitions and random draws. Detailed diagnostics capture the actual hit calculations and critical-sigil
-eligibility, claim, and suppression decisions. They do not predict effects or rerun the simulation.
+state transitions and random draws. Detailed damage diagnostics capture the actual hit calculations. They do not predict
+effects or rerun the simulation.
 
 The optional profiler reports `preparation`, `execution`, and `reporting` durations, once each per call.
 

@@ -6,11 +6,11 @@ import {
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
-/** One registry per simulation owns trait deadlines; profile IDs isolate unrelated procs and patches retune claims. */
+/** One registry per simulation owns proc deadlines; profile IDs and equipment namespaces isolate unrelated claims. */
 export function createProcRegistry(context: () => Gw2ResolverRuntime & { readonly time?: number }) {
   const readyAt: Record<string, number> = Object.create(null);
   return {
-    /** Live deadlines also support mechanic-owned resets and reconstruction without another private trait map. */
+    /** Live deadlines also support sampled proc commits, mechanic-owned resets, and reconstruction. */
     readyAt,
     /** Unarmed owners are ready at zero; callers with mechanic-specific boundary rules can inspect the deadline. */
     deadline(key: SkillId): number {

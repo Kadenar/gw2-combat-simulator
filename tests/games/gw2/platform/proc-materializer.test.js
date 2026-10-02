@@ -1,3 +1,5 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -9,123 +11,27 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
 import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
-import { createCriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
-
-test('sigil diagnostics correlate same-time causes and retain explicit suppression evidence', () => {
-  const diagnostics = createCriticalSigilDiagnostics();
-  const event = (eventOrder) => ({
-    type: 'damage',
-    at: 1,
-    source: 'fixture',
-    sourceId: 'same-name',
-    actorType: 'player',
-    eventOrder
-  });
-  const proc = { procs: [{ name: 'Earth', readyAt: 3 }] };
-  const absent = { procs: [] };
-  diagnostics.record(event(1), ['Earth'], { chance: 0.5, didCrit: true }, proc);
-  diagnostics.record(event(2), ['Earth'], { chance: 0.5, didCrit: false }, absent);
-  diagnostics.suppress(event(3), 'precombat', ['Earth']);
-  assert.deepEqual(
-    diagnostics
-      .results()
-      .map(({ causeEventOrder, claimed, suppression }) => ({ causeEventOrder, claimed, suppression })),
-    [
-      { causeEventOrder: 1, claimed: true, suppression: undefined },
-      { causeEventOrder: 2, claimed: false, suppression: undefined },
-      { causeEventOrder: 3, claimed: false, suppression: 'precombat' }
-    ]
-  );
-});
-
-test('sigil diagnostics preserve seeded output and explain suppression of a later planned hit', () => {
-  const profession = defineTestProfession({
-    id: 'sigil-diagnostic-fixture',
-    name: 'Sigil diagnostic fixture',
-    catalog: createCanonicalCatalog(),
-    hooks: {
-      initialize(context) {
-        for (const at of [0.1, 10])
-          context.emit({
-            type: 'damage',
-            at,
-            source: 'fixture',
-            sourceId: 'strike',
-            actorType: 'player',
-            coefficient: 1,
-            weaponStrength: 1000
-          });
-      }
-    }
-  });
-  const options = {
-    profession,
-    rotation: [{ type: 'wait', durationMs: 11000 }],
-    config: {
-      stats: { power: 1000, precision: 1945 },
-      sigilSets: [{ names: ['Blight'] }],
-      randomness: { mode: 'stochastic', seed: 42 }
-    }
-  };
-  const plain = simulateGw2(options);
-  const diagnostic = simulateGw2({ ...options, damageDiagnostics: true });
-  assert.equal(plain.totalDamage, diagnostic.totalDamage);
-  assert.deepEqual(
-    plain.events.map((event) => event.didCrit),
-    diagnostic.events.map((event) => event.didCrit)
-  );
-  assert.deepEqual(plain.procSteps, diagnostic.procSteps);
-  assert.equal(plain.criticalSigilDiagnostics, undefined);
-  assert.equal(
-    simulateGw2({ ...options, damageDiagnostics: true, output: 'score' }).criticalSigilDiagnostics,
-    undefined
-  );
-  assert.deepEqual(
-    diagnostic.criticalSigilDiagnostics,
-    simulateGw2({ ...options, damageDiagnostics: true }).criticalSigilDiagnostics
-  );
-  // A future impact beyond observation is explained without consuming a critical draw or claiming its proc.
-  const clipped = simulateGw2({ ...options, rotation: [{ type: 'wait', durationMs: 1000 }], damageDiagnostics: true });
-  const pending = clipped.criticalSigilDiagnostics.find((row) => row.at === 10);
-  assert.equal(pending.suppression, 'observation-end');
-  assert.equal(pending.claimed, false);
-  assert.equal(pending.didCrit, undefined);
-  const lethal = simulateGw2({
-    ...options,
-    damageDiagnostics: true,
-    config: {
-      ...options.config,
-      stats: { power: 1000, precision: 4000 },
-      target: { health: 1 }
-    }
-  });
-  assert.deepEqual(
-    lethal.criticalSigilDiagnostics.map(({ claimed, suppression }) => [claimed, suppression]),
-    [
-      [true, 'target-death'],
-      [false, 'target-death']
-    ]
-  );
-});
+import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 
 test('critical sigil decisions use sampled outcomes and strict deadlines without mutating inputs', () => {
   const hit = { type: 'damage', at: 2, source: 'fixture', sourceId: 1, actorType: 'player', coefficient: 1 };
-  const state = Object.freeze({
-    readyAt: new Map([
-      ['Earth', 2],
-      ['Air', 3],
-      ['Doom', 9]
-    ])
+  // Read shared namespaced deadlines without claiming them during the pure decision step.
+  const { procs } = createGw2ResolverRuntimeState({ config: {} });
+  Object.assign(procs.readyAt, {
+    [`sigil.${SIGIL_IDS.EARTH}`]: 2,
+    [`sigil.${SIGIL_IDS.AIR}`]: 3,
+    [`sigil.${SIGIL_IDS.DOOM}`]: 9
   });
+  Object.freeze(procs.readyAt);
   const decide = (event = hit, chance = 0.5, didCrit = true) =>
-    decideCriticalSigils(event, ['Earth', 'Air', 'Earth'], { chance, didCrit }, state);
+    decideCriticalSigils(event, [SIGIL_IDS.EARTH, SIGIL_IDS.AIR, SIGIL_IDS.EARTH], { chance, didCrit }, procs);
   assert.deepEqual(decide(), { procs: [] });
-  assert.deepEqual(decide({ ...hit, at: 2.000001 }), { procs: [{ name: 'Earth', readyAt: 4.000001 }] });
-  assert.deepEqual(decide({ ...hit, at: 3 }), { procs: [{ name: 'Earth', readyAt: 5 }] });
+  assert.deepEqual(decide({ ...hit, at: 2.000001 }), { procs: [{ id: SIGIL_IDS.EARTH, readyAt: 4.000001 }] });
+  assert.deepEqual(decide({ ...hit, at: 3 }), { procs: [{ id: SIGIL_IDS.EARTH, readyAt: 5 }] });
   assert.deepEqual(decide({ ...hit, at: 3.000001 }), {
     procs: [
-      { name: 'Earth', readyAt: 5.000001 },
-      { name: 'Air', readyAt: 6.000001 }
+      { id: SIGIL_IDS.EARTH, readyAt: 5.000001 },
+      { id: SIGIL_IDS.AIR, readyAt: 6.000001 }
     ]
   });
   for (const change of [
@@ -140,16 +46,13 @@ test('critical sigil decisions use sampled outcomes and strict deadlines without
   assert.deepEqual(decide({ ...hit, at: 4 }, 0), { procs: [] });
   assert.deepEqual(decide({ ...hit, at: 4 }, 0.5, false), { procs: [] });
   assert.equal(decide({ ...hit, at: 4, actorType: 'effect', canTriggerCriticalSigils: true }).procs.length, 2);
-  assert.deepEqual(
-    [...state.readyAt],
-    [
-      ['Earth', 2],
-      ['Air', 3],
-      ['Doom', 9]
-    ]
-  );
+  assert.deepEqual(Object.entries(procs.readyAt), [
+    [`sigil.${SIGIL_IDS.EARTH}`, 2],
+    [`sigil.${SIGIL_IDS.AIR}`, 3],
+    [`sigil.${SIGIL_IDS.DOOM}`, 9]
+  ]);
   assert.throws(
-    () => createCriticalSigilEvent('Future', { effect: 'unsupported' }, ''),
+    () => createCriticalSigilEvent(999999, { effect: 'unsupported' }, ''),
     /Unsupported critical sigil effect/
   );
 });
@@ -192,7 +95,7 @@ test('Blight procs supply condition-dependent readiness and expire without recur
       },
       reactions: {
         'condition.applied': (context, event) => {
-          if (event.sourceId === 'sigil.blight')
+          if (event.sourceId === `sigil.${SIGIL_IDS.BLIGHT}`)
             assert.equal(context.query.targetConditionStacks('Poisoned', 0.2, context), 2);
         }
       }
@@ -203,10 +106,12 @@ test('Blight procs supply condition-dependent readiness and expire without recur
   assert.deepEqual(observed, [true, false]);
   assert.equal(result.events.filter((event) => event.sourceId === 'follow-up').length, 1);
   assert.equal(
-    result.resolvedEvents.filter((event) => event.type === 'condition' && event.sourceId === 'sigil.blight').length,
+    result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.sourceId === `sigil.${SIGIL_IDS.BLIGHT}`
+    ).length,
     1
   );
-  assert.ok(result.events.every((event) => event.sourceId !== 'relic.shackles'));
+  assert.ok(result.events.every((event) => event.sourceId !== `relic.${RELIC_IDS.SHACKLES}`));
 });
 
 // Identical short histories expose equipment eligibility without depending on a saved rotation.
@@ -243,7 +148,7 @@ test('critical sigil cooldowns persist across weapon swaps and cannot proc while
       const resolved = simulateGw2({ profession, config, rotation });
       for (const events of [scheduled.events, resolved.resolvedEvents]) {
         assert.deepEqual(
-          events.filter((event) => event.sourceId === 'sigil.earth').map((event) => event.at),
+          events.filter((event) => event.sourceId === `sigil.${SIGIL_IDS.EARTH}`).map((event) => event.at),
           [startsEquipped ? 0.1 : 0.3]
         );
       }
@@ -290,7 +195,9 @@ test('computed combat boundaries admit opening procs but exclude the preceding m
   const scheduled = simulateGw2({ profession, config, rotation: rotation });
   assert.equal(scheduled.combatStartTime, 0.3);
   const sigilTimes = (events) =>
-    events.filter((event) => event.type === 'damage' && event.sourceId === 'sigil.air').map((event) => event.at);
+    events
+      .filter((event) => event.type === 'damage' && event.sourceId === `sigil.${SIGIL_IDS.AIR}`)
+      .map((event) => event.at);
   assert.deepEqual(sigilTimes(scheduled.events), [0.3]);
   assert.deepEqual(sigilTimes(simulateGw2({ profession, config, rotation }).resolvedEvents), [0.3]);
 });

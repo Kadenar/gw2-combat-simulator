@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -308,7 +309,7 @@ test('Steamshrieker burns from water blasts and leaps without broadening Bloodst
   // The relic is equipment-owned, so both supported finisher types work for every profession through the shared resolver.
   assert.equal(
     steamshrieker.resolvedEvents.filter(
-      (event) => event.type === 'condition' && event.sourceId === 'relic.steamshrieker'
+      (event) => event.type === 'condition' && event.sourceId === `relic.${RELIC_IDS.STEAMSHRIEKER}`
     ).length,
     2
   );

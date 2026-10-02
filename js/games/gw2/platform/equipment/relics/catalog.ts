@@ -1,6 +1,13 @@
 /** Owns selectable relic names, groupings, and equipment-level timing lookups derived from the relic table. */
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 
+/** Names belong to saved builds; resolve the item identity before runtime rule selection. */
+export function relicIdForName(name: unknown): number | null {
+  return typeof name === 'string' && Object.hasOwn(RELIC_DATA, name)
+    ? RELIC_DATA[name as keyof typeof RELIC_DATA].id
+    : null;
+}
+
 /** Resolves the relic's fixed weapon-swap reduction so every base recharge loses the same 2.5 seconds. */
 export function relicWeaponSwapRechargeReduction(relicName: string | undefined): number {
   if (!relicName || !Object.hasOwn(RELIC_DATA, relicName)) return 0;

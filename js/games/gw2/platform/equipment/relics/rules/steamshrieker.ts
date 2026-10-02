@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Steamshrieker relic rules. */
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
@@ -17,7 +18,7 @@ export const steamshrieker = defineRelic({
       type: 'condition',
       at: event.at,
       source: 'Relic',
-      sourceId: 'relic.steamshrieker',
+      sourceId: `relic.${RELIC_IDS.STEAMSHRIEKER}`,
       actorType: 'effect',
       ownerActorType: 'player',
       skillName: 'Relic of Steamshrieker',

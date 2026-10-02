@@ -1,3 +1,4 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -391,7 +392,7 @@ test('Mirage self-Might triggers Relic of Mistburn', () => {
     })
   );
   // Count the resolver-owned grant, not its scheduling prediction.
-  const bonusMight = result.resolvedEvents.filter((event) => event.sourceId === 'relic.mistburn');
+  const bonusMight = result.resolvedEvents.filter((event) => event.sourceId === `relic.${RELIC_IDS.MISTBURN}`);
 
   assert.deepEqual(
     bonusMight.map((event) => ({
