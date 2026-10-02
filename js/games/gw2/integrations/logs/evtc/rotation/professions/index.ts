@@ -133,13 +133,13 @@ export function reconstructProfessionActions(
     rawName: action.rawName === 'Swap Weapons' ? 'Weapon Swap' : action.rawName,
     // Synthetic Weaver transitions are attunement swaps without a weapon-set marker.
     isSwap: action.isSwap ?? action.weaponSet != null,
-    metadataAccurate: action.metadataAccurate ?? true,
-    expectedDurationMs: action.expectedDuration ?? undefined
+    metadataAccurate: action.metadataAccurate ?? true
   }));
-  // Keep source identity when available; normalization may also synthesize actions without a source row.
+  // Restore raw event ordering and evidence for originals; synthesized inputs have no source row to inherit.
   return normalizeLogProfessionActions({ ...context, recordedActions }).map((action) => ({
     ...originals[action.sourceActionIndex!],
     ...action,
+    evidence: action.sourceActionIndex == null ? 'synthesized' : originals[action.sourceActionIndex].evidence,
     eventIndex: originals[action.sourceActionIndex!]?.eventIndex ?? action.eventIndex,
     rawName: action.rawName === 'Weapon Swap' ? 'Swap Weapons' : action.rawName,
     // This read-only observation requires a landed packet during the represented airborne auto.

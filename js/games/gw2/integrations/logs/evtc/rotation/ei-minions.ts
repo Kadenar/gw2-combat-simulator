@@ -120,7 +120,7 @@ export function eiMesmerShatters(context: EvtcProfessionReconstructionContext): 
             {
               start: event.time,
               end: event.time,
-              expectedDuration: 0,
+              expectedDurationMs: 0,
               rawSkillId: skillId,
               rawName: log.skills.find((s) => s.id === skillId)?.name ?? 'Unknown ' + skillId,
               eventIndex,
@@ -172,7 +172,7 @@ export function eiMesmerPhaseRetreat(context: EvtcProfessionReconstructionContex
             {
               start: event.time,
               end: event.time,
-              expectedDuration: 0,
+              expectedDurationMs: 0,
               rawSkillId: 10310,
               rawName: 'Phase Retreat',
               eventIndex,
@@ -258,7 +258,7 @@ export function eiChronomancerShatters(context: EvtcProfessionReconstructionCont
       result.push({
         start: event.time,
         end: event.time,
-        expectedDuration: 0,
+        expectedDurationMs: 0,
         rawSkillId: skillId,
         rawName: log.skills.find((s) => s.id === skillId)?.name ?? 'Unknown ' + skillId,
         eventIndex,
@@ -297,7 +297,7 @@ export function eiMinionSpawns(context: EvtcProfessionReconstructionContext): Ev
       result.push({
         start: event.time,
         end: event.time,
-        expectedDuration: 0,
+        expectedDurationMs: 0,
         rawSkillId: skillId,
         rawName: log.skills.find((s) => s.id === skillId)?.name ?? 'Unknown ' + skillId,
         eventIndex,

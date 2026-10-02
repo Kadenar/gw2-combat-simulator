@@ -22,7 +22,7 @@ export function deadeyeMarkActions(context: EvtcProfessionReconstructionContext)
       {
         start: event.time,
         end: event.time,
-        expectedDuration: 0,
+        expectedDurationMs: 0,
         rawSkillId: ID.DEADEYES_MARK,
         rawName: "Deadeye's Mark",
         evidence: 'buff-transition',

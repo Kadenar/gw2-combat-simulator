@@ -90,7 +90,7 @@ export interface ParsedEvtc {
 }
 
 export type EvtcRotationEvidence =
-  'animation' | 'legacy-activation' | 'effect' | 'missile' | 'state-change' | 'buff-transition';
+  'animation' | 'legacy-activation' | 'effect' | 'missile' | 'state-change' | 'buff-transition' | 'synthesized';
 
 export interface EvtcRotationAction extends RotationActionSummary {
   readonly evidence: EvtcRotationEvidence;

@@ -469,7 +469,7 @@ test('tied Revenant stance and upkeep signals preserve source metadata in either
     const normalizedSwap = normalized.find((action) => action.canonicalSkillId === -4);
     assert.ok(normalizedSwap);
     assert.equal(normalizedSwap.eventIndex, stance.eventIndex);
-    assert.equal(normalizedSwap.expectedDuration, stance.expectedDuration);
+    assert.equal(normalizedSwap.expectedDurationMs, stance.expectedDurationMs);
     assert.deepEqual(
       out.rotation.map((action) => action.skillId),
       [-4]

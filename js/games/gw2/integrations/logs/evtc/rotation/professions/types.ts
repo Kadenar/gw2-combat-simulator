@@ -1,33 +1,16 @@
 import type { EvtcRotationEvidence, ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
-import type { RotationActionStatus } from '#gw2/integrations/logs/shared/rotation/model.js';
+import type { RecordedRotationAction } from '#gw2/integrations/logs/shared/rotation/normalization.js';
 import type { RotationCatalog } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 
-export interface EvtcRecordedRotationAction {
-  readonly start: number;
-  readonly end: number;
-  readonly expectedDuration: number | null;
-  readonly rawSkillId: number;
-  readonly rawName: string;
+export interface EvtcRecordedRotationAction extends RecordedRotationAction {
   readonly evidence: EvtcRotationEvidence;
-  readonly status: RotationActionStatus;
   readonly acceleration?: number;
   readonly savedDurationMs?: number;
-  readonly metadataAccurate?: boolean;
   readonly eiRule?: string;
   readonly castOrigin?: 'skill' | 'trait' | 'gear' | 'unconditional';
-  readonly eventIndex: number;
   readonly weaponSet?: number | null;
-  readonly isSwap?: boolean;
-  readonly canonicalSkillId?: number;
-  readonly canonicalName?: string;
-  readonly doubleEdgeOutcome?: 'success' | 'backfire';
-  readonly releaseAtCharges?: number;
   readonly replayCastEnd?: number;
-  readonly replayInterruptMs?: number;
-  readonly replayDurationMs?: number;
-  readonly independentTimeline?: boolean;
-  readonly concurrentTimeline?: boolean;
   /** Direct damage proves this autoattack executed during Vindicator's leap before landing. */
   readonly vindicatorDodgeAuto?: boolean;
 }

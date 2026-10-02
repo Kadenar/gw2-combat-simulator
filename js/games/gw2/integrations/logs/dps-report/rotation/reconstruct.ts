@@ -1,4 +1,5 @@
-import type { CastCommand, CooldownResetCommand, RotationCommand } from '#gw2/platform/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/types.js';
+import { replayActionCommand } from '#gw2/integrations/logs/shared/rotation/commands.js';
 import {
   isMushroomKingsBlessing,
   isWeaponStow,
@@ -9,6 +10,7 @@ import {
   findNamedRotationSkill,
   normalizedName as normalized,
   recordedActionSkill,
+  resolvedActionIdentity,
   skillIdentity
 } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import type { RotationCatalog } from '#gw2/integrations/logs/shared/rotation/catalog.js';
@@ -173,12 +175,7 @@ function resolveAction(
 
   const selected = selectedSkillForAction(action, profile, catalog, selectedSkillIds);
   const skill = selected || recordedActionSkill(action, { catalog, profile });
-  return {
-    ...action,
-    skill,
-    name: skill?.name || action.canonicalName || action.rawName,
-    skillId: skill?.id ?? action.canonicalSkillId ?? action.rawSkillId
-  };
+  return { ...action, ...resolvedActionIdentity(action, skill) };
 }
 
 /** Preserves shortened inputs; the scheduler cancels damage unless explicit commit or per-packet rules permit it. */
@@ -190,18 +187,6 @@ function observedInterruptMs(action: ResolvedLogAction): number | null {
   const interruptMs = quantizeGw2ActionTimingMs(sourceDurationMs);
   const runtimeDurationMs = referenceCastTimeMs(action.skill);
   return sourceDurationMs > 0 && interruptMs < runtimeDurationMs ? interruptMs : null;
-}
-
-function actionCommand(action: ResolvedLogAction): CastCommand | CooldownResetCommand {
-  if (isMushroomKingsBlessing(action)) return { type: 'cooldown-reset' };
-  const command: { -readonly [Key in keyof CastCommand]: CastCommand[Key] } = { type: 'cast', skillId: action.skillId };
-  const interruptMs = action.replayInterruptMs ?? observedInterruptMs(action);
-  // Keep cancelled inputs explicit so their elapsed time survives without replaying a full damaging cast.
-  if (interruptMs != null) command.interruptAfterMs = interruptMs;
-  if (action.doubleEdgeOutcome != null) command.doubleEdgeOutcome = action.doubleEdgeOutcome;
-  if (action.releaseAtCharges != null) command.releaseAtCharges = action.releaseAtCharges;
-
-  return command;
 }
 
 /** Keeps retained aftercast occupied in replay without encoding that same interval as a separate wait. */
@@ -270,7 +255,7 @@ function buildRotation(
     quantizeMs: quantizeGw2ActionTimingMs,
     // EI source durations can be shorter than simulator casts, so later waits absorb that accumulated difference.
     alignWaitsToSimulatorTiming: true,
-    commandFor: actionCommand,
+    commandFor: (action) => replayActionCommand(action, action.replayInterruptMs ?? observedInterruptMs(action)),
     // Troubadour EI animations omit ordinary aftercast; its measured catalog cadence already models that occupied lane.
     replayEnd: (action) => replayActionEnd(action, completeReportedAftercast),
     hasObservedCastTime: () => true,

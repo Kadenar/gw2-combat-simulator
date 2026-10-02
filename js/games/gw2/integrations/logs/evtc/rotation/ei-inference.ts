@@ -371,7 +371,7 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
       actions.push({
         start,
         end: start,
-        expectedDuration: 0,
+        expectedDurationMs: 0,
         rawSkillId: rule.skillId,
         rawName:
           names.get(rule.skillId) ??

@@ -59,7 +59,7 @@ export function eiCustomAnimatedActions(context: EvtcProfessionReconstructionCon
     result.push({
       start,
       end: start + duration,
-      expectedDuration: duration,
+      expectedDurationMs: duration,
       rawSkillId: skillId,
       rawName: names.get(skillId) ?? 'Unknown ' + skillId,
       evidence: 'effect',

@@ -11,6 +11,18 @@ All three return source actions separately from normalized actions, commands, ti
 durations are retained; simulator conversion can quantize interruptions, encode overlaps and add ordinary waits using
 catalog timing. It does not modify resource defaults, cooldowns or saved rotations to repair missing inputs.
 
+Shared command construction accepts an already-resolved identity and the adapter's interrupt decision. EI retains
+selected-skill name preference; EVTC retains numeric identity, profile dodges, packet proof, and Continuum Split
+boundaries. Each adapter still supplies its own policy directly to `buildReplayTimeline`.
+
+`RecordedRotationAction.expectedDurationMs` is the nominal duration of the represented input, including any composite or
+variant normalization. Unknown durations are absent internally and become `null` in results. The original source actions
+retain their observed durations. Normalization receives explicit swap/accuracy flags, while raw EVTC evidence may omit
+them. `sourceActionIndex` identifies the original input independently of normalization ordering; EVTC restores its
+original event index and evidence after normalization. A synthesized input has no source index and uses `synthesized`
+evidence, never a borrowed animation or event index. The EVTC mapping remains responsible for those distinctions and for
+damage-proven Vindicator observations.
+
 Every successful log import returns this notice once:
 
 > The log may omit opening casts or pre-combat setup. Review and complete the opener before simulating.

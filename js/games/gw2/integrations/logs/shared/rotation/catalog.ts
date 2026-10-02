@@ -18,6 +18,21 @@ interface RotationCatalogContext {
   readonly profile: RotationProfessionProfile;
 }
 
+export interface ResolvedRotationIdentity {
+  readonly skill: Skill | null;
+  readonly name: string;
+  readonly skillId: SkillId;
+}
+
+/** Applies a catalog match after adapter-specific selection, preserving canonical or raw identity when unmatched. */
+export function resolvedActionIdentity(action: RecordedActionIdentity, skill: Skill | null): ResolvedRotationIdentity {
+  return {
+    skill,
+    name: skill?.name || action.canonicalName || action.rawName,
+    skillId: skill?.id ?? action.canonicalSkillId ?? action.rawSkillId
+  };
+}
+
 export function normalizedName(value: unknown): string {
   return String(value || '')
     .trim()

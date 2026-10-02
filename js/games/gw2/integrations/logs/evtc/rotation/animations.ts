@@ -72,7 +72,7 @@ function animatedCast(
   return {
     start: at,
     end: at + duration,
-    expectedDuration: expected,
+    expectedDurationMs: expected,
     rawSkillId: event.skillId,
     rawName: skillName(names, event.skillId),
     evidence: modern ? 'animation' : 'legacy-activation',

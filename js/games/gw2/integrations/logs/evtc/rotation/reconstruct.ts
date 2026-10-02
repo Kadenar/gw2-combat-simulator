@@ -1,4 +1,5 @@
-import type { CastCommand, CooldownResetCommand, RotationCommand } from '#gw2/platform/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/types.js';
+import { replayActionCommand } from '#gw2/integrations/logs/shared/rotation/commands.js';
 import {
   isMushroomKingsBlessing,
   isWeaponStow,
@@ -36,6 +37,7 @@ import {
   findNamedRotationSkill,
   findRotationSkill,
   recordedActionSkill,
+  resolvedActionIdentity,
   skillIdentity,
   type RotationCatalog
 } from '#gw2/integrations/logs/shared/rotation/catalog.js';
@@ -48,6 +50,7 @@ import { evtcRotationProfile } from '#gw2/integrations/logs/evtc/rotation/profil
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
 import type { EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import type { ResolvedLogAction } from '#gw2/integrations/logs/shared/rotation/normalization.js';
 import type { RotationReconstructionBase } from '#gw2/integrations/logs/shared/rotation/model.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
 import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';
@@ -65,11 +68,7 @@ export interface EvtcRotationOptions {
 
 type RecordedAction = EvtcRecordedRotationAction;
 
-interface ResolvedAction extends RecordedAction {
-  readonly skill: ReturnType<typeof findRotationSkill>;
-  readonly name: string;
-  readonly skillId: string | number;
-}
+type ResolvedAction = ResolvedLogAction<RecordedAction>;
 
 /** Preserves shortened inputs so the scheduler applies explicit commit or per-packet cancellation rules. */
 function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof findRotationSkill>): number | null {
@@ -150,7 +149,7 @@ function weaponSwapActions(log: ParsedEvtc, address: bigint): RecordedAction[] {
       {
         start: event.time,
         end: event.time,
-        expectedDuration: 0,
+        expectedDurationMs: 0,
         rawSkillId: 0,
         rawName: 'Swap Weapons',
         evidence: 'state-change' as const,
@@ -191,28 +190,7 @@ function resolveAction(
   }
 
   const skill = recordedActionSkill(action, { catalog, profile });
-  return {
-    ...action,
-    skill,
-    name: skill?.name || action.canonicalName || action.rawName,
-    skillId: skill?.id ?? action.canonicalSkillId ?? action.rawSkillId
-  };
-}
-
-function actionCommand(action: ResolvedAction): CastCommand | CooldownResetCommand {
-  if (isMushroomKingsBlessing(action)) return { type: 'cooldown-reset' };
-  const command: { -readonly [Key in keyof CastCommand]: CastCommand[Key] } = { type: 'cast', skillId: action.skillId };
-  const interruptMs = observedInterruptMs(action, action.skill);
-  // Keep cancelled inputs explicit instead of replaying them as full damaging casts.
-  if (interruptMs != null) command.interruptAfterMs = interruptMs;
-
-  if (action.doubleEdgeOutcome != null) {
-    command.doubleEdgeOutcome = action.doubleEdgeOutcome;
-  }
-
-  if (action.releaseAtCharges != null) command.releaseAtCharges = action.releaseAtCharges;
-
-  return command;
+  return { ...action, ...resolvedActionIdentity(action, skill) };
 }
 
 /** Uses normalized replay timing while preserving EVTC boundaries needed to position overlapping actions. */
@@ -245,7 +223,7 @@ function buildRotation(
     replayEnd: replayActionEnd,
     hasObservedCastTime: (action) =>
       action.status !== 'unknown' && (action.evidence === 'animation' || action.evidence === 'legacy-activation'),
-    commandFor: actionCommand,
+    commandFor: (action) => replayActionCommand(action, observedInterruptMs(action, action.skill)),
     canEmit: (action) =>
       action.skill != null ||
       action.rawName === 'Swap Weapons' ||
@@ -359,7 +337,7 @@ function reconstructWithProfile(
     timestampMs: action.start - origin,
     endTimestampMs: action.end - origin,
     durationMs: action.end - action.start,
-    expectedDurationMs: action.expectedDuration,
+    expectedDurationMs: action.expectedDurationMs ?? null,
     rawSkillId: action.rawSkillId,
     skillId: action.skillId,
     name: action.name,
