@@ -330,7 +330,7 @@ test('required Thief tuning fails contextually and accepts a real zero', () => {
       () => thiefInitiativeRegenerationRate({ kneeling: false }, context),
       /profession=thief patch=invalid-thief profile=thief.core.resources field=resourceGain/
     );
-    // The live steal reads the selected Mug packet when the steal completes.
+    // Invalid Mug packets fail at the override boundary before a live steal can consume them.
     assert.throws(
       () =>
         runThief(

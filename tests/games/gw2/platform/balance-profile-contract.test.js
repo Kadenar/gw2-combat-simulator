@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import {
+  createCanonicalCatalog,
+  requireCanonicalSkillEffects
+} from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -63,23 +67,7 @@ test('resolved owners preserve strict effect reads without another catalog looku
   assert.equal(lookups, 1);
 
   // Skill records use the same checks and label diagnostics from their own source metadata.
-  for (const owner of [selected, { ...skill, balanceDataContext: selected.balanceDataContext }]) {
-    assert.throws(
-      () => requireEffect({ ...owner, effects: [second, second] }, 'condition', 'Second'),
-      /duplicate effect key/
-    );
-    assert.throws(
-      () => requireEffect({ ...owner, effects: [{ ...second, duration: null }] }, 'condition', 'Second'),
-      /duration/
-    );
-    assert.equal(
-      requireEffect(
-        { ...owner, effects: [{ type: 'boon', name: 'Status', boon: 'might', duration: 2 }] },
-        'boon',
-        'Status'
-      ).stacks,
-      1
-    );
+  for (const owner of [selected, { ...catalog.skillsById.get(1), balanceDataContext: selected.balanceDataContext }]) {
     assert.throws(() => effectNumber(owner, second, 'missing'), /profession=fixture patch=preview/);
   }
 });
@@ -89,6 +77,70 @@ for (const [kind, section, apply, index] of [
   ['skill', 'skills', applySkillPatch, 'skillsById'],
   ['balance-profile', 'balanceProfiles', applyBalanceProfilePatch, 'balanceProfilesById']
 ]) {
+  // Validate declarations once, including unnamed lists and defaults, before shared reads become possible.
+  test(`${kind}: construction owns validation and reads share immutable effects`, () => {
+    const construct = (effects) =>
+      createCanonicalCatalog({
+        generated: kind === 'skill' ? [{ ...skill, effects }] : [],
+        balanceProfiles: kind === 'balance-profile' ? [{ ...profile, effects }] : []
+      });
+    assert.throws(() => construct([second, second]), /duplicate effect key/);
+    assert.throws(() => construct([{ ...second, duration: null }]), /duration/);
+    const catalog = construct([
+      { type: 'boon', name: 'Status', boon: 'might', duration: 2, audience: { recipients: 'self' } },
+      { type: 'strike', name: 'Timeline', ticks: [{ atMs: 0, coefficient: 1, metadata: { packetKind: 'fixture' } }] }
+    ]);
+    const owner = ownerOf(catalog, kind);
+    const status = requireEffect(owner, 'boon', 'Status');
+    const strike = requireEffect(owner, 'strike', 'Timeline');
+    assert.equal(requireCanonicalSkillEffects(owner), owner.effects);
+    assert.equal(status, owner.effects[0]);
+    assert.equal(requireEffect(owner, 'boon', 'Status'), status);
+    assert.equal(strike, owner.effects[1]);
+    assert.equal(status.stacks, 1);
+    assert.throws(() => {
+      status.duration = 9;
+    }, TypeError);
+    assert.throws(() => {
+      status.audience.recipients = 'party';
+    }, TypeError);
+    assert.throws(() => {
+      strike.ticks[0].coefficient = 9;
+    }, TypeError);
+    assert.throws(() => {
+      strike.ticks[0].metadata.packetKind = 'changed';
+    }, TypeError);
+    assert.throws(() => owner.effects.push(second), TypeError);
+    const patched = apply(catalog, { [section]: { 1: { effects: [{ name: 'Status', duration: 4 }] } } });
+    const patchedOwner = ownerOf(patched, kind);
+    assert.equal(requireEffect(patchedOwner, 'boon', 'Status'), patchedOwner.effects[0]);
+    assert.equal(requireEffect(patchedOwner, 'boon', 'Status').duration, 4);
+    assert.equal(status.duration, 2);
+    assert.notEqual(patchedOwner.effects[0], status);
+  });
+
+  test(`${kind}: raw or copied lists cannot bypass the construction contract`, () => {
+    const owner = { ...ownerOf(fixture(), kind), balanceDataContext: { professionId: 'fixture', patchId: 'preview' } };
+    // Freezing raw data or copying validated elements does not establish list-level uniqueness.
+    for (const effects of [undefined, [], [second], [second, second], Object.freeze([second]), [...owner.effects]]) {
+      const unvalidated = { ...owner, effects };
+      const error = /profession=fixture patch=preview.*effects must be normalized at construction/;
+      assert.throws(() => requireEffect(unvalidated, 'condition', 'Second'), error);
+      assert.throws(() => requireCanonicalSkillEffects(unvalidated), error);
+    }
+
+    const replace = kind === 'skill' ? withSkill : withProfile;
+    const replaced = ownerOf(
+      replace(fixture(), 1, {
+        effects: [{ type: 'boon', name: 'Status', boon: 'might', duration: 2 }]
+      }),
+      kind
+    );
+    assert.equal(requireEffect(replaced, 'boon', 'Status').stacks, 1);
+    assert.equal(requireEffect(replaced, 'boon', 'Status'), replaced.effects[0]);
+    assert.throws(() => replace(fixture(), 1, { effects: [second, second] }), /duplicate effect key/);
+  });
+
   test(`${kind}: named removal, replacement, empty lists and successive overlays preserve identity`, () => {
     const live = fixture();
     const patch = (catalog, edit) => apply(catalog, { [section]: { 1: edit } });
@@ -170,7 +222,7 @@ for (const [kind, section, apply, index] of [
     assert.equal(requireEffect(patchedOwner, 'strike', 'Flat').coefficient, undefined);
     assert.equal(requireEffect(patchedOwner, 'strike', 'Flat').hits, 1);
     assert.equal(requireEffect(patchedOwner, 'boon', 'Status').stacks, 1);
-    // Custom packets need both dispatch fields in declarations, patches, and direct procedural reads.
+    // Custom packets need both dispatch fields at construction; procedural reads reject unvalidated lists.
     const custom = { type: 'custom', name: 'Custom', eventType: 'fixture', event: {} };
     for (const field of ['eventType', 'event']) {
       for (const value of [undefined, null, false, 3, '', [], ...(field === 'eventType' ? [' ', {}] : ['payload'])]) {
@@ -187,7 +239,7 @@ for (const [kind, section, apply, index] of [
         );
         const owner = { ...live[index].get(1), effects: [invalid] };
         const catalog = { ...live, [index]: new Map([[1, owner]]), [section]: [owner] };
-        assert.throws(() => requireEffect(owner, 'custom', 'Custom'), error);
+        assert.throws(() => requireEffect(owner, 'custom', 'Custom'), /effects must be normalized at construction/);
         assert.deepEqual(patch({ removeEffects: [{ name: 'Custom' }] }, catalog)[index].get(1).effects, []);
       }
     }
@@ -218,8 +270,8 @@ test('required reads select one source and retain strict numeric and diagnostic 
     { helpers: catalog },
     { profession: { catalog } },
     { runtime: { profession: { catalog } } },
-    { balanceProfile: () => profile },
-    () => profile
+    { balanceProfile: () => catalog.balanceProfilesById.get(1) },
+    () => catalog.balanceProfilesById.get(1)
   ]) {
     const selectedProfile = requireBalanceProfileFromContext(source, 1);
     assert.equal(selectedProfile.id, 1);
@@ -257,7 +309,7 @@ test('required reads select one source and retain strict numeric and diagnostic 
         'condition',
         'First'
       ),
-    /duplicate effect key/
+    /effects must be normalized at construction/
   );
   assert.throws(
     () =>
@@ -266,7 +318,7 @@ test('required reads select one source and retain strict numeric and diagnostic 
         'condition',
         'First'
       ),
-    /duration/
+    /effects must be normalized at construction/
   );
 });
 

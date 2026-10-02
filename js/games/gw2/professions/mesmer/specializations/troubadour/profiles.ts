@@ -1,5 +1,5 @@
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { normalizeSkillEffects } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { requireCanonicalSkillEffects } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -78,10 +78,8 @@ export function mesmerProfiledInstrument(
   const profile = requireBalanceProfileFromContext(context, balanceProfileId);
   const strike =
     instrument.ticks?.length || Number(instrument.hits) > 0 ? requireEffect(profile, 'strike', 'Strike') : undefined;
-  const conditions = normalizeSkillEffects(
-    profile.effects || [],
-    `profession=mesmer patch=${profile.balanceDataContext?.patchId ?? '<unknown>'} profile=${profile.id}`
-  )
+  // Runtime instrument statuses derive from the canonical list without rebuilding its effects.
+  const conditions = requireCanonicalSkillEffects(profile)
     .filter((effect) => effect.type === 'condition')
     .map((effect) => ({
       ...effect,

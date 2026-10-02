@@ -380,11 +380,27 @@ function validateEffectNumbers(candidate: UnvalidatedFields, label: string): voi
   }
 }
 
+// Track validated lists without retaining discarded catalogs or revalidating their effects on every read.
+const canonicalEffectLists = new WeakSet<readonly SkillEffect[]>();
+
+/** Only construction boundaries may introduce effect lists; readers share their immutable declarations. */
+export function requireCanonicalSkillEffects(owner: Skill | BalanceProfile): readonly SkillEffect[] {
+  const effects = owner.effects;
+  if (!effects || !canonicalEffectLists.has(effects)) {
+    const metadata = owner.balanceDataContext as BalanceProfile['balanceDataContext'];
+    throw new TypeError(
+      `Invalid balance data: profession=${metadata?.professionId ?? '<unknown>'} patch=${metadata?.patchId ?? '<unknown>'} ${'profileKind' in owner ? 'balance-profile' : 'skill'}=${owner.id} effects must be normalized at construction`
+    );
+  }
+
+  return effects;
+}
+
 /** Validate complete surviving lists at both catalog assembly and patch boundaries. */
 export function normalizeSkillEffects(effects: readonly SkillEffect[], label: string): readonly SkillEffect[] {
   if (!Array.isArray(effects)) throw new TypeError(`${label} effects must be an array.`);
   const keys = new Set<string>();
-  return Object.freeze(
+  const normalizedEffects = Object.freeze(
     effects.map((effect) => {
       const effectLabel = `${label} effect=${effect?.type}/${effect?.name ?? '<unnamed>'}`;
       const normalized = normalizeEffect(effect, effectLabel);
@@ -397,6 +413,8 @@ export function normalizeSkillEffects(effects: readonly SkillEffect[], label: st
       return normalized;
     })
   );
+  canonicalEffectLists.add(normalizedEffects);
+  return normalizedEffects;
 }
 
 /**

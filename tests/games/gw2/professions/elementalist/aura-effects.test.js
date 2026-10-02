@@ -1,4 +1,5 @@
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import {
   applyResolverElementalShielding,
   applyResolverZephyrsBoon
@@ -98,9 +99,7 @@ test('Core and Tempest aura boons use patched effects and scale once', () => {
     const config = { stats: { concentration: 750 }, specialization: 'Tempest' };
     const context = observedRuntime(runElementalist([], config));
     const events = [];
-    const profiles = new Map(elementalistCatalog.balanceProfilesById);
-    profiles.set(profileId, { effects });
-    context.helpers = { ...elementalistCatalog, balanceProfilesById: profiles };
+    context.helpers = withProfile(elementalistCatalog, profileId, { effects });
     context.traits = new Set([traitId]);
     context.queue.enqueue = (event) => events.push(event);
     // Live attribute and cooldown queries use the aura's actual application clock.
@@ -161,12 +160,12 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
     traits: new Set([TRAIT.EMPOWERING_AURAS, TRAIT.ELEMENTAL_EPITOME]),
     combatStartTime: 0,
     boons: new Map([['empowering auras', [{ at: 0, expiresAt: 3, stacks: 1 }]]]),
-    helpers: {
-      balanceProfilesById: new Map([
-        [TRAIT.EMPOWERING_AURAS, { maximumStacks: 1, durationMultiplier: 8 }],
-        [TRAIT.ELEMENTAL_EPITOME, { effects: [{ type: 'buff', name: 'Empowerment', stacks: 2, duration: 7 }] }]
-      ])
-    },
+    // Both scalar and effect overrides are assembled before aura reactions read their owners.
+    helpers: withProfile(
+      withProfile(elementalistCatalog, TRAIT.EMPOWERING_AURAS, { maximumStacks: 1, durationMultiplier: 8 }),
+      TRAIT.ELEMENTAL_EPITOME,
+      { effects: [{ type: 'buff', name: 'Empowerment', stacks: 2, duration: 7 }] }
+    ),
     queue: { enqueue: (event) => queued.push(event) },
     recordProc: (_type, name) => procs.push(name)
   };

@@ -1,4 +1,5 @@
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -588,11 +589,10 @@ test('Sharpened Edges reads its patched player and pet critical proc chance', ()
 test('Sharpened Edges rereads patched effects between proc batches', () => {
   // One authored effect serves each batch, but the next invocation must see a replacement with the same ID.
   const queued = [];
-  const profiles = new Map();
-  const context = { catalog: { balanceProfilesById: profiles }, queue: { enqueue: (event) => queued.push(event) } };
+  const context = { catalog: rangerCatalog, queue: { enqueue: (event) => queued.push(event) } };
   const hit = { type: 'damage', at: 1, actorType: 'player', skillName: 'Test' };
   for (const duration of [3, 6]) {
-    profiles.set(TRAIT.SHARPENED_EDGES, {
+    context.catalog = withProfile(rangerCatalog, TRAIT.SHARPENED_EDGES, {
       effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration, stacks: 2 }]
     });
     rangerCoreCriticalReactions.handler(context, hit, {}, { quantity: 2 });

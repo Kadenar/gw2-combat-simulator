@@ -68,6 +68,12 @@ test('Assassin Release snapshots each authored condition tick duration before la
             effect.type === 'condition' && effect.condition === 'Crippled'
               ? {
                   ...effect,
+                  // A timeline replaces aggregate application fields at the construction boundary.
+                  condition: undefined,
+                  stacks: undefined,
+                  duration: undefined,
+                  atMs: undefined,
+                  intervalMs: undefined,
                   ticks: [
                     { atMs: 300, condition: 'Crippled', stacks: 1, duration: 3 },
                     { atMs: 800, condition: 'Crippled', stacks: 1, duration: 4 }

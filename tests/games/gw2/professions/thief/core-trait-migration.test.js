@@ -488,17 +488,15 @@ test('No Quarter extends active self Fury for each threshold proc', () => {
 });
 
 test('Thief critical proc batches reread patched effects and retain live boon scaling', () => {
-  // Effects are invocation-local; Unrelenting Strikes still samples concentration separately for each queued boon.
+  // Each batch selects its canonical effect; Unrelenting Strikes samples concentration for each queued boon.
   for (const [id, reaction] of [
     [TRAIT.UNRELENTING_STRIKES, unrelentingStrikesCriticalReaction],
     [TRAIT.NO_QUARTER, noQuarterCriticalReaction]
   ]) {
     const { context } = traitContext([id]);
-    const profiles = new Map();
-    context.catalog = { balanceProfilesById: profiles };
     for (const duration of [2, 3]) {
-      profiles.set(id, {
-        ...thiefCatalog.balanceProfilesById.get(id),
+      // Replace the canonical owner between batches without changing the shared declaration in place.
+      context.catalog = withProfile(thiefCatalog, id, {
         effects: [{ type: 'boon', name: 'Fury', boon: 'Fury', duration, stacks: 1 }]
       });
       context.boons.set('fury', [{ at: 0, expiresAt: 5, resolvedAudience: { includesSelf: true } }]);

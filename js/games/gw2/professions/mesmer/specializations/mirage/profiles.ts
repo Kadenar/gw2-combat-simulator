@@ -1,5 +1,5 @@
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { normalizeSkillEffects } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { requireCanonicalSkillEffects } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import type {
   BalanceProfile,
   ConditionEffect,
@@ -117,10 +117,8 @@ function profileStatuses(
   type: 'condition' | 'boon',
   source: 'Player' | 'Clone'
 ): MesmerConditionApplication[] {
-  return normalizeSkillEffects(
-    profile.effects || [],
-    `profession=mesmer patch=${profile.balanceDataContext?.patchId ?? '<unknown>'} profile=${profile.id}`
-  )
+  // Project shared canonical effects into runtime statuses without revalidating the profile.
+  return requireCanonicalSkillEffects(profile)
     .filter((effect): effect is ConditionEffect | StatusEffect => effect.type === type && effect.source === source)
     .map((effect) => ({
       ...effect,

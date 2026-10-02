@@ -1,3 +1,4 @@
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -215,18 +216,17 @@ test('profiled Burning procs preserve fractional totals and source attribution t
     const events = [];
     const context = {
       profession: { id: 'elementalist' },
-      helpers: {
-        skillsById: new Map(),
-        skillsByName: new Map(),
-        balanceProfilesById: new Map([
-          [
-            'fixture',
-            {
-              effects: [{ type: 'condition', name: 'Fire', condition, stacks, duration: 7 }]
-            }
-          ]
-        ])
-      },
+      // Procedural readers consume a constructed owner even in an isolated resolver scenario.
+      helpers: createCanonicalCatalog({
+        balanceProfiles: [
+          {
+            id: 'fixture',
+            name: 'Fixture',
+            profileKind: 'trait',
+            effects: [{ type: 'condition', name: 'Fire', condition, stacks, duration: 7 }]
+          }
+        ]
+      }),
       emit: (event) => events.push(event),
       emitProcedural: (event) => events.push(event)
     };

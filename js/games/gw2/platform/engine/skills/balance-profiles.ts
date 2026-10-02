@@ -11,7 +11,7 @@ import type {
   StrikeEffect
 } from '#gw2/platform/engine/skills/types.js';
 import {
-  normalizeEffect,
+  requireCanonicalSkillEffects,
   requireBalanceNumber,
   skillEffectKey
 } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
@@ -36,6 +36,7 @@ interface BalanceProfileCatalogLike {
   readonly balanceDataContext?: { readonly professionId: string; readonly patchId: string };
 }
 
+// Lookup callbacks return catalog owners; authored effects must be normalized before exposing them here.
 type BalanceProfileLookup = (id: SkillId) => BalanceProfile | undefined;
 
 interface BalanceProfileLookupContext {
@@ -98,19 +99,17 @@ function effectOwnerLabel(owner: Skill | BalanceProfile): string {
   return ownerDataLabel(owner, `${'profileKind' in owner ? 'balance-profile' : 'skill'}=${owner.id}`);
 }
 
-/** Query an already selected owner; only recorded removals may omit a named effect. */
+/** Share an owner's canonical effect; construction rejects duplicates and only recorded removals may omit a key. */
 export function requireEffect<TType extends SkillEffect['type']>(
   owner: Skill | BalanceProfile,
   type: TType,
   name: string
 ): SkillEffectByType<TType> | undefined {
+  const effect = requireCanonicalSkillEffects(owner).find((effect) => effect.type === type && effect.name === name);
+  if (effect) return effect as SkillEffectByType<TType>;
   const key = skillEffectKey(type, name);
-  const label = `${effectOwnerLabel(owner)} effect=${type}/${name}`;
-  const matches = (owner.effects || []).filter((effect) => effect.type === type && effect.name === name);
-  if (matches.length > 1) throw new Error(`Invalid balance data: ${label} duplicate effect key`);
-  if (matches.length === 1) return normalizeEffect(matches[0], label) as SkillEffectByType<TType>;
   if (owner.removedEffectKeys?.includes(key)) return undefined;
-  throw new Error(`Invalid balance data: ${label} unknown effect key`);
+  throw new Error(`Invalid balance data: ${effectOwnerLabel(owner)} effect=${type}/${name} unknown effect key`);
 }
 
 /** Validate a surviving effect's field without looking up its owner again; the owner supplies diagnostics. */

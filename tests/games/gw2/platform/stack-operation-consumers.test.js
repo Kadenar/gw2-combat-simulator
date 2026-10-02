@@ -1,3 +1,4 @@
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
@@ -106,6 +107,12 @@ test('Insight keeps newest grants in its single live state', () => {
     const profile = structuredClone(native.catalog.balanceProfilesById.get(WARRIOR_TRAIT_IDS.ATTACKERS_INSIGHT));
     profile.maximumStacks = maximumStacks;
     profile.effects.find((effect) => effect.type === 'buff' && effect.name === 'attackers-insight').duration = duration;
+    // Invalid status durations fail before the runtime is exposed; valid replacements remain canonical.
+    if (expected === null) {
+      assert.throws(() => withProfile(native.catalog, profile.id, profile), /positive duration/);
+      continue;
+    }
+
     const prior = Object.freeze([1, 30, 31, 32]);
     let owner;
     let snapshot;
@@ -115,10 +122,7 @@ test('Insight keeps newest grants in its single live state', () => {
         rotation: [{ type: 'wait', durationMs: 1000 }],
         profession: {
           ...native,
-          catalog: {
-            ...native.catalog,
-            balanceProfilesById: new Map(native.catalog.balanceProfilesById).set(profile.id, profile)
-          },
+          catalog: withProfile(native.catalog, profile.id, profile),
           initialize(runtime) {
             native.initialize(runtime);
             owner = runtime.profession.specialization.state;
@@ -137,14 +141,9 @@ test('Insight keeps newest grants in its single live state', () => {
           }
         }
       });
-    if (expected === null) {
-      assert.throws(run, /positive duration/);
-      assert.equal(owner.attackerInsightExpiries, prior);
-    } else {
-      const result = run();
-      assert.deepEqual(result.warnings, []);
-      assert.deepEqual(owner.attackerInsightExpiries, expected);
-    }
+    const result = run();
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(owner.attackerInsightExpiries, expected);
 
     assert.deepEqual(snapshot.attackerInsightExpiries, prior);
     assert.deepEqual(prior, [1, 30, 31, 32]);
@@ -173,10 +172,7 @@ test('Scourge retains latest expiries and prunes at completion', () => {
       ],
       profession: {
         ...native,
-        catalog: {
-          ...native.catalog,
-          balanceProfilesById: new Map(native.catalog.balanceProfilesById).set(profile.id, profile)
-        },
+        catalog: withProfile(native.catalog, profile.id, profile),
         initialize(runtime) {
           native.initialize(runtime);
           runtime.profession.specialization.state.shades = prior;

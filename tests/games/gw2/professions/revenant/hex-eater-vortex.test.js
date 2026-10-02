@@ -113,7 +113,7 @@ test('Hex-Eater zero-condition salvo and Shared Wisdom are independently gated',
 });
 
 test('Hex-Eater selects surviving strike and condition components independently', () => {
-  // Empty tick lists must remain absent while the sibling component still supplies the projectile capacity.
+  // Remove components at construction; the surviving sibling still supplies the projectile capacity.
   for (const removed of ['strike', 'condition', 'both']) {
     const result = runRevenant(
       ['Hex-Eater Vortex', wait],
@@ -123,9 +123,7 @@ test('Hex-Eater selects surviving strike and condition components independently'
           withSkill(catalog, ID.HEX_EATER_VORTEX, {
             effects: catalog.skillsById
               .get(ID.HEX_EATER_VORTEX)
-              .effects.map((effect) =>
-                removed === 'both' || effect.type === removed ? { ...effect, ticks: [] } : effect
-              )
+              .effects.filter((effect) => removed !== 'both' && effect.type !== removed)
           })
       }
     );

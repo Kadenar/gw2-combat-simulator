@@ -1,4 +1,5 @@
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import {
   activeLethalTempo,
   gainLethalTempo,
@@ -8,15 +9,24 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 test('Lethal Tempo uses patched caps and trait windows without sharing phase state', () => {
-  const catalog = {
-    balanceProfilesById: new Map([
-      [
-        TRAIT.LETHAL_TEMPO,
-        { maximumStacks: 2, effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', duration: 9 }] }
-      ],
-      [TRAIT.TYRANTS_MOMENTUM, { effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', duration: 3 }] }]
-    ])
-  };
+  // Minimal trait profiles still cross the same construction boundary as selected catalogs.
+  const catalog = createCanonicalCatalog({
+    balanceProfiles: [
+      {
+        id: TRAIT.LETHAL_TEMPO,
+        name: 'Lethal Tempo',
+        profileKind: 'trait',
+        maximumStacks: 2,
+        effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', duration: 9 }]
+      },
+      {
+        id: TRAIT.TYRANTS_MOMENTUM,
+        name: "Tyrant's Momentum",
+        profileKind: 'trait',
+        effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', duration: 3 }]
+      }
+    ]
+  });
   for (const [traits, duration] of [
     [[], 9],
     [[TRAIT.TYRANTS_MOMENTUM], 3]
