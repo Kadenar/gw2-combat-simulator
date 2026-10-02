@@ -28,6 +28,13 @@ actual inputs. Capture makes no additional modifier queries or random draws. The
 present, including the six-decimal simulation timestamp and effective phase; its usual activation grouping is not a
 complete execution trace.
 
+The Event Log's **Capture damage calculations** checkbox reruns the displayed baseline with the same seed and enables
+expandable hit calculations. Capture is session-only and resets on reload; it is not saved with builds or enabled for
+optimizer and distribution runs. The download button exports the ordinary **CSV Log** when capture is off and
+switches to **Download debug JSON** when capture is on, exporting the matching rotation, resolved configuration, patch,
+seed, observation policy, and damage events after capture completes. The outgoing multiplier is an aggregate, not a list
+of individual modifier contributions. CSV logs continue to export their ordinary summary rows.
+
 Score output suppresses report collections and diagnostics. Both outputs execute the same runtime once, with the same
 state transitions and random draws. Detailed damage diagnostics capture the actual hit calculations. They do not predict
 effects or rerun the simulation.

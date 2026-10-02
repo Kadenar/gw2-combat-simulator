@@ -269,6 +269,7 @@ export function createProfessionRuntime({
       gameId: 'gw2',
       contentId: profession.id,
       rotation: cloneRotation(app.build.rotation),
+      damageDiagnostics: app.damageDiagnostics,
       ...(app.rotationComparison?.referenceStatus === 'queued'
         ? { referenceRotation: cloneRotation(app.rotationComparison.referenceRotation) }
         : null),

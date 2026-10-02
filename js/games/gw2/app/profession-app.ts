@@ -25,6 +25,7 @@ import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js
 import { loadSimulationSettings, type SimulationSettings } from '#gw2/app/build/panels/simulation-settings.js';
 import { renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/builder.js';
 import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
+import { renderEventLog } from '#gw2/app/results/event-log.js';
 import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
 import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#browser/shell/rotation-workspace.js';
 
@@ -62,6 +63,7 @@ export class ProfessionApp implements ProfessionAppState {
   attributeWeaponSet: number;
   attributeData: ProfessionAttributeData | null;
   results: ProfessionAppResult | null;
+  damageDiagnostics: boolean;
   buildRevision: number;
   resultRevision: number;
   rotationComparison: ProfessionAppState['rotationComparison'];
@@ -114,6 +116,7 @@ export class ProfessionApp implements ProfessionAppState {
     this.attributeWeaponSet = 1;
     this.attributeData = null;
     this.results = null;
+    this.damageDiagnostics = false;
     this.buildRevision = 0;
     this.resultRevision = 0;
     this.rotationComparison = null;
@@ -247,6 +250,16 @@ export class ProfessionApp implements ProfessionAppState {
     this.commitBaselineSimulation(output, revision, true);
   }
 
+  /** Recapture the same seeded baseline without changing the build, history, or saved preferences. */
+  setDamageDiagnostics(enabled: boolean): void {
+    if (this.damageDiagnostics === enabled) return;
+    this.damageDiagnostics = enabled;
+    if (this.rotationComparison?.referenceStatus === 'fresh') this.rotationComparison.referenceStatus = 'queued';
+    this.baselineSimulationRunner.schedule(this.buildRevision);
+    if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
+    renderEventLog(this);
+  }
+
   /** Rejects stale completions before publishing any result-dependent UI or follow-up work. */
   private commitBaselineSimulation(output: BaselineSimulationOutput, revision: number, render: boolean): void {
     if (revision !== this.buildRevision) return;
@@ -334,6 +347,8 @@ export class ProfessionApp implements ProfessionAppState {
     this.skillByName = this.activeCatalog.skillsByName;
     this.skillById = this.activeCatalog.skillsById;
     Object.assign(this, tab.session);
+    // A cached tab must match the session's capture setting before its result can be reused.
+    if (Boolean(this.results?.debugInputs) !== Boolean(this.damageDiagnostics)) tab.resultsFresh = false;
     recordRotationHistory(this);
     this.dragState = null;
     this.simulationError = '';

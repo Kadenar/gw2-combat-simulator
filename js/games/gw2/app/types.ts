@@ -17,6 +17,7 @@ import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type {
   PatchComparison,
   BaselineSimulationOutput,
+  BaselineSimulationResult,
   BaselineSimulationRequest
 } from '#gw2/app/simulation/baseline/types.js';
 import type {
@@ -99,6 +100,9 @@ export interface ProfessionAppState {
   attributeWeaponSet: number;
   attributeData: ProfessionAttributeData | null;
   results: ProfessionAppResult | null;
+  /** Debug capture belongs to this app session and is excluded from persisted build state. */
+  damageDiagnostics: boolean;
+  setDamageDiagnostics(enabled: boolean): void;
   buildRevision: number;
   resultRevision: number;
   rotationComparison: RotationComparisonState | null;
@@ -163,7 +167,7 @@ export interface ProfessionRotationDragState {
   readonly skillId?: SkillId;
 }
 
-export interface ProfessionAppResult extends Gw2SimulationResult {
+export interface ProfessionAppResult extends BaselineSimulationResult {
   contributions?: ModifierContribution[];
   modifierContributionsStale?: boolean;
   modifierContributionsError?: string;

@@ -644,7 +644,8 @@ export function timelineRowsView(
         if (!proc) return '';
         const { key } = group;
         const icon = resolveProcIcon(app, proc) || PLACEHOLDER_ICON;
-        const time = formatTime(proc.start);
+        // Compact proc labels use hundredths; hover details retain millisecond precision.
+        const time = formatTimelineTime(proc.start, combatReferenceMs, 2);
         const badgeLabel = procBadgeLabel(group.steps);
         const stackLabel = procStackLabel(group.steps.at(-1) || proc);
         const detail = procActivationDetail(proc, group.steps);

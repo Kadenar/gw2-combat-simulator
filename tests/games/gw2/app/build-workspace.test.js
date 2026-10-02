@@ -422,6 +422,29 @@ test('switching preserves independent rotations, history, templates, comparisons
   assert.deepEqual(cancelled.slice(0, 4), ['baseline', 'rng', 'modifiers', 'relic']);
 });
 
+// Session capture changes invalidate cached results without persisting diagnostic preferences in builds.
+test('switching tabs recaptures cached baselines when the session debug mode changes', (t) => {
+  storage(t);
+  const { app, tab, scheduled } = appFixture();
+  app.damageDiagnostics = false;
+  app.results = { dps: 10 };
+  const other = addBuildTab(app, build('other'), 'Other');
+  app.damageDiagnostics = true;
+  const before = scheduled.length;
+  app.activateBuildTab(tab.id);
+  assert.equal(app.damageDiagnostics, true);
+  assert.equal(app.results, null);
+  assert.equal(scheduled.length, before + 1);
+  app.results = { dps: 10, debugInputs: {} };
+  app.resultRevision = app.buildRevision;
+  app.simulationStatus = 'idle';
+  app.activateBuildTab(other.id);
+  const captured = scheduled.length;
+  app.activateBuildTab(tab.id);
+  assert.ok(app.results.debugInputs);
+  assert.equal(scheduled.length, captured, 'matching captured output can be reused');
+});
+
 test('duplicated builds share no nested input objects or undo history', (t) => {
   storage(t);
   const { app, tab } = appFixture();

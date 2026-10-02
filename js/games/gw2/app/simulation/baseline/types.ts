@@ -4,14 +4,29 @@ import type { GameContentAddress } from '#browser/game/contracts.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
+/** Captured inputs travel with their result, so exports never read a newer editor configuration. */
+export interface BaselineDebugInputs extends GameContentAddress {
+  readonly rotation: readonly RotationCommand[];
+  readonly config: Gw2Config;
+  readonly patchId: string;
+  readonly observationPolicy: { readonly kind: 'rotation' };
+  readonly damageDiagnostics: true;
+}
+
+export interface BaselineSimulationResult extends Gw2SimulationResult {
+  readonly debugInputs?: BaselineDebugInputs;
+}
+
 export interface PatchComparison {
   readonly patchId: string;
-  readonly current: Gw2SimulationResult;
-  readonly preview: Gw2SimulationResult;
+  readonly current: BaselineSimulationResult;
+  readonly preview: BaselineSimulationResult;
 }
 
 /** Serializable input sent to the dedicated baseline-simulation worker. */
 export interface BaselineSimulationRequest extends GameContentAddress {
+  /** Session-only capture applies to baseline results, never saved build assumptions or batch analysis. */
+  readonly damageDiagnostics?: boolean;
   readonly rotation: readonly RotationCommand[];
   readonly referenceRotation?: readonly RotationCommand[];
   readonly baseConfig: Gw2Config;
@@ -21,7 +36,7 @@ export interface BaselineSimulationRequest extends GameContentAddress {
 
 /** Complete baseline output, including both sides of an optional patch preview. */
 export interface BaselineSimulationOutput {
-  readonly result: Gw2SimulationResult;
+  readonly result: BaselineSimulationResult;
   readonly patchComparison: PatchComparison | null;
-  readonly referenceResult?: Gw2SimulationResult;
+  readonly referenceResult?: BaselineSimulationResult;
 }

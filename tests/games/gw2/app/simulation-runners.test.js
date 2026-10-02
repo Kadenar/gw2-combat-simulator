@@ -153,6 +153,31 @@ test('build edits cancel prior analysis even when browser storage rejects writes
   assert.deepEqual(cancelled, ['random', 'modifiers', 'relic']);
 });
 
+// Capture is a new request for the current revision, not a build edit or persisted preference.
+test('damage capture queues baseline and reference work without changing the build revision', (t) => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: { body: { dataset: {} }, getElementById: () => null }
+  });
+  t.after(() => {
+    if (previous) Object.defineProperty(globalThis, 'document', previous);
+    else delete globalThis.document;
+  });
+  const scheduled = [];
+  const app = Object.assign(Object.create(ProfessionApp.prototype), {
+    damageDiagnostics: false,
+    buildRevision: 3,
+    rotationComparison: { referenceStatus: 'fresh' },
+    baselineSimulationRunner: { schedule: (revision) => scheduled.push(revision) }
+  });
+  app.setDamageDiagnostics(true);
+  app.setDamageDiagnostics(true);
+  assert.equal(app.buildRevision, 3);
+  assert.equal(app.rotationComparison.referenceStatus, 'queued');
+  assert.deepEqual(scheduled, [3]);
+});
+
 test('baseline runner coalesces edits, cancels cleared work, and reuses idle workers', (t) => {
   runTimersImmediately(t);
   const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');

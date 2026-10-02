@@ -9,6 +9,8 @@ import { professionPlanningState } from '#gw2/app/rotation/context.js';
 import { effectName } from '#gw2/app/results/model.js';
 import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import { downloadJson } from '#gw2/app/import-export/files.js';
+import { damageDebugPayload } from '#gw2/app/results/damage-debug.js';
 
 type Gw2EventLogRow = EventLogRow & { readonly phantasmClone?: boolean };
 type OrderedEventLogRow = Gw2EventLogRow & { readonly order: number; readonly activationOrder: number };
@@ -329,4 +331,33 @@ export function renderEventLog(app: ProfessionAppState): void {
         : []
     }
   );
+  // Keep GW2 debug controls beside the log while the shared renderer remains game-independent.
+  const controls = element.querySelector('.log-controls');
+  if (!controls) return;
+  const label = document.createElement('label');
+  label.className = 'log-filter-label';
+  label.title = 'Rerun with the same seed and expand hits to inspect their calculations. Resets on reload.';
+  const capture = document.createElement('input');
+  capture.type = 'checkbox';
+  capture.checked = app.damageDiagnostics;
+  capture.onchange = () => app.setDamageDiagnostics(capture.checked);
+  label.append(capture, 'Capture damage calculations');
+  controls.append(label);
+  // Reuse the log's single download control; the shared CSV handler remains active when capture is off.
+  if (!app.damageDiagnostics) return;
+  const download = element.querySelector<HTMLButtonElement>('[data-role="event-log-download"]');
+  if (!download) return;
+  download.textContent = 'Download debug JSON';
+  const canDownload = () =>
+    app.damageDiagnostics &&
+    app.simulationStatus === 'idle' &&
+    app.resultRevision === app.buildRevision &&
+    app.results === result &&
+    Boolean(result.debugInputs);
+  download.disabled = !canDownload();
+  download.onclick = () => {
+    // Recheck freshness at click time because an edit can start while these controls are still visible.
+    if (!canDownload()) return;
+    downloadJson(`${app.contentId}-damage-debug.json`, damageDebugPayload(result));
+  };
 }
