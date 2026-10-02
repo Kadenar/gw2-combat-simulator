@@ -56,29 +56,31 @@ test('Empowering Might requires player critical strikes and shares the one-secon
         stats: { ...config.stats, precision, concentration },
         allies: { count: 4 }
       },
-      (runtime) => {
-        for (const [at, overrides] of [
-          [0.1, { canCrit: false }],
-          [0.2, { actorType: 'effect' }],
-          [0.3, { offTarget: true }],
-          [0.4, { coefficient: 0 }],
-          [1, {}],
-          [1, {}],
-          [1.999, {}],
-          [2, {}],
-          [2.000001, {}]
-        ])
-          runtime.emit({
-            type: 'damage',
-            source: 'guardian',
-            sourceId: GUARDIAN_SKILL_IDS.ORB_OF_WRATH,
-            skillId: GUARDIAN_SKILL_IDS.ORB_OF_WRATH,
-            skillName: 'Orb of Wrath',
-            actorType: 'player',
-            coefficient: 1,
-            at,
-            ...overrides
-          });
+      {
+        initialize: (runtime) => {
+          for (const [at, overrides] of [
+            [0.1, { canCrit: false }],
+            [0.2, { actorType: 'effect' }],
+            [0.3, { offTarget: true }],
+            [0.4, { coefficient: 0 }],
+            [1, {}],
+            [1, {}],
+            [1.999, {}],
+            [2, {}],
+            [2.000001, {}]
+          ])
+            runtime.emit({
+              type: 'damage',
+              source: 'guardian',
+              sourceId: GUARDIAN_SKILL_IDS.ORB_OF_WRATH,
+              skillId: GUARDIAN_SKILL_IDS.ORB_OF_WRATH,
+              skillName: 'Orb of Wrath',
+              actorType: 'player',
+              coefficient: 1,
+              at,
+              ...overrides
+            });
+        }
       }
     );
     const might = result.resolvedEvents.filter(
@@ -120,18 +122,20 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
     runGuardian(
       [{ type: 'wait', durationMs: extra ? 20000 : 5000 }],
       { selectedTraitIds: [GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER] },
-      (runtime) => {
-        for (const at of [0, 1, 2, 3, 4, 5, ...(extra ? [20] : [])])
-          runtime.emit({
-            type: 'damage',
-            source: 'guardian',
-            sourceId: GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT,
-            skillId: GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT,
-            actorType: 'player',
-            coefficient: 1,
-            isSymbol: true,
-            at
-          });
+      {
+        initialize: (runtime) => {
+          for (const at of [0, 1, 2, 3, 4, 5, ...(extra ? [20] : [])])
+            runtime.emit({
+              type: 'damage',
+              source: 'guardian',
+              sourceId: GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT,
+              skillId: GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT,
+              actorType: 'player',
+              coefficient: 1,
+              isSymbol: true,
+              at
+            });
+        }
       }
     );
   const result = run();
@@ -310,8 +314,10 @@ test("Healer's Resolution grants eight seconds on committed heals with a shared 
     const completion = ordinary.events.find((event) => event.type === 'action' && event.skillId === skillId).endsAt;
     for (const offset of [-0.001, 0, 0.001]) {
       const deadline = completion - offset;
-      const result = runGuardian([skillId], settings, (runtime) => {
-        runtime.procs.readyAt['guardian.core.healersResolution'] = deadline;
+      const result = runGuardian([skillId], settings, {
+        initialize: (runtime) => {
+          runtime.procs.readyAt['guardian.core.healersResolution'] = deadline;
+        }
       });
       const boons = result.events.filter((event) => event.type === 'buff' && event.kind === 'resolution');
       assert.equal(boons.length > 0, offset > 0);
@@ -345,8 +351,10 @@ test("Protector's Restoration shares a fixed twenty-second ICD across committed 
     const completion = ordinary.events.find((event) => event.type === 'action' && event.skillId === skillId).endsAt;
     for (const offset of [-0.001, 0, 0.001]) {
       const deadline = completion - offset;
-      const result = runGuardian([skillId], settings, (runtime) => {
-        runtime.procs.readyAt['guardian.core.protectorsRestoration'] = deadline;
+      const result = runGuardian([skillId], settings, {
+        initialize: (runtime) => {
+          runtime.procs.readyAt['guardian.core.protectorsRestoration'] = deadline;
+        }
       });
       const boons = result.events.filter((event) => event.type === 'buff' && event.kind === 'protection');
       assert.equal(boons.length > 0, offset > 0);

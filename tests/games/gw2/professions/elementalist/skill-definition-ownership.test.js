@@ -35,11 +35,15 @@ test('aura consumption and Arcane Echo arming belong to successful skill commitm
     const skill = elementalistCatalog.skillsById.get(id);
     const aura = AURA_TRANSMUTE_SKILLS[id];
     for (const mode of ['full', 'committed', 'cancelled', 'removed']) {
-      const result = runElementalist({
-        profession: patchedProfession([
-          [id, { castTimeMs: 1000, interruptCommitMs: 200, ...(mode === 'removed' ? { sideEffects: [] } : {}) }]
-        ]),
-        config: {
+      const result = runElementalist(
+        [
+          {
+            type: 'cast',
+            skillId: id,
+            ...(['committed', 'cancelled'].includes(mode) ? { interruptAfterMs: mode === 'committed' ? 400 : 100 } : {})
+          }
+        ],
+        {
           specialization: 'Core',
           primaryWeapon: skill.weapon === 'Focus' ? 'Scepter' : skill.weapon || 'Dagger',
           secondaryWeapon: skill.weapon === 'Focus' ? 'Focus' : 'Dagger',
@@ -47,23 +51,21 @@ test('aura consumption and Arcane Echo arming belong to successful skill commitm
           selectedSkills: [skill.name],
           selectedTraitIds: []
         },
-        rotation: [
-          {
-            type: 'cast',
-            skillId: id,
-            ...(['committed', 'cancelled'].includes(mode) ? { interruptAfterMs: mode === 'committed' ? 400 : 100 } : {})
+        {
+          profession: patchedProfession([
+            [id, { castTimeMs: 1000, interruptCommitMs: 200, ...(mode === 'removed' ? { sideEffects: [] } : {}) }]
+          ]),
+          initialize(runtime) {
+            // Both skill- and trait-origin auras must be consumed; unrelated auras survive.
+            if (aura)
+              runtime.profession.core.activeAuras = [
+                { type: aura, expiresAt: 10, sourceId: 'skill' },
+                { type: aura, expiresAt: 12, sourceId: 'trait' },
+                { type: 'unrelated', expiresAt: 15 }
+              ];
           }
-        ],
-        initialize(runtime) {
-          // Both skill- and trait-origin auras must be consumed; unrelated auras survive.
-          if (aura)
-            runtime.profession.core.activeAuras = [
-              { type: aura, expiresAt: 10, sourceId: 'skill' },
-              { type: aura, expiresAt: 12, sourceId: 'trait' },
-              { type: 'unrelated', expiresAt: 15 }
-            ];
         }
-      });
+      );
       assert.deepEqual(result.warnings, [], `${skill.name}: ${mode}`);
       const core = observedRuntime(result).profession.core;
       const committed = mode === 'full' || mode === 'committed';
@@ -80,31 +82,33 @@ test('aura consumption and Arcane Echo arming belong to successful skill commitm
 test('Frigid Flurry declares independent projectile attempts only on surviving packets', () => {
   const skill = elementalistCatalog.skillsById.get(ID.FRIGID_FLURRY);
   for (const mode of ['full', 'interrupted', 'cancelled', 'removed']) {
-    const result = runElementalist({
-      profession: patchedProfession([
-        [
-          skill.id,
-          {
-            effects: skill.effects.map((effect) =>
-              effect.type !== 'strike' || mode !== 'removed'
-                ? effect
-                : {
-                    ...effect,
-                    ticks: effect.ticks.map((tick) => ({ ...tick, comboFinishers: [] }))
-                  }
-            )
-          }
-        ]
-      ]),
-      config: { specialization: 'Core', primaryWeapon: 'Pistol', startAttunement: 'Water', selectedTraitIds: [] },
-      rotation: [
+    const result = runElementalist(
+      [
         {
           type: 'cast',
           skillId: skill.id,
           ...(['interrupted', 'cancelled'].includes(mode) ? { interruptAfterMs: mode === 'interrupted' ? 500 : 0 } : {})
         }
-      ]
-    });
+      ],
+      { specialization: 'Core', primaryWeapon: 'Pistol', startAttunement: 'Water', selectedTraitIds: [] },
+      {
+        profession: patchedProfession([
+          [
+            skill.id,
+            {
+              effects: skill.effects.map((effect) =>
+                effect.type !== 'strike' || mode !== 'removed'
+                  ? effect
+                  : {
+                      ...effect,
+                      ticks: effect.ticks.map((tick) => ({ ...tick, comboFinishers: [] }))
+                    }
+              )
+            }
+          ]
+        ])
+      }
+    );
     assert.deepEqual(result.warnings, []);
     const strikes = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === skill.id);
     const attempts = result.events.filter((event) => event.type === 'combo_finisher' && event.skillId === skill.id);
@@ -122,21 +126,23 @@ test('ordinary spear snapshots retire at completion while prepared delayed strik
   // Damaging, non-damaging, and cancelled activations must not leave historical snapshots behind.
   for (const skillId of [ID.BLAZING_BARRAGE, ID.SEETHE]) {
     for (const cancelled of [false, true]) {
-      const result = runElementalist({
-        config: { specialization: 'Core', primaryWeapon: 'Spear', startAttunement: 'Fire', selectedTraitIds: [] },
-        rotation: [
+      const result = runElementalist(
+        [
           { type: 'cast', skillId, impactDelayMs: 2000, ...(cancelled ? { interruptAfterMs: 0 } : {}) },
           { type: 'wait', durationMs: 3000 }
         ],
-        initialize(runtime) {
-          Object.assign(runtime.profession.core, {
-            spearNextDamageBonus: true,
-            spearNextGuaranteedCritical: true,
-            spearNextControlHit: true
-          });
-        },
-        timeline: [{ at: 1, run: (runtime) => assert.deepEqual(runtime.profession.core.spearFollowups, {}) }]
-      });
+        { specialization: 'Core', primaryWeapon: 'Spear', startAttunement: 'Fire', selectedTraitIds: [] },
+        {
+          initialize(runtime) {
+            Object.assign(runtime.profession.core, {
+              spearNextDamageBonus: true,
+              spearNextGuaranteedCritical: true,
+              spearNextControlHit: true
+            });
+          },
+          timeline: [{ at: 1, run: (runtime) => assert.deepEqual(runtime.profession.core.spearFollowups, {}) }]
+        }
+      );
       assert.deepEqual(result.warnings, []);
       const strikes = result.events.filter((event) => event.type === 'damage' && event.skillId === skillId);
       if (!cancelled && skillId === ID.BLAZING_BARRAGE) {
@@ -175,33 +181,35 @@ test('Fulgor keeps spear bonuses through the final procedural packet and consume
       };
     }
   };
-  const result = runElementalist({
-    profession,
-    config: { specialization: 'Core', primaryWeapon: 'Spear', startAttunement: 'Air', selectedTraitIds: [] },
-    rotation: [
+  const result = runElementalist(
+    [
       { type: 'cast', skillId: ID.FULGOR },
       { type: 'wait', durationMs: 1000 },
       { type: 'cast', skillId: ID.FULGOR, interruptAfterMs: 0 },
       { type: 'wait', durationMs: 3000 }
     ],
-    initialize(runtime) {
-      Object.assign(runtime.profession.core, {
-        spearNextDamageBonus: true,
-        spearNextGuaranteedCritical: true,
-        spearNextControlHit: true
-      });
-    },
-    timeline: [
-      {
-        at: 1.5,
-        run(runtime) {
-          // Delayed work retains its own snapshot after the cast's entry has been retired.
-          assert.deepEqual(runtime.profession.core.spearFollowups, {});
-        }
+    { specialization: 'Core', primaryWeapon: 'Spear', startAttunement: 'Air', selectedTraitIds: [] },
+    {
+      profession,
+      initialize(runtime) {
+        Object.assign(runtime.profession.core, {
+          spearNextDamageBonus: true,
+          spearNextGuaranteedCritical: true,
+          spearNextControlHit: true
+        });
       },
-      { at: 2.1, run: (runtime) => assert.deepEqual(runtime.profession.core.spearFollowups, {}) }
-    ]
-  });
+      timeline: [
+        {
+          at: 1.5,
+          run(runtime) {
+            // Delayed work retains its own snapshot after the cast's entry has been retired.
+            assert.deepEqual(runtime.profession.core.spearFollowups, {});
+          }
+        },
+        { at: 2.1, run: (runtime) => assert.deepEqual(runtime.profession.core.spearFollowups, {}) }
+      ]
+    }
+  );
   assert.deepEqual(result.warnings, []);
   const strikes = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.FULGOR);
   assert.deepEqual(
@@ -215,28 +223,32 @@ test('Fulgor keeps spear bonuses through the final procedural packet and consume
 
 test('Fulgor replaces only its extra stream on commitment and retains targeting and attribution', () => {
   for (const mode of ['full', 'cancelled', 'removed']) {
-    const result = runElementalist({
-      profession: patchedProfession([[ID.FULGOR, { cooldown: 0, ...(mode === 'removed' ? { sideEffects: [] } : {}) }]]),
-      config: { specialization: 'Core', primaryWeapon: 'Spear', startAttunement: 'Air', selectedTraitIds: [] },
-      rotation: [
+    const result = runElementalist(
+      [
         { type: 'cast', skillId: ID.FULGOR },
         { type: 'wait', durationMs: 1000 },
         { type: 'cast', skillId: ID.FULGOR, offTarget: true, ...(mode === 'cancelled' ? { interruptAfterMs: 0 } : {}) },
         { type: 'wait', durationMs: 5500 }
       ],
-      initialize(runtime) {
-        runtime.profession.core.spearNextDamageBonus = true;
-      },
-      timeline: [
-        {
-          at: 3,
-          run(runtime) {
-            // Neither surviving nor replaced pulse sequences retain entries in cast state.
-            assert.deepEqual(runtime.profession.core.spearFollowups, {});
+      { specialization: 'Core', primaryWeapon: 'Spear', startAttunement: 'Air', selectedTraitIds: [] },
+      {
+        profession: patchedProfession([
+          [ID.FULGOR, { cooldown: 0, ...(mode === 'removed' ? { sideEffects: [] } : {}) }]
+        ]),
+        initialize(runtime) {
+          runtime.profession.core.spearNextDamageBonus = true;
+        },
+        timeline: [
+          {
+            at: 3,
+            run(runtime) {
+              // Neither surviving nor replaced pulse sequences retain entries in cast state.
+              assert.deepEqual(runtime.profession.core.spearFollowups, {});
+            }
           }
-        }
-      ]
-    });
+        ]
+      }
+    );
     assert.deepEqual(result.warnings, []);
     assert.deepEqual(observedRuntime(result).profession.core.spearFollowups, {});
     const [first, second] = result.events.filter((event) => event.type === 'action' && event.skillId === ID.FULGOR);
@@ -276,25 +288,25 @@ test('glyph and elemental command declarations invoke their lifetime owners exac
   ]) {
     const glyph = elementalistCatalog.skillsById.get(glyphId);
     for (const removed of [false, true]) {
-      const summon = runElementalist({
-        profession: patchedProfession([[glyphId, removed ? { sideEffects: [] } : {}]]),
-        config: { specialization: 'Core', selectedSkills: [glyph.name], selectedTraitIds: [] },
-        rotation: [{ type: 'cast', skillId: glyphId }]
-      });
+      const summon = runElementalist(
+        [{ type: 'cast', skillId: glyphId }],
+        { specialization: 'Core', selectedSkills: [glyph.name], selectedTraitIds: [] },
+        { profession: patchedProfession([[glyphId, removed ? { sideEffects: [] } : {}]]) }
+      );
       assert.deepEqual(summon.warnings, []);
       const elemental = observedRuntime(summon).profession.core.summonedElemental;
       assert.equal(elemental.element, removed ? null : element);
       assert.equal(elemental.summonGeneration, removed ? 0 : 1);
 
-      const command = runElementalist({
-        profession: patchedProfession([[commandId, removed ? { sideEffects: [] } : {}]]),
-        config: { specialization: 'Core', selectedSkills: [glyph.name], selectedTraitIds: [] },
-        rotation: [
+      const command = runElementalist(
+        [
           { type: 'cast', skillId: glyphId },
           { type: 'cast', skillId: commandId },
           { type: 'wait', durationMs: 4000 }
-        ]
-      });
+        ],
+        { specialization: 'Core', selectedSkills: [glyph.name], selectedTraitIds: [] },
+        { profession: patchedProfession([[commandId, removed ? { sideEffects: [] } : {}]]) }
+      );
       assert.deepEqual(command.warnings, []);
       const actions = command.events.filter(
         (event) =>
@@ -315,30 +327,32 @@ test('all six Weaver spear dual declarations refresh the live primary only when 
   for (const skill of duals) {
     for (const mode of ['different', 'same', 'removed']) {
       const [primary, secondary] = skill.attunement.split('+');
-      const result = runElementalist({
-        profession: patchedProfession([
-          [skill.id, { castTimeMs: 1000, ...(mode === 'removed' ? { sideEffects: [] } : {}) }]
-        ]),
-        config: {
+      const result = runElementalist(
+        [{ type: 'cast', skillId: skill.id }],
+        {
           specialization: 'Weaver',
           primaryWeapon: 'Spear',
           startAttunement: primary,
           secondaryAttunement: secondary,
           selectedTraitIds: []
         },
-        rotation: [{ type: 'cast', skillId: skill.id }],
-        timeline: [
-          {
-            at: 0.1,
-            run(runtime) {
-              // Change hands after acceptance so a snapshot-based implementation cannot pass.
-              runtime.profession.core.primaryAttunement = secondary;
-              runtime.profession.specialization.state.secondaryAttunement = mode === 'same' ? secondary : primary;
-              for (const id of Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS)) runtime.cooldowns.set(id, 20);
+        {
+          profession: patchedProfession([
+            [skill.id, { castTimeMs: 1000, ...(mode === 'removed' ? { sideEffects: [] } : {}) }]
+          ]),
+          timeline: [
+            {
+              at: 0.1,
+              run(runtime) {
+                // Change hands after acceptance so a snapshot-based implementation cannot pass.
+                runtime.profession.core.primaryAttunement = secondary;
+                runtime.profession.specialization.state.secondaryAttunement = mode === 'same' ? secondary : primary;
+                for (const id of Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS)) runtime.cooldowns.set(id, 20);
+              }
             }
-          }
-        ]
-      });
+          ]
+        }
+      );
       assert.deepEqual(result.warnings, []);
       const runtime = observedRuntime(result);
       for (const [element, id] of Object.entries(ELEMENTALIST_ATTUNEMENT_SKILL_IDS))
@@ -352,29 +366,31 @@ test('all six Weaver spear dual declarations refresh the live primary only when 
 
 test('Weave Self activation is skill-owned, cancellable, and reads the element live at activation', () => {
   for (const mode of ['full', 'cancelled', 'removed']) {
-    const result = runElementalist({
-      profession: patchedProfession([
-        [ID.WEAVE_SELF, { castTimeMs: 1000, ...(mode === 'removed' ? { sideEffects: [] } : {}) }]
-      ]),
-      config: {
+    const result = runElementalist(
+      [
+        { type: 'cast', skillId: ID.WEAVE_SELF, ...(mode === 'cancelled' ? { interruptAfterMs: 0 } : {}) },
+        { type: 'wait', durationMs: 1000 }
+      ],
+      {
         specialization: 'Weaver',
         selectedSkills: ['Weave Self'],
         startAttunement: 'Fire',
         selectedTraitIds: []
       },
-      rotation: [
-        { type: 'cast', skillId: ID.WEAVE_SELF, ...(mode === 'cancelled' ? { interruptAfterMs: 0 } : {}) },
-        { type: 'wait', durationMs: 1000 }
-      ],
-      timeline: [
-        {
-          at: 0.1,
-          run(runtime) {
-            runtime.profession.core.primaryAttunement = 'Air';
+      {
+        profession: patchedProfession([
+          [ID.WEAVE_SELF, { castTimeMs: 1000, ...(mode === 'removed' ? { sideEffects: [] } : {}) }]
+        ]),
+        timeline: [
+          {
+            at: 0.1,
+            run(runtime) {
+              runtime.profession.core.primaryAttunement = 'Air';
+            }
           }
-        }
-      ]
-    });
+        ]
+      }
+    );
     assert.deepEqual(result.warnings, []);
     const state = observedRuntime(result).profession.specialization.state;
     assert.deepEqual(state.weaveSelfVisited, mode === 'full' ? ['Air'] : []);
@@ -391,29 +407,31 @@ test('all Primordial Stance declarations own their dynamic pulse stream without 
   ]) {
     const skill = elementalistCatalog.skillsById.get(id);
     for (const removed of [false, true]) {
-      const result = runElementalist({
-        profession: patchedProfession([[id, removed ? { sideEffects: [] } : {}]]),
-        config: {
+      const result = runElementalist(
+        [
+          { type: 'cast', skillId: id, offTarget: true },
+          { type: 'wait', durationMs: 3500 }
+        ],
+        {
           specialization: 'Weaver',
           selectedSkills: [skill.name],
           startAttunement: skill.attunement,
           secondaryAttunement: skill.attunement,
           selectedTraitIds: []
         },
-        rotation: [
-          { type: 'cast', skillId: id, offTarget: true },
-          { type: 'wait', durationMs: 3500 }
-        ],
-        timeline: [
-          {
-            at: 1.5,
-            run(runtime) {
-              runtime.profession.core.primaryAttunement = 'Fire';
-              runtime.profession.specialization.state.secondaryAttunement = 'Fire';
+        {
+          profession: patchedProfession([[id, removed ? { sideEffects: [] } : {}]]),
+          timeline: [
+            {
+              at: 1.5,
+              run(runtime) {
+                runtime.profession.core.primaryAttunement = 'Fire';
+                runtime.profession.specialization.state.secondaryAttunement = 'Fire';
+              }
             }
-          }
-        ]
-      });
+          ]
+        }
+      );
       assert.deepEqual(result.warnings, []);
       const packets = result.events.filter(
         (event) => event.skillId === id && ['damage', 'condition'].includes(event.type)
@@ -437,23 +455,25 @@ test('all Primordial Stance declarations own their dynamic pulse stream without 
 
 test('Elemental Procession replays only surviving familiar payloads without familiar cast settlement', () => {
   for (const mode of ['full', 'removed', 'source-removed', 'cancelled']) {
-    const result = runElementalist({
-      profession: patchedProfession([
-        [ID.ELEMENTAL_PROCESSION, mode === 'removed' ? { sideEffects: [] } : {}],
-        [ID.CONFLAGRATION, mode === 'source-removed' ? { effects: [] } : {}]
-      ]),
-      config: {
+    const result = runElementalist(
+      [
+        { type: 'cast', skillId: ID.ELEMENTAL_PROCESSION, ...(mode === 'cancelled' ? { interruptAfterMs: 0 } : {}) },
+        { type: 'wait', durationMs: 4000 }
+      ],
+      {
         specialization: 'Evoker',
         selectedSkills: ['Elemental Procession'],
         initialEvokerCharges: 4,
         initialEvokerEmpowered: 2,
         selectedTraitIds: [TRAIT.FAMILIARS_PROWESS, TRAIT.FAMILIARS_BLESSING, TRAIT.GALVANIC_ENCHANTMENT]
       },
-      rotation: [
-        { type: 'cast', skillId: ID.ELEMENTAL_PROCESSION, ...(mode === 'cancelled' ? { interruptAfterMs: 0 } : {}) },
-        { type: 'wait', durationMs: 4000 }
-      ]
-    });
+      {
+        profession: patchedProfession([
+          [ID.ELEMENTAL_PROCESSION, mode === 'removed' ? { sideEffects: [] } : {}],
+          [ID.CONFLAGRATION, mode === 'source-removed' ? { effects: [] } : {}]
+        ])
+      }
+    );
     assert.deepEqual(result.warnings, []);
     const state = observedRuntime(result).profession.specialization.state;
     assert.equal(state.charges, 4);
@@ -500,30 +520,32 @@ test('Core pistol declarations use completion-time bullets and preserve the load
     const skill = elementalistCatalog.skillsById.get(id);
     for (const loaded of [false, true])
       for (const mode of ['full', 'removed', 'cancelled']) {
-        const result = runElementalist({
-          profession: patchedProfession([
-            [id, { castTimeMs: 1000, ...(mode === 'removed' ? { sideEffects: [] } : {}) }]
-          ]),
-          config: {
+        const result = runElementalist(
+          [
+            { type: 'cast', skillId: id, ...(mode === 'cancelled' ? { interruptAfterMs: 0 } : {}) },
+            { type: 'wait', durationMs: 2000 }
+          ],
+          {
             specialization: 'Core',
             primaryWeapon: 'Pistol',
             startAttunement: skill.attunement,
             selectedTraitIds: [],
             pistolBullets: { [skill.attunement]: !loaded }
           },
-          rotation: [
-            { type: 'cast', skillId: id, ...(mode === 'cancelled' ? { interruptAfterMs: 0 } : {}) },
-            { type: 'wait', durationMs: 2000 }
-          ],
-          timeline: [
-            {
-              at: 0.1,
-              run(runtime) {
-                runtime.profession.core.pistolBullets[skill.attunement] = loaded;
+          {
+            profession: patchedProfession([
+              [id, { castTimeMs: 1000, ...(mode === 'removed' ? { sideEffects: [] } : {}) }]
+            ]),
+            timeline: [
+              {
+                at: 0.1,
+                run(runtime) {
+                  runtime.profession.core.pistolBullets[skill.attunement] = loaded;
+                }
               }
-            }
-          ]
-        });
+            ]
+          }
+        );
         assert.deepEqual(result.warnings, [], `${skill.name}:${mode}`);
         const core = observedRuntime(result).profession.core;
         assert.equal(
@@ -543,9 +565,9 @@ test('every Weaver pistol declaration consumes matching bullets or loads the liv
     const [first, second] = skill.attunement.split('+');
     for (const loaded of [[], [first], [second], [first, second]])
       for (const removed of [false, true]) {
-        const result = runElementalist({
-          profession: patchedProfession([[skill.id, { castTimeMs: 1000, ...(removed ? { sideEffects: [] } : {}) }]]),
-          config: {
+        const result = runElementalist(
+          [{ type: 'cast', skillId: skill.id }],
+          {
             specialization: 'Weaver',
             primaryWeapon: 'Pistol',
             startAttunement: first,
@@ -553,17 +575,19 @@ test('every Weaver pistol declaration consumes matching bullets or loads the liv
             selectedTraitIds: [],
             pistolBullets: Object.fromEntries(loaded.map((element) => [element, true]))
           },
-          rotation: [{ type: 'cast', skillId: skill.id }],
-          timeline: [
-            {
-              at: 0.1,
-              run(runtime) {
-                runtime.profession.core.primaryAttunement = second;
-                runtime.profession.specialization.state.secondaryAttunement = first;
+          {
+            profession: patchedProfession([[skill.id, { castTimeMs: 1000, ...(removed ? { sideEffects: [] } : {}) }]]),
+            timeline: [
+              {
+                at: 0.1,
+                run(runtime) {
+                  runtime.profession.core.primaryAttunement = second;
+                  runtime.profession.specialization.state.secondaryAttunement = first;
+                }
               }
-            }
-          ]
-        });
+            ]
+          }
+        );
         assert.deepEqual(result.warnings, [], skill.name);
         const bullets = observedRuntime(result).profession.core.pistolBullets;
         assert.equal(bullets[first], removed && loaded.includes(first));
@@ -585,17 +609,17 @@ test('hammer definitions own single and dual orb grants', () => {
   for (const skill of creators)
     for (const removed of [false, true]) {
       const [first, second] = skill.attunement.split('+');
-      const result = runElementalist({
-        profession: patchedProfession([[skill.id, removed ? { sideEffects: [] } : {}]]),
-        config: {
+      const result = runElementalist(
+        [{ type: 'cast', skillId: skill.id }],
+        {
           specialization: second ? 'Weaver' : 'Core',
           primaryWeapon: 'Hammer',
           startAttunement: first,
           secondaryAttunement: second,
           selectedTraitIds: []
         },
-        rotation: [{ type: 'cast', skillId: skill.id }]
-      });
+        { profession: patchedProfession([[skill.id, removed ? { sideEffects: [] } : {}]]) }
+      );
       assert.deepEqual(result.warnings, []);
       const core = observedRuntime(result).profession.core;
       assert.deepEqual(
@@ -611,24 +635,26 @@ test('etching declarations open their window and release only their own state af
   for (const chain of ETCHING_CHAINS)
     for (const mode of ['full', 'removed', 'released']) {
       const skill = elementalistCatalog.skillsById.get(chain.etchingId);
-      const result = runElementalist({
-        profession: patchedProfession([
-          [skill.id, mode === 'removed' ? { sideEffects: [] } : {}],
-          [ID.ARCANE_ECHO, { cooldown: 0 }]
-        ]),
-        config: {
+      const result = runElementalist(
+        [
+          { type: 'cast', skillId: skill.id },
+          ...Array.from({ length: 3 }, () => ({ type: 'cast', skillId: ID.ARCANE_ECHO })),
+          ...(mode === 'released' ? [{ type: 'cast', skillId: chain.fullId }] : [])
+        ],
+        {
           specialization: 'Core',
           primaryWeapon: 'Spear',
           startAttunement: skill.attunement,
           selectedSkills: ['Arcane Echo'],
           selectedTraitIds: []
         },
-        rotation: [
-          { type: 'cast', skillId: skill.id },
-          ...Array.from({ length: 3 }, () => ({ type: 'cast', skillId: ID.ARCANE_ECHO })),
-          ...(mode === 'released' ? [{ type: 'cast', skillId: chain.fullId }] : [])
-        ]
-      });
+        {
+          profession: patchedProfession([
+            [skill.id, mode === 'removed' ? { sideEffects: [] } : {}],
+            [ID.ARCANE_ECHO, { cooldown: 0 }]
+          ])
+        }
+      );
       assert.deepEqual(result.warnings, []);
       const progress = observedRuntime(result).profession.core.etchings[chain.etching];
       if (mode === 'full') {
@@ -642,17 +668,19 @@ test('conjure declarations own equip and drop without duplicating swap events', 
   for (const id of [ID.CONJURE_FROST_BOW, ID.CONJURE_LIGHTNING_HAMMER, ID.CONJURE_FIERY_GREATSWORD]) {
     const skill = elementalistCatalog.skillsById.get(id);
     for (const mode of ['full', 'removed', 'drop', 'drop-removed']) {
-      const result = runElementalist({
-        profession: patchedProfession([
-          [id, mode === 'removed' ? { sideEffects: [] } : {}],
-          [ID.DROP_BUNDLE, mode === 'drop-removed' ? { sideEffects: [] } : {}]
-        ]),
-        config: { specialization: 'Core', selectedSkills: [skill.name], selectedTraitIds: [TRAIT.CONJURER] },
-        rotation: [
+      const result = runElementalist(
+        [
           { type: 'cast', skillId: id },
           ...(mode.startsWith('drop') ? [{ type: 'cast', skillId: ID.DROP_BUNDLE }] : [])
-        ]
-      });
+        ],
+        { specialization: 'Core', selectedSkills: [skill.name], selectedTraitIds: [TRAIT.CONJURER] },
+        {
+          profession: patchedProfession([
+            [id, mode === 'removed' ? { sideEffects: [] } : {}],
+            [ID.DROP_BUNDLE, mode === 'drop-removed' ? { sideEffects: [] } : {}]
+          ])
+        }
+      );
       assert.deepEqual(result.warnings, []);
       assert.equal(
         observedRuntime(result).profession.core.conjureEquipped != null,
@@ -671,26 +699,28 @@ test('overload declarations preserve full-channel eligibility and ordinary-befor
     const skill = elementalistCatalog.skillsById.get(id);
     for (const initial of [0, 1, 2])
       for (const mode of ['full', 'removed', 'cancelled']) {
-        const result = runElementalist({
-          profession: patchedProfession([
-            [id, { castTimeMs: 1000, ...(mode === 'removed' ? { sideEffects: [] } : {}) }]
-          ]),
-          config: {
+        const result = runElementalist(
+          [{ type: 'cast', skillId: id, ...(mode === 'cancelled' ? { interruptAfterMs: 0 } : {}) }],
+          {
             specialization: 'Tempest',
             primaryWeapon: 'Spear',
             startAttunement: skill.attunement,
             selectedTraitIds: []
           },
-          rotation: [{ type: 'cast', skillId: id, ...(mode === 'cancelled' ? { interruptAfterMs: 0 } : {}) }],
-          initialize(runtime) {
-            runtime.profession.core.etchings[ETCHING_CHAINS[0].etching] = {
-              stage: 'lesser',
-              otherCasts: initial,
-              expiresAt: 30
-            };
-            runtime.cooldowns.set(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[skill.attunement], 60);
+          {
+            profession: patchedProfession([
+              [id, { castTimeMs: 1000, ...(mode === 'removed' ? { sideEffects: [] } : {}) }]
+            ]),
+            initialize(runtime) {
+              runtime.profession.core.etchings[ETCHING_CHAINS[0].etching] = {
+                stage: 'lesser',
+                otherCasts: initial,
+                expiresAt: 30
+              };
+              runtime.cooldowns.set(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[skill.attunement], 60);
+            }
           }
-        });
+        );
         assert.deepEqual(result.warnings, []);
         const runtime = observedRuntime(result);
         const ordinary = mode === 'cancelled' ? initial : initial + 1;
@@ -709,33 +739,34 @@ test('Unravel settles after its traits and before another same-time completion o
   for (const removed of [false, true])
     for (const secondary of ['Fire', 'Air']) {
       let observed = false;
-      const result = runElementalist({
-        profession: patchedProfession([[ID.UNRAVEL, removed ? { sideEffects: [] } : {}]], (runtime, cast) => {
-          if (cast.skill.id === ID.UNRAVEL)
-            runtime.schedule('test.elementalist-check', runtime.time, 0, undefined, -100);
-        }),
-        config: {
+      const result = runElementalist(
+        [{ type: 'cast', skillId: ID.UNRAVEL }],
+        {
           specialization: 'Weaver',
           startAttunement: 'Fire',
           secondaryAttunement: secondary,
           selectedTraitIds: [TRAIT.ELEMENTS_OF_RAGE, TRAIT.BOLSTERED_ELEMENTS]
         },
-        rotation: [{ type: 'cast', skillId: ID.UNRAVEL }],
-        initialize(runtime) {
-          for (const id of Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS)) runtime.cooldowns.set(id, 20);
-        },
-        timeline: [
-          {
-            at: 100,
-            run(runtime) {
-              observed = true;
-              assert.equal(runtime.profession.specialization.state.secondaryAttunement, removed ? secondary : 'Fire');
-              for (const id of Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS))
-                assert.equal(runtime.cooldowns.has(id), removed);
+        {
+          profession: patchedProfession([[ID.UNRAVEL, removed ? { sideEffects: [] } : {}]], (runtime, cast) => {
+            if (cast.skill.id === ID.UNRAVEL) runtime.schedule('test.timeline', runtime.time, 0, undefined, -100);
+          }),
+          initialize(runtime) {
+            for (const id of Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS)) runtime.cooldowns.set(id, 20);
+          },
+          timeline: [
+            {
+              at: 100,
+              run(runtime) {
+                observed = true;
+                assert.equal(runtime.profession.specialization.state.secondaryAttunement, removed ? secondary : 'Fire');
+                for (const id of Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS))
+                  assert.equal(runtime.cooldowns.has(id), removed);
+              }
             }
-          }
-        ]
-      });
+          ]
+        }
+      );
       assert.deepEqual(result.warnings, []);
       assert.equal(observed, true);
       assert.equal(
@@ -756,18 +787,20 @@ test('sphere declarations spend once and derive live windows from their fields b
   ]) {
     const skill = elementalistCatalog.skillsById.get(id);
     for (const mode of ['full', 'removed', 'field-removed']) {
-      const result = runElementalist({
-        profession: patchedProfession([
-          [id, mode === 'removed' ? { sideEffects: [] } : mode === 'field-removed' ? { comboFields: [] } : {}]
-        ]),
-        config: {
+      const result = runElementalist(
+        [{ type: 'cast', skillId: id }],
+        {
           specialization: 'Catalyst',
           startAttunement: skill.attunement,
           initialCatalystEnergy: 30,
           selectedTraitIds: [TRAIT.SPECTACULAR_SPHERE, TRAIT.SPHERE_SPECIALIST]
         },
-        rotation: [{ type: 'cast', skillId: id }]
-      });
+        {
+          profession: patchedProfession([
+            [id, mode === 'removed' ? { sideEffects: [] } : mode === 'field-removed' ? { comboFields: [] } : {}]
+          ])
+        }
+      );
       assert.deepEqual(result.warnings, []);
       const state = observedRuntime(result).profession.specialization.state;
       const spent = result.events.filter(
@@ -809,37 +842,39 @@ test('familiar declarations reset their pools before deferred grants and the nex
     const basic = [ID.IGNITE, ID.SPLASH, ID.ZAP, ID.CALCIFY].includes(id);
     for (const removed of [false, true]) {
       let observed = false;
-      const result = runElementalist({
-        profession: patchedProfession([[id, removed ? { sideEffects: [] } : {}]], (runtime) =>
-          runtime.schedule('test.elementalist-check', runtime.time, 0, undefined, -100)
-        ),
-        config: {
+      const result = runElementalist(
+        [{ type: 'cast', skillId: id }],
+        {
           specialization: 'Evoker',
           evokerElement: skill.attunement,
           initialEvokerCharges: 6,
           initialEvokerEmpowered: basic ? 1 : 3,
           selectedTraitIds: []
         },
-        rotation: [{ type: 'cast', skillId: id }],
-        initialize(runtime) {
-          runtime.profession.specialization.state.pendingWeaponChargeGains = [
-            { activationId: 'weapon', source: 'Weapon', sourceId: 42, gain: 2 }
-          ];
-        },
-        timeline: [
-          {
-            at: 100,
-            run(runtime) {
-              observed = true;
-              const state = runtime.profession.specialization.state;
-              assert.equal(state.charges, !removed && basic ? 2 : 6);
-              assert.equal(state.empowered, removed ? (basic ? 1 : 3) : basic ? 2 : 0);
-              assert.equal(state.activeFamiliarCast, null);
-              assert.equal(state.pendingWeaponChargeGains.length, removed ? 1 : 0);
+        {
+          profession: patchedProfession([[id, removed ? { sideEffects: [] } : {}]], (runtime) =>
+            runtime.schedule('test.timeline', runtime.time, 0, undefined, -100)
+          ),
+          initialize(runtime) {
+            runtime.profession.specialization.state.pendingWeaponChargeGains = [
+              { activationId: 'weapon', source: 'Weapon', sourceId: 42, gain: 2 }
+            ];
+          },
+          timeline: [
+            {
+              at: 100,
+              run(runtime) {
+                observed = true;
+                const state = runtime.profession.specialization.state;
+                assert.equal(state.charges, !removed && basic ? 2 : 6);
+                assert.equal(state.empowered, removed ? (basic ? 1 : 3) : basic ? 2 : 0);
+                assert.equal(state.activeFamiliarCast, null);
+                assert.equal(state.pendingWeaponChargeGains.length, removed ? 1 : 0);
+              }
             }
-          }
-        ]
-      });
+          ]
+        }
+      );
       assert.deepEqual(result.warnings, [], skill.name);
       assert.equal(observed, true);
     }
@@ -851,25 +886,27 @@ test('meditation declarations own their live-element bonuses and refill before A
     const skill = elementalistCatalog.skillsById.get(id);
     for (const element of ['Fire', 'Earth'])
       for (const removed of [false, true]) {
-        const result = runElementalist({
-          profession: patchedProfession([[id, { castTimeMs: 1000, ...(removed ? { sideEffects: [] } : {}) }]]),
-          config: {
+        const result = runElementalist(
+          [{ type: 'cast', skillId: id }],
+          {
             specialization: 'Evoker',
             evokerElement: element === 'Fire' ? 'Earth' : 'Fire',
             initialEvokerCharges: 2,
             selectedSkills: [skill.name],
             selectedTraitIds: [TRAIT.ALTRUISTIC_ASPECT]
           },
-          rotation: [{ type: 'cast', skillId: id }],
-          timeline: [
-            {
-              at: 0.1,
-              run(runtime) {
-                runtime.profession.specialization.state.element = element;
+          {
+            profession: patchedProfession([[id, { castTimeMs: 1000, ...(removed ? { sideEffects: [] } : {}) }]]),
+            timeline: [
+              {
+                at: 0.1,
+                run(runtime) {
+                  runtime.profession.specialization.state.element = element;
+                }
               }
-            }
-          ]
-        });
+            ]
+          }
+        );
         assert.deepEqual(result.warnings, []);
         const state = observedRuntime(result).profession.specialization.state;
         const buffs = result.resolvedEvents.filter((event) => event.type === 'buff');

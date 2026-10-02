@@ -30,11 +30,11 @@ test('Antiquary replacement owners emit their own packets instead of the authore
 
 test('Grand Finale selects one delayed projectile for one consumed orb', () => {
   // Authored effects capture the orb before completion consumes it.
-  const result = runElementalist({
-    profession: elementalistProfession,
-    rotation: ['Flame Wheel', 'Grand Finale', { type: 'wait', durationMs: 1000 }],
-    config: { specialization: 'Core', primaryWeapon: 'Hammer', startAttunement: 'Fire', selectedTraitIds: [] }
-  });
+  const result = runElementalist(
+    ['Flame Wheel', 'Grand Finale', { type: 'wait', durationMs: 1000 }],
+    { specialization: 'Core', primaryWeapon: 'Hammer', startAttunement: 'Fire', selectedTraitIds: [] },
+    { profession: elementalistProfession }
+  );
   assert.deepEqual(result.warnings, []);
   const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.GRAND_FINALE);
   const packets = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.GRAND_FINALE);

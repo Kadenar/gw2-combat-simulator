@@ -31,11 +31,13 @@ test('Empowered Armaments extends only its live remainder and shares the display
       runGuardian(
         [wait((at + 0.1) * 1000)],
         { ...config, selectedTraitIds: [TRAIT.EMPOWERED_ARMAMENTS] },
-        (runtime) => {
-          const equip = { skill: guardianCatalog.skillsById.get(ID.DAZZLING_HAMMER), id: 'fixture-equip' };
-          runtime.scheduleForCast('guardian.luminary.equip-traits', 0.001, equip);
-          for (let index = 0; index < extra + 1; index++)
-            runtime.scheduleForCast('guardian.luminary.equip-traits', at, equip);
+        {
+          initialize: (runtime) => {
+            const equip = { skill: guardianCatalog.skillsById.get(ID.DAZZLING_HAMMER), id: 'fixture-equip' };
+            runtime.scheduleForCast('guardian.luminary.equip-traits', 0.001, equip);
+            for (let index = 0; index < extra + 1; index++)
+              runtime.scheduleForCast('guardian.luminary.equip-traits', at, equip);
+          }
         }
       );
     const result = run(0);
@@ -97,7 +99,7 @@ test('Light Aura refreshes on the effect clock and can be consumed only once bef
     runtime.schedule('guardian.luminary.aura-grant', 1.001, { ...cause, at: 1.001, duration: 4 });
   };
 
-  const granted = runGuardian([wait(1100)], settings, initialize);
+  const granted = runGuardian([wait(1100)], settings, { initialize: initialize });
   assert.equal(state(granted).lightAuraUntil, 5.04);
   for (const at of [5.039999, 5.04, 5.040001]) {
     const snapshot = ui.rotationStateSnapshot({ professionState: granted.planningState.profession, atSeconds: at });
@@ -105,10 +107,12 @@ test('Light Aura refreshes on the effect clock and can be consumed only once bef
       snapshot.some((item) => item.id === 'luminary-light-aura'),
       at < 5.04
     );
-    const result = runGuardian([wait(5100)], settings, (runtime) => {
-      initialize(runtime);
-      runtime.schedule('guardian.luminary.aura-detonate', at, { ...cause, at });
-      runtime.schedule('guardian.luminary.aura-detonate', at, { ...cause, at });
+    const result = runGuardian([wait(5100)], settings, {
+      initialize: (runtime) => {
+        initialize(runtime);
+        runtime.schedule('guardian.luminary.aura-detonate', at, { ...cause, at });
+        runtime.schedule('guardian.luminary.aura-detonate', at, { ...cause, at });
+      }
     });
     assert.equal(
       result.resolvedEvents.filter((event) => event.skillId === ID.SOVEREIGN_OF_LIGHT_DAMAGE).length,
@@ -118,17 +122,19 @@ test('Light Aura refreshes on the effect clock and can be consumed only once bef
 });
 
 test('Effulgent counts the final live microsecond but excludes its exact detonation timestamp', () => {
-  const result = runGuardian([wait(1), ID.EFFULGENT_STANCE, wait(4100)], config, (runtime) => {
-    for (const at of [4.000999, 4.001, 4.001001])
-      runtime.emit({
-        type: 'damage',
-        source: 'guardian',
-        sourceId: ID.ORB_OF_WRATH,
-        skillId: ID.ORB_OF_WRATH,
-        actorType: 'player',
-        coefficient: 1,
-        at
-      });
+  const result = runGuardian([wait(1), ID.EFFULGENT_STANCE, wait(4100)], config, {
+    initialize: (runtime) => {
+      for (const at of [4.000999, 4.001, 4.001001])
+        runtime.emit({
+          type: 'damage',
+          source: 'guardian',
+          sourceId: ID.ORB_OF_WRATH,
+          skillId: ID.ORB_OF_WRATH,
+          actorType: 'player',
+          coefficient: 1,
+          at
+        });
+    }
   });
   const detonation = result.resolvedEvents.find((event) => event.skillId === ID.EFFULGENT_STANCE_DAMAGE);
   assert.equal(detonation.at, 4.001);
@@ -152,19 +158,21 @@ test('spear illumination expires before accepting a cast at its deadline', () =>
       const result = runGuardian(
         [wait(at * 1000), ID.SOLAR_STORM, wait(2500)],
         { primaryWeapon: 'Spear' },
-        (runtime) => {
-          const core = runtime.profession.core;
-          if (source === 'armed') {
-            core.spearIlluminatedArmed = true;
-            core.spearIlluminatedUntil = 5.04;
-          } else core.spearLuminanceUntil = 5.04;
-          runtime.schedule(
-            GUARDIAN_SPEAR_EXPIRY,
-            5.04,
-            { symbol: source === 'symbol', expiresAt: 5.04 },
-            undefined,
-            -220
-          );
+        {
+          initialize: (runtime) => {
+            const core = runtime.profession.core;
+            if (source === 'armed') {
+              core.spearIlluminatedArmed = true;
+              core.spearIlluminatedUntil = 5.04;
+            } else core.spearLuminanceUntil = 5.04;
+            runtime.schedule(
+              GUARDIAN_SPEAR_EXPIRY,
+              5.04,
+              { symbol: source === 'symbol', expiresAt: 5.04 },
+              undefined,
+              -220
+            );
+          }
         }
       );
       assert.equal(

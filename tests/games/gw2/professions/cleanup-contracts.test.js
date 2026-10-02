@@ -98,8 +98,7 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
       selectedTraitIds: [GT.ARCHIVIST_OF_WHISPERS],
       initialTomePages: 6
     },
-    () => {},
-    patched
+    { initialize: () => {}, profession: patched }
   );
   const pages = observedRuntime(result).profession.specialization.state.tomePages;
   assert.equal(pages.value, 10);
@@ -113,25 +112,27 @@ test('Weighty Terms follows canonical mantra IDs and ignores names or final-char
   const native = guardianProfession.runtimeFor(config);
   for (const mantra of MANTRAS) {
     for (const id of [mantra.rootId, mantra.normalId, mantra.finalId, 999991]) {
-      const result = runGuardian([], config, (runtime) => {
-        const skill = {
-          ...guardianCatalog.skillsById.get(id),
-          id,
-          name: 'Renamed mantra',
-          description: id === mantra.finalId ? '' : 'Final Charge.',
-          categories: ['Mantra']
-        };
-        const cast = {
-          skill,
-          id: 'fixture-mantra',
-          command: {},
-          start: 0,
-          fullEnd: 0,
-          effectiveEnd: 0
-        };
-        // Match runtime dispatch so named mantra actions run before the remaining trait effects.
-        applySkillSideEffects(runtime, cast, 'castCommit', native.sideEffectHandlers);
-        native.onCastCommit(runtime, cast);
+      const result = runGuardian([], config, {
+        initialize: (runtime) => {
+          const skill = {
+            ...guardianCatalog.skillsById.get(id),
+            id,
+            name: 'Renamed mantra',
+            description: id === mantra.finalId ? '' : 'Final Charge.',
+            categories: ['Mantra']
+          };
+          const cast = {
+            skill,
+            id: 'fixture-mantra',
+            command: {},
+            start: 0,
+            fullEnd: 0,
+            effectiveEnd: 0
+          };
+          // Match runtime dispatch so named mantra actions run before the remaining trait effects.
+          applySkillSideEffects(runtime, cast, 'castCommit', native.sideEffectHandlers);
+          native.onCastCommit(runtime, cast);
+        }
       });
       assert.equal(
         observedRuntime(result).profession.specialization.state.tomePages.value,

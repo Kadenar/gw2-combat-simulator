@@ -16,37 +16,41 @@ test('Method of Madness commits Syncopate independently of its proc marker', () 
       selectedTraitIds: [TRAIT.METHOD_OF_MADNESS, TRAIT.SYNCOPATE]
     });
     const run = (suppress, output = 'detailed') =>
-      runMesmer({
-        config,
-        output,
-        rotation: [
+      runMesmer(
+        [
           { name: 'Ether Feast', ...(scenario === 'cancelled' ? { interruptAfterMs: 1 } : {}) },
           { type: 'wait', durationMs: 1000 }
         ],
-        profession: {
-          ...mesmerProfession,
-          runtimeFor(config) {
-            const native = mesmerProfession.runtimeFor(config);
-            return {
-              ...native,
-              ...(scenario === 'removed'
-                ? {
-                    catalog: applyBalanceProfilePatch(native.catalog, {
-                      balanceProfiles: { [TRAIT.METHOD_OF_MADNESS]: { removeEffects: [{ type: 'strike', all: true }] } }
-                    })
-                  }
-                : {}),
-              prepareEvent(runtime, event) {
-                if (suppress && event.type === 'proc' && event.sourceId === 'Method of Madness') return null;
-                return native.prepareEvent(runtime, event);
-              }
-            };
+        config,
+        {
+          output,
+          profession: {
+            ...mesmerProfession,
+            runtimeFor(config) {
+              const native = mesmerProfession.runtimeFor(config);
+              return {
+                ...native,
+                ...(scenario === 'removed'
+                  ? {
+                      catalog: applyBalanceProfilePatch(native.catalog, {
+                        balanceProfiles: {
+                          [TRAIT.METHOD_OF_MADNESS]: { removeEffects: [{ type: 'strike', all: true }] }
+                        }
+                      })
+                    }
+                  : {}),
+                prepareEvent(runtime, event) {
+                  if (suppress && event.type === 'proc' && event.sourceId === 'Method of Madness') return null;
+                  return native.prepareEvent(runtime, event);
+                }
+              };
+            }
+          },
+          initialize(runtime) {
+            if (scenario === 'cooldown') runtime.procs.readyAt[TRAIT.METHOD_OF_MADNESS] = 100;
           }
-        },
-        initialize(runtime) {
-          if (scenario === 'cooldown') runtime.procs.readyAt[TRAIT.METHOD_OF_MADNESS] = 100;
         }
-      });
+      );
     const normal = run(false);
     const suppressed = run(true);
     assert.deepEqual(suppressed.warnings, []);

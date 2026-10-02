@@ -41,9 +41,8 @@ test('Tempest attunement lockouts keep overload recharge unchanged by temporary 
           actorType: 'player'
         })
     });
-    const result = runElementalist({
-      config: { specialization: 'Tempest', startAttunement: element, boons: {} },
-      rotation: [
+    const result = runElementalist(
+      [
         '__combat_start',
         { type: 'wait', durationMs: 5000 },
         overloadId,
@@ -51,25 +50,28 @@ test('Tempest attunement lockouts keep overload recharge unchanged by temporary 
         ELEMENTALIST_ATTUNEMENT_SKILL_IDS[other],
         attunementId
       ],
-      timeline: [
-        grant(5, 8),
-        {
-          at: 10,
-          run: (r) => {
-            first = r.cooldowns.get(overloadId);
-            assert.equal(r.cooldowns.get(attunementId), first, element);
+      { specialization: 'Tempest', startAttunement: element, boons: {} },
+      {
+        timeline: [
+          grant(5, 8),
+          {
+            at: 10,
+            run: (r) => {
+              first = r.cooldowns.get(overloadId);
+              assert.equal(r.cooldowns.get(attunementId), first, element);
+            }
+          },
+          grant(14, 4),
+          {
+            at: 14.001,
+            run: (r) => {
+              second = r.cooldowns.get(overloadId);
+              assert.equal(r.cooldowns.get(attunementId), second, element);
+            }
           }
-        },
-        grant(14, 4),
-        {
-          at: 14.001,
-          run: (r) => {
-            second = r.cooldowns.get(overloadId);
-            assert.equal(r.cooldowns.get(attunementId), second, element);
-          }
-        }
-      ]
-    });
+        ]
+      }
+    );
     assert.deepEqual(result.warnings, []);
     assert.equal(second, first, element);
     assert.equal(result.events.findLast((e) => e.type === 'action').at, gw2CooldownReadyAt(second));
@@ -79,11 +81,11 @@ test('Tempest attunement lockouts keep overload recharge unchanged by temporary 
 // A completed overload cannot shorten a longer recharge already owned by the attunement.
 test('Tempest overload completion preserves a longer attunement lockout', () => {
   const id = ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Fire;
-  const result = runElementalist({
-    config: { specialization: 'Tempest', startAttunement: 'Fire', boons: {} },
-    rotation: [ELEMENTALIST_OVERLOAD_SKILL_IDS.Fire],
-    initialize: (r) => r.cooldownController.startRecharge(r.helpers.skillsById.get(id), 0, 60)
-  });
+  const result = runElementalist(
+    [ELEMENTALIST_OVERLOAD_SKILL_IDS.Fire],
+    { specialization: 'Tempest', startAttunement: 'Fire', boons: {} },
+    { initialize: (r) => r.cooldownController.startRecharge(r.helpers.skillsById.get(id), 0, 60) }
+  );
   assert.deepEqual(result.warnings, []);
   assert.equal(observedRuntime(result).cooldowns.get(id), 48);
   assert.deepEqual(observedRuntime(result).rechargeProgress.get(id), { startedAt: 0, work: 60 });
@@ -110,7 +112,7 @@ test('delayed Tempest shouts do not advance the serial rotation lane', async () 
   };
 
   adapter.recalculate(app);
-  const result = runElementalist({ config: adapter.simulationConfig(app), rotation: build.rotation });
+  const result = runElementalist(build.rotation, adapter.simulationConfig(app));
   const [shout, followingSerialCast] = result.steps;
 
   assert.equal(shout.skill, 'Feel the Burn!');

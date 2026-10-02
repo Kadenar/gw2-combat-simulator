@@ -9,42 +9,44 @@ test('Inner Fire checks live Burning and grants Fury only from eligible player s
     const result = runGuardian(
       [{ type: 'wait', durationMs: 12000 }],
       { selectedTraitIds: selected ? [TRAIT.INNER_FIRE] : [] },
-      (runtime) => {
-        for (const [at, stacks, duration] of [
-          [0, 2, 1],
-          [0.2, 1, 1],
-          [11, 3, 1]
-        ])
-          runtime.emit({
-            type: 'condition',
-            at,
-            stacks,
-            duration,
-            condition: 'Burning',
-            source: 'guardian',
-            sourceId: ID.ZEALOTS_FLAME,
-            actorType: 'player'
-          });
-        for (const [at, overrides] of [
-          [0.1, {}],
-          [0.21, { actorType: 'summon' }],
-          [0.22, { offTarget: true }],
-          [0.3, {}],
-          [0.4, {}],
-          [10.5, {}],
-          [11.1, {}]
-        ])
-          runtime.emit({
-            type: 'damage',
-            at,
-            coefficient: 1,
-            actorType: 'player',
-            source: 'guardian',
-            sourceId: ID.ORB_OF_WRATH,
-            skillId: ID.ORB_OF_WRATH,
-            skillName: 'Orb of Wrath',
-            ...overrides
-          });
+      {
+        initialize: (runtime) => {
+          for (const [at, stacks, duration] of [
+            [0, 2, 1],
+            [0.2, 1, 1],
+            [11, 3, 1]
+          ])
+            runtime.emit({
+              type: 'condition',
+              at,
+              stacks,
+              duration,
+              condition: 'Burning',
+              source: 'guardian',
+              sourceId: ID.ZEALOTS_FLAME,
+              actorType: 'player'
+            });
+          for (const [at, overrides] of [
+            [0.1, {}],
+            [0.21, { actorType: 'summon' }],
+            [0.22, { offTarget: true }],
+            [0.3, {}],
+            [0.4, {}],
+            [10.5, {}],
+            [11.1, {}]
+          ])
+            runtime.emit({
+              type: 'damage',
+              at,
+              coefficient: 1,
+              actorType: 'player',
+              source: 'guardian',
+              sourceId: ID.ORB_OF_WRATH,
+              skillId: ID.ORB_OF_WRATH,
+              skillName: 'Orb of Wrath',
+              ...overrides
+            });
+        }
       }
     );
     assert.deepEqual(result.warnings, []);

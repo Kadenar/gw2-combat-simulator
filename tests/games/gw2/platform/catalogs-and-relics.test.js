@@ -32,11 +32,7 @@ test('Mesmer test scenarios use the registered live runtime', () => {
       health: 0
     }
   };
-  const canonical = runMesmer({
-    profession: mesmerProfession,
-    rotation: ['Bladecall'],
-    config
-  });
+  const canonical = runMesmer(['Bladecall'], config, { profession: mesmerProfession });
   const fixture = simulateMesmer(['Bladecall'], config);
 
   assert.equal(canonical.totalDamage, fixture.totalDamage);

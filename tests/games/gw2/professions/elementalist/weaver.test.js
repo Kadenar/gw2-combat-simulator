@@ -19,41 +19,43 @@ test('Core and Weaver orb creation refresh existing buffs without duplicating th
   const single = elementalistCatalog.skillsByName.get('Flame Wheel');
   const dual = elementalistCatalog.skillsByName.get('Dual Orbits: Fire and Air');
   let originalExpiry;
-  runElementalist({
-    config: { specialization: 'Weaver', primaryWeapon: 'Hammer', startAttunement: 'Fire' },
-    rotation: [{ type: 'wait', durationMs: 3000 }],
-    timeline: [
-      {
-        at: 1,
-        run(runtime) {
-          createHammerOrbs(runtime, { id: 'single', effectiveEnd: runtime.time }, single, ['Fire']);
-          originalExpiry = runtime.profession.core.hammerOrbs.Fire;
+  runElementalist(
+    [{ type: 'wait', durationMs: 3000 }],
+    { specialization: 'Weaver', primaryWeapon: 'Hammer', startAttunement: 'Fire' },
+    {
+      timeline: [
+        {
+          at: 1,
+          run(runtime) {
+            createHammerOrbs(runtime, { id: 'single', effectiveEnd: runtime.time }, single, ['Fire']);
+            originalExpiry = runtime.profession.core.hammerOrbs.Fire;
+          }
+        },
+        {
+          at: 2,
+          run(runtime) {
+            createHammerOrbs(runtime, { id: 'dual', effectiveEnd: runtime.time }, dual, ['Fire', 'Air']);
+            const state = runtime.profession.core;
+            assert.equal(state.hammerOrbs.Fire, originalExpiry + 1);
+            assert.equal(state.hammerOrbs.Air, state.hammerOrbs.Fire);
+            assert.equal(state.hammerOrbActivationIds.Fire, 'dual');
+            assert.equal(state.hammerOrbActivationIds.Air, 'dual');
+            assert.equal(state.hammerOrbLastCastAt, 2);
+          }
+        },
+        {
+          at: 2.1,
+          run(runtime) {
+            const fire = runtime.boons.get('hammer fire orb');
+            assert.equal(fire.length, 1);
+            assert.equal(fire[0].at, 1);
+            assert.equal(fire[0].expiresAt, originalExpiry + 1);
+            assert.equal(runtime.boons.get('hammer air orb').length, 1);
+          }
         }
-      },
-      {
-        at: 2,
-        run(runtime) {
-          createHammerOrbs(runtime, { id: 'dual', effectiveEnd: runtime.time }, dual, ['Fire', 'Air']);
-          const state = runtime.profession.core;
-          assert.equal(state.hammerOrbs.Fire, originalExpiry + 1);
-          assert.equal(state.hammerOrbs.Air, state.hammerOrbs.Fire);
-          assert.equal(state.hammerOrbActivationIds.Fire, 'dual');
-          assert.equal(state.hammerOrbActivationIds.Air, 'dual');
-          assert.equal(state.hammerOrbLastCastAt, 2);
-        }
-      },
-      {
-        at: 2.1,
-        run(runtime) {
-          const fire = runtime.boons.get('hammer fire orb');
-          assert.equal(fire.length, 1);
-          assert.equal(fire[0].at, 1);
-          assert.equal(fire[0].expiresAt, originalExpiry + 1);
-          assert.equal(runtime.boons.get('hammer air orb').length, 1);
-        }
-      }
-    ]
-  });
+      ]
+    }
+  );
 });
 
 test('Weaver hammer orbs require both distinct hands and respect Unravel replacement skills', () => {
@@ -218,9 +220,9 @@ test('Primordial Stance retains dynamic profile patches and activation ownership
       }
     }
   });
-  const result = runElementalist({
-    profession,
-    config: {
+  const result = runElementalist(
+    ['Primordial Stance (Fire)'],
+    {
       specialization: 'Weaver',
       patchId: 'stance-preview',
       startAttunement: 'Fire',
@@ -229,9 +231,8 @@ test('Primordial Stance retains dynamic profile patches and activation ownership
       stats: { power: 1000 },
       target: { armor: 2597 }
     },
-    rotation: ['Primordial Stance (Fire)'],
-    observationPolicy: { kind: 'tail', durationMs: 1500 }
-  });
+    { profession, observation: { kind: 'tail', durationMs: 1500 } }
+  );
   assert.deepEqual(result.warnings, []);
   const action = result.events.find((event) => event.type === 'action');
   const pulses = result.events.filter(

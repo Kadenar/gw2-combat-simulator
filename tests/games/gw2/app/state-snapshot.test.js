@@ -176,16 +176,16 @@ test('Aristocracy shows current stacks with the remaining duration in its toolti
 
 // Conversion countdowns follow the actual scheduled grants, including separate entities, repeats, and cursor history.
 test('Chronomancer active state shows only pending conversions from phantasms already summoned', () => {
-  const result = runMesmer({
-    profession: mesmerProfession,
-    rotation: ['Phantasmal Warlock', { type: 'wait', durationMs: 12000 }],
-    config: {
+  const result = runMesmer(
+    ['Phantasmal Warlock', { type: 'wait', durationMs: 12000 }],
+    {
       specialization: 'Chronomancer',
       selectedTraitIds: [MESMER_TRAIT.CHRONOPHANTASMA],
       primaryWeapon: 'Staff',
       initialResource: 0
-    }
-  });
+    },
+    { profession: mesmerProfession }
+  );
   const summon = result.events.find((event) => event.type === 'mesmer.phantasm-summoned');
   const conversions = result.events.filter(
     (event) => event.type === 'resource' && event.reason === 'Phantasmal Warlock phantasm conversion'

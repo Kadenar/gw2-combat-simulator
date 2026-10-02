@@ -285,16 +285,16 @@ test('delayed performance packets survive instrument expiry without retaining it
       }
     }
   });
-  const result = runMesmer({
-    profession,
-    config: {
+  const result = runMesmer(
+    [ID.LIVELY_LUTE, { type: 'wait', durationMs: 3000 }],
+    {
       patchId: 'short-instrument',
       specialization: 'Troubadour',
       initialResource: 3,
       selectedTraitIds: [TRAIT.CALL_AND_RESPONSE]
     },
-    rotation: [ID.LIVELY_LUTE, { type: 'wait', durationMs: 3000 }]
-  });
+    { profession }
+  );
   assert.deepEqual(result.warnings, []);
   const instrument = result.events.find((event) => event.type === 'mesmer.instrument');
   const delayed = result.resolvedEvents.find(

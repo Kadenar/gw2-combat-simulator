@@ -93,10 +93,8 @@ function createTempestApp(rotation = [], { tempestTraits = '1-1-2', alacrity = t
   };
 
   elementalistAppAdapter.recalculate(app);
-  app.results = runElementalist({
-    profession: elementalistProfession,
-    rotation: commands,
-    config: elementalistAppAdapter.simulationConfig(app)
+  app.results = runElementalist(commands, elementalistAppAdapter.simulationConfig(app), {
+    profession: elementalistProfession
   });
 
   return app;

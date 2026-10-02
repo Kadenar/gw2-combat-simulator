@@ -223,10 +223,8 @@ test('extended Vigor preserves Elementalist and Mirage endurance through the new
         [3, 22.5],
         [5, 35]
       ]) {
-        const result = simulate({
+        const result = simulate([{ type: 'wait', durationMs: at * 1000 }], config, {
           profession,
-          config,
-          rotation: [{ type: 'wait', durationMs: at * 1000 }],
           initialize(runtime) {
             runtime.endurance.spend(100);
             runtime.emit(buff(0, 2, self, 'vigor'));

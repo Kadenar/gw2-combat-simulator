@@ -142,15 +142,15 @@ test('both importers place tied weapon casts on the correct side of an attunemen
           const outgoingTie = skillId === 5508 && swapOffset === 0;
           assert.equal(castIndex < swapIndex, outgoingTie);
           if (outgoingTie) assert.equal(imported.rotation[swapIndex].concurrentOffsetMs, 0);
-          const result = runElementalist({
-            profession: elementalistProfession,
-            rotation: imported.rotation,
-            config: defaultSimulationConfig({
+          const result = runElementalist(
+            imported.rotation,
+            defaultSimulationConfig({
               specialization: 'Core',
               primaryWeapon: 'Scepter',
               startAttunement: 'Fire'
-            })
-          });
+            }),
+            { profession: elementalistProfession }
+          );
           assert.equal(
             Boolean(result.steps.find((step) => step.skillId === skillId)?.invalid),
             skillId === 5508 && swapOffset < 0

@@ -129,11 +129,11 @@ test('Harp start protection is independent of its later playing-state commitment
         }
       }
     });
-    const result = runMesmer({
-      profession,
-      config: { patchId: 'harp-protection', specialization: 'Troubadour', selectedTraitIds: [] },
-      rotation: [ID.HARMONIOUS_HARP]
-    });
+    const result = runMesmer(
+      [ID.HARMONIOUS_HARP],
+      { patchId: 'harp-protection', specialization: 'Troubadour', selectedTraitIds: [] },
+      { profession }
+    );
     assert.deepEqual(result.warnings, []);
     const cast = result.events.find((event) => event.type === 'action');
     const playing = result.events.find((event) => event.type === 'mesmer.instrument');

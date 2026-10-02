@@ -23,23 +23,16 @@ test('every Elementalist specialization can prepare attunements without precomba
   for (const specialization of ['Core', 'Tempest', 'Weaver', 'Catalyst', 'Evoker']) {
     for (const suffix of [[], ['__combat_start']]) {
       for (const preparation of specialization === 'Weaver' ? [[], ['Weave Self']] : [[]]) {
-        const result = runElementalist({
-          profession: elementalistProfession,
-          rotation: [
-            ...preparation,
-            'Water Attunement',
-            'Air Attunement',
-            'Earth Attunement',
-            'Fire Attunement',
-            ...suffix
-          ],
-          config: {
+        const result = runElementalist(
+          [...preparation, 'Water Attunement', 'Air Attunement', 'Earth Attunement', 'Fire Attunement', ...suffix],
+          {
             specialization,
             startAttunement: 'Fire',
             secondaryAttunement: 'Fire',
             ...(preparation.length ? { selectedSkills: { Elite: 'Weave Self' } } : {})
-          }
-        });
+          },
+          { profession: elementalistProfession }
+        );
         const swaps = result.steps.filter((step) => step.skill.endsWith(' Attunement'));
         assert.deepEqual(result.warnings, [], specialization);
         assert.ok(
@@ -57,11 +50,11 @@ test('every Elementalist specialization can prepare attunements without precomba
 
 test('attunement recharge resumes after an explicit combat marker or the first hit', () => {
   for (const combatStart of ['__combat_start', 'Fireball']) {
-    const result = runElementalist({
-      profession: elementalistProfession,
-      rotation: ['Water Attunement', 'Fire Attunement', combatStart, 'Water Attunement', 'Fire Attunement'],
-      config: { specialization: 'Core', startAttunement: 'Fire', primaryWeapon: 'Staff' }
-    });
+    const result = runElementalist(
+      ['Water Attunement', 'Fire Attunement', combatStart, 'Water Attunement', 'Fire Attunement'],
+      { specialization: 'Core', startAttunement: 'Fire', primaryWeapon: 'Staff' },
+      { profession: elementalistProfession }
+    );
     const swaps = result.steps.filter((step) => step.skill.endsWith(' Attunement'));
     assert.deepEqual(result.warnings, []);
     assert.equal(swaps[1].start, swaps[0].start);
@@ -72,16 +65,16 @@ test('attunement recharge resumes after an explicit combat marker or the first h
 test('attunement entry damage traits require combat already active', () => {
   // Both an explicit marker and a landed hit should enable only subsequent entry traits.
   for (const combatStart of [['__combat_start'], ['Fireball', { type: 'wait', durationMs: 2000 }]]) {
-    const result = runElementalist({
-      profession: elementalistProfession,
-      rotation: ['Air Attunement', 'Fire Attunement', ...combatStart, 'Air Attunement', 'Fire Attunement'],
-      config: {
+    const result = runElementalist(
+      ['Air Attunement', 'Fire Attunement', ...combatStart, 'Air Attunement', 'Fire Attunement'],
+      {
         specialization: 'Core',
         startAttunement: 'Fire',
         primaryWeapon: 'Staff',
         selectedTraitIds: [TRAIT.ELECTRIC_DISCHARGE, TRAIT.SUNSPOT]
-      }
-    });
+      },
+      { profession: elementalistProfession }
+    );
     const procs = result.events.filter(
       (event) => event.type === 'damage' && ['Electric Discharge', 'Sunspot'].includes(event.skillName)
     );

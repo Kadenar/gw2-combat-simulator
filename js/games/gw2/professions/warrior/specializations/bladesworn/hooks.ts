@@ -293,7 +293,7 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState, War
         if (releaseAt > state.dragonTriggerChargeDeadline)
           return denyCast(
             'warrior.dragon-trigger-delay',
-            'The additional release delay exceeds Dragon Trigger\'s duration.'
+            "The additional release delay exceeds Dragon Trigger's duration."
           );
         if (runtime.time < releaseAt)
           return retryCast(releaseAt, 'warrior.dragon-trigger-delay', 'Holding Dragon Slash before release.');

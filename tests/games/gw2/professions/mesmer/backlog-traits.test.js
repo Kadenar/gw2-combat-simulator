@@ -107,37 +107,39 @@ test('Rending Shatter requires selection and an on-target shatter or instrument'
 // Non-player critical hits and rejected hits cannot consume the shared ten-second cooldown.
 test('Critical Infusion grants scaled Vigor only on player critical hits', () => {
   for (const precision of [1000, 3000]) {
-    const result = runMesmer({
-      config: {
+    const result = runMesmer(
+      [{ type: 'wait', durationMs: 12000 }],
+      {
         ...config,
         selectedTraitIds: [TRAIT.CRITICAL_INFUSION],
         stats: { ...config.stats, precision, concentration: 750 }
       },
-      rotation: [{ type: 'wait', durationMs: 12000 }],
-      initialize(runtime) {
-        for (const [at, overrides] of [
-          [0.1, { actorType: 'summon', summonKind: 'clone' }],
-          [0.2, { actorType: 'summon', summonKind: 'phantasm' }],
-          [0.3, { canCrit: false }],
-          [0.4, { offTarget: true }],
-          [1, {}],
-          [1.1, {}],
-          [10.99, {}],
-          [11.01, {}]
-        ])
-          runtime.emit({
-            type: 'damage',
-            at,
-            actorType: 'player',
-            source: 'Player',
-            sourceId: ID.MIND_SLASH,
-            skillId: ID.MIND_SLASH,
-            skillName: 'Mind Slash',
-            coefficient: 1,
-            ...overrides
-          });
+      {
+        initialize(runtime) {
+          for (const [at, overrides] of [
+            [0.1, { actorType: 'summon', summonKind: 'clone' }],
+            [0.2, { actorType: 'summon', summonKind: 'phantasm' }],
+            [0.3, { canCrit: false }],
+            [0.4, { offTarget: true }],
+            [1, {}],
+            [1.1, {}],
+            [10.99, {}],
+            [11.01, {}]
+          ])
+            runtime.emit({
+              type: 'damage',
+              at,
+              actorType: 'player',
+              source: 'Player',
+              sourceId: ID.MIND_SLASH,
+              skillId: ID.MIND_SLASH,
+              skillName: 'Mind Slash',
+              coefficient: 1,
+              ...overrides
+            });
+        }
       }
-    });
+    );
     assert.deepEqual(result.warnings, []);
     const vigor = result.resolvedEvents.filter(
       (event) => event.type === 'buff' && event.sourceId === TRAIT.CRITICAL_INFUSION

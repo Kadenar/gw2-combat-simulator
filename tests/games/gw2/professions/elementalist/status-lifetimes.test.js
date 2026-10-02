@@ -30,9 +30,7 @@ const complete = (r, skill, handler) => handler(r, { skill, effectiveEnd: r.time
 test('Rock Barrier availability, palette, and natural recharge share an exact deadline', () => {
   const root = elementalistCatalog.skillsById.get(ID.ROCK_BARRIER),
     hurl = elementalistCatalog.skillsById.get(ID.HURL);
-  const result = runElementalist({
-    config,
-    rotation: [{ type: 'wait', durationMs: 72000 }],
+  const result = runElementalist([{ type: 'wait', durationMs: 72000 }], config, {
     timeline: [
       { at: 0.301, run: elementalistRockBarrierTasks['elementalist.core.open-rock-barrier'] },
       ...[30.300999, 30.301, 30.301001].map((at) => ({
@@ -56,30 +54,32 @@ test('elemental commands and Lightning Jolt retain the final live microsecond wi
   for (const element of ['Fire', 'Earth']) {
     const glyph = glyphFor(element),
       command = commandFor(element);
-    const result = runElementalist({
-      config: { ...config },
-      rotation: [{ type: 'wait', durationMs: 121000 }],
-      timeline: [
-        { at: 0.301, run: (r) => complete(r, glyph, completeElementalistGlyphCast) },
-        ...[120.300999, 120.301].map((at) => ({
-          at,
-          priority: 40,
-          run: (r) => {
-            const elemental = r.profession.core.summonedElemental;
-            elemental.pendingLightningJolt = null;
-            r.config.selectedSkills = {};
-            assert.equal(elementalistCoreAvailability(r, command).ready, at < 120.301);
-            r.config.selectedSkills = { Elite: glyph.name };
-            assert.equal(elementalistCoreAvailability(r, command).ready, at < 120.301);
-            assert.equal(elementalistCoreAvailability(r, glyph).ready, at >= 120.301);
-            armElementalistElementalLightningJolt(r, { effectiveEnd: at }, 1, 0.5);
-            assert.equal(elemental.pendingLightningJolt !== null, at < 120.301);
-            ensureElementalistElemental(r);
-            assert.equal(r.profession.core.summonedElemental.summonGeneration, 1);
-          }
-        }))
-      ]
-    });
+    const result = runElementalist(
+      [{ type: 'wait', durationMs: 121000 }],
+      { ...config },
+      {
+        timeline: [
+          { at: 0.301, run: (r) => complete(r, glyph, completeElementalistGlyphCast) },
+          ...[120.300999, 120.301].map((at) => ({
+            at,
+            priority: 40,
+            run: (r) => {
+              const elemental = r.profession.core.summonedElemental;
+              elemental.pendingLightningJolt = null;
+              r.config.selectedSkills = {};
+              assert.equal(elementalistCoreAvailability(r, command).ready, at < 120.301);
+              r.config.selectedSkills = { Elite: glyph.name };
+              assert.equal(elementalistCoreAvailability(r, command).ready, at < 120.301);
+              assert.equal(elementalistCoreAvailability(r, glyph).ready, at >= 120.301);
+              armElementalistElementalLightningJolt(r, { effectiveEnd: at }, 1, 0.5);
+              assert.equal(elemental.pendingLightningJolt !== null, at < 120.301);
+              ensureElementalistElemental(r);
+              assert.equal(r.profession.core.summonedElemental.summonGeneration, 1);
+            }
+          }))
+        ]
+      }
+    );
     assert.equal(result.planningState.profession.summonedElemental.element, null);
   }
 });
@@ -98,50 +98,52 @@ test('an expired automatic elemental stays absent until an explicit glyph clears
   for (const element of ['Fire', 'Earth']) {
     const glyph = glyphFor(element),
       command = commandFor(element);
-    const result = runElementalist({
-      profession,
-      config: {
-        ...config,
-        patchId: 'elemental-lifecycle',
-        selectedSkills: { Elite: glyph.name },
-        selectedTraitIds: []
-      },
-      rotation: [
+    const result = runElementalist(
+      [
         { type: 'combat-start' },
         { type: 'wait', durationMs: 2100 },
         { type: 'cast', skillId: ID.WATER_ATTUNEMENT },
         { type: 'cast', skillId: glyph.id },
         { type: 'wait', durationMs: 1000 }
       ],
-      timeline: [
-        {
-          at: 1,
-          run(runtime) {
-            assert.equal(runtime.profession.core.summonedElemental.summonGeneration, 1);
-            assert.equal(elementalistCoreAvailability(runtime, command).ready, true);
-            assert.equal(runtime.cooldowns.has(glyph.id), false);
+      {
+        ...config,
+        patchId: 'elemental-lifecycle',
+        selectedSkills: { Elite: glyph.name },
+        selectedTraitIds: []
+      },
+      {
+        profession,
+        timeline: [
+          {
+            at: 1,
+            run(runtime) {
+              assert.equal(runtime.profession.core.summonedElemental.summonGeneration, 1);
+              assert.equal(elementalistCoreAvailability(runtime, command).ready, true);
+              assert.equal(runtime.cooldowns.has(glyph.id), false);
+            }
+          },
+          {
+            at: 3,
+            run(runtime) {
+              const elemental = runtime.profession.core.summonedElemental;
+              assert.equal(elemental.element, null);
+              assert.equal(elemental.summonGeneration, 1);
+              assert.equal(runtime.cooldowns.get(glyph.id), 6);
+              assert.equal(elementalistCoreAvailability(runtime, command).ready, false);
+            }
+          },
+          {
+            at: 7,
+            run(runtime) {
+              assert.equal(runtime.profession.core.summonedElemental.summonGeneration, 2);
+              assert.equal(elementalistCoreAvailability(runtime, command).ready, true);
+              assert.ok((runtime.cooldowns.get(glyph.id) ?? 0) <= runtime.time);
+            }
           }
-        },
-        {
-          at: 3,
-          run(runtime) {
-            const elemental = runtime.profession.core.summonedElemental;
-            assert.equal(elemental.element, null);
-            assert.equal(elemental.summonGeneration, 1);
-            assert.equal(runtime.cooldowns.get(glyph.id), 6);
-            assert.equal(elementalistCoreAvailability(runtime, command).ready, false);
-          }
-        },
-        {
-          at: 7,
-          run(runtime) {
-            assert.equal(runtime.profession.core.summonedElemental.summonGeneration, 2);
-            assert.equal(elementalistCoreAvailability(runtime, command).ready, true);
-            assert.ok((runtime.cooldowns.get(glyph.id) ?? 0) <= runtime.time);
-          }
-        }
-      ]
-    });
+        ]
+      }
+    );
     assert.deepEqual(result.warnings, []);
     const summon = result.events.find((event) => event.type === 'action' && event.skillId === glyph.id);
     assert.equal(summon.at, 6);
@@ -152,11 +154,11 @@ test('an expired automatic elemental stays absent until an explicit glyph clears
 test('elemental teardown clears the command and starts the glyph recharge once', () => {
   for (const element of ['Fire', 'Earth']) {
     const glyph = glyphFor(element);
-    const result = runElementalist({
-      config: { ...config },
-      rotation: [{ type: 'wait', durationMs: 122000 }],
-      timeline: [{ at: 0.301, run: (r) => complete(r, glyph, completeElementalistGlyphCast) }]
-    });
+    const result = runElementalist(
+      [{ type: 'wait', durationMs: 122000 }],
+      { ...config },
+      { timeline: [{ at: 0.301, run: (r) => complete(r, glyph, completeElementalistGlyphCast) }] }
+    );
     const r = observedRuntime(result);
     assert.equal(r.profession.core.summonedElemental.element, null);
     assert.deepEqual(r.profession.core.availableFlips, {});
@@ -166,9 +168,7 @@ test('elemental teardown clears the command and starts the glyph recharge once',
 });
 
 test('replacing an elemental interrupts its action, removes its flip, and rejects stale tasks', () => {
-  const result = runElementalist({
-    config,
-    rotation: [{ type: 'wait', durationMs: 121000 }],
+  const result = runElementalist([{ type: 'wait', durationMs: 121000 }], config, {
     timeline: [
       {
         at: 0.301,
@@ -193,9 +193,7 @@ test('replacing an elemental interrupts its action, removes its flip, and reject
 });
 
 test('elemental boon candidacy includes the final impact timestamp without an epsilon grace period', () => {
-  runElementalist({
-    config,
-    rotation: [{ type: 'wait', durationMs: 1000 }],
+  runElementalist([{ type: 'wait', durationMs: 1000 }], config, {
     timeline: [
       {
         at: 0.301,
@@ -219,12 +217,11 @@ test('elemental boon candidacy includes the final impact timestamp without an ep
 });
 
 test('Hurl consumes the barrier before expiry while its released projectiles finish afterward', () => {
-  const result = runElementalist({
-    profession: elementalistProfession,
-    config: { specialization: 'Core', primaryWeapon: 'Scepter', startAttunement: 'Earth' },
-    rotation: [ID.ROCK_BARRIER, { type: 'wait', durationMs: 29999 }, ID.HURL],
-    observationPolicy: { kind: 'tail', durationMs: 2000 }
-  });
+  const result = runElementalist(
+    [ID.ROCK_BARRIER, { type: 'wait', durationMs: 29999 }, ID.HURL],
+    { specialization: 'Core', primaryWeapon: 'Scepter', startAttunement: 'Earth' },
+    { profession: elementalistProfession, observation: { kind: 'tail', durationMs: 2000 } }
+  );
   assert.deepEqual(result.warnings, []);
   const barrier = result.events.find((event) => event.type === 'action' && event.skillId === ID.ROCK_BARRIER);
   const hurl = result.events.find((event) => event.type === 'action' && event.skillId === ID.HURL);
@@ -247,16 +244,16 @@ test('the live queue resolves a final elemental command hit before same-time tea
         elementalist: { balanceProfiles: { [PROFILE.summonedElemental]: { fields: { durationMultiplier: lifetime } } } }
       }
     });
-    const result = runElementalist({
-      profession,
-      config: {
+    const result = runElementalist(
+      [ID.GLYPH_OF_ELEMENTALS, ID.FLAME_BARRAGE_ELEMENTAL_COMMAND, { type: 'wait', durationMs: 3000 }],
+      {
         patchId: 'short-elemental',
         specialization: 'Core',
         selectedSkills: { Elite: 'Glyph of Elementals' },
         boons: { quickness: false }
       },
-      rotation: [ID.GLYPH_OF_ELEMENTALS, ID.FLAME_BARRAGE_ELEMENTAL_COMMAND, { type: 'wait', durationMs: 3000 }]
-    });
+      { profession }
+    );
     assert.deepEqual(result.warnings, []);
     const explosion = result.resolvedEvents.find(
       (event) => event.type === 'damage' && event.skillId === ID.FLAME_BARRAGE_ELEMENTAL_COMMAND && event.hitIndex === 4
@@ -271,21 +268,23 @@ test('the live queue resolves a final elemental command hit before same-time tea
 test('elemental command preemption resumes exactly at command recovery without stale impacts', () => {
   for (const element of ['Fire', 'Earth']) {
     let interrupted, recovery;
-    const result = runElementalist({
-      config: { ...config },
-      rotation: ['__combat_start', { type: 'wait', durationMs: 6000 }],
-      timeline: [
-        { at: 0.301, run: (r) => complete(r, glyphFor(element), completeElementalistGlyphCast) },
-        {
-          at: 0.6,
-          run: (r) => {
-            interrupted = r.history.find((e) => e.type === 'action' && e.actorType === 'summon');
-            complete(r, commandFor(element), completeElementalistElementalCommand);
-            recovery = r.profession.core.summonedElemental.busyUntil;
+    const result = runElementalist(
+      ['__combat_start', { type: 'wait', durationMs: 6000 }],
+      { ...config },
+      {
+        timeline: [
+          { at: 0.301, run: (r) => complete(r, glyphFor(element), completeElementalistGlyphCast) },
+          {
+            at: 0.6,
+            run: (r) => {
+              interrupted = r.history.find((e) => e.type === 'action' && e.actorType === 'summon');
+              complete(r, commandFor(element), completeElementalistElementalCommand);
+              recovery = r.profession.core.summonedElemental.busyUntil;
+            }
           }
-        }
-      ]
-    });
+        ]
+      }
+    );
     assert.equal(interrupted.endsAt, 0.6);
     assert.ok(
       !result.resolvedEvents.some(

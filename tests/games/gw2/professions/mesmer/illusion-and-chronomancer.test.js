@@ -338,11 +338,7 @@ test('Chronomancer shatter boons consume patched balance-profile values', () => 
     }),
     { duration: 600 }
   );
-  const result = runMesmer({
-    profession,
-    rotation: ['Split Second'],
-    config
-  });
+  const result = runMesmer(['Split Second'], config, { profession });
   const quickness = result.events.find((event) => event.type === 'buff' && event.kind === 'quickness');
 
   assert.ok(quickness);

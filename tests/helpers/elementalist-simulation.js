@@ -1,4 +1,4 @@
-import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 
@@ -48,46 +48,13 @@ export function createNativeApp({ lines, rotation = [], ...extras }) {
 export function runNative(options) {
   const { app, commands } = createNativeApp(options);
 
-  return runElementalist({
-    profession: elementalistProfession,
-    rotation: commands,
-    config: elementalistAppAdapter.simulationConfig(app)
+  return runElementalist(commands, elementalistAppAdapter.simulationConfig(app), {
+    profession: elementalistProfession
   });
 }
 
-/** Family checks exercise registered native owners, including patched catalogs and timed setup. */
-export function runElementalist({
-  profession = elementalistProfession,
-  config,
-  rotation,
-  observationPolicy,
-  output,
-  initialize = () => {},
-  timeline = []
-}) {
-  const native = profession.runtimeFor(config);
-  return observeGw2Runtime({
-    profession: {
-      ...native,
-      initialize(runtime) {
-        native.initialize?.(runtime);
-        initialize(runtime);
-        for (const [index, entry] of timeline.entries())
-          runtime.schedule('test.elementalist-check', entry.at, index, undefined, entry.priority);
-      },
-      tasks: {
-        ...native.tasks,
-        'test.elementalist-check': (runtime, index) => timeline[index].run(runtime),
-        // Queues an arbitrary packet as owned work, so tests can cancel it before it executes.
-        'test.emit': (runtime, event) => runtime.emit(event)
-      }
-    },
-    config,
-    rotation,
-    observation: observationPolicy,
-    output
-  });
-}
+/** Prepared application configs run through the same native initialization and observation setup. */
+export const runElementalist = createProfessionSimulator(elementalistProfession);
 
 // Buffs are now authoritative in resolvedEvents; omit their scheduled copies to count applications once.
 export function resolvedAndScheduledEvents(result) {

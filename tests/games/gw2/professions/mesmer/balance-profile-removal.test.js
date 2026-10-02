@@ -19,11 +19,11 @@ function run(balanceProfiles, specialization, rotation, config = {}) {
     label: 'Mesmer removal',
     professions: { mesmer: { balanceProfiles } }
   });
-  const result = runMesmer({
-    profession,
-    config: { ...createDefaultConfig(), specialization, initialResource: 0, patchId: 'mesmer-removal', ...config },
-    rotation
-  });
+  const result = runMesmer(
+    rotation,
+    { ...createDefaultConfig(), specialization, initialResource: 0, patchId: 'mesmer-removal', ...config },
+    { profession }
+  );
   assert.deepEqual(result.warnings, []);
   return result;
 }

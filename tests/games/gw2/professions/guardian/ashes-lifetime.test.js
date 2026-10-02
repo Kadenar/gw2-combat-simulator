@@ -42,7 +42,7 @@ test('Ashes spending cannot mutate its delivered buff or public snapshot', () =>
   const result = runGuardian(
     [ID.TOME_OF_JUSTICE, ID.ASHES_OF_THE_JUST, wait(1000)],
     { specialization: 'Firebrand' },
-    (runtime) => strike(runtime, 1)
+    { initialize: (runtime) => strike(runtime, 1) }
   );
   const buff = result.events.find((event) => event.kind === 'ashes-of-the-just');
   assert.equal(state(result).ashes.charges, buff.stacks - 1);
@@ -67,10 +67,12 @@ test('Ashes buff history, expiry cleanup, and planning state share the effect-cl
 
 test('Quickfire refresh preserves live charges and readiness but cannot revive an expired grant', () => {
   for (const at of [10.599999, 10.6]) {
-    const result = runGuardian([wait(10700)], config, (runtime) => {
-      runtime.profession.specialization.state.ashes = { charges: 2, expiresAt: 10.6, readyAt: 11 };
-      runtime.schedule('guardian.firebrand.ashes-expiry', 10.6, undefined, undefined, 10);
-      quickness(runtime, at);
+    const result = runGuardian([wait(10700)], config, {
+      initialize: (runtime) => {
+        runtime.profession.specialization.state.ashes = { charges: 2, expiresAt: 10.6, readyAt: 11 };
+        runtime.schedule('guardian.firebrand.ashes-expiry', 10.6, undefined, undefined, 10);
+        quickness(runtime, at);
+      }
     });
     assert.equal(state(result).ashes.charges, at < 10.6 ? 3 : 1);
     assert.equal(state(result).ashes.readyAt, at < 10.6 ? 11 : 0);
@@ -80,9 +82,15 @@ test('Quickfire refresh preserves live charges and readiness but cannot revive a
 
 test('Quickfire allies can consume their tick-aligned grant exactly at expiry', () => {
   for (const at of [0, 0.001]) {
-    const result = runGuardian([wait(11000)], { ...config, allies: { count: 1, strikesPerSecond: 0.1 } }, (runtime) => {
-      quickness(runtime, at, { recipients: 'party', affectsSelf: false });
-    });
+    const result = runGuardian(
+      [wait(11000)],
+      { ...config, allies: { count: 1, strikesPerSecond: 0.1 } },
+      {
+        initialize: (runtime) => {
+          quickness(runtime, at, { recipients: 'party', affectsSelf: false });
+        }
+      }
+    );
     assert.equal(burns(result).length, 1);
     assert.equal(burns(result)[0].metadata.triggeredByAlly, 1);
   }
@@ -99,18 +107,20 @@ test('tome and Quickfire grants allow an expiry-time hit before cleanup in eithe
         const result = runGuardian(
           rotation,
           { ...config, selectedTraitIds: tome ? [] : config.selectedTraitIds },
-          (runtime) => {
-            const hit = () => strike(runtime, expiry + offset);
-            const grant = () => {
-              if (!tome) quickness(runtime, 0);
-            };
+          {
+            initialize: (runtime) => {
+              const hit = () => strike(runtime, expiry + offset);
+              const grant = () => {
+                if (!tome) quickness(runtime, 0);
+              };
 
-            if (hitFirst) {
-              hit();
-              grant();
-            } else {
-              grant();
-              hit();
+              if (hitFirst) {
+                hit();
+                grant();
+              } else {
+                grant();
+                hit();
+              }
             }
           }
         );

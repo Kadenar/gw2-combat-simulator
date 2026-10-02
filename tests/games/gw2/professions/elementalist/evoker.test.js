@@ -17,21 +17,21 @@ import test from 'node:test';
 test('Altruistic Aspect grants its meditation boon only when selected and the cast commits', () => {
   // Use one meditation with no other boon traits to expose the missing completion hook.
   const run = (traits, interrupted = false) =>
-    runElementalist({
-      config: {
-        specialization: 'Evoker',
-        evokerElement: 'Fire',
-        selectedTraitIds: traits,
-        selectedSkills: ["Fox's Fury"]
-      },
-      rotation: [
+    runElementalist(
+      [
         {
           type: 'cast',
           skillId: elementalistCatalog.skillsByName.get("Fox's Fury").id,
           ...(interrupted ? { interruptAfterMs: 0 } : {})
         }
-      ]
-    }).resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'might');
+      ],
+      {
+        specialization: 'Evoker',
+        evokerElement: 'Fire',
+        selectedTraitIds: traits,
+        selectedSkills: ["Fox's Fury"]
+      }
+    ).resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'might');
   const base = run([]);
   const boon = run([TRAIT.ALTRUISTIC_ASPECT]);
   assert.equal(boon.length, base.length + 1);
@@ -70,31 +70,33 @@ test('Ignite retains its final burning tier until the inactivity window expires'
 
 // Queue impacts out of order; only an accepted live strike may spend an active grant.
 function enchantments({ hits, grants, timeline = [] }) {
-  return runElementalist({
-    config: { specialization: 'Evoker', evokerElement: 'Air' },
-    rotation: [{ type: 'wait', durationMs: 2000 }, '__combat_start', { type: 'wait', durationMs: 20000 }],
-    initialize: (r) => {
-      for (const [at, fields = {}] of hits)
-        emitElementalistDamage(r, {
+  return runElementalist(
+    [{ type: 'wait', durationMs: 2000 }, '__combat_start', { type: 'wait', durationMs: 20000 }],
+    { specialization: 'Evoker', evokerElement: 'Air' },
+    {
+      initialize: (r) => {
+        for (const [at, fields = {}] of hits)
+          emitElementalistDamage(r, {
+            at,
+            sourceId: 42,
+            skillId: 42,
+            skillName: 'Fixture',
+            actorType: 'player',
+            coefficient: 1,
+            skillWeapon: 'Unequipped',
+            ...fields
+          });
+      },
+      timeline: [
+        ...grants.map(([at, charges, duration]) => ({
           at,
-          sourceId: 42,
-          skillId: 42,
-          skillName: 'Fixture',
-          actorType: 'player',
-          coefficient: 1,
-          skillWeapon: 'Unequipped',
-          ...fields
-        });
-    },
-    timeline: [
-      ...grants.map(([at, charges, duration]) => ({
-        at,
-        priority: -30,
-        run: (r) => grantElectricEnchantments(evokerState.from(r), at, charges, duration)
-      })),
-      ...timeline
-    ]
-  });
+          priority: -30,
+          run: (r) => grantElectricEnchantments(evokerState.from(r), at, charges, duration)
+        })),
+        ...timeline
+      ]
+    }
+  );
 }
 
 const enchantedHits = (result) =>

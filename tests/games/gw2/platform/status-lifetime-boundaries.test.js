@@ -90,7 +90,7 @@ const specialization = (context) => context.state.profession.specialization.stat
 
 // Native services supply the actual state and catalog; collect only the handler's immediate output.
 function elementalistContext(specialization, selectedTraitIds = []) {
-  const runtime = observedRuntime(runElementalist({ config: { specialization, selectedTraitIds }, rotation: [] }));
+  const runtime = observedRuntime(runElementalist([], { specialization, selectedTraitIds }));
   runtime.events = [];
   runtime.emit = (event) => {
     runtime.events.push(event);
@@ -236,19 +236,21 @@ test('Righteous Instincts extends Resolution at the last live microsecond and st
   const result = runGuardian(
     [{ type: 'wait', durationMs: 2100 }],
     { selectedTraitIds: [GT.RIGHTEOUS_INSTINCTS] },
-    (runtime) => {
-      for (const at of [0.001, 1.039999])
-        runtime.emit({
-          type: 'buff',
-          source: 'fixture',
-          sourceId: 'resolution',
-          actorType: 'player',
-          kind: 'resolution',
-          duration: 1,
-          stacks: 1,
-          at,
-          audience: { recipients: 'self' }
-        });
+    {
+      initialize: (runtime) => {
+        for (const at of [0.001, 1.039999])
+          runtime.emit({
+            type: 'buff',
+            source: 'fixture',
+            sourceId: 'resolution',
+            actorType: 'player',
+            kind: 'resolution',
+            duration: 1,
+            stacks: 1,
+            at,
+            audience: { recipients: 'self' }
+          });
+      }
     }
   );
   const might = result.events.filter((event) => event.type === 'buff' && event.kind === 'might');
@@ -260,27 +262,33 @@ test('Righteous Instincts extends Resolution at the last live microsecond and st
 
 test('Symbol of Ignition includes its endpoint while Dragonhunter tether stops at its deadline', () => {
   for (const at of [0.000999, 0.001, 1.000999, 1.001, 1.001001]) {
-    const result = runGuardian([{ type: 'wait', durationMs: 1100 }], { specialization: 'Dragonhunter' }, (runtime) => {
-      runtime.profession.core.symbolIgnitionStartsAt = 0.001;
-      runtime.profession.core.symbolIgnitionUntil = 1.001;
-      runtime.emit({
-        type: 'damage',
-        source: 'guardian',
-        sourceId: 'fixture-hit',
-        actorType: 'player',
-        coefficient: 1,
-        weaponStrengthProfileId: 'weapon.scepter',
-        at
-      });
-      const state = runtime.profession.specialization.state;
-      state.tetherActivationId = 'fixture-tether';
-      state.tetherUntil = 1.001;
-      runtime.schedule('guardian.dragonhunter.tether-burn', at, {
-        activationId: state.tetherActivationId,
-        deadline: state.tetherUntil,
-        event: { type: 'damage', source: 'guardian', sourceId: 'tether', at }
-      });
-    });
+    const result = runGuardian(
+      [{ type: 'wait', durationMs: 1100 }],
+      { specialization: 'Dragonhunter' },
+      {
+        initialize: (runtime) => {
+          runtime.profession.core.symbolIgnitionStartsAt = 0.001;
+          runtime.profession.core.symbolIgnitionUntil = 1.001;
+          runtime.emit({
+            type: 'damage',
+            source: 'guardian',
+            sourceId: 'fixture-hit',
+            actorType: 'player',
+            coefficient: 1,
+            weaponStrengthProfileId: 'weapon.scepter',
+            at
+          });
+          const state = runtime.profession.specialization.state;
+          state.tetherActivationId = 'fixture-tether';
+          state.tetherUntil = 1.001;
+          runtime.schedule('guardian.dragonhunter.tether-burn', at, {
+            activationId: state.tetherActivationId,
+            deadline: state.tetherUntil,
+            event: { type: 'damage', source: 'guardian', sourceId: 'tether', at }
+          });
+        }
+      }
+    );
     const ignition = result.resolvedEvents.some(
       (event) => event.type === 'condition' && event.skillName === 'Symbol of Ignition'
     );
@@ -379,21 +387,23 @@ test('tracked Mesmer hits expire at their exact age limit', () => {
 });
 
 test('Time Bomb cannot rearm early and its marker shares the exact detonation deadline', () => {
-  const result = runMesmer({
-    config: { specialization: 'Chronomancer', selectedTraitIds: [MT.TIME_BOMB] },
-    rotation: [],
-    initialize(runtime) {
-      const skill = runtime.helpers.skillsById.get(M.TIME_SINK);
-      completeChronomancerTimeBomb(runtime, {
-        id: 'bomb',
-        skill,
-        command: { type: 'cast', skillId: skill.id },
-        start: 0,
-        fullEnd: 0,
-        effectiveEnd: 0
-      });
+  const result = runMesmer(
+    [],
+    { specialization: 'Chronomancer', selectedTraitIds: [MT.TIME_BOMB] },
+    {
+      initialize(runtime) {
+        const skill = runtime.helpers.skillsById.get(M.TIME_SINK);
+        completeChronomancerTimeBomb(runtime, {
+          id: 'bomb',
+          skill,
+          command: { type: 'cast', skillId: skill.id },
+          start: 0,
+          fullEnd: 0,
+          effectiveEnd: 0
+        });
+      }
     }
-  });
+  );
   const context = observedRuntime(result);
   const skill = context.helpers.skillsById.get(M.TIME_SINK);
   const castAt = (at) => ({

@@ -13,26 +13,28 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 
 // Queuing a hostile packet cannot fund a sphere; only the accepted impact earns energy.
 test('Catalyst energy ignores missed packets and arrives at the accepted impact', () => {
-  const result = runElementalist({
-    config: { specialization: 'Catalyst', initialCatalystEnergy: 0 },
-    rotation: [{ type: 'wait', durationMs: 2000 }],
-    initialize(runtime) {
-      for (const [at, offTarget] of [
-        [0.5, true],
-        [1, false]
-      ])
-        emitElementalistDamage(runtime, {
-          at,
-          offTarget,
-          coefficient: 1,
-          actorType: 'player',
-          skillId: 42,
-          skillName: 'Fixture',
-          skillWeapon: 'Unequipped'
-        });
-    },
-    timeline: [{ at: 0.75, run: (runtime) => assert.equal(runtime.profession.specialization.state.energy, 0) }]
-  });
+  const result = runElementalist(
+    [{ type: 'wait', durationMs: 2000 }],
+    { specialization: 'Catalyst', initialCatalystEnergy: 0 },
+    {
+      initialize(runtime) {
+        for (const [at, offTarget] of [
+          [0.5, true],
+          [1, false]
+        ])
+          emitElementalistDamage(runtime, {
+            at,
+            offTarget,
+            coefficient: 1,
+            actorType: 'player',
+            skillId: 42,
+            skillName: 'Fixture',
+            skillWeapon: 'Unequipped'
+          });
+      },
+      timeline: [{ at: 0.75, run: (runtime) => assert.equal(runtime.profession.specialization.state.energy, 0) }]
+    }
+  );
   assert.equal(observedRuntime(result).profession.specialization.state.energy, 1);
   assert.equal(result.events.find((event) => event.kind === 'catalyst-energy').at, 1);
 });
@@ -58,28 +60,30 @@ test('Grand Finale cancels pending Weaver dual-orb contacts', () => {
 
 // Eligibility is captured before orb consumption, while later orb changes cannot add projectiles to the cast.
 test('Grand Finale snapshots active orbs and keeps separate Burning applications', () => {
-  const result = runElementalist({
-    config: {
+  const result = runElementalist(
+    ['Grand Finale', { type: 'wait', durationMs: 2000 }],
+    {
       specialization: 'Core',
       primaryWeapon: 'Hammer',
       startAttunement: 'Fire',
       selectedTraitIds: []
     },
-    rotation: ['Grand Finale', { type: 'wait', durationMs: 2000 }],
-    initialize(runtime) {
-      Object.assign(runtime.profession.core.hammerOrbs, { Fire: 10, Water: -1, Air: null, Earth: 10 });
-    },
-    timeline: [
-      {
-        at: 1,
-        run(runtime) {
-          assert.equal(runtime.profession.core.hammerOrbs.Fire, null);
-          assert.equal(runtime.profession.core.hammerOrbs.Earth, null);
-          runtime.profession.core.hammerOrbs.Water = 10;
+    {
+      initialize(runtime) {
+        Object.assign(runtime.profession.core.hammerOrbs, { Fire: 10, Water: -1, Air: null, Earth: 10 });
+      },
+      timeline: [
+        {
+          at: 1,
+          run(runtime) {
+            assert.equal(runtime.profession.core.hammerOrbs.Fire, null);
+            assert.equal(runtime.profession.core.hammerOrbs.Earth, null);
+            runtime.profession.core.hammerOrbs.Water = 10;
+          }
         }
-      }
-    ]
-  });
+      ]
+    }
+  );
   assert.deepEqual(result.warnings, []);
   const packets = result.events.filter((event) => event.skillId === ID.GRAND_FINALE);
   assert.deepEqual(
@@ -102,19 +106,19 @@ test('Grand Finale snapshots active orbs and keeps separate Burning applications
 
 // Cancelling the spender must retain its orbs and their pending contacts without firing any finale effects.
 test('cancelled Grand Finale preserves the active orb and its attacks', () => {
-  const result = runElementalist({
-    config: {
+  const result = runElementalist(
+    [
+      'Flame Wheel',
+      { type: 'cast', skillId: ID.GRAND_FINALE, interruptAfterMs: 0 },
+      { type: 'wait', durationMs: 2000 }
+    ],
+    {
       specialization: 'Core',
       primaryWeapon: 'Hammer',
       startAttunement: 'Fire',
       selectedTraitIds: []
-    },
-    rotation: [
-      'Flame Wheel',
-      { type: 'cast', skillId: ID.GRAND_FINALE, interruptAfterMs: 0 },
-      { type: 'wait', durationMs: 2000 }
-    ]
-  });
+    }
+  );
   assert.deepEqual(result.warnings, []);
   assert.ok(observedRuntime(result).profession.core.hammerOrbs.Fire > 0);
   assert.ok(result.events.some((event) => event.skillId === ID.FLAME_WHEEL && event.type === 'damage'));
@@ -126,60 +130,64 @@ test('cancelled Grand Finale preserves the active orb and its attacks', () => {
 
 // A cancelled familiar cannot strand completed weapon grants behind its abandoned charge reset.
 test('interrupting a familiar releases deferred weapon charges once', () => {
-  const result = runElementalist({
-    config: { specialization: 'Evoker', initialEvokerCharges: 0 },
-    rotation: [],
-    initialize(runtime) {
-      const state = runtime.profession.specialization.state;
-      state.activeFamiliarCast = { reservationId: 'familiar', endsAt: 1, resetsCharges: true };
-      state.pendingWeaponChargeGains = [{ activationId: 'weapon', source: 'Weapon', sourceId: 42, gain: 2 }];
-      const cast = {
-        id: 'familiar',
-        skill: elementalistCatalog.skillsByName.get('Ignite'),
-        start: 0,
-        fullEnd: 1,
-        effectiveEnd: 0,
-        cancelled: true,
-        command: {}
-      };
-      evokerHooks.onCastCancel(runtime, cast);
-      evokerHooks.onCastCancel(runtime, cast);
-      assert.equal(state.activeFamiliarCast, null);
-      assert.deepEqual(state.pendingWeaponChargeGains, []);
+  const result = runElementalist(
+    [],
+    { specialization: 'Evoker', initialEvokerCharges: 0 },
+    {
+      initialize(runtime) {
+        const state = runtime.profession.specialization.state;
+        state.activeFamiliarCast = { reservationId: 'familiar', endsAt: 1, resetsCharges: true };
+        state.pendingWeaponChargeGains = [{ activationId: 'weapon', source: 'Weapon', sourceId: 42, gain: 2 }];
+        const cast = {
+          id: 'familiar',
+          skill: elementalistCatalog.skillsByName.get('Ignite'),
+          start: 0,
+          fullEnd: 1,
+          effectiveEnd: 0,
+          cancelled: true,
+          command: {}
+        };
+        evokerHooks.onCastCancel(runtime, cast);
+        evokerHooks.onCastCancel(runtime, cast);
+        assert.equal(state.activeFamiliarCast, null);
+        assert.deepEqual(state.pendingWeaponChargeGains, []);
+      }
     }
-  });
+  );
   assert.equal(observedRuntime(result).profession.specialization.state.charges, 2);
 });
 
 test('deferred weapon charges report the actual flush time once', () => {
   // A grant queued before the familiar reset must retain attribution and land only after that reset.
-  const result = runElementalist({
-    config: { specialization: 'Evoker', initialEvokerCharges: 0, evokerElement: 'Fire', selectedTraitIds: [] },
-    rotation: [{ type: 'wait', durationMs: 3000 }],
-    initialize(runtime) {
-      const state = runtime.profession.specialization.state;
-      state.activeFamiliarCast = { reservationId: 'familiar', endsAt: 2, resetsCharges: true };
-      grantWeaponSkillCharges(
-        runtime,
-        { id: 'weapon', effectiveEnd: 0 },
-        elementalistCatalog.skillsById.get(ID.BLAZING_BARRAGE),
-        state
-      );
-      assert.equal(state.charges, 0);
-    },
-    timeline: [
-      {
-        at: 2,
-        run(runtime) {
-          const state = runtime.profession.specialization.state;
-          state.charges = 0;
-          flushPendingWeaponChargeGains(runtime, state);
-          flushPendingWeaponChargeGains(runtime, state);
-          assert.deepEqual(state.pendingWeaponChargeGains, []);
+  const result = runElementalist(
+    [{ type: 'wait', durationMs: 3000 }],
+    { specialization: 'Evoker', initialEvokerCharges: 0, evokerElement: 'Fire', selectedTraitIds: [] },
+    {
+      initialize(runtime) {
+        const state = runtime.profession.specialization.state;
+        state.activeFamiliarCast = { reservationId: 'familiar', endsAt: 2, resetsCharges: true };
+        grantWeaponSkillCharges(
+          runtime,
+          { id: 'weapon', effectiveEnd: 0 },
+          elementalistCatalog.skillsById.get(ID.BLAZING_BARRAGE),
+          state
+        );
+        assert.equal(state.charges, 0);
+      },
+      timeline: [
+        {
+          at: 2,
+          run(runtime) {
+            const state = runtime.profession.specialization.state;
+            state.charges = 0;
+            flushPendingWeaponChargeGains(runtime, state);
+            flushPendingWeaponChargeGains(runtime, state);
+            assert.deepEqual(state.pendingWeaponChargeGains, []);
+          }
         }
-      }
-    ]
-  });
+      ]
+    }
+  );
   assert.deepEqual(result.warnings, []);
   const grants = result.events.filter((event) => event.type === 'resource' && event.activationId === 'weapon');
   assert.equal(grants.length, 1);
@@ -199,8 +207,8 @@ test('Elementalist score output agrees with detailed execution', () => {
     },
     rotation: ['Pyro Vortex', { type: 'wait', durationMs: 3000 }]
   };
-  const detailed = runElementalist(options),
-    score = runElementalist({ ...options, output: 'score' });
+  const detailed = runElementalist(options.rotation, options.config),
+    score = runElementalist(options.rotation, options.config, { output: 'score' });
   assert.deepEqual(detailed.warnings, []);
   assert.ok(detailed.totalDamage > 0);
   assert.equal(score.totalDamage, detailed.totalDamage);

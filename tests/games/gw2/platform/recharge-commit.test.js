@@ -20,9 +20,7 @@ test('Elementalist queries preserve Core and Evoker benefits; an eligible cast c
   };
   const native = elementalistProfession.runtimeFor(config),
     skill = native.catalog.skillsByName.get('Raging Ricochet');
-  const result = runElementalist({
-    config,
-    rotation: [skill.id],
+  const result = runElementalist([skill.id], config, {
     initialize: (r) => {
       Object.assign(r.profession.core, { spearNextRechargeReduction: true, dazingDischargeUntil: 10 });
       r.profession.specialization.state.elementalBalanceUntil = 10;
@@ -54,21 +52,25 @@ test('Elementalist queries preserve Core and Evoker benefits; an eligible cast c
 
 test('spear recharge empowerment survives an autoattack and belongs to the next non-autoattack cast', () => {
   const skill = elementalistProfession.catalog.skillsByName.get('Blazing Barrage');
-  const auto = runElementalist({
-    config: { primaryWeapon: 'Spear' },
-    rotation: ['Flame Spear'],
-    initialize: (r) => {
-      r.profession.core.spearNextRechargeReduction = true;
+  const auto = runElementalist(
+    ['Flame Spear'],
+    { primaryWeapon: 'Spear' },
+    {
+      initialize: (r) => {
+        r.profession.core.spearNextRechargeReduction = true;
+      }
     }
-  });
+  );
   assert.equal(observedRuntime(auto).profession.core.spearNextRechargeReduction, true);
-  const result = runElementalist({
-    config: { primaryWeapon: 'Spear' },
-    rotation: ['Flame Spear', skill.id],
-    initialize: (r) => {
-      r.profession.core.spearNextRechargeReduction = true;
+  const result = runElementalist(
+    ['Flame Spear', skill.id],
+    { primaryWeapon: 'Spear' },
+    {
+      initialize: (r) => {
+        r.profession.core.spearNextRechargeReduction = true;
+      }
     }
-  });
+  );
   const action = result.events.find((e) => e.type === 'action' && e.skillId === skill.id);
   assert.equal(observedRuntime(result).profession.core.spearNextRechargeReduction, false);
   assert.ok(
@@ -79,18 +81,20 @@ test('spear recharge empowerment survives an autoattack and belongs to the next 
 
 test('expired pistol and Elemental Balance windows cannot discount a new cast', () => {
   const skill = elementalistProfession.catalog.skillsByName.get('Raging Ricochet');
-  const result = runElementalist({
-    config: {
+  const result = runElementalist(
+    [{ type: 'wait', durationMs: 1000 }, skill.id],
+    {
       specialization: 'Evoker',
       primaryWeapon: 'Pistol',
       selectedTraitIds: [ELEMENTALIST_TRAIT_IDS.ELEMENTAL_BALANCE]
     },
-    rotation: [{ type: 'wait', durationMs: 1000 }, skill.id],
-    initialize: (r) => {
-      r.profession.core.dazingDischargeUntil = 1;
-      r.profession.specialization.state.elementalBalanceUntil = 1;
+    {
+      initialize: (r) => {
+        r.profession.core.dazingDischargeUntil = 1;
+        r.profession.specialization.state.elementalBalanceUntil = 1;
+      }
     }
-  });
+  );
   const action = result.events.find((e) => e.type === 'action');
   assert.ok(Math.abs(observedRuntime(result).cooldowns.get(skill.id) - action.endsAt - skill.cooldown / 1.25) < 1e-9);
   assert.deepEqual(result.warnings, []);
@@ -157,12 +161,12 @@ test('rejected and cancelled Elementalist casts preserve empowerments for the ne
     r.profession.specialization.state.elementalBalanceUntil = 10;
   };
 
-  const cancelled = runElementalist({ config, rotation, initialize });
+  const cancelled = runElementalist(rotation, config, { initialize });
   assert.equal(cancelled.warnings.length, 1);
   assert.match(cancelled.warnings[0], /requires all four elemental bullets/);
   assert.equal(observedRuntime(cancelled).profession.core.dazingDischargeUntil, 10);
   assert.equal(observedRuntime(cancelled).profession.specialization.state.elementalBalanceUntil, 10);
-  const committed = runElementalist({ config, rotation: [...rotation, 'Searing Salvo'], initialize });
+  const committed = runElementalist([...rotation, 'Searing Salvo'], config, { initialize });
   assert.equal(observedRuntime(committed).profession.core.dazingDischargeUntil, 0);
   assert.equal(observedRuntime(committed).profession.specialization.state.elementalBalanceUntil, 0);
   assert.equal(committed.warnings.length, 1);

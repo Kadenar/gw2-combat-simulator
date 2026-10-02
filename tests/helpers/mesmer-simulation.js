@@ -1,5 +1,5 @@
 import { prepareSimulationConfig } from '#tests/helpers/simulation-config.js';
-import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 
 export function createDefaultConfig() {
@@ -74,35 +74,8 @@ export function createDefaultConfig() {
 export function simulateMesmer(rotation, userConfig = {}, observationPolicy = undefined) {
   const config = prepareSimulationConfig(createDefaultConfig(), userConfig, { duration: 600 });
 
-  return observeGw2Runtime({
-    profession: mesmerProfession.runtimeFor(config),
-    rotation,
-    config,
-    observation: observationPolicy
-  });
+  return runMesmer(rotation, config, { observation: observationPolicy });
 }
 
-/** Patched catalog scenarios exercise the same native owner as ordinary family scenarios. */
-export function runMesmer({
-  profession = mesmerProfession,
-  config,
-  rotation,
-  observationPolicy,
-  output,
-  initialize = () => {}
-}) {
-  const native = profession.runtimeFor(config);
-  return observeGw2Runtime({
-    profession: {
-      ...native,
-      initialize(runtime) {
-        native.initialize(runtime);
-        initialize(runtime);
-      }
-    },
-    config,
-    rotation,
-    observation: observationPolicy,
-    output
-  });
-}
+/** Prepared application configs run through the same native initialization and observation setup. */
+export const runMesmer = createProfessionSimulator(mesmerProfession);

@@ -35,19 +35,17 @@ test('Elementalist endurance declarations retain patched amounts and committed-c
           };
         }
       };
-      const result = runElementalist({
-        profession,
-        config: {
+      const result = runElementalist(
+        [{ type: 'cast', skillId, ...(mode === 'full' ? {} : { interruptAfterMs: mode === 'committed' ? 400 : 100 }) }],
+        {
           specialization,
           primaryWeapon: 'Dagger',
           selectedTraitIds: [],
           initialEndurance: initial,
           selectedSkills: [skillId === ID.AQUATIC_STANCE ? 'Aquatic Stance' : "Hare's Agility"]
         },
-        rotation: [
-          { type: 'cast', skillId, ...(mode === 'full' ? {} : { interruptAfterMs: mode === 'committed' ? 400 : 100 }) }
-        ]
-      });
+        { profession }
+      );
       assert.deepEqual(result.warnings, []);
       const runtime = observedRuntime(result);
       assert.equal(
@@ -70,21 +68,20 @@ function fox({ might = 0, command = {}, profile = {}, skill = {}, timeline = [] 
       };
     }
   };
-  return runElementalist({
-    profession,
-    config: {
+  return runElementalist(
+    [
+      { type: 'cast', skillId: ID.FOXS_FURY, ...command },
+      { type: 'wait', durationMs: 2000 }
+    ],
+    {
       specialization: 'Evoker',
       evokerElement: 'Fire',
       selectedTraitIds: [],
       selectedSkills: ["Fox's Fury"],
       boons: { might }
     },
-    rotation: [
-      { type: 'cast', skillId: ID.FOXS_FURY, ...command },
-      { type: 'wait', durationMs: 2000 }
-    ],
-    timeline
-  });
+    { profession, timeline }
+  );
 }
 
 const foxPackets = (result) =>

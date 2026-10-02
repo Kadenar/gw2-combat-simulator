@@ -49,8 +49,7 @@ test('a cast-end stance impact grants its buff and detonates its aura at the pac
   const result = runGuardian(
     ['Effulgent Stance', 'Piercing Stance', { type: 'wait', durationMs: 1000 }],
     { specialization: 'Luminary', patchId: 'guardian-impact', selectedTraitIds: [TRAIT.SOVEREIGN_OF_LIGHT] },
-    () => {},
-    profession
+    { initialize: () => {}, profession: profession }
   );
   assert.deepEqual(result.warnings, []);
   const strike = result.events.find((event) => event.type === 'damage' && event.skillId === ID.PIERCING_STANCE);

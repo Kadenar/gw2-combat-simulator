@@ -48,40 +48,42 @@ test('Ranger stealth follows its granting strike and ignores off-target impacts'
 // Pending hits wake availability without predicting a reset; only the accepted critical clears recharge.
 test('Fresh Air candidates wait for the actual critical fact', () => {
   const air = ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air;
-  const result = runElementalist({
-    config: {
+  const result = runElementalist(
+    ['__combat_start', { type: 'wait', durationMs: 4000 }],
+    {
       specialization: 'Core',
       startAttunement: 'Water',
       selectedTraitIds: [ELEMENTALIST_TRAIT_IDS.FRESH_AIR]
     },
-    rotation: ['__combat_start', { type: 'wait', durationMs: 4000 }],
-    initialize: (r) => {
-      r.cooldownController.setReadyAt(air, 10);
-      for (const [at, fields] of [
-        [3, { canCrit: false }],
-        [2, { canCrit: false }],
-        [2, { forceCrit: true }]
-      ])
-        emitElementalistDamage(r, {
-          at,
-          skillId: 42,
-          skillName: 'Fixture',
-          actorType: 'player',
-          coefficient: 1,
-          skillWeapon: 'Unequipped',
-          ...fields
-        });
-    },
-    timeline: [
-      {
-        at: 1,
-        run: (r) => {
-          assert.equal(projectedFreshAirReadyAt(r, 2), 2);
-          assert.equal(r.cooldowns.get(air), 10);
+    {
+      initialize: (r) => {
+        r.cooldownController.setReadyAt(air, 10);
+        for (const [at, fields] of [
+          [3, { canCrit: false }],
+          [2, { canCrit: false }],
+          [2, { forceCrit: true }]
+        ])
+          emitElementalistDamage(r, {
+            at,
+            skillId: 42,
+            skillName: 'Fixture',
+            actorType: 'player',
+            coefficient: 1,
+            skillWeapon: 'Unequipped',
+            ...fields
+          });
+      },
+      timeline: [
+        {
+          at: 1,
+          run: (r) => {
+            assert.equal(projectedFreshAirReadyAt(r, 2), 2);
+            assert.equal(r.cooldowns.get(air), 10);
+          }
         }
-      }
-    ]
-  });
+      ]
+    }
+  );
   assert.equal(observedRuntime(result).cooldowns.has(air), false);
   const resets = result.events.filter((e) => e.type === 'elementalist.fresh-air');
   assert.equal(resets.length, 1);

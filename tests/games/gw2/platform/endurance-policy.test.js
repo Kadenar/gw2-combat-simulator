@@ -44,16 +44,16 @@ test('Elementalist Energy makes the next dodge affordable on attunement swap', a
       skillId: profession.catalog.skillsByName.get(name).id
     }))
   ];
-  const result = runElementalist({
-    profession,
+  const result = runElementalist(
     rotation,
-    config: {
+    {
       specialization: 'Core',
       primaryWeapon: 'Scepter',
       secondaryWeapon: 'Dagger',
       sigilSets: [{ names: ['Energy'] }, { names: [] }]
-    }
-  });
+    },
+    { profession }
+  );
   const swap = result.events.find((event) => event.type === 'sigil_swap');
   const dodge = result.steps.filter((step) => step.skill === 'Dodge').at(-1);
   assert.deepEqual(result.warnings, []);

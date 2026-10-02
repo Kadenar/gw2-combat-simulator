@@ -172,9 +172,7 @@ test('Frigid Flurry can finish combos with either initial ice-bullet state', () 
       pistolBullets: { Fire: false, Water: waterBullet, Air: false, Earth: false },
       rotation: ['Deploy Jade Sphere (Water)', 'Frigid Flurry', 1000]
     });
-    const result = runElementalist({
-      rotation: commands,
-      config: elementalistAppAdapter.simulationConfig(app),
+    const result = runElementalist(commands, elementalistAppAdapter.simulationConfig(app), {
       initialize(runtime) {
         // Exercise the aura payoff on successful combos without depending on one seed's projectile rolls.
         const random = runtime.random;

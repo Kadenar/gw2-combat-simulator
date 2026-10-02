@@ -16,21 +16,23 @@ const vigor = (at, duration, extra = {}) => ({
   ...extra
 });
 function recover(events, end, config = {}, timeline = []) {
-  return runElementalist({
-    config: { specialization: 'Core', initialEndurance: 0, ...config },
-    rotation: [{ type: 'wait', durationMs: end * 1000 }],
-    initialize: (r) => {
-      for (const event of events) {
-        if (event.cancelled) {
-          const packet = { ...event };
-          delete packet.cancelled;
-          r.schedule('test.emit', event.at, packet, { id: 'cancelled', generation: 0 });
-          r.cancelOwner({ id: 'cancelled', generation: 0 });
-        } else r.emit(event);
-      }
-    },
-    timeline
-  });
+  return runElementalist(
+    [{ type: 'wait', durationMs: end * 1000 }],
+    { specialization: 'Core', initialEndurance: 0, ...config },
+    {
+      initialize: (r) => {
+        for (const event of events) {
+          if (event.cancelled) {
+            const packet = { ...event };
+            delete packet.cancelled;
+            r.schedule('test.emit', event.at, packet, { id: 'cancelled', generation: 0 });
+            r.cancelOwner({ id: 'cancelled', generation: 0 });
+          } else r.emit(event);
+        }
+      },
+      timeline
+    }
+  );
 }
 
 test('Elementalist ignores cancelled and other-only Vigor without depending on wait partitions', () => {

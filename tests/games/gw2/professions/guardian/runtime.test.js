@@ -213,13 +213,15 @@ test('Luminary weapon rewards reduce actual virtue work and Master-at-Arms reset
 });
 
 test('Effulgent counts accepted owned hits, excludes its endpoint, and ignores a replaced detonation', () => {
-  const result = run([ID.EFFULGENT_STANCE, wait(4000)], luminary, (runtime) => {
-    strike(runtime, 0.1, { offTarget: true });
-    strike(runtime, 0.2, { actorType: 'summon' });
-    strike(runtime, 0.3, { actorType: 'effect', source: 'Sigil' });
-    strike(runtime, 0.4);
-    strike(runtime, 0.5, { actorType: 'effect' });
-    strike(runtime, 4);
+  const result = run([ID.EFFULGENT_STANCE, wait(4000)], luminary, {
+    initialize: (runtime) => {
+      strike(runtime, 0.1, { offTarget: true });
+      strike(runtime, 0.2, { actorType: 'summon' });
+      strike(runtime, 0.3, { actorType: 'effect', source: 'Sigil' });
+      strike(runtime, 0.4);
+      strike(runtime, 0.5, { actorType: 'effect' });
+      strike(runtime, 4);
+    }
   });
   const detonation = result.resolvedEvents.find((event) => event.skillId === ID.EFFULGENT_STANCE_DAMAGE);
   assert.equal(detonation.coefficient, 1.2);
@@ -270,10 +272,12 @@ test('Luminary selected component removal preserves independent effects and neve
   const result = run(
     [ID.ENTER_RADIANT_FORGE, ID.EFFULGENT_STANCE, wait(4000)],
     { ...luminary, patchId: 'luminary-components' },
-    (runtime) => {
-      for (let i = 1; i <= 10; i++) strike(runtime, i / 10);
-    },
-    patched
+    {
+      initialize: (runtime) => {
+        for (let i = 1; i <= 10; i++) strike(runtime, i / 10);
+      },
+      profession: patched
+    }
   );
   assert.equal(lum(result).radiantForge, false);
   assert.equal(lum(result).lightAuraUntil, 0);
@@ -295,7 +299,7 @@ test('Luminary imported durations and live state agree in score and detailed mod
     wait(4000)
   ];
   const detailed = run(rotation, luminary);
-  const score = run(rotation, luminary, () => {}, guardianProfession, 'score');
+  const score = run(rotation, luminary, { initialize: () => {}, profession: guardianProfession, output: 'score' });
   assert.deepEqual(detailed.warnings, []);
   assert.deepEqual(lum(score), lum(detailed));
   assert.equal(score.dps, detailed.dps);
@@ -309,33 +313,37 @@ test('Luminary imported durations and live state agree in score and detailed mod
 });
 
 test('Willbender counts accepted player and Air impacts through the inclusive virtue boundary', () => {
-  const result = run([wait(1100)], willbender, (runtime) => {
-    const state = runtime.profession.specialization.state;
-    for (const virtue of ['justice', 'resolve', 'courage']) {
-      state[`${virtue}Until`] = 1;
-      state.virtueHitCounts[virtue] = 4;
-    }
+  const result = run([wait(1100)], willbender, {
+    initialize: (runtime) => {
+      const state = runtime.profession.specialization.state;
+      for (const virtue of ['justice', 'resolve', 'courage']) {
+        state[`${virtue}Until`] = 1;
+        state.virtueHitCounts[virtue] = 4;
+      }
 
-    strike(runtime, 0.2, { offTarget: true });
-    strike(runtime, 0.3, { actorType: 'summon' });
-    strike(runtime, 0.4, { actorType: 'effect', sourceId: 'sigil.fire' });
-    strike(runtime, 1, { actorType: 'effect', sourceId: 'sigil.air' });
-    strike(runtime, 1.000001);
+      strike(runtime, 0.2, { offTarget: true });
+      strike(runtime, 0.3, { actorType: 'summon' });
+      strike(runtime, 0.4, { actorType: 'effect', sourceId: 'sigil.fire' });
+      strike(runtime, 1, { actorType: 'effect', sourceId: 'sigil.air' });
+      strike(runtime, 1.000001);
+    }
   });
   assert.equal(wb(result).triggeredVirtueEffects, 3);
   assert.deepEqual(wb(result).virtueHitCounts, { justice: 0, resolve: 0, courage: 0 });
   assert.equal(core(result).justiceActiveBurns, 1);
   assert.equal(wb(result).lethalTempoStacks, 3);
-  const unarmed = run([wait(1)], willbender, (runtime) => strike(runtime, 0));
+  const unarmed = run([wait(1)], willbender, { initialize: (runtime) => strike(runtime, 0) });
   assert.equal(wb(unarmed).triggeredVirtueEffects, 0);
   assert.deepEqual(wb(unarmed).virtueHitCounts, { justice: 0, resolve: 0, courage: 0 });
 });
 
 test('Willbender reopening preserves partial progress and records one live activation window', () => {
-  const result = run([wait(1000), ID.RUSHING_JUSTICE], willbender, (runtime) => {
-    const state = runtime.profession.specialization.state;
-    state.justiceUntil = 0.1;
-    state.virtueHitCounts.justice = 4;
+  const result = run([wait(1000), ID.RUSHING_JUSTICE], willbender, {
+    initialize: (runtime) => {
+      const state = runtime.profession.specialization.state;
+      state.justiceUntil = 0.1;
+      state.virtueHitCounts.justice = 4;
+    }
   });
   assert.equal(wb(result).triggeredVirtueEffects, 1);
   assert.equal(wb(result).virtueHitCounts.justice, 0);
@@ -404,12 +412,14 @@ test('Restorative Virtues carries earned base work through an in-flight weapon c
     run(
       [ID.CHAINS_OF_LIGHT],
       { ...willbender, selectedTraitIds: traited ? [TRAIT.RESTORATIVE_VIRTUES] : [] },
-      (runtime) => {
-        const state = runtime.profession.specialization.state;
-        state.justiceUntil = 10;
-        state.virtueHitCounts.justice = 4;
-        strike(runtime, 0.1);
-        boon(runtime, 'alacrity', 0.2, 5);
+      {
+        initialize: (runtime) => {
+          const state = runtime.profession.specialization.state;
+          state.justiceUntil = 10;
+          state.virtueHitCounts.justice = 4;
+          strike(runtime, 0.1);
+          boon(runtime, 'alacrity', 0.2, 5);
+        }
       }
     );
   const plain = runCast(false),
@@ -421,14 +431,20 @@ test('Restorative Virtues carries earned base work through an in-flight weapon c
 });
 
 test('Restorative Virtues reduces only the currently equipped weapon cooldowns', () => {
-  const result = run([wait(1000)], { ...willbender, selectedTraitIds: [TRAIT.RESTORATIVE_VIRTUES] }, (runtime) => {
-    const state = runtime.profession.specialization.state;
-    state.justiceUntil = 2;
-    state.virtueHitCounts.justice = 4;
-    for (const id of [ID.CHAINS_OF_LIGHT, ID.SYMBOL_OF_BLADES])
-      runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(id), 0, 2);
-    strike(runtime, 1);
-  });
+  const result = run(
+    [wait(1000)],
+    { ...willbender, selectedTraitIds: [TRAIT.RESTORATIVE_VIRTUES] },
+    {
+      initialize: (runtime) => {
+        const state = runtime.profession.specialization.state;
+        state.justiceUntil = 2;
+        state.virtueHitCounts.justice = 4;
+        for (const id of [ID.CHAINS_OF_LIGHT, ID.SYMBOL_OF_BLADES])
+          runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(id), 0, 2);
+        strike(runtime, 1);
+      }
+    }
+  );
   assert.equal(observedRuntime(result).cooldowns.get(ID.CHAINS_OF_LIGHT), 1.376);
   assert.equal(observedRuntime(result).cooldowns.get(ID.SYMBOL_OF_BLADES), 1.6);
 });
@@ -462,8 +478,7 @@ test('removed Willbender window components preserve independent fields and activ
   const result = run(
     [ID.RUSHING_JUSTICE, wait(3000)],
     { ...willbender, patchId: 'willbender-window', selectedTraitIds: [TRAIT.HOLY_RECKONING] },
-    () => {},
-    patched
+    { initialize: () => {}, profession: patched }
   );
   assert.equal(wb(result).justiceUntil, 0);
   assert.equal(wb(result).triggeredVirtueEffects, 0);
@@ -485,7 +500,7 @@ test('Willbender Phoenix Protocol shares only with Battle Presence and score mod
     };
     const rotation = [ID.FLOWING_RESOLVE, wait(6000)];
     const detailed = run(rotation, config),
-      score = run(rotation, config, () => {}, guardianProfession, 'score');
+      score = run(rotation, config, { initialize: () => {}, profession: guardianProfession, output: 'score' });
     assert.equal(detailed.dps, score.dps);
     assert.deepEqual(wb(detailed), wb(score));
     const alacrity = detailed.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'alacrity');
@@ -540,8 +555,7 @@ test('Firebrand page exhaustion waits on the selected recovery policy and disabl
   const result = run(
     [ID.TOME_OF_JUSTICE, ID.SEARING_SPELL],
     { ...firebrand, initialTomePages: 0, patchId: 'no-pages' },
-    () => {},
-    patched
+    { initialize: () => {}, profession: patched }
   );
   assert.equal(result.steps[1].invalid, true);
   assert.equal(result.warnings.length, 1);
@@ -580,9 +594,9 @@ test('Firebrand explicit recharge resets invalidate pending mantra wakes and res
 });
 
 test('Firebrand mantra recharge wakes ignore transient Alacrity and preserve later charge spends', () => {
-  const result = run([ID.FLAME_RUSH, ID.FLAME_RUSH, ID.FLAME_SURGE, ID.FLAME_RUSH, wait(1100)], firebrand, (runtime) =>
-    boon(runtime, 'alacrity', 5, 4)
-  );
+  const result = run([ID.FLAME_RUSH, ID.FLAME_RUSH, ID.FLAME_SURGE, ID.FLAME_RUSH, wait(1100)], firebrand, {
+    initialize: (runtime) => boon(runtime, 'alacrity', 5, 4)
+  });
   assert.deepEqual(result.warnings, []);
   assert.equal(result.steps[3].start, 17600);
   assert.equal(observedRuntime(result).ammo.get(ID.FLAME_RUSH).charges, 2);
@@ -591,18 +605,20 @@ test('Firebrand mantra recharge wakes ignore transient Alacrity and preserve lat
 test('Firebrand Ashes grants at application, ignores misses, and preserves hit lineage at inclusive expiry', () => {
   const seen = [];
   const expiry = fb(run([ID.TOME_OF_JUSTICE, ID.ASHES_OF_THE_JUST], firebrand)).ashes.expiresAt;
-  const result = run([ID.TOME_OF_JUSTICE, ID.ASHES_OF_THE_JUST, wait(11000)], firebrand, (runtime) => {
-    strike(runtime, 0.2);
-    strike(runtime, 0.6, { offTarget: true });
-    strike(runtime, 0.7, { actorType: 'summon' });
-    strike(runtime, 1);
-    strike(runtime, 1.1);
-    strike(runtime, expiry);
-    const apply = runtime.applyCondition;
-    runtime.applyCondition = (event) => {
-      if (event.sourceId === 'guardian.ashes-of-the-just') seen.push([event.at, event.activationId]);
-      return apply(event);
-    };
+  const result = run([ID.TOME_OF_JUSTICE, ID.ASHES_OF_THE_JUST, wait(11000)], firebrand, {
+    initialize: (runtime) => {
+      strike(runtime, 0.2);
+      strike(runtime, 0.6, { offTarget: true });
+      strike(runtime, 0.7, { actorType: 'summon' });
+      strike(runtime, 1);
+      strike(runtime, 1.1);
+      strike(runtime, expiry);
+      const apply = runtime.applyCondition;
+      runtime.applyCondition = (event) => {
+        if (event.sourceId === 'guardian.ashes-of-the-just') seen.push([event.at, event.activationId]);
+        return apply(event);
+      };
+    }
   });
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(seen, [
@@ -623,15 +639,26 @@ test('Firebrand Ashes grants at application, ignores misses, and preserves hit l
 });
 
 test('Firebrand Quickfire refresh preserves charges past an older expiry and excludes ineligible recipients', () => {
-  const result = run([wait(11000)], { ...firebrand, selectedTraitIds: [TRAIT.QUICKFIRE] }, (runtime) => {
-    boon(runtime, 'quickness', 0, 1, { audience: { recipients: 'self' } });
-    boon(runtime, 'quickness', 8, 1, { audience: { recipients: 'self' } });
-    strike(runtime, 10.5);
-  });
+  const result = run(
+    [wait(11000)],
+    { ...firebrand, selectedTraitIds: [TRAIT.QUICKFIRE] },
+    {
+      initialize: (runtime) => {
+        boon(runtime, 'quickness', 0, 1, { audience: { recipients: 'self' } });
+        boon(runtime, 'quickness', 8, 1, { audience: { recipients: 'self' } });
+        strike(runtime, 10.5);
+      }
+    }
+  );
   assert.equal(fb(result).ashes.charges, 1);
   assert.equal(fb(result).ashes.expiresAt, 18);
-  const rejected = run([wait(1000)], { ...firebrand, selectedTraitIds: [TRAIT.QUICKFIRE] }, (runtime) =>
-    boon(runtime, 'quickness', 0, 1, { audience: { recipients: 'summons', affectsSelf: false } })
+  const rejected = run(
+    [wait(1000)],
+    { ...firebrand, selectedTraitIds: [TRAIT.QUICKFIRE] },
+    {
+      initialize: (runtime) =>
+        boon(runtime, 'quickness', 0, 1, { audience: { recipients: 'summons', affectsSelf: false } })
+    }
   );
   assert.equal(observedRuntime(rejected).procs.deadline('guardian.firebrand.quickfire'), 0);
   assert.equal(fb(rejected).ashes.charges, 0);
@@ -641,25 +668,27 @@ test('Firebrand axe and disable traits react to accepted player outcomes only', 
   const result = run(
     [wait(1000)],
     { ...firebrand, selectedTraitIds: [TRAIT.UNRELENTING_CRITICISM, TRAIT.STOIC_DEMEANOR] },
-    (runtime) => {
-      strike(runtime, 0.1, { skillId: ID.BLAZING_EDGE, offTarget: true });
-      strike(runtime, 0.2, { skillId: ID.BLAZING_EDGE, actorType: 'summon' });
-      strike(runtime, 0.3, { skillId: ID.BLAZING_EDGE });
-      for (const [at, actorType, offTarget] of [
-        [0.4, 'player', true],
-        [0.5, 'summon', false],
-        [0.6, 'player', false]
-      ])
-        runtime.emit({
-          type: 'control',
-          at,
-          actorType,
-          offTarget,
-          source: 'fixture',
-          sourceId: 'control',
-          controlKind: 'daze',
-          activationId: `control-${at}`
-        });
+    {
+      initialize: (runtime) => {
+        strike(runtime, 0.1, { skillId: ID.BLAZING_EDGE, offTarget: true });
+        strike(runtime, 0.2, { skillId: ID.BLAZING_EDGE, actorType: 'summon' });
+        strike(runtime, 0.3, { skillId: ID.BLAZING_EDGE });
+        for (const [at, actorType, offTarget] of [
+          [0.4, 'player', true],
+          [0.5, 'summon', false],
+          [0.6, 'player', false]
+        ])
+          runtime.emit({
+            type: 'control',
+            at,
+            actorType,
+            offTarget,
+            source: 'fixture',
+            sourceId: 'control',
+            controlKind: 'daze',
+            activationId: `control-${at}`
+          });
+      }
     }
   );
   const bleeds = result.resolvedEvents.filter((event) => event.type === 'condition' && event.condition === 'Bleeding');
@@ -704,7 +733,7 @@ test('Firebrand detailed and score modes share pages, mantra charges, and Ashes 
   ];
   const config = { ...firebrand, selectedTraitIds: [TRAIT.QUICKFIRE, TRAIT.WEIGHTY_TERMS] };
   const detailed = run(rotation, config),
-    score = run(rotation, config, () => {}, guardianProfession, 'score');
+    score = run(rotation, config, { initialize: () => {}, profession: guardianProfession, output: 'score' });
   assert.equal(score.dps, detailed.dps);
   assert.deepEqual(fb(score), fb(detailed));
   assert.deepEqual(score.warnings, []);
@@ -732,8 +761,7 @@ test('removed Firebrand components preserve independent page grants and Might wi
       initialTomePages: 1,
       selectedTraitIds: [TRAIT.QUICKFIRE, TRAIT.WEIGHTY_TERMS, TRAIT.STALWART_SPEED]
     },
-    () => {},
-    patched
+    { initialize: () => {}, profession: patched }
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(fb(result).tomePages.value, 2);
@@ -748,13 +776,19 @@ test('removed Firebrand components preserve independent page grants and Might wi
 });
 
 test('Core Justice counts accepted player hits and excludes missed, precombat, summon, and gear packets', () => {
-  const result = run([wait(1000), { type: 'combat-start' }, wait(1000)], {}, (runtime) => {
-    strike(runtime, 0.5);
-    strike(runtime, 1, { offTarget: true });
-    strike(runtime, 1, { actorType: 'summon', summonOwner: 'fixture' });
-    strike(runtime, 1, { source: 'Sigil', actorType: 'effect' });
-    for (const at of [1.1, 1.2, 1.3, 1.4, 1.5]) strike(runtime, at);
-  });
+  const result = run(
+    [wait(1000), { type: 'combat-start' }, wait(1000)],
+    {},
+    {
+      initialize: (runtime) => {
+        strike(runtime, 0.5);
+        strike(runtime, 1, { offTarget: true });
+        strike(runtime, 1, { actorType: 'summon', summonOwner: 'fixture' });
+        strike(runtime, 1, { source: 'Sigil', actorType: 'effect' });
+        for (const at of [1.1, 1.2, 1.3, 1.4, 1.5]) strike(runtime, at);
+      }
+    }
+  );
   assert.deepEqual(result.warnings, []);
   assert.equal(core(result).justicePassiveBurns, 1);
   assert.equal(core(result).justiceHitCount, 0);
@@ -765,9 +799,11 @@ test('Justice activation arms one surviving hit and disables the passive without
   const result = run(
     [ID.JUSTICE, wait(1000)],
     { selectedTraitIds: [TRAIT.INSPIRED_VIRTUE], allies: { count: 2 } },
-    (runtime) => {
-      strike(runtime, 0.1, { offTarget: true });
-      for (const at of [0.2, 0.3, 0.4, 0.5, 0.6, 0.7]) strike(runtime, at);
+    {
+      initialize: (runtime) => {
+        strike(runtime, 0.1, { offTarget: true });
+        for (const at of [0.2, 0.3, 0.4, 0.5, 0.6, 0.7]) strike(runtime, at);
+      }
     }
   );
   assert.deepEqual(result.warnings, []);
@@ -807,10 +843,16 @@ test('Renewed Focus restores real virtue recharge only after a completed cast', 
 });
 
 test('Justice armed during post-death planning cannot be consumed by a rejected later hit', () => {
-  const result = run([wait(1100), ID.JUSTICE, wait(900)], { target: { armor: 2597, health: 1 } }, (runtime) => {
-    strike(runtime, 1);
-    strike(runtime, 2);
-  });
+  const result = run(
+    [wait(1100), ID.JUSTICE, wait(900)],
+    { target: { armor: 2597, health: 1 } },
+    {
+      initialize: (runtime) => {
+        strike(runtime, 1);
+        strike(runtime, 2);
+      }
+    }
+  );
   assert.deepEqual(result.warnings, []);
   assert.equal(core(result).justiceActiveArmed, true);
   assert.equal(core(result).justiceActiveBurns, 0);
@@ -834,22 +876,24 @@ test('permanent Alacrity readies the Core passive on the same action tick as its
   const result = run(
     [ID.JUSTICE, wait(11000)],
     { patchId: 'short-justice' },
-    (runtime) => {
-      runtime.emit({
-        type: 'buff',
-        kind: 'alacrity',
-        at: 2,
-        duration: 4.08,
-        stacks: 1,
-        source: 'fixture',
-        sourceId: 'fixture',
-        actorType: 'player'
-      });
-      strike(runtime, 0.1);
-      strike(runtime, 9.59);
-      strike(runtime, 9.6);
-    },
-    patched
+    {
+      initialize: (runtime) => {
+        runtime.emit({
+          type: 'buff',
+          kind: 'alacrity',
+          at: 2,
+          duration: 4.08,
+          stacks: 1,
+          source: 'fixture',
+          sourceId: 'fixture',
+          actorType: 'player'
+        });
+        strike(runtime, 0.1);
+        strike(runtime, 9.59);
+        strike(runtime, 9.6);
+      },
+      profession: patched
+    }
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(core(result).justiceActiveBurns, 1);
@@ -869,10 +913,12 @@ test('removed Justice packets cannot arm an active charge or advance the passive
     const result = run(
       rotation,
       { patchId: 'no-justice' },
-      (runtime) => {
-        for (const at of [0.1, 0.2, 0.3, 0.4, 0.5]) strike(runtime, at);
-      },
-      patched
+      {
+        initialize: (runtime) => {
+          for (const at of [0.1, 0.2, 0.3, 0.4, 0.5]) strike(runtime, at);
+        },
+        profession: patched
+      }
     );
     assert.deepEqual(result.warnings, []);
     assert.equal(core(result).justiceActiveArmed, false);
@@ -916,8 +962,8 @@ test('native Guardian detailed and score modes share virtue state and outcomes',
   };
 
   const config = { selectedTraitIds: [TRAIT.PERMEATING_WRATH] };
-  const detailed = run([wait(2000)], config, initialize);
-  const score = run([wait(2000)], config, initialize, guardianProfession, 'score');
+  const detailed = run([wait(2000)], config, { initialize: initialize });
+  const score = run([wait(2000)], config, { initialize: initialize, profession: guardianProfession, output: 'score' });
   assert.equal(score.totalDamage, detailed.totalDamage);
   assert.equal(core(score).justicePassiveBurns, 1);
   assert.equal(core(score).justiceHitCount, core(detailed).justiceHitCount);
@@ -935,7 +981,11 @@ function illuminate(runtime, expiresAt, symbol = false) {
 }
 
 test('spear captures illumination before expiry and enhances existing impacts without creating extra hits', () => {
-  const result = run([ID.GLEAMING_DISC, wait(2000)], { primaryWeapon: 'Spear' }, (runtime) => illuminate(runtime, 0.1));
+  const result = run(
+    [ID.GLEAMING_DISC, wait(2000)],
+    { primaryWeapon: 'Spear' },
+    { initialize: (runtime) => illuminate(runtime, 0.1) }
+  );
   assert.deepEqual(result.warnings, []);
   const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === ID.GLEAMING_DISC);
   assert.deepEqual(
@@ -944,8 +994,10 @@ test('spear captures illumination before expiry and enhances existing impacts wi
   );
   assert.ok(hits.every((event) => event.activationId === result.steps[0].activationId));
   assert.ok(core(result).spearIlluminatedUntil > observedRuntime(result).time);
-  const expired = run([wait(100), ID.GLEAMING_DISC, wait(2000)], { primaryWeapon: 'Spear' }, (runtime) =>
-    illuminate(runtime, 0.1)
+  const expired = run(
+    [wait(100), ID.GLEAMING_DISC, wait(2000)],
+    { primaryWeapon: 'Spear' },
+    { initialize: (runtime) => illuminate(runtime, 0.1) }
   );
   assert.deepEqual(
     expired.resolvedEvents
@@ -956,7 +1008,11 @@ test('spear captures illumination before expiry and enhances existing impacts wi
 });
 
 test('spear expiry runs during waits and a refreshed window survives the old wake', () => {
-  const result = run([ID.HELIO_RUSH, wait(500)], { primaryWeapon: 'Spear' }, (runtime) => illuminate(runtime, 0.5));
+  const result = run(
+    [ID.HELIO_RUSH, wait(500)],
+    { primaryWeapon: 'Spear' },
+    { initialize: (runtime) => illuminate(runtime, 0.5) }
+  );
   assert.deepEqual(result.warnings, []);
   assert.ok(observedRuntime(result).time > 0.5);
   assert.equal(core(result).spearIlluminatedArmed, true);
@@ -971,7 +1027,7 @@ test('an uncommitted spear attempt preserves its charge and creates no illuminat
   const result = run(
     [{ skillId: ID.SOLAR_STORM, interruptAfterMs: 1 }, wait(2000)],
     { primaryWeapon: 'Spear' },
-    (runtime) => illuminate(runtime, 5)
+    { initialize: (runtime) => illuminate(runtime, 5) }
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(core(result).spearIlluminatedUntil, 5);
@@ -988,7 +1044,9 @@ test('an uncommitted spear attempt preserves its charge and creates no illuminat
 
 test('committed illuminated projectiles retain their activation after a weapon swap and window expiry', () => {
   const config = { primaryWeapon: 'Spear', weaponSet2Primary: 'Scepter' };
-  const result = run([ID.SOLAR_STORM, 'Swap Weapons', wait(2500)], config, (runtime) => illuminate(runtime, 0.1));
+  const result = run([ID.SOLAR_STORM, 'Swap Weapons', wait(2500)], config, {
+    initialize: (runtime) => illuminate(runtime, 0.1)
+  });
   assert.deepEqual(result.warnings, []);
   const extra = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && /Solar Storm — [45]th Strike/.test(event.name)
@@ -1002,7 +1060,11 @@ test('committed illuminated projectiles retain their activation after a weapon s
 });
 
 test('spear filler preserves an armed charge and removed grant components cannot restore it', () => {
-  const filler = run([ID.DAYBREAKING_SLASH], { primaryWeapon: 'Spear' }, (runtime) => illuminate(runtime, 5));
+  const filler = run(
+    [ID.DAYBREAKING_SLASH],
+    { primaryWeapon: 'Spear' },
+    { initialize: (runtime) => illuminate(runtime, 5) }
+  );
   assert.deepEqual(filler.warnings, []);
   assert.equal(core(filler).spearIlluminatedUntil, 5);
   const patched = withPatchPreview(guardianProfession, {
@@ -1016,11 +1078,13 @@ test('spear filler preserves an armed charge and removed grant components cannot
     const result = run(
       [ID.HELIO_RUSH],
       { primaryWeapon: 'Spear', patchId: 'no-illumination-grants' },
-      (runtime) => {
-        illuminate(runtime, 5);
-        if (symbol) illuminate(runtime, 5, true);
-      },
-      patched
+      {
+        initialize: (runtime) => {
+          illuminate(runtime, 5);
+          if (symbol) illuminate(runtime, 5, true);
+        },
+        profession: patched
+      }
     );
     assert.deepEqual(result.warnings, []);
     assert.equal(core(result).spearIlluminatedArmed, symbol);
@@ -1043,8 +1107,8 @@ test('spear selects remaining projectile components and shares its execution in 
   const rotation = [ID.SOLAR_STORM, wait(2500)];
   const config = { primaryWeapon: 'Spear', patchId: 'remaining-illuminated-projectile' };
   const initialize = (runtime) => illuminate(runtime, 0.1);
-  const detailed = run(rotation, config, initialize, patched);
-  const score = run(rotation, config, initialize, patched, 'score');
+  const detailed = run(rotation, config, { initialize: initialize, profession: patched });
+  const score = run(rotation, config, { initialize: initialize, profession: patched, output: 'score' });
   assert.deepEqual(detailed.warnings, []);
   assert.deepEqual(score.warnings, []);
   const extra = detailed.resolvedEvents.filter(
@@ -1076,11 +1140,13 @@ test('symbol traits claim only accepted player impacts and retain delayed impact
   const result = run(
     [wait(1000)],
     { selectedTraitIds: [TRAIT.SYMBOLIC_AVENGER, TRAIT.SYMBOLIC_EXPOSURE] },
-    (runtime) => {
-      strike(runtime, 0.1, { isSymbol: true, offTarget: true });
-      strike(runtime, 0.2, { isSymbol: true, actorType: 'summon' });
-      strike(runtime, 0.3, { isSymbol: true, actorType: 'effect' });
-      strike(runtime, 0.4, { isSymbol: true });
+    {
+      initialize: (runtime) => {
+        strike(runtime, 0.1, { isSymbol: true, offTarget: true });
+        strike(runtime, 0.2, { isSymbol: true, actorType: 'summon' });
+        strike(runtime, 0.3, { isSymbol: true, actorType: 'effect' });
+        strike(runtime, 0.4, { isSymbol: true });
+      }
     }
   );
   assert.deepEqual(result.warnings, []);
@@ -1098,17 +1164,19 @@ test('Symbolic Avenger projects independently expired stacks during idle waits',
   };
 
   const config = { selectedTraitIds: [TRAIT.SYMBOLIC_AVENGER] };
-  const partial = run([wait(15100)], config, initialize);
+  const partial = run([wait(15100)], config, { initialize: initialize });
   assert.deepEqual(partial.planningState.profession.symbolicAvengerExpirations, [15.5]);
-  const expired = run([wait(15500)], config, initialize);
+  const expired = run([wait(15500)], config, { initialize: initialize });
   assert.deepEqual(expired.planningState.profession.symbolicAvengerExpirations, []);
 });
 
 test("Zealot's Resolution excludes the threshold-crossing hit and gives its child symbol one activation", () => {
   const config = { selectedTraitIds: [TRAIT.ZEALOTS_RESOLUTION], target: { health: 10000, armor: 2597 } };
   const runHits = (times) =>
-    run([wait(500)], config, (runtime) => {
-      for (const at of times) strike(runtime, at, { flatDamage: 2600 });
+    run([wait(500)], config, {
+      initialize: (runtime) => {
+        for (const at of times) strike(runtime, at, { flatDamage: 2600 });
+      }
     });
   const crossing = runHits([0.1]);
   assert.equal(
@@ -1131,11 +1199,13 @@ test('Righteous Instincts extends one cadence and rejects stale ticks after a ne
   const result = run(
     [wait(4000)],
     { selectedTraitIds: [TRAIT.RIGHTEOUS_INSTINCTS], allies: { count: 2 } },
-    (runtime) => {
-      boon(runtime, 'resolution', 0, 5, { audience: { recipients: 'party', affectsSelf: false } });
-      boon(runtime, 'resolution', 0.1, 1.1);
-      boon(runtime, 'resolution', 0.8, 1);
-      boon(runtime, 'resolution', 2.5, 1.1);
+    {
+      initialize: (runtime) => {
+        boon(runtime, 'resolution', 0, 5, { audience: { recipients: 'party', affectsSelf: false } });
+        boon(runtime, 'resolution', 0.1, 1.1);
+        boon(runtime, 'resolution', 0.8, 1);
+        boon(runtime, 'resolution', 2.5, 1.1);
+      }
     }
   );
   assert.deepEqual(result.warnings, []);
@@ -1149,19 +1219,25 @@ test('Righteous Instincts extends one cadence and rejects stale ticks after a ne
 });
 
 test('Righteous Instincts respects the shared Resolution duration cap and extension records', () => {
-  const result = run([wait(32000)], { selectedTraitIds: [TRAIT.RIGHTEOUS_INSTINCTS] }, (runtime) => {
-    boon(runtime, 'resolution', 0, 100);
-    boon(runtime, 'resolution', 0.5, 100);
-    runtime.emit({
-      type: 'boon_extension',
-      kind: 'resolution',
-      at: 29,
-      duration: 1,
-      source: 'fixture',
-      sourceId: 'fixture',
-      actorType: 'player'
-    });
-  });
+  const result = run(
+    [wait(32000)],
+    { selectedTraitIds: [TRAIT.RIGHTEOUS_INSTINCTS] },
+    {
+      initialize: (runtime) => {
+        boon(runtime, 'resolution', 0, 100);
+        boon(runtime, 'resolution', 0.5, 100);
+        runtime.emit({
+          type: 'boon_extension',
+          kind: 'resolution',
+          at: 29,
+          duration: 1,
+          source: 'fixture',
+          sourceId: 'fixture',
+          actorType: 'player'
+        });
+      }
+    }
+  );
   assert.deepEqual(result.warnings, []);
   const times = result.events
     .filter((event) => event.type === 'buff' && event.sourceId === TRAIT.RIGHTEOUS_INSTINCTS)
@@ -1215,17 +1291,23 @@ test('Furious Focus claims symbol recharge once for a ready Justice activation',
 });
 
 test('Symbol of Ignition claims independent projectile and nonprojectile cooldowns from accepted impacts', () => {
-  const result = run([wait(1000)], {}, (runtime) => {
-    runtime.profession.core.symbolIgnitionStartsAt = 0;
-    runtime.profession.core.symbolIgnitionUntil = 0.98;
-    strike(runtime, 0.5, { offTarget: true });
-    strike(runtime, 0.5);
-    strike(runtime, 0.5, { projectile: true });
-    strike(runtime, 0.74);
-    strike(runtime, 0.740001);
-    strike(runtime, 0.98, { projectile: true });
-    strike(runtime, 0.980001, { projectile: true });
-  });
+  const result = run(
+    [wait(1000)],
+    {},
+    {
+      initialize: (runtime) => {
+        runtime.profession.core.symbolIgnitionStartsAt = 0;
+        runtime.profession.core.symbolIgnitionUntil = 0.98;
+        strike(runtime, 0.5, { offTarget: true });
+        strike(runtime, 0.5);
+        strike(runtime, 0.5, { projectile: true });
+        strike(runtime, 0.74);
+        strike(runtime, 0.740001);
+        strike(runtime, 0.98, { projectile: true });
+        strike(runtime, 0.980001, { projectile: true });
+      }
+    }
+  );
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.resolvedEvents
@@ -1284,7 +1366,7 @@ test('Furious Focus ignores transient Alacrity and keeps its exclusive deadline 
   const result = run(
     [ID.JUSTICE, wait(8000), { type: 'cooldown-reset' }, ID.JUSTICE, wait(40), { type: 'cooldown-reset' }, ID.JUSTICE],
     { selectedTraitIds: [TRAIT.FURIOUS_FOCUS] },
-    (runtime) => boon(runtime, 'alacrity', 1, 4)
+    { initialize: (runtime) => boon(runtime, 'alacrity', 1, 4) }
   );
   assert.deepEqual(result.warnings, []);
   const starts = result.events.filter(
@@ -1322,8 +1404,7 @@ test('removed trait components neither claim heal cooldowns nor start recurring 
       patchId: 'removed-guardian-traits',
       selectedTraitIds: [TRAIT.HEALERS_RESOLUTION, TRAIT.PROTECTORS_RESTORATION, TRAIT.RIGHTEOUS_INSTINCTS]
     },
-    (runtime) => boon(runtime, 'resolution', 0, 2),
-    patched
+    { initialize: (runtime) => boon(runtime, 'resolution', 0, 2), profession: patched }
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(observedRuntime(result).procs.deadline('guardian.core.healersResolution'), 0);
@@ -1347,7 +1428,7 @@ test('Guardian trait execution agrees between score and detailed output', () => 
   };
   const rotation = [ID.JUSTICE, wait(6000)];
   const detailed = run(rotation, config);
-  const score = run(rotation, config, () => {}, guardianProfession, 'score');
+  const score = run(rotation, config, { initialize: () => {}, profession: guardianProfession, output: 'score' });
   assert.deepEqual(detailed.warnings, []);
   assert.deepEqual(score.warnings, []);
   assert.equal(score.totalDamage, detailed.totalDamage);
@@ -1482,8 +1563,7 @@ test('Dragonhunter passive Courage preserves its cadence while actual recharge s
   const result = run(
     [wait(100), ID.SHIELD_OF_COURAGE, wait(5000)],
     { ...dragonhunter, patchId: 'fast-courage' },
-    () => {},
-    patched
+    { initialize: () => {}, profession: patched }
   );
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
@@ -1496,23 +1576,25 @@ test('Dragonhunter control traits exclude summon controls and retain accepted co
   const result = run(
     [wait(2000)],
     { ...dragonhunter, selectedTraitIds: [TRAIT.DULLED_SENSES, TRAIT.HEAVY_LIGHT] },
-    (runtime) => {
-      for (const [at, actorType] of [
-        [0.1, 'summon'],
-        [0.2, 'player'],
-        [0.2, 'player'],
-        [1.2, 'player'],
-        [1.200001, 'player']
-      ])
-        runtime.emit({
-          type: 'control',
-          controlKind: 'pull',
-          at,
-          actorType,
-          source: 'fixture',
-          sourceId: 'fixture',
-          activationId: `control-${at}`
-        });
+    {
+      initialize: (runtime) => {
+        for (const [at, actorType] of [
+          [0.1, 'summon'],
+          [0.2, 'player'],
+          [0.2, 'player'],
+          [1.2, 'player'],
+          [1.200001, 'player']
+        ])
+          runtime.emit({
+            type: 'control',
+            controlKind: 'pull',
+            at,
+            actorType,
+            source: 'fixture',
+            sourceId: 'fixture',
+            activationId: `control-${at}`
+          });
+      }
     }
   );
   assert.deepEqual(result.warnings, []);
@@ -1557,14 +1639,16 @@ test('Dragonhunter passive Justice consumes only accepted hit cycles and Renewed
   };
 
   const config = { ...dragonhunter, selectedTraitIds: [TRAIT.PERMEATING_WRATH] };
-  const passive = run([wait(600)], config, initialize);
+  const passive = run([wait(600)], config, { initialize: initialize });
   assert.equal(core(passive).justicePassiveBurns, 1);
   const cripple = passive.resolvedEvents.find((event) => event.name === 'Spear of Justice — Passive Crippled');
   assert.equal(cripple.activationId, 'impact-0.3');
   const rotation = [ID.SPEAR_OF_JUSTICE, ID.RENEWED_FOCUS, wait(1000)];
   const refreshEnd = run(rotation, config).steps.find((step) => step.skillId === ID.RENEWED_FOCUS).end / 1000;
-  const refreshed = run(rotation, config, (runtime) => {
-    for (const offset of [0.1, 0.2, 0.3]) strike(runtime, refreshEnd + offset);
+  const refreshed = run(rotation, config, {
+    initialize: (runtime) => {
+      for (const offset of [0.1, 0.2, 0.3]) strike(runtime, refreshEnd + offset);
+    }
   });
   assert.deepEqual(refreshed.warnings, []);
   assert.equal(core(refreshed).justicePassiveBurns, 1);
@@ -1590,8 +1674,7 @@ test('Soaring Devastation uses the selected weapon set and survives removal of i
       selectedTraitIds: [TRAIT.SOARING_DEVASTATION],
       patchId: 'soaring-strike-only'
     },
-    () => {},
-    patched
+    { initialize: () => {}, profession: patched }
   );
   assert.deepEqual(result.warnings, []);
   const impact = result.resolvedEvents.find(
@@ -1621,8 +1704,7 @@ test('removed Dragonhunter burn and passive packets leave no recurring effects w
   const result = run(
     [ID.SPEAR_OF_JUSTICE, wait(2000)],
     { ...dragonhunter, patchId: 'dragonhunter-no-pulses' },
-    () => {},
-    patched
+    { initialize: () => {}, profession: patched }
   );
   assert.deepEqual(result.warnings, []);
   assert.ok(dh(result).tetherUntil > observedRuntime(result).time);
@@ -1640,7 +1722,7 @@ test('Dragonhunter rejects post-death attachment and shares tether execution in 
   const killed = run(
     [ID.SPEAR_OF_JUSTICE, wait(1000)],
     { ...dragonhunter, target: { armor: 2597, health: 1 } },
-    (runtime) => strike(runtime, 0.1)
+    { initialize: (runtime) => strike(runtime, 0.1) }
   );
   assert.equal(dh(killed).tetherUntil, 0);
   assert.equal(core(killed).availableFlips[ID.HUNTERS_VERDICT], undefined);
@@ -1650,7 +1732,7 @@ test('Dragonhunter rejects post-death attachment and shares tether execution in 
   };
   const rotation = [ID.SPEAR_OF_JUSTICE, wait(1500), ID.HUNTERS_VERDICT, wait(1000)];
   const detailed = run(rotation, config);
-  const score = run(rotation, config, () => {}, guardianProfession, 'score');
+  const score = run(rotation, config, { initialize: () => {}, profession: guardianProfession, output: 'score' });
   assert.deepEqual(detailed.warnings, []);
   assert.deepEqual(score.warnings, []);
   assert.equal(score.totalDamage, detailed.totalDamage);
@@ -1677,7 +1759,11 @@ test('Guardian trait variants preserve patched base effects with and without the
       }
     };
     for (const selectedTraitIds of [[], [trait]]) {
-      const result = run([skillId, wait(1000)], { specialization, selectedTraitIds }, () => {}, source);
+      const result = run(
+        [skillId, wait(1000)],
+        { specialization, selectedTraitIds },
+        { initialize: () => {}, profession: source }
+      );
       assert.deepEqual(result.warnings, []);
       const vigor = result.resolvedEvents.filter((event) => event.kind === 'vigor' && event.skillId === skillId);
       assert.equal(vigor.length, 1);
@@ -1705,15 +1791,17 @@ test('Big Game Hunter preserves hit eligibility, tether expiry, attribution, and
     const result = run(
       [wait(2000)],
       { ...dragonhunter, selectedTraitIds: [TRAIT.BIG_GAME_HUNTER], ...(removed ? { patchId: 'bgh-removed' } : {}) },
-      (runtime) => {
-        runtime.profession.specialization.state.tetherUntil = 1;
-        strike(runtime, 0.5, { activationId: 'accepted-hit', eventOrder: 17 });
-        strike(runtime, 0.5, { actorType: 'effect' });
-        strike(runtime, 0.6, { coefficient: 0 });
-        strike(runtime, 0.7, { offTarget: true });
-        strike(runtime, 1);
-      },
-      source
+      {
+        initialize: (runtime) => {
+          runtime.profession.specialization.state.tetherUntil = 1;
+          strike(runtime, 0.5, { activationId: 'accepted-hit', eventOrder: 17 });
+          strike(runtime, 0.5, { actorType: 'effect' });
+          strike(runtime, 0.6, { coefficient: 0 });
+          strike(runtime, 0.7, { offTarget: true });
+          strike(runtime, 1);
+        },
+        profession: source
+      }
     );
     assert.deepEqual(result.warnings, []);
     const packets = result.resolvedEvents.filter((event) => event.sourceId === TRAIT.BIG_GAME_HUNTER);
@@ -1763,7 +1851,7 @@ test('Guardian activation transitions are owned by their selected skill declarat
       }
     };
     const original = run([skillId], config);
-    const removed = run([skillId], config, () => {}, source);
+    const removed = run([skillId], config, { initialize: () => {}, profession: source });
     assert.deepEqual(original.warnings, []);
     assert.deepEqual(removed.warnings, []);
     assert.equal(active(original), true, `${skillId} declared activation`);

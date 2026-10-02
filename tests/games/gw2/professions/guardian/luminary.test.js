@@ -108,15 +108,17 @@ test('Illuminating Inspiration delegates capped reductions for the three radiant
     const result = runGuardian(
       ['Enter Radiant Forge', 'Dazzling Hammer', { type: 'wait', durationMs: 1 }],
       { specialization: 'Luminary', selectedTraitIds: enabled ? [GUARDIAN_TRAIT_IDS.ILLUMINATING_INSPIRATION] : [] },
-      (runtime) => {
-        for (const [id, work] of [
-          [ids.RADIANT_JUSTICE, 20],
-          [ids.RADIANT_RESOLVE, 2],
-          [ids.RADIANT_COURAGE, 0],
-          [ids.PIERCING_STANCE, 99]
-        ]) {
-          runtime.cooldowns.set(id, work);
-          runtime.rechargeProgress.set(id, { startedAt: 0, work });
+      {
+        initialize: (runtime) => {
+          for (const [id, work] of [
+            [ids.RADIANT_JUSTICE, 20],
+            [ids.RADIANT_RESOLVE, 2],
+            [ids.RADIANT_COURAGE, 0],
+            [ids.PIERCING_STANCE, 99]
+          ]) {
+            runtime.cooldowns.set(id, work);
+            runtime.rechargeProgress.set(id, { startedAt: 0, work });
+          }
         }
       }
     );

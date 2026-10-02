@@ -26,9 +26,7 @@ test('Gale Song and Bolstered Elements expand their selected boon profile at com
     ['Weaver', TRAIT.BOLSTERED_ELEMENTS, 'Primordial Stance (Fire)']
   ]) {
     const config = { specialization, selectedSkills: [name], selectedTraitIds: [trait], target: { armor: 2597 } };
-    const result = runElementalist({
-      config,
-      rotation: [name, { type: 'wait', durationMs: 2000 }],
+    const result = runElementalist([name, { type: 'wait', durationMs: 2000 }], config, {
       profession: {
         ...elementalistProfession,
         runtimeFor(config) {
@@ -69,14 +67,14 @@ test('Persisting Flames grants stacks from Fire Sphere without extending profess
         selectedSkills: { Elite: 'Conjure Fiery Greatsword' },
         rotation: [skillName, 6000]
       });
-      const result = runElementalist({
-        profession: elementalistProfession,
-        rotation: commands,
-        config: {
+      const result = runElementalist(
+        commands,
+        {
           ...elementalistAppAdapter.simulationConfig(app),
           selectedTraitIds: selected ? [TRAIT.PERSISTING_FLAMES] : []
-        }
-      });
+        },
+        { profession: elementalistProfession }
+      );
       assert.deepEqual(result.warnings, []);
       const field = result.events.find((event) => event.type === 'combo_field' && event.skillName === skillName);
       assert.equal(field.expiresAt - field.at, 5);
@@ -109,14 +107,14 @@ test('Persisting Flames extends Flamewall from eight seconds to ten', () => {
       selectedSkills: { Elite: 'Conjure Fiery Greatsword' },
       rotation: ['Flamewall', 12000]
     });
-    const result = runElementalist({
-      profession: elementalistProfession,
-      rotation: commands,
-      config: {
+    const result = runElementalist(
+      commands,
+      {
         ...elementalistAppAdapter.simulationConfig(app),
         selectedTraitIds: selected ? [TRAIT.PERSISTING_FLAMES] : []
-      }
-    });
+      },
+      { profession: elementalistProfession }
+    );
     assert.deepEqual(result.warnings, []);
     const field = result.events.find((event) => event.type === 'combo_field' && event.skillName === 'Flamewall');
     assert.equal(field.expiresAt - field.at, selected ? 10 : 8);
@@ -188,7 +186,7 @@ test("Fox's Fury applies the PvE high-Might burn", () => {
     });
     const config = elementalistAppAdapter.simulationConfig(app);
     config.boons.quickness = quickness;
-    const result = runElementalist({ profession: elementalistProfession, rotation: commands, config });
+    const result = runElementalist(commands, config, { profession: elementalistProfession });
     const action = result.events.find((event) => event.type === 'action' && event.skillName === "Fox's Fury");
     const hit = result.events.find((event) => event.type === 'damage' && event.skillName === "Fox's Fury");
 
@@ -732,13 +730,10 @@ test('Evoker traits enforce familiar boons, enchantments, and charge rules', () 
 
 test('Fire Elemental resumes autonomous attacks after Flame Burst recovery', () => {
   // The pet waits through Burst recovery before starting its next action, without requiring a player command.
-  const result = runElementalist({
-    config: {
-      specialization: 'Core',
-      selectedSkills: { Elite: 'Glyph of Elementals' },
-      boons: { quickness: false }
-    },
-    rotation: ['Glyph of Elementals', '__combat_start', { type: 'wait', durationMs: 7000 }]
+  const result = runElementalist(['Glyph of Elementals', '__combat_start', { type: 'wait', durationMs: 7000 }], {
+    specialization: 'Core',
+    selectedSkills: { Elite: 'Glyph of Elementals' },
+    boons: { quickness: false }
   });
   const elementalActions = result.events.filter((event) => event.type === 'action' && event.actorType === 'summon');
   const flameBurst = result.events.find((event) => event.type === 'damage' && event.skillName === 'Flame Burst');
@@ -769,22 +764,22 @@ test('Fire Elemental resumes autonomous attacks after Flame Burst recovery', () 
 
 test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => {
   // Commands preempt the pet, retain their cooldown, and pair each projectile with its own burn.
-  const result = runElementalist({
-    config: {
-      specialization: 'Core',
-      startAttunement: 'Air',
-      selectedSkills: { Elite: 'Glyph of Elementals' },
-      boons: { quickness: false, alacrity: false }
-    },
-    rotation: [
+  const result = runElementalist(
+    [
       'Glyph of Elementals',
       '__combat_start',
       { type: 'wait', durationMs: 1000 },
       'Flame Barrage',
       'Flame Barrage',
       { type: 'wait', durationMs: 4000 }
-    ]
-  });
+    ],
+    {
+      specialization: 'Core',
+      startAttunement: 'Air',
+      selectedSkills: { Elite: 'Glyph of Elementals' },
+      boons: { quickness: false, alacrity: false }
+    }
+  );
   const elementalActions = result.events.filter((event) => event.type === 'action' && event.actorType === 'summon');
 
   assert.deepEqual(result.warnings, []);
@@ -899,11 +894,9 @@ test('Flame Barrage cannot apply future projectile burns outside the observation
     rotation: ['Flame Barrage'],
     assumptions: { ...elementalistProfession.createBuildDefaults().assumptions, targetConditions: {} }
   });
-  const result = runElementalist({
+  const result = runElementalist(commands, elementalistAppAdapter.simulationConfig(app), {
     profession: elementalistProfession,
-    rotation: commands,
-    config: elementalistAppAdapter.simulationConfig(app),
-    observationPolicy: { kind: 'tail', durationMs: 1000 }
+    observation: { kind: 'tail', durationMs: 1000 }
   });
   const burns = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillName === 'Flame Barrage'
@@ -1221,8 +1214,9 @@ test('elemental autonomous cooldowns require shared player Alacrity', () => {
   ]) {
     for (const sharePlayerBoonsWithSummons of [false, true]) {
       for (const grant of [false, true]) {
-        const result = runElementalist({
-          config: {
+        const result = runElementalist(
+          ['__combat_start', { type: 'wait', durationMs: 7000 }],
+          {
             specialization: 'Core',
             startAttunement: element,
             selectedSkills: { Elite: element === 'Fire' ? 'Glyph of Elementals' : 'Glyph of Elementals (Earth)' },
@@ -1230,27 +1224,28 @@ test('elemental autonomous cooldowns require shared player Alacrity', () => {
             allies: { count: 0 },
             sharePlayerBoonsWithSummons
           },
-          rotation: ['__combat_start', { type: 'wait', durationMs: 7000 }],
-          timeline: [
-            {
-              at: 0.04,
-              run(runtime) {
-                if (grant)
-                  runtime.emit({
-                    type: 'buff',
-                    kind: 'alacrity',
-                    at: 0.04,
-                    duration: 30,
-                    stacks: 1,
-                    source: 'fixture',
-                    sourceId: 'fixture',
-                    actorType: 'player',
-                    audience: { recipients: 'party' }
-                  });
+          {
+            timeline: [
+              {
+                at: 0.04,
+                run(runtime) {
+                  if (grant)
+                    runtime.emit({
+                      type: 'buff',
+                      kind: 'alacrity',
+                      at: 0.04,
+                      duration: 30,
+                      stacks: 1,
+                      source: 'fixture',
+                      sourceId: 'fixture',
+                      actorType: 'player',
+                      audience: { recipients: 'party' }
+                    });
+                }
               }
-            }
-          ]
-        });
+            ]
+          }
+        );
         const action = result.events.find((event) => event.type === 'action' && event.skillName === secondary);
         assert.ok(action, element);
         const readyAt = observedRuntime(result).profession.core.summonedElemental.secondaryAttackReadyAt;

@@ -22,11 +22,9 @@ test('Flamestrike interruptions retain only committed strike packets', () => {
     [480, 1],
     [520, 2]
   ]) {
-    const result = runElementalist({
+    const result = runElementalist([{ type: 'cast', skillId: ID.FLAMESTRIKE, interruptAfterMs }], config, {
       profession: elementalistProfession,
-      rotation: [{ type: 'cast', skillId: ID.FLAMESTRIKE, interruptAfterMs }],
-      config,
-      observationPolicy: { kind: 'tail', durationMs: 3000 }
+      observation: { kind: 'tail', durationMs: 3000 }
     });
 
     assert.equal(

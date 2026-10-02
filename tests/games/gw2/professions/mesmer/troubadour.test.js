@@ -51,31 +51,33 @@ test('committed Drum interruptions preserve separate Syncopate and delayed-wave 
 
 // Trait-owned scheduling must keep honoring balance edits for both the disable proc and delayed wave.
 test('Syncopate reads patched damage from its trait profile', () => {
-  const result = runMesmer({
-    profession: withPatchPreview(mesmerProfession, {
-      id: 'syncopate-test',
-      label: 'Syncopate test',
-      professions: {
-        mesmer: {
-          balanceProfiles: {
-            [TRAIT.SYNCOPATE]: {
-              effects: [
-                { effectIndex: 0, coefficient: 0.25 },
-                { effectIndex: 1, coefficient: 0.5 }
-              ]
-            }
-          }
-        }
-      }
-    }),
-    rotation: ['Deafening Drum', { type: 'wait', durationMs: 4000 }],
-    config: defaultSimulationConfig({
+  const result = runMesmer(
+    ['Deafening Drum', { type: 'wait', durationMs: 4000 }],
+    defaultSimulationConfig({
       patchId: 'syncopate-test',
       specialization: 'Troubadour',
       selectedTraitIds: [TRAIT.SYNCOPATE],
       initialResource: 0
-    })
-  });
+    }),
+    {
+      profession: withPatchPreview(mesmerProfession, {
+        id: 'syncopate-test',
+        label: 'Syncopate test',
+        professions: {
+          mesmer: {
+            balanceProfiles: {
+              [TRAIT.SYNCOPATE]: {
+                effects: [
+                  { effectIndex: 0, coefficient: 0.25 },
+                  { effectIndex: 1, coefficient: 0.5 }
+                ]
+              }
+            }
+          }
+        }
+      })
+    }
+  );
   assert.deepEqual(result.warnings, []);
   const drum = result.events.find((event) => event.type === 'damage' && event.skillName === 'Deafening Drum');
   const procs = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Syncopate');

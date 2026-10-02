@@ -45,16 +45,15 @@ function simulate(
   elementalistAppAdapter.recalculate(app);
   const config = elementalistAppAdapter.simulationConfig(app);
 
-  return runElementalist({
-    profession: elementalistProfession,
-    rotation: commands,
-    initialize,
-    config: {
+  return runElementalist(
+    commands,
+    {
       ...config,
       selectedTraitIds: traits,
       stats: { ...config.stats, ...stats }
-    }
-  });
+    },
+    { profession: elementalistProfession, initialize }
+  );
 }
 
 const allEvents = (result) => [...result.events, ...result.resolvedEvents];

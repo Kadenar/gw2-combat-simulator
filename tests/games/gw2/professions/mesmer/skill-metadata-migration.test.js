@@ -206,14 +206,13 @@ test('effect-driven relics agree in detailed and score execution across observat
     ['Peitha', ['Crystal Sands', 'Jaunt']]
   ]) {
     for (const durationMs of [0, 2000, 6000]) {
+      const simulationConfig = config({ relic });
       const options = {
         profession: mesmerProfession,
-        rotation,
-        config: config({ relic }),
-        observationPolicy: { kind: 'tail', durationMs }
+        observation: { kind: 'tail', durationMs }
       };
-      const detailed = runMesmer(options);
-      const score = runMesmer({ ...options, output: 'score' });
+      const detailed = runMesmer(rotation, simulationConfig, options);
+      const score = runMesmer(rotation, simulationConfig, { ...options, output: 'score' });
       assert.equal(score.totalDamage, detailed.totalDamage);
       assert.equal(score.dps, detailed.dps);
       const endTimeMs = Math.max(...detailed.steps.map((step) => step.end)) + durationMs;

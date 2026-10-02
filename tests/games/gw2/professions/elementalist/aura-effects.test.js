@@ -29,9 +29,7 @@ test('real and synthetic Air entry honor trait gates and patched buff versus boo
         const events = [];
         const skill = { id: 1, name: 'Air entry' };
         const config = { stats: { concentration: 750 } };
-        const context = observedRuntime(
-          runElementalist({ config: { ...config, specialization: 'Evoker' }, rotation: [] })
-        );
+        const context = observedRuntime(runElementalist([], { ...config, specialization: 'Evoker' }));
         Object.assign(context, {
           helpers: catalog,
           traits: new Set(selected),
@@ -98,7 +96,7 @@ test('Core and Tempest aura boons use patched effects and scale once', () => {
       duration: index + 7
     }));
     const config = { stats: { concentration: 750 }, specialization: 'Tempest' };
-    const context = observedRuntime(runElementalist({ config, rotation: [] }));
+    const context = observedRuntime(runElementalist([], config));
     const events = [];
     const profiles = new Map(elementalistCatalog.balanceProfilesById);
     profiles.set(profileId, { effects });
@@ -191,21 +189,23 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
 
 test('Catalyst snapshots retain capped aura refreshes without adding or reviving stacks', () => {
   // Exercise real buff resolution and proc reporting, then inspect before and after each window.
-  const result = runElementalist({
-    config: { specialization: 'Catalyst', selectedTraitIds: [TRAIT.EMPOWERING_AURAS] },
-    rotation: [{ type: 'wait', durationMs: 30000 }],
-    timeline: [0, 1, 2, 3, 4, 8, 19].map((at) => ({
-      at,
-      run: (runtime) =>
-        catalystModule.hooks.reactions['aura.applied'](runtime, {
-          type: 'elementalist.aura',
-          at,
-          skillName: 'Fixture Aura',
-          sourceId: 1,
-          actorType: 'player'
-        })
-    }))
-  });
+  const result = runElementalist(
+    [{ type: 'wait', durationMs: 30000 }],
+    { specialization: 'Catalyst', selectedTraitIds: [TRAIT.EMPOWERING_AURAS] },
+    {
+      timeline: [0, 1, 2, 3, 4, 8, 19].map((at) => ({
+        at,
+        run: (runtime) =>
+          catalystModule.hooks.reactions['aura.applied'](runtime, {
+            type: 'elementalist.aura',
+            at,
+            skillName: 'Fixture Aura',
+            sourceId: 1,
+            actorType: 'player'
+          })
+      }))
+    }
+  );
   assert.deepEqual(result.warnings, []);
   const snapshot = (atSeconds) =>
     catalystUi

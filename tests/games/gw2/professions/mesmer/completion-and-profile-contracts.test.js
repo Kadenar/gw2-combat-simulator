@@ -193,10 +193,8 @@ test('Virtuoso executes a patched shatter tick beside an empty zero-blade tier',
       return { ...runtime, catalog: applyBalanceProfilePatch(runtime.catalog, patch) };
     }
   };
-  const result = runMesmer({
-    profession,
-    config: createDefaultConfig(),
-    rotation: ['Bladesong Harmony', { name: '__wait', waitMs: 1000 }]
+  const result = runMesmer(['Bladesong Harmony', { name: '__wait', waitMs: 1000 }], createDefaultConfig(), {
+    profession
   });
   const hit = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.BLADESONG_HARMONY);
 
@@ -234,7 +232,7 @@ test('core control events are owned by skill definitions across ordinary and rep
         };
       }
     };
-    const removed = runMesmer({ profession, config, rotation });
+    const removed = runMesmer(rotation, config, { profession });
     const controls = (result) => result.events.filter((event) => event.type === 'control' && event.skillId === skillId);
     assert.deepEqual(base.warnings, []);
     assert.deepEqual(removed.warnings, []);

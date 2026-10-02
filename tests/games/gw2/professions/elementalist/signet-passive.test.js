@@ -12,27 +12,29 @@ test('Signet of Fire precision follows recharge and resets unless Written in Sto
     for (const interrupted of [false, true]) {
       for (const reset of [false, true]) {
         const samples = [];
-        const result = runElementalist({
-          config: {
-            stats: { precision: 1180 },
-            attributeProvenance: { professionStaticRulesApplied: true },
-            selectedSkills: ['Signet of Fire'],
-            selectedTraitIds: traited ? [TRAIT.WRITTEN_IN_STONE] : []
-          },
-          rotation: [
+        const result = runElementalist(
+          [
             { type: 'wait', durationMs: 100 },
             { type: 'cast', skillId: ID.SIGNET_OF_FIRE, ...(interrupted ? { interruptAfterMs: 100 } : {}) },
             { type: 'wait', durationMs: 1000 },
             ...(reset ? [{ type: 'cooldown-reset' }] : []),
             { type: 'wait', durationMs: 15000 }
           ],
-          timeline: [0.05, 0.15, 1, reset ? 3 : 15].map((at) => ({
-            at,
-            run(runtime) {
-              samples.push(runtime.query.statsAt(runtime.time, null, runtime).precision);
-            }
-          }))
-        });
+          {
+            stats: { precision: 1180 },
+            attributeProvenance: { professionStaticRulesApplied: true },
+            selectedSkills: ['Signet of Fire'],
+            selectedTraitIds: traited ? [TRAIT.WRITTEN_IN_STONE] : []
+          },
+          {
+            timeline: [0.05, 0.15, 1, reset ? 3 : 15].map((at) => ({
+              at,
+              run(runtime) {
+                samples.push(runtime.query.statsAt(runtime.time, null, runtime).precision);
+              }
+            }))
+          }
+        );
         assert.deepEqual(result.warnings, []);
         assert.deepEqual(
           samples,
