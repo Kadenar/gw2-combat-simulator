@@ -2,6 +2,7 @@
 import { director } from '#gw2/platform/equipment/relics/rules/director.js';
 import { mountBalrior } from '#gw2/platform/equipment/relics/rules/mount-balrior.js';
 import { akeem } from '#gw2/platform/equipment/relics/rules/akeem.js';
+import { agony } from '#gw2/platform/equipment/relics/rules/agony.js';
 import { aristocracy } from '#gw2/platform/equipment/relics/rules/aristocracy.js';
 import { blightbringer } from '#gw2/platform/equipment/relics/rules/blightbringer.js';
 import { bloodstone } from '#gw2/platform/equipment/relics/rules/bloodstone.js';
@@ -29,6 +30,7 @@ import type { Gw2RelicRule } from '#gw2/platform/equipment/relics/types.js';
 export const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.freeze({
   Director: director,
   'Mount Balrior': mountBalrior,
+  Agony: agony,
   Akeem: akeem,
   Aristocracy: aristocracy,
   Blightbringer: blightbringer,

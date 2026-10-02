@@ -16,6 +16,12 @@ export const RELIC_DATA = {
     cooldown: 30,
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Relic_of_Mount_Balrior.png'
   },
+  Agony: {
+    category: 'Condition',
+    trigger: 'Interrupt a foe (Agony of the Choir for 5s; 134.5 + 0.155 x Condition Damage per second)',
+    cooldown: 3,
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Relic_of_Agony.png'
+  },
   Akeem: {
     category: 'Condition',
     trigger: 'CC a foe with 5+ Torment or Confusion (2 Confusion for 10s, 2 Torment for 10s)',

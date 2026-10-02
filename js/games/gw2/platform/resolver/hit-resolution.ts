@@ -73,7 +73,11 @@ export function createGw2HitResolution({
 
   // Flat strikes ignore weapon strength and crit; a single health threshold may
   // scale the fixed multiplier once the target drops below it.
-  function resolveFlatStrike(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, power: number): ResolvedStrikeParts {
+  function resolveFlatStrike(
+    ctx: Gw2ResolverRuntime,
+    event: Gw2ResolverEvent,
+    stats: Gw2ResolvedStats
+  ): ResolvedStrikeParts {
     let outgoingMultiplier = event.flatStrikeMultiplier ?? 1;
     const threshold = event.flatStrikeHealthThreshold || 0;
     const healthFraction = currentHealthFraction(ctx);
@@ -81,7 +85,11 @@ export function createGw2HitResolution({
       outgoingMultiplier *= event.flatStrikeThresholdMultiplier ?? 1;
     }
 
-    const baseDamage = (event.flatDamage ?? event.flatStrikeBase ?? 0) + (event.flatStrikePowerCoeff || 0) * power;
+    // Non-condition effects such as Agony use the live attribute while retaining the flat packet's modifier bypass.
+    const baseDamage =
+      (event.flatDamage ?? event.flatStrikeBase ?? 0) +
+      (event.flatStrikePowerCoeff || 0) * stats.power +
+      (event.flatDamageConditionCoeff ? event.flatDamageConditionCoeff * stats.conditionDamage : 0);
     return {
       baseDamage,
       coefficientMultiplier: 1,
@@ -163,7 +171,7 @@ export function createGw2HitResolution({
     const critical = resolveCritical(ctx, event, flatStrike);
     const critEligible = !flatStrike && event.canCrit !== false;
     const strike = flatStrike
-      ? resolveFlatStrike(ctx, event, stats.power)
+      ? resolveFlatStrike(ctx, event, stats)
       : resolveScalingStrike(ctx, event, stats.power, critical);
     const damage = strike.baseDamage * strike.criticalMultiplier * strike.outgoingMultiplier;
 

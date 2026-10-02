@@ -26,6 +26,8 @@ export type Gw2ResolverEvent = SimulationEvent &
       readonly multiplier?: number;
     }[];
     readonly flatDamage?: number;
+    /** Non-condition damage over time can scale with live Condition Damage without outgoing modifiers. */
+    readonly flatDamageConditionCoeff?: number;
     readonly flatStrikeBase?: number;
     readonly flatStrikePowerCoeff?: number;
     readonly flatStrikeMultiplier?: number;
