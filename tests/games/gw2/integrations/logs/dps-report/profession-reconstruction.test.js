@@ -186,6 +186,38 @@ for (const [profession, catalog, entryId, exitId] of [
   });
 }
 
+// Only cancelled autoattacks adjacent to the closed shroud bar are duplicate exit signals.
+test('Reaper import removes cancelled exit autoattacks while retaining independent cast evidence', () => {
+  for (const [offset, timeGained, retained] of [
+    [2, -120, false],
+    [6, -120, true],
+    [2, 0, true]
+  ]) {
+    const report = reportFixture(
+      'Reaper',
+      [
+        { id: 30792, skills: [{ castTime: 0, duration: 0 }] },
+        { id: 30961, skills: [{ castTime: 1000, duration: 0 }] },
+        { id: 29442, skills: [{ castTime: 1000 + offset, duration: 120, timeGained }] },
+        { id: 73007, skills: [{ castTime: 1200, duration: 840 }] }
+      ],
+      {
+        s30792: { name: "Reaper's Shroud", isSwap: true },
+        s30961: { name: "Exit Reaper's Shroud", isSwap: true },
+        s29442: { name: 'Life Rend' },
+        s73007: { name: 'Extirpate' }
+      }
+    );
+    const result = reconstructDpsReportRotation(report, necromancerCatalog);
+    assert.equal(
+      result.actions.some((action) => action.rawSkillId === 29442),
+      retained
+    );
+    assert.ok(result.sourceActions.some((action) => action.rawSkillId === 29442));
+    if (!retained) assert.ok(result.rotation.some((command) => command.type === 'wait' && command.durationMs === 200));
+  }
+});
+
 test('Bladesworn Gunsaber transitions omit EI swaps and Dragon Trigger charge waits', () => {
   // Gunsaber bar changes are represented by their own inputs, while Dragon Slash owns its charge delay in simulation.
   const report = reportFixture(
@@ -240,7 +272,7 @@ test('Firebrand does not infer final Solace charges across possible recharge or 
   for (const [castTimes, expected] of [
     [
       [100, 1100, 9000],
-      [41475, 41475, -20]
+      [41475, 41475, 41475]
     ],
     [
       [100, 1100, 2100, 3100],
@@ -260,11 +292,12 @@ test('Firebrand does not infer final Solace charges across possible recharge or 
   }
 });
 
-test('Firebrand recognizes an exhausted mantra even when its uses span an ammo recharge', () => {
-  // Five uses exhaust three starting charges plus at most two recovered charges; a third recovery stays ambiguous.
+test('Firebrand accounts for sequential recovery before identifying a sparse mantra charge', () => {
+  // Continuous Alacrity restores the third sequential charge between the final and normal activation cases.
   for (const [lastCast, expected] of [
     [23000, 42960],
-    [25000, -20]
+    [25000, 41475],
+    [31000, 41475]
   ]) {
     const report = reportFixture(
       'Firebrand',
@@ -274,6 +307,37 @@ test('Firebrand recognizes an exhausted mantra even when its uses span an ammo r
     const result = reconstructDpsReportRotation(report, guardianCatalog);
     assert.equal(result.actions.at(-1).skillId, expected);
     assert.ok(result.sourceActions.every((action) => action.rawSkillId === -20));
+  }
+});
+
+test('Firebrand assumes continuous Alacrity for recovery regardless of source boon coverage', () => {
+  // Missing or interrupted source Alacrity does not change the simulation import's recharge assumption.
+  for (const states of [
+    undefined,
+    [
+      [0, 0],
+      [0, 1]
+    ],
+    [[500, 1]],
+    [
+      [0, 1],
+      [5000, 0],
+      [6000, 1]
+    ],
+    [
+      [0, 1],
+      [5000, 0]
+    ]
+  ]) {
+    const report = reportFixture(
+      'Firebrand',
+      [{ id: -20, skills: [100, 2100, 9100, 18100, 25000].map((castTime) => ({ castTime, duration: 0 })) }],
+      { 's-20': { name: 'Restoring Reprieve or Rejunevating Respite', isInstantCast: true } }
+    );
+    report.players[0].buffUptimes = [{ id: 30328, states, buffData: [{ uptime: 100 }] }];
+    const result = reconstructDpsReportRotation(report, guardianCatalog);
+    assert.equal(result.actions.at(-1).skillId, 41475);
+    assert.equal(result.actions.at(-1).rawSkillId, -20);
   }
 });
 

@@ -18,6 +18,6 @@ export function initializeTroubadourRuntime(context: MesmerRuntime): void {
   });
   // Initialize trait-added instrument ammo after the Troubadour manifest makes slot identities available.
   for (const skill of context.helpers.skills) {
-    context.cooldownController.ensureAmmo(skill, 0);
+    context.cooldownController.ensureAmmo(skill);
   }
 }

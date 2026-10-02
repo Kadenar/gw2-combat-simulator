@@ -696,7 +696,8 @@ function validateRotationCommand(command: unknown, catalog: CanonicalCatalog, er
       : validCanonicalMilliseconds(candidate, 'concurrentOffsetMs')) ||
     !validCanonicalMilliseconds(candidate, 'interruptAfterMs') ||
     !validCanonicalMilliseconds(candidate, 'initialStateDurationMs') ||
-    !validCanonicalMilliseconds(candidate, 'impactDelayMs')
+    !validCanonicalMilliseconds(candidate, 'impactDelayMs') ||
+    !validCanonicalMilliseconds(candidate, 'releaseDelayMs')
   ) {
     errors.push('rotation timing fields must be finite; cast timing must be non-negative.');
   }
@@ -722,6 +723,14 @@ function validateRotationCommand(command: unknown, catalog: CanonicalCatalog, er
 
   if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'releaseAtCharges')) {
     errors.push('only cast commands may contain releaseAtCharges.');
+  }
+
+  // Release holds are owned by Dragon Slash; reject silent no-ops on other actions.
+  if (
+    Object.hasOwn(candidate, 'releaseDelayMs') &&
+    (candidate.type !== 'cast' || !catalog.skillsById.get(candidate.skillId as SkillId)?.dragonSlash)
+  ) {
+    errors.push('only Dragon Slash casts may contain releaseDelayMs.');
   }
 
   if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'doubleEdgeOutcome')) {

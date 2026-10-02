@@ -538,7 +538,7 @@ test('ammo tile shows its cast lockout before the next charge timer', async () =
   const profession = await loadProfession('mesmer');
   const skill = profession.catalog.skillsByName.get('Split Second');
   const ammoBySkillId = {
-    [skill.id]: { charges: 1, maximum: 2, rechargeWork: 8, nextRechargeAt: 8 }
+    [skill.id]: { charges: 1, maximum: 2, recharges: [{ startedAt: 0, work: 10 }], nextRechargeAt: 8 }
   };
   const locked = paletteSkillView(
     projectionApp(profession, {

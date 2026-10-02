@@ -28,6 +28,41 @@ const baseConfig = {
 const simulate = createObservedProfessionSimulator(necromancerProfession, baseConfig);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 
+// Successful interrupted casts keep their effects and reserve the remaining animation before another weapon cast.
+test('committed ground skills and Extirpate preserve effects and cast-lane ownership after interruption', () => {
+  for (const id of [ID.PLAGUELANDS, ID.WELL_OF_DARKNESS, ID.EXTIRPATE]) {
+    const skill = necromancerCatalog.skillsById.get(id);
+    const result = simulate(
+      'Reaper',
+      [
+        { type: 'cast', skillId: id, interruptAfterMs: (skill.interruptCommitMs + skill.castTimeMs) / 2 },
+        ID.DARK_SLASH
+      ],
+      {
+        primaryWeapon: 'Spear',
+        selectedSkills: ['Plaguelands', 'Well of Darkness'],
+        selectedTraitIds: []
+      },
+      { kind: 'tail', durationMs: 10000 }
+    );
+    assert.deepEqual(result.warnings, []);
+    const action = result.events.find((event) => event.type === 'action' && event.skillId === id);
+    const following = result.events.find((event) => event.type === 'action' && event.skillId === ID.DARK_SLASH);
+    assert.ok(action.endsAt < action.fullEndsAt);
+    assert.equal(following.at, action.fullEndsAt);
+    assert.ok(
+      result.resolvedEvents.some((event) => event.skillId === id && event.type === 'damage' && event.damage > 0)
+    );
+    if (id !== ID.EXTIRPATE)
+      assert.ok(
+        result.resolvedEvents.some(
+          (event) => event.skillId === id && event.type === 'damage' && event.at > following.at
+        )
+      );
+    assert.ok(observedRuntime(result).cooldowns.has(id));
+  }
+});
+
 // A queued observation before launch sees the original state; canceled throws never spend it.
 test('elixir state commits chronologically and cancelled throws leave it untouched', () => {
   for (const cancelled of [false, true]) {

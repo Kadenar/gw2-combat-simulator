@@ -418,7 +418,7 @@ test('Elemental Celerity selects weapon targets and independently owns its spher
           for (const skill of targets) {
             runtime.cooldownController.startRecharge(skill, 0, 50);
             if (skill.ammo > 0) {
-              runtime.cooldownController.ensureAmmo(skill, 0);
+              runtime.cooldownController.ensureAmmo(skill);
               runtime.ammo.get(skill.id).charges = 0;
             }
           }

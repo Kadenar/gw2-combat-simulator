@@ -1357,7 +1357,7 @@ test("Abyssal Strike reduces Raze's displayed cooldown with no charges", () => {
   });
 });
 
-test('Abyssal Raze recharge reduction carries overflow into the next count', () => {
+test('Abyssal Raze recharge reduction carries only excess work into the next queued charge', () => {
   const result = simulate(
     'Core',
     ['Abyssal Raze', 'Abyssal Raze', 'Abyssal Raze', { type: 'wait', durationMs: 8100 }, 'Abyssal Strike'],
@@ -1371,17 +1371,17 @@ test('Abyssal Raze recharge reduction carries overflow into the next count', () 
   const rechargeProc = result.procSteps.find((proc) => proc.skill.endsWith('Abyssal Raze recharge'));
 
   assert.equal(rechargeProc.cooldownReduction, 0.8);
-  // Verify serial recharge overflow independently of the separate between-cast lockout.
-  const { charges, maximum, rechargeWork, nextRechargeAt } = observedRuntime(result).ammo.get(SKILL.ABYSSAL_RAZE);
-  assert.deepEqual(
-    { charges, maximum, rechargeWork, nextRechargeAt },
-    {
-      charges: 1,
-      maximum: 3,
-      rechargeWork: 15,
-      nextRechargeAt: 23.82
-    }
-  );
+  // Completing the front charge carries only the unused reduction into the next, leaving later work intact.
+  const runtime = observedRuntime(result);
+  const ammo = runtime.ammo.get(SKILL.ABYSSAL_RAZE);
+  const casts = result.events.filter((event) => event.type === 'action' && event.skillId === SKILL.ABYSSAL_RAZE);
+  const remainingWork = 15 - (rechargeProc.start / 1000 - casts[0].rechargeProgress.startedAt) * 1.25;
+  const overflow = 1 - remainingWork;
+  assert.equal(ammo.charges, 1);
+  assert.equal(ammo.recharges.length, 2);
+  assert.ok(overflow > 0 && overflow < 1);
+  assert.ok(Math.abs(ammo.recharges[0].work - (15 - overflow)) < 1e-9);
+  assert.equal(ammo.recharges[1].work, 15);
   assert.equal(result.planningState.cooldowns['Abyssal Raze'], undefined);
 });
 

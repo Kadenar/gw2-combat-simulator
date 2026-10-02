@@ -662,24 +662,31 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
     true
   );
 
-  // A reload preserves count recharge even when it briefly fills the magazine.
+  // Refilling to full clears the old timer; spending again starts a fresh recharge.
   const spent = simulate('Bladesworn', ['__combat_start', ID.FLOW_STABILIZER]);
-  const retainedRecharge = simulate('Bladesworn', [
+  const freshRecharge = simulate('Bladesworn', [
     '__combat_start',
     ID.FLOW_STABILIZER,
     ID.TACTICAL_RELOAD,
     ID.FLOW_STABILIZER
   ]);
 
-  assert.deepEqual(retainedRecharge.warnings, []);
+  assert.deepEqual(freshRecharge.warnings, []);
   assert.equal(
-    retainedRecharge.planningState.ammo['Flow Stabilizer'].charges,
+    freshRecharge.planningState.ammo['Flow Stabilizer'].charges,
     spent.planningState.ammo['Flow Stabilizer'].charges
   );
   assert.ok(spent.planningState.ammo['Flow Stabilizer'].nextRechargeAt > 0);
+  const lastSpend = freshRecharge.events.findLast(
+    (event) => event.type === 'action' && event.skillId === ID.FLOW_STABILIZER
+  );
   assert.equal(
-    retainedRecharge.planningState.ammo['Flow Stabilizer'].nextRechargeAt,
-    spent.planningState.ammo['Flow Stabilizer'].nextRechargeAt
+    freshRecharge.planningState.ammo['Flow Stabilizer'].nextRechargeAt,
+    lastSpend.rechargeProgress.startedAt + lastSpend.rechargeProgress.work / 1.25
+  );
+  assert.ok(
+    freshRecharge.planningState.ammo['Flow Stabilizer'].nextRechargeAt >
+      spent.planningState.ammo['Flow Stabilizer'].nextRechargeAt
   );
 
   const overlapping = simulate(
@@ -1188,7 +1195,7 @@ test('Bladesworn swap and Dragon Trigger traits use supplied behavior', () => {
     false
   );
 
-  const afterFirstHit = simulate('Bladesworn', ['Chop', 'Unsheathe Gunsaber'], {
+  const afterFirstHit = simulate('Bladesworn', ['Chop', 'Unsheathe Gunsaber', { type: 'wait', durationMs: 720 }], {
     initialResource: 0,
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Axe',
@@ -1204,22 +1211,26 @@ test('Bladesworn swap and Dragon Trigger traits use supplied behavior', () => {
   assert.equal(swordProcs.length, 1);
   assert.equal(swordProcs[0].type, 'trait_proc');
   assert.equal(swordProcs[0].sourceSkill, 'Unsheathe Gunsaber');
-  assert.equal(swordProcs[0].start, Math.round(unseenSword[0].at * 1000));
+  assert.equal(swordProcs[0].start + 720, Math.round(unseenSword[0].at * 1000));
 
   const swap = simulate('Bladesworn', ['__combat_start', 'Unsheathe Gunsaber', { type: 'wait', durationMs: 5000 }], {
     initialResource: 0,
     selectedTraitIds: [TRAIT.UNSEEN_SWORD]
   });
 
-  assert.equal(swap.events.find((event) => event.name === 'Unseen Sword').coefficient, 1.2);
-  assert.equal(swap.resolvedEvents.find((event) => event.name === 'Unseen Sword').skillId, 62847);
+  // Proc presentation stays at entry; packet assertions select the later strike explicitly.
+  assert.equal(swap.events.find((event) => event.type === 'damage' && event.name === 'Unseen Sword').coefficient, 1.2);
+  assert.equal(
+    swap.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Unseen Sword').skillId,
+    62847
+  );
   assert.equal(skillBreakdownRows(swap).find((entry) => entry.name === 'Unseen Sword').hits, 1);
   assert.equal(swap.events.find((event) => event.kind === 'positive-flow').duration, 5);
   assert.ok(Math.abs(swap.planningState.profession.flow - 30) < 1e-9);
 
   const combatOnly = simulate(
     'Bladesworn',
-    ['Unsheathe Gunsaber', 'Sheathe Gunsaber', '__combat_start', 'Dragon Trigger'],
+    ['Unsheathe Gunsaber', 'Sheathe Gunsaber', '__combat_start', 'Dragon Trigger', { type: 'wait', durationMs: 720 }],
     {
       initialResource: 100,
       selectedTraitIds: [TRAIT.UNSEEN_SWORD]
@@ -1228,8 +1239,10 @@ test('Bladesworn swap and Dragon Trigger traits use supplied behavior', () => {
 
   // Precombat swaps must not proc the trait, regardless of the time spent waiting for swap cooldowns.
   assert.deepEqual(
-    combatOnly.resolvedEvents.filter((event) => event.name === 'Unseen Sword').map((event) => event.at),
-    [combatOnly.events.find((event) => event.type === 'combat_start').at]
+    combatOnly.resolvedEvents
+      .filter((event) => event.type === 'damage' && event.name === 'Unseen Sword')
+      .map((event) => event.at),
+    [canonicalTime(combatOnly.events.find((event) => event.type === 'combat_start').at + 0.72)]
   );
   const triggerProcs = combatOnly.procSteps.filter((proc) => proc.skill === 'Unseen Sword');
   assert.equal(triggerProcs.length, 1);

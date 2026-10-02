@@ -122,6 +122,34 @@
   margin-top: 12px;
 }
 
+/* Keep the optional hold below the existing charge choices without competing with their selection. */
+.charge-release-editor-delay {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 12px;
+}
+
+.charge-release-editor-delay input {
+  width: 90px;
+  min-width: 0;
+  padding: 5px 7px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  background: var(--bg-panel-alt);
+  color: var(--text);
+  font-family: var(--mono);
+}
+
+.charge-release-editor-delay-help {
+  margin-top: 6px;
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
 .charge-release-editor-actions button {
   padding: 6px 12px;
   border: 1px solid #45455a;

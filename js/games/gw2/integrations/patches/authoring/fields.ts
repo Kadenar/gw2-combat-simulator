@@ -107,7 +107,6 @@ const AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS = new Set([
   'ammoCastLockout',
   'atMs',
   'castTimeMs',
-  'commitAtMs',
   'firstPacketRatio',
   'initialDelay',
   'interruptCommitMs',

@@ -83,7 +83,7 @@ export function applySideEffect(
       for (const id of action.skillIds) {
         const skill = runtime.helpers.skillsById.get(id);
         if (!skill) throw new TypeError(`Unknown ammo restoration skill: ${id}.`);
-        runtime.cooldownController.restoreAmmo(skill, count, runtime.time, 'reset');
+        runtime.cooldownController.restoreAmmo(skill, count, runtime.time);
       }
 
       return;

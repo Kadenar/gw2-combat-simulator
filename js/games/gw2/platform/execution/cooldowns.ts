@@ -91,6 +91,8 @@ export function createCooldownController({
   };
 
   const syncAmmoCooldown = (skill: Skill, ammo: AmmoState, at: number): void => {
+    // Only the front charge is recharging; later spends never reset its progress.
+    ammo.nextRechargeAt = ammo.recharges.length ? project(skill, ammo.recharges[0]!) : null;
     // Derive availability from independent deadlines so returning a charge cannot erase a cast lockout.
     const activeLockout = ammo.lockoutReadyAt || 0;
     const readyAt = Math.max(
@@ -107,14 +109,14 @@ export function createCooldownController({
   /**
    * Lazily initializes ammo tracking for skills that use charges.
    */
-  const ensureAmmo = (skill: Skill, at = state.time): AmmoState | null => {
+  const ensureAmmo = (skill: Skill): AmmoState | null => {
     const maximum = Math.max(0, maximumAmmo(skill) || 0);
     if (!maximum) return null;
     if (!state.ammo.has(skill.id)) {
       state.ammo.set(skill.id, {
         charges: maximum,
         maximum,
-        rechargeWork: Math.max(0, rechargeDuration(skill, at) || 0) * rate(skill, at),
+        recharges: [],
         nextRechargeAt: null
       });
     }
@@ -127,82 +129,73 @@ export function createCooldownController({
    * depletion into the shared cooldown map.
    */
   const refreshAmmo = (skill: Skill, at: number): AmmoState | null => {
-    const ammo = ensureAmmo(skill, at);
+    const ammo = ensureAmmo(skill);
     if (!ammo) return null;
     if (ammo.lockoutProgress) ammo.lockoutReadyAt = project(skill, ammo.lockoutProgress);
-    if (ammo.nextRechargeAt != null && ammo.rechargeProgress)
-      ammo.nextRechargeAt = project(skill, ammo.rechargeProgress);
-    while (ammo.nextRechargeAt != null && gw2CooldownReadyAt(ammo.nextRechargeAt) <= at) {
-      const completedAt = gw2CooldownReadyAt(ammo.nextRechargeAt);
+    // Each skill regenerates one charge at a time, including magazines spent in one activation.
+    while (ammo.recharges.length) {
+      const completedAt = gw2CooldownReadyAt(project(skill, ammo.recharges[0]!));
+      if (completedAt > at) break;
       ammo.charges = Math.min(ammo.maximum, ammo.charges + 1);
-      // A serial charge begins recharging when the previous charge is detected as complete.
-      if (ammo.charges < ammo.maximum) {
-        ammo.rechargeProgress = {
-          startedAt: completedAt,
-          work: ammo.rechargeWork + Math.min(0, ammo.rechargeProgress?.work ?? 0)
-        };
-        ammo.nextRechargeAt = project(skill, ammo.rechargeProgress);
-      } else {
-        ammo.nextRechargeAt = null;
-        delete ammo.rechargeProgress;
-      }
+      ammo.recharges.shift();
+      const next = ammo.recharges[0];
+      if (next) next.startedAt = Math.max(next.startedAt, completedAt);
     }
+
+    if (ammo.charges >= ammo.maximum) ammo.recharges = [];
 
     syncAmmoCooldown(skill, ammo, at);
     return ammo;
   };
 
   /**
-   * Spends one charge and, when needed, starts the recharge timer.
+   * Spends one charge, queuing serial rounds behind the active recharge.
    */
   const spendAmmo = (skill: Skill, at: number, committedRechargeWork?: number): void => {
     const ammo = refreshAmmo(skill, at);
     if (!ammo || ammo.charges <= 0) return;
     ammo.charges -= 1;
-    if (ammo.nextRechargeAt == null) {
-      // A cast carries its selected recharge through completion; direct resource spends still query at their anchor.
-      ammo.rechargeWork = Math.max(0, committedRechargeWork ?? rechargeDuration(skill, at) * rate(skill, at));
-      ammo.rechargeProgress = { startedAt: at, work: ammo.rechargeWork };
-      ammo.nextRechargeAt = project(skill, ammo.rechargeProgress);
-    }
+    // A cast carries its selected recharge through completion; direct resource spends still query at their anchor.
+    const work = Math.max(0, committedRechargeWork ?? rechargeDuration(skill, at) * rate(skill, at));
+    ammo.recharges.push({ startedAt: at, work });
 
     syncAmmoCooldown(skill, ammo, at);
   };
 
-  /** Restores charges without erasing lockouts; callers choose whether a full pool retains recharge progress. */
-  const restoreAmmo = (skill: Skill, count: number, at: number, whenFull: 'retain' | 'reset'): number => {
+  /** Restore the last queued rounds first, preserving active progress and cast lockouts. */
+  const restoreAmmo = (skill: Skill, count: number, at: number): number => {
     const ammo = refreshAmmo(skill, at);
     if (!ammo) return 0;
     // Restore only available capacity; negative requests or an already-full pool grant nothing.
-    const restored = clamp(count || 0, 0, ammo.maximum - ammo.charges);
+    const restored = clamp(Math.floor(count || 0), 0, ammo.maximum - ammo.charges);
     if (!restored) return 0;
     ammo.charges += restored;
-    if (ammo.charges >= ammo.maximum && whenFull === 'reset') {
-      ammo.nextRechargeAt = null;
-      delete ammo.rechargeProgress;
-    }
+    ammo.recharges.splice(Math.max(0, ammo.recharges.length - restored));
 
     syncAmmoCooldown(skill, ammo, at);
     return restored;
   };
 
   /**
-   * Reduces serial count recharge, carrying overflow into later missing
-   * charges. Called through reduceSkillRecharge; returns the wall time recovered.
+   * Apply a reduction once across the recharge queue, carrying excess into waiting charges.
+   * Returns recovered wall time after applying the current recharge rate.
    */
   const reduceAmmoRecharge = (skill: Skill, requested: number, at: number): number => {
     const ammo = refreshAmmo(skill, at);
     if (!ammo || ammo.nextRechargeAt == null) return 0;
 
-    const missingCharges = Math.max(0, ammo.maximum - ammo.charges);
-    if (!ammo.rechargeProgress) throw new Error('An active ammo recharge requires base progress.');
-    const currentWork = remaining(skill, ammo.rechargeProgress, at) + Math.min(0, ammo.rechargeProgress.work);
-    const chargeWork = ammo.rechargeWork;
-    const remainingUntilFull = Math.max(0, currentWork + Math.max(0, missingCharges - 1) * chargeWork);
-    const reducedWork = Math.min(requested, remainingUntilFull);
-    // Negative work carries a single reduction through later missing charges at the same detection tick.
-    ammo.rechargeProgress = { startedAt: at, work: currentWork - reducedWork };
-    ammo.nextRechargeAt = project(skill, ammo.rechargeProgress);
+    let reducedWork = 0;
+    let remainingReduction = requested;
+    ammo.recharges = ammo.recharges.map((progress, index) => {
+      // Magazine reservations may precede their recharge anchor; reductions only affect timers already running.
+      if (progress.startedAt > at) return progress;
+      // Waiting rounds have not earned elapsed work; only excess reduction reaches their full interval.
+      const work = index === 0 ? remaining(skill, progress, at) : progress.work;
+      const reduction = Math.min(remainingReduction, work);
+      remainingReduction -= reduction;
+      reducedWork += reduction;
+      return { startedAt: index === 0 ? at : progress.startedAt, work: work - reduction };
+    });
     refreshAmmo(skill, at);
     return reducedWork / rate(skill, at);
   };
@@ -235,7 +228,7 @@ export function createCooldownController({
    * Applies base work for the short between-cast recharge independently from count recharge.
    */
   const setAmmoLockout = (skill: Skill, work: number, at = state.time): void => {
-    const ammo = ensureAmmo(skill, at);
+    const ammo = ensureAmmo(skill);
     if (!ammo) return;
     const progress = { startedAt: at, work: Math.max(0, work) };
     const projected = project(skill, progress);

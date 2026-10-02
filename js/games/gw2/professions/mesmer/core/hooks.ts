@@ -136,7 +136,7 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState, Mesm
     for (const skill of runtime.helpers.skills) {
       if (skill.armedAtStart && skill.flipParentId && Number(skill.ammo) > 0) {
         armSkillFlip(runtime.profession.core.availableFlips, skill.id, 0);
-        runtime.cooldownController.ensureAmmo(skill, 0);
+        runtime.cooldownController.ensureAmmo(skill);
       }
     }
 

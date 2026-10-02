@@ -199,12 +199,15 @@ export function completeNecromancerCorruption(runtime: NecromancerRuntime, cast:
   corruption(runtime, { skillId: cast.skill.id, activationId: cast.id });
 }
 
-/** Blood Is Power's launched opening still earns local work when cancellation precedes semantic commitment. */
+/** Blood Is Power applies local effects at launch, before its aftercast, without depending on target acceptance. */
 export function scheduleBloodIsPowerLaunch(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  if (!cast.cancelled) return;
   const first = cast.skill.effects?.find((effect) => effect.type === 'strike');
   const timing = first && scaleCastBoundTiming(cast, cast.skill, first);
-  if (timing?.type === 'strike' && cast.start + (effectFirstAtMs(timing) ?? 0) / 1000 <= cast.effectiveEnd)
+  const launchAt = timing?.type === 'strike' ? canonicalTime(cast.start + (effectFirstAtMs(timing) ?? 0) / 1000) : null;
+  if (launchAt != null && launchAt <= cast.effectiveEnd)
+    runtime.schedule(CORRUPTION, launchAt, { skillId: cast.skill.id, activationId: cast.id });
+  // Removing the strike must not remove a successfully committed cast's independent self-conditions or boons.
+  else if (!cast.cancelled)
     runtime.schedule(CORRUPTION, cast.effectiveEnd, { skillId: cast.skill.id, activationId: cast.id });
 }
 

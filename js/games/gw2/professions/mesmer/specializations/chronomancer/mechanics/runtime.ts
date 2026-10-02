@@ -35,7 +35,7 @@ export function initializeChronomancerRuntime(context: MesmerRuntime): void {
     phantasmPolicy: chronophantasmaPolicy(context)
   });
   for (const skill of context.helpers.skills) {
-    context.cooldownController.ensureAmmo(skill, 0);
+    context.cooldownController.ensureAmmo(skill);
   }
 
   const continuumSplitProfile = requireBalanceProfileFromContext(context, PROFILE.continuumSplit);

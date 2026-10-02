@@ -132,6 +132,7 @@ function enterDragonTrigger(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): 
   state.dragonChargesPerInterval = state.tacticalReloadUntil > 0 && runtime.time < state.tacticalReloadUntil ? 2 : 1;
   if (state.dragonChargesPerInterval > 1) state.tacticalReloadUntil = 0;
   state.dragonChargeTickCount = 0;
+  state.dragonChargeReachedAt = [];
   state.dragonTriggerFlowSpent = 0;
   state.dragonTriggerEventActivationId = cast.id;
   scheduleCharge(runtime);
@@ -167,6 +168,19 @@ function enterDragonTrigger(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): 
 function chargeTick(runtime: Runtime, identity: unknown): void {
   const state = bladeswornState.from(runtime);
   if (!state.dragonTriggerActive || state.dragonTriggerEventActivationId !== identity) return;
+  // A pending delayed release holds its selected charges without spending Flow; the ordinary clock still advances.
+  const pending = runtime.cursor.command;
+  if (
+    pending?.type === 'cast' &&
+    Number(pending.releaseDelayMs) > 0 &&
+    runtime.helpers.skillsById.get(pending.skillId)?.dragonSlash &&
+    state.dragonCharges >= requestedDragonCharges({ command: pending }, maximumDragonCharges(runtime))
+  ) {
+    state.dragonChargeTickCount++;
+    scheduleCharge(runtime);
+    return;
+  }
+
   const cost = state.dragonChargeTickCount === 0 ? 0 : dragonFlowPerInterval(runtime);
   const granted = state.flow + EPSILON >= cost;
   const before = state.dragonCharges;
@@ -174,6 +188,9 @@ function chargeTick(runtime: Runtime, identity: unknown): void {
     state.flow = Math.max(0, state.flow - cost);
     state.dragonTriggerFlowSpent += cost;
     state.dragonCharges = Math.min(maximumDragonCharges(runtime), state.dragonCharges + state.dragonChargesPerInterval);
+    for (let charge = before + 1; charge <= state.dragonCharges; charge++) {
+      state.dragonChargeReachedAt[charge] = runtime.time;
+    }
   }
 
   state.dragonChargeTickCount++;
@@ -266,6 +283,20 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState, War
           'warrior.dragon-trigger-charging',
           `Dragon Trigger is charging to ${requested} charges.`
         );
+      }
+
+      // Anchor the hold to the actual selected threshold, so retries cannot restart it or bypass Flow stalls.
+      if (Number(command.releaseDelayMs) > 0) {
+        const reachedAt = state.dragonChargeReachedAt[requested];
+        if (reachedAt == null) throw new TypeError('A delayed Dragon Slash requires its observed charge threshold.');
+        const releaseAt = canonicalTime(reachedAt + command.releaseDelayMs! / 1000);
+        if (releaseAt > state.dragonTriggerChargeDeadline)
+          return denyCast(
+            'warrior.dragon-trigger-delay',
+            'The additional release delay exceeds Dragon Trigger\'s duration.'
+          );
+        if (runtime.time < releaseAt)
+          return retryCast(releaseAt, 'warrior.dragon-trigger-delay', 'Holding Dragon Slash before release.');
       }
     }
 

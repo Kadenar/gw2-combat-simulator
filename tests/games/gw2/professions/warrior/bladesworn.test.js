@@ -6,6 +6,7 @@ import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warr
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Exercise the registered family with one live Core and specialization owner.
 function run(rotation, overrides = {}, source = warriorProfession, output = 'detailed') {
@@ -198,6 +199,39 @@ test('Gunsaber entry traits respect actual combat and explicit precombat does no
   assert.ok(active.resolvedEvents.some((event) => event.sourceId === TRAIT.UNSEEN_SWORD && event.type === 'damage'));
   close(state(active).flow, 30);
   assert.equal(state(active).traitPositiveFlowUntil, 0);
+});
+
+test('Unseen Sword defers impact without delaying its entry rewards or extending the observation window', () => {
+  // Both entry paths queue the strike independently of the immediate Flow grant and trait cooldown.
+  for (const entry of ['Unsheathe Gunsaber', 'Dragon Trigger']) {
+    const config = { initialResource: 100, selectedTraitIds: [TRAIT.UNSEEN_SWORD] };
+    const before = run([combat, entry, wait(719)], config);
+    assert.deepEqual(before.warnings, []);
+    assert.equal(
+      before.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === 62847),
+      false
+    );
+    close(before.observationEndTime, 0.719);
+    assert.equal(state(before).traitPositiveFlowUntil, 5);
+    assert.equal(observedRuntime(before).procs.deadline('warrior.bladesworn.gunsaberSwapTrait'), 4);
+    const impact = run([combat, entry, wait(720)], config);
+    const hits = impact.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === 62847);
+    assert.equal(hits.length, 1);
+    close(hits[0].at, 0.72);
+    assert.equal(impact.procSteps.find((proc) => proc.skill === 'Unseen Sword').start, 0);
+  }
+});
+
+test('Unseen Sword evaluates a relic bonus gained between entry and impact', () => {
+  // A shadowstep during the pending strike must empower the impact, rather than snapshot entry-time modifiers.
+  const rotation = [combat, 'Dragon Trigger', 'Flicker Step', wait(720)];
+  const config = { initialResource: 100, selectedTraitIds: [TRAIT.UNSEEN_SWORD] };
+  const plain = run(rotation, config);
+  const empowered = run(rotation, { ...config, relic: 'Peitha' });
+  assert.deepEqual(empowered.warnings, []);
+  const damage = (result) => result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === 62847);
+  close(damage(empowered).at, 0.72);
+  assertFlooredDamageMultiplier(damage(empowered).damage, damage(plain).damage, 1.1);
 });
 
 test('Gunsaber entry grants the selected party boon and resets Martial Cadence without ordinary swap rewards', () => {
@@ -427,6 +461,49 @@ test('Tactical Reload restores existing ammunition and doubles charges only for 
     [2, 4, 6, 8, 10]
   );
   assert.equal(result.events.find((event) => event.reason === 'profession mechanic').flowSpent, 20);
+});
+
+// Reloading a full magazine clears old progress; a partial refill keeps the earliest missing charge.
+test('Tactical Reload clears full Cartridges recharge and restores the longest timer when depleted', () => {
+  const cartridges = 'Overcharged Cartridges';
+  const reload = 'Tactical Reload';
+  const config = { selectedSkills: [cartridges, reload] };
+  const initial = run([cartridges], config);
+  const firstDeadline = observedRuntime(initial).ammo.get(ID.OVERCHARGED_CARTRIDGES).nextRechargeAt;
+
+  const full = run([cartridges, wait(4000), reload], config);
+  const fullAmmo = observedRuntime(full).ammo.get(ID.OVERCHARGED_CARTRIDGES);
+  assert.deepEqual(full.warnings, []);
+  assert.equal(fullAmmo.charges, 2);
+  assert.equal(fullAmmo.nextRechargeAt, null);
+  assert.deepEqual(fullAmmo.recharges, []);
+
+  const spentAgain = run([cartridges, wait(4000), reload, wait(4000), cartridges], config);
+  const newAmmo = observedRuntime(spentAgain).ammo.get(ID.OVERCHARGED_CARTRIDGES);
+  const lastCast = spentAgain.events.findLast(
+    (event) => event.type === 'action' && event.skillId === ID.OVERCHARGED_CARTRIDGES
+  );
+  assert.deepEqual(spentAgain.warnings, []);
+  assert.equal(newAmmo.recharges.length, 1);
+  close(newAmmo.nextRechargeAt, lastCast.rechargeProgress.startedAt + 16);
+  assert.ok(newAmmo.nextRechargeAt > firstDeadline);
+
+  const partial = run([cartridges, cartridges, wait(4000), reload], config);
+  const partialAmmo = observedRuntime(partial).ammo.get(ID.OVERCHARGED_CARTRIDGES);
+  assert.deepEqual(partial.warnings, []);
+  assert.equal(partialAmmo.charges, 1);
+  assert.equal(partialAmmo.recharges.length, 1);
+  close(partialAmmo.nextRechargeAt, firstDeadline);
+});
+
+// Spending a magazine reserves recharge work for every consumed round in the sequential queue.
+test('Artillery Slash queues recharge for all rounds spent together', () => {
+  const result = run(['Unsheathe Gunsaber', 'Artillery Slash']);
+  const ammo = observedRuntime(result).ammo.get(ID.ARTILLERY_SLASH);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(ammo.charges, 0);
+  assert.equal(ammo.recharges.length, ammo.maximum);
+  assert.ok(ammo.recharges.every((progress) => progress.startedAt === ammo.recharges[0].startedAt));
 });
 
 test('Dragonspike resets exit recharge and an old expiry cannot close a replacement charge window', () => {

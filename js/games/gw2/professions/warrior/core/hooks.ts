@@ -56,8 +56,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState, Wa
     },
     'warrior.rifle-restock'(runtime, context) {
       for (const skill of runtime.helpers.skills) {
-        if (skill.weapon === 'Rifle' && skill.ammo)
-          runtime.cooldownController.restoreAmmo(skill, 1, runtime.time, 'reset');
+        if (skill.weapon === 'Rifle' && skill.ammo) runtime.cooldownController.restoreAmmo(skill, 1, runtime.time);
       }
 
       // Gun Flame exists only in Berserker's catalog; reset the available bursts through the shared action.

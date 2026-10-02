@@ -64,6 +64,7 @@ export interface RotationActionOptions {
   readonly concurrentOffsetMs?: number | null;
   readonly interruptAfterMs?: number | null;
   readonly releaseAtCharges?: number | null;
+  readonly releaseDelayMs?: number | null;
   readonly doubleEdgeOutcome?: 'success' | 'backfire' | null;
   readonly durationMs?: number | null;
 }

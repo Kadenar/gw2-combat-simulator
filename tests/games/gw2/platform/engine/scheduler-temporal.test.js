@@ -6,28 +6,115 @@ import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 
-// Reloading to full may retain a pending timer, but neither policy may erase a cast lockout.
-test('ammo restoration preserves lockouts and explicitly retains or resets full-pool recharge', () => {
-  for (const policy of ['retain', 'reset']) {
-    const skill = { id: 980012, ammo: 2 };
+// A full reload clears pending charges while the independent cast lockout survives.
+test('ammo restoration resets full-pool recharge without erasing cast lockouts', () => {
+  const skill = { id: 980012, ammo: 2 };
+  const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
+  const controller = createCooldownController({ state, rechargeDuration: () => 10 });
+  controller.spendAmmo(skill, 0);
+  controller.spendAmmo(skill, 0);
+  controller.setAmmoLockout(skill, 5, 0);
+  assert.equal(controller.restoreAmmo(skill, -1, 1), 0);
+  assert.equal(controller.restoreAmmo(skill, 1, 1), 1);
+  assert.equal(state.cooldowns.get(skill.id), 5);
+  assert.equal(state.ammo.get(skill.id).nextRechargeAt, 10);
+  assert.equal(controller.restoreAmmo(skill, 20, 2), 1);
+  assert.equal(state.cooldowns.get(skill.id), 5);
+  assert.deepEqual(state.ammo.get(skill.id).recharges, []);
+  assert.equal(state.ammo.get(skill.id).nextRechargeAt, null);
+  assert.equal(controller.restoreAmmo(skill, 1, 3), 0);
+  controller.spendAmmo(skill, 6);
+  assert.equal(controller.refreshAmmo(skill, 10).charges, 1);
+  assert.equal(controller.refreshAmmo(skill, 16).charges, 2);
+  assert.equal(controller.restoreAmmo({ id: 980013 }, 1, 16), 0);
+});
+
+// Staggered spends share one recharge queue; partial restoration preserves the active timer.
+test('ammo charges recover sequentially and partial restoration preserves active progress', () => {
+  for (const reload of [false, true]) {
+    const skill = { id: 980014, ammo: 2 };
     const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
-    const controller = createCooldownController({ state, rechargeDuration: () => 10 });
-    controller.spendAmmo(skill, 0);
-    controller.spendAmmo(skill, 0);
-    controller.setAmmoLockout(skill, 5, 0);
-    assert.equal(controller.restoreAmmo(skill, -1, 1, policy), 0);
-    assert.equal(controller.restoreAmmo(skill, 1, 1, policy), 1);
-    assert.equal(state.cooldowns.get(skill.id), 5);
-    assert.equal(state.ammo.get(skill.id).nextRechargeAt, 10);
-    assert.equal(controller.restoreAmmo(skill, 20, 2, policy), 1);
-    assert.equal(state.cooldowns.get(skill.id), 5);
-    assert.equal(state.ammo.get(skill.id).nextRechargeAt, policy === 'retain' ? 10 : null);
-    assert.equal(controller.restoreAmmo(skill, 1, 3, policy), 0);
-    controller.spendAmmo(skill, 6);
-    assert.equal(controller.refreshAmmo(skill, 10).charges, policy === 'retain' ? 2 : 1);
-    assert.equal(controller.refreshAmmo(skill, 16).charges, 2);
-    assert.equal(controller.restoreAmmo({ id: 980013 }, 1, 16, policy), 0);
+    const controller = createCooldownController({
+      state,
+      rechargeDuration: () => 16,
+      rechargeIntervals: (_skill, start, end) => [{ start, end, rate: 1.25 }]
+    });
+    controller.spendAmmo(skill, 0.6);
+    controller.spendAmmo(skill, 1.6);
+    const ammo = state.ammo.get(skill.id);
+    assert.equal(ammo.nextRechargeAt, 16.6);
+    if (reload) {
+      assert.equal(controller.restoreAmmo(skill, 1, 5), 1);
+      assert.equal(ammo.charges, 1);
+      assert.deepEqual(ammo.recharges, [{ startedAt: 0.6, work: 20 }]);
+      assert.equal(ammo.nextRechargeAt, 16.6);
+    }
+
+    assert.equal(controller.refreshAmmo(skill, 16.599).charges, reload ? 1 : 0);
+    assert.equal(controller.refreshAmmo(skill, 16.6).charges, reload ? 2 : 1);
+    assert.equal(ammo.nextRechargeAt, reload ? null : 32.6);
+    assert.equal(controller.refreshAmmo(skill, 17.6).charges, reload ? 2 : 1);
+    assert.equal(controller.refreshAmmo(skill, 32.6).charges, 2);
+    assert.deepEqual(ammo.recharges, []);
   }
+});
+
+// Spending a restored round queues its full interval behind the active recharge.
+test('a partially restored charge waits for the active recharge when spent again', () => {
+  const skill = { id: 980016, ammo: 2 };
+  const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
+  const controller = createCooldownController({
+    state,
+    rechargeDuration: () => 16,
+    rechargeIntervals: (_skill, start, end) => [{ start, end, rate: 1.25 }]
+  });
+  controller.spendAmmo(skill, 0.6);
+  controller.spendAmmo(skill, 1.6);
+  controller.restoreAmmo(skill, 1, 8);
+  controller.spendAmmo(skill, 9);
+  assert.equal(state.ammo.get(skill.id).nextRechargeAt, 16.6);
+  assert.equal(controller.refreshAmmo(skill, 17.6).charges, 1);
+  assert.equal(controller.refreshAmmo(skill, 25).charges, 1);
+  assert.equal(controller.refreshAmmo(skill, 32.6).charges, 2);
+});
+
+// Recharge-rate windows advance only the active charge; queued charges cannot bank elapsed progress.
+test('queued charges preserve active progress across recharge rate changes', () => {
+  const skill = { id: 980017, ammo: 2 };
+  const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
+  const controller = createCooldownController({
+    state,
+    rechargeDuration: () => 10,
+    rechargeIntervals: (_skill, start, end) =>
+      [
+        { start: 0, end: 4, rate: 1 },
+        { start: 4, end: 8, rate: 1.25 },
+        { start: 8, end: Infinity, rate: 1 }
+      ]
+        .map((interval) => ({ ...interval, start: Math.max(start, interval.start), end: Math.min(end, interval.end) }))
+        .filter((interval) => interval.end > interval.start)
+  });
+  controller.spendAmmo(skill, 0);
+  controller.spendAmmo(skill, 2);
+  assert.equal(controller.refreshAmmo(skill, 8).charges, 0);
+  assert.equal(controller.refreshAmmo(skill, 9).charges, 1);
+  assert.equal(state.ammo.get(skill.id).nextRechargeAt, 19);
+  assert.equal(controller.refreshAmmo(skill, 11).charges, 1);
+  assert.equal(controller.refreshAmmo(skill, 19).charges, 2);
+});
+
+// Different committed recharge durations do not reorder the queue or replace active progress.
+test('restoration removes queued charges even when later charges have shorter recharge', () => {
+  const skill = { id: 980015, ammo: 3 };
+  const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
+  const controller = createCooldownController({ state, rechargeDuration: () => 20 });
+  controller.spendAmmo(skill, 0, 20);
+  controller.spendAmmo(skill, 1, 10);
+  controller.spendAmmo(skill, 2, 5);
+  assert.equal(controller.restoreAmmo(skill, 2, 3), 2);
+  assert.deepEqual(state.ammo.get(skill.id).recharges, [{ startedAt: 0, work: 20 }]);
+  assert.equal(controller.refreshAmmo(skill, 7).charges, 2);
+  assert.equal(controller.refreshAmmo(skill, 20).charges, 3);
 });
 
 // Shared control markers carry explicit ownership even when the rotation has no skill casts.
@@ -43,45 +130,28 @@ test('combat-start and cooldown-reset markers declare environment ownership', ()
   }
 });
 
-test('ammo recharge reductions carry overflow until maximum charges', () => {
+// Flat reductions consume work once, carrying excess to the next charge and capping at a full pool.
+test('ammo recharge reductions advance the queue without multiplying progress', () => {
   const skill = { id: 980000, ammo: 3, ammoRecharge: 12 };
-  const state = {
-    time: 0,
-    ammo: new Map(),
-    rechargeProgress: new Map(),
-    cooldowns: new Map()
-  };
-  const controller = createCooldownController({
-    state,
-    rechargeDuration: () => 12
-  });
-
+  const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
+  const controller = createCooldownController({ state, rechargeDuration: () => 12 });
   controller.spendAmmo(skill, 0);
-  controller.spendAmmo(skill, 0);
-  controller.spendAmmo(skill, 0);
+  controller.spendAmmo(skill, 4);
+  controller.spendAmmo(skill, 8);
 
-  const zeroToOne = controller.reduceSkillRecharge(skill, 1, 11.3);
-
-  assert.equal(zeroToOne, 1);
-  assert.equal(state.ammo.get(skill.id).charges, 0);
-  controller.refreshAmmo(skill, 11.32);
+  assert.equal(controller.reduceSkillRecharge(skill, 2, 11), 2);
   assert.equal(state.ammo.get(skill.id).charges, 1);
-  assert.equal(Math.round(state.ammo.get(skill.id).nextRechargeAt * 1000), 23020);
+  assert.equal(state.ammo.get(skill.id).nextRechargeAt, 22);
   assert.equal(state.cooldowns.has(skill.id), false);
 
-  const oneToTwo = controller.reduceSkillRecharge(skill, 5, 20);
-
-  assert.equal(oneToTwo, 5);
-  assert.equal(state.ammo.get(skill.id).charges, 2);
-  assert.equal(Math.round(state.ammo.get(skill.id).nextRechargeAt * 1000), 30020);
-
-  const twoToThree = controller.reduceSkillRecharge(skill, 5, 29);
-
-  assert.equal(Math.round(twoToThree * 1000), 1020);
+  assert.equal(controller.reduceSkillRecharge(skill, 2, 13), 2);
+  assert.equal(state.ammo.get(skill.id).charges, 1);
+  assert.equal(state.ammo.get(skill.id).nextRechargeAt, 20);
+  assert.equal(controller.reduceSkillRecharge(skill, 20, 15), 17);
   assert.deepEqual(state.ammo.get(skill.id), {
     charges: 3,
     maximum: 3,
-    rechargeWork: 12,
+    recharges: [],
     nextRechargeAt: null
   });
 });
@@ -100,8 +170,8 @@ test('ammo recharge reduction preserves independent cast lockouts', () => {
     assert.equal(state.ammo.get(skill.id).charges, 0);
     assert.equal(state.cooldowns.get(skill.id), Math.max(lockout, 8));
 
-    controller.reduceSkillRecharge(skill, 8, 1);
-    assert.equal(state.ammo.get(skill.id).charges, 1);
+    controller.reduceSkillRecharge(skill, 18, 1);
+    assert.equal(state.ammo.get(skill.id).charges, 2);
     assert.equal(state.cooldowns.get(skill.id) ?? 0, lockout);
     controller.refreshAmmo(skill, Math.max(1, lockout));
     assert.equal(state.cooldowns.has(skill.id), false);

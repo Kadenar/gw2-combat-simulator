@@ -2,6 +2,9 @@ import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
+// The field and its pulses share an application time independent of the cast's page payment.
+const scorchedAftermathApplicationMs = 440;
+
 /**
  * Owns Firebrand tome and tome-page skill fragments.
  * Persistent tome page state and behavior remain under `mechanics/`.
@@ -9,18 +12,26 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 
 export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SCORCHED_AFTERMATH]: {
-    // Debit on commitment before the earned Swift Scholar refund.
+    // Debit on commitment before the earned Swift Scholar refund, like the other tome skills.
     resourceCost: 1,
     cost: { resource: 'tomePages', spendOn: 'castCommit' },
     castTimeMs: 920,
     // The Fire combo field lasts four seconds from the first pulse.
-    comboFields: [{ ownerId: 'guardian', fieldType: 'Fire', duration: 4, startMs: 440, startAnchor: 'castStart' }],
+    comboFields: [
+      {
+        ownerId: 'guardian',
+        fieldType: 'Fire',
+        duration: 4,
+        startMs: scorchedAftermathApplicationMs,
+        startAnchor: 'castStart'
+      }
+    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [440, 1440, 2440, 3440, 4440].map((atMs) => ({
-          atMs,
+        ticks: [0, 1000, 2000, 3000, 4000].map((offsetMs) => ({
+          atMs: scorchedAftermathApplicationMs + offsetMs,
           coefficient: 0.64
         }))
       },
@@ -31,9 +42,9 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
           { condition: 'Bleeding', duration: 5 }
         ] as const
       ).flatMap(({ condition, duration }) =>
-        [440, 1440, 2440, 3440, 4440].map((atMs) => ({
+        [0, 1000, 2000, 3000, 4000].map((offsetMs) => ({
           type: 'condition' as const,
-          ticks: [{ atMs, condition, stacks: 1, duration }]
+          ticks: [{ atMs: scorchedAftermathApplicationMs + offsetMs, condition, stacks: 1, duration }]
         }))
       )
     ])

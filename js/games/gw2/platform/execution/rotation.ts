@@ -85,6 +85,8 @@ function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup | null 
   const interrupt = candidate.interruptAfterMs ?? candidate.interruptMs;
   const initialStateDuration = candidate.initialStateDurationMs;
   const releaseAtCharges = candidate.releaseAtCharges;
+  const releaseDelay =
+    candidate.releaseDelayMs == null ? 0 : finiteMilliseconds(candidate.releaseDelayMs, 'Release delay');
   const doubleEdgeOutcome = candidate.doubleEdgeOutcome;
   const offTarget = candidate.offTarget;
   const impactDelay = candidate.impactDelayMs == null ? 0 : finiteMilliseconds(candidate.impactDelayMs, 'Impact delay');
@@ -127,7 +129,9 @@ function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup | null 
       : {
           releaseAtCharges: positiveInteger(releaseAtCharges, 'Release-at charge count')
         }),
-    ...(doubleEdgeOutcome == null ? {} : { doubleEdgeOutcome })
+    ...(doubleEdgeOutcome == null ? {} : { doubleEdgeOutcome }),
+    // An absent or zero hold retains the ordinary charge-release behavior.
+    ...(releaseDelay > 0 ? { releaseDelayMs: releaseDelay } : {})
   };
 }
 

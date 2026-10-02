@@ -31,7 +31,7 @@ export function prepareMesmerMantra(context: MesmerRuntime, flipId: number): voi
   armSkillFlip(context.profession.core.availableFlips, flipId, context.time);
   context.ammo.delete(flipId);
   context.cooldownController.clear(flipId);
-  context.cooldownController.ensureAmmo(flip, context.time);
+  context.cooldownController.ensureAmmo(flip);
 }
 
 /** Exhausting the final mantra charge closes its flip and discards the spent pool atomically. */

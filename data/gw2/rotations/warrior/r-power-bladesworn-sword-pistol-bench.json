@@ -5,7 +5,7 @@
     "benchmarkDamage": 3972566,
     "benchmarkDps": 41534.92116599055,
     "timingSource": "User-adjusted EVTC reconstruction",
-    "note": "Includes precombat Fierce as Fire stacking and a cooldown reset, with the 80 ms wait before Overcharged Cartridges to preserve its buff window."
+    "note": "Includes precombat Fierce as Fire stacking and a cooldown reset, with the 80 ms wait before Overcharged Cartridges to preserve its buff window. Updated from warrior-rotation (1).json with the restored Flicker Step and revised opener Flow Stabilizer timing."
   },
   "rotation": [
     {
@@ -58,16 +58,16 @@
     },
     {
       "type": "cast",
+      "skillId": 62967,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
       "skillId": 14401
     },
     {
       "type": "cast",
       "skillId": 68085
-    },
-    {
-      "type": "cast",
-      "skillId": 62967,
-      "concurrentOffsetMs": 120
     },
     {
       "type": "cast",
@@ -253,7 +253,7 @@
     {
       "type": "cast",
       "skillId": 62926,
-      "concurrentOffsetMs": 2400
+      "concurrentOffsetMs": 2200
     },
     {
       "type": "cast",

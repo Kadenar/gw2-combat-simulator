@@ -30,7 +30,6 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
   [ID.GRASPING_DARKNESS]: {
     // The projectile commits after 120 ms, so its delayed hit and attached effects survive later interruption.
     interruptCommitMs: 120,
-    commitAtMs: 120,
     castTimeMs: 520,
     lifeForceOnHit: 10,
     // Share this impact's timing while preserving independent payloads and declaration order.

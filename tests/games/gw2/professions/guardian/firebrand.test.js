@@ -180,6 +180,31 @@ test('stowing during the third tome skill preserves its earned Swift Scholar ref
   );
 });
 
+test('Scorched Aftermath pays on completion after an overlapping mantra refund is capped', () => {
+  // A refund during the cast sees the full pool; only successful completion spends the chapter's page.
+  for (const selectedTraitIds of [[], [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS]]) {
+    const simulate = createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      specialization: 'Firebrand',
+      initialTomePages: 5,
+      selectedTraitIds
+    });
+    const prefix = ['Flame Rush', 'Flame Rush', { type: 'wait', durationMs: 1000 }, 'Tome of Justice'];
+    const before = simulate(undefined, [...prefix, 'Chapter 4: Scorched Aftermath']);
+    const after = simulate(undefined, [
+      ...prefix,
+      'Chapter 4: Scorched Aftermath',
+      { name: 'Flame Surge', offset: 600 }
+    ]);
+    assert.deepEqual(before.warnings, []);
+    assert.deepEqual(after.warnings, []);
+    assert.equal(before.planningState.profession.tomePages.value, 4);
+    assert.equal(after.planningState.profession.tomePages.value, 4);
+    const cancelled = simulate(undefined, [...prefix, { name: 'Chapter 4: Scorched Aftermath', interruptAfterMs: 1 }]);
+    assert.equal(cancelled.planningState.profession.tomePages.value, 5);
+  }
+});
+
 for (const initialTomePages of [1, 5]) {
   test(`an overlapping mantra refunds pages before the tome cost with ${initialTomePages} initial pages`, () => {
     // Refunds use the still-unspent pool, including its cap, before completion can exhaust the tome.

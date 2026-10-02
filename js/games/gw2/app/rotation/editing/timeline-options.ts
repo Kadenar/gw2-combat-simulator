@@ -93,11 +93,12 @@ function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Ev
     insertionIndex: index,
     currentReleaseAtCharges: item.releaseAtCharges == null ? null : Number(item.releaseAtCharges),
     command: item.command.type === 'cast' ? item.command : undefined,
-    onApply(releaseAtCharges) {
+    onApply(releaseAtCharges, releaseDelayMs) {
       const currentEntry = app.build.rotation[index];
       if (currentEntry !== entry) return;
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
-        releaseAtCharges
+        releaseAtCharges,
+        releaseDelayMs
       });
       app.changed(false);
     }

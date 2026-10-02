@@ -90,8 +90,7 @@ cooldowns, and dynamic state are separate checks.
 
 Generated API metadata carries identity and presentation only, never coefficients or conditions. Skill files hold the
 authoritative ID-keyed declarative fields; there is no production-wide skill aggregate, and tests compose inventories
-under `tests/`. The full list of file roles inside a profession is in
-[MODULES.md](./MODULES.md#profession-file-roles).
+under `tests/`. The full list of file roles inside a profession is in [MODULES.md](./MODULES.md#profession-file-roles).
 
 ### Authoring workflow
 
@@ -112,11 +111,12 @@ default to no-op or identity behavior. A module with only declarative skill data
 
 - `planningState.availability` captures the composed runtime profession gate for each player-castable candidate and its
   default command. It is detached, excludes scheduler cooldown/lane checks, and is omitted from score runs. Retry times
-  are absolute seconds for reevaluation, not guaranteed cast times. The palette reports startup as unevaluated and denies
-  missing entries in completed observations.
+  are absolute seconds for reevaluation, not guaranteed cast times. The palette reports startup as unevaluated and
+  denies missing entries in completed observations.
 - Optional `paletteOverride(context, skill)` separates shared-tile identity (`tileActive`), proven authoring insertion
-  exceptions (`available`, `message`), and command-editor access (`editorAccess`). Core, elite, and family fields merge in
-  that order; none bypass build eligibility. See [PALETTE-RUNTIME-AVAILABILITY.md](../cleanup/PALETTE-RUNTIME-AVAILABILITY.md).
+  exceptions (`available`, `message`), and command-editor access (`editorAccess`). Core, elite, and family fields merge
+  in that order; none bypass build eligibility. See
+  [PALETTE-RUNTIME-AVAILABILITY.md](../cleanup/PALETTE-RUNTIME-AVAILABILITY.md).
 - Event presenters return `{ type, description, className, order, flags }`; null hides an event and undefined delegates.
 
 ### Families
@@ -128,8 +128,8 @@ normalized catalog and attribute metadata to application consumers; it does not 
 - State shape: `{ core, specialization: { kind, state } }` — a plain object, no proxies. Core mechanics use `core`;
   elite mechanics validate and use only the active specialization state.
 - `createProfessionFamilyUi()` is more lenient: an unknown/Core-trait-line/missing name selects Core. Lists compose Core
-  then elite, palette overrides refine individual fields, presenters delegate on `undefined`, and selection replacement asks the
-  elite first.
+  then elite, palette overrides refine individual fields, presenters delegate on `undefined`, and selection replacement
+  asks the elite first.
 - Modifier rules: modules contribute inert `modifiers.modifierRules`; exactly one module supplies
   `compileModifierRules`, and the family compiles Core + active elite once, preserving the single additive-damage
   bucket.
@@ -146,6 +146,10 @@ same rewards as full casts; cancelled attempts dispatch only `onCastCancel` for 
 uses the actual cast end, while `castEnd` retains the reserved full end. Named tasks carry detached payloads on the
 common heap. Resolved-hit, condition, boon, combo, and control reactions see the same live profession state as the next
 command. Critical effects reuse the hit's actual outcome and claim one ICD; no scheduling prediction exists.
+
+Skill costs are checked for affordability at acceptance and paid automatically at `castStart` (the default) or
+`castCommit`. Successful completion pays committed costs before completion rewards, including page refunds. Firebrand
+tome skills, including Scorched Aftermath, use `castCommit`; their field and damage timings do not control page payment.
 
 ## Runtime and simulation
 
@@ -222,11 +226,11 @@ Explicit numeric strength, flat damage, conditions, and profile-less summon form
 
 ## Skills and rotations
 
-Behavior keys on stable IDs. The catalog merges generated metadata, mechanics, overrides, and extra skills, then
-rejects duplicate IDs, unknown skill fields, missing parents or variant profiles, invalid effects or slots, and
-unavailable weapon metadata. Imperative behavior lives in module hooks, not in the catalog. Display-name lookup is used
-only when normalizing rotation input that names skills (see [Rotation commands](#rotation-commands)). Profession catalogs
-own exact `weaponHands`; shared weapon data owns broad capabilities; app adapters combine both.
+Behavior keys on stable IDs. The catalog merges generated metadata, mechanics, overrides, and extra skills, then rejects
+duplicate IDs, unknown skill fields, missing parents or variant profiles, invalid effects or slots, and unavailable
+weapon metadata. Imperative behavior lives in module hooks, not in the catalog. Display-name lookup is used only when
+normalizing rotation input that names skills (see [Rotation commands](#rotation-commands)). Profession catalogs own
+exact `weaponHands`; shared weapon data owns broad capabilities; app adapters combine both.
 
 Skills and balance profiles are open records today, so field names are checked by runtime lists rather than types; see
 [SKILL-CATALOG-FIELDS.md](../cleanup/SKILL-CATALOG-FIELDS.md).

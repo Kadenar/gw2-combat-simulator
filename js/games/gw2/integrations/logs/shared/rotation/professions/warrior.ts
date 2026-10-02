@@ -1,6 +1,9 @@
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { dragonChargesForDurationMs } from '#gw2/professions/warrior/data/dragon-charges.js';
+import {
+  dragonChargesForDurationMs,
+  dragonChargeTickOffsetSeconds
+} from '#gw2/professions/warrior/data/dragon-charges.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
 
 import type {
@@ -37,6 +40,7 @@ function reconstructDragonTriggerActions(actions: readonly RecordedLogAction[]):
   );
   let tacticalReloadUntil = Number.NEGATIVE_INFINITY;
   let pendingReleaseAtCharges: number | null = null;
+  let pendingReleaseDelayMs = 0;
 
   return filtered.map((action) => {
     if (action.rawSkillId === ID.TACTICAL_RELOAD) {
@@ -50,13 +54,21 @@ function reconstructDragonTriggerActions(actions: readonly RecordedLogAction[]):
       const replayDurationMs = quantizeGw2ActionTimingMs(action.end - action.start);
       pendingReleaseAtCharges =
         replayDurationMs > 0 ? dragonChargesForDurationMs(replayDurationMs, 10, tacticalReload ? 2 : 1) : null;
+      // Keep observed time beyond the inferred charge threshold as a hold, not a slower charge interval.
+      const chargeMs =
+        pendingReleaseAtCharges == null
+          ? replayDurationMs
+          : dragonChargeTickOffsetSeconds(Math.ceil(pendingReleaseAtCharges / (tacticalReload ? 2 : 1))) * 1000;
+      pendingReleaseDelayMs = Math.max(0, replayDurationMs - chargeMs);
       return replayDurationMs > 0 ? { ...action, replayDurationMs } : action;
     }
 
     if (DRAGON_SLASH_IDS.has(action.rawSkillId) && pendingReleaseAtCharges != null) {
       const releaseAtCharges = pendingReleaseAtCharges;
+      const releaseDelayMs = pendingReleaseDelayMs;
       pendingReleaseAtCharges = null;
-      return { ...action, releaseAtCharges };
+      pendingReleaseDelayMs = 0;
+      return { ...action, releaseAtCharges, ...(releaseDelayMs > 0 ? { releaseDelayMs } : {}) };
     }
 
     return action;

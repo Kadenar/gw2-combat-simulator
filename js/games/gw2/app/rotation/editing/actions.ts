@@ -62,6 +62,7 @@ export function createRotationItem(
     ...(options.concurrentOffsetMs == null ? {} : { concurrentOffsetMs: options.concurrentOffsetMs }),
     ...(interruptAfterMs == null ? {} : { interruptAfterMs }),
     ...(options.releaseAtCharges == null ? {} : { releaseAtCharges: options.releaseAtCharges }),
+    ...(Number(options.releaseDelayMs) > 0 ? { releaseDelayMs: Number(options.releaseDelayMs) } : {}),
     ...(options.doubleEdgeOutcome == null ? {} : { doubleEdgeOutcome: options.doubleEdgeOutcome })
   };
 }

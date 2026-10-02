@@ -4,6 +4,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { CastCommand } from '#gw2/platform/execution/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
+import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
 
 export interface ChargeReleaseEditorRow {
   readonly charges: number;
@@ -20,11 +21,12 @@ export interface ChargeReleaseEditorOptions {
   readonly skillName: string;
   readonly icon?: string;
   readonly currentReleaseAtCharges?: number | null;
+  readonly currentReleaseDelayMs?: number;
   readonly rows: readonly ChargeReleaseEditorRow[];
   /** Simulation time (ms) of the combat-start marker; row times display relative to it like the timeline. */
   readonly combatReferenceMs?: number;
   readonly unavailableMessage?: string;
-  readonly onApply: (releaseAtCharges: number | undefined) => void;
+  readonly onApply: (releaseAtCharges: number | undefined, releaseDelayMs: number | undefined) => void;
 }
 
 function seconds(value: number): string {
@@ -56,6 +58,11 @@ function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): FloatingE
     <div class="charge-release-editor-label">Release after</div>
     <div class="charge-release-editor-options"></div>
     <div class="charge-release-editor-message" aria-live="polite"></div>
+    <label class="charge-release-editor-delay">
+      <span>Additional release delay (ms)</span>
+      <input type="number" min="0" step="${GW2_ACTION_TICK_MS}" placeholder="0" />
+    </label>
+    <div class="charge-release-editor-delay-help">Optional hold after the selected charges are ready. No additional Flow is consumed by charging.</div>
     <div class="charge-release-editor-actions">
       <button class="charge-release-editor-cancel" type="button">Cancel</button>
       <button class="charge-release-editor-apply" type="button">Apply</button>
@@ -68,7 +75,8 @@ function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): FloatingE
   const message = editor.querySelector<HTMLElement>('.charge-release-editor-message');
   const cancel = editor.querySelector<HTMLButtonElement>('.charge-release-editor-cancel');
   const apply = editor.querySelector<HTMLButtonElement>('.charge-release-editor-apply');
-  if (!icon || !name || !choices || !message || !cancel || !apply) {
+  const delay = editor.querySelector<HTMLInputElement>('.charge-release-editor-delay input');
+  if (!icon || !name || !choices || !message || !cancel || !apply || !delay) {
     throw new TypeError('Charge release editor markup is incomplete.');
   }
 
@@ -77,6 +85,7 @@ function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): FloatingE
   name.textContent = options.skillName;
   message.textContent = options.unavailableMessage || '';
   message.hidden = !options.unavailableMessage;
+  delay.value = String(options.currentReleaseDelayMs ?? 0);
 
   const current = Number(options.currentReleaseAtCharges);
   const currentAvailable = options.rows.some((row) => !row.disabled && row.charges === current);
@@ -123,8 +132,14 @@ function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): FloatingE
       'input[name="charge-release-editor-value"]:checked:not(:disabled)'
     );
     if (!selected) return;
+    // Blank or zero clears the optional hold; native validation keeps manual edits on the action-tick grid.
+    if (!delay.reportValidity()) return;
+    const releaseDelayMs = Number(delay.value);
     handle.close();
-    options.onApply(selected.value === 'maximum' ? undefined : Number(selected.value));
+    options.onApply(
+      selected.value === 'maximum' ? undefined : Number(selected.value),
+      releaseDelayMs > 0 ? releaseDelayMs : undefined
+    );
   });
 
   editor.querySelector<HTMLInputElement>('input[name="charge-release-editor-value"]:checked:not(:disabled)')?.focus();
@@ -179,7 +194,7 @@ export function openDragonSlashReleaseEditor(options: {
   readonly insertionIndex: number;
   readonly currentReleaseAtCharges?: number | null;
   readonly command?: CastCommand;
-  readonly onApply: (releaseAtCharges: number | undefined) => void;
+  readonly onApply: (releaseAtCharges: number | undefined, releaseDelayMs: number | undefined) => void;
 }): FloatingEditorHandle {
   const rawProjection = options.app.profession.ui.chargeReleaseProjection({
     skill: options.skill,
@@ -187,7 +202,8 @@ export function openDragonSlashReleaseEditor(options: {
       options.app.adapter.rotationPreviewAt(
         options.app,
         options.insertionIndex,
-        command ? [{ ...options.command, ...command }] : []
+        // Choice rows retain their original earliest-charge meaning; the separate input adds the hold.
+        command ? [{ ...options.command, ...command, releaseDelayMs: undefined }] : []
       )
   });
   const projection = rawProjection && typeof rawProjection === 'object' ? (rawProjection as UnvalidatedFields) : {};
@@ -196,6 +212,7 @@ export function openDragonSlashReleaseEditor(options: {
     skillName: String(options.skill.displayName || options.skill.name),
     icon: options.skill.icon || undefined,
     currentReleaseAtCharges: options.currentReleaseAtCharges,
+    currentReleaseDelayMs: options.command?.releaseDelayMs,
     rows: editorRows(projection.rows),
     combatReferenceMs: resultCombatReferenceMs(options.app.results),
     unavailableMessage: String(projection.unavailableMessage || ''),

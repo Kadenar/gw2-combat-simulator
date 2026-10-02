@@ -7,9 +7,15 @@ import {
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionEventLogDescriptor,
-  ProfessionPaletteGroup
+  ProfessionPaletteGroup,
+  RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { guardianUiSkillIdsByName, guardianUiSkillsByMode } from '#gw2/professions/guardian/core/presentation.js';
+import {
+  formatSecondsRemaining,
+  guardianSnapshotAt,
+  guardianUiSkillIdsByName,
+  guardianUiSkillsByMode
+} from '#gw2/professions/guardian/core/presentation.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import type {
@@ -52,6 +58,39 @@ const TOME_DORMANCY_LABELS = Object.freeze([
   ['courage', 'F3 Courage']
 ] as const);
 
+/** Display the live page clock and current tome's refund progress without inventing a second regeneration timer. */
+function firebrandStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
+  const state = professionState(context);
+  const at = guardianSnapshotAt(context);
+  const items: RotationStateSnapshotItem[] = [];
+  const pages = state.tomePages;
+  if (pages && pages.interval > 0 && Number.isFinite(pages.nextAt) && pages.nextAt > at) {
+    const remaining = formatSecondsRemaining(pages.nextAt - at);
+    const full = pages.value >= pages.maximum;
+    items.push({
+      id: 'firebrand-purity-of-word',
+      label: 'Purity of Word',
+      value: `${remaining}${full ? ' · Full' : ''}`,
+      title: `${full ? 'Next regeneration tick' : 'Next page'} in ${remaining}${full ? ' (pages are full)' : ''}. Regenerates every ${formatSecondsRemaining(pages.interval)}.`
+    });
+  }
+
+  if (state.activeTome) {
+    const threshold = balanceProfileNumber(
+      requireBalanceProfileFromContext(context.balanceContext, GUARDIAN_TRAIT_IDS.SWIFT_SCHOLAR),
+      'minimumStacks'
+    );
+    items.push({
+      id: 'firebrand-swift-scholar',
+      label: 'Swift Scholar',
+      value: `${state.swiftScholarCount ?? 0}/${threshold}`,
+      title: 'Tome skill progress toward the next Swift Scholar page refund; resets when exiting a tome'
+    });
+  }
+
+  return items;
+}
+
 function dormantTomeClasses(context: GuardianUiContext): string {
   const readyAt = professionState(context).tomeDormantReadyAt;
   const at = context.time ?? context.simulationTime ?? 0;
@@ -65,6 +104,7 @@ function dormantTomeClasses(context: GuardianUiContext): string {
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
+    rotationStateSnapshot: firebrandStateSnapshot,
     eventLogRow: firebrandEventLogRow,
     timelineWeaponLineTransition: (context: GuardianUiContext) => {
       const skill = context.skill;

@@ -8,7 +8,7 @@ import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 
 // Minimal recharges isolate permanent Alacrity and tick detection from profession rotations.
-test('cooldowns and serial ammo assume permanent Alacrity before checking the absolute tick', () => {
+test('cooldowns and sequential ammo assume permanent Alacrity before checking the absolute tick', () => {
   const profession = defineTestProfession({
     id: 'alacrity-recharge',
     name: 'Alacrity recharge',
@@ -106,7 +106,7 @@ test('cooldown detection uses the exact next tick without an early-readiness eps
   }
 });
 
-// Sub-tick completion never releases a cast early, and each serial charge starts at its detection tick.
+// Sub-tick completion never releases a cast early, and each charge waits for its own detection tick.
 test('ordinary and ammo cooldowns wait for their detection tick even one microsecond before it', () => {
   for (const ammo of [false, true]) {
     const skill = {
@@ -221,7 +221,7 @@ test('declarative ammo consumes and recharges shared charges', () => {
   assert.deepEqual(result.planningState.ammo['Fixture Ammo'], {
     charges: 1,
     maximum: 2,
-    rechargeWork: 5,
+    recharges: [{ startedAt: 4, work: 5 }],
     nextRechargeAt: 8,
     lockoutReadyAt: 0.4
   });
@@ -314,7 +314,7 @@ test("shared scheduler detects a skill's cooldown expiry on the next action tick
   assert.deepEqual(result.warnings, []);
 });
 
-// Delayed shared grants and extensions affect only elapsed summon recharge, including serial ammo.
+// Delayed shared grants and extensions affect only elapsed summon recharge, including sequential ammo.
 test('summon recharge requires shared player Alacrity and accounts for its expiry', () => {
   for (const ammo of [false, true]) {
     for (const sharePlayerBoonsWithSummons of [false, true]) {
@@ -379,7 +379,7 @@ test('summon recharge requires shared player Alacrity and accounts for its expir
   }
 });
 
-// Ordinary cooldowns and serial ammo both consume the module rate through the shared query.
+// Ordinary cooldowns and sequential ammo both consume the module rate through the shared query.
 test('declared player recharge rate reaches cooldown and ammo scheduling', () => {
   for (const ammo of [false, true]) {
     const skill = {

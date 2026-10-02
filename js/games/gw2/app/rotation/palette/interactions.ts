@@ -200,10 +200,11 @@ export function dispatchPaletteActivation(
       anchor: icon,
       skill,
       insertionIndex,
-      onApply(releaseAtCharges) {
+      onApply(releaseAtCharges, releaseDelayMs) {
         app.addRotation(name, {
           ...identity,
-          ...(releaseAtCharges == null ? {} : { releaseAtCharges })
+          ...(releaseAtCharges == null ? {} : { releaseAtCharges }),
+          ...(releaseDelayMs == null ? {} : { releaseDelayMs })
         });
       }
     });
@@ -354,9 +355,10 @@ export function resolvePaletteDrop(
       anchor,
       skill,
       insertionIndex: insertAt,
-      onApply(releaseAtCharges) {
+      onApply(releaseAtCharges, releaseDelayMs) {
         insert({
-          ...(releaseAtCharges == null ? {} : { releaseAtCharges })
+          ...(releaseAtCharges == null ? {} : { releaseAtCharges }),
+          ...(releaseDelayMs == null ? {} : { releaseDelayMs })
         });
       }
     });

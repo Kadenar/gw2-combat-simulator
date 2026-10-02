@@ -88,7 +88,7 @@ export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState, 
         (skill) => skill.categories?.includes('Virtue') && guardianVirtueForSlot(skill.slot)
       );
       applySideEffect(runtime, context, { type: 'rechargeReset', skillIds: virtues.map((skill) => skill.id) });
-      for (const skill of virtues) runtime.cooldownController.restoreAmmo(skill, Infinity, runtime.time, 'reset');
+      for (const skill of virtues) runtime.cooldownController.restoreAmmo(skill, Infinity, runtime.time);
       runtime.profession.core.virtueReadyAt = { justice: runtime.time, resolve: runtime.time, courage: runtime.time };
       // The same declared refresh also resets Firebrand's separate page and dormancy pools.
       const specialization = runtime.profession.specialization;

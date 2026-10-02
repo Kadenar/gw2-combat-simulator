@@ -762,7 +762,7 @@ export function runGw2Runtime<T extends object>({
         causalOrder: action.eventOrder
       })
     );
-    // A declared cost is paid on acceptance unless the skill pays only for a committed activation.
+    // A declared cost is paid on acceptance unless it requires successful completion.
     if (skill.cost && skill.cost.spendOn !== 'castCommit') spendSkillCost(runtime, skill);
     profession.onCastStart?.(runtime, cast);
     applySkillSideEffects(runtime, cast, 'castStart', profession.sideEffectHandlers);

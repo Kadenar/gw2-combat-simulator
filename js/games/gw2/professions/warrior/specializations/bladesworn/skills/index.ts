@@ -700,12 +700,11 @@ export function cartridgeExplosion(runtime: Runtime, event: Gw2ResolverEvent): v
     );
 }
 
-/** Successful commitment restores ammo once, retaining existing recharge progress through the animation tail. */
+/** Successful commitment restores the longest-recharging round, clearing recharge when the pool becomes full. */
 function tacticalReload(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
   for (const id of runtime.ammo.keys()) {
     const skill = runtime.helpers.skillsById.get(id);
-    if (skill?.specialization === 'Bladesworn')
-      runtime.cooldownController.restoreAmmo(skill, 1, runtime.time, 'retain');
+    if (skill?.specialization === 'Bladesworn') runtime.cooldownController.restoreAmmo(skill, 1, runtime.time);
   }
 
   const state = bladeswornState.from(runtime);

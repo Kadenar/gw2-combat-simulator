@@ -68,9 +68,19 @@ count automatically:
 ['Dragon Trigger', 'Dragon Slash—Force'];
 ```
 
-Set `releaseAtCharges` (or edit the timeline's `⚡Max` badge) to release early; the value is capped to the active spec
-maximum, including Daring Dragon's five. If the requested count cannot be reached by the end of the channel, the slash
-is rejected with a resource warning instead of waiting indefinitely.
+Set `releaseAtCharges` (or use the timeline's Dragon Slash pencil editor) to release early; the value is capped to the
+active spec maximum, including Daring Dragon's five. If the requested count cannot be reached by the end of the channel,
+the slash is rejected with a resource warning instead of waiting indefinitely.
+
+The same editor has an optional **Additional release delay (ms)** field below the charge choices, in 40 ms increments.
+Its canonical `releaseDelayMs` value holds the selected charges after their actual threshold is reached, including any
+Flow stalls. For a full ten-charge release, 80 ms adds to the normal 2400 ms or Tactical Reload's 1200 ms. Charging
+spends no additional Flow and gains no extra charges during the hold; regeneration, cooldowns, and buff expiry continue.
+Zero or blank clears the field. A hold cannot extend Dragon Trigger's lifetime.
+
+EVTC and DPS-report imports retain positive observed time beyond the inferred charge threshold in `releaseDelayMs`,
+rounded to the existing action-tick grid. This is inferred from animation duration; the log cannot distinguish an
+intentional hold from a Flow shortage or processing delay. Imported holds can be edited or cleared in the same field.
 
 ## Modeling boundaries
 

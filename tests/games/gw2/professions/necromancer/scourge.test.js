@@ -104,7 +104,7 @@ test('Sand Savant selects the live ammo cap and modified recharge work', () => {
   const ammo = observedRuntime(one).ammo.get(ID.MANIFEST_SAND_SHADE);
   assert.equal(ammo.maximum, 1);
   assert.equal(ammo.charges, 0);
-  assert.equal(ammo.rechargeWork, 15 * 0.85 * 1.25);
+  assert.equal(ammo.recharges[0].work, 15 * 0.85 * 1.25);
   assert.deepEqual(state(one).shades, [8.48]);
   const recharged = run([cast(ID.MANIFEST_SAND_SHADE), cast(ID.MANIFEST_SAND_SHADE)], config);
   assert.ok(recharged.steps[1].start > 8000);

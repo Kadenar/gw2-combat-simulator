@@ -577,6 +577,49 @@ test('committed Blood Is Power interruption retains self conditions and boons', 
   );
 });
 
+// Same-time transfers must see the opening self-conditions, and completion must not apply them a second time.
+test('Blood Is Power exposes its local opening payload to concurrent transfers before its aftercast ends', () => {
+  const config = { ...base, selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION] };
+  const native = necromancerProfession.runtimeFor(config);
+  const skill = native.catalog.skillsById.get(ID.BLOOD_IS_POWER);
+  const profession = {
+    ...native,
+    catalog: withSkill(native.catalog, skill.id, {
+      castTimeMs: 1000,
+      interruptCommitMs: 800,
+      effects: skill.effects.map((effect) =>
+        effect.type === 'strike' || (effect.target !== 'self' && effect.type === 'condition')
+          ? { ...effect, atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }
+          : effect
+      )
+    })
+  };
+  for (const offTarget of [false, true]) {
+    const result = simulate(
+      [{ ...cast(skill.id), offTarget }, { ...cast(ID.SUFFER), concurrentOffsetMs: 400 }, wait(1000)],
+      config,
+      { profession, combatStartTime: 0 }
+    );
+    assert.deepEqual(result.warnings, []);
+    const transfer = result.resolvedEvents.find(
+      (event) => event.skillId === ID.SUFFER && event.condition === 'Torment'
+    );
+    assert.ok(transfer);
+    assert.equal(transfer.at, 0.4);
+    assert.equal(transfer.stacks, 2);
+    assert.equal(transfer.duration, 10);
+    assert.deepEqual(observedRuntime(result).profession.core.selfConditions, []);
+    assert.equal(
+      result.events.filter((event) => event.type === 'self_condition' && event.skillId === skill.id).length,
+      2
+    );
+    assert.equal(
+      result.resolvedEvents.filter((event) => event.kind === 'might' && event.skillId === skill.id).length,
+      1
+    );
+  }
+});
+
 test('ordinary transfers move all applications of the oldest distinct types with remaining duration', () => {
   const profession = withSelfConditions(base, [
     { condition: 'Bleeding' },

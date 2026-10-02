@@ -8,41 +8,47 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.EXTIRPATE]: {
     castTimeMs: 840,
+    // Committed Extirpate preserves its impact effects without releasing the remaining cast lockout.
+    interruptCommitMs: 800,
+    retainsCastLockoutAfterInterrupt: true,
     // Share this impact's timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      {
-        type: 'strike',
-        // Only this selected application owns its accepted-impact reward.
-        reactions: [
-          {
-            on: 'damage.resolved',
-            actor: 'player',
-            packets: 'first',
-            when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
-          },
-          {
-            on: 'damage.resolved',
-            actor: 'player',
-            packets: 'first',
-            when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.soul-shards', amount: 2 }
-          }
-        ],
-        coefficient: 3.8,
-        comboFinishers: [
-          {
-            ownerId: 'necromancer',
-            finisherType: 'Whirl',
-            applications: 3,
-            ambiguousFieldSelection: 'oldest'
-          }
-        ]
-      },
-      { type: 'boon', boon: 'Might', duration: 8, stacks: 5 },
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3 },
-      { type: 'buff', kind: 'extirpation', duration: 4, stacks: 3 }
-    ]),
+    effects: impactEffects(
+      { atMs: 760, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          // Only this selected application owns its accepted-impact reward.
+          reactions: [
+            {
+              on: 'damage.resolved',
+              actor: 'player',
+              packets: 'first',
+              when: (_runtime, { event }) => Number(event.coefficient) > 0,
+              do: { type: 'necromancer.skill-life-force' }
+            },
+            {
+              on: 'damage.resolved',
+              actor: 'player',
+              packets: 'first',
+              when: (_runtime, { event }) => Number(event.coefficient) > 0,
+              do: { type: 'necromancer.soul-shards', amount: 2 }
+            }
+          ],
+          coefficient: 3.8,
+          comboFinishers: [
+            {
+              ownerId: 'necromancer',
+              finisherType: 'Whirl',
+              applications: 3,
+              ambiguousFieldSelection: 'oldest'
+            }
+          ]
+        },
+        { type: 'boon', boon: 'Might', duration: 8, stacks: 5 },
+        { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3 },
+        { type: 'buff', kind: 'extirpation', duration: 4, stacks: 3 }
+      ]
+    ),
     lifeForceGain: 12
   },
   [ID.DARK_SLASH]: {

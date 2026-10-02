@@ -214,8 +214,8 @@ test('Haunt grants Gluttony-scaled life force only through its selected accepted
   }
 });
 
-// Blood Is Power retains its explicit packet-committed cancellation exception, independent of target acceptance.
-test('Corruption local work separates semantic commitment from the canceled opening-packet exception', () => {
+// Opening application owns local effects even off target; removing the strike preserves committed local work.
+test('Corruption local work resolves at opening application or independent commitment exactly once', () => {
   for (const [interruptAfterMs, removeStrike, gains] of [
     [400, false, false],
     [600, false, true],
@@ -247,7 +247,7 @@ test('Corruption local work separates semantic commitment from the canceled open
     assert.equal(observedRuntime(result).profession.core.selfConditions.length > 0, gains);
     const might = result.resolvedEvents.filter((event) => event.kind === 'might' && event.skillId === skill.id);
     assert.equal(might.length, Number(gains));
-    if (gains) assert.equal(might[0].at, interruptAfterMs / 1000);
+    if (gains) assert.equal(might[0].at, removeStrike ? interruptAfterMs / 1000 : 0.5);
   }
 });
 

@@ -318,7 +318,7 @@ export interface BalanceProfile extends CatalogEntity {
 
 /**
  * What an activation pays. The runtime rejects or waits for an unaffordable cast before any profession gate, then
- * spends the amount on acceptance or, for `castCommit`, only when the activation completes past its commit point.
+ * spends on acceptance or successful completion according to the declared phase.
  */
 interface SkillCost {
   readonly resource: 'endurance' | ResourceKey;

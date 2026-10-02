@@ -20,7 +20,7 @@ function arm(runtime: Runtime, definition: MantraDefinition): void {
   armSkillFlip(flips, definition.normalId, runtime.time);
   runtime.ammo.delete(normal.id);
   runtime.cooldownController.clear(normal.id);
-  runtime.cooldownController.ensureAmmo(normal, runtime.time);
+  runtime.cooldownController.ensureAmmo(normal);
   runtime.cooldownController.clear(definition.rootId);
   firebrandState.from(runtime).mantraRechargeReadyAt[definition.rootId] = runtime.time;
 }

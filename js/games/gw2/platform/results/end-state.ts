@@ -33,7 +33,8 @@ export function planningState<T extends object>(
         {
           charges: value.charges,
           maximum: value.maximum,
-          rechargeWork: value.rechargeWork,
+          // Detach every charge timer so public observations cannot mutate live recharge progress.
+          recharges: value.recharges.map((progress) => ({ ...progress })),
           nextRechargeAt: value.nextRechargeAt == null ? null : gw2CooldownReadyAt(value.nextRechargeAt),
           ...(value.lockoutReadyAt == null ? {} : { lockoutReadyAt: gw2CooldownReadyAt(value.lockoutReadyAt) })
         }

@@ -73,10 +73,7 @@ export function createContinuumController({
           // Relative deadlines belong to the checkpoint; live ammo only stores absolute deadlines.
           charges: ammo.charges,
           maximum: ammo.maximum,
-          rechargeWork: ammo.rechargeWork,
-          ...(ammo.pendingRechargeWork == null
-            ? {}
-            : { rechargeProgress: { startedAt: at, work: ammo.pendingRechargeWork } }),
+          recharges: ammo.pendingRechargeWork.map((work) => ({ startedAt: at, work })),
           ...(ammo.pendingLockoutWork == null
             ? {}
             : { lockoutProgress: { startedAt: at, work: ammo.pendingLockoutWork } }),
@@ -132,16 +129,10 @@ export function createContinuumController({
         {
           charges: value.charges,
           maximum: value.maximum,
-          rechargeWork: value.rechargeWork,
-          ...(value.rechargeProgress && state.helpers.skillsById.has(id)
-            ? {
-                pendingRechargeWork: cooldownController.remaining(
-                  state.helpers.skillsById.get(id)!,
-                  value.rechargeProgress,
-                  at
-                )
-              }
-            : {}),
+          // Only the active charge has earned progress; waiting charges retain their full queued work.
+          pendingRechargeWork: value.recharges.map((progress, index) =>
+            index > 0 ? progress.work : cooldownController.remaining(state.helpers.skillsById.get(id)!, progress, at)
+          ),
           ...(value.lockoutProgress &&
           gw2CooldownReadyAt(value.lockoutReadyAt ?? 0) > at &&
           state.helpers.skillsById.has(id)

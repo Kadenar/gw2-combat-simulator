@@ -26,6 +26,8 @@ export interface BladeswornState {
   dragonTriggerChargeDeadline: number;
   nextDragonChargeAt: number;
   dragonChargeTickCount: number;
+  /** Actual threshold timestamps include Flow stalls and doubled Tactical Reload charge gains. */
+  dragonChargeReachedAt: number[];
   dragonCharges: number;
   dragonChargesPerInterval: number;
   dragonTriggerFlowSpent: number;
@@ -70,6 +72,7 @@ function createBladeswornState(config: Gw2Config = {}): BladeswornState {
     dragonTriggerChargeDeadline: 0,
     nextDragonChargeAt: 0,
     dragonChargeTickCount: 0,
+    dragonChargeReachedAt: [],
     dragonCharges: 0,
     dragonChargesPerInterval: 1,
     dragonTriggerFlowSpent: 0,

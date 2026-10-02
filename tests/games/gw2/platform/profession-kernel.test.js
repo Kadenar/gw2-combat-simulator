@@ -227,6 +227,27 @@ test('declared costs are paid on acceptance, or only by activations that pass th
   assert.deepEqual(energy, [7, 3]);
 });
 
+test('committed costs settle once before completion rewards, including shortened successful casts', () => {
+  // Successful completion owns the debit; cancelled attempts neither pay nor receive completion rewards.
+  for (const interruptAfterMs of [undefined, 600, 100]) {
+    const observed = [];
+    const result = runGw2Runtime({
+      profession: {
+        ...fixture({ onCastCommit: (runtime) => observed.push(runtime.resourceController.value('energy')) }),
+        catalog: withSkill(catalog, 991003, {
+          cost: { resource: 'energy', spendOn: 'castCommit' },
+          sideEffects: [{ on: 'castCommit', do: { type: 'resourceGrant', resource: 'energy', amount: 2 } }]
+        })
+      },
+      config,
+      rotation: [cast(991003, { interruptAfterMs }), wait(500)]
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(observed, interruptAfterMs === 100 ? [] : [8]);
+    assert.equal(result.planningState.profession.energy.value, interruptAfterMs === 100 ? 10 : 8);
+  }
+});
+
 test('an unaffordable declared cost waits for regeneration or rejects when no regeneration can cover it', () => {
   const skill = { name: 'Dodge', resourceCost: 50, cost: { resource: 'endurance' } };
   const runtime = (readyAt) => ({ time: 1, endurance: { readyAt: () => readyAt } });
@@ -238,6 +259,35 @@ test('an unaffordable declared cost waits for regeneration or rejects when no re
     reason: 'Dodge is unavailable — requires 50 endurance.'
   });
   assert.equal(skillCostAvailability(runtime(null), skill).retryAt, null);
+});
+
+test('automatic payments share the declared profile amount with affordability and pay only once', () => {
+  // Both automatic payment phases use the profile cost shared with affordability instead of the inline amount.
+  for (const spendOn of ['castStart', 'castCommit']) {
+    const observed = [];
+    const result = runGw2Runtime({
+      profession: {
+        ...fixture({
+          onCastStart(runtime, activation) {
+            observed.push(skillCostAvailability(runtime, activation.skill));
+          }
+        }),
+        catalog: withSkill(catalog, 991003, {
+          resourceCost: 50,
+          cost: {
+            resource: 'energy',
+            spendOn,
+            profileAmount: { profileId: 'test.proc', field: 'resourceGain' }
+          }
+        })
+      },
+      config,
+      rotation: [cast(991003)]
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(observed, [null]);
+    assert.equal(result.planningState.profession.energy.value, 7);
+  }
 });
 
 test('committed activations schedule authored tasks after commit hooks while cancellations only clean up', () => {

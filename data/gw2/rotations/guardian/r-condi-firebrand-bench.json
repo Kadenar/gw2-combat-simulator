@@ -3,10 +3,11 @@
     "benchmarkDurationSeconds": 96.066,
     "benchmarkDamage": 3930656,
     "benchmarkDps": 40916.2,
-    "simulatedDps": 41670.72860868992,
+    "simulatedDps": 41073.759305210915,
     "castTimeQuantizationMs": 40,
     "timingSource": "Supplied ArcDPS EVTC animation and damage events",
-    "note": "Quickness cast times, strike packets, and interrupted filler timings are rounded to 40 ms. The EVTC uses Feel My Wrath rather than Mantra of Liberation and is modeled with four allied players. All 11 Zealot's Flame self-buff applications, 12 Flame Rush packets, 6 Flame Surge packets, and ten Through the Heart casts canceled before impact are represented; the selected parent mantras remain the preparation skills. An explicit Stow Tome follows page exhaustion after Igniting Burst at 48.44 seconds."
+    "note": "Quickness cast times, strike packets, and interrupted filler timings are rounded to 40 ms. The EVTC uses Feel My Wrath rather than Mantra of Liberation and is modeled with four allied players. All 11 Zealot's Flame self-buff applications, 12 Flame Rush packets, 6 Flame Surge packets, and ten Through the Heart casts canceled before impact are represented; the selected parent mantras remain the preparation skills. An explicit Stow Tome follows page exhaustion after Igniting Burst at 48.44 seconds. Solace variants follow sequential charge recovery; exhausted pools use Rejuvenating Respite before rearming. Canceled Through the Heart auto-attacks remain sequential casts so their interrupted cast time occupies the normal cast queue.",
+    "report": "https://dps.report/hs0X-20260613-132856_golem"
   },
   "rotation": [
     {
@@ -29,7 +30,6 @@
     {
       "type": "cast",
       "skillId": 72031,
-      "concurrentOffsetMs": 240,
       "interruptAfterMs": 40
     },
     {
@@ -164,7 +164,6 @@
     {
       "type": "cast",
       "skillId": 72031,
-      "concurrentOffsetMs": 0,
       "interruptAfterMs": 0
     },
     {
@@ -218,7 +217,6 @@
     {
       "type": "cast",
       "skillId": 72031,
-      "concurrentOffsetMs": 0,
       "interruptAfterMs": 80
     },
     {
@@ -473,7 +471,6 @@
     {
       "type": "cast",
       "skillId": 72031,
-      "concurrentOffsetMs": 80,
       "interruptAfterMs": 40
     },
     {
@@ -600,7 +597,6 @@
     {
       "type": "cast",
       "skillId": 72031,
-      "concurrentOffsetMs": 0,
       "interruptAfterMs": 120
     },
     {
@@ -679,7 +675,6 @@
     {
       "type": "cast",
       "skillId": 72031,
-      "concurrentOffsetMs": 600,
       "interruptAfterMs": 40
     },
     {
@@ -823,7 +818,6 @@
     {
       "type": "cast",
       "skillId": 72031,
-      "concurrentOffsetMs": 0,
       "interruptAfterMs": 40
     },
     {
@@ -873,7 +867,6 @@
     {
       "type": "cast",
       "skillId": 72031,
-      "concurrentOffsetMs": 1120,
       "interruptAfterMs": 120
     },
     {
@@ -892,7 +885,6 @@
     {
       "type": "cast",
       "skillId": 72031,
-      "concurrentOffsetMs": 600,
       "interruptAfterMs": 0
     },
     {
@@ -931,7 +923,6 @@
     {
       "type": "cast",
       "skillId": 72031,
-      "concurrentOffsetMs": 600,
       "interruptAfterMs": 40
     },
     {

@@ -459,7 +459,11 @@ export function timelineRowsView(
       const chargeOutcomeDetails = dragonOutcome
         ? [
             `Charges reached: ${actualCharges}`,
-            `Time spent charging: ${Number(dragonOutcome.chargingSeconds || 0).toFixed(3)}s`,
+            `${Number(item.releaseDelayMs) > 0 ? 'Time in Dragon Trigger' : 'Time spent charging'}: ${Number(dragonOutcome.chargingSeconds || 0).toFixed(3)}s`,
+            // The hold changes release timing without changing the charge cost shown alongside it.
+            ...(Number(item.releaseDelayMs) > 0
+              ? [`Additional release delay: ${item.releaseDelayMs} ms (no charging Flow)`]
+              : []),
             `Flow spent: ${Number(dragonOutcome.flowSpent || 0).toFixed(2)}`
           ]
         : [];

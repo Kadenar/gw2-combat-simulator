@@ -70,7 +70,7 @@ test('Continuum Split restores ammo recharge and cast lockout deadlines independ
     durationPerSource: 3
   });
   cooldown.spendAmmo(skill, 0);
-  cooldown.spendAmmo(skill, 0);
+  cooldown.spendAmmo(skill, 0.5);
   cooldown.setAmmoLockout(skill, 5, 0);
   continuum.beginContinuumSplit({ id: 980001 }, 1);
   cooldown.reduceSkillRecharge(skill, 20, 2);
@@ -80,15 +80,17 @@ test('Continuum Split restores ammo recharge and cast lockout deadlines independ
   assert.deepEqual(state.ammo.get(skill.id), {
     charges: 0,
     maximum: 2,
-    rechargeWork: 10,
-    rechargeProgress: { startedAt: 4, work: 9 },
+    recharges: [
+      { startedAt: 4, work: 9 },
+      { startedAt: 4, work: 10 }
+    ],
     lockoutProgress: { startedAt: 4, work: 4 },
     nextRechargeAt: 13,
     lockoutReadyAt: 8
   });
-  cooldown.reduceSkillRecharge(skill, 10, 4);
+  cooldown.reduceSkillRecharge(skill, 19, 4);
   continuum.restoreContinuum(5, 'already restored');
-  assert.equal(state.ammo.get(skill.id).charges, 1);
+  assert.equal(state.ammo.get(skill.id).charges, 2);
   assert.equal(state.cooldowns.get(skill.id), 8);
   cooldown.refreshAmmo(skill, 8);
   assert.equal(state.cooldowns.has(skill.id), false);

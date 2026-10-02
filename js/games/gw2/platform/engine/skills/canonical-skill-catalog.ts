@@ -59,7 +59,6 @@ const SKILL_FIELDS = new Set([
   'clone',
   'comboFields',
   'comboFinishers',
-  'commitAtMs',
   'conditionsTransferred',
   'consume',
   'consumes',
@@ -993,6 +992,15 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
     }
 
     const effects = normalizeSkillEffects(merged.effects || [], `skill=${id}`);
+    // Cost declarations select one payment owner and reject fields outside the canonical shape.
+    if (
+      merged.cost != null &&
+      (typeof merged.cost !== 'object' ||
+        Array.isArray(merged.cost) ||
+        Object.keys(merged.cost).some((key) => !['resource', 'profileAmount', 'spendOn'].includes(key)) ||
+        (merged.cost.spendOn != null && !['castStart', 'castCommit'].includes(merged.cost.spendOn)))
+    )
+      throw new TypeError(`Skill ${id} has an invalid cost declaration.`);
     // Reject obsolete or misspelled task anchors before scheduling can silently choose the full cast end.
     if (!Array.isArray(merged.tasks ?? [])) throw new TypeError(`Skill ${id} tasks must be an array.`);
     for (const task of merged.tasks ?? [])

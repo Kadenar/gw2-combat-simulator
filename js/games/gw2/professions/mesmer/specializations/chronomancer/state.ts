@@ -7,10 +7,10 @@ import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 interface MesmerContinuumAmmo {
   charges: number;
   maximum: number;
-  rechargeWork: number;
   nextRechargeRemaining: number | null;
   lockoutRemaining: number;
-  pendingRechargeWork?: number;
+  /** Rewind each missing charge with the progress it had at the checkpoint. */
+  pendingRechargeWork: number[];
   pendingLockoutWork?: number;
 }
 

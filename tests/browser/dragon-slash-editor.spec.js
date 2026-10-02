@@ -28,9 +28,12 @@ test('palette opens Dragon Slash choices while its default command is denied', a
   const editor = page.getByRole('dialog', { name: 'Edit Dragon Slash—Force charge release', exact: true });
   await expect(editor).toBeVisible();
   await editor.getByRole('radio', { name: /^1 charges/ }).check();
+  // Palette insertion carries the independent hold alongside the unchanged charge selection.
+  await editor.getByRole('spinbutton', { name: 'Additional release delay (ms)' }).fill('80');
   await editor.getByRole('button', { name: 'Apply', exact: true }).click();
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
   expect(await page.evaluate(() => window.professionApp.build.rotation.at(-1).releaseAtCharges)).toBe(1);
+  expect(await page.evaluate(() => window.professionApp.build.rotation.at(-1).releaseDelayMs)).toBe(80);
   expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
 });
 
@@ -60,6 +63,12 @@ test('Dragon Slash pencil edits charge release instead of generic cast behavior'
   await expect(page.locator('.rotation-activation-editor:visible')).toHaveCount(0);
   await expect(editor.getByRole('radio', { name: 'Release at maximum', exact: true })).toBeChecked();
   await editor.getByRole('radio', { name: /^1 charges/ }).check();
+  const delay = editor.getByRole('spinbutton', { name: 'Additional release delay (ms)' });
+  await expect(delay).toHaveValue('0');
+  await delay.fill('41');
+  await editor.getByRole('button', { name: 'Apply', exact: true }).click();
+  await expect(editor).toBeVisible();
+  await delay.fill('120');
   await editor.getByRole('button', { name: 'Apply', exact: true }).click();
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
   expect(await page.evaluate(() => window.professionApp.build.rotation.at(-1).releaseAtCharges)).toBe(1);
@@ -71,13 +80,19 @@ test('Dragon Slash pencil edits charge release instead of generic cast behavior'
   await page.locator('#rotation-timeline .rot-skill').filter({ has: pencil }).hover();
   await pencil.click();
   await expect(editor.getByRole('radio', { name: /^1 charges/ })).toBeChecked();
+  await expect(delay).toHaveValue('120');
+  // Cancelling a cleared hold preserves it; applying a blank removes the optional saved field.
+  await delay.fill('');
   await editor.getByRole('radio', { name: 'Release at maximum', exact: true }).check();
   await editor.getByRole('button', { name: 'Cancel', exact: true }).click();
   expect(await page.evaluate(() => window.professionApp.build.rotation.at(-1).releaseAtCharges)).toBe(1);
+  expect(await page.evaluate(() => window.professionApp.build.rotation.at(-1).releaseDelayMs)).toBe(120);
   await page.locator('#rotation-timeline .rot-skill').filter({ has: pencil }).hover();
   await pencil.click();
   await editor.getByRole('radio', { name: 'Release at maximum', exact: true }).check();
+  await delay.fill('');
   await editor.getByRole('button', { name: 'Apply', exact: true }).click();
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
   expect(await page.evaluate(() => window.professionApp.build.rotation.at(-1).releaseAtCharges)).toBeUndefined();
+  expect(await page.evaluate(() => window.professionApp.build.rotation.at(-1).releaseDelayMs)).toBeUndefined();
 });

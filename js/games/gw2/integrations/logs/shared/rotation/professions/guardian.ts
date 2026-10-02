@@ -20,7 +20,7 @@ function reconstructMantraCharges(
   const final = catalogSkillById(context.catalog, finalId);
   const prepare = catalogSkillById(context.catalog, prepareId);
   if (!normal || !final || !prepare) return context.recordedActions;
-  // Even permanent Alacrity cannot replenish a charge inside this window or rearm a spent final charge sooner.
+  // Assume continuous Alacrity for simulation imports when inferring charge recovery and final-charge rearming.
   const chargeMs = (Number(normal.ammoRecharge) * 1000) / 1.25;
   const rearmMs = (Number(prepare.cooldown) * 1000) / 1.25;
   if (!(chargeMs > 0 && rearmMs >= 2 * chargeMs && Number(normal.ammo) === 3)) return context.recordedActions;
@@ -65,21 +65,24 @@ function reconstructMantraCharges(
   }
 
   let minimumCharges = 0;
-  let nextChargeAt = Infinity;
+  let guaranteedRecharges: number[] = [];
   let maximumCharges = 3;
-  let nextPossibleChargeAt = Infinity;
-  const rechargeMs = Number(normal.ammoRecharge) * 1000;
+  let possibleRecharges: number[] = [];
   for (const [index, action] of charges.entries()) {
-    // Even the fastest recovery must leave only one charge before an ambiguous cast can be called final.
-    while (maximumCharges < 3 && nextPossibleChargeAt <= action.start) {
-      maximumCharges += 1;
-      nextPossibleChargeAt = maximumCharges === 3 ? Infinity : nextPossibleChargeAt + chargeMs;
-    }
-
-    while (minimumCharges < 3 && nextChargeAt <= action.start) {
-      minimumCharges += 1;
-      nextChargeAt = minimumCharges === 3 ? Infinity : nextChargeAt + rechargeMs;
-    }
+    // The maximum possible charge count must be one before an ambiguous cast can be called final.
+    // Each bound queues charge recovery sequentially, matching the ordinary mantra recharge policy.
+    possibleRecharges = possibleRecharges.filter((readyAt) => {
+      if (readyAt > action.start) return true;
+      maximumCharges = Math.min(3, maximumCharges + 1);
+      return false;
+    });
+    guaranteedRecharges = guaranteedRecharges.filter((readyAt) => {
+      if (readyAt > action.start) return true;
+      minimumCharges = Math.min(3, minimumCharges + 1);
+      return false;
+    });
+    if (maximumCharges === 3) possibleRecharges = [];
+    if (minimumCharges === 3) guaranteedRecharges = [];
 
     let skillId = replacements.get(action)?.canonicalSkillId ?? action.rawSkillId;
     const next = charges[index + 1];
@@ -107,21 +110,21 @@ function reconstructMantraCharges(
 
     // For an unresolved cast, retaining a charge recovers a full pool no later than spending the final charge.
     if (skillId === normalId || skillId === combinedId) {
-      if (maximumCharges === 3) nextPossibleChargeAt = action.start + chargeMs;
+      possibleRecharges.push(Math.max(action.start, possibleRecharges.at(-1) ?? action.start) + chargeMs);
       maximumCharges -= 1;
     } else {
       maximumCharges = 3;
-      nextPossibleChargeAt = Infinity;
+      possibleRecharges = [];
     }
 
     if (skillId === normalId) {
-      // ponytail: base-rate recovery assumes no recharge-slowing effects; use logged recharge state for those fights.
-      // Newly proven ammo discards uncertain recharge progress rather than granting an extra early charge.
-      if (minimumCharges < 2 || minimumCharges === 3) nextChargeAt = action.start + rechargeMs;
+      // A proven normal cast may imply earlier recovery. Discard the earliest uncertain timers to avoid counting it twice.
       minimumCharges = Math.max(2, minimumCharges) - 1;
+      guaranteedRecharges.splice(0, Math.max(0, guaranteedRecharges.length - (2 - minimumCharges)));
+      guaranteedRecharges.push(Math.max(action.start, guaranteedRecharges.at(-1) ?? action.start) + chargeMs);
     } else {
       minimumCharges = skillId === prepareId && action.status === 'completed' ? 3 : 0;
-      nextChargeAt = Infinity;
+      guaranteedRecharges = [];
     }
   }
 

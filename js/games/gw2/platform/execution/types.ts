@@ -5,9 +5,9 @@ import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 export interface AmmoState {
   charges: number;
   maximum: number;
-  rechargeWork: number;
+  /** Missing charges retain base work; serial queues activate the next anchor only after the front completes. */
+  recharges: RechargeProgress[];
   nextRechargeAt: number | null;
-  rechargeProgress?: RechargeProgress;
   lockoutProgress?: RechargeProgress;
   /** Independent cast lockout; charge recovery must not shorten this deadline. */
   lockoutReadyAt?: number;
@@ -44,11 +44,11 @@ export interface CooldownController {
   rate(skill: Skill, at?: number): number;
   project(skill: Skill, progress: RechargeProgress): number;
   remaining(skill: Skill, progress: RechargeProgress, at: number): number;
-  ensureAmmo(skill: Skill, at?: number): AmmoState | null;
+  ensureAmmo(skill: Skill): AmmoState | null;
   /** Advances base-recharge progress and returns the wall time recovered at the current rate. */
   reduceSkillRecharge(skill: Skill, reduction: number, at?: number): number;
   refreshAmmo(skill: Skill, at: number): AmmoState | null;
-  restoreAmmo(skill: Skill, count: number, at: number, whenFull: 'retain' | 'reset'): number;
+  restoreAmmo(skill: Skill, count: number, at: number): number;
   setAmmoLockout(skill: Skill, work: number, at?: number): void;
   spendAmmo(skill: Skill, at: number, committedRechargeWork?: number): void;
 }
@@ -86,6 +86,8 @@ export interface CastCommand {
   /** Exact remaining duration carried by a hidden combat-log initial-state action. */
   readonly initialStateDurationMs?: number;
   readonly releaseAtCharges?: number;
+  /** Extra hold after the selected Dragon Charge threshold; holding spends no additional Flow. */
+  readonly releaseDelayMs?: number;
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
 }
 

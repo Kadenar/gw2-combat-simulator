@@ -75,11 +75,8 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         transform: (_runtime, _cast, effects) => effects.filter((effect) => !isCorruptionCompletionEffect(effect))
       }
     ],
-    // The skill owns this transaction; its shared helper retains state and lifetime rules.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'necromancer.blood-is-power-launch' } },
-      { on: 'castCommit', do: { type: 'necromancer.corruption' } }
-    ],
+    // Opening application owns self-conditions and Might so concurrent transfers can use them during the aftercast.
+    sideEffects: [{ on: 'castStart', do: { type: 'necromancer.blood-is-power-launch' } }],
     castTimeMs: 880,
     // Blood Is Power cannot cancel its remaining aftercast, so importers and live execution retain the full cast lane.
     interruptCommitMs: 600,
@@ -90,7 +87,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         { type: 'strike', coefficient: 0.5 },
         { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 15 }
       ]),
-      // Corruption completion owns self-conditions and boons independently of hostile impacts.
+      // Opening application owns self-conditions and boons independently of hostile target acceptance.
       { name: 'Self Bleeding', type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10, target: 'self' },
       masterOfCorruptionBloodIsPower,
       {
@@ -187,9 +184,12 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     // The skill owns this transaction; its shared helper retains state and lifetime rules.
     sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.corruption' } }],
     castTimeMs: 920,
+    // Committed Plaguelands retains its pulses and the remaining cast lockout after interruption.
+    interruptCommitMs: 800,
+    retainsCastLockoutAfterInterrupt: true,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
-      ...impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      ...impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
         {
           type: 'strike',
           ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 3.51 / 9 }))
@@ -403,6 +403,9 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.WELL_OF_DARKNESS]: {
     castTimeMs: 480,
+    // A committed well keeps pulsing while its original cast lane remains reserved.
+    interruptCommitMs: 400,
+    retainsCastLockoutAfterInterrupt: true,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       {
@@ -410,9 +413,10 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         ticks: [280, 1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, coefficient: 0.8 })),
         comboFields: [{ ownerId: 'necromancer', fieldType: 'Dark', duration: 5 }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
-      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         {
           type: 'blind',
           applications: 6,

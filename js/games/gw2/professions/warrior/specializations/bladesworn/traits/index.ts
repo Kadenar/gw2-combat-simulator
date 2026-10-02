@@ -18,7 +18,8 @@ export const unseenSword = defineTrait({
     internalCooldown: 4,
     // Entry traits declare their own flow window so patches can remove it independently.
     effects: [
-      { name: 'Strike', type: 'strike', coefficient: 1.2, hits: 1 },
+      // The entry proc grants Flow immediately, but its sword lands after the observed 720 ms delay.
+      { name: 'Strike', type: 'strike', coefficient: 1.2, hits: 1, atMs: 720 },
       { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 2, duration: 5 }
     ]
   }

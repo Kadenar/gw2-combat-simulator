@@ -65,6 +65,8 @@ export function gunsaberEntryTraits(runtime: Runtime, cast: RuntimeCast<WarriorS
       runtime.emit(
         buildResolverStrike({
           ...event,
+          // Resolve damage and its modifiers at impact while the entry proc and cooldown start immediately.
+          at: canonicalTime(runtime.time + effectNumber(profile, strike, 'atMs') / 1000),
           actorType: 'player',
           skillId: 62847,
           skillName: 'Unseen Sword',

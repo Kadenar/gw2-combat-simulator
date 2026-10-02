@@ -624,10 +624,14 @@ test('Blood Is Power and Plague Signet preserve transferred conditions', () => {
     true
   );
   assert.deepEqual(result.planningState.profession.selfConditions, []);
-  assert.equal(
-    transferred.every((event) => Math.abs(event.effectiveDuration - 10) < 0.0001),
-    true
-  );
+  // Transferring after the aftercast preserves the original expiry instead of restarting the self-condition.
+  for (const event of transferred) {
+    const self = result.events.find(
+      (candidate) => candidate.type === 'self_condition' && candidate.condition === event.condition
+    );
+    assert.ok(self.at < event.at);
+    assert.ok(Math.abs(event.at + event.effectiveDuration - self.expiresAt) < 0.0001);
+  }
 });
 
 test('Plague Sending treats Scourge F5 as entering shroud', () => {

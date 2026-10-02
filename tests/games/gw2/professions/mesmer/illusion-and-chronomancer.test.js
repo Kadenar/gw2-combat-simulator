@@ -65,7 +65,10 @@ test('Lingering Thoughts spends available ammo before waiting for serial recharg
     [0, 400, 4000, 8000]
   );
   assert.equal(result.planningState.ammo['Lingering Thoughts'].charges, 0);
-  assert.equal(result.planningState.ammo['Lingering Thoughts'].rechargeWork, 5);
+  assert.deepEqual(
+    result.planningState.ammo['Lingering Thoughts'].recharges.map((progress) => progress.work),
+    [5, 5]
+  );
 });
 
 // Damage resolves before the deferred clone; clone timing follows cast completion.

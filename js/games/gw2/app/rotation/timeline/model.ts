@@ -899,6 +899,7 @@ export type TimelineItem = {
   offTarget?: boolean;
   impactDelayMs?: number;
   releaseAtCharges?: unknown;
+  releaseDelayMs?: number;
   doubleEdgeOutcome?: unknown;
   durationMs?: number;
 };

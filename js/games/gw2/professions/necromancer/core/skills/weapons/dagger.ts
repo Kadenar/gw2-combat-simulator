@@ -29,12 +29,15 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.NECROTIC_SLASH]: {
     castTimeMs: 360,
+    // The slash lands before its aftercast; committed interruptions keep its strike packet.
+    interruptCommitMs: 200,
     effects: [
       {
         type: 'strike',
         coefficient: 0.9,
         hits: 2,
-        atMs: 0
+        atMs: 0,
+        persistsAfterInterrupt: true
       }
     ]
   },

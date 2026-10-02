@@ -3,7 +3,7 @@ import { isMushroomKingsBlessing } from '#gw2/integrations/logs/shared/rotation/
 
 /** Encodes the adapter's resolved input and cancellation decision without interpreting source timing or evidence. */
 export function replayActionCommand(
-  action: Pick<CastCommand, 'skillId' | 'doubleEdgeOutcome' | 'releaseAtCharges'> & {
+  action: Pick<CastCommand, 'skillId' | 'doubleEdgeOutcome' | 'releaseAtCharges' | 'releaseDelayMs'> & {
     readonly rawSkillId: number;
     readonly rawName: string;
   },
@@ -15,5 +15,6 @@ export function replayActionCommand(
   if (interruptMs != null) command.interruptAfterMs = interruptMs;
   if (action.doubleEdgeOutcome != null) command.doubleEdgeOutcome = action.doubleEdgeOutcome;
   if (action.releaseAtCharges != null) command.releaseAtCharges = action.releaseAtCharges;
+  if (Number(action.releaseDelayMs) > 0) command.releaseDelayMs = action.releaseDelayMs;
   return command;
 }

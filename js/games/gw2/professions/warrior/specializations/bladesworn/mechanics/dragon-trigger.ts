@@ -52,6 +52,7 @@ export function exitDragonTrigger(runtime: Runtime, at = runtime.time): void {
   state.dragonTriggerChargeDeadline = 0;
   state.nextDragonChargeAt = 0;
   state.dragonChargeTickCount = 0;
+  state.dragonChargeReachedAt = [];
   state.dragonCharges = 0;
   state.dragonChargesPerInterval = 1;
   state.dragonTriggerFlowSpent = 0;

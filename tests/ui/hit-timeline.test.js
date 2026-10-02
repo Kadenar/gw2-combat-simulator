@@ -203,7 +203,7 @@ test('repeated skill uses merge across gaps up to 1.5 seconds', () => {
   assert.deepEqual(groupSkillHits([]), []);
 });
 
-// A multi-hit activation gets one label while every damage marker remains drawn.
+// A multi-hit activation gets one millisecond-precision fight-time label while every damage marker remains drawn.
 test('cast labels stagger without overlap and keep fight timestamps', () => {
   const labels = [];
   let strokes = 0;
@@ -238,7 +238,7 @@ test('cast labels stagger without overlap and keep fight timestamps', () => {
   const timestamps = labels.filter(({ text }) => text.includes('hit'));
   assert.deepEqual(
     timestamps.map(({ text }) => text),
-    ['5.00s · 1 hit', '6.60s · 3 hits', '15.00s · 1 hit']
+    ['5.000s · 1 hit', '6.600s · 3 hits', '15.000s · 1 hit']
   );
   assert.equal(strokes, hits.length + 1);
   assert.notEqual(timestamps[0].y, timestamps[1].y);

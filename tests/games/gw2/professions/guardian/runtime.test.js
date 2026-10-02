@@ -559,6 +559,7 @@ test('Firebrand normal and final mantra charges share lockout and automatically 
   assert.equal(core(result).availableFlips[ID.FLAME_SURGE], undefined);
 });
 
+// The first sequential refill restores the normal variant while the second charge remains queued.
 test('Firebrand individual mantra recovery replaces the final variant without consuming it', () => {
   const result = run([ID.FLAME_RUSH, ID.FLAME_RUSH, wait(10000)], firebrand);
   assert.deepEqual(result.warnings, []);
