@@ -38,6 +38,8 @@ export function createSigilStrikeEvent(name: string, proc: Gw2SigilProc, sourceS
     weaponStrength: proc.weaponStrength,
     skillWeapon: 'Unequipped',
     canCrit: proc.canCrit === true,
+    // Preserve projectile identity so equipment missiles participate in projectile hit reactions.
+    projectile: proc.projectile === true,
     canTriggerCriticalSigils: proc.canCrit === true,
     canTriggerCriticalTraits: proc.canCrit === true
   };

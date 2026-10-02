@@ -17,11 +17,11 @@ import {
 } from '#gw2/professions/ranger/specializations/galeshot/traits/behavior.js';
 import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
-/** Accepted player projectile impacts independently trigger Mistral and advance Shrike. */
+/** Player attacks and player-owned effect projectiles trigger Mistral and Shrike; pet projectiles stay excluded. */
 export function reactToGaleshotMissile(context: RangerRuntime, event: Gw2ResolverEvent): void {
   if (
     event.type !== 'damage' ||
-    event.actorType !== 'player' ||
+    (event.actorType !== 'player' && !(event.actorType === 'effect' && event.ownerActorType === 'player')) ||
     !(Number(event.coefficient) > 0) ||
     event.projectile !== true
   )

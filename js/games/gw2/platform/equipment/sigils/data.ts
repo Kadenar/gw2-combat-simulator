@@ -197,6 +197,7 @@ export const SIGIL_PROCS = Object.freeze({
     effect: 'strike-condition',
     coefficient: 0.15,
     canCrit: true,
+    projectile: true,
     condition: 'Blindness',
     stacks: 1,
     duration: 2,

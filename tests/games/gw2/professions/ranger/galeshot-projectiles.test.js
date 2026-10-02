@@ -25,6 +25,61 @@ test('shortbow projectiles trigger Mistral and Shrike independently of combo suc
   assert.equal(galeshotState.from(observedRuntime(result)).missileHits, 1);
 });
 
+// Sigil missiles retain effect ownership while participating in projectile reactions; other sigil strikes do not.
+test('Mischief snowballs trigger Mistral and advance Shrike', () => {
+  for (const sigil of ['Mischief', 'Hydromancy']) {
+    const result = runRanger(['__combat_start', 'Mistral', 'Swap Weapons', { type: 'wait', durationMs: 100 }], {
+      specialization: 'Galeshot',
+      primaryWeapon: 'Shortbow',
+      weaponSet2Primary: 'Longbow',
+      selectedTraitIds: [TRAIT.SHRIKE],
+      sigilSets: [{ names: [] }, { names: [sigil] }]
+    });
+    assert.deepEqual(result.warnings, []);
+    const strike = result.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.skillName === `Sigil of ${sigil}`
+    );
+    assert.ok(strike);
+    assert.equal(strike.actorType, 'effect');
+    assert.equal(strike.ownerActorType, 'player');
+    assert.equal(strike.projectile, sigil === 'Mischief');
+    const mistral = hits(result, ID.MISTRAL);
+    assert.equal(mistral.length, sigil === 'Mischief' ? 1 : 0);
+    assert.equal(galeshotState.from(observedRuntime(result)).missileHits, sigil === 'Mischief' ? 1 : 0);
+    if (sigil === 'Mischief') {
+      assert.equal(mistral[0].triggeredBy, strike.skillName);
+      assert.equal(mistral[0].at, strike.at);
+    }
+  }
+});
+
+// Effect eligibility must not admit summoned projectiles or effects without explicit player ownership.
+test('Galeshot projectile reactions reject pets and unowned effects', () => {
+  const result = runRanger(
+    ['Mistral', { type: 'wait', durationMs: 1500 }],
+    { specialization: 'Galeshot', selectedTraitIds: [TRAIT.SHRIKE] },
+    {
+      initialize(runtime) {
+        for (const ownership of [{ actorType: 'summon', ownerActorType: 'player' }, { actorType: 'effect' }]) {
+          runtime.emit({
+            type: 'damage',
+            at: 1,
+            source: 'Test',
+            sourceId: 'test.non-player-projectile',
+            skillName: 'Non-player projectile',
+            coefficient: 0.15,
+            projectile: true,
+            ...ownership
+          });
+        }
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(hits(result, ID.MISTRAL).length, 0);
+  assert.equal(galeshotState.from(observedRuntime(result)).missileHits, 0);
+});
+
 // Expiry between contacts must retain only this axe's enhancement, including across a weapon swap.
 test('both Path of Scars variants retain Mistral on return without enhancing later projectiles', () => {
   for (const skillId of [ID.PATH_OF_SCARS, ID.PATH_OF_SCARS_MAX_RANGE]) {
