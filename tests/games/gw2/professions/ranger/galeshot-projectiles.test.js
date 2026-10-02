@@ -68,6 +68,8 @@ test('Galeshot projectile reactions reject pets and unowned effects', () => {
             sourceId: 'test.non-player-projectile',
             skillName: 'Non-player projectile',
             coefficient: 0.15,
+            // Synthetic projectiles have no catalog skill from which to resolve weapon strength.
+            weaponStrength: 1000,
             projectile: true,
             ...ownership
           });
@@ -76,6 +78,7 @@ test('Galeshot projectile reactions reject pets and unowned effects', () => {
     }
   );
   assert.deepEqual(result.warnings, []);
+  assert.equal(result.resolvedEvents.filter((event) => event.skillName === 'Non-player projectile').length, 2);
   assert.equal(hits(result, ID.MISTRAL).length, 0);
   assert.equal(galeshotState.from(observedRuntime(result)).missileHits, 0);
 });
