@@ -19,7 +19,7 @@ test('averaged hit details explain critical outcomes without changing rolled hit
   });
   for (const mode of ['averaged', 'rolled']) {
     const chart = page.locator(`#${mode}`);
-    await chart.getByRole('button', { name: '0.10s · 2 hits', exact: true }).click();
+    await chart.getByRole('button', { name: '0.100s · 2 hits', exact: true }).click();
     const details = chart.locator('[data-role="hit-detail"]');
     await expect(details.locator('tbody tr td:last-child')).toHaveText(['Yes', 'No']);
     await expect(details.getByText('Critical damage is averaged.', { exact: false })).toHaveCount(
@@ -96,12 +96,12 @@ test('skill details distinguish normal and empowered applications', async ({ pag
   await expect(page.locator('[data-role="result-charts"] [data-role="hit-timeline-canvas"]')).toHaveCount(0);
   const strikes = timeline.getByRole('group', { name: 'Strike damage', exact: true });
   expect(await strikes.locator('canvas').evaluate((canvas) => canvas.getContext('2d').strokeStyle)).toBe('#72c1d9');
-  await strikes.getByRole('button', { name: '0.00s · 5 hits', exact: true }).click();
+  await strikes.getByRole('button', { name: '0.000s · 5 hits', exact: true }).click();
   await expect(strikes.getByRole('columnheader', { name: 'Pulse', exact: true })).toBeVisible();
   await expect(strikes.locator('tbody tr td:last-child')).toHaveText(['Normal', 'Empowered', 'Normal', 'Normal', '—']);
   await expect(page.locator('[data-role="skill-applications"]')).toHaveCount(0);
   await expect(page.getByText('Hover or focus a pulse for its application time.')).toHaveCount(0);
-  await strikes.getByRole('img', { name: '6.00s · 1 hit', exact: true }).focus();
+  await strikes.getByRole('img', { name: '6.000s · 1 hit', exact: true }).focus();
   await expect(strikes.locator('[data-role="hit-timeline-tooltip"]')).toContainText('Pulse: Empowered');
   const conditions = timeline.getByRole('group', { name: 'Condition damage', exact: true });
   await conditions.getByRole('button').click();
@@ -112,7 +112,7 @@ test('skill details distinguish normal and empowered applications', async ({ pag
   await embraceRow.click();
   await expect(timeline).toHaveCount(0);
   await otherRow.click();
-  await timeline.getByRole('button', { name: '0.00s · 2 hits', exact: true }).click();
+  await timeline.getByRole('button', { name: '0.000s · 2 hits', exact: true }).click();
   await expect(timeline.getByRole('columnheader', { name: 'Pulse', exact: true })).toHaveCount(0);
 });
 
@@ -207,17 +207,17 @@ test('condition rows inspect full and partial payouts across sources', async ({ 
   const view = timeline.getByRole('combobox', { name: 'View', exact: true });
   const totals = timeline.getByRole('table', { name: 'Combined condition payouts' });
   await expect(totals.locator('tbody tr')).toHaveCount(3);
-  await expect(totals.locator('tbody tr').nth(0).locator('th, td')).toHaveText(['1.00s', '2', '200', '1', '4', '204']);
-  await expect(totals.locator('tbody tr').nth(1).locator('th, td')).toHaveText(['2.00s', '0', '0', '3', '735', '735']);
-  await expect(totals.locator('tbody tr').nth(2).locator('th, td')).toHaveText(['6.00s', '0', '0', '2', '50', '50']);
+  await expect(totals.locator('tbody tr').nth(0).locator('th, td')).toHaveText(['1.000s', '2', '200', '1', '4', '204']);
+  await expect(totals.locator('tbody tr').nth(1).locator('th, td')).toHaveText(['2.000s', '0', '0', '3', '735', '735']);
+  await expect(totals.locator('tbody tr').nth(2).locator('th, td')).toHaveText(['6.000s', '0', '0', '2', '50', '50']);
   await expect(timeline.locator('.condition-payouts')).toHaveCount(0);
   await view.selectOption('sources');
   await expect(timeline.locator('.condition-payouts > details')).toHaveCount(3);
   await expect(timeline.locator('.condition-payouts > details').last().locator('summary')).toContainText(
-    'Damage dealt at 6.00s · 50 damage'
+    'Damage dealt at 6.000s · 50 damage'
   );
   await expect(timeline.locator('.hit-detail-header')).toContainText('All ticks · 3 ticks · 989 damage');
-  const window = timeline.getByRole('button', { name: '0.00s–5.00s · 2 ticks', exact: true });
+  const window = timeline.getByRole('button', { name: '0.000s–5.000s · 2 ticks', exact: true });
   await window.hover();
   const tooltip = timeline.locator('[data-role="hit-timeline-tooltip"]').first();
   await expect(tooltip).toContainText('Total damage: 939');
@@ -229,7 +229,7 @@ test('condition rows inspect full and partial payouts across sources', async ({ 
   const payoutRows = details.locator('.condition-payouts > details');
   await expect(payoutRows).toHaveCount(2);
   await expect(window).toHaveAttribute('aria-expanded', 'true');
-  await expect(payoutRows.first().locator('summary')).toContainText('Damage dealt at 1.00s · 204 damage');
+  await expect(payoutRows.first().locator('summary')).toContainText('Damage dealt at 1.000s · 204 damage');
   const attribution = payoutRows.first();
   await attribution.locator('summary').focus();
   await attribution.locator('summary').press('Space');
@@ -237,8 +237,8 @@ test('condition rows inspect full and partial payouts across sources', async ({ 
   await expect(attribution.locator('tbody tr').first().locator('td')).toHaveText([
     'Player skill',
     'player',
-    '0.00s',
-    '1.00s',
+    '0.000s',
+    '1.000s',
     '2',
     'Full · 1000ms',
     '200'
@@ -246,8 +246,8 @@ test('condition rows inspect full and partial payouts across sources', async ({ 
   await expect(attribution.locator('tbody tr').last().locator('td')).toHaveText([
     'Clone <Bolt>',
     'clone',
-    '0.96s',
-    '1.00s',
+    '0.960s',
+    '1.000s',
     '1',
     'Partial · 40ms',
     '4'
@@ -282,7 +282,7 @@ test('condition rows inspect full and partial payouts across sources', async ({ 
   await expect(page.getByRole('region', { name: 'Bleeding damage ticks' })).toBeVisible();
   const bleedingInspector = page.getByRole('dialog', { name: 'Bleeding damage inspector' });
   await bleedingInspector.getByRole('combobox', { name: 'View', exact: true }).selectOption('sources');
-  const single = bleedingInspector.getByRole('button', { name: '5.00s–6.00s · 1 tick', exact: true });
+  const single = bleedingInspector.getByRole('button', { name: '5.000s–6.000s · 1 tick', exact: true });
   await single.click();
   await expect(bleedingInspector.locator('.condition-payouts')).toContainText('0 full · 1 partial');
   await bleedingInspector.getByRole('button', { name: 'Clear time selection', exact: true }).press('Escape');
@@ -363,20 +363,20 @@ test('conditions use separate bounded windows with accessible tick details', asy
     const conditions = chart.getByRole('group', { name: 'Condition damage', exact: true });
     await expect(strikes.locator('.hit-group')).toHaveCount(2);
     await expect(conditions.locator('.hit-group')).toHaveCount(3);
-    const singleStrike = strikes.getByRole('img', { name: '9.10s · 1 hit', exact: true });
+    const singleStrike = strikes.getByRole('img', { name: '9.100s · 1 hit', exact: true });
     await singleStrike.focus();
     await expect(strikes.locator('[data-role="hit-timeline-tooltip"]')).toContainText('Critical: Yes');
-    const strike = strikes.getByRole('button', { name: '0.10s · 2 hits', exact: true });
+    const strike = strikes.getByRole('button', { name: '0.100s · 2 hits', exact: true });
     await strike.click();
     await expect(strikes.locator('tbody tr')).toHaveCount(2);
     await strikes.getByRole('button', { name: 'Close hit details' }).click();
-    const window = conditions.getByRole('button', { name: '5.00s–10.00s · 5 ticks', exact: true });
+    const window = conditions.getByRole('button', { name: '5.000s–10.000s · 5 ticks', exact: true });
     await conditions.locator('canvas').hover({ position: { x: 1, y: 1 } });
     await window.focus();
     const tooltip = conditions.locator('[data-role="hit-timeline-tooltip"]');
     await expect(tooltip).toContainText('Total damage: 50');
     // Pointer events, including those caused by scrolling, must preserve the keyboard-focused window's tooltip.
-    const lastWindow = conditions.getByRole('button', { name: '10.00s–12.00s · 2 ticks', exact: true });
+    const lastWindow = conditions.getByRole('button', { name: '10.000s–12.000s · 2 ticks', exact: true });
     await lastWindow.hover();
     await expect(window).toBeFocused();
     await expect(tooltip).toContainText('Total damage: 50');
@@ -395,8 +395,8 @@ test('conditions use separate bounded windows with accessible tick details', asy
     await expect(detail.getByRole('columnheader', { name: 'Tick', exact: true })).toBeVisible();
     await expect(detail.getByRole('columnheader', { name: 'Critical', exact: true })).toHaveCount(0);
     await expect(detail.locator('tbody tr')).toHaveCount(5);
-    await expect(detail.locator('tbody tr').first().locator('td')).toHaveText(['1', '5.00s', 'Bleeding', '10']);
-    await expect(detail.locator('tbody tr').last().locator('td')).toHaveText(['5', '9.00s', 'Bleeding', '10']);
+    await expect(detail.locator('tbody tr').first().locator('td')).toHaveText(['1', '5.000s', 'Bleeding', '10']);
+    await expect(detail.locator('tbody tr').last().locator('td')).toHaveText(['5', '9.000s', 'Bleeding', '10']);
     await detail.getByRole('button', { name: 'Close tick details' }).press('Escape');
     await expect(detail).toBeHidden();
     await expect(window).toBeFocused();
@@ -410,7 +410,7 @@ test('conditions use separate bounded windows with accessible tick details', asy
 
   await resizeToMobile(page);
   await expect(
-    page.locator('#standalone').getByRole('button', { name: '5.00s–10.00s · 5 ticks', exact: true })
+    page.locator('#standalone').getByRole('button', { name: '5.000s–10.000s · 5 ticks', exact: true })
   ).toHaveAttribute('aria-expanded', 'true');
   const width = await page.evaluate(() => ({ content: document.documentElement.scrollWidth, viewport: innerWidth }));
   expect(width.content).toBeLessThanOrEqual(width.viewport);
@@ -442,13 +442,13 @@ test('condition details sum simultaneous ticks by type', async ({ page }) => {
     document.body.innerHTML = '<div id="timeline"></div>';
     mountHitTimeline(document.querySelector('#timeline'), series.skillDamage.skill, { durationMs: series.durationMs });
   });
-  await page.getByRole('button', { name: '0.00s–5.00s · 4 ticks', exact: true }).click();
+  await page.getByRole('button', { name: '0.000s–5.000s · 4 ticks', exact: true }).click();
   await expect(page.getByRole('columnheader', { name: 'Condition type', exact: true })).toBeVisible();
   const rows = page.locator('tbody tr');
   await expect(rows).toHaveCount(3);
-  await expect(rows.nth(0).locator('td')).toHaveText(['1', '1.00s', 'Bleeding', '40']);
-  await expect(rows.nth(1).locator('td')).toHaveText(['2', '1.00s', 'Poisoned', '20']);
-  await expect(rows.nth(2).locator('td')).toHaveText(['3', '1.00s', 'Bleeding', '5']);
+  await expect(rows.nth(0).locator('td')).toHaveText(['1', '1.000s', 'Bleeding', '40']);
+  await expect(rows.nth(1).locator('td')).toHaveText(['2', '1.000s', 'Poisoned', '20']);
+  await expect(rows.nth(2).locator('td')).toHaveText(['3', '1.001s', 'Bleeding', '5']);
 });
 
 // Hit details stay local while the separate DPS chart retains its phase clock.
@@ -494,12 +494,12 @@ test('multi-hit groups support hover, keyboard inspection, resizing, and phase c
   {
     const chart = page.locator('#standalone');
     await expect(chart.getByText('Select a hit group to inspect individual hits.', { exact: true })).toHaveCount(0);
-    const group = chart.getByRole('button', { name: '5.51s · 5 hits', exact: true });
+    const group = chart.getByRole('button', { name: '5.510s · 5 hits', exact: true });
     await group.hover();
     const tooltip = chart.locator('[data-role="hit-timeline-tooltip"]');
     await expect(tooltip).toBeVisible();
-    await expect(tooltip).toContainText('First hit: 5.51s');
-    await expect(tooltip).toContainText('Last hit: 7.41s');
+    await expect(tooltip).toContainText('First hit: 5.510s');
+    await expect(tooltip).toContainText('Last hit: 7.410s');
     await expect(tooltip).toContainText('Total damage: 480');
     await group.click();
     await expect(group).toHaveAttribute('aria-expanded', 'true');
@@ -509,23 +509,23 @@ test('multi-hit groups support hover, keyboard inspection, resizing, and phase c
     await expect(detail.getByRole('button', { name: 'Close hit details' })).toHaveCSS('font-size', '11px');
     await expect(detail.locator('tbody td')).toHaveText([
       '1',
-      '5.51s',
+      '5.510s',
       '100',
       'Yes',
       '2',
-      '5.61s',
+      '5.610s',
       '200',
       'No',
       '3',
-      '6.21s',
+      '6.210s',
       '50',
       'No',
       '4',
-      '6.81s',
+      '6.810s',
       '60',
       'No',
       '5',
-      '7.41s',
+      '7.410s',
       '70',
       'No'
     ]);
@@ -540,8 +540,8 @@ test('multi-hit groups support hover, keyboard inspection, resizing, and phase c
     await expect(detail).toBeVisible();
     await detail.getByRole('button', { name: 'Close hit details' }).click();
     // Single-hit markers retain hover and keyboard information without opening a redundant detail panel.
-    const single = chart.getByRole('img', { name: '13.00s · 1 hit', exact: true });
-    await expect(chart.getByRole('button', { name: '13.00s · 1 hit', exact: true })).toHaveCount(0);
+    const single = chart.getByRole('img', { name: '13.000s · 1 hit', exact: true });
+    await expect(chart.getByRole('button', { name: '13.000s · 1 hit', exact: true })).toHaveCount(0);
     await expect(single).toHaveCSS('cursor', 'default');
     await single.focus();
     await expect(tooltip).toContainText('Total damage: 50');
@@ -560,7 +560,7 @@ test('multi-hit groups support hover, keyboard inspection, resizing, and phase c
     await expect(tooltip).toContainText('Total damage: 50');
   }
 
-  await page.locator('#standalone').getByRole('button', { name: '5.51s · 5 hits', exact: true }).click();
+  await page.locator('#standalone').getByRole('button', { name: '5.510s · 5 hits', exact: true }).click();
   await resizeToMobile(page);
   await expect(page.locator('#standalone [data-role="hit-detail"]')).toBeVisible();
   const width = await page.evaluate(() => ({ content: document.documentElement.scrollWidth, viewport: innerWidth }));
@@ -570,5 +570,5 @@ test('multi-hit groups support hover, keyboard inspection, resizing, and phase c
   const dpsCanvas = page.locator('#series [data-role="dps-canvas"]');
   const bounds = await dpsCanvas.boundingBox();
   await dpsCanvas.hover({ position: { x: 54 + (bounds.width - 70) / 2, y: 100 } });
-  await expect(page.locator('#series [data-role="dps-tooltip"]')).toContainText('7.50s');
+  await expect(page.locator('#series [data-role="dps-tooltip"]')).toContainText('7.500s');
 });

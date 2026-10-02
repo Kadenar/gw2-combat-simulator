@@ -1,6 +1,5 @@
 import type {
   ElementalistSkill,
-  ElementalistState,
   ElementalistUiContext,
   ElementalistUiSlice
 } from '#gw2/professions/elementalist/types.js';
@@ -15,11 +14,10 @@ import type {
  * Weaver opts out of the attunement gates here
  * because its dual-attunement model is owned by the Weaver presentation.
  */
-import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionStartControl } from '#gw2/platform/profession-presentation/types.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import { CONJURED_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 
 const ATTUNEMENT_COLORS: Readonly<Record<ElementalistAttunement, string>> = Object.freeze({
   Fire: '#d94c35',
@@ -27,20 +25,11 @@ const ATTUNEMENT_COLORS: Readonly<Record<ElementalistAttunement, string>> = Obje
   Air: '#9b65c7',
   Earth: '#a7783f'
 });
-const ATTUNEMENT_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS));
 
 // The elite spec name reaches these callbacks either directly or through the
 // simulation config, depending on which shell (build editor or results) is asking.
 function specialization(context: ElementalistUiContext): string {
   return context.specialization || context.config?.specialization || 'Core';
-}
-
-// Reads the profession state from either a live scheduler context or an end-of-run
-// result context, so one set of UI rules serves both the editor and the replay view.
-function state(context: ElementalistUiContext): Partial<ElementalistState> {
-  const live = context.professionState;
-  const end = context.state;
-  return live || end?.profession || {};
 }
 
 // Resolves a build's stored attunement choice, falling the secondary back to the
@@ -76,45 +65,6 @@ function attunementControl(
   };
 }
 
-// Apply family-level attunement and hammer-orb gates for non-Weavers; Weaver's
-// two-hand model is delegated to its specialization UI contract.
-function paletteSkillAvailability(context: ElementalistUiContext, skill: Skill) {
-  // Keep the standard weapon rows visible but disabled until the wielded conjure is dropped or expires.
-  const conjure = state(context).conjureEquipped;
-  const weapon = skill.skillWeapon || skill.weapon || '';
-  // Inactive conjure bars remain visible but cannot queue attacks until their own bundle is wielded.
-  if (skill.type === 'Weapon' && CONJURED_WEAPONS.has(weapon) && conjure !== weapon) {
-    return { available: false, message: `Equip ${weapon} before using its skills.` };
-  }
-
-  if (conjure && skill.type === 'Weapon' && weapon !== conjure) {
-    return { available: false, message: `Drop ${conjure} before using normal weapon skills.` };
-  }
-
-  if (specialization(context) === 'Weaver') return { available: true, message: '' };
-  const primary = state(context).primaryAttunement || context.build?.startAttunement || 'Fire';
-  // Attuning to the element you are already in is the one attunement swap that is denied.
-  if (ATTUNEMENT_SKILL_IDS.has(Number(skill.id))) {
-    const target = skill.name.replace(/ Attunement$/, '');
-    return target === primary
-      ? { available: false, message: `Already attuned to ${target}.` }
-      : { available: true, message: '' };
-  }
-
-  if (skill.type !== 'Weapon' || !skill.attunement) return { available: true, message: '' };
-  const catalog = context.catalog as Readonly<CanonicalCatalog<ElementalistSkill>> | undefined;
-  const position = catalog?.autoattackChainPositions.get(Number(skill.id));
-  const carryover = state(context).autoattackCarryover;
-  // An autoattack chain carried across an attunement swap may finish in its original
-  // element, so its remaining steps stay castable even though they are now off-attunement.
-  if (position && carryover?.root === position.root && carryover.attunement === skill.attunement) {
-    return { available: true, message: '' };
-  }
-
-  const available = skill.attunement === primary;
-  return { available, message: available ? '' : `Requires ${String(skill.attunement)} attunement.` };
-}
-
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindElementalistFamilyUi(catalog: Readonly<CanonicalCatalog<ElementalistSkill>>): ElementalistUiSlice {
   return Object.freeze({
@@ -124,8 +74,7 @@ export function bindElementalistFamilyUi(catalog: Readonly<CanonicalCatalog<Elem
             attunementControl(catalog, context, 'startAttunement', 'Primary attunement'),
             attunementControl(catalog, context, 'secondaryAttunement', 'Secondary attunement')
           ]
-        : [attunementControl(catalog, context, 'startAttunement', 'Start attunement')],
-    paletteSkillAvailability
+        : [attunementControl(catalog, context, 'startAttunement', 'Start attunement')]
   });
 }
 

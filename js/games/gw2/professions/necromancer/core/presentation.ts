@@ -1,5 +1,4 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
@@ -8,7 +7,6 @@ import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/i
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
-  PaletteSkillAvailability,
   ProfessionEffectPresentation,
   ProfessionPaletteGroup,
   ProfessionResourceView
@@ -126,89 +124,6 @@ export function necromancerTransformPaletteGroups(
   return groups;
 }
 
-// Mirror runtime transform restrictions in the palette, including trait
-// replacements, living-minion flips, shroud bars, and Lich-only skills.
-function necromancerCorePaletteAvailability(
-  context: NecromancerUiContext = {},
-  skill: NecromancerSkill
-): PaletteSkillAvailability {
-  const state = necromancerUiState(context);
-  const active = state.activeShroud || '';
-  // Dodging never depends on the active weapon or transform bar.
-  if (skill.id === SHARED_SKILL_IDS.DODGE) return { available: true, message: '' };
-  const activeTraitNames = new Set(getActiveTraits(context.build?.specializations || []).map((trait) => trait.name));
-  // Apply trait replacements and living-minion restrictions before transform-wide gates.
-  if (skill.id === ID.DEVOURING_DARKNESS && !activeTraitNames.has('Lingering Curse')) {
-    return { available: false, message: 'Requires Lingering Curse' };
-  }
-
-  if (skill.id === ID.FEAST_OF_CORRUPTION && activeTraitNames.has('Lingering Curse')) {
-    return {
-      available: false,
-      message: 'Replaced by Devouring Darkness'
-    };
-  }
-
-  if (
-    skill.rechargeOnMinionDeath &&
-    skill.flipSkillId != null &&
-    skillFlipReady(state.availableFlips?.[skill.flipSkillId], context.time || 0)
-  ) {
-    return {
-      available: false,
-      message: 'Summoned minion is still alive'
-    };
-  }
-
-  // Once transformed, only the corresponding replacement bar remains available.
-  if (active === 'lich') {
-    const available = NECROMANCER_LICH_SKILL_IDS.includes(skill.id);
-    return {
-      available,
-      message: available ? '' : 'Unavailable while Lich Form is active'
-    };
-  }
-
-  if (skill.shroud) {
-    const available = active === skill.shroud;
-    return {
-      available,
-      message: available ? '' : `Enter ${skill.specialization || 'Death'} Shroud first`
-    };
-  }
-
-  if (skill.type === 'Weapon' && active) {
-    return {
-      available: false,
-      message: 'Weapon skills are unavailable while shrouded'
-    };
-  }
-
-  if (active && ['Heal', 'Utility', 'Elite'].includes(skill.type || '')) {
-    return {
-      available: false,
-      message: 'Slot skills are unavailable while shrouded'
-    };
-  }
-
-  if ((skill.shroudEntry || skill.id === ID.LICH_FORM) && active) {
-    return {
-      available: false,
-      message: 'Exit the current transform first'
-    };
-  }
-
-  if (skill.shroudExit) {
-    const available = active === skill.shroudExit;
-    return {
-      available,
-      message: available ? '' : `Enter ${skill.shroudExit} shroud first`
-    };
-  }
-
-  return { available: true, message: '' };
-}
-
 /** Returns target-health boundaries required by selected traits and threshold-dependent weapons. */
 export function necromancerCoreTargetHealthThresholds(context: NecromancerUiContext = {}): number[] {
   const build = context.build || {};
@@ -281,6 +196,12 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
+    // Tile identity follows the active bar even when the visible skill cannot currently be cast.
+    paletteOverride: (context, skill) => {
+      const active = necromancerUiState(context).activeShroud || '';
+      if (skill.shroudEntry) return { tileActive: active !== skill.shroudEntry };
+      if (skill.shroudExit) return { tileActive: active === skill.shroudExit };
+    },
     // Self conditions are observable transfer resources; they never imply simulated incoming player damage.
     eventLogRow: (_context: NecromancerUiContext, event: SimulationEvent) =>
       event.type === 'self_condition'
@@ -306,7 +227,6 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
             stackId: 'core-profession'
           })
         : [],
-    resourceViews: necromancerCoreResourceViews,
-    paletteSkillAvailability: necromancerCorePaletteAvailability
+    resourceViews: necromancerCoreResourceViews
   });
 }

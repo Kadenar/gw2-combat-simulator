@@ -237,7 +237,8 @@ export function bindRelicComparisonChartHover(
     }
 
     const time = startMs + ((chartX - PAD.left) / PLOT_WIDTH) * Math.max(0, endMs - startMs);
-    tooltip.innerHTML = `<div><b>${(time / 1000).toFixed(2)}s</b></div>
+    // Match the millisecond precision of other chart hover timestamps.
+    tooltip.innerHTML = `<div><b>${(time / 1000).toFixed(3)}s</b></div>
       <div>${escapeHtml(opponentLabel)}: ${formatDps(valueAt(plotPoints, time, (point) => point.opponentDps))} DPS</div>
       <div>${escapeHtml(targetLabel)}: ${formatDps(valueAt(plotPoints, time, (point) => point.targetDps))} DPS</div>`;
     // Measure at the chart origin before clamping so the right edge cannot clip or shrink the tooltip.

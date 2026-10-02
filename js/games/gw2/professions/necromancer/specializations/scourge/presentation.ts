@@ -1,12 +1,12 @@
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   necromancerTransformPaletteGroups,
   necromancerSoulShardResourceViews,
   necromancerUiState
 } from '#gw2/professions/necromancer/core/presentation.js';
-import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
-import type { PaletteSkillAvailability, ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
+import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
 import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
 
 const SCOURGE_SKILLS = Object.freeze([
@@ -18,26 +18,17 @@ const SCOURGE_SKILLS = Object.freeze([
   ID.SANDSTORM_SHROUD
 ]);
 
-// Prevent the palette from offering the inactive side of Herald of Sorrow's F5 replacement.
-function scourgePaletteAvailability(context: NecromancerUiContext, skill: NecromancerSkill): PaletteSkillAvailability {
-  const activeTraitNames = new Set(getActiveTraits(context.build?.specializations || []).map((trait) => trait.name));
-  if (skill.id === ID.SANDSTORM_SHROUD && !activeTraitNames.has('Herald of Sorrow')) {
-    return { available: false, message: 'Requires Herald of Sorrow' };
-  }
-
-  if (skill.id === ID.DESERT_SHROUD && activeTraitNames.has('Herald of Sorrow')) {
-    return {
-      available: false,
-      message: 'Replaced by Sandstorm Shroud'
-    };
-  }
-
-  return { available: true, message: '' };
-}
-
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindScourgeUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
+    // The trait replacement owns F5 even when its resource cost cannot currently be paid.
+    paletteOverride: (context, skill) => {
+      if (skill.id !== ID.DESERT_SHROUD && skill.id !== ID.SANDSTORM_SHROUD) return;
+      const replaced = getActiveTraits(context.build?.specializations || []).some(
+        (trait) => trait.id === TRAIT.HERALD_OF_SORROW
+      );
+      return { tileActive: (skill.id === ID.SANDSTORM_SHROUD) === replaced };
+    },
     paletteGroups: (context: NecromancerUiContext) =>
       necromancerTransformPaletteGroups(catalog, context, {
         professionSkillIds: SCOURGE_SKILLS
@@ -61,7 +52,6 @@ export function bindScourgeUi(catalog: Readonly<CanonicalCatalog<NecromancerSkil
         statusLabel: 'Current',
         showValue: false
       }
-    ],
-    paletteSkillAvailability: scourgePaletteAvailability
+    ]
   });
 }

@@ -2,11 +2,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type {
-  PaletteSkillAvailability,
-  ProfessionEffectPresentation
-} from '#gw2/platform/profession-presentation/types.js';
+import type { ProfessionEffectPresentation } from '#gw2/platform/profession-presentation/types.js';
 import {
   mesmerMechanicPaletteGroups,
   mesmerResourceViews,
@@ -38,17 +34,6 @@ function mirageEffectPresentations(context: MesmerUiContext): ProfessionEffectPr
   ];
 }
 
-/** Keeps the mirror pickup action disabled until the projected state has a collectible ground mirror. */
-function miragePaletteSkillAvailability(context: MesmerUiContext, skill: Skill): PaletteSkillAvailability {
-  if (skill.id !== ID.PICK_UP_MIRAGE_MIRROR) return { available: true, message: '' };
-  const state = context.professionState || context.state?.profession || {};
-  const available = (state.availableMirrors || 0) > 0;
-  return {
-    available,
-    message: available ? '' : 'No Mirage Mirror is active on the ground.'
-  };
-}
-
 export const mirageUi: MesmerUiSlice = Object.freeze({
   effectPresentations: mirageEffectPresentations,
   paletteGroups: (context: MesmerUiContext) => mesmerMechanicPaletteGroups(context, MIRAGE_MECHANIC_SKILLS, 'clones'),
@@ -73,6 +58,5 @@ export const mirageUi: MesmerUiSlice = Object.freeze({
       statusLabel: 'Current',
       paletteSkillId: ID.DODGE_MIRAGE_CLOAK
     }
-  ],
-  paletteSkillAvailability: miragePaletteSkillAvailability
+  ]
 });

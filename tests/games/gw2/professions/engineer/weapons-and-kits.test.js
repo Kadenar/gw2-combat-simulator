@@ -1,3 +1,4 @@
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { skillFlipVisible, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -71,7 +72,10 @@ test('Refraction Cutter blades retain their parent skill and expose a separate d
 test('Refraction Cutter Blade rejects standalone names and IDs while parent blades resolve', () => {
   const config = { primaryWeapon: 'Sword', secondaryWeapon: 'Pistol' };
   const blade = engineerCatalog.skillsById.get(ID.REFRACTION_CUTTER_BLADE);
-  assert.equal(engineerProfession.ui.paletteSkillAvailability({ specialization: 'Holosmith' }, blade).available, false);
+  assert.equal(
+    Object.hasOwn(planningFixture(engineerProfession, { specialization: 'Holosmith' }).availability, blade.id),
+    false
+  );
   for (const action of [blade.name, blade.id]) {
     const result = simulate('Holosmith', [action], config);
     assert.equal(result.warnings.length, 1);
@@ -960,20 +964,12 @@ test('Lightning Rod exposes Electric Artillery after charging', () => {
   const charged = simulate('Amalgam', ['Lightning Rod', { type: 'wait', durationMs: 4000 }], {
     selectedMorphSkillIds: [77103, 77104, 76705]
   });
-  const chargingContext = {
-    professionState: charging.planningState.profession,
-    time: charging.rotationEndTime
-  };
-  const chargedContext = {
-    professionState: charged.planningState.profession,
-    time: charged.rotationEndTime
-  };
   const rod = engineerCatalog.skillsByName.get('Lightning Rod');
   const artillery = engineerCatalog.skillsByName.get('Electric Artillery');
 
-  assert.equal(engineerProfession.ui.paletteSkillAvailability(chargingContext, rod).available, false);
-  assert.equal(engineerProfession.ui.paletteSkillAvailability(chargingContext, artillery).available, false);
-  assert.equal(engineerProfession.ui.paletteSkillAvailability(chargedContext, artillery).available, true);
+  assert.equal(charging.planningState.availability[rod.id].ready, false);
+  assert.equal(charging.planningState.availability[artillery.id].ready, false);
+  assert.equal(charged.planningState.availability[artillery.id].ready, true);
   assert.equal(
     skillFlipVisible(charging.planningState.profession.availableFlips[artillery.id], charging.rotationEndTime),
     false
@@ -1137,7 +1133,10 @@ test('Mine Field automatically detonates five mines with cripple', () => {
 
 test('manual Mine Field detonation cannot add damage or toolbelt activations', () => {
   const detonation = mechanic('Detonate Mine Field');
-  assert.equal(engineerProfession.ui.paletteSkillAvailability({ specialization: 'Core' }, detonation).available, false);
+  assert.equal(
+    Object.hasOwn(planningFixture(engineerProfession, { specialization: 'Core' }).availability, detonation.id),
+    false
+  );
 
   // Parent casts own detonation, including precasts held until combat; manual name/ID inputs grant nothing.
   for (const rotation of [[], ['Mine Field'], ['Mine Field', '__combat_start']]) {

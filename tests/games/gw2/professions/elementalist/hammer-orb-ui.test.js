@@ -1,3 +1,4 @@
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -27,6 +28,7 @@ function createHammerApp(hammerOrbs, time = 0) {
     weaponData: elementalistAppAdapter.weaponData,
     results: {
       planningState: {
+        availability: {},
         activeWeaponSet: 1,
         atSeconds: time,
         cooldowns: {},
@@ -54,86 +56,34 @@ test('hammer orb generators remain visible while an orb is active', () => {
 });
 
 test('Flame Wheel is disabled for the shared active-orb window', () => {
-  const flameWheel = elementalistCatalog.skillsByName.get('Flame Wheel');
-  const icyCoil = elementalistCatalog.skillsByName.get('Icy Coil');
-  const activeContext = {
-    time: 0,
-    build: { startAttunement: 'Fire' },
-    professionState: {
-      primaryAttunement: 'Fire',
-      secondaryAttunement: null,
-      hammerOrbs: { Fire: 15, Water: 15, Air: null, Earth: null }
+  for (const [element, name] of [
+    ['Fire', 'Flame Wheel'],
+    ['Water', 'Icy Coil']
+  ]) {
+    for (const expiry of [-1, 15]) {
+      const state = planningFixture(
+        elementalistProfession,
+        { specialization: 'Core', startAttunement: element },
+        (runtime) => {
+          runtime.profession.core.hammerOrbs[element] = expiry;
+        }
+      );
+      const verdict = state.availability[elementalistCatalog.skillsByName.get(name).id];
+      assert.equal(verdict.ready, expiry < 0);
+      if (!verdict.ready) assert.equal(verdict.code, 'elementalist.hammer-orb-active');
     }
-  };
-
-  assert.deepEqual(elementalistProfession.ui.paletteSkillAvailability(activeContext, flameWheel), {
-    available: false,
-    message: 'Grand Finale must consume the active orb before it can be created again.'
-  });
-  const waterContext = {
-    ...activeContext,
-    build: { startAttunement: 'Water' },
-    professionState: { ...activeContext.professionState, primaryAttunement: 'Water' }
-  };
-
-  assert.deepEqual(elementalistProfession.ui.paletteSkillAvailability(waterContext, icyCoil), {
-    available: false,
-    message: 'Grand Finale must consume the active orb before it can be created again.'
-  });
-  assert.deepEqual(elementalistProfession.ui.paletteSkillAvailability({ ...activeContext, time: 16 }, flameWheel), {
-    available: true,
-    message: ''
-  });
-  assert.deepEqual(elementalistProfession.ui.paletteSkillAvailability({ ...waterContext, time: 16 }, icyCoil), {
-    available: true,
-    message: ''
-  });
+  }
 });
 
 test('Grand Finale requires at least one active hammer orb', () => {
-  const grandFinale = elementalistCatalog.skillsByName.get('Grand Finale');
-  const context = {
-    time: 0,
-    build: { startAttunement: 'Fire' },
-    professionState: {
-      primaryAttunement: 'Fire',
-      secondaryAttunement: null,
-      hammerOrbs: { Fire: null, Water: null, Air: null, Earth: null }
-    }
-  };
-
-  assert.deepEqual(elementalistProfession.ui.paletteSkillAvailability(context, grandFinale), {
-    available: false,
-    message: 'Requires at least one active hammer orb.'
-  });
-  assert.deepEqual(
-    elementalistProfession.ui.paletteSkillAvailability(
-      {
-        ...context,
-        professionState: {
-          ...context.professionState,
-          hammerOrbs: { ...context.professionState.hammerOrbs, Fire: 15 }
-        }
-      },
-      grandFinale
-    ),
-    { available: true, message: '' }
-  );
-  assert.deepEqual(
-    elementalistProfession.ui.paletteSkillAvailability(
-      {
-        ...context,
-        time: 16,
-        professionState: {
-          ...context.professionState,
-          hammerOrbs: { ...context.professionState.hammerOrbs, Fire: 15 }
-        }
-      },
-      grandFinale
-    ),
-    {
-      available: false,
-      message: 'Requires at least one active hammer orb.'
-    }
-  );
+  for (const expiry of [null, -1, 15]) {
+    const state = planningFixture(
+      elementalistProfession,
+      { specialization: 'Core', startAttunement: 'Fire' },
+      (runtime) => {
+        runtime.profession.core.hammerOrbs.Fire = expiry;
+      }
+    );
+    assert.equal(state.availability[elementalistCatalog.skillsByName.get('Grand Finale').id].ready, expiry === 15);
+  }
 });

@@ -18,9 +18,8 @@ import type {
  * the rotation snapshot. Reads a projected UI-side state record rather than live
  * simulation state, falling back to build defaults before a run exists.
  */
-import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type {
-  PaletteSkillAvailability,
   ProfessionResourceView,
   ProfessionSkillBarGroup,
   ProfessionSkillBarSelectionChange,
@@ -28,10 +27,6 @@ import type {
 } from '#gw2/platform/profession-presentation/types.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_FAMILIAR_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
-import {
-  BASIC_FAMILIARS,
-  FAMILIAR_ELEMENTS
-} from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import type { EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
@@ -67,52 +62,6 @@ function familiarSkillId(context: ElementalistUiContext): number {
   const empowered = state.empowered ?? build?.initialEvokerEmpowered ?? 0;
   const name = FAMILIAR_SKILL_NAMES[element][empowered >= empoweredMaximum ? 'empowered' : 'basic'];
   return ELEMENTALIST_FAMILIAR_SKILL_IDS[name];
-}
-
-// Keeps the F5 palette state aligned with scheduler validation so a familiar
-// only looks clickable when the charges shown at the insertion point can cast it.
-function familiarPaletteAvailability(context: ElementalistUiContext, skill: Skill): PaletteSkillAvailability {
-  const element = FAMILIAR_ELEMENTS.get(skill.id);
-  if (!element) return { available: true, message: '' };
-  if (selectedElement(context) !== element) {
-    return {
-      available: false,
-      message: `${skill.name} is unavailable - the ${element} familiar is not selected.`
-    };
-  }
-
-  const state = uiState(context);
-  const build = context.build;
-  const maximum =
-    state.maximumCharges ??
-    balanceProfileNumber(
-      requireBalanceProfileFromContext(
-        context,
-        getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.SPECIALIZED_ELEMENTS)
-          ? TRAIT.SPECIALIZED_ELEMENTS
-          : PROFILE.resources
-      ),
-      'maximumStacks'
-    );
-  const charges = state.charges ?? build?.initialEvokerCharges ?? maximum;
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const empoweredMaximum = balanceProfileNumber(resourcesProfile, 'minimumStacks');
-  const empowered = state.empowered ?? build?.initialEvokerEmpowered ?? 0;
-  if (BASIC_FAMILIARS.has(skill.id)) {
-    return empowered < empoweredMaximum && charges >= maximum
-      ? { available: true, message: '' }
-      : {
-          available: false,
-          message: `${skill.name} requires ${maximum} familiar charges.`
-        };
-  }
-
-  return empowered >= empoweredMaximum
-    ? { available: true, message: '' }
-    : {
-        available: false,
-        message: `${skill.name} requires ${empoweredMaximum} empowered familiar charges.`
-      };
 }
 
 /** Reports the brief Elemental Balance damage window only while it can affect the next action. */
@@ -168,7 +117,6 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
     build.evokerElement = selection.value;
     return true;
   },
-  paletteSkillAvailability: familiarPaletteAvailability,
   rotationStateSnapshot: evokerStateSnapshot,
   paletteGroups: (context: ElementalistUiContext) => {
     const element = selectedElement(context);

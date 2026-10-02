@@ -2,36 +2,23 @@ import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { HERALD_MECHANICS } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
-import type { PaletteSkillAvailability } from '#gw2/platform/profession-presentation/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
+import type { RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 
 const TRUE_NATURE_IDS: readonly SkillId[] = Object.freeze(Object.values(HERALD_MECHANICS.trueNatureConsumeByLegendId));
 
-// Mirror Herald facet and consume-skill flip state in the palette without
-// mutating the projected active upkeep windows.
-function heraldPaletteAvailability(context: RevenantUiContext, skill: RevenantSkill): PaletteSkillAvailability {
-  if (skill.id !== SKILL.FACET_OF_NATURE && !TRUE_NATURE_IDS.includes(skill.id)) {
-    return { available: true, message: '' };
-  }
-
-  const expected = (HERALD_MECHANICS.trueNatureConsumeByLegendId as Readonly<Record<string, SkillId>>)[
-    activeRevenantLegend(context)
-  ];
-  const consumeActive =
-    expected != null && skillFlipReady(revenantUiState(context).availableFlips?.[expected], context.time || 0);
-  if (skill.id === SKILL.FACET_OF_NATURE) {
-    return consumeActive
-      ? { available: false, message: 'True Nature currently replaces Facet of Nature' }
-      : { available: true, message: '' };
-  }
-
-  return skill.id === expected && consumeActive
-    ? { available: true, message: '' }
-    : { available: false, message: 'Activate Facet of Nature first' };
-}
-
 export const heraldUi: RevenantUiSlice = Object.freeze({
+  // Tile identity follows the active bar even when the visible skill cannot currently be cast.
+  paletteOverride: (context, skill) => {
+    if (!TRUE_NATURE_IDS.includes(skill.id)) return;
+    return {
+      tileActive:
+        skill.id ===
+          (HERALD_MECHANICS.trueNatureConsumeByLegendId as Readonly<Record<string, SkillId>>)[
+            activeRevenantLegend(context)
+          ] && skillFlipReady(revenantUiState(context).availableFlips?.[skill.id], context.time || 0)
+    };
+  },
   paletteGroups: () => {
     return [
       {
@@ -45,7 +32,6 @@ export const heraldUi: RevenantUiSlice = Object.freeze({
       }
     ];
   },
-  paletteSkillAvailability: heraldPaletteAvailability,
   // Herald has no custom resource bar; it reuses the Energy bar declared in core/presentation.ts.
   resourceViews: () => []
 });

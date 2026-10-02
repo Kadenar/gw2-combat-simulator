@@ -1,3 +1,4 @@
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -150,36 +151,13 @@ test('Elementalist utilities render beside profession controls before weapons', 
 });
 
 test('Catalyst sphere palette availability reflects attunement and energy', () => {
-  const fireSphere = elementalistProfession.catalog.skillsById.get(ELEMENTALIST_JADE_SPHERE_SKILL_IDS.Fire);
-  const waterSphere = elementalistProfession.catalog.skillsById.get(ELEMENTALIST_JADE_SPHERE_SKILL_IDS.Water);
-  const context = {
-    catalog: elementalistProfession.catalog,
-    specialization: 'Catalyst',
-    professionState: {
-      primaryAttunement: 'Fire',
-      energy: 30
-    }
-  };
-
-  assert.deepEqual(elementalistProfession.ui.paletteSkillAvailability(context, fireSphere), {
-    available: true,
-    message: ''
-  });
-  assert.match(
-    elementalistProfession.ui.paletteSkillAvailability(context, waterSphere).message,
-    /Requires Water attunement/
-  );
-  assert.deepEqual(
-    elementalistProfession.ui.paletteSkillAvailability(
-      {
-        ...context,
-        professionState: {
-          primaryAttunement: 'Fire',
-          energy: 9
-        }
-      },
-      fireSphere
-    ),
-    { available: false, message: 'Requires 10 Energy; currently 9' }
-  );
+  for (const energy of [9, 30]) {
+    const state = planningFixture(elementalistProfession, {
+      specialization: 'Catalyst',
+      startAttunement: 'Fire',
+      initialCatalystEnergy: energy
+    });
+    assert.equal(state.availability[ELEMENTALIST_JADE_SPHERE_SKILL_IDS.Fire].ready, energy === 30);
+    assert.equal(state.availability[ELEMENTALIST_JADE_SPHERE_SKILL_IDS.Water].ready, false);
+  }
 });

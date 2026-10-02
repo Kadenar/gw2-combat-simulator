@@ -1,4 +1,3 @@
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { timedBuffAt } from '#gw2/platform/results/query.js';
 import type {
   ElementalistSkill,
@@ -20,20 +19,11 @@ import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import {
-  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
-  ELEMENTALIST_SKILL_IDS as ID
-} from '#gw2/professions/elementalist/data/ids.js';
-import {
-  AURA_TRANSMUTE_SKILLS,
-  CONJURE_SKILLS,
-  ETCHING_CHAINS,
-  HAMMER_ORB_SKILLS
-} from '#gw2/professions/elementalist/core/constants.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { AURA_TRANSMUTE_SKILLS, CONJURE_SKILLS, ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
-  PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   RotationStateSnapshotItem
@@ -291,103 +281,6 @@ function currentAttunement(context: ElementalistUiContext): ElementalistAttuneme
     : 'Fire';
 }
 
-// Explain why a palette tile is not castable at the inspection point. Covers the
-// skill pairs and resources that flip on core state: aura generator vs transmute,
-// Rock Barrier vs Hurl, hammer orbs, pistol bullets, and autoattack chain order.
-function paletteAvailability(context: ElementalistUiContext, skill: Skill): PaletteSkillAvailability {
-  const state = elementalistUiState(context);
-  const now = context.time || 0;
-  const transmuteAura = AURA_TRANSMUTE_SKILLS[Number(skill.id)];
-  const generatedAura = AURA_TRANSMUTE_SKILLS[Number(skill.nextChainId)];
-  if (transmuteAura || generatedAura) {
-    // Aura generators and transmutes are reciprocal catalog flips. This state
-    // check lets the shared projector expose only the side usable right now.
-    const aura = transmuteAura || generatedAura;
-    const transmuteActive = Boolean(state.activeAuras?.some((entry) => entry.type === aura && entry.expiresAt > now));
-    const available = transmuteAura ? transmuteActive : !transmuteActive;
-    if (!available) {
-      return {
-        available: false,
-        message: transmuteActive ? `${aura} can be transmuted now.` : `Requires an active ${aura}.`
-      };
-    }
-  }
-
-  // The shared tile projector chooses the one Rock Barrier variant that is
-  // usable at the inspection point, including the exact barrier expiry.
-  if (skill.name === 'Rock Barrier' || skill.name === 'Hurl') {
-    const hurlActive = skillFlipReady(state.availableFlips?.[ID.HURL], now);
-    const available = skill.name === (hurlActive ? 'Hurl' : 'Rock Barrier');
-    if (!available) {
-      return {
-        available: false,
-        message: hurlActive ? 'Hurl currently replaces Rock Barrier.' : 'Requires an active Rock Barrier.'
-      };
-    }
-  }
-
-  const hasActiveHammerOrb = Object.values(state.hammerOrbs || {}).some(
-    (expiresAt) => expiresAt != null && expiresAt >= now
-  );
-  const hammerElements = HAMMER_ORB_SKILLS[Number(skill.id)] ? [HAMMER_ORB_SKILLS[Number(skill.id)]] : null;
-  // Active orb elements share one refreshed 15-second lifetime, while element
-  // membership determines which visible generator is locked during that window.
-  if (
-    hammerElements?.some((element) => {
-      const expiresAt = state.hammerOrbs?.[element];
-      return expiresAt != null && expiresAt >= now;
-    })
-  ) {
-    return {
-      available: false,
-      message: 'Grand Finale must consume the active orb before it can be created again.'
-    };
-  }
-
-  // Grand Finale stays in the palette as the shared orb consumer, but cannot
-  // be queued after the common orb lifetime has ended.
-  if (skill.name === 'Grand Finale' && !hasActiveHammerOrb) {
-    return {
-      available: false,
-      message: 'Requires at least one active hammer orb.'
-    };
-  }
-
-  if (skill.name === 'Elemental Explosion') {
-    const bullets = displayedPistolBullets(context);
-    const available = ELEMENTALIST_ATTUNEMENTS.every((element) => bullets[element]);
-    if (!available) {
-      return {
-        available: false,
-        message: 'Requires all four elemental bullets.'
-      };
-    }
-  }
-
-  const position = (
-    context.catalog as Readonly<CanonicalCatalog<ElementalistSkill>> | undefined
-  )?.autoattackChainPositions.get(Number(skill.id));
-  if (position) {
-    const expected = Number(state.autoattackChains?.[position.root]) || position.root;
-    if (expected !== Number(skill.id)) {
-      const expectedSkill = (context.catalog as Readonly<CanonicalCatalog<ElementalistSkill>>).skillsById.get(expected);
-      return {
-        available: false,
-        message: `Cast ${expectedSkill?.name || 'the earlier chain skill'} first.`
-      };
-    }
-
-    if (
-      state.autoattackCarryover?.root === position.root &&
-      state.autoattackCarryover.attunement === skill.attunement
-    ) {
-      return { available: true, message: '' };
-    }
-  }
-
-  return { available: true, message: '' };
-}
-
 // Convert Elementalist-specific state events into compact log rows while letting
 // shared events fall through to the default renderer.
 function eventLogRow(
@@ -475,6 +368,17 @@ function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSna
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<ElementalistSkill>>): ElementalistUiSlice {
   return Object.freeze({
+    // Tile identity follows the active bar even when the visible skill cannot currently be cast.
+    paletteOverride: (context, skill) => {
+      const state = elementalistUiState(context);
+      const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)] || AURA_TRANSMUTE_SKILLS[Number(skill.nextChainId)];
+      if (aura) {
+        const active = Boolean(
+          state.activeAuras?.some((entry) => entry.type === aura && entry.expiresAt > (context.time || 0))
+        );
+        return { tileActive: Boolean(AURA_TRANSMUTE_SKILLS[Number(skill.id)]) === active };
+      }
+    },
     // Expose the shared seed control alongside Elementalist's own simulation assumptions.
     assumptionControls: [
       ...ELEMENTALIST_ASSUMPTION_CONTROLS,
@@ -487,7 +391,6 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
     paletteWeaponSkills: (context: ElementalistUiContext, skills: readonly Skill[]) =>
       paletteWeaponSkills(catalog, context, skills),
     updatePaletteControl,
-    paletteSkillAvailability: paletteAvailability,
     rotationStateSnapshot,
     timelineWeaponLineTransition,
     eventLogRow,

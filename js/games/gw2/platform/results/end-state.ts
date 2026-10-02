@@ -1,7 +1,7 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
-import type { AmmoState } from '#gw2/platform/execution/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { AmmoState, AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2PlanningStateInput, Gw2SimulationPlanningState } from '#gw2/platform/simulation/types.js';
 
 /** Projects one observed boundary into detached public fields, without access to execution controllers or history. */
@@ -10,8 +10,9 @@ export function planningState<T extends object>(
     readonly cooldowns: ReadonlyMap<SkillId, number>;
     readonly ammo: ReadonlyMap<SkillId, AmmoState>;
   },
-  project?: (input: Gw2PlanningStateInput<T>) => unknown,
-  maximumEndurance?: number
+  project: ((input: Gw2PlanningStateInput<T>) => unknown) | undefined,
+  maximumEndurance: number | undefined,
+  availability: (skill: Skill) => AvailabilityResult
 ): Gw2SimulationPlanningState {
   const endTime = input.time;
   const skillName = (id: SkillId): string => input.catalog.skillsById.get(id)?.name || String(id);
@@ -49,6 +50,14 @@ export function planningState<T extends object>(
     catalog: input.catalog
   });
   return {
+    // Query every castable candidate while the runtime exists, then detach the verdicts with the observation.
+    availability: structuredClone(
+      Object.fromEntries(
+        input.catalog.skills
+          .filter((skill) => !skill.simulatorExcluded && !skill.initialStateOnly)
+          .map((skill) => [String(skill.id), availability(skill)])
+      )
+    ),
     atSeconds: endTime,
     cooldowns,
     ammo,

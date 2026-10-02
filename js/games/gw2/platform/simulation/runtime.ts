@@ -1163,7 +1163,8 @@ export function runGw2Runtime<T extends object>({
     planningState: planningState(
       { ...runtime, catalog: profession.catalog },
       profession.projectPlanningState,
-      profession.endurance?.maximum(runtime)
+      profession.endurance?.maximum(runtime),
+      (skill) => profession.availability?.(runtime, skill, { type: 'cast', skillId: skill.id }) ?? { ready: true }
     )
   };
   onPhase?.('reporting', performance.now() - reportingStarted);

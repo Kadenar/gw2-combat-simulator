@@ -5,7 +5,7 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
 import { revenantCoreModifiers } from '#gw2/professions/revenant/core/modifiers.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
-import { bindRevenantCoreUi } from '#gw2/professions/revenant/core/presentation.js';
+import { revenantCoreUi } from '#gw2/professions/revenant/core/presentation.js';
 import {
   REVENANT_CORE_BASE_SKILL_MECHANICS,
   REVENANT_CORE_EXTRA_SKILLS
@@ -28,5 +28,5 @@ export const revenantCoreModule = defineNativeModule({
   },
   modifiers: revenantCoreModifiers,
   hooks: revenantCoreHooks,
-  presentation: bindRevenantCoreUi
+  presentation: revenantCoreUi
 });

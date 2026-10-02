@@ -446,6 +446,7 @@ function resultMetricDetailsHtml(metric: ResultMetric): string {
 }
 
 /** Anchors target-health DPS snapshots to the DPS metric so they do not consume a separate result row. */
+// Preserve milliseconds so breakpoint times can be compared with individual hits.
 function resultDpsSnapshotsHtml(metric: ResultMetric, breakpoints: readonly ResultBreakpoint[]): string {
   return `<div class="res-label-row">
     <details class="res-dps-snapshots">
@@ -462,7 +463,7 @@ function resultDpsSnapshotsHtml(metric: ResultMetric, breakpoints: readonly Resu
               (breakpoint) => `<div class="res-dps-snapshot">
             <span class="res-dps-snapshot-health"><b>${number(breakpoint.healthPercent)}%</b> target health</span>
             <strong>${number(breakpoint.dps)} <small>DPS</small></strong>
-            <span class="res-dps-snapshot-time">at ${Number(breakpoint.elapsed || 0).toFixed(2)}s</span>
+            <span class="res-dps-snapshot-time">at ${Number(breakpoint.elapsed || 0).toFixed(3)}s</span>
           </div>`
             )
             .join('')}
@@ -816,7 +817,7 @@ export function mountRotationResults(
               <div class="hit-detail-table">
                 <table>
                   <thead><tr><th scope="col">Time</th></tr></thead>
-                  <tbody>${times.map((time) => `<tr><td>${(time / 1000).toFixed(2)}s</td></tr>`).join('')}</tbody>
+                  <tbody>${times.map((time) => `<tr><td>${(time / 1000).toFixed(3)}s</td></tr>`).join('')}</tbody>
                 </table>
               </div>
             </details>`;

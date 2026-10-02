@@ -4,7 +4,6 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type {
-  PaletteSkillAvailability,
   ProfessionPaletteGroup,
   ProfessionResourceView,
   RotationStateSnapshotItem
@@ -49,64 +48,22 @@ function visibleBowSkills(context: RangerUiContext) {
   return BOW_SKILLS.filter((skillId) => skillId !== (perilousSkies ? ID.QUARRYS_PERIL : ID.PELT));
 }
 
-// Mirror Galeshot's runtime resource, replacement, and temporary weapon-bar gates
-// in the palette without mutating live state.
-function availability(
-  catalog: Readonly<CanonicalCatalog<RangerSkill>>,
-  context: RangerUiContext,
-  skill: RangerSkill
-): PaletteSkillAvailability {
-  const state = rangerUiState(context);
-  if (skill.id === ID.DISMISS_CYCLONE_BOW && !state.cycloneBowActive) {
-    return { available: false, message: 'Cyclone Bow is not active' };
-  }
-
-  if (skill.id === ID.SUMMON_CYCLONE_BOW && state.cycloneBowActive) {
-    return { available: false, message: 'Cyclone Bow is already active' };
-  }
-
-  if (skill.cycloneBowSkill && !state.cycloneBowActive) {
-    return { available: false, message: 'Summon the Cyclone Bow first' };
-  }
-
-  if ((skill.arrowCost || 0) > (state.arrows?.value || 0)) {
-    return { available: false, message: `Requires ${skill.arrowCost} arrows` };
-  }
-
-  // Resolve the same patched Wind Force threshold used by runtime grants and cast gates.
-  const maximumWindForce = balanceProfileNumber(
-    requireBalanceProfileFromContext({ catalog: context.catalog ?? catalog }, PROFILE.resources),
-    'minimumStacks'
-  );
-  if (skill.id === ID.HAWKEYE && (state.windForce || 0) < maximumWindForce) {
-    return { available: false, message: `Requires ${maximumWindForce} Wind Force` };
-  }
-
-  if (skill.id === ID.KEEN_SHOT && (state.windForce || 0) >= maximumWindForce) {
-    return { available: false, message: 'Replaced by Hawkeye' };
-  }
-
-  if (skill.id === ID.QUARRYS_PERIL && perilousSkiesSelected(context)) {
-    return { available: false, message: 'Replaced by Pelt' };
-  }
-
-  if (skill.id === ID.PELT && !perilousSkiesSelected(context)) {
-    return { available: false, message: 'Requires Perilous Skies' };
-  }
-
-  if (state.cycloneBowActive && skill.type === 'Weapon' && !skill.cycloneBowSkill) {
-    return {
-      available: false,
-      message: 'Cyclone Bow replaces weapon skills'
-    };
-  }
-
-  return { available: true, message: '' };
-}
-
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
+    // Tile identity follows the active bar even when the visible skill cannot currently be cast.
+    paletteOverride: (context, skill) => {
+      const state = rangerUiState(context);
+      if (skill.id === ID.SUMMON_CYCLONE_BOW || skill.id === ID.DISMISS_CYCLONE_BOW)
+        return { tileActive: (skill.id === ID.DISMISS_CYCLONE_BOW) === Boolean(state.cycloneBowActive) };
+      if (skill.id === ID.HAWKEYE || skill.id === ID.KEEN_SHOT) {
+        const maximum = balanceProfileNumber(
+          requireBalanceProfileFromContext({ catalog: context.catalog ?? catalog }, PROFILE.resources),
+          'minimumStacks'
+        );
+        return { tileActive: (skill.id === ID.HAWKEYE) === (state.windForce || 0) >= maximum };
+      }
+    },
     // null = suppress the row entirely; undefined = fall through to default rendering.
     // State-sync events are internal bookkeeping and should not appear in the log.
     paletteGroups: (context: RangerUiContext): ProfessionPaletteGroup[] => [
@@ -187,7 +144,6 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>)
         }
       ];
     },
-    rotationStateSnapshot: galeshotStateSnapshot,
-    paletteSkillAvailability: (context: RangerUiContext, skill: RangerSkill) => availability(catalog, context, skill)
+    rotationStateSnapshot: galeshotStateSnapshot
   });
 }

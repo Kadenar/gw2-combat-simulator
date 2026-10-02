@@ -103,7 +103,6 @@ test('Mesmer planning costs match runtime before and at expiry', () => {
       { balanceProfiles: { [CONDUIT.mesmerEmpoweringMisery]: { fields: { energyCost: 2 } } } }
     );
   const active = runRevenant(['Cosmic Wisdom'], conduitConfig, { catalog });
-  const until = active.planningState.profession.cosmicWisdomUntil;
   const expired = runRevenant(['Cosmic Wisdom', wait(2000)], conduitConfig, { catalog });
   for (const [result, expected] of [
     [active, 2],
@@ -113,31 +112,8 @@ test('Mesmer planning costs match runtime before and at expiry', () => {
     const skill = runtime.helpers.skillsById.get(ID.EMPOWERING_MISERY);
     assert.deepEqual(result.warnings, []);
     assert.equal(revenantEnergyCost(runtime, skill), expected);
-    assert.equal(
-      revenantProfession.ui.paletteSkillAvailability(
-        {
-          specialization: 'Conduit',
-          time: result.planningState.atSeconds,
-          professionState: { ...result.planningState.profession, energy: { value: 2 } }
-        },
-        skill
-      ).available,
-      expected === 2
-    );
   }
 
-  const skill = revenantCatalog.skillsById.get(ID.EMPOWERING_MISERY);
-  assert.equal(
-    revenantProfession.ui.paletteSkillAvailability(
-      {
-        specialization: 'Conduit',
-        time: until,
-        professionState: { ...active.planningState.profession, energy: { value: 2 } }
-      },
-      skill
-    ).available,
-    false
-  );
   assert.deepEqual(expired.planningState.profession.energyCostOverrides, {});
 });
 

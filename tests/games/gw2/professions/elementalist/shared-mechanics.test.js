@@ -134,19 +134,7 @@ test('autoattack chains carry across attunements until their third strike', () =
     attunement: 'Fire'
   });
   assert.equal(carried.planningState.profession.autoattackChains[fireRoot], fireSecond.id);
-  assert.equal(
-    elementalistProfession.ui.paletteSkillAvailability(
-      {
-        specialization: 'Core',
-        professionState: carried.planningState.profession,
-        time: carried.planningState.atSeconds,
-        catalog: elementalistCatalog,
-        build: { startAttunement: 'Fire' }
-      },
-      fireSecond
-    ).available,
-    true
-  );
+  assert.equal(carried.planningState.availability[fireSecond.id].ready, true);
 
   const completed = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],
@@ -319,23 +307,12 @@ test('rotation palette resolves equipped glyphs to the active attunement', () =>
     skillByName: elementalistCatalog.skillsByName,
     skillById: elementalistCatalog.skillsById,
     results: {
-      planningState: { profession: { primaryAttunement: 'Air' } }
+      planningState: { availability: {}, profession: { primaryAttunement: 'Air' } }
     }
   };
 
   assert.equal(
     rotationSelectedSlotSkills(app).some((skill) => skill.name === 'Glyph of Storms (Air)'),
-    true
-  );
-  assert.equal(
-    elementalistProfession.ui.paletteSkillAvailability(
-      {
-        build,
-        specialization: 'Weaver',
-        professionState: { primaryAttunement: 'Air' }
-      },
-      elementalistCatalog.skillsByName.get('Glyph of Storms (Air)')
-    ).available,
     true
   );
 });

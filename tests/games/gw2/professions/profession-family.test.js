@@ -369,7 +369,7 @@ test('family UI uses active slices, Core-first event precedence, and family veto
     }
   });
   const family = testFamily(core, elite, {
-    paletteSkillAvailability: () => ({
+    paletteOverride: () => ({
       available: false,
       message: 'family veto'
     })
@@ -393,7 +393,7 @@ test('family UI uses active slices, Core-first event precedence, and family veto
     family.ui.eventLogRow({ config: { specialization: 'Core Line' } }, { type: 'context', at: 0 }).description,
     'Core'
   );
-  assert.deepEqual(family.ui.paletteSkillAvailability({ specialization: 'Elite' }, eliteSkill), {
+  assert.deepEqual(family.ui.paletteOverride({ specialization: 'Elite' }, eliteSkill), {
     available: false,
     message: 'family veto'
   });

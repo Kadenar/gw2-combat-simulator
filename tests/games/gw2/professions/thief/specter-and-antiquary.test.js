@@ -154,16 +154,7 @@ test('Specter Siphon, initiative spending, and Shadow Shroud share force', () =>
     ['Haunt Shot', 'Grasping Shadows', "Dawn's Repose", 'Eternal Night', 'Mind Shock']
   );
   assert.equal(
-    thiefProfession.ui.paletteSkillAvailability(
-      {
-        specialization: 'Specter',
-        professionState: {
-          shadowClock: { value: 0, maximum: 100, updatedAt: 0, rate: 0 },
-          shadowShroudActive: false
-        }
-      },
-      thiefCatalog.skillsByName.get('Enter Shadow Shroud')
-    ).available,
+    simulate('Specter', [], { initialShadowForce: 0 }).planningState.availability[ID.ENTER_SHADOW_SHROUD].ready,
     false
   );
 
@@ -181,21 +172,6 @@ test('Specter Siphon, initiative spending, and Shadow Shroud share force', () =>
 });
 
 test('Specter can use its shroud autoattack while stealth is active', () => {
-  const hauntShot = thiefCatalog.skillsByName.get('Haunt Shot');
-  const paletteContext = {
-    specialization: 'Specter',
-    time: 1,
-    activeWeaponSet: 1,
-    build: { weapons: ['Dagger', 'Dagger'], alternateWeapons: ['', ''] },
-    professionState: {
-      stealthUntil: 4,
-      revealedUntil: 0,
-      shadowClock: { value: 100, maximum: 100, updatedAt: 0, rate: 0 },
-      shadowShroudActive: true
-    }
-  };
-
-  assert.equal(thiefProfession.ui.paletteSkillAvailability(paletteContext, hauntShot).available, true);
   const result = simulate('Specter', ['Hide in Shadows', 'Enter Shadow Shroud', 'Haunt Shot'], {
     initialShadowForce: 100
   });
@@ -885,10 +861,7 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
         skillByName: thiefCatalog.skillsByName,
         weaponData: thiefAppAdapter.weaponData,
         results: {
-          planningState: {
-            activeWeaponSet: 1,
-            profession: { spearChainStage: stage }
-          }
+          planningState: { availability: {}, activeWeaponSet: 1, profession: { spearChainStage: stage } }
         }
       },
       1
@@ -922,17 +895,15 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
   assert.deepEqual(paletteAtStage(1), ['Entangling Asp', 'Vampiric Slash']);
   assert.deepEqual(paletteAtStage(2), ['Falling Spider', 'Shattering Assault']);
   assert.equal(
-    thiefProfession.ui.paletteSkillAvailability(
-      { professionState: { spearChainStage: 0 } },
-      thiefCatalog.skillsByName.get('Entangling Asp')
-    ).available,
+    simulate('Core', [], { primaryWeapon: 'Spear' }).planningState.availability[
+      thiefCatalog.skillsByName.get('Entangling Asp').id
+    ].ready,
     false
   );
   assert.equal(
-    thiefProfession.ui.paletteSkillAvailability(
-      { professionState: { spearChainStage: 1 } },
-      thiefCatalog.skillsByName.get('Entangling Asp')
-    ).available,
+    simulate('Core', ['Mantis Sting'], { primaryWeapon: 'Spear' }).planningState.availability[
+      thiefCatalog.skillsByName.get('Entangling Asp').id
+    ].ready,
     true
   );
 
@@ -1377,7 +1348,7 @@ test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
 
   assert.equal(picked.warnings.length, 0);
   assert.equal(picked.planningState.profession.artifactUsesRemaining, 0);
-  // Spent artifacts stay listed; paletteSkillAvailability greys them out, so a used artifact is disabled.
+  // Spent artifacts stay listed; captured runtime verdicts grey them out, so a used artifact is disabled.
   const spentContext = {
     specialization: 'Antiquary',
     professionState: picked.planningState.profession,
@@ -1391,14 +1362,7 @@ test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
       .every((group) => group.skillIds.length > 0),
     true
   );
-  assert.equal(
-    thiefProfession.ui.paletteSkillAvailability(spentContext, {
-      id: ID.MISTBURN_MORTAR,
-      name: 'Mistburn Mortar',
-      artifactKind: 'offensive'
-    }).available,
-    false
-  );
+  assert.equal(picked.planningState.availability[ID.MISTBURN_MORTAR].ready, false);
 
   const scuffle = simulate('Antiquary', ['Skritt Scuffle', { type: 'wait', durationMs: 5200 }], config);
 

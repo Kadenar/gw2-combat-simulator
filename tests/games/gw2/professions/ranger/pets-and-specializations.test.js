@@ -542,9 +542,7 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
     adapter: { eliteSpecialization: () => 'Core' },
     build: { initialResource: 0 },
     results: {
-      planningState: {
-        profession: { endurance: 35, maximumEndurance: 100 }
-      }
+      planningState: { availability: {}, profession: { endurance: 35, maximumEndurance: 100 } }
     }
   };
 
@@ -1095,16 +1093,7 @@ test('Druid gates, drains, and releases Celestial Avatar', () => {
 
   assert.equal(draining.planningState.profession.astralClock.value, 100 * (10 / 15));
   assert.equal(draining.planningState.profession.celestialAvatarActive, true);
-  assert.equal(
-    rangerProfession.ui.paletteSkillAvailability(
-      {
-        specialization: 'Druid',
-        professionState: draining.planningState.profession
-      },
-      rangerCatalog.skillsById.get(ID.RELEASE_CELESTIAL_AVATAR)
-    ).available,
-    true
-  );
+  assert.equal(draining.planningState.availability[ID.RELEASE_CELESTIAL_AVATAR].ready, true);
 
   const result = simulate('Druid', ['Celestial Avatar', 'Natural Convergence', 'Release Celestial Avatar']);
   const naturalConvergenceDuration = rangerCatalog.skillsById.get(ID.NATURAL_CONVERGENCE).castTimeMs / 1000;
@@ -1278,9 +1267,7 @@ test('Soulbeast palette swaps between merged skills and the active pet', () => {
     config: { specialization: 'Soulbeast', selectedPet: 'Smokescale' },
     professionState
   });
-  const availability = (professionState, skillId) =>
-    rangerProfession.ui.paletteSkillAvailability(context(professionState), rangerCatalog.skillsById.get(skillId))
-      .available;
+  const availability = (planningState, skillId) => planningState.availability[skillId].ready;
 
   const mergedGroups = rangerProfession.ui.paletteGroups(context(merged.planningState.profession));
 
@@ -1293,8 +1280,8 @@ test('Soulbeast palette swaps between merged skills and the active pet', () => {
     ID.LEAVE_BEASTMODE,
     ...RANGER_PETS.find((pet) => pet.name === 'Smokescale').beastmodeSkillIds
   ]);
-  assert.equal(availability(merged.planningState.profession, ID.BEASTMODE), false);
-  assert.equal(availability(merged.planningState.profession, ID.LEAVE_BEASTMODE), true);
+  assert.equal(availability(merged.planningState, ID.BEASTMODE), false);
+  assert.equal(availability(merged.planningState, ID.LEAVE_BEASTMODE), true);
 
   const unmergedGroups = rangerProfession.ui.paletteGroups(context(unmerged.planningState.profession));
 
@@ -1305,15 +1292,15 @@ test('Soulbeast palette swaps between merged skills and the active pet', () => {
   assert.deepEqual(unmergedGroups[0].skillIds, [ID.BEASTMODE, ID.LEAVE_BEASTMODE]);
   assert.deepEqual(unmergedGroups[1].skillIds, [ID.SMOKE_CLOUD, ID.PET_SWAP]);
   assert.equal(unmergedGroups[1].statusIcon.label, 'Smokescale');
-  assert.equal(availability(unmerged.planningState.profession, ID.BEASTMODE), true);
-  assert.equal(availability(unmerged.planningState.profession, ID.LEAVE_BEASTMODE), false);
+  assert.equal(availability(unmerged.planningState, ID.BEASTMODE), true);
+  assert.equal(availability(unmerged.planningState, ID.LEAVE_BEASTMODE), false);
 
   const actionApp = {
     skills: [...rangerCatalog.skills],
     adapter: rangerAppAdapter,
     profession: rangerProfession,
     build: { ...createRangerBuildDefaults(), rotation: [] },
-    results: { planningState: { profession: merged.planningState.profession } }
+    results: { planningState: { availability: {}, profession: merged.planningState.profession } }
   };
 
   assert.equal(
@@ -1418,10 +1405,6 @@ test('Untamed Hammer previews and availability follow initial and live states fo
         for (const [index, id] of pair.entries()) {
           const skill = rangerCatalog.skillsById.get(id);
           assert.equal(rangerProfession.weaponSkillMatchesSet(skill, ['Hammer'], context), index === Number(active));
-          assert.equal(
-            rangerProfession.ui.paletteSkillAvailability(context, skill).available,
-            index === Number(active)
-          );
         }
       }
     }
@@ -1451,13 +1434,6 @@ test('Untamed exposes and executes all three natural pet commands only with the 
   const petSkills = rangerProfession.ui.paletteGroups(context).find((group) => group.id === 'ranger-pet').skillIds;
   assert.deepEqual(petSkills, [...commands, ID.PET_SWAP]);
   for (const skillId of commands) {
-    const skill = rangerCatalog.skillsById.get(skillId);
-    assert.equal(rangerProfession.ui.paletteSkillAvailability(context, skill).available, true);
-    assert.equal(
-      rangerProfession.ui.paletteSkillAvailability({ ...context, professionState: { rangerUnleashed: false } }, skill)
-        .available,
-      false
-    );
     const result = simulate('Untamed', [skillId, { type: 'wait', durationMs: 3000 }], config);
     assert.deepEqual(result.warnings, []);
     assert.ok(
@@ -1610,18 +1586,6 @@ test('Selected unleashed Hammer skills remain castable after Overbearing Smash',
 
   for (const skillId of [ID.UNLEASHED_WILD_SWING, ID.UNLEASHED_SAVAGE_SHOCK_WAVE, ID.UNLEASHED_THUMP]) {
     assert.equal(availableIds.has(skillId), true);
-    assert.deepEqual(
-      rangerProfession.ui.paletteSkillAvailability(
-        {
-          build,
-          specialization: 'Soulbeast',
-          professionState: result.planningState.profession,
-          time: result.durationMs / 1000
-        },
-        rangerCatalog.skillsById.get(skillId)
-      ),
-      { available: true, message: '' }
-    );
   }
 
   const paletteElement = {
@@ -1660,16 +1624,12 @@ test('Untamed starts in the selected unleashed state', () => {
   assert.equal(pet.planningState.profession.rangerUnleashed, false);
   assert.equal(ranger.planningState.profession.rangerUnleashed, true);
 
-  const availability = (professionState, skillId) =>
-    rangerProfession.ui.paletteSkillAvailability(
-      { specialization: 'Untamed', professionState },
-      rangerCatalog.skillsById.get(skillId)
-    ).available;
+  const availability = (planningState, skillId) => planningState.availability[skillId].ready;
 
-  assert.equal(availability(pet.planningState.profession, ID.UNLEASH_RANGER), true);
-  assert.equal(availability(pet.planningState.profession, ID.UNLEASH_PET), false);
-  assert.equal(availability(ranger.planningState.profession, ID.UNLEASH_RANGER), false);
-  assert.equal(availability(ranger.planningState.profession, ID.UNLEASH_PET), true);
+  assert.equal(availability(pet.planningState, ID.UNLEASH_RANGER), true);
+  assert.equal(availability(pet.planningState, ID.UNLEASH_PET), false);
+  assert.equal(availability(ranger.planningState, ID.UNLEASH_RANGER), false);
+  assert.equal(availability(ranger.planningState, ID.UNLEASH_PET), true);
 });
 
 test('Untamed Unleash forms share a fixed one-second recharge', () => {
@@ -1757,23 +1717,7 @@ test('Untamed ambush skills require the specialization and an active unleash pro
     true
   );
 
-  const availability = (professionState, time = 0) =>
-    rangerProfession.ui.paletteSkillAvailability({ specialization: 'Untamed', professionState, time }, relentlessWhirl);
-
-  assert.deepEqual(availability({ rangerUnleashed: false, ambushReadyUntil: 4 }), {
-    available: false,
-    message: 'Unleash Ranger first'
-  });
-  assert.deepEqual(availability({ rangerUnleashed: true }), {
-    available: false,
-    message: 'Unleash to make an ambush available'
-  });
-  assert.deepEqual(availability({ rangerUnleashed: true, ambushReadyUntil: 4 }, 3.9), { available: true, message: '' });
-  assert.deepEqual(availability({ rangerUnleashed: true, ambushReadyUntil: 4 }, 4), {
-    available: false,
-    message: 'Unleash to make an ambush available'
-  });
-
+  // Exact ambush expiry is covered by ambush-lifetimes; these casts verify specialization and entry requirements.
   assert.match(
     simulate('Untamed', ['Relentless Whirl'], {
       primaryWeapon: 'Hammer'

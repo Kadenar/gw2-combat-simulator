@@ -282,10 +282,11 @@ export function simulationEventLogRows(
         isCloneHit
       );
     } else if (event.type === 'condition') {
+      // Preserve milliseconds for condition durations, matching buff durations.
       push(
         event,
         'condition',
-        `CONDITION ${event.condition} x${event.stacks || 1} (${Number(event.duration || 0).toFixed(2)}s) [${event.skillName}]`,
+        `CONDITION ${event.condition} x${event.stacks || 1} (${Number(event.duration || 0).toFixed(3)}s) [${event.skillName}]`,
         'condition'
       );
     }

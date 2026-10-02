@@ -167,7 +167,7 @@ test('Kill Time accounts for an explicit Combat Start reference', () => {
   });
 
   assert.equal(metrics[0].label, 'Kill Time');
-  assert.equal(metrics[0].value, '91.83s');
+  assert.equal(metrics[0].value, '91.830s');
 });
 
 test('result summary hides the internal effect horizon after the target dies', () => {
@@ -179,9 +179,9 @@ test('result summary hides the internal effect horizon after the target dies', (
   });
 
   assert.equal(metrics[0].label, 'Kill Time');
-  assert.equal(metrics[0].value, '93.10s');
+  assert.equal(metrics[0].value, '93.100s');
   assert.equal(
-    metrics.some((metric) => metric.value === '97.10s'),
+    metrics.some((metric) => metric.value === '97.100s'),
     false
   );
 });
@@ -192,16 +192,16 @@ test('Combat Start is timeline zero while DPS waits for the first subsequent hit
     defaultSimulationConfig()
   );
 
-  assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.70s');
+  assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.700s');
   assert.equal(
     formatResultTimelineTime(result.events.find((event) => event.type === 'combat_start').at * 1000, result),
-    '0.00s'
+    '0.000s'
   );
   assert.equal(
     formatResultTimelineTime(result.steps.find((step) => step.skill === 'Bladecall').start, result),
-    '0.18s'
+    '0.180s'
   );
-  assert.equal(formatResultTimelineTime(result.steps.find((step) => step.skill === 'Bladecall').end, result), '0.62s');
+  assert.equal(formatResultTimelineTime(result.steps.find((step) => step.skill === 'Bladecall').end, result), '0.620s');
   assert.equal(result.dpsStartTime, result.firstHitTime);
 });
 
@@ -210,8 +210,8 @@ test('timeline retains simulation time while DPS starts on first damage without 
 
   assert.equal(result.dpsStartTime, 0.759);
   assert.ok(Math.abs(result.dpsWindow - 0.561) < 1e-12);
-  assert.equal(formatResultTimelineTime(result.steps[0].start, result), '0.00s');
-  assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.88s');
+  assert.equal(formatResultTimelineTime(result.steps[0].start, result), '0.000s');
+  assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.880s');
 });
 
 test('rotation warnings use timeline-relative timestamps', () => {
@@ -225,12 +225,12 @@ test('rotation warnings use timeline-relative timestamps', () => {
         start: 3500
       }
     ],
-    warnings: [invalidReason, 'Bladesong skipped at 4.25s: no blades.']
+    warnings: [invalidReason, 'Bladesong skipped at 4.250s: no blades.']
   };
 
   assert.deepEqual(rotationWarningItems(result), [
-    { message: invalidReason, time: '1.50s' },
-    { message: 'Bladesong skipped: no blades.', time: '2.25s' }
+    { message: invalidReason, time: '1.500s' },
+    { message: 'Bladesong skipped: no blades.', time: '2.250s' }
   ]);
 });
 
@@ -246,10 +246,10 @@ test('a delayed Combat Start suppresses earlier damage without moving display ze
   );
 
   assert.equal(result.events.find((event) => event.type === 'combat_start').at * 1000, 500);
-  assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.50s');
+  assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.500s');
   assert.equal(
     formatResultTimelineTime(result.events.find((event) => event.type === 'combat_start').at * 1000, result),
-    '0.00s'
+    '0.000s'
   );
   assert.ok(result.resolvedEvents.filter((event) => event.type === 'damage').every((event) => event.at >= 0.5));
   assert.ok(Math.abs(result.dpsStartTime - 1) < 1e-12);

@@ -55,48 +55,23 @@ function resolvedAudience({ includesSelf = true, alliedPlayerCount = 0, companio
   };
 }
 
-test('palette availability supplies defaults and normalizes a single policy result', () => {
-  const context = { time: 2 };
-  const skill = { name: 'Fixture' };
-  assert.deepEqual(normalizeProfessionUi('query-fixture').paletteSkillAvailability(context, skill), {
-    available: true,
-    message: ''
-  });
-  assert.equal(Object.hasOwn(normalizeProfessionUi('query-fixture'), 'isPaletteSkillAvailable'), false);
-  assert.equal(Object.hasOwn(normalizeProfessionUi('query-fixture'), 'paletteSkillUnavailableMessage'), false);
-
-  // One policy evaluation supplies the lockout state and text without losing retry timing.
-  let calls = 0;
-  let result = { available: false, message: 'Locked', retryAt: '3' };
-  const ui = normalizeProfessionUi('palette-fixture', {
-    paletteSkillAvailability(receivedContext, receivedSkill) {
-      assert.equal(receivedContext, context);
-      assert.equal(receivedSkill, skill);
-      calls += 1;
-      return result;
-    }
-  });
-
-  assert.deepEqual(ui.paletteSkillAvailability(context, skill), {
-    available: false,
-    message: 'Locked',
-    retryAt: 3
-  });
-  assert.equal(calls, 1);
-  result = { available: true };
-  assert.deepEqual(ui.paletteSkillAvailability(context, skill), { available: true, message: '' });
-  result = { available: 'yes' };
-  assert.throws(() => ui.paletteSkillAvailability(context, skill), /available must be boolean/);
-  result = { available: false, retryAt: Infinity };
-  assert.throws(() => ui.paletteSkillAvailability(context, skill), /retryAt must be a finite number or null/);
+test('palette overrides are optional and validate each authored field', () => {
+  // Authoring exceptions are optional and cannot manufacture a runtime verdict.
+  assert.equal(normalizeProfessionUi('fixture').paletteOverride, undefined);
+  for (const field of ['available', 'tileActive', 'editorAccess']) {
+    const ui = normalizeProfessionUi('fixture', { paletteOverride: () => ({ [field]: true }) });
+    assert.deepEqual(ui.paletteOverride({}, {}), { [field]: true });
+    const invalid = normalizeProfessionUi('fixture', { paletteOverride: () => ({ [field]: 'yes' }) });
+    assert.throws(() => invalid.paletteOverride({}, {}), /must be boolean/);
+  }
 });
 
 test('profession composition validates UI callbacks and scheduler refiners', () => {
   assert.throws(() => normalizeProfessionUi('invalid-ui', { eventLogRow: true }), /ui\.eventLogRow must be a function/);
 
-  const invalidAvailability = normalizeProfessionUi('invalid-availability', { paletteSkillAvailability: () => true });
+  const invalidAvailability = normalizeProfessionUi('invalid-availability', { paletteOverride: () => true });
 
-  assert.throws(() => invalidAvailability.paletteSkillAvailability({}, {}), /must return an object/);
+  assert.throws(() => invalidAvailability.paletteOverride({}, {}), /must return an object/);
 });
 
 test('target-condition queries combine assumptions and chronological runtime state', () => {
@@ -788,7 +763,7 @@ test('Guardian weapon-bar transitions and canonical Necromancer conditions have 
       necromancerRows.map((row) => row.type),
       ['condition']
     );
-    assert.match(necromancerRows[0].description, /CONDITION Chilled x1 \(5\.00s\) \[Spinal Shivers\]/);
+    assert.match(necromancerRows[0].description, /CONDITION Chilled x1 \(5\.000s\) \[Spinal Shivers\]/);
     assert.equal(warnings.length, 0);
   } finally {
     console.warn = originalWarn;

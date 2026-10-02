@@ -1,26 +1,15 @@
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { revenantLegend, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
-import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
-import { isRevenantUpkeep, isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type {
-  PaletteSkillAvailability,
   ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type {
-  RevenantSkill,
-  RevenantState,
-  RevenantUiContext,
-  RevenantUiSlice
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantState, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 
 export function revenantUiState(context: RevenantUiContext = {}): Partial<RevenantState> {
   return flattenProfessionState(context.state?.profession || context.professionState);
@@ -61,93 +50,6 @@ function revenantTimelineSkillIcon(context: RevenantUiContext = {}): string {
   return revenantLegend(destination || '')?.icon || '';
 }
 
-/** Palette gates identify upkeeps and their releases through the bound application catalog. */
-export function revenantCorePaletteSkillAvailability(
-  catalog: Readonly<CanonicalCatalog<RevenantSkill>>,
-  context: RevenantUiContext = {},
-  skill: RevenantSkill
-): PaletteSkillAvailability {
-  const state = revenantUiState(context);
-  const activeLegend = activeRevenantLegend(context);
-  // Flip descendants must obey legend ownership even when they are absent from the fixed loadout bar.
-  if (skill.legendId && skill.legendId !== activeLegend) {
-    return { available: false, message: 'Invoke the matching legend first' };
-  }
-
-  // A free release is selectable only while armed, so low Energy cannot flip an inactive upkeep's tile.
-  if (
-    isRevenantUpkeepRelease(skill, (id) => catalog.skillsById.get(id)) &&
-    !skillFlipReady(state.availableFlips?.[skill.id], context.time || 0)
-  ) {
-    return { available: false, message: 'Activate the matching upkeep skill first' };
-  }
-
-  // Check if the skill's paletteLegendId matches the active legend
-  if (skill.paletteLegendId === activeLegend) {
-    return {
-      available: false,
-      message: `${skill.displayName || 'Legend'} is already active`
-    };
-  }
-
-  if (skill.id === SKILL.SWAP_LEGENDS || skill.paletteLegendId) {
-    // Both destination tiles use the live remaining recharge, which Alacrity does not accelerate.
-    const remaining = context.cooldowns?.['Swap Legends']?.remaining || 0;
-    if (remaining > 0) {
-      return {
-        available: false,
-        message: 'Legend swap is recharging',
-        retryAt: (context.time || 0) + remaining / 1000
-      };
-    }
-  }
-
-  // Check for Unyielding Impact and Call to Anguish flip availability
-  if (
-    skill.id === SKILL.UNYIELDING_IMPACT &&
-    !skillFlipReady(state.availableFlips?.[SKILL.UNYIELDING_IMPACT], context.time || 0)
-  ) {
-    return { available: false, message: 'Cast Call to Anguish first' };
-  }
-
-  // Check for Call to Anguish and Unyielding Impact flip availability
-  if (
-    skill.id === SKILL.CALL_TO_ANGUISH &&
-    skillFlipReady(state.availableFlips?.[SKILL.UNYIELDING_IMPACT], context.time || 0)
-  ) {
-    return { available: false, message: 'Use Unyielding Impact first' };
-  }
-
-  // Check if the skill is an upkeep and if it is currently active
-  const upkeepActive =
-    isRevenantUpkeep(skill) && (state.activeUpkeeps || []).some((upkeep) => upkeep.skillId === skill.id);
-  if (upkeepActive) {
-    return {
-      available: false,
-      message: 'Use the release skill to end this upkeep'
-    };
-  }
-
-  // Check player energy and compare it against the effective energy cost of the skill, also check if the skill is on cooldown
-  const energy = Number(state.energy?.value);
-  // Supply the palette projection and resolved selection explicitly to the shared cost calculation.
-  const cost = effectiveRevenantEnergyCost(
-    {
-      specialization: context.specialization ?? 'Core',
-      time: context.time ?? context.atSeconds ?? 0,
-      state,
-      traits: context.traits ?? normalizeSelectedTraitIds(context.config?.selectedTraitIds)
-    },
-    skill
-  );
-  const onCooldown = (context.cooldowns?.[skill.name]?.remaining || 0) > 0;
-  const available = !Number.isFinite(energy) || energy >= cost || onCooldown;
-  return {
-    available,
-    message: !available && energy < cost ? `Requires ${cost} Energy; currently ${displayedRevenantEnergy(energy)}` : ''
-  };
-}
-
 /** Reports shared Revenant drains and spear charges that directly constrain the next action. */
 function revenantCoreStateSnapshot(
   context: RevenantUiContext & Pick<ProfessionStateSnapshotContext, 'balanceContext'>
@@ -185,70 +87,71 @@ function revenantCoreStateSnapshot(
   return items;
 }
 
-/** Binds Core presentation to the application catalog, whose upkeep parents identify release skills. */
-export function bindRevenantCoreUi(catalog: Readonly<CanonicalCatalog<RevenantSkill>>): RevenantUiSlice {
-  return Object.freeze({
-    assumptionControls: Object.freeze([
-      ...REVENANT_ASSUMPTION_CONTROLS,
-      ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-      ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
-    ]),
-    targetHealthThresholds: (context: RevenantUiContext = {}) => {
-      const traits = getActiveTraits(context.build?.specializations || []);
-      return traits.some((trait) => trait.name === 'Swift Termination') ? [0.5] : [];
-    },
-    slotLoadout: revenantLegendLoadout,
-    rotationStateSnapshot: revenantCoreStateSnapshot,
-    timelineSkillIcon: revenantTimelineSkillIcon,
-    paletteGroups: (context: RevenantUiContext) => {
-      const loadout = revenantLegendLoadout.view(context);
-      const activeLegend = activeRevenantLegend(context);
-      const destination = loadout.bars.find((legend) => legend.id !== activeLegend);
+/** Core presentation reads the current legend and resource projection without a catalog binding. */
+export const revenantCoreUi: RevenantUiSlice = Object.freeze({
+  paletteOverride: (context, skill) => {
+    // Legend destinations share one runtime command, but the active destination cannot be selected again.
+    if (skill.paletteLegendId === activeRevenantLegend(context))
+      return { available: false, message: `${skill.displayName || 'Legend'} is already active` };
+  },
+  assumptionControls: Object.freeze([
+    ...REVENANT_ASSUMPTION_CONTROLS,
+    ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+    ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
+  ]),
+  targetHealthThresholds: (context: RevenantUiContext = {}) => {
+    const traits = getActiveTraits(context.build?.specializations || []);
+    return traits.some((trait) => trait.name === 'Swift Termination') ? [0.5] : [];
+  },
+  slotLoadout: revenantLegendLoadout,
+  rotationStateSnapshot: revenantCoreStateSnapshot,
+  timelineSkillIcon: revenantTimelineSkillIcon,
+  paletteGroups: (context: RevenantUiContext) => {
+    const loadout = revenantLegendLoadout.view(context);
+    const activeLegend = activeRevenantLegend(context);
+    const destination = loadout.bars.find((legend) => legend.id !== activeLegend);
 
-      return [
-        {
-          id: 'revenant-profession',
-          label: 'F',
-          skillIds: [SKILL.ANCIENT_ECHO],
-          // The F1 tile always invokes the other selected legend; after swapping,
-          // the previous legend becomes this same tile's destination.
-          skillEntries: destination
-            ? [
-                {
-                  skillId: -4,
-                  displayName: destination.compactLabel,
-                  icon: revenantLegend(destination.id)?.icon || '',
-                  paletteLegendId: destination.id
-                }
-              ]
-            : [],
-          color: '#a84f54',
-          className: 'revenant-f-skills',
-          resourceAnchor: true
-        }
-      ];
-    },
-    paletteSkillAvailability: (context: RevenantUiContext, skill: RevenantSkill) =>
-      revenantCorePaletteSkillAvailability(catalog, context, skill),
-    resourceViews: (context: RevenantUiContext) => {
-      const state = revenantUiState(context);
-      return [
-        {
-          id: 'energy',
-          singular: 'energy',
-          plural: 'energy',
-          maximum: 100,
-          value: displayedRevenantEnergy(state.energy?.value ?? context.initialEnergy ?? 50),
-          startMaximum: 100,
-          canStart: true,
-          buildKey: 'initialEnergy' as const,
-          step: 1,
-          displayMode: 'bar',
-          pipStyle: 'compact-profession-resource-revenant-energy',
-          shortLabel: 'E',
-          statusLabel: 'Current'
-        }
-      ];
-    }
-  });
-}
+    return [
+      {
+        id: 'revenant-profession',
+        label: 'F',
+        skillIds: [SKILL.ANCIENT_ECHO],
+        // The F1 tile always invokes the other selected legend; after swapping,
+        // the previous legend becomes this same tile's destination.
+        skillEntries: destination
+          ? [
+              {
+                skillId: -4,
+                displayName: destination.compactLabel,
+                icon: revenantLegend(destination.id)?.icon || '',
+                paletteLegendId: destination.id
+              }
+            ]
+          : [],
+        color: '#a84f54',
+        className: 'revenant-f-skills',
+        resourceAnchor: true
+      }
+    ];
+  },
+  resourceViews: (context: RevenantUiContext) => {
+    const state = revenantUiState(context);
+    return [
+      {
+        id: 'energy',
+        singular: 'energy',
+        plural: 'energy',
+        maximum: 100,
+        value: displayedRevenantEnergy(state.energy?.value ?? context.initialEnergy ?? 50),
+        startMaximum: 100,
+        canStart: true,
+        buildKey: 'initialEnergy' as const,
+        step: 1,
+        displayMode: 'bar',
+        pipStyle: 'compact-profession-resource-revenant-energy',
+        shortLabel: 'E',
+        statusLabel: 'Current'
+      }
+    ];
+  }
+});

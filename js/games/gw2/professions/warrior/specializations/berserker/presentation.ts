@@ -2,17 +2,16 @@ import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import {
   formatSecondsRemaining,
   warriorAdrenalineResourceViews,
-  warriorBurstPaletteAvailability,
+  warriorBurstPaletteOverride,
   warriorPaletteGroups,
   warriorSnapshotAt,
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
 import type {
-  PaletteSkillAvailability,
   ProfessionEffectPresentation,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
+import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const SKILLS = Object.freeze([ID.BERSERK]);
 const BERSERKER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
@@ -31,25 +30,15 @@ const PRIMAL_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze(
   Sword: ID.FLAMING_FLURRY
 });
 
-/** Presents Berserker's primal replacement and active-mode palette gates. */
-function availability(context: WarriorUiContext, skill: WarriorSkill): PaletteSkillAvailability {
-  const burst = warriorBurstPaletteAvailability(context, skill, PRIMAL_BURSTS_BY_WEAPON);
-  if (!burst.available) return burst;
-  const state = warriorUiState(context);
-  if (skill.primalBurst && !state.berserkActive) return { available: false, message: 'Enter berserk mode first' };
-  if (skill.id === ID.BERSERK && state.berserkActive) {
-    return { available: false, message: 'Already in berserk mode' };
-  }
-
-  return { available: true, message: '' };
-}
-
 export const berserkerUi: WarriorUiSlice = Object.freeze({
+  // Burst tiles are authored for a specific weapon set; inactive-set insertion needs an explicit swap.
+  paletteOverride: (context, skill) => {
+    return warriorBurstPaletteOverride(context, skill, PRIMAL_BURSTS_BY_WEAPON);
+  },
   // Berserk is a mode window, so overlapping activation records remain binary in result charts.
   effectPresentations: () => [...BERSERKER_EFFECT_PRESENTATIONS],
   paletteGroups: (context: WarriorUiContext) => warriorPaletteGroups(context, SKILLS, PRIMAL_BURSTS_BY_WEAPON),
   resourceViews: warriorAdrenalineResourceViews,
-  paletteSkillAvailability: availability,
   rotationStateSnapshot: (context: WarriorUiContext) => {
     const state = warriorUiState(context);
     const remaining = (state.berserkUntil || 0) - warriorSnapshotAt(context);

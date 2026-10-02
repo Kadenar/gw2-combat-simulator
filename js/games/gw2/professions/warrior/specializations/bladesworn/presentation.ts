@@ -4,11 +4,7 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
-import type {
-  PaletteSkillAvailability,
-  ProfessionResourceView,
-  RotationStateSnapshotItem
-} from '#gw2/platform/profession-presentation/types.js';
+import type { ProfessionResourceView, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
 import {
   formatSecondsRemaining,
@@ -19,7 +15,7 @@ import {
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
-import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
+import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const PROFESSION_SKILLS = Object.freeze([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
 const DRAGON_SLASH_SKILLS = Object.freeze([ID.DRAGON_SLASH_FORCE, ID.DRAGON_SLASH_BOOST, ID.DRAGON_SLASH_REACH]);
@@ -62,37 +58,16 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
   ];
 }
 
-/** Presents gunsaber and Dragon Trigger gates owned by the Bladesworn slice. */
-function availability(context: WarriorUiContext, skill: WarriorSkill): PaletteSkillAvailability {
-  const state = warriorUiState(context);
-  // Keep the stow action usable while authoring; the runtime validates live state.
-  if (skill.id === ID.SHEATHE_GUNSABER) return { available: true, message: '' };
-  if (skill.gunsaberSkill) {
-    if ((skill.dragonSlash || skill.dragonTriggerSkill) && !state.dragonTriggerActive) {
-      return { available: false, message: 'Enter Dragon Trigger first' };
-    }
-
-    if (!skill.dragonSlash && !skill.dragonTriggerSkill && !state.gunsaberActive) {
-      return { available: false, message: 'Unsheathe the gunsaber first' };
-    }
-
-    if (state.dragonTriggerActive && !skill.dragonSlash && !skill.dragonTriggerSkill) {
-      return { available: false, message: 'Finish Dragon Trigger first' };
-    }
-  }
-
-  if ((state.gunsaberActive || state.dragonTriggerActive) && skill.type === 'Weapon' && Boolean(skill.weapon)) {
-    return { available: false, message: 'Sheathe the gunsaber first' };
-  }
-
-  if (skill.id === ID.UNSHEATHE_GUNSABER && state.gunsaberActive) {
-    return { available: false, message: 'Gunsaber is already active' };
-  }
-
-  return { available: true, message: '' };
-}
-
 export const bladeswornUi: WarriorUiSlice = Object.freeze({
+  // Tile identity follows the active bar even when the visible skill cannot currently be cast.
+  paletteOverride: (context, skill) => {
+    const state = warriorUiState(context);
+    // Stow remains insertable while authoring; runtime validation still owns the actual cast.
+    if (skill.id === ID.SHEATHE_GUNSABER) return { tileActive: Boolean(state.gunsaberActive), available: true };
+    if (skill.id === ID.UNSHEATHE_GUNSABER) return { tileActive: !state.gunsaberActive };
+    // The release editor validates configured charges through its existing prefix previews.
+    if (skill.dragonSlash) return { editorAccess: Boolean(state.dragonTriggerActive) };
+  },
   chargeReleaseProjection: dragonChargeReleaseProjection,
   paletteGroups: (context: WarriorUiContext) => [
     ...warriorPaletteGroups(context, PROFESSION_SKILLS, NO_WEAPON_BURSTS).map((group) =>
@@ -142,7 +117,6 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     return undefined;
   },
   resourceViews: resources,
-  paletteSkillAvailability: availability,
   rotationStateSnapshot: (context: WarriorUiContext & { readonly balanceContext: ProfessionBalanceContext }) => {
     const state = warriorUiState(context);
     const at = warriorSnapshotAt(context);

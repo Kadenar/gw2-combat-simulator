@@ -1,3 +1,4 @@
+import { paletteAvailability } from '#gw2/app/rotation/palette/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -35,7 +36,7 @@ test('shared eligibility precedes profession filters and cast state changes', ()
             runtime.profession.core.resource--;
           }
         },
-        presentation: { paletteSkillAvailability: () => ({ available: true, message: '' }) }
+        presentation: { paletteOverride: () => ({ available: true }) }
       })
     ]
   });
@@ -51,12 +52,12 @@ test('shared eligibility precedes profession filters and cast state changes', ()
   const context = { specialization: 'Core' };
   for (const skill of [excluded, wrongSpecialization]) {
     assert.equal(adapter.isSkillAvailable(skill, context), false);
-    assert.equal(profession.ui.paletteSkillAvailability(context, skill).available, false);
+    assert.equal(paletteAvailability({ profession, results: null }, context, skill).available, false);
   }
 
   assert.equal(filterChecks, 0, 'Rejected builds must not reach the profession browser filter');
   assert.equal(adapter.isSkillAvailable(weapon, context), true);
-  assert.equal(profession.ui.paletteSkillAvailability(context, weapon).available, true);
+  assert.equal(paletteAvailability({ profession, results: null }, context, weapon).available, true);
 
   // A rejected command cannot run state checks, spend a resource, or begin its recharge.
   const rejected = simulateGw2({
@@ -67,7 +68,7 @@ test('shared eligibility precedes profession filters and cast state changes', ()
       { type: 'cast', skillId: wrongSpecialization.id }
     ]
   });
-  assert.equal(stateChecks, 0);
+  assert.equal(stateChecks, 1, 'Only the castable weapon is queried by planning capture');
   assert.equal(rejected.planningState.profession.resource, 10);
   assert.equal(Object.keys(rejected.planningState.cooldowns).length, 0);
   assert.ok(rejected.steps.every((step) => step.invalid));
@@ -94,9 +95,13 @@ test('every profession inherits build rejection in browser, palette, and resolve
       ]) {
         const label = `${entry.id}/${specialization}: ${skill.name}`;
         assert.equal(adapter.isSkillAvailable(skill, context), false, label);
-        assert.equal(adapter.profession.ui.paletteSkillAvailability(context, skill).available, false, label);
         assert.equal(
-          adapter.profession.ui.paletteSkillAvailability({ config: context }, skill).available,
+          paletteAvailability({ profession: adapter.profession, results: null }, context, skill).available,
+          false,
+          label
+        );
+        assert.equal(
+          paletteAvailability({ profession: adapter.profession, results: null }, context, skill).available,
           false,
           label
         );

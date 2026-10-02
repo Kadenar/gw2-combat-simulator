@@ -164,7 +164,7 @@ export function timelineRowsView(
   const combatReferenceMs = resultCombatReferenceMs(results);
   // Timeline timestamps keep millisecond precision so authored waits display their exact boundaries.
   const formatTime = (timeMs: number): string => formatTimelineTime(timeMs, combatReferenceMs, 3);
-  const targetImpacts = timelineTargetImpactDetails(resultSteps, results?.events || []);
+  const targetImpacts = timelineTargetImpactDetails(resultSteps, results?.events || [], formatTime);
   const deadTimes = timelineDeadTimeMarkers(
     timelineStepsWithChargeFills(resultSteps, resourceSpends),
     results?.resolvedEvents || [],

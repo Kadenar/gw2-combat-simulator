@@ -1,6 +1,6 @@
 import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
 import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
@@ -47,7 +47,6 @@ export function projectMiragePlanningState(input: Gw2PlanningStateInput) {
   const weapon = gw2ActivePrimaryWeapon(input.config, input.activeWeaponSet === 1 ? 1 : 2) || '';
   return {
     endurance: state.endurance,
-    availableMirrors: state.mirrors.filter((mirror) => isTimeInWindow(at, mirror.availableAt, mirror.expiresAt)).length,
     availableAmbush:
       state.ambushSource && state.ambushUntil > at
         ? {

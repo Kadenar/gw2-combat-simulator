@@ -60,12 +60,8 @@ test('Engineer kit and toolbelt projections follow IDs when catalog labels chang
   const context = { config: { selectedSkills: [equip.name] }, professionState: { activeKit: equip.id } };
   assert.deepEqual(groupIds(ui, context, 'engineer-kit-5805'), [grenade.id]);
   assert.deepEqual(groupIds(ui, context, 'engineer-profession'), [toolbelt.id]);
-  assert.equal(ui.paletteSkillAvailability(context, grenade).available, true);
-  assert.equal(ui.paletteSkillAvailability(context, equip).available, false);
-  assert.deepEqual(ui.paletteSkillAvailability({ professionState: { activeKit: null } }, grenade), {
-    available: false,
-    message: 'Equip Renamed bundle first'
-  });
+  assert.equal(ui.paletteOverride(context, equip).tileActive, false);
+  assert.equal(ui.paletteOverride({ professionState: { activeKit: null } }, equip).tileActive, true);
 });
 
 test('Engineer Forge and protocol controls retain their local skill lists and lookups', () => {
@@ -101,12 +97,6 @@ test('Untamed and Soulbeast derived skill collections remain instance-local', ()
     true,
     false
   ]);
-  assertIsolated(
-    bindSoulbeastUi,
-    catalogs,
-    (ui) => ui.paletteSkillAvailability({}, skill(1, 'Beast attack')).available,
-    [false, true]
-  );
 });
 
 test('Guardian virtue and mode helpers use each Core or elite instance catalog', () => {

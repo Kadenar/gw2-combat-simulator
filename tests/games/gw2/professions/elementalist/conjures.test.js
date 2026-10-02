@@ -1,3 +1,4 @@
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -14,37 +15,32 @@ const hammerOptions = {
 };
 
 test('Lightning Hammer keeps normal weapon skills visible but unavailable across specializations', () => {
-  const normalSkill = elementalistCatalog.skillsByName.get('Flame Uprising');
-  const hammerSkill = elementalistCatalog.skillsByName.get('Lightning Swing');
-  // The family gate also applies before Weaver delegates its dual-attunement rules.
   for (const specialization of ['Core', 'Tempest', 'Weaver', 'Catalyst', 'Evoker']) {
-    const context = {
-      catalog: elementalistCatalog,
-      specialization,
-      build: { selectedSkills: { Utility1: 'Conjure Lightning Hammer', Utility2: 'Conjure Frost Bow' } },
-      professionState: { primaryAttunement: 'Fire', conjureEquipped: 'Lightning Hammer' }
-    };
-    const unavailable = elementalistProfession.ui.paletteSkillAvailability(context, normalSkill);
-    assert.equal(unavailable.available, false, specialization);
-    assert.match(unavailable.message, /Drop Lightning Hammer/);
-    assert.equal(elementalistProfession.ui.paletteSkillAvailability(context, hammerSkill).available, true);
-    assert.equal(
-      elementalistProfession.ui.paletteSkillAvailability(context, elementalistCatalog.skillsByName.get('Frost Volley'))
-        .available,
-      false
-    );
-    const group = elementalistProfession.ui
-      .paletteGroups(context)
-      .find(({ id }) => id === 'elementalist-conjure-weapon-lightning-hammer');
-    assert.equal(group.label, 'LH');
-    context.professionState.conjureEquipped = null;
-    assert.equal(elementalistProfession.ui.paletteSkillAvailability(context, normalSkill).available, true);
-    assert.equal(elementalistProfession.ui.paletteSkillAvailability(context, hammerSkill).available, false);
-    assert.equal(
-      elementalistProfession.ui.paletteGroups(context).filter(({ id }) => id.startsWith('elementalist-conjure-weapon-'))
-        .length,
-      2
-    );
+    for (const conjureEquipped of [null, 'Lightning Hammer']) {
+      const state = planningFixture(
+        elementalistProfession,
+        { specialization, startAttunement: 'Fire', secondaryAttunement: 'Fire' },
+        (runtime) => {
+          runtime.profession.core.conjureEquipped = conjureEquipped;
+        }
+      );
+      assert.equal(
+        state.availability[elementalistCatalog.skillsByName.get('Flame Uprising').id].ready,
+        !conjureEquipped
+      );
+      assert.equal(
+        state.availability[elementalistCatalog.skillsByName.get('Lightning Swing').id].ready,
+        Boolean(conjureEquipped)
+      );
+      assert.equal(state.availability[elementalistCatalog.skillsByName.get('Frost Volley').id].ready, false);
+      const groups = elementalistProfession.ui.paletteGroups({
+        catalog: elementalistCatalog,
+        specialization,
+        professionState: state.profession,
+        build: { selectedSkills: { Utility1: 'Conjure Lightning Hammer', Utility2: 'Conjure Frost Bow' } }
+      });
+      assert.equal(groups.filter(({ id }) => id.startsWith('elementalist-conjure-weapon-')).length, 2);
+    }
   }
 });
 

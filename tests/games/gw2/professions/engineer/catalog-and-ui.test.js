@@ -810,33 +810,23 @@ test('Photon Forge kit lockout renders as a queueable palette cooldown', async (
     boons: { alacrity: true }
   });
   const kit = mechanic('Grenade Kit');
-  const context = {
-    specialization: 'Holosmith',
-    professionState: result.planningState.profession,
-    time: result.planningState.atSeconds
-  };
-  const availability = engineerProfession.ui.paletteSkillAvailability(context, kit);
+  const availability = result.planningState.availability[kit.id];
   const view = paletteSkillView(
     { results: result, adapter: await loadProfessionAppAdapter('engineer') },
     kit,
-    availability.available,
-    availability.message,
+    availability.ready,
+    availability.reason,
     availability.retryAt
   );
 
   assert.equal(result.planningState.profession.kitLockoutUntil, 4.8);
-  assert.deepEqual(availability, {
-    available: false,
-    message: 'Kits are disabled briefly after entering Photon Forge.',
-    retryAt: 4.8
-  });
+  assert.equal(availability.ready, false);
+  assert.equal(availability.retryAt, 4.8);
   assert.equal(view.disabled, true);
   assert.equal(view.contextDisabled, false);
-  assert.equal(view.cooldownLabel, '4.80s');
-  assert.deepEqual(engineerProfession.ui.paletteSkillAvailability({ ...context, time: 4.8 }, kit), {
-    available: true,
-    message: ''
-  });
+  assert.equal(view.cooldownLabel, 'Retry 4.800s');
+  const ready = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 4800 }]);
+  assert.equal(ready.planningState.availability[kit.id].ready, true);
 
   const adapter = await loadProfessionAppAdapter('engineer');
   const build = adapter.toApplicationBuild(createEngineerBuildDefaults());
@@ -864,7 +854,7 @@ test('Photon Forge kit lockout renders as a queueable palette cooldown', async (
   }
 
   // The selected utility tile is a separate palette surface from the kit skill row.
-  assert.match(palette.innerHTML, /data-skill="Grenade Kit"[\s\S]*?<span class="pal-cd">4\.80s<\/span>/);
+  assert.match(palette.innerHTML, /data-skill="Grenade Kit"[\s\S]*?<span class="pal-cd">Retry 4\.800s<\/span>/);
 });
 
 test('Engineer kit palettes stack and include their linked stow skills', () => {

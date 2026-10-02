@@ -42,12 +42,10 @@ test('Soulbeast remerges with the live pet and keeps detached previews on the co
     const palette = ui.paletteGroups(context)[0].skillIds;
     assert.ok(palette.includes(smoke.id));
     assert.ok(!palette.includes(pigSkill.id));
-    assert.equal(ui.paletteSkillAvailability(context, smoke).available, true);
-    assert.equal(ui.paletteSkillAvailability(context, pigSkill).available, false);
+    assert.equal(result.planningState.availability[smoke.id].ready, true);
+    assert.equal(result.planningState.availability[pigSkill.id].ready, false);
   }
 
-  assert.equal(ui.paletteSkillAvailability({ config }, smoke).available, false);
-  assert.equal(ui.paletteSkillAvailability({ config }, pigSkill).available, true);
   assert.ok(ui.paletteGroups({ config })[0].skillIds.includes(pigSkill.id));
 });
 
@@ -63,19 +61,16 @@ test('Druid palette uses the live Astral Force maximum and the detached catalog 
     const ready = runRanger([], config, options);
     const context = { professionState: ready.planningState.profession };
     const skill = catalog.skillsById.get(ID.CELESTIAL_AVATAR);
-    assert.equal(ui.paletteSkillAvailability(context, skill).available, true);
+    assert.equal(ready.planningState.availability[skill.id].ready, true);
     assert.equal(ui.resourceViews(context)[0].maximum, maximum);
     const detached = ui.resourceViews({})[0];
     assert.equal(detached.maximum, maximum);
     assert.equal(detached.startMaximum, maximum);
     assert.equal(detached.value, maximum);
     // Live clocks are authoritative even when the UI was bound to the unpatched catalog.
-    assert.equal(bindDruidUi(rangerCatalog).paletteSkillAvailability(context, skill).available, true);
+    assert.equal(ready.planningState.availability[skill.id].ready, true);
     const below = runRanger([], { ...config, initialAstralForce: maximum - 1 }, options);
-    assert.equal(
-      ui.paletteSkillAvailability({ professionState: below.planningState.profession }, skill).available,
-      false
-    );
+    assert.equal(below.planningState.availability[skill.id].ready, false);
     assert.deepEqual(runRanger([ID.CELESTIAL_AVATAR], config, options).warnings, []);
   }
 });
@@ -111,17 +106,17 @@ test('Galeshot palette and Wind Force display use the patched threshold', () => 
       ]) {
         const skill = catalog.skillsById.get(id);
         assert.equal(galeshotCastAvailability(runtime, skill).ready, available);
-        assert.equal(ui.paletteSkillAvailability(context, skill).available, available);
+        assert.equal(result.planningState.availability[skill.id].ready, available);
         assert.equal(
-          bindGaleshotUi(rangerCatalog).paletteSkillAvailability({ ...context, catalog }, skill).available,
+          bindGaleshotUi(rangerCatalog).paletteOverride({ ...context, catalog }, skill).tileActive,
           available
         );
       }
 
       if (value < maximum)
         assert.equal(
-          ui.paletteSkillAvailability(context, catalog.skillsById.get(ID.HAWKEYE)).message,
-          `Requires ${maximum} Wind Force`
+          result.planningState.availability[ID.HAWKEYE].reason,
+          `Hawkeye is unavailable — requires ${maximum} Wind Force.`
         );
     }
   }

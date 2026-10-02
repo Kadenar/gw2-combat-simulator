@@ -10,7 +10,6 @@ import {
 } from '#gw2/professions/engineer/core/presentation.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
-  PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionResourceView
 } from '#gw2/platform/profession-presentation/types.js';
@@ -37,45 +36,6 @@ const HOLOSMITH_PACKET_EVENTS = new Set<string>([
   'engineer.refraction-cutter-extra-blades'
 ]);
 
-/** Projects Forge replacement rules and the kit lockout into palette availability. */
-function holosmithPaletteAvailability(context: EngineerUiContext, skill: HolosmithSkill): PaletteSkillAvailability {
-  const state = engineerUiState(context);
-  const now = context.time || 0;
-  const kitLockoutUntil = state.kitLockoutUntil || 0;
-  // The shared tile projector selects the active Photon Forge transition while
-  // this contract remains the sole source of its state availability.
-  if (skill.id === ID.ENGAGE_PHOTON_FORGE && state.photonForgeActive) {
-    return { available: false, message: 'Photon Forge is already active' };
-  }
-
-  if (skill.id === ID.DEACTIVATE_PHOTON_FORGE && !state.photonForgeActive) {
-    return { available: false, message: 'Enter Photon Forge first' };
-  }
-
-  if (skill.type === 'Weapon' && skill.weapon && state.photonForgeActive) {
-    return {
-      available: false,
-      message: 'Photon Forge replaces equipped weapon skills'
-    };
-  }
-
-  if (skill.forgeSkill && !state.photonForgeActive) {
-    return { available: false, message: 'Enter Photon Forge first' };
-  }
-
-  // Project the Forge kit lockout as a retryable context cooldown so kit tiles
-  // show a countdown while remaining click-queueable for their ready time.
-  if (skill.kitTransition === 'equip' && now < kitLockoutUntil) {
-    return {
-      available: false,
-      message: 'Kits are disabled briefly after entering Photon Forge.',
-      retryAt: kitLockoutUntil
-    };
-  }
-
-  return { available: true, message: '' };
-}
-
 /** Hides internal packets with `null`, renders heat snapshots, and defers unrelated events with `undefined`. */
 function holosmithEventLogRow(
   context: EngineerUiContext,
@@ -101,6 +61,13 @@ function holosmithEventLogRow(
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkill>>): EngineerUiSlice {
   return Object.freeze({
+    // Tile identity follows the active bar even when the visible skill cannot currently be cast.
+    paletteOverride: (context, skill) => {
+      if (skill.id === ID.ENGAGE_PHOTON_FORGE || skill.id === ID.DEACTIVATE_PHOTON_FORGE)
+        return {
+          tileActive: (skill.id === ID.DEACTIVATE_PHOTON_FORGE) === Boolean(engineerUiState(context).photonForgeActive)
+        };
+    },
     eventLogRow: holosmithEventLogRow,
     // Photon Forge changes weapon presentation only while the Holosmith slice is active.
     timelineWeaponLineTransition: (context: EngineerUiContext) => {
@@ -168,7 +135,6 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
           statusLabel: state.overheated ? 'Overheated' : 'Current'
         }
       ];
-    },
-    paletteSkillAvailability: holosmithPaletteAvailability
+    }
   });
 }

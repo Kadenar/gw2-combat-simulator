@@ -1,10 +1,6 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerMechanicPaletteGroups, mesmerResourceViews } from '#gw2/professions/mesmer/core/presentation.js';
-import type {
-  PaletteSkillAvailability,
-  ProfessionEffectPresentation
-} from '#gw2/platform/profession-presentation/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { ProfessionEffectPresentation } from '#gw2/platform/profession-presentation/types.js';
 import type { MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
 
 const VIRTUOSO_MECHANIC_SKILLS = Object.freeze([
@@ -25,20 +21,6 @@ const VIRTUOSO_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = O
   }
 ]);
 
-/** Disables bladesongs in the application palette until at least one blade is stocked. */
-function virtuosoPaletteSkillAvailability(context: MesmerUiContext, skill: Skill): PaletteSkillAvailability {
-  if (!VIRTUOSO_MECHANIC_SKILLS.some((skillId) => skillId === Number(skill.id))) {
-    return { available: true, message: '' };
-  }
-
-  const state = context.professionState || context.state?.profession || {};
-  const available = (state.resource ?? Infinity) >= 1;
-  return {
-    available,
-    message: available ? '' : 'Requires at least 1 blade'
-  };
-}
-
 export const virtuosoUi: MesmerUiSlice = Object.freeze({
   // Deadly Blades is binary even when repeated critical hits overlap its duration.
   effectPresentations: () => [...VIRTUOSO_EFFECT_PRESENTATIONS],
@@ -48,6 +30,5 @@ export const virtuosoUi: MesmerUiSlice = Object.freeze({
       id: 'blades',
       singular: 'blade',
       plural: 'blades'
-    }),
-  paletteSkillAvailability: virtuosoPaletteSkillAvailability
+    })
 });

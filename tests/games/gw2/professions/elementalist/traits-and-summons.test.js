@@ -1168,7 +1168,7 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
   const initialHtml = renderResult(null);
 
   assert.match(initialHtml, /data-skill="Dodge"/);
-  assert.match(initialHtml, /class="[^"]*pal-context-disabled[^"]*" data-skill="Frost Volley"/);
+  assert.match(initialHtml, /Runtime availability has not been evaluated yet/);
   assert.doesNotMatch(initialHtml, /data-skill="__drop_bundle"/);
   assert.doesNotMatch(initialHtml, /data-skill="__pickup_/);
 

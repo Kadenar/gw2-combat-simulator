@@ -1,3 +1,4 @@
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
@@ -72,7 +73,7 @@ test('mirror creation and pickup have separate state and effect requirements', (
   assert.equal(weakness.length, 1);
   assert.equal(weakness[0].duration, 4);
   assert.equal(weakness[0].stacks, 1);
-  assert.equal(picked.planningState.profession.availableMirrors, 0);
+  assert.equal(observedRuntime(picked).profession.specialization.state.mirrors.length, 0);
   assert.equal(procs(picked, 'Relic of Aristocracy').length, 1);
   const missing = simulateMesmer(['Pick Up Mirage Mirror'], settings);
   assert.equal(missing.events.filter((event) => event.condition === 'Weakness').length, 0);

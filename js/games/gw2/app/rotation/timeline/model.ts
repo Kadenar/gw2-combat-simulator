@@ -65,47 +65,70 @@ export function formatTimelineCastDetails(
   return `Cast: ${formatTime(start)} → ${formatTime(end)}\nCast time: ${castSeconds.toFixed(3)}s`;
 }
 
-/** Read scheduled impacts so precombat suppression does not hide the timing needed to place Combat Start. */
+/**
+ * Read scheduled impacts so precombat suppression does not hide the timing needed to place Combat Start. A clock
+ * formatter also anchors the first hit to the rotation timeline, so tooltips show when it lands without arithmetic.
+ */
 export function timelineTargetImpactDetails(
   steps: readonly SimulationStep[],
-  events: readonly SimulationEvent[]
+  events: readonly SimulationEvent[],
+  formatTime?: (timeMs: number) => string
 ): Map<string, string> {
+  const startsMs = new Map(
+    steps
+      .filter((step) => step.activationId && !step.invalid)
+      .map((step) => [step.activationId, Math.round(step.start)])
+  );
   const details = new Map<string, string>();
   for (const [activationId, offsetsMs] of timelineImpactOffsets(steps, events)) {
+    const firstOffsetMs = offsetsMs[0] ?? 0;
+    const startMs = startsMs.get(activationId);
     // The editor only needs the cast-relative offset to position Combat Start.
-    details.set(activationId, `First hit: ${offsetsMs[0]} ms`);
+    const offsetDetail = `First hit: ${firstOffsetMs} ms`;
+    details.set(
+      activationId,
+      formatTime && startMs != null
+        ? `${offsetDetail}\nFirst hit at: ${formatTime(startMs + firstOffsetMs)}`
+        : offsetDetail
+    );
   }
 
   return details;
 }
 
+const PROC_PACKET_SOURCES = new Set(['Trait', 'Sigil', 'Relic']);
+
 /**
  * Distinct cast-relative impact times in ascending milliseconds, keyed by activation. Damaging activations count
  * only strikes and damaging conditions; control-only casts retain their hostile timings for targeting edits. Only the
  * cast's own packets count: procs it triggers (sigils, traits, relics) carry its lineage but are derived from a hit,
- * so they follow that hit instead of being hits of the skill.
+ * so they follow that hit instead of being hits of the skill. Procs triggered by the cast itself have no parent hit,
+ * so a trait, sigil, or relic packet credited to another skill (Unseen Sword on Dragon Trigger, Relic of Peitha on a
+ * shadowstep) is likewise excluded, while trait effects credited to the cast's own skill remain its hits.
  */
 export function timelineImpactOffsets(
   steps: readonly SimulationStep[],
   events: readonly SimulationEvent[]
 ): Map<string, number[]> {
+  const castSkillIds = new Map(steps.map((step) => [step.activationId, step.skillId]));
+  const ownPackets = events.filter(
+    (event) =>
+      // All live packets have causal placement; only explicit derivation excludes a proc from its cast's impacts.
+      event.parentEventOrder == null &&
+      event.cancelled !== true &&
+      !(PROC_PACKET_SOURCES.has(event.source) && event.skillId !== castSkillIds.get(event.activationId))
+  );
   const damagingActivations = new Set(
-    events
+    ownPackets
       .filter(
-        (event) =>
-          !event.cancelled &&
-          event.parentEventOrder == null &&
-          (event.type === 'damage' || (event.type === 'condition' && isDamagingCondition(event.condition)))
+        (event) => event.type === 'damage' || (event.type === 'condition' && isDamagingCondition(event.condition))
       )
       .map((event) => event.activationId)
   );
   const impactTimes = new Map<string, Set<number>>();
-  for (const event of events) {
+  for (const event of ownPackets) {
     if (
       !event.activationId ||
-      // All live packets have causal placement; only explicit derivation excludes a proc from its cast's impacts.
-      event.parentEventOrder != null ||
-      event.cancelled === true ||
       !['damage', 'condition', 'control', 'blind'].includes(event.type) ||
       event.controlKind === 'initial-state' ||
       (damagingActivations.has(event.activationId) &&

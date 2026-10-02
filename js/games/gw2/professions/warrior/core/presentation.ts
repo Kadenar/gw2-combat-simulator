@@ -1,3 +1,4 @@
+import type { PaletteOverride } from '#gw2/platform/profession-presentation/types.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
@@ -7,7 +8,6 @@ import {
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 import type {
-  PaletteSkillAvailability,
   ProfessionEffectPresentation,
   ProfessionPaletteGroup,
   ProfessionResourceView,
@@ -35,10 +35,6 @@ const WARRIOR_REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Objec
 
 export function warriorUiState(context: WarriorUiContext = {}): Partial<WarriorState> {
   return flattenProfessionState(context.state?.profession || context.professionState);
-}
-
-function warriorUiSpecialization(context: WarriorUiContext = {}): string {
-  return context.specialization || context.config?.specialization || 'Core';
 }
 
 /** Simulation time (seconds) of the rotation point being inspected. */
@@ -132,28 +128,6 @@ export function warriorAdrenalineResourceViews(
   ];
 }
 
-/** Restricts a weapon burst to the weapon set that supplied it. */
-export function warriorBurstPaletteAvailability(
-  context: WarriorUiContext,
-  skill: WarriorSkill,
-  burstsByWeapon: Readonly<Record<string, number>> = WARRIOR_REGULAR_BURSTS_BY_WEAPON
-): PaletteSkillAvailability {
-  const activeWeaponSet = Number(context.activeWeaponSet) === 2 ? 2 : 1;
-  const activeBurstSkillId = weaponSetBurstSkillId(context, activeWeaponSet, burstsByWeapon);
-  const weaponSetBurstIds = ([1, 2] as const).map((weaponSet) =>
-    weaponSetBurstSkillId(context, weaponSet, burstsByWeapon)
-  );
-  if (weaponSetBurstIds.includes(Number(skill.id)) && activeBurstSkillId !== Number(skill.id)) {
-    const requiredWeaponSet = weaponSetBurstIds.indexOf(Number(skill.id)) + 1;
-    return {
-      available: false,
-      message: `Switch to weapon set ${requiredWeaponSet}`
-    };
-  }
-
-  return { available: true, message: '' };
-}
-
 /** True when the build has the Arms trait Signet Mastery selected. */
 function hasSignetMasteryTrait(context: WarriorUiContext): boolean {
   return getActiveTraits(context.build?.specializations || []).some(
@@ -237,15 +211,41 @@ function warriorCoreEffectPresentations(context: WarriorUiContext): ProfessionEf
 }
 
 export const warriorCoreUi: WarriorUiSlice = Object.freeze({
+  // Burst tiles are authored for a specific weapon set; inactive-set insertion needs an explicit swap.
+  paletteOverride: (context, skill) => {
+    if ((context.specialization || 'Core') === 'Core') return warriorBurstPaletteOverride(context, skill);
+  },
   assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   effectPresentations: warriorCoreEffectPresentations,
   rotationStateSnapshot: warriorCoreStateSnapshot,
   paletteGroups: (context) => (warriorUiSpecialization(context) === 'Core' ? warriorPaletteGroups(context) : []),
   resourceViews: (context) =>
     warriorUiSpecialization(context) === 'Core' ? warriorAdrenalineResourceViews(context) : [],
-  paletteSkillAvailability: (context, skill) =>
-    warriorUiSpecialization(context) === 'Core'
-      ? warriorBurstPaletteAvailability(context, skill as WarriorSkill)
-      : { available: true, message: '' },
   targetHealthThresholds: () => [0.8, 0.5, 0.25]
 });
+
+/** Restricts a weapon burst to the weapon set that supplied it. */
+export function warriorBurstPaletteOverride(
+  context: WarriorUiContext,
+  skill: WarriorSkill,
+  burstsByWeapon: Readonly<Record<string, number>> = WARRIOR_REGULAR_BURSTS_BY_WEAPON
+): PaletteOverride {
+  const activeWeaponSet = Number(context.activeWeaponSet) === 2 ? 2 : 1;
+  const activeBurstSkillId = weaponSetBurstSkillId(context, activeWeaponSet, burstsByWeapon);
+  const weaponSetBurstIds = ([1, 2] as const).map((weaponSet) =>
+    weaponSetBurstSkillId(context, weaponSet, burstsByWeapon)
+  );
+  if (weaponSetBurstIds.includes(Number(skill.id)) && activeBurstSkillId !== Number(skill.id)) {
+    const requiredWeaponSet = weaponSetBurstIds.indexOf(Number(skill.id)) + 1;
+    return {
+      available: false,
+      message: `Switch to weapon set ${requiredWeaponSet}`
+    };
+  }
+
+  return {};
+}
+
+function warriorUiSpecialization(context: WarriorUiContext = {}): string {
+  return context.specialization || context.config?.specialization || 'Core';
+}

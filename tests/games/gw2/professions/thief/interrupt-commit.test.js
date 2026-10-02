@@ -105,16 +105,17 @@ test('preparations flip while arming, use Alacrity, and restore placement after 
       assert.equal(tile(before).id, prepare.id);
       assert.equal(tile(placed).id, trigger.id);
       assert.equal(tile(triggered).id, prepare.id);
-      const availability = thiefProfession.ui.paletteSkillAvailability(context(placed), trigger);
-      assert.equal(availability.available, false);
-      assert.match(availability.message, /arming/);
+      const availability = placed.planningState.availability[trigger.id];
+      assert.equal(availability.ready, false);
+      assert.match(availability.reason, /arming/);
       assert.ok(Math.abs(availability.retryAt - placed.rotationEndTime - 2.4) < 1e-9);
       assert.equal(
-        thiefProfession.ui.paletteSkillAvailability({ ...context(placed), time: availability.retryAt }, trigger)
-          .available,
+        simulate('Core', [prepare.name, { type: 'wait', durationMs: 2400 }], config).planningState.availability[
+          trigger.id
+        ].ready,
         true
       );
-      assert.equal(thiefProfession.ui.paletteSkillAvailability(context(triggered), trigger).available, false);
+      assert.equal(triggered.planningState.availability[trigger.id].ready, false);
       assert.equal(triggered.steps[1].start, Math.round(availability.retryAt * 1000));
     }
   }

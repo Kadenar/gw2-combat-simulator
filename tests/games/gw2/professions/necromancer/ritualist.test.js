@@ -119,9 +119,8 @@ test('the Ritualist palette reads detached live spirit availability without expo
     [exited, false]
   ]) {
     const projection = result.planningState.profession;
-    const context = { specialization: 'Ritualist', professionState: projection, time: result.planningState.atSeconds };
     const skill = necromancerProfession.catalog.skillsById.get(ID.INNERVATE_ANGUISH);
-    assert.equal(necromancerProfession.ui.paletteSkillAvailability(context, skill).available, available);
+    assert.equal(result.planningState.availability[skill.id].ready, available);
     for (const key of ['core', 'specialization', 'spiritGenerations', 'weaponSpells', 'lifeForceWakeGeneration'])
       assert.equal(key in projection, false);
   }

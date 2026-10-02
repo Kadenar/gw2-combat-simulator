@@ -1,3 +1,4 @@
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
@@ -209,27 +210,20 @@ test('profession palette deduplicates actions and shows only active Conduit rele
 });
 
 test('Revenant upkeep releases require an armed flip in the active legend', () => {
-  // Free releases must not replace unaffordable upkeeps or bypass their legend's cast gate.
   const releases = revenantCatalog.skills.filter((skill) =>
     isRevenantUpkeepRelease(skill, (id) => revenantCatalog.skillsById.get(id))
   );
-  assert.equal(releases.length, 5);
   for (const release of releases) {
-    const context = {
-      specialization: release.specialization || 'Core',
-      professionState: {
-        activeLegendId: release.legendId,
-        energy: { value: 0, maximum: 100, updatedAt: 0, rate: 5 },
-        availableFlips: {}
-      }
-    };
-    const available = () => revenantProfession.ui.paletteSkillAvailability(context, release).available;
-    assert.equal(available(), false, release.name);
-    armSkillFlip(context.professionState.availableFlips, release.id, 0);
-    assert.equal(available(), true, release.name);
-    if (release.legendId) {
-      context.professionState.activeLegendId = LEGEND.ENTITY;
-      assert.equal(available(), false, release.name);
+    for (const armed of [false, true]) {
+      const state = planningFixture(
+        revenantProfession,
+        { specialization: release.specialization || 'Core', initialEnergy: 0 },
+        (runtime) => {
+          runtime.profession.core.activeLegendId = release.legendId || runtime.profession.core.activeLegendId;
+          if (armed) armSkillFlip(runtime.profession.core.availableFlips, release.id, 0);
+        }
+      );
+      assert.equal(state.availability[release.id].ready, armed, release.name);
     }
   }
 });
@@ -247,19 +241,13 @@ test('Soulcleave stays on its parent tile at zero Energy until its release is ar
       const app = {
         profession: revenantProfession,
         skills: revenantCatalog.skills,
-        results: { planningState: { profession: professionState, atSeconds: 0 } }
+        results: { planningState: { availability: {}, profession: professionState, atSeconds: 0 } }
       };
       const context = { specialization: 'Renegade', professionState };
       assert.equal(displayedSkillTiles(app, [parent], context)[0].id, parent.id);
-      assert.equal(revenantProfession.ui.paletteSkillAvailability(context, release).available, false);
-      assert.equal(
-        revenantProfession.ui.paletteSkillAvailability(context, parent).available,
-        activeLegendId === LEGEND.RENEGADE && energy >= 5
-      );
       if (activeLegendId === LEGEND.RENEGADE) {
         armSkillFlip(professionState.availableFlips, release.id, 0);
         assert.equal(displayedSkillTiles(app, [parent], context)[0].id, release.id);
-        assert.equal(revenantProfession.ui.paletteSkillAvailability(context, release).available, true);
       }
     }
   }
@@ -1211,39 +1199,13 @@ test('Revenant palette exposes upkeep releases and enforces Energy costs', () =>
   const impossible = revenantCatalog.skillsByName.get('Impossible Odds');
   const relinquish = revenantCatalog.skillsByName.get('Relinquish Power');
 
-  assert.equal(revenantProfession.ui.paletteSkillAvailability(context, impossible).available, false);
-  assert.equal(revenantProfession.ui.paletteSkillAvailability(context, relinquish).available, true);
+  assert.equal(active.planningState.availability[impossible.id].ready, false);
+  assert.equal(active.planningState.availability[relinquish.id].ready, true);
 
-  const lowEnergyContext = {
-    ...context,
-    professionState: {
-      ...context.professionState,
-      energy: { value: 4.9, maximum: 100, updatedAt: 0, rate: 5 },
-      activeUpkeeps: [],
-      availableFlips: {}
-    }
-  };
-  const chilling = revenantCatalog.skillsByName.get('Chilling Isolation');
   const phase = revenantCatalog.skillsByName.get('Phase Traversal');
-
-  assert.equal(revenantProfession.ui.paletteSkillAvailability(lowEnergyContext, chilling).available, false);
-  assert.equal(revenantProfession.ui.paletteSkillAvailability(lowEnergyContext, phase).available, false);
-  assert.equal(
-    revenantProfession.ui.paletteSkillAvailability(
-      {
-        ...lowEnergyContext,
-        cooldowns: {
-          'Phase Traversal': { readyAt: 5500, remaining: 5000 }
-        }
-      },
-      phase
-    ).available,
-    true
-  );
-  assert.equal(
-    revenantProfession.ui.paletteSkillAvailability(lowEnergyContext, phase).message,
-    'Requires 30 Energy; currently 4'
-  );
+  const low = simulate('Core', [], { initialEnergy: 4.9 });
+  assert.equal(low.planningState.availability[phase.id].ready, false);
+  assert.equal(low.planningState.availability[SKILL.CHILLING_ISOLATION].ready, false);
   // The rich tooltip's energy badge reads the structured base-cost fact.
   for (const [skill, cost] of [
     [phase, '30'],
@@ -1322,16 +1284,8 @@ test('Call to Anguish arms Unyielding Impact in the rotation palette', () => {
   const demon = revenantLegendLoadout.paletteGroups(context).find((group) => group.label === 'Demon');
 
   assert.ok(demon.skillIds.includes(SKILL.UNYIELDING_IMPACT));
-  assert.equal(
-    revenantProfession.ui.paletteSkillAvailability(context, revenantCatalog.skillsById.get(SKILL.CALL_TO_ANGUISH))
-      .available,
-    false
-  );
-  assert.equal(
-    revenantProfession.ui.paletteSkillAvailability(context, revenantCatalog.skillsById.get(SKILL.UNYIELDING_IMPACT))
-      .available,
-    true
-  );
+  assert.equal(armed.planningState.availability[SKILL.CALL_TO_ANGUISH].ready, false);
+  assert.equal(armed.planningState.availability[SKILL.UNYIELDING_IMPACT].ready, true);
 
   const consumed = simulate('Core', ['Call to Anguish', 'Unyielding Impact'], config);
 

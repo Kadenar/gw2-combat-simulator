@@ -1,3 +1,5 @@
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -515,7 +517,7 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
   );
 
   assert.equal(distortion.planningState.profession.availableAmbush.source, 'Desert Distortion');
-  assert.equal(distortion.planningState.profession.availableMirrors, 2);
+  assert.equal(observedRuntime(distortion).profession.specialization.state.mirrors.length, 2);
   assert.ok(distortion.procSteps.some((proc) => proc.skill === 'Desert Distortion'));
 
   const dune = simulateMesmer(
@@ -681,7 +683,7 @@ test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', ()
   assert.equal(confusion.stacks, 6);
   assert.equal(confusion.duration, 4);
   assert.equal(mirror.coefficient, 0.6);
-  assert.equal(result.planningState.profession.availableMirrors, 0);
+  assert.equal(observedRuntime(result).profession.specialization.state.mirrors.length, 0);
   assert.equal(result.planningState.profession.availableAmbush.source, 'Pick Up Mirage Mirror');
   assert.deepEqual(
     result.procSteps.filter((step) => step.skill === 'Relic of Peitha').map((step) => step.sourceSkill),
@@ -708,32 +710,17 @@ test('False Oasis creates its Mirage Mirror three seconds after the first pulse'
   assert.equal(falseOasis.end - falseOasis.start, 960);
   assert.ok(mirror);
   assert.ok(Math.abs(mirror.at - (falseOasis.start / 1000 + 3.24)) < 0.00001);
-  assert.equal(result.planningState.profession.availableMirrors, 0);
+  assert.equal(observedRuntime(result).profession.specialization.state.mirrors.length, 0);
   assert.equal(result.planningState.profession.endurance, 100, 'Picking up a mirror must not spend endurance');
 });
 
 test('Mirage Mirror palette availability follows active ground mirrors', () => {
-  const mirror = mesmerCatalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR);
-  const unavailable = mesmerProfession.ui.paletteSkillAvailability(
-    {
-      specialization: 'Mirage',
-      professionState: { availableMirrors: 0 }
-    },
-    mirror
-  );
-  const available = mesmerProfession.ui.paletteSkillAvailability(
-    {
-      specialization: 'Mirage',
-      professionState: { availableMirrors: 1 }
-    },
-    mirror
-  );
-
-  assert.deepEqual(unavailable, {
-    available: false,
-    message: 'No Mirage Mirror is active on the ground.'
-  });
-  assert.deepEqual(available, { available: true, message: '' });
+  for (const mirrors of [[], [{ availableAt: 0, expiresAt: 10 }]]) {
+    const state = planningFixture(mesmerProfession, { specialization: 'Mirage' }, (runtime) => {
+      runtime.profession.specialization.state.mirrors = mirrors;
+    });
+    assert.equal(state.availability[ID.PICK_UP_MIRAGE_MIRROR].ready, mirrors.length > 0);
+  }
 });
 
 test('Sigil of Energy restores one Mirage dodge charge on weapon swap', () => {

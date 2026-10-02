@@ -33,6 +33,7 @@ function createPistolApp() {
     weaponData: elementalistAppAdapter.weaponData,
     results: {
       planningState: {
+        availability: {},
         activeWeaponSet: 1,
         atSeconds: 0,
         cooldowns: {},

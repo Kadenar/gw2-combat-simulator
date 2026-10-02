@@ -1,6 +1,6 @@
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
-import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
+import type { ThiefUiContext, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 const SHADOW_SHROUD_SKILL_IDS = Object.freeze([
   ID.HAUNT_SHOT,
@@ -11,6 +11,11 @@ const SHADOW_SHROUD_SKILL_IDS = Object.freeze([
 ]);
 
 export const specterUi = Object.freeze({
+  // Mode identity remains visible independently of remaining Shadow Force.
+  paletteOverride: (context: ThiefUiContext, skill: ThiefSkill) => {
+    if (skill.id === ID.ENTER_SHADOW_SHROUD || skill.id === ID.EXIT_SHADOW_SHROUD)
+      return { tileActive: (skill.id === ID.EXIT_SHADOW_SHROUD) === Boolean(thiefUiState(context).shadowShroudActive) };
+  },
   paletteGroups: () => [
     {
       id: 'thief-profession',
@@ -50,44 +55,5 @@ export const specterUi = Object.freeze({
         statusLabel: state.shadowShroudActive ? 'Shroud' : 'Current'
       }
     ];
-  },
-  paletteSkillAvailability: (context: ThiefUiContext, skill: ThiefSkill) => {
-    const state = thiefUiState(context);
-    if (skill.id === ID.ENTER_SHADOW_SHROUD) {
-      // Runtime snapshots and detached planning projections share the same force clock.
-      const available = !state.shadowShroudActive && (state.shadowClock?.value ?? 0) > 0;
-      return {
-        available,
-        message: available
-          ? ''
-          : state.shadowShroudActive
-            ? 'Shadow Shroud is already active'
-            : 'Use Siphon or spend initiative to gain shadow force'
-      };
-    }
-
-    if (skill.id === ID.EXIT_SHADOW_SHROUD) {
-      return {
-        available: Boolean(state.shadowShroudActive),
-        message: state.shadowShroudActive ? '' : 'Enter Shadow Shroud first'
-      };
-    }
-
-    if (skill.shadowShroudSkill && !state.shadowShroudActive) {
-      return { available: false, message: 'Enter Shadow Shroud first' };
-    }
-
-    if (
-      state.shadowShroudActive &&
-      !skill.shadowShroudSkill &&
-      (skill.type === 'Weapon' || ['Heal', 'Utility', 'Elite'].includes(skill.type || ''))
-    ) {
-      return {
-        available: false,
-        message: 'Shadow Shroud replaces weapon and slot skills'
-      };
-    }
-
-    return { available: true, message: '' };
   }
 });

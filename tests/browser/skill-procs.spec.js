@@ -78,12 +78,12 @@ test("skill details group proc counts by trigger and disclose only that skill's 
   await expect(signet.locator('table')).toBeHidden();
   await rush.locator('summary').click();
   await expect(rush.locator('table')).toBeVisible();
-  await expect(rush.locator('td')).toHaveText(['0.50s', '7.50s']);
+  await expect(rush.locator('td')).toHaveText(['0.500s', '7.500s']);
   await expect(signet.locator('table')).toBeHidden();
   await signet.locator('summary').focus();
   await signet.locator('summary').press('Enter');
   await expect(signet.locator('table')).toBeVisible();
-  await expect(signet.locator('td')).toHaveText(['4.00s']);
+  await expect(signet.locator('td')).toHaveText(['4.000s']);
   await rush.locator('summary').click();
   await expect(rush.locator('table')).toBeHidden();
   await expect(signet.locator('table')).toBeVisible();

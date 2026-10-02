@@ -10,7 +10,6 @@ import { pickUpConjure, captureConjurePickup } from '#gw2/professions/elementali
 import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
-import { weaverUi } from '#gw2/professions/elementalist/specializations/weaver/presentation.js';
 
 test('Weaver runtime and palette share hand eligibility through Unravel and full attunement', () => {
   // Exercise each slot against explicit expected bars; surrounding availability gates stay in their callers.
@@ -39,10 +38,6 @@ test('Weaver runtime and palette share hand eligibility through Unravel and full
         };
         const available = expected[slot - 1].includes(attunement);
         assert.equal(weaverHooks.availability(runtime, skill).ready, available);
-        assert.equal(
-          weaverUi.paletteSkillAvailability({ professionState: { ...core, ...state }, time: 1 }, skill).available,
-          available
-        );
       }
     }
   }

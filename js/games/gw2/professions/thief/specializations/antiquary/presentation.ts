@@ -14,7 +14,7 @@ import {
 } from '#gw2/professions/thief/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/thief/data/traits-data.js';
 
-import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
+import type { ThiefUiContext, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Surfaces Combat High plus artifact effects with duration or consumable charges. */
 function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {
@@ -119,6 +119,17 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
 }
 
 export const antiquaryUi = Object.freeze({
+  // Reshuffle is queue-only; this veto affects direct palette insertion, never runtime legality.
+  paletteOverride: (context: ThiefUiContext, skill: ThiefSkill) => {
+    if (skill.id !== ID.RESHUFFLE) return;
+    const cardSwap =
+      hasTrait(context, TRAIT.CARD_SWAP) ||
+      getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.CARD_SWAP);
+    return {
+      available: false,
+      message: cardSwap ? 'All artifacts are already available to choose' : 'Requires the Card Swap trait'
+    };
+  },
   assumptionControls: THIEF_ANTIQUARY_ASSUMPTION_CONTROLS,
   rotationStateSnapshot: antiquaryStateSnapshot,
   paletteGroups: () => {
@@ -141,7 +152,7 @@ export const antiquaryUi = Object.freeze({
       ...artifactGroups.map(([id, label, artifactIds, color]) => ({
         id,
         label,
-        // Always list every artifact; paletteSkillAvailability greys out the
+        // Always list every artifact; captured runtime verdicts grey out the
         // ones that are not pilfered yet or already spent this pilfer, so a
         // used artifact stays visible but disabled instead of disappearing.
         skillIds: [...artifactIds],
@@ -150,37 +161,5 @@ export const antiquaryUi = Object.freeze({
         className: `antiquary-artifact-group antiquary-${id.replace('thief-', '')}`
       }))
     ];
-  },
-  // Available artifact uses are a backend gate (state.artifactUsesRemaining),
-  // not a palette meter, so Antiquary contributes no artifact resource view.
-  paletteSkillAvailability: (context: ThiefUiContext, skill: ThiefSkill) => {
-    const state = thiefUiState(context);
-    if (skill.artifactKind) {
-      const hasUse = (state.artifactUsesRemaining || 0) > 0;
-      const inSlot = Boolean(state.artifactSlots?.some((slot) => slot.skillId === skill.id));
-      return {
-        available: hasUse && inSlot,
-        message:
-          hasUse && inSlot
-            ? ''
-            : !hasUse
-              ? 'Pilfer with Skritt Swipe before using an artifact'
-              : 'This artifact was already used this pilfer'
-      };
-    }
-
-    if (skill.id === ID.RESHUFFLE) {
-      // Reshuffle is always greyed-out in the palette; it is queue-only and blocked by availability when there is nothing to reroll.
-      // Without Card Swap the skill does not exist in game, so name the missing trait instead.
-      const cardSwap =
-        hasTrait(context, TRAIT.CARD_SWAP) ||
-        getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.CARD_SWAP);
-      return {
-        available: false,
-        message: cardSwap ? 'All artifacts are already available to choose' : 'Requires the Card Swap trait'
-      };
-    }
-
-    return { available: true, message: '' };
   }
 });

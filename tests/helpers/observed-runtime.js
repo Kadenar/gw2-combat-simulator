@@ -3,6 +3,22 @@ import { prepareSimulationConfig } from '#tests/helpers/simulation-config.js';
 
 const observed = new WeakMap();
 
+/** Captures real planning verdicts after a minimal, explicitly initialized Core/elite state. */
+export function planningFixture(family, config = {}, initialize = () => {}) {
+  const profession = family.runtimeFor(config);
+  return runGw2Runtime({
+    profession: {
+      ...profession,
+      initialize(runtime) {
+        profession.initialize?.(runtime);
+        initialize(runtime);
+      }
+    },
+    config,
+    rotation: []
+  }).planningState;
+}
+
 /** Runs family cases through the composed runtime hooks and records the observed runtime owner. */
 export function createObservedProfessionSimulator(profession, baseConfig) {
   return (specialization = baseConfig.specialization ?? 'Core', rotation, overrides = {}, observation) => {

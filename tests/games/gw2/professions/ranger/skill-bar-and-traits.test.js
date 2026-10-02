@@ -364,25 +364,11 @@ describe('Galeshot Cyclone Bow', () => {
     assert.doesNotMatch(paletteElement.innerHTML, /title="[^"]*(?:arrows|Wind Force): \d+\/(?:8|5)"/);
     const dismiss = rangerCatalog.skillsById.get(ID.DISMISS_CYCLONE_BOW);
 
-    assert.equal(rangerProfession.ui.paletteSkillAvailability(inactiveContext, dismiss).available, false);
-    const activeContext = {
-      specialization: 'Galeshot',
-      professionState: charged.planningState.profession
-    };
+    assert.equal(rangerProfession.ui.paletteOverride(inactiveContext, dismiss).tileActive, false);
 
-    assert.equal(
-      rangerProfession.ui.paletteSkillAvailability(activeContext, rangerCatalog.skillsById.get(ID.KEEN_SHOT)).available,
-      false
-    );
-    assert.equal(
-      rangerProfession.ui.paletteSkillAvailability(activeContext, rangerCatalog.skillsById.get(ID.HAWKEYE)).available,
-      true
-    );
-    assert.equal(
-      rangerProfession.ui.paletteSkillAvailability(activeContext, rangerCatalog.skillsById.get(ID.RAPID_FIRE))
-        .available,
-      false
-    );
+    assert.equal(charged.planningState.availability[ID.KEEN_SHOT].ready, false);
+    assert.equal(charged.planningState.availability[ID.HAWKEYE].ready, true);
+    assert.equal(charged.planningState.availability[ID.RAPID_FIRE].ready, false);
   });
 
   test('resolves Hawkeye, Shrike, and Mistral replacement packets', () => {

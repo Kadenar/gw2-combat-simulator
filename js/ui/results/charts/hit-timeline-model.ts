@@ -59,7 +59,8 @@ export function groupSkillHits(hits: readonly SkillHit[], timeOffsetMs = 0): Ski
   return [...bursts.map((burst) => burst.sort((left, right) => left.t - right.t)), ...conditions.values()];
 }
 
-export const hitTime = (timeMs: number): string => `${(timeMs / 1000).toFixed(2)}s`;
+// Preserve milliseconds so hit details align with the rotation and event log.
+export const hitTime = (timeMs: number): string => `${(timeMs / 1000).toFixed(3)}s`;
 
 // Clip the displayed window to the timeline bounds without moving its fight-time bucket.
 export const conditionWindow = (hits: readonly SkillHit[], offsetMs: number, durationMs: number): [number, number] => {

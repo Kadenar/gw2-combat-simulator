@@ -64,9 +64,11 @@ test('timeline times can reuse a precomputed combat reference', () => {
   const referenceMs = resultCombatReferenceMs(result);
 
   assert.equal(referenceMs, 1250);
-  assert.equal(formatTimelineTime(2500, referenceMs), '1.25s');
+  assert.equal(formatTimelineTime(2500, referenceMs), '1.250s');
   assert.equal(formatTimelineTime(2500, referenceMs), formatResultTimelineTime(2500, result));
-  assert.equal(formatTimelineTime(1249, referenceMs), '0.00s');
+  // Preserve a full millisecond before combat while suppressing rounded negative zero.
+  assert.equal(formatTimelineTime(1249, referenceMs), '-0.001s');
+  assert.equal(formatTimelineTime(1249.9, referenceMs), '0.000s');
 });
 
 test('total idle time excludes explicit waits before combat start', () => {

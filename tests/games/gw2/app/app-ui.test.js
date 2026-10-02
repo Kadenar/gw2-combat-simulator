@@ -1,3 +1,4 @@
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
@@ -111,7 +112,7 @@ test('15-pip initiative uses specialization-neutral rows', () => {
         ]
       }
     },
-    results: { planningState: { atSeconds: 0, profession: {} } }
+    results: { planningState: { availability: {}, atSeconds: 0, profession: {} } }
   });
 
   const rowPipCounts = [
@@ -1538,6 +1539,7 @@ test('weapon palette families display one live autoattack or flip skill', () => 
     profession: { catalog: { skillsById: skillById } },
     results: {
       planningState: {
+        availability: {},
         profession: {
           autoattackChains: { 1: 2 },
           availableFlips: { 4: armSkillFlip({}, 0, 0, Infinity) }
@@ -1569,6 +1571,7 @@ test('palette flip projection infers catalog children and honors timed expiry', 
     profession: { catalog: { skills, skillsById } },
     results: {
       planningState: {
+        availability: {},
         atSeconds: 1.5,
         profession: { availableFlips: { 11: armSkillFlip({}, 0, 0, 2) } }
       }
@@ -1833,24 +1836,18 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
     engineer.adapter.isSkillAvailable(engineer.skillByName.get('Rifle Burst Grenade'), { specialization: 'Core' }),
     false
   );
-  assert.equal(
-    engineer.profession.ui.paletteSkillAvailability({ professionState: { activeKit: null } }, swapWeapons).available,
-    false
-  );
+  assert.equal(planningFixture(engineer.profession).availability[swapWeapons.id].ready, false);
   engineer.results = {
-    planningState: {
-      profession: { activeKit: ENGINEER_SKILL_IDS.GRENADE_KIT }
-    }
+    planningState: { availability: {}, profession: { activeKit: ENGINEER_SKILL_IDS.GRENADE_KIT } }
   };
   assert.equal(
     paletteActionSkills(engineer).some((skill) => skill.name === 'Swap Weapons'),
     true
   );
   assert.equal(
-    engineer.profession.ui.paletteSkillAvailability(
-      { professionState: { activeKit: ENGINEER_SKILL_IDS.GRENADE_KIT } },
-      swapWeapons
-    ).available,
+    planningFixture(engineer.profession, {}, (runtime) => {
+      runtime.profession.core.activeKit = ENGINEER_SKILL_IDS.GRENADE_KIT;
+    }).availability[swapWeapons.id].ready,
     true
   );
   assert.equal(
@@ -1976,7 +1973,7 @@ test('Firebrand mantra flips replace their selected skill-bar parent', async () 
   const final = skillByName.get('Flame Surge');
   const app = {
     skillById,
-    results: { planningState: { profession: { availableFlips: {} } } }
+    results: { planningState: { availability: {}, profession: { availableFlips: {} } } }
   };
 
   assert.equal(skillBarDisplaySkill(app, parent), parent);

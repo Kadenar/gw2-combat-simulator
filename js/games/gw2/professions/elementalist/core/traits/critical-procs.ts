@@ -80,10 +80,9 @@ export function applyFreshAirCritical(
 export function projectedFreshAirReadyAt(context: ElementalistRuntime, upTo: number): number | null {
   if (!hasTrait(context, TRAIT.FRESH_AIR)) return null;
   const core = context.profession.core;
-  // Retire elapsed wakes, but retain future strikes beyond this query's deadline.
-  core.freshAirCandidates = core.freshAirCandidates.filter((at) => at > context.time);
   if (core.primaryAttunement === 'Air') return null;
-  const times = core.freshAirCandidates.filter((at) => at <= upTo);
+  // Readiness queries ignore elapsed wakes without pruning the live scheduler's candidates.
+  const times = core.freshAirCandidates.filter((at) => at > context.time && at <= upTo);
   return times.length ? Math.min(...times) : null;
 }
 

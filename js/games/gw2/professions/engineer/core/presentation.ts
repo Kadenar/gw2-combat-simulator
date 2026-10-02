@@ -4,7 +4,6 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
@@ -19,7 +18,6 @@ import { timedBuffAt } from '#gw2/platform/results/query.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import type {
-  PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
@@ -156,63 +154,6 @@ function professionSkills(catalog: Readonly<CanonicalCatalog<EngineerSkill>>, co
   return engineerToolbeltSkillIds(catalog, context).filter((id) => id != null);
 }
 
-/** Explains whether a Core Engineer skill is usable in the currently displayed state. */
-function engineerCorePaletteSkillAvailability(
-  catalog: Readonly<CanonicalCatalog<EngineerSkill>>,
-  context: EngineerUiContext = {},
-  skill: EngineerSkill
-): PaletteSkillAvailability {
-  const state = engineerUiState(context);
-  // Lightning Rod and Electric Artillery share one contextual profession slot.
-  if (skill.id === ID.ELECTRIC_ARTILLERY) {
-    return {
-      available: skillFlipReady(state.availableFlips?.[ID.ELECTRIC_ARTILLERY], context.time || 0),
-      message: skillFlipReady(state.availableFlips?.[ID.ELECTRIC_ARTILLERY], context.time || 0)
-        ? ''
-        : 'Lightning Rod has not finished charging'
-    };
-  }
-
-  if (
-    skill.id === ID.LIGHTNING_ROD &&
-    (state.availableFlips?.[ID.ELECTRIC_ARTILLERY]?.expiresAt || 0) > (context.time || 0)
-  ) {
-    return {
-      available: false,
-      message: 'Electric Artillery currently replaces this skill'
-    };
-  }
-
-  // The synthetic swap action exists only to return from a kit to baseline weapons.
-  if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
-    return {
-      available: Boolean(state.activeKit),
-      message: state.activeKit ? '' : 'Engineers can use weapon swap only to leave an active kit'
-    };
-  }
-
-  // Active kits replace the weapon bar and cannot be equipped again until stowed.
-  if (skill.kitId && state.activeKit !== skill.kitId) {
-    return { available: false, message: `Equip ${catalog.skillsById.get(skill.kitId)?.name} first` };
-  }
-
-  if (skill.kitTransition === 'equip' && state.activeKit === skill.id) {
-    return {
-      available: false,
-      message: `Use Stow ${skill.name} to leave this kit`
-    };
-  }
-
-  if (skill.type === 'Weapon' && skill.weapon && state.activeKit) {
-    return {
-      available: false,
-      message: `${catalog.skillsById.get(state.activeKit)?.name} replaces equipped weapon skills`
-    };
-  }
-
-  return { available: true, message: '' };
-}
-
 /** Suppresses internal Engineer events whose visible effects already have dedicated result rows. */
 function engineerEventLogRow(
   context: EngineerUiContext,
@@ -252,6 +193,12 @@ function engineerEventLogRow(
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>): EngineerUiSlice {
   return Object.freeze({
+    // Tile identity follows the active bar even when the visible skill cannot currently be cast.
+    paletteOverride: (context, skill) => {
+      const state = engineerUiState(context);
+      if (skill.kitTransition === 'equip') return { tileActive: state.activeKit !== skill.id };
+      if (skill.kitTransition === 'stow') return { tileActive: state.activeKit === skill.kitId };
+    },
     assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
     // Builds one stacked palette group per selected kit, plus Core's profession-skill group.
     paletteGroups: (context: EngineerUiContext) => {
@@ -350,7 +297,6 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
 
       return items;
     },
-    paletteSkillAvailability: (context, skill) => engineerCorePaletteSkillAvailability(catalog, context, skill),
     // Excludes contextual flips and palette-only kit controls from loadout slots.
     isSlotSkillSelectable(_context: EngineerUiContext, skill: EngineerSkill): boolean {
       return (

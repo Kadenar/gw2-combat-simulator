@@ -1,3 +1,4 @@
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
@@ -299,89 +300,49 @@ test('Warrior F keys follow the selected primary weapons', () => {
 });
 
 test('Warrior rotation F keys follow the active weapon set', () => {
-  const build = {
-    ...createWarriorBuildDefaults(),
-    weapons: ['Axe', 'Axe'],
-    alternateWeapons: ['Greatsword', '']
-  };
-  const availability = (activeWeaponSet, skillId) =>
-    warriorProfession.ui.paletteSkillAvailability(
-      {
-        specialization: 'Core',
-        build,
-        activeWeaponSet
-      },
-      warriorCatalog.skillsById.get(skillId)
-    );
-
-  assert.deepEqual(availability(1, ID.EVISCERATE), {
-    available: true,
-    message: ''
-  });
-  assert.deepEqual(availability(1, ID.ARCING_SLICE), {
-    available: false,
-    message: 'Switch to weapon set 2'
-  });
-  assert.deepEqual(availability(2, ID.EVISCERATE), {
-    available: false,
-    message: 'Switch to weapon set 1'
-  });
-  assert.deepEqual(availability(2, ID.ARCING_SLICE), {
-    available: true,
-    message: ''
-  });
+  const build = { ...createWarriorBuildDefaults(), weapons: ['Axe', 'Axe'], alternateWeapons: ['Greatsword', ''] };
+  for (const activeWeaponSet of [1, 2]) {
+    for (const [skillId, weaponSet] of [
+      [ID.EVISCERATE, 1],
+      [ID.ARCING_SLICE, 2]
+    ]) {
+      const override = warriorProfession.ui.paletteOverride(
+        { specialization: 'Core', build, activeWeaponSet },
+        warriorCatalog.skillsById.get(skillId)
+      );
+      assert.equal(override.available === false, activeWeaponSet !== weaponSet);
+    }
+  }
 });
 
 test('Bladesworn palette availability follows gunsaber and Dragon Trigger state', () => {
-  const availability = (professionState, skillId) =>
-    warriorProfession.ui.paletteSkillAvailability(
-      {
-        specialization: 'Bladesworn',
-        professionState
-      },
-      warriorCatalog.skillsById.get(skillId)
+  for (const gunsaberActive of [false, true]) {
+    const state = planningFixture(warriorProfession, { specialization: 'Bladesworn' }, (runtime) => {
+      runtime.profession.specialization.state.gunsaberActive = gunsaberActive;
+    });
+    assert.equal(state.availability[ID.CHOP].ready, !gunsaberActive);
+    assert.equal(state.availability[ID.BLOOMING_FIRE].ready, gunsaberActive);
+    assert.equal(state.availability[ID.UNSHEATHE_GUNSABER].ready, !gunsaberActive);
+    assert.equal(state.availability[ID.DRAGON_SLASH_FORCE].ready, false);
+    // Stow's authoring exception does not change the captured runtime denial.
+    assert.equal(
+      warriorProfession.ui.paletteOverride(
+        { specialization: 'Bladesworn', professionState: state.profession },
+        warriorCatalog.skillsById.get(ID.SHEATHE_GUNSABER)
+      ).available,
+      true
     );
+  }
 
-  assert.deepEqual(availability({ gunsaberActive: false }, ID.CHOP), {
-    available: true,
-    message: ''
-  });
-  assert.deepEqual(availability({ gunsaberActive: false }, ID.BLOOMING_FIRE), {
-    available: false,
-    message: 'Unsheathe the gunsaber first'
-  });
-  assert.deepEqual(availability({ gunsaberActive: false }, ID.SHEATHE_GUNSABER), {
-    available: true,
-    message: ''
-  });
-  assert.equal(warriorCatalog.skillsById.get(ID.SHEATHE_GUNSABER).cooldown, 5);
-  assert.deepEqual(availability({ gunsaberActive: false }, ID.DRAGON_SLASH_FORCE), {
-    available: false,
-    message: 'Enter Dragon Trigger first'
-  });
-  assert.deepEqual(availability({ gunsaberActive: true }, ID.CHOP), {
-    available: false,
-    message: 'Sheathe the gunsaber first'
-  });
-  assert.deepEqual(availability({ gunsaberActive: true }, ID.BLOOMING_FIRE), {
-    available: true,
-    message: ''
-  });
-  assert.deepEqual(availability({ gunsaberActive: true }, ID.UNSHEATHE_GUNSABER), {
-    available: false,
-    message: 'Gunsaber is already active'
-  });
-
-  const charging = simulate('Bladesworn', ['Dragon Trigger'], {
-    initialResource: 100
-  });
-
-  assert.equal(charging.planningState.profession.dragonTriggerActive, true);
-  assert.equal(charging.planningState.profession.dragonCharges, 0);
-  assert.deepEqual(availability(charging.planningState.profession, ID.DRAGON_SLASH_FORCE), {
-    available: true,
-    message: ''
-  });
+  const charging = simulate('Bladesworn', ['Dragon Trigger'], { initialResource: 100 });
+  assert.equal(charging.planningState.availability[ID.DRAGON_SLASH_FORCE].ready, false);
+  assert.equal(
+    warriorProfession.ui.paletteOverride(
+      { specialization: 'Bladesworn', professionState: charging.planningState.profession },
+      warriorCatalog.skillsById.get(ID.DRAGON_SLASH_FORCE)
+    ).editorAccess,
+    true
+  );
 });
 
 test('Dragon Trigger charge time is excluded from timeline dead time', () => {

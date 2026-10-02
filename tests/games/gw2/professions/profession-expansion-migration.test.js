@@ -101,7 +101,6 @@ function assertUiContracts(entry, profession, specialization) {
 
   for (const callback of [
     'isPaletteSkillInstant',
-    'paletteSkillAvailability',
     'isSlotSkillSelectable',
     'paletteGroups',
     'resourceViews',
@@ -112,15 +111,6 @@ function assertUiContracts(entry, profession, specialization) {
     'updateSkillBarSelection'
   ]) {
     assert.equal(typeof profession.ui[callback], 'function', `${entry.id} ui.${callback}`);
-  }
-
-  const sampleSkill = profession.catalog.skills.find((skill) => !skill.simulatorExcluded);
-
-  if (sampleSkill) {
-    const availability = profession.ui.paletteSkillAvailability(context, sampleSkill);
-
-    assert.equal(typeof availability.available, 'boolean');
-    assert.equal(typeof availability.message, 'string');
   }
 }
 
@@ -292,7 +282,7 @@ test('profession registry entries conform to the shared contracts', async () => 
 
     assert.deepEqual(
       Object.keys(result.planningState).sort(),
-      ['activeWeaponSet', 'ammo', 'ammoBySkillId', 'atSeconds', 'cooldowns', 'profession'].sort()
+      ['activeWeaponSet', 'ammo', 'ammoBySkillId', 'atSeconds', 'availability', 'cooldowns', 'profession'].sort()
     );
     assert.equal(typeof result.planningState.profession, 'object');
     const unknown = simulateGw2({

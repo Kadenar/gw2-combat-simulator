@@ -16,7 +16,6 @@ import {
 } from '#gw2/professions/guardian/core/presentation.js';
 
 import type {
-  PaletteSkillAvailability,
   ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
   RotationStateSnapshotItem
@@ -57,12 +56,6 @@ const RADIANT_ARMAMENT_NAMES: Readonly<Record<string, string>> = Object.freeze({
   blade: 'Sword',
   bulwark: 'Shield'
 });
-
-function professionState(context: GuardianUiContext): Partial<GuardianState> {
-  // flattenProfessionState merges core and specialization sub-objects so
-  // callers can read luminary fields without knowing the nested shape.
-  return flattenProfessionState(context.state?.profession || context.professionState);
-}
 
 /** Read selected modifier values without running combat predicates; round away percentage arithmetic noise. */
 function strikeBonus(context: GuardianUiContext, id: string, field: 'amount' | 'factor'): string {
@@ -165,6 +158,14 @@ function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
+    // Tile identity follows the active bar even when the visible skill cannot currently be cast.
+    paletteOverride: (context, skill) => {
+      if (skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE || skill.id === GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE)
+        return {
+          tileActive:
+            (skill.id === GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE) === Boolean(professionState(context).radiantForge)
+        };
+    },
     effectPresentations: luminaryEffectPresentations,
     eventLogRow: luminaryEventLogRow,
     rotationStateSnapshot: luminaryStateSnapshot,
@@ -186,38 +187,12 @@ export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>
         // palette column; they are mutually exclusive at runtime.
         stackId: 'luminary-profession'
       }
-    ],
-    paletteSkillAvailability: (context: GuardianUiContext, skill: GuardianSkill): PaletteSkillAvailability => {
-      const state = professionState(context);
-      if (skill.type === 'Weapon' && state.radiantForge) {
-        return {
-          available: false,
-          message: 'Weapon skills are unavailable during Radiant Forge'
-        };
-      }
-
-      if (skill.radiantForgeSkill && !state.radiantForge) {
-        return {
-          available: false,
-          message: 'Enter Radiant Forge to use this skill'
-        };
-      }
-
-      if (skill.name === 'Enter Radiant Forge' && state.radiantForge) {
-        return {
-          available: false,
-          message: 'Radiant Forge is already active'
-        };
-      }
-
-      if (skill.name === 'Exit Radiant Forge' && !state.radiantForge) {
-        return {
-          available: false,
-          message: 'Radiant Forge is not active'
-        };
-      }
-
-      return { available: true, message: '' };
-    }
+    ]
   });
+}
+
+function professionState(context: GuardianUiContext): Partial<GuardianState> {
+  // flattenProfessionState merges core and specialization sub-objects so
+  // callers can read luminary fields without knowing the nested shape.
+  return flattenProfessionState(context.state?.profession || context.professionState);
 }

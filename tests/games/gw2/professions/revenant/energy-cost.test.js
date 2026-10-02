@@ -1,11 +1,10 @@
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { revenantCorePaletteSkillAvailability } from '#gw2/professions/revenant/core/presentation.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { effectiveRevenantEnergyCost, revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 
 // Cost policies consume explicit inputs regardless of where the state originated.
 test('Conduit costs respect follow-up charges, form overrides, and free active upkeep toggles', () => {
@@ -49,16 +48,19 @@ test('Runtime costs use the owned specialization and current Conduit state', () 
 });
 
 test('Beguiling Haze follow-ups remain available in the palette below their base Energy cost', () => {
-  const availability = revenantCorePaletteSkillAvailability(
-    revenantCatalog,
+  const state = planningFixture(
+    revenantProfession,
     {
       specialization: 'Conduit',
-      professionState: { energy: { value: 16, maximum: 100, updatedAt: 0, rate: 5 }, beguilingHazeCharges: 2 }
+      initialEnergy: 16,
+      selectedLegends: ['LegendaryEntity', 'LegendaryAssassin'],
+      startingLegend: 'LegendaryEntity'
     },
-    { id: SKILL.BEGUILING_HAZE, name: 'Beguiling Haze', energyCost: 20 }
+    (runtime) => {
+      runtime.profession.specialization.state.beguilingHazeCharges = 2;
+    }
   );
-
-  assert.equal(availability.available, true);
+  assert.equal(state.availability[SKILL.BEGUILING_HAZE].ready, true);
 });
 
 test("Angsiyah's Trust waives only Energy Meld's energy cost", () => {
@@ -76,31 +78,23 @@ test("Angsiyah's Trust waives only Energy Meld's energy cost", () => {
 });
 
 test('Vindicator palette uses resolved traits for Energy Meld affordability', () => {
-  const context = {
-    specialization: 'Vindicator',
-    professionState: { energy: { value: 0, maximum: 100, updatedAt: 0, rate: 5 } },
-    traits: new Set([TRAIT.ANGSIYANS_TRUST])
-  };
-  const skill = { id: SKILL.ENERGY_MELD, name: 'Energy Meld', energyCost: 10 };
-  assert.equal(revenantCorePaletteSkillAvailability(revenantCatalog, context, skill).available, true);
-  assert.equal(
-    revenantCorePaletteSkillAvailability(revenantCatalog, { ...context, traits: new Set() }, skill).available,
-    false
-  );
+  for (const selectedTraitIds of [[], [TRAIT.ANGSIYANS_TRUST]]) {
+    const state = planningFixture(revenantProfession, {
+      specialization: 'Vindicator',
+      initialEnergy: 0,
+      selectedTraitIds
+    });
+    assert.equal(state.availability[SKILL.ENERGY_MELD].ready, selectedTraitIds.length > 0);
+  }
 });
 
 test('Configured UI queries resolve selection before calculating Energy costs', () => {
-  const context = {
-    config: { specialization: 'Vindicator', selectedTraitIds: [TRAIT.ANGSIYANS_TRUST] },
-    professionState: { energy: { value: 0, maximum: 100, updatedAt: 0, rate: 5 } }
-  };
-  const skill = { id: SKILL.ENERGY_MELD, name: 'Energy Meld', specialization: 'Vindicator', energyCost: 10 };
-  assert.equal(revenantProfession.ui.paletteSkillAvailability(context, skill).available, true);
-  assert.equal(
-    revenantProfession.ui.paletteSkillAvailability(
-      { ...context, config: { ...context.config, selectedTraitIds: [] } },
-      skill
-    ).available,
-    false
-  );
+  for (const selectedTraitIds of [[], [TRAIT.ANGSIYANS_TRUST]]) {
+    const state = planningFixture(revenantProfession, {
+      specialization: 'Vindicator',
+      initialEnergy: 0,
+      selectedTraitIds
+    });
+    assert.equal(state.availability[SKILL.ENERGY_MELD].ready, selectedTraitIds.length > 0);
+  }
 });

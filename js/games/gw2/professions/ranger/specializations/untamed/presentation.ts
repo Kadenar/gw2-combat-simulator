@@ -1,10 +1,7 @@
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  PaletteSkillAvailability,
-  RotationStateSnapshotItem
-} from '#gw2/platform/profession-presentation/types.js';
+import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 
@@ -22,43 +19,6 @@ function stateOption(catalog: Readonly<CanonicalCatalog<RangerSkill>>, value: 'P
     icon: skill?.icon || '',
     description: `Begin the rotation with the ${value.toLowerCase()} unleashed.`
   };
-}
-
-function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
-  const state = rangerUiState(context);
-  const rangerUnleashed = Boolean(state.rangerUnleashed);
-  if (skill.id === ID.UNLEASH_RANGER && rangerUnleashed) {
-    return { available: false, message: 'Ranger is already unleashed' };
-  }
-
-  if (skill.id === ID.UNLEASH_PET && !rangerUnleashed) {
-    return { available: false, message: 'Pet is already unleashed' };
-  }
-
-  if (skill.unleashedPetSkill && rangerUnleashed) {
-    return { available: false, message: 'Unleash Pet first' };
-  }
-
-  // Match the runtime replacement of natural pet commands by unleashed pet skills.
-  if (skill.petSkill && !rangerUnleashed) {
-    return { available: false, message: 'Unleash Ranger first' };
-  }
-
-  if (skill.unleashedAmbushSkill) {
-    if (!rangerUnleashed) {
-      return { available: false, message: 'Unleash Ranger first' };
-    }
-
-    // ambushReadyUntil is a deadline; once current time passes it the window is gone.
-    if ((context.time || 0) >= (state.ambushReadyUntil || 0)) {
-      return {
-        available: false,
-        message: 'Unleash to make an ambush available'
-      };
-    }
-  }
-
-  return { available: true, message: '' };
 }
 
 /** Reports the weapon ambush deadline and each beneficiary's Ferocious Symbiosis stacks. */
@@ -103,6 +63,14 @@ function untamedStateSnapshot(context: RangerUiContext): RotationStateSnapshotIt
 export function bindUntamedUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   const petSkillIds = catalog.skills.filter((skill) => skill.unleashedPetSkill).map((skill) => skill.id);
   return Object.freeze({
+    // Tile identity follows the active bar even when the visible skill cannot currently be cast.
+    paletteOverride: (context, skill) => {
+      const state = rangerUiState(context);
+      if (skill.id === ID.UNLEASH_RANGER || skill.id === ID.UNLEASH_PET)
+        return { tileActive: (skill.id === ID.UNLEASH_PET) === Boolean(state.rangerUnleashed) };
+      if (skill.unleashedAmbushSkill)
+        return { tileActive: Boolean(state.rangerUnleashed) && (context.time || 0) < (state.ambushReadyUntil || 0) };
+    },
     startControls: (context: RangerUiContext) => [
       {
         label: 'Start unleashed',
@@ -122,7 +90,6 @@ export function bindUntamedUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>):
         resourceAnchor: true
       }
     ],
-    paletteSkillAvailability: availability,
     rotationStateSnapshot: untamedStateSnapshot
     // Unleash synchronization is internal state bookkeeping, not a player-facing combat event.
   });

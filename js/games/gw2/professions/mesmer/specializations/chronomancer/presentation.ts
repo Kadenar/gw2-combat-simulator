@@ -7,10 +7,8 @@ import {
 import { timedBuffAt } from '#gw2/platform/results/query.js';
 import type {
   ProfessionEventLogDescriptor,
-  PaletteSkillAvailability,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 import type { MesmerResolverEvent, MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
 
@@ -34,17 +32,6 @@ function chronomancerEventLogRow(
     className: 'phantasm',
     order: 21,
     flags: ['phantasm-clone']
-  };
-}
-
-/** Keeps Continuum Shift unavailable until the active split has produced a restorable snapshot. */
-function chronomancerPaletteSkillAvailability(context: MesmerUiContext, skill: Skill): PaletteSkillAvailability {
-  if (skill.id !== ID.CONTINUUM_SHIFT) return { available: true, message: '' };
-  const state = context.professionState || context.state?.profession || {};
-  const available = Boolean(state.continuumActive);
-  return {
-    available,
-    message: available ? '' : 'Unavailable until Continuum Split is active'
   };
 }
 
@@ -106,6 +93,5 @@ export const chronomancerUi: MesmerUiSlice = Object.freeze({
       id: 'clones',
       singular: 'clone',
       plural: 'clones'
-    }),
-  paletteSkillAvailability: chronomancerPaletteSkillAvailability
+    })
 });

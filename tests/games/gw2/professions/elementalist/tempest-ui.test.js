@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
+import { paletteSkillView, paletteAvailability } from '#gw2/app/rotation/palette/model.js';
 import { renderPaletteMarkup } from '#tests/helpers/palette.js';
 import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
@@ -120,13 +120,14 @@ test('Tempest overload palette availability follows the active attunement', () =
   const air = catalog.skillsByName.get('Overload Air');
   const fire = catalog.skillsByName.get('Overload Fire');
 
-  assert.deepEqual(elementalistProfession.ui.paletteSkillAvailability(context, air), {
+  assert.deepEqual(paletteAvailability(app, context, air), {
     available: true,
     message: ''
   });
-  assert.deepEqual(elementalistProfession.ui.paletteSkillAvailability(context, fire), {
+  assert.deepEqual(paletteAvailability(app, context, fire), {
     available: false,
-    message: 'Requires Fire attunement.'
+    message: app.results.planningState.availability[fire.id].reason,
+    retryAt: null
   });
 });
 
@@ -134,14 +135,14 @@ test('Tempest overload singularity delays a newly entered attunement but not the
   const startingApp = createTempestApp();
   const startingAir = catalog.skillsByName.get('Overload Air');
 
-  assert.deepEqual(elementalistProfession.ui.paletteSkillAvailability(paletteContext(startingApp), startingAir), {
+  assert.deepEqual(paletteAvailability(startingApp, paletteContext(startingApp), startingAir), {
     available: true,
     message: ''
   });
 
   const enteredApp = createTempestApp(['Fire Attunement']);
   const fire = catalog.skillsByName.get('Overload Fire');
-  const enteredAvailability = elementalistProfession.ui.paletteSkillAvailability(paletteContext(enteredApp), fire);
+  const enteredAvailability = paletteAvailability(enteredApp, paletteContext(enteredApp), fire);
   const enteredView = paletteSkillView(
     enteredApp,
     fire,
@@ -152,27 +153,27 @@ test('Tempest overload singularity delays a newly entered attunement but not the
 
   assert.deepEqual(enteredAvailability, {
     available: false,
-    message: 'Attunement singularity has not formed.',
+    message: enteredApp.results.planningState.availability[fire.id].reason,
     retryAt: 4.8
   });
   assert.equal(enteredView.disabled, true);
   assert.equal(enteredView.contextDisabled, false);
-  assert.equal(enteredView.cooldownLabel, '4.80s');
+  assert.equal(enteredView.cooldownLabel, 'Retry 4.800s');
   assert.match(
     renderPaletteMarkup(enteredApp),
-    /class="pal-skill pal-disabled" data-skill="Overload Fire"[\s\S]*?<span class="pal-cd">4\.80s<\/span>/
+    /class="pal-skill pal-disabled" data-skill="Overload Fire"[\s\S]*?<span class="pal-cd">Retry 4\.800s<\/span>/
   );
 
   const unbuffedApp = createTempestApp(['Fire Attunement'], { alacrity: false });
 
-  assert.equal(elementalistProfession.ui.paletteSkillAvailability(paletteContext(unbuffedApp), fire).retryAt, 4.8);
+  assert.equal(paletteAvailability(unbuffedApp, paletteContext(unbuffedApp), fire).retryAt, 4.8);
   const transcendentApp = createTempestApp(['Fire Attunement'], { tempestTraits: '1-1-1' });
 
-  assert.equal(elementalistProfession.ui.paletteSkillAvailability(paletteContext(transcendentApp), fire).retryAt, 3.2);
+  assert.equal(paletteAvailability(transcendentApp, paletteContext(transcendentApp), fire).retryAt, 3.2);
 
   const dwelledApp = createTempestApp(['Fire Attunement', 4800]);
 
-  assert.deepEqual(elementalistProfession.ui.paletteSkillAvailability(paletteContext(dwelledApp), fire), {
+  assert.deepEqual(paletteAvailability(dwelledApp, paletteContext(dwelledApp), fire), {
     available: true,
     message: ''
   });
@@ -181,7 +182,7 @@ test('Tempest overload singularity delays a newly entered attunement but not the
 test('an overload with 0.1 seconds remaining stays click-queueable and casts when ready', () => {
   const nearlyReadyApp = createTempestApp(['Fire Attunement', 4700]);
   const fire = catalog.skillsByName.get('Overload Fire');
-  const availability = elementalistProfession.ui.paletteSkillAvailability(paletteContext(nearlyReadyApp), fire);
+  const availability = paletteAvailability(nearlyReadyApp, paletteContext(nearlyReadyApp), fire);
   const view = paletteSkillView(
     nearlyReadyApp,
     fire,
@@ -192,7 +193,7 @@ test('an overload with 0.1 seconds remaining stays click-queueable and casts whe
 
   assert.equal(view.disabled, true);
   assert.equal(view.contextDisabled, false);
-  assert.equal(view.cooldownLabel, '0.10s');
+  assert.equal(view.cooldownLabel, 'Retry 0.100s');
   assert.doesNotMatch(renderPaletteMarkup(nearlyReadyApp), /pal-context-disabled[^>]*data-skill="Overload Fire"/);
 
   const queuedApp = createTempestApp(['Fire Attunement', 4700, 'Overload Fire']);
@@ -214,11 +215,11 @@ test('a time-zero attunement swap still enforces overload singularity', () => {
 test('Tempest overload palette shows its active cooldown after use', () => {
   const app = createTempestApp(['Overload Air']);
   const air = catalog.skillsByName.get('Overload Air');
-  const availability = elementalistProfession.ui.paletteSkillAvailability(paletteContext(app), air);
+  const availability = paletteAvailability(app, paletteContext(app), air);
   const view = paletteSkillView(app, air, availability.available, availability.message);
 
   assert.equal(view.disabled, true);
-  assert.equal(view.cooldownLabel, '16.00s');
+  assert.equal(view.cooldownLabel, '16.000s');
   // Live cooldown text belongs to the tooltip's cast details.
-  assert.match(view.castDetails, /Remaining: 16\.00s/);
+  assert.match(view.castDetails, /Remaining: 16\.000s/);
 });

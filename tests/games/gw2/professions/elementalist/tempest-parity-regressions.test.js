@@ -15,7 +15,6 @@ import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { tempestHooks } from '#gw2/professions/elementalist/specializations/tempest/hooks.js';
-import { tempestUi } from '#gw2/professions/elementalist/specializations/tempest/presentation.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
@@ -240,10 +239,9 @@ test('patched overload dwell agrees between availability and palette', () => {
       time: 3
     };
     const runtime = tempestHooks.availability(context, skill);
-    const palette = tempestUi.paletteSkillAvailability(context, skill);
+
     assert.equal(runtime.ready, false);
-    assert.equal(palette.available, false);
+
     assert.equal(runtime.retryAt, selectedTraitIds.length ? 6 : 6.8);
-    assert.equal(palette.retryAt, runtime.retryAt);
   }
 });

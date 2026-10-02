@@ -279,18 +279,12 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState, Reven
   availability(runtime, skill) {
     const state = conduit(runtime);
     if (BEGUILING_HAZE_SKILL_IDS.has(skill.id)) {
-      // Both skill identities share the main recharge and its committed progress.
-      if (state.beguilingHazeRecharge)
-        state.beguilingHazeReadyAt = gw2CooldownReadyAt(
-          runtime.cooldownController.project(skill, state.beguilingHazeRecharge)
-        );
-      if ((state.beguilingHazeCharges || 0) <= 0 && runtime.time < (state.beguilingHazeReadyAt || 0))
-        return denySkillCast(
-          skill,
-          'revenant.beguiling-haze-cooldown',
-          'Beguiling Haze is recharging.',
-          state.beguilingHazeReadyAt
-        );
+      // Project the shared recharge without mutating state during an availability query.
+      const readyAt = state.beguilingHazeRecharge
+        ? gw2CooldownReadyAt(runtime.cooldownController.project(skill, state.beguilingHazeRecharge))
+        : state.beguilingHazeReadyAt;
+      if ((state.beguilingHazeCharges || 0) <= 0 && runtime.time < (readyAt || 0))
+        return denySkillCast(skill, 'revenant.beguiling-haze-cooldown', 'Beguiling Haze is recharging.', readyAt);
     }
 
     // All five variants share one bar slot; block the variant the active legend does not supply.

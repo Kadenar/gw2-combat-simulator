@@ -1,7 +1,7 @@
 import type { CriticalSigilDiagnostic } from '#gw2/platform/equipment/sigils/diagnostics.js';
 /** Owns the simulation/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { NormalizedProfessionContract, ProfessionFamilyContract } from '#gw2/platform/engine/profession/types.js';
-import type { AmmoState, SimulationStep } from '#gw2/platform/execution/types.js';
+import type { AmmoState, AvailabilityResult, SimulationStep } from '#gw2/platform/execution/types.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
@@ -37,6 +37,8 @@ export type Gw2ProfessionSource<TProfessionState extends object = any> = Profess
 };
 
 export interface Gw2SimulationPlanningState {
+  /** Default-command profession gates at this boundary, not predicted scheduler acceptance. */
+  readonly availability: Readonly<Record<string, AvailabilityResult>>;
   /** Observed planning boundary in seconds; includes authoring continuation after target death. */
   readonly atSeconds: number;
   /** Public cooldown deadlines and remaining durations are milliseconds. */

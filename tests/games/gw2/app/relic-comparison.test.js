@@ -42,7 +42,7 @@ test('break-even chart hover shows the time and both relic DPS values', () => {
   bindRelicComparisonChartHover(container, model);
   svg.onmousemove({ clientX: 341, clientY: 100 });
 
-  assert.match(tooltip.innerHTML, /1\.00s/);
+  assert.match(tooltip.innerHTML, /1\.000s/);
   assert.match(tooltip.innerHTML, /Relic of Fractal: 1,100 DPS/);
   assert.match(tooltip.innerHTML, /Relic of Akeem: 1,000 DPS/);
   assert.equal(tooltip.style.display, 'block');

@@ -30,6 +30,7 @@ export interface TargetHealthBreakpointSnapshot {
  * Produces the ordered, preformatted metric cards consumed by result renderers.
  * Kill time is optional because fixed-horizon simulations may never reach the
  * configured target health.
+ * Timing cards preserve milliseconds to match detailed results.
  */
 export function baseResultSummaryMetrics(
   result: Gw2ResolverResult,
@@ -43,14 +44,14 @@ export function baseResultSummaryMetrics(
       ? [
           {
             label: 'Duration',
-            value: `${duration.toFixed(2)}s`,
+            value: `${duration.toFixed(3)}s`,
             className: ''
           }
         ]
       : [
           {
             label: 'Kill Time',
-            value: `${deathTime.toFixed(2)}s`,
+            value: `${deathTime.toFixed(3)}s`,
             className: 'kill-time'
           }
         ];

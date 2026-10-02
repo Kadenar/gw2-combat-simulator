@@ -6,7 +6,6 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type {
-  PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup
 } from '#gw2/platform/profession-presentation/types.js';
@@ -52,10 +51,6 @@ const TOME_DORMANCY_LABELS = Object.freeze([
   ['resolve', 'F2 Resolve'],
   ['courage', 'F3 Courage']
 ] as const);
-
-function professionState(context: GuardianUiContext): Partial<GuardianState> {
-  return flattenProfessionState(context.state?.profession || context.professionState);
-}
 
 function dormantTomeClasses(context: GuardianUiContext): string {
   const readyAt = professionState(context).tomeDormantReadyAt;
@@ -111,47 +106,6 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
         color
       }))
     ],
-    paletteSkillAvailability: (context: GuardianUiContext, skill: GuardianSkill): PaletteSkillAvailability => {
-      const state = professionState(context);
-      if (skill.type === 'Weapon' && state.activeTome) {
-        return {
-          available: false,
-          message: 'Weapon skills are unavailable while a tome is equipped'
-        };
-      }
-
-      if (skill.tome && !state.activeTome) {
-        return {
-          available: false,
-          message: 'Equip this tome to use its chapter skills'
-        };
-      }
-
-      if (skill.tome && state.activeTome !== skill.tome) {
-        return {
-          available: false,
-          message: `Currently using the ${state.activeTome} tome`
-        };
-      }
-
-      // Read the same authored debit used by the shared resource controller.
-      const resourceCost = Number(skill.resourceCost);
-      if (skill.tome && (state.tomePages?.value || 0) < resourceCost) {
-        return {
-          available: false,
-          message: `Requires ${resourceCost} tome pages`
-        };
-      }
-
-      if (skill.name === 'Stow Tome' && !state.activeTome) {
-        return {
-          available: false,
-          message: 'No tome is currently equipped'
-        };
-      }
-
-      return { available: true, message: '' };
-    },
     resourceViews: (context: GuardianUiContext) => {
       const state = professionState(context);
       // Preview capacity follows the selected catalog even before a simulation supplies resource state.
@@ -203,4 +157,8 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
       ];
     }
   });
+}
+
+function professionState(context: GuardianUiContext): Partial<GuardianState> {
+  return flattenProfessionState(context.state?.profession || context.professionState);
 }

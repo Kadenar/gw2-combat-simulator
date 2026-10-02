@@ -750,7 +750,7 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   assert.doesNotMatch(container.innerHTML, /res-breakpoints/);
   assert.match(container.innerHTML, /80%<\/b> target health/);
   assert.match(container.innerHTML, />1,234</);
-  assert.match(container.innerHTML, /at 3\.25s/);
+  assert.match(container.innerHTML, /at 3\.250s/);
   assert.ok(container.innerHTML.indexOf('>High</span>') < container.innerHTML.indexOf('>Low</span>'));
   assert.match(container.innerHTML, /Total Conditions/);
   assert.equal((container.innerHTML.match(/class="res-breakdown-section"/g) || []).length, 1);

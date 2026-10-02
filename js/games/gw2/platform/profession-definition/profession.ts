@@ -208,22 +208,7 @@ function createModuleUi<TSkill extends Skill>(
 ): Partial<ProfessionUiContract> {
   const presentation =
     typeof module.presentation === 'function' ? module.presentation(applicationCatalog) : module.presentation;
-  const ui = { ...(presentation as Partial<ProfessionUiContract> | undefined) };
-  if (module.id === 'Core') {
-    const paletteAvailability = ui.paletteSkillAvailability;
-    // Resolve preview selection once so the availability gate and profession callback use the same specialization.
-    ui.paletteSkillAvailability = (context, skill) => {
-      const config = context.config;
-      const build = context.build as { readonly specialization?: string } | undefined;
-      const specialization =
-        context.specialization || config?.specialization || build?.specialization || skill.specialization || 'Core';
-      return isBuildSkillAvailable(skill, { specialization })
-        ? (paletteAvailability?.({ ...context, specialization }, skill) ?? { available: true, message: '' })
-        : { available: false, message: `${skill.name} is unavailable for this build.` };
-    };
-  }
-
-  return ui;
+  return { ...(presentation as Partial<ProfessionUiContract> | undefined) };
 }
 
 /** Compiles merged active rules once, using standard GW2 buckets unless a module owns a custom compiler. */

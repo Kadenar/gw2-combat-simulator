@@ -1,5 +1,4 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { weaponFlipBlock } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
@@ -10,7 +9,6 @@ import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
-  PaletteSkillAvailability,
   ProfessionPaletteGroup,
   ProfessionResourceView,
   ProfessionSkillBarGroup
@@ -24,9 +22,7 @@ import type {
   RangerUiSlice
 } from '#gw2/professions/ranger/types.js';
 import {
-  isRangerHammerVariant,
   normalizeRangerHammerSkillIds,
-  rangerHammerSkillIds,
   rangerHammerUsesBuildSelection,
   RANGER_HAMMER_VARIANT_PAIRS
 } from '#gw2/professions/ranger/data/hammer-variants.js';
@@ -169,57 +165,16 @@ function updateRangerCoreSelection(context: RangerUiContext, selection: RangerUi
   return updatePetSelection(context, selection) || updateHammerSelection(context, selection);
 }
 
-// Project runtime hammer, weapon-flip, and active-pet gates into palette state so
-// unavailable alternatives remain visible with an actionable explanation.
-function rangerCorePaletteAvailability(
-  catalog: Readonly<CanonicalCatalog<RangerSkill>>,
-  context: RangerUiContext,
-  skill: RangerSkill
-): PaletteSkillAvailability {
-  if (isRangerHammerVariant(skill.id) && !rangerHammerSkillIds(context).includes(Number(skill.id))) {
-    if (!rangerHammerUsesBuildSelection(context))
-      return { available: false, message: 'Use the Hammer variant for the current unleashed state' };
-    return { available: false, message: 'Select this Hammer variant first' };
-  }
-
-  const state = rangerUiState(context);
-  const availableFlips = state.availableFlips || {};
-  const spearStealthFlipId = RANGER_SPEAR_STEALTH_FLIP_BY_PARENT[Number(skill.id)];
-  const isSpearStealthAttack = Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT).includes(Number(skill.id));
-  // Share the live spear gate so ordinary stealth and Hunter's Prowess produce the same palette.
-  if (isSpearStealthAttack || spearStealthFlipId != null) {
-    const available = rangerSpearStealthAvailable(state, context.time || 0);
-    if (isSpearStealthAttack && !available)
-      return { available: false, message: "Use Panther's Prowl or gain stealth first" };
-    if (!isSpearStealthAttack && available)
-      return { available: false, message: 'Use or wait out the active stealth attack' };
-    return { available: true, message: '' };
-  }
-
-  // The palette reads the same weapon follow-up rule as runtime availability.
-  const flipBlock = isRangerHammerVariant(skill.id)
-    ? null
-    : weaponFlipBlock(availableFlips, catalog.skillsById, skill, context.time || 0);
-  if (flipBlock?.kind === 'closed')
-    return { available: false, message: `Use ${flipBlock.parent.name || 'its opening weapon skill'} first` };
-  if (flipBlock?.kind === 'open') return { available: false, message: 'Use or wait out the active follow-up skill' };
-
-  if (!skill.petSkill) return { available: true, message: '' };
-  const commandable = rangerPetSkillCommandable(skill, rangerUiSpecialization(context));
-  const available = commandable && activePetSkillIds(context).includes(skill.id);
-  return {
-    available,
-    message: available
-      ? ''
-      : !commandable
-        ? 'The active pet uses this skill automatically'
-        : `Select the pet that owns this ${skill.petFamilySkill ? 'family attack' : 'Beast skill'}`
-  };
-}
-
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
+    // Tile identity follows the active bar even when the visible skill cannot currently be cast.
+    paletteOverride: (context, skill) => {
+      const flip = RANGER_SPEAR_STEALTH_FLIP_BY_PARENT[Number(skill.id)];
+      const stealth = Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT).includes(Number(skill.id));
+      if (stealth || flip != null)
+        return { tileActive: stealth === rangerSpearStealthAvailable(rangerUiState(context), context.time || 0) };
+    },
     assumptionControls: [
       ...RANGER_ASSUMPTION_CONTROLS,
       ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
@@ -321,8 +276,6 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
         }
       ];
     },
-    paletteSkillAvailability: (context: RangerUiContext, skill: RangerSkill) =>
-      rangerCorePaletteAvailability(catalog, context, skill),
     eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
       RANGER_HIDDEN_EVENT_TYPES.has(event.type) ||
       (event.type === 'buff' && RANGER_HIDDEN_BOON_SOURCES.has(Number(event.sourceId)))

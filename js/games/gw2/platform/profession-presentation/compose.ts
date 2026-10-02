@@ -6,7 +6,6 @@ import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-p
  */
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
-  PaletteSkillAvailability,
   ProfessionChargeReleaseContext,
   ProfessionEventLogContext,
   ProfessionPaletteActionIdentity,
@@ -241,14 +240,12 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     };
   }
 
-  ui.paletteSkillAvailability = (context: unknown, skill: Skill) => {
+  ui.paletteOverride = (context: unknown, skill: Skill) => {
     const selected = scalarSlices(context, skill);
-    return firstUiMatch(
-      selected.slices,
-      'paletteSkillAvailability',
-      [selected.context, skill],
-      (result) => !(result as PaletteSkillAvailability).available,
-      { available: true, message: '' }
+    // Core and elite exceptions own independent fields; later slices refine tile identity or editor access.
+    return Object.assign(
+      {},
+      ...selected.slices.map((slice) => slice.paletteOverride?.(selected.context as ProfessionPaletteContext, skill))
     );
   };
 

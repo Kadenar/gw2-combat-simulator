@@ -38,17 +38,9 @@ test('Rock Barrier availability, palette, and natural recharge share an exact de
       ...[30.300999, 30.301, 30.301001].map((at) => ({
         at,
         run: (r) => {
-          const active = at < 30.301,
-            core = r.profession.core;
+          const active = at < 30.301;
           assert.equal(elementalistCoreAvailability(r, hurl).ready, active);
           assert.equal(elementalistCoreAvailability(r, root).ready, !active);
-          assert.equal(
-            elementalistProfession.ui.paletteSkillAvailability(
-              { time: at, professionState: core, build: { startAttunement: 'Earth' } },
-              hurl
-            ).available,
-            active
-          );
         }
       })),
       { at: 40, run: (r) => assert.equal(r.cooldowns.get(root.id), 36.701) },

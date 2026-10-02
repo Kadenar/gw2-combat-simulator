@@ -185,11 +185,14 @@ export interface ProfessionStartControl {
   readonly color?: string;
 }
 
-export interface PaletteSkillAvailability {
-  readonly available: boolean;
-  readonly message: string;
-  /** Absolute simulator time in seconds when a temporary context lockout ends. */
-  readonly retryAt?: number | null;
+export interface PaletteOverride {
+  /** Selects a shared tile independently of cast readiness and affordability. */
+  readonly tileActive?: boolean;
+  /** Explicit authoring exceptions affect insertion only, never runtime legality. */
+  readonly available?: boolean;
+  readonly message?: string;
+  /** Opens a command-specific editor even when the default command is denied. */
+  readonly editorAccess?: boolean;
 }
 
 /**
@@ -336,11 +339,11 @@ export interface ProfessionUiContract<TProfessionState = unknown> {
     event: SimulationEvent
   ) => ProfessionEventLogDescriptor | null | undefined;
   readonly isPaletteSkillInstant: (context: ProfessionPaletteContext<TProfessionState>, skill: Skill) => boolean;
-  /** Reports whether a palette skill is usable, why it is blocked, and when a temporary lockout ends. */
-  readonly paletteSkillAvailability: (
+  /** Narrow authoring and tile-identity exceptions; ordinary gates come from the planning observation. */
+  readonly paletteOverride?: (
     context: ProfessionPaletteContext<TProfessionState>,
     skill: Skill
-  ) => PaletteSkillAvailability;
+  ) => PaletteOverride | undefined;
   readonly isSlotSkillSelectable: (context: ProfessionUiContext<TProfessionState>, skill: Skill) => boolean;
   readonly paletteGroups: (context: ProfessionPaletteContext<TProfessionState>) => ProfessionPaletteGroup[];
   /** Adds or projects profession-owned actions before the shell renders them. */

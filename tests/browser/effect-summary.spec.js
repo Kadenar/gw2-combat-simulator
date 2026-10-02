@@ -175,7 +175,7 @@ test('effect summaries show average stacks and stay readable on narrow screens',
   await expect(buffs.getByRole('cell')).toHaveText(['0.10', '3.3%', '0.03', '3.3%', '0.50', '50.0%']);
   await expect(summary.locator('img')).toHaveCount(0);
   await page.locator('[data-chart-phase="100-80"]').click();
-  await expect(primary.locator('caption')).toHaveText('Boons · 4 allies · full benchmark (60.00s)');
+  await expect(primary.locator('caption')).toHaveText('Boons · 4 allies · full benchmark (60.000s)');
   await expect(quickness).toContainText('125.0%');
   await expect(quickness.getByRole('cell').first()).toHaveText('Ally: 0.25Self: 0.75');
   await expect(summary.locator('[data-role="effect-summary-help"]')).toHaveCount(0);

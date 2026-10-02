@@ -1,9 +1,8 @@
-import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/stolen-skills.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
-import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
+import type { ThiefUiContext } from '#gw2/professions/thief/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 function deadeyeStolenSkillIds(context: ThiefUiContext = {}): SkillId[] {
@@ -59,12 +58,5 @@ export const deadeyeUi = Object.freeze({
         statusLabel: 'Current'
       }
     ];
-  },
-  paletteSkillAvailability: (context: ThiefUiContext, skill: ThiefSkill) => {
-    const result = deadeyeCastAvailability(thiefUiState(context).availableFlips, skill, context.time || 0);
-    return {
-      available: result.ready,
-      message: result.ready ? '' : result.reason
-    };
   }
 });

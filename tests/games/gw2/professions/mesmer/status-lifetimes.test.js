@@ -9,7 +9,6 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
 import { initializeMirageRuntime } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
 import { mirageAvailability } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
-import { mirageUi } from '#gw2/professions/mesmer/specializations/mirage/presentation.js';
 import { mirageHooks } from '#gw2/professions/mesmer/specializations/mirage/hooks.js';
 
 // Real profiles and specialization initialization isolate the lifetime contracts from rotation and cast timing.
@@ -199,15 +198,8 @@ test('Mirror availability, palette, projection, and one-time pickup agree on exa
     assert.equal(availability.ready, active);
     if (at < 0.301) assert.equal(availability.retryAt, 0.301);
     if (at >= 8.301) assert.equal(availability.retryAt, null);
-    const projected = projectObservedState(mesmerProfession, {
-      ...context,
-      config: context.config,
-      catalog: context.catalog
-    });
-    assert.equal(projected.availableMirrors, Number(active));
-    assert.equal(mirageUi.paletteSkillAvailability({ professionState: projected }, skill).available, active);
     context.time = at;
-    assert.equal(state.mirrors.length, 1, 'Projection does not purge the live owner');
+    assert.equal(state.mirrors.length, 1, 'Availability does not purge the live owner');
     assert.equal(controller.pickUpMirror(at, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), active);
     assert.equal(controller.pickUpMirror(at, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), false);
     assert.equal(context.events.filter((event) => event.skillId === ID.MIRAGE_MIRROR_DAMAGE).length, Number(active));
@@ -249,7 +241,7 @@ test('Mirror retry retains pending creation and overlapping mirrors expire indep
   controller.createMirrors(0.301, 1);
   controller.createMirrors(1.301, 1);
   context.time = 8.301;
-  assert.equal(projectObservedState(mesmerProfession, context).availableMirrors, 1);
+  assert.equal(mirageAvailability(context, skill).ready, true);
   assert.equal(controller.pickUpMirror(8.301, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), true);
   assert.equal(controller.pickUpMirror(8.301, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), false);
   controller.createMirrors(8.301, 1);

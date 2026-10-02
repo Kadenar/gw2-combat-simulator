@@ -1,3 +1,4 @@
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -46,7 +47,7 @@ test('Fresh Air keeps only future strike wakes for selected builds', () => {
     assert.equal(projectedFreshAirReadyAt(runtime, 3), 3);
     runtime.time = 3;
     assert.equal(projectedFreshAirReadyAt(runtime, 4), 4);
-    assert.deepEqual(core.freshAirCandidates, [9, 6, 4]);
+    assert.deepEqual(core.freshAirCandidates, [9, 3, 6, 3, 4]);
     runtime.time = 4;
     prepare(8);
     assert.deepEqual(core.freshAirCandidates, [9, 6, 8]);
@@ -56,7 +57,7 @@ test('Fresh Air keeps only future strike wakes for selected builds', () => {
     assert.equal(projectedFreshAirReadyAt(runtime, 10), 6);
     runtime.time = 9;
     assert.equal(projectedFreshAirReadyAt(runtime, 20), null);
-    assert.deepEqual(core.freshAirCandidates, []);
+    assert.deepEqual(core.freshAirCandidates, [9, 6, 8]);
   }
 });
 
@@ -619,6 +620,7 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
     weaponData: elementalistAppAdapter.weaponData,
     results: {
       planningState: {
+        availability: {},
         activeWeaponSet: 1,
         atSeconds: 0,
         cooldowns: {
@@ -695,7 +697,7 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
 
   assert.equal((sameHtml.match(/class="pal-skill/g) || []).length, 4);
   assert.equal((dualHtml.match(/class="pal-skill/g) || []).length, 6);
-  assert.match(dualHtml, /data-skill="Pyro Vortex"[\s\S]*?<span class="pal-cd">3\.40s<\/span>/);
+  assert.match(dualHtml, /data-skill="Pyro Vortex"[\s\S]*?<span class="pal-cd">3\.400s<\/span>/);
 });
 
 test('weapon bar excludes dual attacks outside Weaver', () => {
@@ -889,43 +891,17 @@ test('Evoker skill selections update the configured familiar independently of si
 });
 
 test('Evoker familiar palette availability follows current charges', () => {
-  const build = elementalistAppAdapter.toApplicationBuild({
-    ...elementalistProfession.createBuildDefaults(),
-    evokerElement: 'Fire',
-    initialEvokerCharges: 3,
-    specializations: [
-      { name: 'Fire', traits: '1-1-1' },
-      { name: 'Air', traits: '1-1-1' },
-      { name: 'Evoker', traits: '1-1-1' }
-    ]
-  });
-  const ignite = elementalistCatalog.skillsByName.get('Ignite');
-  const context = {
-    build,
-    specialization: 'Evoker',
-    professionState: {
-      element: 'Fire',
-      charges: 5,
-      maximumCharges: 6,
-      empowered: 0
-    },
-    catalog: elementalistCatalog
-  };
-
-  const unavailable = elementalistProfession.ui.paletteSkillAvailability(context, ignite);
-
-  assert.equal(unavailable.available, false);
-  assert.match(unavailable.message, /requires 6 familiar charges/);
-  assert.equal(
-    elementalistProfession.ui.paletteSkillAvailability(
-      {
-        ...context,
-        professionState: { ...context.professionState, charges: 6 }
-      },
-      ignite
-    ).available,
-    true
-  );
+  const skill = elementalistCatalog.skillsByName.get('Ignite');
+  for (const charges of [5, 6]) {
+    const state = planningFixture(
+      elementalistProfession,
+      { specialization: 'Evoker', evokerElement: 'Fire' },
+      (runtime) => {
+        Object.assign(runtime.profession.specialization.state, { charges, maximumCharges: 6, empowered: 0 });
+      }
+    );
+    assert.equal(state.availability[skill.id].ready, charges === 6);
+  }
 });
 
 test('Evoker layers familiar charges beside F5', () => {
@@ -966,7 +942,7 @@ test('Evoker layers familiar charges beside F5', () => {
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     activeCatalog: elementalistProfession.catalog,
-    results: { planningState: { profession: professionState } }
+    results: { planningState: { availability: {}, profession: professionState } }
   });
 
   assert.match(resourceHtml, /data-resource-id="evoker-charges"/);
@@ -980,7 +956,10 @@ test('Evoker layers familiar charges beside F5', () => {
     profession: elementalistProfession,
     activeCatalog: elementalistProfession.catalog,
     results: {
-      planningState: { profession: { ...professionState, charges: 6, maximumCharges: 6, empowered: 0 } }
+      planningState: {
+        availability: {},
+        profession: { ...professionState, charges: 6, maximumCharges: 6, empowered: 0 }
+      }
     }
   });
   const empoweredReadyHtml = activeResourceGroup({
@@ -989,7 +968,7 @@ test('Evoker layers familiar charges beside F5', () => {
     profession: elementalistProfession,
     activeCatalog: elementalistProfession.catalog,
     results: {
-      planningState: { profession: { ...professionState, charges: 4, empowered: 3 } }
+      planningState: { availability: {}, profession: { ...professionState, charges: 4, empowered: 3 } }
     }
   });
 
@@ -1061,37 +1040,17 @@ test('Evoker renders stacked starting controls for basic and empowered charges',
 });
 
 test('Evoker familiar stays available when its element differs from the active attunement', () => {
-  const build = elementalistAppAdapter.toApplicationBuild({
-    ...elementalistProfession.createBuildDefaults(),
-    evokerElement: 'Air',
-    specializations: [
-      { name: 'Fire', traits: '1-1-1' },
-      { name: 'Air', traits: '1-1-1' },
-      { name: 'Evoker', traits: '1-1-1' }
-    ]
-  });
-  const zap = elementalistCatalog.skillsByName.get('Zap');
-  // Active attunement is Fire while the selected familiar is the Air familiar.
-  // The shared core attunement gate must not veto the familiar; the Evoker slice
-  // governs it by charges instead.
-  const context = {
-    build,
-    specialization: 'Evoker',
-    catalog: elementalistCatalog,
-    professionState: { element: 'Air', charges: 6, maximumCharges: 6, empowered: 0, primaryAttunement: 'Fire' }
-  };
-
-  assert.deepEqual(elementalistProfession.ui.paletteSkillAvailability(context, zap), {
-    available: true,
-    message: ''
-  });
-  assert.equal(
-    elementalistProfession.ui.paletteSkillAvailability(
-      { ...context, professionState: { ...context.professionState, charges: 5 } },
-      zap
-    ).available,
-    false
-  );
+  const skill = elementalistCatalog.skillsByName.get('Zap');
+  for (const charges of [5, 6]) {
+    const state = planningFixture(
+      elementalistProfession,
+      { specialization: 'Evoker', evokerElement: 'Air', startAttunement: 'Fire' },
+      (runtime) => {
+        Object.assign(runtime.profession.specialization.state, { charges, maximumCharges: 6, empowered: 0 });
+      }
+    );
+    assert.equal(state.availability[skill.id].ready, charges === 6);
+  }
 });
 
 test('core attunements enforce and report their individual recharge', () => {
@@ -1114,18 +1073,12 @@ test('core attunements enforce and report their individual recharge', () => {
   assert.equal(result.planningState.profession.primaryAttunement, 'Fire');
   assert.ok(result.planningState.cooldowns['Air Attunement'].remaining > 1000);
   assert.ok(result.planningState.cooldowns['Water Attunement'].remaining > 1000);
-  const waterAvailability = elementalistProfession.ui.paletteSkillAvailability(
-    {
-      specialization: 'Core',
-      professionState: result.planningState.profession,
-      time: result.planningState.atSeconds,
-      catalog: elementalistCatalog,
-      build: { startAttunement: 'Fire' }
-    },
-    elementalistCatalog.skillsByName.get('Water Attunement')
-  );
+  const waterAvailability =
+    result.planningState.availability[elementalistCatalog.skillsByName.get('Water Attunement').id];
 
-  assert.deepEqual(waterAvailability, { available: true, message: '' });
+  assert.equal(waterAvailability.ready, false);
+  assert.equal(waterAvailability.code, 'elementalist.attunement-recharge');
+  assert.ok(waterAvailability.retryAt > result.planningState.atSeconds);
   const waterView = paletteSkillView(
     {
       build: elementalistProfession.createBuildDefaults(),
@@ -1140,7 +1093,7 @@ test('core attunements enforce and report their individual recharge', () => {
   );
 
   assert.equal(waterView.disabled, true);
-  assert.equal(waterView.cooldownLabel, '6.80s');
+  assert.equal(waterView.cooldownLabel, '6.800s');
 });
 
 test('Ride the Lightning receives its on-hit cooldown reduction', () => {

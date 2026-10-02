@@ -1,6 +1,5 @@
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { skillFlipVisible, skillFlipReady, weaponFollowUpOpen } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
@@ -12,14 +11,9 @@ import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulat
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
-import { THIEF_PREPARATIONS } from '#gw2/professions/thief/core/mechanics/weapons.js';
-import { storedStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
-import type {
-  PaletteSkillAvailability,
-  RotationStateSnapshotItem
-} from '#gw2/platform/profession-presentation/types.js';
-import type { ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/professions/thief/types.js';
+import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
+import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
+import type { ThiefState, ThiefUiContext, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> {
   return flattenProfessionState(context.state?.profession || context.professionState);
@@ -46,91 +40,6 @@ export function thiefStealPaletteGroups(professionSkillId = ID.STEAL) {
       className: 'thief-stolen-skill-choices'
     }
   ];
-}
-
-function corePaletteSkillAvailability(context: ThiefUiContext = {}, skill: ThiefSkill): PaletteSkillAvailability {
-  const state = thiefUiState(context);
-  // Show a placed preparation's trigger and let the palette wait until its shared arming deadline.
-  const trap = THIEF_PREPARATIONS.find(
-    (candidate) => candidate.prepareId === skill.id || candidate.triggerId === skill.id
-  );
-  if (trap) {
-    const prepared = skillFlipVisible(state.availableFlips?.[trap.triggerId], context.time || 0);
-    if (skill.id === trap.prepareId) {
-      return { available: !prepared, message: prepared ? `Activate ${trap.name} before preparing it again` : '' };
-    }
-
-    if (!prepared) return { available: false, message: `Prepare ${trap.name} first` };
-    const retryAt = state.availableFlips?.[trap.triggerId]?.availableAt || 0;
-    return retryAt > (context.time || 0)
-      ? { available: false, message: 'The preparation is still arming', retryAt }
-      : { available: true, message: '' };
-  }
-
-  const stealthed =
-    (state.stealthStartedAt || 0) <= (context.time || 0) &&
-    (state.stealthUntil || 0) > (context.time || 0) &&
-    (state.revealedUntil || 0) <= (context.time || 0);
-  const bonusStealthAttack =
-    (state.stealthAttackCharges || 0) > 0 && (state.stealthAttackExpiresAt || 0) > (context.time || 0);
-  const spearChainStage = spearChainStageForSkill(skill.id);
-  const flipValue = state.availableFlips?.[String(skill.id)];
-  const flipAvailable = skillFlipReady(flipValue, context.time || 0);
-  if (
-    skill.slot === 'Profession_2' &&
-    (THIEF_STOLEN_SKILL_IDS.includes(skill.id) || (skill.categories || []).includes('stolen skill')) &&
-    !storedStolenSkillChoices(state as ThiefState).includes(skill.id)
-  ) {
-    // Stolen-skill palettes remain visible for selection, but only the currently granted choices are actionable.
-    return {
-      available: false,
-      message: 'Steal this skill before using it'
-    };
-  }
-
-  if (spearChainStage != null && (state.spearChainStage || 0) !== spearChainStage) {
-    return {
-      available: false,
-      message: `Advance the spear chain to stage ${spearChainStage + 1}`
-    };
-  }
-
-  if (skill.type === 'Weapon' && skill.flipParentId != null && !flipAvailable) {
-    return {
-      available: false,
-      message: 'Use its opening weapon skill first'
-    };
-  }
-
-  if (weaponFollowUpOpen(state.availableFlips, skill, context.time || 0)) {
-    return {
-      available: false,
-      message: 'Use or wait out the active follow-up skill'
-    };
-  }
-
-  if (skill.stealthAttack) {
-    const available = stealthed || bonusStealthAttack;
-    return {
-      available,
-      message: available ? '' : 'Gain stealth first'
-    };
-  }
-
-  // Shadow Shroud remains visible because stealth replacement applies only to the equipped weapon bar.
-  if (
-    (stealthed || bonusStealthAttack) &&
-    !skill.shadowShroudSkill &&
-    skill.type === 'Weapon' &&
-    skill.slot === 'Weapon_1'
-  ) {
-    return {
-      available: false,
-      message: "The active weapon's stealth attack replaces skill 1"
-    };
-  }
-
-  return { available: true, message: '' };
 }
 
 /** Show active trait stacks and skill bonuses alongside weapon trackers and stealth gates. */
@@ -218,6 +127,19 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
 }
 
 export const thiefCoreUi = Object.freeze({
+  // Stealth owns weapon slot one even when initiative or another cast gate blocks the replacement.
+  paletteOverride: (context: ThiefUiContext, skill: ThiefSkill) => {
+    if (!skill.stealthAttack) return;
+    const state = thiefUiState(context);
+    const now = context.time || 0;
+    return {
+      tileActive:
+        ((state.stealthStartedAt || 0) <= now &&
+          (state.stealthUntil || 0) > now &&
+          (state.revealedUntil || 0) <= now) ||
+        ((state.stealthAttackCharges || 0) > 0 && (state.stealthAttackExpiresAt || 0) > now)
+    };
+  },
   // Equal-duration grants replace oldest stacks, so capping their active sum matches the engine's stack count.
   effectPresentations: (context: ThiefUiContext) => [
     {
@@ -301,6 +223,5 @@ export const thiefCoreUi = Object.freeze({
         paletteSkillId: SHARED_SKILL_IDS.DODGE
       }
     ];
-  },
-  paletteSkillAvailability: corePaletteSkillAvailability
+  }
 });

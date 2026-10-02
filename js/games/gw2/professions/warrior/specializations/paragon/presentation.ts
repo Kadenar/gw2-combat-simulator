@@ -6,12 +6,12 @@ import {
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import {
   warriorAdrenalineResourceViews,
-  warriorBurstPaletteAvailability,
+  warriorBurstPaletteOverride,
   warriorPaletteGroups,
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
 import type { ProfessionResourceView, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
+import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const CHANTS = Object.freeze([ID.CHANT_OF_ACTION, ID.CHANT_OF_RECUPERATION, ID.CHANT_OF_FREEDOM]);
 
@@ -55,6 +55,10 @@ function paragonStateSnapshot(context: WarriorUiContext): RotationStateSnapshotI
 }
 
 export const paragonUi: WarriorUiSlice = Object.freeze({
+  // Burst tiles are authored for a specific weapon set; inactive-set insertion needs an explicit swap.
+  paletteOverride: (context, skill) => {
+    return warriorBurstPaletteOverride(context, skill);
+  },
   // Put chants on their own F row so Motivation can sit beside them while adrenaline stays above weapon bursts.
   paletteGroups: (context: WarriorUiContext) => {
     const [bursts, ...otherGroups] = warriorPaletteGroups(context);
@@ -72,7 +76,5 @@ export const paragonUi: WarriorUiSlice = Object.freeze({
     ];
   },
   rotationStateSnapshot: paragonStateSnapshot,
-  resourceViews: resources,
-  paletteSkillAvailability: (context: WarriorUiContext, skill: WarriorSkill) =>
-    warriorBurstPaletteAvailability(context, skill)
+  resourceViews: resources
 });

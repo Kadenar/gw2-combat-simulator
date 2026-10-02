@@ -3,9 +3,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
-  PaletteSkillAvailability,
   ProfessionEffectPresentation,
   ProfessionResourceView,
   RotationStateSnapshotItem
@@ -22,33 +20,6 @@ const CATALYST_SPHERE_SKILL_IDS = Object.freeze(Object.values(ELEMENTALIST_JADE_
 
 function uiState(context: ElementalistUiContext): Partial<CatalystState> {
   return context.professionState || {};
-}
-
-// Mirrors the scheduler availability rule for the palette: a Jade Sphere needs the
-// matching attunement and the sphere cost in energy, falling back to build defaults
-// before any simulated state exists.
-function catalystPaletteAvailability(context: ElementalistUiContext, skill: Skill): PaletteSkillAvailability {
-  if (skill.skillFamily !== 'Jade Sphere') {
-    return { available: true, message: '' };
-  }
-
-  const state = uiState(context);
-  const build = context.build;
-  const primaryAttunement = context.professionState?.primaryAttunement || build?.startAttunement || 'Fire';
-  if (skill.attunement !== primaryAttunement) {
-    return { available: false, message: `Requires ${String(skill.attunement)} attunement.` };
-  }
-
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  // Palette costs and initial capacity follow the same selected profile as simulation.
-  const maximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
-  const sphereCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
-  const energy = state.energy ?? build?.initialCatalystEnergy ?? maximum;
-  const available = energy >= sphereCost;
-  return {
-    available,
-    message: available ? '' : `Requires ${sphereCost} Energy; currently ${energy}`
-  };
 }
 
 // Replay grants and refresh observations together so capped refreshes preserve
@@ -159,7 +130,6 @@ export const catalystUi: ElementalistUiSlice = Object.freeze({
       order: -10
     }
   ],
-  paletteSkillAvailability: catalystPaletteAvailability,
   rotationStateSnapshot: catalystStateSnapshot,
   resourceViews: (context: ElementalistUiContext): ProfessionResourceView[] => {
     const state = uiState(context);

@@ -179,9 +179,10 @@ export function createRuntimeEndurance<T extends object>(runtime: Gw2Runtime<T>,
     advance,
     readyAt(cost: number) {
       amount(cost);
-      advance();
       const { state, maximum } = pool();
-      return enduranceIntervalsReadyAt(state, cost, intervals(runtime.time, Infinity), maximum);
+      // Availability is a query: project elapsed recovery without settling the live endurance clock.
+      const current = advanceEnduranceIntervals(state, intervals(state.enduranceUpdatedAt, runtime.time), maximum);
+      return enduranceIntervalsReadyAt(current, cost, intervals(runtime.time, Infinity), maximum);
     },
     grant(value: number) {
       amount(value);

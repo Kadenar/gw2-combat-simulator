@@ -22,7 +22,7 @@ test('ambush cast, palette, and display agree at expiry', () => {
     const available = durationMs < 4000;
     assert.deepEqual(result.warnings, []);
     assert.equal(untamedCastAvailability(runtime, skill).ready, available);
-    assert.equal(ui.paletteSkillAvailability(context, skill).available, available);
+    assert.equal(result.planningState.availability[skill.id].ready, available);
     assert.equal(
       ui.rotationStateSnapshot(context).some((item) => item.id === 'untamed-ambush-window'),
       available

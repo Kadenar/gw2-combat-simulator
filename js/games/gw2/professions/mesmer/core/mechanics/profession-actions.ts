@@ -152,7 +152,8 @@ export function createProfessionActionController({
 
     const minimumResource = shatter.minimumResource || 0;
     if (resourcesSpent == null && currentResource() < minimumResource) {
-      warnings.push(`${skill.name} skipped at ${at.toFixed(2)}s: no ${resourceDefinition.plural}.`);
+      // Preserve milliseconds so skipped actions can be located in the event log.
+      warnings.push(`${skill.name} skipped at ${at.toFixed(3)}s: no ${resourceDefinition.plural}.`);
       return null;
     }
 

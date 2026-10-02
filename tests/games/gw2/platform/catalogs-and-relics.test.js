@@ -45,7 +45,7 @@ test('Mesmer test scenarios use the registered live runtime', () => {
   assert.ok(canonical.totalDamage > 0);
   assert.deepEqual(
     Object.keys(canonical.planningState).sort(),
-    ['activeWeaponSet', 'ammo', 'ammoBySkillId', 'atSeconds', 'cooldowns', 'profession'].sort()
+    ['activeWeaponSet', 'ammo', 'ammoBySkillId', 'atSeconds', 'availability', 'cooldowns', 'profession'].sort()
   );
   assert.equal(canonical.planningState.profession.resource, 5);
 });

@@ -1,3 +1,4 @@
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
@@ -338,7 +339,7 @@ test('removed mirror window never creates pickup state and zero forge interval d
     'Mirage',
     ['Sand through Glass', { type: 'wait', durationMs: 1000 }]
   );
-  assert.equal(mirage.planningState.profession.availableMirrors, 0);
+  assert.equal(observedRuntime(mirage).profession.specialization.state.mirrors.length, 0);
   const virtuoso = run(
     { [TRAIT.INFINITE_FORGE]: { fields: { pulseInterval: 0 } } },
     'Virtuoso',

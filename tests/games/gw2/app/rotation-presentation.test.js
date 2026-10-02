@@ -119,6 +119,16 @@ test('target impact details preserve precombat applications and distinguish sepa
   assert.equal(details.has('invalid'), false);
 });
 
+// Tooltips anchor the cast-relative offset to the rotation clock so the landing timestamp is read directly.
+test('target impact details add the absolute first-hit timestamp when given a clock formatter', () => {
+  const details = timelineTargetImpactDetails(
+    [{ activationId: 'cast', start: 2320, end: 2960 }],
+    [{ activationId: 'cast', type: 'damage', at: 2.96 }],
+    (time) => `${(time / 1000).toFixed(3)}s`
+  );
+  assert.equal(details.get('cast'), 'First hit: 640 ms\nFirst hit at: 2.960s');
+});
+
 // Precombat debuffs can miss without implying that a later damaging hit is lost.
 test('activation hit counts exclude non-damaging debuffs and control applications', () => {
   const activationId = 'cast';
@@ -139,6 +149,25 @@ test('activation hit counts exclude non-damaging debuffs and control application
     text: 'Lands 200 ms after Combat Start',
     missedHits: 0
   });
+});
+
+// A cast-triggered proc credited to another skill is not a hit of the cast, so a cast that only triggers one has none.
+test('activation hit counts exclude cast-triggered procs credited to another skill', () => {
+  const offsets = timelineImpactOffsets(
+    [
+      { activationId: 'trigger', skillId: 62803, start: 1000, end: 1000 },
+      { activationId: 'burst', skillId: 14354, start: 2000, end: 2400 }
+    ],
+    [
+      { activationId: 'trigger', source: 'Trait', skillId: 62847, type: 'damage', at: 1 },
+      { activationId: 'burst', source: 'warrior', skillId: 14354, type: 'damage', at: 2.3 },
+      // Trait effects credited to the cast's own skill remain hits of that skill.
+      { activationId: 'burst', source: 'Trait', skillId: 14354, type: 'condition', condition: 'Burning', at: 2.4 },
+      { activationId: 'burst', source: 'Relic', skillId: 70000, type: 'condition', condition: 'Torment', at: 2.5 }
+    ]
+  );
+  assert.equal(offsets.has('trigger'), false);
+  assert.deepEqual(offsets.get('burst'), [300, 400]);
 });
 
 test('timeline dead time includes explicit waits and excludes concurrent casts and gap-fill attacks', () => {

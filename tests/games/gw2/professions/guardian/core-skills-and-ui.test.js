@@ -1,3 +1,4 @@
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -908,99 +909,22 @@ test('Guardian palettes keep inactive tome and forge skills visible', () => {
 });
 
 test('Guardian palette availability follows the active tome or forge', () => {
-  const paletteSkillAvailability = guardianProfession.ui.paletteSkillAvailability;
-  const trueStrike = guardianCatalog.skillsByName.get('True Strike');
-  const searingSpell = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SEARING_SPELL);
-  const desertBloom = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.DESERT_BLOOM);
-  const dazzlingHammer = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.DAZZLING_HAMMER);
+  for (const activeTome of ['', 'justice']) {
+    const state = planningFixture(guardianProfession, { specialization: 'Firebrand' }, (runtime) => {
+      runtime.profession.specialization.state.activeTome = activeTome;
+    });
+    assert.equal(state.availability[guardianCatalog.skillsByName.get('True Strike').id].ready, !activeTome);
+    assert.equal(state.availability[GUARDIAN_SKILL_IDS.SEARING_SPELL].ready, Boolean(activeTome));
+    assert.equal(state.availability[GUARDIAN_SKILL_IDS.DESERT_BLOOM].ready, false);
+  }
 
-  assert.equal(
-    paletteSkillAvailability(
-      {
-        professionState: {
-          activeTome: '',
-          tomePages: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity }
-        }
-      },
-      trueStrike
-    ).available,
-    true
-  );
-  assert.equal(
-    paletteSkillAvailability(
-      {
-        professionState: {
-          activeTome: '',
-          tomePages: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity }
-        }
-      },
-      searingSpell
-    ).available,
-    false
-  );
-  assert.equal(
-    paletteSkillAvailability(
-      {
-        professionState: {
-          activeTome: 'justice',
-          tomePages: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity }
-        }
-      },
-      trueStrike
-    ).available,
-    false
-  );
-  assert.equal(
-    paletteSkillAvailability(
-      {
-        professionState: {
-          activeTome: 'justice',
-          tomePages: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity }
-        }
-      },
-      searingSpell
-    ).available,
-    true
-  );
-  assert.equal(
-    paletteSkillAvailability(
-      {
-        professionState: {
-          activeTome: 'justice',
-          tomePages: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity }
-        }
-      },
-      desertBloom
-    ).available,
-    false
-  );
-  assert.equal(
-    paletteSkillAvailability(
-      {
-        professionState: { radiantForge: false }
-      },
-      dazzlingHammer
-    ).available,
-    false
-  );
-  assert.equal(
-    paletteSkillAvailability(
-      {
-        professionState: { radiantForge: true }
-      },
-      trueStrike
-    ).available,
-    false
-  );
-  assert.equal(
-    paletteSkillAvailability(
-      {
-        professionState: { radiantForge: true }
-      },
-      dazzlingHammer
-    ).available,
-    true
-  );
+  for (const radiantForge of [false, true]) {
+    const state = planningFixture(guardianProfession, { specialization: 'Luminary' }, (runtime) => {
+      runtime.profession.specialization.state.radiantForge = radiantForge;
+    });
+    assert.equal(state.availability[guardianCatalog.skillsByName.get('True Strike').id].ready, !radiantForge);
+    assert.equal(state.availability[GUARDIAN_SKILL_IDS.DAZZLING_HAMMER].ready, radiantForge);
+  }
 });
 
 test('Guardian only casts weapon skills equipped on the active set', () => {

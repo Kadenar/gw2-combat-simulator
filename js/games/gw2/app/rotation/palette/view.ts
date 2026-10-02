@@ -187,6 +187,7 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
     professionPaletteUnavailableMessage,
     professionPaletteRetryAt,
     weaponSkillAvailable,
+    weaponSkillRetryAt,
     weaponSkillUnavailableMessage,
     selectedWithFlips
   } = projectPalette(app, paletteContext);
@@ -204,7 +205,10 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
                   professionAllowsPaletteSkill,
                   professionPaletteUnavailableMessage,
                   group.className,
-                  group.statusIcon
+                  group.statusIcon,
+                  group.controls,
+                  group.id,
+                  professionPaletteRetryAt
                 )
               )
               .join('')}</div>`
@@ -323,7 +327,13 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
     const contextAvailable = options.contextAvailable ?? weaponSkillAvailable(skill, activeWeaponSet);
     const contextMessage = options.contextMessage ?? weaponSkillUnavailableMessage(skill, activeWeaponSet);
     return paletteSkillHtml({
-      ...paletteSkillView(app, skill, contextAvailable, contextMessage),
+      ...paletteSkillView(
+        app,
+        skill,
+        contextAvailable,
+        contextMessage,
+        contextAvailable ? null : weaponSkillRetryAt(skill, activeWeaponSet)
+      ),
       ...((options.view || {}) as PaletteSkillView)
     });
   };
@@ -376,7 +386,13 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
         (skill) =>
           skill.name === 'Swap Weapons'
             ? professionPaletteUnavailableMessage(skill)
-            : weaponSkillUnavailableMessage(skill, row.weaponSet)
+            : weaponSkillUnavailableMessage(skill, row.weaponSet),
+        '',
+        undefined,
+        [],
+        '',
+        (skill) =>
+          skill.name === 'Swap Weapons' ? professionPaletteRetryAt(skill) : weaponSkillRetryAt(skill, row.weaponSet)
       );
       const positionedGroups = activeWeaponProfessionGroups.filter(
         (group) =>
@@ -443,7 +459,11 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
     '#70b6d0',
     professionAllowsPaletteSkill,
     professionPaletteUnavailableMessage,
-    'action-palette-group'
+    'action-palette-group',
+    undefined,
+    [],
+    '',
+    professionPaletteRetryAt
   );
 
   const primaryPaletteHtml = customWeaponPalette

@@ -583,25 +583,20 @@ test('legend palette shows only the destination legend with the shared swap cool
   assert.ok(group.skillEntries.every((entry) => !/Legendary|Stance/.test(entry.displayName)));
   const [destination] = group.skillEntries;
 
-  assert.equal(revenantProfession.ui.paletteSkillAvailability(context, destination).available, true);
+  assert.notEqual(revenantProfession.ui.paletteOverride(context, destination).available, false);
   const cooldownContext = {
     ...context,
     time: 1,
     cooldowns: { 'Swap Legends': { readyAt: 10000, remaining: 9000 } }
   };
-  const cooldown = revenantProfession.ui.paletteSkillAvailability(cooldownContext, destination);
 
-  assert.deepEqual(cooldown, {
-    available: false,
-    message: 'Legend swap is recharging',
-    retryAt: 10
-  });
   assert.equal(
     paletteSkillView(
       {
         adapter: revenantAppAdapter,
         results: {
           planningState: {
+            availability: {},
             atSeconds: 1,
             ammoBySkillId: {},
             cooldowns: cooldownContext.cooldowns,
@@ -610,11 +605,9 @@ test('legend palette shows only the destination legend with the shared swap cool
         }
       },
       revenantCatalog.skillsById.get(SKILL.SWAP_LEGENDS),
-      cooldown.available,
-      cooldown.message,
-      cooldown.retryAt
+      true
     ).cooldownLabel,
-    '9.00s'
+    '9.000s'
   );
   const swappedGroup = revenantProfession.ui
     .paletteGroups({
@@ -705,7 +698,7 @@ test('legend palette shows only the destination legend with the shared swap cool
   assert.doesNotMatch(skillBar.innerHTML, /skill-bar-key/);
   assert.doesNotMatch(skillBar.innerHTML, /skill-bar-type/);
   assert.equal((palette.innerHTML.match(/data-skill="Swap Legends"/g) || []).length, 1);
-  assert.match(palette.innerHTML, /data-skill="Swap Legends"[\s\S]*?<span class="pal-cd">10\.00s<\/span>/);
+  assert.match(palette.innerHTML, /data-skill="Swap Legends"[\s\S]*?<span class="pal-cd">10\.000s<\/span>/);
 });
 
 test('Revenant utilities and Conduit resources render by their related skills', async () => {

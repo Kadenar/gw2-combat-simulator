@@ -4,7 +4,7 @@ import type {
   ElementalistUiSlice
 } from '#gw2/professions/elementalist/types.js';
 /**
- * Weaver presentation contract: palette availability messages, the rotation
+ * Weaver presentation contract: palette identity, the rotation
  * state snapshot, timeline and event-log labels, and the custom weapon palette
  * that renders the main-hand / off-hand split. Everything here is a read-only
  * projection of scheduler or end state; none of it may mutate the simulation.
@@ -12,7 +12,6 @@ import type {
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
-  PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionPaletteSkillRenderer,
   ProfessionWeaponPaletteRenderContext,
@@ -21,7 +20,7 @@ import type {
 } from '#gw2/platform/profession-presentation/types.js';
 import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import {
-  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
+  ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_WEAVER_SKILL_IDS,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
@@ -35,8 +34,6 @@ import {
   weaverDualAttunements,
   weaverWeaponAttunementAvailable
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
-
-const ATTUNEMENT_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS));
 
 // Unravel and its F5 palette group only exist when the trait is selected.
 function hasElementsOfRage(context: ElementalistUiContext): boolean {
@@ -59,61 +56,6 @@ function isCarriedAutoattackSkill(
     state.autoattackChains || context.autoattackChains || {};
   const expected = chains[String(root)] ?? root;
   return Number(skill.id) === Number(expected) || skill.name === expected;
-}
-
-// Mirror scheduler availability for dual-attuned hands and flipover skills so
-// the palette explains which half of the current attunement pair blocks a skill.
-function weaverPaletteAvailability(context: ElementalistUiContext, skill: Skill): PaletteSkillAvailability {
-  const state = elementalistUiState(context);
-  const build = context.build;
-  const now = context.time || 0;
-  const primary = state.primaryAttunement || build?.startAttunement || 'Fire';
-  const secondary = state.secondaryAttunement || build?.secondaryAttunement || primary;
-  // Unravel, then the Weave Self / Tailored Victory flipover pair, then the
-  // attunement buttons; each explains itself before the weapon-slot rules run.
-  if (skill.id === ELEMENTALIST_WEAVER_SKILL_IDS.Unravel) {
-    const available = hasElementsOfRage(context);
-    return { available, message: available ? '' : 'Requires Elements of Rage.' };
-  }
-
-  if (skill.name === 'Weave Self' || skill.name === 'Tailored Victory') {
-    const tailoredVictoryActive = (state.perfectWeaveUntil || 0) > now;
-    const available = skill.name === (tailoredVictoryActive ? 'Tailored Victory' : 'Weave Self');
-    return {
-      available,
-      message: available
-        ? ''
-        : tailoredVictoryActive
-          ? 'Tailored Victory currently replaces Weave Self.'
-          : 'Requires Perfect Weave.'
-    };
-  }
-
-  // An attunement is only blocked when both hands already hold that element.
-  if (ATTUNEMENT_SKILL_IDS.has(Number(skill.id))) {
-    const target = skill.name.replace(/ Attunement$/, '');
-    const available = target !== primary || target !== secondary;
-    return { available, message: available ? '' : `Already attuned to ${target}.` };
-  }
-
-  // A dual hammer skill cannot recreate an orb that is still orbiting.
-  const hammerElements = skill.weapon === 'Hammer' ? weaverDualAttunements(skill) : null;
-  const hammerOrbs: Partial<ElementalistState['hammerOrbs']> = state.hammerOrbs || {};
-  if (hammerElements?.some((element) => hammerOrbs[element] != null && hammerOrbs[element] >= now)) {
-    return {
-      available: false,
-      message: 'Grand Finale must consume the active orb before it can be created again.'
-    };
-  }
-
-  if (skill.type !== 'Weapon' || !skill.attunement) return { available: true, message: '' };
-  if (isCarriedAutoattackSkill(context, skill)) return { available: true, message: '' };
-  const unravelActive = (state.unravelUntil || 0) > now;
-  const available = weaverWeaponAttunementAvailable(skill, primary, secondary, unravelActive);
-  return {
-    available,
-    message: available ? '' : `Requires ${String(skill.attunement)} in the matching Weaver hand.`
-  };
 }
 
 // Project Unravel and attunement casts into compact primary/secondary labels
@@ -309,13 +251,18 @@ function renderWeaverWeaponPalette(
   const isAvailable = context.isSkillAvailable;
   const unavailableMessage = context.unavailableMessage;
   const renderSkill = context.renderSkill;
-  // The "current" bar shows only what the present pair can cast; the banks below
-  // show every variant with its cooldown.
+  // Select the current hands independently of affordability so denied skills keep their bar slots.
   const layout = weaverWeaponPaletteLayout(skills);
-  const active = (candidates: readonly Skill[]): Skill[] => candidates.filter(isAvailable);
-  const currentPrimarySkills = (
-    layout.primaryRows.find((row) => row.attunement === primaryAttunement)?.skills || []
-  ).filter((skill) => Boolean(skill.chainRoot) || isAvailable(skill));
+  const active = (candidates: readonly Skill[]): Skill[] =>
+    candidates.filter((skill) =>
+      weaverWeaponAttunementAvailable(
+        skill,
+        primaryAttunement,
+        secondaryAttunement,
+        (state?.unravelUntil || 0) > (context.time ?? 0)
+      )
+    );
+  const currentPrimarySkills = layout.primaryRows.find((row) => row.attunement === primaryAttunement)?.skills || [];
   const carriedAutoattack = skills.find((skill) => isCarriedAutoattackSkill(context, skill));
   let placedCarriedAutoattack = false;
   const primarySkills = currentPrimarySkills.flatMap((skill) => {
@@ -425,6 +372,15 @@ function renderWeaverWeaponPalette(
 
 /** The Weaver half of the Elementalist UI contract, registered by the module. */
 export const weaverUi: ElementalistUiSlice = Object.freeze({
+  // Tile identity follows the active bar even when the visible skill cannot currently be cast.
+  paletteOverride: (context, skill) => {
+    if (skill.id === ID.WEAVE_SELF || skill.id === ID.TAILORED_VICTORY)
+      return {
+        tileActive:
+          (skill.id === ID.TAILORED_VICTORY) ===
+          (elementalistUiState(context).perfectWeaveUntil || 0) > (context.time || 0)
+      };
+  },
   paletteGroups: (context: ElementalistUiContext) =>
     hasElementsOfRage(context)
       ? [
@@ -437,7 +393,6 @@ export const weaverUi: ElementalistUiSlice = Object.freeze({
           }
         ]
       : [],
-  paletteSkillAvailability: weaverPaletteAvailability,
   rotationStateSnapshot,
   timelineWeaponLineTransition: unravelTimelineWeaponLineTransition,
   eventLogRow,

@@ -6,7 +6,7 @@ import {
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
-import type { PaletteSkillAvailability, ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
+import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 
 const AVATAR_SKILLS = Object.freeze([
@@ -28,49 +28,17 @@ function astralForceMaximum(catalog: Readonly<CanonicalCatalog<RangerSkill>>, co
   );
 }
 
-function availability(
-  catalog: Readonly<CanonicalCatalog<RangerSkill>>,
-  context: RangerUiContext,
-  skill: RangerSkill
-): PaletteSkillAvailability {
-  const state = rangerUiState(context);
-  const active = Boolean(state.celestialAvatarActive);
-  if (skill.id === ID.CELESTIAL_AVATAR) {
-    if (active) {
-      return {
-        available: false,
-        message: 'Celestial Avatar is already active'
-      };
-    }
-
-    // Runtime snapshots and detached planning projections share the same force clock.
-    if ((state.astralClock?.value ?? 0) < astralForceMaximum(catalog, context)) {
-      return { available: false, message: 'Requires full Astral Force' };
-    }
-  }
-
-  if (skill.id === ID.RELEASE_CELESTIAL_AVATAR && !active) {
-    return { available: false, message: 'Celestial Avatar is not active' };
-  }
-
-  if (skill.celestialAvatarSkill && !active) {
-    return { available: false, message: 'Enter Celestial Avatar first' };
-  }
-
-  // Normal weapon skills are suppressed while in CA; only CA skills (celestialAvatarSkill=true) show available
-  if (skill.type === 'Weapon' && active && !skill.celestialAvatarSkill) {
-    return {
-      available: false,
-      message: 'Celestial Avatar replaces weapon skills'
-    };
-  }
-
-  return { available: true, message: '' };
-}
-
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindDruidUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
+    // Tile identity follows the active bar even when the visible skill cannot currently be cast.
+    paletteOverride: (context, skill) => {
+      if (skill.id === ID.CELESTIAL_AVATAR || skill.id === ID.RELEASE_CELESTIAL_AVATAR)
+        return {
+          tileActive:
+            (skill.id === ID.RELEASE_CELESTIAL_AVATAR) === Boolean(rangerUiState(context).celestialAvatarActive)
+        };
+    },
     paletteGroups: (context: RangerUiContext) => [
       rangerPetPaletteGroup(catalog, context),
       {
@@ -114,7 +82,6 @@ export function bindDruidUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): R
           statusLabel: state.celestialAvatarActive ? 'Celestial Avatar' : 'Current'
         }
       ];
-    },
-    paletteSkillAvailability: (context: RangerUiContext, skill: RangerSkill) => availability(catalog, context, skill)
+    }
   });
 }

@@ -24,8 +24,6 @@ const paletteStateCache = new WeakMap<
   }
 >();
 
-export const seconds = (ms: number): string => `${(ms / 1000).toFixed(ms < 10_000 ? 1 : 0)}s`;
-
 export const professionPlanningState = (result: ProfessionAppResult | null | undefined): RotationProfessionState =>
   result?.planningState?.profession && typeof result.planningState.profession === 'object'
     ? (result.planningState.profession as RotationProfessionState)

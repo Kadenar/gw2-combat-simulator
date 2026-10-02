@@ -6,7 +6,8 @@ export function resultCombatReferenceMs(result: Gw2SimulationResult | null | und
   return Number(marker.at || 0) * 1000;
 }
 
-export function formatTimelineTime(timeMs: unknown, referenceMs: unknown = 0, digits = 2): string {
+// Preserve milliseconds by default so snapshots and warnings align with the rotation.
+export function formatTimelineTime(timeMs: unknown, referenceMs: unknown = 0, digits = 3): string {
   const precision = 10 ** digits;
   const seconds = (Number(timeMs || 0) - Number(referenceMs || 0)) / 1000;
   const normalized = Math.abs(seconds) < 0.5 / precision ? 0 : seconds;
@@ -16,7 +17,7 @@ export function formatTimelineTime(timeMs: unknown, referenceMs: unknown = 0, di
 export function formatResultTimelineTime(
   timeMs: unknown,
   result: Gw2SimulationResult | null | undefined,
-  digits = 2
+  digits = 3
 ): string {
   return formatTimelineTime(timeMs, resultCombatReferenceMs(result), digits);
 }

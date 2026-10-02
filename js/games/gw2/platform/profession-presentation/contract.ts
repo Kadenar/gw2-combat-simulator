@@ -1,12 +1,12 @@
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
-import type { ProfessionUiContract, PaletteSkillAvailability } from '#gw2/platform/profession-presentation/types.js';
+import type { ProfessionUiContract, PaletteOverride } from '#gw2/platform/profession-presentation/types.js';
 
 const UI_CALLBACK_NAMES = Object.freeze([
   'chargeReleaseProjection',
   'effectPresentations',
   'eventLogRow',
   'isPaletteSkillInstant',
-  'paletteSkillAvailability',
+  'paletteOverride',
   'isSlotSkillSelectable',
   'paletteGroups',
   'paletteActionSkills',
@@ -42,24 +42,22 @@ function assertUiDefinition(ui: UnvalidatedFields): void {
   }
 }
 
-function normalizePaletteAvailability(value: unknown, professionId: string): PaletteSkillAvailability {
-  if (!value || typeof value !== 'object') {
-    throw new TypeError(`${professionId} paletteSkillAvailability must return an object.`);
-  }
-
+/** Validate narrow presentation exceptions without inventing a runtime verdict. */
+function normalizePaletteOverride(value: unknown, professionId: string): PaletteOverride | undefined {
+  if (value === undefined) return undefined;
+  if (!value || typeof value !== 'object')
+    throw new TypeError(`${professionId} paletteOverride must return an object.`);
   const result = value as UnvalidatedFields;
-  if (typeof result.available !== 'boolean') {
-    throw new TypeError(`${professionId} paletteSkillAvailability.available must be boolean.`);
-  }
-
-  if (result.retryAt != null && !Number.isFinite(Number(result.retryAt))) {
-    throw new TypeError(`${professionId} paletteSkillAvailability.retryAt must be a finite number or null.`);
+  for (const key of ['available', 'tileActive', 'editorAccess']) {
+    if (result[key] != null && typeof result[key] !== 'boolean')
+      throw new TypeError(`${professionId} paletteOverride.${key} must be boolean.`);
   }
 
   return {
-    available: result.available,
-    message: String(result.message || ''),
-    ...(result.retryAt == null ? {} : { retryAt: Number(result.retryAt) })
+    ...(result.available == null ? {} : { available: result.available as boolean }),
+    ...(result.tileActive == null ? {} : { tileActive: result.tileActive as boolean }),
+    ...(result.editorAccess == null ? {} : { editorAccess: result.editorAccess as boolean }),
+    ...(result.message == null ? {} : { message: String(result.message) })
   };
 }
 
@@ -72,7 +70,7 @@ export function normalizeProfessionUi(
   // Resource presentation is plural throughout the contract; professions
   // without resource UI normalize directly to an empty collection.
   const resourceViews = ui.resourceViews || (() => []);
-  const paletteSkillAvailability = ui.paletteSkillAvailability;
+  const paletteOverride = ui.paletteOverride;
 
   const normalizedUi: ProfessionUiContract = {
     ...ui,
@@ -86,10 +84,9 @@ export function normalizeProfessionUi(
     resolvePaletteAction: ui.resolvePaletteAction || (() => undefined),
     resourceViews,
     isPaletteSkillInstant: ui.isPaletteSkillInstant || (() => false),
-    // Keep availability, its explanation, and retry timing together; missing policies impose no restriction.
-    paletteSkillAvailability: paletteSkillAvailability
-      ? (context, skill) => normalizePaletteAvailability(paletteSkillAvailability(context, skill), professionId)
-      : () => ({ available: true, message: '' }),
+    paletteOverride: paletteOverride
+      ? (context, skill) => normalizePaletteOverride(paletteOverride(context, skill), professionId)
+      : undefined,
     isSlotSkillSelectable: ui.isSlotSkillSelectable || (() => true),
     skillBarGroups: ui.skillBarGroups || (() => []),
     startControls: ui.startControls || (() => []),

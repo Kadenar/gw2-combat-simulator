@@ -3,20 +3,22 @@ import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js
 import {
   formatSecondsRemaining,
   warriorAdrenalineResourceViews,
-  warriorBurstPaletteAvailability,
+  warriorBurstPaletteOverride,
   warriorPaletteGroups,
   warriorSnapshotAt,
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
+import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const SKILLS = Object.freeze([ID.FULL_COUNTER]);
 export const spellbreakerUi: WarriorUiSlice = Object.freeze({
+  // Burst tiles are authored for a specific weapon set; inactive-set insertion needs an explicit swap.
+  paletteOverride: (context, skill) => {
+    return warriorBurstPaletteOverride(context, skill);
+  },
   paletteGroups: (context: WarriorUiContext) => warriorPaletteGroups(context, SKILLS),
   resourceViews: (context: WarriorUiContext) => warriorAdrenalineResourceViews(context, 20),
-  paletteSkillAvailability: (context: WarriorUiContext, skill: WarriorSkill) =>
-    warriorBurstPaletteAvailability(context, skill),
   rotationStateSnapshot: (context: WarriorUiContext) => {
     const state = warriorUiState(context);
     const at = warriorSnapshotAt(context);

@@ -73,18 +73,6 @@ test('force clocks are detached in snapshots and planning projections and absent
     clock.value = 12;
     assert.equal(detached[clockKey].value, 37);
     assert.equal(projected[clockKey].value, 37);
-    // Palette entry gates must consume the projected clock, including an explicit zero.
-    const entrySkill = profession.catalog.skillsByName.get(
-      specialization === 'Druid' ? 'Celestial Avatar' : 'Enter Shadow Shroud'
-    );
-    for (const value of [0, 100]) {
-      projected[clockKey].value = value;
-      assert.equal(
-        profession.ui.paletteSkillAvailability({ specialization, professionState: projected }, entrySkill).available,
-        value === 100
-      );
-    }
-
     assert.equal(clock.value, 12);
     assert.equal(detached[clockKey].value, 37);
 

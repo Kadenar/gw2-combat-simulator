@@ -1,4 +1,5 @@
 import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
+import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
 import type { SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   rotationHotkeyActionForSkillName,
@@ -6,12 +7,7 @@ import {
   rotationLoadoutHotkeyActions,
   rotationUtilityHotkeyAction
 } from '#gw2/app/rotation/hotkeys.js';
-import {
-  activeSpecialization,
-  palettePlanningState,
-  paletteProfessionState,
-  seconds
-} from '#gw2/app/rotation/context.js';
+import { activeSpecialization, palettePlanningState, paletteProfessionState } from '#gw2/app/rotation/context.js';
 import { ACTION_ICONS, PLACEHOLDER_ICON } from '#gw2/app/shared/icons.js';
 import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import { summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
@@ -21,7 +17,6 @@ import { paletteSkillResourceView, type PaletteResourceView } from '#gw2/app/rot
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { SlotLoadoutContext } from '#gw2/platform/builds/slot-loadout.js';
 import type {
-  PaletteSkillAvailability,
   ProfessionPaletteContext,
   ProfessionPaletteControl,
   ProfessionPaletteGroup,
@@ -324,13 +319,37 @@ function paletteProjectionContext(app: ProfessionAppState): ProfessionPaletteCon
   };
 }
 
-function paletteCandidateAvailable(
+interface PaletteSkillAvailability {
+  readonly available: boolean;
+  readonly message: string;
+  readonly retryAt?: number | null;
+}
+
+/** Read current default-command gates; missing completed verdicts are denied, while startup is explicitly unevaluated. */
+export function paletteAvailability(
+  app: ProfessionAppState,
+  context: ProfessionPaletteContext,
+  skill: Skill
+): PaletteSkillAvailability {
+  if (!isBuildSkillAvailable(skill, { specialization: context.specialization }))
+    return { available: false, message: `${skill.name} is unavailable for this build.` };
+  const planning = palettePlanningState(app);
+  if (!planning) return { available: true, message: 'Runtime availability has not been evaluated yet.' };
+  const verdict = planning.availability[skill.id];
+  if (!verdict) return { available: false, message: 'No runtime availability verdict for this skill.' };
+  const override = app.profession.ui?.paletteOverride?.(context, skill);
+  if (override?.available != null) return { available: override.available, message: override.message || '' };
+  return verdict.ready
+    ? { available: true, message: '' }
+    : { available: false, message: verdict.reason, retryAt: verdict.retryAt };
+}
+
+function paletteCandidateActive(
   app: ProfessionAppState,
   context: ProfessionPaletteContext,
   skill: Skill
 ): boolean | null {
-  const availability = app.profession.ui?.paletteSkillAvailability;
-  return typeof availability === 'function' ? availability(context, skill).available : null;
+  return app.profession.ui?.paletteOverride?.(context, skill)?.tileActive ?? null;
 }
 
 function paletteTileEntryKey(skill: Skill, flipFamilyIdBySkillId: ReadonlyMap<number, number>, index: number): string {
@@ -431,13 +450,13 @@ export function displayedSkillTiles(
     const activeFlips = candidates.filter((candidate) => paletteFlipAvailable(candidate, availableFlips, at));
     if (activeFlips.length) {
       const availableActiveFlips = activeFlips.filter(
-        (candidate) => paletteCandidateAvailable(app, context, candidate) === true
+        (candidate) => paletteCandidateActive(app, context, candidate) !== false
       );
       return availableActiveFlips.length === 1 ? availableActiveFlips[0] : activeFlips.at(-1)!;
     }
 
     const availableCandidates = candidates.filter(
-      (candidate) => paletteCandidateAvailable(app, context, candidate) === true
+      (candidate) => paletteCandidateActive(app, context, candidate) === true
     );
     return availableCandidates.length === 1 ? availableCandidates[0] : candidates[0];
   });
@@ -479,7 +498,7 @@ export function displayedWeaponSkills(
       ? projected.find((skill) => {
           if (!isWeaponOneReplacement(skill)) return false;
           if (skill.ambush) return skill.name === availableAmbushName;
-          return app.profession.ui?.paletteSkillAvailability?.(paletteContext, skill).available === true;
+          return paletteCandidateActive(app, paletteContext, skill) === true;
         })
       : undefined;
 
@@ -702,34 +721,41 @@ export function paletteSkillView(
   contextRetryAt: number | null = null
 ): PaletteSkillView {
   const cd = currentCooldown(app, skill.name);
+  const editorAccess =
+    skill.dragonSlash &&
+    palettePlanningState(app)?.availability[skill.id] != null &&
+    isBuildSkillAvailable(skill, { specialization: activeSpecialization(app) }) &&
+    app.profession.ui?.paletteOverride?.(paletteProjectionContext(app), skill)?.editorAccess === true;
   const endTime = Number(palettePlanningState(app)?.atSeconds || 0) * 1000;
   const contextReadyAt = Number(contextRetryAt) * 1000;
   const contextRemaining = Number.isFinite(contextReadyAt) ? Math.max(0, Math.round(contextReadyAt - endTime)) : 0;
-  // A future retryAt is scheduler-queueable: keep the countdown styling, but
-  // allow clicks so the inserted action can wait for the temporary lockout.
+  // A future check remains insertable; pending events can change the verdict before the scheduler checks again.
   const retryableContext =
     !contextAvailable && contextRetryAt != null && Number.isFinite(contextReadyAt) && contextReadyAt > endTime;
-  // Context lockouts such as Tempest singularity share the cooldown badge;
-  // show whichever restriction keeps the skill unavailable for longer.
-  const remaining = Math.max(Number(cd.remaining || 0), contextRemaining);
-  const readyAt = contextRemaining > Number(cd.remaining || 0) ? contextReadyAt : cd.readyAt;
+  const remaining = Number(cd.remaining || 0);
+  const readyAt = cd.readyAt;
   const ammo = currentAmmo(app, skill);
   const maximumAmmo = ammo?.maximum ?? Number(skill.ammo || 0);
   const ammoDisplay = ammoDisplayView(ammo?.charges ?? maximumAmmo, maximumAmmo);
-  // Show the cast lockout while disabled, then the next charge timer once usable; the tooltip reuses this precision.
+  // Show the cast lockout while disabled, then the next charge timer, with millisecond precision shared by tooltips.
   const displayedRemaining = remaining || Number(ammo?.remaining || 0);
-  const cooldownLabel = displayedRemaining ? `${(displayedRemaining / 1000).toFixed(2)}s` : '';
+  // Label resource/state waits as retries because the next attempt can still be unavailable.
+  const cooldownLabel = displayedRemaining
+    ? `${(displayedRemaining / 1000).toFixed(3)}s`
+    : contextRemaining
+      ? `Retry ${(contextRemaining / 1000).toFixed(3)}s`
+      : '';
   const unavailable = remaining > 0 || !contextAvailable;
   // Available unleashed ambushes use the same glow as cloak and stealth attacks.
   const highlighted =
     (Boolean(skill.ambush) || Boolean(skill.stealthAttack) || Boolean(skill.unleashedAmbushSkill)) && !unavailable;
   const castTimeSeconds = Number(skill.castTimeMs || 0) / 1000;
-  // Give each live cast detail its own label so availability and recharge values align without prose wrapping.
+  // Preserve millisecond precision for every duration and deadline in cast details.
   const castDetails = [
     // A palette entry has no activation yet; show both speeds instead of presenting the base as a live duration.
     skill.independentCast && castTimeSeconds > 0
-      ? `Cast time (normal): ${castTimeSeconds.toFixed(2)}s\nCast time (Quickness): ${(summonQuicknessCastTimeMs(skill) / 1000).toFixed(2)}s`
-      : `Cast time: ${castTimeSeconds ? `${castTimeSeconds.toFixed(2)}s` : 'Instant'}`,
+      ? `Cast time (normal): ${castTimeSeconds.toFixed(3)}s\nCast time (Quickness): ${(summonQuicknessCastTimeMs(skill) / 1000).toFixed(3)}s`
+      : `Cast time: ${castTimeSeconds ? `${castTimeSeconds.toFixed(3)}s` : 'Instant'}`,
     !contextAvailable
       ? remaining
         ? `Remaining: ${cooldownLabel}`
@@ -739,11 +765,9 @@ export function paletteSkillView(
             displayedRemaining ? `\n${remaining ? 'Available in' : 'Next charge in'}: ${cooldownLabel}` : ''
           }`
         : remaining
-          ? `Remaining: ${cooldownLabel}\nAvailable at: ${seconds(
-              // Show absolute scheduler deadlines on the combat-relative rotation clock.
-              readyAt - resultCombatReferenceMs(app.results)
-            )}`
-          : 'Status: Available now'
+          ? `Remaining: ${cooldownLabel}\nAvailable at: ${((readyAt - resultCombatReferenceMs(app.results)) / 1000).toFixed(3)}s`
+          : 'Status: Available now',
+    contextRemaining ? `Retry in: ${(contextRemaining / 1000).toFixed(3)}s` : ''
   ]
     .filter(Boolean)
     .join('\n');
@@ -760,14 +784,14 @@ export function paletteSkillView(
     variantBadge: String(skill.variantBadge || ''),
     castDetails,
     notice: contextAvailable
-      ? ''
+      ? contextMessage
       : (contextMessage || 'Unavailable in the current state').replace(
           /^Swap to (.+) to use this skill$/,
           'Requires $1'
         ),
     color: unavailable ? '#625a73' : highlighted ? '#f0c766' : '#a88be8',
     disabled: unavailable,
-    contextDisabled: !contextAvailable && !retryableContext,
+    contextDisabled: !contextAvailable && !retryableContext && !editorAccess,
     highlighted,
     draggable: contextAvailable,
     cooldownLabel,
@@ -853,7 +877,7 @@ export function projectPalette(app: ProfessionAppState, paletteContext: PaletteC
   const paletteAvailabilityBySkill = new Map<Skill, PaletteSkillAvailability>();
   const professionPaletteAvailability = (skill: Skill): PaletteSkillAvailability => {
     if (!paletteAvailabilityBySkill.has(skill)) {
-      paletteAvailabilityBySkill.set(skill, app.profession.ui.paletteSkillAvailability(paletteContext, skill));
+      paletteAvailabilityBySkill.set(skill, paletteAvailability(app, paletteContext, skill));
     }
 
     return paletteAvailabilityBySkill.get(skill) as PaletteSkillAvailability;
@@ -866,15 +890,21 @@ export function projectPalette(app: ProfessionAppState, paletteContext: PaletteC
     loadoutUnavailableMessage(skill) || professionPaletteAvailability(skill).message;
 
   const professionPaletteRetryAt = (skill: Skill): number | null =>
-    professionPaletteAvailability(skill).retryAt ?? null;
+    loadoutUnavailableMessage(skill) ? null : (professionPaletteAvailability(skill).retryAt ?? null);
 
-  const weaponSkillAvailable = (skill: Skill, weaponSet: number): boolean => {
+  // A resource retry cannot bypass weapon placement or the currently active replacement attack.
+  const weaponSkillMatchesContext = (skill: Skill, weaponSet: number): boolean => {
     if (weaponSet !== activeWeaponSet) return false;
-    if (!professionAllowsPaletteSkill(skill)) return false;
     if (skill.ambush) return String(availableAmbush?.name || '') === skill.name;
     if (availableAmbush && skill.slot === 'Weapon_1') return false;
     return true;
   };
+
+  const weaponSkillAvailable = (skill: Skill, weaponSet: number): boolean =>
+    weaponSkillMatchesContext(skill, weaponSet) && professionAllowsPaletteSkill(skill);
+
+  const weaponSkillRetryAt = (skill: Skill, weaponSet: number): number | null =>
+    weaponSkillMatchesContext(skill, weaponSet) ? professionPaletteRetryAt(skill) : null;
 
   const weaponSkillUnavailableMessage = (skill: Skill, weaponSet: number): string => {
     if (weaponSet !== activeWeaponSet) {
@@ -912,6 +942,7 @@ export function projectPalette(app: ProfessionAppState, paletteContext: PaletteC
     professionPaletteUnavailableMessage,
     professionPaletteRetryAt,
     weaponSkillAvailable,
+    weaponSkillRetryAt,
     weaponSkillUnavailableMessage,
     selectedWithFlips
   };

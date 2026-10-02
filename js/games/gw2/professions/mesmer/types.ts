@@ -74,7 +74,6 @@ interface MesmerPlanningState {
     readonly expiresAt: number;
     readonly remaining: number;
   } | null;
-  readonly availableMirrors?: number;
   readonly activeInstruments?: readonly MesmerProjectedInstrument[];
   readonly availableFlips: Readonly<SkillFlipWindows>;
   readonly autoattackChains: Readonly<Record<string, SkillId>>;

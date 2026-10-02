@@ -1,3 +1,4 @@
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
@@ -209,18 +210,9 @@ test('Necromancer resources and palette change with specialization state', () =>
   assert.equal(ritualistPalette[1].stackId, 'ritualist-profession');
   assert.equal(ritualistPalette[1].skillIds.includes(ID.SUMMON_SPIRITS), true);
   assert.equal(ritualistPalette[1].skillIds.includes(ID.INNERVATE_ANGUISH), false);
-  assert.deepEqual(
-    necromancerProfession.ui.paletteSkillAvailability(
-      {
-        specialization: 'Reaper',
-        professionState: {}
-      },
-      necromancerCatalog.skillsById.get(ID.LIFE_REND)
-    ),
-    {
-      available: false,
-      message: 'Enter Reaper Shroud first'
-    }
+  assert.equal(
+    planningFixture(necromancerProfession, { specialization: 'Reaper' }).availability[ID.LIFE_REND].ready,
+    false
   );
   assert.equal(Object.hasOwn(necromancerProfession.ui, 'rotationSkillAvailability'), false);
   assert.equal(formatResourceValue(113.89999999999999), '113.9');
@@ -284,6 +276,7 @@ test('Necromancer renders life force above its F-skills', async () => {
   };
   app.results = {
     planningState: {
+      availability: {},
       // Resource-only fixtures retain the shared planning fields consumed by the palette.
       atSeconds: 0,
       activeWeaponSet: 1,
@@ -360,26 +353,22 @@ test('Necromancer shroud transitions stay adjacent and toggle availability', () 
     }
 
     assert.equal(
-      necromancerProfession.ui.paletteSkillAvailability(inactiveContext, necromancerCatalog.skillsById.get(entryId))
-        .available,
+      necromancerProfession.ui.paletteOverride(inactiveContext, necromancerCatalog.skillsById.get(entryId)).tileActive,
       true,
       specialization
     );
     assert.equal(
-      necromancerProfession.ui.paletteSkillAvailability(inactiveContext, necromancerCatalog.skillsById.get(exitId))
-        .available,
+      necromancerProfession.ui.paletteOverride(inactiveContext, necromancerCatalog.skillsById.get(exitId)).tileActive,
       false,
       specialization
     );
     assert.equal(
-      necromancerProfession.ui.paletteSkillAvailability(activeContext, necromancerCatalog.skillsById.get(entryId))
-        .available,
+      necromancerProfession.ui.paletteOverride(activeContext, necromancerCatalog.skillsById.get(entryId)).tileActive,
       false,
       specialization
     );
     assert.equal(
-      necromancerProfession.ui.paletteSkillAvailability(activeContext, necromancerCatalog.skillsById.get(exitId))
-        .available,
+      necromancerProfession.ui.paletteOverride(activeContext, necromancerCatalog.skillsById.get(exitId)).tileActive,
       true,
       specialization
     );
@@ -405,13 +394,9 @@ test('slot skills are inaccessible in transformed shrouds', () => {
     ['Ritualist', 'ritualist', "Ritualist's Shroud"]
   ]) {
     assert.equal(
-      necromancerProfession.ui.paletteSkillAvailability(
-        {
-          specialization,
-          professionState: { activeShroud: shroud }
-        },
-        slotSkill
-      ).available,
+      planningFixture(necromancerProfession, { specialization, initialResource: 100 }, (runtime) => {
+        runtime.profession.core.activeShroud = shroud;
+      }).availability[slotSkill.id].ready,
       false,
       specialization
     );
@@ -424,13 +409,7 @@ test('slot skills are inaccessible in transformed shrouds', () => {
   }
 
   assert.equal(
-    necromancerProfession.ui.paletteSkillAvailability(
-      {
-        specialization: 'Scourge',
-        professionState: { activeShroud: '' }
-      },
-      slotSkill
-    ).available,
+    planningFixture(necromancerProfession, { specialization: 'Scourge' }).availability[slotSkill.id].ready,
     true
   );
 });

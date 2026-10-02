@@ -1,10 +1,13 @@
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { loadProfession, professionOptions } from '#gw2/profession-registry.js';
+import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/profession-registry.js';
+import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
+import { renderPaletteMarkup } from '#tests/helpers/palette.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
-import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
+import { paletteAvailability, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
@@ -35,6 +38,7 @@ function projectionApp(
     skillByName: profession.catalog.skillsByName,
     results: {
       planningState: {
+        availability: {},
         atSeconds: time,
         activeWeaponSet: 1,
         cooldowns,
@@ -56,8 +60,8 @@ test('a used 20-second skill displays 16 seconds under Alacrity', () => {
   });
   const skill = profession.catalog.skillsById.get(990020);
   for (const [alacrity, label] of [
-    [false, '16.00s'],
-    [true, '16.00s']
+    [false, '16.000s'],
+    [true, '16.000s']
   ]) {
     const result = simulateGw2({ profession, rotation: [skill.name], config: { boons: { alacrity } } });
     const app = projectionApp(profession, {
@@ -83,6 +87,141 @@ function catalogApp(skills, professionState = {}) {
   };
   return projectionApp({ catalog }, { professionState, useProfessionUi: false });
 }
+
+// Startup is unknown; once observed, a missing candidate is a contract failure rather than permission to insert.
+test('palette distinguishes startup, missing verdicts, and runtime retry boundaries', () => {
+  const skill = { id: 990001, name: 'Candidate', type: 'Utility', effects: [] };
+  const app = catalogApp([skill]);
+  app.profession.ui.resourceViews = () => [];
+  const context = { specialization: 'Core' };
+  const observation = app.results;
+  app.results = null;
+  assert.deepEqual(paletteAvailability(app, context, skill), {
+    available: true,
+    message: 'Runtime availability has not been evaluated yet.'
+  });
+  app.results = observation;
+  assert.equal(paletteAvailability(app, context, skill).available, false);
+  app.results.planningState.availability[skill.id] = {
+    ready: false,
+    code: 'fixture.wait',
+    reason: 'Await a tick.',
+    retryAt: 2
+  };
+  const availability = paletteAvailability(app, context, skill);
+  const view = paletteSkillView(app, skill, availability.available, availability.message, availability.retryAt);
+  assert.equal(view.contextDisabled, false);
+  assert.equal(view.cooldownLabel, 'Retry 2.000s');
+  assert.match(view.castDetails, /Retry in: 2\.000s/);
+  assert.equal(paletteAvailability(app, context, { ...skill, specialization: 'Bladesworn' }).available, false);
+});
+
+// Every rendered surface must retain retry insertion, while weapon placement and loadout vetoes still block it.
+test('weapon, action, loadout, and custom weapon tiles preserve runtime retries', async () => {
+  for (const [id, name, config, rotation] of [
+    ['thief', 'Heartseeker', { initialInitiative: 0, primaryWeapon: 'Dagger', secondaryWeapon: 'Dagger' }, []],
+    ['thief', 'Dodge', {}, ['Dodge', 'Dodge']],
+    [
+      'revenant',
+      'Phase Traversal',
+      {
+        initialEnergy: 0,
+        selectedLegends: ['LegendaryAssassin', 'LegendaryDwarf'],
+        startingLegend: 'LegendaryAssassin'
+      },
+      ['__combat_start']
+    ],
+    [
+      'elementalist',
+      'Dual Orbits: Fire and Water',
+      { specialization: 'Weaver', primaryWeapon: 'Hammer', startAttunement: 'Fire', secondaryAttunement: 'Fire' },
+      ['Flame Wheel', 'Water Attunement']
+    ]
+  ]) {
+    const adapter = await loadProfessionAppAdapter(id);
+    const profession = adapter.profession;
+    const specialization = config.specialization || 'Core';
+    const app = {
+      ...projectionApp(profession, { specialization }),
+      adapter,
+      weaponData: adapter.weaponData,
+      build: {
+        ...createDefaultBuild(adapter),
+        ...config,
+        specializations: specialization === 'Core' ? [] : [{ name: specialization, traits: '1-1-1' }],
+        weapons: [config.primaryWeapon || 'Dagger', config.secondaryWeapon || ''],
+        alternateWeapons: ['Dagger', 'Dagger'],
+        rotation: []
+      },
+      results: simulateGw2({ profession, config: { specialization, ...config }, rotation })
+    };
+    const skill = app.skillByName.get(name);
+    const verdict = app.results.planningState.availability[skill.id];
+    assert.equal(verdict.ready, false, name);
+    assert.ok(verdict.retryAt > app.results.planningState.atSeconds, name);
+    const tiles = () => [
+      ...renderPaletteMarkup(app).matchAll(new RegExp(`<div[^>]*data-skill-id="${skill.id}"[^>]*>`, 'g'))
+    ];
+    const tile = tiles()[0]?.[0];
+    assert.ok(tile, name);
+    assert.doesNotMatch(tile, /pal-context-disabled/, name);
+    assert.match(tile, /Retry in:/, name);
+    if (name === 'Heartseeker') {
+      assert.match(tiles()[1][0], /pal-context-disabled/);
+      assert.doesNotMatch(tiles()[1][0], /Retry in:/);
+    }
+
+    if (id === 'revenant') {
+      app.adapter = {
+        ...adapter,
+        slotLoadout: { ...adapter.slotLoadout, unavailableReason: () => 'Requires another loadout' }
+      };
+      assert.match(tiles()[0][0], /pal-context-disabled/);
+      assert.doesNotMatch(tiles()[0][0], /Retry in:/);
+    }
+  }
+});
+
+// An active flip keeps its identity even when a resource gate denies its default command.
+test('a denied follow-up stays in the shared palette slot', () => {
+  const root = { id: 990010, name: 'Root', type: 'Weapon', flipSkillId: 990011 };
+  const followup = { id: 990011, name: 'Follow-up', type: 'Weapon', flipParentId: 990010 };
+  const app = catalogApp([root, followup], { availableFlips: { [followup.id]: armSkillFlip({}, 0, 0, 10) } });
+  app.results.planningState.availability[followup.id] = {
+    ready: false,
+    code: 'fixture.cost',
+    reason: 'Resource depleted.',
+    retryAt: null
+  };
+  assert.deepEqual(
+    displayedSkillTiles(app, [root, followup]).map((skill) => skill.id),
+    [followup.id]
+  );
+});
+
+// Command editors can expose valid lower-charge releases while the default maximum-charge command is denied.
+test('Dragon Slash editor access is separate from its default verdict and requires an observed candidate', async () => {
+  const profession = await loadProfession('warrior');
+  const app = projectionApp(profession, { specialization: 'Bladesworn' });
+  app.results.planningState = planningFixture(profession, { specialization: 'Bladesworn' }, (runtime) => {
+    Object.assign(runtime.profession.specialization.state, {
+      gunsaberActive: true,
+      dragonTriggerActive: true,
+      dragonCharges: 1,
+      nextDragonChargeAt: 0
+    });
+  });
+  const skill = profession.catalog.skills.find((skill) => skill.dragonSlash);
+  const availability = paletteAvailability(
+    app,
+    { specialization: 'Bladesworn', professionState: app.results.planningState.profession },
+    skill
+  );
+  assert.equal(availability.available, false);
+  assert.equal(paletteSkillView(app, skill, false, availability.message).contextDisabled, false);
+  delete app.results.planningState.availability[skill.id];
+  assert.equal(paletteSkillView(app, skill, false).contextDisabled, true);
+});
 
 for (const [label, skills, states] of [
   [
@@ -299,17 +438,22 @@ test('stateful transforms select one live tile across professions', async () => 
       'Transmute Earth'
     ],
     ['elementalist', 'Weaver', { perfectWeaveUntil: 0 }, ['Weave Self'], 'Weave Self'],
-    ['elementalist', 'Weaver', { perfectWeaveUntil: 30 }, ['Weave Self'], 'Tailored Victory']
+    ['elementalist', 'Weaver', { perfectWeaveUntil: 30 }, ['Weave Self'], 'Tailored Victory'],
+    ['guardian', 'Luminary', { radiantForge: false }, ['Enter Radiant Forge'], 'Enter Radiant Forge'],
+    ['guardian', 'Luminary', { radiantForge: true }, ['Enter Radiant Forge'], 'Exit Radiant Forge']
   ];
 
   for (const [professionId, specialization, state, names, expected] of cases) {
     const profession = professions.get(professionId);
-    const skills = names.map((name) => profession.catalog.skillsByName.get(name));
+    // Renamed labels must not change which skill ID occupies a stateful tile.
+    const app = projectionApp(profession, { specialization, professionState: state });
+    app.skills = app.skills.map((skill) => ({ ...skill, name: `Renamed ${skill.name}` }));
+    const skills = names.map((name) =>
+      app.skills.find((skill) => skill.id === profession.catalog.skillsByName.get(name).id)
+    );
     assert.deepEqual(
-      displayedSkillTiles(projectionApp(profession, { specialization, professionState: state }), skills).map(
-        (skill) => skill.name
-      ),
-      [expected],
+      displayedSkillTiles(app, skills).map((skill) => skill.id),
+      [profession.catalog.skillsByName.get(expected).id],
       `${professionId}: ${expected}`
     );
   }
@@ -327,8 +471,11 @@ test('Untamed ambush tiles glow only while their window is open and recharge is 
     ]) {
       const context = { specialization: 'Untamed', time, professionState: { rangerUnleashed, ambushReadyUntil: 4 } };
       const app = projectionApp(profession, { ...context, cooldowns: { [name]: { remaining, readyAt: 4000 } } });
-      const availability = profession.ui.paletteSkillAvailability(context, skill);
-      assert.equal(paletteSkillView(app, skill, availability.available).highlighted, expected, name);
+      const planning = planningFixture(profession, { specialization: 'Untamed' }, (runtime) => {
+        Object.assign(runtime.profession.specialization.state, { rangerUnleashed, ambushReadyUntil: time < 4 ? 4 : 0 });
+      });
+      const availability = planning.availability[skill.id];
+      assert.equal(paletteSkillView(app, skill, availability.ready).highlighted, expected, name);
     }
   }
 });
@@ -349,7 +496,7 @@ test('Gunsaber tile shows the shared cooldown after direct or Dragon Trigger ent
 
     assert.deepEqual(result.warnings, []);
     assert.equal(skill.name, 'Sheathe Gunsaber');
-    assert.equal(view.cooldownLabel, '4.00s');
+    assert.equal(view.cooldownLabel, '4.000s');
     assert.equal(view.disabled, true);
   }
 });
@@ -368,8 +515,8 @@ test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', a
   const view = paletteSkillView(app, skill, true);
 
   assert.equal(skill.name, 'Rock Barrier');
-  assert.equal(view.cooldownLabel, '8.00s');
-  assert.match(view.castDetails, /Remaining: 8\.00s/);
+  assert.equal(view.cooldownLabel, '8.000s');
+  assert.match(view.castDetails, /Remaining: 8\.000s/);
   assert.equal(view.disabled, true);
 });
 
@@ -384,7 +531,7 @@ test('cooldown tooltip reports availability relative to combat start', async () 
   });
   app.results.events = [{ type: 'combat_start', at: 10 }];
 
-  assert.match(paletteSkillView(app, skill).castDetails, /Remaining: 8\.16s\nAvailable at: 13s/);
+  assert.match(paletteSkillView(app, skill).castDetails, /Remaining: 8\.160s\nAvailable at: 13\.000s/);
 });
 
 test('ammo tile shows its cast lockout before the next charge timer', async () => {
@@ -415,12 +562,12 @@ test('ammo tile shows its cast lockout before the next charge timer', async () =
     true
   );
 
-  assert.equal(locked.cooldownLabel, '1.25s');
+  assert.equal(locked.cooldownLabel, '1.250s');
   assert.equal(locked.disabled, true);
-  assert.match(locked.castDetails, /Ammunition: 1\/2\nAvailable in: 1\.25s/);
-  assert.equal(available.cooldownLabel, '1.75s');
+  assert.match(locked.castDetails, /Ammunition: 1\/2\nAvailable in: 1\.250s/);
+  assert.equal(available.cooldownLabel, '1.750s');
   assert.equal(available.disabled, false);
-  assert.match(available.castDetails, /Ammunition: 1\/2\nNext charge in: 1\.75s/);
+  assert.match(available.castDetails, /Ammunition: 1\/2\nNext charge in: 1\.750s/);
 });
 
 test('Holosmith Photon Forge autos are catalog autoattack chains', async () => {

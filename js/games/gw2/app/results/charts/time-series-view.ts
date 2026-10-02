@@ -464,7 +464,7 @@ function effectSummaryHtml(series: ChartSeries): string {
   const table = (effects: readonly string[], label: string, showCaption = true): string => `
     <div class="effect-summary-scroll" tabindex="0" role="region" aria-label="${label}">
       <table>
-        ${showCaption ? `<caption>${label} · ${PRESENTATION_ALLIED_PLAYER_COUNT} allies · full benchmark (${duration.toFixed(2)}s)</caption>` : ''}
+        ${showCaption ? `<caption>${label} · ${PRESENTATION_ALLIED_PLAYER_COUNT} allies · full benchmark (${duration.toFixed(3)}s)</caption>` : ''}
         <thead><tr><th scope="col">Effect</th><th scope="col">Average stacks</th><th scope="col">Coverage</th></tr></thead>
         <tbody>${rows(effects)}</tbody>
       </table>
@@ -763,7 +763,8 @@ export function mountTimeSeriesCharts(
 
       const durationMs = kind === 'dps' ? chartState.dpsView.durationMs : chartState.effectsView.durationMs;
       const time = clamp(((chartX - minX) / layout.plotWidth) * durationMs, 0, durationMs);
-      const timeLabel = `${((phaseStartMs + time) / 1000).toFixed(2)}s`;
+      // Preserve milliseconds in hover details to match the rotation and event log.
+      const timeLabel = `${((phaseStartMs + time) / 1000).toFixed(3)}s`;
       let body: string;
       if (kind === 'dps') {
         const dps = Math.round(chartValueAt(chartState.dpsView.dps, time));

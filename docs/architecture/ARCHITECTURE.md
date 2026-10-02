@@ -110,9 +110,13 @@ policies, and stage-specific reactions. The application surface stays separate f
 Standalone fixtures can use `defineProfession({ id, name, catalog, resources: { createState }, hooks })`. Optional hooks
 default to no-op or identity behavior. A module with only declarative skill data needs no hooks.
 
-- `paletteSkillAvailability(context, skill)` returns `{ available, message, retryAt? }`; retry times are seconds. It is
-  evaluated against the detached planning state, so today it restates runtime availability rules; see
-  [PALETTE-RUNTIME-AVAILABILITY.md](../cleanup/PALETTE-RUNTIME-AVAILABILITY.md).
+- `planningState.availability` captures the composed runtime profession gate for each player-castable candidate and its
+  default command. It is detached, excludes scheduler cooldown/lane checks, and is omitted from score runs. Retry times
+  are absolute seconds for reevaluation, not guaranteed cast times. The palette reports startup as unevaluated and denies
+  missing entries in completed observations.
+- Optional `paletteOverride(context, skill)` separates shared-tile identity (`tileActive`), proven authoring insertion
+  exceptions (`available`, `message`), and command-editor access (`editorAccess`). Core, elite, and family fields merge in
+  that order; none bypass build eligibility. See [PALETTE-RUNTIME-AVAILABILITY.md](../cleanup/PALETTE-RUNTIME-AVAILABILITY.md).
 - Event presenters return `{ type, description, className, order, flags }`; null hides an event and undefined delegates.
 
 ### Families
@@ -124,7 +128,7 @@ normalized catalog and attribute metadata to application consumers; it does not 
 - State shape: `{ core, specialization: { kind, state } }` — a plain object, no proxies. Core mechanics use `core`;
   elite mechanics validate and use only the active specialization state.
 - `createProfessionFamilyUi()` is more lenient: an unknown/Core-trait-line/missing name selects Core. Lists compose Core
-  then elite, availability callbacks may veto, presenters delegate on `undefined`, and selection replacement asks the
+  then elite, palette overrides refine individual fields, presenters delegate on `undefined`, and selection replacement asks the
   elite first.
 - Modifier rules: modules contribute inert `modifiers.modifierRules`; exactly one module supplies
   `compileModifierRules`, and the family compiles Core + active elite once, preserving the single additive-damage
