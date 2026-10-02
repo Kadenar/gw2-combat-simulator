@@ -281,8 +281,6 @@ test('Ranger builds migrate and validate against the canonical catalog', () => {
   assert.equal(migrated.initialArrows, 0);
   assert.equal(migrated.selectedPet, 'Pig');
   assert.equal(migrated.initialUntamedState, 'Ranger');
-  assert.equal(Object.hasOwn(migrated.assumptions, 'selectedPet'), false);
-  assert.equal(Object.hasOwn(migrated.assumptions, 'soulbeastArchetype'), false);
   assert.equal(Object.hasOwn(migrated.assumptions, 'playerHealthPercent'), false);
   assert.equal(Object.hasOwn(migrated.assumptions, 'targetDistance'), false);
   assert.deepEqual(validateRangerBuild(migrated), { valid: true, errors: [] });

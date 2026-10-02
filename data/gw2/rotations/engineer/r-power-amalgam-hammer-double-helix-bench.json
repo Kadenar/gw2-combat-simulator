@@ -30,19 +30,34 @@
     "note": "Uses the rifle Double Helix build with Hammer. The same manual Throw Mine, Bomb Kit, bomb, and Evolve precasts complete the omitted opener; Bomb Kit is stowed after the opening Galvanic Bomb."
   },
   "rotation": [
-    "Throw Mine",
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
     {
       "type": "wait",
       "durationMs": 5000
     },
-    "Bomb Kit",
-    "Big Ol' Bomb",
-    "Magnetic Bomb",
+    {
+      "type": "cast",
+      "skillId": 5812
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
     {
       "type": "cast",
       "skillId": 76651
     },
-    "Fire Bomb",
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
     {
       "type": "cast",
       "skillId": 5822
@@ -51,7 +66,10 @@
       "type": "combat-start",
       "concurrentOffsetMs": 520
     },
-    "Stow Bomb Kit",
+    {
+      "type": "cast",
+      "skillId": 6111
+    },
     {
       "type": "cast",
       "skillId": 76993

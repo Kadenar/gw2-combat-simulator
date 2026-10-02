@@ -128,6 +128,6 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
         actorType: 'summon'
       }
     ]),
-    toolbeltParentName: 'Overclock Signet'
+    toolbeltParentId: ID.OVERCLOCK_SIGNET
   }
 });

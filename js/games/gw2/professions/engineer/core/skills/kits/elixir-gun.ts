@@ -14,8 +14,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
     kitTransition: 'equip',
     castTimeMs: 0,
     cooldown: 0,
-    effects: [],
-    kitName: 'Elixir Gun'
+    effects: []
   },
   [ID.TRANQUILIZER_DART]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -53,7 +52,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         actorType: 'player'
       }
     ],
-    kit: 'Elixir Gun'
+    kitId: ID.ELIXIR_GUN
   },
   [ID.GLOB_SHOT]: {
     castTimeMs: 520,
@@ -87,7 +86,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         stacks: 1
       }
     ],
-    kit: 'Elixir Gun'
+    kitId: ID.ELIXIR_GUN
   },
   [ID.ACID_BOMB]: {
     castTimeMs: 200,
@@ -124,7 +123,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         actorType: 'player'
       }
     ],
-    kit: 'Elixir Gun'
+    kitId: ID.ELIXIR_GUN
   },
   [ID.SUPER_ELIXIR]: {
     castTimeMs: 360,
@@ -138,7 +137,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
       }
     ],
     effects: [],
-    kit: 'Elixir Gun'
+    kitId: ID.ELIXIR_GUN
   },
   [ID.FUMIGATE]: {
     castTimeMs: 1520,
@@ -167,7 +166,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         actorType: 'player'
       }
     ]),
-    kit: 'Elixir Gun'
+    kitId: ID.ELIXIR_GUN
   },
   [ID.HEALING_MIST]: {
     castTimeMs: 0,
@@ -180,13 +179,13 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         stacks: 1
       }
     ],
-    toolbeltParentName: 'Elixir Gun'
+    toolbeltParentId: ID.ELIXIR_GUN
   },
   [ID.SUPER_ELIXIR_CHAIN_SKILL]: {
     castTimeMs: 0,
     cooldown: 0,
     effects: [],
-    kit: 'Elixir Gun'
+    kitId: ID.ELIXIR_GUN
   },
   [ID.STOW_ELIXIR_GUN]: {
     // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
@@ -198,6 +197,6 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
     castTimeMs: 0,
     cooldown: 0,
     effects: [],
-    kit: 'Elixir Gun'
+    kitId: ID.ELIXIR_GUN
   }
 });

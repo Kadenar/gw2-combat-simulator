@@ -392,7 +392,7 @@ for (const profession of ['elementalist', 'engineer']) {
       await page.locator('.utility-palette-group .pal-skill[data-skill="Grenade Kit"]').click();
       await expect
         .poll(() => page.evaluate(() => window.professionApp.results.planningState.profession.activeKit))
-        .toBe('Grenade Kit');
+        .toBe(5805);
       await page.locator('#rotation-palette .pal-skill[data-skill="Grenade"]').click();
       await expect
         .poll(() => page.evaluate(() => window.professionApp.results.steps.some((step) => step.skill === 'Grenade')))

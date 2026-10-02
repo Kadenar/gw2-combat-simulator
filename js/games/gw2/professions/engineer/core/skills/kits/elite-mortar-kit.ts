@@ -17,7 +17,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
       }
     ],
     effects: [],
-    kit: 'Elite Mortar Kit'
+    kitId: ID.ELITE_MORTAR_KIT
   },
   [ID.FLASH_SHELL]: {
     castTimeMs: 360,
@@ -35,7 +35,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         actorType: 'player'
       }
     ],
-    kit: 'Elite Mortar Kit'
+    kitId: ID.ELITE_MORTAR_KIT
   },
   [ID.ENDOTHERMIC_SHELL]: {
     castTimeMs: 360,
@@ -56,7 +56,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         actorType: 'player'
       }
     ],
-    kit: 'Elite Mortar Kit'
+    kitId: ID.ELITE_MORTAR_KIT
   },
   [ID.MORTAR_SHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -71,7 +71,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         actorType: 'player'
       }
     ],
-    kit: 'Elite Mortar Kit'
+    kitId: ID.ELITE_MORTAR_KIT
   },
   [ID.ORBITAL_STRIKE]: {
     castTimeMs: 880,
@@ -94,7 +94,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         actorType: 'player'
       }
     ],
-    toolbeltParentName: 'Elite Mortar Kit',
+    toolbeltParentId: ID.ELITE_MORTAR_KIT,
     mechanicSlot: 5
   },
   [ID.ELITE_MORTAR_KIT]: {
@@ -105,8 +105,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     kitTransition: 'equip',
     castTimeMs: 0,
     cooldown: 0,
-    effects: [],
-    kitName: 'Elite Mortar Kit'
+    effects: []
   },
   [ID.POISON_GAS_SHELL]: {
     // Use the measured Quickness animation so the poison field and its pulses start at the observed time.
@@ -142,7 +141,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         actorType: 'player'
       }
     ],
-    kit: 'Elite Mortar Kit'
+    kitId: ID.ELITE_MORTAR_KIT
   }
 });
 
@@ -162,7 +161,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_EXTRA_SKILLS: readonly Skill[] = Object.f
     // Commit the bar transition before cast traits observe the selected kit.
     sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }],
     kitTransition: 'stow',
-    kit: 'Elite Mortar Kit',
+    kitId: ID.ELITE_MORTAR_KIT,
     paletteFlip: false,
     slotSelectable: false,
     castTimeMs: 0,

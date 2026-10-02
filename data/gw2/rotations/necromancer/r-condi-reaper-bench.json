@@ -1,9 +1,20 @@
 {
   "rotation": [
-    "Swap Weapons",
-    "Plaguelands",
-    "__cooldown_reset",
-    "Blood Is Power",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 10549
+    },
+    {
+      "type": "cooldown-reset"
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
     {
       "type": "combat-start",
       "concurrentOffsetMs": 560
@@ -13,184 +24,661 @@
       "skillId": 30670,
       "concurrentOffsetMs": 880
     },
-    "Well of Darkness",
-    "Isolate",
-    "Distress",
-    "Perforate",
-    "Reaper's Shroud",
-    "Death's Charge",
-    "Infusing Terror",
-    "Terrify",
-    "Executioner's Scythe",
-    "Soul Spiral",
-    "Exit Reaper's Shroud",
-    "Extirpate",
-    "Addle",
-    "Isolate",
-    "Perforate",
-    "Distress",
-    "Perforate",
-    "Swap Weapons",
-    "Dark Pact",
-    "Life Siphon",
-    "Blood Is Power",
+    {
+      "type": "cast",
+      "skillId": 10607
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 30792
+    },
+    {
+      "type": "cast",
+      "skillId": 30825
+    },
+    {
+      "type": "cast",
+      "skillId": 29958
+    },
+    {
+      "type": "cast",
+      "skillId": 29709
+    },
+    {
+      "type": "cast",
+      "skillId": 30557
+    },
+    {
+      "type": "cast",
+      "skillId": 30504
+    },
+    {
+      "type": "cast",
+      "skillId": 30961
+    },
+    {
+      "type": "cast",
+      "skillId": 73007
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 10529
+    },
+    {
+      "type": "cast",
+      "skillId": 69302
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
     {
       "type": "cast",
       "skillId": 30670,
       "concurrentOffsetMs": 880
     },
-    "Hungering Maelstrom",
-    "Devouring Visage",
-    "Gormandize",
-    "Consume",
-    "Reaper's Shroud",
-    "Life Rend",
-    "Life Slash",
-    "Life Reap",
-    "Death's Charge",
-    "Life Rend",
-    "Life Slash",
-    "Life Reap",
-    "Exit Reaper's Shroud",
-    "Life Siphon",
-    "Necrotic Slash",
-    "Well of Darkness",
-    "Dark Pact",
-    "Swap Weapons",
-    "Addle",
-    "Dark Slash",
-    "Deadly Slice",
-    "Sinister Stab",
-    "Isolate",
-    "Perforate",
-    "Blood Is Power",
+    {
+      "type": "cast",
+      "skillId": 71813
+    },
+    {
+      "type": "cast",
+      "skillId": 71998
+    },
+    {
+      "type": "cast",
+      "skillId": 72068
+    },
+    {
+      "type": "cast",
+      "skillId": 71926
+    },
+    {
+      "type": "cast",
+      "skillId": 30792
+    },
+    {
+      "type": "cast",
+      "skillId": 29442
+    },
+    {
+      "type": "cast",
+      "skillId": 29458
+    },
+    {
+      "type": "cast",
+      "skillId": 30278
+    },
+    {
+      "type": "cast",
+      "skillId": 30825
+    },
+    {
+      "type": "cast",
+      "skillId": 29442
+    },
+    {
+      "type": "cast",
+      "skillId": 29458
+    },
+    {
+      "type": "cast",
+      "skillId": 30278
+    },
+    {
+      "type": "cast",
+      "skillId": 30961
+    },
+    {
+      "type": "cast",
+      "skillId": 69302
+    },
+    {
+      "type": "cast",
+      "skillId": 10702
+    },
+    {
+      "type": "cast",
+      "skillId": 10607
+    },
+    {
+      "type": "cast",
+      "skillId": 10529
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 73012
+    },
+    {
+      "type": "cast",
+      "skillId": 73040
+    },
+    {
+      "type": "cast",
+      "skillId": 73047
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
     {
       "type": "cast",
       "skillId": 30670,
       "concurrentOffsetMs": 880
     },
-    "Distress",
-    "Perforate",
-    "Dark Slash",
-    "Reaper's Shroud",
-    "Death's Charge",
-    "Executioner's Scythe",
-    "Soul Spiral",
-    "Exit Reaper's Shroud",
-    "Extirpate",
-    "Addle",
-    "Isolate",
-    "Perforate",
-    "Distress",
-    "Perforate",
-    "Swap Weapons",
-    "Dark Pact",
-    "Life Siphon",
-    "Blood Is Power",
-    "\"Suffer!\"",
-    "Hungering Maelstrom",
-    "Devouring Visage",
-    "Gormandize",
-    "Consume",
-    "Necrotic Slash",
-    "Well of Darkness",
-    "Reaper's Shroud",
-    "Life Rend",
-    "Life Slash",
-    "Life Reap",
-    "Death's Charge",
-    "Infusing Terror",
-    "Terrify",
-    "Life Rend",
-    "Life Slash",
-    "Life Reap",
-    "Exit Reaper's Shroud",
-    "Necrotic Slash",
-    "Life Siphon",
-    "Dark Pact",
-    "Plaguelands",
-    "Swap Weapons",
-    "Addle",
-    "Dark Slash",
-    "Deadly Slice",
-    "Sinister Stab",
-    "Isolate",
-    "Perforate",
-    "Blood Is Power",
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 73012
+    },
+    {
+      "type": "cast",
+      "skillId": 30792
+    },
+    {
+      "type": "cast",
+      "skillId": 30825
+    },
+    {
+      "type": "cast",
+      "skillId": 30557
+    },
+    {
+      "type": "cast",
+      "skillId": 30504
+    },
+    {
+      "type": "cast",
+      "skillId": 30961
+    },
+    {
+      "type": "cast",
+      "skillId": 73007
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 10529
+    },
+    {
+      "type": "cast",
+      "skillId": 69302
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 30670
+    },
+    {
+      "type": "cast",
+      "skillId": 71813
+    },
+    {
+      "type": "cast",
+      "skillId": 71998
+    },
+    {
+      "type": "cast",
+      "skillId": 72068
+    },
+    {
+      "type": "cast",
+      "skillId": 71926
+    },
+    {
+      "type": "cast",
+      "skillId": 10702
+    },
+    {
+      "type": "cast",
+      "skillId": 10607
+    },
+    {
+      "type": "cast",
+      "skillId": 30792
+    },
+    {
+      "type": "cast",
+      "skillId": 29442
+    },
+    {
+      "type": "cast",
+      "skillId": 29458
+    },
+    {
+      "type": "cast",
+      "skillId": 30278
+    },
+    {
+      "type": "cast",
+      "skillId": 30825
+    },
+    {
+      "type": "cast",
+      "skillId": 29958
+    },
+    {
+      "type": "cast",
+      "skillId": 29709
+    },
+    {
+      "type": "cast",
+      "skillId": 29442
+    },
+    {
+      "type": "cast",
+      "skillId": 29458
+    },
+    {
+      "type": "cast",
+      "skillId": 30278
+    },
+    {
+      "type": "cast",
+      "skillId": 30961
+    },
+    {
+      "type": "cast",
+      "skillId": 10702
+    },
+    {
+      "type": "cast",
+      "skillId": 69302
+    },
+    {
+      "type": "cast",
+      "skillId": 10529
+    },
+    {
+      "type": "cast",
+      "skillId": 10549
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 73012
+    },
+    {
+      "type": "cast",
+      "skillId": 73040
+    },
+    {
+      "type": "cast",
+      "skillId": 73047
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
     {
       "type": "cast",
       "skillId": 30670,
       "concurrentOffsetMs": 880
     },
-    "Distress",
-    "Perforate",
-    "Dark Slash",
-    "Reaper's Shroud",
-    "Death's Charge",
-    "Executioner's Scythe",
-    "Soul Spiral",
-    "Exit Reaper's Shroud",
-    "Extirpate",
-    "Addle",
-    "Isolate",
-    "Perforate",
-    "Well of Darkness",
-    "Distress",
-    "Perforate",
-    "Swap Weapons",
-    "Dark Pact",
-    "Life Siphon",
-    "Blood Is Power",
-    "\"Suffer!\"",
-    "Hungering Maelstrom",
-    "Devouring Visage",
-    "Gormandize",
-    "Consume",
-    "Reaper's Shroud",
-    "Life Rend",
-    "Life Slash",
-    "Life Reap",
-    "Death's Charge",
-    "Infusing Terror",
-    "Terrify",
-    "Life Rend",
-    "Life Slash",
-    "Life Reap",
-    "Exit Reaper's Shroud",
-    "Life Siphon",
-    "Necrotic Slash",
-    "Necrotic Stab",
-    "Dark Pact",
-    "Swap Weapons",
-    "Addle",
-    "Dark Slash",
-    "Deadly Slice",
-    "Sinister Stab",
-    "Isolate",
-    "Perforate",
-    "Dark Slash",
-    "Distress",
-    "Perforate",
-    "Dark Slash",
-    "Blood Is Power",
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 73012
+    },
+    {
+      "type": "cast",
+      "skillId": 30792
+    },
+    {
+      "type": "cast",
+      "skillId": 30825
+    },
+    {
+      "type": "cast",
+      "skillId": 30557
+    },
+    {
+      "type": "cast",
+      "skillId": 30504
+    },
+    {
+      "type": "cast",
+      "skillId": 30961
+    },
+    {
+      "type": "cast",
+      "skillId": 73007
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 10607
+    },
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 10529
+    },
+    {
+      "type": "cast",
+      "skillId": 69302
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 30670
+    },
+    {
+      "type": "cast",
+      "skillId": 71813
+    },
+    {
+      "type": "cast",
+      "skillId": 71998
+    },
+    {
+      "type": "cast",
+      "skillId": 72068
+    },
+    {
+      "type": "cast",
+      "skillId": 71926
+    },
+    {
+      "type": "cast",
+      "skillId": 30792
+    },
+    {
+      "type": "cast",
+      "skillId": 29442
+    },
+    {
+      "type": "cast",
+      "skillId": 29458
+    },
+    {
+      "type": "cast",
+      "skillId": 30278
+    },
+    {
+      "type": "cast",
+      "skillId": 30825
+    },
+    {
+      "type": "cast",
+      "skillId": 29958
+    },
+    {
+      "type": "cast",
+      "skillId": 29709
+    },
+    {
+      "type": "cast",
+      "skillId": 29442
+    },
+    {
+      "type": "cast",
+      "skillId": 29458
+    },
+    {
+      "type": "cast",
+      "skillId": 30278
+    },
+    {
+      "type": "cast",
+      "skillId": 30961
+    },
+    {
+      "type": "cast",
+      "skillId": 69302
+    },
+    {
+      "type": "cast",
+      "skillId": 10702
+    },
+    {
+      "type": "cast",
+      "skillId": 10703
+    },
+    {
+      "type": "cast",
+      "skillId": 10529
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 73012
+    },
+    {
+      "type": "cast",
+      "skillId": 73040
+    },
+    {
+      "type": "cast",
+      "skillId": 73047
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 73012
+    },
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 73012
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
     {
       "type": "cast",
       "skillId": 30670,
       "concurrentOffsetMs": 880
     },
-    "Reaper's Shroud",
-    "Executioner's Scythe",
-    "Soul Spiral",
-    "Exit Reaper's Shroud",
-    "Well of Darkness",
-    "Extirpate",
-    "Addle",
-    "Isolate",
-    "Perforate",
-    "Distress",
-    "Perforate",
-    "Swap Weapons",
-    "Hungering Maelstrom",
-    "Devouring Visage"
+    {
+      "type": "cast",
+      "skillId": 30792
+    },
+    {
+      "type": "cast",
+      "skillId": 30557
+    },
+    {
+      "type": "cast",
+      "skillId": 30504
+    },
+    {
+      "type": "cast",
+      "skillId": 30961
+    },
+    {
+      "type": "cast",
+      "skillId": 10607
+    },
+    {
+      "type": "cast",
+      "skillId": 73007
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 71813
+    },
+    {
+      "type": "cast",
+      "skillId": 71998
+    }
   ]
 }

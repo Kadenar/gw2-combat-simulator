@@ -20,8 +20,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
     kitTransition: 'equip',
     castTimeMs: 0,
     cooldown: 0,
-    effects: [],
-    kitName: 'Flamethrower'
+    effects: []
   },
   [ID.FLAME_JET]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -44,7 +43,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         actorType: 'player'
       }
     ],
-    kit: 'Flamethrower'
+    kitId: ID.FLAMETHROWER
   },
   [ID.NAPALM]: {
     castTimeMs: 1760,
@@ -67,7 +66,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         actorType: 'player'
       }
     ]),
-    kit: 'Flamethrower'
+    kitId: ID.FLAMETHROWER
   },
   [ID.AIR_BLAST]: {
     castTimeMs: 360,
@@ -86,7 +85,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         controlKind: 'knockback'
       }
     ],
-    kit: 'Flamethrower'
+    kitId: ID.FLAMETHROWER
   },
   [ID.FLAME_BLAST]: {
     castTimeMs: 800,
@@ -123,7 +122,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         }
       ]
     ),
-    kit: 'Flamethrower'
+    kitId: ID.FLAMETHROWER
   },
   [ID.STOW_FLAMETHROWER]: {
     // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
@@ -135,7 +134,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
     castTimeMs: 0,
     cooldown: 0,
     effects: [],
-    kit: 'Flamethrower'
+    kitId: ID.FLAMETHROWER
   },
   [ID.SMOKE_VENT]: {
     castTimeMs: 0,
@@ -146,7 +145,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         actorType: 'player'
       }
     ],
-    toolbeltParentName: 'Flamethrower'
+    toolbeltParentId: ID.FLAMETHROWER
   },
   [ID.STOKE_THE_FLAMES]: {
     castTimeMs: 440,
@@ -191,7 +190,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         stacks: 8
       }
     ]),
-    kit: 'Flamethrower'
+    kitId: ID.FLAMETHROWER
   }
 });
 

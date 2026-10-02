@@ -4,13 +4,11 @@ import {
   defineProfessionWeapons,
   normalizeGeneratedSkill
 } from '#gw2/professions/shared/catalog-data.js';
-import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/engineer/data/engineer-api-metadata.js';
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { TRAITS } from '#gw2/professions/engineer/data/traits-data.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 
 const ENGINEER_SKILL_ICON_OVERRIDES = new Map<string, string>([
   ['Lesser Grenade Barrage', 'https://render.guildwars2.com/file/5B2AB667667749BC1BC7AEFD27362E3E0E0F2FE6/103294.png'],
@@ -81,8 +79,6 @@ const generatedSource = SKILLS.map((skill) => ({
 }));
 
 const allDeclared: readonly Skill[] = [...generatedSource, ...ENGINEER_SUPPLEMENTAL_SKILLS];
-
-const byName = new Map<string, Skill>(allDeclared.map((skill) => [skill.name, skill]));
 
 const preferredFlipParentById = new Map<SkillId, SkillId>([
   [ID.DETONATE_HEALING_TURRET, ID.HEALING_TURRET],
@@ -155,40 +151,8 @@ const WEAPON_DATA = defineProfessionWeapons({
   Sword: 'mh'
 });
 
-interface EngineerModuleDataOptions extends ProfessionModuleDataOptions {
-  readonly autoattackChains?: AutoattackChainOptions;
-  readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
-}
-
-/** Normalizes profession-specific handler ownership before mechanics enter the shared catalog. */
-function normalizeMechanics(
-  mechanics: Readonly<Record<string, Partial<Skill>>>
-): Readonly<Record<string, Partial<Skill>>> {
-  return Object.freeze(
-    Object.fromEntries(
-      Object.entries(mechanics).map(([id, mechanic]) => {
-        const toolbeltParentId = byName.get(String(mechanic.toolbeltParentName || ''))?.id;
-        // Resolve authored parent names once at catalog assembly so runtime trait behavior follows stable IDs.
-        const linkedMechanic = toolbeltParentId == null ? mechanic : { ...mechanic, toolbeltParentId };
-
-        // Focused Devastation is a derived packet and must not appear as a manually castable skill.
-        if (Number(id) === ID.FOCUSED_DEVASTATION) {
-          return [
-            id,
-            {
-              ...linkedMechanic,
-              simulatorExcluded: true
-            }
-          ];
-        }
-
-        return [id, linkedMechanic];
-      })
-    )
-  );
-}
-
-const createModuleData = createProfessionModuleDataFactory({
+/** Builds Engineer module catalogs directly from their ID-linked skill declarations. */
+export const createEngineerModuleData = createProfessionModuleDataFactory({
   generatedSkills: generated,
   sharedExtraSkills: supplemental,
   traits: TRAITS,
@@ -196,11 +160,3 @@ const createModuleData = createProfessionModuleDataFactory({
   specializationOnlySkills: SPECIALIZATION_ONLY_SKILLS,
   core: WEAPON_DATA
 });
-
-/** Builds one Engineer module's catalog slice from shared API data and module-owned mechanics. */
-export function createEngineerModuleData(id: string, { skillMechanics, ...options }: EngineerModuleDataOptions) {
-  return createModuleData(id, {
-    ...options,
-    skillMechanics: normalizeMechanics(skillMechanics)
-  });
-}

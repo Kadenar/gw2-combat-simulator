@@ -135,13 +135,13 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         actorType: 'player'
       }
     ],
-    toolbeltParentName: 'Laser Disk'
+    toolbeltParentId: ID.LASER_DISK
   },
   [ID.CAUTERIZE]: {
     castTimeMs: 0,
     cooldown: 30,
     effects: [],
-    toolbeltParentName: 'Coolant Blast',
+    toolbeltParentId: ID.COOLANT_BLAST,
     mechanicSlot: 1
   },
   [ID.PARTICLE_ACCELERATOR]: {
@@ -179,7 +179,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         stacks: 1
       }
     ],
-    toolbeltParentName: 'Photon Wall'
+    toolbeltParentId: ID.PHOTON_WALL
   }
 });
 

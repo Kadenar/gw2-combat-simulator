@@ -77,6 +77,22 @@ async function sourceModulePath(file) {
   }
 }
 
+// Version validation must preserve historical inputs without mutating the caller's saved data.
+test('build upgrades reject unsupported versions and leave saved data independent', () => {
+  const saved = { schemaVersion: 0, rotation: [{ name: '__wait', waitMs: 125 }], assumptions: { might: 7 } };
+  const original = structuredClone(saved);
+  const migrated = migrateMesmerBuild(saved);
+  assert.deepEqual(saved, original);
+  assert.equal(migrated.schemaVersion, BUILD_SCHEMA_VERSION);
+  assert.deepEqual(migrated.rotation, [{ type: 'wait', durationMs: 125 }]);
+  assert.deepEqual(migrateMesmerBuild(migrated), migrated);
+  migrated.assumptions.might = 12;
+  assert.deepEqual(saved, original);
+  for (const schemaVersion of [-1, 0.5, 'invalid', BUILD_SCHEMA_VERSION + 1]) {
+    assert.throws(() => migrateMesmerBuild({ schemaVersion }), /Unsupported build schema version/);
+  }
+});
+
 test('Mesmer build migrations produce validated schema version 3 data', () => {
   const migrated = migrateMesmerBuild({
     weaponSigils: [

@@ -1,3 +1,4 @@
+import { ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
@@ -1832,12 +1833,12 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
     false
   );
   assert.equal(
-    engineer.profession.ui.paletteSkillAvailability({ professionState: { activeKit: '' } }, swapWeapons).available,
+    engineer.profession.ui.paletteSkillAvailability({ professionState: { activeKit: null } }, swapWeapons).available,
     false
   );
   engineer.results = {
     planningState: {
-      profession: { activeKit: 'Grenade Kit' }
+      profession: { activeKit: ENGINEER_SKILL_IDS.GRENADE_KIT }
     }
   };
   assert.equal(
@@ -1845,8 +1846,10 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
     true
   );
   assert.equal(
-    engineer.profession.ui.paletteSkillAvailability({ professionState: { activeKit: 'Grenade Kit' } }, swapWeapons)
-      .available,
+    engineer.profession.ui.paletteSkillAvailability(
+      { professionState: { activeKit: ENGINEER_SKILL_IDS.GRENADE_KIT } },
+      swapWeapons
+    ).available,
     true
   );
   assert.equal(

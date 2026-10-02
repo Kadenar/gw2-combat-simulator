@@ -6,184 +6,708 @@
     "benchmarkDps": 42081.97489325909
   },
   "rotation": [
-    "Prepare Thousand Needles",
+    {
+      "type": "cast",
+      "skillId": 13026
+    },
     {
       "type": "wait",
       "durationMs": 30000
     },
-    "__combat_start",
-    "Caltrops",
-    "Skritt Swipe",
-    "Thousand Needles",
-    "Prepare Thousand Needles",
-    "Forged Surfer Dash",
-    "Mistburn Mortar",
-    "Skritt Scuffle",
-    "Death Blossom",
-    "Spider Venom",
-    "Mistburn Mortar",
-    "Thousand Needles",
-    "Death Blossom",
-    "Death Blossom",
-    "Summon Kryptis Turret",
-    "Death Blossom",
-    "Death Blossom",
-    "Death Blossom",
-    "Summon Kryptis Turret",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Death Blossom",
-    "Summon Kryptis Turret",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Death Blossom",
-    "Summon Kryptis Turret",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Mistburn Mortar",
-    "Skritt Swipe",
-    "Double Strike",
-    "Caltrops",
-    "Forged Surfer Dash",
-    "Death Blossom",
-    "Death Blossom",
-    "Death Blossom",
-    "Mistburn Mortar",
-    "Death Blossom",
-    "Prepare Thousand Needles",
-    "Death Blossom",
-    "Spider Venom",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Thousand Needles",
-    "Wild Strike",
-    "Lotus Strike",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Skritt Swipe",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Mistburn Mortar",
-    "Death Blossom",
-    "Holo-Dancer Decoy",
-    "Caltrops",
-    "Death Blossom",
-    "Skritt Scuffle",
-    "Death Blossom",
-    "Mistburn Mortar",
-    "Death Blossom",
-    "Caltrops",
-    "Summon Kryptis Turret",
-    "Death Blossom",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Mistburn Mortar",
-    "Prepare Thousand Needles",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Holo-Dancer Decoy",
-    "Death Blossom",
-    "Spider Venom",
-    "Thousand Needles",
-    "Death Blossom",
-    "Summon Kryptis Turret",
-    "Skritt Swipe",
-    "Double Strike",
-    "Wild Strike",
-    "Summon Kryptis Turret",
-    "Forged Surfer Dash",
-    "Death Blossom",
-    "Death Blossom",
-    "Spider Venom",
-    "Summon Kryptis Turret",
-    "Death Blossom",
-    "Death Blossom",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Caltrops",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Death Blossom",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Skritt Swipe",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Summon Kryptis Turret",
-    "Metal Legion Guitar",
-    "Backstab",
-    "Prepare Thousand Needles",
-    "Backstab",
-    "Death Blossom",
-    "Backstab",
-    "Death Blossom",
-    "Thousand Needles",
-    "Death Blossom",
-    "Death Blossom",
-    "Spider Venom",
-    "Skritt Scuffle",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Zephyrite Sun Crystal",
-    "Death Blossom",
-    "Death Blossom",
-    "Caltrops",
-    "Summon Kryptis Turret",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Death Blossom",
-    "Summon Kryptis Turret",
-    "Skritt Swipe",
-    "Double Strike",
-    "Wild Strike",
-    "Summon Kryptis Turret",
-    "Death Blossom",
-    "Holo-Dancer Decoy",
-    "Death Blossom"
+    {
+      "type": "combat-start"
+    },
+    {
+      "type": "cast",
+      "skillId": 13028
+    },
+    {
+      "type": "cast",
+      "skillId": 77397
+    },
+    {
+      "type": "cast",
+      "skillId": 56898
+    },
+    {
+      "type": "cast",
+      "skillId": 13026
+    },
+    {
+      "type": "cast",
+      "skillId": 76633
+    },
+    {
+      "type": "cast",
+      "skillId": 77277
+    },
+    {
+      "type": "cast",
+      "skillId": 77255
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13037
+    },
+    {
+      "type": "cast",
+      "skillId": 77277
+    },
+    {
+      "type": "cast",
+      "skillId": 56898
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 77277
+    },
+    {
+      "type": "cast",
+      "skillId": 77397
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13028
+    },
+    {
+      "type": "cast",
+      "skillId": 76633
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 77277
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13026
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13037
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 56898
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 77397
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 77277
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 76674
+    },
+    {
+      "type": "cast",
+      "skillId": 13028
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 77255
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 77277
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13028
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 77277
+    },
+    {
+      "type": "cast",
+      "skillId": 13026
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 76674
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13037
+    },
+    {
+      "type": "cast",
+      "skillId": 56898
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 77397
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 76633
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13037
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13028
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 77397
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 76582
+    },
+    {
+      "type": "cast",
+      "skillId": 13005
+    },
+    {
+      "type": "cast",
+      "skillId": 13026
+    },
+    {
+      "type": "cast",
+      "skillId": 13005
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13005
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 56898
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13037
+    },
+    {
+      "type": "cast",
+      "skillId": 77255
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 76895
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 13028
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 77397
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    },
+    {
+      "type": "cast",
+      "skillId": 76674
+    },
+    {
+      "type": "cast",
+      "skillId": 13006
+    }
   ]
 }

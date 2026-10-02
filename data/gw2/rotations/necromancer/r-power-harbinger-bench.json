@@ -1,191 +1,661 @@
 {
   "rotation": [
-    "Elixir of Promise",
-    "Harbinger Shroud",
-    "Exit Harbinger Shroud",
+    {
+      "type": "cast",
+      "skillId": 62667
+    },
+    {
+      "type": "cast",
+      "skillId": 62567
+    },
+    {
+      "type": "cast",
+      "skillId": 62540
+    },
     {
       "type": "cast",
       "skillId": 29740,
       "interruptAfterMs": 120
     },
-    "Nightfall",
-    "__combat_start",
-    "Elixir of Ambition",
-    "Elixir of Risk",
-    "Swap Weapons",
-    "Isolate",
-    "Well of Darkness",
-    "Well of Suffering",
-    "Distress",
-    "Perforate",
-    "Harbinger Shroud",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Vital Draw",
-    "Voracious Arc",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Voracious Arc",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Exit Harbinger Shroud",
-    "Addle",
-    "Elixir of Risk",
-    "Isolate",
-    "Extirpate",
-    "Perforate",
-    "Elixir of Promise",
-    "Distress",
-    "Perforate",
-    "Swap Weapons",
+    {
+      "type": "cast",
+      "skillId": 29855
+    },
+    {
+      "type": "combat-start"
+    },
+    {
+      "type": "cast",
+      "skillId": 62655
+    },
+    {
+      "type": "cast",
+      "skillId": 62530
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 10607
+    },
+    {
+      "type": "cast",
+      "skillId": 10546
+    },
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 62567
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62563
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62540
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 62530
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73007
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 62667
+    },
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
     {
       "type": "cast",
       "skillId": 29740,
       "interruptAfterMs": 120
     },
-    "Nightfall",
-    "Death Spiral",
-    "Gravedigger",
-    "Well of Darkness",
-    "Well of Suffering",
-    "Harbinger Shroud",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Vital Draw",
-    "Voracious Arc",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Voracious Arc",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Exit Harbinger Shroud",
-    "Elixir of Risk",
-    "Nightfall",
-    "Death Spiral",
-    "Gravedigger",
-    "Grasping Darkness",
-    "Elixir of Promise",
-    "Swap Weapons",
-    "Addle",
-    "Isolate",
-    "Extirpate",
-    "Well of Darkness",
-    "Perforate",
-    "Well of Suffering",
+    {
+      "type": "cast",
+      "skillId": 29855
+    },
+    {
+      "type": "cast",
+      "skillId": 30860
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": 10607
+    },
+    {
+      "type": "cast",
+      "skillId": 10546
+    },
+    {
+      "type": "cast",
+      "skillId": 62567
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62563
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62540
+    },
+    {
+      "type": "cast",
+      "skillId": 62530
+    },
+    {
+      "type": "cast",
+      "skillId": 29855
+    },
+    {
+      "type": "cast",
+      "skillId": 30860
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": 29740
+    },
+    {
+      "type": "cast",
+      "skillId": 62667
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73007
+    },
+    {
+      "type": "cast",
+      "skillId": 10607
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 10546
+    },
     {
       "type": "cast",
       "skillId": 73116,
       "concurrentOffsetMs": 120
     },
-    "Perforate",
-    "Harbinger Shroud",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Vital Draw",
-    "Voracious Arc",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Voracious Arc",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Exit Harbinger Shroud",
-    "Elixir of Ambition",
-    "Elixir of Risk",
-    "Addle",
-    "Isolate",
-    "Extirpate",
-    "Perforate",
-    "Elixir of Promise",
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 62567
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62563
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62540
+    },
+    {
+      "type": "cast",
+      "skillId": 62655
+    },
+    {
+      "type": "cast",
+      "skillId": 62530
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73007
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 62667
+    },
     {
       "type": "cast",
       "skillId": 73116,
       "concurrentOffsetMs": 120
     },
-    "Perforate",
-    "Swap Weapons",
-    "Well of Darkness",
-    "Well of Suffering",
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 10607
+    },
+    {
+      "type": "cast",
+      "skillId": 10546
+    },
     {
       "type": "cast",
       "skillId": 29740,
       "interruptAfterMs": 200
     },
-    "Nightfall",
-    "Death Spiral",
-    "Gravedigger",
-    "Harbinger Shroud",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Vital Draw",
-    "Voracious Arc",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Voracious Arc",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Exit Harbinger Shroud",
-    "Elixir of Risk",
-    "Death Spiral",
-    "Nightfall",
-    "Gravedigger",
-    "Elixir of Promise",
-    "Well of Darkness",
-    "Well of Suffering",
+    {
+      "type": "cast",
+      "skillId": 29855
+    },
+    {
+      "type": "cast",
+      "skillId": 30860
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": 62567
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62563
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62540
+    },
+    {
+      "type": "cast",
+      "skillId": 62530
+    },
+    {
+      "type": "cast",
+      "skillId": 30860
+    },
+    {
+      "type": "cast",
+      "skillId": 29855
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": 62667
+    },
+    {
+      "type": "cast",
+      "skillId": 10607
+    },
+    {
+      "type": "cast",
+      "skillId": 10546
+    },
     {
       "type": "cast",
       "skillId": 29740,
       "interruptAfterMs": 200
     },
-    "Swap Weapons",
-    "Addle",
-    "Isolate",
-    "Extirpate",
-    "Perforate",
-    "Distress",
-    "Perforate"
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73007
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    }
   ]
 }

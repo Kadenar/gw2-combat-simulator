@@ -78,11 +78,11 @@ function engineerKitActions(context: EvtcProfessionReconstructionContext): EvtcR
         a.start >= action.start + 75 &&
         a.start < (nextSwap?.start ?? Infinity) &&
         (a.evidence === 'animation' || a.evidence === 'legacy-activation') &&
-        recordedActionSkill(a, context)?.kit
+        recordedActionSkill(a, context)?.kitId
     );
-    const kit = bundle ? String(recordedActionSkill(bundle, context)?.kit ?? '') : '';
+    const kit = bundle ? recordedActionSkill(bundle, context)?.kitId : null;
     const equip = kit
-      ? context.catalog?.skills.find((s) => (s as EngineerSkill).kitTransition === 'equip' && s.kitName === kit)
+      ? context.catalog?.skills.find((s) => (s as EngineerSkill).kitTransition === 'equip' && s.id === kit)
       : undefined;
     return equip && typeof equip.id === 'number'
       ? {

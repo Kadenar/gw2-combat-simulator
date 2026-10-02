@@ -4,23 +4,47 @@
       "type": "cast",
       "skillId": 76642
     },
-    "Flux State",
+    {
+      "type": "cast",
+      "skillId": 76993
+    },
     {
       "type": "combat-start",
       "concurrentOffsetMs": 520
     },
-    "Lightning Rod",
+    {
+      "type": "cast",
+      "skillId": 73002
+    },
     {
       "type": "cast",
       "skillId": 77104,
       "concurrentOffsetMs": 200
     },
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
-    "Poison Grenade",
-    "Flamethrower",
-    "Stoke the Flames",
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
+    {
+      "type": "cast",
+      "skillId": 76493
+    },
     {
       "type": "cast",
       "skillId": 77103
@@ -30,43 +54,112 @@
       "skillId": 6114,
       "concurrentOffsetMs": 320
     },
-    "Plasmatic State",
-    "Devastator",
-    "Electric Artillery",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
-    "Flamethrower",
-    "Flame Blast",
+    {
+      "type": "cast",
+      "skillId": 77209
+    },
+    {
+      "type": "cast",
+      "skillId": 72974
+    },
+    {
+      "type": "cast",
+      "skillId": 73143
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
+    {
+      "type": "cast",
+      "skillId": 5931
+    },
     {
       "type": "cast",
       "skillId": 76705
     },
-    "Napalm",
-    "Stow Flamethrower",
-    "Lightning Rod",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
+    {
+      "type": "cast",
+      "skillId": 5929
+    },
+    {
+      "type": "cast",
+      "skillId": 6114
+    },
+    {
+      "type": "cast",
+      "skillId": 73002
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
     {
       "type": "cast",
       "skillId": 5809,
       "interruptAfterMs": 480
     },
-    "Flamethrower",
-    "Air Blast",
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
+    {
+      "type": "cast",
+      "skillId": 5930
+    },
     {
       "type": "cast",
       "skillId": 5931,
       "interruptAfterMs": 480
     },
-    "Stow Flamethrower",
-    "Puncturing Jab",
-    "Rending Strike",
-    "Amplifying Slice",
-    "Electric Artillery",
-    "Conduit Surge",
-    "Grenade Kit",
+    {
+      "type": "cast",
+      "skillId": 6114
+    },
+    {
+      "type": "cast",
+      "skillId": 72944
+    },
+    {
+      "type": "cast",
+      "skillId": 73109
+    },
+    {
+      "type": "cast",
+      "skillId": 73001
+    },
+    {
+      "type": "cast",
+      "skillId": 73143
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
     {
       "type": "cast",
       "skillId": 5807,
@@ -77,61 +170,157 @@
       "skillId": 77104,
       "concurrentOffsetMs": 120
     },
-    "Stow Grenade Kit",
-    "Puncturing Jab",
-    "Rending Strike",
-    "Amplifying Slice",
-    "Grenade Kit",
-    "Poison Grenade",
-    "Flamethrower",
-    "Stoke the Flames",
+    {
+      "type": "cast",
+      "skillId": 6110
+    },
+    {
+      "type": "cast",
+      "skillId": 72944
+    },
+    {
+      "type": "cast",
+      "skillId": 73109
+    },
+    {
+      "type": "cast",
+      "skillId": 73001
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
+    {
+      "type": "cast",
+      "skillId": 76493
+    },
     {
       "type": "cast",
       "skillId": 77103
     },
-    "Stow Flamethrower",
-    "Lightning Rod",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
-    "Flamethrower",
+    {
+      "type": "cast",
+      "skillId": 6114
+    },
+    {
+      "type": "cast",
+      "skillId": 73002
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
     {
       "type": "cast",
       "skillId": 5931,
       "interruptAfterMs": 480
     },
-    "Stow Flamethrower",
-    "Devastator",
-    "Plasmatic State",
+    {
+      "type": "cast",
+      "skillId": 6114
+    },
+    {
+      "type": "cast",
+      "skillId": 72974
+    },
+    {
+      "type": "cast",
+      "skillId": 77209
+    },
     {
       "type": "cast",
       "skillId": 76705
     },
-    "Electric Artillery",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
-    "Flamethrower",
+    {
+      "type": "cast",
+      "skillId": 73143
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
     {
       "type": "cast",
       "skillId": 5931,
       "interruptAfterMs": 520
     },
-    "Air Blast",
-    "Grenade Kit",
+    {
+      "type": "cast",
+      "skillId": 5930
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
     {
       "type": "cast",
       "skillId": 5809,
       "interruptAfterMs": 520
     },
-    "Stow Grenade Kit",
-    "Puncturing Jab",
-    "Rending Strike",
-    "Amplifying Slice",
-    "Lightning Rod",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
+    {
+      "type": "cast",
+      "skillId": 6110
+    },
+    {
+      "type": "cast",
+      "skillId": 72944
+    },
+    {
+      "type": "cast",
+      "skillId": 73109
+    },
+    {
+      "type": "cast",
+      "skillId": 73001
+    },
+    {
+      "type": "cast",
+      "skillId": 73002
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
     {
       "type": "cast",
       "skillId": 77104
@@ -140,48 +329,135 @@
       "type": "cast",
       "skillId": 76642
     },
-    "Flamethrower",
-    "Flame Blast",
-    "Napalm",
-    "Stow Flamethrower",
-    "Electric Artillery",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
-    "Poison Grenade",
-    "Flamethrower",
-    "Stoke the Flames",
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
+    {
+      "type": "cast",
+      "skillId": 5931
+    },
+    {
+      "type": "cast",
+      "skillId": 5929
+    },
+    {
+      "type": "cast",
+      "skillId": 6114
+    },
+    {
+      "type": "cast",
+      "skillId": 73143
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
+    {
+      "type": "cast",
+      "skillId": 76493
+    },
     {
       "type": "cast",
       "skillId": 77103
     },
-    "Flame Blast",
-    "Flux State",
-    "Stow Flamethrower",
-    "Puncturing Jab",
-    "Lightning Rod",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
+    {
+      "type": "cast",
+      "skillId": 5931
+    },
+    {
+      "type": "cast",
+      "skillId": 76993
+    },
+    {
+      "type": "cast",
+      "skillId": 6114
+    },
+    {
+      "type": "cast",
+      "skillId": 72944
+    },
+    {
+      "type": "cast",
+      "skillId": 73002
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
     {
       "type": "cast",
       "skillId": 76705
     },
-    "Stow Grenade Kit",
-    "Devastator",
-    "Plasmatic State",
-    "Electric Artillery",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
-    "Flamethrower",
+    {
+      "type": "cast",
+      "skillId": 6110
+    },
+    {
+      "type": "cast",
+      "skillId": 72974
+    },
+    {
+      "type": "cast",
+      "skillId": 77209
+    },
+    {
+      "type": "cast",
+      "skillId": 73143
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
     {
       "type": "cast",
       "skillId": 5931,
       "interruptAfterMs": 480
     },
-    "Air Blast",
-    "Grenade Kit",
+    {
+      "type": "cast",
+      "skillId": 5930
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
     {
       "type": "cast",
       "skillId": 5809,
@@ -192,56 +468,152 @@
       "skillId": 77104,
       "concurrentOffsetMs": 200
     },
-    "Stow Grenade Kit",
-    "Puncturing Jab",
-    "Rending Strike",
-    "Amplifying Slice",
-    "Puncturing Jab",
-    "Lightning Rod",
-    "Conduit Surge",
-    "Grenade Kit",
+    {
+      "type": "cast",
+      "skillId": 6110
+    },
+    {
+      "type": "cast",
+      "skillId": 72944
+    },
+    {
+      "type": "cast",
+      "skillId": 73109
+    },
+    {
+      "type": "cast",
+      "skillId": 73001
+    },
+    {
+      "type": "cast",
+      "skillId": 72944
+    },
+    {
+      "type": "cast",
+      "skillId": 73002
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
     {
       "type": "cast",
       "skillId": 5807,
       "interruptAfterMs": 520
     },
-    "Stow Grenade Kit",
-    "Puncturing Jab",
-    "Rending Strike",
-    "Amplifying Slice",
-    "Grenade Kit",
-    "Poison Grenade",
-    "Flamethrower",
-    "Stoke the Flames",
+    {
+      "type": "cast",
+      "skillId": 6110
+    },
+    {
+      "type": "cast",
+      "skillId": 72944
+    },
+    {
+      "type": "cast",
+      "skillId": 73109
+    },
+    {
+      "type": "cast",
+      "skillId": 73001
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
+    {
+      "type": "cast",
+      "skillId": 76493
+    },
     {
       "type": "cast",
       "skillId": 77103
     },
-    "Stow Flamethrower",
-    "Electric Artillery",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
-    "Flamethrower",
-    "Flame Blast",
-    "Napalm",
+    {
+      "type": "cast",
+      "skillId": 6114
+    },
+    {
+      "type": "cast",
+      "skillId": 73143
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
+    {
+      "type": "cast",
+      "skillId": 5931
+    },
+    {
+      "type": "cast",
+      "skillId": 5929
+    },
     {
       "type": "cast",
       "skillId": 76705
     },
-    "Stow Flamethrower",
-    "Lightning Rod",
-    "Conduit Surge",
-    "Grenade Kit",
+    {
+      "type": "cast",
+      "skillId": 6114
+    },
+    {
+      "type": "cast",
+      "skillId": 73002
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
     {
       "type": "cast",
       "skillId": 5807,
       "interruptAfterMs": 520
     },
-    "Stow Grenade Kit",
-    "Devastator",
-    "Puncturing Jab",
-    "Rending Strike",
+    {
+      "type": "cast",
+      "skillId": 6110
+    },
+    {
+      "type": "cast",
+      "skillId": 72974
+    },
+    {
+      "type": "cast",
+      "skillId": 72944
+    },
+    {
+      "type": "cast",
+      "skillId": 73109
+    },
     {
       "type": "cast",
       "skillId": 76642
@@ -251,105 +623,294 @@
       "skillId": 77104,
       "concurrentOffsetMs": 160
     },
-    "Plasmatic State",
-    "Electric Artillery",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
-    "Flamethrower",
+    {
+      "type": "cast",
+      "skillId": 77209
+    },
+    {
+      "type": "cast",
+      "skillId": 73143
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
     {
       "type": "cast",
       "skillId": 5931,
       "interruptAfterMs": 600
     },
-    "Air Blast",
-    "Grenade Kit",
+    {
+      "type": "cast",
+      "skillId": 5930
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
     {
       "type": "cast",
       "skillId": 5809,
       "interruptAfterMs": 520
     },
-    "Stow Grenade Kit",
-    "Puncturing Jab",
-    "Rending Strike",
-    "Amplifying Slice",
-    "Lightning Rod",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
-    "Poison Grenade",
-    "Flamethrower",
-    "Stoke the Flames",
+    {
+      "type": "cast",
+      "skillId": 6110
+    },
+    {
+      "type": "cast",
+      "skillId": 72944
+    },
+    {
+      "type": "cast",
+      "skillId": 73109
+    },
+    {
+      "type": "cast",
+      "skillId": 73001
+    },
+    {
+      "type": "cast",
+      "skillId": 73002
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
+    {
+      "type": "cast",
+      "skillId": 76493
+    },
     {
       "type": "cast",
       "skillId": 77103
     },
-    "Flame Blast",
-    "Stow Flamethrower",
-    "Puncturing Jab",
-    "Rending Strike",
-    "Electric Artillery",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
+    {
+      "type": "cast",
+      "skillId": 5931
+    },
+    {
+      "type": "cast",
+      "skillId": 6114
+    },
+    {
+      "type": "cast",
+      "skillId": 72944
+    },
+    {
+      "type": "cast",
+      "skillId": 73109
+    },
+    {
+      "type": "cast",
+      "skillId": 73143
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
     {
       "type": "cast",
       "skillId": 76705
     },
-    "Stow Grenade Kit",
-    "Puncturing Jab",
-    "Devastator",
-    "Flux State",
+    {
+      "type": "cast",
+      "skillId": 6110
+    },
+    {
+      "type": "cast",
+      "skillId": 72944
+    },
+    {
+      "type": "cast",
+      "skillId": 72974
+    },
+    {
+      "type": "cast",
+      "skillId": 76993
+    },
     {
       "type": "cast",
       "skillId": 77104,
       "concurrentOffsetMs": 320
     },
-    "Lightning Rod",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
-    "Flamethrower",
-    "Flame Blast",
-    "Napalm",
-    "Plasmatic State",
-    "Stow Flamethrower",
-    "Electric Artillery",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
-    "Freeze Grenade",
-    "Stow Grenade Kit",
-    "Puncturing Jab",
-    "Rending Strike",
-    "Amplifying Slice",
-    "Grenade Kit",
-    "Poison Grenade",
-    "Flamethrower",
-    "Stoke the Flames",
+    {
+      "type": "cast",
+      "skillId": 73002
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
+    {
+      "type": "cast",
+      "skillId": 5931
+    },
+    {
+      "type": "cast",
+      "skillId": 5929
+    },
+    {
+      "type": "cast",
+      "skillId": 77209
+    },
+    {
+      "type": "cast",
+      "skillId": 6114
+    },
+    {
+      "type": "cast",
+      "skillId": 73143
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
+    {
+      "type": "cast",
+      "skillId": 6110
+    },
+    {
+      "type": "cast",
+      "skillId": 72944
+    },
+    {
+      "type": "cast",
+      "skillId": 73109
+    },
+    {
+      "type": "cast",
+      "skillId": 73001
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
+    {
+      "type": "cast",
+      "skillId": 76493
+    },
     {
       "type": "cast",
       "skillId": 77103
     },
-    "Stow Flamethrower",
-    "Lightning Rod",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
-    "Flamethrower",
+    {
+      "type": "cast",
+      "skillId": 6114
+    },
+    {
+      "type": "cast",
+      "skillId": 73002
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
     {
       "type": "cast",
       "skillId": 5931,
       "interruptAfterMs": 520
     },
-    "Air Blast",
+    {
+      "type": "cast",
+      "skillId": 5930
+    },
     {
       "type": "cast",
       "skillId": 76705
     },
-    "Stow Flamethrower",
-    "Puncturing Jab",
-    "Devastator",
+    {
+      "type": "cast",
+      "skillId": 6114
+    },
+    {
+      "type": "cast",
+      "skillId": 72944
+    },
+    {
+      "type": "cast",
+      "skillId": 72974
+    },
     {
       "type": "cast",
       "skillId": 77104,
@@ -359,28 +920,97 @@
       "type": "cast",
       "skillId": 76642
     },
-    "Electric Artillery",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
-    "Flamethrower",
-    "Flame Blast",
-    "Stow Flamethrower",
-    "Puncturing Jab",
-    "Rending Strike",
-    "Amplifying Slice",
-    "Puncturing Jab",
-    "Lightning Rod",
-    "Conduit Surge",
-    "Grenade Kit",
-    "Shrapnel Grenade",
-    "Freeze Grenade",
-    "Grenade",
-    "Stow Grenade Kit",
-    "Puncturing Jab",
-    "Rending Strike",
-    "Electric Artillery",
-    "Conduit Surge",
-    "Grenade Kit"
+    {
+      "type": "cast",
+      "skillId": 73143
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5927
+    },
+    {
+      "type": "cast",
+      "skillId": 5931
+    },
+    {
+      "type": "cast",
+      "skillId": 6114
+    },
+    {
+      "type": "cast",
+      "skillId": 72944
+    },
+    {
+      "type": "cast",
+      "skillId": 73109
+    },
+    {
+      "type": "cast",
+      "skillId": 73001
+    },
+    {
+      "type": "cast",
+      "skillId": 72944
+    },
+    {
+      "type": "cast",
+      "skillId": 73002
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
+    {
+      "type": "cast",
+      "skillId": 5882
+    },
+    {
+      "type": "cast",
+      "skillId": 6110
+    },
+    {
+      "type": "cast",
+      "skillId": 72944
+    },
+    {
+      "type": "cast",
+      "skillId": 73109
+    },
+    {
+      "type": "cast",
+      "skillId": 73143
+    },
+    {
+      "type": "cast",
+      "skillId": 73122
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    }
   ]
 }

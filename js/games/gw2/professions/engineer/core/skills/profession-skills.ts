@@ -38,7 +38,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         actorType: 'player'
       }
     ],
-    toolbeltParentName: 'Throw Mine'
+    toolbeltParentId: ID.THROW_MINE
   },
   [ID.DETONATE_MINE_FIELD]: {
     castTimeMs: 0,
@@ -61,7 +61,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         actorType: 'player'
       }
     ],
-    toolbeltParentName: 'Throw Mine'
+    toolbeltParentId: ID.THROW_MINE
   },
   [ID.REGENERATING_MIST]: {
     castTimeMs: 300,
@@ -82,7 +82,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         stacks: 2
       }
     ],
-    toolbeltParentName: 'Healing Turret',
+    toolbeltParentId: ID.HEALING_TURRET,
     mechanicSlot: 1
   },
   [ID.CONFUSING_SPEECH]: {
@@ -97,7 +97,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         actorType: 'player'
       }
     ],
-    toolbeltParentName: 'Technobabble'
+    countsAsToolbeltSkill: true
   },
   [ID.VENT_RADIATION]: {
     castTimeMs: 0,
@@ -111,7 +111,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         actorType: 'player'
       }
     ],
-    toolbeltParentName: 'Radiation Field'
+    countsAsToolbeltSkill: true
   },
   [ID.STATIC_SHOCK]: {
     castTimeMs: 680,
@@ -133,14 +133,14 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         controlKind: 'daze'
       }
     ]),
-    toolbeltParentName: 'A.E.D.',
+    toolbeltParentId: ID.A_E_D,
     mechanicSlot: 1
   },
   [ID.MED_PACK_DROP]: {
     castTimeMs: 360,
     cooldown: 50,
     effects: [],
-    toolbeltParentName: 'Supply Crate',
+    toolbeltParentId: ID.SUPPLY_CRATE,
     mechanicSlot: 5
   }
 });

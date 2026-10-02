@@ -1,12 +1,21 @@
 {
   "rotation": [
-    "Rock Barrier",
-    "Air Attunement",
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5494
+    },
     {
       "type": "wait",
       "durationMs": 5000
     },
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "combat-start",
       "concurrentOffsetMs": 3120
@@ -26,8 +35,14 @@
       "skillId": 5526,
       "interruptAfterMs": 40
     },
-    "Feel the Burn!",
-    "Ride the Lightning",
+    {
+      "type": "cast",
+      "skillId": 30662
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
     {
       "type": "cast",
       "skillId": 5495,
@@ -38,8 +53,14 @@
       "skillId": 5500,
       "interruptAfterMs": 80
     },
-    "Earthquake",
-    "Churning Earth",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
     {
       "type": "cast",
       "skillId": 5780,
@@ -50,33 +71,99 @@
       "skillId": 5492,
       "concurrentOffsetMs": 440
     },
-    "Phoenix",
-    "Ring of Fire",
-    "Fire Grab",
-    "Dragon's Tooth",
-    "Glyph of Storms (Fire)",
-    "Signet of Fire",
-    "Overload Fire",
-    "Dragon's Tooth",
-    "Phoenix",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5736
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 29706
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 480
     },
-    "Flamestrike",
-    "Flamestrike",
-    "Ring of Fire",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Fire Grab",
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
     {
       "type": "cast",
       "skillId": 5494,
@@ -87,8 +174,14 @@
       "skillId": 5561,
       "concurrentOffsetMs": 520
     },
-    "Signet of Fire",
-    "Ride the Lightning",
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
     {
       "type": "cast",
       "skillId": 5526,
@@ -99,7 +192,10 @@
       "skillId": 30662,
       "concurrentOffsetMs": 1520
     },
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 5561,
@@ -120,8 +216,14 @@
       "skillId": 5500,
       "interruptAfterMs": 80
     },
-    "Earthquake",
-    "Churning Earth",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
     {
       "type": "cast",
       "skillId": 5492,
@@ -132,68 +234,149 @@
       "skillId": 5508,
       "interruptAfterMs": 40
     },
-    "Phoenix",
-    "Ring of Fire",
-    "Dragon's Tooth",
-    "Glyph of Storms (Fire)",
-    "Signet of Fire",
-    "Overload Fire",
-    "Dragon's Tooth",
-    "Phoenix",
-    "Fire Grab",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5736
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 29706
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 280
     },
-    "Flamestrike",
-    "Flamestrike",
-    "Ring of Fire",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 240
     },
-    "Feel the Burn!",
-    "Signet of Fire",
+    {
+      "type": "cast",
+      "skillId": 30662
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
     {
       "type": "cast",
       "skillId": 5561,
       "concurrentOffsetMs": 200
     },
-    "Ride the Lightning",
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
     {
       "type": "cast",
       "skillId": 5526,
       "interruptAfterMs": 2440
     },
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 5561,
       "concurrentOffsetMs": 480
     },
-    "Earth Attunement",
+    {
+      "type": "cast",
+      "skillId": 5495
+    },
     {
       "type": "cast",
       "skillId": 5500,
       "interruptAfterMs": 120
     },
-    "Earthquake",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 640
     },
-    "Churning Earth",
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
     {
       "type": "cast",
       "skillId": 5492,
@@ -204,20 +387,62 @@
       "skillId": 5508,
       "interruptAfterMs": 80
     },
-    "Phoenix",
-    "Ring of Fire",
-    "Fire Grab",
-    "Dragon's Tooth",
-    "Glyph of Storms (Fire)",
-    "Signet of Fire",
-    "Overload Fire",
-    "Dragon's Tooth",
-    "Phoenix",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5736
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 29706
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
     {
       "type": "cast",
       "skillId": 2662,
@@ -228,46 +453,91 @@
       "skillId": 5508,
       "interruptAfterMs": 40
     },
-    "Ring of Fire",
-    "Dragon's Tooth",
-    "Flamestrike",
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
     {
       "type": "cast",
       "skillId": 30662,
       "concurrentOffsetMs": 400
     },
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Fire Grab",
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 160
     },
-    "Lightning Strike",
-    "Signet of Fire",
-    "Ride the Lightning",
+    {
+      "type": "cast",
+      "skillId": 5561
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
     {
       "type": "cast",
       "skillId": 5526,
       "interruptAfterMs": 2280
     },
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 5561,
       "concurrentOffsetMs": 400
     },
-    "Earth Attunement",
+    {
+      "type": "cast",
+      "skillId": 5495
+    },
     {
       "type": "cast",
       "skillId": 5500,
       "interruptAfterMs": 80
     },
-    "Earthquake",
-    "Churning Earth",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
     {
       "type": "cast",
       "skillId": 2662,
@@ -283,64 +553,133 @@
       "skillId": 5508,
       "interruptAfterMs": 80
     },
-    "Phoenix",
-    "Ring of Fire",
-    "Dragon's Tooth",
-    "Glyph of Storms (Fire)",
-    "Signet of Fire",
-    "Overload Fire",
-    "Dragon's Tooth",
-    "Phoenix",
-    "Fire Grab",
-    "Flamestrike",
-    "Flamestrike",
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5736
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 29706
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
     {
       "type": "cast",
       "skillId": 30662,
       "concurrentOffsetMs": 400
     },
-    "Flamestrike",
-    "Flamestrike",
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
     {
       "type": "cast",
       "skillId": 5508,
       "interruptAfterMs": 40
     },
-    "Ring of Fire",
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 280
     },
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
     {
       "type": "cast",
       "skillId": 5508,
       "interruptAfterMs": 80
     },
-    "Phoenix",
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 400
     },
-    "Signet of Fire",
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
     {
       "type": "cast",
       "skillId": 5561,
       "concurrentOffsetMs": 240
     },
-    "Ride the Lightning",
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
     {
       "type": "cast",
       "skillId": 5526,
       "interruptAfterMs": 2640
     },
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 5561,
@@ -356,8 +695,14 @@
       "skillId": 5500,
       "interruptAfterMs": 40
     },
-    "Earthquake",
-    "Churning Earth",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
     {
       "type": "cast",
       "skillId": 2662,
@@ -368,8 +713,17 @@
       "skillId": 5492,
       "concurrentOffsetMs": 120
     },
-    "Phoenix",
-    "Ring of Fire",
-    "Fire Grab"
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    }
   ]
 }

@@ -5,7 +5,6 @@ import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { migrateRangerBuild } from '#gw2/professions/ranger/build/build.js';
 import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { rangerCoreCriticalReactions } from '#gw2/professions/ranger/core/traits/behavior.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -788,6 +787,7 @@ test('Celestial Avatar Might pulses reach the active pet', () => {
   assert.ok(might.every(({ stacks, resolvedAudience }) => stacks === 1 && resolvedAudience.includesSummons));
 });
 
+// Unused saved assumptions must not contribute simulated Astral Force.
 test('legacy healing-rate assumptions no longer generate Astral Force', () => {
   const result = simulate([{ type: 'wait', durationMs: 6000 }], {
     initialAstralForce: 0,
@@ -796,15 +796,6 @@ test('legacy healing-rate assumptions no longer generate Astral Force', () => {
   });
 
   assert.equal(result.planningState.profession.astralClock.value, 16);
-  assert.equal(
-    Object.hasOwn(
-      migrateRangerBuild({
-        assumptions: { astralForceHealingEventsPerSecond: 2 }
-      }).assumptions,
-      'astralForceHealingEventsPerSecond'
-    ),
-    false
-  );
 });
 
 test('Astral Force follows landed direct damage and excludes pet damage', () => {

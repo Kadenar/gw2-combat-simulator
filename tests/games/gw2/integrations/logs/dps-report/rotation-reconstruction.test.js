@@ -77,22 +77,21 @@ function reportFixture() {
 function catalogFixture() {
   return {
     skills: [
-      skill(5822, 'Galvanic Bomb', { type: 'weapon', castTimeMs: 600, kit: 'Bomb Kit' }),
+      skill(5822, 'Galvanic Bomb', { type: 'weapon', castTimeMs: 600, kitId: 5812 }),
       skill(5812, 'Bomb Kit', {
         type: 'utility',
         castTimeMs: 0,
-        kitTransition: 'equip',
-        kitName: 'Bomb Kit'
+        kitTransition: 'equip'
       }),
       skill(6111, 'Stow Bomb Kit', {
         type: 'utility',
         castTimeMs: 0,
         kitTransition: 'stow',
-        kit: 'Bomb Kit'
+        kitId: 5812
       }),
       skill(6161, 'Throw Mine', { type: 'utility', castTimeMs: 400 }),
       skill(6162, 'Detonate', { type: 'utility', castTimeMs: 0 }),
-      skill(5823, 'Fire Bomb', { type: 'weapon', castTimeMs: 600, kit: 'Bomb Kit' }),
+      skill(5823, 'Fire Bomb', { type: 'weapon', castTimeMs: 600, kitId: 5812 }),
       skill(77163, 'Defensive Protocol: Thorns', { type: 'profession', castTimeMs: 0 }),
       skill(77104, 'Defensive Protocol: Thorns', { type: 'profession', castTimeMs: 0 }),
       skill(76693, 'Offensive Protocol: Demolish', { type: 'profession', castTimeMs: 1_560 }),

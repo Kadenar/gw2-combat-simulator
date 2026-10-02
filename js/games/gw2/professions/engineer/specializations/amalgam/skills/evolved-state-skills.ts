@@ -24,7 +24,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     castTimeMs: 0,
     cooldown: 25,
     effects: [],
-    toolbeltParentName: 'Mitotic State',
+    toolbeltParentId: ID.MITOTIC_STATE,
     mechanicSlot: 1
   },
   [ID.EVOLVE_BASE]: {

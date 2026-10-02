@@ -1,52 +1,103 @@
 {
   "rotation": [
-    "Calcify",
-    "Rejuvenate",
+    {
+      "type": "cast",
+      "skillId": 77226
+    },
+    {
+      "type": "cast",
+      "skillId": 76634
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 0
     },
-    "Fox's Fury",
+    {
+      "type": "cast",
+      "skillId": 76711
+    },
     {
       "type": "cast",
       "skillId": 77226,
       "concurrentOffsetMs": 440
     },
-    "Signet of Earth",
-    "Signet of Fire",
-    "Boulder Blast",
-    "Shattering Stone",
-    "Dust Storm",
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 71842
+    },
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
+    {
+      "type": "cast",
+      "skillId": 30336
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 160
     },
-    "Wildfire",
+    {
+      "type": "cast",
+      "skillId": 29533
+    },
     {
       "type": "cast",
       "skillId": 77226,
       "concurrentOffsetMs": 40
     },
-    "Seismic Impact",
-    "Raging Ricochet",
-    "Searing Salvo",
+    {
+      "type": "cast",
+      "skillId": 76707
+    },
+    {
+      "type": "cast",
+      "skillId": 71828
+    },
+    {
+      "type": "cast",
+      "skillId": 71940
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 40
     },
-    "Piercing Pebble",
-    "Piercing Pebble",
-    "Shattering Stone",
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
     {
       "type": "cast",
       "skillId": 5493,
       "concurrentOffsetMs": 120
     },
-    "Frozen Fusillade",
-    "Frigid Flurry",
+    {
+      "type": "cast",
+      "skillId": 71935
+    },
+    {
+      "type": "cast",
+      "skillId": 72028
+    },
     {
       "type": "cast",
       "skillId": 77226,
@@ -57,14 +108,23 @@
       "skillId": 5495,
       "concurrentOffsetMs": 640
     },
-    "Elemental Explosion",
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 71907
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 71893,
       "interruptAfterMs": 80
     },
-    "Boulder Blast",
+    {
+      "type": "cast",
+      "skillId": 71842
+    },
     {
       "type": "cast",
       "skillId": 5494,
@@ -75,14 +135,23 @@
       "skillId": 71904,
       "interruptAfterMs": 40
     },
-    "Dazing Discharge",
-    "Lightning Orb",
+    {
+      "type": "cast",
+      "skillId": 71966
+    },
+    {
+      "type": "cast",
+      "skillId": 30795
+    },
     {
       "type": "cast",
       "skillId": 71904,
       "interruptAfterMs": 80
     },
-    "Signet of Fire",
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
     {
       "type": "cast",
       "skillId": 2662,
@@ -98,58 +167,109 @@
       "skillId": 71893,
       "interruptAfterMs": 160
     },
-    "Shattering Stone",
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 77226,
       "concurrentOffsetMs": 480
     },
-    "Signet of Earth",
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 80
     },
-    "Searing Salvo",
-    "Raging Ricochet",
+    {
+      "type": "cast",
+      "skillId": 71940
+    },
+    {
+      "type": "cast",
+      "skillId": 71828
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 280
     },
-    "Fox's Fury",
-    "Piercing Pebble",
-    "Piercing Pebble",
-    "Shattering Stone",
+    {
+      "type": "cast",
+      "skillId": 76711
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
     {
       "type": "cast",
       "skillId": 5493,
       "concurrentOffsetMs": 400
     },
-    "Frigid Flurry",
-    "Tidal Surge",
+    {
+      "type": "cast",
+      "skillId": 72028
+    },
+    {
+      "type": "cast",
+      "skillId": 30864
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 240
     },
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 77226,
       "concurrentOffsetMs": 40
     },
-    "Boulder Blast",
-    "Seismic Impact",
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 71842
+    },
+    {
+      "type": "cast",
+      "skillId": 76707
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 160
     },
-    "Dazing Discharge",
-    "Cyclone",
+    {
+      "type": "cast",
+      "skillId": 71966
+    },
+    {
+      "type": "cast",
+      "skillId": 30008
+    },
     {
       "type": "cast",
       "skillId": 5495,
@@ -160,41 +280,71 @@
       "skillId": 71893,
       "interruptAfterMs": 240
     },
-    "Signet of Fire",
-    "Shattering Stone",
-    "Calcify",
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
+    {
+      "type": "cast",
+      "skillId": 77226
+    },
     {
       "type": "cast",
       "skillId": 71893,
       "interruptAfterMs": 160
     },
-    "Rejuvenate",
+    {
+      "type": "cast",
+      "skillId": 76634
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 280
     },
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 77226,
       "concurrentOffsetMs": 80
     },
-    "Dust Storm",
+    {
+      "type": "cast",
+      "skillId": 30336
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 160
     },
-    "Searing Salvo",
-    "Wildfire",
+    {
+      "type": "cast",
+      "skillId": 71940
+    },
+    {
+      "type": "cast",
+      "skillId": 29533
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 320
     },
-    "Signet of Earth",
-    "Shattering Stone",
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
     {
       "type": "cast",
       "skillId": 5493,
@@ -205,20 +355,32 @@
       "skillId": 72033,
       "interruptAfterMs": 160
     },
-    "Frozen Fusillade",
+    {
+      "type": "cast",
+      "skillId": 71935
+    },
     {
       "type": "cast",
       "skillId": 77226,
       "concurrentOffsetMs": 240
     },
-    "Frigid Flurry",
+    {
+      "type": "cast",
+      "skillId": 72028
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 360
     },
-    "Seismic Impact",
-    "Boulder Blast",
+    {
+      "type": "cast",
+      "skillId": 76707
+    },
+    {
+      "type": "cast",
+      "skillId": 71842
+    },
     {
       "type": "cast",
       "skillId": 5494,
@@ -229,24 +391,48 @@
       "skillId": 71904,
       "interruptAfterMs": 200
     },
-    "Dazing Discharge",
-    "Fox's Fury",
-    "Elemental Explosion",
-    "Lightning Orb",
+    {
+      "type": "cast",
+      "skillId": 71966
+    },
+    {
+      "type": "cast",
+      "skillId": 76711
+    },
+    {
+      "type": "cast",
+      "skillId": 71907
+    },
+    {
+      "type": "cast",
+      "skillId": 30795
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 200
     },
-    "Shattering Stone",
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
     {
       "type": "cast",
       "skillId": 77226,
       "concurrentOffsetMs": 360
     },
-    "Signet of Fire",
-    "Piercing Pebble",
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 5492,
@@ -257,8 +443,14 @@
       "skillId": 71929,
       "interruptAfterMs": 160
     },
-    "Searing Salvo",
-    "Raging Ricochet",
+    {
+      "type": "cast",
+      "skillId": 71940
+    },
+    {
+      "type": "cast",
+      "skillId": 71828
+    },
     {
       "type": "cast",
       "skillId": 5495,
@@ -269,31 +461,61 @@
       "skillId": 2662,
       "concurrentOffsetMs": 40
     },
-    "Piercing Pebble",
-    "Piercing Pebble",
-    "Shattering Stone",
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
     {
       "type": "cast",
       "skillId": 5493,
       "concurrentOffsetMs": 280
     },
-    "Frigid Flurry",
-    "Soothing Splash",
+    {
+      "type": "cast",
+      "skillId": 72028
+    },
+    {
+      "type": "cast",
+      "skillId": 72033
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 80
     },
-    "Boulder Blast",
-    "Calcify",
+    {
+      "type": "cast",
+      "skillId": 71842
+    },
+    {
+      "type": "cast",
+      "skillId": 77226
+    },
     {
       "type": "cast",
       "skillId": 71893,
       "interruptAfterMs": 160
     },
-    "Rejuvenate",
-    "Air Attunement",
-    "Electric Exposure",
+    {
+      "type": "cast",
+      "skillId": 76634
+    },
+    {
+      "type": "cast",
+      "skillId": 5494
+    },
+    {
+      "type": "cast",
+      "skillId": 71904
+    },
     {
       "type": "cast",
       "skillId": 77226,
@@ -304,86 +526,146 @@
       "skillId": 71904,
       "interruptAfterMs": 200
     },
-    "Dazing Discharge",
-    "Seismic Impact",
-    "Signet of Earth",
-    "Cyclone",
+    {
+      "type": "cast",
+      "skillId": 71966
+    },
+    {
+      "type": "cast",
+      "skillId": 76707
+    },
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
+    {
+      "type": "cast",
+      "skillId": 30008
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 360
     },
-    "Signet of Fire",
-    "Shattering Stone",
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
     {
       "type": "cast",
       "skillId": 71893,
       "interruptAfterMs": 40
     },
-    "Dust Storm",
+    {
+      "type": "cast",
+      "skillId": 30336
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 360
     },
-    "Searing Salvo",
+    {
+      "type": "cast",
+      "skillId": 71940
+    },
     {
       "type": "cast",
       "skillId": 77226,
       "concurrentOffsetMs": 120
     },
-    "Wildfire",
+    {
+      "type": "cast",
+      "skillId": 29533
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 520
     },
-    "Fox's Fury",
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 76711
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 360
     },
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 71893,
       "interruptAfterMs": 80
     },
-    "Shattering Stone",
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
     {
       "type": "cast",
       "skillId": 5493,
       "concurrentOffsetMs": 240
     },
-    "Frozen Fusillade",
-    "Frigid Flurry",
+    {
+      "type": "cast",
+      "skillId": 71935
+    },
+    {
+      "type": "cast",
+      "skillId": 72028
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 440
     },
-    "Elemental Explosion",
-    "Boulder Blast",
+    {
+      "type": "cast",
+      "skillId": 71907
+    },
+    {
+      "type": "cast",
+      "skillId": 71842
+    },
     {
       "type": "cast",
       "skillId": 77226,
       "concurrentOffsetMs": 160
     },
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 80
     },
-    "Dazing Discharge",
+    {
+      "type": "cast",
+      "skillId": 71966
+    },
     {
       "type": "cast",
       "skillId": 71904,
       "interruptAfterMs": 40
     },
-    "Lightning Orb",
+    {
+      "type": "cast",
+      "skillId": 30795
+    },
     {
       "type": "cast",
       "skillId": 5495,
@@ -394,9 +676,18 @@
       "skillId": 71893,
       "interruptAfterMs": 40
     },
-    "Signet of Fire",
-    "Shattering Stone",
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 77226,
@@ -407,28 +698,49 @@
       "skillId": 5492,
       "concurrentOffsetMs": 360
     },
-    "Signet of Earth",
-    "Seismic Impact",
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
+    {
+      "type": "cast",
+      "skillId": 76707
+    },
     {
       "type": "cast",
       "skillId": 71929,
       "interruptAfterMs": 40
     },
-    "Searing Salvo",
-    "Raging Ricochet",
+    {
+      "type": "cast",
+      "skillId": 71940
+    },
+    {
+      "type": "cast",
+      "skillId": 71828
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 240
     },
-    "Piercing Pebble",
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 71893,
       "interruptAfterMs": 240
     },
-    "Shattering Stone",
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
     {
       "type": "cast",
       "skillId": 5493,
@@ -439,13 +751,19 @@
       "skillId": 72033,
       "interruptAfterMs": 40
     },
-    "Frigid Flurry",
+    {
+      "type": "cast",
+      "skillId": 72028
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 960
     },
-    "Tidal Surge",
+    {
+      "type": "cast",
+      "skillId": 30864
+    },
     {
       "type": "cast",
       "skillId": 5495,
@@ -456,8 +774,14 @@
       "skillId": 71893,
       "interruptAfterMs": 240
     },
-    "Calcify",
-    "Boulder Blast",
+    {
+      "type": "cast",
+      "skillId": 77226
+    },
+    {
+      "type": "cast",
+      "skillId": 71842
+    },
     {
       "type": "cast",
       "skillId": 5494,
@@ -468,29 +792,53 @@
       "skillId": 71904,
       "interruptAfterMs": 200
     },
-    "Dazing Discharge",
-    "Fox's Fury",
-    "Electric Exposure",
+    {
+      "type": "cast",
+      "skillId": 71966
+    },
+    {
+      "type": "cast",
+      "skillId": 76711
+    },
+    {
+      "type": "cast",
+      "skillId": 71904
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 200
     },
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 71893,
       "interruptAfterMs": 120
     },
-    "Shattering Stone",
-    "Signet of Fire",
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
     {
       "type": "cast",
       "skillId": 71893,
       "interruptAfterMs": 40
     },
-    "Dust Storm",
-    "Rejuvenate",
+    {
+      "type": "cast",
+      "skillId": 30336
+    },
+    {
+      "type": "cast",
+      "skillId": 76634
+    },
     {
       "type": "cast",
       "skillId": 77226,
@@ -501,22 +849,40 @@
       "skillId": 5492,
       "concurrentOffsetMs": 200
     },
-    "Scorching Shot",
+    {
+      "type": "cast",
+      "skillId": 71929
+    },
     {
       "type": "cast",
       "skillId": 77226,
       "concurrentOffsetMs": 240
     },
-    "Searing Salvo",
-    "Wildfire",
+    {
+      "type": "cast",
+      "skillId": 71940
+    },
+    {
+      "type": "cast",
+      "skillId": 29533
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 240
     },
-    "Signet of Earth",
-    "Seismic Impact",
-    "Shattering Stone",
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
+    {
+      "type": "cast",
+      "skillId": 76707
+    },
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
     {
       "type": "cast",
       "skillId": 5493,
@@ -527,14 +893,23 @@
       "skillId": 72033,
       "interruptAfterMs": 80
     },
-    "Frozen Fusillade",
-    "Frigid Flurry",
+    {
+      "type": "cast",
+      "skillId": 71935
+    },
+    {
+      "type": "cast",
+      "skillId": 72028
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 480
     },
-    "Boulder Blast",
+    {
+      "type": "cast",
+      "skillId": 71842
+    },
     {
       "type": "cast",
       "skillId": 77226,
@@ -545,16 +920,31 @@
       "skillId": 2662,
       "concurrentOffsetMs": 40
     },
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 440
     },
-    "Electric Exposure",
-    "Dazing Discharge",
-    "Cyclone",
-    "Elemental Explosion",
+    {
+      "type": "cast",
+      "skillId": 71904
+    },
+    {
+      "type": "cast",
+      "skillId": 71966
+    },
+    {
+      "type": "cast",
+      "skillId": 30008
+    },
+    {
+      "type": "cast",
+      "skillId": 71907
+    },
     {
       "type": "cast",
       "skillId": 5495,
@@ -565,14 +955,23 @@
       "skillId": 71893,
       "interruptAfterMs": 80
     },
-    "Shattering Stone",
-    "Signet of Fire",
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
     {
       "type": "cast",
       "skillId": 77226,
       "concurrentOffsetMs": 320
     },
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 5492,
@@ -583,22 +982,40 @@
       "skillId": 71929,
       "interruptAfterMs": 120
     },
-    "Searing Salvo",
-    "Raging Ricochet",
+    {
+      "type": "cast",
+      "skillId": 71940
+    },
+    {
+      "type": "cast",
+      "skillId": 71828
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 440
     },
-    "Fox's Fury",
-    "Piercing Pebble",
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 76711
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 71893,
       "interruptAfterMs": 80
     },
-    "Shattering Stone",
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
     {
       "type": "cast",
       "skillId": 5493,
@@ -609,16 +1026,31 @@
       "skillId": 72033,
       "interruptAfterMs": 80
     },
-    "Frigid Flurry",
-    "Soothing Splash",
+    {
+      "type": "cast",
+      "skillId": 72028
+    },
+    {
+      "type": "cast",
+      "skillId": 72033
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 120
     },
-    "Boulder Blast",
-    "Calcify",
-    "Signet of Earth",
+    {
+      "type": "cast",
+      "skillId": 71842
+    },
+    {
+      "type": "cast",
+      "skillId": 77226
+    },
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
     {
       "type": "cast",
       "skillId": 5494,
@@ -629,14 +1061,23 @@
       "skillId": 71904,
       "interruptAfterMs": 200
     },
-    "Seismic Impact",
+    {
+      "type": "cast",
+      "skillId": 76707
+    },
     {
       "type": "cast",
       "skillId": 71904,
       "interruptAfterMs": 80
     },
-    "Dazing Discharge",
-    "Lightning Orb",
+    {
+      "type": "cast",
+      "skillId": 71966
+    },
+    {
+      "type": "cast",
+      "skillId": 30795
+    },
     {
       "type": "cast",
       "skillId": 2662,
@@ -647,45 +1088,87 @@
       "skillId": 5495,
       "concurrentOffsetMs": 40
     },
-    "Piercing Pebble",
-    "Shattering Stone",
-    "Piercing Pebble",
-    "Dust Storm",
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
+    {
+      "type": "cast",
+      "skillId": 30336
+    },
     {
       "type": "cast",
       "skillId": 71893,
       "interruptAfterMs": 80
     },
-    "Rejuvenate",
+    {
+      "type": "cast",
+      "skillId": 76634
+    },
     {
       "type": "cast",
       "skillId": 77226,
       "concurrentOffsetMs": 40
     },
-    "Signet of Fire",
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
     {
       "type": "cast",
       "skillId": 77226,
       "concurrentOffsetMs": 480
     },
-    "Fire Attunement",
-    "Searing Salvo",
-    "Wildfire",
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 71940
+    },
+    {
+      "type": "cast",
+      "skillId": 29533
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 520
     },
-    "Shattering Stone",
-    "Water Attunement",
-    "Frozen Fusillade",
-    "Frigid Flurry",
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
+    {
+      "type": "cast",
+      "skillId": 5493
+    },
+    {
+      "type": "cast",
+      "skillId": 71935
+    },
+    {
+      "type": "cast",
+      "skillId": 72028
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 680
     },
-    "Elemental Explosion",
+    {
+      "type": "cast",
+      "skillId": 71907
+    },
     {
       "type": "cast",
       "skillId": 77226,
@@ -696,43 +1179,79 @@
       "skillId": 71893,
       "interruptAfterMs": 80
     },
-    "Boulder Blast",
+    {
+      "type": "cast",
+      "skillId": 71842
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 360
     },
-    "Electric Exposure",
-    "Seismic Impact",
-    "Fox's Fury",
-    "Dazing Discharge",
+    {
+      "type": "cast",
+      "skillId": 71904
+    },
+    {
+      "type": "cast",
+      "skillId": 76707
+    },
+    {
+      "type": "cast",
+      "skillId": 76711
+    },
+    {
+      "type": "cast",
+      "skillId": 71966
+    },
     {
       "type": "cast",
       "skillId": 71904,
       "interruptAfterMs": 40
     },
-    "Cyclone",
+    {
+      "type": "cast",
+      "skillId": 30008
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 360
     },
-    "Signet of Earth",
-    "Shattering Stone",
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 360
     },
-    "Calcify",
-    "Piercing Pebble",
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 77226
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 71893,
       "interruptAfterMs": 240
     },
-    "Signet of Fire",
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
     {
       "type": "cast",
       "skillId": 5492,
@@ -743,27 +1262,60 @@
       "skillId": 71929,
       "interruptAfterMs": 200
     },
-    "Searing Salvo",
-    "Raging Ricochet",
+    {
+      "type": "cast",
+      "skillId": 71940
+    },
+    {
+      "type": "cast",
+      "skillId": 71828
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 320
     },
-    "Piercing Pebble",
-    "Piercing Pebble",
-    "Shattering Stone",
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
+    {
+      "type": "cast",
+      "skillId": 72032
+    },
     {
       "type": "cast",
       "skillId": 5493,
       "concurrentOffsetMs": 360
     },
-    "Soothing Splash",
-    "Frigid Flurry",
-    "Earth Attunement",
-    "Piercing Pebble",
-    "Boulder Blast",
-    "Piercing Pebble",
+    {
+      "type": "cast",
+      "skillId": 72033
+    },
+    {
+      "type": "cast",
+      "skillId": 72028
+    },
+    {
+      "type": "cast",
+      "skillId": 5495
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
+    {
+      "type": "cast",
+      "skillId": 71842
+    },
+    {
+      "type": "cast",
+      "skillId": 71893
+    },
     {
       "type": "cast",
       "skillId": 5494,
@@ -774,12 +1326,18 @@
       "skillId": 77226,
       "concurrentOffsetMs": 400
     },
-    "Dazing Discharge",
+    {
+      "type": "cast",
+      "skillId": 71966
+    },
     {
       "type": "cast",
       "skillId": 71904,
       "interruptAfterMs": 200
     },
-    "Lightning Orb"
+    {
+      "type": "cast",
+      "skillId": 30795
+    }
   ]
 }

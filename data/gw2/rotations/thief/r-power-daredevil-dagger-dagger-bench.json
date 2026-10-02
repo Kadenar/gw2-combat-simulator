@@ -6,228 +6,788 @@
     "benchmarkDps": 43036.21212121212
   },
   "rotation": [
-    "Thieves Guild",
-    "Dodge",
-    "__combat_start",
-    "Cloak and Dagger",
+    {
+      "type": "cast",
+      "skillId": 13082
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "combat-start"
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
     {
       "type": "cast",
       "skillId": 13005,
       "interruptAfterMs": 280
     },
-    "Dodge",
-    "Fist Flurry",
-    "Impairing Daggers",
-    "Palm Strike",
-    "Dodge",
-    "Cloak and Dagger",
-    "Backstab",
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Cloak and Dagger",
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 30868
+    },
+    {
+      "type": "cast",
+      "skillId": 30369
+    },
+    {
+      "type": "cast",
+      "skillId": 30693
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
+    {
+      "type": "cast",
+      "skillId": 13005
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
     {
       "type": "cast",
       "skillId": 13005,
       "interruptAfterMs": 280
     },
-    "Steal",
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Cloak and Dagger",
-    "Backstab",
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Fist Flurry",
-    "Impairing Daggers",
-    "Palm Strike",
-    "Dodge",
-    "Cloak and Dagger",
+    {
+      "type": "cast",
+      "skillId": 13014
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
+    {
+      "type": "cast",
+      "skillId": 13005
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 30868
+    },
+    {
+      "type": "cast",
+      "skillId": 30369
+    },
+    {
+      "type": "cast",
+      "skillId": 30693
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
     {
       "type": "cast",
       "skillId": 13005,
       "interruptAfterMs": 280
     },
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Cloak and Dagger",
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
     {
       "type": "cast",
       "skillId": 13005,
       "interruptAfterMs": 280
     },
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Cloak and Dagger",
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
     {
       "type": "cast",
       "skillId": 13005,
       "interruptAfterMs": 280
     },
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Fist Flurry",
-    "Impairing Daggers",
-    "Palm Strike",
-    "Dodge",
-    "Cloak and Dagger",
-    "Backstab",
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Cloak and Dagger",
-    "Backstab",
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Cloak and Dagger",
-    "Backstab",
-    "Dodge",
-    "Fist Flurry",
-    "Impairing Daggers",
-    "Palm Strike",
-    "Steal",
-    "Dodge",
-    "Cloak and Dagger",
-    "Backstab",
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Cloak and Dagger",
-    "Backstab",
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Cloak and Dagger",
-    "Backstab",
-    "Dodge",
-    "Fist Flurry",
-    "Impairing Daggers",
-    "Palm Strike",
-    "Dodge",
-    "Cloak and Dagger",
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 30868
+    },
+    {
+      "type": "cast",
+      "skillId": 30369
+    },
+    {
+      "type": "cast",
+      "skillId": 30693
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
+    {
+      "type": "cast",
+      "skillId": 13005
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
+    {
+      "type": "cast",
+      "skillId": 13005
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
+    {
+      "type": "cast",
+      "skillId": 13005
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 30868
+    },
+    {
+      "type": "cast",
+      "skillId": 30369
+    },
+    {
+      "type": "cast",
+      "skillId": 30693
+    },
+    {
+      "type": "cast",
+      "skillId": 13014
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
+    {
+      "type": "cast",
+      "skillId": 13005
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
+    {
+      "type": "cast",
+      "skillId": 13005
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
+    {
+      "type": "cast",
+      "skillId": 13005
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 30868
+    },
+    {
+      "type": "cast",
+      "skillId": 30369
+    },
+    {
+      "type": "cast",
+      "skillId": 30693
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
     {
       "type": "cast",
       "skillId": 13005,
       "interruptAfterMs": 280
     },
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Steal",
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Cloak and Dagger",
-    "Backstab",
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Cloak and Dagger",
-    "Backstab",
-    "Dodge",
-    "Fist Flurry",
-    "Impairing Daggers",
-    "Palm Strike",
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Cloak and Dagger",
-    "Backstab",
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Cloak and Dagger",
-    "Backstab",
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Dodge",
-    "Double Strike",
-    "Wild Strike",
-    "Lotus Strike",
-    "Fist Flurry",
-    "Impairing Daggers",
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13014
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
+    {
+      "type": "cast",
+      "skillId": 13005
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
+    {
+      "type": "cast",
+      "skillId": 13005
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 30868
+    },
+    {
+      "type": "cast",
+      "skillId": 30369
+    },
+    {
+      "type": "cast",
+      "skillId": 30693
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
+    {
+      "type": "cast",
+      "skillId": 13005
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
+    {
+      "type": "cast",
+      "skillId": 13005
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
+    {
+      "type": "cast",
+      "skillId": 13087
+    },
+    {
+      "type": "cast",
+      "skillId": 13108
+    },
+    {
+      "type": "cast",
+      "skillId": 30868
+    },
+    {
+      "type": "cast",
+      "skillId": 30369
+    },
     {
       "type": "cast",
       "skillId": 13046,
       "concurrentOffsetMs": 360
     },
-    "Palm Strike",
-    "Dodge",
-    "Cloak and Dagger",
-    "Backstab",
-    "Dodge",
-    "Heartseeker",
-    "Heartseeker",
-    "Double Strike",
+    {
+      "type": "cast",
+      "skillId": 30693
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 16432
+    },
+    {
+      "type": "cast",
+      "skillId": 13005
+    },
+    {
+      "type": "cast",
+      "skillId": -5
+    },
+    {
+      "type": "cast",
+      "skillId": 13097
+    },
+    {
+      "type": "cast",
+      "skillId": 13097
+    },
+    {
+      "type": "cast",
+      "skillId": 13004
+    },
     {
       "type": "cast",
       "skillId": 13087,

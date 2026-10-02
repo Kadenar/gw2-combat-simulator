@@ -1,28 +1,54 @@
 {
   "rotation": [
-    "Rock Barrier",
-    "Fire Attunement",
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
     {
       "type": "wait",
       "durationMs": 5000
     },
-    "__combat_start",
-    "Dragon's Tooth",
+    {
+      "type": "combat-start"
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 0
     },
-    "Glyph of Storms (Fire)",
+    {
+      "type": "cast",
+      "skillId": 5736
+    },
     {
       "type": "cast",
       "skillId": 62813,
       "concurrentOffsetMs": 960
     },
-    "Relentless Fire",
-    "Phoenix",
-    "Fire Grab",
-    "Ring of Fire",
+    {
+      "type": "cast",
+      "skillId": 62965
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
     {
       "type": "cast",
       "skillId": 5539,
@@ -33,7 +59,10 @@
       "skillId": 5495,
       "concurrentOffsetMs": 200
     },
-    "Earthquake",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
     {
       "type": "cast",
       "skillId": 62837,
@@ -44,8 +73,14 @@
       "skillId": 5780,
       "concurrentOffsetMs": 280
     },
-    "Dust Devil",
-    "Churning Earth",
+    {
+      "type": "cast",
+      "skillId": 5696
+    },
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
     {
       "type": "cast",
       "skillId": 5494,
@@ -61,34 +96,73 @@
       "skillId": 5561,
       "concurrentOffsetMs": 440
     },
-    "Ride the Lightning",
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
     {
       "type": "cast",
       "skillId": 5526,
       "interruptAfterMs": 480
     },
-    "Water Attunement",
-    "Shatterstone",
+    {
+      "type": "cast",
+      "skillId": 5493
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
     {
       "type": "cast",
       "skillId": 5520,
       "concurrentOffsetMs": 160
     },
-    "Water Trident",
-    "Ice Shards",
-    "Ice Shards",
-    "Ice Shards",
-    "Water Trident",
-    "Shatterstone",
-    "Ice Shards",
-    "Ice Shards",
-    "Ice Shards",
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 320
     },
-    "Dragon's Tooth",
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
     {
       "type": "cast",
       "skillId": 5539,
@@ -99,8 +173,14 @@
       "skillId": 2662,
       "concurrentOffsetMs": 240
     },
-    "Flamestrike",
-    "Flamestrike",
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
     {
       "type": "cast",
       "skillId": 5539,
@@ -111,18 +191,39 @@
       "skillId": 5508,
       "interruptAfterMs": 40
     },
-    "Ring of Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
     {
       "type": "cast",
       "skillId": 5508,
       "interruptAfterMs": 40
     },
-    "Phoenix",
-    "Fire Grab",
-    "Dragon's Tooth",
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
     {
       "type": "cast",
       "skillId": 62813,
@@ -133,53 +234,104 @@
       "skillId": 5495,
       "concurrentOffsetMs": 280
     },
-    "Earthquake",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
     {
       "type": "cast",
       "skillId": 62837,
       "concurrentOffsetMs": 280
     },
-    "Relentless Fire",
-    "Rock Barrier",
-    "Dust Devil",
+    {
+      "type": "cast",
+      "skillId": 62965
+    },
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5696
+    },
     {
       "type": "cast",
       "skillId": 5780,
       "concurrentOffsetMs": 160
     },
-    "Air Attunement",
+    {
+      "type": "cast",
+      "skillId": 5494
+    },
     {
       "type": "cast",
       "skillId": 5526,
       "interruptAfterMs": 320
     },
-    "Deploy Jade Sphere (Air)",
-    "Lightning Strike",
-    "Ride the Lightning",
+    {
+      "type": "cast",
+      "skillId": 62940
+    },
+    {
+      "type": "cast",
+      "skillId": 5561
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
     {
       "type": "cast",
       "skillId": 5526,
       "interruptAfterMs": 1040
     },
-    "Water Attunement",
-    "Shatterstone",
+    {
+      "type": "cast",
+      "skillId": 5493
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
     {
       "type": "cast",
       "skillId": 5520,
       "concurrentOffsetMs": 120
     },
-    "Water Trident",
-    "Ice Shards",
-    "Ice Shards",
-    "Ice Shards",
-    "Water Trident",
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 160
     },
-    "Shatterstone",
-    "Ice Shards",
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
     {
       "type": "cast",
       "skillId": 5492,
@@ -190,20 +342,47 @@
       "skillId": 5508,
       "interruptAfterMs": 80
     },
-    "Dragon's Tooth",
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
     {
       "type": "cast",
       "skillId": 5539,
       "concurrentOffsetMs": 120
     },
-    "Ring of Fire",
-    "Glyph of Storms (Fire)",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Fire Grab",
-    "Dragon's Tooth",
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5736
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
     {
       "type": "cast",
       "skillId": 62813,
@@ -219,20 +398,32 @@
       "skillId": 5500,
       "interruptAfterMs": 40
     },
-    "Earthquake",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
     {
       "type": "cast",
       "skillId": 62837,
       "concurrentOffsetMs": 280
     },
-    "Rock Barrier",
-    "Dust Devil",
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5696
+    },
     {
       "type": "cast",
       "skillId": 5780,
       "concurrentOffsetMs": 280
     },
-    "Churning Earth",
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
     {
       "type": "cast",
       "skillId": 5494,
@@ -243,57 +434,120 @@
       "skillId": 5561,
       "concurrentOffsetMs": 440
     },
-    "Ride the Lightning",
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
     {
       "type": "cast",
       "skillId": 5526,
       "interruptAfterMs": 600
     },
-    "Water Attunement",
-    "Shatterstone",
+    {
+      "type": "cast",
+      "skillId": 5493
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
     {
       "type": "cast",
       "skillId": 5520,
       "concurrentOffsetMs": 120
     },
-    "Water Trident",
-    "Ice Shards",
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 80
     },
-    "Ice Shards",
-    "Ice Shards",
-    "Ice Shards",
-    "Ice Shards",
-    "Ice Shards",
-    "Shatterstone",
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 120
     },
-    "Dragon's Tooth",
-    "Ring of Fire",
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
     {
       "type": "cast",
       "skillId": 5539,
       "concurrentOffsetMs": 200
     },
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Relentless Fire",
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 62965
+    },
     {
       "type": "cast",
       "skillId": 62813,
       "concurrentOffsetMs": 40
     },
-    "Phoenix",
-    "Fire Grab",
-    "Dragon's Tooth",
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
     {
       "type": "cast",
       "skillId": 5495,
@@ -304,14 +558,23 @@
       "skillId": 5500,
       "interruptAfterMs": 40
     },
-    "Earthquake",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
     {
       "type": "cast",
       "skillId": 62837,
       "concurrentOffsetMs": 280
     },
-    "Rock Barrier",
-    "Dust Devil",
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5696
+    },
     {
       "type": "cast",
       "skillId": 5780,
@@ -322,10 +585,22 @@
       "skillId": 5500,
       "interruptAfterMs": 400
     },
-    "Air Attunement",
-    "Deploy Jade Sphere (Air)",
-    "Lightning Strike",
-    "Ride the Lightning",
+    {
+      "type": "cast",
+      "skillId": 5494
+    },
+    {
+      "type": "cast",
+      "skillId": 62940
+    },
+    {
+      "type": "cast",
+      "skillId": 5561
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
     {
       "type": "cast",
       "skillId": 5526,
@@ -336,40 +611,97 @@
       "skillId": 2662,
       "concurrentOffsetMs": 480
     },
-    "Water Attunement",
-    "Shatterstone",
+    {
+      "type": "cast",
+      "skillId": 5493
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
     {
       "type": "cast",
       "skillId": 5520,
       "concurrentOffsetMs": 160
     },
-    "Water Trident",
-    "Ice Shards",
-    "Ice Shards",
-    "Ice Shards",
-    "Ice Shards",
-    "Ice Shards",
-    "Water Trident",
-    "Shatterstone",
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 80
     },
-    "Dragon's Tooth",
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
     {
       "type": "cast",
       "skillId": 5539,
       "concurrentOffsetMs": 120
     },
-    "Ring of Fire",
-    "Glyph of Storms (Fire)",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Fire Grab",
-    "Dragon's Tooth",
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5736
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
     {
       "type": "cast",
       "skillId": 62813,
@@ -380,7 +712,10 @@
       "skillId": 5495,
       "concurrentOffsetMs": 360
     },
-    "Earthquake",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
     {
       "type": "cast",
       "skillId": 62837,
@@ -391,15 +726,27 @@
       "skillId": 2662,
       "concurrentOffsetMs": 360
     },
-    "Relentless Fire",
-    "Rock Barrier",
-    "Dust Devil",
+    {
+      "type": "cast",
+      "skillId": 62965
+    },
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5696
+    },
     {
       "type": "cast",
       "skillId": 5780,
       "concurrentOffsetMs": 240
     },
-    "Churning Earth",
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
     {
       "type": "cast",
       "skillId": 5494,
@@ -410,44 +757,98 @@
       "skillId": 5561,
       "concurrentOffsetMs": 400
     },
-    "Ride the Lightning",
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
     {
       "type": "cast",
       "skillId": 5526,
       "interruptAfterMs": 520
     },
-    "Water Attunement",
-    "Shatterstone",
+    {
+      "type": "cast",
+      "skillId": 5493
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
     {
       "type": "cast",
       "skillId": 5520,
       "concurrentOffsetMs": 120
     },
-    "Water Trident",
-    "Ice Shards",
-    "Ice Shards",
-    "Ice Shards",
-    "Ice Shards",
-    "Water Trident",
-    "Shatterstone",
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 320
     },
-    "Dragon's Tooth",
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
     {
       "type": "cast",
       "skillId": 5539,
       "concurrentOffsetMs": 240
     },
-    "Ring of Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
     {
       "type": "cast",
       "skillId": 62813,
@@ -458,21 +859,36 @@
       "skillId": 2662,
       "concurrentOffsetMs": 280
     },
-    "Fire Grab",
-    "Dragon's Tooth",
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 360
     },
-    "Earthquake",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
     {
       "type": "cast",
       "skillId": 62837,
       "concurrentOffsetMs": 280
     },
-    "Rock Barrier",
-    "Dust Devil",
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5696
+    },
     {
       "type": "cast",
       "skillId": 5780,
@@ -483,60 +899,132 @@
       "skillId": 5500,
       "interruptAfterMs": 400
     },
-    "Air Attunement",
-    "Deploy Jade Sphere (Air)",
-    "Lightning Strike",
-    "Ride the Lightning",
+    {
+      "type": "cast",
+      "skillId": 5494
+    },
+    {
+      "type": "cast",
+      "skillId": 62940
+    },
+    {
+      "type": "cast",
+      "skillId": 5561
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
     {
       "type": "cast",
       "skillId": 5526,
       "interruptAfterMs": 360
     },
-    "Glyph of Storms (Air)",
+    {
+      "type": "cast",
+      "skillId": 5737
+    },
     {
       "type": "cast",
       "skillId": 5493,
       "concurrentOffsetMs": 720
     },
-    "Relentless Fire",
-    "Water Trident",
+    {
+      "type": "cast",
+      "skillId": 62965
+    },
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
     {
       "type": "cast",
       "skillId": 5520,
       "concurrentOffsetMs": 440
     },
-    "Shatterstone",
-    "Ice Shards",
-    "Ice Shards",
-    "Ice Shards",
-    "Ice Shards",
-    "Ice Shards",
-    "Shatterstone",
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 160
     },
-    "Dragon's Tooth",
-    "Ring of Fire",
-    "Flamestrike",
-    "Flamestrike",
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
     {
       "type": "cast",
       "skillId": 5539,
       "concurrentOffsetMs": 80
     },
-    "Flamestrike",
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 120
     },
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Fire Grab",
-    "Dragon's Tooth",
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
     {
       "type": "cast",
       "skillId": 62813,
@@ -547,15 +1035,27 @@
       "skillId": 5495,
       "concurrentOffsetMs": 320
     },
-    "Earthquake",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
     {
       "type": "cast",
       "skillId": 62837,
       "concurrentOffsetMs": 280
     },
-    "Rock Barrier",
-    "Dust Devil",
-    "Churning Earth",
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5696
+    },
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
     {
       "type": "cast",
       "skillId": 5780,
@@ -571,35 +1071,77 @@
       "skillId": 5561,
       "concurrentOffsetMs": 600
     },
-    "Ride the Lightning",
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
     {
       "type": "cast",
       "skillId": 5526,
       "interruptAfterMs": 760
     },
-    "Water Attunement",
-    "Shatterstone",
+    {
+      "type": "cast",
+      "skillId": 5493
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
     {
       "type": "cast",
       "skillId": 5520,
       "concurrentOffsetMs": 120
     },
-    "Water Trident",
-    "Ice Shards",
-    "Ice Shards",
-    "Deploy Jade Sphere (Water)",
-    "Ice Shards",
-    "Relentless Fire",
-    "Water Trident",
-    "Shatterstone",
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 62723
+    },
+    {
+      "type": "cast",
+      "skillId": 5693
+    },
+    {
+      "type": "cast",
+      "skillId": 62965
+    },
+    {
+      "type": "cast",
+      "skillId": 5510
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
     {
       "type": "cast",
       "skillId": 5693,
       "interruptAfterMs": 280
     },
-    "Fire Attunement",
-    "Phoenix",
-    "Ring of Fire",
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
     {
       "type": "cast",
       "skillId": 2662,

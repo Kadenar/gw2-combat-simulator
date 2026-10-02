@@ -1,3 +1,4 @@
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { quantizeGw2ActionTimingMs, referenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -31,20 +32,18 @@ function restoreLegacyDevastatorCast(
   return { ...action, end: action.start + castTimeMs, status: 'completed', expectedDurationMs: castTimeMs };
 }
 
-function kitName(skill: EngineerSkill | null): string | null {
-  if (skill?.kitTransition !== 'equip') return null;
-  const name = String(skill.kitName || skill.name || '').trim();
-  return name || null;
+/** Equip IDs connect recorded bundle skills to their equip and stow actions. */
+function equippedKitId(skill: EngineerSkill | null): SkillId | null {
+  return skill?.kitTransition === 'equip' ? skill.id : null;
 }
 
 function kitStow(
   context: LogActionNormalizationContext,
-  kit: string,
+  kit: SkillId,
   action: RecordedLogAction
 ): RecordedLogAction | null {
   const skill = context.catalog?.skills.find(
-    (candidate) =>
-      (candidate as EngineerSkill).kitTransition === 'stow' && normalized(candidate.kit) === normalized(kit)
+    (candidate) => (candidate as EngineerSkill).kitTransition === 'stow' && candidate.kitId === kit
   );
   if (!skill || typeof skill.id !== 'number') return null;
   return {
@@ -64,7 +63,7 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
   const sorted = context.recordedActions
     .map((action) => restoreLegacyDevastatorCast(context, action))
     .map((action) => {
-      const equippedKit = kitName(recordedActionSkill(action, context));
+      const equippedKit = equippedKitId(recordedActionSkill(action, context));
       if (!equippedKit) return action;
       // EI derives both rows from one kit transition; snap their millisecond jitter so an outgoing weapon cast wins the tie.
       const signal = kitSwapSignals.find(
@@ -74,9 +73,7 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
         ? context.recordedActions.find((candidate) => {
             const skill = recordedActionSkill(candidate, context);
             return (
-              candidate.start === signal.start &&
-              normalized(skill?.type) === 'weapon' &&
-              normalized(skill?.kit) !== normalized(equippedKit)
+              candidate.start === signal.start && normalized(skill?.type) === 'weapon' && skill?.kitId !== equippedKit
             );
           })
         : null;
@@ -85,7 +82,7 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
     .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const result: RecordedLogAction[] = [];
   const forgeTransitions = sorted.filter((action) => PHOTON_FORGE_TRANSITION_IDS.has(action.rawSkillId));
-  let activeKit: string | null = null;
+  let activeKit: SkillId | null = null;
   let lastKitEquip: RecordedLogAction | null = null;
 
   for (const action of sorted) {
@@ -99,7 +96,7 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
       lastKitEquip = null;
     }
 
-    const equippedKit = kitName(skill);
+    const equippedKit = equippedKitId(skill);
     if (equippedKit) {
       result.push(action);
       activeKit = equippedKit;

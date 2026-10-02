@@ -8,90 +8,261 @@
     "petCadenceSource": "EVTC Carrion Devourer and Fanged Iboga activation timeline"
   },
   "rotation": [
-    "Summon Cyclone Bow",
-    "Bluster",
-    "Poisonous Cloud",
+    {
+      "type": "cast",
+      "skillId": 76787
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 12675
+    },
     {
       "type": "combat-start",
       "concurrentOffsetMs": 520
     },
-    "Supersonic Arrow",
-    "Perfect Storm",
-    "Quarry's Peril",
-    "Mistral",
-    "Bluster",
-    "Hawkeye",
-    "Dismiss Cyclone Bow",
+    {
+      "type": "cast",
+      "skillId": 77174
+    },
+    {
+      "type": "cast",
+      "skillId": 76979
+    },
+    {
+      "type": "cast",
+      "skillId": 76807
+    },
+    {
+      "type": "cast",
+      "skillId": 76757
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 76664
+    },
+    {
+      "type": "cast",
+      "skillId": 77213
+    },
     {
       "type": "cast",
       "skillId": -4,
       "concurrentOffsetMs": 0
     },
-    "Rapid Fire",
-    "Piercing Gales",
-    "Swap Weapons",
-    "Splitblade",
-    "Winter's Bite",
+    {
+      "type": "cast",
+      "skillId": 12509
+    },
+    {
+      "type": "cast",
+      "skillId": 77264
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
+    {
+      "type": "cast",
+      "skillId": 12490
+    },
     {
       "type": "cast",
       "skillId": 45262
     },
-    "Path of Scars (Max Range)",
-    "Summon Cyclone Bow",
-    "Bluster",
-    "Fleeting Zephyr",
-    "Keen Shot",
-    "Keen Shot",
-    "Keen Shot",
-    "Bluster",
-    "Quarry's Peril",
-    "Bluster",
-    "Hawkeye",
-    "Dismiss Cyclone Bow",
-    "Splitblade",
+    {
+      "type": "cast",
+      "skillId": -1001
+    },
+    {
+      "type": "cast",
+      "skillId": 76787
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 77012
+    },
+    {
+      "type": "cast",
+      "skillId": 77183
+    },
+    {
+      "type": "cast",
+      "skillId": 77183
+    },
+    {
+      "type": "cast",
+      "skillId": 77183
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 76807
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 76664
+    },
+    {
+      "type": "cast",
+      "skillId": 77213
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
     {
       "type": "cast",
       "skillId": 12639,
       "interruptAfterMs": 1320
     },
-    "Swap Weapons",
-    "Point-Blank Shot",
-    "Rapid Fire",
-    "Barrage",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 12511
+    },
+    {
+      "type": "cast",
+      "skillId": 12509
+    },
+    {
+      "type": "cast",
+      "skillId": 12469
+    },
     {
       "type": "cast",
       "skillId": 76787,
       "concurrentOffsetMs": 280
     },
-    "Bluster",
-    "Supersonic Arrow",
-    "Quarry's Peril",
-    "Mistral",
-    "Piercing Gales",
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 77174
+    },
+    {
+      "type": "cast",
+      "skillId": 76807
+    },
+    {
+      "type": "cast",
+      "skillId": 76757
+    },
+    {
+      "type": "cast",
+      "skillId": 77264
+    },
     {
       "type": "cast",
       "skillId": 45262
     },
-    "Bluster",
-    "Hawkeye",
-    "Dismiss Cyclone Bow",
-    "Rapid Fire",
-    "Swap Weapons",
-    "Splitblade",
-    "Winter's Bite",
-    "Path of Scars (Max Range)",
-    "Summon Cyclone Bow",
-    "Bluster",
-    "Fleeting Zephyr",
-    "Keen Shot",
-    "Keen Shot",
-    "Keen Shot",
-    "Bluster",
-    "Quarry's Peril",
-    "Bluster",
-    "Hawkeye",
-    "Dismiss Cyclone Bow",
-    "Splitblade",
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 76664
+    },
+    {
+      "type": "cast",
+      "skillId": 77213
+    },
+    {
+      "type": "cast",
+      "skillId": 12509
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
+    {
+      "type": "cast",
+      "skillId": 12490
+    },
+    {
+      "type": "cast",
+      "skillId": -1001
+    },
+    {
+      "type": "cast",
+      "skillId": 76787
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 77012
+    },
+    {
+      "type": "cast",
+      "skillId": 77183
+    },
+    {
+      "type": "cast",
+      "skillId": 77183
+    },
+    {
+      "type": "cast",
+      "skillId": 77183
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 76807
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 76664
+    },
+    {
+      "type": "cast",
+      "skillId": 77213
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
     {
       "type": "cast",
       "skillId": 12639,
@@ -102,143 +273,410 @@
       "skillId": -4,
       "concurrentOffsetMs": 480
     },
-    "Poisonous Cloud",
-    "Swap Weapons",
-    "Point-Blank Shot",
-    "Rapid Fire",
-    "Barrage",
+    {
+      "type": "cast",
+      "skillId": 12675
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 12511
+    },
+    {
+      "type": "cast",
+      "skillId": 12509
+    },
+    {
+      "type": "cast",
+      "skillId": 12469
+    },
     {
       "type": "cast",
       "skillId": 76787,
       "concurrentOffsetMs": 320
     },
-    "Bluster",
-    "Perfect Storm",
-    "Supersonic Arrow",
-    "Quarry's Peril",
-    "Mistral",
-    "Bluster",
-    "Hawkeye",
-    "Dismiss Cyclone Bow",
-    "Rapid Fire",
-    "Piercing Gales",
-    "Swap Weapons",
-    "Splitblade",
-    "Winter's Bite",
-    "Path of Scars (Max Range)",
-    "Summon Cyclone Bow",
-    "Bluster",
-    "Fleeting Zephyr",
-    "Keen Shot",
-    "Keen Shot",
-    "Keen Shot",
-    "Bluster",
-    "Quarry's Peril",
-    "Bluster",
-    "Hawkeye",
-    "Dismiss Cyclone Bow",
-    "Splitblade",
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 76979
+    },
+    {
+      "type": "cast",
+      "skillId": 77174
+    },
+    {
+      "type": "cast",
+      "skillId": 76807
+    },
+    {
+      "type": "cast",
+      "skillId": 76757
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 76664
+    },
+    {
+      "type": "cast",
+      "skillId": 77213
+    },
+    {
+      "type": "cast",
+      "skillId": 12509
+    },
+    {
+      "type": "cast",
+      "skillId": 77264
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
+    {
+      "type": "cast",
+      "skillId": 12490
+    },
+    {
+      "type": "cast",
+      "skillId": -1001
+    },
+    {
+      "type": "cast",
+      "skillId": 76787
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 77012
+    },
+    {
+      "type": "cast",
+      "skillId": 77183
+    },
+    {
+      "type": "cast",
+      "skillId": 77183
+    },
+    {
+      "type": "cast",
+      "skillId": 77183
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 76807
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 76664
+    },
+    {
+      "type": "cast",
+      "skillId": 77213
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
     {
       "type": "cast",
       "skillId": 12639,
       "interruptAfterMs": 1320
     },
-    "Swap Weapons",
-    "Point-Blank Shot",
-    "Rapid Fire",
-    "Barrage",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 12511
+    },
+    {
+      "type": "cast",
+      "skillId": 12509
+    },
+    {
+      "type": "cast",
+      "skillId": 12469
+    },
     {
       "type": "cast",
       "skillId": 76787,
       "concurrentOffsetMs": 400
     },
-    "Bluster",
-    "Supersonic Arrow",
-    "Quarry's Peril",
-    "Mistral",
-    "Piercing Gales",
-    "Bluster",
-    "Hawkeye",
-    "Poisonous Cloud",
-    "Dismiss Cyclone Bow",
-    "Rapid Fire",
-    "Swap Weapons",
-    "Splitblade",
-    "Winter's Bite",
-    "Path of Scars (Max Range)",
-    "Summon Cyclone Bow",
-    "Bluster",
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 77174
+    },
+    {
+      "type": "cast",
+      "skillId": 76807
+    },
+    {
+      "type": "cast",
+      "skillId": 76757
+    },
+    {
+      "type": "cast",
+      "skillId": 77264
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 76664
+    },
+    {
+      "type": "cast",
+      "skillId": 12675
+    },
+    {
+      "type": "cast",
+      "skillId": 77213
+    },
+    {
+      "type": "cast",
+      "skillId": 12509
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
+    {
+      "type": "cast",
+      "skillId": 12490
+    },
+    {
+      "type": "cast",
+      "skillId": -1001
+    },
+    {
+      "type": "cast",
+      "skillId": 76787
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
     {
       "type": "cast",
       "skillId": -4,
       "concurrentOffsetMs": 640
     },
-    "Fleeting Zephyr",
-    "Keen Shot",
-    "Keen Shot",
-    "Keen Shot",
-    "Bluster",
+    {
+      "type": "cast",
+      "skillId": 77012
+    },
+    {
+      "type": "cast",
+      "skillId": 77183
+    },
+    {
+      "type": "cast",
+      "skillId": 77183
+    },
+    {
+      "type": "cast",
+      "skillId": 77183
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
     {
       "type": "cast",
       "skillId": 76807,
       "interruptAfterMs": 480
     },
-    "Bluster",
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
     {
       "type": "cast",
       "skillId": 45262
     },
-    "Hawkeye",
-    "Dismiss Cyclone Bow",
-    "Splitblade",
+    {
+      "type": "cast",
+      "skillId": 76664
+    },
+    {
+      "type": "cast",
+      "skillId": 77213
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
     {
       "type": "cast",
       "skillId": 12639,
       "interruptAfterMs": 1320
     },
-    "Swap Weapons",
-    "Point-Blank Shot",
-    "Rapid Fire",
-    "Barrage",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 12511
+    },
+    {
+      "type": "cast",
+      "skillId": 12509
+    },
+    {
+      "type": "cast",
+      "skillId": 12469
+    },
     {
       "type": "cast",
       "skillId": 76787,
       "concurrentOffsetMs": 320
     },
-    "Bluster",
-    "Perfect Storm",
-    "Supersonic Arrow",
-    "Quarry's Peril",
-    "Mistral",
-    "Bluster",
-    "Hawkeye",
-    "Dismiss Cyclone Bow",
-    "Rapid Fire",
-    "Piercing Gales",
-    "Swap Weapons",
-    "Splitblade",
-    "Winter's Bite",
-    "Path of Scars (Max Range)",
-    "Summon Cyclone Bow",
-    "Bluster",
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 76979
+    },
+    {
+      "type": "cast",
+      "skillId": 77174
+    },
+    {
+      "type": "cast",
+      "skillId": 76807
+    },
+    {
+      "type": "cast",
+      "skillId": 76757
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 76664
+    },
+    {
+      "type": "cast",
+      "skillId": 77213
+    },
+    {
+      "type": "cast",
+      "skillId": 12509
+    },
+    {
+      "type": "cast",
+      "skillId": 77264
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
+    {
+      "type": "cast",
+      "skillId": 12490
+    },
+    {
+      "type": "cast",
+      "skillId": -1001
+    },
+    {
+      "type": "cast",
+      "skillId": 76787
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
     {
       "type": "cast",
       "skillId": 45262
     },
-    "Fleeting Zephyr",
-    "Keen Shot",
-    "Keen Shot",
-    "Keen Shot",
-    "Bluster",
+    {
+      "type": "cast",
+      "skillId": 77012
+    },
+    {
+      "type": "cast",
+      "skillId": 77183
+    },
+    {
+      "type": "cast",
+      "skillId": 77183
+    },
+    {
+      "type": "cast",
+      "skillId": 77183
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
     {
       "type": "cast",
       "skillId": 76807,
       "interruptAfterMs": 400
     },
-    "Bluster",
-    "Hawkeye",
-    "Dismiss Cyclone Bow",
-    "Splitblade",
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 76664
+    },
+    {
+      "type": "cast",
+      "skillId": 77213
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
     {
       "type": "cast",
       "skillId": 12639,
@@ -249,23 +687,59 @@
       "skillId": -4,
       "concurrentOffsetMs": 360
     },
-    "Poisonous Cloud",
-    "Swap Weapons",
-    "Point-Blank Shot",
-    "Rapid Fire",
-    "Barrage",
+    {
+      "type": "cast",
+      "skillId": 12675
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 12511
+    },
+    {
+      "type": "cast",
+      "skillId": 12509
+    },
+    {
+      "type": "cast",
+      "skillId": 12469
+    },
     {
       "type": "cast",
       "skillId": 76787,
       "concurrentOffsetMs": 360
     },
-    "Bluster",
-    "Supersonic Arrow",
-    "Mistral",
-    "Piercing Gales",
-    "Quarry's Peril",
-    "Bluster",
-    "Hawkeye",
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 77174
+    },
+    {
+      "type": "cast",
+      "skillId": 76757
+    },
+    {
+      "type": "cast",
+      "skillId": 77264
+    },
+    {
+      "type": "cast",
+      "skillId": 76807
+    },
+    {
+      "type": "cast",
+      "skillId": 77319
+    },
+    {
+      "type": "cast",
+      "skillId": 76664
+    },
     {
       "type": "cast",
       "skillId": 77213

@@ -94,7 +94,7 @@ test('skill metadata classifies transforms, kits, shrouds, and effects', () => {
 
   assert.equal(
     weaponStrengthProfileIdForEvent(event, {
-      skill: { id: 1, name: 'Kit', kit: 'Grenade Kit' }
+      skill: { id: 1, name: 'Kit', kitId: 5805 }
     }),
     'bundle.ascended'
   );

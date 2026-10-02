@@ -44,11 +44,28 @@ function assertIsolated(bind, catalogs, read, expected) {
 }
 
 test('Engineer Core and elite toolbelts use their own catalogs without Core binding side effects', () => {
-  const catalogs = [1, 2].map((id) => catalog(skill(id, 'Toolbelt', { toolbeltParentName: 'Heal' })));
+  const catalogs = [1, 2].map((id) => catalog(skill(100, 'Heal'), skill(id, 'Toolbelt', { toolbeltParentId: 100 })));
   const context = { config: { selectedSkills: ['Heal'] } };
   for (const bind of [bindEngineerCoreUi, bindHolosmithUi, bindAmalgamUi, bindScrapperUi]) {
     assertIsolated(bind, catalogs, (ui) => groupIds(ui, context, 'engineer-profession')[0], [1, 2]);
   }
+});
+
+// Renaming a kit changes its label, never its bundle membership, active state, or parent relationship.
+test('Engineer kit and toolbelt projections follow IDs when catalog labels change', () => {
+  const equip = skill(5805, 'Renamed bundle', { kitTransition: 'equip' });
+  const grenade = skill(5807, 'Renamed attack', { kitId: equip.id, slot: 'Weapon_1' });
+  const toolbelt = skill(5810, 'Renamed toolbelt', { toolbeltParentId: equip.id });
+  const ui = bindEngineerCoreUi(catalog(equip, grenade, toolbelt));
+  const context = { config: { selectedSkills: [equip.name] }, professionState: { activeKit: equip.id } };
+  assert.deepEqual(groupIds(ui, context, 'engineer-kit-5805'), [grenade.id]);
+  assert.deepEqual(groupIds(ui, context, 'engineer-profession'), [toolbelt.id]);
+  assert.equal(ui.paletteSkillAvailability(context, grenade).available, true);
+  assert.equal(ui.paletteSkillAvailability(context, equip).available, false);
+  assert.deepEqual(ui.paletteSkillAvailability({ professionState: { activeKit: null } }, grenade), {
+    available: false,
+    message: 'Equip Renamed bundle first'
+  });
 });
 
 test('Engineer Forge and protocol controls retain their local skill lists and lookups', () => {

@@ -349,14 +349,9 @@ test('Thief defaults migrate deterministic assumptions and validate bars', () =>
     }
   });
 
-  assert.equal(Object.hasOwn(migrated.assumptions, 'artifactDrawSequence'), false);
-  assert.equal(Object.hasOwn(migrated.assumptions, 'doubleEdgeOutcomeSequence'), false);
   assert.equal(migrated.assumptions.forgedSurferBombsHit, '2');
-  assert.equal(Object.hasOwn(migrated.assumptions, 'markedTargetChoice'), false);
   assert.equal(Object.hasOwn(migrated.assumptions, 'playerHealthPercent'), false);
   assert.equal(Object.hasOwn(migrated.assumptions, 'targetDistance'), false);
-  assert.equal(Object.hasOwn(migrated.assumptions, 'stolenSkillChoice'), false);
-  assert.equal(Object.hasOwn(migrated.assumptions, 'deadeyeStolenSkillChoice'), false);
   assert.equal(
     thiefProfession.ui.assumptionControls.some((control) => control.key === 'markedTargetChoice'),
     false

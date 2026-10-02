@@ -1,14 +1,29 @@
 {
   "rotation": [
-    "Icy Coil",
-    "Fire Attunement",
-    "Flame Wheel",
-    "Air Attunement",
+    {
+      "type": "cast",
+      "skillId": 62834
+    },
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 62758
+    },
+    {
+      "type": "cast",
+      "skillId": 5494
+    },
     {
       "type": "wait",
       "durationMs": 4500
     },
-    "Shock Blast",
+    {
+      "type": "cast",
+      "skillId": 62716
+    },
     {
       "type": "combat-start",
       "concurrentOffsetMs": 120
@@ -23,7 +38,10 @@
       "skillId": 2662,
       "concurrentOffsetMs": 0
     },
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 5539,
@@ -34,8 +52,14 @@
       "skillId": 5492,
       "concurrentOffsetMs": 3120
     },
-    "Triple Sear",
-    "Molten End",
+    {
+      "type": "cast",
+      "skillId": 62807
+    },
+    {
+      "type": "cast",
+      "skillId": 62910
+    },
     {
       "type": "cast",
       "skillId": 5494,
@@ -46,34 +70,58 @@
       "skillId": 5539,
       "concurrentOffsetMs": 360
     },
-    "Glyph of Storms (Air)",
-    "Hurricane of Pain",
+    {
+      "type": "cast",
+      "skillId": 5737
+    },
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
     {
       "type": "cast",
       "skillId": 5539,
       "concurrentOffsetMs": 40
     },
-    "Wind Slam",
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
     {
       "type": "cast",
       "skillId": 62747,
       "interruptAfterMs": 160
     },
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 2960
     },
-    "Earth Attunement",
-    "Stonestrike",
-    "Ground Pound",
+    {
+      "type": "cast",
+      "skillId": 5495
+    },
+    {
+      "type": "cast",
+      "skillId": 62683
+    },
+    {
+      "type": "cast",
+      "skillId": 62778
+    },
     {
       "type": "cast",
       "skillId": 62975,
       "concurrentOffsetMs": 160
     },
-    "Whirling Stones",
+    {
+      "type": "cast",
+      "skillId": 62976
+    },
     {
       "type": "cast",
       "skillId": 5494,
@@ -84,21 +132,36 @@
       "skillId": 62747,
       "interruptAfterMs": 40
     },
-    "Hurricane of Pain",
-    "Shock Blast",
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
+    {
+      "type": "cast",
+      "skillId": 62716
+    },
     {
       "type": "cast",
       "skillId": 62747,
       "interruptAfterMs": 40
     },
-    "Grand Finale",
+    {
+      "type": "cast",
+      "skillId": 62876
+    },
     {
       "type": "cast",
       "skillId": 5539,
       "concurrentOffsetMs": 360
     },
-    "Wind Slam",
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 62887,
@@ -119,15 +182,27 @@
       "skillId": 5492,
       "concurrentOffsetMs": 1200
     },
-    "Singeing Strike",
-    "Triple Sear",
+    {
+      "type": "cast",
+      "skillId": 62925
+    },
+    {
+      "type": "cast",
+      "skillId": 62807
+    },
     {
       "type": "cast",
       "skillId": 62758,
       "concurrentOffsetMs": 200
     },
-    "Surging Flames",
-    "Molten End",
+    {
+      "type": "cast",
+      "skillId": 62884
+    },
+    {
+      "type": "cast",
+      "skillId": 62910
+    },
     {
       "type": "cast",
       "skillId": 5494,
@@ -138,25 +213,52 @@
       "skillId": 62747,
       "interruptAfterMs": 280
     },
-    "Hurricane of Pain",
-    "Wind Slam",
-    "Wind Slam",
-    "Wind Slam",
-    "Overload Air",
-    "Earth Attunement",
-    "Stonestrike",
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
+    {
+      "type": "cast",
+      "skillId": 5495
+    },
+    {
+      "type": "cast",
+      "skillId": 62683
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 560
     },
-    "Ground Pound",
+    {
+      "type": "cast",
+      "skillId": 62778
+    },
     {
       "type": "cast",
       "skillId": 62975,
       "concurrentOffsetMs": 160
     },
-    "Whirling Stones",
+    {
+      "type": "cast",
+      "skillId": 62976
+    },
     {
       "type": "cast",
       "skillId": 5493,
@@ -177,41 +279,71 @@
       "skillId": 5539,
       "concurrentOffsetMs": 920
     },
-    "Hurricane of Pain",
-    "Shock Blast",
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
+    {
+      "type": "cast",
+      "skillId": 62716
+    },
     {
       "type": "cast",
       "skillId": 62747,
       "interruptAfterMs": 40
     },
-    "Grand Finale",
-    "Wind Slam",
+    {
+      "type": "cast",
+      "skillId": 62876
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
     {
       "type": "cast",
       "skillId": 62747,
       "interruptAfterMs": 280
     },
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 62887,
       "concurrentOffsetMs": 280
     },
-    "Fire Attunement",
-    "Singeing Strike",
-    "Triple Sear",
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 62925
+    },
+    {
+      "type": "cast",
+      "skillId": 62807
+    },
     {
       "type": "cast",
       "skillId": 62758,
       "concurrentOffsetMs": 160
     },
-    "Surging Flames",
+    {
+      "type": "cast",
+      "skillId": 62884
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 560
     },
-    "Molten End",
+    {
+      "type": "cast",
+      "skillId": 62910
+    },
     {
       "type": "cast",
       "skillId": 5494,
@@ -222,24 +354,48 @@
       "skillId": 30662,
       "concurrentOffsetMs": 160
     },
-    "Hurricane of Pain",
-    "Wind Slam",
-    "Wind Slam",
-    "Wind Slam",
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 3200
     },
-    "Stonestrike",
-    "Ground Pound",
+    {
+      "type": "cast",
+      "skillId": 62683
+    },
+    {
+      "type": "cast",
+      "skillId": 62778
+    },
     {
       "type": "cast",
       "skillId": 62975,
       "concurrentOffsetMs": 160
     },
-    "Whirling Stones",
+    {
+      "type": "cast",
+      "skillId": 62976
+    },
     {
       "type": "cast",
       "skillId": 5493,
@@ -265,33 +421,69 @@
       "skillId": 5539,
       "concurrentOffsetMs": 200
     },
-    "Hurricane of Pain",
-    "Glyph of Storms (Air)",
-    "Shock Blast",
-    "Grand Finale",
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
+    {
+      "type": "cast",
+      "skillId": 5737
+    },
+    {
+      "type": "cast",
+      "skillId": 62716
+    },
+    {
+      "type": "cast",
+      "skillId": 62876
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 62887,
       "concurrentOffsetMs": 1160
     },
-    "Fire Attunement",
-    "Singeing Strike",
-    "Triple Sear",
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 62925
+    },
+    {
+      "type": "cast",
+      "skillId": 62807
+    },
     {
       "type": "cast",
       "skillId": 62758,
       "concurrentOffsetMs": 240
     },
-    "Surging Flames",
-    "Molten End",
+    {
+      "type": "cast",
+      "skillId": 62884
+    },
+    {
+      "type": "cast",
+      "skillId": 62910
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 40
     },
-    "Wind Slam",
-    "Hurricane of Pain",
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
     {
       "type": "cast",
       "skillId": 30662,
@@ -307,19 +499,43 @@
       "skillId": 5539,
       "concurrentOffsetMs": 520
     },
-    "Wind Slam",
-    "Wind Slam",
-    "Wind Slam",
-    "Overload Air",
-    "Earth Attunement",
-    "Stonestrike",
-    "Ground Pound",
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
+    {
+      "type": "cast",
+      "skillId": 5495
+    },
+    {
+      "type": "cast",
+      "skillId": 62683
+    },
+    {
+      "type": "cast",
+      "skillId": 62778
+    },
     {
       "type": "cast",
       "skillId": 62975,
       "concurrentOffsetMs": 160
     },
-    "Whirling Stones",
+    {
+      "type": "cast",
+      "skillId": 62976
+    },
     {
       "type": "cast",
       "skillId": 5493,
@@ -335,22 +551,40 @@
       "skillId": 5494,
       "concurrentOffsetMs": 640
     },
-    "Hurricane of Pain",
-    "Shock Blast",
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
+    {
+      "type": "cast",
+      "skillId": 62716
+    },
     {
       "type": "cast",
       "skillId": 62747,
       "interruptAfterMs": 80
     },
-    "Grand Finale",
+    {
+      "type": "cast",
+      "skillId": 62876
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 520
     },
-    "Wind Slam",
-    "Wind Slam",
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 62887,
@@ -361,49 +595,88 @@
       "skillId": 5492,
       "concurrentOffsetMs": 3160
     },
-    "Triple Sear",
+    {
+      "type": "cast",
+      "skillId": 62807
+    },
     {
       "type": "cast",
       "skillId": 62758,
       "concurrentOffsetMs": 160
     },
-    "Surging Flames",
-    "Air Attunement",
-    "Wind Slam",
+    {
+      "type": "cast",
+      "skillId": 62884
+    },
+    {
+      "type": "cast",
+      "skillId": 5494
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
     {
       "type": "cast",
       "skillId": 5539,
       "concurrentOffsetMs": 280
     },
-    "Hurricane of Pain",
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
     {
       "type": "cast",
       "skillId": 30662,
       "concurrentOffsetMs": 1120
     },
-    "Wind Slam",
-    "Wind Slam",
-    "Wind Slam",
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
     {
       "type": "cast",
       "skillId": 62747,
       "interruptAfterMs": 80
     },
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 360
     },
-    "Earth Attunement",
-    "Stonestrike",
-    "Ground Pound",
+    {
+      "type": "cast",
+      "skillId": 5495
+    },
+    {
+      "type": "cast",
+      "skillId": 62683
+    },
+    {
+      "type": "cast",
+      "skillId": 62778
+    },
     {
       "type": "cast",
       "skillId": 62975,
       "concurrentOffsetMs": 160
     },
-    "Whirling Stones",
+    {
+      "type": "cast",
+      "skillId": 62976
+    },
     {
       "type": "cast",
       "skillId": 5493,
@@ -419,16 +692,31 @@
       "skillId": 5494,
       "concurrentOffsetMs": 680
     },
-    "Shock Blast",
-    "Hurricane of Pain",
-    "Grand Finale",
-    "Wind Slam",
+    {
+      "type": "cast",
+      "skillId": 62716
+    },
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
+    {
+      "type": "cast",
+      "skillId": 62876
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
     {
       "type": "cast",
       "skillId": 62747,
       "interruptAfterMs": 280
     },
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 62887,
@@ -444,31 +732,61 @@
       "skillId": 2662,
       "concurrentOffsetMs": 200
     },
-    "Fire Attunement",
-    "Singeing Strike",
-    "Triple Sear",
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 62925
+    },
+    {
+      "type": "cast",
+      "skillId": 62807
+    },
     {
       "type": "cast",
       "skillId": 62758,
       "concurrentOffsetMs": 160
     },
-    "Surging Flames",
-    "Molten End",
+    {
+      "type": "cast",
+      "skillId": 62884
+    },
+    {
+      "type": "cast",
+      "skillId": 62910
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 80
     },
-    "Wind Slam",
-    "Hurricane of Pain",
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
     {
       "type": "cast",
       "skillId": 30662,
       "concurrentOffsetMs": 1000
     },
-    "Glyph of Storms (Air)",
-    "Wind Slam",
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 5737
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 5495,
@@ -479,13 +797,19 @@
       "skillId": 62683,
       "interruptAfterMs": 120
     },
-    "Ground Pound",
+    {
+      "type": "cast",
+      "skillId": 62778
+    },
     {
       "type": "cast",
       "skillId": 62975,
       "concurrentOffsetMs": 160
     },
-    "Whirling Stones",
+    {
+      "type": "cast",
+      "skillId": 62976
+    },
     {
       "type": "cast",
       "skillId": 5493,
@@ -501,19 +825,31 @@
       "skillId": 5494,
       "concurrentOffsetMs": 720
     },
-    "Shock Blast",
+    {
+      "type": "cast",
+      "skillId": 62716
+    },
     {
       "type": "cast",
       "skillId": 62747,
       "interruptAfterMs": 40
     },
-    "Hurricane of Pain",
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
     {
       "type": "cast",
       "skillId": 5539,
       "concurrentOffsetMs": 360
     },
-    "Grand Finale",
-    "Wind Slam"
+    {
+      "type": "cast",
+      "skillId": 62876
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    }
   ]
 }

@@ -112,13 +112,7 @@ const rangerBuildCodec = createProfessionBuildCodec<RangerCanonicalBuild>({
   normalizeExtra(build, { saved }) {
     const savedAssumptions =
       saved.assumptions && typeof saved.assumptions === 'object' ? (saved.assumptions as Record<string, unknown>) : {};
-    const {
-      selectedPet: _legacySelectedPet,
-      soulbeastArchetype: _legacySoulbeastArchetype,
-      playerHealthPercent: _legacyPlayerHealthPercent,
-      astralForceHealingEventsPerSecond: _fakeAstralForceHealingRate,
-      ...supportedAssumptions
-    } = build.assumptions;
+    // Preserve old pet selections when the build has no top-level choice.
     const requestedPet = String(saved.selectedPet ?? savedAssumptions.selectedPet ?? 'Pig');
     const selectedPet = RANGER_PETS.some((pet) => pet.name === requestedPet) ? requestedPet : 'Pig';
     const requestedPet2 = String(saved.selectedPet2 ?? 'Lynx');
@@ -131,7 +125,6 @@ const rangerBuildCodec = createProfessionBuildCodec<RangerCanonicalBuild>({
           build.specializations.some((entry) => entry.name === 'Untamed')
         )
       ),
-      assumptions: supportedAssumptions,
       selectedPet,
       selectedPet2,
       selectedHammerSkillIds: normalizeRangerHammerSkillIds(saved.selectedHammerSkillIds)

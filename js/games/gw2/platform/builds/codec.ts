@@ -46,10 +46,10 @@ const GEAR_STATS_BY_NAME = GEAR_STATS as Readonly<Record<string, unknown>>;
 
 /**
  * Creates the common native-profession build persistence contract. Profession
- * configuration owns defaults, version transforms, and additional resources;
+ * configuration owns defaults and additional resources;
  * this codec owns the canonical GW2 build schema.
  *
- * `migrateBuild()` upgrades older schemas one version at a time and then
+ * `migrateBuild()` accepts supported older schemas and then
  * normalizes common fields against the current defaults and profession
  * catalog. It rejects builds for another profession and schema versions newer
  * than this codec. Invalid import values that have safe defaults are sanitized.
@@ -66,7 +66,6 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
   schemaVersion,
   catalog,
   createDefaults,
-  migrations = {},
   extraFields = {} as Gw2BuildExtraFieldDescriptors<TBuild>,
   normalizeExtra = (build) => build,
   validateExtra = () => [],
@@ -96,8 +95,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
   function migrateBuild(candidate: unknown): TBuild {
     const saved = migrateVersionedBuild(candidate, {
       professionId,
-      schemaVersion,
-      migrations
+      schemaVersion
     });
     const defaults = createDefaults();
     const assumptions = normalizeCommonAssumptions(plainObject(saved.assumptions), plainObject(defaults.assumptions));
@@ -544,21 +542,18 @@ export function normalizeInfusions(value: unknown, fallback: readonly Gw2BuildIn
 }
 
 /**
- * Deep-clones the candidate and applies numbered migration functions in order
- * until `schemaVersion` is reached. Throws for wrong profession or an
- * unrecognized (future) schema version. Missing migration steps are skipped
- * by bumping `schemaVersion` without transforming the data.
+ * Clones supported saved builds before field normalization upgrades them.
+ * Rejects wrong professions and invalid or future schema versions without
+ * requiring empty version-by-version transforms.
  */
 function migrateVersionedBuild(
   candidate: unknown,
   {
     professionId,
-    schemaVersion,
-    migrations
+    schemaVersion
   }: {
     readonly professionId: string;
     readonly schemaVersion: number;
-    readonly migrations: Readonly<Record<number, (saved: UnvalidatedBuildRecord) => UnvalidatedBuildRecord>>;
   }
 ): UnvalidatedBuildRecord {
   if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
@@ -573,21 +568,14 @@ function migrateVersionedBuild(
   }
 
   // Clone before mutating so the original candidate object is never modified.
-  let saved = structuredClone(candidateBuild);
-  let version = Number(saved.schemaVersion ?? 0);
+  const saved = structuredClone(candidateBuild);
+  const version = Number(saved.schemaVersion ?? 0);
   // A version newer than this codec would need transforms we don't have yet.
   if (!Number.isInteger(version) || version < 0 || version > schemaVersion) {
     throw new Error(`Unsupported build schema version: ${saved.schemaVersion}`);
   }
 
-  while (version < schemaVersion) {
-    const migrate = migrations[version];
-    // If no migration function is registered for a version gap, just bump
-    // the version; normalizeGear/normalizeWeaponPair etc. handle the rest.
-    saved = typeof migrate === 'function' ? migrate(saved) : { ...saved, schemaVersion: version + 1 };
-    version += 1;
-    saved.schemaVersion = version;
-  }
+  saved.schemaVersion = schemaVersion;
 
   return saved;
 }

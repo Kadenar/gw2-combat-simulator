@@ -1,203 +1,575 @@
 {
   "rotation": [
-    "Rock Barrier",
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 0
     },
-    "Dust Storm",
-    "Overload Earth",
+    {
+      "type": "cast",
+      "skillId": 30336
+    },
+    {
+      "type": "cast",
+      "skillId": 29618
+    },
     {
       "type": "cast",
       "skillId": 5780,
       "concurrentOffsetMs": 120
     },
-    "Sand Squall",
+    {
+      "type": "cast",
+      "skillId": 29453
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 120
     },
-    "Glyph of Elemental Power (Fire)",
-    "Phoenix",
-    "Signet of Fire",
-    "Wildfire",
-    "Signet of Earth",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Overload Fire",
+    {
+      "type": "cast",
+      "skillId": 34736
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 29533
+    },
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 29706
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 2760
     },
-    "Phoenix",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Signet of Fire",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Signet of Earth",
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 160
     },
-    "Rock Barrier",
-    "Hurl",
-    "Dust Devil",
-    "Dust Storm",
-    "Stone Shards",
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5780
+    },
+    {
+      "type": "cast",
+      "skillId": 5696
+    },
+    {
+      "type": "cast",
+      "skillId": 30336
+    },
+    {
+      "type": "cast",
+      "skillId": 5500
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 1360
     },
-    "Sand Squall",
-    "Overload Earth",
-    "Rock Barrier",
-    "Hurl",
-    "Signet of Fire",
+    {
+      "type": "cast",
+      "skillId": 29453
+    },
+    {
+      "type": "cast",
+      "skillId": 29618
+    },
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5780
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 120
     },
-    "Phoenix",
-    "Wildfire",
-    "Dragon's Tooth",
-    "Glyph of Elemental Power (Fire)",
-    "Flamestrike",
-    "Flamestrike",
-    "Signet of Earth",
-    "Flamestrike",
-    "Overload Fire",
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 29533
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 34736
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 29706
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 2120
     },
-    "Phoenix",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Signet of Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 120
     },
-    "Rock Barrier",
-    "Hurl",
-    "Dust Storm",
-    "Dust Devil",
-    "Sand Squall",
-    "Stone Shards",
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5780
+    },
+    {
+      "type": "cast",
+      "skillId": 30336
+    },
+    {
+      "type": "cast",
+      "skillId": 5696
+    },
+    {
+      "type": "cast",
+      "skillId": 29453
+    },
+    {
+      "type": "cast",
+      "skillId": 5500
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 400
     },
-    "Overload Earth",
-    "Rock Barrier",
-    "Hurl",
-    "Signet of Fire",
+    {
+      "type": "cast",
+      "skillId": 29618
+    },
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5780
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 440
     },
-    "Phoenix",
-    "Signet of Earth",
-    "Wildfire",
-    "Dragon's Tooth",
-    "Glyph of Elemental Power (Fire)",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Overload Fire",
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
+    {
+      "type": "cast",
+      "skillId": 29533
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 34736
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 29706
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 2000
     },
-    "Phoenix",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Signet of Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Signet of Earth",
-    "Flamestrike",
-    "Phoenix",
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 120
     },
-    "Rock Barrier",
-    "Hurl",
-    "Dust Storm",
-    "Dust Devil",
-    "Sand Squall",
-    "Stone Shards",
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5780
+    },
+    {
+      "type": "cast",
+      "skillId": 30336
+    },
+    {
+      "type": "cast",
+      "skillId": 5696
+    },
+    {
+      "type": "cast",
+      "skillId": 29453
+    },
+    {
+      "type": "cast",
+      "skillId": 5500
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 360
     },
-    "Overload Earth",
-    "Rock Barrier",
-    "Hurl",
-    "Signet of Fire",
-    "Fire Attunement",
-    "Phoenix",
-    "Wildfire",
-    "Dragon's Tooth",
-    "Glyph of Elemental Power (Fire)",
-    "Signet of Earth",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Overload Fire",
+    {
+      "type": "cast",
+      "skillId": 29618
+    },
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5780
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 29533
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 34736
+    },
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 29706
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 1840
     },
-    "Phoenix",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Signet of Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Earth Attunement"
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5495
+    }
   ]
 }

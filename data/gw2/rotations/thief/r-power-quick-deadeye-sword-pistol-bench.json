@@ -6,242 +6,824 @@
     "benchmarkDps": 35365.33933278793
   },
   "rotation": [
-    "Deadeye's Mark",
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
     {
       "type": "combat-start"
     },
-    "Steal Time",
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
     {
       "type": "cast",
       "skillId": 13009,
       "interruptAfterMs": 0
     },
-    "Shadow Flare",
-    "Flawless Execution",
-    "Shadow Swap",
-    "Flawless Execution",
-    "Steal Time",
-    "Flawless Execution",
-    "Flawless Execution",
+    {
+      "type": "cast",
+      "skillId": 41158
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 45672
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
     {
       "type": "cast",
       "skillId": 41372,
       "concurrentOffsetMs": 120
     },
-    "Steal Time",
-    "Deadeye's Mark",
-    "Flawless Execution",
-    "Steal Time",
-    "Flawless Execution",
-    "Flawless Execution",
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
     {
       "type": "cast",
       "skillId": 41372,
       "concurrentOffsetMs": 40
     },
-    "Steal Time",
-    "Deadeye's Mark",
-    "Flawless Execution",
-    "Steal Time",
-    "Malicious Tactical Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Shadow Meld",
-    "Malicious Tactical Strike",
-    "Steal Time",
-    "Flawless Execution",
-    "Shadow Flare",
-    "Flawless Execution",
-    "Shadow Swap",
-    "Steal Time",
-    "Malicious Tactical Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Shadow Meld",
-    "Malicious Tactical Strike",
-    "Flawless Execution",
-    "Flawless Execution",
-    "Steal Time",
-    "Malicious Tactical Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Flawless Execution",
-    "Flawless Execution",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Deadeye's Mark",
-    "Steal Time",
-    "Flawless Execution",
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 45508
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 41158
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 45672
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 45508
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
     {
       "type": "cast",
       "skillId": 41372,
       "concurrentOffsetMs": 600
     },
-    "Steal Time",
-    "Deadeye's Mark",
-    "Flawless Execution",
-    "Steal Time",
-    "Shadow Flare",
-    "Flawless Execution",
-    "Shadow Swap",
-    "Steal Time",
-    "Malicious Tactical Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Shadow Meld",
-    "Malicious Tactical Strike",
-    "Flawless Execution",
-    "Flawless Execution",
-    "Steal Time",
-    "Malicious Tactical Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Flawless Execution",
-    "Flawless Execution",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Shadow Flare",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Shadow Swap",
-    "Steal Time",
-    "Deadeye's Mark",
-    "Flawless Execution",
-    "Steal Time",
-    "Flawless Execution",
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 41158
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 45672
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 45508
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 41158
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 45672
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
     {
       "type": "cast",
       "skillId": 41372,
       "concurrentOffsetMs": 80
     },
-    "Steal Time",
-    "Deadeye's Mark",
-    "Flawless Execution",
-    "Steal Time",
-    "Malicious Tactical Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Shadow Meld",
-    "Malicious Tactical Strike",
-    "Flawless Execution",
-    "Flawless Execution",
-    "Steal Time",
-    "Malicious Tactical Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Flawless Execution",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Shadow Flare",
-    "Flawless Execution",
-    "Shadow Swap",
-    "Steal Time",
-    "Malicious Tactical Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Shadow Meld",
-    "Malicious Tactical Strike",
-    "Flawless Execution",
-    "Steal Time",
-    "Flawless Execution",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Deadeye's Mark",
-    "Steal Time",
-    "Flawless Execution",
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 45508
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 41158
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 45672
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 45508
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
     {
       "type": "cast",
       "skillId": 41372,
       "concurrentOffsetMs": 720
     },
-    "Steal Time",
-    "Deadeye's Mark",
-    "Flawless Execution",
-    "Flawless Execution",
-    "Steal Time",
-    "Malicious Tactical Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Shadow Flare",
-    "Flawless Execution",
-    "Shadow Swap",
-    "Flawless Execution",
-    "Steal Time",
-    "Malicious Tactical Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Shadow Meld",
-    "Malicious Tactical Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Steal Time",
-    "Flawless Execution",
-    "Flawless Execution",
-    "Flawless Execution",
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 41158
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 45672
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 45508
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
     {
       "type": "cast",
       "skillId": 41372,
       "concurrentOffsetMs": 720
     },
-    "Steal Time",
-    "Deadeye's Mark",
-    "Flawless Execution",
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
     {
       "type": "cast",
       "skillId": 13009,
       "concurrentOffsetMs": 0
     },
-    "Flawless Execution",
-    "Steal Time",
-    "Malicious Tactical Strike",
-    "Shadow Flare",
-    "Flawless Execution",
-    "Shadow Swap",
-    "Flawless Execution",
-    "Steal Time",
-    "Malicious Tactical Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike"
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 41158
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 45672
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 50484
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    }
   ]
 }

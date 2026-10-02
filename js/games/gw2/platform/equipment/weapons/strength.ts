@@ -192,7 +192,7 @@ export function weaponStrengthProfileIdForEvent(
 
   // Tome strike ranges match the exotic bundle; engineering kits scale to ascended equipment.
   if (skill?.tome) return 'bundle.exotic';
-  if (skill?.kit) return 'bundle.ascended';
+  if (skill?.kitId) return 'bundle.ascended';
 
   for (const candidate of [event.weapon, event.skillWeapon]) {
     const profile = weaponStrengthProfileForName(candidate);

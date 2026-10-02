@@ -7,217 +7,766 @@
     "note": "Kneel before Deadeye's Mark so Serpent's Touch poison lands at Combat Start."
   },
   "rotation": [
-    "Kneel",
-    "Deadeye's Mark",
+    {
+      "type": "cast",
+      "skillId": 40600
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
     {
       "type": "combat-start"
     },
-    "Steal Time",
-    "Shadow Flare",
-    "Three Round Burst",
-    "Shadow Swap",
-    "Three Round Burst",
-    "Steal Time",
-    "Malicious Death's Judgment",
-    "Three Round Burst",
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 41158
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 45672
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
     {
       "type": "cast",
       "skillId": 41372,
       "concurrentOffsetMs": 320
     },
-    "Steal Time",
-    "Deadeye's Mark",
-    "Three Round Burst",
-    "Three Round Burst",
-    "Steal Time",
-    "Malicious Death's Judgment",
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
     {
       "type": "cast",
       "skillId": 41372,
       "concurrentOffsetMs": 320
     },
-    "Three Round Burst",
-    "Steal Time",
-    "Deadeye's Mark",
-    "Three Round Burst",
-    "Three Round Burst",
-    "Steal Time",
-    "Malicious Death's Judgment",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Shadow Meld",
-    "Malicious Death's Judgment",
-    "Three Round Burst",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Steal Time",
-    "Shadow Flare",
-    "Malicious Death's Judgment",
-    "Shadow Swap",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Three Round Burst",
-    "Steal Time",
-    "Malicious Death's Judgment",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Shadow Meld",
-    "Malicious Death's Judgment",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Steal Time",
-    "Malicious Death's Judgment",
-    "Deadeye's Mark",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Three Round Burst",
-    "Steal Time",
-    "Malicious Death's Judgment",
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 45508
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 41158
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 45672
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 45508
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
     {
       "type": "cast",
       "skillId": 41372,
       "concurrentOffsetMs": 320
     },
-    "Three Round Burst",
-    "Steal Time",
-    "Deadeye's Mark",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Steal Time",
-    "Shadow Flare",
-    "Malicious Death's Judgment",
-    "Shadow Swap",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Three Round Burst",
-    "Steal Time",
-    "Malicious Death's Judgment",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Shadow Meld",
-    "Malicious Death's Judgment",
-    "Three Round Burst",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Steal Time",
-    "Malicious Death's Judgment",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Three Round Burst",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Shadow Flare",
-    "Deadly Aim",
-    "Shadow Swap",
-    "Steal Time",
-    "Malicious Death's Judgment",
-    "Deadeye's Mark",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Three Round Burst",
-    "Steal Time",
-    "Malicious Death's Judgment",
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 41158
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 45672
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 45508
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 41158
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 45672
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
     {
       "type": "cast",
       "skillId": 41372,
       "concurrentOffsetMs": 320
     },
-    "Three Round Burst",
-    "Steal Time",
-    "Deadeye's Mark",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Steal Time",
-    "Malicious Death's Judgment",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Shadow Meld",
-    "Malicious Death's Judgment",
-    "Three Round Burst",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Steal Time",
-    "Malicious Death's Judgment",
-    "Three Round Burst",
-    "Shadow Flare",
-    "Three Round Burst",
-    "Shadow Swap",
-    "Deadly Aim",
-    "Steal Time",
-    "Malicious Death's Judgment",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Shadow Meld",
-    "Malicious Death's Judgment",
-    "Three Round Burst",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Steal Time",
-    "Malicious Death's Judgment",
-    "Deadeye's Mark",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Three Round Burst",
-    "Steal Time",
-    "Malicious Death's Judgment",
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 45508
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 41158
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 45672
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 45508
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
     {
       "type": "cast",
       "skillId": 41372,
       "concurrentOffsetMs": 440
     },
-    "Three Round Burst",
-    "Steal Time",
-    "Deadeye's Mark",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Steal Time",
-    "Malicious Death's Judgment",
-    "Shadow Flare",
-    "Three Round Burst",
-    "Shadow Swap",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Three Round Burst",
-    "Steal Time",
-    "Malicious Death's Judgment",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Deadly Aim",
-    "Shadow Meld",
-    "Malicious Death's Judgment",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Steal Time",
-    "Malicious Death's Judgment",
-    "Three Round Burst",
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 41158
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 45672
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 45508
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
     {
       "type": "cast",
       "skillId": 41372,
@@ -228,20 +777,65 @@
       "skillId": 13046,
       "concurrentOffsetMs": 80
     },
-    "Deadly Aim",
-    "Steal Time",
-    "Deadeye's Mark",
-    "Three Round Burst",
-    "Steal Time",
-    "Malicious Death's Judgment",
-    "Three Round Burst",
-    "Deadly Aim",
-    "Shadow Flare",
-    "Three Round Burst",
-    "Shadow Swap",
-    "Steal Time",
-    "Malicious Death's Judgment",
-    "Deadly Aim",
-    "Deadly Aim"
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 43390
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 41158
+    },
+    {
+      "type": "cast",
+      "skillId": 44695
+    },
+    {
+      "type": "cast",
+      "skillId": 45672
+    },
+    {
+      "type": "cast",
+      "skillId": 42863
+    },
+    {
+      "type": "cast",
+      "skillId": 44087
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    },
+    {
+      "type": "cast",
+      "skillId": 40710
+    }
   ]
 }

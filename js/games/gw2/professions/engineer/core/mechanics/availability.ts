@@ -48,9 +48,13 @@ export function engineerCoreCastAvailability(context: EngineerRuntime, skill: En
         );
   }
 
-  if (skill.kit) {
-    if (state.activeKit !== skill.kit) {
-      return denyEngineerCast(skill, 'engineer.inactive-kit', `equip ${skill.kit} first.`);
+  if (skill.kitId) {
+    if (state.activeKit !== skill.kitId) {
+      return denyEngineerCast(
+        skill,
+        'engineer.inactive-kit',
+        `equip ${context.helpers.skillsById.get(skill.kitId)?.name} first.`
+      );
     }
   } else if (skill.type === 'Weapon' && state.activeKit) {
     // active kit completely replaces the weapon bar; baseline weapon skills are inaccessible
@@ -58,16 +62,12 @@ export function engineerCoreCastAvailability(context: EngineerRuntime, skill: En
   }
 
   if (skill.kitTransition === 'equip') {
-    if (!selectedSkillNameSet(context.config.selectedSkills).has(skill.kitName || skill.name)) {
+    if (!selectedSkillNameSet(context.config.selectedSkills).has(skill.name)) {
       return denyEngineerCast(skill, 'engineer.kit-not-equipped', 'the kit is not selected in a slot.');
     }
 
-    if (state.activeKit === (skill.kitName || skill.name)) {
-      return denyEngineerCast(
-        skill,
-        'engineer.kit-active',
-        `use Stow ${skill.kitName || skill.name} to leave this kit.`
-      );
+    if (state.activeKit === skill.id) {
+      return denyEngineerCast(skill, 'engineer.kit-active', `use Stow ${skill.name} to leave this kit.`);
     }
   }
 
@@ -83,12 +83,14 @@ export function engineerCoreCastAvailability(context: EngineerRuntime, skill: En
     );
   }
 
+  // Parent relationships use IDs; the saved loadout still supplies catalog names.
+  const parent = skill.toolbeltParentId == null ? undefined : context.helpers.skillsById.get(skill.toolbeltParentId);
   if (
-    skill.toolbeltParentName &&
+    skill.toolbeltParentId &&
     skill.countsAsToolbeltSkill !== false &&
-    !selectedSkillNameSet(context.config.selectedSkills).has(skill.toolbeltParentName)
+    (!parent || !selectedSkillNameSet(context.config.selectedSkills).has(parent.name))
   ) {
-    return denyEngineerCast(skill, 'engineer.toolbelt-parent', `${skill.toolbeltParentName} is not equipped.`);
+    return denyEngineerCast(skill, 'engineer.toolbelt-parent', `${parent?.name ?? 'Parent skill'} is not equipped.`);
   }
 
   return { ready: true };

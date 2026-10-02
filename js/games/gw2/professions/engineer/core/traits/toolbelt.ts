@@ -22,7 +22,7 @@ import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
 /** Detects explicit specialization toolbelt skills and ordinary parent-linked toolbelt skills. */
 export function isEngineerToolbeltSkill(skill: EngineerSkill | undefined): boolean {
-  return skill?.countsAsToolbeltSkill ?? Boolean(skill?.toolbeltParentName);
+  return skill?.countsAsToolbeltSkill ?? Boolean(skill?.toolbeltParentId);
 }
 
 /** Applies Streamlined Kits on kit entry and adds Grenade Kit's mine strike when appropriate. */

@@ -6,7 +6,10 @@
     "benchmarkDps": 43456.032473713574
   },
   "rotation": [
-    "Skritt Swipe",
+    {
+      "type": "cast",
+      "skillId": 77397
+    },
     {
       "type": "combat-start",
       "concurrentOffsetMs": 0
@@ -22,204 +25,540 @@
       "interruptAfterMs": 0,
       "doubleEdgeOutcome": "backfire"
     },
-    "Mistburn Mortar",
-    "Holo-Dancer Decoy",
-    "Skritt Scuffle",
-    "Assassin's Signet",
-    "Flawless Execution",
-    "Summon Kryptis Turret",
-    "Flawless Execution",
+    {
+      "type": "cast",
+      "skillId": 77277
+    },
+    {
+      "type": "cast",
+      "skillId": 76674
+    },
+    {
+      "type": "cast",
+      "skillId": 77255
+    },
+    {
+      "type": "cast",
+      "skillId": 13046
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
     {
       "type": "cast",
       "skillId": 77230,
       "concurrentOffsetMs": 120,
       "doubleEdgeOutcome": "success"
     },
-    "Flawless Execution",
-    "Forged Surfer Dash",
-    "Flawless Execution",
-    "Flawless Execution",
-    "Metal Legion Guitar",
-    "Tactical Strike",
-    "Forged Surfer Dash",
-    "Flawless Execution",
-    "Tactical Strike",
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 76633
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 76582
+    },
+    {
+      "type": "cast",
+      "skillId": 13114
+    },
+    {
+      "type": "cast",
+      "skillId": 76633
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 13114
+    },
     {
       "type": "cast",
       "skillId": 76725,
       "doubleEdgeOutcome": "backfire"
     },
-    "Holo-Dancer Decoy",
-    "Tactical Strike",
-    "Assassin's Signet",
-    "Flawless Execution",
+    {
+      "type": "cast",
+      "skillId": 76674
+    },
+    {
+      "type": "cast",
+      "skillId": 13114
+    },
+    {
+      "type": "cast",
+      "skillId": 13046
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
     {
       "type": "cast",
       "skillId": 76725,
       "doubleEdgeOutcome": "backfire"
     },
-    "Mistburn Mortar",
+    {
+      "type": "cast",
+      "skillId": 77277
+    },
     {
       "type": "cast",
       "skillId": 77230,
       "concurrentOffsetMs": 400,
       "doubleEdgeOutcome": "backfire"
     },
-    "Flawless Execution",
-    "Flawless Execution",
-    "Skritt Swipe",
-    "Flawless Execution",
-    "Summon Kryptis Turret",
-    "Metal Legion Guitar",
-    "Tactical Strike",
-    "Flawless Execution",
-    "Tactical Strike",
-    "Flawless Execution",
-    "Tactical Strike",
-    "Flawless Execution",
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 77397
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 76582
+    },
+    {
+      "type": "cast",
+      "skillId": 13114
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 13114
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 13114
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
     {
       "type": "cast",
       "skillId": 76725,
       "doubleEdgeOutcome": "backfire"
     },
-    "Slice",
-    "Slash",
-    "Crippling Strike",
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
     {
       "type": "cast",
       "skillId": 76725,
       "doubleEdgeOutcome": "backfire"
     },
-    "Flawless Execution",
-    "Flawless Execution",
     {
       "type": "cast",
-      "skillId": 77230,
-      "doubleEdgeOutcome": "backfire"
+      "skillId": 80244
     },
-    "Flawless Execution",
     {
       "type": "cast",
-      "skillId": 77230,
-      "doubleEdgeOutcome": "backfire"
-    },
-    "Flawless Execution",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Slice",
-    "Slash",
-    "Skritt Swipe",
-    "Crippling Strike",
-    "Summon Kryptis Turret",
-    "Zephyrite Sun Crystal",
-    "Skritt Scuffle",
-    "Flawless Execution",
-    {
-      "type": "cast",
-      "skillId": 76725,
-      "doubleEdgeOutcome": "backfire"
-    },
-    "Metal Legion Guitar",
-    "Tactical Strike",
-    "Mistburn Mortar",
-    {
-      "type": "cast",
-      "skillId": 76725,
-      "doubleEdgeOutcome": "backfire"
-    },
-    "Tactical Strike",
-    "Flawless Execution",
-    "Tactical Strike",
-    "Forged Surfer Dash",
-    "Flawless Execution",
-    "Flawless Execution",
-    "Summon Kryptis Turret",
-    "Flawless Execution",
-    "Summon Kryptis Turret",
-    "Flawless Execution",
-    "Flawless Execution",
-    "Mistburn Mortar",
-    "Flawless Execution",
-    {
-      "type": "cast",
-      "skillId": 76725,
-      "doubleEdgeOutcome": "backfire"
-    },
-    "Skritt Swipe",
-    "Flawless Execution",
-    {
-      "type": "cast",
-      "skillId": 76725,
-      "doubleEdgeOutcome": "backfire"
-    },
-    "Forged Surfer Dash",
-    "Summon Kryptis Turret",
-    "Flawless Execution",
-    "Flawless Execution",
-    {
-      "type": "cast",
-      "skillId": 77230,
-      "doubleEdgeOutcome": "backfire"
-    },
-    "Flawless Execution",
-    {
-      "type": "cast",
-      "skillId": 77230,
-      "doubleEdgeOutcome": "backfire"
-    },
-    "Flawless Execution",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Flawless Execution",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    {
-      "type": "cast",
-      "skillId": 76725,
-      "doubleEdgeOutcome": "backfire"
-    },
-    "Flawless Execution",
-    {
-      "type": "cast",
-      "skillId": 76725,
-      "doubleEdgeOutcome": "backfire"
+      "skillId": 80244
     },
     {
       "type": "cast",
       "skillId": 77230,
       "doubleEdgeOutcome": "backfire"
     },
-    "Flawless Execution",
-    "Slice",
-    "Slash",
-    "Crippling Strike",
-    "Slice",
-    "Slash",
-    "Skritt Swipe",
-    "Crippling Strike",
-    "Slice",
-    "Forged Surfer Dash",
-    "Holo-Dancer Decoy",
-    "Skritt Scuffle",
-    "Assassin's Signet",
-    "Flawless Execution",
-    "Summon Kryptis Turret",
-    "Flawless Execution",
-    "Flawless Execution",
-    "Assassin's Signet",
-    "Zephyrite Sun Crystal",
-    "Flawless Execution"
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 77230,
+      "doubleEdgeOutcome": "backfire"
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 77397
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 76895
+    },
+    {
+      "type": "cast",
+      "skillId": 77255
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 76725,
+      "doubleEdgeOutcome": "backfire"
+    },
+    {
+      "type": "cast",
+      "skillId": 76582
+    },
+    {
+      "type": "cast",
+      "skillId": 13114
+    },
+    {
+      "type": "cast",
+      "skillId": 77277
+    },
+    {
+      "type": "cast",
+      "skillId": 76725,
+      "doubleEdgeOutcome": "backfire"
+    },
+    {
+      "type": "cast",
+      "skillId": 13114
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 13114
+    },
+    {
+      "type": "cast",
+      "skillId": 76633
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 77277
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 76725,
+      "doubleEdgeOutcome": "backfire"
+    },
+    {
+      "type": "cast",
+      "skillId": 77397
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 76725,
+      "doubleEdgeOutcome": "backfire"
+    },
+    {
+      "type": "cast",
+      "skillId": 76633
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 77230,
+      "doubleEdgeOutcome": "backfire"
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 77230,
+      "doubleEdgeOutcome": "backfire"
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 76725,
+      "doubleEdgeOutcome": "backfire"
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 76725,
+      "doubleEdgeOutcome": "backfire"
+    },
+    {
+      "type": "cast",
+      "skillId": 77230,
+      "doubleEdgeOutcome": "backfire"
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 13088
+    },
+    {
+      "type": "cast",
+      "skillId": 77397
+    },
+    {
+      "type": "cast",
+      "skillId": 13116
+    },
+    {
+      "type": "cast",
+      "skillId": 13009
+    },
+    {
+      "type": "cast",
+      "skillId": 76633
+    },
+    {
+      "type": "cast",
+      "skillId": 76674
+    },
+    {
+      "type": "cast",
+      "skillId": 77255
+    },
+    {
+      "type": "cast",
+      "skillId": 13046
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 77192
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    },
+    {
+      "type": "cast",
+      "skillId": 13046
+    },
+    {
+      "type": "cast",
+      "skillId": 76895
+    },
+    {
+      "type": "cast",
+      "skillId": 80244
+    }
   ]
 }

@@ -7,7 +7,10 @@
     "timingSource": "EVTC casts and damage packets rounded to 40 ms action ticks"
   },
   "rotation": [
-    "One Wolf Pack",
+    {
+      "type": "cast",
+      "skillId": 45717
+    },
     {
       "type": "cast",
       "skillId": 12492
@@ -30,13 +33,19 @@
       "skillId": 12633,
       "concurrentOffsetMs": 320
     },
-    "Unleashed Savage Shock Wave",
+    {
+      "type": "cast",
+      "skillId": 63131
+    },
     {
       "type": "cast",
       "skillId": 63335,
       "interruptAfterMs": 440
     },
-    "Swap Weapons",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
     {
       "type": "cast",
       "skillId": 41406
@@ -45,51 +54,159 @@
       "type": "cast",
       "skillId": -1001
     },
-    "Winter's Bite",
-    "Splitblade",
-    "Whirling Defense",
-    "Ricochet",
-    "Ricochet",
-    "Ricochet",
-    "Splitblade",
-    "Ricochet",
-    "Ricochet",
-    "Winter's Bite",
-    "Ricochet",
-    "Ricochet",
+    {
+      "type": "cast",
+      "skillId": 12490
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
+    {
+      "type": "cast",
+      "skillId": 12639
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12490
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
     {
       "type": "cast",
       "skillId": 41406
     },
-    "Path of Scars",
+    {
+      "type": "cast",
+      "skillId": 12638
+    },
     {
       "type": "cast",
       "skillId": 12480,
       "interruptAfterMs": 480
     },
-    "Swap Weapons",
-    "Unleashed Savage Shock Wave",
-    "Unleashed Wild Swing",
-    "Unleashed Thump",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Unleashed Wild Swing",
-    "Overbearing Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Frost Trap",
-    "Worldly Impact",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63131
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": 63208
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": 69262
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 12492
+    },
+    {
+      "type": "cast",
+      "skillId": 40729
+    },
     {
       "type": "cast",
       "skillId": 12633,
@@ -99,67 +216,196 @@
       "type": "cast",
       "skillId": 41406
     },
-    "Unleashed Savage Shock Wave",
-    "Unleashed Wild Swing",
-    "Swap Weapons",
+    {
+      "type": "cast",
+      "skillId": 63131
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
     {
       "type": "cast",
       "skillId": -1001
     },
-    "Winter's Bite",
-    "Splitblade",
-    "Whirling Defense",
-    "Ricochet",
-    "Ricochet",
-    "Ricochet",
-    "Splitblade",
-    "Ricochet",
-    "Ricochet",
-    "Winter's Bite",
-    "Ricochet",
+    {
+      "type": "cast",
+      "skillId": 12490
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
+    {
+      "type": "cast",
+      "skillId": 12639
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12490
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
     {
       "type": "cast",
       "skillId": 41406
     },
-    "Ricochet",
-    "Path of Scars",
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12638
+    },
     {
       "type": "cast",
       "skillId": 12480,
       "interruptAfterMs": 480
     },
-    "Swap Weapons",
-    "Unleashed Wild Swing",
-    "Unleashed Savage Shock Wave",
-    "Unleashed Thump",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Unleashed Wild Swing",
-    "Overbearing Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Frost Trap",
-    "One Wolf Pack",
-    "Worldly Impact",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": 63131
+    },
+    {
+      "type": "cast",
+      "skillId": 63208
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": 69262
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 12492
+    },
+    {
+      "type": "cast",
+      "skillId": 45717
+    },
+    {
+      "type": "cast",
+      "skillId": 40729
+    },
     {
       "type": "cast",
       "skillId": 12633,
       "concurrentOffsetMs": 440
     },
-    "Unleashed Savage Shock Wave",
-    "Unleashed Wild Swing",
-    "Swap Weapons",
+    {
+      "type": "cast",
+      "skillId": 63131
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
     {
       "type": "cast",
       "skillId": 41406
@@ -168,51 +414,159 @@
       "type": "cast",
       "skillId": -1001
     },
-    "Winter's Bite",
-    "Splitblade",
-    "Whirling Defense",
-    "Ricochet",
-    "Ricochet",
-    "Ricochet",
-    "Splitblade",
-    "Ricochet",
-    "Ricochet",
-    "Winter's Bite",
-    "Ricochet",
-    "Ricochet",
+    {
+      "type": "cast",
+      "skillId": 12490
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
+    {
+      "type": "cast",
+      "skillId": 12639
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12490
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
     {
       "type": "cast",
       "skillId": 41406
     },
-    "Path of Scars",
+    {
+      "type": "cast",
+      "skillId": 12638
+    },
     {
       "type": "cast",
       "skillId": 12480,
       "interruptAfterMs": 520
     },
-    "Swap Weapons",
-    "Unleashed Savage Shock Wave",
-    "Unleashed Wild Swing",
-    "Unleashed Thump",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Unleashed Wild Swing",
-    "Overbearing Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Frost Trap",
-    "Worldly Impact",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63131
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": 63208
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": 69262
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 12492
+    },
+    {
+      "type": "cast",
+      "skillId": 40729
+    },
     {
       "type": "cast",
       "skillId": 12633,
@@ -222,38 +576,98 @@
       "type": "cast",
       "skillId": 41406
     },
-    "Unleashed Savage Shock Wave",
-    "Unleashed Wild Swing",
-    "Swap Weapons",
+    {
+      "type": "cast",
+      "skillId": 63131
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
     {
       "type": "cast",
       "skillId": -1001
     },
-    "Winter's Bite",
-    "Splitblade",
-    "Whirling Defense",
-    "Ricochet",
-    "Ricochet",
-    "Ricochet",
-    "Splitblade",
-    "Ricochet",
-    "Ricochet",
-    "Winter's Bite",
-    "Ricochet",
+    {
+      "type": "cast",
+      "skillId": 12490
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
+    {
+      "type": "cast",
+      "skillId": 12639
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12480
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12490
+    },
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
     {
       "type": "cast",
       "skillId": 41406
     },
-    "Ricochet",
-    "Path of Scars",
+    {
+      "type": "cast",
+      "skillId": 12466
+    },
+    {
+      "type": "cast",
+      "skillId": 12638
+    },
     {
       "type": "cast",
       "skillId": 12480,
       "interruptAfterMs": 520
     },
-    "Swap Weapons",
-    "Unleashed Wild Swing",
-    "Unleashed Savage Shock Wave",
-    "Unleashed Thump"
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": 63131
+    },
+    {
+      "type": "cast",
+      "skillId": 63208
+    }
   ]
 }

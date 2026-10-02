@@ -1,7 +1,13 @@
 {
   "rotation": [
-    "Rock Barrier",
-    "Overload Earth",
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 29618
+    },
     {
       "type": "combat-start",
       "concurrentOffsetMs": 2760
@@ -11,248 +17,842 @@
       "skillId": 2662,
       "concurrentOffsetMs": 2760
     },
-    "Dust Devil",
-    "Feel the Burn!",
-    "Hurl",
-    "Magnetic Wave",
-    "Fire Attunement",
-    "Dragon's Tooth",
-    "Flamewall",
-    "Phoenix",
-    "Glyph of Storms (Fire)",
-    "Signet of Fire",
-    "Transmute Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Fire Shield",
-    "Overload Fire",
-    "Phoenix",
-    "Dragon's Tooth",
-    "Transmute Fire",
-    "Flamestrike",
-    "Flamestrike",
+    {
+      "type": "cast",
+      "skillId": 5696
+    },
+    {
+      "type": "cast",
+      "skillId": 30662
+    },
+    {
+      "type": "cast",
+      "skillId": 5780
+    },
+    {
+      "type": "cast",
+      "skillId": 5555
+    },
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5497
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5736
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 51711
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5678
+    },
+    {
+      "type": "cast",
+      "skillId": 29706
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 51711
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 560
     },
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Signet of Fire",
-    "Dragon's Tooth",
-    "Flamewall",
-    "Flamestrike",
-    "Phoenix",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Feel the Burn!",
-    "Transmute Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Fire Shield",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Dragon's Tooth",
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5497
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 30662
+    },
+    {
+      "type": "cast",
+      "skillId": 51711
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5678
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 360
     },
-    "Glyph of Storms (Fire)",
-    "Signet of Fire",
-    "Overload Fire",
-    "Flamewall",
-    "Dragon's Tooth",
-    "Phoenix",
-    "Transmute Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Signet of Fire",
+    {
+      "type": "cast",
+      "skillId": 5736
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 29706
+    },
+    {
+      "type": "cast",
+      "skillId": 5497
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 51711
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 360
     },
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Fire Shield",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Transmute Fire",
-    "Flamestrike",
-    "Feel the Burn!",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamewall",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Phoenix",
-    "Overload Fire",
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5678
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 51711
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 30662
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5497
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 29706
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 2600
     },
-    "Dragon's Tooth",
-    "Transmute Fire",
-    "Glyph of Storms (Fire)",
-    "Signet of Fire",
-    "Flamestrike",
-    "Phoenix",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Fire Shield",
-    "Flamestrike",
-    "Flamestrike",
-    "Transmute Fire",
-    "Flamewall",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Phoenix",
-    "Flamestrike",
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 51711
+    },
+    {
+      "type": "cast",
+      "skillId": 5736
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5678
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 51711
+    },
+    {
+      "type": "cast",
+      "skillId": 5497
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 560
     },
-    "Flamestrike",
-    "Flamestrike",
-    "Feel the Burn!",
-    "Signet of Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Transmute Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Overload Fire",
-    "Phoenix",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Flamewall",
-    "Transmute Fire",
-    "Fire Shield",
-    "Glyph of Storms (Fire)",
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 30662
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 51711
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 29706
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5497
+    },
+    {
+      "type": "cast",
+      "skillId": 51711
+    },
+    {
+      "type": "cast",
+      "skillId": 5678
+    },
+    {
+      "type": "cast",
+      "skillId": 5736
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 800
     },
-    "Signet of Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Feel the Burn!",
-    "Transmute Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Dragon's Tooth",
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 30662
+    },
+    {
+      "type": "cast",
+      "skillId": 51711
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 680
     },
-    "Signet of Fire",
-    "Flamewall",
-    "Overload Fire",
-    "Dragon's Tooth",
-    "Fire Shield",
-    "Transmute Fire",
-    "Flamestrike",
-    "Phoenix",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Glyph of Storms (Fire)",
-    "Dragon's Tooth",
-    "Signet of Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5497
+    },
+    {
+      "type": "cast",
+      "skillId": 29706
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5678
+    },
+    {
+      "type": "cast",
+      "skillId": 51711
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5736
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 160
     },
-    "Flamestrike",
-    "Phoenix",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Flamewall",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Feel the Burn!",
-    "Transmute Fire",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Phoenix",
-    "Signet of Fire",
-    "Overload Fire",
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5497
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 30662
+    },
+    {
+      "type": "cast",
+      "skillId": 51711
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 29706
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 3000
     },
-    "Dragon's Tooth",
-    "Fire Shield",
-    "Transmute Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Flamestrike",
-    "Flamewall",
-    "Dragon's Tooth",
-    "Glyph of Storms (Fire)",
-    "Signet of Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Phoenix",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Feel the Burn!",
-    "Dragon's Tooth",
-    "Transmute Fire"
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5678
+    },
+    {
+      "type": "cast",
+      "skillId": 51711
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5497
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5736
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 30662
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 51711
+    }
   ]
 }

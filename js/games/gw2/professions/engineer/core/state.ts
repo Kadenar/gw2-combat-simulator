@@ -12,7 +12,8 @@ export interface EngineerCoreState {
   endurance: number;
 
   enduranceUpdatedAt: number;
-  activeKit: string;
+  /** The equip skill identifies the active bundle independently of its display name. */
+  activeKit: SkillId | null;
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   focusedUntil: number;
@@ -56,7 +57,7 @@ export function createEngineerCoreState(): EngineerCoreState {
     endurance: BASE_MAXIMUM_ENDURANCE,
 
     enduranceUpdatedAt: 0,
-    activeKit: '',
+    activeKit: null,
     availableFlips: {},
     autoattackChains: {},
     lightningRodChargeExpiries: [],

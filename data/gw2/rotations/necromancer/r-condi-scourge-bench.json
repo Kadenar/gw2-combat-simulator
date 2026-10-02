@@ -1,12 +1,21 @@
 {
   "rotation": [
-    "Summon Shadow Fiend",
-    "Manifest Sand Shade",
+    {
+      "type": "cast",
+      "skillId": 10589
+    },
+    {
+      "type": "cast",
+      "skillId": 44946
+    },
     {
       "type": "wait",
       "durationMs": 520
     },
-    "Blood Is Power",
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
     {
       "type": "combat-start",
       "concurrentOffsetMs": 520
@@ -21,257 +30,605 @@
       "skillId": 44663,
       "concurrentOffsetMs": 80
     },
-    "Vile Blast",
-    "Weeping Shots",
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 360
     },
-    "Swap Weapons",
-    "Devouring Darkness",
-    "Grasping Dead",
-    "Oppressive Collapse",
-    "Harrowing Wave",
-    "Signet of Spite",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 51647
+    },
+    {
+      "type": "cast",
+      "skillId": 10532
+    },
+    {
+      "type": "cast",
+      "skillId": 44296
+    },
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 10622
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 320
     },
-    "Plaguelands",
-    "Blood Curse",
-    "Rending Curse",
-    "Putrid Curse",
-    "Blood Curse",
+    {
+      "type": "cast",
+      "skillId": 10549
+    },
+    {
+      "type": "cast",
+      "skillId": 10698
+    },
+    {
+      "type": "cast",
+      "skillId": 10699
+    },
+    {
+      "type": "cast",
+      "skillId": 10552
+    },
+    {
+      "type": "cast",
+      "skillId": 10698
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 360
     },
-    "Rending Curse",
-    "Putrid Curse",
-    "Blood Curse",
-    "Rending Curse",
-    "Putrid Curse",
-    "Manifest Sand Shade",
-    "Devouring Darkness",
+    {
+      "type": "cast",
+      "skillId": 10699
+    },
+    {
+      "type": "cast",
+      "skillId": 10552
+    },
+    {
+      "type": "cast",
+      "skillId": 10698
+    },
+    {
+      "type": "cast",
+      "skillId": 10699
+    },
+    {
+      "type": "cast",
+      "skillId": 10552
+    },
+    {
+      "type": "cast",
+      "skillId": 44946
+    },
+    {
+      "type": "cast",
+      "skillId": 51647
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 120
     },
-    "Grasping Dead",
-    "Swap Weapons",
-    "Weeping Shots",
+    {
+      "type": "cast",
+      "skillId": 10532
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
     {
       "type": "cast",
       "skillId": 44663,
       "concurrentOffsetMs": 800
     },
-    "Vile Blast",
-    "Blood Is Power",
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 880
     },
-    "Vicious Shot",
-    "Vicious Shot",
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
     {
       "type": "cast",
       "skillId": 10590,
       "concurrentOffsetMs": 160
     },
-    "Vicious Shot",
-    "Vicious Shot",
-    "Harrowing Wave",
-    "Vicious Shot",
-    "Vicious Shot",
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 240
     },
-    "Weeping Shots",
-    "Oppressive Collapse",
-    "Vicious Shot",
-    "Vicious Shot",
-    "Vicious Shot",
-    "Manifest Sand Shade",
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": 44296
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 44946
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 80
     },
-    "Vicious Shot",
-    "Vicious Shot",
-    "Vicious Shot",
-    "Vile Blast",
-    "Weeping Shots",
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 720
     },
-    "Swap Weapons",
-    "Devouring Darkness",
-    "Grasping Dead",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 51647
+    },
+    {
+      "type": "cast",
+      "skillId": 10532
+    },
     {
       "type": "cast",
       "skillId": 44663,
       "concurrentOffsetMs": 600
     },
-    "Blood Is Power",
-    "Blood Curse",
-    "Rending Curse",
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 10698
+    },
+    {
+      "type": "cast",
+      "skillId": 10699
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 360
     },
-    "Putrid Curse",
-    "Manifest Sand Shade",
-    "Blood Curse",
-    "Harrowing Wave",
-    "Blood Curse",
-    "Rending Curse",
+    {
+      "type": "cast",
+      "skillId": 10552
+    },
+    {
+      "type": "cast",
+      "skillId": 44946
+    },
+    {
+      "type": "cast",
+      "skillId": 10698
+    },
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 10698
+    },
+    {
+      "type": "cast",
+      "skillId": 10699
+    },
     {
       "type": "cast",
       "skillId": 10590,
       "concurrentOffsetMs": 520
     },
-    "Putrid Curse",
+    {
+      "type": "cast",
+      "skillId": 10552
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 440
     },
-    "Blood Curse",
-    "Rending Curse",
-    "Putrid Curse",
-    "Devouring Darkness",
-    "Blood Curse",
-    "Grasping Dead",
+    {
+      "type": "cast",
+      "skillId": 10698
+    },
+    {
+      "type": "cast",
+      "skillId": 10699
+    },
+    {
+      "type": "cast",
+      "skillId": 10552
+    },
+    {
+      "type": "cast",
+      "skillId": 51647
+    },
+    {
+      "type": "cast",
+      "skillId": 10698
+    },
+    {
+      "type": "cast",
+      "skillId": 10532
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 680
     },
-    "Swap Weapons",
-    "Weeping Shots",
-    "Vile Blast",
-    "Oppressive Collapse",
-    "Signet of Spite",
-    "Manifest Sand Shade",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
+    {
+      "type": "cast",
+      "skillId": 44296
+    },
+    {
+      "type": "cast",
+      "skillId": 10622
+    },
+    {
+      "type": "cast",
+      "skillId": 44946
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 520
     },
-    "Blood Is Power",
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
     {
       "type": "cast",
       "skillId": 44663,
       "concurrentOffsetMs": 800
     },
-    "Vicious Shot",
-    "Vicious Shot",
-    "Vicious Shot",
-    "Weeping Shots",
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 800
     },
-    "Vicious Shot",
-    "Harrowing Wave",
-    "Vicious Shot",
-    "Vicious Shot",
-    "Vicious Shot",
-    "Vicious Shot",
-    "Vicious Shot",
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 120
     },
-    "Vicious Shot",
-    "Vile Blast",
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
     {
       "type": "cast",
       "skillId": 10590,
       "concurrentOffsetMs": 120
     },
-    "Weeping Shots",
-    "Swap Weapons",
-    "Devouring Darkness",
-    "Grasping Dead",
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 51647
+    },
+    {
+      "type": "cast",
+      "skillId": 10532
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 440
     },
-    "Manifest Sand Shade",
-    "Blood Curse",
-    "Rending Curse",
-    "Putrid Curse",
-    "Blood Curse",
-    "Rending Curse",
+    {
+      "type": "cast",
+      "skillId": 44946
+    },
+    {
+      "type": "cast",
+      "skillId": 10698
+    },
+    {
+      "type": "cast",
+      "skillId": 10699
+    },
+    {
+      "type": "cast",
+      "skillId": 10552
+    },
+    {
+      "type": "cast",
+      "skillId": 10698
+    },
+    {
+      "type": "cast",
+      "skillId": 10699
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 520
     },
-    "Putrid Curse",
+    {
+      "type": "cast",
+      "skillId": 10552
+    },
     {
       "type": "cast",
       "skillId": 44663,
       "concurrentOffsetMs": 520
     },
-    "Oppressive Collapse",
-    "Blood Is Power",
-    "Plaguelands",
-    "Manifest Sand Shade",
+    {
+      "type": "cast",
+      "skillId": 44296
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 10549
+    },
+    {
+      "type": "cast",
+      "skillId": 44946
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 440
     },
-    "Harrowing Wave",
-    "Devouring Darkness",
-    "Blood Curse",
-    "Grasping Dead",
-    "Swap Weapons",
-    "Weeping Shots",
-    "Vile Blast",
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 51647
+    },
+    {
+      "type": "cast",
+      "skillId": 10698
+    },
+    {
+      "type": "cast",
+      "skillId": 10532
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 280
     },
-    "Vicious Shot",
-    "Vicious Shot",
-    "Vicious Shot",
-    "Vicious Shot",
-    "Vicious Shot",
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
     {
       "type": "cast",
       "skillId": 10590,
       "concurrentOffsetMs": 280
     },
-    "Vicious Shot",
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 200
     },
-    "Vicious Shot",
-    "Vicious Shot",
-    "Weeping Shots",
-    "Manifest Sand Shade",
-    "Blood Is Power",
-    "Vicious Shot",
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": 44946
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
     {
       "type": "cast",
       "skillId": 44663,
@@ -282,93 +639,234 @@
       "skillId": 40813,
       "concurrentOffsetMs": 200
     },
-    "Vicious Shot",
-    "Vicious Shot",
-    "Vicious Shot",
-    "Harrowing Wave",
-    "Vile Blast",
-    "Weeping Shots",
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 520
     },
-    "Swap Weapons",
-    "Devouring Darkness",
-    "Grasping Dead",
-    "Oppressive Collapse",
-    "Signet of Spite",
-    "Blood Curse",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 51647
+    },
+    {
+      "type": "cast",
+      "skillId": 10532
+    },
+    {
+      "type": "cast",
+      "skillId": 44296
+    },
+    {
+      "type": "cast",
+      "skillId": 10622
+    },
+    {
+      "type": "cast",
+      "skillId": 10698
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 80
     },
-    "Rending Curse",
-    "Putrid Curse",
-    "Manifest Sand Shade",
-    "Blood Curse",
-    "Rending Curse",
-    "Putrid Curse",
+    {
+      "type": "cast",
+      "skillId": 10699
+    },
+    {
+      "type": "cast",
+      "skillId": 10552
+    },
+    {
+      "type": "cast",
+      "skillId": 44946
+    },
+    {
+      "type": "cast",
+      "skillId": 10698
+    },
+    {
+      "type": "cast",
+      "skillId": 10699
+    },
+    {
+      "type": "cast",
+      "skillId": 10552
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 440
     },
-    "Blood Curse",
-    "Rending Curse",
+    {
+      "type": "cast",
+      "skillId": 10698
+    },
+    {
+      "type": "cast",
+      "skillId": 10699
+    },
     {
       "type": "cast",
       "skillId": 10590,
       "concurrentOffsetMs": 80
     },
-    "Putrid Curse",
-    "Blood Curse",
-    "Blood Is Power",
-    "Devouring Darkness",
+    {
+      "type": "cast",
+      "skillId": 10552
+    },
+    {
+      "type": "cast",
+      "skillId": 10698
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 51647
+    },
     {
       "type": "cast",
       "skillId": 44663,
       "concurrentOffsetMs": 120
     },
-    "Grasping Dead",
-    "Swap Weapons",
-    "Weeping Shots",
+    {
+      "type": "cast",
+      "skillId": 10532
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 80
     },
-    "Vile Blast",
-    "Harrowing Wave",
-    "Vicious Shot",
-    "Vicious Shot",
-    "Vicious Shot",
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 560
     },
-    "Vicious Shot",
-    "Manifest Sand Shade",
-    "Vicious Shot",
-    "Vicious Shot",
-    "Weeping Shots",
-    "Oppressive Collapse",
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 44946
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": 44296
+    },
     {
       "type": "cast",
       "skillId": 40813,
       "concurrentOffsetMs": 360
     },
-    "Vicious Shot",
-    "Vicious Shot",
-    "Vicious Shot",
-    "Vicious Shot",
-    "Vicious Shot",
-    "Vicious Shot",
-    "Manifest Sand Shade",
-    "Vile Blast",
-    "Weeping Shots",
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 44946
+    },
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
     {
       "type": "cast",
       "skillId": 10590,
@@ -379,8 +877,17 @@
       "skillId": 40813,
       "concurrentOffsetMs": 320
     },
-    "Swap Weapons",
-    "Devouring Darkness",
-    "Grasping Dead"
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 51647
+    },
+    {
+      "type": "cast",
+      "skillId": 10532
+    }
   ]
 }

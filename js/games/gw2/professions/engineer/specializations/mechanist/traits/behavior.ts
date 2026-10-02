@@ -140,7 +140,7 @@ export function triggerMechFighter(context: EngineerRuntime, skill: EngineerSkil
   if (
     state.mech.active &&
     skill.type === 'Weapon' &&
-    !skill.kit &&
+    !skill.kitId &&
     skill.slot === 'Weapon_3' &&
     context.procs.claim(TRAIT.MECH_FIGHTER, 'rocketPunch', at)
   ) {

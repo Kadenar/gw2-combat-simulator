@@ -84,7 +84,7 @@ function nextPassiveHeatTick(at: number): number {
 // cooldown. A longer existing cooldown wins so overheat never shortens a skill.
 function applyToolbeltOverheatPenalty(context: EngineerRuntime, at: number, seconds: number): void {
   for (const skill of context.helpers.skills) {
-    if (!skill.toolbeltParentName || HOLOSMITH_FORGE_TOGGLE_SKILL_IDS.has(Number(skill.id))) continue;
+    if (!skill.toolbeltParentId || HOLOSMITH_FORGE_TOGGLE_SKILL_IDS.has(Number(skill.id))) continue;
     const existingReadyAt = context.cooldowns.get(skill.id) || 0;
     context.cooldownController.setReadyAt(skill.id, Math.max(existingReadyAt, at + seconds));
   }
@@ -176,7 +176,7 @@ export function enterPhotonForge(context: EngineerRuntime, skill: EngineerSkill)
   const at = context.time;
   const heatProfile = requireBalanceProfileFromContext(context, PROFILE.heat);
   const baseKitLockout = balanceProfileNumber(heatProfile, 'cooldown');
-  coreState.activeKit = '';
+  coreState.activeKit = null;
   state.photonForgeActive = true;
   state.forgeExitedAt = null;
   startPassiveHeatCadence(context, at);

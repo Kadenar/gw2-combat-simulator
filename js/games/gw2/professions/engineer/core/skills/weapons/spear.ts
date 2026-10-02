@@ -115,6 +115,8 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: []
   },
   [ID.FOCUSED_DEVASTATION]: {
+    // This derived packet is emitted by Devastator, never manually cast.
+    simulatorExcluded: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [

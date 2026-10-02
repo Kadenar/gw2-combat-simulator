@@ -21,24 +21,51 @@
       "type": "cast",
       "skillId": 62668
     },
-    "Purging Flames",
-    "Symbol of Punishment",
-    "Swap Weapons",
-    "Symbol of Ignition",
+    {
+      "type": "cast",
+      "skillId": 9187
+    },
+    {
+      "type": "cast",
+      "skillId": 9090
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 71987
+    },
     {
       "type": "cast",
       "skillId": 9104,
       "concurrentOffsetMs": 160
     },
-    "Peacekeeper",
-    "Zealot's Fire",
+    {
+      "type": "cast",
+      "skillId": 71968
+    },
+    {
+      "type": "cast",
+      "skillId": 9089
+    },
     {
       "type": "cast",
       "skillId": 62648
     },
-    "Whirling Light",
-    "Peacekeeper",
-    "Cleansing Flame",
+    {
+      "type": "cast",
+      "skillId": 62565
+    },
+    {
+      "type": "cast",
+      "skillId": 71968
+    },
+    {
+      "type": "cast",
+      "skillId": 9088
+    },
     {
       "type": "cast",
       "skillId": 9104,
@@ -48,61 +75,145 @@
       "type": "cast",
       "skillId": 62668
     },
-    "Symbol of Ignition",
-    "Zealot's Fire",
-    "Peacekeeper",
+    {
+      "type": "cast",
+      "skillId": 71987
+    },
+    {
+      "type": "cast",
+      "skillId": 9089
+    },
+    {
+      "type": "cast",
+      "skillId": 71968
+    },
     {
       "type": "cast",
       "skillId": 9104,
       "concurrentOffsetMs": 360
     },
-    "Zealot's Fire",
-    "Swap Weapons",
-    "Symbol of Punishment",
-    "Hail of Justice",
-    "Flowing Resolve",
-    "Hail of Justice",
+    {
+      "type": "cast",
+      "skillId": 9089
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 9090
+    },
+    {
+      "type": "cast",
+      "skillId": 71918
+    },
+    {
+      "type": "cast",
+      "skillId": 62603
+    },
+    {
+      "type": "cast",
+      "skillId": 71918
+    },
     {
       "type": "cast",
       "skillId": 71817
     },
-    "Orb of Wrath",
-    "Orb of Wrath",
-    "Purging Flames",
+    {
+      "type": "cast",
+      "skillId": 9098
+    },
+    {
+      "type": "cast",
+      "skillId": 9098
+    },
+    {
+      "type": "cast",
+      "skillId": 9187
+    },
     {
       "type": "cast",
       "skillId": 62668
     },
-    "Whirling Light",
-    "Symbol of Punishment",
-    "Hail of Justice",
-    "Swap Weapons",
-    "Symbol of Ignition",
+    {
+      "type": "cast",
+      "skillId": 62565
+    },
+    {
+      "type": "cast",
+      "skillId": 9090
+    },
+    {
+      "type": "cast",
+      "skillId": 71918
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 71987
+    },
     {
       "type": "cast",
       "skillId": 9104,
       "concurrentOffsetMs": 160
     },
-    "Peacekeeper",
-    "Zealot's Fire",
-    "Flowing Resolve",
-    "Cleansing Flame",
+    {
+      "type": "cast",
+      "skillId": 71968
+    },
+    {
+      "type": "cast",
+      "skillId": 9089
+    },
+    {
+      "type": "cast",
+      "skillId": 62603
+    },
+    {
+      "type": "cast",
+      "skillId": 9088
+    },
     {
       "type": "cast",
       "skillId": 9104,
       "concurrentOffsetMs": 2480
     },
-    "Zealot's Fire",
+    {
+      "type": "cast",
+      "skillId": 9089
+    },
     {
       "type": "cast",
       "skillId": 62668
     },
-    "Through the Heart",
-    "Symbol of Ignition",
-    "Peacekeeper",
-    "Swap Weapons",
-    "Symbol of Punishment",
-    "Hail of Justice",
+    {
+      "type": "cast",
+      "skillId": 72031
+    },
+    {
+      "type": "cast",
+      "skillId": 71987
+    },
+    {
+      "type": "cast",
+      "skillId": 71968
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 9090
+    },
+    {
+      "type": "cast",
+      "skillId": 71918
+    },
     {
       "type": "cast",
       "skillId": 62648
@@ -111,175 +222,409 @@
       "type": "cast",
       "skillId": 71817
     },
-    "Orb of Wrath",
-    "Hail of Justice",
-    "Purging Flames",
-    "Whirling Light",
+    {
+      "type": "cast",
+      "skillId": 9098
+    },
+    {
+      "type": "cast",
+      "skillId": 71918
+    },
+    {
+      "type": "cast",
+      "skillId": 9187
+    },
+    {
+      "type": "cast",
+      "skillId": 62565
+    },
     {
       "type": "cast",
       "skillId": 62668
     },
-    "Orb of Wrath",
-    "Orb of Wrath",
-    "Symbol of Punishment",
-    "Swap Weapons",
-    "Symbol of Ignition",
+    {
+      "type": "cast",
+      "skillId": 9098
+    },
+    {
+      "type": "cast",
+      "skillId": 9098
+    },
+    {
+      "type": "cast",
+      "skillId": 9090
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 71987
+    },
     {
       "type": "cast",
       "skillId": 9104,
       "concurrentOffsetMs": 240
     },
-    "Peacekeeper",
-    "Zealot's Fire",
-    "Flowing Resolve",
-    "Cleansing Flame",
+    {
+      "type": "cast",
+      "skillId": 71968
+    },
+    {
+      "type": "cast",
+      "skillId": 9089
+    },
+    {
+      "type": "cast",
+      "skillId": 62603
+    },
+    {
+      "type": "cast",
+      "skillId": 9088
+    },
     {
       "type": "cast",
       "skillId": 9104,
       "concurrentOffsetMs": 2040
     },
-    "Zealot's Fire",
-    "Through the Heart",
+    {
+      "type": "cast",
+      "skillId": 9089
+    },
+    {
+      "type": "cast",
+      "skillId": 72031
+    },
     {
       "type": "cast",
       "skillId": 62668
     },
-    "Symbol of Ignition",
-    "Peacekeeper",
-    "Swap Weapons",
-    "Symbol of Punishment",
-    "Hail of Justice",
-    "Flowing Resolve",
+    {
+      "type": "cast",
+      "skillId": 71987
+    },
+    {
+      "type": "cast",
+      "skillId": 71968
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 9090
+    },
+    {
+      "type": "cast",
+      "skillId": 71918
+    },
+    {
+      "type": "cast",
+      "skillId": 62603
+    },
     {
       "type": "cast",
       "skillId": 71817
     },
-    "Hail of Justice",
-    "Orb of Wrath",
-    "Orb of Wrath",
-    "Purging Flames",
-    "Whirling Light",
-    "Symbol of Punishment",
+    {
+      "type": "cast",
+      "skillId": 71918
+    },
+    {
+      "type": "cast",
+      "skillId": 9098
+    },
+    {
+      "type": "cast",
+      "skillId": 9098
+    },
+    {
+      "type": "cast",
+      "skillId": 9187
+    },
+    {
+      "type": "cast",
+      "skillId": 62565
+    },
+    {
+      "type": "cast",
+      "skillId": 9090
+    },
     {
       "type": "cast",
       "skillId": 62668
     },
-    "Hail of Justice",
-    "Swap Weapons",
-    "Symbol of Ignition",
+    {
+      "type": "cast",
+      "skillId": 71918
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 71987
+    },
     {
       "type": "cast",
       "skillId": 9104,
       "concurrentOffsetMs": 160
     },
-    "Peacekeeper",
-    "Zealot's Fire",
+    {
+      "type": "cast",
+      "skillId": 71968
+    },
+    {
+      "type": "cast",
+      "skillId": 9089
+    },
     {
       "type": "cast",
       "skillId": 62648
     },
-    "Cleansing Flame",
+    {
+      "type": "cast",
+      "skillId": 9088
+    },
     {
       "type": "cast",
       "skillId": 9104,
       "concurrentOffsetMs": 1560
     },
-    "Zealot's Fire",
-    "Through the Heart",
+    {
+      "type": "cast",
+      "skillId": 9089
+    },
+    {
+      "type": "cast",
+      "skillId": 72031
+    },
     {
       "type": "cast",
       "skillId": 62668
     },
-    "Symbol of Ignition",
-    "Peacekeeper",
-    "Swap Weapons",
-    "Symbol of Punishment",
-    "Hail of Justice",
-    "Flowing Resolve",
+    {
+      "type": "cast",
+      "skillId": 71987
+    },
+    {
+      "type": "cast",
+      "skillId": 71968
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 9090
+    },
+    {
+      "type": "cast",
+      "skillId": 71918
+    },
+    {
+      "type": "cast",
+      "skillId": 62603
+    },
     {
       "type": "cast",
       "skillId": 71817
     },
-    "Orb of Wrath",
-    "Hail of Justice",
-    "Purging Flames",
-    "Whirling Light",
-    "Orb of Wrath",
+    {
+      "type": "cast",
+      "skillId": 9098
+    },
+    {
+      "type": "cast",
+      "skillId": 71918
+    },
+    {
+      "type": "cast",
+      "skillId": 9187
+    },
+    {
+      "type": "cast",
+      "skillId": 62565
+    },
+    {
+      "type": "cast",
+      "skillId": 9098
+    },
     {
       "type": "cast",
       "skillId": 62668
     },
-    "Orb of Wrath",
-    "Symbol of Punishment",
-    "Swap Weapons",
-    "Symbol of Ignition",
+    {
+      "type": "cast",
+      "skillId": 9098
+    },
+    {
+      "type": "cast",
+      "skillId": 9090
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 71987
+    },
     {
       "type": "cast",
       "skillId": 9104,
       "concurrentOffsetMs": 240
     },
-    "Peacekeeper",
-    "Zealot's Fire",
-    "Flowing Resolve",
-    "Cleansing Flame",
+    {
+      "type": "cast",
+      "skillId": 71968
+    },
+    {
+      "type": "cast",
+      "skillId": 9089
+    },
+    {
+      "type": "cast",
+      "skillId": 62603
+    },
+    {
+      "type": "cast",
+      "skillId": 9088
+    },
     {
       "type": "cast",
       "skillId": 9104,
       "concurrentOffsetMs": 1440
     },
-    "Zealot's Fire",
-    "Through the Heart",
-    "Symbol of Ignition",
+    {
+      "type": "cast",
+      "skillId": 9089
+    },
+    {
+      "type": "cast",
+      "skillId": 72031
+    },
+    {
+      "type": "cast",
+      "skillId": 71987
+    },
     {
       "type": "cast",
       "skillId": 62668
     },
-    "Peacekeeper",
-    "Swap Weapons",
-    "Symbol of Punishment",
-    "Hail of Justice",
+    {
+      "type": "cast",
+      "skillId": 71968
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 9090
+    },
+    {
+      "type": "cast",
+      "skillId": 71918
+    },
     {
       "type": "cast",
       "skillId": 62648
     },
-    "Whirling Light",
+    {
+      "type": "cast",
+      "skillId": 62565
+    },
     {
       "type": "cast",
       "skillId": 71817
     },
-    "Hail of Justice",
-    "Purging Flames",
-    "Orb of Wrath",
-    "Orb of Wrath",
-    "Symbol of Punishment",
+    {
+      "type": "cast",
+      "skillId": 71918
+    },
+    {
+      "type": "cast",
+      "skillId": 9187
+    },
+    {
+      "type": "cast",
+      "skillId": 9098
+    },
+    {
+      "type": "cast",
+      "skillId": 9098
+    },
+    {
+      "type": "cast",
+      "skillId": 9090
+    },
     {
       "type": "cast",
       "skillId": 62668
     },
-    "Hail of Justice",
-    "Swap Weapons",
-    "Symbol of Ignition",
+    {
+      "type": "cast",
+      "skillId": 71918
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 71987
+    },
     {
       "type": "cast",
       "skillId": 9104,
       "concurrentOffsetMs": 120
     },
-    "Peacekeeper",
-    "Zealot's Fire",
-    "Flowing Resolve",
-    "Cleansing Flame",
+    {
+      "type": "cast",
+      "skillId": 71968
+    },
+    {
+      "type": "cast",
+      "skillId": 9089
+    },
+    {
+      "type": "cast",
+      "skillId": 62603
+    },
+    {
+      "type": "cast",
+      "skillId": 9088
+    },
     {
       "type": "cast",
       "skillId": 9104,
       "concurrentOffsetMs": 1280
     },
-    "Zealot's Fire",
-    "Peacekeeper",
-    "Symbol of Ignition",
+    {
+      "type": "cast",
+      "skillId": 9089
+    },
+    {
+      "type": "cast",
+      "skillId": 71968
+    },
+    {
+      "type": "cast",
+      "skillId": 71987
+    },
     {
       "type": "cast",
       "skillId": 62668
     },
-    "Whirling Light"
+    {
+      "type": "cast",
+      "skillId": 62565
+    }
   ]
 }

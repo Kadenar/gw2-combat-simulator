@@ -95,20 +95,6 @@ const thiefBuildCodec = createProfessionBuildCodec<ThiefCanonicalBuild>({
       values: THIEF_DODGES
     }
   },
-  normalizeExtra(build) {
-    const assumptions = { ...build.assumptions };
-    delete assumptions.markedTargetChoice;
-    delete assumptions.playerHealthPercent;
-    delete assumptions.artifactDrawSequence;
-    delete assumptions.doubleEdgeOutcomeSequence;
-    // Stolen skills moved from persisted assumptions to choices made from the live profession palette.
-    delete assumptions.stolenSkillChoice;
-    delete assumptions.deadeyeStolenSkillChoice;
-    return {
-      ...build,
-      assumptions
-    };
-  },
   validateExtra(build) {
     const errors: string[] = [];
     for (const pair of [build.weapons, build.alternateWeapons]) {

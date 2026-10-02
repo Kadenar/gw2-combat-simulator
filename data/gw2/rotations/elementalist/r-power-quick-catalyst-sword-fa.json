@@ -1,13 +1,25 @@
 {
   "rotation": [
-    "Frost Aura",
-    "Air Attunement",
-    "Glyph of Storms (Air)",
+    {
+      "type": "cast",
+      "skillId": 5520
+    },
+    {
+      "type": "cast",
+      "skillId": 5494
+    },
+    {
+      "type": "cast",
+      "skillId": 5737
+    },
     {
       "type": "combat-start",
       "concurrentOffsetMs": 1120
     },
-    "Polaric Leap",
+    {
+      "type": "cast",
+      "skillId": 44998
+    },
     {
       "type": "cast",
       "skillId": 2662,
@@ -18,55 +30,112 @@
       "skillId": 62940,
       "concurrentOffsetMs": 120
     },
-    "Ride the Lightning",
-    "Quantum Strike",
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 400
     },
-    "Relentless Fire",
+    {
+      "type": "cast",
+      "skillId": 62965
+    },
     {
       "type": "cast",
       "skillId": 62813,
       "concurrentOffsetMs": 120
     },
-    "Ring of Fire",
-    "Fire Grab",
-    "Cauterizing Strike",
-    "Flame Uprising",
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 44451
+    },
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 200
     },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 480
     },
-    "Earthquake",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
     {
       "type": "cast",
       "skillId": 62837,
       "concurrentOffsetMs": 120
     },
-    "Churning Earth",
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 120
     },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Ride the Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
     {
       "type": "cast",
       "skillId": 5493,
@@ -82,10 +151,22 @@
       "skillId": 5494,
       "concurrentOffsetMs": 120
     },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Polaric Leap",
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44998
+    },
     {
       "type": "cast",
       "skillId": 2662,
@@ -96,64 +177,136 @@
       "skillId": 62940,
       "concurrentOffsetMs": 280
     },
-    "Quantum Strike",
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 440
     },
-    "Cauterizing Strike",
+    {
+      "type": "cast",
+      "skillId": 44451
+    },
     {
       "type": "cast",
       "skillId": 62813,
       "concurrentOffsetMs": 280
     },
-    "Ring of Fire",
-    "Flame Uprising",
-    "Fire Strike",
-    "Fire Swipe",
-    "Fire Grab",
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
+    {
+      "type": "cast",
+      "skillId": 40326
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 280
     },
-    "Ride the Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Relentless Fire",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 62965
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 360
     },
-    "Earthquake",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
     {
       "type": "cast",
       "skillId": 62837,
       "concurrentOffsetMs": 240
     },
-    "Rust Frenzy",
+    {
+      "type": "cast",
+      "skillId": 40139
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 280
     },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Ride the Lightning",
-    "Charged Strike",
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
     {
       "type": "cast",
       "skillId": 2662
     },
-    "Polaric Slash",
-    "Call Lightning",
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
     {
       "type": "cast",
       "skillId": 5493,
@@ -169,16 +322,31 @@
       "skillId": 5494,
       "concurrentOffsetMs": 120
     },
-    "Charged Strike",
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
     {
       "type": "cast",
       "skillId": 62940,
       "concurrentOffsetMs": 120
     },
-    "Polaric Slash",
-    "Call Lightning",
-    "Polaric Leap",
-    "Quantum Strike",
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44998
+    },
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
     {
       "type": "cast",
       "skillId": 5492,
@@ -189,55 +357,115 @@
       "skillId": 62813,
       "concurrentOffsetMs": 360
     },
-    "Cauterizing Strike",
-    "Ring of Fire",
-    "Flame Uprising",
-    "Fire Grab",
+    {
+      "type": "cast",
+      "skillId": 44451
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 80
     },
-    "Ride the Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 120
     },
-    "Earthquake",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
     {
       "type": "cast",
       "skillId": 62837,
       "concurrentOffsetMs": 280
     },
-    "Churning Earth",
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 200
     },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
     {
       "type": "cast",
       "skillId": 2662
     },
-    "Ride the Lightning",
-    "Charged Strike",
-    "Polaric Slash",
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
     {
       "type": "cast",
       "skillId": 62940,
       "concurrentOffsetMs": 160
     },
-    "Call Lightning",
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
     {
       "type": "cast",
       "skillId": 5493,
@@ -253,11 +481,26 @@
       "skillId": 5494,
       "concurrentOffsetMs": 120
     },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Polaric Leap",
-    "Quantum Strike",
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44998
+    },
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
     {
       "type": "cast",
       "skillId": 5492,
@@ -268,41 +511,86 @@
       "skillId": 62813,
       "concurrentOffsetMs": 360
     },
-    "Relentless Fire",
-    "Cauterizing Strike",
-    "Ring of Fire",
-    "Flame Uprising",
-    "Fire Grab",
+    {
+      "type": "cast",
+      "skillId": 62965
+    },
+    {
+      "type": "cast",
+      "skillId": 44451
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 160
     },
-    "Ride the Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 520
     },
-    "Earthquake",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
     {
       "type": "cast",
       "skillId": 62837,
       "concurrentOffsetMs": 200
     },
-    "Rust Frenzy",
+    {
+      "type": "cast",
+      "skillId": 40139
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 160
     },
-    "Glyph of Storms (Air)",
+    {
+      "type": "cast",
+      "skillId": 5737
+    },
     {
       "type": "cast",
       "skillId": 2662,
@@ -313,10 +601,22 @@
       "skillId": 62940,
       "concurrentOffsetMs": 480
     },
-    "Ride the Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
     {
       "type": "cast",
       "skillId": 5493,
@@ -332,11 +632,26 @@
       "skillId": 5494,
       "concurrentOffsetMs": 360
     },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Polaric Leap",
-    "Quantum Strike",
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44998
+    },
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
     {
       "type": "cast",
       "skillId": 5492,
@@ -347,269 +662,47 @@
       "skillId": 62813,
       "concurrentOffsetMs": 120
     },
-    "Cauterizing Strike",
-    "Ring of Fire",
-    "Flame Uprising",
-    "Fire Grab",
     {
       "type": "cast",
-      "skillId": 5494,
-      "concurrentOffsetMs": 120
-    },
-    "Ride the Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Relentless Fire",
-    "Call Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    {
-      "type": "cast",
-      "skillId": 5495,
-      "concurrentOffsetMs": 640
-    },
-    "Earthquake",
-    {
-      "type": "cast",
-      "skillId": 62837,
-      "concurrentOffsetMs": 320
-    },
-    "Churning Earth",
-    {
-      "type": "cast",
-      "skillId": 5494,
-      "concurrentOffsetMs": 160
+      "skillId": 44451
     },
     {
       "type": "cast",
-      "skillId": 62940,
-      "concurrentOffsetMs": 440
-    },
-    "Charged Strike",
-    {
-      "type": "cast",
-      "skillId": 2662,
-      "concurrentOffsetMs": 120
-    },
-    "Polaric Slash",
-    "Call Lightning",
-    "Ride the Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    {
-      "type": "cast",
-      "skillId": 5493,
-      "concurrentOffsetMs": 40
+      "skillId": 5691
     },
     {
       "type": "cast",
-      "skillId": 62723,
-      "concurrentOffsetMs": 200
+      "skillId": 45313
     },
     {
       "type": "cast",
-      "skillId": 5494,
-      "concurrentOffsetMs": 360
-    },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Polaric Leap",
-    "Quantum Strike",
-    {
-      "type": "cast",
-      "skillId": 5492,
-      "concurrentOffsetMs": 200
-    },
-    {
-      "type": "cast",
-      "skillId": 62813,
-      "concurrentOffsetMs": 400
-    },
-    "Cauterizing Strike",
-    "Ring of Fire",
-    "Flame Uprising",
-    "Fire Grab",
-    {
-      "type": "cast",
-      "skillId": 5494,
-      "concurrentOffsetMs": 80
-    },
-    "Ride the Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    {
-      "type": "cast",
-      "skillId": 62940,
-      "concurrentOffsetMs": 120
-    },
-    "Earth Attunement",
-    "Earthquake",
-    {
-      "type": "cast",
-      "skillId": 62837,
-      "concurrentOffsetMs": 240
-    },
-    {
-      "type": "cast",
-      "skillId": 2662,
-      "concurrentOffsetMs": 120
-    },
-    "Rust Frenzy",
-    {
-      "type": "cast",
-      "skillId": 5494,
-      "concurrentOffsetMs": 320
-    },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Ride the Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    {
-      "type": "cast",
-      "skillId": 5493,
-      "concurrentOffsetMs": 80
-    },
-    {
-      "type": "cast",
-      "skillId": 62723,
-      "concurrentOffsetMs": 240
-    },
-    {
-      "type": "cast",
-      "skillId": 5494,
-      "concurrentOffsetMs": 360
-    },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Polaric Leap",
-    "Quantum Strike",
-    {
-      "type": "cast",
-      "skillId": 5492,
-      "concurrentOffsetMs": 200
-    },
-    {
-      "type": "cast",
-      "skillId": 62813,
-      "concurrentOffsetMs": 360
-    },
-    "Relentless Fire",
-    "Cauterizing Strike",
-    "Ring of Fire",
-    "Fire Grab",
-    "Flame Uprising",
-    {
-      "type": "cast",
-      "skillId": 5494,
-      "concurrentOffsetMs": 80
-    },
-    "Ride the Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    {
-      "type": "cast",
-      "skillId": 62940,
-      "concurrentOffsetMs": 600
-    },
-    {
-      "type": "cast",
-      "skillId": 2662,
-      "concurrentOffsetMs": 120
-    },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    {
-      "type": "cast",
-      "skillId": 5495,
-      "concurrentOffsetMs": 600
-    },
-    "Earthquake",
-    {
-      "type": "cast",
-      "skillId": 62837,
-      "concurrentOffsetMs": 280
-    },
-    "Churning Earth",
-    {
-      "type": "cast",
-      "skillId": 5494,
-      "concurrentOffsetMs": 120
-    },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Ride the Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    {
-      "type": "cast",
-      "skillId": 5493,
-      "concurrentOffsetMs": 80
-    },
-    {
-      "type": "cast",
-      "skillId": 62723,
-      "concurrentOffsetMs": 120
+      "skillId": 5557
     },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 120
     },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Polaric Leap",
-    "Quantum Strike",
     {
       "type": "cast",
-      "skillId": 5492,
-      "concurrentOffsetMs": 280
+      "skillId": 5529
     },
     {
       "type": "cast",
-      "skillId": 62813,
-      "concurrentOffsetMs": 120
-    },
-    "Cauterizing Strike",
-    "Ring of Fire",
-    "Flame Uprising",
-    "Fire Grab",
-    {
-      "type": "cast",
-      "skillId": 5494,
-      "concurrentOffsetMs": 80
-    },
-    "Ride the Lightning",
-    "Glyph of Storms (Air)",
-    {
-      "type": "cast",
-      "skillId": 2662,
-      "concurrentOffsetMs": 120
+      "skillId": 44681
     },
     {
       "type": "cast",
-      "skillId": 62940,
-      "concurrentOffsetMs": 200
+      "skillId": 45259
     },
-    "Relentless Fire",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
+    {
+      "type": "cast",
+      "skillId": 62965
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
     {
       "type": "cast",
       "skillId": 44681
@@ -627,25 +720,538 @@
       "skillId": 5495,
       "concurrentOffsetMs": 640
     },
-    "Earthquake",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
     {
       "type": "cast",
       "skillId": 62837,
       "concurrentOffsetMs": 320
     },
-    "Rust Frenzy",
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 160
     },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Ride the Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
+    {
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44998
+    },
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 44451
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5495
+    },
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
+    {
+      "type": "cast",
+      "skillId": 62837,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 40139
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44998
+    },
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 62965
+    },
+    {
+      "type": "cast",
+      "skillId": 44451
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
+    {
+      "type": "cast",
+      "skillId": 62837,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44998
+    },
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 44451
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 5737
+    },
+    {
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 62965
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
+    {
+      "type": "cast",
+      "skillId": 62837,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 40139
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
     {
       "type": "cast",
       "skillId": 5493,
@@ -661,11 +1267,26 @@
       "skillId": 5494,
       "concurrentOffsetMs": 120
     },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Polaric Leap",
-    "Quantum Strike",
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44998
+    },
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
     {
       "type": "cast",
       "skillId": 62940,
@@ -676,7 +1297,10 @@
       "skillId": 5492,
       "concurrentOffsetMs": 120
     },
-    "Cauterizing Strike",
+    {
+      "type": "cast",
+      "skillId": 44451
+    },
     {
       "type": "cast",
       "skillId": 62813,
@@ -687,15 +1311,27 @@
       "skillId": 2662,
       "concurrentOffsetMs": 120
     },
-    "Ring of Fire",
-    "Fire Grab",
-    "Flame Uprising",
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 120
     },
-    "Ride the Lightning",
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
     {
       "type": "cast",
       "skillId": 44681

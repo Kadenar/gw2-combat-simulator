@@ -457,7 +457,7 @@ test('ordinary Forge exits preserve one bar swap and their trait event ordering'
     assert.equal(state.photonForgeActive, false);
     assert.equal(state.forgeExitedAt, exitEvent.at);
     assert.equal(state.overheated, false);
-    assert.equal(state.activeKit, exit === 'Grenade Kit' ? 'Grenade Kit' : '');
+    assert.equal(state.activeKit, exit === 'Grenade Kit' ? ID.GRENADE_KIT : null);
     const exitEvents = result.events.filter(
       (event) =>
         event.at === exitEvent.at &&

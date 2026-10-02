@@ -8,26 +8,50 @@
     "note": "Throw Mine, Bomb Kit, Evolve, and the opening bombs are reconstructed from initial EVTC state; combat begins during Galvanic Bomb."
   },
   "rotation": [
-    "Throw Mine",
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
     {
       "type": "wait",
       "durationMs": 5000
     },
-    "Bomb Kit",
-    "Big Ol' Bomb",
-    "Magnetic Bomb",
+    {
+      "type": "cast",
+      "skillId": 5812
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
     {
       "type": "cast",
       "skillId": 76651
     },
-    "Fire Bomb",
-    "Galvanic Bomb",
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
     {
       "type": "combat-start",
       "concurrentOffsetMs": 520
     },
-    "Stow Bomb Kit",
-    "Flux State",
+    {
+      "type": "cast",
+      "skillId": 6111
+    },
+    {
+      "type": "cast",
+      "skillId": 76993
+    },
     {
       "type": "cast",
       "skillId": 77104,
@@ -42,15 +66,27 @@
       "type": "cast",
       "skillId": 76705
     },
-    "Blunderbuss",
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
     {
       "type": "cast",
       "skillId": 5805,
       "concurrentOffsetMs": 160
     },
-    "Shrapnel Grenade",
-    "Poison Grenade",
-    "Freeze Grenade",
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
     {
       "type": "cast",
       "skillId": 76927
@@ -60,21 +96,36 @@
       "skillId": 6110,
       "concurrentOffsetMs": 360
     },
-    "Throw Mine",
-    "Detonate",
-    "Jump Shot",
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 6162
+    },
+    {
+      "type": "cast",
+      "skillId": 6005
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 640
     },
-    "Blunderbuss",
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
     {
       "type": "cast",
       "skillId": 5812,
       "concurrentOffsetMs": 200
     },
-    "Fire Bomb",
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
     {
       "type": "cast",
       "skillId": 5805,
@@ -85,19 +136,28 @@
       "skillId": 5807,
       "interruptAfterMs": 480
     },
-    "Stow Grenade Kit",
+    {
+      "type": "cast",
+      "skillId": 6110
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 600
     },
-    "Overcharged Shot",
+    {
+      "type": "cast",
+      "skillId": 6154
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 640
     },
-    "Net Shot",
+    {
+      "type": "cast",
+      "skillId": 6004
+    },
     {
       "type": "cast",
       "skillId": 6003,
@@ -108,29 +168,53 @@
       "skillId": 5812,
       "concurrentOffsetMs": 400
     },
-    "Bomb",
-    "Stow Bomb Kit",
+    {
+      "type": "cast",
+      "skillId": 5842
+    },
+    {
+      "type": "cast",
+      "skillId": 6111
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 640
     },
-    "Blunderbuss",
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
     {
       "type": "cast",
       "skillId": 5805,
       "concurrentOffsetMs": 280
     },
-    "Shrapnel Grenade",
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
     {
       "type": "cast",
       "skillId": 5812,
       "concurrentOffsetMs": 320
     },
-    "Big Ol' Bomb",
-    "Magnetic Bomb",
-    "Fire Bomb",
-    "Galvanic Bomb",
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
     {
       "type": "cast",
       "skillId": 77104,
@@ -140,7 +224,10 @@
       "type": "cast",
       "skillId": 76651
     },
-    "Throw Mine",
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
     {
       "type": "cast",
       "skillId": 76705
@@ -155,11 +242,26 @@
       "skillId": 6111,
       "concurrentOffsetMs": 400
     },
-    "Blunderbuss",
-    "Grenade Kit",
-    "Shrapnel Grenade",
-    "Poison Grenade",
-    "Freeze Grenade",
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "cast",
+      "skillId": 5805
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
     {
       "type": "cast",
       "skillId": 76927
@@ -169,19 +271,28 @@
       "skillId": 6110,
       "concurrentOffsetMs": 320
     },
-    "Jump Shot",
+    {
+      "type": "cast",
+      "skillId": 6005
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 680
     },
-    "Blunderbuss",
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
     {
       "type": "cast",
       "skillId": 5812,
       "concurrentOffsetMs": 160
     },
-    "Fire Bomb",
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
     {
       "type": "cast",
       "skillId": 5805,
@@ -192,19 +303,28 @@
       "skillId": 5807,
       "interruptAfterMs": 480
     },
-    "Stow Grenade Kit",
+    {
+      "type": "cast",
+      "skillId": 6110
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 680
     },
-    "Overcharged Shot",
+    {
+      "type": "cast",
+      "skillId": 6154
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 680
     },
-    "Throw Mine",
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
     {
       "type": "cast",
       "skillId": 6003,
@@ -215,13 +335,19 @@
       "skillId": 6162,
       "concurrentOffsetMs": 80
     },
-    "Net Shot",
+    {
+      "type": "cast",
+      "skillId": 6004
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 640
     },
-    "Blunderbuss",
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
     {
       "type": "cast",
       "skillId": 6003,
@@ -232,20 +358,35 @@
       "skillId": 5805,
       "concurrentOffsetMs": 560
     },
-    "Shrapnel Grenade",
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
     {
       "type": "cast",
       "skillId": 5812,
       "concurrentOffsetMs": 280
     },
-    "Big Ol' Bomb",
-    "Magnetic Bomb",
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
     {
       "type": "cast",
       "skillId": 77104
     },
-    "Fire Bomb",
-    "Galvanic Bomb",
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
     {
       "type": "cast",
       "skillId": 76651
@@ -259,15 +400,27 @@
       "skillId": 6111,
       "concurrentOffsetMs": 280
     },
-    "Blunderbuss",
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
     {
       "type": "cast",
       "skillId": 5805,
       "concurrentOffsetMs": 280
     },
-    "Shrapnel Grenade",
-    "Poison Grenade",
-    "Freeze Grenade",
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
     {
       "type": "cast",
       "skillId": 76927
@@ -277,17 +430,35 @@
       "skillId": 6110,
       "concurrentOffsetMs": 560
     },
-    "Throw Mine",
-    "Detonate",
-    "Jump Shot",
-    "Flux State",
-    "Blunderbuss",
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 6162
+    },
+    {
+      "type": "cast",
+      "skillId": 6005
+    },
+    {
+      "type": "cast",
+      "skillId": 76993
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
     {
       "type": "cast",
       "skillId": 5812,
       "concurrentOffsetMs": 160
     },
-    "Fire Bomb",
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
     {
       "type": "cast",
       "skillId": 5805,
@@ -298,54 +469,96 @@
       "skillId": 5807,
       "interruptAfterMs": 480
     },
-    "Stow Grenade Kit",
+    {
+      "type": "cast",
+      "skillId": 6110
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 640
     },
-    "Overcharged Shot",
+    {
+      "type": "cast",
+      "skillId": 6154
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 640
     },
-    "Net Shot",
-    "Rifle Burst",
+    {
+      "type": "cast",
+      "skillId": 6004
+    },
+    {
+      "type": "cast",
+      "skillId": 6003
+    },
     {
       "type": "cast",
       "skillId": 5812,
       "concurrentOffsetMs": 480
     },
-    "Bomb",
-    "Stow Bomb Kit",
-    "Rifle Burst",
-    "Blunderbuss",
+    {
+      "type": "cast",
+      "skillId": 5842
+    },
+    {
+      "type": "cast",
+      "skillId": 6111
+    },
+    {
+      "type": "cast",
+      "skillId": 6003
+    },
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
     {
       "type": "cast",
       "skillId": 5805,
       "concurrentOffsetMs": 240
     },
-    "Shrapnel Grenade",
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
     {
       "type": "cast",
       "skillId": 5812,
       "concurrentOffsetMs": 320
     },
-    "Big Ol' Bomb",
-    "Magnetic Bomb",
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
     {
       "type": "cast",
       "skillId": 77104,
       "concurrentOffsetMs": 160
     },
-    "Fire Bomb",
-    "Galvanic Bomb",
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
     {
       "type": "cast",
       "skillId": 76651
     },
-    "Throw Mine",
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
     {
       "type": "cast",
       "skillId": 76705
@@ -360,15 +573,27 @@
       "skillId": 6111,
       "concurrentOffsetMs": 280
     },
-    "Blunderbuss",
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
     {
       "type": "cast",
       "skillId": 5805,
       "concurrentOffsetMs": 280
     },
-    "Shrapnel Grenade",
-    "Poison Grenade",
-    "Freeze Grenade",
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
     {
       "type": "cast",
       "skillId": 76927
@@ -378,19 +603,28 @@
       "skillId": 6110,
       "concurrentOffsetMs": 360
     },
-    "Jump Shot",
+    {
+      "type": "cast",
+      "skillId": 6005
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 600
     },
-    "Blunderbuss",
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
     {
       "type": "cast",
       "skillId": 5812,
       "concurrentOffsetMs": 240
     },
-    "Fire Bomb",
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
     {
       "type": "cast",
       "skillId": 5805,
@@ -401,19 +635,28 @@
       "skillId": 5807,
       "interruptAfterMs": 480
     },
-    "Stow Grenade Kit",
+    {
+      "type": "cast",
+      "skillId": 6110
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 600
     },
-    "Overcharged Shot",
+    {
+      "type": "cast",
+      "skillId": 6154
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 680
     },
-    "Throw Mine",
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
     {
       "type": "cast",
       "skillId": 6003,
@@ -424,13 +667,19 @@
       "skillId": 6162,
       "concurrentOffsetMs": 80
     },
-    "Net Shot",
+    {
+      "type": "cast",
+      "skillId": 6004
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 640
     },
-    "Blunderbuss",
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
     {
       "type": "cast",
       "skillId": 6003,
@@ -441,21 +690,36 @@
       "skillId": 5805,
       "concurrentOffsetMs": 480
     },
-    "Shrapnel Grenade",
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
     {
       "type": "cast",
       "skillId": 5812,
       "concurrentOffsetMs": 280
     },
-    "Big Ol' Bomb",
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
     {
       "type": "cast",
       "skillId": 77104,
       "concurrentOffsetMs": 120
     },
-    "Magnetic Bomb",
-    "Fire Bomb",
-    "Galvanic Bomb",
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
     {
       "type": "cast",
       "skillId": 76651
@@ -469,15 +733,27 @@
       "skillId": 6111,
       "concurrentOffsetMs": 280
     },
-    "Blunderbuss",
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
     {
       "type": "cast",
       "skillId": 5805,
       "concurrentOffsetMs": 320
     },
-    "Shrapnel Grenade",
-    "Poison Grenade",
-    "Freeze Grenade",
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
     {
       "type": "cast",
       "skillId": 76927
@@ -487,16 +763,31 @@
       "skillId": 6110,
       "concurrentOffsetMs": 400
     },
-    "Throw Mine",
-    "Jump Shot",
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 6005
+    },
     {
       "type": "cast",
       "skillId": 6162,
       "concurrentOffsetMs": 40
     },
-    "Blunderbuss",
-    "Bomb Kit",
-    "Fire Bomb",
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
+    {
+      "type": "cast",
+      "skillId": 5812
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
     {
       "type": "cast",
       "skillId": 5805,
@@ -507,19 +798,28 @@
       "skillId": 5807,
       "interruptAfterMs": 480
     },
-    "Stow Grenade Kit",
+    {
+      "type": "cast",
+      "skillId": 6110
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 600
     },
-    "Overcharged Shot",
+    {
+      "type": "cast",
+      "skillId": 6154
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 640
     },
-    "Net Shot",
+    {
+      "type": "cast",
+      "skillId": 6004
+    },
     {
       "type": "cast",
       "skillId": 6003,
@@ -530,21 +830,36 @@
       "skillId": 5812,
       "concurrentOffsetMs": 240
     },
-    "Bomb",
-    "Stow Bomb Kit",
+    {
+      "type": "cast",
+      "skillId": 5842
+    },
+    {
+      "type": "cast",
+      "skillId": 6111
+    },
     {
       "type": "cast",
       "skillId": 6003,
       "interruptAfterMs": 680
     },
-    "Blunderbuss",
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
     {
       "type": "cast",
       "skillId": 5805,
       "concurrentOffsetMs": 200
     },
-    "Shrapnel Grenade",
-    "Flux State",
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 76993
+    },
     {
       "type": "cast",
       "skillId": 77104,
@@ -555,20 +870,35 @@
       "skillId": 5812,
       "concurrentOffsetMs": 160
     },
-    "Big Ol' Bomb",
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
     {
       "type": "cast",
       "skillId": 76651
     },
-    "Magnetic Bomb",
-    "Fire Bomb",
-    "Galvanic Bomb",
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
     {
       "type": "cast",
       "skillId": 6111,
       "concurrentOffsetMs": 200
     },
-    "Throw Mine",
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
     {
       "type": "cast",
       "skillId": 76705
@@ -578,15 +908,27 @@
       "skillId": 6162,
       "concurrentOffsetMs": 80
     },
-    "Blunderbuss",
+    {
+      "type": "cast",
+      "skillId": 6153
+    },
     {
       "type": "cast",
       "skillId": 5805,
       "concurrentOffsetMs": 160
     },
-    "Shrapnel Grenade",
-    "Poison Grenade",
-    "Freeze Grenade",
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
     {
       "type": "cast",
       "skillId": 76927

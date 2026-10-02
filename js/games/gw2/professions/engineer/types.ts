@@ -56,14 +56,13 @@ export interface EngineerSkill extends Skill {
   readonly kitTransition?: 'equip' | 'stow';
   readonly countsAsToolbeltSkill?: boolean;
   readonly duration?: number;
-  readonly kit?: string | boolean;
-  readonly kitName?: string;
+  /** Equip-skill identity for bundle skills; equip actions use their own id. */
+  readonly kitId?: SkillId;
   readonly mechanicSlot?: number;
   readonly paletteFlipSkillId?: SkillId | null;
   readonly flipParentName?: string;
   readonly simulatorExcluded?: boolean;
   readonly toolbeltParentId?: SkillId | null;
-  readonly toolbeltParentName?: string;
 }
 
 /** Command owners and impact reactions share one Engineer state at executed time. */

@@ -1,6 +1,9 @@
 {
   "rotation": [
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "combat-start",
       "concurrentOffsetMs": 3120
@@ -15,88 +18,184 @@
       "skillId": 30662,
       "concurrentOffsetMs": 40
     },
-    "Fulgor",
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 40
     },
-    "Etching: Volcano",
-    "Meteor",
-    "Blazing Barrage",
-    "Seethe",
-    "Volcano",
+    {
+      "type": "cast",
+      "skillId": 73054
+    },
+    {
+      "type": "cast",
+      "skillId": 72988
+    },
+    {
+      "type": "cast",
+      "skillId": 73080
+    },
+    {
+      "type": "cast",
+      "skillId": 73137
+    },
+    {
+      "type": "cast",
+      "skillId": 73044
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 200
     },
-    "Etching: Derecho",
-    "Twister",
+    {
+      "type": "cast",
+      "skillId": 72915
+    },
+    {
+      "type": "cast",
+      "skillId": 72998
+    },
     {
       "type": "cast",
       "skillId": 73037,
       "concurrentOffsetMs": 320
     },
-    "Lightning Javelin",
-    "Derecho",
-    "Fulgor",
-    "Lightning Javelin",
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 73092
+    },
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 3160
     },
-    "Fissure",
-    "Earthen Spear",
+    {
+      "type": "cast",
+      "skillId": 73010
+    },
+    {
+      "type": "cast",
+      "skillId": 72905
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 200
     },
-    "Fulgor",
-    "Glyph of Storms (Air)",
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
+    {
+      "type": "cast",
+      "skillId": 5737
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 360
     },
-    "Lightning Javelin",
-    "Lightning Javelin",
-    "Overload Air",
-    "Fulgor",
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 160
     },
-    "Etching: Volcano",
-    "Meteor",
-    "Blazing Barrage",
-    "Seethe",
-    "Volcano",
+    {
+      "type": "cast",
+      "skillId": 73054
+    },
+    {
+      "type": "cast",
+      "skillId": 72988
+    },
+    {
+      "type": "cast",
+      "skillId": 73080
+    },
+    {
+      "type": "cast",
+      "skillId": 73137
+    },
+    {
+      "type": "cast",
+      "skillId": 73044
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 200
     },
-    "Etching: Derecho",
+    {
+      "type": "cast",
+      "skillId": 72915
+    },
     {
       "type": "cast",
       "skillId": 30662,
       "concurrentOffsetMs": 80
     },
-    "Twister",
+    {
+      "type": "cast",
+      "skillId": 72998
+    },
     {
       "type": "cast",
       "skillId": 73037,
       "concurrentOffsetMs": 280
     },
-    "Lightning Javelin",
-    "Derecho",
-    "Fulgor",
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 73092
+    },
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 2662,
@@ -107,52 +206,115 @@
       "skillId": 5495,
       "concurrentOffsetMs": 2360
     },
-    "Fissure",
-    "Earthen Spear",
+    {
+      "type": "cast",
+      "skillId": 73010
+    },
+    {
+      "type": "cast",
+      "skillId": 72905
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 240
     },
-    "Fulgor",
-    "Lightning Javelin",
-    "Lightning Javelin",
-    "Lightning Javelin",
-    "Lightning Javelin",
-    "Overload Air",
-    "Fulgor",
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 120
     },
-    "Etching: Volcano",
-    "Meteor",
-    "Blazing Barrage",
+    {
+      "type": "cast",
+      "skillId": 73054
+    },
+    {
+      "type": "cast",
+      "skillId": 72988
+    },
+    {
+      "type": "cast",
+      "skillId": 73080
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 360
     },
-    "Seethe",
-    "Volcano",
+    {
+      "type": "cast",
+      "skillId": 73137
+    },
+    {
+      "type": "cast",
+      "skillId": 73044
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 200
     },
-    "Etching: Derecho",
-    "Twister",
+    {
+      "type": "cast",
+      "skillId": 72915
+    },
+    {
+      "type": "cast",
+      "skillId": 72998
+    },
     {
       "type": "cast",
       "skillId": 73037,
       "concurrentOffsetMs": 360
     },
-    "Lightning Javelin",
-    "Derecho",
-    "Fulgor",
-    "Lightning Javelin",
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 73092
+    },
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 30662,
@@ -163,17 +325,35 @@
       "skillId": 5495,
       "concurrentOffsetMs": 3160
     },
-    "Fissure",
-    "Earthen Spear",
+    {
+      "type": "cast",
+      "skillId": 73010
+    },
+    {
+      "type": "cast",
+      "skillId": 72905
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 200
     },
-    "Fulgor",
-    "Lightning Javelin",
-    "Lightning Javelin",
-    "Lightning Javelin",
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
     {
       "type": "cast",
       "skillId": 73124
@@ -183,35 +363,77 @@
       "skillId": 2662,
       "concurrentOffsetMs": 320
     },
-    "Overload Air",
-    "Fulgor",
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 120
     },
-    "Etching: Volcano",
-    "Meteor",
-    "Blazing Barrage",
-    "Seethe",
-    "Volcano",
+    {
+      "type": "cast",
+      "skillId": 73054
+    },
+    {
+      "type": "cast",
+      "skillId": 72988
+    },
+    {
+      "type": "cast",
+      "skillId": 73080
+    },
+    {
+      "type": "cast",
+      "skillId": 73137
+    },
+    {
+      "type": "cast",
+      "skillId": 73044
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 200
     },
-    "Etching: Derecho",
-    "Twister",
+    {
+      "type": "cast",
+      "skillId": 72915
+    },
+    {
+      "type": "cast",
+      "skillId": 72998
+    },
     {
       "type": "cast",
       "skillId": 73037,
       "concurrentOffsetMs": 320
     },
-    "Lightning Javelin",
-    "Derecho",
-    "Fulgor",
-    "Lightning Javelin",
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 73092
+    },
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 2662,
@@ -222,8 +444,14 @@
       "skillId": 5495,
       "concurrentOffsetMs": 760
     },
-    "Fissure",
-    "Earthen Spear",
+    {
+      "type": "cast",
+      "skillId": 73010
+    },
+    {
+      "type": "cast",
+      "skillId": 72905
+    },
     {
       "type": "cast",
       "skillId": 5494,
@@ -234,29 +462,68 @@
       "skillId": 30662,
       "concurrentOffsetMs": 400
     },
-    "Fulgor",
-    "Glyph of Storms (Air)",
-    "Lightning Javelin",
-    "Lightning Javelin",
-    "Overload Air",
-    "Fulgor",
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
+    {
+      "type": "cast",
+      "skillId": 5737
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 160
     },
-    "Etching: Volcano",
-    "Meteor",
-    "Blazing Barrage",
-    "Seethe",
-    "Volcano",
+    {
+      "type": "cast",
+      "skillId": 73054
+    },
+    {
+      "type": "cast",
+      "skillId": 72988
+    },
+    {
+      "type": "cast",
+      "skillId": 73080
+    },
+    {
+      "type": "cast",
+      "skillId": 73137
+    },
+    {
+      "type": "cast",
+      "skillId": 73044
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 240
     },
-    "Etching: Derecho",
-    "Twister",
+    {
+      "type": "cast",
+      "skillId": 72915
+    },
+    {
+      "type": "cast",
+      "skillId": 72998
+    },
     {
       "type": "cast",
       "skillId": 2662,
@@ -267,68 +534,152 @@
       "skillId": 73037,
       "concurrentOffsetMs": 80
     },
-    "Lightning Javelin",
-    "Derecho",
-    "Fulgor",
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 73092
+    },
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 3120
     },
-    "Fissure",
-    "Earthen Spear",
+    {
+      "type": "cast",
+      "skillId": 73010
+    },
+    {
+      "type": "cast",
+      "skillId": 72905
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 240
     },
-    "Fulgor",
-    "Lightning Javelin",
-    "Lightning Javelin",
-    "Lightning Javelin",
-    "Lightning Javelin",
-    "Feel the Burn!",
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 30662
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 1560
     },
-    "Fulgor",
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 160
     },
-    "Etching: Volcano",
-    "Meteor",
-    "Blazing Barrage",
-    "Seethe",
-    "Volcano",
+    {
+      "type": "cast",
+      "skillId": 73054
+    },
+    {
+      "type": "cast",
+      "skillId": 72988
+    },
+    {
+      "type": "cast",
+      "skillId": 73080
+    },
+    {
+      "type": "cast",
+      "skillId": 73137
+    },
+    {
+      "type": "cast",
+      "skillId": 73044
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 200
     },
-    "Etching: Derecho",
-    "Twister",
+    {
+      "type": "cast",
+      "skillId": 72915
+    },
+    {
+      "type": "cast",
+      "skillId": 72998
+    },
     {
       "type": "cast",
       "skillId": 73037,
       "concurrentOffsetMs": 280
     },
-    "Lightning Javelin",
-    "Derecho",
-    "Fulgor",
-    "Lightning Javelin",
-    "Overload Air",
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 73092
+    },
+    {
+      "type": "cast",
+      "skillId": 73091
+    },
+    {
+      "type": "cast",
+      "skillId": 73124
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 3120
     },
-    "Fissure",
-    "Earthen Spear"
+    {
+      "type": "cast",
+      "skillId": 73010
+    },
+    {
+      "type": "cast",
+      "skillId": 72905
+    }
   ]
 }

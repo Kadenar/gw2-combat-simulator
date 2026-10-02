@@ -6,121 +6,407 @@
     "benchmarkDps": 36275.05930787479
   },
   "rotation": [
-    "Prepare Thousand Needles",
+    {
+      "type": "cast",
+      "skillId": 13026
+    },
     {
       "type": "wait",
       "durationMs": 3000
     },
-    "__cooldown_reset",
-    "Spider Venom",
-    "Well of Sorrow",
-    "__combat_start",
-    "Twilight Combo",
-    "Thousand Needles",
-    "Prepare Thousand Needles",
-    "Enter Shadow Shroud",
-    "Grasping Shadows",
-    "Eternal Night",
-    "Exit Shadow Shroud",
-    "Swap Weapons",
-    "Twilight Combo",
-    "Siphon",
-    "Twilight Combo",
-    "Twilight Combo",
-    "Thousand Needles",
-    "Shadow Bolt",
-    "Double Bolt",
-    "Triple Bolt",
-    "Shadow Bolt",
-    "Double Bolt",
-    "Enter Shadow Shroud",
-    "Grasping Shadows",
-    "Eternal Night",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Grasping Shadows",
-    "Exit Shadow Shroud",
-    "Swap Weapons",
-    "Twilight Combo",
-    "Twilight Combo",
-    "Twilight Combo",
-    "Shadow Bolt",
-    "Double Bolt",
-    "Siphon",
-    "Well of Sorrow",
-    "Triple Bolt",
-    "Shadow Bolt",
-    "Enter Shadow Shroud",
-    "Grasping Shadows",
-    "Eternal Night",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Grasping Shadows",
-    "Exit Shadow Shroud",
-    "Swap Weapons",
-    "Twilight Combo",
-    "Twilight Combo",
-    "Twilight Combo",
-    "Spider Venom",
+    {
+      "type": "cooldown-reset"
+    },
+    {
+      "type": "cast",
+      "skillId": 13037
+    },
+    {
+      "type": "cast",
+      "skillId": 63276
+    },
+    {
+      "type": "combat-start"
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 56898
+    },
+    {
+      "type": "cast",
+      "skillId": 13026
+    },
+    {
+      "type": "cast",
+      "skillId": 63155
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63160
+    },
+    {
+      "type": "cast",
+      "skillId": 63251
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63067
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 56898
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63182
+    },
+    {
+      "type": "cast",
+      "skillId": 63134
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63182
+    },
+    {
+      "type": "cast",
+      "skillId": 63155
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63160
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63251
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63182
+    },
+    {
+      "type": "cast",
+      "skillId": 63067
+    },
+    {
+      "type": "cast",
+      "skillId": 63276
+    },
+    {
+      "type": "cast",
+      "skillId": 63134
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63155
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63160
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63251
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 13037
+    },
     {
       "type": "cast",
       "skillId": 63066,
       "interruptAfterMs": 160
     },
-    "Prepare Thousand Needles",
-    "Shadow Bolt",
-    "Double Bolt",
-    "Triple Bolt",
-    "Twilight Combo",
+    {
+      "type": "cast",
+      "skillId": 13026
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63182
+    },
+    {
+      "type": "cast",
+      "skillId": 63134
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
     {
       "type": "cast",
       "skillId": 63066,
       "interruptAfterMs": 320
     },
-    "Enter Shadow Shroud",
-    "Grasping Shadows",
-    "Eternal Night",
-    "Siphon",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Grasping Shadows",
-    "Exit Shadow Shroud",
-    "Swap Weapons",
-    "Well of Sorrow",
-    "Twilight Combo",
-    "Twilight Combo",
-    "Shadow Bolt",
+    {
+      "type": "cast",
+      "skillId": 63155
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63160
+    },
+    {
+      "type": "cast",
+      "skillId": 63067
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63251
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63276
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
     {
       "type": "cast",
       "skillId": 56898,
       "concurrentOffsetMs": 160
     },
-    "Double Bolt",
-    "Triple Bolt",
-    "Twilight Combo",
-    "Shadow Bolt",
-    "Double Bolt",
-    "Enter Shadow Shroud",
-    "Grasping Shadows",
-    "Eternal Night",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Grasping Shadows",
-    "Exit Shadow Shroud",
-    "Swap Weapons",
-    "Siphon",
-    "Twilight Combo",
-    "Twilight Combo",
-    "Shadow Bolt",
-    "Double Bolt",
-    "Triple Bolt",
-    "Twilight Combo",
-    "Shadow Bolt",
-    "Double Bolt",
+    {
+      "type": "cast",
+      "skillId": 63182
+    },
+    {
+      "type": "cast",
+      "skillId": 63134
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63182
+    },
+    {
+      "type": "cast",
+      "skillId": 63155
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63160
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63251
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63067
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63182
+    },
+    {
+      "type": "cast",
+      "skillId": 63134
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63182
+    },
     {
       "type": "cast",
       "skillId": 63134,
@@ -131,19 +417,58 @@
       "skillId": 13037,
       "concurrentOffsetMs": 80
     },
-    "Prepare Thousand Needles",
-    "Well of Sorrow",
-    "Enter Shadow Shroud",
-    "Grasping Shadows",
-    "Eternal Night",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Grasping Shadows",
-    "Exit Shadow Shroud",
-    "Swap Weapons",
-    "Twilight Combo",
-    "Twilight Combo",
+    {
+      "type": "cast",
+      "skillId": 13026
+    },
+    {
+      "type": "cast",
+      "skillId": 63276
+    },
+    {
+      "type": "cast",
+      "skillId": 63155
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63160
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63251
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
     {
       "type": "cast",
       "skillId": 63066,
@@ -154,133 +479,412 @@
       "skillId": 56898,
       "concurrentOffsetMs": 40
     },
-    "Siphon",
-    "Twilight Combo",
-    "Shadow Bolt",
-    "Double Bolt",
-    "Triple Bolt",
-    "Shadow Bolt",
-    "Double Bolt",
-    "Enter Shadow Shroud",
-    "Grasping Shadows",
-    "Eternal Night",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Grasping Shadows",
-    "Exit Shadow Shroud",
-    "Swap Weapons",
-    "Twilight Combo",
-    "Twilight Combo",
-    "Shadow Bolt",
-    "Double Bolt",
-    "Well of Sorrow",
-    "Triple Bolt",
-    "Siphon",
-    "Twilight Combo",
-    "Shadow Bolt",
+    {
+      "type": "cast",
+      "skillId": 63067
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63182
+    },
+    {
+      "type": "cast",
+      "skillId": 63134
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63182
+    },
+    {
+      "type": "cast",
+      "skillId": 63155
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63160
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63251
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63182
+    },
+    {
+      "type": "cast",
+      "skillId": 63276
+    },
+    {
+      "type": "cast",
+      "skillId": 63134
+    },
+    {
+      "type": "cast",
+      "skillId": 63067
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
     {
       "type": "cast",
       "skillId": 63182,
       "interruptAfterMs": 240
     },
-    "Enter Shadow Shroud",
-    "Grasping Shadows",
-    "Eternal Night",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Grasping Shadows",
-    "Exit Shadow Shroud",
-    "Swap Weapons",
-    "Prepare Thousand Needles",
+    {
+      "type": "cast",
+      "skillId": 63155
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63160
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63251
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 13026
+    },
     {
       "type": "cast",
       "skillId": 13037,
       "concurrentOffsetMs": 200
     },
-    "Twilight Combo",
-    "Twilight Combo",
-    "Twilight Combo",
-    "Shadow Bolt",
-    "Double Bolt",
-    "Triple Bolt",
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63182
+    },
+    {
+      "type": "cast",
+      "skillId": 63134
+    },
     {
       "type": "cast",
       "skillId": 56898,
       "concurrentOffsetMs": 320
     },
-    "Shadow Bolt",
-    "Double Bolt",
-    "Enter Shadow Shroud",
-    "Grasping Shadows",
-    "Eternal Night",
-    "Haunt Shot",
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63182
+    },
+    {
+      "type": "cast",
+      "skillId": 63155
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63160
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
     {
       "type": "cast",
       "skillId": 63067,
       "concurrentOffsetMs": 40
     },
-    "Haunt Shot",
-    "Haunt Shot",
-    "Grasping Shadows",
-    "Exit Shadow Shroud",
-    "Swap Weapons",
-    "Well of Sorrow",
-    "Twilight Combo",
-    "Twilight Combo",
-    "Twilight Combo",
-    "Shadow Bolt",
-    "Double Bolt",
-    "Triple Bolt",
-    "Shadow Bolt",
-    "Double Bolt",
-    "Enter Shadow Shroud",
-    "Grasping Shadows",
-    "Eternal Night",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Grasping Shadows",
-    "Exit Shadow Shroud",
-    "Swap Weapons",
-    "Siphon",
-    "Twilight Combo",
-    "Twilight Combo",
-    "Twilight Combo",
-    "Shadow Bolt",
-    "Double Bolt",
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63251
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63276
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63182
+    },
+    {
+      "type": "cast",
+      "skillId": 63134
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63182
+    },
+    {
+      "type": "cast",
+      "skillId": 63155
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63160
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63251
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63067
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63182
+    },
     {
       "type": "cast",
       "skillId": 13037,
       "concurrentOffsetMs": 520
     },
-    "Prepare Thousand Needles",
-    "Triple Bolt",
-    "Twilight Combo",
+    {
+      "type": "cast",
+      "skillId": 13026
+    },
+    {
+      "type": "cast",
+      "skillId": 63134
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
     {
       "type": "cast",
       "skillId": 63066,
       "interruptAfterMs": 240
     },
-    "Well of Sorrow",
+    {
+      "type": "cast",
+      "skillId": 63276
+    },
     {
       "type": "cast",
       "skillId": 63066,
       "interruptAfterMs": 160
     },
-    "Thousand Needles",
-    "Enter Shadow Shroud",
-    "Grasping Shadows",
-    "Eternal Night",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Haunt Shot",
-    "Grasping Shadows",
-    "Exit Shadow Shroud",
-    "Swap Weapons",
-    "Twilight Combo",
-    "Shadow Bolt",
-    "Double Bolt"
+    {
+      "type": "cast",
+      "skillId": 56898
+    },
+    {
+      "type": "cast",
+      "skillId": 63155
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63160
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63362
+    },
+    {
+      "type": "cast",
+      "skillId": 63167
+    },
+    {
+      "type": "cast",
+      "skillId": 63251
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63254
+    },
+    {
+      "type": "cast",
+      "skillId": 63066
+    },
+    {
+      "type": "cast",
+      "skillId": 63182
+    }
   ]
 }

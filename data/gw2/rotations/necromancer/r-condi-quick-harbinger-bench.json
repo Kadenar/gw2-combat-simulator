@@ -14,188 +14,725 @@
       "skillId": 62667,
       "offTarget": true
     },
-    "Harbinger Shroud",
-    "Voracious Arc",
+    {
+      "type": "cast",
+      "skillId": 62567
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
     {
       "type": "combat-start",
       "concurrentOffsetMs": 800
     },
-    "Devouring Cut",
-    "Dark Barrage",
-    "Exit Harbinger Shroud",
-    "Elixir of Anguish",
-    "Elixir of Ambition",
-    "Oppressive Collapse",
-    "Harrowing Wave",
-    "Devouring Darkness",
-    "Grasping Dead",
-    "Blood Is Power",
-    "Elixir of Risk",
-    "Blood Is Power",
-    "Swap Weapons",
-    "Deathly Swarm",
-    "Vile Blast",
-    "Weeping Shots",
-    "Harbinger Shroud",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Vital Draw",
-    "Voracious Arc",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Dark Barrage",
-    "Devouring Cut",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Voracious Arc",
-    "Dark Barrage",
-    "Exit Harbinger Shroud",
-    "Weeping Shots",
-    "Elixir of Anguish",
-    "Elixir of Promise",
-    "Blood Is Power",
-    "Deathly Swarm",
-    "Elixir of Risk",
-    "Vile Blast",
-    "Enfeebling Blood",
-    "Weeping Shots",
-    "Swap Weapons",
-    "Oppressive Collapse",
-    "Harrowing Wave",
-    "Devouring Darkness",
-    "Grasping Dead",
-    "Harbinger Shroud",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Vital Draw",
-    "Voracious Arc",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Dark Barrage",
-    "Devouring Cut",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Voracious Arc",
-    "Dark Barrage",
-    "Exit Harbinger Shroud",
-    "Devouring Darkness",
-    "Harrowing Wave",
-    "Grasping Dead",
-    "Oppressive Collapse",
-    "Swap Weapons",
-    "Weeping Shots",
-    "Elixir of Anguish",
-    "Elixir of Promise",
-    "Blood Is Power",
-    "Deathly Swarm",
-    "Elixir of Risk",
-    "Vile Blast",
-    "Elixir of Ambition",
-    "Harbinger Shroud",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Vital Draw",
-    "Voracious Arc",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Dark Barrage",
-    "Devouring Cut",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Voracious Arc",
-    "Dark Barrage",
-    "Exit Harbinger Shroud",
-    "Weeping Shots",
-    "Blood Is Power",
-    "Deathly Swarm",
-    "Vile Blast",
-    "Enfeebling Blood",
-    "Elixir of Risk",
-    "Elixir of Anguish",
-    "Elixir of Promise",
-    "Weeping Shots",
-    "Swap Weapons",
-    "Oppressive Collapse",
-    "Harrowing Wave",
-    "Devouring Darkness",
-    "Grasping Dead",
-    "Harbinger Shroud",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Vital Draw",
-    "Voracious Arc",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Dark Barrage",
-    "Devouring Cut",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Voracious Arc",
-    "Dark Barrage",
-    "Exit Harbinger Shroud",
-    "Devouring Darkness",
-    "Harrowing Wave",
-    "Grasping Dead",
-    "Oppressive Collapse",
-    "Swap Weapons",
-    "Weeping Shots",
-    "Elixir of Risk",
-    "Blood Is Power",
-    "Elixir of Promise",
-    "Blood Is Power",
-    "Deathly Swarm",
-    "Vile Blast",
-    "Elixir of Anguish",
-    "Harbinger Shroud",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Vital Draw",
-    "Voracious Arc",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Dark Barrage",
-    "Devouring Cut",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Voracious Arc",
-    "Dark Barrage",
-    "Exit Harbinger Shroud",
-    "Elixir of Ambition",
-    "Vile Blast",
-    "Weeping Shots",
-    "Swap Weapons",
-    "Devouring Darkness",
-    "Harrowing Wave",
-    "Grasping Dead"
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62540
+    },
+    {
+      "type": "cast",
+      "skillId": 62662
+    },
+    {
+      "type": "cast",
+      "skillId": 62655
+    },
+    {
+      "type": "cast",
+      "skillId": 44296
+    },
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 51647
+    },
+    {
+      "type": "cast",
+      "skillId": 10532
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 62530
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 10705
+    },
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": 62567
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62563
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62540
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": 62662
+    },
+    {
+      "type": "cast",
+      "skillId": 62667
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 10705
+    },
+    {
+      "type": "cast",
+      "skillId": 62530
+    },
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
+    {
+      "type": "cast",
+      "skillId": 10706
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 44296
+    },
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 51647
+    },
+    {
+      "type": "cast",
+      "skillId": 10532
+    },
+    {
+      "type": "cast",
+      "skillId": 62567
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62563
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62540
+    },
+    {
+      "type": "cast",
+      "skillId": 51647
+    },
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 10532
+    },
+    {
+      "type": "cast",
+      "skillId": 44296
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": 62662
+    },
+    {
+      "type": "cast",
+      "skillId": 62667
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 10705
+    },
+    {
+      "type": "cast",
+      "skillId": 62530
+    },
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
+    {
+      "type": "cast",
+      "skillId": 62655
+    },
+    {
+      "type": "cast",
+      "skillId": 62567
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62563
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62540
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 10705
+    },
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
+    {
+      "type": "cast",
+      "skillId": 10706
+    },
+    {
+      "type": "cast",
+      "skillId": 62530
+    },
+    {
+      "type": "cast",
+      "skillId": 62662
+    },
+    {
+      "type": "cast",
+      "skillId": 62667
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 44296
+    },
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 51647
+    },
+    {
+      "type": "cast",
+      "skillId": 10532
+    },
+    {
+      "type": "cast",
+      "skillId": 62567
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62563
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62540
+    },
+    {
+      "type": "cast",
+      "skillId": 51647
+    },
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 10532
+    },
+    {
+      "type": "cast",
+      "skillId": 44296
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": 62530
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 62667
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 10705
+    },
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
+    {
+      "type": "cast",
+      "skillId": 62662
+    },
+    {
+      "type": "cast",
+      "skillId": 62567
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62563
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62540
+    },
+    {
+      "type": "cast",
+      "skillId": 62655
+    },
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 51647
+    },
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 10532
+    }
   ]
 }

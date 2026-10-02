@@ -729,6 +729,17 @@ test('Amalgam protocol IDs survive application build conversion', () => {
   assert.deepEqual(malformedPrefix.rotation, [{ type: 'cast', skillId: 77103 }]);
 });
 
+// Explicit parents keep selectable toolbelts usable without admitting unsupported racial actions.
+test('toolbelt IDs require the equipped parent and exclude unsupported racial skills', () => {
+  const selectedSkills = ['Blast Gyro'];
+  assert.equal(simulate('Scrapper', [ID.BYPASS_COATING], { selectedSkills }).warnings.length, 0);
+  assert.match(simulate('Scrapper', [ID.BYPASS_COATING], { selectedSkills: [] }).warnings[0], /not equipped/);
+  for (const skillId of [ID.CONFUSING_SPEECH, ID.VENT_RADIATION]) {
+    assert.equal(engineerCatalog.skillsById.get(skillId).simulatorExcluded, true);
+    assert.ok(simulate('Core', [skillId]).warnings.length > 0);
+  }
+});
+
 test('kits replace the weapon bar and trigger swap procs', () => {
   const denied = simulate('Core', ['Grenade']);
 
@@ -738,7 +749,7 @@ test('kits replace the weapon bar and trigger swap procs', () => {
 
   assert.equal(result.warnings.length, 0);
   assert.ok(result.totalDamage > 0);
-  assert.equal(result.planningState.profession.activeKit, 'Grenade Kit');
+  assert.equal(result.planningState.profession.activeKit, ID.GRENADE_KIT);
   assert.ok(result.events.some((event) => event.type === 'sigil_swap'));
 
   const weaponDenied = simulate('Core', ['Grenade Kit', 'Blunderbuss']);
@@ -749,7 +760,7 @@ test('kits replace the weapon bar and trigger swap procs', () => {
     const exited = simulate('Core', ['Grenade Kit', exitSkill, 'Blunderbuss']);
 
     assert.equal(exited.warnings.length, 0, exitSkill);
-    assert.equal(exited.planningState.profession.activeKit, '', exitSkill);
+    assert.equal(exited.planningState.profession.activeKit, null, exitSkill);
     assert.equal(exited.planningState.activeWeaponSet, 1, exitSkill);
   }
 
@@ -868,7 +879,7 @@ test('Engineer kit palettes stack and include their linked stow skills', () => {
         Elite: 'Supply Crate'
       }
     },
-    professionState: { activeKit: 'Grenade Kit' }
+    professionState: { activeKit: ID.GRENADE_KIT }
   });
   const groups = paletteGroups.filter((group) => group.stackId === 'engineer-kits');
   const names = (group) => group.skillIds.map((id) => engineerCatalog.skillsById.get(id).name);

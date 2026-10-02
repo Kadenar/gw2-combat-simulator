@@ -16,8 +16,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     kitTransition: 'equip',
     castTimeMs: 0,
     cooldown: 0,
-    effects: [],
-    kitName: 'Grenade Kit'
+    effects: []
   },
   [ID.POISON_GRENADE]: {
     castTimeMs: 680,
@@ -40,7 +39,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         actorType: 'player'
       }
     ]),
-    kit: 'Grenade Kit'
+    kitId: ID.GRENADE_KIT
   },
   [ID.SHRAPNEL_GRENADE]: {
     castTimeMs: 680,
@@ -63,7 +62,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         actorType: 'player'
       }
     ]),
-    kit: 'Grenade Kit'
+    kitId: ID.GRENADE_KIT
   },
   [ID.FLASH_GRENADE]: {
     castTimeMs: 360,
@@ -90,7 +89,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         duration: 5
       }
     ],
-    kit: 'Grenade Kit'
+    kitId: ID.GRENADE_KIT
   },
   [ID.FREEZE_GRENADE]: {
     castTimeMs: 680,
@@ -113,7 +112,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         actorType: 'player'
       }
     ]),
-    kit: 'Grenade Kit'
+    kitId: ID.GRENADE_KIT
   },
   [ID.GRENADE_BARRAGE]: {
     castTimeMs: 680,
@@ -133,7 +132,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         damageKind: 'explosion'
       }
     ],
-    toolbeltParentName: 'Grenade Kit'
+    toolbeltParentId: ID.GRENADE_KIT
   },
   [ID.GRENADE]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -167,7 +166,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         projectile: true
       }
     ],
-    kit: 'Grenade Kit'
+    kitId: ID.GRENADE_KIT
   },
   [ID.STOW_GRENADE_KIT]: {
     // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
@@ -179,6 +178,6 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     castTimeMs: 0,
     cooldown: 0,
     effects: [],
-    kit: 'Grenade Kit'
+    kitId: ID.GRENADE_KIT
   }
 });

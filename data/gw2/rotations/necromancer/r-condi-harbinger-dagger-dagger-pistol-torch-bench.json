@@ -10,23 +10,47 @@
     "note": "The paired build supplies the 14 Blight stacks observed at the first EVTC snapshot. Blood Is Power imports shorter than its uncancellable 880 ms cast are expanded to full duration, and Plague Signet passive-buff removals replay only after it finishes. Raw EVTC command timing is rounded to the nearest 40 ms, while interrupted casts use exact engine cutoffs: Devouring Cut 400 ms, Dark Barrage 800 ms, Enfeebling Blood 638 ms, Elixir of Risk 440 ms, and Elixir of Ambition 400 ms."
   },
   "rotation": [
-    "Blood Is Power",
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
     {
       "type": "combat-start",
       "concurrentOffsetMs": 360
     },
-    "Elixir of Risk",
-    "Blood Is Power",
-    "Plague Signet",
-    "Vile Blast",
-    "Harrowing Wave",
-    "Oppressive Collapse",
+    {
+      "type": "cast",
+      "skillId": 62530
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 10562
+    },
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 44296
+    },
     {
       "type": "cast",
       "skillId": 62655,
       "interruptAfterMs": 400
     },
-    "Harbinger Shroud",
+    {
+      "type": "cast",
+      "skillId": 62567
+    },
     {
       "type": "cast",
       "skillId": 62672,
@@ -37,129 +61,363 @@
       "skillId": 62621,
       "interruptAfterMs": 800
     },
-    "Vital Draw",
-    "Voracious Arc",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
+    {
+      "type": "cast",
+      "skillId": 62563
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
     {
       "type": "cast",
       "skillId": 62672,
       "interruptAfterMs": 400
     },
-    "Dark Barrage",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Voracious Arc",
-    "Devouring Cut",
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
     {
       "type": "cast",
       "skillId": 62621,
       "interruptAfterMs": 800
     },
-    "Exit Harbinger Shroud",
-    "Weeping Shots",
+    {
+      "type": "cast",
+      "skillId": 62540
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
     {
       "type": "cast",
       "skillId": 62530,
       "interruptAfterMs": 440
     },
-    "Elixir of Promise",
-    "Blood Is Power",
-    "Plague Signet",
-    "Vile Blast",
-    "Harrowing Wave",
-    "Oppressive Collapse",
-    "Weeping Shots",
-    "Swap Weapons",
-    "Enfeebling Blood",
-    "Dark Pact",
-    "Life Siphon",
-    "Deathly Swarm",
-    "Harbinger Shroud",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Voracious Arc",
-    "Vital Draw",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
+    {
+      "type": "cast",
+      "skillId": 62667
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 10562
+    },
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 44296
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 10706
+    },
+    {
+      "type": "cast",
+      "skillId": 10529
+    },
+    {
+      "type": "cast",
+      "skillId": 69302
+    },
+    {
+      "type": "cast",
+      "skillId": 10705
+    },
+    {
+      "type": "cast",
+      "skillId": 62567
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62563
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
     {
       "type": "cast",
       "skillId": 62672,
       "interruptAfterMs": 400
     },
-    "Dark Barrage",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Voracious Arc",
-    "Devouring Cut",
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
     {
       "type": "cast",
       "skillId": 62621,
       "interruptAfterMs": 800
     },
-    "Exit Harbinger Shroud",
-    "Dark Pact",
-    "Life Siphon",
+    {
+      "type": "cast",
+      "skillId": 62540
+    },
+    {
+      "type": "cast",
+      "skillId": 10529
+    },
+    {
+      "type": "cast",
+      "skillId": 69302
+    },
     {
       "type": "cast",
       "skillId": 10706,
       "interruptAfterMs": 640
     },
-    "Swap Weapons",
-    "Weeping Shots",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
     {
       "type": "cast",
       "skillId": 62530,
       "interruptAfterMs": 440
     },
-    "Elixir of Promise",
-    "Blood Is Power",
-    "Vile Blast",
+    {
+      "type": "cast",
+      "skillId": 62667
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
     {
       "type": "cast",
       "skillId": 10562,
       "concurrentOffsetMs": 0
     },
-    "Harrowing Wave",
-    "Oppressive Collapse",
-    "Weeping Shots",
-    "Harbinger Shroud",
-    "Devouring Cut",
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 44296
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": 62567
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
     {
       "type": "cast",
       "skillId": 62621,
       "interruptAfterMs": 800
     },
-    "Vital Draw",
-    "Voracious Arc",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Devouring Cut",
-    "Dark Barrage",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Voracious Arc",
+    {
+      "type": "cast",
+      "skillId": 62563
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
     {
       "type": "cast",
       "skillId": 62672,
@@ -170,75 +428,210 @@
       "skillId": 62621,
       "interruptAfterMs": 800
     },
-    "Exit Harbinger Shroud",
-    "Weeping Shots",
-    "Elixir of Risk",
-    "Elixir of Ambition",
-    "Harrowing Wave",
-    "Oppressive Collapse",
-    "Blood Is Power",
-    "Elixir of Promise",
-    "Blood Is Power",
-    "Plague Signet",
-    "Vile Blast",
-    "Weeping Shots",
-    "Swap Weapons",
-    "Dark Pact",
-    "Life Siphon",
-    "Harbinger Shroud",
-    "Devouring Cut",
+    {
+      "type": "cast",
+      "skillId": 62540
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": 62530
+    },
+    {
+      "type": "cast",
+      "skillId": 62655
+    },
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 44296
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 62667
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
+    {
+      "type": "cast",
+      "skillId": 10562
+    },
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 10529
+    },
+    {
+      "type": "cast",
+      "skillId": 69302
+    },
+    {
+      "type": "cast",
+      "skillId": 62567
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
     {
       "type": "cast",
       "skillId": 62621,
       "interruptAfterMs": 800
     },
-    "Vital Draw",
-    "Voracious Arc",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
+    {
+      "type": "cast",
+      "skillId": 62563
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
     {
       "type": "cast",
       "skillId": 62672,
       "interruptAfterMs": 400
     },
-    "Dark Barrage",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Tainted Bolts",
-    "Voracious Arc",
-    "Devouring Cut",
+    {
+      "type": "cast",
+      "skillId": 62621
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62611
+    },
+    {
+      "type": "cast",
+      "skillId": 62539
+    },
+    {
+      "type": "cast",
+      "skillId": 62672
+    },
     {
       "type": "cast",
       "skillId": 62621,
       "interruptAfterMs": 800
     },
-    "Exit Harbinger Shroud",
-    "Elixir of Risk",
-    "Dark Pact",
-    "Life Siphon",
-    "Blood Is Power",
+    {
+      "type": "cast",
+      "skillId": 62540
+    },
+    {
+      "type": "cast",
+      "skillId": 62530
+    },
+    {
+      "type": "cast",
+      "skillId": 10529
+    },
+    {
+      "type": "cast",
+      "skillId": 69302
+    },
+    {
+      "type": "cast",
+      "skillId": 10544
+    },
     {
       "type": "cast",
       "skillId": -3,
       "concurrentOffsetMs": 600
     },
-    "Vile Blast",
+    {
+      "type": "cast",
+      "skillId": 62511
+    },
     {
       "type": "cast",
       "skillId": 10562,
       "concurrentOffsetMs": 80
     },
-    "Harrowing Wave",
-    "Oppressive Collapse",
-    "Weeping Shots",
-    "Elixir of Promise",
-    "Vicious Shot",
-    "Vicious Shot"
+    {
+      "type": "cast",
+      "skillId": 45846
+    },
+    {
+      "type": "cast",
+      "skillId": 44296
+    },
+    {
+      "type": "cast",
+      "skillId": 62513
+    },
+    {
+      "type": "cast",
+      "skillId": 62667
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    },
+    {
+      "type": "cast",
+      "skillId": 62517
+    }
   ]
 }

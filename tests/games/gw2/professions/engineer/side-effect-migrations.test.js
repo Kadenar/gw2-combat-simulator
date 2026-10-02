@@ -54,7 +54,7 @@ test('Gleam Saber declarations reduce only other sword recharges after commitmen
 // Removing a declaration must remove its intrinsic state change, without an ID-based hook restoring it.
 test('Engineer lifecycle state follows the skill declarations', () => {
   for (const [skillId, config, active] of [
-    [ID.GRENADE_KIT, { selectedSkills: ['Grenade Kit'] }, (state) => state.activeKit === 'Grenade Kit'],
+    [ID.GRENADE_KIT, { selectedSkills: ['Grenade Kit'] }, (state) => state.activeKit === ID.GRENADE_KIT],
     [ID.ENGAGE_PHOTON_FORGE, { specialization: 'Holosmith' }, (state) => state.photonForgeActive],
     [ID.EVOLVE_BASE, { specialization: 'Amalgam' }, (state) => state.evolvedUntil > 0],
     [

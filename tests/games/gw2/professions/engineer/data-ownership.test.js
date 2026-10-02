@@ -26,16 +26,18 @@ import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
 
 const KIT_SLUGS = new Map([
-  ['Med Kit', 'med-kit'],
-  ['Grenade Kit', 'grenade-kit'],
-  ['Bomb Kit', 'bomb-kit'],
-  ['Flamethrower', 'flamethrower'],
-  ['Elixir Gun', 'elixir-gun'],
-  ['Elite Mortar Kit', 'elite-mortar-kit']
+  [ENGINEER_SKILL_IDS.MED_KIT, 'med-kit'],
+  [ENGINEER_SKILL_IDS.GRENADE_KIT, 'grenade-kit'],
+  [ENGINEER_SKILL_IDS.BOMB_KIT, 'bomb-kit'],
+  [ENGINEER_SKILL_IDS.FLAMETHROWER, 'flamethrower'],
+  [ENGINEER_SKILL_IDS.ELIXIR_GUN, 'elixir-gun'],
+  [ENGINEER_SKILL_IDS.ELITE_MORTAR_KIT, 'elite-mortar-kit']
 ]);
 
-function ownedKit(skill) {
-  return [skill.kitName, skill.kit, skill.toolbeltParentName].find((name) => KIT_SLUGS.has(name));
+function ownedKit(skill, skillId) {
+  return [skill.kitTransition === 'equip' ? Number(skillId) : null, skill.kitId, skill.toolbeltParentId].find((name) =>
+    KIT_SLUGS.has(name)
+  );
 }
 
 // Discovers Core kit sources and loads their compiled fragments through package aliases to verify disjoint ownership.
@@ -69,7 +71,7 @@ test('Engineer kit skill-data fragments compose without duplicates or omissions'
 
   for (const { filename, mechanics, extraSkills = [] } of await kitFragments()) {
     for (const [skillId, skill] of Object.entries(mechanics)) {
-      const kitName = ownedKit(skill);
+      const kitName = ownedKit(skill, skillId);
       assert.ok(kitName, `${filename}:${skillId}`);
       assert.equal(KIT_SLUGS.get(kitName), filename, `${filename}:${skillId}`);
       assert.equal(owners.has(skillId), false, skillId);
@@ -81,7 +83,7 @@ test('Engineer kit skill-data fragments compose without duplicates or omissions'
   }
 
   const aggregateKitIds = Object.entries(ENGINEER_CORE_SKILL_MECHANICS)
-    .filter(([, skill]) => ownedKit(skill))
+    .filter(([skillId, skill]) => ownedKit(skill, skillId))
     .map(([skillId]) => skillId)
     .sort((left, right) => Number(left) - Number(right));
   assert.deepEqual(

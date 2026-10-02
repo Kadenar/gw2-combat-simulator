@@ -17,7 +17,6 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     castTimeMs: 0,
     cooldown: 6,
     effects: [],
-    toolbeltParentName: 'Photon Projector',
     countsAsToolbeltSkill: false,
     mechanicSlot: 5
   },
@@ -121,7 +120,6 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     castTimeMs: 0,
     cooldown: 1,
     effects: [],
-    toolbeltParentName: 'Photon Projector',
     countsAsToolbeltSkill: false,
     mechanicSlot: 5
   },
@@ -324,7 +322,6 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     castTimeMs: 0,
     cooldown: 6,
     effects: [],
-    toolbeltParentName: 'Photon Projector',
     countsAsToolbeltSkill: false,
     mechanicSlot: 5
   },

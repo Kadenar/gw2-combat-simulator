@@ -7,7 +7,10 @@
     "timingSource": "Elite Insights casts and damage packets rounded to 40 ms action ticks"
   },
   "rotation": [
-    "One Wolf Pack",
+    {
+      "type": "cast",
+      "skillId": 45717
+    },
     {
       "type": "cast",
       "skillId": 12492
@@ -30,9 +33,18 @@
       "skillId": 12633,
       "concurrentOffsetMs": 360
     },
-    "Unleashed Savage Shock Wave",
-    "Unleashed Wild Swing",
-    "Swap Weapons",
+    {
+      "type": "cast",
+      "skillId": 63131
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
     {
       "type": "cast",
       "skillId": 41406
@@ -95,33 +107,99 @@
       "skillId": 12638,
       "interruptAfterMs": 360
     },
-    "Swap Weapons",
-    "Unleashed Savage Shock Wave",
-    "Unleashed Wild Swing",
-    "Unleashed Thump",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Unleashed Wild Swing",
-    "Overbearing Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63131
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": 63208
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": 69262
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
     {
       "type": "cast",
       "skillId": 12492,
       "interruptAfterMs": 440
     },
-    "Worldly Impact",
+    {
+      "type": "cast",
+      "skillId": 40729
+    },
     {
       "type": "cast",
       "skillId": 12633,
@@ -131,9 +209,18 @@
       "type": "cast",
       "skillId": 41406
     },
-    "Unleashed Savage Shock Wave",
-    "Unleashed Wild Swing",
-    "Swap Weapons",
+    {
+      "type": "cast",
+      "skillId": 63131
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
     {
       "type": "cast",
       "skillId": -1001
@@ -192,37 +279,118 @@
       "skillId": 12638,
       "interruptAfterMs": 400
     },
-    "Swap Weapons",
-    "Unleashed Wild Swing",
-    "Unleashed Savage Shock Wave",
-    "Unleashed Thump",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Unleashed Wild Swing",
-    "Overbearing Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Frost Trap",
-    "One Wolf Pack",
-    "Worldly Impact",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": 63131
+    },
+    {
+      "type": "cast",
+      "skillId": 63208
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": 69262
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 12492
+    },
+    {
+      "type": "cast",
+      "skillId": 45717
+    },
+    {
+      "type": "cast",
+      "skillId": 40729
+    },
     {
       "type": "cast",
       "skillId": 12633
     },
-    "Unleashed Savage Shock Wave",
-    "Unleashed Wild Swing",
-    "Swap Weapons",
+    {
+      "type": "cast",
+      "skillId": 63131
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
     {
       "type": "cast",
       "skillId": 41406
@@ -285,33 +453,99 @@
       "skillId": 12638,
       "interruptAfterMs": 400
     },
-    "Swap Weapons",
-    "Unleashed Savage Shock Wave",
-    "Unleashed Wild Swing",
-    "Unleashed Thump",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Unleashed Wild Swing",
-    "Overbearing Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
-    "Hammer Strike",
-    "Hammer Slam",
-    "Heavy Smash",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63131
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": 63208
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": 69262
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
+    {
+      "type": "cast",
+      "skillId": 63118
+    },
+    {
+      "type": "cast",
+      "skillId": 63222
+    },
+    {
+      "type": "cast",
+      "skillId": 63337
+    },
     {
       "type": "cast",
       "skillId": 12492,
       "interruptAfterMs": 480
     },
-    "Worldly Impact",
+    {
+      "type": "cast",
+      "skillId": 40729
+    },
     {
       "type": "cast",
       "skillId": 12633,
@@ -321,9 +555,18 @@
       "type": "cast",
       "skillId": 41406
     },
-    "Unleashed Savage Shock Wave",
-    "Unleashed Wild Swing",
-    "Swap Weapons",
+    {
+      "type": "cast",
+      "skillId": 63131
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
     {
       "type": "cast",
       "skillId": -1001
@@ -382,10 +625,25 @@
       "skillId": 12638,
       "interruptAfterMs": 400
     },
-    "Swap Weapons",
-    "Unleashed Wild Swing",
-    "Overbearing Smash",
-    "Unleashed Savage Shock Wave",
-    "Unleashed Thump"
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 63335
+    },
+    {
+      "type": "cast",
+      "skillId": 69262
+    },
+    {
+      "type": "cast",
+      "skillId": 63131
+    },
+    {
+      "type": "cast",
+      "skillId": 63208
+    }
   ]
 }

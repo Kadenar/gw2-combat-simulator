@@ -8,17 +8,26 @@
     "note": "Weave Self is precast at -2.401s, inferred from its next activation at 69.597s after Alacrity-adjusted recharge. Unravel activations occur at 26.880s, 53.001s, and 90.118s; dual attacks already in flight before each activation are preserved."
   },
   "rotation": [
-    "Air Attunement",
+    {
+      "type": "cast",
+      "skillId": 5494
+    },
     {
       "type": "wait",
       "durationMs": 480
     },
-    "Weave Self",
+    {
+      "type": "cast",
+      "skillId": 43638
+    },
     {
       "type": "wait",
       "durationMs": 720
     },
-    "Glyph of Storms (Air)",
+    {
+      "type": "cast",
+      "skillId": 5737
+    },
     {
       "type": "combat-start",
       "concurrentOffsetMs": 880
@@ -28,15 +37,27 @@
       "skillId": -1168,
       "concurrentOffsetMs": 1040
     },
-    "Quantum Strike",
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 80
     },
-    "Flame Uprising",
-    "Ride the Lightning",
-    "Pyro Vortex",
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 43074
+    },
     {
       "type": "cast",
       "skillId": 5539,
@@ -47,48 +68,99 @@
       "skillId": 5492,
       "concurrentOffsetMs": 80
     },
-    "Fire Grab",
-    "Cauterizing Strike",
-    "Ring of Fire",
-    "Fire Strike",
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 44451
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 80
     },
-    "Fire Swipe",
+    {
+      "type": "cast",
+      "skillId": 40326
+    },
     {
       "type": "cast",
       "skillId": -1169,
       "concurrentOffsetMs": 80
     },
-    "Searing Slash",
-    "Lava Skin",
+    {
+      "type": "cast",
+      "skillId": 43657
+    },
+    {
+      "type": "cast",
+      "skillId": 46447
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 240
     },
-    "Earthquake",
-    "Churning Earth",
-    "Flame Uprising",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 160
     },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 280
     },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Quantum Strike",
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
     {
       "type": "cast",
       "skillId": 5492,
@@ -99,75 +171,162 @@
       "skillId": 5539,
       "concurrentOffsetMs": 160
     },
-    "Pyro Vortex",
-    "Ride the Lightning",
-    "Fire Strike",
+    {
+      "type": "cast",
+      "skillId": 43074
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
     {
       "type": "cast",
       "skillId": 5539,
       "concurrentOffsetMs": 120
     },
-    "Fire Swipe",
+    {
+      "type": "cast",
+      "skillId": 40326
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 40
     },
-    "Searing Slash",
-    "Cauterizing Strike",
-    "Flame Uprising",
+    {
+      "type": "cast",
+      "skillId": 43657
+    },
+    {
+      "type": "cast",
+      "skillId": 44451
+    },
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
     {
       "type": "cast",
       "skillId": 5493,
       "concurrentOffsetMs": 160
     },
-    "Ring of Fire",
-    "Fire Grab",
-    "Twin Strike",
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 42271
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 120
     },
-    "Shearing Edge",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Charged Strike",
-    "Polaric Slash",
+    {
+      "type": "cast",
+      "skillId": 42867
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 80
     },
-    "Call Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Quantum Strike",
-    "Fire Attunement",
-    "Ride the Lightning",
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
     {
       "type": "cast",
       "skillId": 39964,
       "interruptAfterMs": 40
     },
-    "Flame Uprising",
-    "Pyro Vortex",
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
+    {
+      "type": "cast",
+      "skillId": 43074
+    },
     {
       "type": "cast",
       "skillId": 40183,
       "concurrentOffsetMs": 400
     },
-    "Fire Strike",
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
     {
       "type": "cast",
       "skillId": 5539,
       "concurrentOffsetMs": 0
     },
-    "Fire Swipe",
-    "Searing Slash",
-    "Fire Strike",
+    {
+      "type": "cast",
+      "skillId": 40326
+    },
+    {
+      "type": "cast",
+      "skillId": 43657
+    },
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
     {
       "type": "cast",
       "skillId": 5495,
@@ -178,24 +337,48 @@
       "skillId": 40326,
       "interruptAfterMs": 40
     },
-    "Lava Skin",
+    {
+      "type": "cast",
+      "skillId": 46447
+    },
     {
       "type": "cast",
       "skillId": 80231,
       "concurrentOffsetMs": 160
     },
-    "Earthquake",
-    "Churning Earth",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 160
     },
-    "Cauterizing Strike",
-    "Ring of Fire",
-    "Fire Grab",
-    "Flame Uprising",
-    "Fire Strike",
+    {
+      "type": "cast",
+      "skillId": 44451
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
     {
       "type": "cast",
       "skillId": 5494,
@@ -206,85 +389,202 @@
       "skillId": 40326,
       "interruptAfterMs": 40
     },
-    "Ride the Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Quantum Strike",
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 160
     },
-    "Pyro Vortex",
-    "Fire Strike",
+    {
+      "type": "cast",
+      "skillId": 43074
+    },
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
     {
       "type": "cast",
       "skillId": 40326,
       "interruptAfterMs": 40
     },
-    "Flame Uprising",
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
     {
       "type": "cast",
       "skillId": 40183,
       "concurrentOffsetMs": 600
     },
-    "Fire Strike",
-    "Fire Swipe",
-    "Ride the Lightning",
-    "Searing Slash",
-    "Fire Strike",
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
+    {
+      "type": "cast",
+      "skillId": 40326
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 43657
+    },
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 80
     },
-    "Fire Swipe",
-    "Cauterizing Strike",
-    "Ring of Fire",
-    "Fire Strike",
-    "Fire Swipe",
-    "Searing Slash",
+    {
+      "type": "cast",
+      "skillId": 40326
+    },
+    {
+      "type": "cast",
+      "skillId": 44451
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
+    {
+      "type": "cast",
+      "skillId": 40326
+    },
+    {
+      "type": "cast",
+      "skillId": 43657
+    },
     {
       "type": "cast",
       "skillId": 39964,
       "interruptAfterMs": 80
     },
-    "Flame Uprising",
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 120
     },
-    "Fire Grab",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Charged Strike",
-    "Polaric Slash",
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 120
     },
-    "Call Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Quantum Strike",
-    "Fire Attunement",
-    "Ride the Lightning",
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
     {
       "type": "cast",
       "skillId": 39964,
       "interruptAfterMs": 80
     },
-    "Flame Uprising",
-    "Pyro Vortex",
-    "Glyph of Storms (Fire)",
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
+    {
+      "type": "cast",
+      "skillId": 43074
+    },
+    {
+      "type": "cast",
+      "skillId": 5736
+    },
     {
       "type": "cast",
       "skillId": 40183,
@@ -295,102 +595,225 @@
       "skillId": 5539,
       "concurrentOffsetMs": 400
     },
-    "Fire Strike",
-    "Fire Swipe",
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
+    {
+      "type": "cast",
+      "skillId": 40326
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 360
     },
-    "Lava Skin",
+    {
+      "type": "cast",
+      "skillId": 46447
+    },
     {
       "type": "cast",
       "skillId": 80231,
       "concurrentOffsetMs": 200
     },
-    "Earthquake",
-    "Churning Earth",
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 160
     },
-    "Cauterizing Strike",
-    "Ring of Fire",
-    "Flame Uprising",
-    "Fire Strike",
-    "Fire Grab",
-    "Fire Strike",
+    {
+      "type": "cast",
+      "skillId": 44451
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 80
     },
-    "Ride the Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Quantum Strike",
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 240
     },
-    "Pyro Vortex",
-    "Flame Uprising",
-    "Fire Strike",
-    "Fire Swipe",
-    "Searing Slash",
-    "Ride the Lightning",
-    "Fire Strike",
+    {
+      "type": "cast",
+      "skillId": 43074
+    },
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
+    {
+      "type": "cast",
+      "skillId": 40326
+    },
+    {
+      "type": "cast",
+      "skillId": 43657
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 120
     },
-    "Fire Swipe",
-    "Cauterizing Strike",
-    "Ring of Fire",
-    "Fire Strike",
-    "Fire Swipe",
-    "Searing Slash",
+    {
+      "type": "cast",
+      "skillId": 40326
+    },
+    {
+      "type": "cast",
+      "skillId": 44451
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
+    {
+      "type": "cast",
+      "skillId": 40326
+    },
+    {
+      "type": "cast",
+      "skillId": 43657
+    },
     {
       "type": "cast",
       "skillId": 39964,
       "interruptAfterMs": 80
     },
-    "Flame Uprising",
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 120
     },
-    "Charged Strike",
-    "Polaric Slash",
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
     {
       "type": "cast",
       "skillId": 45216,
       "interruptAfterMs": 120
     },
-    "Weave Self",
-    "Call Lightning",
-    "Charged Strike",
+    {
+      "type": "cast",
+      "skillId": 43638
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 200
     },
-    "Ride the Lightning",
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
     {
       "type": "cast",
       "skillId": 45259,
       "interruptAfterMs": 80
     },
-    "Glyph of Storms (Air)",
-    "Quantum Strike",
+    {
+      "type": "cast",
+      "skillId": 5737
+    },
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
     {
       "type": "cast",
       "skillId": -1168,
@@ -401,61 +824,121 @@
       "skillId": 5492,
       "concurrentOffsetMs": 200
     },
-    "Pyro Vortex",
+    {
+      "type": "cast",
+      "skillId": 43074
+    },
     {
       "type": "cast",
       "skillId": 5539,
       "concurrentOffsetMs": 120
     },
-    "Flame Uprising",
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 680
     },
-    "Fire Grab",
-    "Cauterizing Strike",
-    "Ring of Fire",
-    "Fire Strike",
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
+    {
+      "type": "cast",
+      "skillId": 44451
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
     {
       "type": "cast",
       "skillId": 5495,
       "concurrentOffsetMs": 240
     },
-    "Fire Swipe",
-    "Searing Slash",
-    "Lava Skin",
+    {
+      "type": "cast",
+      "skillId": 40326
+    },
+    {
+      "type": "cast",
+      "skillId": 43657
+    },
+    {
+      "type": "cast",
+      "skillId": 46447
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 360
     },
-    "Fire Strike",
-    "Earthquake",
-    "Churning Earth",
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
+    {
+      "type": "cast",
+      "skillId": 5690
+    },
+    {
+      "type": "cast",
+      "skillId": 5522
+    },
     {
       "type": "cast",
       "skillId": 40183,
       "concurrentOffsetMs": 920
     },
-    "Flame Uprising",
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 280
     },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 360
     },
-    "Charged Strike",
-    "Polaric Slash",
-    "Call Lightning",
-    "Quantum Strike",
+    {
+      "type": "cast",
+      "skillId": 44681
+    },
+    {
+      "type": "cast",
+      "skillId": 45259
+    },
+    {
+      "type": "cast",
+      "skillId": 45216
+    },
+    {
+      "type": "cast",
+      "skillId": 43803
+    },
     {
       "type": "cast",
       "skillId": 5492,
@@ -466,37 +949,70 @@
       "skillId": 5539,
       "concurrentOffsetMs": 320
     },
-    "Pyro Vortex",
-    "Ride the Lightning",
-    "Fire Strike",
+    {
+      "type": "cast",
+      "skillId": 43074
+    },
+    {
+      "type": "cast",
+      "skillId": 5529
+    },
+    {
+      "type": "cast",
+      "skillId": 39964
+    },
     {
       "type": "cast",
       "skillId": 5539,
       "concurrentOffsetMs": 80
     },
-    "Fire Swipe",
+    {
+      "type": "cast",
+      "skillId": 40326
+    },
     {
       "type": "cast",
       "skillId": 5492,
       "concurrentOffsetMs": 160
     },
-    "Searing Slash",
-    "Flame Uprising",
-    "Cauterizing Strike",
+    {
+      "type": "cast",
+      "skillId": 43657
+    },
+    {
+      "type": "cast",
+      "skillId": 45313
+    },
+    {
+      "type": "cast",
+      "skillId": 44451
+    },
     {
       "type": "cast",
       "skillId": 5493,
       "concurrentOffsetMs": 160
     },
-    "Twin Strike",
-    "Ring of Fire",
-    "Fire Grab",
+    {
+      "type": "cast",
+      "skillId": 42271
+    },
+    {
+      "type": "cast",
+      "skillId": 5691
+    },
+    {
+      "type": "cast",
+      "skillId": 5557
+    },
     {
       "type": "cast",
       "skillId": 5494,
       "concurrentOffsetMs": 280
     },
-    "Shearing Edge",
+    {
+      "type": "cast",
+      "skillId": 42867
+    },
     {
       "type": "cast",
       "skillId": 80231,

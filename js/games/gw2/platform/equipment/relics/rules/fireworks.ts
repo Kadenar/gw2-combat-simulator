@@ -7,7 +7,7 @@ export const fireworks = defineRelic({
   afterHit(ctx, state, event, skill) {
     // Kit/bundle skills strike at bundle strength rather than weapon
     // strength, so they never qualify.
-    const isWeaponSkill = skill?.type === 'Weapon' && !skill.kit;
+    const isWeaponSkill = skill?.type === 'Weapon' && !skill.kitId;
     // Profession-mechanic skills qualify when they strike at weapon strength:
     // either an equipped weapon profile or the dedicated profession-mechanic
     // profile. Bundle strength and unequipped utility strength do not count.

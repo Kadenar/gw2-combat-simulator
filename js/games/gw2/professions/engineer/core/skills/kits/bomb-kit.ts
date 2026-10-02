@@ -13,8 +13,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
     kitTransition: 'equip',
     castTimeMs: 0,
     cooldown: 0,
-    effects: [],
-    kitName: 'Bomb Kit'
+    effects: []
   },
   [ID.BIG_OL_BOMB]: {
     // The placed bomb commits after 520 ms, so its delayed explosion and knockdown survive later interruption.
@@ -48,7 +47,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
         }
       ]
     ),
-    kit: 'Bomb Kit'
+    kitId: ID.BOMB_KIT
   },
   [ID.GALVANIC_BOMB]: {
     // Once placement commits at 520 ms, retain the full cast lockout and delayed explosion, confusion, and daze.
@@ -86,7 +85,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
         controlKind: 'daze'
       }
     ]),
-    kit: 'Bomb Kit'
+    kitId: ID.BOMB_KIT
   },
   [ID.FIRE_BOMB]: {
     castTimeMs: 600,
@@ -126,7 +125,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
         actorType: 'player'
       }
     ]),
-    kit: 'Bomb Kit'
+    kitId: ID.BOMB_KIT
   },
   [ID.SMOKE_BOMB_ENGINEER_SKILL]: {
     castTimeMs: 0,
@@ -137,7 +136,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
         actorType: 'player'
       }
     ],
-    toolbeltParentName: 'Bomb Kit'
+    toolbeltParentId: ID.BOMB_KIT
   },
   [ID.BOMB]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -154,7 +153,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
         damageKind: 'explosion'
       }
     ],
-    kit: 'Bomb Kit'
+    kitId: ID.BOMB_KIT
   },
   [ID.STOW_BOMB_KIT]: {
     // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
@@ -166,7 +165,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
     castTimeMs: 0,
     cooldown: 0,
     effects: [],
-    kit: 'Bomb Kit'
+    kitId: ID.BOMB_KIT
   },
   [ID.MAGNETIC_BOMB]: {
     // Once placement commits at 440 ms, retain the full cast lockout and delayed explosion and pull.
@@ -193,6 +192,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
         }
       ]
     ),
-    kit: 'Bomb Kit'
+    kitId: ID.BOMB_KIT
   }
 });

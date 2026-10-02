@@ -12,8 +12,7 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
     kitTransition: 'equip',
     castTimeMs: 0,
     cooldown: 0,
-    effects: [],
-    kitName: 'Med Kit'
+    effects: []
   },
   [ID.STOW_MED_KIT]: {
     // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
@@ -25,7 +24,7 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
     castTimeMs: 0,
     cooldown: 0,
     effects: [],
-    kit: 'Med Kit'
+    kitId: ID.MED_KIT
   },
   [ID.BANDAGE_BLAST]: {
     castTimeMs: 360,
@@ -38,13 +37,13 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
         stacks: 1
       }
     ],
-    kit: 'Med Kit'
+    kitId: ID.MED_KIT
   },
   [ID.BANDAGE_SELF]: {
     castTimeMs: 680,
     cooldown: 17,
     effects: [],
-    toolbeltParentName: 'Med Kit',
+    toolbeltParentId: ID.MED_KIT,
     mechanicSlot: 1
   },
   [ID.MED_BLASTER]: {
@@ -52,7 +51,7 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
     castTimeMs: 840,
     cooldown: 0,
     effects: [],
-    kit: 'Med Kit'
+    kitId: ID.MED_KIT
   },
   [ID.CLEANSING_FIELD]: {
     castTimeMs: 400,
@@ -66,13 +65,13 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
       }
     ],
     effects: [],
-    kit: 'Med Kit'
+    kitId: ID.MED_KIT
   },
   [ID.VITAL_BURST]: {
     castTimeMs: 0,
     cooldown: 20,
     effects: [],
-    kit: 'Med Kit'
+    kitId: ID.MED_KIT
   },
   [ID.INFUSION_BOMB]: {
     castTimeMs: 680,
@@ -104,6 +103,6 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<S
         stacks: 1
       }
     ],
-    kit: 'Med Kit'
+    kitId: ID.MED_KIT
   }
 });

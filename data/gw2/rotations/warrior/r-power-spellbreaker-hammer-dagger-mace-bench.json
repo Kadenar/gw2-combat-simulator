@@ -15,8 +15,14 @@
     }
   },
   "rotation": [
-    "\"To the Limit!\"",
-    "Winds of Disenchantment",
+    {
+      "type": "cast",
+      "skillId": 14402
+    },
+    {
+      "type": "cast",
+      "skillId": 45333
+    },
     {
       "type": "cast",
       "skillId": 45252,
@@ -26,50 +32,128 @@
       "type": "combat-start",
       "concurrentOffsetMs": 760
     },
-    "Swap Weapons",
-    "Staggering Blow",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14359
+    },
     {
       "type": "wait",
       "durationMs": 40
     },
-    "Bull's Charge",
-    "Earthshaker",
-    "Hammer Shock",
-    "Fierce Blow",
-    "Backbreaker",
+    {
+      "type": "cast",
+      "skillId": 14516
+    },
+    {
+      "type": "cast",
+      "skillId": 14387
+    },
+    {
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 14511
+    },
     {
       "type": "cast",
       "skillId": 14386,
       "interruptAfterMs": 680
     },
-    "Swap Weapons",
-    "Crushing Blow",
-    "Tremor",
-    "Crushing Blow",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
+    {
+      "type": "cast",
+      "skillId": 14415
+    },
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
     {
       "type": "cast",
       "skillId": 45252
     },
-    "Disrupting Stab",
-    "Precise Cut",
-    "Focused Slash",
-    "Keen Strike",
-    "Precise Cut",
-    "Focused Slash",
+    {
+      "type": "cast",
+      "skillId": 44937
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
+    {
+      "type": "cast",
+      "skillId": 40275
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
     {
       "type": "cast",
       "skillId": 40275,
       "interruptAfterMs": 320
     },
-    "Swap Weapons",
-    "Earthshaker",
-    "Hammer Shock",
-    "Fierce Blow",
-    "Hammer Swing",
-    "Hammer Bash",
-    "Hammer Smash",
-    "Hammer Swing",
-    "Hammer Bash",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14387
+    },
+    {
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 14358
+    },
+    {
+      "type": "cast",
+      "skillId": 14384
+    },
+    {
+      "type": "cast",
+      "skillId": 14385
+    },
+    {
+      "type": "cast",
+      "skillId": 14358
+    },
+    {
+      "type": "cast",
+      "skillId": 14384
+    },
     {
       "type": "cast",
       "skillId": 14385,
@@ -79,211 +163,547 @@
       "type": "wait",
       "durationMs": 80
     },
-    "Staggering Blow",
-    "Swap Weapons",
-    "Crushing Blow",
+    {
+      "type": "cast",
+      "skillId": 14359
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
     {
       "type": "cast",
       "skillId": 45252
     },
-    "Disrupting Stab",
-    "Precise Cut",
-    "Focused Slash",
-    "Keen Strike",
-    "Precise Cut",
-    "Focused Slash",
-    "Keen Strike",
-    "Precise Cut",
-    "Focused Slash",
+    {
+      "type": "cast",
+      "skillId": 44937
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
+    {
+      "type": "cast",
+      "skillId": 40275
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
+    {
+      "type": "cast",
+      "skillId": 40275
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
     {
       "type": "cast",
       "skillId": 40275,
       "interruptAfterMs": 360
     },
-    "Swap Weapons",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
     {
       "type": "cast",
       "skillId": 14358,
       "interruptAfterMs": 40
     },
-    "Earthshaker",
-    "Bull's Charge",
-    "Hammer Shock",
-    "Fierce Blow",
-    "Backbreaker",
-    "Fierce Blow",
+    {
+      "type": "cast",
+      "skillId": 14387
+    },
+    {
+      "type": "cast",
+      "skillId": 14516
+    },
+    {
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 14511
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
     {
       "type": "wait",
       "durationMs": 160
     },
-    "Swap Weapons",
-    "Crushing Blow",
-    "Tremor",
-    "Crushing Blow",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
+    {
+      "type": "cast",
+      "skillId": 14415
+    },
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
     {
       "type": "cast",
       "skillId": 45252
     },
-    "Disrupting Stab",
-    "Precise Cut",
-    "Focused Slash",
-    "Keen Strike",
-    "Precise Cut",
-    "Focused Slash",
+    {
+      "type": "cast",
+      "skillId": 44937
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
+    {
+      "type": "cast",
+      "skillId": 40275
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
     {
       "type": "cast",
       "skillId": 40275,
       "interruptAfterMs": 360
     },
-    "Swap Weapons",
-    "Earthshaker",
-    "Staggering Blow",
-    "Hammer Shock",
-    "Fierce Blow",
-    "Hammer Swing",
-    "Hammer Bash",
-    "Hammer Smash",
-    "Hammer Swing",
-    "Hammer Bash",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14387
+    },
+    {
+      "type": "cast",
+      "skillId": 14359
+    },
+    {
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 14358
+    },
+    {
+      "type": "cast",
+      "skillId": 14384
+    },
+    {
+      "type": "cast",
+      "skillId": 14385
+    },
+    {
+      "type": "cast",
+      "skillId": 14358
+    },
+    {
+      "type": "cast",
+      "skillId": 14384
+    },
     {
       "type": "cast",
       "skillId": 14385,
       "interruptAfterMs": 360
     },
-    "Swap Weapons",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
     {
       "type": "cast",
       "skillId": 42745,
       "interruptAfterMs": 40
     },
-    "Crushing Blow",
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
     {
       "type": "cast",
       "skillId": 45252
     },
-    "Disrupting Stab",
-    "Precise Cut",
-    "Focused Slash",
-    "Keen Strike",
-    "Precise Cut",
-    "Focused Slash",
-    "Keen Strike",
-    "Precise Cut",
-    "Focused Slash",
+    {
+      "type": "cast",
+      "skillId": 44937
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
+    {
+      "type": "cast",
+      "skillId": 40275
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
+    {
+      "type": "cast",
+      "skillId": 40275
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
     {
       "type": "cast",
       "skillId": 40275,
       "interruptAfterMs": 320
     },
-    "Swap Weapons",
-    "Earthshaker",
-    "Bull's Charge",
-    "Hammer Shock",
-    "Fierce Blow",
-    "Backbreaker",
-    "Fierce Blow",
-    "Staggering Blow",
-    "Swap Weapons",
-    "Crushing Blow",
-    "Tremor",
-    "Crushing Blow",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14387
+    },
+    {
+      "type": "cast",
+      "skillId": 14516
+    },
+    {
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 14511
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 14359
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
+    {
+      "type": "cast",
+      "skillId": 14415
+    },
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
     {
       "type": "cast",
       "skillId": 45252
     },
-    "Disrupting Stab",
-    "Precise Cut",
-    "Focused Slash",
-    "Keen Strike",
-    "Precise Cut",
-    "Focused Slash",
+    {
+      "type": "cast",
+      "skillId": 44937
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
+    {
+      "type": "cast",
+      "skillId": 40275
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
     {
       "type": "cast",
       "skillId": 40275,
       "interruptAfterMs": 360
     },
-    "Swap Weapons",
-    "Earthshaker",
-    "Hammer Shock",
-    "Fierce Blow",
-    "Hammer Swing",
-    "Hammer Bash",
-    "Hammer Smash",
-    "Hammer Swing",
-    "Hammer Bash",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14387
+    },
+    {
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 14358
+    },
+    {
+      "type": "cast",
+      "skillId": 14384
+    },
+    {
+      "type": "cast",
+      "skillId": 14385
+    },
+    {
+      "type": "cast",
+      "skillId": 14358
+    },
+    {
+      "type": "cast",
+      "skillId": 14384
+    },
     {
       "type": "cast",
       "skillId": 14385,
       "interruptAfterMs": 360
     },
-    "Swap Weapons",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
     {
       "type": "cast",
       "skillId": 45252
     },
-    "Crushing Blow",
-    "Precise Cut",
-    "Focused Slash",
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
     {
       "type": "cast",
       "skillId": 40275,
       "interruptAfterMs": 400
     },
-    "Disrupting Stab",
-    "Precise Cut",
-    "Focused Slash",
-    "Keen Strike",
-    "Precise Cut",
-    "Focused Slash",
+    {
+      "type": "cast",
+      "skillId": 44937
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
+    {
+      "type": "cast",
+      "skillId": 40275
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
     {
       "type": "cast",
       "skillId": 40275,
       "interruptAfterMs": 360
     },
-    "Swap Weapons",
-    "Earthshaker",
-    "Staggering Blow",
-    "Bull's Charge",
-    "Hammer Shock",
-    "Fierce Blow",
-    "Backbreaker",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14387
+    },
+    {
+      "type": "cast",
+      "skillId": 14359
+    },
+    {
+      "type": "cast",
+      "skillId": 14516
+    },
+    {
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 14511
+    },
     {
       "type": "cast",
       "skillId": 14386,
       "interruptAfterMs": 680
     },
-    "Swap Weapons",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
     {
       "type": "cast",
       "skillId": 45252
     },
-    "Crushing Blow",
-    "Tremor",
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
+    {
+      "type": "cast",
+      "skillId": 14415
+    },
     {
       "type": "cast",
       "skillId": 14518,
       "interruptAfterMs": 520
     },
-    "Disrupting Stab",
-    "Precise Cut",
-    "Focused Slash",
-    "Keen Strike",
-    "Precise Cut",
-    "Focused Slash",
+    {
+      "type": "cast",
+      "skillId": 44937
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
+    {
+      "type": "cast",
+      "skillId": 40275
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
     {
       "type": "cast",
       "skillId": 40275,
       "interruptAfterMs": 320
     },
-    "Swap Weapons",
-    "Earthshaker",
-    "Hammer Shock",
-    "Fierce Blow",
-    "Hammer Swing",
-    "Hammer Bash",
-    "Hammer Smash",
-    "Hammer Swing",
-    "Hammer Bash",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14387
+    },
+    {
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 14358
+    },
+    {
+      "type": "cast",
+      "skillId": 14384
+    },
+    {
+      "type": "cast",
+      "skillId": 14385
+    },
+    {
+      "type": "cast",
+      "skillId": 14358
+    },
+    {
+      "type": "cast",
+      "skillId": 14384
+    },
     {
       "type": "cast",
       "skillId": 14385,
@@ -293,41 +713,110 @@
       "type": "wait",
       "durationMs": 80
     },
-    "Staggering Blow",
-    "Swap Weapons",
+    {
+      "type": "cast",
+      "skillId": 14359
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
     {
       "type": "cast",
       "skillId": 45252
     },
-    "Crushing Blow",
-    "Disrupting Stab",
-    "Precise Cut",
-    "Focused Slash",
-    "Keen Strike",
-    "Precise Cut",
-    "Focused Slash",
-    "Keen Strike",
-    "Precise Cut",
-    "Focused Slash",
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
+    {
+      "type": "cast",
+      "skillId": 44937
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
+    {
+      "type": "cast",
+      "skillId": 40275
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
+    {
+      "type": "cast",
+      "skillId": 40275
+    },
+    {
+      "type": "cast",
+      "skillId": 42745
+    },
+    {
+      "type": "cast",
+      "skillId": 40560
+    },
     {
       "type": "cast",
       "skillId": 40275,
       "interruptAfterMs": 320
     },
-    "Swap Weapons",
-    "Earthshaker",
-    "Bull's Charge",
-    "Hammer Shock",
-    "Fierce Blow",
-    "Backbreaker",
-    "Fierce Blow",
-    "Swap Weapons",
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14387
+    },
+    {
+      "type": "cast",
+      "skillId": 14516
+    },
+    {
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 14511
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
     {
       "type": "cast",
       "skillId": 45252
     },
-    "Crushing Blow",
-    "Tremor",
-    "Crushing Blow"
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
+    {
+      "type": "cast",
+      "skillId": 14415
+    },
+    {
+      "type": "cast",
+      "skillId": 14518
+    }
   ]
 }

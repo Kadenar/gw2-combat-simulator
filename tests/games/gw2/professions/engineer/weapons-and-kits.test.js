@@ -547,9 +547,11 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
   const selectedSkills = ['Healing Turret', 'Bomb Kit', 'Grenade Kit', 'Elixir Gun', 'Supply Crate'];
   const waitForBombPackets = () => ({ type: 'wait', durationMs: 5000 });
   const bombSkills = engineerCatalog.skills.filter(
-    (candidate) => candidate.kit === 'Bomb Kit' && candidate.effects.some((effect) => effect.type === 'strike')
+    (candidate) => candidate.kitId === ID.BOMB_KIT && candidate.effects.some((effect) => effect.type === 'strike')
   );
 
+  // Require matching skills so a stale kit lookup cannot bypass the explosion checks.
+  assert.ok(bombSkills.length > 0, 'Bomb Kit must contain strike skills');
   assert.ok(
     bombSkills.every((candidate) =>
       candidate.effects

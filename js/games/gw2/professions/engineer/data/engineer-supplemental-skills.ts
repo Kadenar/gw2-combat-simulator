@@ -424,7 +424,8 @@ const records: EngineerSupplementalSkill[] = [
     categories: ['Tool belt'],
     nextChainId: null,
     flipSkillId: null,
-    simulatorExcluded: false
+    // Racial parent skills are outside the supported loadout.
+    simulatorExcluded: true
   },
   {
     id: 12336,
@@ -437,7 +438,8 @@ const records: EngineerSupplementalSkill[] = [
     categories: ['Tool belt'],
     nextChainId: null,
     flipSkillId: null,
-    simulatorExcluded: false
+    // Racial parent skills are outside the supported loadout.
+    simulatorExcluded: true
   },
   {
     id: 13465,

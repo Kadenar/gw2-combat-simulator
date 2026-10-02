@@ -262,7 +262,6 @@ export interface Gw2BuildCodecOptions<TBuild extends Gw2CanonicalBuild = Gw2Cano
   readonly schemaVersion: number;
   readonly catalog: CanonicalCatalog;
   readonly createDefaults: () => TBuild;
-  readonly migrations?: Readonly<Record<number, (saved: UnvalidatedBuildRecord) => UnvalidatedBuildRecord>>;
   readonly extraFields?: Gw2BuildExtraFieldDescriptors<TBuild>;
   readonly normalizeExtra?: (build: TBuild, context: Gw2BuildCodecContext) => TBuild;
   readonly validateExtra?: (build: TBuild) => unknown[] | { readonly errors?: readonly unknown[] } | null | undefined;

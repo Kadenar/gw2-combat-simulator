@@ -63,7 +63,8 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
       if (context.kind !== 'cast') throw new TypeError('Kit transitions require a cast trigger.');
       const { cast } = context;
       const skill = context.skill as EngineerSkill;
-      runtime.profession.core.activeKit = skill.kitTransition === 'equip' ? (skill.kitName ?? skill.name) : '';
+      // Persist bundle identity as the equip skill ID; labels belong to presentation.
+      runtime.profession.core.activeKit = skill.kitTransition === 'equip' ? skill.id : null;
       emitEngineerEvent(
         runtime,
         'sigil_swap',

@@ -7,7 +7,7 @@ import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/t
 export function mechanistCastAvailability(context: EngineerRuntime, skill: EngineerSkill): AvailabilityResult {
   if (context.config.specialization !== 'Mechanist') return { ready: true };
   const state = mechanistState.from(context);
-  if (skill.toolbeltParentName) {
+  if (skill.toolbeltParentId) {
     return denyEngineerCast(skill, 'engineer.toolbelt-replaced', 'Mechanist mech commands replace tool-belt skills.');
   }
 

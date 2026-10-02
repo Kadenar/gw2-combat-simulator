@@ -39,14 +39,14 @@ import type {
  * own their profession bars, resources, assumptions, and palette groups.
  */
 
-// display sort order for kit palette groups
-const KIT_ORDER = new Map<string, number>([
-  ['Grenade Kit', 0],
-  ['Flamethrower', 1],
-  ['Bomb Kit', 2],
-  ['Med Kit', 3],
-  ['Elixir Gun', 5],
-  ['Elite Mortar Kit', 6]
+// Order kit groups by stable equip IDs; catalog names are display labels.
+const KIT_ORDER = new Map<SkillId, number>([
+  [ID.GRENADE_KIT, 0],
+  [ID.FLAMETHROWER, 1],
+  [ID.BOMB_KIT, 2],
+  [ID.MED_KIT, 3],
+  [ID.ELIXIR_GUN, 5],
+  [ID.ELITE_MORTAR_KIT, 6]
 ]);
 
 const SKILL_SLOT_ORDER: readonly string[] = Object.freeze(['Heal', 'Utility1', 'Utility2', 'Utility3', 'Elite']);
@@ -75,18 +75,15 @@ function selectedNamesInSlotOrder(context: EngineerUiContext = {}): (string | un
 }
 
 /** Lists equipped kits in the stable display order used by palette groups. */
-function selectedKitNames(catalog: Readonly<CanonicalCatalog>, context: EngineerUiContext): string[] {
-  return [
-    ...new Set(
-      (catalog.skills as readonly EngineerSkill[])
-        .filter((skill) => skill.kitTransition === 'equip' && selectedNames(context).has(skill.name))
-        .map((skill) => skill.kitName || skill.name)
-    )
-  ].sort(
-    (left, right) =>
-      (KIT_ORDER.get(left) ?? Number.MAX_SAFE_INTEGER) - (KIT_ORDER.get(right) ?? Number.MAX_SAFE_INTEGER) ||
-      left.localeCompare(right)
-  );
+function selectedKits(catalog: Readonly<CanonicalCatalog>, context: EngineerUiContext): EngineerSkill[] {
+  const names = selectedNames(context);
+  return (catalog.skills as readonly EngineerSkill[])
+    .filter((skill) => skill.kitTransition === 'equip' && names.has(skill.name))
+    .sort(
+      (left, right) =>
+        (KIT_ORDER.get(left.id) ?? Number.MAX_SAFE_INTEGER) - (KIT_ORDER.get(right.id) ?? Number.MAX_SAFE_INTEGER) ||
+        left.name.localeCompare(right.name)
+    );
 }
 
 // deduplicates by skill name — some skills have multiple IDs (different specs); keep the first
@@ -122,12 +119,12 @@ function usesToolsTraitline(catalog: Readonly<CanonicalCatalog>, context: Engine
 
 // toolbelt skill is the non-Detonate variant — each parent has both a toolbelt skill and a detonate flip
 /** Resolves an equipped slot skill to its non-detonate toolbelt skill. */
-function toolbeltSkillId(catalog: Readonly<CanonicalCatalog>, parentName: string | undefined): SkillId | null {
-  if (!parentName) return null;
+function toolbeltSkillId(catalog: Readonly<CanonicalCatalog>, parentId: SkillId | undefined): SkillId | null {
+  if (parentId == null) return null;
   return (
     uniqueSkillsByName(
       catalog.skills.filter(
-        (skill) => skill.toolbeltParentName === parentName && !(skill.name || '').startsWith('Detonate')
+        (skill) => skill.toolbeltParentId === parentId && !(skill.name || '').startsWith('Detonate')
       )
     )[0]?.id ?? null
   );
@@ -143,7 +140,9 @@ export function engineerToolbeltSkillIds(
   catalog: Readonly<CanonicalCatalog>,
   context: EngineerUiContext
 ): (SkillId | null)[] {
-  return selectedNamesInSlotOrder(context).map((name) => toolbeltSkillId(catalog, name));
+  return selectedNamesInSlotOrder(context).map((name) =>
+    toolbeltSkillId(catalog, name == null ? undefined : catalog.skillsByName.get(name)?.id)
+  );
 }
 
 /** Returns populated Core profession-skill IDs for palette and bar consumers. */
@@ -153,12 +152,13 @@ function professionSkills(catalog: Readonly<CanonicalCatalog>, context: Engineer
 
 /** Explains whether a Core Engineer skill is usable in the currently displayed state. */
 function engineerCorePaletteSkillAvailability(
+  catalog: Readonly<CanonicalCatalog>,
   context: EngineerUiContext = {},
   skill: EngineerSkill
 ): PaletteSkillAvailability {
   const state = engineerUiState(context);
   // Lightning Rod and Electric Artillery share one contextual profession slot.
-  if (skill.name === 'Electric Artillery') {
+  if (skill.id === ID.ELECTRIC_ARTILLERY) {
     return {
       available: skillFlipReady(state.availableFlips?.[ID.ELECTRIC_ARTILLERY], context.time || 0),
       message: skillFlipReady(state.availableFlips?.[ID.ELECTRIC_ARTILLERY], context.time || 0)
@@ -168,7 +168,7 @@ function engineerCorePaletteSkillAvailability(
   }
 
   if (
-    skill.name === 'Lightning Rod' &&
+    skill.id === ID.LIGHTNING_ROD &&
     (state.availableFlips?.[ID.ELECTRIC_ARTILLERY]?.expiresAt || 0) > (context.time || 0)
   ) {
     return {
@@ -186,21 +186,21 @@ function engineerCorePaletteSkillAvailability(
   }
 
   // Active kits replace the weapon bar and cannot be equipped again until stowed.
-  if (skill.kit && state.activeKit !== skill.kit) {
-    return { available: false, message: `Equip ${skill.kit} first` };
+  if (skill.kitId && state.activeKit !== skill.kitId) {
+    return { available: false, message: `Equip ${catalog.skillsById.get(skill.kitId)?.name} first` };
   }
 
-  if (skill.kitTransition === 'equip' && state.activeKit === (skill.kitName || skill.name)) {
+  if (skill.kitTransition === 'equip' && state.activeKit === skill.id) {
     return {
       available: false,
-      message: `Use Stow ${skill.kitName || skill.name} to leave this kit`
+      message: `Use Stow ${skill.name} to leave this kit`
     };
   }
 
   if (skill.type === 'Weapon' && skill.weapon && state.activeKit) {
     return {
       available: false,
-      message: `${state.activeKit} replaces equipped weapon skills`
+      message: `${catalog.skillsById.get(state.activeKit)?.name} replaces equipped weapon skills`
     };
   }
 
@@ -251,11 +251,11 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog>): Enginee
     paletteGroups: (context: EngineerUiContext) => {
       const groups: ProfessionPaletteGroup[] = [];
       // Each selected kit gets a stable slot-ordered group in the shared kit stack.
-      for (const kit of selectedKitNames(catalog, context)) {
-        const kitSkills = uniqueSkillsByName(catalog.skills.filter((skill) => skill.kit === kit));
+      for (const kit of selectedKits(catalog, context)) {
+        const kitSkills = uniqueSkillsByName(catalog.skills.filter((skill) => skill.kitId === kit.id));
         groups.push({
-          id: `engineer-kit-${kit.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-          label: kit.replace(' Kit', '').slice(0, 4),
+          id: `engineer-kit-${kit.id}`,
+          label: kit.name.replace(' Kit', '').slice(0, 4),
           skillIds: kitSkills
             .sort(
               (left, right) =>
@@ -289,10 +289,10 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog>): Enginee
     timelineWeaponLineTransition: (context: EngineerUiContext) => {
       const skill = context.skill;
       if (skill?.kitTransition === 'equip') {
-        return skill.kitName || skill.name;
+        return skill.name;
       }
 
-      if (skill?.kitTransition === 'stow' || (context.weaponLine && skill?.name === 'Swap Weapons')) {
+      if (skill?.kitTransition === 'stow' || (context.weaponLine && skill?.id === SHARED_SKILL_IDS.SWAP_WEAPONS)) {
         return null;
       }
 
@@ -344,7 +344,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog>): Enginee
 
       return items;
     },
-    paletteSkillAvailability: engineerCorePaletteSkillAvailability,
+    paletteSkillAvailability: (context, skill) => engineerCorePaletteSkillAvailability(catalog, context, skill),
     // Excludes contextual flips and palette-only kit controls from loadout slots.
     isSlotSkillSelectable(_context: EngineerUiContext, skill: EngineerSkill): boolean {
       return (

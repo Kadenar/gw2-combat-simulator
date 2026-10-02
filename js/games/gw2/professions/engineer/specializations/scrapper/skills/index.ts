@@ -27,14 +27,14 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
         stacks: 1
       }
     ],
-    toolbeltParentName: 'Medic Gyro',
+    toolbeltParentId: ID.MEDIC_GYRO,
     mechanicSlot: 1
   },
   [ID.BYPASS_COATING]: {
     castTimeMs: 0,
     cooldown: 20,
     effects: [],
-    toolbeltParentName: 'Blast Gyro Tag'
+    toolbeltParentId: ID.BLAST_GYRO
   },
   [ID.SHREDDER_GYRO]: {
     castTimeMs: 520,
@@ -82,7 +82,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> 
         actorType: 'player'
       }
     ],
-    toolbeltParentName: 'Shredder Gyro'
+    toolbeltParentId: ID.SHREDDER_GYRO
   },
   [ID.BLAST_GYRO]: {
     castTimeMs: 200,
