@@ -5,7 +5,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { elementalistTimedBuffStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import {
   extendPersistingFlamesEffects,
@@ -79,19 +79,9 @@ export const burningRage = defineTrait({
     durationMultiplier: 20,
     effects: [{ type: 'condition', name: 'Sunspot Burning', condition: 'Burning', stacks: 2, duration: 4 }]
   },
-  buildAttributes: (_common, { balanceContext }) => {
-    const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.BURNING_RAGE);
-    return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Condition Damage',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.BURNING_RAGE, [
+    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: false }
+  ])
 });
 
 export const smotheringAuras = defineTrait({

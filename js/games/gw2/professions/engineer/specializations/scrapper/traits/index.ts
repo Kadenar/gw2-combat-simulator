@@ -5,7 +5,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerRuntime, EngineerSkill, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
 import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
@@ -149,21 +149,16 @@ export const kineticAccelerators = defineTrait<EngineerSkill>({
     ]
   },
   hooks: { onCastCommit: applyKineticAcceleratorsCast, reactions: { 'combo.resolved': reactToScrapperCombo } },
-  buildAttributes: (_common, { balanceContext }) => {
-    const kineticAcceleratorsProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.KINETIC_ACCELERATORS);
-    return {
-      attributeEffects: [
-        {
-          kind: 'conversion',
-          from: 'Power',
-          to: 'Concentration',
-          multiplier: balanceProfileNumber(kineticAcceleratorsProfile, 'attributeConversion'),
-          rounding: 'round',
-          input: 'eligible'
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.KINETIC_ACCELERATORS, [
+    {
+      kind: 'conversion',
+      from: 'Power',
+      to: 'Concentration',
+      field: 'attributeConversion',
+      rounding: 'round',
+      input: 'eligible'
+    }
+  ])
 });
 
 /** Owns Mass Momentum tuning and its existing gameplay boundaries. */

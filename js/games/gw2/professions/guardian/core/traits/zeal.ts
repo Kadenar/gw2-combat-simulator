@@ -6,7 +6,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { activeWeapon, guardianRuntimeState } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
 import { isGuardianSymbolSkill } from '#gw2/professions/guardian/core/traits/behavior.js';
@@ -204,21 +204,16 @@ export const kindledZeal = defineTrait({
   id: TRAIT.KINDLED_ZEAL,
   name: 'Kindled Zeal',
   balance: { attributeConversion: 0.1 },
-  buildAttributes: (_common, { balanceContext: profileContext }) => {
-    const kindledZealProfile = requireBalanceProfileFromContext(profileContext, TRAIT.KINDLED_ZEAL);
-    return {
-      attributeEffects: [
-        {
-          kind: 'conversion',
-          from: 'Power',
-          to: 'Condition Damage',
-          multiplier: balanceProfileNumber(kindledZealProfile, 'attributeConversion'),
-          rounding: 'round',
-          input: 'eligible'
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.KINDLED_ZEAL, [
+    {
+      kind: 'conversion',
+      from: 'Power',
+      to: 'Condition Damage',
+      field: 'attributeConversion',
+      rounding: 'round',
+      input: 'eligible'
+    }
+  ])
 });
 
 /** Owns Eternal Armory's live tuning and trait behavior. */

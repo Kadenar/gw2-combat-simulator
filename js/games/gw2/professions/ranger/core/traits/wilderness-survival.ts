@@ -5,7 +5,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
@@ -60,19 +60,9 @@ export const arachnophobia = defineTrait({
     weaponAttributeBonus: 225,
     effects: [{ name: 'Torment', type: 'condition', condition: 'Torment', duration: 3, stacks: 1 }]
   },
-  buildAttributes: (_common, { balanceContext: profileContext }) => {
-    const profile = requireBalanceProfileFromContext(profileContext, TRAIT.ARACHNOPHOBIA);
-    return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Expertise',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.ARACHNOPHOBIA, [
+    { kind: 'flat', to: 'Expertise', field: 'attributeBonus', feedsConversions: false }
+  ])
 });
 
 /** Owns Carnivore's live tuning and trait behavior. */

@@ -31,7 +31,7 @@ test('gear panel adds, removes and restores precast relics', async ({ page }) =>
   await expect(picker).toBeVisible();
   await expect(picker.locator('.optimizer-picker-empty')).toHaveText('No precast relics');
   const select = picker.locator('#optimizer-add-precastRelics');
-  await expect(select).toHaveCSS('opacity', '0');
+  await expect(select).toBeHidden();
   const add = picker.getByRole('button', { name: 'Add precast relics', exact: true });
   await expect(add).toHaveText('+');
   for (const name of ['Mount Balrior', 'Director', 'Brawler']) {

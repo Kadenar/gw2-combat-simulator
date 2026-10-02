@@ -2,11 +2,8 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { gw2EventOwnerActorType, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
@@ -200,21 +197,16 @@ export const wellspring = defineTrait({
       })
     }
   ],
-  buildAttributes: (_common, { balanceContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'conversion',
-        from: 'Power',
-        to: 'Healing Power',
-        multiplier: balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.WELLSPRING),
-          'attributeConversion'
-        ),
-        rounding: 'none',
-        input: 'common'
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.WELLSPRING, [
+    {
+      kind: 'conversion',
+      from: 'Power',
+      to: 'Healing Power',
+      field: 'attributeConversion',
+      rounding: 'none',
+      input: 'common'
+    }
+  ])
 });
 
 /** Owns Windborne Notes's live tuning and trait behavior. */
@@ -279,19 +271,9 @@ export const lingeringMagic = defineTrait({
   balance: {
     attributeBonus: 240
   },
-  buildAttributes: (_common, { balanceContext: profileContext }) => {
-    const profile = requireBalanceProfileFromContext(profileContext, TRAIT.LINGERING_MAGIC);
-    return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Concentration',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.LINGERING_MAGIC, [
+    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
+  ])
 });
 
 /** Owns Bountiful Hunter's live tuning and trait behavior. */

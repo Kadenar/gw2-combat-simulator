@@ -4,7 +4,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   resolveAmalgamSkillId,
@@ -75,19 +75,9 @@ export const hybridVigor = defineTrait({
   id: TRAIT.HYBRID_VIGOR,
   name: 'Hybrid Vigor',
   balance: { attributeBonus: 240 },
-  buildAttributes: (_common, { balanceContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Vitality',
-        amount: balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.HYBRID_VIGOR),
-          'attributeBonus'
-        ),
-        feedsConversions: false
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.HYBRID_VIGOR, [
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: false }
+  ])
 });
 
 /** Owns Willing Host tuning and its existing Morph/Evolve contribution. */

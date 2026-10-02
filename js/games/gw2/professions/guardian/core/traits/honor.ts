@@ -5,7 +5,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 /** Owns Empowering Might's live tuning and trait behavior. */
@@ -114,19 +114,9 @@ export const forceOfWill = defineTrait({
   id: TRAIT.FORCE_OF_WILL,
   name: 'Force of Will',
   balance: { attributeBonus: 300 },
-  buildAttributes: (_common, { balanceContext: profileContext }) => {
-    const forceOfWillProfile = requireBalanceProfileFromContext(profileContext, TRAIT.FORCE_OF_WILL);
-    return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Vitality',
-          amount: balanceProfileNumber(forceOfWillProfile, 'attributeBonus'),
-          feedsConversions: true
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.FORCE_OF_WILL, [
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
+  ])
 });
 
 /** Owns Honorable Staff's live tuning and trait behavior. */
@@ -134,19 +124,9 @@ export const honorableStaff = defineTrait({
   id: TRAIT.HONORABLE_STAFF,
   name: 'Honorable Staff',
   balance: { attributeBonus: 120 },
-  buildAttributes: (_common, { balanceContext: profileContext }) => {
-    const honorableStaffProfile = requireBalanceProfileFromContext(profileContext, TRAIT.HONORABLE_STAFF);
-    return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Concentration',
-          amount: balanceProfileNumber(honorableStaffProfile, 'attributeBonus'),
-          feedsConversions: false
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.HONORABLE_STAFF, [
+    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
+  ])
 });
 
 /** Mace boons gain base duration before capped boon-duration bonuses; recharge uses the shared controller. */

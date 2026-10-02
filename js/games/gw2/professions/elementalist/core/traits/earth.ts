@@ -5,7 +5,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /** Earth definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
@@ -66,21 +66,16 @@ export const strengthOfStone = defineTrait({
     internalCooldown: 3,
     effects: [{ type: 'condition', name: 'Strength of Stone', condition: 'Bleeding', stacks: 3, duration: 10 }]
   },
-  buildAttributes: (_common, { balanceContext }) => {
-    const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.STRENGTH_OF_STONE);
-    return {
-      attributeEffects: [
-        {
-          kind: 'conversion',
-          from: 'Toughness',
-          to: 'Condition Damage',
-          multiplier: balanceProfileNumber(profile, 'attributeConversion'),
-          rounding: 'round',
-          input: 'common'
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.STRENGTH_OF_STONE, [
+    {
+      kind: 'conversion',
+      from: 'Toughness',
+      to: 'Condition Damage',
+      field: 'attributeConversion',
+      rounding: 'round',
+      input: 'common'
+    }
+  ])
 });
 
 export const rockSolid = defineTrait({

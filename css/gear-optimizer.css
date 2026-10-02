@@ -507,6 +507,17 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   opacity: 0.45;
   cursor: default;
 }
+/* Keep capped pickers readable without presenting an available dropdown action. */
+.optimizer-picker .gear-select-trigger:disabled {
+  opacity: 1;
+  color: var(--text-dim);
+  background: var(--bg-panel-alt);
+  border-color: var(--border);
+  cursor: default;
+}
+.optimizer-picker .gear-select-trigger:disabled::after {
+  display: none;
+}
 .optimizer-infusion-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 72px;

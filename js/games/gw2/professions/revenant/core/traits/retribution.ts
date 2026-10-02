@@ -1,11 +1,7 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
 /** Owns Dwarven Battle Training tuning and behavior at its established execution boundaries. */
@@ -66,21 +62,16 @@ export const enduringRecovery = defineTrait({
 
 /** Owns Versed in Stone tuning and behavior at its established execution boundaries. */
 export const versedInStone = defineTrait({
-  buildAttributes: (_common, { balanceContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'conversion',
-        from: 'Toughness',
-        to: 'Power',
-        multiplier: balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.VERSED_IN_STONE),
-          'attributeConversion'
-        ),
-        rounding: 'round',
-        input: 'common'
-      }
-    ]
-  }),
+  buildAttributes: traitAttributeEffects(TRAIT.VERSED_IN_STONE, [
+    {
+      kind: 'conversion',
+      from: 'Toughness',
+      to: 'Power',
+      field: 'attributeConversion',
+      rounding: 'round',
+      input: 'common'
+    }
+  ]),
   id: TRAIT.VERSED_IN_STONE,
   name: 'Versed in Stone',
   balance: { attributeConversion: 0.13 }

@@ -18,15 +18,16 @@ export function candidatePicker(
     key === 'prefixes' || key === 'infusionStats' ? '' : key.startsWith('sigil') ? `Sigil ${key.at(-1)}` : label;
   return `<div class="optimizer-picker" data-picker="${key}" data-limit="${limit}">
     <div class="optimizer-picker-heading">${displayLabel ? `<label for="optimizer-add-${key}">${escapeHtml(displayLabel)}</label>` : ''}${limit ? `<span>Up to ${limit}</span>` : ''}</div>
-    <div class="optimizer-choices">${current.map((name) => candidateChip(key, name, describe(name))).join('')}</div>
+    <div class="optimizer-choices">${current.map((name) => candidateChip(key, name)).join('')}</div>
     <p class="optimizer-picker-empty" title="${escapeHtml(emptyLabel)}">${escapeHtml(emptyLabel)}</p>
     <div class="gear-select-display"><select class="gear-select" id="optimizer-add-${key}" data-add-choice aria-label="Add ${escapeHtml(label.toLowerCase())}">
       <option value="" disabled selected>Add a choice…</option>${names.map((name, index) => `<option value="${index}" data-choice="${escapeHtml(name)}"${current.includes(name) ? ' disabled' : ''}>${escapeHtml(name ? describe(name) : 'None')}</option>`).join('')}
     </select><button type="button" class="gear-select-trigger" aria-label="Add ${escapeHtml(label.toLowerCase())}">Add a choice…</button></div></div>`;
 }
 
-function candidateChip(key: string, value: string, description: string): string {
-  return `<span class="optimizer-choice" tabindex="0" ${equipmentTooltipAttributes(key, value, description)}><input type="hidden" name="${key}" value="${escapeHtml(value)}"><span>${escapeHtml(value || 'None')}</span><button type="button" data-remove-choice aria-label="Remove ${escapeHtml(value || 'None')} from ${key}">×</button></span>`;
+// Selected chips stay tooltip-free; only their remove buttons need keyboard focus.
+function candidateChip(key: string, value: string): string {
+  return `<span class="optimizer-choice"><input type="hidden" name="${key}" value="${escapeHtml(value)}"><span>${escapeHtml(value || 'None')}</span><button type="button" data-remove-choice aria-label="Remove ${escapeHtml(value || 'None')} from ${key}">×</button></span>`;
 }
 
 /** Filter descriptions and enforce caps using only selected chips, never the search field's text. */
@@ -41,7 +42,11 @@ export function updatePicker(picker: HTMLElement): void {
   }
 
   select.disabled = Boolean(limit && values.length >= limit);
-  picker.querySelector<HTMLButtonElement>('.gear-select-trigger')!.disabled = select.disabled;
+  // Explain the cap in the disabled control and restore its invitation when a chip is removed.
+  const trigger = picker.querySelector<HTMLButtonElement>('.gear-select-trigger')!;
+  trigger.disabled = select.disabled;
+  if (!trigger.classList.contains('gear-icon-trigger'))
+    trigger.textContent = select.disabled ? 'Selection limit reached' : 'Add a choice…';
   // Keep the visible popover consistent with the underlying equipment values.
   for (const choice of picker.querySelectorAll<HTMLButtonElement>('.gear-select-option')) {
     const option = [...select.options].find((option) => option.value === choice.dataset.value);
@@ -62,10 +67,7 @@ export function bindCandidatePickers(root: HTMLElement): void {
       if (option?.dataset.choice === undefined || option.disabled || select.disabled) return;
       picker
         .querySelector('.optimizer-choices')!
-        .insertAdjacentHTML(
-          'beforeend',
-          candidateChip(picker.dataset.picker!, option.dataset.choice, option.textContent || '')
-        );
+        .insertAdjacentHTML('beforeend', candidateChip(picker.dataset.picker!, option.dataset.choice));
       select.value = '';
       picker.querySelector<HTMLInputElement>('.dropdown-search')!.value = '';
       updatePicker(picker);

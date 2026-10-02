@@ -1,10 +1,15 @@
 import type {
+  Gw2AttributeEffect,
   Gw2BuildAttributeContributions,
   Gw2BuildAttributeRuleContext,
   Gw2CommonAttributeResult
 } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { NativeModuleHooks } from '#gw2/platform/profession-definition/module-types.js';
 import type { RechargeRule, TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
@@ -58,6 +63,29 @@ export interface TraitDefinition<TSkill extends Skill = Skill> {
     common: Gw2CommonAttributeResult,
     context: Gw2BuildAttributeRuleContext & { readonly balanceContext: ProfessionBalanceContext }
   ) => Gw2BuildAttributeContributions;
+}
+
+type FlatAttributeEffect = Extract<Gw2AttributeEffect, { kind: 'flat' }>;
+type ConversionAttributeEffect = Extract<Gw2AttributeEffect, { kind: 'conversion' }>;
+
+type TraitAttributeDeclaration =
+  | (Omit<FlatAttributeEffect, 'amount' | 'enabled'> & { readonly field: string })
+  | (Omit<ConversionAttributeEffect, 'multiplier' | 'enabled'> & { readonly field: string });
+
+/** Resolve unconditional trait contributions from the active patch when attributes are evaluated. */
+export function traitAttributeEffects(
+  profileId: SkillId,
+  declarations: readonly TraitAttributeDeclaration[]
+): NonNullable<TraitDefinition['buildAttributes']> {
+  return (_common, { balanceContext }) => {
+    const profile = requireBalanceProfileFromContext(balanceContext, profileId);
+    return {
+      attributeEffects: declarations.map(({ field, ...effect }) => {
+        const value = balanceProfileNumber(profile, field);
+        return effect.kind === 'flat' ? { ...effect, amount: value } : { ...effect, multiplier: value };
+      })
+    };
+  };
 }
 
 /** Reject misspelled behavior fields before they can silently disappear during module expansion. */

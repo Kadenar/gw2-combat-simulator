@@ -1,11 +1,7 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { primaryAttunement } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
@@ -34,19 +30,9 @@ export const soothingPower = defineTrait({
   id: TRAIT.SOOTHING_POWER,
   name: 'Soothing Power',
   balance: { attributeBonus: 300 },
-  buildAttributes: (_common, { balanceContext }) => {
-    const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.SOOTHING_POWER);
-    return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Vitality',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.SOOTHING_POWER, [
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: false }
+  ])
 });
 
 export const flowLikeWater = defineTrait({

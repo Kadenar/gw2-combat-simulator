@@ -5,7 +5,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { observeElementalistTransition } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
@@ -66,21 +66,16 @@ export const ferociousWinds = defineTrait({
   id: TRAIT.FEROCIOUS_WINDS,
   name: 'Ferocious Winds',
   balance: { attributeConversion: 0.07 },
-  buildAttributes: (_common, { balanceContext }) => {
-    const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.FEROCIOUS_WINDS);
-    return {
-      attributeEffects: [
-        {
-          kind: 'conversion',
-          from: 'Precision',
-          to: 'Ferocity',
-          multiplier: balanceProfileNumber(profile, 'attributeConversion'),
-          rounding: 'round',
-          input: 'common'
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.FEROCIOUS_WINDS, [
+    {
+      kind: 'conversion',
+      from: 'Precision',
+      to: 'Ferocity',
+      field: 'attributeConversion',
+      rounding: 'round',
+      input: 'common'
+    }
+  ])
 });
 
 export const electricDischarge = defineTrait({
@@ -143,19 +138,9 @@ export const aeromancersTraining = defineTrait({
     attributeBonus: 150,
     rechargeMultiplier: 0.8
   },
-  buildAttributes: (_common, { balanceContext }) => {
-    const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.AEROMANCERS_TRAINING);
-    return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Ferocity',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.AEROMANCERS_TRAINING, [
+    { kind: 'flat', to: 'Ferocity', field: 'attributeBonus', feedsConversions: false }
+  ])
 });
 
 export const lightningRod = defineTrait({

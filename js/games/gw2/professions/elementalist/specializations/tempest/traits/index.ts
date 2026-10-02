@@ -1,9 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { elementalistTimedBuffStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
@@ -116,19 +112,9 @@ export const gatheredFocus = defineTrait({
   balance: {
     attributeBonus: 240
   },
-  buildAttributes: (_common, { balanceContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Concentration',
-        amount: balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.GATHERED_FOCUS),
-          'attributeBonus'
-        ),
-        feedsConversions: false
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.GATHERED_FOCUS, [
+    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
+  ])
 });
 
 export const hardyConduit = defineTrait({

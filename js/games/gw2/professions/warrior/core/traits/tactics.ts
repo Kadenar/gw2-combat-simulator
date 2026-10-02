@@ -5,7 +5,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { warriorActiveBoonCount } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { EMPOWER_PULSE, empowerPulse } from '#gw2/professions/warrior/core/traits/behavior.js';
@@ -15,21 +15,16 @@ export const vigorousShouts = defineTrait({
   id: TRAIT.VIGOROUS_SHOUTS,
   name: 'Vigorous Shouts',
   balance: { attributeConversion: 0.13 },
-  buildAttributes: (_common, { balanceContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'conversion',
-        from: 'Power',
-        to: 'Healing Power',
-        multiplier: balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.VIGOROUS_SHOUTS),
-          'attributeConversion'
-        ),
-        rounding: 'none',
-        input: 'eligible'
-      }
-    ]
-  }),
+  buildAttributes: traitAttributeEffects(TRAIT.VIGOROUS_SHOUTS, [
+    {
+      kind: 'conversion',
+      from: 'Power',
+      to: 'Healing Power',
+      field: 'attributeConversion',
+      rounding: 'none',
+      input: 'eligible'
+    }
+  ]),
   modifierRules: [
     {
       id: 'warrior.vigorous-shouts-healing-power',

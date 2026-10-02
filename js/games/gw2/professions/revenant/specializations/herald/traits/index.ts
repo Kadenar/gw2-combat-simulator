@@ -6,7 +6,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { revenantActiveBoonCount, revenantRuntimeCoreState } from '#gw2/professions/revenant/core/modifiers.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import {
@@ -74,21 +74,16 @@ export const draconicEcho = defineTrait({
 
 /** Owns Elevated Compassion tuning and behavior at its established execution boundaries. */
 export const elevatedCompassion = defineTrait({
-  buildAttributes: (_common, { balanceContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'conversion',
-        from: 'Power',
-        to: 'Concentration',
-        multiplier: balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, HERALD_ELEVATED_COMPASSION_PROFILE_ID),
-          'attributeConversion'
-        ),
-        rounding: 'round',
-        input: 'common'
-      }
-    ]
-  }),
+  buildAttributes: traitAttributeEffects(HERALD_ELEVATED_COMPASSION_PROFILE_ID, [
+    {
+      kind: 'conversion',
+      from: 'Power',
+      to: 'Concentration',
+      field: 'attributeConversion',
+      rounding: 'round',
+      input: 'common'
+    }
+  ]),
   id: TRAIT.ELEVATED_COMPASSION,
   name: 'Elevated Compassion',
   balance: {
@@ -134,19 +129,9 @@ export const forcefulPersistence = defineTrait({
 
 /** Owns Reinforced Potency tuning and behavior at its established execution boundaries. */
 export const reinforcedPotency = defineTrait({
-  buildAttributes: (_common, { balanceContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Concentration',
-        amount: balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.REINFORCED_POTENCY),
-          'attributeBonus'
-        ),
-        feedsConversions: false
-      }
-    ]
-  }),
+  buildAttributes: traitAttributeEffects(TRAIT.REINFORCED_POTENCY, [
+    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
+  ]),
   id: TRAIT.REINFORCED_POTENCY,
   name: 'Reinforced Potency',
   balance: { attributeBonus: 240 },

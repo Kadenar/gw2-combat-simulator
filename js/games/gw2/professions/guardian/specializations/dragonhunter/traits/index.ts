@@ -1,10 +1,6 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 
@@ -131,19 +127,9 @@ export const defendersDogma = defineTrait({
   id: TRAIT.DEFENDERS_DOGMA,
   name: "Defender's Dogma",
   balance: { attributeBonus: 180 },
-  buildAttributes: (_common, { balanceContext }) => {
-    const defendersDogmaProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.DEFENDERS_DOGMA);
-    return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Vitality',
-          amount: balanceProfileNumber(defendersDogmaProfile, 'attributeBonus'),
-          feedsConversions: true
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.DEFENDERS_DOGMA, [
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
+  ])
 });
 
 /** Owns Heavy Light's tuning and behavior at the existing Dragonhunter boundaries. */

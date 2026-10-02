@@ -6,7 +6,7 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { necromancerRuntimeSpecializationState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { HARBINGER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
@@ -188,21 +188,16 @@ export const implacableFoe = defineTrait({
       }
     ]
   },
-  buildAttributes: (_common, { balanceContext: profileContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'conversion',
-        from: 'Vitality',
-        to: 'Ferocity',
-        multiplier: balanceProfileNumber(
-          requireBalanceProfileFromContext(profileContext, TRAIT.IMPLACABLE_FOE),
-          'attributeConversion'
-        ),
-        rounding: 'none',
-        input: 'eligible'
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.IMPLACABLE_FOE, [
+    {
+      kind: 'conversion',
+      from: 'Vitality',
+      to: 'Ferocity',
+      field: 'attributeConversion',
+      rounding: 'none',
+      input: 'eligible'
+    }
+  ])
 });
 
 /** Owns Bolstering Brew tuning and behavior at its existing execution boundaries. */
@@ -230,19 +225,9 @@ export const alchemicVigor = defineTrait({
   balance: {
     attributeBonus: 240
   },
-  buildAttributes: (_common, { balanceContext: profileContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Vitality',
-        amount: balanceProfileNumber(
-          requireBalanceProfileFromContext(profileContext, TRAIT.ALCHEMIC_VIGOR),
-          'attributeBonus'
-        ),
-        feedsConversions: true
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.ALCHEMIC_VIGOR, [
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
+  ])
 });
 
 /** Owns Twisted Medicine tuning and behavior at its existing execution boundaries. */
@@ -252,21 +237,16 @@ export const twistedMedicine = defineTrait({
   balance: {
     attributeConversion: 0.13
   },
-  buildAttributes: (_common, { balanceContext: profileContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'conversion',
-        from: 'Vitality',
-        to: 'Concentration',
-        multiplier: balanceProfileNumber(
-          requireBalanceProfileFromContext(profileContext, TRAIT.TWISTED_MEDICINE),
-          'attributeConversion'
-        ),
-        rounding: 'none',
-        input: 'eligible'
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.TWISTED_MEDICINE, [
+    {
+      kind: 'conversion',
+      from: 'Vitality',
+      to: 'Concentration',
+      field: 'attributeConversion',
+      rounding: 'none',
+      input: 'eligible'
+    }
+  ])
 });
 
 /** Owns Wicked Corruption tuning and behavior at its existing execution boundaries. */
@@ -305,21 +285,16 @@ export const darkGunslinger = defineTrait({
     attributeConversion: 0.1,
     rechargeMultiplier: 0.8
   },
-  buildAttributes: (_common, { balanceContext: profileContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'conversion',
-        from: 'Vitality',
-        to: 'Expertise',
-        multiplier: balanceProfileNumber(
-          requireBalanceProfileFromContext(profileContext, TRAIT.DARK_GUNSLINGER),
-          'attributeConversion'
-        ),
-        rounding: 'round',
-        input: 'eligible'
-      }
-    ]
-  }),
+  buildAttributes: traitAttributeEffects(TRAIT.DARK_GUNSLINGER, [
+    {
+      kind: 'conversion',
+      from: 'Vitality',
+      to: 'Expertise',
+      field: 'attributeConversion',
+      rounding: 'round',
+      input: 'eligible'
+    }
+  ]),
   rechargeRules: [
     {
       order: 0,

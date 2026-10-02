@@ -5,7 +5,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { elementalistTimedBuffStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
@@ -16,19 +16,9 @@ export const elementalRefreshment = defineTrait({
   id: TRAIT.ELEMENTAL_REFRESHMENT,
   name: 'Elemental Refreshment',
   balance: { attributeBonus: 180 },
-  buildAttributes: (_common, { balanceContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Vitality',
-        amount: balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.ELEMENTAL_REFRESHMENT),
-          'attributeBonus'
-        ),
-        feedsConversions: false
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.ELEMENTAL_REFRESHMENT, [
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: false }
+  ])
 });
 
 export const elementalPolyphony = defineTrait({

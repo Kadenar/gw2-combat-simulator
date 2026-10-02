@@ -1,9 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import {
@@ -124,19 +120,9 @@ export const lightsGift = defineTrait({
   id: TRAIT.LIGHTS_GIFT,
   name: "Light's Gift",
   balance: { attributeBonus: 180 },
-  buildAttributes: (_common, { balanceContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Vitality',
-        amount: balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.LIGHTS_GIFT),
-          'attributeBonus'
-        ),
-        feedsConversions: true
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.LIGHTS_GIFT, [
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
+  ])
 });
 
 /** Virtue reset targets and reporting share this behavior-only trait owner. */

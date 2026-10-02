@@ -1,4 +1,4 @@
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { resetExplosiveEntrance } from '#gw2/professions/engineer/core/traits/explosions.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -140,21 +140,16 @@ export const blastShield = defineTrait({
   id: TRAIT.BLAST_SHIELD,
   name: 'Blast Shield',
   balance: { attributeConversion: 0.1 },
-  buildAttributes: (_common, { balanceContext: profileContext }) => {
-    const blastShieldProfile = requireBalanceProfileFromContext(profileContext, TRAIT.BLAST_SHIELD);
-    return {
-      attributeEffects: [
-        {
-          kind: 'conversion',
-          from: 'Power',
-          to: 'Vitality',
-          multiplier: balanceProfileNumber(blastShieldProfile, 'attributeConversion'),
-          rounding: 'none',
-          input: 'eligible'
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.BLAST_SHIELD, [
+    {
+      kind: 'conversion',
+      from: 'Power',
+      to: 'Vitality',
+      field: 'attributeConversion',
+      rounding: 'none',
+      input: 'eligible'
+    }
+  ])
 });
 
 /** Owns Glass Cannon tuning and behavior at its established runtime and build boundaries. */

@@ -1497,11 +1497,8 @@ body[data-profession='revenant'] .workspace-build-choices .fixed-loadout-bar {
 }
 
 .gear-select-display > .gear-select {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
+  /* The custom trigger owns the display, even when disabled styles change native control opacity. */
+  display: none;
 }
 
 .gear-select-trigger {

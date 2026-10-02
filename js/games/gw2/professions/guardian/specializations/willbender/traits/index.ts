@@ -1,10 +1,6 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { lethalTempoStacks } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
@@ -146,19 +142,9 @@ export const powerForPower = defineTrait({
       when: (context) => Boolean(context.event?.willbenderFlames)
     }
   ],
-  buildAttributes: (_common, { balanceContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Power',
-        amount: balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.POWER_FOR_POWER),
-          'attributeBonus'
-        ),
-        feedsConversions: true
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.POWER_FOR_POWER, [
+    { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: true }
+  ])
 });
 
 /** Supplies the panel Vitality bonus before eligible conversions. */
@@ -166,19 +152,9 @@ export const conceitedCurate = defineTrait({
   id: TRAIT.CONCEITED_CURATE,
   name: 'Conceited Curate',
   balance: { attributeBonus: 180 },
-  buildAttributes: (_common, { balanceContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Vitality',
-        amount: balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.CONCEITED_CURATE),
-          'attributeBonus'
-        ),
-        feedsConversions: true
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.CONCEITED_CURATE, [
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
+  ])
 });
 
 /** Accepted flame strikes emit the surviving Burning packet independently of virtue counters. */
@@ -209,19 +185,9 @@ export const searingPact = defineTrait({
       }
     }
   ],
-  buildAttributes: (_common, { balanceContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Condition Damage',
-        amount: balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.SEARING_PACT),
-          'attributeBonus'
-        ),
-        feedsConversions: true
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.SEARING_PACT, [
+    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: true }
+  ])
 });
 
 export const willbenderTraits = [

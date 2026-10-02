@@ -92,6 +92,10 @@ interface Gw2FlatAttributeEffect extends Gw2AttributeEffectBase {
   readonly kind: 'flat';
   readonly to: string;
   readonly amount: number;
+  /**
+   * Include this flat bonus in the source pool for conversions with `input: 'eligible'`.
+   * When false, the bonus still contributes to final attributes but does not feed conversions.
+   */
   readonly feedsConversions: boolean;
 }
 
@@ -100,7 +104,17 @@ interface Gw2ConversionAttributeEffect extends Gw2AttributeEffectBase {
   readonly from: string;
   readonly to: string;
   readonly multiplier: number;
+  /**
+   * Round each conversion result after multiplying the source attribute by `multiplier`.
+   * `none` retains fractions, `floor` rounds down, and `round` uses the nearest integer
+   * (Math.round, with ties toward positive infinity). For 15.75, results are 15.75, 15, and 16.
+   */
   readonly rounding: Gw2AttributeEffectRounding;
+  /**
+   * Choose the source attribute pool: `common` uses the shared pool before profession and
+   * trait attribute effects; `eligible` also includes flat bonuses with `feedsConversions: true`.
+   * Neither pool includes conversion results, so conversions cannot feed one another.
+   */
   readonly input: 'common' | 'eligible';
 }
 

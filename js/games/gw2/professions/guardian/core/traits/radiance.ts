@@ -6,7 +6,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   activeWeapon,
@@ -168,19 +168,9 @@ export const radiantPower = defineTrait({
       when: (context) => targetConditionActive(context, 'Burning')
     }
   ],
-  buildAttributes: (_common, { balanceContext: profileContext }) => {
-    const radiantPowerProfile = requireBalanceProfileFromContext(profileContext, TRAIT.RADIANT_POWER);
-    return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Ferocity',
-          amount: balanceProfileNumber(radiantPowerProfile, 'attributeBonus'),
-          feedsConversions: false
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.RADIANT_POWER, [
+    { kind: 'flat', to: 'Ferocity', field: 'attributeBonus', feedsConversions: false }
+  ])
 });
 
 /** Owns Radiant Fire's live tuning and trait behavior. */

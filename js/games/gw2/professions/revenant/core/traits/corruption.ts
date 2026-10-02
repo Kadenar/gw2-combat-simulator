@@ -6,7 +6,7 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
 /** Owns Abyssal Chill tuning and behavior at its established execution boundaries. */
@@ -127,19 +127,9 @@ export const pactOfPain = defineTrait({
 
 /** Owns Seething Malice tuning and behavior at its established execution boundaries. */
 export const seethingMalice = defineTrait({
-  buildAttributes: (_common, { balanceContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Condition Damage',
-        amount: balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.SEETHING_MALICE),
-          'attributeBonus'
-        ),
-        feedsConversions: false
-      }
-    ]
-  }),
+  buildAttributes: traitAttributeEffects(TRAIT.SEETHING_MALICE, [
+    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: false }
+  ]),
   id: TRAIT.SEETHING_MALICE,
   name: 'Seething Malice',
   balance: { attributeBonus: 120 }

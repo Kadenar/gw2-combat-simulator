@@ -1,9 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   heraldOfSorrowAvailability,
@@ -141,21 +137,16 @@ export const fellBeacon = defineTrait({
       when: (context) => context.condition === 'Burning'
     }
   ],
-  buildAttributes: (_common, { balanceContext: profileContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'conversion',
-        from: 'Condition Damage',
-        to: 'Expertise',
-        multiplier: balanceProfileNumber(
-          requireBalanceProfileFromContext(profileContext, TRAIT.FELL_BEACON),
-          'attributeConversion'
-        ),
-        rounding: 'none',
-        input: 'eligible'
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.FELL_BEACON, [
+    {
+      kind: 'conversion',
+      from: 'Condition Damage',
+      to: 'Expertise',
+      field: 'attributeConversion',
+      rounding: 'none',
+      input: 'eligible'
+    }
+  ])
 });
 
 /** Owns Sand Sage tuning and behavior at its existing execution boundaries. */

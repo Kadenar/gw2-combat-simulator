@@ -3,7 +3,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { necromancerRuntimeSpecializationState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
@@ -43,19 +43,9 @@ export const boonOfCreation = defineTrait({
   id: TRAIT.BOON_OF_CREATION,
   name: 'Boon of Creation',
   balance: { categories: ['Trait'], attributeBonus: 180, lifeForceGain: 10, effects: [] },
-  buildAttributes: (_common, { balanceContext: profileContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Concentration',
-        amount: balanceProfileNumber(
-          requireBalanceProfileFromContext(profileContext, TRAIT.BOON_OF_CREATION),
-          'attributeBonus'
-        ),
-        feedsConversions: false
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.BOON_OF_CREATION, [
+    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
+  ])
 });
 
 /** Owns Empowering Spirits tuning and behavior at its existing execution boundaries. */

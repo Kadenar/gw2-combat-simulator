@@ -1,9 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { elementalistTimedBuffStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
@@ -81,19 +77,9 @@ export const elementalEnchantment = defineTrait({
     attributeBonus: 180,
     rechargeMultiplier: 0.85
   },
-  buildAttributes: (_common, { balanceContext }) => {
-    const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.ELEMENTAL_ENCHANTMENT);
-    return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Concentration',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.ELEMENTAL_ENCHANTMENT, [
+    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
+  ])
 });
 
 export const evasiveArcana = defineTrait({

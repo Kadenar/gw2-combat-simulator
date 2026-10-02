@@ -4,7 +4,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerBuild } from '#gw2/professions/engineer/types.js';
 import {
@@ -134,19 +134,9 @@ export const thermalVision = defineTrait({
       when: (context) => (engineerRuntimeState(context).thermalVisionUntil || 0) > context.time
     }
   ],
-  buildAttributes: (_common, { balanceContext: profileContext }) => {
-    const thermalVisionProfile = requireBalanceProfileFromContext(profileContext, TRAIT.THERMAL_VISION);
-    return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Expertise',
-          amount: balanceProfileNumber(thermalVisionProfile, 'attributeBonus'),
-          feedsConversions: true
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.THERMAL_VISION, [
+    { kind: 'flat', to: 'Expertise', field: 'attributeBonus', feedsConversions: true }
+  ])
 });
 
 /** Owns Sanguine Array tuning and behavior at its established runtime and build boundaries. */
@@ -188,19 +178,9 @@ export const chemicalRounds = defineTrait({
     conditionDurationMultiplier: 4 / 3,
     attributeBonus: 120
   },
-  buildAttributes: (_common, { balanceContext: profileContext }) => {
-    const chemicalRoundsProfile = requireBalanceProfileFromContext(profileContext, TRAIT.CHEMICAL_ROUNDS);
-    return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Condition Damage',
-          amount: balanceProfileNumber(chemicalRoundsProfile, 'attributeBonus'),
-          feedsConversions: true
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.CHEMICAL_ROUNDS, [
+    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: true }
+  ])
 });
 
 /** Owns High Caliber tuning and behavior at its established runtime and build boundaries. */

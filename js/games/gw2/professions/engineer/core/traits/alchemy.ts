@@ -1,4 +1,4 @@
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { isElixirSkill, prepareEngineerHghEvent } from '#gw2/professions/engineer/core/traits/behavior.js';
 import {
@@ -50,19 +50,9 @@ export const compoundingChemicals = defineTrait({
   id: TRAIT.COMPOUNDING_CHEMICALS,
   name: 'Compounding Chemicals',
   balance: { attributeBonus: 240 },
-  buildAttributes: (_common, { balanceContext: profileContext }) => {
-    const compoundingChemicalsProfile = requireBalanceProfileFromContext(profileContext, TRAIT.COMPOUNDING_CHEMICALS);
-    return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Concentration',
-          amount: balanceProfileNumber(compoundingChemicalsProfile, 'attributeBonus'),
-          feedsConversions: false
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.COMPOUNDING_CHEMICALS, [
+    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: false }
+  ])
 });
 
 /** Owns Boiling Point tuning: gaining Might at or above the threshold grants Fury on a short ICD. */

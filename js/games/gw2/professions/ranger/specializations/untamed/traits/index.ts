@@ -3,12 +3,8 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -30,19 +26,9 @@ export const naturalFortitude = defineTrait({
   balance: {
     attributeBonus: 240
   },
-  buildAttributes: (_common, { balanceContext: profileContext }) => {
-    const profile = requireBalanceProfileFromContext(profileContext, TRAIT.NATURAL_FORTITUDE);
-    return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Vitality',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
-          feedsConversions: false
-        }
-      ]
-    };
-  }
+  buildAttributes: traitAttributeEffects(TRAIT.NATURAL_FORTITUDE, [
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: false }
+  ])
 });
 
 /** Owns Let Loose's live tuning and trait behavior. */

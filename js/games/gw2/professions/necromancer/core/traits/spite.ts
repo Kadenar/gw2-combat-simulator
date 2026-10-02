@@ -1,11 +1,7 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { necromancerRuntimeCoreState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
@@ -90,21 +86,16 @@ export const spitefulFortitude = defineTrait({
     attributeConversion: 0.1,
     lifeForceGain: 1
   },
-  buildAttributes: (_common, { balanceContext: profileContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'conversion',
-        from: 'Power',
-        to: 'Vitality',
-        multiplier: balanceProfileNumber(
-          requireBalanceProfileFromContext(profileContext, TRAIT.SPITEFUL_FORTITUDE),
-          'attributeConversion'
-        ),
-        rounding: 'none',
-        input: 'common'
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.SPITEFUL_FORTITUDE, [
+    {
+      kind: 'conversion',
+      from: 'Power',
+      to: 'Vitality',
+      field: 'attributeConversion',
+      rounding: 'none',
+      input: 'common'
+    }
+  ])
 });
 
 /** Owns Signets of Suffering tuning and behavior at its existing execution boundaries. */

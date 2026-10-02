@@ -6,7 +6,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import {
   guardianBoonActive,
   guardianTimedBuffActive
@@ -141,21 +141,16 @@ export const powerOfTheVirtuous = defineTrait({
             )
     }
   ],
-  buildAttributes: (_common, { balanceContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'conversion',
-        from: 'Vitality',
-        to: 'Condition Damage',
-        multiplier: balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS),
-          'attributeConversion'
-        ),
-        rounding: 'round',
-        input: 'eligible'
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS, [
+    {
+      kind: 'conversion',
+      from: 'Vitality',
+      to: 'Condition Damage',
+      field: 'attributeConversion',
+      rounding: 'round',
+      input: 'eligible'
+    }
+  ])
 });
 
 /** Owns Unscathed Contender tuning and behavior at its existing mechanic boundaries. */

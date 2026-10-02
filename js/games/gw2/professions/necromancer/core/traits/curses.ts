@@ -5,7 +5,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 /** Owns Barbed Precision tuning and behavior at its existing execution boundaries. */
@@ -104,19 +104,9 @@ export const furiousDemise = defineTrait({
     effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 8, packetLabel: 'on shroud entry' }],
     attributeBonus: 180
   },
-  buildAttributes: (_common, { balanceContext: profileContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Precision',
-        amount: balanceProfileNumber(
-          requireBalanceProfileFromContext(profileContext, TRAIT.FURIOUS_DEMISE),
-          'attributeBonus'
-        ),
-        feedsConversions: true
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.FURIOUS_DEMISE, [
+    { kind: 'flat', to: 'Precision', field: 'attributeBonus', feedsConversions: true }
+  ])
 });
 
 /** Owns Target the Weak tuning and behavior at its existing execution boundaries. */
@@ -142,21 +132,16 @@ export const targetTheWeak = defineTrait({
         )
     }
   ],
-  buildAttributes: (_common, { balanceContext: profileContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'conversion',
-        from: 'Precision',
-        to: 'Condition Damage',
-        multiplier: balanceProfileNumber(
-          requireBalanceProfileFromContext(profileContext, TRAIT.TARGET_THE_WEAK),
-          'attributeConversion'
-        ),
-        rounding: 'floor',
-        input: 'eligible'
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.TARGET_THE_WEAK, [
+    {
+      kind: 'conversion',
+      from: 'Precision',
+      to: 'Condition Damage',
+      field: 'attributeConversion',
+      rounding: 'floor',
+      input: 'eligible'
+    }
+  ])
 });
 
 /** Owns Lingering Curse tuning and behavior at its existing execution boundaries. */
@@ -167,19 +152,9 @@ export const lingeringCurse = defineTrait({
     attributeBonus: 200,
     durationMultiplier: 1.5
   },
-  buildAttributes: (_common, { balanceContext: profileContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Condition Damage',
-        amount: balanceProfileNumber(
-          requireBalanceProfileFromContext(profileContext, TRAIT.LINGERING_CURSE),
-          'attributeBonus'
-        ),
-        feedsConversions: false
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.LINGERING_CURSE, [
+    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: false }
+  ])
 });
 
 /** Owns Weakening Shroud tuning and behavior at its existing execution boundaries. */

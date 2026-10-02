@@ -1,6 +1,6 @@
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { createCalculateAttributes, resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -9,7 +9,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import {
   createBuildAttributeContext,
@@ -46,6 +46,19 @@ function familyWith(core, ...elites) {
   return defineNativeProfession({ id: 'fixture', name: 'Fixture', modules: [core, ...elites] });
 }
 
+// Exercise declarative effects through the same selection, preview, and provenance pipeline as custom contributions.
+const fixtureAttributeEffects = traitAttributeEffects(101, [
+  { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: true },
+  {
+    kind: 'conversion',
+    from: 'Power',
+    to: 'Ferocity',
+    field: 'attributeConversion',
+    rounding: 'round',
+    input: 'eligible'
+  }
+]);
+
 const trait = defineTrait({
   ...metadata,
   balance: {
@@ -73,24 +86,9 @@ const trait = defineTrait({
   ],
   triggers: [{ on: 'castCommit', emit: 101, when: () => true }],
   rechargeRules: [{ when: () => true, multiplier: { profile: 101, field: 'rechargeMultiplier' } }],
-  buildAttributes: (_common, { balanceContext }) => ({
-    traitCriticalChance: balanceContext.modifierRulesById.get('fixture.damage').parameters.bonus,
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Power',
-        amount: tuning(balanceContext, 'attributeBonus'),
-        feedsConversions: true
-      },
-      {
-        kind: 'conversion',
-        from: 'Power',
-        to: 'Ferocity',
-        multiplier: tuning(balanceContext, 'attributeConversion'),
-        rounding: 'round',
-        input: 'eligible'
-      }
-    ]
+  buildAttributes: (common, context) => ({
+    ...fixtureAttributeEffects(common, context),
+    traitCriticalChance: context.balanceContext.modifierRulesById.get('fixture.damage').parameters.bonus
   })
 });
 
@@ -235,6 +233,7 @@ test('definition build effects use resolved minors, eligible conversions, patch 
   assert.equal(current.attributes.Ferocity.traits, Math.round(current.attributes.Power.final * 0.1));
   assert.equal(patched.attributes.Ferocity.traits, Math.round(patched.attributes.Power.final * 0.1));
   assert.equal(calculate(build, [], 1, metadata.name).attributes.Power.traits, 10);
+  assert.equal(calculate({ specializations: [] }).attributes.Power.traits, 10);
   assert.equal(
     calculate({ specializations: [{ name: 'Line', disabledMinorTraits: [0] }] }).attributes.Power.traits,
     10
@@ -253,6 +252,90 @@ test('definition build effects use resolved minors, eligible conversions, patch 
     { power: patched.attributes.Power.final }
   );
   assert.equal(direct.power, built.power);
+});
+
+// Explicit profile IDs and conversion policies must survive helper authoring and repeated patch switches.
+test('trait attribute helpers resolve overridden profile IDs without changing conversion inputs or rounding', () => {
+  const profileId = 'fixture.attributes';
+  const family = withPatchPreview(
+    familyWith(
+      moduleWith([
+        defineTrait({
+          ...metadata,
+          balance: { id: profileId, attributeBonus: 20, weaponAttributeBonus: 30, attributeConversion: 0.15 }
+        })
+      ])
+    ),
+    {
+      id: 'preview',
+      label: 'Preview',
+      professions: {
+        fixture: { balanceProfiles: { [profileId]: { fields: { attributeBonus: 40, attributeConversion: 0.25 } } } }
+      }
+    }
+  );
+  for (const [input, rounding, current, patched] of [
+    ['common', 'none', 15.75, 26.25],
+    ['common', 'floor', 15, 26],
+    ['common', 'round', 16, 26],
+    ['eligible', 'none', 18.75, 36.25],
+    ['eligible', 'floor', 18, 36],
+    ['eligible', 'round', 19, 36]
+  ]) {
+    const contribute = traitAttributeEffects(profileId, [
+      { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: true },
+      { kind: 'flat', to: 'Power', field: 'weaponAttributeBonus', feedsConversions: false },
+      { kind: 'conversion', from: 'Power', to: 'Ferocity', field: 'attributeConversion', input, rounding }
+    ]);
+    for (const [patchId, power, ferocity] of [
+      ['current', 50, current],
+      ['preview', 70, patched],
+      ['current', 50, current]
+    ]) {
+      const { attributeEffects } = contribute(null, { balanceContext: family.balanceContextFor(patchId) });
+      assert.deepEqual(resolveAttributeEffects({ Power: 105 }, attributeEffects), { Power: power, Ferocity: ferocity });
+    }
+  }
+});
+
+// Required values fail in the supplied patch even when a different source contains a usable profile.
+test('trait attribute helpers reject missing profiles and invalid balance fields in the active context', () => {
+  const family = previewFamily();
+  const current = family.balanceContextFor('current');
+  const missing = {
+    ...current,
+    catalog: {
+      ...current.catalog,
+      balanceProfilesById: new Map(),
+      balanceDataContext: { professionId: 'fixture', patchId: 'missing' }
+    },
+    balanceProfile: (id) => current.catalog.balanceProfilesById.get(id)
+  };
+  assert.throws(
+    () => fixtureAttributeEffects(null, { balanceContext: missing }),
+    /patch=missing profile=101.*missing required/
+  );
+
+  for (const value of [undefined, null, '20', NaN, Infinity]) {
+    const profile = { ...current.catalog.balanceProfilesById.get(101), attributeBonus: value };
+    const balanceContext = {
+      ...current,
+      catalog: { ...current.catalog, balanceProfilesById: new Map([[101, profile]]) }
+    };
+    assert.throws(() => fixtureAttributeEffects(null, { balanceContext }), /profile=101 field=attributeBonus/);
+  }
+
+  const missingField = traitAttributeEffects(101, [
+    {
+      kind: 'conversion',
+      from: 'Power',
+      to: 'Ferocity',
+      field: 'missingConversion',
+      input: 'common',
+      rounding: 'round'
+    }
+  ]);
+  assert.throws(() => missingField(null, { balanceContext: current }), /profile=101 field=missingConversion/);
 });
 
 test('trigger order is stable within a module and preserves Core before elite emission', () => {

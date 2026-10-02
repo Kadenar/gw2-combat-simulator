@@ -3,7 +3,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { necromancerActiveShroud } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
@@ -48,19 +48,9 @@ export const vitalPersistence = defineTrait({
   id: TRAIT.VITAL_PERSISTENCE,
   name: 'Vital Persistence',
   balance: { attributeBonus: 180 },
-  buildAttributes: (_common, { balanceContext: profileContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Vitality',
-        amount: balanceProfileNumber(
-          requireBalanceProfileFromContext(profileContext, TRAIT.VITAL_PERSISTENCE),
-          'attributeBonus'
-        ),
-        feedsConversions: true
-      }
-    ]
-  })
+  buildAttributes: traitAttributeEffects(TRAIT.VITAL_PERSISTENCE, [
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: true }
+  ])
 });
 
 /** Owns Sinister Shroud tuning and behavior at its existing execution boundaries. */

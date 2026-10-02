@@ -4,7 +4,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/skills/timing.js';
@@ -16,19 +16,9 @@ export const lastRites = defineTrait({
   id: TRAIT.LAST_RITES,
   name: 'Last Rites',
   balance: { attributeBonus: 150 },
-  buildAttributes: (_common, { balanceContext }) => ({
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Healing Power',
-        amount: balanceProfileNumber(
-          requireBalanceProfileFromContext(balanceContext, TRAIT.LAST_RITES),
-          'attributeBonus'
-        ),
-        feedsConversions: true
-      }
-    ]
-  }),
+  buildAttributes: traitAttributeEffects(TRAIT.LAST_RITES, [
+    { kind: 'flat', to: 'Healing Power', field: 'attributeBonus', feedsConversions: true }
+  ]),
   modifierRules: [
     {
       id: 'necromancer.last-rites-healing-power',
