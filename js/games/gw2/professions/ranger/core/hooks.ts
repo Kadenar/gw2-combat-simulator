@@ -55,12 +55,17 @@ import {
 } from '#gw2/professions/ranger/core/traits/behavior.js';
 import { applyRangerPetSwapTraits, completeRangerTraits } from '#gw2/professions/ranger/core/traits/dispatch.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
+import type { RangerSkill, RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 
 const critical = criticalProcHandler(rangerCoreCriticalReactions);
 
 /** Charges are granted only at their actual activation boundary and consumed by resolved-hit owners. */
-function grantSkillCharges(runtime: RangerRuntime, cast: RuntimeCast, type: string, profileId: number | string): void {
+function grantSkillCharges(
+  runtime: RangerRuntime,
+  cast: RuntimeCast<RangerSkill>,
+  type: string,
+  profileId: number | string
+): void {
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   runtime.emit(
     rangerEvent(
@@ -78,13 +83,13 @@ function grantSkillCharges(runtime: RangerRuntime, cast: RuntimeCast, type: stri
 }
 
 /** Commit and cancellation both synchronize the recharge already started by the runtime. */
-function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast): void {
+function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   synchronizeHammerRecharge(runtime, cast);
   synchronizeSpearRecharge(runtime, cast);
   synchronizePathOfScarsRecharge(runtime, cast);
 }
 
-export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
+export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState, RangerSkill>> = {
   sideEffectHandlers: {
     // Declarations choose the phase and payload; queued grants preserve same-time hit ordering.
     'ranger.sharpening-stone'(runtime, context) {

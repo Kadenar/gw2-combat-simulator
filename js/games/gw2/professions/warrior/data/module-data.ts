@@ -8,10 +8,10 @@ import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalo
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/warrior/data/warrior-api-metadata.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/warrior/data/traits-data.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 
-const allSkills: readonly Skill[] = Object.freeze([
+const allSkills: readonly WarriorSkill[] = Object.freeze([
   ...SKILLS.filter((skill) => !/^\(\(/.test(skill.name || '')),
   ...WARRIOR_SUPPLEMENTAL_SKILLS
 ]);
@@ -26,7 +26,7 @@ export const WARRIOR_NATIVE_CATALOG_OPTIONS = Object.freeze({
 
 const flipParentById = createFlipParentMap(allSkills);
 
-const generated: readonly Skill[] = Object.freeze(
+const generated: readonly WarriorSkill[] = Object.freeze(
   allSkills.map((skill) => normalizeGeneratedSkill(skill, flipParentById.get(skill.id) ?? null))
 );
 
@@ -47,11 +47,11 @@ const WEAPON_DATA = defineProfessionWeapons({
   Warhorn: 'oh'
 });
 
-interface WarriorModuleDataOptions extends ProfessionModuleDataOptions {
+interface WarriorModuleDataOptions extends ProfessionModuleDataOptions<WarriorSkill> {
   readonly autoattackChains?: AutoattackChainOptions;
 }
 
-const createModuleData = createProfessionModuleDataFactory({
+const createModuleData = createProfessionModuleDataFactory<WarriorSkill>({
   generatedSkills: generated,
   traits: TRAITS,
   specializations: SPECIALIZATIONS,

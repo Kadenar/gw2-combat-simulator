@@ -30,7 +30,10 @@ import { canonicalTime } from '#kernel/core/clock.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 
 // Trigger Lesser Signet of Might after the first eligible below-half-health strike at that strike's exact timestamp.
-export function reactToWarriorDamage(context: Gw2Runtime<WarriorRuntimeState>, event: Gw2ResolverEvent): void {
+export function reactToWarriorDamage(
+  context: Gw2Runtime<WarriorRuntimeState, WarriorSkill>,
+  event: Gw2ResolverEvent
+): void {
   if (
     event.actorType !== 'player' ||
     !((event.coefficient || 0) > 0) ||
@@ -126,7 +129,7 @@ export function triggerOpportunist(runtime: WarriorRuntime, event: Gw2ResolverEv
   traitEffects(runtime, event, TRAIT.OPPORTUNIST);
 }
 
-type WarriorRuntime = Gw2Runtime<WarriorRuntimeState>;
+type WarriorRuntime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 
 /** Apply line-owned rewards at the shared reaction boundary. */
 export function burstPrecisionHit(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
@@ -247,7 +250,7 @@ export function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2Resolv
  * readies it. The simulator commits recharge at completion, before this hook, so the burst is cleared again here when
  * the latest trigger (recovered from the proc deadline) falls inside its cast window.
  */
-export function readyHeightenedFocusBurst(runtime: WarriorRuntime, cast: RuntimeCast): void {
+export function readyHeightenedFocusBurst(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   if (!cast.skill.burst || !hasTrait(runtime, TRAIT.HEIGHTENED_FOCUS)) return;
   const readyAt = runtime.procs.deadline(TRAIT.HEIGHTENED_FOCUS);
   if (!(readyAt > 0)) return;
@@ -282,7 +285,7 @@ export function versatileRageSwap(runtime: WarriorRuntime): void {
 }
 
 /** Refund the captured burst spend before later completion rewards. */
-export function burstMasteryCommit(runtime: WarriorRuntime, cast: RuntimeCast, spent: number): void {
+export function burstMasteryCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>, spent: number): void {
   if (cast.skill.burst && cast.skill.id !== ID.FULL_COUNTER && spent > 0 && hasTrait(runtime, TRAIT.BURST_MASTERY)) {
     grantWarriorAdrenaline(
       runtime,
@@ -306,7 +309,7 @@ export function burstMasteryCommit(runtime: WarriorRuntime, cast: RuntimeCast, s
 /** Dragon Slash refunds its captured Flow pool using the elite tuning. */
 export function burstMasteryDragonSlash(
   runtime: WarriorRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<WarriorSkill>,
   release: { flowSpent: number }
 ): void {
   if (hasTrait(runtime, TRAIT.BURST_MASTERY)) {
@@ -358,7 +361,7 @@ export function modifyWarriorStrengthAttributes(
   }
 }
 
-export function startTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
+export function startTraits(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const skill = cast.skill;
   if (!skill.categories?.includes('Physical') || !hasTrait(runtime, TRAIT.PEAK_PERFORMANCE)) return;
   let at = cast.effectiveEnd;
@@ -382,7 +385,7 @@ export function startTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
   );
 }
 
-export function completeTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
+export function completeTraits(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const skill = cast.skill;
   if (hasTrait(runtime, TRAIT.BRAVE_STRIDE) && skill.movementSkill) {
     grantWarriorAdrenaline(
@@ -449,7 +452,11 @@ export function convertBerserkPower(
 }
 
 /** Dragon Slash grants the charge-converted reward at completion. */
-export function berserkersPowerDragonSlash(runtime: WarriorRuntime, cast: RuntimeCast, adrenalineSpent: number): void {
+export function berserkersPowerDragonSlash(
+  runtime: WarriorRuntime,
+  cast: RuntimeCast<WarriorSkill>,
+  adrenalineSpent: number
+): void {
   triggerTraitBuffs(runtime, cast, TRAIT.BERSERKERS_POWER, adrenalineSpent / 10 + 1, 5);
 }
 

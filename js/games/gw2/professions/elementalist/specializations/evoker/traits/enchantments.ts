@@ -21,7 +21,7 @@ import {
   grantElectricEnchantments,
   type EvokerState
 } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 // Materialize Electric Enchantment's strike and condition package for the invoking
@@ -86,7 +86,11 @@ export function consumeElectricEnchantment(
 }
 
 /** Familiar completion grants trait enchantments before the skill's resource settlement. */
-export function applyGalvanicEnchantment(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function applyGalvanicEnchantment(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   const state = evokerState.from(context);
   const at = cast.effectiveEnd;
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);

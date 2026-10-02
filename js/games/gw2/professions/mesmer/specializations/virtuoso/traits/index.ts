@@ -1,3 +1,4 @@
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -14,7 +15,7 @@ import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 
 /** Deadly Blades shares patched tuning with its existing packet and resource boundaries. */
-export const deadlyBlades = defineTrait({
+export const deadlyBlades = defineTrait<MesmerSkill>({
   id: TRAIT.DEADLY_BLADES,
   name: 'Deadly Blades',
   balance: {
@@ -36,7 +37,7 @@ export const deadlyBlades = defineTrait({
 });
 
 /** Jagged Mind shares patched tuning with its existing packet and resource boundaries. */
-export const jaggedMind = defineTrait({
+export const jaggedMind = defineTrait<MesmerSkill>({
   id: TRAIT.JAGGED_MIND,
   name: 'Jagged Mind',
   balance: {
@@ -45,7 +46,7 @@ export const jaggedMind = defineTrait({
 });
 
 /** Bloodsong shares patched tuning with its existing packet and resource boundaries. */
-export const bloodsong = defineTrait({
+export const bloodsong = defineTrait<MesmerSkill>({
   id: TRAIT.BLOODSONG,
   name: 'Bloodsong',
   balance: {
@@ -92,14 +93,14 @@ const phantasmalBlade: MesmerTraitDamage = {
   hits: 1
 };
 
-export const phantasmalBlades = defineTrait({
+export const phantasmalBlades = defineTrait<MesmerSkill>({
   id: TRAIT.PHANTASMAL_BLADES,
   name: 'Phantasmal Blades',
   profiles: [mesmerTraitDamageProfile(TRAIT.PHANTASMAL_BLADES, 'Phantasmal Blades', phantasmalBlade)]
 });
 
 /** Keep the rounded build conversion separate from live Fury and direct-simulation attribute adjustments. */
-export const quietIntensity = defineTrait({
+export const quietIntensity = defineTrait<MesmerSkill>({
   id: TRAIT.QUIET_INTENSITY,
   name: 'Quiet Intensity',
   balance: { phantasmCriticalChance: 0.15, criticalChance: 0.15, vitalityConversion: 0.1 },
@@ -133,7 +134,7 @@ export const quietIntensity = defineTrait({
 });
 
 /** Targets are always nearby in this simulation; only player strikes receive this multiplier. */
-export const mentalFocus = defineTrait({
+export const mentalFocus = defineTrait<MesmerSkill>({
   id: TRAIT.MENTAL_FOCUS,
   name: 'Mental Focus',
   modifierRules: [
@@ -150,7 +151,7 @@ export const mentalFocus = defineTrait({
 });
 
 /** Sharpening Sorrow shares patched tuning with its existing packet and resource boundaries. */
-export const sharpeningSorrow = defineTrait({
+export const sharpeningSorrow = defineTrait<MesmerSkill>({
   id: TRAIT.SHARPENING_SORROW,
   name: 'Sharpening Sorrow',
   balance: {
@@ -173,7 +174,7 @@ export const sharpeningSorrow = defineTrait({
 });
 
 /** Infinite Forge shares patched tuning with its existing packet and resource boundaries. */
-export const infiniteForge = defineTrait({
+export const infiniteForge = defineTrait<MesmerSkill>({
   id: TRAIT.INFINITE_FORGE,
   name: 'Infinite Forge',
   balance: {

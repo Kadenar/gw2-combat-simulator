@@ -8,7 +8,7 @@ import {
   luminaryImpactAt
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 /**
  * Owns Luminary stance and stance-chain skill fragments.
  * Persistent stance windows and scheduled effects remain in `hooks.ts`.
@@ -93,7 +93,7 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
 });
 
 /** Priority preserves fresh Piercing before its hit and fresh Daring after Sovereign's detonation. */
-export const luminaryStanceActions: RuntimeProfession<GuardianRuntimeState>['sideEffectHandlers'] = {
+export const luminaryStanceActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.start-piercing'(runtime, context) {
     if (context.kind === 'cast')
       runtime.scheduleForCast(STANCE, luminaryImpactAt(context.cast), context.cast, { piercing: true }, undefined, -30);

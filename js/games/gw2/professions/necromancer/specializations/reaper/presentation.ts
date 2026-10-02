@@ -6,10 +6,10 @@ import {
   necromancerTransformPaletteGroups
 } from '#gw2/professions/necromancer/core/presentation.js';
 import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
-import type { NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindReaperUi(catalog: Readonly<CanonicalCatalog>): NecromancerUiSlice {
+export function bindReaperUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
     paletteGroups: (context: NecromancerUiContext) =>
       necromancerTransformPaletteGroups(catalog, context, {

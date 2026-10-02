@@ -105,6 +105,9 @@ export const SIGIL_DATA: Readonly<Record<string, Gw2SigilDataEntry>> = {
   Hydromancy: {
     icon: 'https://render.guildwars2.com/file/B5F3E2021863079919299707290698504B5C7E90/220689.png'
   },
+  Mischief: {
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Superior_Sigil_of_Mischief.png'
+  },
   Ice: {
     icon: 'https://render.guildwars2.com/file/10E0D93F4B303CD03F6FEE0C5AAEEB070E0EFAC1/220680.png'
   },
@@ -186,6 +189,18 @@ export const SIGIL_PROCS = Object.freeze({
     stacks: 1,
     duration: 2,
     icon: SIGIL_DATA.Hydromancy.icon
+  },
+  Mischief: {
+    // Snowballs select distinct foes, so the single simulated target receives one critical-capable hit and blind.
+    trigger: 'swap',
+    cooldown: 9,
+    effect: 'strike-condition',
+    coefficient: 0.15,
+    canCrit: true,
+    condition: 'Blindness',
+    stacks: 1,
+    duration: 2,
+    icon: SIGIL_DATA.Mischief.icon
   },
   Ice: {
     // Chills on a flanking strike or against a defiant foe; runtime checks the target before claiming the ICD.

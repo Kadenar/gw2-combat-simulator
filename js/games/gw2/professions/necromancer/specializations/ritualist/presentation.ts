@@ -43,7 +43,7 @@ function ritualistPaletteAvailability(
 }
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindRitualistUi(catalog: Readonly<CanonicalCatalog>): NecromancerUiSlice {
+export function bindRitualistUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
     eventLogRow: ritualistEventLogRow,
     paletteGroups: (context: NecromancerUiContext) =>

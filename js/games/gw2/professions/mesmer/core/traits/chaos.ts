@@ -1,3 +1,4 @@
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import {
   balanceProfileNumber,
@@ -10,7 +11,7 @@ import { mesmerTraitDamageProfile } from '#gw2/professions/mesmer/core/profiles.
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Own Chaotic Persistence tuning alongside its runtime behavior. */
-export const chaoticPersistence = defineTrait({
+export const chaoticPersistence = defineTrait<MesmerSkill>({
   id: TRAIT.CHAOTIC_PERSISTENCE,
   name: 'Chaotic Persistence',
   balance: {
@@ -41,7 +42,7 @@ export const chaoticPersistence = defineTrait({
 });
 
 /** Own Illusionary Membrane tuning alongside its runtime behavior. */
-export const illusionaryMembrane = defineTrait({
+export const illusionaryMembrane = defineTrait<MesmerSkill>({
   id: TRAIT.ILLUSIONARY_MEMBRANE,
   name: 'Illusionary Membrane',
   balance: {
@@ -62,7 +63,7 @@ export const illusionaryMembrane = defineTrait({
 });
 
 /** Own Chaotic Interruption tuning alongside its runtime behavior. */
-export const chaoticInterruption = defineTrait({
+export const chaoticInterruption = defineTrait<MesmerSkill>({
   id: TRAIT.CHAOTIC_INTERRUPTION,
   name: 'Chaotic Interruption',
   balance: {
@@ -78,7 +79,7 @@ const lesserChaosStorm: MesmerTraitDamage = {
   cooldown: 28
 };
 
-export const methodOfMadness = defineTrait({
+export const methodOfMadness = defineTrait<MesmerSkill>({
   id: TRAIT.METHOD_OF_MADNESS,
   name: 'Method of Madness',
   profiles: [mesmerTraitDamageProfile(TRAIT.METHOD_OF_MADNESS, 'Method of Madness', lesserChaosStorm)]

@@ -15,10 +15,11 @@ import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.
 import type {
   GuardianResolverContext,
   GuardianResolverEvent,
-  GuardianRuntimeState
+  GuardianRuntimeState,
+  GuardianSkill
 } from '#gw2/professions/guardian/types.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState>;
+type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 
 export function reactToDragonhunterControl(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   if (hasTrait(context, TRAIT.DULLED_SENSES)) {
@@ -83,7 +84,7 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
 }
 
 /** The elite cast grants endurance after its accepted virtue activation rewards. */
-export function completeHuntersDetermination(runtime: Runtime, cast: RuntimeCast): void {
+export function completeHuntersDetermination(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
   if (cast.skill.slot === 'Elite' && hasTrait(runtime, TRAIT.HUNTERS_DETERMINATION)) {
     const amount = balanceProfileNumber(
       requireBalanceProfileFromContext(runtime, TRAIT.HUNTERS_DETERMINATION),

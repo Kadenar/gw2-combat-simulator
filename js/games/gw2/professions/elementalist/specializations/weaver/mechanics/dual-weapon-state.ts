@@ -23,7 +23,11 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/prof
 import { isElementalistAttunement, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
-import type { ElementalistRuntime, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistSkill,
+  ElementalistRuntime,
+  ElementalistRuntimeState
+} from '#gw2/professions/elementalist/types.js';
 
 /** Parses canonical skill metadata for a valid pair of distinct Weaver attunements. */
 export function weaverDualAttunements(skill: Skill): readonly [ElementalistAttunement, ElementalistAttunement] | null {
@@ -88,7 +92,10 @@ export function weaverHammerAvailability(
 }
 
 /** Payload declarations run before this shared all-matching-bullets settlement. */
-export const weaverPistolSideEffects: RuntimeProfession<ElementalistRuntimeState>['sideEffectHandlers'] = {
+export const weaverPistolSideEffects: RuntimeProfession<
+  ElementalistRuntimeState,
+  ElementalistSkill
+>['sideEffectHandlers'] = {
   'elementalist.weaver.pistol.settle'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol settlement requires a cast trigger.');
     const state = professionCoreState(context);

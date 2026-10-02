@@ -13,7 +13,7 @@ import {
   applyLucidSingularity,
   applyUnstableConduit
 } from '#gw2/professions/elementalist/specializations/tempest/traits/conduits.js';
-import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 /**
  * Tempest hooks: the overload mechanic and its scheduler-phase traits.
  *
@@ -55,7 +55,7 @@ const OVERLOAD_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_OVERLOAD_S
 
 // Fire the traits that pay out as an overload begins: the conduit boons, and the core
 // attunement-entry proc matching the channeled element.
-function onCastStart(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+function onCastStart(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   if (!skill.overload) return;
   // Beginning an overload replays the core attunement-entry traits, so fire the proc that belongs
   // to the channeled element (Water has no such proc).
@@ -93,7 +93,7 @@ function availability(context: ElementalistRuntime, skill: Skill): AvailabilityR
 
 // Resolve everything that happens when a Tempest cast finishes: the Gale Song heal payload, then
 // for overloads the attunement lockout and each completion trait.
-function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   // Committed shortened heals retain the same reward before overload-specific completion work.
   applyGaleSong(context, cast, skill);
 
@@ -127,7 +127,7 @@ function onAttunementEvent(context: ElementalistRuntime, event: SimulationEvent)
 }
 
 /** Tempest owns overload channels and reacts only to actual attunement and aura events. */
-export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
+export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
   sideEffectHandlers: {
     'elementalist.tempest.overload-lockout'(context, trigger) {
       if (trigger.kind !== 'cast') throw new TypeError('Overload lockout requires a cast trigger.');

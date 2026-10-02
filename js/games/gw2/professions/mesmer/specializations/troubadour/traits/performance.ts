@@ -19,8 +19,8 @@ import { troubadourState } from '#gw2/professions/mesmer/specializations/troubad
 import type { MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Grants Harmonize's resource only once a phantasm has crossed its summon point. */
-export function completeTroubadourPhantasm(context: MesmerRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as MesmerSkill;
+export function completeTroubadourPhantasm(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
+  const skill = cast.skill;
   if (skill.resource?.mode !== 'phantasm') return;
   const interrupted = castWasInterrupted(cast);
   const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(cast, skill);

@@ -76,7 +76,7 @@ const CUSTOM_EFFECT_SKILL_IDS = new Set<SkillId>([
 const DODGE_IDS = new Set<SkillId>([SHARED_SKILL_IDS.DODGE, VINDICATOR_JUMP_SKILL.id]);
 
 // Deferred upkeep costs are immutable acceptance facts, spent only if the activation commits.
-const upkeepCosts = new WeakMap<RuntimeCast, number>();
+const upkeepCosts = new WeakMap<RuntimeCast<RevenantSkill>, number>();
 
 /** Releases are identified through the live catalog's upkeep parents. */
 function upkeepRelease(runtime: RevenantRuntime, skill: Skill): boolean {
@@ -168,7 +168,7 @@ function revenantAvailability(runtime: RevenantRuntime, skill: Skill, _command: 
 }
 
 /** Swapping legends resets Energy, keeps cross-legend upkeeps with a destination consume, and invokes traits. */
-function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast): void {
+function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const core = runtime.profession.core;
   const previous = runtime.resourceController.value('energy');
   core.activeLegendId = core.selectedLegendIds.find((id) => id !== core.activeLegendId) || core.activeLegendId;
@@ -200,7 +200,7 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast): void {
 }
 
 /** Core hooks: Energy, upkeeps, legends, weapon follow-ups, and actual hit/application trait reactions. */
-export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
+export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState, RevenantSkill>> = {
   // Base-second reductions remain with the cooldown controller, including partial-ammo progress.
   sideEffectHandlers: {
     'revenant.imperial-guard'(runtime, context) {
@@ -262,7 +262,7 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
     return effects;
   },
   onCastStart(runtime, cast) {
-    const skill = cast.skill as RevenantSkill;
+    const skill = cast.skill;
     if (DODGE_IDS.has(skill.id)) return;
     if (!isRevenantUpkeep(skill) && skill.id !== ID.SWAP_LEGENDS)
       runtime.resourceController.spend('energy', revenantEnergyCost(runtime, skill));
@@ -273,7 +273,7 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
     completeRevenantImperialGuard(runtime, cast);
   },
   onCastCommit(runtime, cast) {
-    const skill = cast.skill as RevenantSkill;
+    const skill = cast.skill;
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
       completeRevenantCrushingAbyssSwap(runtime, cast);
       completeRevenantBrutality(runtime, cast);

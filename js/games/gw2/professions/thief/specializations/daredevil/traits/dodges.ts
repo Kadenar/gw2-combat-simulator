@@ -34,10 +34,10 @@ export function dodgeSkillName(runtime: ThiefRuntime): string {
  * A committed dodge queues its selected profile's packets at acceptance, at their authored offsets or at completion,
  * so a strike before the dodge finishes still lands at its own instant.
  */
-export function queueDodgePackets(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function queueDodgePackets(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const profile = selectedDodgeProfile(runtime);
   if (!profile) return;
-  const skill = cast.skill as ThiefSkill;
+  const skill = cast.skill;
   const name = dodgeSkillName(runtime);
   emitEffects(runtime, {
     owner: profile,
@@ -71,7 +71,7 @@ export function queueDodgePackets(runtime: ThiefRuntime, cast: RuntimeCast): voi
  * A committed dodge opens its damage window after the dodge's own same-instant packets, so its landing strike (Bound)
  * resolves before the window it grants.
  */
-export function openDodgeWindow(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function openDodgeWindow(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const state = daredevilState.from(runtime);
   const profile = selectedDodgeProfile(runtime);
   if (profile && state.selectedDodge === 'Bounding Dodger')

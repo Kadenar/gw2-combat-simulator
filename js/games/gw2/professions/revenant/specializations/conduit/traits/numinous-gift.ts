@@ -1,3 +1,4 @@
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
@@ -9,7 +10,7 @@ export function hasLegend(runtime: RevenantRuntime, legendId: string): boolean {
 }
 
 /** Numinous Gift grants its base and equipped-legend boons to the caster or, with Found Purpose, to allies. */
-export function numinousGift(runtime: RevenantRuntime, cast: RuntimeCast, allies = false): void {
+export function numinousGift(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, allies = false): void {
   if (runtime.config.specialization !== 'Conduit') return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.numinousGift);
   emitEffects(runtime, {

@@ -1,3 +1,4 @@
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { conditionEffectTicks, impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import {
   balanceProfileNumber,
@@ -20,7 +21,7 @@ const releaseLegend = (legend: string) => (runtime: RevenantRuntime) =>
 /** Releases inherit active-weapon attribution; Assassin durations snapshot affinity, Mesmer conditions resolve live. */
 function releaseEffects(
   runtime: RevenantRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<RevenantSkill>,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   const assassin = cast.skill.id === ID.RELEASE_POTENTIAL_ASSASSIN;

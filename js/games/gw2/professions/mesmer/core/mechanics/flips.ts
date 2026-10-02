@@ -7,8 +7,8 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 
 /** Arm the parent's exact authored window without extending a cast-start deadline. */
-export function armMesmerSkillFlip(context: MesmerRuntime, cast: RuntimeCast): void {
-  const arm = (cast.skill as MesmerSkill).flipArm!;
+export function armMesmerSkillFlip(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
+  const arm = cast.skill.flipArm!;
   const at = context.time;
   const start = arm.anchor === 'castCommit' ? at : cast.start;
   const availableAt = canonicalTime(start + (arm.delay ?? 0));
@@ -45,7 +45,7 @@ export function exhaustMesmerMantra(context: MesmerRuntime, skill: MesmerSkill):
 /** Add trait-adjusted base work to the parent's remaining recharge instead of restarting it. */
 export function extendMesmerParentRecharge(context: MesmerRuntime, skill: MesmerSkill): void {
   const at = context.time;
-  const parent = context.helpers.skillsById.get(skill.flipParentId!) as MesmerSkill | undefined;
+  const parent = context.helpers.skillsById.get(skill.flipParentId!);
   const readyAt = parent ? context.cooldowns.get(parent.id) : null;
   if (!parent || readyAt == null) return;
   const progress = context.rechargeProgress.get(parent.id);

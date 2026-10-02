@@ -49,11 +49,11 @@ function necromancerUiSpecialization(context: NecromancerUiContext = {}): string
 }
 
 // Order the live shroud palette by slot, keeping each flip skill after its parent.
-function shroudSkillIds(catalog: Readonly<CanonicalCatalog>, shroud: string): SkillId[] {
+function shroudSkillIds(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>, shroud: string): SkillId[] {
   return catalog.skills
     .filter((skill) => skill.shroud === shroud && !skill.simulatorExcluded)
     .sort((left, right) => {
-      const slotOrder = Number(left.shroudSlot || 0) - Number(right.shroudSlot || 0);
+      const slotOrder = (left.shroudSlot || 0) - (right.shroudSlot || 0);
       if (slotOrder) return slotOrder;
       if (left.flipParentId === right.id) return 1;
       if (right.flipParentId === left.id) return -1;
@@ -64,7 +64,7 @@ function shroudSkillIds(catalog: Readonly<CanonicalCatalog>, shroud: string): Sk
 
 /** Builds profession, shroud, Lich, and shared-action palette groups for a Necromancer transform. */
 export function necromancerTransformPaletteGroups(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<NecromancerSkill>>,
   context: NecromancerUiContext,
   {
     entryId,
@@ -279,7 +279,7 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
 }
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog>): NecromancerUiSlice {
+export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
     // Self conditions are observable transfer resources; they never imply simulated incoming player damage.
     eventLogRow: (_context: NecromancerUiContext, event: SimulationEvent) =>

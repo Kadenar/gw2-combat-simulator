@@ -93,8 +93,8 @@ export type RangerResolverContext = Gw2ResolverRuntime & {
   profession: RangerRuntimeState;
 };
 
-/** All live Ranger owners share one combat, resource, and profession state. */
-export type RangerRuntime = Gw2Runtime<RangerRuntimeState> & { readonly config: RangerConfig };
+/** Live Ranger owners share one combat state and retain Ranger skill fields in casts and catalog lookups. */
+export type RangerRuntime = Gw2Runtime<RangerRuntimeState, RangerSkill> & { readonly config: RangerConfig };
 
 export interface RangerSkill extends Skill {
   readonly petSkill?: boolean;

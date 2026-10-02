@@ -33,7 +33,7 @@ const AMALGAM_PROTOCOL_ORDER = new Map<string, number>([
 ]);
 
 /** Returns the catalog-backed Morph choices for a mechanic slot in stable UI order. */
-function amalgamProtocolOptions(catalog: Readonly<CanonicalCatalog>, slot: number): EngineerSkill[] {
+function amalgamProtocolOptions(catalog: Readonly<CanonicalCatalog<EngineerSkill>>, slot: number): EngineerSkill[] {
   return catalog.skills
     .filter(
       (skill) =>
@@ -54,7 +54,10 @@ function selectedMorphIds(context: EngineerUiContext): number[] {
 }
 
 /** Projects the selected protocols and trait-selected Evolve, preferring the editable build. */
-function amalgamProfessionSkills(catalog: Readonly<CanonicalCatalog>, context: EngineerUiContext): (SkillId | null)[] {
+function amalgamProfessionSkills(
+  catalog: Readonly<CanonicalCatalog<EngineerSkill>>,
+  context: EngineerUiContext
+): (SkillId | null)[] {
   const traits = context.build?.specializations
     ? new Set(getActiveTraits(context.build.specializations).map((trait) => trait.id))
     : context.config;
@@ -67,7 +70,7 @@ function amalgamProfessionSkills(catalog: Readonly<CanonicalCatalog>, context: E
 
 /** Builds only editable protocol selectors; fixed F1 and F5 skills stay in the palette. */
 function amalgamSkillBarGroups(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<EngineerSkill>>,
   context: EngineerUiContext
 ): ProfessionSkillBarGroup[] {
   const skillIds = amalgamProfessionSkills(catalog, context);
@@ -102,7 +105,7 @@ function amalgamSkillBarGroups(
 
 /** Validates a protocol selection and swaps duplicate protocol names across mechanic slots. */
 function updateAmalgamSkillBarSelection(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<EngineerSkill>>,
   context: EngineerUiContext,
   selection: EngineerUiSelection
 ): boolean {
@@ -194,7 +197,7 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
 }
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog>): EngineerUiSlice {
+export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>): EngineerUiSlice {
   return Object.freeze({
     assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,
     rotationStateSnapshot: amalgamStateSnapshot,

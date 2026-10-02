@@ -17,12 +17,16 @@ import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mecha
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 export const WEAVE_SELF_ACTIVATION_TASK = 'elementalist.weave-self-activation';
 
 /** Schedules Weave Self at its profiled mid-cast activation point. */
-export function startWeaveSelfCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function startWeaveSelfCast(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   const at = cast.start + (cast.fullEnd - cast.start) * balanceProfileNumber(resourcesProfile, 'firstPacketRatio');
   if (at > cast.effectiveEnd + EPSILON) return;
@@ -32,7 +36,7 @@ export function startWeaveSelfCast(context: ElementalistRuntime, cast: RuntimeCa
 /** Starts Weave Self's recharge at the same partial-cast point as its activation. */
 export function modifyWeaveSelfRechargeStart(
   context: ElementalistRuntime,
-  cast: Pick<RuntimeCast, 'skill' | 'start' | 'fullEnd' | 'effectiveEnd'>,
+  cast: Pick<RuntimeCast<ElementalistSkill>, 'skill' | 'start' | 'fullEnd' | 'effectiveEnd'>,
   rechargeStart: number
 ): number {
   if (cast.skill.id !== ID.WEAVE_SELF) return rechargeStart;

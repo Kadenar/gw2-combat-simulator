@@ -26,7 +26,11 @@ import {
   initializeAlchemicVigor,
   twistedMedicineAudience
 } from '#gw2/professions/necromancer/specializations/harbinger/traits/behavior.js';
-import type { NecromancerRuntime, NecromancerRuntimeState } from '#gw2/professions/necromancer/types.js';
+import type {
+  NecromancerSkill,
+  NecromancerRuntime,
+  NecromancerRuntimeState
+} from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 const BLIGHT = 'harbinger.blight-clock';
@@ -61,7 +65,7 @@ function publishBlight(runtime: NecromancerRuntime): void {
 }
 
 /** Spending counts once at commitment; only the delayed explosion can damage the target. */
-function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast): boolean {
+function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): boolean {
   const state = harbingerState.from(runtime);
   const profile = requireBalanceProfileFromContext(
     runtime,
@@ -77,7 +81,7 @@ function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast): boolean {
 }
 
 /** Elixir launch spends live Blight before queuing its independent local and hostile impact. */
-function launchElixir(runtime: NecromancerRuntime, cast: RuntimeCast, impactAt: number): void {
+function launchElixir(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>, impactAt: number): void {
   const empowered = spendBlight(runtime, cast);
   const blight = harbingerState.from(runtime).blight;
   applyBolsteringBrew(runtime, cast);
@@ -86,7 +90,7 @@ function launchElixir(runtime: NecromancerRuntime, cast: RuntimeCast, impactAt: 
 }
 
 /** Movement launch carries the post-spend snapshot; its authored control receives the trait replacement. */
-function launchMovement(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+function launchMovement(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const empowered = spendBlight(runtime, cast);
   const blight = harbingerState.from(runtime).blight;
   const profile = empowered
@@ -107,7 +111,7 @@ function launchMovement(runtime: NecromancerRuntime, cast: RuntimeCast): void {
 }
 
 /** Blight lives on the one runtime; shroud callbacks own every entry and exit, including automatic depletion. */
-export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = {
+export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>> = {
   initialize(runtime) {
     initializeAlchemicVigor(runtime);
 
@@ -164,14 +168,18 @@ export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
       publishBlight(runtime);
     },
     [COMMIT](runtime, data) {
-      const { cast, impactAt } = data as { cast: RuntimeCast; impactAt: number };
+      const { cast, impactAt } = data as { cast: RuntimeCast<NecromancerSkill>; impactAt: number };
       launchElixir(runtime, cast, impactAt);
     },
     [MOVEMENT](runtime, data) {
-      launchMovement(runtime, (data as { cast: RuntimeCast }).cast);
+      launchMovement(runtime, (data as { cast: RuntimeCast<NecromancerSkill> }).cast);
     },
     [IMPACT](runtime, data) {
-      const { cast, empowered, blight } = data as { cast: RuntimeCast; empowered: boolean; blight: number };
+      const { cast, empowered, blight } = data as {
+        cast: RuntimeCast<NecromancerSkill>;
+        empowered: boolean;
+        blight: number;
+      };
       const profile = requireBalanceProfileFromContext(
         runtime,
         HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)]

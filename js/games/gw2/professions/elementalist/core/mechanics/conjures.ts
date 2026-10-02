@@ -14,10 +14,10 @@ import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-con
 import { CONJURE_PICKUP_WEAPONS, CONJURE_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/dispatch.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** A conjure creates independent equipped and one-use ground copies before its trait and swap events. */
-export function equipConjure(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function equipConjure(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const state = professionCoreState(context);
   const weapon = CONJURE_SKILLS[Number(skill.id)];
   state.conjureEquipped = weapon;
@@ -29,7 +29,7 @@ export function equipConjure(context: ElementalistRuntime, cast: RuntimeCast, sk
 }
 
 /** Dropping reports a swap only when a real equipped bundle was removed. */
-export function dropConjure(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function dropConjure(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const state = professionCoreState(context);
   if (!state.conjureEquipped) return;
   state.conjureEquipped = null;
@@ -37,7 +37,7 @@ export function dropConjure(context: ElementalistRuntime, cast: RuntimeCast, ski
 }
 
 /** A successful pickup consumes the ground copy captured at acceptance, even if its deadline passed during the cast. */
-export function pickUpConjure(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function pickUpConjure(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const expiresAt = pickupWindows.get(cast);
   if (typeof expiresAt !== 'number' || !Number.isFinite(expiresAt) || expiresAt <= cast.start) return;
   const state = professionCoreState(context);
@@ -48,7 +48,7 @@ export function pickUpConjure(context: ElementalistRuntime, cast: RuntimeCast, s
 }
 
 /** All real bundle swaps share lifetime scheduling, chain reset, and one sigil-swap notification. */
-function finishConjureSwap(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+function finishConjureSwap(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const state = professionCoreState(context);
   const at = cast.effectiveEnd;
   state.conjureExpiresAt = state.conjureEquipped
@@ -78,9 +78,9 @@ function finishConjureSwap(context: ElementalistRuntime, cast: RuntimeCast, skil
   });
 }
 
-const pickupWindows = new WeakMap<RuntimeCast, number>();
+const pickupWindows = new WeakMap<RuntimeCast<ElementalistSkill>, number>();
 /** A pickup accepted before ground expiry retains that copy through its animation. */
-export function captureConjurePickup(runtime: ElementalistRuntime, cast: RuntimeCast): void {
+export function captureConjurePickup(runtime: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const weapon = CONJURE_PICKUP_WEAPONS[Number(cast.skill.id)];
   if (weapon) pickupWindows.set(cast, runtime.profession.core.conjurePickups[weapon]);
 }

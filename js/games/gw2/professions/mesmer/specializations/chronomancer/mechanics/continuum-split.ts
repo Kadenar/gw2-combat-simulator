@@ -91,7 +91,7 @@ export function createContinuumController({
     replaceAutoattackChains(state, continuum.autoattackChains);
     cooldownController.refresh(at);
     for (const [id] of state.ammo) {
-      const ammoSkill = state.helpers.skillsById.get(id) as MesmerSkill | undefined;
+      const ammoSkill = state.helpers.skillsById.get(id);
       if (ammoSkill) refreshAmmo(ammoSkill, at);
     }
 

@@ -15,7 +15,7 @@ import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet
 import { emitSunSpiritBurning } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { rangerActiveBoonCount, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 /** Both live player grants and configured console pulses use the same ranger-scaled pet application. */
 function shareFortifyingBond(runtime: RangerRuntime, kind: string, stacks: number, cause?: Gw2ResolverEvent): void {
@@ -105,7 +105,7 @@ export const fortifyingBond = defineTrait({
 });
 
 /** Every spirit repeats its slam one second after the final authored shake, including patched pulse timings. */
-function spiritRepeatSlamAt(cast: RuntimeCast): number {
+function spiritRepeatSlamAt(cast: RuntimeCast<RangerSkill>): number {
   return (
     1 +
     Math.max(
@@ -136,7 +136,7 @@ export const naturesVengeance = defineTrait({
   id: TRAIT.NATURES_VENGEANCE,
   name: "Nature's Vengeance",
   hooks: {
-    modifyEffects(runtime: RangerRuntime, cast: RuntimeCast, effects) {
+    modifyEffects(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>, effects) {
       if (!hasTrait(runtime, TRAIT.NATURES_VENGEANCE)) return effects;
       const slams = effects.filter((effect) => effect.metadata?.packetKind === 'ranger.spirit-slam');
       if (!slams.length) return effects;
@@ -155,14 +155,14 @@ export const naturesVengeance = defineTrait({
         }))
       ];
     },
-    onCastCommit(runtime: RangerRuntime, cast: RuntimeCast) {
+    onCastCommit(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) {
       // Solar Flare owns a separately patchable child profile rather than an inline slam packet.
       if (hasTrait(runtime, TRAIT.NATURES_VENGEANCE) && cast.skill.id === ID.SUN_SPIRIT)
         runtime.schedule('ranger.natures-vengeance-sun', spiritRepeatSlamAt(cast), cast.skill);
     },
     tasks: {
       'ranger.natures-vengeance-sun'(runtime: RangerRuntime, data: unknown) {
-        emitSunSpiritBurning(runtime, data as RuntimeCast['skill'], runtime.time);
+        emitSunSpiritBurning(runtime, data as RuntimeCast<RangerSkill>['skill'], runtime.time);
       }
     }
   }
@@ -190,9 +190,9 @@ export const wellspring = defineTrait({
       order: 1,
       emit: TRAIT.WELLSPRING,
       on: 'castCommit' as const,
-      when: (_runtime: RangerRuntime, cast: RuntimeCast) => cast.skill.type === 'Heal',
+      when: (_runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) => cast.skill.type === 'Heal',
       effects: (effect) => effect.type === 'boon' && effect.name === 'regeneration',
-      attribution: (_runtime: RangerRuntime, cast: RuntimeCast) => ({
+      attribution: (_runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) => ({
         skillId: TRAIT.WELLSPRING,
         skillName: 'Wellspring',
         name: `Wellspring - regeneration`,
@@ -238,9 +238,9 @@ export const windborneNotes = defineTrait({
       order: 2,
       emit: TRAIT.WINDBORNE_NOTES,
       on: 'castCommit' as const,
-      when: (_runtime: RangerRuntime, cast: RuntimeCast) => cast.skill.weapon === 'Warhorn',
+      when: (_runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) => cast.skill.weapon === 'Warhorn',
       effects: (effect) => effect.type === 'boon' && effect.name === 'regeneration',
-      attribution: (_runtime: RangerRuntime, cast: RuntimeCast) => ({
+      attribution: (_runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) => ({
         skillId: TRAIT.WINDBORNE_NOTES,
         skillName: 'Windborne Notes',
         name: `Windborne Notes - regeneration`,

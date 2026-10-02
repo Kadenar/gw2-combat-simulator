@@ -61,8 +61,8 @@ export function artifactWindow(runtime: ThiefRuntime): {
 }
 
 /** Applies meticulous custodian at the original artifact boundary. */
-export function applyMeticulousChakShield(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as ThiefSkill;
+export function applyMeticulousChakShield(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+  const skill = cast.skill;
   if (skill.id === ID.CHAK_SHIELD && hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.METICULOUS_CUSTODIAN);
     const strike = requireEffect(profile, 'strike', 'Meticulous Custodian');

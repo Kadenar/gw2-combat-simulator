@@ -9,7 +9,7 @@ import {
 } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
-import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerSkill, NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 
 const SWORD_AUTOATTACK_EXPIRY_OWNER = 'necromancer.sword-autoattack-chain';
@@ -19,7 +19,7 @@ const SWORD_AUTOATTACK_RETENTION_SECONDS = 3;
 /** A committed live sword transition replaces its expiry; preserving another cast never extends the deadline. */
 export function observeNecromancerAutoattackTransition(
   runtime: NecromancerRuntime,
-  _cast: RuntimeCast,
+  _cast: RuntimeCast<NecromancerSkill>,
   result: AutoattackChainTransitionResult
 ): void {
   const sword = result.transitions.find((change) => change.chainRootId === ID.ENERVATION_BLADE);

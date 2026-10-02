@@ -3,9 +3,9 @@ import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { BalanceProfile, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import type { RevenantRuntimeState } from '#gw2/professions/revenant/types.js';
+import type { RevenantSkill, RevenantRuntimeState } from '#gw2/professions/revenant/types.js';
 
-export type RevenantRuntime = Gw2Runtime<RevenantRuntimeState>;
+export type RevenantRuntime = Gw2Runtime<RevenantRuntimeState, RevenantSkill>;
 
 /** Permanent configured boons and executed applications both count; pending packets never do. */
 export function revenantBoonActive(runtime: RevenantRuntime, kind: string): boolean {

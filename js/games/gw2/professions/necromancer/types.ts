@@ -44,7 +44,7 @@ export interface NecromancerRuntimeState {
 }
 
 /** Actual mechanics share one owned family state and one live clock. */
-export type NecromancerRuntime = Gw2Runtime<NecromancerRuntimeState>;
+export type NecromancerRuntime = Gw2Runtime<NecromancerRuntimeState, NecromancerSkill>;
 
 export interface NecromancerSkill extends Skill {
   readonly dhuumfireDuration?: number;

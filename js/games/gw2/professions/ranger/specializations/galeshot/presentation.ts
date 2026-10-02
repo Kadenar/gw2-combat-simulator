@@ -52,7 +52,7 @@ function visibleBowSkills(context: RangerUiContext) {
 // Mirror Galeshot's runtime resource, replacement, and temporary weapon-bar gates
 // in the palette without mutating live state.
 function availability(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<RangerSkill>>,
   context: RangerUiContext,
   skill: RangerSkill
 ): PaletteSkillAvailability {
@@ -105,7 +105,7 @@ function availability(
 }
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlice {
+export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
     // null = suppress the row entirely; undefined = fall through to default rendering.
     // State-sync events are internal bookkeeping and should not appear in the log.

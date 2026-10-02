@@ -14,7 +14,7 @@ import {
 } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
@@ -462,9 +462,9 @@ export const slicingMaelstromModifiers: readonly Gw2ModifierRule[] = [
 ];
 
 /** Skill-owned entry and base extensions leave expiry and combined trait publication with the mode owner. */
-export const berserkSkillActions: RuntimeProfession<WarriorRuntimeState>['sideEffectHandlers'] = {
+export const berserkSkillActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['sideEffectHandlers'] = {
   'warrior.berserk-spend'(runtime, context) {
-    runtime.profession.core.adrenaline -= Number(context.skill.adrenalineCost ?? 0);
+    runtime.profession.core.adrenaline -= context.skill.adrenalineCost ?? 0;
   },
   'warrior.berserk-enter'(runtime, context) {
     if (context.kind !== 'cast') return;

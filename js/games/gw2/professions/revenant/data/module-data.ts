@@ -1,3 +1,4 @@
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import {
   createFlipParentMap,
@@ -8,7 +9,7 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/revenant/data/revenant
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/professions/revenant/data/revenant-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/revenant/data/traits-data.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.HEALING_ORB,
@@ -23,11 +24,11 @@ const generatedSource = SKILLS.filter((skill) => skill.name !== "Duelist's Prepa
   ...skill
 }));
 
-const allDeclared: readonly Skill[] = [...generatedSource, ...REVENANT_SUPPLEMENTAL_SKILLS];
+const allDeclared: readonly RevenantSkill[] = [...generatedSource, ...REVENANT_SUPPLEMENTAL_SKILLS];
 
 const flipParentById = createFlipParentMap(allDeclared);
 
-const normalize = (skill: Skill): Skill => ({
+const normalize = (skill: RevenantSkill): RevenantSkill => ({
   ...skill,
   simulatorExcluded: false,
   ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
@@ -50,7 +51,7 @@ const generated = generatedSource.map((skill) => ({
 
 const supplemental = REVENANT_SUPPLEMENTAL_SKILLS.map(normalize);
 
-export const REVENANT_DECLARED_SKILLS: readonly Skill[] = Object.freeze([...generated, ...supplemental]);
+export const REVENANT_DECLARED_SKILLS: readonly RevenantSkill[] = Object.freeze([...generated, ...supplemental]);
 
 const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> = Object.freeze({
   Herald: [
@@ -95,8 +96,8 @@ const WEAPON_DATA = defineProfessionWeapons({
   Sword: 'mh+oh'
 });
 
-/** Binds the shared catalog while leaving skill admission to each module's mechanics. */
-export const createRevenantModuleData = createProfessionModuleDataFactory({
+// Keep Revenant mechanics typed through module registration and both catalog selections.
+export const createRevenantModuleData = createProfessionModuleDataFactory<RevenantSkill>({
   generatedSkills: generated,
   sharedExtraSkills: supplemental,
   traits: TRAITS,

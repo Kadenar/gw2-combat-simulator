@@ -1,4 +1,5 @@
 import type {
+  ElementalistSkill,
   ElementalistState,
   ElementalistUiContext,
   ElementalistUiSlice
@@ -55,7 +56,7 @@ function configuredAttunement(context: ElementalistUiContext, key: 'startAttunem
 // Builds one start-control dropdown bound to a build field, offering all four
 // attunements with their in-game skill icons and the selected element's accent color.
 function attunementControl(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<ElementalistSkill>>,
   context: ElementalistUiContext,
   key: 'startAttunement' | 'secondaryAttunement',
   label: string
@@ -101,7 +102,7 @@ function paletteSkillAvailability(context: ElementalistUiContext, skill: Skill) 
   }
 
   if (skill.type !== 'Weapon' || !skill.attunement) return { available: true, message: '' };
-  const catalog = context.catalog as Readonly<CanonicalCatalog> | undefined;
+  const catalog = context.catalog as Readonly<CanonicalCatalog<ElementalistSkill>> | undefined;
   const position = catalog?.autoattackChainPositions.get(Number(skill.id));
   const carryover = state(context).autoattackCarryover;
   // An autoattack chain carried across an attunement swap may finish in its original
@@ -115,7 +116,7 @@ function paletteSkillAvailability(context: ElementalistUiContext, skill: Skill) 
 }
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindElementalistFamilyUi(catalog: Readonly<CanonicalCatalog>): ElementalistUiSlice {
+export function bindElementalistFamilyUi(catalog: Readonly<CanonicalCatalog<ElementalistSkill>>): ElementalistUiSlice {
   return Object.freeze({
     startControls: (context: ElementalistUiContext) =>
       specialization(context) === 'Weaver'

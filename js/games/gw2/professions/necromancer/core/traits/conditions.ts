@@ -147,12 +147,12 @@ export function modifyNecromancerConditionBaseDuration(context: Gw2ModifierConte
 }
 
 /** Emits furious demise at the ordered post-entry boundary. */
-export function enterFuriousDemise(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function enterFuriousDemise(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   emitNecromancerShroudTrait(runtime, cast, TRAIT.FURIOUS_DEMISE);
 }
 
 /** Emits weakening shroud at the ordered post-entry boundary. */
-export function enterWeakeningShroud(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function enterWeakeningShroud(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   emitNecromancerShroudTrait(runtime, cast, TRAIT.WEAKENING_SHROUD);
 }
 

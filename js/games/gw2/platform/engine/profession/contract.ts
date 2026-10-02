@@ -1,3 +1,4 @@
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { resourcePolicies, validateResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 /**
@@ -201,9 +202,13 @@ function assertCallbackContainer(container: object, names: readonly string[], sc
  * profession definition objects are intentionally not used directly elsewhere.
  */
 
-export function defineProfession<TProfessionState extends object, TBuild extends object = object>(
-  definition: ProfessionDefinition<TProfessionState, TBuild>
-): Readonly<NormalizedProfessionContract<TProfessionState>> {
+export function defineProfession<
+  TProfessionState extends object,
+  TBuild extends object = object,
+  TSkill extends Skill = Skill
+>(
+  definition: ProfessionDefinition<TProfessionState, TBuild, TSkill>
+): Readonly<NormalizedProfessionContract<TProfessionState, TSkill>> {
   assertDefinition(definition);
   const resources = definition.resources || {};
   validateResourcePolicies(resources);
@@ -241,12 +246,12 @@ export function defineProfession<TProfessionState extends object, TBuild extends
     id: definition.id,
     name: definition.name,
     weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
-    catalog: definition.catalog ?? createCanonicalCatalog(),
+    catalog: definition.catalog ?? createCanonicalCatalog<TSkill>(),
     createState: (config: Readonly<ProfessionConfig>) => resources.createState?.(config) ?? {},
     resources: Object.freeze({ ...resourcePolicies(resources), endurance: resources.endurance ?? null }),
     ...composedHooks
   };
-  return Object.freeze(profession) as unknown as Readonly<NormalizedProfessionContract<TProfessionState>>;
+  return Object.freeze(profession) as unknown as Readonly<NormalizedProfessionContract<TProfessionState, TSkill>>;
 }
 
 /** Selects the family's runtime for the supplied configuration; callers must supply a family contract. */

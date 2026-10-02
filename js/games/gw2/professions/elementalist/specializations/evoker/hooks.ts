@@ -23,11 +23,11 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { applyAltruisticAspect } from '#gw2/professions/elementalist/specializations/evoker/traits/familiars.js';
-import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Familiar casts own pending packets; accepted impacts spend enchantments in chronological order. */
-export const evokerHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
+export const evokerHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
   initialize(runtime) {
     initialize(runtime);
     registerElementalistEliteEvents(runtime, onAcceptedEvent);
@@ -87,7 +87,7 @@ export const evokerHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
   tasks: {
     ...evokerSkillCommitTasks,
     'elementalist.evoker.finish-commit'(runtime, data) {
-      const { cast } = data as SkillTaskData;
+      const { cast } = data as SkillTaskData<ElementalistSkill>;
       withElementalistCast(runtime, cast, () => {
         finishEvokerCast(runtime, cast, cast.skill);
         applyAltruisticAspect(runtime, cast, cast.skill);

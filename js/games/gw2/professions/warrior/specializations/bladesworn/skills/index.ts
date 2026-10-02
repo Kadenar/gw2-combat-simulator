@@ -26,16 +26,16 @@ import {
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { activeCartridgeWindow, bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import { maximumDragonCharges } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
-import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
 
-type Runtime = Gw2Runtime<WarriorRuntimeState>;
+type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 
 const CARTRIDGE_ACTIVATE = 'warrior.cartridges-activate';
 
-const furyBeforeCast = new WeakSet<RuntimeCast>();
+const furyBeforeCast = new WeakSet<RuntimeCast<WarriorSkill>>();
 
 /** Both action identities select the version owned by the equipped adept trait. */
 
@@ -552,19 +552,19 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
 ]);
 
 export const dragonSlashReleases = new WeakMap<
-  RuntimeCast,
+  RuntimeCast<WarriorSkill>,
   { charges: number; maximum: number; flowSpent: number; coefficient: number }
 >();
 
 /** Release captures charge facts before clearing the mode; every packet still uses common miss, interruption, and impact scheduling. */
-function slashEffects(_runtime: Runtime, cast: RuntimeCast): readonly SkillEffect[] {
+function slashEffects(_runtime: Runtime, cast: RuntimeCast<WarriorSkill>): readonly SkillEffect[] {
   const released = dragonSlashReleases.get(cast)!;
   const skill = cast.skill;
   const spent = dragonChargesToAdrenalineSpent(released.charges);
   const timing = {
     timingAnchor: 'castStart' as const,
     timingScale: 'fixed' as const,
-    atMs: Number(skill.dragonSlashImpactOffsetMs ?? (cast.fullEnd - cast.start) * 1000)
+    atMs: skill.dragonSlashImpactOffsetMs ?? (cast.fullEnd - cast.start) * 1000
   };
   const effects: SkillEffect[] = [
     {
@@ -577,8 +577,8 @@ function slashEffects(_runtime: Runtime, cast: RuntimeCast): readonly SkillEffec
       metadata: { warriorAdrenalineSpent: spent, warriorBurstTier: spent / 10 }
     }
   ];
-  const min = Number(skill.dragonSlashMinimumBurningDuration ?? 0);
-  const max = Number(skill.dragonSlashMaximumBurningDuration ?? 0);
+  const min = skill.dragonSlashMinimumBurningDuration ?? 0;
+  const max = skill.dragonSlashMaximumBurningDuration ?? 0;
   if (min > 0 && max > 0) {
     const stacks = dragonSlashCoefficient(1, 20, released.charges, released.maximum);
     const duration = dragonSlashCoefficient(min, max, released.charges, released.maximum);
@@ -595,7 +595,7 @@ function slashEffects(_runtime: Runtime, cast: RuntimeCast): readonly SkillEffec
 }
 
 /** Artillery spends every captured round while the shared completion consumes its final reserved round. */
-function artilleryEffects(runtime: Runtime, cast: RuntimeCast, sharp: boolean): readonly SkillEffect[] {
+function artilleryEffects(runtime: Runtime, cast: RuntimeCast<WarriorSkill>, sharp: boolean): readonly SkillEffect[] {
   const rounds = warriorAmmunition.get(cast)!.rounds;
   const profile = requireBalanceProfileFromContext(
     runtime,
@@ -628,7 +628,7 @@ function artilleryEffects(runtime: Runtime, cast: RuntimeCast, sharp: boolean): 
 }
 
 /** Actual activation upgrades a live cartridge window once; a supercharged window cannot be refreshed by another cast. */
-function activateCartridges(runtime: Runtime, cast: RuntimeCast): void {
+function activateCartridges(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
   const state = bladeswornState.from(runtime);
   // Discard expired occurrences on the next grant so idle expiry needs no queued cleanup.
   state.overchargedCartridgeWindows = state.overchargedCartridgeWindows.filter(
@@ -701,7 +701,7 @@ export function cartridgeExplosion(runtime: Runtime, event: Gw2ResolverEvent): v
 }
 
 /** Successful commitment restores ammo once, retaining existing recharge progress through the animation tail. */
-function tacticalReload(runtime: Runtime, cast: RuntimeCast): void {
+function tacticalReload(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
   for (const id of runtime.ammo.keys()) {
     const skill = runtime.helpers.skillsById.get(id);
     if (skill?.specialization === 'Bladesworn')
@@ -727,7 +727,7 @@ function tacticalReload(runtime: Runtime, cast: RuntimeCast): void {
 }
 
 /** Accepted releases publish captured charge facts before clearing the shared Trigger state, even on cancellation. */
-function captureSlash(runtime: Runtime, cast: RuntimeCast): void {
+function captureSlash(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
   const state = bladeswornState.from(runtime);
   const maximum = maximumDragonCharges(runtime);
   const release = {
@@ -735,8 +735,8 @@ function captureSlash(runtime: Runtime, cast: RuntimeCast): void {
     maximum,
     flowSpent: state.dragonTriggerFlowSpent,
     coefficient: dragonSlashCoefficient(
-      Number(cast.skill.dragonSlashMinimumCoefficient ?? 0),
-      Number(cast.skill.dragonSlashMaximumCoefficient ?? 0),
+      cast.skill.dragonSlashMinimumCoefficient ?? 0,
+      cast.skill.dragonSlashMaximumCoefficient ?? 0,
       state.dragonCharges,
       maximum
     )
@@ -768,7 +768,7 @@ function captureSlash(runtime: Runtime, cast: RuntimeCast): void {
 }
 
 /** Intrinsic recipes execute at their declared phase; shared Flow and Trigger lifetimes remain separate. */
-export const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState>['sideEffectHandlers'] = {
+export const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['sideEffectHandlers'] = {
   'warrior.slash-release'(runtime, context) {
     if (context.kind === 'cast') captureSlash(runtime, context.cast);
   },
@@ -809,9 +809,9 @@ export const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState>['sid
   }
 };
 
-export const bladeswornSkillTasks: RuntimeProfession<WarriorRuntimeState>['tasks'] = {
+export const bladeswornSkillTasks: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['tasks'] = {
   [CARTRIDGE_ACTIVATE](runtime, data) {
-    activateCartridges(runtime, (data as { cast: RuntimeCast }).cast);
+    activateCartridges(runtime, (data as { cast: RuntimeCast<WarriorSkill> }).cast);
   }
 };
 

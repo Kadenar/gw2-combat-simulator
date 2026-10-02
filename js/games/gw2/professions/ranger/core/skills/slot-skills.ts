@@ -1,4 +1,4 @@
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
@@ -488,7 +488,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
 });
 
 /** Copy both actors from one executed-time snapshot so the first copy never feeds the second. */
-export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast): void {
+export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   const timeline = createGw2TimelineIndex({ events: runtime.history });
   const companionId = rangerPetCompanionId(runtime);
   const petActive = runtime.profession.core.petActive;

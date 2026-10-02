@@ -37,11 +37,15 @@ function movementTraits(runtime: ThiefRuntime): void {
 }
 
 /** Completion-time trait state: dodge, initiative-spend, and movement traits. */
-export function completeThiefCastTraits(runtime: ThiefRuntime, cast: RuntimeCast, committed: boolean): void {
+export function completeThiefCastTraits(
+  runtime: ThiefRuntime,
+  cast: RuntimeCast<ThiefSkill>,
+  committed: boolean
+): void {
   if (!committed) return;
   if (cast.skill.id === SHARED_SKILL_IDS.DODGE) applyUpperHand(runtime);
   applyLeadAttacks(runtime, cast);
-  if ((cast.skill as ThiefSkill).movementSkill) movementTraits(runtime);
+  if (cast.skill.movementSkill) movementTraits(runtime);
 }
 
 /** Landed strikes drive critical Fury traits, Deadly Arts, venoms, and Shadow Arts siphons in their established order. */

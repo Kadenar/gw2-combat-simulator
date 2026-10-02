@@ -32,9 +32,9 @@ import type {
 } from '#gw2/platform/skills/autoattack-chain-controller.js';
 
 /** A cast owns one reservation from acceptance through completion, including its selected recharge work. */
-export interface RuntimeCast {
+export interface RuntimeCast<TSkill extends Skill = Skill> {
   readonly id: string;
-  readonly skill: Skill;
+  readonly skill: TSkill;
   readonly command: CastCommand;
   readonly start: number;
   readonly fullEnd: number;
@@ -66,8 +66,8 @@ export interface ProceduralEmissionOptions {
 }
 
 /** The payload a profession task receives when a committed activation schedules its authored skill task. */
-export interface SkillTaskData {
-  readonly cast: RuntimeCast;
+export interface SkillTaskData<TSkill extends Skill = Skill> {
+  readonly cast: RuntimeCast<TSkill>;
   readonly trigger: SkillTask;
 }
 
@@ -95,9 +95,10 @@ export type RuntimeWork =
   | InternalWork<'runtime.task', { name: string; data: unknown }>;
 
 /** The single mutable context contains both command control and actual combat state. */
-export interface Gw2Runtime<T extends object = object> extends Gw2ResolverRuntime {
-  /** Live command owners share the compiled catalog already supplied to combat queries. */
-  readonly helpers: Gw2ResolverRuntime['helpers'] & CanonicalCatalog;
+export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Skill> extends Gw2ResolverRuntime {
+  /** Live skill lookups retain the profession type while unrelated resolver helpers stay shared. */
+  readonly helpers: Omit<Gw2ResolverRuntime['helpers'], 'skills' | 'skillsById' | 'skillsByName'> &
+    CanonicalCatalog<TSkill>;
   profession: T;
   time: number;
   inputReadyAt: number;
@@ -138,7 +139,7 @@ export interface Gw2Runtime<T extends object = object> extends Gw2ResolverRuntim
   scheduleForCast(
     name: string,
     at: number,
-    cast: RuntimeCast,
+    cast: RuntimeCast<TSkill>,
     data?: Record<string, unknown>,
     owner?: WorkOwner,
     priority?: number
@@ -147,59 +148,68 @@ export interface Gw2Runtime<T extends object = object> extends Gw2ResolverRuntim
 }
 
 /** Canonical live contract: mechanics read and mutate the same context at their actual execution phase. */
-export interface RuntimeProfession<T extends object> extends Gw2QueryProfession {
-  readonly rechargeRules?: readonly RechargeRule<T>[];
-  readonly traitTriggers?: readonly TraitTrigger<T>[];
+export interface RuntimeProfession<T extends object, TSkill extends Skill = Skill> extends Gw2QueryProfession {
+  readonly catalog: CanonicalCatalog<TSkill>;
+  readonly rechargeRules?: readonly RechargeRule<T, TSkill>[];
+  readonly traitTriggers?: readonly TraitTrigger<T, TSkill>[];
   createState(config: Gw2Config): T;
   projectPlanningState?(input: Gw2PlanningStateInput<T>): unknown;
-  initialize?(runtime: Gw2Runtime<T>): void;
+  initialize?(runtime: Gw2Runtime<T, TSkill>): void;
   /** Capture immutable metadata before enqueueing; null defers/suppresses a packet without applying future state. */
-  prepareEvent?(runtime: Gw2Runtime<T>, event: SimulationEventBase): SimulationEventBase | null;
-  onCombatStart?(runtime: Gw2Runtime<T>): void;
-  readonly resources?: Partial<Record<ResourceKey, ResourcePolicy<Gw2Runtime<T>>>>;
-  readonly endurance?: EndurancePolicy<Gw2Runtime<T>>;
-  reserveRecharge?(runtime: Gw2Runtime<T>, skill: Skill, work: number): number;
+  prepareEvent?(runtime: Gw2Runtime<T, TSkill>, event: SimulationEventBase): SimulationEventBase | null;
+  onCombatStart?(runtime: Gw2Runtime<T, TSkill>): void;
+  readonly resources?: Partial<Record<ResourceKey, ResourcePolicy<Gw2Runtime<T, TSkill>>>>;
+  readonly endurance?: EndurancePolicy<Gw2Runtime<T, TSkill>>;
+  reserveRecharge?(runtime: Gw2Runtime<T, TSkill>, skill: TSkill, work: number): number;
   /** Resolve the currently selected action before catalog, equipment, chain, and recharge checks. */
-  modifySkillId?(runtime: Gw2Runtime<T>, skillId: SkillId): SkillId;
-  rechargeWork?(runtime: Gw2Runtime<T>, skill: Skill, work: number): number;
+  modifySkillId?(runtime: Gw2Runtime<T, TSkill>, skillId: SkillId): SkillId;
+  rechargeWork?(runtime: Gw2Runtime<T, TSkill>, skill: TSkill, work: number): number;
   /** Select the activation duration from current state before reserving its completion and packet timing. */
-  castDurationMs?(runtime: Gw2Runtime<T>, skill: Skill, durationMs: number): number;
+  castDurationMs?(runtime: Gw2Runtime<T, TSkill>, skill: TSkill, durationMs: number): number;
   /** Capture the selected cast variant once so reports do not query later profession state. */
-  castDetail?(runtime: Gw2Runtime<T>, cast: RuntimeCast): string | undefined;
+  castDetail?(runtime: Gw2Runtime<T, TSkill>, cast: RuntimeCast<TSkill>): string | undefined;
   /** Selected mechanics may move the recharge anchor while retaining one immutable cast reservation. */
   rechargeStart?(
-    runtime: Gw2Runtime<T>,
-    cast: Pick<RuntimeCast, 'skill' | 'start' | 'fullEnd' | 'effectiveEnd' | 'cancelled'>,
+    runtime: Gw2Runtime<T, TSkill>,
+    cast: Pick<RuntimeCast<TSkill>, 'skill' | 'start' | 'fullEnd' | 'effectiveEnd' | 'cancelled'>,
     at: number
   ): number;
-  maximumAmmo?(runtime: Gw2Runtime<T>, skill: Skill, maximum: number): number;
-  availability?(runtime: Gw2Runtime<T>, skill: Skill, command: CastCommand): AvailabilityResult;
+  maximumAmmo?(runtime: Gw2Runtime<T, TSkill>, skill: TSkill, maximum: number): number;
+  availability?(runtime: Gw2Runtime<T, TSkill>, skill: TSkill, command: CastCommand): AvailabilityResult;
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
   /** Capture dynamic field descriptors at acceptance, before cast-start resource mutations. */
-  modifyComboFields?(runtime: Gw2Runtime<T>, cast: RuntimeCast, fields: Skill['comboFields']): Skill['comboFields'];
-  modifyEffects?(runtime: Gw2Runtime<T>, cast: RuntimeCast, effects: readonly SkillEffect[]): readonly SkillEffect[];
-  onCastStart?(runtime: Gw2Runtime<T>, cast: RuntimeCast): void;
+  modifyComboFields?(
+    runtime: Gw2Runtime<T, TSkill>,
+    cast: RuntimeCast<TSkill>,
+    fields: Skill['comboFields']
+  ): Skill['comboFields'];
+  modifyEffects?(
+    runtime: Gw2Runtime<T, TSkill>,
+    cast: RuntimeCast<TSkill>,
+    effects: readonly SkillEffect[]
+  ): readonly SkillEffect[];
+  onCastStart?(runtime: Gw2Runtime<T, TSkill>, cast: RuntimeCast<TSkill>): void;
   /** Successful casts settle once after declared commit effects, including committed interruptions. */
-  onCastCommit?(runtime: Gw2Runtime<T>, cast: RuntimeCast): void;
+  onCastCommit?(runtime: Gw2Runtime<T, TSkill>, cast: RuntimeCast<TSkill>): void;
   /** Cancelled attempts release reservations and cast-local state without granting commit rewards. */
-  onCastCancel?(runtime: Gw2Runtime<T>, cast: RuntimeCast): void;
+  onCastCancel?(runtime: Gw2Runtime<T, TSkill>, cast: RuntimeCast<TSkill>): void;
   readonly sideEffectHandlers?: Readonly<
-    Record<string, (runtime: Gw2Runtime<T>, context: ActionContext, action: SideEffectAction) => void>
+    Record<string, (runtime: Gw2Runtime<T, TSkill>, context: ActionContext<TSkill>, action: SideEffectAction) => void>
   >;
   readonly autoattackChainOverrides?: readonly AutoattackChainOverride[];
   onAutoattackChainTransition?(
-    runtime: Gw2Runtime<T>,
-    cast: RuntimeCast,
+    runtime: Gw2Runtime<T, TSkill>,
+    cast: RuntimeCast<TSkill>,
     result: AutoattackChainTransitionResult
   ): void;
-  onCooldownReset?(runtime: Gw2Runtime<T>): void;
-  readonly tasks?: Readonly<Record<string, (runtime: Gw2Runtime<T>, data: unknown) => void>>;
-  readonly eventHandlers?: Readonly<Record<string, (runtime: Gw2Runtime<T>, event: Gw2ResolverEvent) => void>>;
+  onCooldownReset?(runtime: Gw2Runtime<T, TSkill>): void;
+  readonly tasks?: Readonly<Record<string, (runtime: Gw2Runtime<T, TSkill>, data: unknown) => void>>;
+  readonly eventHandlers?: Readonly<Record<string, (runtime: Gw2Runtime<T, TSkill>, event: Gw2ResolverEvent) => void>>;
   readonly reactions?: Partial<
     Record<
       Gw2ResolverStage,
       (
-        runtime: Gw2Runtime<T>,
+        runtime: Gw2Runtime<T, TSkill>,
         event: Gw2ResolverEvent,
         details: Record<string, unknown>
       ) => Record<string, unknown> | void

@@ -3,7 +3,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { radiantFireDurationMultiplier } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
@@ -83,7 +83,7 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Par
 });
 
 /** Torch activation owns its flip duration and lockout; later eligible skills clear the shared lockout. */
-export const guardianTorchActions: RuntimeProfession<GuardianRuntimeState>['sideEffectHandlers'] = {
+export const guardianTorchActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.arm-zealots-fire'(runtime, context) {
     const duration = Number(context.skill.flipDuration) * radiantFireDurationMultiplier(runtime);
     runtime.armFlip(ID.ZEALOTS_FIRE, { expiresAt: canonicalTime(runtime.time + duration), expiryPriority: -220 });

@@ -21,7 +21,7 @@ import {
   reaversCurseMultiplier,
   renewForerunnerOfDeath
 } from '#gw2/professions/revenant/specializations/vindicator/traits/behavior.js';
-import type { RevenantRuntimeState } from '#gw2/professions/revenant/types.js';
+import type { RevenantSkill, RevenantRuntimeState } from '#gw2/professions/revenant/types.js';
 
 const ENERGY_MELD_IDS = new Set<SkillId>([ID.ENERGY_MELD, ID.ENERGY_MELD_ID_72058]);
 
@@ -83,7 +83,7 @@ function energyMeld(runtime: RevenantRuntime): void {
 }
 
 /** Vindicator owns its dodge landings, Energy Meld, and Alliance invocation on the shared live state. */
-export const vindicatorHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
+export const vindicatorHooks: Partial<RuntimeProfession<RevenantRuntimeState, RevenantSkill>> = {
   // Both Energy Meld variants grant the same Vigor without coupling it to resource or armed-window changes.
 
   // The landing-only Dodge input uses the selected dodge's fixed animation.

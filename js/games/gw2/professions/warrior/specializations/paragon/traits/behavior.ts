@@ -10,9 +10,9 @@ import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-s
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { gainMotivation } from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
-import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-type Runtime = Gw2Runtime<WarriorRuntimeState>;
+type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 
 export function modifyParagonAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   // Skip when attributes have already been pre-computed in the static pass to
@@ -29,7 +29,7 @@ export function modifyParagonAttributes(context: Gw2ModifierContext, attributes:
 }
 
 /** Swaps reward resources only after committed bursts consume pending echoes. */
-export function applyInspiringImplements(runtime: Runtime, cast: RuntimeCast): void {
+export function applyInspiringImplements(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
   if (
     cast.skill.inputCategory === 'weapon-swap' &&
     hasTrait(runtime, TRAIT.INSPIRING_IMPLEMENTS) &&
@@ -42,7 +42,7 @@ export function applyInspiringImplements(runtime: Runtime, cast: RuntimeCast): v
 }
 
 /** Chant entry reduces the other chants only after opening packets and refrain scheduling. */
-export function applyFeverishPulse(runtime: Runtime, cast: RuntimeCast): void {
+export function applyFeverishPulse(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
   if (!hasTrait(runtime, TRAIT.FEVERISH_PULSE)) return;
   const feverish = requireBalanceProfileFromContext(runtime, TRAIT.FEVERISH_PULSE);
   for (const id of CHANTS) {

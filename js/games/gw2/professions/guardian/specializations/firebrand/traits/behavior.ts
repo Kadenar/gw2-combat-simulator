@@ -29,11 +29,12 @@ import type {
   GuardianConfig,
   GuardianResolverContext,
   GuardianResolverEvent,
-  GuardianRuntimeState
+  GuardianRuntimeState,
+  GuardianSkill
 } from '#gw2/professions/guardian/types.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState>;
+type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 
 /** Tome session changes reset only the counter, never refunds earned by accepted casts. */
 export function resetSwiftScholar(runtime: Runtime, virtue?: string): void {
@@ -45,7 +46,7 @@ export function resetSwiftScholar(runtime: Runtime, virtue?: string): void {
 }
 
 /** Ready tome activations grant Swift Scholar after the shared virtue rewards. */
-export function activateSwiftScholar(runtime: Runtime, cast: RuntimeCast): void {
+export function activateSwiftScholar(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
   if (boon(runtime, TRAIT.SWIFT_SCHOLAR, 'quickness', guardianCastCause(runtime, cast)))
     recordGuardianTraitProc(
       runtime,

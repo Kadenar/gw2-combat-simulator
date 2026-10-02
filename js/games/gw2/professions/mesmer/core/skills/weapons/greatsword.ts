@@ -1,9 +1,9 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { bountifulBladesMirrorBlade } from '#gw2/professions/mesmer/core/traits/behavior.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
-export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
   [ID.MIND_STAB]: {
     effects: [
       {

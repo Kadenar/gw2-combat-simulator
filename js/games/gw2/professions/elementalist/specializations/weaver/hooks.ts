@@ -10,7 +10,7 @@ import {
   flowStateAttunementReduction,
   initializeElementsOfRage
 } from '#gw2/professions/elementalist/specializations/weaver/traits/attunements.js';
-import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 /**
  * Weaver hooks: the dual-attunement mechanic.
  *
@@ -167,7 +167,7 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
 }
 
 /** Core calls the elite transition once before shared attunement completion effects. */
-function completeDualAttunement(context: ElementalistRuntime, cast: RuntimeCast): void {
+function completeDualAttunement(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const state = weaverState.from(context),
     core = professionCoreState(context),
     at = context.time,
@@ -191,7 +191,7 @@ function completeDualAttunement(context: ElementalistRuntime, cast: RuntimeCast)
 }
 
 // Commit dual-weapon and stance state at completion; Core owns the registered attunement transition.
-function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const state = weaverState.from(context);
   const at = cast.effectiveEnd;
   const dualAttunements = weaverDualAttunements(skill);
@@ -228,7 +228,7 @@ function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast, skill: Sk
 }
 
 /** Native tasks own Weave Self and stance pulses; actual controls and swaps own their trait reactions. */
-export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
+export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
   initialize,
   availability,
   // The Air bullet and Flow State reductions compose without consuming bullet state during lookup.
@@ -286,7 +286,7 @@ export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
 
   tasks: {
     'elementalist.weaver.unravel'(context, data) {
-      const { cast } = data as SkillTaskData;
+      const { cast } = data as SkillTaskData<ElementalistSkill>;
       const skill = cast.skill;
       const at = cast.effectiveEnd;
       const core = professionCoreState(context);

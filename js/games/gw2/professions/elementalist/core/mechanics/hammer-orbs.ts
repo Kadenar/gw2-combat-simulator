@@ -14,7 +14,7 @@ import {
 import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   type ElementalistAttunement,
@@ -38,7 +38,7 @@ export function hammerOrbMatchesAttunement(state: ElementalistCoreState, element
 /** Core and Weaver refresh live orbs together, emitting buffs only for newly created elements. */
 export function createHammerOrbs(
   context: ElementalistRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ElementalistSkill>,
   skill: Skill,
   elements: readonly ElementalistAttunement[]
 ): void {
@@ -75,7 +75,7 @@ export function createHammerOrbs(
 }
 
 /** Finale consumes stored orbs while keeping their buffs alive through its last packet. */
-export function consumeHammerOrbs(context: ElementalistRuntime, cast: RuntimeCast): void {
+export function consumeHammerOrbs(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const state = professionCoreState(context);
   const at = cast.effectiveEnd;
   const active = ELEMENTALIST_ATTUNEMENTS.filter((element) => {

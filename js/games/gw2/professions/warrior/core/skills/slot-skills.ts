@@ -14,13 +14,13 @@ import {
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-type WarriorRuntime = Gw2Runtime<WarriorRuntimeState>;
+type WarriorRuntime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
 
 export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -285,7 +285,7 @@ function signetPulse(runtime: WarriorRuntime): void {
 }
 
 /** Selected Signet of Rage starts its passive at accepted combat and preserves suppressed pulse cadence. */
-export const signetOfRageLifecycle: Partial<RuntimeProfession<WarriorRuntimeState>> = {
+export const signetOfRageLifecycle: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
   onCombatStart(runtime) {
     if (!selectedSkillNameSet(runtime.config.selectedSkills).has('Signet of Rage')) return;
     runtime.profession.core.nextSignetPulseAt = canonicalTime(runtime.time + 3);

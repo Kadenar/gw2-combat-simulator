@@ -82,15 +82,15 @@ function startFacet(runtime: RevenantRuntime, skill: RevenantSkill): void {
 }
 
 // A committed consume's facet and prior activity are acceptance facts reused at its completion.
-const consumedFacets = new WeakMap<RuntimeCast, { facet: RevenantSkill; wasActive: boolean }>();
+const consumedFacets = new WeakMap<RuntimeCast<RevenantSkill>, { facet: RevenantSkill; wasActive: boolean }>();
 
-function consumedFacet(runtime: RevenantRuntime, cast: RuntimeCast): RevenantSkill | undefined {
+function consumedFacet(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): RevenantSkill | undefined {
   const facetId = (MECHANICS.facetSkillByConsumeId as Readonly<Record<SkillId, SkillId>>)[cast.skill.id];
   return facetId == null ? undefined : runtime.helpers.skillsById.get(facetId);
 }
 
 /** A committed consume ends the facet's drain and passive immediately; its follow-up is spent. */
-function startConsume(runtime: RevenantRuntime, cast: RuntimeCast): void {
+function startConsume(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const facet = consumedFacet(runtime, cast);
   const wasActive = Boolean(facet && removeRevenantUpkeep(runtime, facet.id));
   runtime.resourceController.refresh('energy');
@@ -99,7 +99,7 @@ function startConsume(runtime: RevenantRuntime, cast: RuntimeCast): void {
 }
 
 /** The parent recharge and any Draconic Echo retention begin when the consume completes. */
-function completeConsume(runtime: RevenantRuntime, cast: RuntimeCast): void {
+function completeConsume(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const consumed = consumedFacets.get(cast);
   consumedFacets.delete(cast);
   if (!consumed) return;
@@ -110,7 +110,7 @@ function completeConsume(runtime: RevenantRuntime, cast: RuntimeCast): void {
 }
 
 /** True Nature (Dragon) extends boons when its authored proc lands; Core Value adds its patched extension. */
-function trueNatureDragon(runtime: RevenantRuntime, cast: RuntimeCast): void {
+function trueNatureDragon(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const proc = cast.skill.effects?.find(
     (effect) =>
       effect.type === 'custom' && (effect.event as { procType?: string } | undefined)?.procType === 'boon-extension'
@@ -180,7 +180,7 @@ function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
 }
 
 /** Herald owns facet availability, lifecycle, passives, and Dragon invocation on the shared live state. */
-export const heraldHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
+export const heraldHooks: Partial<RuntimeProfession<RevenantRuntimeState, RevenantSkill>> = {
   // Accepted recipient delivery and self-source exclusion guard the shared profile cooldown.
 
   availability(runtime, skill) {

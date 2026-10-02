@@ -118,12 +118,12 @@ export function applySoulBarbs(runtime: NecromancerRuntime): void {
 }
 
 /** Emits speed of shadows at the ordered post-entry boundary. */
-export function enterSpeedOfShadows(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function enterSpeedOfShadows(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   emitNecromancerShroudTrait(runtime, cast, TRAIT.SPEED_OF_SHADOWS);
 }
 
 /** Emits eternal life at the ordered post-entry boundary. */
-export function enterEternalLife(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function enterEternalLife(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   emitNecromancerShroudTrait(runtime, cast, TRAIT.ETERNAL_LIFE);
 }
 
@@ -192,7 +192,7 @@ export function eternalLifeReadyAt(runtime: NecromancerRuntime, cost: number): n
 }
 
 /** Scourge's non-transform cast preserves its skill attribution while granting the Core Soul Barbs window. */
-export function applyScourgeSoulBarbs(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function applyScourgeSoulBarbs(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const skill = cast.skill;
   if (hasTrait(runtime, TRAIT.SOUL_BARBS))
     runtime.emit({

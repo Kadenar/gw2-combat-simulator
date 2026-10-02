@@ -24,6 +24,7 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import { emitPacket, party } from '#gw2/professions/necromancer/specializations/scourge/mechanics/emission.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import type {
+  NecromancerSkill,
   NecromancerResolverContext,
   NecromancerResolverEvent,
   NecromancerRuntime,
@@ -97,7 +98,7 @@ export const scourgeResolverEventReactions = Object.freeze({
   condition: reactToCondition
 });
 
-export function barrierTraits(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function barrierTraits(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   for (const [trait, kind] of [
     [TRAIT.ABRASIVE_GRIT, 'might'],
     [TRAIT.DESERT_EMPOWERMENT, 'alacrity']
@@ -124,7 +125,7 @@ export function barrierTraits(runtime: NecromancerRuntime, cast: RuntimeCast): v
   }
 }
 
-export function shadeTraits(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function shadeTraits(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const skill = cast.skill;
 
   if (skill.id === ID.DESERT_SHROUD || skill.id === ID.SANDSTORM_SHROUD) {
@@ -157,10 +158,9 @@ export function shadeTraits(runtime: NecromancerRuntime, cast: RuntimeCast): voi
 }
 
 /** Owns the trait decision at the existing availability integration boundary. */
-export const heraldOfSorrowAvailability: NonNullable<RuntimeProfession<NecromancerRuntimeState>['availability']> = (
-  runtime,
-  skill
-) => {
+export const heraldOfSorrowAvailability: NonNullable<
+  RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>['availability']
+> = (runtime, skill) => {
   const herald = hasTrait(runtime, TRAIT.HERALD_OF_SORROW);
   if (skill.id === ID.SANDSTORM_SHROUD && !herald)
     return denySkillCast(skill, 'necromancer.trait-replacement', 'requires Herald of Sorrow.');
@@ -174,11 +174,9 @@ export const heraldOfSorrowAvailability: NonNullable<RuntimeProfession<Necromanc
 };
 
 /** Owns the trait decision at the existing maximumAmmo integration boundary. */
-export const sandSavantMaximumAmmo: NonNullable<RuntimeProfession<NecromancerRuntimeState>['maximumAmmo']> = (
-  runtime,
-  skill,
-  maximum
-) => {
+export const sandSavantMaximumAmmo: NonNullable<
+  RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>['maximumAmmo']
+> = (runtime, skill, maximum) => {
   return skill.id === ID.MANIFEST_SAND_SHADE && hasTrait(runtime, TRAIT.SAND_SAVANT)
     ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SAND_SAVANT), 'maximumStacks')
     : maximum;
@@ -210,6 +208,6 @@ export function sandSavantShadeProfile(runtime: NecromancerRuntime) {
 }
 
 /** Manifest's barrier reward runs after the shade is present. */
-export function desertEmpowermentManifest(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function desertEmpowermentManifest(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   if (hasTrait(runtime, TRAIT.DESERT_EMPOWERMENT)) barrierTraits(runtime, cast);
 }

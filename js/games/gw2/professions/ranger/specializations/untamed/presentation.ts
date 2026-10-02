@@ -14,7 +14,7 @@ function initialUntamedState(context: RangerUiContext): 'Pet' | 'Ranger' {
     : 'Pet';
 }
 
-function stateOption(catalog: Readonly<CanonicalCatalog>, value: 'Pet' | 'Ranger', skillId: SkillId) {
+function stateOption(catalog: Readonly<CanonicalCatalog<RangerSkill>>, value: 'Pet' | 'Ranger', skillId: SkillId) {
   const skill = catalog.skillsById.get(skillId);
   return {
     value,
@@ -100,7 +100,7 @@ function untamedStateSnapshot(context: RangerUiContext): RotationStateSnapshotIt
 }
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindUntamedUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlice {
+export function bindUntamedUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   const petSkillIds = catalog.skills.filter((skill) => skill.unleashedPetSkill).map((skill) => skill.id);
   return Object.freeze({
     startControls: (context: RangerUiContext) => [

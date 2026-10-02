@@ -1,11 +1,11 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
-export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
   [ID.PHANTASMAL_LANCER]: {
     sideEffects: [
       { on: 'castStart', do: { type: 'mesmer.consume-clarity' } },

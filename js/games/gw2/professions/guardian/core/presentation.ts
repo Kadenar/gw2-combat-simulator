@@ -62,7 +62,7 @@ function guardianCoreStateSnapshot(context: GuardianUiContext): RotationStateSna
 // Resolve named Guardian mechanic skills to their currently active flip faces for
 // stable skill-bar and palette projection.
 export function guardianUiSkillIdsByName(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<GuardianSkill>>,
   names: readonly string[],
   context: GuardianUiContext = {}
 ): SkillId[] {
@@ -85,7 +85,7 @@ export function guardianUiSkillIdsByName(
 }
 
 export function guardianUiSkillsByMode(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<GuardianSkill>>,
   property: keyof GuardianSkill,
   value: unknown = true
 ): SkillId[] {
@@ -124,7 +124,7 @@ const GUARDIAN_CORE_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[
 ]);
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog>): GuardianUiSlice {
+export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
     assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
     // Inspiring Virtue is a binary Core effect shared by every Guardian specialization.

@@ -1,15 +1,18 @@
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 
 /** Compose notifications, transforms, decisions, and task ownership using the same rules within and across modules. */
-export function composeRuntimeHooks<State extends object>(
-  hooks: readonly Partial<RuntimeProfession<State>>[]
-): Partial<RuntimeProfession<State>> {
-  const merged = <K extends 'tasks' | 'eventHandlers' | 'sideEffectHandlers'>(key: K): RuntimeProfession<State>[K] => {
+export function composeRuntimeHooks<State extends object, TSkill extends Skill = Skill>(
+  hooks: readonly Partial<RuntimeProfession<State, TSkill>>[]
+): Partial<RuntimeProfession<State, TSkill>> {
+  const merged = <K extends 'tasks' | 'eventHandlers' | 'sideEffectHandlers'>(
+    key: K
+  ): RuntimeProfession<State, TSkill>[K] => {
     const entries = hooks.flatMap((hook) => Object.entries(hook[key] ?? {}));
     if (new Set(entries.map(([name]) => name)).size !== entries.length)
       throw new TypeError(`Duplicate hook ${key} owner.`);
-    return Object.fromEntries(entries) as RuntimeProfession<State>[K];
+    return Object.fromEntries(entries) as RuntimeProfession<State, TSkill>[K];
   };
 
   const stages = new Set(hooks.flatMap((hook) => Object.keys(hook.reactions ?? {}))) as Set<Gw2ResolverStage>;
@@ -23,7 +26,7 @@ export function composeRuntimeHooks<State extends object>(
     },
     availability(context, skill, command) {
       let retryAt = context.time;
-      let blocked: ReturnType<NonNullable<RuntimeProfession<State>['availability']>> = { ready: true };
+      let blocked: ReturnType<NonNullable<RuntimeProfession<State, TSkill>['availability']>> = { ready: true };
 
       for (const hook of hooks) {
         const result = hook.availability?.(context, skill, command);
@@ -66,7 +69,7 @@ export function composeRuntimeHooks<State extends object>(
 
       return event;
     },
-    onCastStart(context: Gw2Runtime<State>, cast: RuntimeCast) {
+    onCastStart(context: Gw2Runtime<State, TSkill>, cast: RuntimeCast<TSkill>) {
       for (const hook of hooks) hook.onCastStart?.(context, cast);
     },
     onCastCommit(context, cast) {
@@ -90,7 +93,7 @@ export function composeRuntimeHooks<State extends object>(
     reactions: Object.fromEntries(
       [...stages].map((stage) => [
         stage,
-        (context: Gw2Runtime<State>, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
+        (context: Gw2Runtime<State, TSkill>, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
           let updates: Record<string, unknown> | undefined;
           for (const hook of hooks) {
             const result = hook.reactions?.[stage]?.(context, updates ? { ...event, ...updates } : event, details);

@@ -1,9 +1,9 @@
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
   [ID.CRY_OF_FRUSTRATION]: {
     sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }],
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
@@ -102,7 +102,7 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
 export const MESMER_CORE_SHATTERS: Readonly<Record<number, MesmerShatterDefinition>> = Object.freeze(
   Object.fromEntries(
     Object.entries(MESMER_PROFESSION_SKILLS_SKILL_MECHANICS).flatMap(([id, skill]) =>
-      skill.shatter ? [[Number(id), skill.shatter as MesmerShatterDefinition]] : []
+      skill.shatter ? [[Number(id), skill.shatter]] : []
     )
   )
 );

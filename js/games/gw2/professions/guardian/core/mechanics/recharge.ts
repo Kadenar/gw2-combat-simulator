@@ -9,7 +9,7 @@ import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guard
 
 /** Casts and Luminary's manual recharge apply Core owners in the established weapon-then-virtue order. */
 export function guardianRechargeWork(
-  runtime: Gw2Runtime<GuardianRuntimeState>,
+  runtime: Gw2Runtime<GuardianRuntimeState, GuardianSkill>,
   skill: GuardianSkill,
   work: number
 ): number {

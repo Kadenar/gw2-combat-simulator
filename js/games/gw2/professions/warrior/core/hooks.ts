@@ -38,7 +38,7 @@ import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Core resources and burst packets execute in the Core hooks; elite behavior composes at the family boundary. */
-export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
+export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
   // Custom verbs keep specialization-dependent resource conversion and catalog-matched targets in their owner.
   sideEffectHandlers: {
     'warrior.spend-magazine'(runtime, context) {
@@ -93,8 +93,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
 
   rechargeWork: (_runtime, skill, work) => (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS ? Math.min(5, work) : work),
 
-  availability(runtime, rawSkill) {
-    const skill = rawSkill as WarriorSkill;
+  availability(runtime, skill) {
     const state = runtime.profession.core;
     if (skill.id === ID.TACTICAL_BLOW && !skillFlipReady(state.availableFlips[ID.TACTICAL_BLOW], runtime.time))
       return {

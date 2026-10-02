@@ -10,7 +10,7 @@ import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
@@ -19,13 +19,13 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState>;
-const consumedCharges = new WeakMap<RuntimeCast, number>();
+type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+const consumedCharges = new WeakMap<RuntimeCast<GuardianSkill>, number>();
 
 /** Select illumination at acceptance so delayed packets cannot borrow a later charge or edit executed history. */
 function illuminatedSpearEffects(
   runtime: Runtime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<GuardianSkill>,
   profileId: number | string,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
@@ -106,7 +106,7 @@ function illuminatedSpearEffects(
 }
 
 /** Committed casts grant or consume the current window; an expiry wake can clear only its own deadline. */
-function completeSpearIllumination(runtime: Runtime, cast: RuntimeCast, symbol: boolean): void {
+function completeSpearIllumination(runtime: Runtime, cast: RuntimeCast<GuardianSkill>, symbol: boolean): void {
   const state = runtime.profession.core;
   if (consumedCharges.get(cast) === state.spearIlluminatedUntil) {
     state.spearIlluminatedArmed = false;
@@ -307,7 +307,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
   }
 });
 
-export const guardianSpearActions: RuntimeProfession<GuardianRuntimeState>['sideEffectHandlers'] = {
+export const guardianSpearActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.spear-illumination'(runtime, context) {
     if (context.kind === 'cast') completeSpearIllumination(runtime, context.cast, false);
   },

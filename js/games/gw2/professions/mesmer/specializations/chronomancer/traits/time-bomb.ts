@@ -13,8 +13,8 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Arms Time Bomb only after a completed Time Sink and keeps its delayed explosion attributed to that cast. */
-export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as MesmerSkill;
+export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
+  const skill = cast.skill;
   if (skill.id !== ID.TIME_SINK) return;
 
   const runtime = mesmerMechanicsFor(context);

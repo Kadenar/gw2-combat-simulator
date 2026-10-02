@@ -24,7 +24,11 @@ import {
 } from '#gw2/professions/elementalist/data/ids.js';
 import { weaverDualAttunements } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import type { ElementalistModifierContext, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistSkill,
+  ElementalistModifierContext,
+  ElementalistRuntime
+} from '#gw2/professions/elementalist/types.js';
 
 /** Seed the opener only after the mechanic has assigned both starting hands. */
 export function initializeElementsOfRage(context: ElementalistRuntime): void {
@@ -108,7 +112,7 @@ export function applyWeaversProwess(context: ElementalistRuntime, event: Simulat
 /** Preserve stance, per-element dual-skill, and ICD rewards before Fervent Stance reacts to the same cast. */
 export function applyWeaverCastTraits(
   context: ElementalistRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ElementalistSkill>,
   skill: Skill,
   dualAttunements: ReturnType<typeof weaverDualAttunements>
 ): void {
@@ -143,7 +147,7 @@ export function applyWeaverCastTraits(
 /** Unravel rewards the transition from split hands after its boons and recharge resets. */
 export function applyUnravelElementsOfRage(
   context: ElementalistRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ElementalistSkill>,
   previousPrimary: string,
   previousSecondary: string | null
 ): void {

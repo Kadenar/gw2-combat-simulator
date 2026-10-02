@@ -30,7 +30,11 @@ import {
   initializeRitualistSummonTraits,
   lingeringSpiritsActive
 } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
-import type { NecromancerRuntime, NecromancerRuntimeState } from '#gw2/professions/necromancer/types.js';
+import type {
+  NecromancerSkill,
+  NecromancerRuntime,
+  NecromancerRuntimeState
+} from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 const AUTO = 'ritualist.spirit-auto';
@@ -90,7 +94,7 @@ function queuePacket(runtime: NecromancerRuntime, key: string, event: Simulation
 /** Finite spirit attacks retain one activation and ordered secondary conditions while sharing common damage resolution. */
 function strikes(
   runtime: NecromancerRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<NecromancerSkill>,
   spirit: Spirit,
   ticks: Spirit['summonTicks'],
   attackType: string
@@ -168,7 +172,7 @@ function auto(runtime: NecromancerRuntime, data: unknown): void {
 }
 
 /** Replacing one creature preserves the shared cadence and refunds Soul Twisting only after its summon has committed. */
-function summon(runtime: NecromancerRuntime, cast: RuntimeCast, spirit: Spirit): void {
+function summon(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>, spirit: Spirit): void {
   const state = ritualistState.from(runtime);
   const key = spirit.key;
   runtime.cancelOwner(owner(key, state.spiritGenerations[key] ?? 0));
@@ -212,7 +216,7 @@ function summon(runtime: NecromancerRuntime, cast: RuntimeCast, spirit: Spirit):
 }
 
 /** Ritualist uses the shared Core resource owner and actual creature callbacks, with specialization-owned lifetimes. */
-export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = {
+export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>> = {
   ...ritualistSpellHooks,
   resources: {
     lifeForce: {

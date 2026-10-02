@@ -1,4 +1,4 @@
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -202,7 +202,7 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
 ]);
 
 /** Both throw distances keep the source's live recharge even when the attempt is interrupted. */
-export function synchronizePathOfScarsRecharge(runtime: RangerRuntime, cast: RuntimeCast): void {
+export function synchronizePathOfScarsRecharge(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   if (cast.skill.id !== ID.PATH_OF_SCARS && cast.skill.id !== ID.PATH_OF_SCARS_MAX_RANGE) return;
   runtime.cooldownController.copy(cast.skill.id, ID.PATH_OF_SCARS);
   runtime.cooldownController.copy(cast.skill.id, ID.PATH_OF_SCARS_MAX_RANGE);

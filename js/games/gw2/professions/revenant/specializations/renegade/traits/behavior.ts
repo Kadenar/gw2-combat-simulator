@@ -1,3 +1,4 @@
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -80,7 +81,7 @@ export function criticalTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent
 }
 
 /** Ashen Demeanor grants its Fervor and self boons once per healing-skill cooldown. */
-export function ashenDemeanor(runtime: RevenantRuntime, cast: RuntimeCast): void {
+export function ashenDemeanor(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   if (cast.skill.slot !== 'Heal' || !hasTrait(runtime, TRAIT.ASHEN_DEMEANOR)) return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.ashenDemeanor);
   if (!runtime.procs.claimCooldown('ashenDemeanor', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
@@ -154,7 +155,7 @@ export function fervorProfile(runtime: RevenantRuntime): BalanceProfile {
 }
 
 /** Chooses the Heroic Command payload after live Fervor has been counted. */
-export function heroicCommandProfile(runtime: RevenantRuntime, cast: RuntimeCast) {
+export function heroicCommandProfile(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>) {
   const source = hasTrait(runtime, TRAIT.LASTING_LEGACY)
     ? requireBalanceProfileFromContext(runtime, PROFILE.heroicCommandLastingLegacy)
     : cast.skill;

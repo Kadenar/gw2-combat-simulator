@@ -14,7 +14,8 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 import type {
   GuardianResolverContext,
   GuardianResolverEvent,
-  GuardianRuntimeState
+  GuardianRuntimeState,
+  GuardianSkill
 } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -167,7 +168,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
 });
 
 /** Selected field duration is shared by placement and the public combo field. */
-export function guardianIgnitionFields(runtime: Gw2Runtime<GuardianRuntimeState>): Skill['comboFields'] {
+export function guardianIgnitionFields(runtime: Gw2Runtime<GuardianRuntimeState, GuardianSkill>): Skill['comboFields'] {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.symbolOfIgnition);
   const field = requireEffect(profile, 'buff', 'guardian-symbol-of-ignition-field');
   return field
@@ -182,7 +183,7 @@ export function guardianIgnitionFields(runtime: Gw2Runtime<GuardianRuntimeState>
     : [];
 }
 
-export const guardianIgnitionActions: RuntimeProfession<GuardianRuntimeState>['sideEffectHandlers'] = {
+export const guardianIgnitionActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.place-ignition'(runtime) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.symbolOfIgnition);
     const field = requireEffect(profile, 'buff', 'guardian-symbol-of-ignition-field');

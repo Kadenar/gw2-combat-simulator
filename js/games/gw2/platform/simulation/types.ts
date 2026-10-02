@@ -3,7 +3,7 @@ import type { CriticalSigilDiagnostic } from '#gw2/platform/equipment/sigils/dia
 import type { NormalizedProfessionContract, ProfessionFamilyContract } from '#gw2/platform/engine/profession/types.js';
 import type { AmmoState, SimulationStep } from '#gw2/platform/execution/types.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type { Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
@@ -20,8 +20,9 @@ export interface Gw2PlanningStateInput<T extends object = object> {
 }
 
 export interface Gw2ProfessionContract<
-  TProfessionState extends object = object
-> extends NormalizedProfessionContract<TProfessionState> {
+  TProfessionState extends object = object,
+  TSkill extends Skill = Skill
+> extends NormalizedProfessionContract<TProfessionState, TSkill> {
   readonly projectPlanningState: (input: Gw2PlanningStateInput<TProfessionState>) => unknown;
 }
 

@@ -75,7 +75,9 @@ export interface ElementalistSkill extends Skill {
 }
 
 /** One actual gameplay context, shared by Core and the active elite. */
-export type ElementalistRuntime = Gw2Runtime<ElementalistRuntimeState> & { config: ElementalistConfig };
+export type ElementalistRuntime = Gw2Runtime<ElementalistRuntimeState, ElementalistSkill> & {
+  config: ElementalistConfig;
+};
 
 /** Scheduled event enriched with the aura and combo-field metadata Elementalist emits. */
 export type ElementalistSimulationEvent = SimulationEvent & {

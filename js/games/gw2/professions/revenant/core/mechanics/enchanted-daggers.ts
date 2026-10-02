@@ -1,3 +1,4 @@
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { effectNumber, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -50,7 +51,7 @@ export function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEve
 }
 
 /** A committed Enchanted Daggers arms its finite charge window at completion. */
-export function completeRevenantEnchantedDaggers(runtime: RevenantRuntime, cast: RuntimeCast): void {
+export function completeRevenantEnchantedDaggers(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const buff = requireEffect(cast.skill, 'buff', 'enchanted-daggers');
   // Charges are the buff's stacks, so a removed buff arms nothing.
   if (!buff) return;

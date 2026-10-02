@@ -20,7 +20,11 @@ import {
 } from '#gw2/professions/elementalist/data/ids.js';
 import { FAMILIAR_ELEMENTS } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { applyGalvanicEnchantment } from '#gw2/professions/elementalist/specializations/evoker/traits/enchantments.js';
-import type { ElementalistModifierContext, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistSkill,
+  ElementalistModifierContext,
+  ElementalistRuntime
+} from '#gw2/professions/elementalist/types.js';
 
 /** Meditation skills whose named profile effects grant Altruistic Aspect boons. */
 const ALTRUISTIC_ASPECT_SKILLS: ReadonlySet<SkillId> = new Set([
@@ -34,7 +38,11 @@ const ALTRUISTIC_ASPECT_SKILLS: ReadonlySet<SkillId> = new Set([
  * Grants Altruistic Aspect's per-meditation boon when the trait is slotted and
  * the completing skill is one of the four it covers; otherwise a no-op.
  */
-export function applyAltruisticAspect(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function applyAltruisticAspect(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   if (!hasTrait(context, TRAIT.ALTRUISTIC_ASPECT)) return;
   if (!ALTRUISTIC_ASPECT_SKILLS.has(skill.id)) return;
   const altruisticAspectProfile = requireBalanceProfileFromContext(context, TRAIT.ALTRUISTIC_ASPECT);
@@ -55,7 +63,7 @@ export function applyAltruisticAspect(context: ElementalistRuntime, cast: Runtim
 }
 
 // refreshes the Familiar's Prowess damage buff, extending an active one rather than stacking a second
-function grantFamiliarProwess(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+function grantFamiliarProwess(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const at = cast.effectiveEnd;
   const familiarsProwessProfile = requireBalanceProfileFromContext(context, TRAIT.FAMILIARS_PROWESS);
   const baseDuration = balanceProfileNumber(familiarsProwessProfile, 'durationMultiplier');
@@ -82,7 +90,11 @@ function grantFamiliarProwess(context: ElementalistRuntime, cast: RuntimeCast, s
 }
 
 // Familiar completions fan out through named steps so their ordering remains visible.
-export function applyFamiliarTraitProcs(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function applyFamiliarTraitProcs(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   const at = cast.effectiveEnd;
   if (FAMILIAR_ELEMENTS.has(skill.id) && hasTrait(context, TRAIT.FAMILIARS_PROWESS)) {
     grantFamiliarProwess(context, cast, skill);

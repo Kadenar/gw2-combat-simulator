@@ -9,9 +9,9 @@ import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { EffectEventBase } from '#gw2/platform/engine/effects/materializer.js';
 
-export interface RechargeRule<T extends object> {
+export interface RechargeRule<T extends object, TSkill extends Skill = Skill> {
   readonly trait?: SkillId;
-  readonly when: (runtime: Gw2Runtime<T>, skill: Skill) => boolean;
+  readonly when: (runtime: Gw2Runtime<T, TSkill>, skill: TSkill) => boolean;
   readonly multiplier: ProfileAmount;
   readonly order?: number;
 }
@@ -24,8 +24,8 @@ type TriggerAttribution = Partial<
       'name' | 'priority' | 'offTarget' | 'parentSkillName' | 'icon' | 'skillWeapon' | 'audience'
     >
 >;
-type TriggerAttributionSource<T extends object, Trigger> =
-  TriggerAttribution | ((runtime: Gw2Runtime<T>, trigger: Trigger) => TriggerAttribution);
+type TriggerAttributionSource<T extends object, Trigger, TSkill extends Skill = Skill> =
+  TriggerAttribution | ((runtime: Gw2Runtime<T, TSkill>, trigger: Trigger) => TriggerAttribution);
 
 type TraitTriggerBase = {
   readonly trait: SkillId;
@@ -34,38 +34,38 @@ type TraitTriggerBase = {
   readonly order?: number;
   readonly effects?: (effect: SkillEffect) => boolean;
 };
-export type TraitTrigger<T extends object> = TraitTriggerBase &
+export type TraitTrigger<T extends object, TSkill extends Skill = Skill> = TraitTriggerBase &
   (
     | {
         readonly on: 'castStart';
-        readonly when: (runtime: Gw2Runtime<T>, cast: RuntimeCast) => boolean;
-        readonly attribution?: TriggerAttributionSource<T, RuntimeCast>;
+        readonly when: (runtime: Gw2Runtime<T, TSkill>, cast: RuntimeCast<TSkill>) => boolean;
+        readonly attribution?: TriggerAttributionSource<T, RuntimeCast<TSkill>, TSkill>;
       }
     | {
         readonly on: 'castCommit';
-        readonly when: (runtime: Gw2Runtime<T>, cast: RuntimeCast) => boolean;
-        readonly attribution?: TriggerAttributionSource<T, RuntimeCast>;
+        readonly when: (runtime: Gw2Runtime<T, TSkill>, cast: RuntimeCast<TSkill>) => boolean;
+        readonly attribution?: TriggerAttributionSource<T, RuntimeCast<TSkill>, TSkill>;
       }
     | {
         readonly on: 'damage.resolved';
         readonly when: (
-          runtime: Gw2Runtime<T>,
+          runtime: Gw2Runtime<T, TSkill>,
           event: Gw2ResolverEvent,
           details: NativeResolvedDamageDetails
         ) => boolean;
-        readonly attribution?: TriggerAttributionSource<T, Gw2ResolverEvent>;
+        readonly attribution?: TriggerAttributionSource<T, Gw2ResolverEvent, TSkill>;
       }
     | {
         readonly on: Exclude<Gw2ResolverStage, 'damage.resolved'>;
-        readonly when: (runtime: Gw2Runtime<T>, event: Gw2ResolverEvent) => boolean;
-        readonly attribution?: TriggerAttributionSource<T, Gw2ResolverEvent>;
+        readonly when: (runtime: Gw2Runtime<T, TSkill>, event: Gw2ResolverEvent) => boolean;
+        readonly attribution?: TriggerAttributionSource<T, Gw2ResolverEvent, TSkill>;
       }
   );
 
 /** Compile once; declaration order breaks equal-order ties and live profile lookups keep patches authoritative. */
-export function compileRechargeRules<T extends object>(
-  rules: readonly RechargeRule<T>[]
-): (runtime: Gw2Runtime<T>, skill: Skill, work: number) => number {
+export function compileRechargeRules<T extends object, TSkill extends Skill = Skill>(
+  rules: readonly RechargeRule<T, TSkill>[]
+): (runtime: Gw2Runtime<T, TSkill>, skill: TSkill, work: number) => number {
   const ordered = [...rules].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   return (runtime, skill, work) => {
     for (const rule of ordered)
@@ -76,9 +76,9 @@ export function compileRechargeRules<T extends object>(
 }
 
 /** Each module's rules run at its hook position; committed interruptions receive the same cast rewards. */
-export function compileProfessionRules<T extends object>(
-  hooks: Partial<RuntimeProfession<T>>
-): Partial<RuntimeProfession<T>> {
+export function compileProfessionRules<T extends object, TSkill extends Skill = Skill>(
+  hooks: Partial<RuntimeProfession<T, TSkill>>
+): Partial<RuntimeProfession<T, TSkill>> {
   const compiled = { ...hooks };
   if (hooks.rechargeRules?.length) {
     const recharge = compileRechargeRules(hooks.rechargeRules);
@@ -91,7 +91,7 @@ export function compileProfessionRules<T extends object>(
   for (const rule of [...(hooks.traitTriggers ?? [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).reverse()) {
     // Wrapping in reverse declaration order keeps emissions in declaration order before the imperative owner.
     const emit = (
-      runtime: Gw2Runtime<T>,
+      runtime: Gw2Runtime<T, TSkill>,
       skillId: SkillId | null | undefined,
       skillName: string | undefined,
       resolveAttribution: () => TriggerAttribution | undefined,
@@ -138,7 +138,7 @@ export function compileProfessionRules<T extends object>(
       const prior = compiled.reactions?.[rule.on];
       compiled.reactions = {
         ...compiled.reactions,
-        [rule.on]: (runtime: Gw2Runtime<T>, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
+        [rule.on]: (runtime: Gw2Runtime<T, TSkill>, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
           // Hit predicates consume the resolved outcome, never a prediction from the packet.
           if (
             hasTrait(runtime, rule.trait) &&

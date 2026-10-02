@@ -68,16 +68,16 @@ export function thiefTrapAvailability(runtime: ThiefRuntime, skill: ThiefSkill):
 }
 
 /** A committed placement exposes its trigger immediately; the trigger arms after a recharge-scaled delay. */
-export function prepareTrap(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function prepareTrap(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const trap = THIEF_PREPARATIONS.find((candidate) => candidate.prepareId === cast.skill.id);
   if (!trap) return;
-  const skill = cast.skill as ThiefSkill;
+  const skill = cast.skill;
   const delay = Number(skill.durationMultiplier ?? 3) / runtime.cooldownController.rate(cast.skill);
   armSkillFlip(runtime.profession.core.availableFlips, trap.triggerId, runtime.time + delay, Infinity, runtime.time);
 }
 
 /** Triggering consumes the trap and mirrors its short rearm onto an already-recharged placement skill. */
-export function activateTrap(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function activateTrap(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const trap = THIEF_PREPARATIONS.find((candidate) => candidate.triggerId === cast.skill.id);
   if (!trap) return;
   consumeSkillFlip(runtime.profession.core.availableFlips, trap.triggerId);
@@ -88,7 +88,7 @@ export function activateTrap(runtime: ThiefRuntime, cast: RuntimeCast): void {
 }
 
 /** Arms the caster's finite venom charges and queues each assumed ally's bounded proc sequence. */
-export function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const venom = venomForSkill(cast.skill.id);
   if (!venom) return;
   const core = runtime.profession.core;
@@ -162,7 +162,7 @@ export function grantDistractingThrowWindow(runtime: ThiefRuntime): void {
 }
 
 /** A landed hit continues outward before occupying a ground slot; recall can intercept that flight. */
-export function grantThiefGroundAxe(runtime: ThiefRuntime, context: ActionContext): void {
+export function grantThiefGroundAxe(runtime: ThiefRuntime, context: ActionContext<ThiefSkill>): void {
   if (context.kind !== 'effect') return;
   const event = context.trigger.event;
   const axe = {
@@ -200,7 +200,7 @@ export function landThiefAxe(runtime: ThiefRuntime, data: unknown): void {
 }
 
 /** Recall repeats each live projectile's base effects, without creating new axes or scaling poison by malice again. */
-export function recallThiefAxes(runtime: ThiefRuntime, context: ActionContext): void {
+export function recallThiefAxes(runtime: ThiefRuntime, context: ActionContext<ThiefSkill>): void {
   if (context.kind !== 'cast') return;
   const axes = [
     ...runtime.profession.core.spinningAxes.filter((axe) => axe.expiresAt > runtime.time),
@@ -275,7 +275,7 @@ export function recallThiefAxes(runtime: ThiefRuntime, context: ActionContext): 
 /** Only a successful scepter chain step refreshes its three-second window from cast completion. */
 export function transitionThiefScepterChain(
   runtime: ThiefRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ThiefSkill>,
   result: AutoattackChainTransitionResult
 ): void {
   const change = result.transitions.find((entry) => entry.chainRootId === ID.SHADOW_BOLT);
@@ -321,8 +321,8 @@ function thievesGuildSummons(runtime: ThiefRuntime): ThiefSummonDefinition[] {
 }
 
 /** A committed summon replaces any active guild; its streams start with combat. */
-export function summonThievesGuild(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  const profile = (cast.skill as ThiefSkill).summonAttack;
+export function summonThievesGuild(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+  const profile = cast.skill.summonAttack;
   if (!profile) return;
   const core = runtime.profession.core;
   const expiresAt = canonicalTime(cast.start + (profile.duration || 0));

@@ -758,6 +758,7 @@ test('gear prefixes and sigils are sorted into Power and Condition groups', () =
         'Force',
         'Hydromancy',
         'Impact',
+        'Mischief',
         'Night',
         'Severance',
         'Slaying',

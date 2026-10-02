@@ -231,11 +231,11 @@ const SKILL_FIELDS = new Set([
   'windForceGain'
 ]);
 
-interface CanonicalCatalogOptions {
-  readonly generated?: readonly Skill[];
-  readonly mechanics?: Readonly<Record<string, Partial<Skill>>>;
-  readonly overrides?: Readonly<Record<string, Partial<Skill>>>;
-  readonly extraSkills?: readonly Skill[];
+interface CanonicalCatalogOptions<TSkill extends Skill> {
+  readonly generated?: readonly TSkill[];
+  readonly mechanics?: Readonly<Record<string, Partial<TSkill>>>;
+  readonly overrides?: Readonly<Record<string, Partial<TSkill>>>;
+  readonly extraSkills?: readonly TSkill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
   readonly autoattackChains?: AutoattackChainOptions;
   readonly traits?: readonly CatalogEntity[];
@@ -243,7 +243,7 @@ interface CanonicalCatalogOptions {
   readonly weapons?: readonly string[];
   readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
   readonly skillNameCollision?: 'first' | 'last';
-  readonly skillNormalizer?: (skill: Partial<Skill>) => Partial<Skill>;
+  readonly skillNormalizer?: (skill: Partial<TSkill>) => Partial<TSkill>;
 }
 
 interface NormalizedAutoattackChains {
@@ -917,9 +917,9 @@ function normalizeLockouts(lockouts: unknown, skillId: SkillId): readonly SkillL
 
 /**
  * Builds the immutable catalog consumed by the shared runtime and
- * app adapters.
+ * app adapters, preserving the owning profession's skill fields through normalization.
  */
-export function createCanonicalCatalog({
+export function createCanonicalCatalog<TSkill extends Skill = Skill>({
   generated = [],
   mechanics = {},
   overrides = {},
@@ -932,7 +932,7 @@ export function createCanonicalCatalog({
   weaponHands = {},
   skillNameCollision = 'first',
   skillNormalizer
-}: CanonicalCatalogOptions = {}): Readonly<CanonicalCatalog> {
+}: CanonicalCatalogOptions<TSkill> = {}): Readonly<CanonicalCatalog<TSkill>> {
   if (!['first', 'last'].includes(skillNameCollision)) {
     throw new TypeError(`Invalid skill name collision policy: ${skillNameCollision}`);
   }
@@ -954,7 +954,7 @@ export function createCanonicalCatalog({
     ...Object.keys(overrides).map(Number),
     ...extraSkills.map((skill) => skill.id)
   ]);
-  const normalizedSkills: Skill[] = [...allIds].map((id) => {
+  const normalizedSkills: TSkill[] = [...allIds].map((id) => {
     // Merge priority (lowest → highest): generated API data → hand-authored mechanics
     // → explicit overrides → extraSkills. Each layer shadows fields from the layer below.
     const mergedSource = {
@@ -1075,14 +1075,16 @@ export function createCanonicalCatalog({
       ...(interruptCommitMs == null ? {} : { interruptCommitMs }),
       lockouts: normalizeLockouts(merged.lockouts, id)
     };
-    return {
+    const normalized: Partial<TSkill> = {
       ...baseSkill,
       effects,
       ...(merged.sideEffects
         ? { sideEffects: Object.freeze([...merged.sideEffects].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))) }
         : {}),
       tags: Object.freeze([...(baseSkill.tags || [])])
-    } as Skill;
+    };
+    // Assembly validates required shared fields below; profession fields retain their authored types.
+    return normalized as TSkill;
   });
   const normalizedAutoattacks = normalizeAutoattackChains(normalizedSkills, autoattackChains);
   // Inject chain position data (root id + step index) into each skill after the chain
@@ -1097,7 +1099,7 @@ export function createCanonicalCatalog({
   });
   // skillsByName is used for name-based lookups (e.g. from trait/effect references).
   // The collision policy controls which skill wins when two share the same name.
-  const skillsByName = new Map<string, Skill>();
+  const skillsByName = new Map<string, TSkill>();
   for (const skill of skills) {
     if (skillNameCollision === 'last' || !skillsByName.has(skill.name)) {
       skillsByName.set(skill.name, skill);
@@ -1147,7 +1149,7 @@ export function createCanonicalCatalog({
     }
   }
 
-  const catalog: CanonicalCatalog = {
+  const catalog: CanonicalCatalog<TSkill> = {
     skills: Object.freeze(skills),
     skillsById: new Map(skills.map((skill) => [skill.id, skill])),
     skillsByName,

@@ -75,9 +75,9 @@ function selectedNamesInSlotOrder(context: EngineerUiContext = {}): (string | un
 }
 
 /** Lists equipped kits in the stable display order used by palette groups. */
-function selectedKits(catalog: Readonly<CanonicalCatalog>, context: EngineerUiContext): EngineerSkill[] {
+function selectedKits(catalog: Readonly<CanonicalCatalog<EngineerSkill>>, context: EngineerUiContext): EngineerSkill[] {
   const names = selectedNames(context);
-  return (catalog.skills as readonly EngineerSkill[])
+  return catalog.skills
     .filter((skill) => skill.kitTransition === 'equip' && names.has(skill.name))
     .sort(
       (left, right) =>
@@ -88,7 +88,10 @@ function selectedKits(catalog: Readonly<CanonicalCatalog>, context: EngineerUiCo
 
 // deduplicates by skill name — some skills have multiple IDs (different specs); keep the first
 /** Deduplicates skill IDs by canonical skill name while preserving first occurrence order. */
-export function uniqueIdsBySkillName(catalog: Readonly<CanonicalCatalog>, skillIds: readonly SkillId[]): SkillId[] {
+export function uniqueIdsBySkillName(
+  catalog: Readonly<CanonicalCatalog<EngineerSkill>>,
+  skillIds: readonly SkillId[]
+): SkillId[] {
   return [
     ...new Map(
       skillIds.map((id) => {
@@ -110,7 +113,7 @@ export function hasActiveTrait(context: EngineerUiContext, name: string): boolea
 }
 
 /** Detects the Tools trait line even when programmatic contexts omit build specialization metadata. */
-function usesToolsTraitline(catalog: Readonly<CanonicalCatalog>, context: EngineerUiContext): boolean {
+function usesToolsTraitline(catalog: Readonly<CanonicalCatalog<EngineerSkill>>, context: EngineerUiContext): boolean {
   if ((context.build?.specializations || []).some((selection) => selection.name === 'Tools')) return true;
   // Programmatic UI contexts may omit build specialization metadata, so infer
   // the Tools line from the canonical trait selection.
@@ -119,7 +122,10 @@ function usesToolsTraitline(catalog: Readonly<CanonicalCatalog>, context: Engine
 
 // toolbelt skill is the non-Detonate variant — each parent has both a toolbelt skill and a detonate flip
 /** Resolves an equipped slot skill to its non-detonate toolbelt skill. */
-function toolbeltSkillId(catalog: Readonly<CanonicalCatalog>, parentId: SkillId | undefined): SkillId | null {
+function toolbeltSkillId(
+  catalog: Readonly<CanonicalCatalog<EngineerSkill>>,
+  parentId: SkillId | undefined
+): SkillId | null {
   if (parentId == null) return null;
   return (
     uniqueSkillsByName(
@@ -131,13 +137,13 @@ function toolbeltSkillId(catalog: Readonly<CanonicalCatalog>, parentId: SkillId 
 }
 
 /** Finds the first named Engineer skill for its profession bar. */
-export function namedSkillId(catalog: Readonly<CanonicalCatalog>, name: string): SkillId | null {
+export function namedSkillId(catalog: Readonly<CanonicalCatalog<EngineerSkill>>, name: string): SkillId | null {
   return catalog.skills.find((skill) => skill.name === name)?.id ?? null;
 }
 
 /** Maps the selected slot-skill loadout to its ordered Engineer toolbelt bar. */
 export function engineerToolbeltSkillIds(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<EngineerSkill>>,
   context: EngineerUiContext
 ): (SkillId | null)[] {
   return selectedNamesInSlotOrder(context).map((name) =>
@@ -146,13 +152,13 @@ export function engineerToolbeltSkillIds(
 }
 
 /** Returns populated Core profession-skill IDs for palette and bar consumers. */
-function professionSkills(catalog: Readonly<CanonicalCatalog>, context: EngineerUiContext): SkillId[] {
+function professionSkills(catalog: Readonly<CanonicalCatalog<EngineerSkill>>, context: EngineerUiContext): SkillId[] {
   return engineerToolbeltSkillIds(catalog, context).filter((id) => id != null);
 }
 
 /** Explains whether a Core Engineer skill is usable in the currently displayed state. */
 function engineerCorePaletteSkillAvailability(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<EngineerSkill>>,
   context: EngineerUiContext = {},
   skill: EngineerSkill
 ): PaletteSkillAvailability {
@@ -244,7 +250,7 @@ function engineerEventLogRow(
 }
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog>): EngineerUiSlice {
+export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>): EngineerUiSlice {
   return Object.freeze({
     assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
     // Builds one stacked palette group per selected kit, plus Core's profession-skill group.

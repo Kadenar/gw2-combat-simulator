@@ -16,14 +16,15 @@ import type {
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
 
-const mechanics = new WeakMap<MesmerRuntime, MesmerMechanics>();
+const mechanics = new WeakMap<object, MesmerMechanics>();
 
 /** Binds immutable tables and mechanic helpers to their single live simulation owner. */
 export function registerMesmerMechanics(context: MesmerRuntime, value: MesmerMechanics): void {
   mechanics.set(context, value);
 }
 
-export function mesmerMechanicsFor(context: MesmerRuntime): MesmerMechanics {
+// Shared effect callbacks need only the registered owner's identity to find its profession mechanics.
+export function mesmerMechanicsFor(context: object): MesmerMechanics {
   const runtime = mechanics.get(context);
   if (!runtime) {
     throw new Error('Mesmer live mechanics are not initialized.');

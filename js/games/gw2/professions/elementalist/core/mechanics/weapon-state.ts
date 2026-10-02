@@ -16,7 +16,7 @@ import {
 } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { denySkillCast as unavailable } from '#gw2/platform/engine/skills/availability.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 
@@ -156,7 +156,7 @@ export const elementalistWeaponStateTasks = {
 };
 function updateAerialAgilityFlip(
   context: ElementalistRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ElementalistSkill>,
   change: AutoattackChainTransition
 ): void {
   context.cancelOwner({ id: 'elementalist.aerial-agility', generation: 0 });
@@ -177,7 +177,7 @@ function updateAerialAgilityFlip(
 /** Keeps Elementalist's attunement carryover metadata synchronized with shared chain transition results. */
 export function observeElementalistAutoattackTransition(
   context: ElementalistRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ElementalistSkill>,
   result: AutoattackChainTransitionResult
 ): void {
   const state = professionCoreState(context);

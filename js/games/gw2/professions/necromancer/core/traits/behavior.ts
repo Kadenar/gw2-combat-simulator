@@ -19,6 +19,7 @@ import {
 } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type {
+  NecromancerSkill,
   NecromancerConfig,
   NecromancerResolverContext,
   NecromancerResolverEvent,
@@ -172,12 +173,12 @@ export function modifySpitefulFortitudeAttributes(
 }
 
 /** Emits awaken the pain at the ordered post-entry boundary. */
-export function enterAwakenThePain(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function enterAwakenThePain(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   emitNecromancerShroudTrait(runtime, cast, TRAIT.AWAKEN_THE_PAIN);
 }
 
 /** Emits spiteful spirit at the ordered post-entry boundary. */
-export function enterSpitefulSpirit(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function enterSpitefulSpirit(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   emitNecromancerShroudTrait(runtime, cast, TRAIT.SPITEFUL_SPIRIT);
 }
 

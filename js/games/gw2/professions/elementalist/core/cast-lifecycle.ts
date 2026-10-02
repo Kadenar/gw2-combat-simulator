@@ -39,11 +39,15 @@ import {
 import { shareAttunementVariantRecharge } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { triggerEvasiveArcana } from '#gw2/professions/elementalist/core/traits/behavior.js';
 import { applyElementalistAura, applyGenericPostCast } from '#gw2/professions/elementalist/core/traits/dispatch.js';
-import type { ElementalistRuntime, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistSkill,
+  ElementalistRuntime,
+  ElementalistRuntimeState
+} from '#gw2/professions/elementalist/types.js';
 
 // Skill data encodes a granted aura as "Element|seconds"; malformed or
 // zero-length values grant nothing.
-function applySkillAura(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+function applySkillAura(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   if (!skill.aura) return;
   const [element, rawDuration] = String(skill.aura).split('|');
   const duration = Number(rawDuration || 0);
@@ -61,7 +65,11 @@ function applySkillAura(context: ElementalistRuntime, cast: RuntimeCast, skill: 
  * Shared cast-start observers grant declared auras, ensure the automatic companion,
  * and capture armed spear empowerments for this activation.
  */
-export function elementalistOnCastStart(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function elementalistOnCastStart(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   // Aura-bearing skills grant their aura before same-time strike/condition
   // packets, so aura-triggered modifiers can affect the skill that granted it.
   applySkillAura(context, cast, skill);
@@ -73,7 +81,11 @@ export function elementalistOnCastStart(context: ElementalistRuntime, cast: Runt
  * Shared completion observers settle attunement swaps, advance etchings and recharge,
  * consume Arcane Echo on weapons, and apply cross-skill traits.
  */
-export function elementalistOnCastCommit(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function elementalistOnCastCommit(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   // Core commits exactly one registered attunement transition for the active specialization.
   const target = targetAttunement(skill);
   if (target) {
@@ -96,7 +108,10 @@ export function elementalistOnCastCommit(context: ElementalistRuntime, cast: Run
 }
 
 /** Skill declarations own these commit triggers; handlers retain aura and companion lifetime bookkeeping. */
-export const elementalistCoreSideEffectHandlers: RuntimeProfession<ElementalistRuntimeState>['sideEffectHandlers'] = {
+export const elementalistCoreSideEffectHandlers: RuntimeProfession<
+  ElementalistRuntimeState,
+  ElementalistSkill
+>['sideEffectHandlers'] = {
   ...elementalistPistolSideEffects,
   'elementalist.capture-conjure-pickup'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Conjure pickup requires a cast trigger.');

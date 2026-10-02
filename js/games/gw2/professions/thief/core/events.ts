@@ -8,7 +8,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
-export type ThiefRuntime = Gw2Runtime<ThiefRuntimeState>;
+export type ThiefRuntime = Gw2Runtime<ThiefRuntimeState, ThiefSkill>;
 
 /** After the cast's own priority-zero packets at the completion instant. */
 const THIEF_COMPLETION_PRIORITY = 20;
@@ -17,7 +17,7 @@ const THIEF_COMPLETION_PRIORITY = 20;
 export function deferThiefCompletion(
   runtime: ThiefRuntime,
   task: string,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ThiefSkill>,
   data: Record<string, unknown> = {}
 ): void {
   runtime.scheduleForCast(task, runtime.time, cast, data, undefined, THIEF_COMPLETION_PRIORITY);

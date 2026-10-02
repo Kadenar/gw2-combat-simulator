@@ -33,12 +33,12 @@ import {
   triggerPhoenixProtocol,
   willbenderVirtueWindowProfile
 } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
-import type { GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianVirtue, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState>;
+type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 const PULSE = 'guardian.willbender.pulse';
-const readyVirtues = new WeakSet<RuntimeCast>();
+const readyVirtues = new WeakSet<RuntimeCast<GuardianSkill>>();
 const VIRTUES = [
   [ID.RUSHING_JUSTICE, 'justice'],
   [ID.FLOWING_RESOLVE, 'resolve'],
@@ -53,7 +53,7 @@ const flameOwner = (generation: number) => ({ id: 'willbender-flames', generatio
 
 /** Windows open at their authored boundary without predicting hits or resetting partial hit progress. */
 function activate(runtime: Runtime, data: unknown): void {
-  const { cast, virtue } = data as { cast: RuntimeCast; virtue: GuardianVirtue };
+  const { cast, virtue } = data as { cast: RuntimeCast<GuardianSkill>; virtue: GuardianVirtue };
   const profile = willbenderVirtueWindowProfile(runtime, virtue);
   const window = requireEffect(profile, 'buff', virtue);
   const state = willbenderState.from(runtime);
@@ -72,7 +72,7 @@ function activate(runtime: Runtime, data: unknown): void {
 
 /** Same-virtue fields overlap; a different virtue retires all pending work from the prior flame group. */
 function flames(runtime: Runtime, data: unknown): void {
-  const { cast, virtue } = data as { cast: RuntimeCast; virtue: GuardianVirtue };
+  const { cast, virtue } = data as { cast: RuntimeCast<GuardianSkill>; virtue: GuardianVirtue };
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.flames);
   const strike = requireEffect(profile, 'strike', 'Strike');
   if (!strike) return;
@@ -159,7 +159,7 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
 }
 
 /** Virtue windows, flame lifetimes, and earned recharge reductions live beside the shared cast and damage owners. */
-export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
+export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
   sideEffectHandlers: willbenderVirtueActions,
   availability(runtime, skill) {
     return skill.id === ID.REPOSE && !skillFlipReady(runtime.profession.core.availableFlips[ID.REPOSE], runtime.time)

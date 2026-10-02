@@ -23,7 +23,7 @@ import {
 } from '#gw2/professions/elementalist/core/state.js';
 import { applyElementalistAttunementTraits } from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Identifies one shared attunement-entry trait effect so a specialization can veto it. */
 export interface ElementalistAttunementTraitTrigger {
@@ -67,7 +67,7 @@ export function elementalistAttunementRechargeDuration(
  */
 export function onAttunementComplete(
   context: ElementalistRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ElementalistSkill>,
   skill: Skill,
   target: ElementalistAttunement,
   transition: ElementalistAttunementTransition = {}
@@ -160,17 +160,23 @@ export function onAttunementComplete(
   });
 }
 
-const transitions = new WeakMap<ElementalistRuntime, (runtime: ElementalistRuntime, cast: RuntimeCast) => void>();
+const transitions = new WeakMap<
+  ElementalistRuntime,
+  (runtime: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>) => void
+>();
 /** Weaver and Evoker install their attunement transition before any commands execute. */
 export function registerElementalistAttunementTransition(
   runtime: ElementalistRuntime,
-  transition: (runtime: ElementalistRuntime, cast: RuntimeCast) => void
+  transition: (runtime: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>) => void
 ): void {
   transitions.set(runtime, transition);
 }
 
 /** Core commits exactly one transition, including an elite's dual-attunement policy. */
-export function completeElementalistAttunement(runtime: ElementalistRuntime, cast: RuntimeCast): void {
+export function completeElementalistAttunement(
+  runtime: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>
+): void {
   const transition = transitions.get(runtime);
   if (transition) transition(runtime, cast);
   else {

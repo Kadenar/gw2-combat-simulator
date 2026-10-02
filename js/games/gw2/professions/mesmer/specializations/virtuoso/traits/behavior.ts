@@ -1,3 +1,4 @@
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -58,7 +59,7 @@ export function phantasmalBladesPolicy(
 
 /** Blade critical rewards preserve Deadly Blades before Jagged Mind and each packet's original actor ownership. */
 export const resolveBladeCriticalTraits: NonNullable<
-  RuntimeProfession<MesmerRuntimeState>['reactions']
+  RuntimeProfession<MesmerRuntimeState, MesmerSkill>['reactions']
 >['damage.resolved'] = (runtime, event, details) => {
   const mechanics = mesmerMechanicsFor(runtime);
   const skill = runtime.helpers.skillsById.get(event.skillId ?? '');

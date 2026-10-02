@@ -14,6 +14,7 @@ import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromance
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { TRAITS as NECROMANCER_TRAITS } from '#gw2/professions/necromancer/data/traits-data.js';
 import type {
+  NecromancerSkill,
   NecromancerResolverContext,
   NecromancerResolverEvent,
   NecromancerRuntime
@@ -269,7 +270,7 @@ const TASTE_FOR_BLOOD_STACKS_BY_SKILL = new Map<number, number>([
 ]);
 
 /** Dagger activations deliver party charges before player, minion, and allied hits spend their individual pools. */
-export function applyOverflowingThirstCast(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function applyOverflowingThirstCast(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const stacks = TASTE_FOR_BLOOD_STACKS_BY_SKILL.get(Number(cast.skill.id)) ?? 0;
   if (!stacks || !hasTrait(runtime, TRAIT.OVERFLOWING_THIRST)) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.OVERFLOWING_THIRST);

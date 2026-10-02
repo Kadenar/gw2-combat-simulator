@@ -6,7 +6,7 @@ import {
   guardianUiState
 } from '#gw2/professions/guardian/core/presentation.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import type { GuardianUiContext, GuardianUiSlice } from '#gw2/professions/guardian/types.js';
+import type { GuardianUiContext, GuardianUiSlice, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 const VIRTUE_NAMES = Object.freeze(['Spear of Justice', 'Wings of Resolve', 'Shield of Courage']);
 
@@ -26,7 +26,7 @@ function dragonhunterStateSnapshot(context: GuardianUiContext): RotationStateSna
 }
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindDragonhunterUi(catalog: Readonly<CanonicalCatalog>): GuardianUiSlice {
+export function bindDragonhunterUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
     rotationStateSnapshot: dragonhunterStateSnapshot,
     paletteGroups: (context: GuardianUiContext) => [

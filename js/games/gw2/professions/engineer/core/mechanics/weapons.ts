@@ -4,12 +4,15 @@ import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import type { RuntimeCast, RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
 
-import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
+import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 
 /** Skill declarations select each spear mutation; handlers retain lifetime ownership and release-time snapshots. */
-export const engineerSpearSideEffectHandlers: RuntimeProfession<EngineerRuntimeState>['sideEffectHandlers'] = {
+export const engineerSpearSideEffectHandlers: RuntimeProfession<
+  EngineerRuntimeState,
+  EngineerSkill
+>['sideEffectHandlers'] = {
   'engineer.lightning-rod'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Lightning Rod requires a cast trigger.');
     const { cast } = context;
@@ -74,7 +77,10 @@ export const engineerSpearSideEffectHandlers: RuntimeProfession<EngineerRuntimeS
 };
 
 /** Definitions own cast-phase flips; the deployed generation owns automatic pulses and face expiry. */
-export const engineerTurretSideEffectHandlers: RuntimeProfession<EngineerRuntimeState>['sideEffectHandlers'] = {
+export const engineerTurretSideEffectHandlers: RuntimeProfession<
+  EngineerRuntimeState,
+  EngineerSkill
+>['sideEffectHandlers'] = {
   'engineer.retire-turret'(runtime) {
     const state = runtime.profession.core;
     runtime.cancelOwner({ id: 'engineer.turret', generation: state.healingTurretGeneration++ });
@@ -100,9 +106,9 @@ export const engineerTurretSideEffectHandlers: RuntimeProfession<EngineerRuntime
   }
 };
 
-export const engineerWeaponTasks: RuntimeProfession<EngineerRuntimeState>['tasks'] = {
+export const engineerWeaponTasks: RuntimeProfession<EngineerRuntimeState, EngineerSkill>['tasks'] = {
   'engineer.rod-pulse'(runtime, data) {
-    const { cast, index } = data as { cast: RuntimeCast; index: number };
+    const { cast, index } = data as { cast: RuntimeCast<EngineerSkill>; index: number };
     emitEngineerEvent(
       runtime,
       'engineer.lightning-rod-pulse',
@@ -123,7 +129,7 @@ export const engineerWeaponTasks: RuntimeProfession<EngineerRuntimeState>['tasks
   'engineer.devastation'(runtime, data) {
     // Focused is sampled at the authored task deadline, after any intervening target-state changes.
     if (runtime.profession.core.focusedUntil <= runtime.time) return;
-    const { cast } = data as SkillTaskData;
+    const { cast } = data as SkillTaskData<EngineerSkill>;
     const followup = runtime.helpers.skillsById.get(ID.FOCUSED_DEVASTATION)!;
     for (const effect of followup.effects ?? [])
       for (const { at, event } of materializeSkillEffectApplications({

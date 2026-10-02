@@ -25,10 +25,10 @@ import {
   enduringRefrainMultiplier,
   reverberationEchoCount
 } from '#gw2/professions/warrior/specializations/paragon/traits/behavior.js';
-import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<WarriorRuntimeState>;
+type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 
 const ECHO = 'warrior.paragon-command-echo';
 
@@ -105,7 +105,7 @@ function pulseRefrain(runtime: Runtime): void {
 }
 
 /** A completed chant opens its selected packets and reduces only the other chants' existing recharge. */
-function activateChant(runtime: Runtime, cast: RuntimeCast): void {
+function activateChant(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
   const state = paragonState.from(runtime);
   state.activeRefrainId = cast.skill.id;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.chants);
@@ -171,7 +171,7 @@ function consumeEcho(runtime: Runtime, activationId: string): void {
 }
 
 /** Command instances retain independent repeats; a successful burst consumes one repeat from each pending command. */
-function activateCommand(runtime: Runtime, cast: RuntimeCast): void {
+function activateCommand(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
   const interval = balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.commands), 'pulseInterval');
   const remaining = reverberationEchoCount(runtime);
   if (interval <= 0 || remaining <= 0) return;
@@ -187,7 +187,7 @@ function activateCommand(runtime: Runtime, cast: RuntimeCast): void {
 }
 
 /** Paragon mutates live state at combat entry, committed casts, swaps, and queued pulses without replay events. */
-export const paragonHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
+export const paragonHooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
   // Declarations own eligibility; these actions retain shared motivation, replacement, and echo lifetimes.
   sideEffectHandlers: {
     'warrior.chant-activate'(runtime, context) {

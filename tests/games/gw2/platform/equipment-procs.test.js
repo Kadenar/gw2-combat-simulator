@@ -8,6 +8,77 @@ import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { applyRuntimeSigils } from '#gw2/platform/equipment/sigils/runtime.js';
 
+// Swap procs require combat and the destination sigil, with one cooldown shared across both weapon sets.
+test('Mischief shares its nine-second cooldown across equipped copies', () => {
+  const emitted = [];
+  const procs = [];
+  const runtime = {
+    combatActive: false,
+    activeWeaponSet: 1,
+    config: { sigilSets: [{ names: ['Mischief'] }, { names: [] }] },
+    sigil: { readyAt: new Map() },
+    emitDerived: (_cause, event) => emitted.push(event),
+    recordProc: (...args) => procs.push(args)
+  };
+  const swap = { type: 'weapon_set', at: 1, weaponSet: 1, skillName: 'Swap Weapons' };
+  applyRuntimeSigils(runtime, 'swap', swap);
+  assert.equal(emitted.length, 0);
+  assert.equal(runtime.sigil.readyAt.has('Mischief'), false);
+
+  runtime.combatActive = true;
+  applyRuntimeSigils(runtime, 'swap', { ...swap, weaponSet: 2 });
+  assert.equal(emitted.length, 0);
+  assert.equal(runtime.sigil.readyAt.has('Mischief'), false);
+
+  runtime.config.sigilSets[1].names = ['Mischief', 'Mischief'];
+  applyRuntimeSigils(runtime, 'swap', { ...swap, weaponSet: 2 });
+  assert.equal(procs.length, 1);
+  assert.equal(runtime.sigil.readyAt.get('Mischief'), 10);
+  const firstProcPackets = emitted.length;
+  assert.ok(firstProcPackets > 0);
+
+  for (const at of [2, 9.999, 10]) applyRuntimeSigils(runtime, 'swap', { ...swap, at });
+  assert.equal(emitted.length, firstProcPackets);
+  assert.equal(procs.length, 1);
+  applyRuntimeSigils(runtime, 'swap', { ...swap, at: 10.001 });
+  assert.equal(emitted.length, firstProcPackets * 2);
+  assert.equal(procs.length, 2);
+  assert.ok(Math.abs(runtime.sigil.readyAt.get('Mischief') - 19.001) < 1e-9);
+});
+
+// A single target receives one snowball, resolved through the normal critical-hit and blind condition paths.
+test('Mischief resolves one critical-capable snowball and two seconds of blind per target', () => {
+  const defaults = defaultSimulationConfig();
+  for (const [precision, didCrit] of [
+    [895, false],
+    [4000, true]
+  ]) {
+    const result = simulateMesmer(
+      ['__combat_start', 'Swap Weapons', { name: '__wait', waitMs: 100 }],
+      defaultSimulationConfig({
+        stats: { ...defaults.stats, precision, expertise: 0 },
+        boons: { ...defaults.boons, fury: false },
+        sigilSets: [{ names: [] }, { names: ['Mischief'] }]
+      })
+    );
+    const hits = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillName === 'Sigil of Mischief'
+    );
+    assert.equal(hits.length, 1);
+    assert.equal(hits[0].coefficient, 0.15);
+    assert.equal(hits[0].didCrit, didCrit);
+    assert.ok(hits[0].damage > 0);
+    const blind = result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.skillName === 'Sigil of Mischief'
+    );
+    assert.equal(blind.length, 1);
+    assert.equal(blind[0].condition, 'Blindness');
+    assert.equal(blind[0].stacks, 1);
+    assert.equal(blind[0].duration, 2);
+    assert.equal(blind[0].at, hits[0].at);
+  }
+});
+
 // Ice checks defiance before claiming its cooldown, independently of the sampled critical outcome.
 test('Ice rejects non-defiant hits without consuming its shared cooldown', () => {
   for (const didCrit of [false, true]) {

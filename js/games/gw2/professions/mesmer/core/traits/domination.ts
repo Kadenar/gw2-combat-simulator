@@ -1,3 +1,4 @@
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
@@ -11,7 +12,7 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Accepted player or summon control grants Vulnerability before imperative control reactions. */
-export const dazzling = defineTrait({
+export const dazzling = defineTrait<MesmerSkill>({
   id: TRAIT.DAZZLING,
   name: 'Dazzling',
   balance: {
@@ -29,7 +30,7 @@ export const dazzling = defineTrait({
 });
 
 /** Vulnerability increases owner strikes; clone and phantasm strikes remain excluded. */
-export const fragility = defineTrait({
+export const fragility = defineTrait<MesmerSkill>({
   id: TRAIT.FRAGILITY,
   name: 'Fragility',
   modifierRules: [
@@ -48,7 +49,7 @@ export const fragility = defineTrait({
 });
 
 /** The simulated target has no boons, so selected Vicious Expression always grants its strike bonus. */
-export const viciousExpression = defineTrait({
+export const viciousExpression = defineTrait<MesmerSkill>({
   id: TRAIT.VICIOUS_EXPRESSION,
   name: 'Vicious Expression',
   modifierRules: [
@@ -64,7 +65,7 @@ export const viciousExpression = defineTrait({
 });
 
 /** Only clone and phantasm strikes receive the selected illusion multiplier. */
-export const empoweredIllusions = defineTrait({
+export const empoweredIllusions = defineTrait<MesmerSkill>({
   id: TRAIT.EMPOWERED_ILLUSIONS,
   name: 'Empowered Illusions',
   modifierRules: [
@@ -80,7 +81,7 @@ export const empoweredIllusions = defineTrait({
 });
 
 /** The first eligible shatter strike uses the activating or idle target multiplier. */
-export const mentalAnguish = defineTrait({
+export const mentalAnguish = defineTrait<MesmerSkill>({
   id: TRAIT.MENTAL_ANGUISH,
   name: 'Mental Anguish',
   modifierRules: [
@@ -102,7 +103,7 @@ export const mentalAnguish = defineTrait({
 });
 
 /** At fixed full player health, Egotism benefits owner strikes only after the target loses health. */
-export const egotism = defineTrait({
+export const egotism = defineTrait<MesmerSkill>({
   id: TRAIT.EGOTISM,
   name: 'Egotism',
   modifierRules: [
@@ -121,7 +122,7 @@ export const egotism = defineTrait({
 });
 
 /** Extra berserkers and committed Mirror Blade bounces share the same active balance profile. */
-export const bountifulBlades = defineTrait({
+export const bountifulBlades = defineTrait<MesmerSkill>({
   id: TRAIT.BOUNTIFUL_BLADES,
   name: 'Bountiful Blades',
   balance: {
@@ -143,7 +144,7 @@ export const bountifulBlades = defineTrait({
 });
 
 /** Shatters apply Vulnerability per source; instrument impacts use their own resolved hit packets. */
-export const rendingShatter = defineTrait({
+export const rendingShatter = defineTrait<MesmerSkill>({
   id: TRAIT.RENDING_SHATTER,
   name: 'Rending Shatter',
   balance: {

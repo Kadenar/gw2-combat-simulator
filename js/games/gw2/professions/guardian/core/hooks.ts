@@ -36,12 +36,12 @@ import {
   writOfPersistenceFields
 } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianVirtue, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState>;
-const readyVirtueActivations = new WeakSet<RuntimeCast>();
+type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+const readyVirtueActivations = new WeakSet<RuntimeCast<GuardianSkill>>();
 /** Virtue state changes once on commitment; report packets do not restore a second copy of that state. */
-function completeCoreVirtue(runtime: Runtime, cast: RuntimeCast, virtue: GuardianVirtue): void {
+function completeCoreVirtue(runtime: Runtime, cast: RuntimeCast<GuardianSkill>, virtue: GuardianVirtue): void {
   refreshGuardianVirtues(runtime);
   if (!readyVirtueActivations.has(cast)) return;
   applyGuardianVirtueActivationTraits(runtime, cast, virtue);
@@ -49,7 +49,7 @@ function completeCoreVirtue(runtime: Runtime, cast: RuntimeCast, virtue: Guardia
 }
 
 /** Eligible completed skills release the post-Fire lockout; flip transitions remain skill-owned. */
-function clearTorchLockout(runtime: Runtime, cast: RuntimeCast): void {
+function clearTorchLockout(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
   const skill = cast.skill;
   // Profession bars and explicitly managed flips retain their specialization's sole transition owner.
   if (
@@ -68,7 +68,7 @@ function clearTorchLockout(runtime: Runtime, cast: RuntimeCast): void {
 }
 
 /** Core hooks: accepted virtues, shared recharge, endurance grants, and temporary weapon state. */
-export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
+export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
   sideEffectHandlers: {
     ...guardianTorchActions,
     ...guardianSpearActions,

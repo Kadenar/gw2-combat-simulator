@@ -28,16 +28,16 @@ import {
   restoreLuminaryArmaments,
   startSovereignOfLight
 } from '#gw2/professions/guardian/specializations/luminary/traits/behavior.js';
-import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState>;
+type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 export const AURA_GRANT = 'guardian.luminary.aura-grant';
 export const EFFULGENT = 'guardian.luminary.effulgent';
 export const STANCE = 'guardian.luminary.stance';
 
 /** Linked self effects use the packet materializer's scaling and anchor so they resolve with the selected impact. */
-export function luminaryImpactAt(cast: RuntimeCast): number {
+export function luminaryImpactAt(cast: RuntimeCast<GuardianSkill>): number {
   const effect = cast.skill.effects?.find((effect) => effect.type === 'strike' && strikeEffectCoefficient(effect) > 0);
   if (effect?.type !== 'strike') return cast.effectiveEnd;
   return canonicalTime(effectFirstAt(cast.start, cast.fullEnd, scaleCastBoundTiming(cast, cast.skill, effect)));
@@ -58,7 +58,7 @@ export function grantLuminaryAura(runtime: Runtime, event: Gw2ResolverEvent): vo
 }
 
 /** Imported boundary state is an explicit input, applied once without restoring subsequent live state. */
-function initialState(runtime: Runtime, cast: RuntimeCast): void {
+function initialState(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
   const duration = Math.max(0, cast.command.initialStateDurationMs ?? 0) / 1000;
   if (!(duration > 0)) return;
   const event = { ...guardianCastCause(runtime, cast), duration, stacks: 1 };
@@ -73,7 +73,7 @@ function initialState(runtime: Runtime, cast: RuntimeCast): void {
 }
 
 /** Schedule finite activation effects; all state mutations happen when their boundary executes. */
-export function startLuminaryEffects(runtime: Runtime, cast: RuntimeCast): void {
+export function startLuminaryEffects(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
   initialState(runtime, cast);
   const skill = cast.skill;
   const event = guardianCastCause(runtime, cast);
@@ -100,7 +100,7 @@ export function countEffulgentHit(runtime: Runtime, event: Gw2ResolverEvent, dam
 export const luminaryEffectTasks = {
   [AURA_GRANT]: (runtime: Runtime, data: unknown) => grantLuminaryAura(runtime, data as Gw2ResolverEvent),
   [STANCE](runtime: Runtime, data: unknown) {
-    const { cast, piercing } = data as { cast: RuntimeCast; piercing: boolean };
+    const { cast, piercing } = data as { cast: RuntimeCast<GuardianSkill>; piercing: boolean };
     const state = luminaryState.from(runtime);
     const duration = 8 + (piercing ? Math.max(0, state.piercingStanceUntil - runtime.time) : 0);
     if (piercing) state.piercingStanceUntil = gw2EffectExpiresAt(runtime.time, duration);

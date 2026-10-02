@@ -22,7 +22,7 @@ function reduceDuneCloakShatters(state: MesmerRuntime, at: number, source: strin
 
   if (!hasTrait(state, TRAIT.DUNE_CLOAK)) return;
   for (const id of [ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION]) {
-    const shatter = state.helpers.skillsById.get(id) as MesmerSkill | undefined;
+    const shatter = state.helpers.skillsById.get(id);
     const readyAt = shatter ? state.cooldowns.get(shatter.id) : null;
     if (shatter && readyAt != null) {
       const duneCloakProfile = requireBalanceProfileFromContext(state, TRAIT.DUNE_CLOAK);
@@ -194,7 +194,7 @@ export function initializeMirageTraits(context: MesmerRuntime): void {
 }
 
 /** Applies Self-Deception to categorized Deception skills after their casts complete. */
-export function completeMirageSkill(context: MesmerRuntime, cast: RuntimeCast): void {
+export function completeMirageSkill(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const skill = cast.skill;
   const runtime = mesmerMechanicsFor(context);
   if (

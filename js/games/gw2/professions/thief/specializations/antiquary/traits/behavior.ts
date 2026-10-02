@@ -1,3 +1,4 @@
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -57,7 +58,7 @@ export function applyExhilaratingEphemera(runtime: ThiefRuntime): void {
 /** Possessive Hoarder grants the artifact family's boon plus Alacrity. */
 export function applyPossessiveHoarder(
   runtime: ThiefRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ThiefSkill>,
   slot: ThiefArtifactSlot | undefined
 ): void {
   if (!hasTrait(runtime, TRAIT.POSSESSIVE_HOARDER)) return;

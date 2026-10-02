@@ -17,7 +17,6 @@ import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -81,8 +80,7 @@ import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types
  * Core gates for endurance, follow-up windows, spear stages, preparations, stealth replacements, rifle stance, stored
  * stolen skills, and initiative, all read from the one live state at the current instant.
  */
-function thiefAvailability(runtime: ThiefRuntime, rawSkill: Skill): AvailabilityResult {
-  const skill = rawSkill as ThiefSkill;
+function thiefAvailability(runtime: ThiefRuntime, skill: ThiefSkill): AvailabilityResult {
   const core = runtime.profession.core;
   const now = runtime.time;
   if (skill.type === 'Weapon' && skill.flipParentId != null && !skillFlipReady(core.availableFlips[skill.id], now)) {
@@ -148,8 +146,7 @@ function thiefAvailability(runtime: ThiefRuntime, rawSkill: Skill): Availability
 }
 
 /** Additive steal reductions retain their combined formula; ordinary multipliers use declared rules. */
-function thiefRechargeWork(runtime: ThiefRuntime, rawSkill: Skill, work: number): number {
-  const skill = rawSkill as ThiefSkill;
+function thiefRechargeWork(runtime: ThiefRuntime, skill: ThiefSkill, work: number): number {
   if (!skill.stealTraitSkill || skill.stealRechargeMode !== 'additive') return work;
   return work * (1 - leadAttacksRechargeReduction(runtime) - sleightOfHandRechargeReduction(runtime));
 }
@@ -157,8 +154,8 @@ function thiefRechargeWork(runtime: ThiefRuntime, rawSkill: Skill, work: number)
 const THIEF_CORE_COMPLETE = 'thief.core-complete';
 
 /** Shared swap and completion traits retain their post-packet order after intrinsic skill actions commit. */
-function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as ThiefSkill;
+function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+  const skill = cast.skill;
   const committed = !cast.cancelled;
   pruneSkillFlips(runtime.profession.core.availableFlips, runtime.time);
   if (committed && skill.stealthAttack) completeThiefStealthAttack(runtime, cast);
@@ -167,7 +164,7 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
 }
 
 /** Core hooks: initiative, endurance, stealth, steals, weapon follow-ups, utilities, and resolved trait reactions. */
-export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
+export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefSkill>> = {
   sideEffectHandlers: {
     'thief.restart-signet': restartThiefInfiltratorsSignet,
     'thief.assassins-signet': activateAssassinsSignet,
@@ -218,7 +215,7 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   reserveRecharge: (runtime, skill, work) =>
     skill.usableWhileRecharging === true && (runtime.cooldowns.get(skill.id) || 0) > runtime.time + EPSILON ? 0 : work,
   onCastStart(runtime, cast) {
-    const skill = cast.skill as ThiefSkill;
+    const skill = cast.skill;
     pruneSkillFlips(runtime.profession.core.availableFlips, runtime.time);
     spendThiefCoreResources(runtime, cast);
     if (skill.id === SHARED_SKILL_IDS.DODGE) startThiefDodge(runtime, cast);
@@ -250,7 +247,7 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     [THIEF_AXE_LAND]: landThiefAxe,
     'thief.distracting-throw-window': grantDistractingThrowWindow,
     [THIEF_CORE_COMPLETE](runtime, data) {
-      const { cast } = data as { cast: RuntimeCast };
+      const { cast } = data as { cast: RuntimeCast<ThiefSkill> };
       completeThiefCast(runtime, cast);
     },
     [THIEF_INFILTRATORS_SIGNET_PULSE]: thiefInfiltratorsSignetPulse,

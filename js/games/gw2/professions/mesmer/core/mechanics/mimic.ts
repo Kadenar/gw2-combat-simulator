@@ -1,3 +1,4 @@
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import {
   requireBalanceProfileFromContext,
@@ -11,7 +12,7 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Arms Mimic on completion and consumes it on the next eligible completed utility skill. */
-export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast): void {
+export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const skill = cast.skill;
   if (cast.cancelled) return;
 

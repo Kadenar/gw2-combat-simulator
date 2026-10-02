@@ -1,6 +1,6 @@
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
-type Runtime = Gw2Runtime<GuardianRuntimeState>;
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 export const GUARDIAN_SPEAR_EXPIRY = 'guardian.spear-expiry';
 
 /** Exclusive window expiry runs before same-time commands and cannot erase a refreshed occurrence. */

@@ -96,7 +96,7 @@ function instrumentAttack(
 /** Spends notes and commits the active-instrument state after its cast completes. */
 function commitInstrument(
   context: MesmerRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<MesmerSkill>,
   skill: MesmerSkill,
   data: MesmerInstrument,
   at: number
@@ -134,7 +134,12 @@ function commitInstrument(
 }
 
 /** Resolves Crescendo against the instruments active at its cast-start packet timestamp. */
-export function resolveCrescendo(context: MesmerRuntime, cast: RuntimeCast, skill: MesmerSkill, at: number): void {
+export function resolveCrescendo(
+  context: MesmerRuntime,
+  cast: RuntimeCast<MesmerSkill>,
+  skill: MesmerSkill,
+  at: number
+): void {
   const runtime = mesmerMechanicsFor(context);
   const damageAt = canonicalTime(cast.start + Number(skill.damageAtMs || 0) / 1000);
   const activeInstruments = activeTroubadourInstrumentsAt(
@@ -161,7 +166,11 @@ export function resolveCrescendo(context: MesmerRuntime, cast: RuntimeCast, skil
 }
 
 /** Registers performance packets at cast start while leaving note spending and instrument state at completion. */
-export function scheduleTroubadourPerformance(context: MesmerRuntime, cast: RuntimeCast, skill: MesmerSkill): void {
+export function scheduleTroubadourPerformance(
+  context: MesmerRuntime,
+  cast: RuntimeCast<MesmerSkill>,
+  skill: MesmerSkill
+): void {
   if (cast.cancelled) return;
   const runtime = mesmerMechanicsFor(context);
   const instrument = runtime.instruments[skill.id];
@@ -172,7 +181,11 @@ export function scheduleTroubadourPerformance(context: MesmerRuntime, cast: Runt
 }
 
 /** Commits Troubadour instrument state while preserving Harp's interrupt commit point. */
-export function completeTroubadourPerformance(context: MesmerRuntime, cast: RuntimeCast, skill: MesmerSkill): void {
+export function completeTroubadourPerformance(
+  context: MesmerRuntime,
+  cast: RuntimeCast<MesmerSkill>,
+  skill: MesmerSkill
+): void {
   // Committed Harp interruptions activate the instrument at their shortened completion.
 
   const runtime = mesmerMechanicsFor(context);

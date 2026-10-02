@@ -119,7 +119,7 @@ export function isCorruptionCompletionEffect(effect: SkillEffect): boolean {
 
 function corruption(runtime: NecromancerRuntime, data: unknown): void {
   const work = data as ConditionWork;
-  const skill = runtime.helpers.skillsById.get(work.skillId) as NecromancerSkill;
+  const skill = runtime.helpers.skillsById.get(work.skillId)!;
   for (const effect of skill.effects?.filter(isCorruptionCompletionEffect) ?? []) {
     if (effect.requiredTrait != null && !hasTrait(runtime, Number(effect.requiredTrait))) continue;
     if (effect.type === 'condition')
@@ -159,7 +159,7 @@ export function resolveNecromancerSkillConditions(
   event: Gw2ResolverEvent,
   profileId: SkillId
 ): void {
-  const skill = runtime.helpers.skillsById.get(event.skillId!) as NecromancerSkill;
+  const skill = runtime.helpers.skillsById.get(event.skillId!)!;
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   for (const effect of profile.effects ?? []) {
     if (effect.type !== 'condition') continue;
@@ -187,7 +187,7 @@ export function resolveNecromancerSkillConditions(
 
 /** Transfers consume live applications before the shared Plague Sending consumer. */
 export function resolveNecromancerTransfer(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
-  const skill = runtime.helpers.skillsById.get(event.skillId!) as NecromancerSkill;
+  const skill = runtime.helpers.skillsById.get(event.skillId!)!;
   transfer(runtime, skill, Number(skill.conditionsTransferred), {
     skillId: skill.id,
     activationId: event.activationId
@@ -195,12 +195,12 @@ export function resolveNecromancerTransfer(runtime: NecromancerRuntime, event: G
 }
 
 /** A committed Corruption applies local work without hostile travel or the remaining animation tail. */
-export function completeNecromancerCorruption(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function completeNecromancerCorruption(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   corruption(runtime, { skillId: cast.skill.id, activationId: cast.id });
 }
 
 /** Blood Is Power's launched opening still earns local work when cancellation precedes semantic commitment. */
-export function scheduleBloodIsPowerLaunch(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function scheduleBloodIsPowerLaunch(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   if (!cast.cancelled) return;
   const first = cast.skill.effects?.find((effect) => effect.type === 'strike');
   const timing = first && scaleCastBoundTiming(cast, cast.skill, first);
@@ -209,7 +209,7 @@ export function scheduleBloodIsPowerLaunch(runtime: NecromancerRuntime, cast: Ru
 }
 
 /** Plague Signet transfers immediately on commitment; it has no projectile or travel delay. */
-export function resolvePlagueSignetTransfer(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function resolvePlagueSignetTransfer(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   transfer(runtime, cast.skill, Number(cast.skill.conditionsTransferred), {
     skillId: cast.skill.id,
     activationId: cast.id,
@@ -218,7 +218,7 @@ export function resolvePlagueSignetTransfer(runtime: NecromancerRuntime, cast: R
 }
 
 /** Devouring Darkness samples live conditions at its precommit impact, independently of its selected strike. */
-export function scheduleDevouringDarkness(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function scheduleDevouringDarkness(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const impactAt = canonicalTime(cast.start + (cast.fullEnd - cast.start) * 0.8);
   if (impactAt <= cast.effectiveEnd)
     runtime.schedule(DEVOURING, impactAt + (cast.command.impactDelayMs ?? 0) / 1000, {
@@ -231,7 +231,7 @@ export function scheduleDevouringDarkness(runtime: NecromancerRuntime, cast: Run
 /** The impact reads conditions before emitting its own Torment; a removed strike leaves the condition packet independent. */
 function devouring(runtime: NecromancerRuntime, data: unknown): void {
   const work = data as ConditionWork;
-  const skill = runtime.helpers.skillsById.get(work.skillId) as NecromancerSkill;
+  const skill = runtime.helpers.skillsById.get(work.skillId)!;
   const count = Math.min(
     Number(skill.maximumConditions),
     targetConditionCount({ config: runtime.config, query: runtime.query, runtime, time: runtime.time })

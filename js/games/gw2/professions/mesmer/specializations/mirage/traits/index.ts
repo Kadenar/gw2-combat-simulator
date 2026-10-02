@@ -1,10 +1,11 @@
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Nomad's Endurance owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const nomadsEndurance = defineTrait({
+export const nomadsEndurance = defineTrait<MesmerSkill>({
   id: TRAIT.NOMADS_ENDURANCE,
   name: "Nomad's Endurance",
   balance: {
@@ -30,7 +31,7 @@ export const nomadsEndurance = defineTrait({
 });
 
 /** Renewing Oasis owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const renewingOasis = defineTrait({
+export const renewingOasis = defineTrait<MesmerSkill>({
   id: TRAIT.RENEWING_OASIS,
   name: 'Renewing Oasis',
   balance: {
@@ -39,7 +40,7 @@ export const renewingOasis = defineTrait({
 });
 
 /** Riddle of Sand owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const riddleOfSand = defineTrait({
+export const riddleOfSand = defineTrait<MesmerSkill>({
   id: TRAIT.RIDDLE_OF_SAND,
   name: 'Riddle of Sand',
   balance: {
@@ -48,7 +49,7 @@ export const riddleOfSand = defineTrait({
 });
 
 /** Desert Distortion owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const desertDistortion = defineTrait({
+export const desertDistortion = defineTrait<MesmerSkill>({
   id: TRAIT.DESERT_DISTORTION,
   name: 'Desert Distortion',
   balance: {
@@ -57,7 +58,7 @@ export const desertDistortion = defineTrait({
 });
 
 /** Mirage Mantle owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const mirageMantle = defineTrait({
+export const mirageMantle = defineTrait<MesmerSkill>({
   id: TRAIT.MIRAGE_MANTLE,
   name: 'Mirage Mantle',
   balance: {
@@ -66,7 +67,7 @@ export const mirageMantle = defineTrait({
 });
 
 /** Phantom Pain owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const phantomPain = defineTrait({
+export const phantomPain = defineTrait<MesmerSkill>({
   id: TRAIT.PHANTOM_PAIN,
   name: 'Phantom Pain',
   balance: {
@@ -99,7 +100,7 @@ export const phantomPain = defineTrait({
 });
 
 /** Elusive Mind owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const elusiveMind = defineTrait({
+export const elusiveMind = defineTrait<MesmerSkill>({
   id: TRAIT.ELUSIVE_MIND,
   name: 'Elusive Mind',
   balance: {
@@ -108,7 +109,7 @@ export const elusiveMind = defineTrait({
 });
 
 /** Dune Cloak owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const duneCloak = defineTrait({
+export const duneCloak = defineTrait<MesmerSkill>({
   id: TRAIT.DUNE_CLOAK,
   name: 'Dune Cloak',
   balance: {
@@ -119,10 +120,10 @@ export const duneCloak = defineTrait({
 });
 
 /** Clone ambush execution stays mechanical; its selection, lifetime, and gain reactions belong here. */
-export const infiniteHorizon = defineTrait({ id: TRAIT.INFINITE_HORIZON, name: 'Infinite Horizon' });
+export const infiniteHorizon = defineTrait<MesmerSkill>({ id: TRAIT.INFINITE_HORIZON, name: 'Infinite Horizon' });
 
 /** Self-Deception owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
-export const selfDeception = defineTrait({
+export const selfDeception = defineTrait<MesmerSkill>({
   id: TRAIT.SELF_DECEPTION,
   name: 'Self-Deception',
   balance: {

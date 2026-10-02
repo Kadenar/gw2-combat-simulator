@@ -18,7 +18,11 @@ import {
   refreshElementalistBuffs
 } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistSkill,
+  ElementalistResolverContext,
+  ElementalistRuntime
+} from '#gw2/professions/elementalist/types.js';
 
 /**
  * Convert resolved auras into Tempest trait boons and effects after the aura has been accepted by
@@ -83,14 +87,18 @@ function tempestAuraBoons(context: unknown, trait: 'Invigorating Torrents' | 'El
 }
 
 /** Shout rewards stay at committed completion after overload-specific work. */
-export function applyTempestShoutTraits(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function applyTempestShoutTraits(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   if (!hasTrait(context, TRAIT.TEMPESTUOUS_ARIA)) return;
   // Keep the party reward at this committed shout's completion while reusing named profile emission.
   emitProfiledBuff(context, cast.effectiveEnd, TRAIT.TEMPESTUOUS_ARIA, 'Shout Might', skill.name, skill.id, 0, 'party');
 }
 
 /** Committed heals receive Gale Song before overload-specific completion work. */
-export function applyGaleSong(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function applyGaleSong(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   if (skill.type === 'Heal' && hasTrait(context, TRAIT.GALE_SONG))
     emitProfiledBuff(context, cast.effectiveEnd, TRAIT.GALE_SONG, 'Protection', 'Gale Song', skill.id);
 }

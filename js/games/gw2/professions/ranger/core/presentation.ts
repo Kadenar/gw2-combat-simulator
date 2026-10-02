@@ -64,7 +64,7 @@ function activePetSkillIds(context: RangerUiContext): SkillId[] {
   return [...(selectedRangerUiPet(context)?.skillIds || [])];
 }
 
-function commandablePetSkillIds(catalog: Readonly<CanonicalCatalog>, context: RangerUiContext): SkillId[] {
+function commandablePetSkillIds(catalog: Readonly<CanonicalCatalog<RangerSkill>>, context: RangerUiContext): SkillId[] {
   const skillIds = activePetSkillIds(context).filter((skillId) =>
     rangerPetSkillCommandable(catalog.skillsById.get(skillId), rangerUiSpecialization(context))
   );
@@ -80,7 +80,7 @@ interface RangerPetPaletteGroupOptions {
 }
 
 export function rangerPetPaletteGroup(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<RangerSkill>>,
   context: RangerUiContext,
   options: RangerPetPaletteGroupOptions = {}
 ): ProfessionPaletteGroup {
@@ -172,7 +172,7 @@ function updateRangerCoreSelection(context: RangerUiContext, selection: RangerUi
 // Project runtime hammer, weapon-flip, and active-pet gates into palette state so
 // unavailable alternatives remain visible with an actionable explanation.
 function rangerCorePaletteAvailability(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<RangerSkill>>,
   context: RangerUiContext,
   skill: RangerSkill
 ): PaletteSkillAvailability {
@@ -218,7 +218,7 @@ function rangerCorePaletteAvailability(
 }
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlice {
+export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
     assumptionControls: [
       ...RANGER_ASSUMPTION_CONTROLS,

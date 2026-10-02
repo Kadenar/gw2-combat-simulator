@@ -88,8 +88,8 @@ export function enterLich(runtime: NecromancerRuntime): void {
 }
 
 /** Shroud entry preserves preparation, recharge, callbacks, resource refresh, and trait ordering. */
-export function enterNecromancerShroud(runtime: NecromancerRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as NecromancerSkill;
+export function enterNecromancerShroud(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
+  const skill = cast.skill;
   const state = runtime.profession.core;
   prepareShroudEntry(runtime);
   state.activeShroud = skill.shroudEntry!;

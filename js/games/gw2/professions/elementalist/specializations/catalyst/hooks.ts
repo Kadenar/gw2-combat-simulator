@@ -16,7 +16,7 @@ import {
   sphereSpecialistAllowsEnergy
 } from '#gw2/professions/elementalist/specializations/catalyst/traits/spheres.js';
 
-import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 /** Owns sphere execution and energy accounting; trait owners run at their original mechanic boundaries. */
 
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -73,7 +73,7 @@ function availability(context: ElementalistRuntime, skill: Skill): AvailabilityR
 
 // Spend sphere energy and schedule its attunement-specific field, pulses, and
 // boons from cast start so later attunement swaps cannot change the sphere.
-function deployJadeSphere(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+function deployJadeSphere(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const state = catalystState.from(context);
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   const sphereCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
@@ -102,7 +102,10 @@ function deployJadeSphere(context: ElementalistRuntime, cast: RuntimeCast, skill
 
 // Reset weapon cooldowns matching Catalyst's single active attunement while
 // preserving exclusions and active ammo-recharge contracts.
-function activateElementalCelerity(context: ElementalistRuntime, actionContext: ActionContext): void {
+function activateElementalCelerity(
+  context: ElementalistRuntime,
+  actionContext: ActionContext<ElementalistSkill>
+): void {
   const core = professionCoreState(context);
   for (const candidate of context.helpers.skills) {
     if (
@@ -151,7 +154,7 @@ function gainEnergy(runtime: ElementalistRuntime, event: SimulationEvent): void 
 }
 
 /** Sphere spending, weapon refreshes, and accepted-hit traits operate on the same live state. */
-export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
+export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
   initialize,
   availability,
   sideEffectHandlers: {

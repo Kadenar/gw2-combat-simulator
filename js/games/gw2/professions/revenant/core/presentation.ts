@@ -63,7 +63,7 @@ function revenantTimelineSkillIcon(context: RevenantUiContext = {}): string {
 
 /** Palette gates identify upkeeps and their releases through the bound application catalog. */
 export function revenantCorePaletteSkillAvailability(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<RevenantSkill>>,
   context: RevenantUiContext = {},
   skill: RevenantSkill
 ): PaletteSkillAvailability {
@@ -186,7 +186,7 @@ function revenantCoreStateSnapshot(
 }
 
 /** Binds Core presentation to the application catalog, whose upkeep parents identify release skills. */
-export function bindRevenantCoreUi(catalog: Readonly<CanonicalCatalog>): RevenantUiSlice {
+export function bindRevenantCoreUi(catalog: Readonly<CanonicalCatalog<RevenantSkill>>): RevenantUiSlice {
   return Object.freeze({
     assumptionControls: Object.freeze([
       ...REVENANT_ASSUMPTION_CONTROLS,

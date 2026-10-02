@@ -32,7 +32,7 @@ export function scrapperMaximumAmmo(context: EngineerRuntime, skill: EngineerSki
 }
 
 /** Owns Ex Machina tuning and its existing gameplay boundaries. */
-export const exMachina = defineTrait({
+export const exMachina = defineTrait<EngineerSkill>({
   id: TRAIT.EX_MACHINA,
   name: 'Ex Machina',
   balance: { maximumAmmo: 2 },
@@ -43,7 +43,7 @@ export const exMachina = defineTrait({
 const healingSkill = (skill: Skill | undefined) => skill?.type === 'Heal' || skill?.slot === 'Heal';
 
 /** Owns Speed of Synergy tuning and its existing gameplay boundaries. */
-export const speedOfSynergy = defineTrait({
+export const speedOfSynergy = defineTrait<EngineerSkill>({
   id: TRAIT.SPEED_OF_SYNERGY,
   name: 'Speed of Synergy',
   balance: {
@@ -84,13 +84,13 @@ export const speedOfSynergy = defineTrait({
       attribution: { actorType: 'player', name: 'Speed of Synergy \u2014 superspeed' }
     },
     ...(['Healing toolbelt superspeed', 'Med Kit toolbelt superspeed'] as const).map<
-      Extract<NonNullable<TraitDefinition['triggers']>[number], { on: 'castCommit' }>
+      Extract<NonNullable<TraitDefinition<EngineerSkill>['triggers']>[number], { on: 'castCommit' }>
     >((name) => ({
       emit: TRAIT.SPEED_OF_SYNERGY,
       on: 'castCommit' as const,
       when: (runtime, cast) =>
         cast.skill.toolbeltParentId != null &&
-        healingSkill(runtime.helpers.skillsById.get((cast.skill as EngineerSkill).toolbeltParentId!)) &&
+        healingSkill(runtime.helpers.skillsById.get(cast.skill.toolbeltParentId)) &&
         (cast.skill.toolbeltParentId === ID.MED_KIT) === (name === 'Med Kit toolbelt superspeed'),
       effects: (effect) => effect.type === 'buff' && effect.name === name,
       attribution: { actorType: 'player' as const, name: 'Speed of Synergy \u2014 superspeed' }
@@ -99,7 +99,7 @@ export const speedOfSynergy = defineTrait({
 });
 
 /** Owns Gyroscopic Acceleration tuning and its existing gameplay boundaries. */
-export const gyroscopicAcceleration = defineTrait({
+export const gyroscopicAcceleration = defineTrait<EngineerSkill>({
   id: TRAIT.GYROSCOPIC_ACCELERATION,
   name: 'Gyroscopic Acceleration',
   balance: {
@@ -119,7 +119,7 @@ export const gyroscopicAcceleration = defineTrait({
 });
 
 /** Owns System Shocker tuning and its existing gameplay boundaries. */
-export const systemShocker = defineTrait({
+export const systemShocker = defineTrait<EngineerSkill>({
   id: TRAIT.SYSTEM_SHOCKER,
   name: 'System Shocker',
   balance: {
@@ -137,7 +137,7 @@ export const systemShocker = defineTrait({
 });
 
 /** Owns Kinetic Accelerators tuning and its existing gameplay boundaries. */
-export const kineticAccelerators = defineTrait({
+export const kineticAccelerators = defineTrait<EngineerSkill>({
   id: TRAIT.KINETIC_ACCELERATORS,
   name: 'Kinetic Accelerators',
   balance: {
@@ -167,7 +167,7 @@ export const kineticAccelerators = defineTrait({
 });
 
 /** Owns Mass Momentum tuning and its existing gameplay boundaries. */
-export const massMomentum = defineTrait({
+export const massMomentum = defineTrait<EngineerSkill>({
   id: TRAIT.MASS_MOMENTUM,
   name: 'Mass Momentum',
   balance: {
@@ -210,7 +210,7 @@ export const massMomentum = defineTrait({
 });
 
 /** Owns Applied Force tuning and its existing gameplay boundaries. */
-export const appliedForce = defineTrait({
+export const appliedForce = defineTrait<EngineerSkill>({
   id: TRAIT.APPLIED_FORCE,
   name: 'Applied Force',
   balance: {
@@ -224,7 +224,7 @@ export const appliedForce = defineTrait({
 });
 
 /** Movement boons multiply Object in Motion's player-owned strike bonus. */
-export const objectInMotion = defineTrait({
+export const objectInMotion = defineTrait<EngineerSkill>({
   id: TRAIT.OBJECT_IN_MOTION,
   name: 'Object in Motion',
   modifierRules: [

@@ -99,7 +99,7 @@ function holosmithEventLogRow(
 }
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog>): EngineerUiSlice {
+export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkill>>): EngineerUiSlice {
   return Object.freeze({
     eventLogRow: holosmithEventLogRow,
     // Photon Forge changes weapon presentation only while the Holosmith slice is active.

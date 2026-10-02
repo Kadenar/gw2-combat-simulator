@@ -8,10 +8,9 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // The axe chain uses reviewed 440/520/720 ms activations to keep its completion packets aligned.
-export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
   [ID.MIRROR_STRIKES]: {
     castTimeMs: 720,
     nextChainId: null,
@@ -161,8 +160,8 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
 });
 
 /** Snapshot ordinary Axe clones at acceptance; their own lifetime still cancels pending packets. */
-export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as MesmerSkill;
+export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
+  const skill = cast.skill;
   const at = cast.fullEnd,
     castStart = cast.start;
   const { addDamage, addCondition } = mesmerMechanicsFor(state);
@@ -207,8 +206,8 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast): voi
 }
 
 /** The alternate intentionally selects surviving pre-cast clones at commitment, including same-time creation. */
-export function completeAxesConfusion(state: MesmerRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as MesmerSkill;
+export function completeAxesConfusion(state: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
+  const skill = cast.skill;
   const at = state.time,
     castStart = cast.start;
   const { addCondition } = mesmerMechanicsFor(state);

@@ -34,12 +34,12 @@ import type {
 } from '#gw2/professions/guardian/types.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 
-export type Runtime = Gw2Runtime<GuardianRuntimeState>;
+export type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 
 /** Fields are selected before registration, so extensions never rewrite an already executed action. */
 export function writOfPersistenceFields(
   runtime: Runtime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<GuardianSkill>,
   fields: Skill['comboFields']
 ): Skill['comboFields'] {
   if (isGuardianSymbolSkill(cast.skill) && hasTrait(runtime, TRAIT.WRIT_OF_PERSISTENCE)) {
@@ -57,7 +57,7 @@ export function writOfPersistenceFields(
 /** Select authored trait extensions once and leave cancellation, impact delay, and boon sampling to the common runtime. */
 export function writOfPersistenceEffects(
   runtime: Runtime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<GuardianSkill>,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   const extra: SkillEffect[] = [];
@@ -122,7 +122,7 @@ export function writOfPersistenceEffects(
 }
 
 /** A committed heal claims Protection's interval only when its selected symbol can emit. */
-export function completeProtectorsRestoration(runtime: Runtime, cast: RuntimeCast): void {
+export function completeProtectorsRestoration(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
   if (cast.skill.type !== 'Heal') return;
   const cause = { ...guardianCastCause(runtime, cast), type: 'action' as const };
 
@@ -171,7 +171,7 @@ export function modifyGuardianConditionBaseDuration(context: Gw2ModifierContext,
 }
 
 /** A committed heal claims Resolution's interval only when its selected boon can emit. */
-export function completeHealersResolution(runtime: Runtime, cast: RuntimeCast): void {
+export function completeHealersResolution(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
   if (cast.skill.type !== 'Heal') return;
   const cause = { ...guardianCastCause(runtime, cast), type: 'action' as const };
 
@@ -338,7 +338,13 @@ export const focusMasteryRecharge = compileRechargeRules<GuardianRuntimeState>([
 ]);
 
 /** Committed activation boons sample live attributes and retain their selected component and party ownership. */
-function virtueBuff(runtime: Runtime, cast: RuntimeCast, trait: number, kind: string, party = false): void {
+function virtueBuff(
+  runtime: Runtime,
+  cast: RuntimeCast<GuardianSkill>,
+  trait: number,
+  kind: string,
+  party = false
+): void {
   if (!hasTrait(runtime, trait)) return;
   const profile = requireBalanceProfileFromContext(runtime, trait);
   const type = kind === 'guardian-inspiring-virtue' ? 'buff' : 'boon';
@@ -416,7 +422,7 @@ export const masterOfConsecrationsEffects: NonNullable<Skill['effectVariants']>[
 /** Extend Purging Flames before Writ's separate symbol-field adjustment. */
 export function masterOfConsecrationsFields(
   runtime: Runtime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<GuardianSkill>,
   fields: Skill['comboFields']
 ): Skill['comboFields'] {
   if (cast.skill.id !== ID.PURGING_FLAMES || !hasTrait(runtime, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS))
@@ -497,7 +503,7 @@ export function battlePresenceSharesBoons(context: unknown): boolean {
 /** Ready Justice activations claim symbol recharge at the permanent Alacrity rate. */
 export function triggerGuardianFuriousFocus(
   runtime: Runtime,
-  cast: { id: string; skill: Pick<RuntimeCast['skill'], 'id' | 'name'> }
+  cast: { id: string; skill: Pick<RuntimeCast<GuardianSkill>['skill'], 'id' | 'name'> }
 ): void {
   if (!hasTrait(runtime, TRAIT.FURIOUS_FOCUS)) return;
   const state = runtime.profession.core;
@@ -631,7 +637,7 @@ export const symbols: Readonly<Record<SkillId, Skill>> = {
 
 /** A triggered symbol owns a distinct activation and schedules only its surviving selected components. */
 export function emitTraitSymbol(
-  runtime: Gw2Runtime<GuardianRuntimeState>,
+  runtime: Gw2Runtime<GuardianRuntimeState, GuardianSkill>,
   trait: number,
   symbolId: SkillId,
   cause: Gw2ResolverEvent,
@@ -685,7 +691,11 @@ export function emitTraitSymbol(
 }
 
 /** Core and elite owners invoke the same activation boons after admitting their own passive-readiness gate. */
-export function applyGuardianVirtueActivationTraits(runtime: Runtime, cast: RuntimeCast, virtue: GuardianVirtue): void {
+export function applyGuardianVirtueActivationTraits(
+  runtime: Runtime,
+  cast: RuntimeCast<GuardianSkill>,
+  virtue: GuardianVirtue
+): void {
   virtueBuff(
     runtime,
     cast,

@@ -6,19 +6,19 @@ import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { Skill, SkillId, SkillEffect, BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId, SkillEffect, BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerInstrument } from '#gw2/professions/mesmer/types.js';
 
 // Tales capture eligibility at acceptance and grant their intrinsic rewards at commitment.
-const TROUBADOUR_TALE_ACTIONS: NonNullable<Skill['sideEffects']> = [
+const TROUBADOUR_TALE_ACTIONS: NonNullable<MesmerSkill['sideEffects']> = [
   { on: 'castStart', do: { type: 'mesmer.troubadour.prepare-tale' } },
   { on: 'castCommit', do: { type: 'mesmer.troubadour.resolve-tale' } }
 ];
 
 /** Player performances materialize the same patchable attacks as afterimages on an explicit cast-start clock. */
-function instrumentEffects(profileId: string): NonNullable<Skill['effectVariants']> {
+function instrumentEffects(profileId: string): NonNullable<MesmerSkill['effectVariants']> {
   return [
     {
       profileId,
@@ -53,13 +53,13 @@ function instrumentEffects(profileId: string): NonNullable<Skill['effectVariants
   ];
 }
 
-const INSTRUMENT_ACTIONS: NonNullable<Skill['sideEffects']> = [
+const INSTRUMENT_ACTIONS: NonNullable<MesmerSkill['sideEffects']> = [
   { on: 'castStart', do: { type: 'mesmer.troubadour.performance-traits' } },
   { on: 'castCommit', do: { type: 'mesmer.troubadour.commit-instrument' } }
 ];
 
 export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
-  Record<SkillId, Partial<Skill> & { readonly instrument?: MesmerInstrument }>
+  Record<SkillId, Partial<MesmerSkill> & { readonly instrument?: MesmerInstrument }>
 > = Object.freeze({
   [ID.LIVELY_LUTE]: {
     sideEffects: INSTRUMENT_ACTIONS,
@@ -320,11 +320,10 @@ export const MESMER_TROUBADOUR_INSTRUMENTS: Readonly<Record<number, MesmerInstru
   )
 );
 
-export const MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Skill>>> = Object.freeze(
-  {}
-);
+export const MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<MesmerSkill>>> =
+  Object.freeze({});
 
-export const MESMER_TROUBADOUR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+export const MESMER_TROUBADOUR_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze([
   createDodgeSkill({
     description: 'Spend 50 endurance to evade. Mayhem reduces Flustering Flute recharge.',
     specialization: 'Troubadour',
@@ -344,7 +343,7 @@ export const MESMER_TROUBADOUR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
 export const TROUBADOUR_TALE_PROFILES: readonly BalanceProfile[] = Object.entries(
   MESMER_TROUBADOUR_SKILL_MECHANICS
 ).flatMap(([id, skill]) => {
-  const tale = skill.tale as MesmerSkill['tale'];
+  const tale = skill.tale;
   return tale
     ? [
         {

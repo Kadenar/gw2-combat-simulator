@@ -1,3 +1,4 @@
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import {
   gladiatorSharedWisdom,
   hexEaterSharedWisdom,
@@ -24,10 +25,10 @@ import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
 // The accepted main/follow-up identity survives charge consumption and variant selection.
-const hazeMainCasts = new WeakSet<RuntimeCast>();
+const hazeMainCasts = new WeakSet<RuntimeCast<RevenantSkill>>();
 
 /** A completed main cast arms the follow-up charges on the shared ammo pool, retaining its main recharge. */
-export function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCast): void {
+export function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const skill = cast.skill;
   const state = conduitState.from(runtime);
   if (hazeMainCasts.has(cast)) {
@@ -64,7 +65,7 @@ export function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCas
 }
 
 const hexEaterCleanses = new WeakMap<
-  RuntimeCast,
+  RuntimeCast<RevenantSkill>,
   {
     configured: number;
     conditions: RevenantRuntime['profession']['core']['selfConditions'];
@@ -74,7 +75,7 @@ const hexEaterCleanses = new WeakMap<
 /** Select projectiles now; defer removal of the selected conditions until commitment. */
 function hexEaterEffects(
   runtime: RevenantRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<RevenantSkill>,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   if (cast.cancelled) return [];
@@ -117,7 +118,7 @@ function hexEaterEffects(
 /** Selection precedes charge spending, so the final follow-up keeps its profile and shared recharge. */
 function selectBeguilingHaze(
   runtime: RevenantRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<RevenantSkill>,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   if (cast.cancelled) return [];
@@ -128,7 +129,7 @@ function selectBeguilingHaze(
 }
 
 /** Cleanse only the condition objects reserved when this skill was accepted. */
-export function cleanseHexEater(runtime: RevenantRuntime, cast: RuntimeCast): void {
+export function cleanseHexEater(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const selected = hexEaterCleanses.get(cast);
   if (!selected) return;
   const core = runtime.profession.core;

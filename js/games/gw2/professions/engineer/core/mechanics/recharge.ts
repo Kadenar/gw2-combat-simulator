@@ -4,7 +4,7 @@ import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/t
 /** Recharge reductions operate on live remaining work, including ammo recharge, and report only effective changes. */
 export function reduceEngineerRecharge(
   runtime: EngineerRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<EngineerSkill>,
   predicate: (skill: EngineerSkill) => boolean,
   seconds: number,
   sourceId: number | string,

@@ -47,13 +47,13 @@ import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Completion tasks apply state at the authored boundary, including committed shortened animations. */
-function complete(runtime: MesmerRuntime, cast: RuntimeCast): void {
-  completeMesmerCast(runtime, cast, cast.skill as MesmerSkill);
+function complete(runtime: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
+  completeMesmerCast(runtime, cast, cast.skill);
   completeMimicCast(runtime, cast);
 }
 
 /** Core owns casts, clones, and accepted impact reactions on the shared clock. */
-export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
+export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState, MesmerSkill>> = {
   sideEffectHandlers: {
     'mesmer.shatter'(runtime, context) {
       if (context.kind === 'cast') commitMesmerShatter(runtime, context.cast);
@@ -65,10 +65,10 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       prepareMesmerMantra(runtime, ID.POWER_SPIKE);
     },
     'mesmer.exhaust-mantra'(runtime, context) {
-      exhaustMesmerMantra(runtime, context.skill as MesmerSkill);
+      exhaustMesmerMantra(runtime, context.skill);
     },
     'mesmer.extend-parent-recharge'(runtime, context) {
-      extendMesmerParentRecharge(runtime, context.skill as MesmerSkill);
+      extendMesmerParentRecharge(runtime, context.skill);
     },
     'mesmer.arm-mimic': armMimic,
     'mesmer.detonate-imagery'(runtime, context) {
@@ -89,11 +89,11 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
         );
     },
     'mesmer.summon-phantasm'(runtime, context) {
-      if (context.kind === 'cast') scheduleMesmerPhantasmEffects(runtime, context.cast, context.skill as MesmerSkill);
+      if (context.kind === 'cast') scheduleMesmerPhantasmEffects(runtime, context.cast, context.skill);
     },
     'mesmer.grant-clarity'(runtime, context) {
       if (context.kind !== 'cast') return;
-      const skill = context.skill as MesmerSkill;
+      const skill = context.skill;
       withMesmerCastEmission(runtime, context.cast, skill, () =>
         emitMesmerEffects(
           runtime,
@@ -118,7 +118,7 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     },
     'mesmer.tracked-hit'(runtime, context) {
       if (context.kind !== 'effect') return;
-      scheduleMesmerTrackedHits(runtime, mesmerMechanicsFor(runtime).addDamage, context.skill as MesmerSkill, [
+      scheduleMesmerTrackedHits(runtime, mesmerMechanicsFor(runtime).addDamage, context.skill, [
         context.trigger.event.at
       ]);
     }
@@ -150,7 +150,7 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       event,
       runtime.profession.core.clones.map((clone) => `mesmer.clone:${clone.id}`)
     );
-    const skill = runtime.helpers.skillsById.get(prepared.skillId ?? '') as MesmerSkill | undefined;
+    const skill = runtime.helpers.skillsById.get(prepared.skillId ?? '');
     return prepared.type === 'damage' && skill?.blade
       ? { ...prepared, metadata: { ...prepared.metadata, blade: true } }
       : prepared;
@@ -159,14 +159,14 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
   rechargeWork: mesmerRechargeWork,
   maximumAmmo: mesmerMaximumAmmo,
   modifyEffects(runtime, cast, effects) {
-    const skill = cast.skill as MesmerSkill;
+    const skill = cast.skill;
     if (skill.phantasm)
       return effects.filter((effect) => effect.type === 'control' && effect.summonKind !== 'phantasm');
     if (mesmerMechanicsFor(runtime).shatters[skill.id] || skill.id === ID.INSPIRING_IMAGERY) return [];
     return effects.filter((effect) => !(effect.type === 'buff' && effect.kind === 'clarity'));
   },
   onCastStart(runtime, cast) {
-    const skill = cast.skill as MesmerSkill;
+    const skill = cast.skill;
     startMesmerCast(runtime, cast, skill);
   },
   // Cancellation refunds reserved shatter resources and clears the same cast-local bookkeeping.
@@ -193,12 +193,12 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     },
     'mesmer.signet-illusions-passive': signetIllusionsPulse,
     'mesmer.core.imagery-expire': (runtime, data) =>
-      expireInspiringImagery(runtime, (data as { cast: RuntimeCast }).cast),
+      expireInspiringImagery(runtime, (data as { cast: RuntimeCast<MesmerSkill> }).cast),
     'mesmer.core.chaos-storm-poison': (runtime, data) =>
-      scheduleChaosStormPoison(runtime, (data as { cast: RuntimeCast }).cast),
+      scheduleChaosStormPoison(runtime, (data as { cast: RuntimeCast<MesmerSkill> }).cast),
     'mesmer.core.restart-signet-illusions-passive': (runtime) => restartSignetIllusionsPassive(runtime, runtime.time),
     'mesmer.core.relock-signet-ether'(runtime, data) {
-      const cast = (data as { cast: RuntimeCast }).cast;
+      const cast = (data as { cast: RuntimeCast<MesmerSkill> }).cast;
       const readyAt = runtime.time + cast.rechargeWork / runtime.cooldownController.rate(cast.skill);
       if (readyAt > (runtime.cooldowns.get(cast.skill.id) ?? 0))
         runtime.cooldownController.startRecharge(cast.skill, runtime.time, cast.rechargeWork);

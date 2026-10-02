@@ -132,7 +132,7 @@ export function extendEnhancedEmbodiment(runtime: RevenantRuntime, formActive: b
 }
 
 /** Scales the already-selected base recharge at the original mechanic boundary. */
-export const enhancedEmbodimentRecharge = compileRechargeRules<RevenantRuntimeState>([
+export const enhancedEmbodimentRecharge = compileRechargeRules<RevenantRuntimeState, RevenantSkill>([
   {
     trait: TRAIT.ENHANCED_EMBODIMENT,
     when: (runtime, skill) => skill.id === ID.SWAP_LEGENDS && runtime.combatStartedAt(),
@@ -157,7 +157,7 @@ export function grantExpandedConsciousness(runtime: RevenantRuntime, previous: n
 }
 
 /** Applies the trait at the mechanic's existing execution boundary. */
-export function grantFoundPurpose(runtime: RevenantRuntime, cast: RuntimeCast, combat: boolean): void {
+export function grantFoundPurpose(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, combat: boolean): void {
   if (combat && hasTrait(runtime, TRAIT.FOUND_PURPOSE)) numinousGift(runtime, cast, true);
 }
 
@@ -188,7 +188,7 @@ export function effectiveConduitAffinity(runtime: RevenantRuntime): number {
 }
 
 /** Scales the already-selected base recharge at the original mechanic boundary. */
-export const kineticInsightRecharge = compileRechargeRules<RevenantRuntimeState>([
+export const kineticInsightRecharge = compileRechargeRules<RevenantRuntimeState, RevenantSkill>([
   {
     trait: TRAIT.KINETIC_INSIGHT,
     when: (_runtime, skill) => RELEASE_POTENTIAL_IDS.has(skill.id),
@@ -211,7 +211,7 @@ export function grantLingeringDetermination(runtime: RevenantRuntime, combat: bo
 }
 
 /** Applies the trait at the mechanic's existing execution boundary. */
-export function emitCosmicMistfire(runtime: RevenantRuntime, cast: RuntimeCast): void {
+export function emitCosmicMistfire(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   if (hasTrait(runtime, TRAIT.MISTFIRE)) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.mistfire);
     emitEffects(runtime, {

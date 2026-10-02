@@ -17,7 +17,10 @@ function beastmodeActive(context: RangerUiContext): boolean {
   return rangerUiState(context).beastmodeActive !== false;
 }
 
-function paletteGroups(catalog: Readonly<CanonicalCatalog>, context: RangerUiContext): ProfessionPaletteGroup[] {
+function paletteGroups(
+  catalog: Readonly<CanonicalCatalog<RangerSkill>>,
+  context: RangerUiContext
+): ProfessionPaletteGroup[] {
   const active = beastmodeActive(context);
   const groups: ProfessionPaletteGroup[] = [
     {
@@ -50,7 +53,7 @@ function soulbeastStateSnapshot(context: RangerUiContext): RotationStateSnapshot
 }
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindSoulbeastUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlice {
+export function bindSoulbeastUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   const beastmodeSkillIds = new Set(catalog.skills.filter((skill) => skill.beastmodeSkill).map((skill) => skill.id));
 
   function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {

@@ -6,17 +6,17 @@ import {
 } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 
 export interface ProfessionModuleDataOptions<TSkill extends Skill = Skill> {
-  readonly skillMechanics: Readonly<Record<string, Partial<Skill>>>;
+  readonly skillMechanics: Readonly<Record<string, Partial<TSkill>>>;
   readonly extraSkills?: readonly TSkill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
 }
 
-interface ProfessionModuleDataFamily extends Pick<
-  NativeModuleDataSelection,
+interface ProfessionModuleDataFamily<TSkill extends Skill> extends Pick<
+  NativeModuleDataSelection<TSkill>,
   'generatedSkills' | 'sharedExtraSkills' | 'traits' | 'specializations'
 > {
   readonly core?: Pick<
-    NativeModuleDataSelection,
+    NativeModuleDataSelection<TSkill>,
     'weapons' | 'weaponHands' | 'autoattackChains' | 'skillNameOverrides'
   >;
   readonly specializationOnlySkills?: Readonly<Record<string, readonly SkillId[]>>;
@@ -27,12 +27,12 @@ export function createProfessionModuleDataFactory<TSkill extends Skill = Skill>(
   core,
   specializationOnlySkills = {},
   ...family
-}: ProfessionModuleDataFamily) {
+}: ProfessionModuleDataFamily<TSkill>) {
   return (
     id: string,
     options: ProfessionModuleDataOptions<TSkill> &
       Pick<
-        NativeModuleDataSelection,
+        NativeModuleDataSelection<TSkill>,
         'skillOverrides' | 'autoattackChains' | 'skillNameOverrides' | 'specializationOnlySkillIds'
       >
   ) => {

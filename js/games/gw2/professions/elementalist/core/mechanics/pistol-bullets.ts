@@ -23,17 +23,20 @@ import {
 import { emitProfiledBuff, emitProfiledCondition } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/dispatch.js';
-import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 
 /** Reads the completion-time bullet before the declaration's final load/spend action changes it. */
-export function hasPistolBullet(context: Gw2Runtime, cast: RuntimeCast): boolean {
+export function hasPistolBullet(context: Gw2Runtime, cast: RuntimeCast<ElementalistSkill>): boolean {
   return readProfessionCoreState<ElementalistCoreState>(context.profession).pistolBullets![
     cast.skill.attunement as ElementalistAttunement
   ];
 }
 
 /** Payloads are selected by the skill; the last action toggles its element exactly once. */
-export const elementalistPistolSideEffects: RuntimeProfession<ElementalistRuntimeState>['sideEffectHandlers'] = {
+export const elementalistPistolSideEffects: RuntimeProfession<
+  ElementalistRuntimeState,
+  ElementalistSkill
+>['sideEffectHandlers'] = {
   'elementalist.pistol.load-or-spend'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol bullets require a cast trigger.');
     const element = trigger.skill.attunement as ElementalistAttunement;

@@ -90,8 +90,8 @@ export function modifyThiefLifeSiphon(context: ThiefResolverContext, event: Thie
 }
 
 /** Initiative spent grants Lead Attacks stacks at completion, replacing the oldest at the cap. */
-export function applyLeadAttacks(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as ThiefSkill;
+export function applyLeadAttacks(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+  const skill = cast.skill;
   const cost = Math.max(0, skill.initiativeCost || 0);
   if (cost <= 0 || !hasTrait(runtime, TRAIT.LEAD_ATTACKS)) return;
   const core = runtime.profession.core;
@@ -193,7 +193,7 @@ export const SIGNET_INITIATIVE: NonNullable<NonNullable<Skill['sideEffects']>> =
 ];
 
 /** Sundering Shade's Vulnerability follows the completed stealth attack. */
-export function completeThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function completeThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   if (!hasTrait(runtime, TRAIT.SUNDERING_SHADE)) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.SUNDERING_SHADE);
   const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
@@ -212,7 +212,7 @@ export function completeThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeC
 }
 
 /** Uncatchable's caltrop pulses are queued from the dodge's takeoff; the runtime has already paid its endurance. */
-export function startThiefDodge(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function startThiefDodge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   if (!hasTrait(runtime, TRAIT.UNCATCHABLE)) return;
   // Each condition's authored timing is authoritative; removing one component leaves its sibling's pulses intact.
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.UNCATCHABLE);

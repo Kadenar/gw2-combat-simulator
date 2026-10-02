@@ -112,7 +112,7 @@ export type MesmerResolverEvent = Gw2ResolverEvent & {
 };
 
 /** All mechanic owners mutate the shared live runtime. */
-export type MesmerRuntime = Gw2Runtime<MesmerRuntimeState>;
+export type MesmerRuntime = Gw2Runtime<MesmerRuntimeState, MesmerSkill>;
 
 /** Mesmer helpers share the live context as the sole owner of traits, skills, and balance profiles. */
 export interface MesmerMechanics {

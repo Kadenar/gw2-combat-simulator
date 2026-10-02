@@ -8,17 +8,21 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** The skill's commit declaration opens the profiled window for the next recharging weapon cast. */
-export function armArcaneEcho(context: ElementalistRuntime, cast: RuntimeCast): void {
+export function armArcaneEcho(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const arcaneEchoProfile = requireBalanceProfileFromContext(context, PROFILE.arcaneEcho);
   professionCoreState(context).arcaneEchoUntil =
     cast.effectiveEnd + balanceProfileNumber(arcaneEchoProfile, 'durationMultiplier');
 }
 
 /** Observes weapon completions to consume an armed window and transfer their recharge work. */
-export function completeArcaneEcho(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function completeArcaneEcho(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   const state = professionCoreState(context);
 
   // Zero means unarmed; an armed window stops granting resets at its expiry.

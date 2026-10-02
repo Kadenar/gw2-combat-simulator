@@ -20,7 +20,7 @@ export function selectedDodge(runtime: RevenantRuntime): RevenantSkill | undefin
 }
 
 /** Shared Dodge and Vindicator Jump resolve landings at the authored offset from their landing origin. */
-export function scheduleLanding(runtime: RevenantRuntime, cast: RuntimeCast, origin: number): void {
+export function scheduleLanding(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, origin: number): void {
   const profile = selectedDodge(runtime);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'strike' || candidate.type === 'boon');
   if (!profile || !effect) return;

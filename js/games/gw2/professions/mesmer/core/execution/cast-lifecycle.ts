@@ -20,7 +20,7 @@ export function dispatchShatterResolved(context: MesmerRuntime, resolution: Mesm
 /** Registers procedural packets with cast attribution while preserving interruption filtering. */
 export function withMesmerCastEmission(
   context: MesmerRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<MesmerSkill>,
   skill: MesmerSkill,
   emit: () => void,
   interruptedEnd = cast.effectiveEnd
@@ -43,7 +43,7 @@ export function withMesmerCastEmission(
 
 /** Recognizes interrupted casts that reached their authored summon point using the caller's phase tolerance. */
 export function isCommittedInterruptedPhantasm(
-  cast: Pick<RuntimeCast, 'start' | 'fullEnd' | 'effectiveEnd'>,
+  cast: Pick<RuntimeCast<MesmerSkill>, 'start' | 'fullEnd' | 'effectiveEnd'>,
   skill: Pick<MesmerSkill, 'phantasmSummonProgress'>
 ): boolean {
   const progress = Number(skill.phantasmSummonProgress);
@@ -52,7 +52,11 @@ export function isCommittedInterruptedPhantasm(
 }
 
 /** Registers phantasm packets at cast start so observers see their authored timeline in order. */
-export function scheduleMesmerPhantasmEffects(context: MesmerRuntime, cast: RuntimeCast, skill: MesmerSkill): void {
+export function scheduleMesmerPhantasmEffects(
+  context: MesmerRuntime,
+  cast: RuntimeCast<MesmerSkill>,
+  skill: MesmerSkill
+): void {
   const runtime = mesmerMechanicsFor(context);
   const details = runtime.castDetails.get(cast.id) || {};
   const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(cast, skill);
@@ -72,9 +76,9 @@ export function scheduleMesmerPhantasmEffects(context: MesmerRuntime, cast: Runt
 }
 
 /** A declared shatter commits exactly one resource transaction while its projectiles retain their own timeline. */
-export function commitMesmerShatter(context: MesmerRuntime, cast: RuntimeCast): void {
+export function commitMesmerShatter(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const runtime = mesmerMechanicsFor(context);
-  const skill = cast.skill as MesmerSkill;
+  const skill = cast.skill;
   const details = runtime.castDetails.get(cast.id)!;
   if (details.reservedShatterResources && !details.shatterSpendCommitted) {
     details.shatterSpent = runtime.actions.commitReservedResources(context.time, details.shatterSpent ?? 0, {
@@ -103,7 +107,7 @@ export function commitMesmerShatter(context: MesmerRuntime, cast: RuntimeCast): 
 }
 
 /** Commits skill effects and resources, restoring interrupted reservations and clearing cast-local state. */
-export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast, skill: MesmerSkill): void {
+export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>, skill: MesmerSkill): void {
   const runtime = mesmerMechanicsFor(context);
   const details = runtime.castDetails.get(cast.id) || {};
   const at = context.time;
@@ -161,7 +165,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast, sk
  * Reserves or consumes shatter resources at the correct cast progress and
  * stores cast-local details for completion or interruption handling.
  */
-export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast, skill: MesmerSkill): void {
+export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>, skill: MesmerSkill): void {
   const runtime = mesmerMechanicsFor(context);
 
   const shatter = runtime.shatters[skill.id];

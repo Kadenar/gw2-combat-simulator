@@ -45,10 +45,18 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { evokerState, grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import type { ElementalistRuntime, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistSkill,
+  ElementalistRuntime,
+  ElementalistRuntimeState
+} from '#gw2/professions/elementalist/types.js';
 
 // Replay all four empowered familiar effects with their native F5 strength so balance patches propagate here.
-export function releaseElementalProcession(context: ElementalistRuntime, cast: RuntimeCast, sourceSkill: Skill): void {
+export function releaseElementalProcession(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  sourceSkill: Skill
+): void {
   for (const skillId of [ID.CONFLAGRATION, ID.BUOYANT_DELUGE, ID.LIGHTNING_BLITZ, ID.SEISMIC_IMPACT]) {
     const familiar = context.helpers.skillsById.get(skillId);
     if (!familiar) continue;
@@ -95,7 +103,7 @@ export function releaseElementalProcession(context: ElementalistRuntime, cast: R
  * Shared pre-cast bookkeeping records pending charge providers so familiar
  * availability can retry after the weapon or refill commits.
  */
-export function onCastStart(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function onCastStart(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const state = evokerState.from(context);
   // Track pending grants so early familiar inputs can wait for their resource provider.
   if (cast.command.concurrentOffsetMs == null) {
@@ -107,7 +115,11 @@ export function onCastStart(context: ElementalistRuntime, cast: RuntimeCast, ski
 }
 
 /** A skill-declared start owns its reservation and the basic/empowered replacement window. */
-export function beginFamiliarCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function beginFamiliarCast(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   const state = evokerState.from(context);
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
   // familiar casts block every other action until they finish (enforced in availability.ts)
@@ -145,10 +157,10 @@ export function beginFamiliarCast(context: ElementalistRuntime, cast: RuntimeCas
   }
 }
 
-const igniteBurningByCast = new WeakMap<RuntimeCast, SkillEffect | undefined>();
+const igniteBurningByCast = new WeakMap<RuntimeCast<ElementalistSkill>, SkillEffect | undefined>();
 
 /** Capture and advance the tier once at acceptance; effect selection only reads this immutable choice. */
-export function captureIgniteTier(context: ElementalistRuntime, cast: RuntimeCast): void {
+export function captureIgniteTier(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const state = evokerState.from(context);
   if (state.cancelledFamiliarActivations[cast.id]) return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.ignite);
@@ -164,14 +176,14 @@ export function captureIgniteTier(context: ElementalistRuntime, cast: RuntimeCas
 /** Replacement cancellation remains shared across familiar packets, independent of their selected payload. */
 export function modifyFamiliarEffects(
   context: ElementalistRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ElementalistSkill>,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   return evokerState.from(context).cancelledFamiliarActivations[cast.id] ? [] : effects;
 }
 
 /** Ignite's definition selects Burning from its accepted tier without advancing state during a query. */
-export function selectIgniteEffects(cast: RuntimeCast): readonly SkillEffect[] {
+export function selectIgniteEffects(cast: RuntimeCast<ElementalistSkill>): readonly SkillEffect[] {
   const burning = igniteBurningByCast.get(cast);
   const effects = cast.skill.effects ?? [];
   return effects.flatMap<SkillEffect>((effect) => {
@@ -196,16 +208,18 @@ export function selectIgniteEffects(cast: RuntimeCast): readonly SkillEffect[] {
 /** Skill-selected commit work runs after this cast's shared trait/bookkeeping hooks and before the next completion. */
 export function scheduleEvokerSkillCommit(
   context: ElementalistRuntime,
-  trigger: ActionContext,
+  trigger: ActionContext<ElementalistSkill>,
   action: SideEffectAction
 ): void {
   if (trigger.kind !== 'cast') throw new TypeError('Evoker skill completion requires a cast trigger.');
   context.scheduleForCast(action.type, context.time, trigger.cast, {}, undefined, -101);
 }
 
-export const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistRuntimeState>['tasks']> = {
+export const evokerSkillCommitTasks: NonNullable<
+  RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>['tasks']
+> = {
   'elementalist.evoker.lightning-blitz'(context, data) {
-    const { cast } = data as SkillTaskData;
+    const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const state = evokerState.from(context);
     const at = cast.effectiveEnd;
@@ -229,7 +243,7 @@ export const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistR
     });
   },
   'elementalist.evoker.zap'(context, data) {
-    const { cast } = data as SkillTaskData;
+    const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const at = cast.effectiveEnd;
     withElementalistCast(context, cast, () => {
@@ -250,7 +264,7 @@ export const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistR
     });
   },
   'elementalist.evoker.settle-basic-familiar'(context, data) {
-    const { cast } = data as SkillTaskData;
+    const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const state = evokerState.from(context);
     const at = cast.effectiveEnd;
@@ -275,7 +289,7 @@ export const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistR
     });
   },
   'elementalist.evoker.settle-empowered-familiar'(context, data) {
-    const { cast } = data as SkillTaskData;
+    const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const state = evokerState.from(context);
     withElementalistCast(context, cast, () => {
@@ -284,7 +298,7 @@ export const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistR
     });
   },
   'elementalist.evoker.rejuvenate'(context, data) {
-    const { cast } = data as SkillTaskData;
+    const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const state = evokerState.from(context);
     withElementalistCast(context, cast, () => {
@@ -293,7 +307,7 @@ export const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistR
     });
   },
   'elementalist.evoker.hares-agility'(context, data) {
-    const { cast } = data as SkillTaskData;
+    const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const state = evokerState.from(context);
     const at = cast.effectiveEnd;
@@ -317,7 +331,7 @@ export const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistR
     });
   },
   'elementalist.evoker.toads-fortitude'(context, data) {
-    const { cast } = data as SkillTaskData;
+    const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const at = cast.effectiveEnd;
     withElementalistCast(context, cast, () => {
@@ -339,7 +353,7 @@ export const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistR
     });
   },
   'elementalist.evoker.foxs-fury'(context, data) {
-    const { cast } = data as SkillTaskData;
+    const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const state = evokerState.from(context);
     const at = cast.effectiveEnd;
@@ -376,7 +390,11 @@ export const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistR
 };
 
 /** Release each deferred grant after the familiar reset, then run the final familiar trait observer. */
-export function finishEvokerCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function finishEvokerCast(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   const state = evokerState.from(context);
   if (state.activeFamiliarCast?.reservationId === cast.id) {
     flushPendingWeaponChargeGains(context, state);
@@ -390,7 +408,7 @@ export function finishEvokerCast(context: ElementalistRuntime, cast: RuntimeCast
  * Shared completion observers settle pending weapon grants and familiar traits
  * before the skill-declared resource reset and final observer tasks run.
  */
-export function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const state = evokerState.from(context);
   // A settled grant cannot fund another retry or be awarded again after a familiar spends it.
   state.pendingWeaponCompletions = state.pendingWeaponCompletions.filter((entry) => entry.activationId !== cast.id);

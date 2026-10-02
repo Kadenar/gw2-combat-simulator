@@ -62,7 +62,7 @@ const MESMER_RELEASE = 'revenant.release-mesmer-conditions';
 const RELEASE_POTENTIAL_IDS = new Set<SkillId>(Object.values(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND));
 
 // A cast started in Dervish form keeps its scythe through form expiry or a concurrent legend swap.
-const dervishCasts = new WeakSet<RuntimeCast>();
+const dervishCasts = new WeakSet<RuntimeCast<RevenantSkill>>();
 
 function conduit(runtime: RevenantRuntime) {
   return conduitState.from(runtime);
@@ -97,7 +97,7 @@ function lesserDaggers(runtime: RevenantRuntime, source: Skill, cause?: Gw2Resol
   });
 }
 
-function dervishAttack(runtime: RevenantRuntime, cast: RuntimeCast, at: number, elite = false): void {
+function dervishAttack(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, at: number, elite = false): void {
   const skillId = elite ? ID.FORM_OF_THE_DERVISH_ATTACK_ELITE : ID.FORM_OF_THE_DERVISH_ATTACK;
   const attack = runtime.helpers.skillsById.get(skillId);
   if (!attack) throw new Error('Missing Form of the Dervish attack skill ' + skillId + '.');
@@ -124,7 +124,7 @@ function dervishAttack(runtime: RevenantRuntime, cast: RuntimeCast, at: number, 
 }
 
 /** Schedule affinity-sensitive Mesmer conditions independently of its ordinary strike and daze. */
-function scheduleMesmerReleaseConditions(runtime: RevenantRuntime, cast: RuntimeCast): void {
+function scheduleMesmerReleaseConditions(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   for (const effect of cast.skill.effects ?? []) {
     if (effect.type !== 'condition') continue;
     for (const { event } of materializeSkillEffectApplications({
@@ -212,7 +212,7 @@ function formExpiry(runtime: RevenantRuntime, data: unknown): void {
 }
 
 /** Cosmic Wisdom resolves Mistfire, then opens the current legend's form and grants Numinous Gift. */
-function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast): void {
+function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const state = conduit(runtime);
   emitCosmicMistfire(runtime, cast);
 
@@ -228,7 +228,7 @@ function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast): void {
 }
 
 /** Legend swaps reset affinity, extend and re-select the form, and share Found Purpose. */
-function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast): void {
+function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const state = conduit(runtime);
   const core = runtime.profession.core;
   const combat = runtime.combatStartedAt();
@@ -248,8 +248,8 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast): void {
 }
 
 /** Each committed Energy-costing legend or armed weapon cast builds affinity at acceptance. */
-function costAffinity(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as RevenantSkill;
+function costAffinity(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  const skill = cast.skill;
   const cost = revenantEnergyCost(runtime, skill);
   if (!(cost > 0)) return;
   // Legend skills whose affinity is deferred to hit time are excluded to avoid double-granting.
@@ -273,7 +273,7 @@ function upkeepDaggers(runtime: RevenantRuntime, data: unknown): void {
   runtime.schedule(UPKEEP_DAGGERS, canonicalTime(runtime.time + 1), data, undefined, -190);
 }
 
-export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
+export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState, RevenantSkill>> = {
   // Control-triggered Burning shares Mistfire's profile, excluding its own Twin Moon chain.
 
   availability(runtime, skill) {
@@ -331,13 +331,13 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     return kineticInsightRecharge(runtime, skill, work);
   },
   onCastStart(runtime, cast) {
-    const skill = cast.skill as RevenantSkill;
+    const skill = cast.skill;
     costAffinity(runtime, cast);
     if (skill.legendId === LEGEND.ENTITY && revenantConduitFormIsActive(conduit(runtime), 'Dervish', cast.start))
       dervishCasts.add(cast);
   },
   onCastCommit(runtime, cast) {
-    const skill = cast.skill as RevenantSkill;
+    const skill = cast.skill;
     // Cosmic Wisdom form procs follow successful casts through the common completion path.
     if (skill.legendId === LEGEND.ASSASSIN) lesserDaggers(runtime, skill);
     if (dervishCasts.has(cast)) {
@@ -378,7 +378,7 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
       cosmicWisdom(runtime, context.cast);
     },
     'revenant.entity-hit-affinity'(runtime, context) {
-      if (context.kind === 'effect') gainAffinity(runtime, Number(context.skill.energyCost || 0) >= 25 ? 2 : 1);
+      if (context.kind === 'effect') gainAffinity(runtime, (context.skill.energyCost || 0) >= 25 ? 2 : 1);
     }
   },
   onCooldownReset(runtime) {

@@ -35,7 +35,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { isSelectedSlotSkill } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import {
@@ -674,7 +674,11 @@ function summonElemental(
  * Cast-complete hook: spawns the elemental at cast end. Its attack loop starts immediately
  * unless the rotation is still pre-combat and waiting on an explicit combat-start event.
  */
-export function completeElementalistGlyphCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function completeElementalistGlyphCast(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   const element = elementalForGlyph(skill);
   if (!element) return;
   summonElemental(context, cast.effectiveEnd, context.combatActive, element);
@@ -686,7 +690,7 @@ export function completeElementalistGlyphCast(context: ElementalistRuntime, cast
  */
 export function completeElementalistElementalCommand(
   context: ElementalistRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ElementalistSkill>,
   skill: Skill
 ): void {
   if (skill.id === FLAME_BARRAGE_ID) {
@@ -708,7 +712,7 @@ export function completeElementalistElementalCommand(
  */
 export function armElementalistElementalLightningJolt(
   context: ElementalistRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ElementalistSkill>,
   skillId: number,
   coefficient: number
 ): void {

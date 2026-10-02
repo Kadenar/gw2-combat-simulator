@@ -17,7 +17,7 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 // Use Core's bundle names so conjure availability and familiar-charge exclusions agree.
 import { CONJURED_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import {
@@ -48,7 +48,12 @@ export function initialize(context: ElementalistRuntime): void {
 }
 
 /** Publishes the current charge and empowered totals as an absolute reading at the cast's end. */
-export function emitResource(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill, state: EvokerState): void {
+export function emitResource(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill,
+  state: EvokerState
+): void {
   context.emit({
     type: 'resource',
     at: cast.effectiveEnd,
@@ -124,7 +129,7 @@ function applyWeaponSkillChargeGain(
  */
 export function grantWeaponSkillCharges(
   context: ElementalistRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ElementalistSkill>,
   skill: Skill,
   state: EvokerState
 ): void {

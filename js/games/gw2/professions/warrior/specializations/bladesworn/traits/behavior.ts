@@ -20,7 +20,7 @@ import { triggerTraitBuffs } from '#gw2/professions/warrior/core/mechanics/emiss
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 
 export function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
@@ -43,7 +43,7 @@ export function runtimeBuffActive(context: Gw2ModifierContext, kind: string): bo
   );
 }
 
-export function gunsaberEntryTraits(runtime: Runtime, cast: RuntimeCast): void {
+export function gunsaberEntryTraits(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
   if (runtime.hasExplicitCombatStart && !runtime.combatActive) return;
   const state = bladeswornState.from(runtime);
   if (!isInternalCooldownReady(runtime.time, runtime.procs.deadline('warrior.bladesworn.gunsaberSwapTrait'))) return;
@@ -120,7 +120,7 @@ export function gunsaberEntryTraits(runtime: Runtime, cast: RuntimeCast): void {
   });
 }
 
-export function ammoTraits(runtime: Runtime, cast: RuntimeCast): void {
+export function ammoTraits(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
   const spent = warriorAmmunition.get(cast);
   if (!spent) return;
   triggerTraitBuffs(runtime, cast, TRAIT.FIERCE_AS_FIRE, spent.rounds);
@@ -167,7 +167,7 @@ export function ammoTraits(runtime: Runtime, cast: RuntimeCast): void {
   });
 }
 
-type Runtime = Gw2Runtime<WarriorRuntimeState>;
+type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 
 /** Explosions extend the granted Glory window before cartridge reactions run. */
 export function gunsAndGloryExplosion(runtime: Runtime, event: Gw2ResolverEvent): void {

@@ -11,10 +11,14 @@ import { emitProfiledBuff } from '#gw2/professions/elementalist/core/mechanics/e
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Schedule alacrity from accepted overload hits before packet emission, retaining shortened-channel behavior. */
-export function applyLucidSingularity(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function applyLucidSingularity(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   if (!skill.overload || !hasTrait(context, TRAIT.LUCID_SINGULARITY)) return;
   const lucidSingularityProfile = requireBalanceProfileFromContext(context, TRAIT.LUCID_SINGULARITY);
   const hits = (skill.effects ?? [])
@@ -50,7 +54,11 @@ export function applyLucidSingularity(context: ElementalistRuntime, cast: Runtim
 }
 
 /** The completing overload's aura precedes the same-time overload packet and Fire-exit proc. */
-export function applyUnstableConduit(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function applyUnstableConduit(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   const attunement = String(skill.attunement);
   if (hasTrait(context, TRAIT.UNSTABLE_CONDUIT)) {
     const aura =

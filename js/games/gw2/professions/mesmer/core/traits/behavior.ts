@@ -432,7 +432,7 @@ export function fencersFinesseFerocity(
 /** Resolve the sword reward after the shared critical observation and before later elite reactions. */
 export function applyFencersFinesse(runtime: MesmerRuntime, event: SimulationEvent): void {
   const mechanics = mesmerMechanicsFor(runtime);
-  const skill = runtime.helpers.skillsById.get(event.skillId ?? '') as MesmerSkill | undefined;
+  const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
   if (!skill) return;
   const triggerAt = event.summonKind === 'clone' ? Infinity : emitFencersFinesseStacks(mechanics, skill, event.at);
   if (Number(event.hitIndex ?? 1) === 1) recordFencersFinesseProc(mechanics, skill, triggerAt);
@@ -458,7 +458,7 @@ export function triggerDeceptiveEvasion(runtime: MesmerRuntime): void {
 }
 
 /** Apply the sword multiplier alongside shatter recharge before any flat resource reduction. */
-export const fencersFinesseRecharge = compileRechargeRules<MesmerRuntimeState>([
+export const fencersFinesseRecharge = compileRechargeRules<MesmerRuntimeState, MesmerSkill>([
   {
     trait: TRAIT.FENCERS_FINESSE,
     when: (_runtime, skill) => skill.weapon === 'Sword',
@@ -579,14 +579,11 @@ export function phantasmalHasteSpeed(context: MesmerRuntime): number {
 }
 
 /** Shatter and instrument recharge is multiplied before shared flat resource reductions. */
-export const masterOfMisdirectionRecharge = compileRechargeRules<MesmerRuntimeState>([
+export const masterOfMisdirectionRecharge = compileRechargeRules<MesmerRuntimeState, MesmerSkill>([
   {
     trait: TRAIT.MASTER_OF_MISDIRECTION,
     when: (runtime, skill) =>
-      Boolean(
-        mesmerMechanicsFor(runtime).shatters[Number(skill.id)] ||
-        mesmerMechanicsFor(runtime).instruments[Number(skill.id)]
-      ),
+      Boolean(mesmerMechanicsFor(runtime).shatters[skill.id] || mesmerMechanicsFor(runtime).instruments[skill.id]),
     multiplier: { profile: TRAIT.MASTER_OF_MISDIRECTION, field: 'rechargeMultiplier' }
   }
 ]);

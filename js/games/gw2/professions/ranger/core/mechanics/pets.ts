@@ -175,7 +175,7 @@ function petRecovery(skillId: string | number, recovery: number, quickness: bool
 }
 
 /** Automatic and commanded attacks reserve the same pet lane using live companion boons. */
-function petCommandRecovery(context: RangerRuntime, cast: RuntimeCast): number {
+function petCommandRecovery(context: RangerRuntime, cast: RuntimeCast<RangerSkill>): number {
   const profile = rangerPetAutoProfile(context.profession.core.activePet);
   const skillId = cast.skill.id;
   const special = profile?.specials.find((entry) => entry.id === skillId);
@@ -259,7 +259,7 @@ function emitPetSkill(
   start: number,
   fullEnd: number,
   activationId: string,
-  cast?: RuntimeCast
+  cast?: RuntimeCast<RangerSkill>
 ): void {
   const timing = RANGER_PET_SKILL_TIMINGS[String(skill.id)];
   const quickness = petBuff(context, 'quickness');
@@ -334,8 +334,8 @@ function petCommandStart(context: RangerRuntime, skill: RangerSkill): number {
   );
 }
 
-export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as RangerSkill;
+export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
+  const skill = cast.skill;
   if (!rangerPetSkillCommandable(skill, context.config.specialization || 'Core') || !context.profession.core.petActive)
     return;
   const state = context.profession.core;
@@ -417,7 +417,7 @@ export const rangerPetTasks = {
     );
   },
   [PET_COMMAND_START_TASK](context: RangerRuntime, data: unknown): void {
-    let { cast } = data as { cast: RuntimeCast };
+    let { cast } = data as { cast: RuntimeCast<RangerSkill> };
     const state = context.profession.core;
     // Command-controlled pets preempt AI windups and recovery, cancelling only unlaunched AI effects.
     // Queued commands and already launched persistent effects retain their separate ownership.

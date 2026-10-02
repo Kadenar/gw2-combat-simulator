@@ -12,10 +12,14 @@ import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/p
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Reads canonical condition timing without emitting packets that the live-attunement tasks replace. */
-export function schedulePrimordialStance(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function schedulePrimordialStance(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   const tickTimes = new Set<number>();
   for (const effect of skill.effects || []) {
     if (effect.type !== 'condition') continue;
@@ -82,7 +86,7 @@ function emitPrimordialStancePulse(
 
 /** Every pulse retains the cast targeting policy but reads the current hand pair. */
 export function primordialStancePulse(runtime: ElementalistRuntime, data: unknown): void {
-  const { cast } = data as { cast: RuntimeCast };
+  const { cast } = data as { cast: RuntimeCast<ElementalistSkill> };
   withElementalistCast(runtime, cast, () =>
     emitPrimordialStancePulse(runtime, runtime.time, { sourceId: cast.skill.id })
   );

@@ -18,7 +18,11 @@ import {
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { wieldersBoonCharges } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
-import type { NecromancerRuntime, NecromancerRuntimeState } from '#gw2/professions/necromancer/types.js';
+import type {
+  NecromancerSkill,
+  NecromancerRuntime,
+  NecromancerRuntimeState
+} from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 const EXPIRE = 'ritualist.weapon-spell-expiry';
@@ -88,7 +92,7 @@ function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
 /** A definition-selected grant replaces only its spell's recipients and generation-owned opportunities. */
 function grantWeaponSpell(
   runtime: NecromancerRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<NecromancerSkill>,
   spell: 'nightmare' | 'splinter' | 'resilient'
 ): void {
   const effect = cast.skill.effects?.find((effect) => effect.type === 'buff');
@@ -149,7 +153,7 @@ function grantWeaponSpell(
 }
 
 /** Weapon spells and Bond own their live grants and timers alongside the specialization's spirit lifecycle. */
-export const ritualistSpellHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = {
+export const ritualistSpellHooks: Partial<RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>> = {
   sideEffectHandlers: {
     'ritualist.nightmare-weapon'(runtime, context) {
       if (context.kind === 'cast') grantWeaponSpell(runtime, context.cast, 'nightmare');

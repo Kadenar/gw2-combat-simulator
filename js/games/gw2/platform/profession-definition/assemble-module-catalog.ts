@@ -13,9 +13,9 @@ import type {
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 
 /** Selects a module from shared input using the same catalog fields as its output. */
-export interface NativeModuleDataSelection extends NativeModuleCatalogData {
+export interface NativeModuleDataSelection<TSkill extends Skill = Skill> extends NativeModuleCatalogData<TSkill> {
   readonly id: string;
-  readonly sharedExtraSkills?: readonly Skill[];
+  readonly sharedExtraSkills?: readonly TSkill[];
 }
 
 // Resolves which module owns an entity by matching its .specialization field
@@ -30,7 +30,7 @@ function canonicalModuleName(value: object, specializations: readonly CatalogEnt
  * Selects generated identity metadata for one semantic owner while retaining
  * the module's locally authored mechanics and extra skills.
  */
-export function createNativeModuleData({
+export function createNativeModuleData<TSkill extends Skill = Skill>({
   id,
   generatedSkills = [],
   sharedExtraSkills = [],
@@ -45,7 +45,7 @@ export function createNativeModuleData({
   autoattackChains,
   skillNameOverrides,
   specializationOnlySkillIds = []
-}: NativeModuleDataSelection): NativeModuleCatalogData {
+}: NativeModuleDataSelection<TSkill>): NativeModuleCatalogData<TSkill> {
   // Treat authored mechanics as the support allowlist so raw API metadata cannot
   // enter the simulator merely because a new skill is absent from an exclusion list.
   // The declaration owns admission because API specialization labels can be stale.
@@ -83,22 +83,22 @@ export function createNativeModuleData({
   });
 }
 
-interface AssembledNativeCatalog {
-  readonly catalog: Readonly<CanonicalCatalog>;
-  readonly fragments: ReadonlyMap<string, Readonly<ProfessionModuleCatalogFragment>>;
+interface AssembledNativeCatalog<TSkill extends Skill = Skill> {
+  readonly catalog: Readonly<CanonicalCatalog<TSkill>>;
+  readonly fragments: ReadonlyMap<string, Readonly<ProfessionModuleCatalogFragment<TSkill>>>;
 }
 
 interface AssemblyCacheEntry {
-  readonly modules: readonly AnyNativeModule[];
+  readonly modules: readonly object[];
   readonly options: NativeCatalogOptions | undefined;
   readonly assembly: AssembledNativeCatalog;
 }
 
-const assemblyCache = new WeakMap<AnyNativeModule, AssemblyCacheEntry[]>();
+const assemblyCache = new WeakMap<object, AssemblyCacheEntry[]>();
 
-function mergeEntityArrays<T extends CatalogEntity>(
-  modules: readonly AnyNativeModule[],
-  select: (module: AnyNativeModule) => readonly T[],
+function mergeEntityArrays<T extends CatalogEntity, TSkill extends Skill>(
+  modules: readonly AnyNativeModule<string, TSkill>[],
+  select: (module: AnyNativeModule<string, TSkill>) => readonly T[],
   label: string
 ): { readonly values: T[]; readonly owners: Map<SkillId, string> } {
   const values: T[] = [];
@@ -145,10 +145,10 @@ function applySkillNameOverrides(
 // per-module rather than per-position in the original shared array. This restores
 // the original position ordering so that catalog.skills has a stable, predictable
 // sequence regardless of module declaration order.
-function restoreSharedSourceOrder(
+function restoreSharedSourceOrder<TSkill extends Skill>(
   values: CatalogEntity[],
-  modules: readonly AnyNativeModule[],
-  select: (module: AnyNativeModule) => ReadonlyMap<SkillId, number> | undefined
+  modules: readonly AnyNativeModule<string, TSkill>[],
+  select: (module: AnyNativeModule<string, TSkill>) => ReadonlyMap<SkillId, number> | undefined
 ): void {
   const positions = new Map<SkillId, number>();
   for (const module of modules) {
@@ -163,10 +163,10 @@ function restoreSharedSourceOrder(
   );
 }
 
-function composeNativeCatalog(
-  modules: readonly AnyNativeModule[],
+function composeNativeCatalog<TSkill extends Skill>(
+  modules: readonly AnyNativeModule<string, TSkill>[],
   options: NativeCatalogOptions | undefined
-): AssembledNativeCatalog {
+): AssembledNativeCatalog<TSkill> {
   const moduleIds = new Set(modules.map((module) => module.id));
   if (modules[0]?.id !== 'Core') {
     throw new TypeError('Native profession modules must begin with "Core".');
@@ -191,9 +191,9 @@ function composeNativeCatalog(
     (module) => module.data.specializations || [],
     'specialization id'
   );
-  const mechanics: Record<string, Partial<Skill>> = {};
+  const mechanics: Record<string, Partial<TSkill>> = {};
   const mechanicsOwners = new Map<string, string>();
-  const overrides: Record<string, Partial<Skill>> = {};
+  const overrides: Record<string, Partial<TSkill>> = {};
   const overrideOwners = new Map<string, string>();
   const exclusiveOwners = new Map<string, string>();
   const weapons = new Set<string>();
@@ -341,7 +341,7 @@ function composeNativeCatalog(
     });
   }
 
-  const fragments = new Map<string, Readonly<ProfessionModuleCatalogFragment>>();
+  const fragments = new Map<string, Readonly<ProfessionModuleCatalogFragment<TSkill>>>();
   for (const module of modules) {
     const hands = new Map([...weaponHands].filter(([weapon]) => weaponHandOwners.get(weapon) === module.id));
     const chains = chainContributions.get(module.id)!;
@@ -372,7 +372,7 @@ function composeNativeCatalog(
               skillNameCollision: options?.skillNameCollision
             }
           : {})
-      } as ProfessionModuleCatalogFragment)
+      } satisfies ProfessionModuleCatalogFragment<TSkill>)
     );
   }
 
@@ -384,10 +384,10 @@ function composeNativeCatalog(
 // The WeakMap entry is tied to the Core module's lifetime, so cache entries are
 // automatically freed when the profession is garbage collected.
 /** Assembles and caches the validated catalog and skill ownership for a native module set. */
-export function getNativeCatalogAssembly(
-  modules: readonly AnyNativeModule[],
+export function getNativeCatalogAssembly<TSkill extends Skill>(
+  modules: readonly AnyNativeModule<string, TSkill>[],
   options: NativeCatalogOptions | undefined
-): AssembledNativeCatalog {
+): AssembledNativeCatalog<TSkill> {
   const first = modules[0];
   if (!first) throw new TypeError('A native profession requires modules.');
   const cached = assemblyCache.get(first) || [];
@@ -397,7 +397,8 @@ export function getNativeCatalogAssembly(
       entry.modules.length === modules.length &&
       entry.modules.every((module, index) => module === modules[index])
   );
-  if (match) return match.assembly;
+  // Identity-matched modules and options retain the skill type used when this cache entry was assembled.
+  if (match) return match.assembly as AssembledNativeCatalog<TSkill>;
   const assembly = composeNativeCatalog(modules, options);
   cached.push({ modules: [...modules], options, assembly });
   assemblyCache.set(first, cached);
@@ -405,17 +406,17 @@ export function getNativeCatalogAssembly(
 }
 
 /** Derives the complete application catalog from module contributions. */
-export function assembleNativeApplicationCatalog(
-  modules: readonly AnyNativeModule[],
+export function assembleNativeApplicationCatalog<TSkill extends Skill>(
+  modules: readonly AnyNativeModule<string, TSkill>[],
   options?: NativeCatalogOptions
-): Readonly<CanonicalCatalog> {
+): Readonly<CanonicalCatalog<TSkill>> {
   return getNativeCatalogAssembly(modules, options).catalog;
 }
 
 /** Builds the active catalog from validated ownership fragments, retaining shared elite-authored weapon skills. */
-export function assembleNativeRuntimeCatalog(
-  fragments: readonly Readonly<ProfessionModuleCatalogFragment>[]
-): Readonly<CanonicalCatalog> {
+export function assembleNativeRuntimeCatalog<TSkill extends Skill>(
+  fragments: readonly Readonly<ProfessionModuleCatalogFragment<TSkill>>[]
+): Readonly<CanonicalCatalog<TSkill>> {
   const overrides = new Map<string, SkillId>();
   for (const fragment of fragments) {
     for (const [name, skillId] of Object.entries(fragment.skillNameOverrides || {})) {

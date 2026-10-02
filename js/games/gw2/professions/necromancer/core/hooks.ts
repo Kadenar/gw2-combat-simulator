@@ -85,7 +85,7 @@ function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
 }
 
 /** Core mechanics share one live queue and resource owner with the active specialization. */
-export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = {
+export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>> = {
   resources: { lifeForce: necromancerLifeForce },
   // Standard endurance recovery applies equally inside and outside shroud.
   endurance: {
@@ -137,10 +137,7 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
     },
     // Scourge declarations spend the same normalized amount used by the shared affordability gate.
     'necromancer.life-force-cost'(runtime, context) {
-      const cost = normalizedNecromancerLifeForceCost(
-        runtime.profession.core,
-        Number(context.skill.lifeForceCost ?? 0)
-      );
+      const cost = normalizedNecromancerLifeForceCost(runtime.profession.core, context.skill.lifeForceCost ?? 0);
       if (cost) runtime.resourceController.spend('lifeForce', cost);
     },
 
@@ -187,8 +184,7 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
   onCombatStart(runtime) {
     if (runtime.hasExplicitCombatStart) startNecromancerAlliedOpportunities(runtime);
   },
-  availability(runtime, rawSkill) {
-    const skill = rawSkill as NecromancerSkill;
+  availability(runtime, skill) {
     const state = runtime.profession.core;
     const traitGate = lingeringCurseAvailability(runtime, skill);
     if (traitGate) return traitGate;

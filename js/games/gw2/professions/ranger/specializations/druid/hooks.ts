@@ -16,7 +16,7 @@ import {
   avatarEffects,
   eclipseAstralForceMultiplier
 } from '#gw2/professions/ranger/specializations/druid/traits/behavior.js';
-import type { RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
+import type { RangerSkill, RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Avatar changes the one resource clock and bar; expiration cannot retire a later entry. */
@@ -61,7 +61,7 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
   applyRangerWeaponSwapTraits(runtime, skill);
 }
 
-export const druidHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
+export const druidHooks: Partial<RuntimeProfession<RangerRuntimeState, RangerSkill>> = {
   resources: {
     astralForce: {
       kind: 'continuous',

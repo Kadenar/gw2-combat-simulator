@@ -11,10 +11,10 @@ import {
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import { reactToUntamedDamage } from '#gw2/professions/ranger/specializations/untamed/traits/behavior.js';
-import type { RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
+import type { RangerSkill, RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 
 /** Both toggles share fixed recharge; only an eligible transfer to Ranger claims a new ambush. */
-function unleash(runtime: RangerRuntime, cast: RuntimeCast, rangerUnleashed: boolean): void {
+function unleash(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>, rangerUnleashed: boolean): void {
   untamedState.from(runtime).rangerUnleashed = rangerUnleashed;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
   const readyAt = cast.start + balanceProfileNumber(profile, 'recharge');
@@ -24,7 +24,7 @@ function unleash(runtime: RangerRuntime, cast: RuntimeCast, rangerUnleashed: boo
     grantAmbush(runtime);
 }
 
-export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
+export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState, RangerSkill>> = {
   availability: untamedCastAvailability,
   sideEffectHandlers: {
     'ranger.ambush-consume'(runtime) {

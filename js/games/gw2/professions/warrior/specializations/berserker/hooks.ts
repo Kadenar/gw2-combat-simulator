@@ -18,12 +18,12 @@ import {
   berserkerCompletionTraits,
   berserkTraitExtension
 } from '#gw2/professions/warrior/specializations/berserker/traits/behavior.js';
-import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-type Runtime = Gw2Runtime<WarriorRuntimeState>;
+type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 
 /** Completed activation opens or extends the current mode; expiring during a cast cannot revive it. */
-function completeBerserk(runtime: Runtime, cast: RuntimeCast): void {
+function completeBerserk(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
   const state = berserkerState.from(runtime);
   const skill = cast.skill;
   if (skill.id === ID.BERSERK) {
@@ -41,7 +41,7 @@ function completeBerserk(runtime: Runtime, cast: RuntimeCast): void {
 }
 
 /** Berserker composes with Core's resource and packet owners; only this slice owns mode and aura lifetimes. */
-export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
+export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
   availability(runtime, skill) {
     const state = berserkerState.from(runtime);
     if (skill.primalBurst && !state.berserkActive)

@@ -26,7 +26,7 @@ import type {
  * refresh events, plus the reusable resolver-time Justice burning contract.
  */
 
-type Runtime = Gw2Runtime<GuardianRuntimeState>;
+type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 const VIRTUES_BY_SLOT: readonly (GuardianVirtue | null)[] = Object.freeze([null, 'justice', 'resolve', 'courage']);
 
 /** Decodes the slot's trailing digit; each caller owns its skill eligibility checks. */

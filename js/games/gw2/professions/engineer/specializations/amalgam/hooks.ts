@@ -8,10 +8,10 @@ import {
   scheduleThornsRetaliation
 } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 import { activateAmalgamMorph } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
-import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
+import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 
 /** Form grants occur at their commitment timestamp; only accepted control can reduce Evolve recharge. */
-export const amalgamHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
+export const amalgamHooks: Partial<RuntimeProfession<EngineerRuntimeState, EngineerSkill>> = {
   availability: amalgamCastAvailability,
   sideEffectHandlers: {
     'engineer.schedule-evolve'(runtime, context) {
@@ -42,10 +42,10 @@ export const amalgamHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
     'engineer.evolve': evolveAmalgam,
     'engineer.plasmatic-state': activatePlasmaticState,
     'engineer.thorns-retaliation'(runtime, data) {
-      scheduleThornsRetaliation(runtime, (data as SkillTaskData).cast.skill, runtime.time);
+      scheduleThornsRetaliation(runtime, (data as SkillTaskData<EngineerSkill>).cast.skill, runtime.time);
     },
     'engineer.morph-traits'(runtime, data) {
-      activateAmalgamMorph(runtime, (data as SkillTaskData).cast.skill);
+      activateAmalgamMorph(runtime, (data as SkillTaskData<EngineerSkill>).cast.skill);
     }
   },
   reactions: { 'damage.resolved': amalgamResolverEventReactions.damage }

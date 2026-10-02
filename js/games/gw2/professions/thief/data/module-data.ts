@@ -186,7 +186,8 @@ const WEAPON_DATA = defineProfessionWeapons({
   Sword: 'mh'
 });
 
-const createModuleData = createProfessionModuleDataFactory({
+// Keep Thief mechanics typed through module registration and both catalog selections.
+const createModuleData = createProfessionModuleDataFactory<ThiefSkill>({
   generatedSkills: generated,
   sharedExtraSkills: supplemental,
   traits: TRAITS,
@@ -208,7 +209,7 @@ export function createThiefModuleData(
         skillId,
         {
           ...mechanics,
-          ...(Number(mechanics.initiativeCost || 0) > 0
+          ...((mechanics.initiativeCost || 0) > 0
             ? {
                 resource: 'initiative'
               }

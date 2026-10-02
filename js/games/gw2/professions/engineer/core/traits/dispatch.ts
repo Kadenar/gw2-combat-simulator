@@ -21,6 +21,7 @@ import {
   recordStaticDischargeProc
 } from '#gw2/professions/engineer/core/traits/toolbelt.js';
 import type {
+  EngineerSkill,
   EngineerRuntime,
   EngineerResolverContext,
   EngineerResolverEvent
@@ -28,7 +29,7 @@ import type {
 import { isExplosion } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 
 /** Dispatches completed casts without regrouping the cross-line gameplay order. */
-export function applyEngineerCastTraits(context: EngineerRuntime, cast: RuntimeCast): void {
+export function applyEngineerCastTraits(context: EngineerRuntime, cast: RuntimeCast<EngineerSkill>): void {
   const skill = cast.skill;
   const at = context.time;
   applyGrenadier(context, skill, at);

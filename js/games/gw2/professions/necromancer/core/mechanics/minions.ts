@@ -54,7 +54,7 @@ interface HorrorWork {
 /** Each staggered horror has a unique lifetime; leaving Lich or casting again does not replace already-created creatures. */
 function spawnHorror(runtime: NecromancerRuntime, data: unknown): void {
   const work = data as HorrorWork;
-  const skill = runtime.helpers.skillsById.get(work.skillId) as NecromancerSkill;
+  const skill = runtime.helpers.skillsById.get(work.skillId)!;
   const key = `unstable-horror:${work.activationId}:${work.index}`;
   const expiresAt = canonicalTime(runtime.time + Number(skill.summonDuration));
   runtime.profession.core.activeMinions[key] = 1;
@@ -258,7 +258,7 @@ function commandImpact(runtime: NecromancerRuntime, data: unknown): void {
 }
 
 /** Staggered horrors outlive their creating cast and Lich Form. */
-export function summonNecromancerHorrors(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function summonNecromancerHorrors(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const skill = cast.skill;
   for (let index = 0; index < Number(skill.summons); index++)
     runtime.schedule(HORROR_SPAWN, runtime.time + index * Number(skill.summonInterval), {
@@ -269,8 +269,8 @@ export function summonNecromancerHorrors(runtime: NecromancerRuntime, cast: Runt
 }
 
 /** Successful summons replace only their own generation and notify each creature's trait observers. */
-export function summonNecromancerMinion(runtime: NecromancerRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as NecromancerSkill;
+export function summonNecromancerMinion(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
+  const skill = cast.skill;
   const state = runtime.profession.core;
   const definition = minionDefinitionForSkill(runtime, skill.id);
   if (!definition) return;
@@ -296,8 +296,8 @@ export function summonNecromancerMinion(runtime: NecromancerRuntime, cast: Runti
 }
 
 /** Commands pause the live attack cursor; consuming the last creature retains its committed explosion. */
-export function commandNecromancerMinion(runtime: NecromancerRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as NecromancerSkill;
+export function commandNecromancerMinion(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
+  const skill = cast.skill;
   const state = runtime.profession.core;
   const definition = minionDefinitionFor(runtime, String(skill.minionKey));
   if (!definition) return;

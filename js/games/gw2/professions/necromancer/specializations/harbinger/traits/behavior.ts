@@ -25,6 +25,7 @@ import {
 import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import { harbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import type {
+  NecromancerSkill,
   NecromancerResolverContext,
   NecromancerResolverEvent,
   NecromancerRuntime
@@ -133,7 +134,11 @@ export function applyDeathlyHaste(runtime: NecromancerRuntime, skill: Skill): vo
 }
 
 /** Consumed stacks claim one Meltdown threshold before the mechanic publishes the remaining Blight. */
-export function applyCascadingCorruption(runtime: NecromancerRuntime, cast: RuntimeCast, consumed: number): void {
+export function applyCascadingCorruption(
+  runtime: NecromancerRuntime,
+  cast: RuntimeCast<NecromancerSkill>,
+  consumed: number
+): void {
   const state = harbingerState.from(runtime);
   if (
     consumed &&
@@ -182,7 +187,7 @@ export function applyCascadingCorruption(runtime: NecromancerRuntime, cast: Runt
 }
 
 /** Elixir boons are chosen at launch, after the shared Blight transaction. */
-export function applyBolsteringBrew(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function applyBolsteringBrew(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   if (hasTrait(runtime, TRAIT.BOLSTERING_BREW)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.BOLSTERING_BREW);
     emitHarbingerEffects(

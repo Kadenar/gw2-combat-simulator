@@ -1,7 +1,7 @@
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -23,7 +23,7 @@ export const GUARDIAN_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
   }
 });
 
-export const guardianJusticeActions: RuntimeProfession<GuardianRuntimeState>['sideEffectHandlers'] = {
+export const guardianJusticeActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.arm-justice'(runtime) {
     runtime.profession.core.justiceActiveArmed = Boolean(
       requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.justice), 'condition', 'Burning (active)')

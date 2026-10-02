@@ -1,6 +1,7 @@
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { timedBuffAt } from '#gw2/platform/results/query.js';
 import type {
+  ElementalistSkill,
   ElementalistState,
   ElementalistUiContext,
   ElementalistPistolBullets,
@@ -105,7 +106,7 @@ function elementalistPistolEquipped(context: ElementalistUiContext): boolean {
 // Render the four bullets as toggle controls: `active` shows the current stock,
 // `pressed` the starting stock the user can click to change.
 function pistolBulletPaletteGroup(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<ElementalistSkill>>,
   context: ElementalistUiContext
 ): ProfessionPaletteGroup | null {
   if (!elementalistPistolEquipped(context)) return null;
@@ -149,7 +150,7 @@ function pistolBulletPaletteGroup(
 // standing in for the current attunement's pistol autoattack once all four
 // bullets are stocked.
 function paletteWeaponSkills(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<ElementalistSkill>>,
   context: ElementalistUiContext,
   skills: readonly Skill[]
 ): Skill[] {
@@ -213,7 +214,7 @@ function updatePaletteControl(context: ElementalistUiContext, controlId: string)
 // Build the shared palette in mechanic order, including only stateful weapon
 // groups that are meaningful for the current build and attunement.
 function elementalistPaletteGroups(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<ElementalistSkill>>,
   context: ElementalistUiContext
 ): ProfessionPaletteGroup[] {
   const state = elementalistUiState(context);
@@ -260,7 +261,7 @@ function elementalistPaletteGroups(
 
 // Put available conjure controls beside Dodge in ACT, keeping the equipped weapon bar below utilities.
 function paletteActionSkills(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<ElementalistSkill>>,
   context: ElementalistUiContext,
   skills: readonly Skill[]
 ): Skill[] {
@@ -363,13 +364,13 @@ function paletteAvailability(context: ElementalistUiContext, skill: Skill): Pale
     }
   }
 
-  const position = (context.catalog as Readonly<CanonicalCatalog> | undefined)?.autoattackChainPositions.get(
-    Number(skill.id)
-  );
+  const position = (
+    context.catalog as Readonly<CanonicalCatalog<ElementalistSkill>> | undefined
+  )?.autoattackChainPositions.get(Number(skill.id));
   if (position) {
     const expected = Number(state.autoattackChains?.[position.root]) || position.root;
     if (expected !== Number(skill.id)) {
-      const expectedSkill = (context.catalog as Readonly<CanonicalCatalog>).skillsById.get(expected);
+      const expectedSkill = (context.catalog as Readonly<CanonicalCatalog<ElementalistSkill>>).skillsById.get(expected);
       return {
         available: false,
         message: `Cast ${expectedSkill?.name || 'the earlier chain skill'} first.`
@@ -472,7 +473,7 @@ function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSna
 }
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog>): ElementalistUiSlice {
+export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<ElementalistSkill>>): ElementalistUiSlice {
   return Object.freeze({
     // Expose the shared seed control alongside Elementalist's own simulation assumptions.
     assumptionControls: [

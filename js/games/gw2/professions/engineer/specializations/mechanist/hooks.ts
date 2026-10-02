@@ -21,12 +21,12 @@ import {
   stepMechAttack
 } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
-import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
+import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 
 const critical = engineerMechCoreCriticalDefinitions(engineerMechResolverEvent).map(criticalProcHandler);
 
 /** Commands reserve the summon lane immediately; its autoattack phase resumes only after command recovery. */
-export const mechanistHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
+export const mechanistHooks: Partial<RuntimeProfession<EngineerRuntimeState, EngineerSkill>> = {
   // Completed commands grant player Quickness; mech recovery and Overclock retain their lifecycle owner.
 
   initialize(runtime) {

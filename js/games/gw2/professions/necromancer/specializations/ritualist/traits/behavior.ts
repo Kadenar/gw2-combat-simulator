@@ -19,7 +19,7 @@ import {
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { boon } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/emission.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerSkill, NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 
 /** Applies Boon of Creation at the original attribute-conversion position. */
 export function modifyBoonOfCreationAttributes(
@@ -33,7 +33,11 @@ export function modifyBoonOfCreationAttributes(
 }
 
 /** Summon boons follow the shared creature reactions and precede autonomous scheduling. */
-export function applyEmpoweringSpirits(runtime: NecromancerRuntime, cast: RuntimeCast, key: string): void {
+export function applyEmpoweringSpirits(
+  runtime: NecromancerRuntime,
+  cast: RuntimeCast<NecromancerSkill>,
+  key: string
+): void {
   if (hasTrait(runtime, TRAIT.EMPOWERING_SPIRITS)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWERING_SPIRITS);
     for (const kind of ['quickness', key === 'anguish' ? 'might' : key === 'wanderlust' ? 'fury' : 'resolution']) {
@@ -91,7 +95,7 @@ export function armSoulTwisting(runtime: NecromancerRuntime): void {
 }
 
 /** Only a committed summon spends the refund. */
-export function consumeSoulTwisting(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function consumeSoulTwisting(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const state = ritualistState.from(runtime);
   if (state.soulTwistingAvailable) {
     state.soulTwistingAvailable = false;

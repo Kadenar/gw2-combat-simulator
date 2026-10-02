@@ -3,7 +3,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { ActionContext } from '#gw2/platform/simulation/side-effects.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /**
@@ -225,17 +225,17 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
 export const ACTIVATE = 'guardian.willbender.activate';
 export const FLAMES = 'guardian.willbender.flames';
 /** Activation recipes preserve the window/flame boundaries and priority ahead of shared lifetime work. */
-export const willbenderVirtueActions: RuntimeProfession<GuardianRuntimeState>['sideEffectHandlers'] =
+export const willbenderVirtueActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] =
   Object.fromEntries(
     (
       [
-        ['justice', (cast: RuntimeCast) => Math.min(cast.effectiveEnd, cast.start + 0.04)],
-        ['resolve', (cast: RuntimeCast) => cast.effectiveEnd],
-        ['courage', (cast: RuntimeCast) => Math.min(cast.effectiveEnd, cast.start + 0.52)]
+        ['justice', (cast: RuntimeCast<GuardianSkill>) => Math.min(cast.effectiveEnd, cast.start + 0.04)],
+        ['resolve', (cast: RuntimeCast<GuardianSkill>) => cast.effectiveEnd],
+        ['courage', (cast: RuntimeCast<GuardianSkill>) => Math.min(cast.effectiveEnd, cast.start + 0.52)]
       ] as const
     ).map(([virtue, activationAt]) => [
       `guardian.start-${virtue}`,
-      (runtime: Gw2Runtime<GuardianRuntimeState>, context: ActionContext) => {
+      (runtime: Gw2Runtime<GuardianRuntimeState, GuardianSkill>, context: ActionContext<GuardianSkill>) => {
         if (context.kind !== 'cast') return;
         const cast = context.cast;
         const at = canonicalTime(activationAt(cast));

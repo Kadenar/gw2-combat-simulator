@@ -6,9 +6,9 @@ import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/run
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { MANTRAS, type MantraDefinition } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState>;
+type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 export const FIREBRAND_MANTRA_WAKE = 'guardian.firebrand.mantra';
 const owner = (definition: MantraDefinition, generation: number) => ({ id: `mantra:${definition.rootId}`, generation });
 
@@ -116,29 +116,30 @@ export function firebrandMantraAvailability(runtime: Runtime, skill: Skill) {
 }
 
 /** Declarations choose the phase; shared charge pools and generation wakes retain one controller. */
-export const firebrandMantraActions: RuntimeProfession<GuardianRuntimeState>['sideEffectHandlers'] = Object.fromEntries(
-  MANTRAS.flatMap((definition) => [
-    [
-      `guardian.prepare-mantra-${definition.rootId}`,
-      (runtime: Runtime) => {
-        arm(runtime, definition);
-        sync(runtime, definition);
-      }
-    ],
-    [`guardian.use-mantra-${definition.rootId}`, (runtime: Runtime) => sync(runtime, definition)],
-    [
-      `guardian.finish-mantra-${definition.rootId}`,
-      (runtime: Runtime) => {
-        const flips = runtime.profession.core.availableFlips;
-        consumeSkillFlip(flips, definition.normalId);
-        consumeSkillFlip(flips, definition.finalId);
-        runtime.ammo.delete(definition.normalId);
-        runtime.cooldownController.clear(definition.normalId);
-        const root = runtime.helpers.skillsById.get(definition.rootId)!;
-        firebrandState.from(runtime).mantraRechargeReadyAt[definition.rootId] =
-          runtime.cooldownController.startRecharge(root, runtime.time);
-        sync(runtime, definition);
-      }
-    ]
-  ])
-);
+export const firebrandMantraActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] =
+  Object.fromEntries(
+    MANTRAS.flatMap((definition) => [
+      [
+        `guardian.prepare-mantra-${definition.rootId}`,
+        (runtime: Runtime) => {
+          arm(runtime, definition);
+          sync(runtime, definition);
+        }
+      ],
+      [`guardian.use-mantra-${definition.rootId}`, (runtime: Runtime) => sync(runtime, definition)],
+      [
+        `guardian.finish-mantra-${definition.rootId}`,
+        (runtime: Runtime) => {
+          const flips = runtime.profession.core.availableFlips;
+          consumeSkillFlip(flips, definition.normalId);
+          consumeSkillFlip(flips, definition.finalId);
+          runtime.ammo.delete(definition.normalId);
+          runtime.cooldownController.clear(definition.normalId);
+          const root = runtime.helpers.skillsById.get(definition.rootId)!;
+          firebrandState.from(runtime).mantraRechargeReadyAt[definition.rootId] =
+            runtime.cooldownController.startRecharge(root, runtime.time);
+          sync(runtime, definition);
+        }
+      ]
+    ])
+  );

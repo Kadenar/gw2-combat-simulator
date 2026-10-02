@@ -9,7 +9,10 @@ import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/h
 import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
 
 /** Enforces Holosmith sword replacement, Forge bar state, overheat, and kit-lockout cast rules. */
-export function holosmithCastAvailability(context: EngineerRuntime, skill: HolosmithSkill): AvailabilityResult {
+export function holosmithCastAvailability(
+  context: EngineerRuntime<HolosmithSkill>,
+  skill: HolosmithSkill
+): AvailabilityResult {
   if (context.config.specialization !== 'Holosmith') return { ready: true };
   // Holosmith replaces the shared Weaponmaster sword IDs with heat-aware variants.
   if (NON_HOLOSMITH_SWORD_SKILL_IDS.has(Number(skill.id))) {

@@ -1,3 +1,4 @@
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
@@ -9,7 +10,7 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/necromancer/data/necro
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/necromancer/data/necromancer-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/necromancer/data/traits-data.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 
 const STATIC_REPLACEMENT_PAIRS = new Set<string>([
@@ -26,13 +27,13 @@ const UNSUPPORTED_SKILL_IDS = new Set<SkillId>([
   ID.SPECTRAL_RING
 ]);
 
-const allSkills: readonly Skill[] = Object.freeze(
+const allSkills: readonly NecromancerSkill[] = Object.freeze(
   [...SKILLS, ...NECROMANCER_SUPPLEMENTAL_SKILLS]
     .filter((skill) => !UNSUPPORTED_SKILL_IDS.has(skill.id))
     .sort((left, right) => Number(left.id) - Number(right.id))
 );
 
-const generatedById = new Map<SkillId, Skill>(allSkills.map((skill) => [skill.id, skill]));
+const generatedById = new Map<SkillId, NecromancerSkill>(allSkills.map((skill) => [skill.id, skill]));
 
 const flipParentById = createFlipParentMap(allSkills, {
   include(parent, child) {
@@ -40,7 +41,7 @@ const flipParentById = createFlipParentMap(allSkills, {
   }
 });
 
-const generated: readonly Skill[] = allSkills.map((skill) => {
+const generated: readonly NecromancerSkill[] = allSkills.map((skill) => {
   const flipParentId = flipParentById.get(skill.id);
 
   return {
@@ -68,21 +69,19 @@ const WEAPON_DATA = defineProfessionWeapons({
   Warhorn: 'oh'
 });
 
-interface NecromancerModuleDataOptions extends ProfessionModuleDataOptions {
+interface NecromancerModuleDataOptions extends ProfessionModuleDataOptions<NecromancerSkill> {
   readonly autoattackChains?: AutoattackChainOptions;
 }
 
 /** Applies shared shroud weapon attribution to module-owned Necromancer skill mechanics. */
 function applyNecromancerSkillDefaults(
-  mechanicsById: Readonly<Record<string, Partial<Skill>>>
-): Readonly<Record<string, Partial<Skill>>> {
+  mechanicsById: Readonly<Record<string, Partial<NecromancerSkill>>>
+): Readonly<Record<string, Partial<NecromancerSkill>>> {
   return Object.freeze(
     Object.fromEntries(
       Object.entries(mechanicsById).map(([skillId, mechanics]) => {
         // Real shroud forms share Hammer weapon strength; shade and transform mechanics keep their declared profile.
-        const shroudSkillWeapon = ['death', 'reaper', 'harbinger'].includes(String(mechanics.shroud || ''))
-          ? 'Hammer'
-          : null;
+        const shroudSkillWeapon = ['death', 'reaper', 'harbinger'].includes(mechanics.shroud || '') ? 'Hammer' : null;
 
         return [
           skillId,
@@ -100,7 +99,8 @@ function applyNecromancerSkillDefaults(
   );
 }
 
-const createModuleData = createProfessionModuleDataFactory({
+// Preserve Necromancer fields through module assembly and runtime catalog lookups.
+const createModuleData = createProfessionModuleDataFactory<NecromancerSkill>({
   generatedSkills: generated,
   traits: TRAITS,
   specializations: SPECIALIZATIONS,

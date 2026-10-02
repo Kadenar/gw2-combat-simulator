@@ -128,7 +128,7 @@ function normalizeEffect(effect: SkillEffect, effectIndex: number): SkillEffect 
 }
 
 /** Normalizes explicit GW2 combo descriptors at native catalog assembly time. */
-export function normalizeGw2ComboCatalogSkill(skill: Partial<Skill>): Partial<Skill> {
+export function normalizeGw2ComboCatalogSkill<TSkill extends Skill>(skill: Partial<TSkill>): Partial<TSkill> {
   const comboFields = skill.comboFields != null ? normalizeFieldDescriptors(skill.comboFields) : undefined;
   const comboFinishers =
     skill.comboFinishers != null ? normalizeFinisherDescriptors(skill.comboFinishers, 'skill') : undefined;

@@ -18,13 +18,14 @@ import {
 import { addCarapace } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type {
+  NecromancerSkill,
   NecromancerResolverContext,
   NecromancerResolverEvent,
   NecromancerRuntime
 } from '#gw2/professions/necromancer/types.js';
 
 /** Completed heals grant Carapace and Protection together under one Dark Defense cooldown. */
-export function applyDarkDefense(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function applyDarkDefense(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   if (cast.skill.type !== 'Heal' || !hasTrait(runtime, TRAIT.DARK_DEFENSE)) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.DARK_DEFENSE);
   if (!runtime.procs.claimCooldown('darkDefense', runtime.time, balanceProfileNumber(profile, 'internalCooldown')))

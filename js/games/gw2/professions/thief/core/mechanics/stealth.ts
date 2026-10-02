@@ -91,9 +91,9 @@ export function thiefSameInstantStealthBreak(runtime: ThiefRuntime): boolean {
  * Consumes either active stealth or a specialization-granted attack charge, then applies leave-stealth traits and
  * Revealed from one cast-start transition.
  */
-export function beginThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function beginThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const core = runtime.profession.core;
-  const skill = cast.skill as ThiefSkill;
+  const skill = cast.skill;
   const charges = thiefStealthAttackCharges(runtime);
   if (!thiefStealthed(runtime) && thiefBonusStealthAttack(runtime))
     charges.stealthAttackCharges = (charges.stealthAttackCharges || 0) - 1;
@@ -105,11 +105,11 @@ export function beginThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast
 }
 
 // Selected stealth packets are acceptance facts; one commit action owns both display and combat state.
-const stealthPackets = new WeakMap<RuntimeCast, readonly SkillEffect[]>();
+const stealthPackets = new WeakMap<RuntimeCast<ThiefSkill>, readonly SkillEffect[]>();
 const stealthGrantActivations = new WeakMap<ThiefRuntime, Set<string>>();
 export function selectThiefStealth(
   runtime: ThiefRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ThiefSkill>,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   const stealth = effects.filter(
@@ -127,7 +127,7 @@ export function selectThiefStealth(
 }
 
 /** A committed grant uses the selected duration and Revealed gate for both availability and its visible buff. */
-export function commitThiefStealth(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function commitThiefStealth(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const effects = stealthPackets.get(cast) ?? [];
   stealthPackets.delete(cast);
   if (runtime.profession.core.revealedUntil > runtime.time) return;

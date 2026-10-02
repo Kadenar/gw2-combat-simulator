@@ -18,7 +18,6 @@ import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { emitThiefBuff } from '#gw2/professions/thief/core/events.js';
 import { completeThiefSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
@@ -88,7 +87,12 @@ function shadowDepleted(runtime: ThiefRuntime): void {
 }
 
 /** Dawn's Repose includes the caster; only allied recipients can trigger Dark Sentry. */
-function grantBarrier(runtime: ThiefRuntime, cast: RuntimeCast, profileId: string | number, name: string): void {
+function grantBarrier(
+  runtime: ThiefRuntime,
+  cast: RuntimeCast<ThiefSkill>,
+  profileId: string | number,
+  name: string
+): void {
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   const barrier = requireEffect(profile, 'buff', 'barrier');
   const affectsSelf = cast.skill.id === ID.DAWNS_REPOSE;
@@ -118,7 +122,7 @@ function grantBarrier(runtime: ThiefRuntime, cast: RuntimeCast, profileId: strin
 }
 
 /** Siphon grants Shadow Force (Amplified Siphoning, then Improvisation) and completes as a choice-less steal. */
-function completeSiphon(runtime: ThiefRuntime, cast: RuntimeCast): void {
+function completeSiphon(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   emitThiefStealTraits(runtime, cast);
   let gain =
     balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'lifeForceGain') +
@@ -129,8 +133,7 @@ function completeSiphon(runtime: ThiefRuntime, cast: RuntimeCast): void {
 }
 
 /** Shroud entry needs force; inside the shroud only its own bar is castable, and exit waits out its lockout. */
-function specterAvailability(runtime: ThiefRuntime, rawSkill: Skill): AvailabilityResult {
-  const skill = rawSkill as ThiefSkill;
+function specterAvailability(runtime: ThiefRuntime, skill: ThiefSkill): AvailabilityResult {
   const state = specterState.from(runtime);
   if (skill.id === ID.ENTER_SHADOW_SHROUD) {
     if (state.shadowShroudActive) return denySkillCast(skill, 'thief.in-shroud', 'Shadow Shroud is already active.');
@@ -159,7 +162,7 @@ function specterAvailability(runtime: ThiefRuntime, rawSkill: Skill): Availabili
 }
 
 /** Specter hooks: Shadow Force and its shroud, Siphon, shroud skill traits, Dark Sentry, and Larcenous Torment. */
-export const specterHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
+export const specterHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefSkill>> = {
   sideEffectHandlers: {
     'thief.siphon'(runtime, context) {
       if (context.kind === 'cast') completeSiphon(runtime, context.cast);
@@ -186,7 +189,7 @@ export const specterHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   availability: specterAvailability,
   onCastStart(runtime, cast) {
     // Spent initiative converts into Shadow Force in parallel with Core's spend.
-    const cost = (cast.skill as ThiefSkill).initiativeCost || 0;
+    const cost = cast.skill.initiativeCost || 0;
     if (cost > 0)
       runtime.resourceController.grant(
         'shadowForce',

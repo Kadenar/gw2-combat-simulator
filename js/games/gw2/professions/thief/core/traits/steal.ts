@@ -21,7 +21,7 @@ import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** The boonless target grants both independent packets; removing either leaves its sibling intact. */
-export function applyBountifulTheft(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function applyBountifulTheft(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   if (!hasTrait(runtime, TRAIT.BOUNTIFUL_THEFT)) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.BOUNTIFUL_THEFT);
   for (const name of ['Vigor', 'Might']) {
@@ -37,7 +37,7 @@ export function applyBountifulTheft(runtime: ThiefRuntime, cast: RuntimeCast): v
   }
 }
 
-export function applyDeadlyAmbush(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function applyDeadlyAmbush(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   if (!hasTrait(runtime, TRAIT.DEADLY_AMBUSH)) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.DEADLY_AMBUSH);
   const bleeding = requireEffect(profile, 'condition', 'Bleeding');
@@ -56,12 +56,12 @@ export function applyDeadlyAmbush(runtime: ThiefRuntime, cast: RuntimeCast): voi
   });
 }
 
-export function applyEvenTheOdds(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function applyEvenTheOdds(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   if (!hasTrait(runtime, TRAIT.EVEN_THE_ODDS)) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EVEN_THE_ODDS);
   const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
   if (!vulnerability) return;
-  emitThiefCondition(runtime, stealSkill(cast), {
+  emitThiefCondition(runtime, cast.skill, {
     at: runtime.time,
     source: 'Trait',
     sourceId: TRAIT.EVEN_THE_ODDS,
@@ -74,7 +74,7 @@ export function applyEvenTheOdds(runtime: ThiefRuntime, cast: RuntimeCast): void
 }
 
 /** Hidden Thief claims its cooldown before either condition so a removed packet cannot re-arm it. */
-export function applyHiddenThief(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function applyHiddenThief(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   if (!hasTrait(runtime, TRAIT.HIDDEN_THIEF)) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.HIDDEN_THIEF);
   const blindness = requireEffect(profile, 'condition', 'Blindness');
@@ -86,7 +86,7 @@ export function applyHiddenThief(runtime: ThiefRuntime, cast: RuntimeCast): void
     ['Weakness', weakness]
   ] as const)
     if (effect)
-      emitThiefCondition(runtime, stealSkill(cast), {
+      emitThiefCondition(runtime, cast.skill, {
         at: runtime.time,
         source: 'Trait',
         sourceId: TRAIT.HIDDEN_THIEF,
@@ -143,7 +143,7 @@ export function applyKleptomaniac(runtime: ThiefRuntime): void {
 }
 
 /** Mug is an uncritical strike owned by the steal skill. */
-export function applyMug(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function applyMug(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   if (!hasTrait(runtime, TRAIT.MUG)) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.MUG);
   const strike = requireEffect(profile, 'strike', 'Mug');
@@ -163,7 +163,7 @@ export function applyMug(runtime: ThiefRuntime, cast: RuntimeCast): void {
 }
 
 /** Serpent's Touch Poison is attributed to its trait while retaining the triggering steal. */
-export function applySerpentsTouch(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function applySerpentsTouch(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   if (!hasTrait(runtime, TRAIT.SERPENTS_TOUCH)) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.SERPENTS_TOUCH);
   const poison = requireEffect(profile, 'condition', 'Poisoned');
@@ -182,11 +182,11 @@ export function applySerpentsTouch(runtime: ThiefRuntime, cast: RuntimeCast): vo
   });
 }
 
-export function applySleightOfHand(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function applySleightOfHand(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   if (!hasTrait(runtime, TRAIT.SLEIGHT_OF_HAND)) return;
   const control = requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.SLEIGHT_OF_HAND), 'control', 'daze');
   if (!control) return;
-  emitThiefControl(runtime, stealSkill(cast), {
+  emitThiefControl(runtime, cast.skill, {
     at: runtime.time,
     source: 'Trait',
     sourceId: TRAIT.SLEIGHT_OF_HAND,
@@ -204,19 +204,15 @@ export function sleightOfHandRechargeReduction(runtime: ThiefRuntime): number {
   );
 }
 
-export function stealSkill(cast: RuntimeCast): ThiefSkill {
-  return cast.skill;
-}
-
 /** Emits a steal-owned boon attributed to its trait source, scaled by boon duration when it applies. */
 export function stealBoon(
   runtime: ThiefRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ThiefSkill>,
   boon: string,
   duration: number,
   stacks: number
 ): void {
-  emitThiefBuff(runtime, stealSkill(cast), {
+  emitThiefBuff(runtime, cast.skill, {
     at: runtime.time,
     source: 'Trait',
     sourceId: `thief.steal.${boon}`,
@@ -229,7 +225,7 @@ export function stealBoon(
   });
 }
 
-export function applyThrillOfTheCrime(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function applyThrillOfTheCrime(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   if (!hasTrait(runtime, TRAIT.THRILL_OF_THE_CRIME)) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.THRILL_OF_THE_CRIME);
   for (const effect of (profile.effects || []).filter((entry) => entry.type === 'boon'))
@@ -243,7 +239,7 @@ export function applyThrillOfTheCrime(runtime: ThiefRuntime, cast: RuntimeCast):
 }
 
 /** Selected on-steal traits apply in the cross-line order shared by every steal variant. */
-export function emitThiefStealTraits(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function emitThiefStealTraits(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   applySerpentsTouch(runtime, cast);
   applyMug(runtime, cast);
   applyEvenTheOdds(runtime, cast);

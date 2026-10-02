@@ -132,14 +132,15 @@ export function defineNativeModule<
   TProjectOptions extends object = object,
   TProjectedState extends object = object,
   TModifiers extends ProfessionModifierDefinition = object,
-  TPresentation extends object = object
+  TPresentation extends object = object,
+  TSkill extends Skill = Skill
 >(
-  definition: NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation>
-): NativeModule<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation> {
+  definition: NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation, TSkill>
+): NativeModule<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation, TSkill> {
   assertNativeModuleDefinition(definition);
   if (definition.traitDefinitions != null && !Array.isArray(definition.traitDefinitions))
     throw new TypeError(`${definition.id}.traitDefinitions must be an array.`);
-  const traits = definition.traitDefinitions?.map(defineTrait) ?? [];
+  const traits = definition.traitDefinitions?.map(defineTrait<TSkill>) ?? [];
   const sourceModifiers: ProfessionModifierDefinition = Array.isArray(definition.modifiers)
     ? { modifierRules: definition.modifiers }
     : ((definition.modifiers as ProfessionModifierDefinition | undefined) ?? {});
@@ -154,7 +155,7 @@ export function defineNativeModule<
   );
   const hooks = traits.length
     ? {
-        ...composeRuntimeHooks<never>([
+        ...composeRuntimeHooks<never, TSkill>([
           ...traits.flatMap((trait) => (trait.hooks ? [trait.hooks] : [])),
           definition.hooks ?? {}
         ]),
@@ -201,9 +202,9 @@ export function defineNativeModule<
 }
 
 /** Binds module presentation only when the application first requests its UI. */
-function createModuleUi(
-  module: AnyNativeModule,
-  applicationCatalog: Readonly<CanonicalCatalog>
+function createModuleUi<TSkill extends Skill>(
+  module: AnyNativeModule<string, TSkill>,
+  applicationCatalog: Readonly<CanonicalCatalog<TSkill>>
 ): Partial<ProfessionUiContract> {
   const presentation =
     typeof module.presentation === 'function' ? module.presentation(applicationCatalog) : module.presentation;
@@ -226,7 +227,9 @@ function createModuleUi(
 }
 
 /** Compiles merged active rules once, using standard GW2 buckets unless a module owns a custom compiler. */
-function composeModuleModifiers(modules: readonly AnyNativeModule[]): ProfessionModifierDefinition {
+function composeModuleModifiers(
+  modules: readonly Pick<AnyNativeModule, 'id' | 'modifiers'>[]
+): ProfessionModifierDefinition {
   const modifiers = modules.map((module) => module.modifiers);
   const result = Object.fromEntries(
     MODIFIER_HOOK_NAMES.map((name) => [
@@ -263,7 +266,10 @@ function composeModuleModifiers(modules: readonly AnyNativeModule[]): Profession
 }
 
 /** Creates fresh Core/elite state while rejecting invalid fragments and conflicting field ownership. */
-function composeStateFragments(modules: readonly AnyNativeModule[], config: Readonly<ProfessionConfig>): object {
+function composeStateFragments(
+  modules: readonly Pick<AnyNativeModule, 'id' | 'state'>[],
+  config: Readonly<ProfessionConfig>
+): object {
   const fragments = modules.map((module) => {
     const fragment = module.state.create(config) || {};
     if (typeof fragment !== 'object' || Array.isArray(fragment)) {
@@ -292,17 +298,19 @@ function composeStateFragments(modules: readonly AnyNativeModule[], config: Read
 export function defineNativeProfession<
   const TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
-  TBuild extends Gw2Build = Gw2Build
+  TBuild extends Gw2Build = Gw2Build,
+  TSkill extends Skill = Skill
 >(
-  definition: NativeProfessionDefinition<TModules, TPresentation, TBuild>
-): NativeProfessionContract<TModules, TPresentation, TBuild> {
+  definition: NativeProfessionDefinition<TModules, TPresentation, TBuild, TSkill>
+): NativeProfessionContract<TModules, TPresentation, TBuild, TSkill> {
   if (!definition || typeof definition !== 'object') {
     throw new TypeError('A native profession definition is required.');
   }
 
   assertDefinition(definition);
   validateAutoattackChainOptions(definition.autoattackChains ?? {});
-  const modules = definition.modules as readonly AnyNativeModule[];
+  // Module data fixes the skill type for both catalog selection and execution callbacks.
+  const modules: readonly AnyNativeModule<string, TSkill>[] = definition.modules;
   for (const module of modules) assertNativeModuleDefinition(module);
   const assembly = getNativeCatalogAssembly(modules, definition.catalog);
   // Ownership and declarative references are checked before lazy runtime compilation, including inactive elites.
@@ -351,9 +359,9 @@ export function defineNativeProfession<
   const selections = new Map<
     string,
     {
-      modules: readonly AnyNativeModule[];
-      source: Readonly<NormalizedProfessionContract<State>>;
-      runtime?: RuntimeProfession<State>;
+      modules: readonly AnyNativeModule<string, TSkill>[];
+      source: Readonly<NormalizedProfessionContract<State, TSkill>>;
+      runtime?: RuntimeProfession<State, TSkill>;
     }
   >();
   /** Query and execution share selected catalogs, state factories, and compiled modifiers. */
@@ -371,7 +379,7 @@ export function defineNativeProfession<
     const projectors = selected.flatMap((module) =>
       module.state.project ? [module.state.project as (input: unknown) => object] : []
     );
-    const source = defineProfession<State>({
+    const source = defineProfession<State, object, TSkill>({
       id: definition.id,
       name: definition.name,
       weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
@@ -393,20 +401,20 @@ export function defineNativeProfession<
   }
 
   const resolveProfession = (config: Readonly<ProfessionConfig> = {}) =>
-    selectionFor((config.specialization || 'Core').trim() || 'Core').source as Gw2ProfessionContract<State>;
+    selectionFor((config.specialization || 'Core').trim() || 'Core').source as Gw2ProfessionContract<State, TSkill>;
   /** Composes Core and the selected specialization's hooks over the resolved profession's catalog and modifiers. */
-  function runtimeFor(config: Gw2Config): RuntimeProfession<State> {
+  function runtimeFor(config: Gw2Config): RuntimeProfession<State, TSkill> {
     const specialization = config.specialization ?? 'Core';
     if (specialization !== 'Core' && !specializations.has(specialization))
       throw new TypeError(`Unknown specialization: ${specialization}.`);
     const selection = selectionFor(specialization);
     if (selection.runtime) return selection.runtime;
     const { modules: selected, source } = selection;
-    const hooks = (selected.map((module) => module.hooks ?? {}) as Partial<RuntimeProfession<State>>[]).map(
+    const hooks = (selected.map((module) => module.hooks ?? {}) as Partial<RuntimeProfession<State, TSkill>>[]).map(
       compileProfessionRules
     );
     const composed = composeRuntimeHooks(hooks);
-    const runtime: RuntimeProfession<State> = {
+    const runtime: RuntimeProfession<State, TSkill> = {
       ...composed,
       id: definition.id,
       catalog: source.catalog,

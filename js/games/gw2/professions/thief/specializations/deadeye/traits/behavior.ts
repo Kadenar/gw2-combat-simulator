@@ -1,3 +1,4 @@
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
@@ -33,7 +34,7 @@ export function applyBeQuickOrBeKilledAttributes(
 }
 
 /** Applies Be Quick or Be Killed at its established mechanical boundary. */
-export function grantBeQuickOrBeKilled(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function grantBeQuickOrBeKilled(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   if (hasTrait(runtime, TRAIT.BE_QUICK_OR_BE_KILLED))
     traitBoons(runtime, cast, 'Be Quick or Be Killed', TRAIT.BE_QUICK_OR_BE_KILLED, false, 'Quickness');
 }
@@ -41,7 +42,7 @@ export function grantBeQuickOrBeKilled(runtime: ThiefRuntime, cast: RuntimeCast)
 /** Emits a Deadeye trait boon package attributed to its trait source and triggering skill. */
 export function traitBoons(
   runtime: ThiefRuntime,
-  cast: RuntimeCast | null,
+  cast: RuntimeCast<ThiefSkill> | null,
   source: string,
   profileId: SkillId,
   party: boolean,
@@ -79,7 +80,7 @@ export function stolenSkillGrant(runtime: ThiefRuntime): {
 }
 
 /** Applies Fire for Effect at its established mechanical boundary. */
-export function grantFireForEffect(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function grantFireForEffect(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const skill = cast.skill;
   if (STOLEN_SKILLS.has(skill.id) && hasTrait(runtime, TRAIT.FIRE_FOR_EFFECT))
     traitBoons(runtime, cast, 'Fire for Effect', TRAIT.FIRE_FOR_EFFECT, true);
@@ -88,7 +89,7 @@ export function grantFireForEffect(runtime: ThiefRuntime, cast: RuntimeCast): vo
 export const STOLEN_SKILLS = new Set<SkillId>(DEADEYE_STOLEN_SKILL_IDS);
 
 /** Reaching maximum malice grants Maleficent Seven's initiative and boons once per malice cycle. */
-export function applyMaleficentSeven(runtime: ThiefRuntime, cast: RuntimeCast | null): void {
+export function applyMaleficentSeven(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill> | null): void {
   const state = deadeyeState.from(runtime);
   if (
     state.malice !== state.maximumMalice ||
@@ -170,7 +171,7 @@ export function applySilentScopeAttributes(
 }
 
 /** Applies Silent Scope at its established mechanical boundary. */
-export function grantSilentScope(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function grantSilentScope(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const skill = cast.skill;
   const state = deadeyeState.from(runtime);
   if (skill.id === SHARED_SKILL_IDS.DODGE && hasTrait(runtime, TRAIT.SILENT_SCOPE)) {

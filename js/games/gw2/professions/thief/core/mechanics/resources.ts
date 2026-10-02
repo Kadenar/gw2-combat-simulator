@@ -13,7 +13,7 @@ import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { ThiefConfig } from '#gw2/professions/thief/types.js';
+import type { ThiefConfig, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 export const THIEF_INFILTRATORS_SIGNET_PULSE = 'thief.infiltrators-signet';
 
@@ -102,7 +102,7 @@ export function thiefInfiltratorsSignetPulse(runtime: ThiefRuntime, data: unknow
 }
 
 /** Initiative costs are paid when the cast is accepted. */
-export function spendThiefCoreResources(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function spendThiefCoreResources(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const skill = cast.skill as { initiativeCost?: number };
   const cost = skill.initiativeCost || 0;
   if (cost > 0) runtime.resourceController.spend('initiative', cost);

@@ -6,6 +6,7 @@ import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resol
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type {
+  NecromancerSkill,
   NecromancerResolverContext,
   NecromancerResolverEvent,
   NecromancerRuntime
@@ -124,7 +125,11 @@ export function targetIsChilled(context: NecromancerResolverContext, at: number)
 }
 
 /** Emits the selected entry profile after the form and specialization state are established. */
-export function emitNecromancerShroudTrait(runtime: NecromancerRuntime, cast: RuntimeCast, trait: number): void {
+export function emitNecromancerShroudTrait(
+  runtime: NecromancerRuntime,
+  cast: RuntimeCast<NecromancerSkill>,
+  trait: number
+): void {
   if (!hasTrait(runtime, trait)) return;
   const profile = requireBalanceProfileFromContext(runtime, trait);
   emitEffects(runtime, {

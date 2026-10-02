@@ -5,7 +5,7 @@ import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 export function traitEffects(
   runtime: WarriorRuntime,
@@ -44,7 +44,7 @@ export function traitEffects(
 
 export function castTraitBuff(
   runtime: WarriorRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<WarriorSkill>,
   trait: number,
   profileId: string | number,
   name: string,
@@ -78,11 +78,11 @@ export function castTraitBuff(
   }
 }
 
-type WarriorRuntime = Gw2Runtime<WarriorRuntimeState>;
+type WarriorRuntime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 
 export function triggerTraitBuffs(
   runtime: Runtime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<WarriorSkill>,
   trait: number,
   stacks?: number,
   priority = 0
@@ -109,4 +109,4 @@ export function triggerTraitBuffs(
   });
 }
 
-type Runtime = Gw2Runtime<WarriorRuntimeState>;
+type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;

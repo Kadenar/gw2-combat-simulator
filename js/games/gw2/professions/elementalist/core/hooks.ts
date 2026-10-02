@@ -54,11 +54,15 @@ import {
   observeElementalistTraitEvent,
   reactElementalistCoreCritical
 } from '#gw2/professions/elementalist/core/traits/dispatch.js';
-import type { ElementalistRuntimeState, ElementalistSimulationEvent } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistSkill,
+  ElementalistRuntimeState,
+  ElementalistSimulationEvent
+} from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Core casts, accepted hits, and owned expiry tasks share the runtime. */
-export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
+export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
   sideEffectHandlers: elementalistCoreSideEffectHandlers,
   endurance: elementalistEndurance,
   availability: elementalistCoreAvailability,
@@ -112,7 +116,7 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
     'elementalist.expire-state': expireElementalistState,
     'elementalist.fulgor-pulse': fulgorPulse,
     'elementalist.core.consume-elemental-explosion'(runtime, data) {
-      const { cast } = data as SkillTaskData;
+      const { cast } = data as SkillTaskData<ElementalistSkill>;
       const effect = requireEffect(
         requireBalanceProfileFromContext(runtime, PROFILE.elementalExplosion),
         'buff',

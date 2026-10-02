@@ -5,11 +5,11 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
 import { RANGER_HAMMER_VARIANT_PAIRS } from '#gw2/professions/ranger/data/hammer-variants.js';
 
 /** Each slot shares its live recharge across variants, including cancelled casts. */
-export function synchronizeHammerRecharge(runtime: RangerRuntime, cast: RuntimeCast): void {
+export function synchronizeHammerRecharge(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   const pair = RANGER_HAMMER_VARIANT_PAIRS.find((ids) => ids.includes(Number(cast.skill.id)));
   for (const id of pair || []) runtime.cooldownController.copy(cast.skill.id, id);
 }

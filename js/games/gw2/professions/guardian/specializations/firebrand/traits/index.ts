@@ -14,10 +14,10 @@ import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { boon } from '#gw2/professions/guardian/specializations/firebrand/mechanics/effects.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import type { GuardianBuild } from '#gw2/professions/guardian/types.js';
+import type { GuardianBuild, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 
-const refundByCast = new WeakMap<RuntimeCast, number>();
+const refundByCast = new WeakMap<RuntimeCast<GuardianSkill>, number>();
 
 /** Counts accepted pages and grants earned refunds even after the tome session ends. */
 export const swiftScholar = defineTrait({

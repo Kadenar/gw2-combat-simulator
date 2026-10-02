@@ -12,10 +12,14 @@ import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mecha
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Sphere traits observe the deployment after its intrinsic start action and before ordinary packet emission. */
-export function applySphereStartTraits(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function applySphereStartTraits(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   // Spectacular Sphere pays party quickness plus the attunement's boon on deployment.
   // Sphere Specialist scales these procedural payouts once, separately from authored sphere packets.
   if (hasTrait(context, TRAIT.SPECTACULAR_SPHERE)) {

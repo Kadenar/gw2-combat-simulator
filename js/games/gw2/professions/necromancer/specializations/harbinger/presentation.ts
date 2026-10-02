@@ -11,7 +11,7 @@ import type {
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** Builds compact Blight, Cascading Corruption, and active Meltdown rotation-state rows. */
@@ -81,7 +81,7 @@ const HARBINGER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = 
 ]);
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog>): NecromancerUiSlice {
+export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
     effectPresentations: () => [...HARBINGER_EFFECT_PRESENTATIONS],
     paletteGroups: (context: NecromancerUiContext) =>

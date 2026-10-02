@@ -1,3 +1,4 @@
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -12,7 +13,7 @@ import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechan
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Own Compounding Power tuning alongside its runtime behavior. */
-export const compoundingPower = defineTrait({
+export const compoundingPower = defineTrait<MesmerSkill>({
   id: TRAIT.COMPOUNDING_POWER,
   name: 'Compounding Power',
   balance: {
@@ -47,7 +48,7 @@ export const compoundingPower = defineTrait({
 });
 
 /** Own Cry of Pain tuning alongside its runtime behavior. */
-export const cryOfPain = defineTrait({
+export const cryOfPain = defineTrait<MesmerSkill>({
   id: TRAIT.CRY_OF_PAIN,
   name: 'Cry of Pain',
   balance: {
@@ -56,7 +57,7 @@ export const cryOfPain = defineTrait({
 });
 
 /** Own Maim the Disillusioned tuning alongside its runtime behavior. */
-export const maimTheDisillusioned = defineTrait({
+export const maimTheDisillusioned = defineTrait<MesmerSkill>({
   id: TRAIT.MAIM_THE_DISILLUSIONED,
   name: 'Maim the Disillusioned',
   balance: {
@@ -65,7 +66,7 @@ export const maimTheDisillusioned = defineTrait({
 });
 
 /** Own Malicious Sorcery tuning alongside its runtime behavior. */
-export const maliciousSorcery = defineTrait({
+export const maliciousSorcery = defineTrait<MesmerSkill>({
   id: TRAIT.MALICIOUS_SORCERY,
   name: 'Malicious Sorcery',
   balance: { durationMultiplier: 0.25 },
@@ -93,14 +94,14 @@ export const maliciousSorcery = defineTrait({
 });
 
 /** Own Master of Misdirection tuning alongside its runtime behavior. */
-export const masterOfMisdirection = defineTrait({
+export const masterOfMisdirection = defineTrait<MesmerSkill>({
   id: TRAIT.MASTER_OF_MISDIRECTION,
   name: 'Master of Misdirection',
   balance: { rechargeMultiplier: 0.85 }
 });
 
 /** Own Master of Fragmentation tuning alongside its runtime behavior. */
-export const masterOfFragmentation = defineTrait({
+export const masterOfFragmentation = defineTrait<MesmerSkill>({
   id: TRAIT.MASTER_OF_FRAGMENTATION,
   name: 'Master of Fragmentation',
   balance: {
@@ -160,7 +161,7 @@ export const masterOfFragmentation = defineTrait({
 });
 
 /** Own Phantasmal Haste tuning alongside its runtime behavior. */
-export const phantasmalHaste = defineTrait({
+export const phantasmalHaste = defineTrait<MesmerSkill>({
   id: TRAIT.PHANTASMAL_HASTE,
   name: 'Phantasmal Haste',
   balance: {
@@ -169,7 +170,7 @@ export const phantasmalHaste = defineTrait({
 });
 
 /** Own Shatter Storm tuning alongside its runtime behavior. */
-export const shatterStorm = defineTrait({
+export const shatterStorm = defineTrait<MesmerSkill>({
   id: TRAIT.SHATTER_STORM,
   name: 'Shatter Storm',
   balance: {
@@ -178,7 +179,7 @@ export const shatterStorm = defineTrait({
 });
 
 /** Own The Pledge tuning alongside its runtime behavior. */
-export const thePledge = defineTrait({
+export const thePledge = defineTrait<MesmerSkill>({
   id: TRAIT.THE_PLEDGE,
   name: 'The Pledge',
   balance: {
@@ -187,7 +188,7 @@ export const thePledge = defineTrait({
 });
 
 /** Own Phantasmal Force tuning alongside its runtime behavior. */
-export const phantasmalForce = defineTrait({
+export const phantasmalForce = defineTrait<MesmerSkill>({
   id: TRAIT.PHANTASMAL_FORCE,
   name: 'Phantasmal Force',
   modifierRules: [

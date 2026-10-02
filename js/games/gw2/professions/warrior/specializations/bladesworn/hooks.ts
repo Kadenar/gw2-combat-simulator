@@ -40,10 +40,10 @@ import {
   gunsAndGloryExplosion,
   maximumDragonCharges
 } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
-import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime, EPSILON, timeKey } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<WarriorRuntimeState>;
+type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 
 const FLOW_TICK = 'warrior.flow-tick';
 
@@ -81,7 +81,7 @@ function flowTick(runtime: Runtime): void {
 }
 
 /** Both sides share the already committed recharge and notify equipment without changing the configured weapon set. */
-function swapGunsaber(runtime: Runtime, cast: RuntimeCast, active: boolean): void {
+function swapGunsaber(runtime: Runtime, cast: RuntimeCast<WarriorSkill>, active: boolean): void {
   bladeswornState.from(runtime).gunsaberActive = active;
   resetAutoattackChains(runtime);
   resetSoldierFocus(runtime);
@@ -119,7 +119,7 @@ function scheduleCharge(runtime: Runtime): void {
 }
 
 /** Entry spends once; the first interval is prepaid, and every subsequent interval checks then spends current Flow. */
-function enterDragonTrigger(runtime: Runtime, cast: RuntimeCast): void {
+function enterDragonTrigger(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
   const state = bladeswornState.from(runtime);
   if (!state.gunsaberActive) swapGunsaber(runtime, cast, true);
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.dragonTrigger);
@@ -207,7 +207,7 @@ function explosion(runtime: Runtime, event: Gw2ResolverEvent): void {
 }
 
 /** Native declarations own actual resources, bar transitions, completed ammunition rewards, and accepted explosions. */
-export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
+export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
   sideEffectHandlers: {
     ...bladeswornSkillActions,
     // Bar declarations invoke the shared transition, including recharge and entry trait observers.
@@ -299,7 +299,7 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = 
   onCastCommit(runtime, cast) {
     // Successful ammunition commitment earns its reward even when the remaining animation is interrupted.
     ammoTraits(runtime, cast);
-    grantWarriorAdrenaline(runtime, Number(cast.skill.flowGain ?? 0));
+    grantWarriorAdrenaline(runtime, cast.skill.flowGain ?? 0);
     const release = dragonSlashReleases.get(cast);
     if (release) {
       burstMasteryDragonSlash(runtime, cast, release);

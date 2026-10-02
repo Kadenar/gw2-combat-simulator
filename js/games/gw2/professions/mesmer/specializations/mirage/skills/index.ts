@@ -4,12 +4,12 @@
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill, SkillId, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerAmbushAttack } from '#gw2/professions/mesmer/types.js';
 
-export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Skill>>> = Object.freeze({
+export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<MesmerSkill>>> = Object.freeze({
   [ID.AXES_OF_SYMMETRY]: {
     sideEffects: [{ on: 'castStart', do: { type: 'mesmer.axes-clones' } }],
     shadowstepSkill: true,
@@ -201,7 +201,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Ski
 });
 
 /** Select player packets at acceptance; status schedules remain independent of whether strikes are removed. */
-function playerAmbushEffects(profileId: string, party = false): NonNullable<Skill['effectVariants']> {
+function playerAmbushEffects(profileId: string, party = false): NonNullable<MesmerSkill['effectVariants']> {
   return [
     {
       profileId,
@@ -636,7 +636,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
   }
 });
 
-export const MESMER_MIRAGE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+export const MESMER_MIRAGE_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze([
   ...Object.values(MESMER_MIRAGE_AMBUSH_SKILLS),
   {
     id: ID.DODGE_MIRAGE_CLOAK,

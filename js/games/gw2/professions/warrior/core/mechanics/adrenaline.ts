@@ -6,7 +6,7 @@ import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/wa
 import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-type WarriorRuntime = Gw2Runtime<WarriorRuntimeState>;
+type WarriorRuntime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 
 /** Accepted gains mutate the current pool immediately, capped by its owning specialization. */
 export function grantWarriorAdrenaline(runtime: WarriorRuntime, amount: number): void {
@@ -25,7 +25,7 @@ export function grantWarriorAdrenaline(runtime: WarriorRuntime, amount: number):
 }
 
 // Immutable reservation facts survive resource changes during the cast.
-export const warriorBurstSpends = new WeakMap<RuntimeCast, number>();
+export const warriorBurstSpends = new WeakMap<RuntimeCast<WarriorSkill>, number>();
 
 /** Tier-dependent packets and fields use the same activation-time resource thresholds. */
 export function warriorBurstTier(runtime: Gw2Runtime, spent: number): number {

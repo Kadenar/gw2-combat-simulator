@@ -5,7 +5,7 @@ import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js'
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Procedural packets retain explicit source identities and the owning cast's targeting policy. */
 type Packet = Partial<SimulationEventBase> & {
@@ -20,10 +20,14 @@ type Packet = Partial<SimulationEventBase> & {
   condition?: string;
   controlKind?: string;
 } & { at: number; skill?: Skill; cause?: Gw2ResolverEvent; interval?: number };
-const emissions = new WeakMap<ElementalistRuntime, RuntimeCast>();
+const emissions = new WeakMap<ElementalistRuntime, RuntimeCast<ElementalistSkill>>();
 
 /** Captures cast ownership only while a lifecycle callback materializes its procedural packets. */
-export function withElementalistCast(runtime: ElementalistRuntime, cast: RuntimeCast, callback: () => void): void {
+export function withElementalistCast(
+  runtime: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  callback: () => void
+): void {
   const previous = emissions.get(runtime);
   emissions.set(runtime, cast);
   try {

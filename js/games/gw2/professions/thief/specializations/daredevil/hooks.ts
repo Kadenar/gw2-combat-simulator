@@ -27,19 +27,19 @@ import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types
 const DAREDEVIL_COMPLETE = 'thief.daredevil-complete';
 
 /** After the dodge's own packets, the dodge opens its window and Weakening Strikes arms the next landed strike. */
-function completeDaredevilDodge(runtime: ThiefRuntime, cast: RuntimeCast): void {
+function completeDaredevilDodge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   openDodgeWindow(runtime, cast);
   armWeakeningStrikes(runtime, cast);
 }
 
-function completeDaredevilCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
+function completeDaredevilCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   if (cast.skill.id === SHARED_SKILL_IDS.DODGE) completeDaredevilDodge(runtime, cast);
   // Endurance Thief follows Core's steal resources.
   grantEnduranceThief(runtime, cast);
 }
 
 /** Daredevil hooks: the larger endurance pool, selected dodges, trait refunds, and Palm Strike. */
-export const daredevilHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
+export const daredevilHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefSkill>> = {
   // Daredevil replaces only the capacity while retaining Core's pool and regeneration.
   endurance: {
     ...thiefEndurance,
@@ -61,7 +61,7 @@ export const daredevilHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     };
   },
   onCastStart(runtime, cast) {
-    const skill = cast.skill as ThiefSkill;
+    const skill = cast.skill;
 
     // Staff Master refunds endurance per initiative spent on staff skills.
     refundStaffMaster(runtime, cast);
@@ -75,7 +75,7 @@ export const daredevilHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   },
   tasks: {
     [DAREDEVIL_COMPLETE](runtime, data) {
-      const { cast } = data as { cast: RuntimeCast };
+      const { cast } = data as { cast: RuntimeCast<ThiefSkill> };
       completeDaredevilCast(runtime, cast);
     }
   }

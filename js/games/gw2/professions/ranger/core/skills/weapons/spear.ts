@@ -1,6 +1,6 @@
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
@@ -304,7 +304,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
 ]);
 
 /** Copy the live source recharge on commitment and cancellation, excluding Panther's independent ammo. */
-export function synchronizeSpearRecharge(runtime: RangerRuntime, cast: RuntimeCast): void {
+export function synchronizeSpearRecharge(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   for (const [parentId, flip] of Object.entries(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT)) {
     const parent = Number(parentId);
     if (parent === ID.PANTHERS_PROWL || (cast.skill.id !== parent && cast.skill.id !== flip)) continue;

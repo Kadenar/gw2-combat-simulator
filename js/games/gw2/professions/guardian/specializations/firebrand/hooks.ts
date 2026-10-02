@@ -39,15 +39,15 @@ import {
   resetSwiftScholar,
   stoicDemeanorRetainsCourage
 } from '#gw2/professions/guardian/specializations/firebrand/traits/behavior.js';
-import type { GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianVirtue, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState>;
+type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 const COURAGE = 'guardian.firebrand.courage';
 const DORMANCY = { justice: PROFILE.tomeJustice, resolve: PROFILE.tomeResolve, courage: PROFILE.tomeCourage };
 
 /** Tome reopening changes only the current bar; it cannot restart a dormant passive or duplicate its activation traits. */
-function openTome(runtime: Runtime, cast: RuntimeCast, virtue: GuardianVirtue): void {
+function openTome(runtime: Runtime, cast: RuntimeCast<GuardianSkill>, virtue: GuardianVirtue): void {
   const state = firebrandState.from(runtime);
   const ready = state.tomeDormantReadyAt[virtue] <= runtime.time;
   state.activeTome = virtue;
@@ -93,7 +93,7 @@ function courage(runtime: Runtime): void {
 }
 
 /** Pages, tome sessions, and mantra charges mutate one live state; report events never restore a snapshot. */
-export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
+export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
   sideEffectHandlers: {
     ...firebrandMantraActions,
     // Declarations select the virtue; the controller retains dormancy and session invariants.

@@ -11,7 +11,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { rangerPetEvent, rangerTargetImpaired } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 function openingStrikeReady(context: Gw2ModifierContext): boolean {
   const core = readProfessionCoreState<{
@@ -122,9 +122,9 @@ export const leadTheWind = defineTrait({
       order: 3,
       emit: TRAIT.LEAD_THE_WIND,
       on: 'castCommit' as const,
-      when: (_runtime: RangerRuntime, cast: RuntimeCast) => cast.skill.id === ID.POINT_BLANK_SHOT,
+      when: (_runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) => cast.skill.id === ID.POINT_BLANK_SHOT,
       effects: (effect) => effect.type === 'boon' && effect.name === 'swiftness',
-      attribution: (_runtime: RangerRuntime, cast: RuntimeCast) => ({
+      attribution: (_runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) => ({
         skillId: TRAIT.LEAD_THE_WIND,
         skillName: 'Lead the Wind',
         name: `Lead the Wind - swiftness`,
@@ -135,9 +135,9 @@ export const leadTheWind = defineTrait({
       order: 4,
       emit: TRAIT.LEAD_THE_WIND,
       on: 'castCommit' as const,
-      when: (_runtime: RangerRuntime, cast: RuntimeCast) => cast.skill.id === ID.POINT_BLANK_SHOT,
+      when: (_runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) => cast.skill.id === ID.POINT_BLANK_SHOT,
       effects: (effect) => effect.type === 'boon' && effect.name === 'quickness',
-      attribution: (_runtime: RangerRuntime, cast: RuntimeCast) => ({
+      attribution: (_runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) => ({
         skillId: TRAIT.LEAD_THE_WIND,
         skillName: 'Lead the Wind',
         name: `Lead the Wind - quickness`,

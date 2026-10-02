@@ -4,15 +4,15 @@ import type {
   Gw2CommonAttributeResult
 } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NativeModuleHooks } from '#gw2/platform/profession-definition/module-types.js';
 import type { RechargeRule, TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 
 // Keep the existing discriminated trigger signatures while supplying selection ownership once.
 type OwnedTrigger<T> = T extends { readonly trait: SkillId } ? Omit<T, 'trait'> : never;
-export type TraitHooks = Pick<
-  NativeModuleHooks,
+export type TraitHooks<TSkill extends Skill = Skill> = Pick<
+  NativeModuleHooks<TSkill>,
   | 'initialize'
   | 'onCombatStart'
   | 'prepareEvent'
@@ -38,7 +38,7 @@ export type TraitHooks = Pick<
 >;
 
 /** One authoring owner; callbacks retain explicit eligibility and lifetime at their existing execution phase. */
-export interface TraitDefinition {
+export interface TraitDefinition<TSkill extends Skill = Skill> {
   readonly id: SkillId;
   readonly name: string;
   /** Omit for behavior-only traits; id overrides preserve existing non-trait profile identities. */
@@ -51,9 +51,9 @@ export interface TraitDefinition {
     /** Applied effects may outlive selection; their predicate owns eligibility instead. */
     readonly requiresSelection?: boolean;
   })[];
-  readonly triggers?: readonly OwnedTrigger<TraitTrigger<never>>[];
-  readonly rechargeRules?: readonly Omit<RechargeRule<never>, 'trait'>[];
-  readonly hooks?: TraitHooks;
+  readonly triggers?: readonly OwnedTrigger<TraitTrigger<never, TSkill>>[];
+  readonly rechargeRules?: readonly Omit<RechargeRule<never, TSkill>, 'trait'>[];
+  readonly hooks?: TraitHooks<TSkill>;
   readonly buildAttributes?: (
     common: Gw2CommonAttributeResult,
     context: Gw2BuildAttributeRuleContext & { readonly balanceContext: ProfessionBalanceContext }
@@ -61,8 +61,14 @@ export interface TraitDefinition {
 }
 
 /** Reject misspelled behavior fields before they can silently disappear during module expansion. */
-export function defineTrait(definition: TraitDefinition): Readonly<TraitDefinition> {
-  const candidate = definition as Partial<TraitDefinition> | null | undefined;
+export function defineTrait(definition: TraitDefinition): Readonly<TraitDefinition>;
+export function defineTrait<TSkill extends Skill>(
+  definition: TraitDefinition<TSkill>
+): Readonly<TraitDefinition<TSkill>>;
+export function defineTrait<TSkill extends Skill>(
+  definition: TraitDefinition<TSkill>
+): Readonly<TraitDefinition<TSkill>> {
+  const candidate = definition as Partial<TraitDefinition<TSkill>> | null | undefined;
   if (
     !candidate ||
     !['string', 'number'].includes(typeof candidate.id) ||

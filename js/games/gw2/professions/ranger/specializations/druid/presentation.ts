@@ -18,7 +18,7 @@ const AVATAR_SKILLS = Object.freeze([
 ]);
 
 /** Share the live clock limit, or the bound catalog's limit for a detached preview. */
-function astralForceMaximum(catalog: Readonly<CanonicalCatalog>, context: RangerUiContext): number {
+function astralForceMaximum(catalog: Readonly<CanonicalCatalog<RangerSkill>>, context: RangerUiContext): number {
   return (
     rangerUiState(context).astralClock?.maximum ??
     balanceProfileNumber(
@@ -29,7 +29,7 @@ function astralForceMaximum(catalog: Readonly<CanonicalCatalog>, context: Ranger
 }
 
 function availability(
-  catalog: Readonly<CanonicalCatalog>,
+  catalog: Readonly<CanonicalCatalog<RangerSkill>>,
   context: RangerUiContext,
   skill: RangerSkill
 ): PaletteSkillAvailability {
@@ -69,7 +69,7 @@ function availability(
 }
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindDruidUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlice {
+export function bindDruidUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
     paletteGroups: (context: RangerUiContext) => [
       rangerPetPaletteGroup(catalog, context),

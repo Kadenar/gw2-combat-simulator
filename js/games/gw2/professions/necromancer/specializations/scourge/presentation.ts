@@ -36,7 +36,7 @@ function scourgePaletteAvailability(context: NecromancerUiContext, skill: Necrom
 }
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindScourgeUi(catalog: Readonly<CanonicalCatalog>): NecromancerUiSlice {
+export function bindScourgeUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
     paletteGroups: (context: NecromancerUiContext) =>
       necromancerTransformPaletteGroups(catalog, context, {

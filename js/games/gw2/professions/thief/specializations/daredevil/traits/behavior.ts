@@ -31,7 +31,7 @@ export const PHYSICAL_ENDURANCE: NonNullable<NonNullable<Skill['sideEffects']>> 
 ];
 
 /** Applies Endurance Thief at its established mechanical boundary. */
-export function grantEnduranceThief(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function grantEnduranceThief(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   if (cast.skill.id === ID.STEAL && hasTrait(runtime, TRAIT.ENDURANCE_THIEF))
     grantThiefEndurance(
       runtime,
@@ -40,8 +40,8 @@ export function grantEnduranceThief(runtime: ThiefRuntime, cast: RuntimeCast): v
 }
 
 /** Applies Staff Master at its established mechanical boundary. */
-export function refundStaffMaster(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as ThiefSkill;
+export function refundStaffMaster(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+  const skill = cast.skill;
   const cost = skill.initiativeCost || 0;
   if (cost > 0 && skill.weapon === 'Staff' && hasTrait(runtime, TRAIT.STAFF_MASTER))
     grantThiefEndurance(
@@ -51,9 +51,9 @@ export function refundStaffMaster(runtime: ThiefRuntime, cast: RuntimeCast): voi
 }
 
 /** Arm the next landed strike after the dodge window opens. */
-export function armWeakeningStrikes(runtime: ThiefRuntime, cast: RuntimeCast): void {
+export function armWeakeningStrikes(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const state = daredevilState.from(runtime);
-  const skill = cast.skill as ThiefSkill;
+  const skill = cast.skill;
 
   if (!hasTrait(runtime, TRAIT.WEAKENING_STRIKES)) return;
   const weakening = requireBalanceProfileFromContext(runtime, TRAIT.WEAKENING_STRIKES);

@@ -1,3 +1,4 @@
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 /**
  * Builds each blade tier's timed packets from its total strike coefficient.
@@ -16,9 +17,9 @@ function bladePacketTiers(coefficients: readonly number[], atMs: readonly number
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
-export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Skill>>> = Object.freeze({
+export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<MesmerSkill>>> = Object.freeze({
   [ID.BLADECALL]: {
     interruptCommitMs: 280,
     retainsCastLockoutAfterInterrupt: true,
@@ -353,7 +354,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<S
 export const MESMER_VIRTUOSO_SHATTERS: Readonly<Record<number, MesmerShatterDefinition>> = Object.freeze(
   Object.fromEntries(
     Object.entries(MESMER_VIRTUOSO_SKILL_MECHANICS).flatMap(([id, skill]) =>
-      skill.shatter ? [[Number(id), skill.shatter as MesmerShatterDefinition]] : []
+      skill.shatter ? [[Number(id), skill.shatter]] : []
     )
   )
 );

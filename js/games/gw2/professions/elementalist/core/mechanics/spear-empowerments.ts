@@ -11,10 +11,18 @@ import { emitElementalistControl } from '#gw2/professions/elementalist/core/even
 import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import { etchingChain, skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
-import type { ElementalistRuntime, ElementalistSimulationEvent } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistSkill,
+  ElementalistRuntime,
+  ElementalistSimulationEvent
+} from '#gw2/professions/elementalist/types.js';
 
 /** Snapshots armed one-shot bonuses for the next eligible spear activation. */
-export function beginElementalistSpearCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function beginElementalistSpearCast(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   const state = professionCoreState(context);
   if (skillWeapon(skill) !== 'Spear' || String(skill.slot || '') === 'Weapon_1') return;
   const followup = {

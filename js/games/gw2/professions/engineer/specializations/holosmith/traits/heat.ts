@@ -1,3 +1,4 @@
+import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -14,7 +15,7 @@ import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js'
 import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 
 /** Emit one Might pulse after the caller has accepted its heat threshold or scheduled lifetime. */
-export function emitEnhancedCapacityMight(context: EngineerRuntime, at: number): void {
+export function emitEnhancedCapacityMight(context: EngineerRuntime<HolosmithSkill>, at: number): void {
   const enhancedCapacityProfile = requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT);
   const boon = requireEffect(enhancedCapacityProfile, 'boon', 'might');
   if (boon) {
@@ -32,7 +33,11 @@ export function emitEnhancedCapacityMight(context: EngineerRuntime, at: number):
 }
 
 /** Crossing the threshold grants the first pulse immediately and starts the existing scheduled cadence. */
-export function triggerInstantEnhancedCapacityMight(context: EngineerRuntime, at: number, previousHeat: number): void {
+export function triggerInstantEnhancedCapacityMight(
+  context: EngineerRuntime<HolosmithSkill>,
+  at: number,
+  previousHeat: number
+): void {
   const state = holosmithState.from(context);
   if (
     !hasTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) ||
@@ -48,7 +53,7 @@ export function triggerInstantEnhancedCapacityMight(context: EngineerRuntime, at
 }
 
 /** Queue the blast before Burning at the accepted overheat deadline, preserving independent packet ownership. */
-export function emitPhotonicBlastingModuleEffects(context: EngineerRuntime, effectAt: number): void {
+export function emitPhotonicBlastingModuleEffects(context: EngineerRuntime<HolosmithSkill>, effectAt: number): void {
   const photonicBlastingModuleProfile = requireBalanceProfileFromContext(context, TRAIT.PHOTONIC_BLASTING_MODULE);
   const strike = requireEffect(photonicBlastingModuleProfile, 'strike', 'Photonic Blasting Module');
   const condition = requireEffect(photonicBlastingModuleProfile, 'condition', 'Burning');
@@ -93,7 +98,7 @@ export function emitPhotonicBlastingModuleEffects(context: EngineerRuntime, effe
 }
 
 /** Seed the Might task before passive cooling begins in preheated simulations. */
-export function initializeEnhancedCapacityMight(context: EngineerRuntime): void {
+export function initializeEnhancedCapacityMight(context: EngineerRuntime<HolosmithSkill>): void {
   const state = holosmithState.from(context);
   if (
     hasTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) &&
@@ -122,20 +127,20 @@ export function enhancedCapacityHeatTier(heat: number, selected: boolean): boole
 }
 
 /** Light Density Amplifier uses the existing shared heat-profile patch key. */
-export function lightDensityHeatPerSecond(context: EngineerRuntime): number {
+export function lightDensityHeatPerSecond(context: EngineerRuntime<HolosmithSkill>): number {
   return hasTrait(context.config, TRAIT.LIGHT_DENSITY_AMPLIFIER)
     ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.heat), 'resourceGain')
     : 0;
 }
 
 /** PBM retains heat outside Forge until overheat, including when a dodge attempts to vent it. */
-export function preservesPhotonicHeat(context: EngineerRuntime): boolean {
+export function preservesPhotonicHeat(context: EngineerRuntime<HolosmithSkill>): boolean {
   return hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) && !holosmithState.from(context).overheated;
 }
 
 /** PBM supplies its delayed blast timestamp and toolbelt penalty before overheat state changes. */
 export function photonicOverheatTiming(
-  context: EngineerRuntime,
+  context: EngineerRuntime<HolosmithSkill>,
   at: number
 ): { at: number; cooldown: number } | undefined {
   if (!hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE)) return;

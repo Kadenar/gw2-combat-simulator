@@ -1,6 +1,6 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { eventSkill, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import {
@@ -475,11 +475,9 @@ export const warriorBurstSkillModifiers: readonly Gw2ModifierRule[] = [
 ];
 
 /** Fields select their tier before the shared burst reservation spends adrenaline. */
-export const combustiveShotFields: NonNullable<RuntimeProfession<WarriorRuntimeState>['modifyComboFields']> = (
-  runtime,
-  cast,
-  fields
-) => {
+export const combustiveShotFields: NonNullable<
+  RuntimeProfession<WarriorRuntimeState, WarriorSkill>['modifyComboFields']
+> = (runtime, cast, fields) => {
   if (cast.skill.id !== ID.COMBUSTIVE_SHOT) return fields;
   const tier = warriorBurstTier(runtime, burstAdrenalineSpend(runtime, cast.skill));
   const duration =

@@ -1,3 +1,4 @@
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import type { ActionContext } from '#gw2/platform/simulation/side-effects.js';
 import { scheduleLanding } from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
@@ -17,7 +18,7 @@ export const revenantNativeModules = Object.freeze([
       ...revenantCoreModule.hooks,
       sideEffectHandlers: {
         ...revenantCoreModule.hooks?.sideEffectHandlers,
-        'revenant.vindicator-dodge'(runtime: RevenantRuntime, context: ActionContext) {
+        'revenant.vindicator-dodge'(runtime: RevenantRuntime, context: ActionContext<RevenantSkill>) {
           if (context.kind === 'cast') scheduleLanding(runtime, context.cast, context.cast.start);
         }
       }

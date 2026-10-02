@@ -35,7 +35,7 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 // Evocation's five-second trait ICD applies to some Fire and Earth entry effects
 const EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES = new Set<Skill['id']>([
@@ -181,7 +181,7 @@ export function commitRechargeDuration(context: ElementalistRuntime, skill: Skil
 // fires the attunement-enter effects for Specialized Elements without actually swapping attunement
 export function triggerSpecializedElementEntry(
   context: ElementalistRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ElementalistSkill>,
   skill: Skill,
   element: ElementalistAttunement
 ): void {
@@ -220,7 +220,11 @@ export function triggerSpecializedElementEntry(
 }
 
 // Specialized Elements removes the profiled fraction of each weapon skill's base recharge.
-function applyWeaponSkillRechargeMultiplier(context: ElementalistRuntime, cast: RuntimeCast, multiplier: number): void {
+function applyWeaponSkillRechargeMultiplier(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  multiplier: number
+): void {
   const at = cast.effectiveEnd;
   for (const candidate of context.helpers.skills) {
     if (candidate.type !== 'Weapon') continue;
@@ -229,7 +233,11 @@ function applyWeaponSkillRechargeMultiplier(context: ElementalistRuntime, cast: 
   }
 }
 
-export function applySpecializedElementsTrait(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function applySpecializedElementsTrait(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
   // Basic familiars retain 90% weapon recharge; empowered familiars retain
   // 67% and trigger the elemental entry effects.

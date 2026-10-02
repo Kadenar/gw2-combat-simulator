@@ -1,3 +1,4 @@
+import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
@@ -8,7 +9,7 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/engineer/data/engineer
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { TRAITS } from '#gw2/professions/engineer/data/traits-data.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 const ENGINEER_SKILL_ICON_OVERRIDES = new Map<string, string>([
   ['Lesser Grenade Barrage', 'https://render.guildwars2.com/file/5B2AB667667749BC1BC7AEFD27362E3E0E0F2FE6/103294.png'],
@@ -78,7 +79,7 @@ const generatedSource = SKILLS.map((skill) => ({
   ...(NON_HOLOSMITH_SWORD_SKILL_IDS.has(skill.id) ? { specialization: '' } : {})
 }));
 
-const allDeclared: readonly Skill[] = [...generatedSource, ...ENGINEER_SUPPLEMENTAL_SKILLS];
+const allDeclared: readonly EngineerSkill[] = [...generatedSource, ...ENGINEER_SUPPLEMENTAL_SKILLS];
 
 const preferredFlipParentById = new Map<SkillId, SkillId>([
   [ID.DETONATE_HEALING_TURRET, ID.HEALING_TURRET],
@@ -93,7 +94,7 @@ const flipParentById = createFlipParentMap(allDeclared, {
   overrides: preferredFlipParentById
 });
 
-const generated: readonly Skill[] = generatedSource.map((skill) => ({
+const generated: readonly EngineerSkill[] = generatedSource.map((skill) => ({
   ...normalizeGeneratedSkill(skill, flipParentById.get(skill.id) ?? null),
   ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
     ? {
@@ -102,7 +103,7 @@ const generated: readonly Skill[] = generatedSource.map((skill) => ({
     : {})
 }));
 
-const supplemental: readonly Skill[] = ENGINEER_SUPPLEMENTAL_SKILLS.map((skill) => ({
+const supplemental: readonly EngineerSkill[] = ENGINEER_SUPPLEMENTAL_SKILLS.map((skill) => ({
   ...skill,
   icon: ENGINEER_SKILL_ICON_OVERRIDES.get(skill.name) || skill.icon,
   flipParentId: flipParentById.get(skill.id) ?? null,
@@ -152,7 +153,8 @@ const WEAPON_DATA = defineProfessionWeapons({
 });
 
 /** Builds Engineer module catalogs directly from their ID-linked skill declarations. */
-export const createEngineerModuleData = createProfessionModuleDataFactory({
+// Preserve Engineer fields through module registration and selected catalog lookups.
+export const createEngineerModuleData = createProfessionModuleDataFactory<EngineerSkill>({
   generatedSkills: generated,
   sharedExtraSkills: supplemental,
   traits: TRAITS,

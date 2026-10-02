@@ -17,10 +17,10 @@ import { willbenderBoon as boon } from '#gw2/professions/guardian/specialization
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
-import type { GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianVirtue, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState>;
+type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 
 /** Decodes the live stack cap and selected lifetime before granting a window. */
 export function lethalTempoParameters(context: unknown) {

@@ -1,3 +1,4 @@
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -19,10 +20,10 @@ import {
 } from '#gw2/professions/revenant/core/traits/behavior.js';
 
 // A skill action may need pre-transition traits; the common observer must not grant them twice.
-const completedCastTraits = new WeakSet<RuntimeCast>();
+const completedCastTraits = new WeakSet<RuntimeCast<RevenantSkill>>();
 
 /** Committed casts grant completion rewards even when shortened; cancelled reservations grant nothing. */
-export function completeRevenantCastTraits(runtime: RevenantRuntime, cast: RuntimeCast): void {
+export function completeRevenantCastTraits(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   if (completedCastTraits.has(cast)) return;
   completedCastTraits.add(cast);
   completeBattleScarred(runtime, cast);

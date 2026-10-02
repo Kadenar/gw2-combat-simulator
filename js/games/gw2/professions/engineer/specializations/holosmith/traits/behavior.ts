@@ -29,7 +29,11 @@ const HOLOSMITH_STORM_AUTOATTACK_SKILL_IDS = new Set<number>([
 ]);
 
 /** Dodge grants Vigor before invoking the skill-owned vent, unless PBM preserves the current heat. */
-export function triggerThermalReleaseValve(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
+export function triggerThermalReleaseValve(
+  context: EngineerRuntime<HolosmithSkill>,
+  skill: EngineerSkill,
+  at: number
+): void {
   if (!hasTrait(context.config, TRAIT.THERMAL_RELEASE_VALVE)) return;
   const state = holosmithState.from(context);
   const thermalReleaseValveProfile = requireBalanceProfileFromContext(context, TRAIT.THERMAL_RELEASE_VALVE);
@@ -54,7 +58,10 @@ export function triggerThermalReleaseValve(context: EngineerRuntime, skill: Engi
 }
 
 /** Storm replacement runs before ordinary Forge availability so denial precedence stays stable. */
-export function crystalStormAvailability(context: EngineerRuntime, skill: HolosmithSkill): AvailabilityResult {
+export function crystalStormAvailability(
+  context: EngineerRuntime<HolosmithSkill>,
+  skill: HolosmithSkill
+): AvailabilityResult {
   if (skill.forgeSkill && skill.slot === 'Weapon_1') {
     const stormSelected = hasTrait(context.config, TRAIT.CRYSTAL_CONFIGURATION_STORM);
     const stormSkill = HOLOSMITH_STORM_AUTOATTACK_SKILL_IDS.has(Number(skill.id));
@@ -119,7 +126,7 @@ export function consumeSolarFocusingLens(
 
 /** Entry, ordinary exit, and overheat choose their grant size at the original transition boundary. */
 export function grantSolarFocusingLens(
-  context: EngineerRuntime,
+  context: EngineerRuntime<HolosmithSkill>,
   at: number,
   grant: 'minimumStacks' | 'maximumStacks'
 ): void {

@@ -38,13 +38,18 @@ import {
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import type {
+  ElementalistSkill,
   ElementalistModifierContext,
   ElementalistResolverContext,
   ElementalistRuntime
 } from '#gw2/professions/elementalist/types.js';
 
 /** Grants Inscription's current-attunement boon after a completed Glyph cast. */
-export function applyInscriptionPostCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function applyInscriptionPostCast(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   if (!hasTrait(context, TRAIT.INSCRIPTION) || skill.skillFamily !== 'Glyph') return;
   const state = professionCoreState(context);
   emitProfiledBuff(context, cast.effectiveEnd, TRAIT.INSCRIPTION, state.primaryAttunement, skill.name, skill.id);
@@ -147,7 +152,11 @@ export function aeromancersTrainingRecharge(context: ElementalistRuntime, skill:
 }
 
 // Materialize the current attunement's dodge proc while tracking an independent elemental ICD.
-export function triggerEvasiveArcana(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function triggerEvasiveArcana(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   if (!hasTrait(context, TRAIT.EVASIVE_ARCANA)) return;
   const state = professionCoreState(context);
   const at = cast.effectiveEnd;
@@ -230,7 +239,11 @@ export function triggerEvasiveArcana(context: ElementalistRuntime, cast: Runtime
 }
 
 /** Applies Arcane Lightning's shared ferocity window and named Arcane-skill follow-up. */
-export function applyArcaneLightning(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function applyArcaneLightning(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   if (!hasTrait(context, TRAIT.ARCANE_LIGHTNING) || skill.skillFamily !== 'Arcane') return;
   const at = cast.effectiveEnd;
   const arcaneLightningProfile = requireBalanceProfileFromContext(context, TRAIT.ARCANE_LIGHTNING);
@@ -314,7 +327,11 @@ export function elementalEnchantmentRecharge(context: ElementalistRuntime, secon
 }
 
 /** Grants Earth's Embrace Resistance from an eligible healing skill. */
-export function applyEarthsEmbrace(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function applyEarthsEmbrace(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   const at = cast.effectiveEnd;
   if (skill.type !== 'Heal' || !hasTrait(context, TRAIT.EARTHS_EMBRACE)) return;
   const earthsEmbraceProfile = requireBalanceProfileFromContext(context, TRAIT.EARTHS_EMBRACE);
@@ -327,7 +344,7 @@ export function applyEarthsEmbrace(context: ElementalistRuntime, cast: RuntimeCa
 /** Applies Written in Stone's signet-specific aura after a completed signet cast. */
 export function applyWrittenInStone(
   context: ElementalistRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ElementalistSkill>,
   skill: Skill,
   applyAura: ElementalistAuraApplier
 ): void {
@@ -429,7 +446,11 @@ export function geomancersTrainingRecharge(context: ElementalistRuntime, skill: 
 }
 
 /** Grants Pyromancer's Puissance might after an in-combat Fire-attuned cast. */
-export function applyPyromancersPuissance(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function applyPyromancersPuissance(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   const at = cast.effectiveEnd;
   if (
     !hasTrait(context, TRAIT.PYROMANCERS_PUISSANCE) ||
@@ -451,7 +472,7 @@ export function elementalistAuraDuration(context: unknown, duration: number): nu
 /** Conjurer grants its aura between bundle creation and the resulting swap events. */
 export function applyConjurerAura(
   context: ElementalistRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ElementalistSkill>,
   skill: Skill,
   applyAura: ElementalistAuraApplier
 ): void {
@@ -512,7 +533,7 @@ export function pyromancersTrainingRecharge(context: ElementalistRuntime, skill:
 /** Applies Soothing Ice's Frost Aura and regeneration from an eligible healing skill. */
 export function applySoothingIce(
   context: ElementalistRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ElementalistSkill>,
   skill: Skill,
   applyAura: ElementalistAuraApplier
 ): void {

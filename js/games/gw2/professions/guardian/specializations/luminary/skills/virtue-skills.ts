@@ -5,7 +5,7 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import { masterAtArmsRecharges } from '#gw2/professions/guardian/specializations/luminary/traits/behavior.js';
-import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 /**
  * Owns Luminary Radiant Virtue skill fragments.
@@ -50,7 +50,7 @@ export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
   }
 });
 
-export const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState>['sideEffectHandlers'] = {
+export const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   // Resolve's intrinsic aura replaces an old aura after any Sovereign detonation at the same boundary.
   'guardian.resolve-aura'(runtime, context) {
     if (context.kind !== 'cast') return;

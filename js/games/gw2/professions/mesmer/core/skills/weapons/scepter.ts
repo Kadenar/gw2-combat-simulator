@@ -1,12 +1,11 @@
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 
 /** Sample the clone cap at the landed hit; blades and imagery still gain their own resource. */
-function atCloneLimit(runtime: MesmerRuntime): boolean {
+function atCloneLimit(runtime: object): boolean {
   const mechanics = mesmerMechanicsFor(runtime);
   return (
     mechanics.resourceDefinition.singular === 'clone' &&
@@ -14,7 +13,7 @@ function atCloneLimit(runtime: MesmerRuntime): boolean {
   );
 }
 
-export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
   [ID.CONFUSING_IMAGES]: {
     interruptMode: 'per-packet',
     effects: [

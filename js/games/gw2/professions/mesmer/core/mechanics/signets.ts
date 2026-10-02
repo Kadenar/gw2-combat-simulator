@@ -16,14 +16,14 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 const SIGNET_ILLUSIONS_OWNER = 'mesmer.signet-illusions-passive';
 
 /** Applies active signet resets to the cooldown and ammo state shared by later casts. */
-export function applyMesmerSignetReset(state: MesmerRuntime, context: ActionContext): void {
+export function applyMesmerSignetReset(state: MesmerRuntime, context: ActionContext<MesmerSkill>): void {
   const { shatters, instruments, addEvent } = mesmerMechanicsFor(state);
   const phantasms = context.skill.id === ID.SIGNET_OF_THE_ETHER;
   const targets = state.helpers.skills.filter((candidate) =>
     phantasms
       ? candidate.phantasm
-      : Boolean(instruments[Number(candidate.id)]) ||
-        (shatters[Number(candidate.id)] && shatters[Number(candidate.id)].resetBySignetOfIllusions !== false)
+      : Boolean(instruments[candidate.id]) ||
+        (shatters[candidate.id] && shatters[candidate.id].resetBySignetOfIllusions !== false)
   );
   // Catalog selection stays local; the shared actions own recharge and existing ammo restoration.
   if (!phantasms)
@@ -51,7 +51,7 @@ function equippedSignetOfIllusions(context: MesmerRuntime): MesmerSkill | null {
   const skill = context.helpers.skillsById.get(ID.SIGNET_OF_ILLUSIONS);
   if (!skill) return null;
   const equipped = selectedSkillNameSet(context.config.selectedSkills).has(skill.name);
-  return equipped ? (skill as MesmerSkill) : null;
+  return equipped ? skill : null;
 }
 
 /** Replace the passive deadline when a cast or explicit combat boundary restarts its interval. */

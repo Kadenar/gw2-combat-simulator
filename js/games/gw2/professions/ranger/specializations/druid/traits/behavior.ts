@@ -10,12 +10,12 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 /** Trait packets retain their cast-relative pulse times and are filtered by the shared interruption owner. */
 export function avatarEffects(
   runtime: RangerRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<RangerSkill>,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
   if (!cast.skill.celestialAvatarSkill) return effects;

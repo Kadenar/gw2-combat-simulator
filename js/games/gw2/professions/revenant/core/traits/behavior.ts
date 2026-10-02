@@ -95,8 +95,8 @@ export function startRevenantAssassinsPresence(runtime: RevenantRuntime, anchor:
 }
 
 /** Runs the trait at its original ordered mechanic boundary. */
-export function completeBattleScarred(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as RevenantSkill;
+export function completeBattleScarred(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  const skill = cast.skill;
   if (skill.slot === 'Heal' && hasTrait(runtime, TRAIT.BATTLE_SCARRED)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.BATTLE_SCARRED);
     const buff = requireEffect(profile, 'buff', 'battle-scars');
@@ -111,7 +111,7 @@ export function completeBattleScarred(runtime: RevenantRuntime, cast: RuntimeCas
 }
 
 /** A committed weapon swap grants Brutality's Quickness once per its internal cooldown. */
-export function completeRevenantBrutality(runtime: RevenantRuntime, cast: RuntimeCast): void {
+export function completeRevenantBrutality(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   if (!hasTrait(runtime, TRAIT.BRUTALITY)) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.BRUTALITY);
   const boon = requireEffect(profile, 'boon', 'quickness');
@@ -128,7 +128,11 @@ export function completeRevenantBrutality(runtime: RevenantRuntime, cast: Runtim
 }
 
 /** Samples pre-swap Energy before the legend reset is applied. */
-export function chargedMistsEnergy(runtime: RevenantRuntime, cast: RuntimeCast, previous: number): number {
+export function chargedMistsEnergy(
+  runtime: RevenantRuntime,
+  cast: RuntimeCast<RevenantSkill>,
+  previous: number
+): number {
   const chargedMists = hasTrait(runtime, TRAIT.CHARGED_MISTS)
     ? requireBalanceProfileFromContext(runtime, TRAIT.CHARGED_MISTS)
     : undefined;
@@ -255,8 +259,8 @@ export function modifyCoreAttributes(context: Gw2ModifierContext, attributes: Gw
 }
 
 /** Runs the trait at its original ordered mechanic boundary. */
-export function completeNotoriety(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as RevenantSkill;
+export function completeNotoriety(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  const skill = cast.skill;
   if (runtime.combatStartedAt() && isLegendaryStanceSkill(skill) && hasTrait(runtime, TRAIT.NOTORIETY)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.NOTORIETY);
     const boon = requireEffect(profile, 'boon', 'might');
@@ -294,8 +298,8 @@ export function modifyCoreCriticalChance(context: Gw2ModifierContext, chance: nu
 }
 
 /** Runs the trait at its original ordered mechanic boundary. */
-export function completeSereneRejuvenation(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as RevenantSkill;
+export function completeSereneRejuvenation(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  const skill = cast.skill;
   if (!hasTrait(runtime, TRAIT.SERENE_REJUVENATION)) return;
   const skillId = skill.id === ID.PROTECTIVE_SOLACE_ID_29310 ? ID.PROTECTIVE_SOLACE : skill.id;
   if (skillId === ID.PROTECTIVE_SOLACE && !activeRevenantUpkeep(runtime, skill.id)) return;

@@ -17,15 +17,15 @@ import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/stat
 import { completeMirageSkill } from '#gw2/professions/mesmer/specializations/mirage/traits/behavior.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
-type TriggerData = { cast: RuntimeCast; trigger: SkillTask };
+type TriggerData = { cast: RuntimeCast<MesmerSkill>; trigger: SkillTask };
 
 /** Cloak, mirror pickup, and endurance execute at actual command and owned-task boundaries. */
-export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
+export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState, MesmerSkill>> = {
   initialize: initializeMirageRuntime,
   endurance: mirageEndurance,
   availability: mirageAvailability,
   onCastStart(runtime, cast) {
-    const skill = cast.skill as MesmerSkill;
+    const skill = cast.skill;
     if (!skill.ambush || cast.cancelled) return;
     withMesmerCastEmission(runtime, cast, skill, () =>
       mirageControllerFor(mesmerMechanicsFor(runtime)).acceptPlayerAmbush(skill, cast.fullEnd, cast.start)
@@ -64,10 +64,7 @@ export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       );
     },
     'mesmer.mirage.pick-up-mirror'(runtime, data) {
-      mirageControllerFor(mesmerMechanicsFor(runtime)).pickUpMirror(
-        runtime.time,
-        (data as TriggerData).cast.skill as MesmerSkill
-      );
+      mirageControllerFor(mesmerMechanicsFor(runtime)).pickUpMirror(runtime.time, (data as TriggerData).cast.skill);
     },
     'mesmer.mirage.dodge'(runtime, data) {
       const { cast } = data as TriggerData;

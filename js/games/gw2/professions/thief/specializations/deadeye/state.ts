@@ -7,7 +7,7 @@ import {
   definePublicStateDefaults
 } from '#gw2/platform/engine/profession/state.js';
 
-import type { ThiefStealthAttackChargeState } from '#gw2/professions/thief/types.js';
+import type { ThiefStealthAttackChargeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 export interface DeadeyeState extends ThiefStealthAttackChargeState {
   markedTargetId: string | null;
@@ -58,4 +58,4 @@ interface DeadeyeCastFacts {
   readonly markedMalice: number;
 }
 
-export const deadeyeCastFacts = new WeakMap<RuntimeCast, DeadeyeCastFacts>();
+export const deadeyeCastFacts = new WeakMap<RuntimeCast<ThiefSkill>, DeadeyeCastFacts>();

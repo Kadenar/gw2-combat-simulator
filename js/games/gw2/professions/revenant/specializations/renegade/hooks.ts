@@ -43,7 +43,7 @@ import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 const SOULCLEAVE_ALLIES = 'revenant.soulcleave-allied-proc';
 
 // Band Together's selected profile is an acceptance fact: the window is consumed before effects are selected.
-const bandTogether = new WeakMap<RuntimeCast, { enhanced: boolean; profileSkillId: SkillId }>();
+const bandTogether = new WeakMap<RuntimeCast<RevenantSkill>, { enhanced: boolean; profileSkillId: SkillId }>();
 
 function enhancedSkill(runtime: RevenantRuntime, skillId: SkillId): RevenantSkill | undefined {
   const enhancedId = RENEGADE_ENHANCED_SKILL_BY_ID[Number(skillId)];
@@ -51,7 +51,7 @@ function enhancedSkill(runtime: RevenantRuntime, skillId: SkillId): RevenantSkil
 }
 
 /** Heroic Command refreshes every started Fervor stack and grants Might scaled by the active count. */
-function heroicCommand(runtime: RevenantRuntime, cast: RuntimeCast): void {
+function heroicCommand(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const state = renegadeState.from(runtime);
   const profile = fervorProfile(runtime);
   const fervor = requireEffect(profile, 'buff', 'kallas-fervor');
@@ -78,7 +78,7 @@ function heroicCommand(runtime: RevenantRuntime, cast: RuntimeCast): void {
 }
 
 /** A committed warband summon consumes Band Together at acceptance and selects its enhanced profile. */
-function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast): void {
+function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const state = renegadeState.from(runtime);
   const enhanced = bandTogetherReady(runtime, cast.skill.id);
   const profile = enhanced ? enhancedSkill(runtime, cast.skill.id) : undefined;
@@ -97,7 +97,7 @@ function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast): void {
 }
 
 /** Razorclaw's Rage arms its finite player charges and precomputes each assumed ally's ICD-limited Bleeding. */
-function razorclawsRage(runtime: RevenantRuntime, cast: RuntimeCast, profile: RevenantSkill): void {
+function razorclawsRage(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, profile: RevenantSkill): void {
   const buff = profile.effects?.find((effect) => effect.type === 'buff' && effect.kind === 'razorclaws-rage');
   const proc = runtime.helpers.skillsById.get(PROFILE.razorclawsRageProc);
   if (!proc) throw new Error("Missing Razorclaw's Rage proc declaration.");
@@ -135,7 +135,7 @@ function razorclawsRage(runtime: RevenantRuntime, cast: RuntimeCast, profile: Re
 }
 
 /** Completion arms Razorclaw's charges and, for an ordinary summon, the next Band Together enhancement. */
-function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast): void {
+function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const selected = bandTogether.get(cast);
   bandTogether.delete(cast);
   if (!selected) return;
@@ -249,7 +249,7 @@ function soulcleaveAllies(runtime: RevenantRuntime, data: unknown): void {
 }
 
 /** Renegade owns Fervor, warband summons, Kalla's commands, and their actual hit/boon reactions. */
-export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
+export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState, RevenantSkill>> = {
   initialize(runtime) {
     renegadeState.from(runtime).kallasFervorMaximumStacks = Math.max(
       1,

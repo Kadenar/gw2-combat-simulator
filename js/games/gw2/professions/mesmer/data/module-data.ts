@@ -1,3 +1,4 @@
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   createFlipParentMap,
@@ -10,10 +11,10 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/mesmer/data/mesmer-api
 import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { TRAITS } from '#gw2/professions/mesmer/data/traits-data.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NativeCatalogOptions } from '#gw2/platform/profession-definition/module-types.js';
 
-const allSkills: readonly Skill[] = [...SKILLS, ...MESMER_SUPPLEMENTAL_SKILLS];
+const allSkills: readonly MesmerSkill[] = [...SKILLS, ...MESMER_SUPPLEMENTAL_SKILLS];
 
 // Same-name API flips are specialization replacements, not runtime flip palettes.
 const flipParentById = createFlipParentMap(allSkills, {
@@ -27,7 +28,7 @@ export const NON_MIRAGE_AXE_SKILL_IDS: ReadonlySet<SkillId> = new Set([
 ]);
 
 // Correct stale API specialization labels before palette ranking and module assembly.
-const generated: readonly Skill[] = allSkills.map((skill) => ({
+const generated: readonly MesmerSkill[] = allSkills.map((skill) => ({
   ...normalizeGeneratedSkill(skill, flipParentById.get(skill.id) ?? null),
   specialization:
     NON_MIRAGE_AXE_SKILL_IDS.has(skill.id) || skill.id === ID.BLADECALL_NON_VIRTUOSO
@@ -83,14 +84,14 @@ export const MESMER_NATIVE_CATALOG_OPTIONS: NativeCatalogOptions = Object.freeze
   })
 });
 
-interface MesmerModuleDataOptions extends ProfessionModuleDataOptions {
+interface MesmerModuleDataOptions extends ProfessionModuleDataOptions<MesmerSkill> {
   readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
-  readonly supplementalSkillMechanics?: Readonly<Record<string, Partial<Skill>>>;
+  readonly supplementalSkillMechanics?: Readonly<Record<string, Partial<MesmerSkill>>>;
 }
 
 function prepareMechanics(
-  mechanics: Readonly<Record<string, Partial<Skill>>>
-): Readonly<Record<string, Partial<Skill>>> {
+  mechanics: Readonly<Record<string, Partial<MesmerSkill>>>
+): Readonly<Record<string, Partial<MesmerSkill>>> {
   return Object.freeze(
     Object.fromEntries(
       Object.entries(mechanics).map(([id, skill]) => [
@@ -104,7 +105,8 @@ function prepareMechanics(
   );
 }
 
-const createModuleData = createProfessionModuleDataFactory({
+// Preserve Mesmer fields through module assembly and runtime catalog lookups.
+const createModuleData = createProfessionModuleDataFactory<MesmerSkill>({
   generatedSkills: generated,
   traits: TRAITS,
   specializations: SPECIALIZATIONS,
@@ -128,10 +130,10 @@ export function createMesmerModuleData(
       })
   );
 
-  const skillOverrides: Readonly<Record<SkillId, Partial<Skill>>> = Object.freeze(
+  const skillOverrides: Readonly<Record<SkillId, Partial<MesmerSkill>>> = Object.freeze(
     Object.fromEntries(
       generated
-        .filter((skill) => flipParentsWithAmmoChild.has(Number(skill.id)))
+        .filter((skill) => flipParentsWithAmmoChild.has(skill.id))
         .map((skill) => [
           skill.id,
           {
@@ -149,9 +151,6 @@ export function createMesmerModuleData(
       ...supplementalSkillMechanics
     }),
     skillOverrides,
-    extraSkills: extraSkills.map((skill) => ({
-      ...skill,
-      id: Number(skill.id)
-    }))
+    extraSkills
   });
 }

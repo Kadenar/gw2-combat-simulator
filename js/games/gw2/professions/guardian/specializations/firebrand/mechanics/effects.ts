@@ -15,10 +15,10 @@ import { emitGuardianBoon, guardianBoonDuration } from '#gw2/professions/guardia
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState>;
+type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 const ASHES = 'guardian.firebrand.ashes';
 export const FIREBRAND_ASHES_EXPIRE = 'guardian.firebrand.ashes-expiry';
 
@@ -73,12 +73,12 @@ export function alliedAshes(
 }
 
 /** Accepted Ashes casts grant after 560 ms, without exposing charges at acceptance or waiting for animation end. */
-export function startFirebrandAshes(runtime: Runtime, cast: RuntimeCast): void {
+export function startFirebrandAshes(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
   runtime.scheduleForCast(ASHES, canonicalTime(cast.start + 0.56), cast);
 }
 
 /** The application boundary grants Might and installs the selected charge components together. */
-function grantFirebrandAshes(runtime: Runtime, cast: RuntimeCast): void {
+function grantFirebrandAshes(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
   const event: Gw2ResolverEvent = {
     type: 'buff',
     at: runtime.time,
@@ -130,7 +130,7 @@ function grantFirebrandAshes(runtime: Runtime, cast: RuntimeCast): void {
 
 export const firebrandEffectTasks = {
   [ASHES](runtime: Runtime, data: unknown) {
-    grantFirebrandAshes(runtime, (data as { cast: RuntimeCast }).cast);
+    grantFirebrandAshes(runtime, (data as { cast: RuntimeCast<GuardianSkill> }).cast);
   },
   [FIREBRAND_ASHES_EXPIRE](runtime: Runtime) {
     expireCharges(firebrandState.from(runtime).ashes, runtime.time);

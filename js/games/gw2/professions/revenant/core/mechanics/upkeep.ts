@@ -99,7 +99,7 @@ export function starveRevenantUpkeeps(runtime: RevenantRuntime): void {
 
   for (const active of [...core.activeUpkeeps]) {
     const skill = runtime.helpers.skillsById.get(active.skillId);
-    const cooldown = Math.max(0, Number(skill?.starvationCooldown || 0));
+    const cooldown = Math.max(0, skill?.starvationCooldown || 0);
     if (skill && cooldown > 0) runtime.cooldownController.startRecharge({ ...skill, cooldown }, runtime.time);
     removeRevenantUpkeep(runtime, active.skillId);
   }
@@ -173,8 +173,8 @@ function hammerPulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number)
 }
 
 /** A committed Embrace activation lands its opening pulse at the authored offset, before drain begins. */
-export function startRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as RevenantSkill;
+export function startRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  const skill = cast.skill;
   if (activeRevenantUpkeep(runtime, skill.id)) return;
   const strike = skill.effects?.find((effect) => effect.type === 'strike');
   if (!strike) throw new Error('Embrace the Darkness is missing its strike effect.');
@@ -182,8 +182,8 @@ export function startRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCast
 }
 
 /** Activation starts the sustained drain at completion, arms the release, and owns its recurring pulses. */
-export function activateRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as RevenantSkill;
+export function activateRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  const skill = cast.skill;
   const core = runtime.profession.core;
   const active: RevenantUpkeepState = {
     skillId: skill.id,
@@ -212,7 +212,7 @@ export function activateRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCa
 }
 
 /** Releasing removes the parent's drain and follow-up, then applies its manual-release recharge. */
-export function releaseRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCast): void {
+export function releaseRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const core = runtime.profession.core;
   const parent =
     cast.skill.flipParentId == null ? undefined : runtime.helpers.skillsById.get(Number(cast.skill.flipParentId));
@@ -220,7 +220,7 @@ export function releaseRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCas
   removeRevenantUpkeep(runtime, parent.id);
   runtime.resourceController.refresh('energy');
   consumeSkillFlip(core.availableFlips, cast.skill.id);
-  const cooldown = Math.max(0, Number(parent.manualReleaseCooldown || 0));
+  const cooldown = Math.max(0, parent.manualReleaseCooldown || 0);
   // Recharge modifiers apply at release using the parent's release-specific base cooldown.
   if (cooldown > 0) runtime.cooldownController.startRecharge({ ...parent, cooldown }, runtime.time);
 }
@@ -238,15 +238,15 @@ export function revenantUpkeepPulse(runtime: RevenantRuntime, data: unknown): vo
   else return;
   runtime.schedule(
     REVENANT_UPKEEP_PULSE,
-    canonicalTime(runtime.time + Math.max(0, Number(skill.pulseInterval ?? 1))),
+    canonicalTime(runtime.time + Math.max(0, skill.pulseInterval ?? 1)),
     data,
     revenantUpkeepOwner(skillId, startsAt)
   );
 }
 
 /** A committed paid skill, including Embrace's own activation, arms Embrace's next pulse. */
-export function empowerRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as RevenantSkill;
+export function empowerRevenantEmbrace(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  const skill = cast.skill;
   if (skill.id === ID.RESIST_THE_DARKNESS) return;
   // Activation already enabled Embrace, so its cost query now describes a free toggle.
   if (skill.id !== ID.EMBRACE_THE_DARKNESS && !(revenantEnergyCost(runtime, skill) > 0)) return;
@@ -278,7 +278,7 @@ export function reactRevenantImpossibleOdds(runtime: RevenantRuntime, event: Gw2
   const strike = impossible && requireEffect(impossible, 'strike', 'Impossible Odds');
   // The trigger interval gates only this strike, so a removed strike leaves it ready.
   if (!impossible || !strike) return;
-  runtime.procs.readyAt.impossibleOdds = canonicalTime(runtime.time + Number(impossible.triggerIntervalMs || 0) / 1000);
+  runtime.procs.readyAt.impossibleOdds = canonicalTime(runtime.time + (impossible.triggerIntervalMs || 0) / 1000);
   runtime.emitDerived(
     event,
     buildResolverStrike({

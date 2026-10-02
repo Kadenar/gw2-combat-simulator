@@ -163,7 +163,7 @@ export function recordStaticDischargeProc(context: EngineerResolverContext, even
 }
 
 /** Dodge rewards reduce elite recharge before toolbelt recharge, after the dodge event is emitted. */
-export function applyEngineerDodgeTraits(runtime: EngineerRuntime, cast: RuntimeCast): void {
+export function applyEngineerDodgeTraits(runtime: EngineerRuntime, cast: RuntimeCast<EngineerSkill>): void {
   for (const [trait, name, predicate] of [
     [TRAIT.POWER_WRENCH, 'Power Wrench', (skill: EngineerSkill) => skill.type === 'Elite' || skill.slot === 'Elite'],
     [TRAIT.ADRENAL_IMPLANT, 'Adrenal Implant', isEngineerToolbeltSkill]

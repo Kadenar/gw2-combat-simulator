@@ -1,3 +1,4 @@
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -17,7 +18,7 @@ import {
 } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
 
 /** Harmonize owns its existing profile and ordered performance consequences. */
-export const harmonize = defineTrait({
+export const harmonize = defineTrait<MesmerSkill>({
   id: TRAIT.HARMONIZE,
   name: 'Harmonize',
   balance: {
@@ -27,7 +28,7 @@ export const harmonize = defineTrait({
 });
 
 /** Mayhem owns its existing profile and ordered performance consequences. */
-export const mayhem = defineTrait({
+export const mayhem = defineTrait<MesmerSkill>({
   id: TRAIT.MAYHEM,
   name: 'Mayhem',
   balance: {
@@ -37,7 +38,7 @@ export const mayhem = defineTrait({
   hooks: {
     tasks: {
       'mesmer.troubadour.dodge'(runtime, data) {
-        const cast = (data as { cast: RuntimeCast }).cast;
+        const cast = (data as { cast: RuntimeCast<MesmerSkill> }).cast;
         const mechanics = mesmerMechanicsFor(runtime);
         if (!hasTrait(runtime, TRAIT.MAYHEM)) return;
         const flute = runtime.helpers.skillsById.get(ID.FLUSTERING_FLUTE);
@@ -54,7 +55,7 @@ export const mayhem = defineTrait({
 });
 
 /** Raconteur owns its existing profile and ordered performance consequences. */
-export const raconteur = defineTrait({
+export const raconteur = defineTrait<MesmerSkill>({
   id: TRAIT.RACONTEUR,
   name: 'Raconteur',
   balance: {
@@ -63,7 +64,7 @@ export const raconteur = defineTrait({
 });
 
 /** Shredding owns its existing profile and ordered performance consequences. */
-export const shredding = defineTrait({
+export const shredding = defineTrait<MesmerSkill>({
   id: TRAIT.SHREDDING,
   name: 'Shredding',
   balance: {
@@ -81,7 +82,7 @@ export const shredding = defineTrait({
 });
 
 /** Life of the Party owns its existing profile and ordered performance consequences. */
-export const lifeOfTheParty = defineTrait({
+export const lifeOfTheParty = defineTrait<MesmerSkill>({
   id: TRAIT.LIFE_OF_THE_PARTY,
   name: 'Life of the Party',
   balance: {
@@ -126,7 +127,7 @@ export const lifeOfTheParty = defineTrait({
 });
 
 /** Fortissimo owns its existing profile and ordered performance consequences. */
-export const fortissimo = defineTrait({
+export const fortissimo = defineTrait<MesmerSkill>({
   id: TRAIT.FORTISSIMO,
   name: 'Fortissimo',
   balance: {
@@ -138,7 +139,7 @@ export const fortissimo = defineTrait({
 });
 
 /** Call and Response owns its existing profile and ordered performance consequences. */
-export const callAndResponse = defineTrait({
+export const callAndResponse = defineTrait<MesmerSkill>({
   id: TRAIT.CALL_AND_RESPONSE,
   name: 'Call and Response',
   balance: {
@@ -148,14 +149,14 @@ export const callAndResponse = defineTrait({
 });
 
 /** Symphonic Resonance owns its existing profile and ordered performance consequences. */
-export const symphonicResonance = defineTrait({
+export const symphonicResonance = defineTrait<MesmerSkill>({
   id: TRAIT.SYMPHONIC_RESONANCE,
   name: 'Symphonic Resonance',
   balance: { enduranceRegenerationMultiplier: 1.25 }
 });
 
 /** Altered Chord owns its existing profile and ordered performance consequences. */
-export const alteredChord = defineTrait({
+export const alteredChord = defineTrait<MesmerSkill>({
   id: TRAIT.ALTERED_CHORD,
   name: 'Altered Chord',
   balance: {
@@ -176,7 +177,7 @@ export const alteredChord = defineTrait({
 });
 
 /** Register the control reaction and queued heal wave without changing their separate eligibility. */
-export const syncopate = defineTrait({
+export const syncopate = defineTrait<MesmerSkill>({
   id: TRAIT.SYNCOPATE,
   name: 'Syncopate',
   balance: {

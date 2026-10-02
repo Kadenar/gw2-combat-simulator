@@ -5,7 +5,11 @@ import {
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
-import type { ElementalistUiContext, ElementalistUiSlice } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistSkill,
+  ElementalistUiContext,
+  ElementalistUiSlice
+} from '#gw2/professions/elementalist/types.js';
 /**
  * Evoker rotation-palette presentation.
  *
@@ -131,7 +135,7 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
   // Edit the build's familiar independently of attunement or a previous simulation's state.
   skillBarGroups: (context: ElementalistUiContext): ProfessionSkillBarGroup[] => {
     const element = selectedElement({ build: context.build });
-    const catalog = context.catalog as Readonly<CanonicalCatalog> | undefined;
+    const catalog = context.catalog as Readonly<CanonicalCatalog<ElementalistSkill>> | undefined;
     return [
       {
         id: 'elementalist-evoker-familiar-selection',

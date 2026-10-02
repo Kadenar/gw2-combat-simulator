@@ -15,7 +15,7 @@ import {
   enterSpeedOfShadows
 } from '#gw2/professions/necromancer/core/traits/shroud.js';
 import { enterAwakenThePain, enterSpitefulSpirit } from '#gw2/professions/necromancer/core/traits/behavior.js';
-import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerSkill, NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';
 
 /** Pre-entry grants observe the old Carapace before removals and the form transition. */
@@ -34,7 +34,7 @@ export function prepareShroudEntry(runtime: NecromancerRuntime): void {
 }
 
 /** Post-entry effects retain their cross-line order after specialization callbacks and resource refresh. */
-export function shroudEntryEffects(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+export function shroudEntryEffects(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   applySoulBarbs(runtime);
   enterAwakenThePain(runtime, cast);
   enterFuriousDemise(runtime, cast);

@@ -12,6 +12,7 @@ import {
 import { ENGINEER_TRAIT_IDS as TRAIT, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
 import {
+  EngineerSkill,
   type EngineerResolverEvent,
   type EngineerRuntime,
   type EngineerResolverContext
@@ -149,7 +150,7 @@ export function kineticAcceleratorBoons(context: EngineerResolverContext, event:
   });
 }
 
-export function applyKineticAcceleratorsCast(context: EngineerRuntime, cast: RuntimeCast): void {
+export function applyKineticAcceleratorsCast(context: EngineerRuntime, cast: RuntimeCast<EngineerSkill>): void {
   const skill = cast.skill;
   if (skill.id !== ID.FUNCTION_GYRO) return;
   // Kinetic Accelerators (GM trait): Function Gyro becomes a blast finisher.

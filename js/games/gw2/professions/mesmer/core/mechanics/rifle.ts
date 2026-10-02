@@ -1,3 +1,4 @@
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { expireSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 /** Resolves Inspiring Imagery's mutually exclusive boon expiry and offensive detonation. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -7,7 +8,7 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Bind the blast to this image and end its field immediately after the detonation interaction. */
-export function detonateInspiringImagery(context: MesmerRuntime, cast: RuntimeCast): void {
+export function detonateInspiringImagery(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const flip = professionCoreState(context).availableFlips[ID.ABSTRACTION];
   const field = [...context.combo.fields.values()].find(
     (event) => event.skillId === ID.INSPIRING_IMAGERY && event.at === flip?.availableAt
@@ -36,7 +37,7 @@ export function detonateInspiringImagery(context: MesmerRuntime, cast: RuntimeCa
 }
 
 /** Only the matching live image can resolve its natural boon explosion. */
-export function expireInspiringImagery(context: MesmerRuntime, cast: RuntimeCast): void {
+export function expireInspiringImagery(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   if (!expireSkillFlip(context.profession.core.availableFlips, ID.ABSTRACTION, context.time, cast.id)) return;
   for (const effect of cast.skill.effects ?? [])
     if (effect.type === 'boon')

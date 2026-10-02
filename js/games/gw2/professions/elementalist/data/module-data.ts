@@ -1,3 +1,4 @@
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 /**
  * Elementalist catalog generation.
@@ -24,7 +25,6 @@ import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/speciali
 import { EVOKER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/index.js';
 import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
 import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Catalog generation needs the complete module-owned declaration set, and the
 // duplicate check prevents one module from silently overwriting another.
@@ -40,7 +40,7 @@ if (new Set(elementalistMechanicsEntries.map(([skillId]) => skillId)).size !== e
   throw new TypeError('Duplicate Elementalist skill-mechanics ownership.');
 }
 
-const ELEMENTALIST_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze(
+const ELEMENTALIST_SKILL_MECHANICS: Readonly<Record<string, Partial<ElementalistSkill>>> = Object.freeze(
   Object.fromEntries(elementalistMechanicsEntries)
 );
 
@@ -85,7 +85,7 @@ const ATTUNEMENT_VARIANT_PATTERN = /\s*\((?:Fire|Water|Air|Earth)\)$/;
 
 // Finds API metadata by name, tolerating the aliases, attunement suffixes, and quoted or
 // exclamation-marked spellings the API uses for the same skill.
-function apiSkill(name: string): Skill | undefined {
+function apiSkill(name: string): ElementalistSkill | undefined {
   const alias = SKILL_NAME_ALIASES.get(name);
 
   const base = name.replace(/\s*\(.*\)$/, '');
@@ -99,13 +99,13 @@ function apiSkill(name: string): Skill | undefined {
 }
 
 // Every declared skill in canonical id order; ids without an owning module are skipped.
-const ELEMENTALIST_DECLARED_SKILLS: readonly Skill[] = Object.freeze(
-  [...Object.values(ID), SHARED_SKILL_IDS.DODGE].flatMap<Skill>((id) => {
+const ELEMENTALIST_DECLARED_SKILLS: readonly ElementalistSkill[] = Object.freeze(
+  [...Object.values(ID), SHARED_SKILL_IDS.DODGE].flatMap<ElementalistSkill>((id) => {
     const declaration = ELEMENTALIST_SKILL_MECHANICS[id];
 
     if (!declaration) return [];
     // The owning skill declaration supplies identity fields before catalog validation checks the merged skill.
-    const skill = { ...declaration, id } as Skill;
+    const skill = { ...declaration, id } as ElementalistSkill;
     return [skill];
   })
 );
@@ -113,7 +113,7 @@ const ELEMENTALIST_DECLARED_SKILLS: readonly Skill[] = Object.freeze(
 // The finished skill set: corrected mechanics joined to API identity metadata, plus the
 // display and selection flags the editor needs (Weaver-only dual attunements, attunement
 // variants collapsed under one display name, non-selectable and palette-only entries).
-const generated: readonly Skill[] = Object.freeze(
+const generated: readonly ElementalistSkill[] = Object.freeze(
   ELEMENTALIST_DECLARED_SKILLS.map((skill) => {
     const skillId = Number(skill.id);
 
@@ -134,7 +134,7 @@ const generated: readonly Skill[] = Object.freeze(
     return {
       ...skill,
       ...(loadoutSkillId == null ? {} : { loadoutSkillId }),
-      ...(skill.type === 'Weapon' && String(skill.attunement || '').includes('+')
+      ...(skill.type === 'Weapon' && (skill.attunement || '').includes('+')
         ? {
             specialization: 'Weaver'
           }
@@ -187,8 +187,8 @@ const FINALIZED_SKILL_MECHANICS_BY_ID = new Map(
 // Returns the finished entries for exactly the ids a module declared, failing loudly if a
 // module claims an id that catalog generation never produced.
 function finalizedSkillMechanics(
-  declarations: Readonly<Record<string, Partial<Skill>>>
-): Readonly<Record<string, Partial<Skill>>> {
+  declarations: Readonly<Record<string, Partial<ElementalistSkill>>>
+): Readonly<Record<string, Partial<ElementalistSkill>>> {
   return Object.freeze(
     Object.fromEntries(
       Object.keys(declarations).map((id) => {
@@ -228,7 +228,7 @@ function circularElementalistAutoattackChains(): readonly (readonly number[])[] 
     const chain: number[] = [];
     const path = new Set<number>();
 
-    let current: Skill | undefined = root;
+    let current: ElementalistSkill | undefined = root;
 
     while (current && !path.has(Number(current.id))) {
       const id = Number(current.id);
@@ -276,7 +276,8 @@ const WEAPON_DATA = defineProfessionWeapons({
   Warhorn: 'oh'
 });
 
-const createModuleData = createProfessionModuleDataFactory({
+// Preserve Elementalist fields through module registration and selected catalog lookups.
+const createModuleData = createProfessionModuleDataFactory<ElementalistSkill>({
   generatedSkills: generated,
   traits: TRAITS,
   specializations: ELEMENTALIST_API_SPECIALIZATIONS,
@@ -294,7 +295,10 @@ const createModuleData = createProfessionModuleDataFactory({
  * declared mechanics and extra skills, and the shared trait/specialization data. Core
  * additionally carries the family's weapon data and autoattack chains.
  */
-export function createElementalistModuleData(id: string, { skillMechanics, ...options }: ProfessionModuleDataOptions) {
+export function createElementalistModuleData(
+  id: string,
+  { skillMechanics, ...options }: ProfessionModuleDataOptions<ElementalistSkill>
+) {
   return createModuleData(id, {
     ...options,
     skillMechanics: finalizedSkillMechanics(skillMechanics)

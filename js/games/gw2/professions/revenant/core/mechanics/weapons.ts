@@ -27,7 +27,7 @@ interface AuraPulse {
 }
 
 /** Imperial Guard blocks from acceptance; its True Strike follow-up belongs to this exact channel. */
-export function startRevenantImperialGuard(runtime: RevenantRuntime, cast: RuntimeCast): void {
+export function startRevenantImperialGuard(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   // The follow-up window belongs to this channel; a later channel's rearm survives this deadline.
   runtime.armFlip(ID.TRUE_STRIKE, {
     availableAt: cast.start,
@@ -55,12 +55,12 @@ export function startRevenantImperialGuard(runtime: RevenantRuntime, cast: Runti
 }
 
 /** A completed True Strike consumes the window its Imperial Guard channel opened. */
-export function completeRevenantImperialGuard(runtime: RevenantRuntime, cast: RuntimeCast): void {
+export function completeRevenantImperialGuard(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   if (cast.skill.id === ID.TRUE_STRIKE) consumeSkillFlip(runtime.profession.core.availableFlips, ID.TRUE_STRIKE);
 }
 
 function auraSkill(runtime: RevenantRuntime): RevenantSkill {
-  return runtime.helpers.skillsById.get(ID.BLOSSOMING_AURA) as RevenantSkill;
+  return runtime.helpers.skillsById.get(ID.BLOSSOMING_AURA)!;
 }
 
 function auraPulseTicks(skill: Skill) {
@@ -71,7 +71,7 @@ function auraPulseTicks(skill: Skill) {
 }
 
 /** Only the initial impact follows cast speed; the attached aura then ticks on a fixed fuse. */
-export function startRevenantBlossomingAura(runtime: RevenantRuntime, cast: RuntimeCast): void {
+export function startRevenantBlossomingAura(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const skill = cast.skill;
   const { ticks } = auraPulseTicks(skill);
   const firstAt =
@@ -159,7 +159,7 @@ export function revenantBlossomingAuraPulse(runtime: RevenantRuntime, data: unkn
 }
 
 /** Manual detonation resolves at acceptance of the committed follow-up. */
-export function detonateRevenantBlossomingAura(runtime: RevenantRuntime, cast: RuntimeCast): void {
+export function detonateRevenantBlossomingAura(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   detonateAura(runtime, cast.id);
 }
 
@@ -227,7 +227,7 @@ function abyssalRazePackets(
 }
 
 /** A committed Abyssal Raze resolves at its authored impact, reading the stacks that exist at that instant. */
-export function startRevenantAbyssalRaze(runtime: RevenantRuntime, cast: RuntimeCast): void {
+export function startRevenantAbyssalRaze(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const strike = cast.skill.effects?.find((effect) => effect.type === 'strike');
   if (!strike) throw new Error('Abyssal Raze is missing its strike effect.');
   runtime.schedule(REVENANT_ABYSSAL_RAZE, canonicalTime(cast.start + (effectFirstAtMs(strike) || 0) / 1000), {
@@ -291,7 +291,7 @@ function sameWeaponSets(runtime: RevenantRuntime): boolean {
 }
 
 /** A committed swap to a genuinely different set spends maximum Crushing Abyss on an empowered Raze. */
-export function completeRevenantCrushingAbyssSwap(runtime: RevenantRuntime, cast: RuntimeCast): void {
+export function completeRevenantCrushingAbyssSwap(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const skill = runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE);
   if (!skill) return;
   const maximum = Math.max(0, Number(skill.maximumStacks || 0));

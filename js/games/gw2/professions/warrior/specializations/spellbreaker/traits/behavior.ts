@@ -19,7 +19,7 @@ import type { SpellbreakerState } from '#gw2/professions/warrior/specializations
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<WarriorRuntimeState>;
+type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 
 function gainAttackersInsight(
   context: Runtime,

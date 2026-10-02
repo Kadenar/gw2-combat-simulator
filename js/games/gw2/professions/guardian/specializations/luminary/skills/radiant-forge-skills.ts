@@ -9,7 +9,7 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 /**
  * Owns Radiant Forge weapon fragments and supplemental reconstruction identities.
@@ -334,7 +334,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
   }
 });
 
-type Runtime = Gw2Runtime<GuardianRuntimeState>;
+type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 export const HAMMER = 'guardian.luminary.hammer';
 export const BOON = 'guardian.luminary.weapon-boon';
 
@@ -356,7 +356,11 @@ export function glaringBurstDetail(runtime: Runtime): string | undefined {
 }
 
 /** Capture the Glaring Burst variant once per accepted attack, then use normal packet materialization. */
-function burstEffects(runtime: Runtime, cast: RuntimeCast, effects: readonly SkillEffect[]): readonly SkillEffect[] {
+function burstEffects(
+  runtime: Runtime,
+  cast: RuntimeCast<GuardianSkill>,
+  effects: readonly SkillEffect[]
+): readonly SkillEffect[] {
   if (cast.cancelled) return [];
   const state = luminaryState.from(runtime);
   const weapon = state.radiantWeapon;
@@ -383,7 +387,7 @@ function burstEffects(runtime: Runtime, cast: RuntimeCast, effects: readonly Ski
 }
 
 /** Hammer samples its entitlement at impact; blade/staff consume theirs at acceptance and deliver at impact. */
-export const luminaryWeaponActions: RuntimeProfession<GuardianRuntimeState>['sideEffectHandlers'] = {
+export const luminaryWeaponActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.empower-hammer'(runtime, context) {
     if (context.kind === 'cast') runtime.scheduleForCast(HAMMER, luminaryImpactAt(context.cast), context.cast);
   },

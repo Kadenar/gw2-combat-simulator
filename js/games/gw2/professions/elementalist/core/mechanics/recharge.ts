@@ -20,10 +20,14 @@ import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effect
 import { elementalForGlyphId } from '#gw2/professions/elementalist/core/mechanics/elementals/attacks.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistRuntime, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistSkill,
+  ElementalistRuntime,
+  ElementalistRuntimeState
+} from '#gw2/professions/elementalist/types.js';
 
 // Weapon-only reductions share the compiler; delayed recharge and one-use reservations retain their owners.
-const weaponRecharge = compileRechargeRules<ElementalistRuntimeState>([
+const weaponRecharge = compileRechargeRules<ElementalistRuntimeState, ElementalistSkill>([
   {
     when: (_context, skill) => skill.id === ID.RIDE_THE_LIGHTNING,
     multiplier: { profile: PROFILE.rideTheLightning, field: 'rechargeMultiplier' }

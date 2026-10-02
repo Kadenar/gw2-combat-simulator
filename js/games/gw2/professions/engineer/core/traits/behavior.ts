@@ -35,7 +35,7 @@ export function isElixirSkill(skill: EngineerSkill | undefined): boolean {
 }
 
 /** Schedules Acid Bomb's extended final pulse while HGH is selected. */
-export function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast): void {
+export function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast<EngineerSkill>): void {
   const skill = cast.skill;
   if (!hasTrait(context.config, TRAIT.HGH) || skill.id !== ID.ACID_BOMB) return;
 

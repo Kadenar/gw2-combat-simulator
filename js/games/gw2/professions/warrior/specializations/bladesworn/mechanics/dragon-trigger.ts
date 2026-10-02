@@ -2,10 +2,10 @@ import type { CastCommand } from '#gw2/platform/execution/types.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
-type Runtime = Gw2Runtime<WarriorRuntimeState>;
+type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 
 export const DRAGON_TRIGGER_ENTRY_RESOURCE_REASON = 'dragon trigger entry';
 export const DRAGON_TRIGGER_TICK_RESOURCE_REASON = 'dragon trigger charge';

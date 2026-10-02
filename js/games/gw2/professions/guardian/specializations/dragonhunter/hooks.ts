@@ -26,11 +26,11 @@ import {
   completeHuntersDetermination,
   reactToDragonhunterControl
 } from '#gw2/professions/guardian/specializations/dragonhunter/traits/behavior.js';
-import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState>;
-const readyVirtues = new WeakSet<RuntimeCast>();
+type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+const readyVirtues = new WeakSet<RuntimeCast<GuardianSkill>>();
 const COURAGE = 'guardian.dragonhunter.courage';
 const FURIOUS = 'guardian.dragonhunter.furious-focus';
 const TETHER = 'guardian.dragonhunter.tether';
@@ -119,7 +119,7 @@ function tetherBurn(runtime: Runtime, data: unknown): void {
 }
 
 /** Dragonhunter owns its landed tether, passive cadence, and committed trap/virtue effects without replay records. */
-export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
+export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
   sideEffectHandlers: {
     // Breaking a tether retires its follow-up without touching parent recharge.
     'guardian.break-tether'(runtime) {

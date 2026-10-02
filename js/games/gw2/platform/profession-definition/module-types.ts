@@ -20,11 +20,11 @@ import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.j
 import type { Gw2ProfessionContract } from '#gw2/platform/simulation/types.js';
 import type { Gw2AutoattackChainOptions } from '#gw2/platform/skills/autoattack-chain-controller.js';
 
-export interface NativeModuleCatalogData {
-  readonly generatedSkills?: readonly Skill[];
-  readonly skillMechanics?: Readonly<Record<string, Partial<Skill>>>;
-  readonly skillOverrides?: Readonly<Record<string, Partial<Skill>>>;
-  readonly extraSkills?: readonly Skill[];
+export interface NativeModuleCatalogData<TSkill extends Skill = Skill> {
+  readonly generatedSkills?: readonly TSkill[];
+  readonly skillMechanics?: Readonly<Record<string, Partial<TSkill>>>;
+  readonly skillOverrides?: Readonly<Record<string, Partial<TSkill>>>;
+  readonly extraSkills?: readonly TSkill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
@@ -55,8 +55,8 @@ export interface NativeResolvedDamageDetails {
 }
 
 /** Runtime callbacks a module contributes; the platform composes Core and the selected specialization in order. */
-export type NativeModuleHooks = Partial<
-  Omit<RuntimeProfession<never>, 'id' | 'catalog' | 'createState' | 'projectPlanningState'>
+export type NativeModuleHooks<TSkill extends Skill = Skill> = Partial<
+  Omit<RuntimeProfession<never, TSkill>, 'id' | 'catalog' | 'createState' | 'projectPlanningState'>
 >;
 
 export interface NativeModuleDefinition<
@@ -65,17 +65,18 @@ export interface NativeModuleDefinition<
   TProjectOptions extends object,
   TProjectedState extends object,
   TModifiers extends ProfessionModifierDefinition,
-  TPresentation extends object
+  TPresentation extends object,
+  TSkill extends Skill = Skill
 > {
   readonly id: TId;
-  readonly data: NativeModuleCatalogData;
+  readonly data: NativeModuleCatalogData<TSkill>;
   readonly state: NativeStateDefinition<TState, TProjectOptions, TProjectedState>;
-  readonly traitDefinitions?: readonly TraitDefinition[];
+  readonly traitDefinitions?: readonly TraitDefinition<TSkill>[];
   /** Declarative modifier rules, or rules plus imperative `modify*` callbacks for ordered or stateful math. */
   readonly modifiers?: readonly Gw2ModifierRule[] | TModifiers;
   /** Runtime hooks execute against the single chronological owner. */
-  readonly hooks?: NativeModuleHooks;
-  readonly presentation?: TPresentation | ((catalog: Readonly<CanonicalCatalog>) => TPresentation);
+  readonly hooks?: NativeModuleHooks<TSkill>;
+  readonly presentation?: TPresentation | ((catalog: Readonly<CanonicalCatalog<TSkill>>) => TPresentation);
 }
 
 export interface NativeModule<
@@ -84,9 +85,10 @@ export interface NativeModule<
   TProjectOptions extends object = object,
   TProjectedState extends object = object,
   TModifiers extends ProfessionModifierDefinition = object,
-  TPresentation extends object = object
+  TPresentation extends object = object,
+  TSkill extends Skill = Skill
 > extends Omit<
-  NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation>,
+  NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation, TSkill>,
   'modifiers'
 > {
   readonly kind: 'native-profession-module';
@@ -99,7 +101,17 @@ export interface NativeCatalogOptions {
   readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
 }
 
-export type AnyNativeModule<TId extends string = string> = NativeModule<TId, object, never>;
+// Heterogeneous registries erase the skill parameter; concrete module factories retain their inferred subtype.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyNativeModule<TId extends string = string, TSkill extends Skill = any> = NativeModule<
+  TId,
+  object,
+  never,
+  object,
+  object,
+  object,
+  TSkill
+>;
 
 type NativeModuleState<TModule> = TModule extends {
   readonly state: {
@@ -132,14 +144,15 @@ export type NativeProfessionRuntimeState<TModules extends readonly AnyNativeModu
 export interface NativeProfessionDefinition<
   TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
-  TBuild extends Gw2Build = Gw2Build
+  TBuild extends Gw2Build = Gw2Build,
+  TSkill extends Skill = Skill
 > {
   readonly id: string;
   readonly name: string;
-  readonly modules: TModules;
+  readonly modules: TModules & readonly AnyNativeModule<string, TSkill>[];
   readonly build?: ProfessionBuildDefinition<TBuild>;
   /** Family presentation factories receive the same assembled catalog as module presentation factories. */
-  readonly presentation?: TPresentation | ((catalog: Readonly<CanonicalCatalog>) => TPresentation);
+  readonly presentation?: TPresentation | ((catalog: Readonly<CanonicalCatalog<TSkill>>) => TPresentation);
   readonly catalog?: NativeCatalogOptions;
   /** Profession-specific exceptions and observers for the automatically installed GW2 chain controller. */
   readonly autoattackChains?: Gw2AutoattackChainOptions;
@@ -155,14 +168,16 @@ export interface NativeProfessionDefinition<
 export type NativeProfessionContract<
   TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
-  TBuild extends Gw2Build = Gw2Build
+  TBuild extends Gw2Build = Gw2Build,
+  TSkill extends Skill = NonNullable<TModules[number]['data']['generatedSkills']>[number]
 > = ProfessionFamilyContract<
   NativeProfessionRuntimeState<TModules>,
-  Gw2ProfessionContract<NativeProfessionRuntimeState<TModules>>,
-  TBuild
+  Gw2ProfessionContract<NativeProfessionRuntimeState<TModules>, TSkill>,
+  TBuild,
+  TSkill
 > & {
   /** Retains the immutable composition input so optional integrations can decorate the family without content imports. */
-  readonly nativeDefinition: Readonly<NativeProfessionDefinition<TModules, TPresentation, TBuild>>;
-  runtimeFor(config: Gw2Config): RuntimeProfession<NativeProfessionRuntimeState<TModules>>;
+  readonly nativeDefinition: Readonly<NativeProfessionDefinition<TModules, TPresentation, TBuild, TSkill>>;
+  runtimeFor(config: Gw2Config): RuntimeProfession<NativeProfessionRuntimeState<TModules>, TSkill>;
   readonly traitBuildAttributes: Gw2TraitBuildAttributeCalculator;
 };

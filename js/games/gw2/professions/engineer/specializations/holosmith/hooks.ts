@@ -1,3 +1,4 @@
+import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { holosmithCastAvailability } from '#gw2/professions/engineer/specializations/holosmith/mechanics/availability.js';
@@ -22,7 +23,7 @@ import {
 import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 
 /** Heat pulses execute during the cast; committed pulses may survive its animation or a later Forge exit. */
-export const holosmithHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
+export const holosmithHooks: Partial<RuntimeProfession<EngineerRuntimeState, HolosmithSkill>> = {
   initialize: initializePhotonForgeHeat,
   availability: holosmithCastAvailability,
   prepareEvent: (runtime, event) => prepareHolosmithSwordEvent(runtime, prepareHolosmithSlotEvent(runtime, event)),

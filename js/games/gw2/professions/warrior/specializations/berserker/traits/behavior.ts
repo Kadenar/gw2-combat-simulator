@@ -59,7 +59,7 @@ export function isBerserkerSkill(skill: WarriorSkill): boolean {
   return skill.primalBurst || skill.categories?.includes('Rage') || skill.specialization === 'Berserker';
 }
 
-export function traitBoons(runtime: Runtime, cast: RuntimeCast, trait: number, party = false): void {
+export function traitBoons(runtime: Runtime, cast: RuntimeCast<WarriorSkill>, trait: number, party = false): void {
   const profile = requireBalanceProfileFromContext(runtime, trait);
   emitEffects(runtime, {
     owner: profile,
@@ -140,16 +140,16 @@ export function detonate(runtime: Runtime, payload: { activationId: string; skil
   }
 }
 
-type Runtime = Gw2Runtime<WarriorRuntimeState>;
+type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 
 /** Entry rewards retain their intrinsic and selected eligibility. */
-export function berserkEntryTraits(runtime: Runtime, cast: RuntimeCast): void {
+export function berserkEntryTraits(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
   traitBoons(runtime, cast, TRAIT.BURST_OF_AGGRESSION);
   if (hasTrait(runtime, TRAIT.BLOODY_ROAR)) traitBoons(runtime, cast, TRAIT.BLOODY_ROAR);
 }
 
 /** Return trait extension before the mode owner publishes its new deadline. */
-export function berserkTraitExtension(runtime: Runtime, cast: RuntimeCast): number {
+export function berserkTraitExtension(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): number {
   const skill = cast.skill;
   let extension = 0;
   if (skill.primalBurst && hasTrait(runtime, TRAIT.SMASH_BRAWLER))
@@ -169,7 +169,7 @@ export function berserkTraitExtension(runtime: Runtime, cast: RuntimeCast): numb
 }
 
 /** Completion observes the updated mode before granting heat and scheduling aura detonation. */
-export function berserkerCompletionTraits(runtime: Runtime, cast: RuntimeCast): void {
+export function berserkerCompletionTraits(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
   if (cast.skill.primalBurst && hasTrait(runtime, TRAIT.HEAT_THE_SOUL))
     traitBoons(runtime, cast, TRAIT.HEAT_THE_SOUL, true);
   if (isBerserkerSkill(cast.skill) && hasTrait(runtime, TRAIT.KING_OF_FIRES)) {

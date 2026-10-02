@@ -6,10 +6,10 @@ import {
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
-import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<WarriorRuntimeState>;
+type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 export const REFRAIN = 'warrior.paragon-refrain';
 /** Motivation is a single capped live pool, immediately visible to damage modifiers. */
 export function gainMotivation(runtime: Runtime, amount: number): void {

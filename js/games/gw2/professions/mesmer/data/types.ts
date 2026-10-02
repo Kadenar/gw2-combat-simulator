@@ -94,9 +94,6 @@ export interface MesmerEventExtra {
   readonly summonKind?: MesmerSummonKind;
 }
 
-type MesmerSkillEffect =
-  MesmerStrikeEffect | MesmerConditionEffect | Exclude<SkillEffect, StrikeEffect | ConditionEffect>;
-
 type MesmerTrackedHitDamage = Partial<MesmerStrikeEffect> & {
   readonly duration: number;
   readonly hitsRequired: number;
@@ -134,7 +131,12 @@ export interface MesmerSkill extends Skill {
   readonly parentCooldownIncrease?: number;
   readonly phantasmSummonProgress?: number;
   readonly trackedHitDamage?: MesmerTrackedHitDamage;
-  readonly effects?: readonly MesmerSkillEffect[];
+  // Authored packets use shared effect forms, including conditions whose values live on individual ticks.
+  readonly effects?: readonly (SkillEffect & {
+    readonly castProgress?: number;
+    readonly phantasmEntityIndex?: number;
+    readonly packetLabel?: string;
+  })[];
   readonly resource?: MesmerSkillResource | null;
   readonly mesmerMechanic?: MesmerMechanic;
 }

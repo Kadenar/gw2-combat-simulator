@@ -16,16 +16,20 @@ import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { LUMINARY_INITIAL_STATE_SKILL_IDS as INITIAL } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState>;
+type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 
 export const AURA_DETONATE = 'guardian.luminary.aura-detonate';
 
 const VIRTUES: readonly number[] = [ID.RADIANT_JUSTICE, ID.RADIANT_RESOLVE, ID.RADIANT_COURAGE];
 
 /** Imported armaments already own their final duration and remain valid without current trait selection. */
-export function restoreLuminaryArmaments(runtime: Runtime, cast: RuntimeCast, duration: number): boolean {
+export function restoreLuminaryArmaments(
+  runtime: Runtime,
+  cast: RuntimeCast<GuardianSkill>,
+  duration: number
+): boolean {
   const empowered = cast.skill.id === INITIAL.empoweredArmaments;
   if (!empowered && cast.skill.id !== INITIAL.radiantHammer) return false;
   if (empowered) luminaryState.from(runtime).empoweredArmamentsUntil = gw2EffectExpiresAt(runtime.time, duration);
@@ -40,7 +44,7 @@ export function restoreLuminaryArmaments(runtime: Runtime, cast: RuntimeCast, du
 }
 
 /** Only Luminary activation sources can consume a preexisting aura. */
-function detonator(skill: Skill): boolean {
+function detonator(skill: GuardianSkill): boolean {
   return (
     skill.id !== ID.GLARING_BURST &&
     Boolean(
@@ -95,7 +99,7 @@ export function reactToSovereignAura(runtime: Runtime, event: Gw2ResolverEvent):
 }
 
 /** Schedules detonation before aura replacement and requests the selected Forge-entry aura. */
-export function startSovereignOfLight(runtime: Runtime, cast: RuntimeCast): boolean {
+export function startSovereignOfLight(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): boolean {
   const skill = cast.skill;
   const sovereign = hasTrait(runtime, TRAIT.SOVEREIGN_OF_LIGHT);
   if (sovereign && detonator(skill)) {
@@ -116,7 +120,7 @@ export function startSovereignOfLight(runtime: Runtime, cast: RuntimeCast): bool
 }
 
 /** The accepted equip animation grants its armament window after earlier cast-start effects. */
-export function startRadiantArmaments(runtime: Runtime, cast: RuntimeCast): void {
+export function startRadiantArmaments(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
   if (!cast.skill.radiantWeapon || cast.skill.flipParentId != null) return;
   // Armament damage starts with the accepted equip animation, independently of its completion rewards.
   if (hasTrait(runtime, TRAIT.RADIANT_ARMAMENTS)) {
@@ -128,7 +132,7 @@ export function startRadiantArmaments(runtime: Runtime, cast: RuntimeCast): void
         kind: 'guardian-radiant-armaments',
         duration: effectNumber(profile, effect, 'duration'),
         stacks: 1,
-        metadata: { radiantWeapon: String(cast.skill.radiantWeapon) }
+        metadata: { radiantWeapon: cast.skill.radiantWeapon }
       });
       recordGuardianTraitProc(
         runtime,
@@ -136,14 +140,14 @@ export function startRadiantArmaments(runtime: Runtime, cast: RuntimeCast): void
         'Radiant Armaments',
         runtime.time,
         cast.skill.name,
-        String(cast.skill.radiantWeapon)
+        cast.skill.radiantWeapon
       );
     }
   }
 }
 
 /** Reports the selected virtue reset after its Core activation traits have run. */
-export function completeMasterAtArms(runtime: Runtime, cast: RuntimeCast): void {
+export function completeMasterAtArms(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
   if (hasTrait(runtime, TRAIT.MASTER_AT_ARMS)) {
     recordGuardianTraitProc(
       runtime,
@@ -177,7 +181,7 @@ export const masterAtArmsRecharges: Readonly<Record<number, NonNullable<Skill['s
 
 /** Delayed equip rewards retain boon, armament, then recharge ordering. */
 export function completeLuminaryEquipTraits(runtime: Runtime, data: unknown): void {
-  const { cast } = data as { cast: RuntimeCast };
+  const { cast } = data as { cast: RuntimeCast<GuardianSkill> };
   const cause = guardianCastCause(runtime, cast);
   const state = luminaryState.from(runtime);
   if (hasTrait(runtime, TRAIT.RESPLENDENT_WEAPONRY)) {

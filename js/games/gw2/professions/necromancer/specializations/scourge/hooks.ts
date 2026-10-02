@@ -24,7 +24,11 @@ import {
   sandSavantShadeProfile,
   shadeTraits
 } from '#gw2/professions/necromancer/specializations/scourge/traits/behavior.js';
-import type { NecromancerRuntime, NecromancerRuntimeState } from '#gw2/professions/necromancer/types.js';
+import type {
+  NecromancerSkill,
+  NecromancerRuntime,
+  NecromancerRuntimeState
+} from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 const EXPIRE = 'scourge.shade-expiry';
@@ -41,7 +45,11 @@ function refreshShadeExpiry(runtime: NecromancerRuntime): void {
 }
 
 /** Finite area pulses survive their creating cast; barrier boons wait to sample the state at their own application. */
-function emitShroudEffects(runtime: NecromancerRuntime, cast: RuntimeCast, effects: readonly SkillEffect[]): void {
+function emitShroudEffects(
+  runtime: NecromancerRuntime,
+  cast: RuntimeCast<NecromancerSkill>,
+  effects: readonly SkillEffect[]
+): void {
   for (const effect of effects) {
     for (const { event } of materializeSkillEffectApplications({
       skill: cast.skill,
@@ -66,7 +74,7 @@ function emitShroudEffects(runtime: NecromancerRuntime, cast: RuntimeCast, effec
 }
 
 /** Every shade command owns one common strike and Torment application, independent of the number of active shades. */
-function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.shade);
   const attribution = {
     at: runtime.time,
@@ -109,7 +117,7 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast): void {
 }
 
 /** Manifest refreshes the capped shade lifetime before its queued impact. */
-function manifestShade(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+function manifestShade(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const profile = sandSavantShadeProfile(runtime);
   const lifetime = requireEffect(profile, 'buff', 'active-shade');
   if (lifetime) {
@@ -128,7 +136,7 @@ function manifestShade(runtime: NecromancerRuntime, cast: RuntimeCast): void {
 }
 
 /** Scourge consumes Core life force once at acceptance; its specialization owns shades, barrier pulses, and trait claims. */
-export const scourgeHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = {
+export const scourgeHooks: Partial<RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>> = {
   sideEffectHandlers: {
     'scourge.manifest-start'(runtime, context) {
       if (context.kind === 'cast' && !context.cast.cancelled)
@@ -189,10 +197,10 @@ export const scourgeHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> =
       refreshShadeExpiry(runtime);
     },
     [MANIFEST](runtime, data) {
-      shadeStrike(runtime, (data as { cast: RuntimeCast }).cast);
+      shadeStrike(runtime, (data as { cast: RuntimeCast<NecromancerSkill> }).cast);
     },
     [BARRIER](runtime, data) {
-      const { cast, event } = data as { cast: RuntimeCast; event: Gw2ResolverEvent };
+      const { cast, event } = data as { cast: RuntimeCast<NecromancerSkill>; event: Gw2ResolverEvent };
       barrierTraits(runtime, cast);
       const packet = assertSimulationEvent({ ...event, audience: party(runtime) });
       queueResolverBoon(runtime, packet, { ...packet, kind: String(packet.kind), duration: Number(packet.duration) });

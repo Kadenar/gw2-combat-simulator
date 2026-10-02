@@ -8,10 +8,10 @@ import {
   reactToSpellbreakerControl,
   reactToSpellbreakerDamage
 } from '#gw2/professions/warrior/specializations/spellbreaker/traits/behavior.js';
-import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Core owns packet execution and one-bar spending; this slice owns accepted control and burst reactions. */
-export const spellbreakerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
+export const spellbreakerHooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
   initialize(runtime) {
     const core = runtime.profession.core;
     core.maximumAdrenaline = balanceProfileNumber(

@@ -15,7 +15,7 @@ import { initializeSyncopate } from '#gw2/professions/mesmer/specializations/tro
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Instruments commit notes on completion; delayed waves and accepted disables retain their own timing. */
-export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
+export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState, MesmerSkill>> = {
   initialize(runtime) {
     initializeTroubadourRuntime(runtime);
     // Keep the completed-heal consequence queued at the same boundary without observing log text.
@@ -24,10 +24,10 @@ export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
   endurance: troubadourEndurance,
   sideEffectHandlers: {
     'mesmer.troubadour.performance-traits'(runtime, context) {
-      if (context.kind === 'cast') scheduleTroubadourPerformance(runtime, context.cast, context.skill as MesmerSkill);
+      if (context.kind === 'cast') scheduleTroubadourPerformance(runtime, context.cast, context.skill);
     },
     'mesmer.troubadour.commit-instrument'(runtime, context) {
-      if (context.kind === 'cast') completeTroubadourPerformance(runtime, context.cast, context.skill as MesmerSkill);
+      if (context.kind === 'cast') completeTroubadourPerformance(runtime, context.cast, context.skill);
     },
     'mesmer.troubadour.schedule-crescendo'(runtime, context) {
       if (context.kind !== 'cast' || context.cast.cancelled) return;
@@ -40,7 +40,7 @@ export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     // Capture the event-order-sensitive gate while the accepted action is still the latest history entry.
     'mesmer.troubadour.prepare-tale'(runtime, context) {
       if (context.kind !== 'cast') return;
-      const required = (context.skill as MesmerSkill).tale?.instrument;
+      const required = context.skill.tale?.instrument;
       const action = runtime.history.find((event) => event.type === 'action' && event.activationId === context.cast.id);
       mesmerMechanicsFor(runtime).castDetails.get(context.cast.id)!.taleEligible = Boolean(
         required &&
@@ -55,7 +55,7 @@ export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
       if (context.kind !== 'cast') return;
       resolveTroubadourTale({
         context: runtime,
-        skill: context.skill as MesmerSkill,
+        skill: context.skill,
         at: runtime.time,
         eligible: Boolean(mesmerMechanicsFor(runtime).castDetails.get(context.cast.id)?.taleEligible)
       });
@@ -63,9 +63,9 @@ export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
   },
   tasks: {
     'mesmer.crescendo'(runtime, data) {
-      const { cast } = data as { cast: RuntimeCast };
-      withMesmerCastEmission(runtime, cast, cast.skill as MesmerSkill, () =>
-        resolveCrescendo(runtime, cast, cast.skill as MesmerSkill, cast.fullEnd)
+      const { cast } = data as { cast: RuntimeCast<MesmerSkill> };
+      withMesmerCastEmission(runtime, cast, cast.skill, () =>
+        resolveCrescendo(runtime, cast, cast.skill, cast.fullEnd)
       );
     }
   },

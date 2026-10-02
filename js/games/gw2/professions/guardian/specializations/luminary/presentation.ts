@@ -163,7 +163,7 @@ function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
 }
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
-export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog>): GuardianUiSlice {
+export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
     effectPresentations: luminaryEffectPresentations,
     eventLogRow: luminaryEventLogRow,

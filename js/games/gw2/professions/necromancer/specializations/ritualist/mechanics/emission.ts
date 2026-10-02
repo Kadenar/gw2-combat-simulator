@@ -2,9 +2,9 @@ import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerSkill, NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 
-export function attribution(cast: RuntimeCast) {
+export function attribution(cast: RuntimeCast<NecromancerSkill>) {
   return {
     at: cast.effectiveEnd,
     source: 'Spirit',
@@ -20,7 +20,7 @@ export function attribution(cast: RuntimeCast) {
 
 export function boon(
   runtime: NecromancerRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<NecromancerSkill>,
   profile: Skill,
   effects: readonly SkillEffect[]
 ): void {

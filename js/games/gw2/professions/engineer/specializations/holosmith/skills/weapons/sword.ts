@@ -23,7 +23,10 @@ import {
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { HolosmithSkillFragment } from '#gw2/professions/engineer/specializations/holosmith/types.js';
+import type {
+  HolosmithSkill,
+  HolosmithSkillFragment
+} from '#gw2/professions/engineer/specializations/holosmith/types.js';
 
 /** Supplies Holosmith sword fragments to Holosmith module composition. */
 export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
@@ -300,7 +303,10 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
 }
 
 /** Arc and Cutter capture their tier; direct Holosmith sword hits sample their profile at impact. */
-export function prepareHolosmithSwordEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
+export function prepareHolosmithSwordEvent(
+  context: EngineerRuntime<HolosmithSkill>,
+  event: SimulationEventBase
+): SimulationEventBase {
   if (event.type === 'engineer.radiant-arc-quickness' || event.type === 'engineer.refraction-cutter-extra-blades') {
     const snapshot = snapshotHolosmithHeat(context);
     const tier = holosmithHeatTier(snapshot);

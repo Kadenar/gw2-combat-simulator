@@ -3,9 +3,9 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import { guardianBoonDuration } from '#gw2/professions/guardian/core/traits/behavior.js';
-import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState>;
+type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 /** Boons sample live attributes without inheriting hostile annotations or recipients. */
 export function willbenderBoon(
   runtime: Runtime,

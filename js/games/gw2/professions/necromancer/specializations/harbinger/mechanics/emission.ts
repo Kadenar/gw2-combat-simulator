@@ -4,14 +4,14 @@ import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerSkill, NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 export function emitHarbingerEffects(
   runtime: NecromancerRuntime,
   skill: Skill,
   effects: readonly SkillEffect[],
-  cast?: RuntimeCast,
+  cast?: RuntimeCast<NecromancerSkill>,
   metadata?: EffectMetadata
 ): void {
   emitEffects(runtime, {

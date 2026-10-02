@@ -12,7 +12,7 @@ import {
   ragingStormCritical,
   renewingStaminaCritical
 } from '#gw2/professions/elementalist/core/traits/critical-procs.js';
-import type { ElementalistResolverContext } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistResolverContext } from '#gw2/professions/elementalist/types.js';
 /** Ordered public dispatcher for Core Elementalist trait behavior. */
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -74,7 +74,11 @@ export function applyElementalistAttunementTraits(
 }
 
 // Preserve post-cast interleaving across Fire, Earth, Water, Earth, Air, and Arcane trait lines.
-export function applyGenericPostCast(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+export function applyGenericPostCast(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
   applyPyromancersPuissance(context, cast, skill);
   applyEarthsEmbrace(context, cast, skill);
   applySoothingIce(context, cast, skill, applyElementalistAura);

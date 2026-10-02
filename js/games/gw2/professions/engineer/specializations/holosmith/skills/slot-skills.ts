@@ -20,7 +20,10 @@ import {
  * Persistent heat and forge state live under `mechanics/photon-forge.ts`.
  */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { HolosmithSkillFragment } from '#gw2/professions/engineer/specializations/holosmith/types.js';
+import type {
+  HolosmithSkill,
+  HolosmithSkillFragment
+} from '#gw2/professions/engineer/specializations/holosmith/types.js';
 
 /** Supplies Holosmith slot-skill fragments to Holosmith module composition. */
 export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
@@ -365,7 +368,10 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
 }
 
 /** Slot skills own their captured expansions and direct strikes retain live heat selection. */
-export function prepareHolosmithSlotEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
+export function prepareHolosmithSlotEvent(
+  context: EngineerRuntime<HolosmithSkill>,
+  event: SimulationEventBase
+): SimulationEventBase {
   if (['engineer.laser-disk', 'engineer.launch-wall', 'engineer.prime-light-beam-field'].includes(event.type)) {
     const snapshot = snapshotHolosmithHeat(context);
     return {

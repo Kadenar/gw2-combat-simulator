@@ -30,14 +30,18 @@ import {
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /**
  * Runs Core's attunement completion with Evoker's proc policy attached, and
  * reports whether the skill was an attunement swap at all so the caller can tell
  * Core the transition is already handled.
  */
-export function completeEvokerAttunement(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): boolean {
+export function completeEvokerAttunement(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): boolean {
   const target = targetAttunement(skill);
   if (!target) return false;
 

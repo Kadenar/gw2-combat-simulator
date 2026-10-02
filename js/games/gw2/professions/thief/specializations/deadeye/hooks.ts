@@ -54,7 +54,7 @@ function marked(runtime: ThiefRuntime, at = runtime.time): boolean {
  * Marking a target refreshes the mark; re-marking the same live target adds to its malice instead of resetting it.
  * The mark also grants Deadeye's stolen skills and schedules its own expiry.
  */
-function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast): void {
+function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const state = deadeyeState.from(runtime);
   emitThiefStealTraits(runtime, cast);
   const remarking = state.markedTargetId === 'primary-target' && state.markExpiresAt > runtime.time;
@@ -88,7 +88,13 @@ function expireDeadeyesMark(runtime: ThiefRuntime, data: unknown): void {
 }
 
 /** Torment from a malicious finisher scales with the malice it was cast with. */
-function maliceTorment(runtime: ThiefRuntime, cast: RuntimeCast, profileId: SkillId, malice: number, trait: boolean) {
+function maliceTorment(
+  runtime: ThiefRuntime,
+  cast: RuntimeCast<ThiefSkill>,
+  profileId: SkillId,
+  malice: number,
+  trait: boolean
+) {
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   const torment = requireEffect(profile, 'condition', 'Torment');
   if (!torment) return;
@@ -103,8 +109,8 @@ function maliceTorment(runtime: ThiefRuntime, cast: RuntimeCast, profileId: Skil
 }
 
 /** Cross-skill dodge and cantrip traits retain their post-packet completion order. */
-function completeDeadeyeCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  const skill = cast.skill as ThiefSkill;
+function completeDeadeyeCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+  const skill = cast.skill;
 
   grantFireForEffect(runtime, cast);
   // Silent Scope: a dodge above the malice threshold grants one out-of-stealth stealth attack.
@@ -128,7 +134,7 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
     Number(event.metadata?.recallSkillId ?? event.skillId ?? event.sourceId)
   );
   if (!skill) return;
-  const initiativeAttack = skill.type === 'Weapon' && Number(skill.initiativeCost || 0) > 0 && !skill.stealthAttack;
+  const initiativeAttack = skill.type === 'Weapon' && (skill.initiativeCost || 0) > 0 && !skill.stealthAttack;
   if (!skill.malicious && !initiativeAttack) return;
   const state = deadeyeState.from(runtime);
   if (state.maliceResolvedActivations[event.activationId]) return;
@@ -156,7 +162,7 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
 }
 
 /** Deadeye hooks: the mark and malice, malicious attacks, stolen skills, Mercy, Shadow Flare, and cantrip traits. */
-export const deadeyeHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
+export const deadeyeHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefSkill>> = {
   sideEffectHandlers: {
     'thief.clear-revealed'(runtime) {
       runtime.profession.core.revealedUntil = Math.min(runtime.profession.core.revealedUntil, runtime.time);
@@ -207,7 +213,7 @@ export const deadeyeHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   availability: (runtime, skill) =>
     deadeyeCastAvailability(runtime.profession.core.availableFlips, skill, runtime.time),
   onCastStart(runtime, cast) {
-    const skill = cast.skill as ThiefSkill;
+    const skill = cast.skill;
     const state = deadeyeState.from(runtime);
     if (!skill.malicious && !STOLEN_SKILLS.has(skill.id)) return;
     const malice = boundedNumber(state.malice, 0, 0, state.maximumMalice);
@@ -238,7 +244,7 @@ export const deadeyeHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
   },
   tasks: {
     [DEADEYE_COMPLETE](runtime, data) {
-      const { cast } = data as { cast: RuntimeCast };
+      const { cast } = data as { cast: RuntimeCast<ThiefSkill> };
       completeDeadeyeCast(runtime, cast);
     },
     [DEADEYE_MARK_EXPIRY]: expireDeadeyesMark

@@ -65,8 +65,10 @@ export interface EngineerSkill extends Skill {
   readonly toolbeltParentId?: SkillId | null;
 }
 
-/** Command owners and impact reactions share one Engineer state at executed time. */
-export type EngineerRuntime = Gw2Runtime<EngineerRuntimeState> & { readonly config: EngineerConfig };
+/** Engineer owners retain typed skill lookups; elite helpers can supply their own local skill subtype. */
+export type EngineerRuntime<TSkill extends EngineerSkill = EngineerSkill> = Gw2Runtime<EngineerRuntimeState, TSkill> & {
+  readonly config: EngineerConfig;
+};
 
 export type EngineerSimulationEvent = SimulationEvent & {
   readonly application?: EngineerSimulationEvent;

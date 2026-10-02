@@ -7,7 +7,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -50,9 +50,9 @@ const SKRITT_SCUFFLE = 'thief.skritt-scuffle';
 const FORGED_SURFER_OWNER = Object.freeze({ id: FORGED_SURFER, generation: 0 });
 
 /** Accepted Canach coin initiative, held by cast identity until commitment or cancellation. */
-const coinInitiative = new WeakMap<RuntimeCast, number>();
+const coinInitiative = new WeakMap<RuntimeCast<ThiefSkill>, number>();
 /** The slot each accepted artifact cast spent, which selects its Possessive Hoarder family boon. */
-const artifactSlotsUsed = new WeakMap<RuntimeCast, ThiefArtifactSlot | undefined>();
+const artifactSlotsUsed = new WeakMap<RuntimeCast<ThiefSkill>, ThiefArtifactSlot | undefined>();
 
 function allArtifactChoices(): ThiefArtifactSlot[] {
   return [
@@ -83,7 +83,7 @@ function pilferArtifacts(runtime: ThiefRuntime, source: 'swipe' | 'initiative' |
  * Activating an artifact spends its slot and one use immediately, so a pilfer during a long artifact cast supplies
  * the next pool instead of being consumed by the cast that was already underway.
  */
-function spendArtifact(runtime: ThiefRuntime, cast: RuntimeCast): void {
+function spendArtifact(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const state = antiquaryState.from(runtime);
   artifactSlotsUsed.set(
     cast,
@@ -94,7 +94,7 @@ function spendArtifact(runtime: ThiefRuntime, cast: RuntimeCast): void {
 }
 
 /** Notify family traits before the skill grants its identity window and invokes Repeat Ransacker. */
-function notifyArtifactTraits(runtime: ThiefRuntime, cast: RuntimeCast): void {
+function notifyArtifactTraits(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const slot = artifactSlotsUsed.get(cast);
   applyEnterprisingAristocrat(runtime);
   applyExhilaratingEphemera(runtime);
@@ -190,7 +190,7 @@ function completeSkrittScuffle(runtime: ThiefRuntime): void {
 }
 
 /** Double Edge is risky only while its recharge is running; Scoundrel's Luck turns one risky use into a success. */
-function acceptDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast): ThiefDoubleEdgeOutcome {
+function acceptDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): ThiefDoubleEdgeOutcome {
   if ((runtime.cooldowns.get(cast.skill.id) || 0) <= runtime.time + EPSILON) return 'success';
   if (consumeScoundrelsLuck(runtime)) return 'success';
 
@@ -214,9 +214,9 @@ function tossCanachCoins(runtime: ThiefRuntime, backfire: boolean): number {
  * The accepted Double Edge outcome is fixed at cast start, including uses the rotation cancels immediately, and its
  * packets are timed from the reserved end of the cast.
  */
-function startDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast): void {
+function startDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const state = antiquaryState.from(runtime);
-  const skill = cast.skill as ThiefSkill;
+  const skill = cast.skill;
   const outcome = acceptDoubleEdge(runtime, cast);
   if (outcome === 'backfire')
     // The backfire variant stays visible until the running recharge ends.
@@ -225,8 +225,8 @@ function startDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast): void {
 }
 
 /** Initiative spending feeds Prodigious Pincher, and Chak Shield refunds it while its window is open. */
-function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  const cost = (cast.skill as ThiefSkill).initiativeCost || 0;
+function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+  const cost = cast.skill.initiativeCost || 0;
   if (!(cost > 0)) return;
   const state = antiquaryState.from(runtime);
   state.initiativeSpentSincePilfer += cost;
@@ -236,15 +236,14 @@ function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast): voi
 }
 
 /** Swipe alone grants its steal package and swipe-only pilfer policies. */
-function completeSkrittSwipe(runtime: ThiefRuntime, cast: RuntimeCast): void {
+function completeSkrittSwipe(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   emitThiefStealTraits(runtime, cast);
   pilferArtifacts(runtime, 'swipe');
   applyKleptomaniac(runtime);
 }
 
 /** Artifacts require a held slot; backfire variants are internal; Reshuffle rerolls only an existing pool. */
-function antiquaryAvailability(runtime: ThiefRuntime, rawSkill: Skill): AvailabilityResult {
-  const skill = rawSkill as ThiefSkill;
+function antiquaryAvailability(runtime: ThiefRuntime, skill: ThiefSkill): AvailabilityResult {
   const state = antiquaryState.from(runtime);
   if (
     skill.artifactKind &&
@@ -265,7 +264,7 @@ function antiquaryAvailability(runtime: ThiefRuntime, rawSkill: Skill): Availabi
 }
 
 /** Antiquary hooks: artifact pilfering and use, Double Edge outcomes, Skritt summons, and artifact-driven traits. */
-export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
+export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefSkill>> = {
   sideEffectHandlers: {
     'thief.artifact-spend'(runtime, context) {
       if (context.kind === 'cast') spendArtifact(runtime, context.cast);

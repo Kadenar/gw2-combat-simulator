@@ -10,7 +10,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { queueElementalistBuff } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Extend authored weapon Fire fields without editing already queued packets. */
 export function extendPersistingFlamesEffects(
@@ -88,7 +88,7 @@ export function extendPersistingFlamesEffects(
 /** Field registration uses the same extension as the extra authored pulses. */
 export function extendPersistingFlamesFields(
   context: ElementalistRuntime,
-  cast: RuntimeCast,
+  cast: RuntimeCast<ElementalistSkill>,
   fields: Skill['comboFields']
 ): Skill['comboFields'] {
   if (!hasTrait(context, TRAIT.PERSISTING_FLAMES) || cast.skill.type !== 'Weapon') return fields;

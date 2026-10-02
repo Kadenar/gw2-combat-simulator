@@ -54,20 +54,24 @@ export interface ProfessionModifierDefinition {
   };
 }
 
-export interface ProfessionDefinition<TProfessionState extends object = object, TBuild extends object = object> {
+export interface ProfessionDefinition<
+  TProfessionState extends object = object,
+  TBuild extends object = object,
+  TSkill extends Skill = Skill
+> {
   /** One equipment eligibility policy used by simulation and application consumers. */
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
   readonly id: string;
   readonly name: string;
-  readonly catalog?: CanonicalCatalog;
+  readonly catalog?: CanonicalCatalog<TSkill>;
   readonly build?: ProfessionBuildDefinition<TBuild>;
   readonly resources?: ProfessionResourceDefinition<TProfessionState>;
   readonly modifiers?: ProfessionModifierDefinition;
   readonly ui?: Partial<ProfessionUiContract>;
 }
 
-export interface ProfessionModuleCatalogFragment {
-  readonly skills?: readonly Skill[];
+export interface ProfessionModuleCatalogFragment<TSkill extends Skill = Skill> {
+  readonly skills?: readonly TSkill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
@@ -79,13 +83,13 @@ export interface ProfessionModuleCatalogFragment {
 }
 
 /** Keeps scheduler contracts resolver-neutral while typed resolver layers supply their own registries. */
-export interface NormalizedProfessionContract<TProfessionState extends object = object> {
+export interface NormalizedProfessionContract<TProfessionState extends object = object, TSkill extends Skill = Skill> {
   readonly resources: ResourcePolicies & { readonly endurance: EndurancePolicy | null };
   /** One equipment eligibility policy used by simulation and application consumers. */
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
   readonly id: string;
   readonly name: string;
-  readonly catalog: CanonicalCatalog;
+  readonly catalog: CanonicalCatalog<TSkill>;
   readonly createState: (config: Readonly<ProfessionConfig>) => TProfessionState;
   readonly projectPlanningState: (...args: never[]) => unknown;
   readonly modifyAttributes: (context: Gw2ModifierContext, attributes: Gw2Stats) => Gw2Stats;
@@ -99,12 +103,12 @@ export interface NormalizedProfessionContract<TProfessionState extends object = 
   readonly modifyConditionDuration: (context: Gw2ModifierContext, multiplier: number) => number;
 }
 
-export interface ProfessionApplicationContract<TBuild extends object = object> {
+export interface ProfessionApplicationContract<TBuild extends object = object, TSkill extends Skill = Skill> {
   /** One equipment eligibility policy used by simulation and application consumers. */
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
   readonly id: string;
   readonly name: string;
-  readonly catalog: CanonicalCatalog;
+  readonly catalog: CanonicalCatalog<TSkill>;
   readonly ui: ProfessionUiContract;
   readonly createBuildDefaults: () => TBuild;
   readonly migrateBuild: (saved: UnvalidatedBuild) => TBuild;
@@ -114,7 +118,8 @@ export interface ProfessionApplicationContract<TBuild extends object = object> {
 export interface ProfessionFamilyContract<
   TProfessionState extends object = object,
   TRuntime extends NormalizedProfessionContract<TProfessionState> = NormalizedProfessionContract<TProfessionState>,
-  TBuild extends object = object
-> extends ProfessionApplicationContract<TBuild> {
+  TBuild extends object = object,
+  TSkill extends Skill = Skill
+> extends ProfessionApplicationContract<TBuild, TSkill> {
   readonly resolveProfession: (config: Readonly<ProfessionConfig>) => Readonly<TRuntime>;
 }

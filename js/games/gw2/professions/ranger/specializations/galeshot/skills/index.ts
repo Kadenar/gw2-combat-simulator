@@ -14,7 +14,7 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { cloudburstBlusterReset } from '#gw2/professions/ranger/specializations/galeshot/traits/behavior.js';
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Explicit PvE skill mechanics owned by the Galeshot Ranger module. */
@@ -319,7 +319,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
 });
 
 /** Schedule at acceptance because authored tasks are registered too late for precommit Wind Force. */
-export function scheduleWindForce(runtime: RangerRuntime, cast: RuntimeCast): void {
+export function scheduleWindForce(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   const skill = cast.skill;
   if (!(Number(skill.windForceGain) > 0)) return;
   const at = canonicalTime(cast.start + Number(skill.windForceApplyMs ?? skill.castTimeMs) / 1000);
