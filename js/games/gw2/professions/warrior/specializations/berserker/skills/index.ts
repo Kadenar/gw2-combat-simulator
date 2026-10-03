@@ -131,11 +131,16 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       {
         type: 'strike',
         ticks: [{ atMs: 600, coefficient: 3.5 }],
+        persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
     ],
     castTimeMs: 680,
+    // Committed bursts preserve their effects and hold the cast lane through the remaining animation.
+    interruptCommitMs: 640,
+    interruptMode: 'commit',
+    retainsCastLockoutAfterInterrupt: true,
     adrenalineCost: 10,
     burst: true,
     primalBurst: true

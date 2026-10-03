@@ -267,7 +267,9 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     movementSkill: true,
     // Bull's Charge keeps its fixed 640 ms cast and has no measured Dual Wielding variant.
     castTimeMs: 640,
-
+    // Once the charge commits, its effects survive interruption.
+    interruptCommitMs: 600,
+    interruptMode: 'commit',
     comboFinishers: [
       {
         ownerId: 'warrior',
@@ -275,7 +277,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    effects: [
+    effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         coefficient: 2,
@@ -285,7 +287,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
         type: 'control',
         controlKind: 'knockdown'
       }
-    ]
+    ])
   },
   [ID.DEFIANT_STANCE]: {
     castTimeMs: 640,

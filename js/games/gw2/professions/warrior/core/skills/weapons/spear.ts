@@ -1,11 +1,16 @@
 /** Core Warrior spear packets use nearest-40 ms offsets to remove false timing precision. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.MAIMING_SPEAR]: {
     castTimeMs: 480,
-    effects: [
+    // Committed throws preserve their effects and hold the cast lane through the remaining animation.
+    interruptCommitMs: 440,
+    interruptMode: 'commit',
+    retainsCastLockoutAfterInterrupt: true,
+    effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: [{ atMs: 1000, coefficient: 1.1 }],
@@ -41,13 +46,16 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
         stacks: 1,
         duration: 3
       }
-    ]
+    ])
   },
   [ID.MIGHTY_THROW]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 640,
+    // Once the throw commits, its effects survive interruption.
+    interruptCommitMs: 600,
+    interruptMode: 'commit',
     // Both impact packets count as explosions; shards still require a secondary target.
-    effects: [
+    effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: [{ atMs: 480, coefficient: 1.2 }],
@@ -67,11 +75,15 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ]
+    ])
   },
   [ID.DISRUPTING_THROW]: {
     castTimeMs: 520,
-    effects: [
+    // Committed throws preserve their effects and hold the cast lane through the remaining animation.
+    interruptCommitMs: 400,
+    interruptMode: 'commit',
+    retainsCastLockoutAfterInterrupt: true,
+    effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: [{ atMs: 400, coefficient: 2 }],
@@ -97,11 +109,14 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'control',
         controlKind: 'daze'
       }
-    ]
+    ])
   },
   [ID.SPEARMARSHALS_SUPPORT]: {
     castTimeMs: 520,
-    effects: [
+    // Once support commits, its delayed strikes survive interruption.
+    interruptCommitMs: 480,
+    interruptMode: 'commit',
+    effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: [
@@ -116,7 +131,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ]
+    ])
   },
   [ID.SPEAR_SWIPE]: {
     // Movement classification drives completed Brave Stride rewards.
