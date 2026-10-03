@@ -1,5 +1,6 @@
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { effectNumber, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';

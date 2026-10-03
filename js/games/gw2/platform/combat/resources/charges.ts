@@ -1,4 +1,4 @@
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 
 /** One recipient's finite grant, consumed and expired directly by its owning mechanic. */
 export interface ChargeGrant {

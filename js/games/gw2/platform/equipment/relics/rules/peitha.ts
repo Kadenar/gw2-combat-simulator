@@ -1,6 +1,6 @@
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Peitha relic rules. */
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';

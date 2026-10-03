@@ -1,4 +1,4 @@
-import { isInternalCooldownReady, timeKey } from '#kernel/core/clock.js';
+import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -36,6 +36,18 @@ export function createProcRegistry(context: () => Gw2ResolverRuntime & { readonl
   };
 }
 
+/**
+ * Internal cooldowns remain active through their recorded boundary timestamp.
+ * A proc at exactly readyAt is blocked; only a later timestamp may trigger it.
+ */
+export function isInternalCooldownReady(at: number, readyAt = 0): boolean {
+  const triggerAt = canonicalTime(at);
+  // Equipment also uses infinite deadlines as unarmed/permanently blocked sentinels.
+  const blockedThrough = Number.isFinite(readyAt) ? canonicalTime(readyAt) : readyAt;
+  // Existing state models use 0 to mean that the ICD has never been armed.
+  return blockedThrough === 0 ? triggerAt >= 0 : triggerAt > blockedThrough;
+}
+
 /** Claims a caller-owned ICD after eligibility checks, before effects can trigger another reaction. */
 export function tryConsumeProcCooldown(
   readyAtByKey: Record<string, number>,
@@ -55,7 +67,7 @@ export function tryConsumeProcCooldown(
 
   const deadline = at + duration;
   timeKey(deadline);
-  // Keep caller arithmetic unchanged; the clock predicate canonicalizes comparisons.
+  // Keep caller arithmetic unchanged; the proc predicate canonicalizes comparisons.
   // Zero at time zero remains unarmed, so a zero-duration claim is not a deduplication gate.
   readyAtByKey[key] = deadline;
   return true;

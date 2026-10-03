@@ -38,7 +38,8 @@ import {
   heroicCommandProfile
 } from '#gw2/professions/revenant/specializations/renegade/traits/behavior.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 
 const SOULCLEAVE_ALLIES = 'revenant.soulcleave-allied-proc';
 

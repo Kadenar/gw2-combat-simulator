@@ -15,7 +15,8 @@ import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { boon } from '#gw2/professions/guardian/specializations/firebrand/mechanics/effects.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianBuild, GuardianSkill } from '#gw2/professions/guardian/types.js';
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 
 const refundByCast = new WeakMap<RuntimeCast<GuardianSkill>, number>();
 

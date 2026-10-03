@@ -1,5 +1,6 @@
 /** Visionary relic rules. */
-import { isInternalCooldownReady, isTimeInWindow } from '#kernel/core/clock.js';
+import { isTimeInWindow } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';

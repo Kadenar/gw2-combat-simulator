@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { navigationRoute } from '#browser/page/embed.js';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { escapeHtml } from '#ui/shared/html.js';
 
 // Exercises the native package alias against compiled output so runtime resolution cannot silently regress.
@@ -13,7 +13,7 @@ test('the GW2 package import alias resolves compiled modules', () => {
 
 // Exercises the shared kernel alias through the same compiled-module path used by Node.
 test('the kernel package import alias resolves compiled modules', () => {
-  assert.equal(isInternalCooldownReady(1.001, 1), true);
+  assert.equal(canonicalTime(0.1 + 0.2), 0.3);
 });
 
 // Exercises the browser-facing shared aliases without requiring a DOM.

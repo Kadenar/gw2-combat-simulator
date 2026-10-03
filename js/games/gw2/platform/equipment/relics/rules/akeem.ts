@@ -1,5 +1,5 @@
 /** Akeem relic rules. */
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const akeem = defineRelic({

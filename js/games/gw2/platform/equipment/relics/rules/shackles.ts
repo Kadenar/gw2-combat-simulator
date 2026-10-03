@@ -1,6 +1,6 @@
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Shackles relic rules. */
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';

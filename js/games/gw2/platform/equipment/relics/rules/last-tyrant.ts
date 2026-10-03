@@ -1,6 +1,6 @@
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Last Tyrant relic rules. */
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';

@@ -23,7 +23,7 @@ import {
   queueBuff,
   recordTrait
 } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';

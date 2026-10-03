@@ -208,25 +208,23 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     interruptCommitMs: 320,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    effects: [
+    // Start the four-second ice field at release, independently of the projectile hit.
+    comboFields: [
       {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 320,
-            coefficient: 0
-          }
-        ],
-        comboFields: [{ ownerId: 'elementalist', fieldType: 'Ice', duration: 4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      ...impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
+        ownerId: 'elementalist',
+        fieldType: 'Ice',
+        duration: 4,
+        startAnchor: 'castStart',
+        startMs: 320
+      }
+    ],
+    effects: impactEffects(
+      { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
         { type: 'strike', coefficient: 0.75 },
         { type: 'condition', condition: 'Chilled', stacks: 1, duration: 1.5, metadata: {} }
-      ])
-    ]
+      ]
+    )
   },
   [ID.ELECTRIC_EXPOSURE]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.

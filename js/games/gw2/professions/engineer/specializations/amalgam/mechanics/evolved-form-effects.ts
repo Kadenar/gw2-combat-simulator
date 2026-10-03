@@ -8,7 +8,7 @@ import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/enginee
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { applyCarbolicComposition } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
 import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 
 /** Applies damage-triggered Carbolic Composition and Rapacious Strain reactions. */
 function reactToAmalgamDamage(context: EngineerResolverContext, event: EngineerResolverEvent): void {

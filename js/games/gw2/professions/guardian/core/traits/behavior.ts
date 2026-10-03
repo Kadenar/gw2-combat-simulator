@@ -32,7 +32,8 @@ import type {
   GuardianSkill,
   GuardianVirtue
 } from '#gw2/professions/guardian/types.js';
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 
 export type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 

@@ -1,7 +1,6 @@
 /**
- * Timing primitives shared across the engine: the floating-point tolerance and
- * iteration safety cap used everywhere, plus the internal-cooldown-ready
- * predicate the scheduler and resolver rely on for timeline math.
+ * Game-neutral timing primitives keep timestamps, ordering keys, and window
+ * comparisons on the same canonical clock.
  */
 
 /**
@@ -32,23 +31,4 @@ export function isTimeInWindow(at: number, startsAt: number, expiresAt: number):
     (startsAt === -Infinity || canonicalTime(startsAt) <= time) &&
     (expiresAt === Infinity || time < canonicalTime(expiresAt))
   );
-}
-
-/**
- * Shared upper bound on scheduler/task-queue iterations. Guards against runaway
- * loops (recurring effects, observation recursion) without capping legitimate
- * long rotations.
- */
-export const ACTION_SAFETY_LIMIT = 100_000;
-
-/**
- * Internal cooldowns remain active through their recorded boundary timestamp.
- * A proc at exactly readyAt is blocked; only a later timestamp may trigger it.
- */
-export function isInternalCooldownReady(at: number, readyAt = 0): boolean {
-  const triggerAt = canonicalTime(at);
-  // Equipment also uses infinite deadlines as unarmed/permanently blocked sentinels.
-  const blockedThrough = Number.isFinite(readyAt) ? canonicalTime(readyAt) : readyAt;
-  // Existing state models use 0 to mean that the ICD has never been armed.
-  return blockedThrough === 0 ? triggerAt >= 0 : triggerAt > blockedThrough;
 }

@@ -8,7 +8,7 @@ import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
 import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';

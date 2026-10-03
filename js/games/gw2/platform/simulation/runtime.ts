@@ -1,6 +1,7 @@
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { createEffectReactions, type EffectReactionStage } from '#gw2/platform/simulation/effect-reactions.js';
-import { ACTION_SAFETY_LIMIT, canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import { DEFAULT_EXECUTION_ITERATION_LIMIT } from '#kernel/execution/limits.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import {
   normalizeObservationPolicy,
@@ -1023,7 +1024,7 @@ export function runGw2Runtime<T extends object>({
 
   // Each iteration either dispatches work, consumes one command, or advances to an actual boundary.
   let finished = false;
-  for (let iteration = 0; iteration < ACTION_SAFETY_LIMIT; iteration++) {
+  for (let iteration = 0; iteration < DEFAULT_EXECUTION_ITERATION_LIMIT; iteration++) {
     // The next authored marker fixes a boundary, not a gameplay transition: opening packets at that instant remain eligible.
     if (runtime.combatStartPending && cursor.command?.type === 'combat-start') {
       runtime.combatStartTime = cursor.requestAt(runtime.time);

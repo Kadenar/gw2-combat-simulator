@@ -33,7 +33,8 @@ import {
   triggerMergedLiveFast
 } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 
 /** Soulbeast resolver-phase reactions and event handlers. */
 

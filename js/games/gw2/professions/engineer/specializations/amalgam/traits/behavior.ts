@@ -15,7 +15,7 @@ import {
   type EngineerResolverContext
 } from '#gw2/professions/engineer/types.js';
 import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';

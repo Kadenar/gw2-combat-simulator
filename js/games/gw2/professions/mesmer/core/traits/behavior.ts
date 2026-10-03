@@ -34,7 +34,8 @@ import type {
   MesmerRuntime,
   MesmerRuntimeState
 } from '#gw2/professions/mesmer/types.js';
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 
 interface MethodOfMadnessContext {
   readonly state: MesmerRuntime;

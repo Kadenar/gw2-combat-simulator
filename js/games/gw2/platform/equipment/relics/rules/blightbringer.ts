@@ -1,6 +1,6 @@
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Blightbringer relic rules. */
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 

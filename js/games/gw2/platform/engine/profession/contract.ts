@@ -5,7 +5,8 @@ import { resourcePolicies, validateResourcePolicies } from '#gw2/platform/combat
  * Profession contract normalization. Validates sparse profession definitions
  * and composes deterministic no-op-safe hooks for the neutral engine.
  */
-import type { DynamicFields, UnvalidatedFields } from '#kernel/core/unvalidated.js';
+import type { DynamicFields } from '#kernel/core/dynamic-fields.js';
+import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
 import type {
   NormalizedProfessionContract,

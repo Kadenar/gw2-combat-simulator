@@ -1,4 +1,4 @@
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { RELIC_IDS, RELIC_BY_ID } from '#gw2/platform/equipment/relics/data.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 

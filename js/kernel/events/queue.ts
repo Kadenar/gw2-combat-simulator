@@ -3,7 +3,8 @@
  * ordered by timestamp, priority, causal placement (untagged last), then stable
  * insertion order. Missing or nonfinite causal metadata shares the untagged tier.
  */
-import { ACTION_SAFETY_LIMIT, canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { DEFAULT_EXECUTION_ITERATION_LIMIT } from '#kernel/execution/limits.js';
 
 export interface QueuedEvent {
   readonly at?: number;
@@ -81,7 +82,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   ) {
     this.phaseFor = options.phaseFor;
     this.prepare = options.prepare;
-    this.safetyLimit = options.safetyLimit ?? ACTION_SAFETY_LIMIT;
+    this.safetyLimit = options.safetyLimit ?? DEFAULT_EXECUTION_ITERATION_LIMIT;
     if (!Number.isSafeInteger(this.safetyLimit) || this.safetyLimit < 1) {
       throw new RangeError('Event safety limit must be a positive safe integer.');
     }

@@ -1,5 +1,6 @@
 import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
-import type { DynamicFields, UnvalidatedFields } from '#kernel/core/unvalidated.js';
+import type { DynamicFields } from '#kernel/core/dynamic-fields.js';
+import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 /**
  * Profession state ownership helpers. Keeps Core and active-specialization
  * state explicitly separated while providing stable public projections.

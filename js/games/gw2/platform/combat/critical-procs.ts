@@ -1,4 +1,4 @@
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 
 interface CriticalOpportunity {
   readonly sampledCriticals: number;
