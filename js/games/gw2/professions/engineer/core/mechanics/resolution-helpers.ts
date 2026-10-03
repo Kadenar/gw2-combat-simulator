@@ -2,7 +2,7 @@ import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js'
 import { activeBoonStacks as queryActiveBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { EnqueueGw2OwnedComboFinisherOptions } from '#gw2/platform/resolver/combo-resolution.js';
+import type { ComboFieldType, ComboFinisherType } from '#gw2/platform/combos/types.js';
 import { buildResolverBuff, buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { EngineerResolverContext, EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
@@ -16,7 +16,15 @@ interface QueueDamageOptions {
   readonly canCrit?: boolean;
   readonly explosion?: boolean;
   // The impact supplies timing, and the shared runtime generates the attempt identity.
-  readonly comboFinisher?: Omit<EnqueueGw2OwnedComboFinisherOptions, 'at' | 'effectAt' | 'attemptId'>;
+  readonly comboFinisher?: {
+    readonly ownerId: string;
+    readonly finisherType: ComboFinisherType;
+    readonly chance?: number;
+    readonly applications?: number;
+    readonly successfulCombos?: number;
+    readonly preferredFieldTypes?: readonly ComboFieldType[];
+    readonly ambiguousFieldSelection?: 'none' | 'oldest';
+  };
   readonly weaponStrength?: number;
   readonly weaponStrengthProfileId?: string;
 }

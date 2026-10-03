@@ -17,7 +17,8 @@ import {
 } from '#gw2/platform/combos/events.js';
 import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
-import { enqueueGw2OwnedComboFinisher } from '#gw2/platform/resolver/combo-resolution.js';
+import { bindRuntimeCombo, produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 
 test('combo field boundaries use exact canonical instants', () => {
   // Ordinary fields are half-open while explicit inclusivity retains only the exact expiry instant.
@@ -70,49 +71,35 @@ test('combo outcomes retain summon condition scaling from the finisher', () => {
     ownerId: 'ranger',
     ownerActorType: 'player'
   });
-  const [combo] = resolveComboAttempt(
-    state,
-    {
-      type: 'combo_finisher',
-      at: 1,
-      effectAt: 1,
-      source: 'ranger-pet',
-      sourceId: 'fixture.pet-projectile',
-      actorType: 'summon',
-      attemptId: 'attempt:summon',
-      finisherType: 'Projectile',
-      fieldBinding: { kind: 'field-id', fieldId: 'field:poison' },
-      chance: 1,
-      applications: 1,
-      successfulCombos: 1,
-      independentSummonStrike: true,
-      independentConditionOwner: true,
-      summonOwner: 'ranger-pet:1:0',
-      summonBasePower: 1524,
-      summonBaseConditionDamage: 1000,
-      summonBaseExpertise: 375,
-      summonUsesProfessionModifiers: true
-    },
-    { roll: () => true, warn: () => {} }
-  );
-  const [poison] = materializeComboOutcome(combo);
-
-  // Resolver-authored follow-up finishers must retain the same independent caster too.
-  let followup;
-  enqueueGw2OwnedComboFinisher(
-    { combo: state, effects: captureEffectEmissions({ submit: (event) => (followup = event) }).effects },
-    poison,
-    {
-      ownerId: 'ranger',
-      attemptId: 'attempt:followup',
-      finisherType: 'Projectile'
-    }
-  );
-  const [followupCombo] = resolveComboAttempt(state, followup, {
+  // The active producer and impact-time binding must carry the summon's own scaling into combo outcomes.
+  const { effects, events } = captureEffectEmissions();
+  const runtime = { combo: state, effects };
+  produceRuntimeCombos(runtime, createCanonicalCatalog(), {
+    type: 'damage',
+    at: 1,
+    source: 'ranger-pet',
+    sourceId: 'fixture.pet-projectile',
+    actorType: 'summon',
+    eventOrder: 1,
+    coefficient: 1,
+    comboFinishers: [{ ownerId: 'ranger', finisherType: 'Projectile' }],
+    independentSummonStrike: true,
+    independentConditionOwner: true,
+    summonOwner: 'ranger-pet:1:0',
+    summonBasePower: 1524,
+    summonBaseConditionDamage: 1000,
+    summonBaseExpertise: 375,
+    summonUsesProfessionModifiers: true
+  });
+  assert.equal(events.length, 1);
+  const finisher = bindRuntimeCombo(runtime, events[0]);
+  assert.deepEqual(finisher.fieldBinding, { kind: 'field-id', fieldId: 'field:poison' });
+  const [combo] = resolveComboAttempt(state, finisher, {
     roll: () => true,
     warn: () => {}
   });
-  for (const event of [combo, poison, followup, ...materializeComboOutcome(followupCombo)]) {
+  const [poison] = materializeComboOutcome(combo);
+  for (const event of [finisher, combo, poison]) {
     assert.equal(event.independentConditionOwner, true);
     assert.equal(event.summonOwner, 'ranger-pet:1:0');
     assert.equal(event.summonBaseConditionDamage, 1000);

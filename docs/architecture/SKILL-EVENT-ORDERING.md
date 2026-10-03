@@ -103,9 +103,10 @@ of reserved event-priority lanes.
 
 ## Causal and insertion order
 
-Emission assigns a monotone `eventOrder`. `runtime.emitDerived(cause, event)` places an effect with its cause; the queue
-also inherits current causal placement for untagged derived work. Stable insertion order breaks ties. New authored
-commands begin new causal roots after due work settles. Internal payloads never appear in public logs.
+Combat emission assigns a monotone `eventOrder`. `runtime.effects.emit({ kind: 'packet', cause, event })` places an
+effect with its cause; the runtime also inherits current causal placement for untagged derived work. Announcements use a
+separate identity counter so reporting cannot change combat order or randomness. Stable insertion order breaks ties. New
+authored commands begin new causal roots after due work settles. Internal payloads never appear in public logs.
 
 ### Shared condition pulses
 
@@ -143,7 +144,7 @@ Do not depend on incidental array order. Use:
 
 - a different `at` value for a real time difference;
 - `priority` for a same-time state dependency; and
-- `emitDerived()` or queue inheritance for cause-and-effect adjacency.
+- an explicit emission `cause` or inherited runtime causality for cause-and-effect adjacency.
 
 ## Internal task priority
 
@@ -175,10 +176,11 @@ Hook order does not move events on the timeline. Modifier order does not determi
 1. Leave events at priority `0` unless a same-time state dependency requires otherwise.
 2. Put real delays in `at`; do not simulate elapsed time with priority.
 3. Never use `EPSILON` to move an event, task, duration, or expiry. Use it only as a documented comparison tolerance.
-4. Set priority on the emitted event or procedural skill-event options. Ordinary declarative effects use the default
-   event priority.
+4. Set priority on the emission request or emitted event. Ordinary declarative effects use the default event priority.
 5. Keep priority relationships local to the owning mechanic and comment what must happen before or after what.
-6. Add derived events with `runtime.emitDerived(cause, event)` or the live queue, never a raw array push.
+6. Submit derived effects through `runtime.effects.emit({ kind: 'packet', cause, event })`; use `kind: 'profile'` for
+   authored effects and `kind: 'announcement'` for reporting-only activations. Producers must not insert directly into
+   the queue or event arrays.
 7. Use hook or reaction `order` when ordering handlers for the same event; do not manufacture another event solely to
    order callbacks.
 8. Test the smallest simultaneous-event scenario that proves the required state or packet order.

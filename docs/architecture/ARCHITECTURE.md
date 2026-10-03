@@ -199,7 +199,9 @@ Schema (version 1) lives in `platform/engine/events/events.ts`:
 
 `platform/resolver` owns standard types. Common handlers resolve damage and conditions; the runtime owns queue draining
 and combat/death gates. Professions react to named stages (listed in `platform/resolver/reaction-registry.ts`; bare
-names like `damage` are rejected) and receive capabilities such as `hitContext` and `applyCondition`:
+names like `damage` are rejected). Reaction details include resolved facts such as `hitContext`; producers submit
+effects through `runtime.effects.emit`. Conditions that must become visible within the current reaction use a packet
+request with `settlement: 'reaction'` at the live clock:
 
 ```js
 hooks: {

@@ -3,7 +3,6 @@ import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { SkillId, StrikeTick, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
-import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -211,5 +210,4 @@ export interface MesmerProfessionActionController {
   triggerShatterTraits(resolution: MesmerShatterResolution): void;
 }
 
-export type MesmerEmitDerivedEvent = (cause: SimulationEvent, event: SimulationEventBase) => unknown;
 export type MesmerRefreshAmmo = (skill: MesmerSkill, at: number) => AmmoState | null;

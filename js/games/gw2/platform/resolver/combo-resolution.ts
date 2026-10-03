@@ -1,76 +1,13 @@
-import { comboCombatMetadata, materializeComboOutcome } from '#gw2/platform/combos/definitions.js';
-import {
-  isComboFieldActiveAt,
-  normalizeComboFinisherType,
-  registerComboField,
-  resolveComboAttempt,
-  selectComboFieldForFinisher
-} from '#gw2/platform/combos/events.js';
+import { materializeComboOutcome } from '#gw2/platform/combos/definitions.js';
+import { registerComboField, resolveComboAttempt } from '#gw2/platform/combos/events.js';
 
-import type {
-  ComboFieldEvent,
-  ComboFieldType,
-  ComboFinisherEvent,
-  ComboFinisherType
-} from '#gw2/platform/combos/types.js';
+import type { ComboFieldEvent, ComboFinisherEvent } from '#gw2/platform/combos/types.js';
 import type {
   Gw2ResolverEvent,
   Gw2ResolverEventHandlers,
   Gw2ResolverReactionRegistry
 } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
-
-export interface EnqueueGw2OwnedComboFinisherOptions {
-  readonly ownerId: string;
-  readonly attemptId: string;
-  readonly finisherType: ComboFinisherType;
-  readonly at?: number;
-  readonly effectAt?: number;
-  readonly chance?: number;
-  readonly applications?: number;
-  readonly successfulCombos?: number;
-  readonly preferredFieldTypes?: readonly ComboFieldType[];
-  readonly ambiguousFieldSelection?: 'none' | 'oldest';
-}
-
-/** Queues a resolver-authored finisher through the shared owned-field policy. */
-export function enqueueGw2OwnedComboFinisher(
-  context: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-  options: EnqueueGw2OwnedComboFinisherOptions
-): void {
-  const at = options.at ?? event.at;
-  // Filter at the resolver timestamp; the shared selector owns field ordering.
-  const fields = [...context.combo.fields.values()].filter(
-    (field) => field.ownerId === options.ownerId && isComboFieldActiveAt(field, at)
-  );
-  const { field, ambiguous } = selectComboFieldForFinisher(fields, options);
-  context.effects.emit({
-    kind: 'packet',
-    event: {
-      // Resolver-authored finishers retain the same caster scaling as scheduled finishers.
-      ...comboCombatMetadata(event),
-      type: 'combo_finisher',
-      at,
-      effectAt: options.effectAt ?? at,
-      source: event.source,
-      sourceId: event.sourceId,
-      actorType: event.actorType,
-      skillId: event.skillId,
-      skillName: event.skillName,
-      parentSkillName: event.parentSkillName,
-      activationId: event.activationId,
-      attemptId: options.attemptId,
-      finisherType: normalizeComboFinisherType(options.finisherType),
-      fieldBinding: field ? { kind: 'field-id', fieldId: field.fieldId } : { kind: 'none' },
-      warnOnUnbound: ambiguous && !field,
-      chance: boundedNumber(options.chance ?? 1, 1, 0, 1),
-      applications: Math.max(1, Math.trunc(options.applications ?? 1)),
-      successfulCombos: Math.max(1, Math.trunc(options.successfulCombos ?? 1))
-    }
-  });
-}
 
 /** Resolver-authoritative registration, binding, chance, and materialization. */
 export function createGw2ComboResolution({
