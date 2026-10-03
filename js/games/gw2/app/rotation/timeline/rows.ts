@@ -19,7 +19,7 @@ import {
   resolveProcIcon
 } from '#gw2/app/shared/icons.js';
 import {
-  continuumEndTimelineMarkers,
+  professionTimelineMarkers,
   formatConcurrentTimelineBadge,
   formatInterruptTimelineBadge,
   formatTimelineCastDetails,
@@ -35,7 +35,7 @@ import {
   relicProcTimelineMarkers,
   rotationEntryName,
   rotationSkillHighlightKey,
-  shatterResourceSpends,
+  mechanicResourceSpends,
   sigilProcTimelineMarkers,
   targetHealthTimelineMarkers,
   timelineDeadTimeMarkers,
@@ -119,7 +119,7 @@ export function timelineRowsView(
     resultSteps.filter((step) => step.ri >= 0).map((step) => [step.ri, step])
   );
   const castOrdinals = timelineSkillCastOrdinals(resultSteps);
-  const resourceSpends = shatterResourceSpends(results);
+  const resourceSpends = mechanicResourceSpends(results);
   // Partition commands by weapon set and transformation so events can be placed on their owning line.
   const startingWeaponSet = build.startingWeaponSet;
   const specialization = app.adapter.eliteSpecialization(build);
@@ -191,16 +191,18 @@ export function timelineRowsView(
     skill_proc: '#bb88ff'
   };
   const procSteps = [...(results?.procSteps || [])].sort((a, b) => a.start - b.start);
+  // Resolve enabled declarations once; every proc uses the same active-specialization selection.
+  const professionOverlays = app.profession.ui
+    .timelineOverlays({ build, specialization })
+    .filter((overlay) => app.timelineOverlayVisibility?.[overlay.id]);
   const overlayProcMarkers = [
     ...(app.overlaySigilProcs ? sigilProcTimelineMarkers(results, rotation.length) : []),
     ...(app.overlayRelicProcs ? relicProcTimelineMarkers(results, rotation.length) : []),
     ...(app.overlayRelicProcs ? relicProcExpirationTimelineMarkers(results, rotation.length) : []),
-    // Keep these trait procs opt-in without overlaying every simulated trait proc.
-    ...(specialization === 'Luminary' && app.overlaySovereignOfLightProcs
-      ? traitProcTimelineMarkers(results, rotation.length).filter((marker) => marker.skill === 'Sovereign of Light')
-      : []),
-    ...(specialization === 'Berserker' && app.overlayKingOfFiresProcs
-      ? traitProcTimelineMarkers(results, rotation.length).filter((marker) => marker.skill === 'King of Fires')
+    ...(professionOverlays.length
+      ? traitProcTimelineMarkers(results, rotation.length).filter((marker) =>
+          professionOverlays.some((overlay) => overlay.matchesProc(marker))
+        )
       : [])
   ].sort((left, right) => left.start - right.start);
   // Insertion indexes place simulated events between authored commands without adding editable commands.
@@ -211,12 +213,16 @@ export function timelineRowsView(
     overlayProcMarkersByIndex.set(marker.insertionIndex, markers);
   }
 
-  const continuumEnds = continuumEndTimelineMarkers(results, rotation.length);
-  const continuumEndsByIndex = new Map<number, typeof continuumEnds>();
-  for (const marker of continuumEnds) {
-    const markers = continuumEndsByIndex.get(marker.insertionIndex) || [];
+  const professionMarkers = professionTimelineMarkers(
+    results,
+    rotation.length,
+    app.profession.ui.timelineMarkers({ result: results, build, specialization, catalog: app.activeCatalog })
+  );
+  const professionMarkersByIndex = new Map<number, typeof professionMarkers>();
+  for (const marker of professionMarkers) {
+    const markers = professionMarkersByIndex.get(marker.insertionIndex) || [];
     markers.push(marker);
-    continuumEndsByIndex.set(marker.insertionIndex, markers);
+    professionMarkersByIndex.set(marker.insertionIndex, markers);
   }
 
   const targetThresholds =
@@ -239,17 +245,13 @@ export function timelineRowsView(
     healthMarkersByIndex.set(marker.insertionIndex, markers);
   }
 
-  const renderContinuumEnd = (marker: (typeof continuumEnds)[number]): string => {
+  const renderProfessionMarker = (marker: (typeof professionMarkers)[number]): string => {
     const time = formatTime(marker.start);
-    const detail = [
-      'Continuum Shift',
-      `Continuum Split ended automatically at ${time}`,
-      'Cooldown state restored'
-    ].join('\n');
+    const detail = marker.title(time);
     return `<div class="rot-skill rot-injected rot-automatic-transition" title="${esc(detail)}"
-            style="--att-border:#d6b46b">
-            <img src="${esc(ACTION_ICONS['Continuum Shift'])}" alt="" />
-            <span class="rot-injected-badge">AUTO</span>
+            style="--att-border:${esc(marker.color)}">
+            <img src="${esc(marker.icon)}" alt="" />
+            <span class="rot-injected-badge">${esc(marker.badge)}</span>
             <span class="rot-time">${time}</span>
         </div>`;
   };
@@ -376,8 +378,8 @@ export function timelineRowsView(
         rowItems.push(renderHealthMarker(marker));
       }
 
-      for (const marker of continuumEndsByIndex.get(index) || []) {
-        rowItems.push(renderContinuumEnd(marker));
+      for (const marker of professionMarkersByIndex.get(index) || []) {
+        rowItems.push(renderProfessionMarker(marker));
       }
 
       const item = timelineItem(entry);
@@ -422,51 +424,19 @@ export function timelineRowsView(
         }) || defaultIcon;
       const time = step && !invalid ? formatTime(step.start) : '';
       const resourceSpend = resourceSpends.get(index);
-      const resourceSingular = resourceSpend?.resource.endsWith('s')
-        ? resourceSpend.resource.slice(0, -1)
-        : resourceSpend?.resource;
-      // Blades and notes are consumed on cast end (when the hit lands); other resources on cast start.
-      const resourceSpendTiming =
-        resourceSpend?.resource === 'blades' || resourceSpend?.resource === 'notes' ? 'cast end' : 'cast start';
-      const resourceLabel = resourceSpend
-        ? `${resourceSpend.count} ${
-            resourceSpend.count === 1 ? resourceSingular : resourceSpend.resource
-          } consumed at ${resourceSpendTiming}`
-        : '';
-      const resourceShortLabel = resourceSpend
-        ? resourceSpend.resource === 'dragon charges'
-          ? `⚡${resourceSpend.count}`
-          : `${resourceSpend.count}${
-              resourceSpend.resource === 'blades'
-                ? 'B'
-                : resourceSpend.resource === 'clones'
-                  ? 'C'
-                  : resourceSpend.resource === 'notes'
-                    ? 'N'
-                    : 'R'
-            }`
-        : '';
-      const dragonOutcome = resourceSpend?.resource === 'dragon charges' ? resourceSpend : null;
-      const requestedCharges =
-        item.releaseAtCharges == null ? Number(dragonOutcome?.maximumCharges) : Number(item.releaseAtCharges);
-      const actualCharges = Number(dragonOutcome?.chargesReached ?? dragonOutcome?.count);
-      // Mismatch means the sim ran out of flow before reaching the requested charge count.
-      const chargeMismatch =
-        Boolean(dragonOutcome) &&
-        Number.isFinite(requestedCharges) &&
-        Number.isFinite(actualCharges) &&
-        requestedCharges !== actualCharges;
-      const chargeOutcomeDetails = dragonOutcome
-        ? [
-            `Charges reached: ${actualCharges}`,
-            `${Number(item.releaseDelayMs) > 0 ? 'Time in Dragon Trigger' : 'Time spent charging'}: ${Number(dragonOutcome.chargingSeconds || 0).toFixed(3)}s`,
-            // The hold changes release timing without changing the charge cost shown alongside it.
-            ...(Number(item.releaseDelayMs) > 0
-              ? [`Additional release delay: ${item.releaseDelayMs} ms (no charging Flow)`]
-              : []),
-            `Flow spent: ${Number(dragonOutcome.flowSpent || 0).toFixed(2)}`
-          ]
-        : [];
+      const annotation = app.profession.ui.timelineAnnotation({
+        build,
+        specialization,
+        catalog: app.activeCatalog,
+        skill,
+        entry: item.command,
+        spend: resourceSpend,
+        formattedTime: time
+      });
+      const resourceLabel = annotation?.resourceLabel || '';
+      const resourceShortLabel = annotation?.resourceShortLabel || '';
+      const outcomeMismatch = annotation?.outcomeMismatch === true;
+      const outcomeDetails = annotation?.details || [];
       const actionDetail = step?.activationId ? actionDetails.get(step.activationId) : undefined;
       const skillTooltip =
         step && !invalid && item.type === 'cast'
@@ -479,7 +449,7 @@ export function timelineRowsView(
                 ? [transitionDetails.get(step.activationId)!]
                 : []),
               ...(cancelledWithoutDamage ? ['Cancelled without dealing damage'] : []),
-              ...chargeOutcomeDetails
+              ...outcomeDetails
             ])
           : display;
       const titleSuffix = invalid
@@ -492,14 +462,11 @@ export function timelineRowsView(
         item.concurrentOffsetMs != null ? formatConcurrentTimelineBadge(item.concurrentOffsetMs, time) : '';
       const interruptLabel =
         item.interruptAfterMs != null ? formatInterruptTimelineBadge(item.interruptAfterMs, time) : '';
-      const chargeReleaseLabel = skill?.dragonSlash
-        ? `⚡${item.releaseAtCharges == null ? 'Max' : Number(item.releaseAtCharges)}${time ? `\n${time}` : ''}`
-        : '';
       const doubleEdgeOutcome = item.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success';
       const doubleEdgeLabel = doubleEdgeOutcome === 'backfire' ? 'DE!' : 'DE✓';
       // Casts and Combat Start share behavior editing; waits expose their duration through the same pencil affordance.
       const canEditActivation = (item.type === 'cast' && skill != null) || item.type === 'combat-start';
-      const editLabel = skill?.dragonSlash ? 'charge release' : 'cast behavior';
+      const editLabel = annotation?.editLabel || 'cast behavior';
       const canEditWait = item.type === 'wait';
       // Dead time belongs to this boundary, after its insertion cursor and before the next authored skill.
       const deadTimeHtml = [
@@ -514,7 +481,7 @@ export function timelineRowsView(
       // Expose the displayed combat clock for comparison scrolling; unsimulated or invalid casts cannot anchor it.
       const combatTimeAttribute = step && !invalid ? ` data-combat-time-ms="${step.start - combatReferenceMs}"` : '';
       // Escape the complete title once so imported diagnostic and resource text cannot become HTML attributes.
-      const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}${cancelledWithoutDamage ? ' rot-cancelled' : ''}"${readOnly ? '' : ' draggable="true"'}
+      const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${outcomeMismatch ? ' rot-charge-mismatch' : ''}${cancelledWithoutDamage ? ' rot-cancelled' : ''}"${readOnly ? '' : ' draggable="true"'}
                     data-idx="${index}"${combatTimeAttribute} data-skill-highlight-key="${esc(highlightKey)}" ${skill ? `${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patchId), { details: (skillTooltip === display ? '' : skillTooltip) + titleSuffix + resourceTitle, detailsTitle: 'Rotation details' })} data-wiki-delay="700" tabindex="0"` : `title="${esc(skillTooltip + titleSuffix + resourceTitle)}"`} style="--att-border:${cancelledWithoutDamage ? '#ff3b45' : '#9d7bd0'}">
                     <img src="${esc(icon)}" alt="" />
                     ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ''}
@@ -530,13 +497,13 @@ export function timelineRowsView(
                     ${readOnly ? '' : '<span class="rot-x" title="Remove (Shift: remove this and everything after)">×</span>'}
                     ${invalid ? '<span class="rot-invalid-badge" title="Invalid — not simulated">✕</span>' : ''}
                     ${
-                      // Dragon Slash's release badge already shows its charges and timestamp without covering the pencil.
-                      resourceSpend && !skill?.dragonSlash
+                      // A release badge already carries the timestamp, leaving room for the edit affordance.
+                      resourceShortLabel && !annotation?.releaseBadge
                         ? `<span class="rot-resource-spend-badge"
                         title="${esc(resourceLabel)}" aria-label="${esc(resourceLabel)}">${esc(resourceShortLabel)}</span>`
                         : ''
                     }
-                    ${time && item.concurrentOffsetMs == null && item.interruptAfterMs == null && !skill?.dragonSlash ? `<span class="rot-time">${time}</span>` : ''}
+                    ${time && item.concurrentOffsetMs == null && item.interruptAfterMs == null && !annotation?.releaseBadge ? `<span class="rot-time">${time}</span>` : ''}
                     ${
                       item.concurrentOffsetMs != null
                         ? `<span class="rot-offset-badge rot-timed-action-badge"
@@ -550,9 +517,9 @@ export function timelineRowsView(
                         : ''
                     }
                     ${
-                      skill?.dragonSlash
+                      annotation?.releaseBadge
                         ? `<span class="rot-gapfill-badge rot-charge-release-badge rot-timed-action-badge"
-                        data-idx="${index}" title="Release at ${item.releaseAtCharges == null ? 'maximum' : item.releaseAtCharges} charges; cast at ${esc(time)}">${esc(chargeReleaseLabel)}</span>`
+                        data-idx="${index}" title="${esc(annotation.releaseBadge.title)}">${esc(annotation.releaseBadge.label)}</span>`
                         : ''
                     }
                     ${
@@ -587,8 +554,8 @@ export function timelineRowsView(
         rowItems.push(renderHealthMarker(marker));
       }
 
-      for (const marker of continuumEndsByIndex.get(rotation.length) || []) {
-        rowItems.push(renderContinuumEnd(marker));
+      for (const marker of professionMarkersByIndex.get(rotation.length) || []) {
+        rowItems.push(renderProfessionMarker(marker));
       }
     }
 

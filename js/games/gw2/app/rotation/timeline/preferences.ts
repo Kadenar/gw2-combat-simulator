@@ -175,19 +175,20 @@ export function mountRotationTimelineSize(root: Document = document): void {
 /** Owns persisted application preferences for simulated proc overlays on the rotation timeline. */
 export const ROTATION_PROC_OVERLAY_STORAGE_KEYS = Object.freeze({
   sigil: 'gw2-rotation-overlay-sigil-procs',
-  relic: 'gw2-rotation-overlay-relic-procs',
-  sovereignOfLight: 'gw2-rotation-overlay-sovereign-of-light-procs',
-  kingOfFires: 'gw2-rotation-overlay-king-of-fires-procs'
+  relic: 'gw2-rotation-overlay-relic-procs'
 } as const);
 
 export type RotationProcOverlayType = keyof typeof ROTATION_PROC_OVERLAY_STORAGE_KEYS;
 
 /** Restores timeline-only proc overlay choices without coupling them to saved builds or simulation inputs. */
 export function readStoredRotationProcOverlayVisibility(root: Document, type: RotationProcOverlayType): boolean {
+  return readStoredTimelineOverlayVisibility(root, ROTATION_PROC_OVERLAY_STORAGE_KEYS[type]);
+}
+
+/** Reads a declared display preference; no build or simulation state is involved. */
+export function readStoredTimelineOverlayVisibility(root: Document, storageKey: string): boolean {
   try {
-    return normalizeRotationVisibility(
-      root.defaultView?.localStorage.getItem(ROTATION_PROC_OVERLAY_STORAGE_KEYS[type])
-    );
+    return normalizeRotationVisibility(root.defaultView?.localStorage.getItem(storageKey));
   } catch {
     return false;
   }
@@ -199,8 +200,13 @@ export function storeRotationProcOverlayVisibility(
   type: RotationProcOverlayType,
   visible: boolean
 ): void {
+  storeTimelineOverlayVisibility(root, ROTATION_PROC_OVERLAY_STORAGE_KEYS[type], visible);
+}
+
+/** Persists a profession-declared overlay using its stable storage identity. */
+export function storeTimelineOverlayVisibility(root: Document, storageKey: string, visible: boolean): void {
   try {
-    root.defaultView?.localStorage.setItem(ROTATION_PROC_OVERLAY_STORAGE_KEYS[type], String(visible));
+    root.defaultView?.localStorage.setItem(storageKey, String(visible));
   } catch {
     // Browser storage may be unavailable in private or embedded contexts.
   }

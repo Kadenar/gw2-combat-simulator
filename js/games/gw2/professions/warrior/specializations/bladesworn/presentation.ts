@@ -69,6 +69,35 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     if (skill.dragonSlash) return { editorAccess: Boolean(state.dragonTriggerActive) };
   },
   chargeReleaseProjection: dragonChargeReleaseProjection,
+  // Describe recorded charge outcomes without recalculating Flow gain or the charging cadence.
+  timelineAnnotation: ({ skill, entry, spend, formattedTime }) => {
+    if (!skill?.dragonSlash || entry?.type !== 'cast') return null;
+    const outcome = spend?.resource === 'dragon charges' ? spend : undefined;
+    const requested = entry.releaseAtCharges ?? outcome?.maximumCharges;
+    const actual = outcome?.chargesReached ?? outcome?.count;
+    return {
+      editLabel: 'charge release',
+      releaseBadge: {
+        label: `⚡${entry.releaseAtCharges ?? 'Max'}${formattedTime ? `\n${formattedTime}` : ''}`,
+        title: `Release at ${entry.releaseAtCharges == null ? 'maximum' : entry.releaseAtCharges} charges; cast at ${formattedTime}`
+      },
+      outcomeMismatch:
+        Boolean(outcome) && Number.isFinite(requested) && Number.isFinite(actual) && requested !== actual,
+      resourceLabel: outcome
+        ? `${outcome.count} ${outcome.count === 1 ? 'dragon charge' : 'dragon charges'} consumed at cast start`
+        : '',
+      details: outcome
+        ? [
+            `Charges reached: ${actual}`,
+            `${(entry.releaseDelayMs ?? 0) > 0 ? 'Time in Dragon Trigger' : 'Time spent charging'}: ${(outcome.chargingSeconds || 0).toFixed(3)}s`,
+            ...((entry.releaseDelayMs ?? 0) > 0
+              ? [`Additional release delay: ${entry.releaseDelayMs} ms (no charging Flow)`]
+              : []),
+            `Flow spent: ${(outcome.flowSpent || 0).toFixed(2)}`
+          ]
+        : []
+    };
+  },
   paletteGroups: (context: WarriorUiContext) => [
     ...warriorPaletteGroups(context, PROFESSION_SKILLS, NO_WEAPON_BURSTS).map((group) =>
       group.id === 'profession'

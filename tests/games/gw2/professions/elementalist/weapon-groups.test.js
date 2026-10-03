@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { groupWeaponSkillsByAttunement } from '#gw2/app/rotation/palette/weapon-attunement-groups.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { weaverWeaponPaletteLayout } from '#gw2/professions/elementalist/specializations/weaver/presentation.js';
 
 const skill = (id, name, slot, attunement, chainStep = null) => ({
@@ -24,18 +24,18 @@ test('weapon skills render in separate elemental rows with local cascades', () =
     skill(8, 'Air auto', 1, 'Air')
   ];
 
-  const groups = groupWeaponSkillsByAttunement(skills, 'Tempest');
+  const groups = elementalistProfession.ui.paletteWeaponGroups({ specialization: 'Tempest' }, skills);
 
   assert.deepEqual(
-    groups.map((group) => group.attunement),
+    groups.map((group) => group.label),
     ['Fire', 'Water', 'Air', 'Earth']
   );
   assert.deepEqual(
-    groups.find((group) => group.attunement === 'Fire')?.skills.map((entry) => entry.name),
+    groups.find((group) => group.label === 'Fire')?.skills.map((entry) => entry.name),
     ['Fire auto 1', 'Fire auto 2', 'Fire skill 2']
   );
   assert.deepEqual(
-    groups.find((group) => group.attunement === 'Earth')?.skills.map((entry) => entry.name),
+    groups.find((group) => group.label === 'Earth')?.skills.map((entry) => entry.name),
     ['Earth auto 1', 'Earth auto 2', 'Earth skill 2']
   );
 });
@@ -43,7 +43,7 @@ test('weapon skills render in separate elemental rows with local cascades', () =
 test('ordinary weapon bars stay in one unlabeled row', () => {
   const skills = [skill(1, 'Strike', 1), skill(2, 'Slash', 2)];
 
-  assert.deepEqual(groupWeaponSkillsByAttunement(skills, 'Core'), [{ attunement: null, skills }]);
+  assert.deepEqual(elementalistProfession.ui.paletteWeaponGroups({ specialization: 'Core' }, skills), null);
 });
 
 test('Weaver dual attacks follow the four elemental rows', () => {
@@ -57,7 +57,7 @@ test('Weaver dual attacks follow the four elemental rows', () => {
   ];
 
   assert.deepEqual(
-    groupWeaponSkillsByAttunement(skills, 'Weaver').map((group) => group.attunement),
+    elementalistProfession.ui.paletteWeaponGroups({ specialization: 'Weaver' }, skills).map((group) => group.label),
     ['Fire', 'Water', 'Air', 'Earth', 'Dual']
   );
 });

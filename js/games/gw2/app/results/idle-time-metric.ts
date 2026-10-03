@@ -1,7 +1,7 @@
 import type { ResultSummaryMetric, ResultSummaryMetricDetail } from '#gw2/app/results/summary-metrics.js';
 import {
   formatTimelineDuration,
-  shatterResourceSpends,
+  mechanicResourceSpends,
   timelineDeadTimeMarkers,
   timelineStepsWithChargeFills
 } from '#gw2/app/rotation/timeline/model.js';
@@ -52,7 +52,7 @@ export function timelineIdleTimeMetric(result: Gw2SimulationResult): ResultSumma
   const combatStartMs = resultCombatReferenceMs(result);
   // Pre-combat waits are setup time, so keep them on the timeline without charging them to the combat idle metric.
   const deadTimeMarkers = timelineDeadTimeMarkers(
-    timelineStepsWithChargeFills(result.steps || [], shatterResourceSpends(result)),
+    timelineStepsWithChargeFills(result.steps || [], mechanicResourceSpends(result)),
     result.resolvedEvents || []
   ).filter((marker) => marker.reason !== 'explicit-wait' || marker.start >= combatStartMs);
   const deadTimeMs = deadTimeMarkers.reduce((total, marker) => total + marker.durationMs, 0);

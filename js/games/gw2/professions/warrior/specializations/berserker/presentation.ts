@@ -31,6 +31,17 @@ const PRIMAL_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze(
 });
 
 export const berserkerUi: WarriorUiSlice = Object.freeze({
+  // Only this specialization offers its trait-proc overlay; storage remains a browser concern.
+  timelineOverlays: () => [
+    {
+      id: 'king-of-fires',
+      storageKey: 'gw2-rotation-overlay-king-of-fires-procs',
+      label: 'Overlay King of Fires',
+      title: 'Show King of Fires detonations at their simulated positions in the rotation',
+      matchesProc: (proc) => proc.type === 'trait_proc' && proc.skill === 'King of Fires'
+    }
+  ],
+
   // Burst tiles are authored for a specific weapon set; inactive-set insertion needs an explicit swap.
   paletteOverride: (context, skill) => {
     return warriorBurstPaletteOverride(context, skill, PRIMAL_BURSTS_BY_WEAPON);

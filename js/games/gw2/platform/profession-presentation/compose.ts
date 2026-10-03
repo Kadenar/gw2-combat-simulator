@@ -21,6 +21,9 @@ import type { ProfessionResourceDefinition } from '#gw2/platform/engine/professi
 type UiCallbackName = keyof ProfessionUiContract;
 
 const UI_LIST_CALLBACK_NAMES = Object.freeze([
+  'chartApplications',
+  'timelineMarkers',
+  'timelineOverlays',
   'effectPresentations',
   'paletteGroups',
   'resourceViews',
@@ -291,7 +294,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     );
   };
 
-  for (const name of ['paletteActionSkills', 'paletteWeaponSkills'] as const) {
+  for (const name of ['paletteActionSkills', 'paletteWeaponSkills', 'paletteSelectedSlotSkills'] as const) {
     ui[name] = (context: ProfessionPaletteContext, skills: readonly Skill[]) => {
       const selected = active(context);
       // Core normalization keeps the caller's palette fields, so the selected context is still a palette context.
@@ -316,6 +319,20 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
       null
     );
   };
+
+  // Elite projections override Core for one tile or row; null grouping deliberately retains an unlabelled bar.
+  for (const name of ['timelineAnnotation', 'paletteWeaponGroups'] as const) {
+    ui[name] = (context: unknown, ...args: unknown[]) => {
+      const selected = active(context);
+      return firstUiMatch(
+        [...selected.slices.slice().reverse(), family],
+        name,
+        [selected.context, ...args],
+        (result) => (name === 'paletteWeaponGroups' ? result !== undefined : result != null),
+        null
+      );
+    };
+  }
 
   ui.resolvePaletteAction = (context: ProfessionPaletteContext, action: ProfessionPaletteActionIdentity) => {
     const selected = active(context);

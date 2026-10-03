@@ -24,6 +24,7 @@ import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js'
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 
 // Pending comparisons occupy only their own section and never present old values as current.
 test('modifier section shows pending, completed, empty, and failed states', () => {
@@ -197,6 +198,8 @@ test('Analysis charts are prepared only when the Analysis view is active', (t) =
   Object.defineProperty(globalThis, 'document', { configurable: true, value: document });
   let chartReads = 0;
   const app = {
+    profession: { ui: normalizeProfessionUi('fixture') },
+    adapter: { eliteSpecialization: () => 'Core' },
     build: { rotation: [{ type: 'wait', durationMs: 1000 }] },
     results: {
       rotationEndTime: 1,
@@ -477,6 +480,8 @@ for (const [startingHealthPercent, targetDied] of [
       querySelector: (selector) => (selector === '[data-role="result-charts"]' ? chartContainer : null)
     };
     const view = createGw2SimulationViewModel({
+      profession: { ui: normalizeProfessionUi('fixture') },
+      adapter: { eliteSpecialization: () => 'Core' },
       build: {
         rotation: [{ type: 'cast', skillId: 'Strike' }],
         targetHealth: 100,

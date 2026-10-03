@@ -136,6 +136,15 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
       specialization: app.adapter.eliteSpecialization(app.build)
     }) || [];
 
+  const chartApplications = analysisViewIsActive()
+    ? app.profession.ui.chartApplications({
+        result,
+        build: app.build,
+        catalog: app.activeCatalog,
+        specialization: app.adapter.eliteSpecialization(app.build)
+      })
+    : [];
+
   const metrics = resultSummaryMetrics(result).map((metric) =>
     result.randomDistributionRequested && metric.label === 'Player DPS'
       ? { ...metric, label: 'Baseline Player DPS' }
@@ -186,7 +195,9 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
         ...modifierContributionModel(app),
         ...randomDistributionModel(result),
         // Navigation rebuilds stale Analysis views on entry, so hidden charts need no preparation or cache.
-        chartSeries: analysisViewIsActive() ? buildChartSeries(result, 250, effectPresentations) : null
+        chartSeries: analysisViewIsActive()
+          ? buildChartSeries(result, 250, effectPresentations, chartApplications)
+          : null
       },
       {
         resolveSkillIcon: (row) => resultSkillIcon(app, row as ResultIconRow),

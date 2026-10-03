@@ -1,3 +1,4 @@
+import { elementalistWeaponGroups } from '#gw2/professions/elementalist/core/weapon-groups.js';
 import { timedBuffAt } from '#gw2/platform/results/query.js';
 import type {
   ElementalistSkill,
@@ -365,6 +366,19 @@ function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSna
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<ElementalistSkill>>): ElementalistUiSlice {
   return Object.freeze({
+    paletteWeaponGroups: (_context, skills) => elementalistWeaponGroups(skills),
+    // Selected utilities follow the live primary attunement without mutating the saved loadout.
+    paletteSelectedSlotSkills: (context, skills) => {
+      const primary = elementalistUiState(context).primaryAttunement || context.build?.startAttunement || '';
+      const activeCatalog = context.catalog || catalog;
+      return skills.map((skill) => {
+        if (!skill.attunement) return skill;
+        const suffix = ` (${skill.attunement})`;
+        const base = skill.name.endsWith(suffix) ? skill.name.slice(0, -suffix.length) : skill.name;
+        return activeCatalog.skillsByName.get(`${base} (${primary})`) || skill;
+      });
+    },
+
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
       const state = elementalistUiState(context);

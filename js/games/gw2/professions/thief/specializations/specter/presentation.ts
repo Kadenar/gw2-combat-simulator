@@ -11,6 +11,12 @@ const SHADOW_SHROUD_SKILL_IDS = Object.freeze([
 ]);
 
 export const specterUi = Object.freeze({
+  // Refresh the weapon row at this profession's transformation boundary.
+  timelineWeaponLineTransition: (context: ThiefUiContext) =>
+    context.skill && [ID.ENTER_SHADOW_SHROUD, ID.EXIT_SHADOW_SHROUD].some((id) => id === context.skill!.id)
+      ? (context.weaponLine ?? null)
+      : undefined,
+
   // Mode identity remains visible independently of remaining Shadow Force.
   paletteOverride: (context: ThiefUiContext, skill: ThiefSkill) => {
     if (skill.id === ID.ENTER_SHADOW_SHROUD || skill.id === ID.EXIT_SHADOW_SHROUD)

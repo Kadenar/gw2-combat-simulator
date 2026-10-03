@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { shatterResourceSpends } from '#gw2/app/rotation/timeline/model.js';
+import { mechanicResourceSpends } from '#gw2/app/rotation/timeline/model.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
@@ -311,7 +311,7 @@ test('Mind the Gap grants its clone before a concurrent two-clone Continuum Spli
   const clone = result.events.find((event) => event.type === 'resource' && event.reason === 'Mind the Gap');
 
   assert.equal(Math.round(clone.at * 1000 - result.steps[0].start), 520);
-  assert.deepEqual(shatterResourceSpends(result).get(1), {
+  assert.deepEqual(mechanicResourceSpends(result).get(1), {
     count: 2,
     resource: 'clones',
     sourceSkill: 'Continuum Split'

@@ -36,6 +36,11 @@ function mirageEffectPresentations(context: MesmerUiContext): ProfessionEffectPr
 
 export const mirageUi: MesmerUiSlice = Object.freeze({
   effectPresentations: mirageEffectPresentations,
+  // Mirage's dodge and mirror precede shared actions, preserving the shell's order for everything else.
+  paletteActionSkills: (_context, skills) => {
+    const order = (id: number | string) => (id === ID.DODGE_MIRAGE_CLOAK ? 0 : id === ID.PICK_UP_MIRAGE_MIRROR ? 1 : 2);
+    return [...skills].sort((left, right) => order(left.id) - order(right.id));
+  },
   paletteGroups: (context: MesmerUiContext) => mesmerMechanicPaletteGroups(context, MIRAGE_MECHANIC_SKILLS, 'clones'),
   resourceViews: (context: MesmerUiContext) => [
     ...mesmerResourceViews(context, {

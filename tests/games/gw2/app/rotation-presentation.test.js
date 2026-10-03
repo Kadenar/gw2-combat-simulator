@@ -18,7 +18,7 @@ import {
   formatTimelineDuration,
   formatTimelineSkillTooltip,
   rotationEntryName,
-  shatterResourceSpends,
+  mechanicResourceSpends,
   timelineDeadTimeMarkers,
   timelineImpactOffsets,
   timelineSkillCastOrdinals,
@@ -29,6 +29,10 @@ import {
 } from '#gw2/app/rotation/timeline/model.js';
 import { bindTimelineInteractions, getSkillDropInsertionIndex } from '#gw2/app/rotation/timeline/interactions.js';
 import { timelineIdleTimeMetric } from '#gw2/app/results/idle-time-metric.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 
 // GW2 rotation views preserve editing, palette interactions, and timeline presentation.
 test('activation editor suggests and validates manual interruption times', () => {
@@ -225,7 +229,7 @@ test('Dragon Trigger excludes only its charge window from timeline gaps and tota
         resolvedEvents: []
       };
       const markers = timelineDeadTimeMarkers(
-        timelineStepsWithChargeFills(result.steps, shatterResourceSpends(result))
+        timelineStepsWithChargeFills(result.steps, mechanicResourceSpends(result))
       );
       const overheld = chargingSeconds > maximumChargingSeconds;
       assert.deepEqual(
@@ -671,13 +675,13 @@ test('weapon swaps start new weapon-set rows in the rotation timeline', () => {
 });
 
 test('shroud and forge transitions start a new row on the current weapon set', () => {
-  for (const [enter, exit] of [
-    ['Swap Legends', 'Swap Legends'],
-    ["Reaper's Shroud", "Exit Reaper's Shroud"],
-    ['Harbinger Shroud', 'Exit Harbinger Shroud'],
-    ["Ritualist's Shroud", "Exit Ritualist's Shroud"],
-    ['Enter Shadow Shroud', 'Exit Shadow Shroud'],
-    ['Enter Radiant Forge', 'Exit Radiant Forge']
+  for (const [profession, specialization, enter, exit] of [
+    [revenantProfession, 'Core', 'Swap Legends', 'Swap Legends'],
+    [necromancerProfession, 'Reaper', "Reaper's Shroud", "Exit Reaper's Shroud"],
+    [necromancerProfession, 'Harbinger', 'Harbinger Shroud', 'Exit Harbinger Shroud'],
+    [necromancerProfession, 'Ritualist', "Ritualist's Shroud", "Exit Ritualist's Shroud"],
+    [thiefProfession, 'Specter', 'Enter Shadow Shroud', 'Exit Shadow Shroud'],
+    [guardianProfession, 'Luminary', 'Enter Radiant Forge', 'Exit Radiant Forge']
   ]) {
     const rows = timelineWeaponRows(
       ['Before', enter, 'During', exit, 'After', 'Swap Weapons', 'Other set'].map((skillId) => ({
@@ -685,7 +689,16 @@ test('shroud and forge transitions start a new row on the current weapon set', (
         skillId
       })),
       {
-        startingWeaponSet: 2
+        startingWeaponSet: 2,
+        // Profession transitions retain their boundaries when display names change.
+        weaponLineTransition: (entry, current) => {
+          const skill = profession.catalog.skillsByName.get(entry.skillId);
+          return profession.ui.timelineWeaponLineTransition({
+            specialization,
+            ...current,
+            skill: skill && { ...skill, name: 'Renamed action' }
+          });
+        }
       }
     );
 

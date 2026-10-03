@@ -3,12 +3,12 @@ import { skillDamageIdentityKey, skillDamageKeyByIdentity } from '#gw2/app/resul
 import { baseResultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
 import { timelineIdleTimeMetric } from '#gw2/app/results/idle-time-metric.js';
 import { GW2_STANDARD_BOONS, isStandardBoon, standardBoonPresentation } from '#gw2/platform/combat/boons.js';
-import type { ProfessionEffectPresentation } from '#gw2/platform/profession-presentation/types.js';
+import type {
+  ProfessionChartApplication,
+  ProfessionEffectPresentation
+} from '#gw2/platform/profession-presentation/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
-
-// Keep this stable chart identity local so shared results never eagerly load a profession's module graph.
-const EMBRACE_THE_DARKNESS_SKILL_ID = 28287;
 
 const STANDARD_BOON_PRESENTATIONS = GW2_STANDARD_BOONS.map(standardBoonPresentation).filter(
   (presentation) => presentation != null
@@ -141,7 +141,8 @@ function effectStackCaps(
 export function buildChartSeries(
   result: Gw2SimulationResult,
   sampleStepMs = 250,
-  presentations: readonly ProfessionEffectPresentation[] = []
+  presentations: readonly ProfessionEffectPresentation[] = [],
+  applications: readonly ProfessionChartApplication[] = []
 ): ChartSeries {
   // Attribute each per-hit event to the same breakdown row key the skill table
   // uses, so expanding a row shows exactly its hits in the local timeline.
@@ -177,18 +178,18 @@ export function buildChartSeries(
         })
       ) ?? null
   });
-  // Show upkeep applications on the fight clock without splitting skill identity or damage totals.
+  // Align profession-projected applications to the same observation window as damage series.
   const startMs = Number(result.dpsStartTime ?? result.firstHitTime ?? 0) * 1000;
-  const embrace = (result.resolvedEvents || [])
-    .filter((event) => event.type === 'condition' && event.skillId === EMBRACE_THE_DARKNESS_SKILL_ID)
-    .map((event) => ({
-      t: event.at * 1000 - startMs,
-      label: event.name || 'Embrace the Darkness — Torment',
-      empowered: event.metadata?.trigger === 'empowered-upkeep-pulse'
-    }))
-    .filter((application) => application.t >= 0 && application.t < series.durationMs);
-  return {
-    ...series,
-    skillApplications: embrace.length ? { 'Embrace the Darkness': embrace } : {}
-  };
+  const skillApplications: Record<string, { t: number; label: string; empowered: boolean }[]> = {};
+  for (const application of applications) {
+    const t = application.at * 1000 - startMs;
+    if (t < 0 || t >= series.durationMs) continue;
+    (skillApplications[application.series] ||= []).push({
+      t,
+      label: application.label,
+      empowered: application.empowered
+    });
+  }
+
+  return { ...series, skillApplications };
 }

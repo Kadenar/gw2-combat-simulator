@@ -3,7 +3,7 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { shatterResourceSpends, formatTimelineCastDetails } from '#gw2/app/rotation/timeline/model.js';
+import { mechanicResourceSpends, formatTimelineCastDetails } from '#gw2/app/rotation/timeline/model.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 // Virtuoso packets and trait reactions preserve blade generation, spending, and timing.
@@ -312,7 +312,7 @@ test('Virtuoso cast-end blade spends retain their owning activation for the time
   assert.equal(spend.amount, -5);
   assert.equal(spend.activationId, action.activationId);
   assert.ok(Math.abs(spend.at - action.fullEndsAt) < 0.00001);
-  assert.deepEqual(shatterResourceSpends(result).get(0), {
+  assert.deepEqual(mechanicResourceSpends(result).get(0), {
     count: 5,
     resource: 'blades',
     sourceSkill: 'Bladesong Harmony'

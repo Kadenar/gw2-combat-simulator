@@ -26,6 +26,12 @@ const INNERVATE_BY_SPIRIT: Readonly<Record<string, SkillId>> = Object.freeze({
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindRitualistUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
+    // Refresh the weapon row at this profession's transformation boundary.
+    timelineWeaponLineTransition: (context: NecromancerUiContext) =>
+      context.skill && [ID.RITUALISTS_SHROUD, ID.EXIT_RITUALISTS_SHROUD].some((id) => id === context.skill!.id)
+        ? (context.weaponLine ?? null)
+        : undefined,
+
     eventLogRow: ritualistEventLogRow,
     paletteGroups: (context: NecromancerUiContext) =>
       necromancerTransformPaletteGroups(catalog, context, {

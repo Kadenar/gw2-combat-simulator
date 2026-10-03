@@ -183,6 +183,13 @@ that typed contract, including optional palette placement and child actions.
 visibility. These preferences keep their storage keys and stay separate from simulation inputs. Profession-specific
 rotation presentation comes from profession UI hooks rather than being hard-coded here.
 
+Profession presentation owns weapon-variant grouping and selected utility variants, action ordering, automatic timeline
+markers, mechanic badges and explanations, chart application identity, and optional trait-proc overlays. The shared
+application aligns timestamps, places markers against executed steps, renders projections, and persists overlay choices
+using profession-declared storage keys. These display preferences remain independent of saved builds and simulation
+configuration. Presentation list callbacks compose Core, the active specialization, and family contributions; weapon
+grouping uses the first owning specialization/Core/family callback, including an explicit unlabelled-bar result.
+
 ### `simulation/` and `optimizer/`
 
 `simulation/build-config.ts` translates application builds into engine configuration. `baseline/`,

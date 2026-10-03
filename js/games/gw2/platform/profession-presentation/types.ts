@@ -7,6 +7,63 @@ import type { CastCommand, RotationCommand, ProfessionConfig } from '#gw2/platfo
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2CanonicalBuild, Gw2BuildResources, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { Gw2SimulationPlanningState, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
+
+/** Profession-owned application identity; shared charts align and clip its simulation timestamp. */
+export interface ProfessionChartApplication {
+  readonly series: string;
+  readonly at: number;
+  readonly label: string;
+  readonly empowered: boolean;
+}
+
+/** A projected automatic event; the timeline owns insertion placement and clock formatting. */
+export interface ProfessionTimelineMarker {
+  readonly at: number;
+  readonly icon: string;
+  readonly color: string;
+  readonly badge: string;
+  readonly title: (time: string) => string;
+}
+
+/** Declares an opt-in overlay without coupling browser preference storage to profession names. */
+export interface ProfessionTimelineOverlay {
+  readonly id: string;
+  readonly storageKey: string;
+  readonly label: string;
+  readonly title: string;
+  readonly matchesProc: (proc: Gw2ProcStep) => boolean;
+}
+
+/** Executed mechanic spends are matched to activations by the shared timeline. */
+export interface MechanicResourceSpend {
+  readonly count: number;
+  readonly resource: string;
+  readonly sourceSkill: string;
+  readonly requestedCharges?: number;
+  readonly maximumCharges?: number;
+  readonly chargesReached?: number;
+  readonly chargingSeconds?: number;
+  readonly maximumChargingSeconds?: number;
+  readonly flowSpent?: number;
+}
+
+/** Supplies mechanic wording and badges while leaving HTML and editing interactions to the timeline. */
+export interface ProfessionTimelineAnnotation {
+  readonly resourceLabel?: string;
+  readonly resourceShortLabel?: string;
+  readonly details?: readonly string[];
+  readonly outcomeMismatch?: boolean;
+  readonly releaseBadge?: { readonly label: string; readonly title: string };
+  readonly editLabel?: string;
+}
+
+/** Groups weapon variants without exposing profession-specific grouping rules to the palette. */
+export interface ProfessionWeaponSkillGroup {
+  readonly id: string;
+  readonly label: string;
+  readonly skills: readonly Skill[];
+}
 
 export interface ProfessionEventLogDescriptor {
   readonly type: string;
@@ -306,6 +363,13 @@ interface ProfessionTimelineIconContext<TProfessionState = unknown> extends Prof
   readonly skill?: Skill;
 }
 
+export interface ProfessionTimelineAnnotationContext<
+  TProfessionState = unknown
+> extends ProfessionTimelineIconContext<TProfessionState> {
+  readonly spend?: MechanicResourceSpend;
+  readonly formattedTime: string;
+}
+
 /** One build-selection edit emitted by a skill-bar selector. */
 export interface ProfessionSkillBarSelectionChange {
   readonly key: string;
@@ -324,9 +388,24 @@ export type ProfessionUiCallbackContext<TProfessionState = unknown> = Profession
   Partial<ProfessionStateSnapshotContext<TProfessionState>> &
   ProfessionChargeReleaseContext &
   ProfessionWeaponLineContext<TProfessionState> &
-  ProfessionTimelineIconContext<TProfessionState>;
+  ProfessionTimelineIconContext<TProfessionState> &
+  Partial<ProfessionTimelineAnnotationContext<TProfessionState>>;
 
 export interface ProfessionUiContract<TProfessionState = unknown> {
+  readonly chartApplications: (context: ProfessionResultUiContext<TProfessionState>) => ProfessionChartApplication[];
+  readonly timelineMarkers: (context: ProfessionResultUiContext<TProfessionState>) => ProfessionTimelineMarker[];
+  readonly timelineOverlays: (context: ProfessionUiContext<TProfessionState>) => ProfessionTimelineOverlay[];
+  readonly timelineAnnotation: (
+    context: ProfessionTimelineAnnotationContext<TProfessionState>
+  ) => ProfessionTimelineAnnotation | null;
+  readonly paletteWeaponGroups: (
+    context: ProfessionPaletteContext<TProfessionState>,
+    skills: readonly Skill[]
+  ) => ProfessionWeaponSkillGroup[] | null;
+  readonly paletteSelectedSlotSkills: (
+    context: ProfessionPaletteContext<TProfessionState>,
+    skills: readonly Skill[]
+  ) => Skill[];
   readonly assumptionControls: readonly ProfessionAssumptionControl[];
   /** Returns charge-release rows for the application editor to validate, or null when the skill has none. */
   readonly chargeReleaseProjection: (context: ProfessionChargeReleaseContext) => object | null;

@@ -2,6 +2,12 @@ import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { ProfessionUiContract, PaletteOverride } from '#gw2/platform/profession-presentation/types.js';
 
 const UI_CALLBACK_NAMES = Object.freeze([
+  'chartApplications',
+  'timelineMarkers',
+  'timelineOverlays',
+  'timelineAnnotation',
+  'paletteWeaponGroups',
+  'paletteSelectedSlotSkills',
   'chargeReleaseProjection',
   'effectPresentations',
   'eventLogRow',
@@ -74,6 +80,13 @@ export function normalizeProfessionUi(
 
   const normalizedUi: ProfessionUiContract = {
     ...ui,
+    // Empty projections preserve ordinary shared layouts when a profession has no presentation contribution.
+    chartApplications: ui.chartApplications || (() => []),
+    timelineMarkers: ui.timelineMarkers || (() => []),
+    timelineOverlays: ui.timelineOverlays || (() => []),
+    timelineAnnotation: ui.timelineAnnotation || (() => null),
+    paletteWeaponGroups: ui.paletteWeaponGroups || (() => null),
+    paletteSelectedSlotSkills: ui.paletteSelectedSlotSkills || ((_context, skills) => [...skills]),
     assumptionControls: Object.freeze([...(ui.assumptionControls || [])]),
     chargeReleaseProjection: ui.chargeReleaseProjection || (() => null),
     effectPresentations: ui.effectPresentations || (() => []),

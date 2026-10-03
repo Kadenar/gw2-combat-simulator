@@ -1,7 +1,10 @@
+import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   normalizeRotationVisibility,
+  readStoredTimelineOverlayVisibility,
+  storeTimelineOverlayVisibility,
   normalizeRotationTimelineSize,
   ROTATION_DEAD_TIME_STORAGE_KEY,
   rotationDeadTimeVisibility,
@@ -28,7 +31,7 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
       [3, buffSkill]
     ]),
     adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => '' },
-    profession: { ui: { timelineWeaponLineTransition: () => null } }
+    profession: { ui: normalizeProfessionUi('fixture', { timelineWeaponLineTransition: () => null }) }
   };
   const steps = [
     { interrupted: true },
@@ -100,7 +103,7 @@ test('timeline labels the executed skill variant while preserving the saved comm
       [traited.id, traited]
     ]),
     adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => 'Amalgam' },
-    profession: { ui: { timelineWeaponLineTransition: () => null } }
+    profession: { ui: normalizeProfessionUi('fixture', { timelineWeaponLineTransition: () => null }) }
   };
   const build = {
     rotation: [{ type: 'cast', skillId: base.id }],
@@ -354,13 +357,13 @@ test('rotation proc overlay preferences persist independently', () => {
 
   assert.equal(readStoredRotationProcOverlayVisibility(root, 'sigil'), true);
   assert.equal(readStoredRotationProcOverlayVisibility(root, 'relic'), false);
-  assert.equal(readStoredRotationProcOverlayVisibility(root, 'sovereignOfLight'), false);
+  assert.equal(readStoredTimelineOverlayVisibility(root, 'gw2-rotation-overlay-sovereign-of-light-procs'), false);
 
   storeRotationProcOverlayVisibility(root, 'relic', true);
-  storeRotationProcOverlayVisibility(root, 'sovereignOfLight', true);
+  storeTimelineOverlayVisibility(root, 'gw2-rotation-overlay-sovereign-of-light-procs', true);
   storeRotationProcOverlayVisibility(root, 'sigil', false);
 
   assert.equal(readStoredRotationProcOverlayVisibility(root, 'sigil'), false);
   assert.equal(readStoredRotationProcOverlayVisibility(root, 'relic'), true);
-  assert.equal(readStoredRotationProcOverlayVisibility(root, 'sovereignOfLight'), true);
+  assert.equal(readStoredTimelineOverlayVisibility(root, 'gw2-rotation-overlay-sovereign-of-light-procs'), true);
 });

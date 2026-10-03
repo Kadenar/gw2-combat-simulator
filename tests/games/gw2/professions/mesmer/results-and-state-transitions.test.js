@@ -9,7 +9,7 @@ import { nextResultSortState, sortResultRows } from '#gw2/app/results/analysis-p
 import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { formatResultTimelineTime } from '#gw2/app/shared/result-clock.js';
-import { continuumEndTimelineMarkers } from '#gw2/app/rotation/timeline/model.js';
+import { professionTimelineMarkers } from '#gw2/app/rotation/timeline/model.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { rotationWarningItems } from '#gw2/app/rotation/warnings.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -527,14 +527,15 @@ test('expired Continuum Split is injected before the next rotation action', () =
     })
   );
 
-  assert.deepEqual(continuumEndTimelineMarkers(result, rotation.length), [
-    {
-      insertionIndex: 3,
-      skill: 'Continuum Shift',
-      start: 6000,
-      detail: 'split expired'
-    }
-  ]);
+  const markers = professionTimelineMarkers(
+    result,
+    rotation.length,
+    mesmerProfession.ui.timelineMarkers({ result, specialization: 'Chronomancer' })
+  );
+  assert.equal(markers.length, 1);
+  assert.equal(markers[0].insertionIndex, 3);
+  assert.equal(markers[0].start, 6000);
+  assert.match(markers[0].title('6.000s'), /Continuum Split ended automatically at 6.000s/);
 });
 
 test('manual Continuum Shift is not duplicated as an injected timeline marker', () => {
@@ -547,7 +548,14 @@ test('manual Continuum Shift is not duplicated as an injected timeline marker', 
     })
   );
 
-  assert.deepEqual(continuumEndTimelineMarkers(result, rotation.length), []);
+  assert.deepEqual(
+    professionTimelineMarkers(
+      result,
+      rotation.length,
+      mesmerProfession.ui.timelineMarkers({ result, specialization: 'Chronomancer' })
+    ),
+    []
+  );
 });
 
 test('Continuum Split does not restore weapon-swap cooldown', () => {

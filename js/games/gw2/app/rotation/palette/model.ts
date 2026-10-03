@@ -28,7 +28,6 @@ import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
 
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
-import { groupWeaponSkillsByAttunement } from '#gw2/app/rotation/palette/weapon-attunement-groups.js';
 import type { ProfessionAppContract } from '#gw2/app/types.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chain-controller.js';
@@ -48,8 +47,6 @@ interface NormalizedPaletteGroup extends Omit<ProfessionPaletteGroup, 'skillEntr
 
 const PALETTE_ACTION_ORDER = new Map<string, number>([
   ['Dodge', 0],
-  ['Dodge / Mirage Cloak', 0],
-  ['Pick Up Mirage Mirror', 1],
   ['Swap Weapons', 2]
 ]);
 
@@ -536,19 +533,19 @@ export function weaponPaletteRows(
     }))
     .filter((row) => row.skills.length);
   return rows.flatMap((row) => {
-    const groups = groupWeaponSkillsByAttunement(row.skills, activeSpecialization(app));
-    if (groups.length === 1 && groups[0].attunement == null) {
-      return [row];
-    }
-
-    return groups.map(({ attunement, skills }) => ({
-      ...row,
-      id: `${row.id}-${String(attunement)
-        .toLowerCase()
-        .replace(/[^a-z]+/g, '-')}`,
-      label: String(attunement),
-      skills
-    }));
+    const groups = app.profession.ui.paletteWeaponGroups(
+      { ...(context || paletteProjectionContext(app)), weaponSet: row.weaponSet },
+      row.skills
+    );
+    // Profession grouping changes labels and contents; shared rows retain weapon-set identity and placement.
+    return groups == null
+      ? [row]
+      : groups.map((group) => ({
+          ...row,
+          id: `${row.id}-${group.id}`,
+          label: group.label,
+          skills: [...group.skills]
+        }));
   });
 }
 
@@ -608,15 +605,11 @@ export function paletteActionSkills(
 
 export function rotationSelectedSlotSkills(app: ProfessionAppState): Skill[] {
   if (app.adapter.slotLoadout) return [];
-  return Object.values(app.build.selectedSkills).flatMap((name) => {
+  const skills = Object.values(app.build.selectedSkills).flatMap((name) => {
     const skill = app.skillByName.get(name);
-    if (!skill?.attunement) return skill ? [skill] : [];
-    const variantSuffix = ` (${String(skill.attunement)})`;
-    const baseName = skill.name.endsWith(variantSuffix) ? skill.name.slice(0, -variantSuffix.length) : skill.name;
-    const primaryAttunement = String(paletteProfessionState(app).primaryAttunement || app.build.startAttunement || '');
-    const activeVariant = app.skillByName.get(`${baseName} (${primaryAttunement})`);
-    return [activeVariant || skill];
+    return skill ? [skill] : [];
   });
+  return app.profession.ui.paletteSelectedSlotSkills(paletteProjectionContext(app), skills);
 }
 
 export function paletteSkillIsInstant(

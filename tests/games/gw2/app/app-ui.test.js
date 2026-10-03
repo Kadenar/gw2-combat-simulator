@@ -44,7 +44,7 @@ import {
   relicProcExpirationTimelineMarkers,
   relicProcTimelineMarkers,
   rotationSkillHighlightKey,
-  shatterResourceSpends,
+  mechanicResourceSpends,
   sigilProcTimelineMarkers,
   targetHealthTimelineMarkers,
   timelineWeaponRows,
@@ -608,7 +608,7 @@ test('Dragon Slash editor choices execute prefix candidates through the applicat
 });
 
 test('Dragon Slash resource spends preserve charge outcome details', () => {
-  const spends = shatterResourceSpends({
+  const spends = mechanicResourceSpends({
     steps: [{ ri: 4, activationId: 'slash', skill: 'Dragon Slash—Force' }],
     events: [
       {

@@ -2,7 +2,7 @@ import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js'
 import {
   formatConcurrentTimelineBadge,
   formatInterruptTimelineBadge,
-  shatterResourceSpends
+  mechanicResourceSpends
 } from '#gw2/app/rotation/timeline/model.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -165,7 +165,7 @@ test('Rewinder cooldown applies shatter CDR, source refunds, then Alacrity', () 
     })
   );
 
-  assert.deepEqual(shatterResourceSpends(fullShatter).get(0), {
+  assert.deepEqual(mechanicResourceSpends(fullShatter).get(0), {
     count: 3,
     resource: 'clones',
     sourceSkill: 'Rewinder'

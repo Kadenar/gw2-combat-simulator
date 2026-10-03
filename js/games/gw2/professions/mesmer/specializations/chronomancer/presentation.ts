@@ -81,6 +81,20 @@ function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnaps
 
 export const chronomancerUi: MesmerUiSlice = Object.freeze({
   eventLogRow: chronomancerEventLogRow,
+  // Only automatic expiry adds a marker; manually authored Continuum Shift already has a tile.
+  timelineMarkers: ({ result }) =>
+    (result?.events || [])
+      .filter(
+        (event) => event.type === 'marker' && event.name === 'Continuum Shift' && event.detail === 'split expired'
+      )
+      .map((event) => ({
+        at: event.at,
+        color: '#d6b46b',
+        badge: 'AUTO',
+        icon: 'https://wiki.guildwars2.com/images/d/d7/Continuum_Shift.png',
+        title: (time: string) =>
+          ['Continuum Shift', `Continuum Split ended automatically at ${time}`, 'Cooldown state restored'].join('\n')
+      })),
   rotationStateSnapshot: chronomancerStateSnapshot,
   paletteGroups: (context: MesmerUiContext) =>
     mesmerMechanicPaletteGroups(context, CHRONOMANCER_PALETTE_SKILLS, 'clones').map((group) => ({

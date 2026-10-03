@@ -157,6 +157,26 @@ function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
+    // Only this specialization offers its trait-proc overlay; storage remains a browser concern.
+    timelineOverlays: () => [
+      {
+        id: 'sovereign-of-light',
+        storageKey: 'gw2-rotation-overlay-sovereign-of-light-procs',
+        label: 'Overlay Sovereign of Light',
+        title: 'Show Sovereign of Light activations at their simulated positions in the rotation',
+        matchesProc: (proc) => proc.type === 'trait_proc' && proc.skill === 'Sovereign of Light'
+      }
+    ],
+
+    // Refresh the weapon row at this profession's transformation boundary.
+    timelineWeaponLineTransition: (context: GuardianUiContext) =>
+      context.skill &&
+      [GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE, GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE].some(
+        (id) => id === context.skill!.id
+      )
+        ? (context.weaponLine ?? null)
+        : undefined,
+
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
       if (skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE || skill.id === GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE)

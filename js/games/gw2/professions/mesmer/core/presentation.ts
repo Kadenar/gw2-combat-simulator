@@ -163,6 +163,21 @@ export const mesmerCoreUi: MesmerUiSlice = Object.freeze({
   assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   effectPresentations: mesmerCoreEffectPresentations,
   eventLogRow: mesmerEventLogRow,
+  // Shatter badges describe the executed resource and its profession-owned spend phase.
+  timelineAnnotation: ({ spend }) => {
+    if (!spend) return null;
+    const labels: Record<string, { singular: string; short: string; phase: string }> = {
+      clones: { singular: 'clone', short: 'C', phase: 'cast start' },
+      blades: { singular: 'blade', short: 'B', phase: 'cast end' },
+      notes: { singular: 'note', short: 'N', phase: 'cast end' }
+    };
+    const label = labels[spend.resource];
+    if (!label) return null;
+    return {
+      resourceLabel: `${spend.count} ${spend.count === 1 ? label.singular : spend.resource} consumed at ${label.phase}`,
+      resourceShortLabel: `${spend.count}${label.short}`
+    };
+  },
   rotationStateSnapshot: mesmerCoreStateSnapshot,
   paletteGroups: (context: MesmerUiContext) =>
     mesmerUiSpecialization(context) === 'Core'

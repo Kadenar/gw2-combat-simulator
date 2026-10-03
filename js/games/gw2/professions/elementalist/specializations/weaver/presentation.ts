@@ -1,3 +1,4 @@
+import { elementalistWeaponGroups } from '#gw2/professions/elementalist/core/weapon-groups.js';
 import type {
   ElementalistState,
   ElementalistUiContext,
@@ -393,6 +394,11 @@ export const weaverUi: ElementalistUiSlice = Object.freeze({
         ]
       : [],
   rotationStateSnapshot,
+  // Dual-attuned skills share one row; the elemental helper owns the remaining row ordering.
+  paletteWeaponGroups: (_context, skills) =>
+    elementalistWeaponGroups(skills, (skill) =>
+      String(skill.attunement || 'Special').includes('+') ? 'Dual' : String(skill.attunement || 'Special')
+    ),
   timelineWeaponLineTransition: unravelTimelineWeaponLineTransition,
   eventLogRow,
   renderWeaponPalette: renderWeaverWeaponPalette

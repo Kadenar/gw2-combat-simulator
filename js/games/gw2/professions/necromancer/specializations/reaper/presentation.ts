@@ -11,6 +11,12 @@ import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindReaperUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
+    // Refresh the weapon row at this profession's transformation boundary.
+    timelineWeaponLineTransition: (context: NecromancerUiContext) =>
+      context.skill && [ID.REAPERS_SHROUD, ID.EXIT_REAPERS_SHROUD].some((id) => id === context.skill!.id)
+        ? (context.weaponLine ?? null)
+        : undefined,
+
     paletteGroups: (context: NecromancerUiContext) =>
       necromancerTransformPaletteGroups(catalog, context, {
         entryId: ID.REAPERS_SHROUD,

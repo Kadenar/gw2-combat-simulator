@@ -83,6 +83,12 @@ const HARBINGER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
+    // Refresh the weapon row at this profession's transformation boundary.
+    timelineWeaponLineTransition: (context: NecromancerUiContext) =>
+      context.skill && [ID.HARBINGER_SHROUD, ID.EXIT_HARBINGER_SHROUD].some((id) => id === context.skill!.id)
+        ? (context.weaponLine ?? null)
+        : undefined,
+
     effectPresentations: () => [...HARBINGER_EFFECT_PRESENTATIONS],
     paletteGroups: (context: NecromancerUiContext) =>
       necromancerTransformPaletteGroups(catalog, context, {

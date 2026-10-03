@@ -1,3 +1,4 @@
+import type { MechanicResourceSpend, ProfessionTimelineMarker } from '#gw2/platform/profession-presentation/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationCommand, SimulationStep } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -23,13 +24,6 @@ export interface TimelineRow {
     readonly entry: RotationCommand;
     readonly index: number;
   }>;
-}
-
-export interface EventTimelineMarker {
-  readonly insertionIndex: number;
-  readonly skill: string | undefined;
-  readonly start: number;
-  readonly detail: string | undefined;
 }
 
 export interface TimelineDeadTimeMarker {
@@ -487,44 +481,22 @@ function timelineRows(
   return rows;
 }
 
-function eventTimelineMarkers(
+/** Places profession-projected events against executed steps without interpreting their meaning. */
+export function professionTimelineMarkers(
   result: Gw2SimulationResult | null | undefined,
   rotationLength: number,
-  predicate: (event: SimulationEvent) => boolean = (event) => event.type === 'marker'
-): EventTimelineMarker[] {
+  markers: readonly ProfessionTimelineMarker[]
+) {
   const steps = (result?.steps || [])
     .filter((step) => step.ri >= 0 && !step.invalid)
     .sort((left, right) => left.start - right.start || left.ri - right.ri);
-  return (result?.events || [])
-    .filter(predicate)
-    .map((event) => {
-      const start = Math.round(Number(event.at || 0) * 1000);
-      // Inject the marker immediately before the first rotation step that has
-      // not started; events after all steps append to the timeline.
-      const next = steps.find((step) => step.start >= start);
-      return {
-        insertionIndex: next?.ri ?? rotationLength,
-        skill: event.name,
-        start,
-        detail: event.detail
-      };
+  return markers
+    .map((marker) => {
+      const start = Math.round(marker.at * 1000);
+      return { ...marker, start, insertionIndex: steps.find((step) => step.start >= start)?.ri ?? rotationLength };
     })
     .sort((left, right) => left.start - right.start);
 }
-
-const WEAPON_SET_REFRESH_SKILLS = new Set([
-  'Swap Legends',
-  "Reaper's Shroud",
-  "Exit Reaper's Shroud",
-  'Harbinger Shroud',
-  'Exit Harbinger Shroud',
-  "Ritualist's Shroud",
-  "Exit Ritualist's Shroud",
-  'Enter Shadow Shroud',
-  'Exit Shadow Shroud',
-  'Enter Radiant Forge',
-  'Exit Radiant Forge'
-]);
 
 export function procFilterKey(proc: Gw2ProcStep): string {
   return `${proc.type}:${proc.skill}`;
@@ -777,19 +749,11 @@ export function timelineWeaponRows(
     },
     isWeaponSetRefresh(entry) {
       const name = skillName(entry);
-      return (!weaponSwapChangesSet && name === 'Swap Weapons') || WEAPON_SET_REFRESH_SKILLS.has(name);
+      return !weaponSwapChangesSet && name === 'Swap Weapons';
     },
     // Profession transitions own named-lane boundaries.
     weaponLineTransition
   });
-}
-
-export function continuumEndTimelineMarkers(result: Gw2SimulationResult | null | undefined, rotationLength = 0) {
-  return eventTimelineMarkers(
-    result,
-    rotationLength,
-    (event) => event.type === 'marker' && event.name === 'Continuum Shift' && event.detail === 'split expired'
-  );
 }
 
 export function targetHealthTimelineMarkers(
@@ -818,22 +782,10 @@ export function targetHealthTimelineMarkers(
   });
 }
 
-export interface ShatterResourceSpend {
-  readonly count: number;
-  readonly resource: string;
-  readonly sourceSkill: string;
-  readonly requestedCharges?: number;
-  readonly maximumCharges?: number;
-  readonly chargesReached?: number;
-  readonly chargingSeconds?: number;
-  readonly maximumChargingSeconds?: number;
-  readonly flowSpent?: number;
-}
-
-export function shatterResourceSpends(
+export function mechanicResourceSpends(
   result: Gw2SimulationResult | null | undefined
-): Map<number, ShatterResourceSpend> {
-  const spends = new Map<number, ShatterResourceSpend>();
+): Map<number, MechanicResourceSpend> {
+  const spends = new Map<number, MechanicResourceSpend>();
   // Match executed spends to their owning activation; future planning indices are not event identity.
   const activations = new Map((result?.steps ?? []).map((step) => [step.activationId, step]));
   for (const event of result?.events || []) {
@@ -873,7 +825,7 @@ export interface TimelineChargeFillStep extends SimulationStep {
  */
 export function timelineStepsWithChargeFills(
   steps: readonly SimulationStep[],
-  resourceSpends: ReadonlyMap<number, ShatterResourceSpend>
+  resourceSpends: ReadonlyMap<number, MechanicResourceSpend>
 ): TimelineChargeFillStep[] {
   return steps.map((step) => {
     const spend = resourceSpends.get(step.ri);

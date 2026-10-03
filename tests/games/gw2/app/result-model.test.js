@@ -3,6 +3,7 @@ import test from 'node:test';
 import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
 import { formatResultTimelineTime, formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import { skillDamageIdentityKey } from '#gw2/app/results/skill-breakdown.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 
 const PLAYER_AUDIENCE = Object.freeze({
   includesSelf: true,
@@ -28,7 +29,7 @@ test('Embrace application markers preserve pulse identity within the observation
     stacks: 2,
     ...fields
   });
-  const series = buildChartSeries({
+  const result = {
     dpsStartTime: 1,
     rotationEndTime: 4,
     observationEndTime: 4,
@@ -47,7 +48,9 @@ test('Embrace application markers preserve pulse identity within the observation
       application(3, { skillId: 999 }),
       application(4)
     ]
-  });
+  };
+  const applications = revenantProfession.ui.chartApplications({ result, specialization: 'Core' });
+  const series = buildChartSeries(result, 250, [], applications);
   assert.deepEqual(series.skillApplications['Embrace the Darkness'], [
     { t: 0, label: 'Embrace the Darkness — Torment', empowered: false },
     { t: 1000, label: 'Empowered application', empowered: true }

@@ -1,3 +1,4 @@
+import { readStoredTimelineOverlayVisibility } from '#gw2/app/rotation/timeline/preferences.js';
 import { bindSessionControls } from '#gw2/app/session-controls.js';
 import { bindWikiTooltips } from '#gw2/app/shared/tooltip-overlay.js';
 import { normalizeSelectedSkills } from '#gw2/app/build/state/skill-selection.js';
@@ -74,8 +75,7 @@ export class ProfessionApp implements ProfessionAppState {
   rotationInsertionIndex: number | null;
   overlaySigilProcs: boolean;
   overlayRelicProcs: boolean;
-  overlaySovereignOfLightProcs: boolean;
-  overlayKingOfFiresProcs: boolean;
+  timelineOverlayVisibility: Record<string, boolean>;
   templatePresets: BuildTemplatePreset[];
   templateContainer: HTMLElement | null;
   currentTemplate: BuildTemplateSelection | null;
@@ -127,8 +127,12 @@ export class ProfessionApp implements ProfessionAppState {
     // Restore timeline display preferences independently from the saved build and simulation configuration.
     this.overlaySigilProcs = readStoredRotationProcOverlayVisibility(document, 'sigil');
     this.overlayRelicProcs = readStoredRotationProcOverlayVisibility(document, 'relic');
-    this.overlaySovereignOfLightProcs = readStoredRotationProcOverlayVisibility(document, 'sovereignOfLight');
-    this.overlayKingOfFiresProcs = readStoredRotationProcOverlayVisibility(document, 'kingOfFires');
+    // Load each specialization's declared preferences so switching builds retains the user's choices.
+    this.timelineOverlayVisibility = Object.fromEntries(
+      ['Core', ...this.activeCatalog.specializations.filter((spec) => spec.elite).map((spec) => spec.name)]
+        .flatMap((specialization) => this.profession.ui.timelineOverlays({ specialization }))
+        .map((overlay) => [overlay.id, readStoredTimelineOverlayVisibility(document, overlay.storageKey)])
+    );
     this.templatePresets = [];
     this.templateContainer = null;
     this.currentTemplate = null;

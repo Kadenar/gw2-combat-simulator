@@ -89,6 +89,22 @@ function revenantCoreStateSnapshot(
 
 /** Core presentation reads the current legend and resource projection without a catalog binding. */
 export const revenantCoreUi: RevenantUiSlice = Object.freeze({
+  // Applications remain separate from damage totals and preserve the runtime's empowered pulse flag.
+  chartApplications: ({ result }) =>
+    (result?.resolvedEvents || [])
+      .filter((event) => event.type === 'condition' && event.skillId === SKILL.EMBRACE_THE_DARKNESS)
+      .map((event) => ({
+        series: 'Embrace the Darkness',
+        at: event.at,
+        label: event.name || 'Embrace the Darkness — Torment',
+        empowered: event.metadata?.trigger === 'empowered-upkeep-pulse'
+      })),
+  // Refresh the weapon row at this profession's transformation boundary.
+  timelineWeaponLineTransition: (context: RevenantUiContext) =>
+    context.skill && [SKILL.SWAP_LEGENDS].some((id) => id === context.skill!.id)
+      ? (context.weaponLine ?? null)
+      : undefined,
+
   paletteOverride: (context, skill) => {
     // Legend destinations share one runtime command, but the active destination cannot be selected again.
     if (skill.paletteLegendId === activeRevenantLegend(context))

@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
-import { shatterResourceSpends, timelineStepsWithChargeFills } from '#gw2/app/rotation/timeline/model.js';
+import { mechanicResourceSpends, timelineStepsWithChargeFills } from '#gw2/app/rotation/timeline/model.js';
 import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -353,7 +353,7 @@ test('Dragon Trigger charge time is excluded from timeline dead time', () => {
 
   assert.ok(dragonSlashStep, 'expected a Dragon Slash cast');
 
-  const spends = shatterResourceSpends(result);
+  const spends = mechanicResourceSpends(result);
   const chargingSeconds = spends.get(dragonSlashStep.ri)?.chargingSeconds || 0;
   const chargingMs = Math.round(chargingSeconds * 1000);
 
@@ -385,7 +385,7 @@ test('Dragon Trigger charge fills stop at full charge when the slash is delayed'
     );
     assert.deepEqual(result.warnings, []);
     const entry = result.events.find((event) => event.reason === 'dragon trigger entry');
-    const slash = timelineStepsWithChargeFills(result.steps, shatterResourceSpends(result)).find(
+    const slash = timelineStepsWithChargeFills(result.steps, mechanicResourceSpends(result)).find(
       (step) => step.skillId === ID.DRAGON_SLASH_FORCE
     );
     // The charge fill starts at entry and leaves the held remainder outside its occupied interval.

@@ -1,5 +1,7 @@
 import {
   rotationDeadTimeVisibility,
+  readStoredTimelineOverlayVisibility,
+  storeTimelineOverlayVisibility,
   setRotationDeadTimeVisibility,
   rotationTransitionDelayVisibility,
   setRotationTransitionDelayVisibility,
@@ -95,34 +97,22 @@ export function mountRotationDisplayControls(app: ProfessionAppState, root: Docu
     })
   );
 
-  // Sovereign of Light is Luminary-only, so keep its display preference out of unrelated builds.
-  if (activeSpecialization(app) === 'Luminary') {
+  // Professions declare available overlays; the shell owns controls and browser persistence.
+  const visibility = (app.timelineOverlayVisibility ||= {});
+  for (const overlay of app.profession.ui.timelineOverlays({
+    build: app.build,
+    specialization: activeSpecialization(app)
+  })) {
+    visibility[overlay.id] ??= readStoredTimelineOverlayVisibility(root, overlay.storageKey);
     controls.append(
       checkboxControl(root, {
-        id: 'rotation-overlay-sovereign-of-light-procs',
-        label: 'Overlay Sovereign of Light',
-        title: 'Show Sovereign of Light activations at their simulated positions in the rotation',
-        checked: Boolean(app.overlaySovereignOfLightProcs),
+        id: `rotation-overlay-${overlay.id}-procs`,
+        label: overlay.label,
+        title: overlay.title,
+        checked: visibility[overlay.id],
         onChange: (checked) => {
-          app.overlaySovereignOfLightProcs = checked;
-          storeRotationProcOverlayVisibility(root, 'sovereignOfLight', checked);
-          renderTimeline(app);
-        }
-      })
-    );
-  }
-
-  // Berserkers can display aura detonations in the rotation without changing simulation inputs.
-  if (activeSpecialization(app) === 'Berserker') {
-    controls.append(
-      checkboxControl(root, {
-        id: 'rotation-overlay-king-of-fires-procs',
-        label: 'Overlay King of Fires',
-        title: 'Show King of Fires detonations at their simulated positions in the rotation',
-        checked: Boolean(app.overlayKingOfFiresProcs),
-        onChange: (checked) => {
-          app.overlayKingOfFiresProcs = checked;
-          storeRotationProcOverlayVisibility(root, 'kingOfFires', checked);
+          visibility[overlay.id] = checked;
+          storeTimelineOverlayVisibility(root, overlay.storageKey, checked);
           renderTimeline(app);
         }
       })
