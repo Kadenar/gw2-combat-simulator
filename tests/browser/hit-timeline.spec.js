@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
 test('averaged hit details explain critical outcomes without changing rolled hit labels', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.evaluate(async () => {
-    const { mountHitTimeline } = await import('/js/ui/results/charts/hit-timeline-view.ts');
+    const { mountHitTimeline } = await import('/js/games/gw2/app/results/charts/hit-timeline-view.ts');
     document.body.innerHTML = '<div id="averaged"></div><div id="rolled"></div>';
     for (const mode of ['averaged', 'rolled']) {
       mountHitTimeline(
@@ -317,7 +317,7 @@ test('conditions use separate bounded windows with accessible tick details', asy
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
-    const { mountHitTimeline } = await import('/js/ui/results/charts/hit-timeline-view.ts');
+    const { mountHitTimeline } = await import('/js/games/gw2/app/results/charts/hit-timeline-view.ts');
     const { mountTimeSeriesCharts } = await import('/js/games/gw2/app/results/charts/time-series-view.ts');
     document.body.innerHTML = '<div id="standalone"></div><div id="series"></div>';
     const hits = [
@@ -422,7 +422,7 @@ test('conditions use separate bounded windows with accessible tick details', asy
 test('condition details sum simultaneous ticks by type', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.evaluate(async () => {
-    const { mountHitTimeline } = await import('/js/ui/results/charts/hit-timeline-view.ts');
+    const { mountHitTimeline } = await import('/js/games/gw2/app/results/charts/hit-timeline-view.ts');
     const { buildTimeSeries } = await import('/js/games/gw2/app/results/charts/time-series-model.ts');
     const series = buildTimeSeries(
       {
@@ -456,7 +456,7 @@ test('multi-hit groups support hover, keyboard inspection, resizing, and phase c
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
-    const { mountHitTimeline } = await import('/js/ui/results/charts/hit-timeline-view.ts');
+    const { mountHitTimeline } = await import('/js/games/gw2/app/results/charts/hit-timeline-view.ts');
     const { mountTimeSeriesCharts } = await import('/js/games/gw2/app/results/charts/time-series-view.ts');
     document.body.innerHTML = '<div id="standalone"></div><div id="series"></div>';
     const hits = [

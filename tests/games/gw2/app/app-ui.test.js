@@ -24,7 +24,6 @@ import { clampStartingResourceValues, selectSpecialization } from '#gw2/app/buil
 import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
 import { applyBuildFileImport, previewBuildFileImport } from '#gw2/app/import-export/build-file-import.js';
 import { loadManifestBuilds } from '#gw2/app/import-export/rotation-import-dialog.js';
-import { groupedOptions, option } from '#gw2/app/shared/html.js';
 import { loadProfessionAppAdapter, professionOptions, professionRegistry } from '#gw2/profession-registry.js';
 import {
   displayedSkillTiles,
@@ -703,17 +702,6 @@ test('cooldown-reduction procs use a refresh icon and reduction badge', () => {
   );
 });
 
-test('shared app options escape labels and preserve selection state', () => {
-  assert.equal(
-    option('a&b', 'a&b', '<label>', true),
-    '<option value="a&amp;b" selected disabled>&lt;label&gt;</option>'
-  );
-  assert.equal(
-    groupedOptions([{ label: 'Damage & support', items: ['Power'] }], 'Power', (value) => `${value} <stat>`),
-    '<optgroup label="Damage &amp; support"><option value="Power" selected>Power &lt;stat&gt;</option></optgroup>'
-  );
-});
-
 test('gear prefixes and sigils are sorted into Power and Condition groups', () => {
   // Prefixes without Condition Damage belong to Power, including defensive and support stat combinations.
   assert.deepEqual(PREFIX_GROUPS, [
@@ -788,18 +776,6 @@ test('gear prefixes and sigils are sorted into Power and Condition groups', () =
   ]);
   assert.deepEqual(PREFIX_GROUPS.flatMap((group) => group.items).sort(), PREFIXES);
   assert.deepEqual(SIGIL_GROUPS.flatMap((group) => group.items).sort(), SIGIL_NAMES);
-});
-
-test('grouped options can disable items without losing the selection', () => {
-  assert.equal(
-    groupedOptions(
-      [{ label: 'Power', items: ['Force', 'Impact'] }],
-      'Force',
-      (value) => value,
-      (value) => value === 'Impact'
-    ),
-    '<optgroup label="Power"><option value="Force" selected>Force</option><option value="Impact" disabled>Impact</option></optgroup>'
-  );
 });
 
 test('shared app metadata owns common attributes and target conditions', () => {

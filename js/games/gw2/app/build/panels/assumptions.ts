@@ -1,4 +1,4 @@
-import { option } from '#gw2/app/shared/html.js';
+import { optionHtml } from '#ui/shared/select-options.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
@@ -240,9 +240,9 @@ export function renderAssumptions(app: ProfessionAppState): void {
                 <label class="boon-control">Target armor
                     <select class="gear-select" id="target-armor-preset">
                         ${TARGET_ARMOR_OPTIONS.map(({ value, label }) =>
-                          option(String(value), targetArmorPreset, `${label} (${value})`)
+                          optionHtml(String(value), targetArmorPreset, `${label} (${value})`)
                         ).join('')}
-                        ${option('custom', targetArmorPreset, 'Custom…')}
+                        ${optionHtml('custom', targetArmorPreset, 'Custom…')}
                     </select>
                     <input id="target-armor" type="number" min="1" value="${targetArmorValue}" aria-label="Custom target armor"${targetArmorPreset === 'custom' ? '' : ' hidden'}>
                 </label>

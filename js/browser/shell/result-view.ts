@@ -1,4 +1,4 @@
-import { mountSimulationView, type SimulationViewModel } from '#ui/results/simulation-view.js';
+import { mountSimulationSection, type SimulationViewModel } from '#ui/results/simulation-view.js';
 import { updateHeaderDps } from '#browser/shell/header-dps.js';
 
 export interface SimulationRenderState {
@@ -28,14 +28,14 @@ export function renderSimulationViewModel(viewModel: SimulationViewModel, state:
   }
 
   updateHeaderDps(viewModel.headerDps);
-  mountSimulationView(summary, viewModel.summary);
+  mountSimulationSection(summary, viewModel.summary);
 
   const element = document.getElementById('rotation-results');
   if (!element) return;
   if (!analysisViewIsActive()) {
     if (element.dataset) element.dataset.analysisStale = 'true';
     if (viewModel.workspace) {
-      mountSimulationView(element, viewModel.workspace);
+      mountSimulationSection(element, viewModel.workspace);
     } else {
       element.innerHTML = '';
     }
@@ -52,7 +52,7 @@ export function renderSimulationViewModel(viewModel: SimulationViewModel, state:
     return;
   }
 
-  mountSimulationView(element, viewModel.analysis);
+  mountSimulationSection(element, viewModel.analysis);
   const mirror = document.getElementById('analysis-dps-summary');
   if (mirror) {
     mirror.innerHTML = '';

@@ -6,7 +6,7 @@ import {
   hitTime,
   type ConditionTickContribution,
   type SkillHit
-} from '#ui/results/charts/hit-timeline-model.js';
+} from '#gw2/app/results/charts/hit-timeline-model.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 /** Combine all sources into one payout row; tick counts represent stacks, not application rows. */

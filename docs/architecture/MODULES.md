@@ -214,6 +214,12 @@ and relic comparison runs one deferred main-thread simulation. A general analysi
 developers author the active preview without editing most of the manifest by hand. See
 [PATCH-PREVIEW.md](./PATCH-PREVIEW.md).
 
+### `results/`
+
+GW2 result adapters own event ordering and profession event-log descriptor normalization. The neutral event log receives
+prepared rows for rendering, filtering, CSV export, and mounting. `charts/` owns both time-series and hit-timeline
+models/views, including condition payout attribution and empowered pulse presentation.
+
 ## Neutral kernel and UI
 
 `js/kernel/` contains primitives that make sense for any deterministic simulator: monotonic clock helpers, collections,
@@ -221,11 +227,11 @@ generic arithmetic (`core/numeric.ts` owns `clamp` and `roundHalfToEven`), seede
 (`events/queue.ts`), caller-owned event-stream identity, and observation windows. It must not import application or game
 packages.
 
-| `js/ui/` path | Responsibility                                                                                      |
-| ------------- | --------------------------------------------------------------------------------------------------- |
-| `results/`    | Shell-facing simulation view model and renderer, event log, and hit-timeline chart (model and view) |
-| `rotation/`   | Rotation warnings, insertion cursor, ammo display, and floating/duration editors (`editing/`)       |
-| `shared/`     | DOM, HTML, error, and dropdown-search helpers                                                       |
+| `js/ui/` path | Responsibility                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| `results/`    | Shell-facing simulation view contracts, section mounting, and generic event-log rendering/export |
+| `rotation/`   | Rotation warnings, insertion cursor, ammo display, and floating/duration editors (`editing/`)    |
+| `shared/`     | DOM, HTML escaping, select-option markup, error, and dropdown-search helpers                     |
 
 A `js/ui/` file lives in the folder with the same name as the `js/games/gw2/app/` folder that consumes it. GW2 adapts
 its output through `js/games/gw2/app/results/view.ts`. Neutral UI must not name GW2 skills, resources, or profession

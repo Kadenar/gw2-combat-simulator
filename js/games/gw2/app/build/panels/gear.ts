@@ -19,7 +19,7 @@ import { RUNE_GROUPS } from '#gw2/platform/equipment/gear/runes.js';
 import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
 import { UTILITY_GROUPS } from '#gw2/platform/equipment/consumables/utilities.js';
 import { canEquipWeaponSigil, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
-import { groupedOptions, option } from '#gw2/app/shared/html.js';
+import { groupedOptionsHtml, optionHtml } from '#ui/shared/select-options.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import { wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { requiredElement, requiredSelect } from '#ui/shared/dom.js';
@@ -63,7 +63,7 @@ function iconSelectRow(label: string, selected: string, selectHtml: string, icon
 function selectRow(label: string, id: string, selectedLabel: string, optionsHtml: string, icon?: string): string {
   // Optional upgrades share the optimizer's explicit no-item selection and keep it visible after Apply.
   if (['sel-rune', 'sel-relic', 'sel-food', 'sel-utility'].includes(id)) {
-    optionsHtml = option('', selectedLabel, 'None') + optionsHtml;
+    optionsHtml = optionHtml('', selectedLabel, 'None') + optionsHtml;
     selectedLabel ||= 'None';
   }
 
@@ -110,7 +110,7 @@ export function renderGear(app: ProfessionAppState): void {
     return iconSelectRow(
       label,
       b.gear[slot],
-      `<select class="gear-select gear-prefix" data-slot="${slot}" aria-label="${label} stats">${groupedOptions(PREFIX_GROUPS, b.gear[slot], (name) => prefixOptionLabel(name, slot))}</select>`,
+      `<select class="gear-select gear-prefix" data-slot="${slot}" aria-label="${label} stats">${groupedOptionsHtml(PREFIX_GROUPS, b.gear[slot], (name) => prefixOptionLabel(name, slot))}</select>`,
       slotIcon(slot)
     );
   };
@@ -121,7 +121,7 @@ export function renderGear(app: ProfessionAppState): void {
         'Choose prefix',
         `<select class="gear-select" id="sel-set-all" aria-label="Set all equipment stats">
         <option value="">Choose prefix</option>
-        ${groupedOptions(PREFIX_GROUPS, '', (name) => prefixOptionLabel(name))}
+        ${groupedOptionsHtml(PREFIX_GROUPS, '', (name) => prefixOptionLabel(name))}
       </select>`
       )}`;
   requiredElement('gear-slots').innerHTML = GEAR_SLOTS.slice(0, 6).map(gearPrefixRow).join('');
@@ -177,7 +177,7 @@ export function renderGear(app: ProfessionAppState): void {
         `sel-sig${setNumber}-${slot + 1}`,
         sigils[slot],
         // Disable conflicting groups as well as duplicate sigils using the same rule as build loading.
-        groupedOptions(
+        groupedOptionsHtml(
           SIGIL_GROUPS,
           sigils[slot],
           sigilOptionLabel,
@@ -200,14 +200,14 @@ export function renderGear(app: ProfessionAppState): void {
               <div class="weapon-controls">
               <label for="sel-${slot === 0 ? 'mh' : 'oh'}${setNumber}">Weapon</label>
               <select id="sel-${slot === 0 ? 'mh' : 'oh'}${setNumber}" class="gear-select" aria-label="Weapon set ${setNumber} ${label.toLowerCase()}"${hidden ? ' disabled' : ''}>
-                ${slot === 0 && allowEmpty ? option('', weapons[0], 'None') : ''}
-                ${(slot === 0 ? mainHands : offHands).map((name) => option(name, weapons[slot])).join('')}
+                ${slot === 0 && allowEmpty ? optionHtml('', weapons[0], 'None') : ''}
+                ${(slot === 0 ? mainHands : offHands).map((name) => optionHtml(name, weapons[slot])).join('')}
               </select>
               <label for="sel-stat${setNumber}-${slot + 1}"${unequipped ? ' hidden' : ''}>Stats</label>
               <div${unequipped ? ' hidden' : ''}>${compactSelect(
                 prefixes[slot],
                 `<select class="gear-select weapon-prefix" id="sel-stat${setNumber}-${slot + 1}" data-set="${setNumber}" data-slot="${slot}" aria-label="Weapon set ${setNumber} ${label.toLowerCase()} stats">
-                ${groupedOptions(PREFIX_GROUPS, prefixes[slot], (name) => prefixOptionLabel(name, statSlot))}
+                ${groupedOptionsHtml(PREFIX_GROUPS, prefixes[slot], (name) => prefixOptionLabel(name, statSlot))}
               </select>`
               )}</div>
               </div>
@@ -283,8 +283,8 @@ export function renderGear(app: ProfessionAppState): void {
   bindWeaponSet(2, b.alternateWeapons);
 
   requiredElement('consumable-info').innerHTML = `${sectionHeading('Consumables')}
-            ${selectRow('Food', 'sel-food', b.food, groupedOptions(FOOD_GROUPS, b.food, foodOptionLabel), EQUIPMENT_ICONS[b.food] || '')}
-            ${selectRow('Utility', 'sel-utility', b.utility, groupedOptions(UTILITY_GROUPS, b.utility, utilityOptionLabel), EQUIPMENT_ICONS[b.utility] || '')}
+            ${selectRow('Food', 'sel-food', b.food, groupedOptionsHtml(FOOD_GROUPS, b.food, foodOptionLabel), EQUIPMENT_ICONS[b.food] || '')}
+            ${selectRow('Utility', 'sel-utility', b.utility, groupedOptionsHtml(UTILITY_GROUPS, b.utility, utilityOptionLabel), EQUIPMENT_ICONS[b.utility] || '')}
             <div class="gear-row gear-icon-row">
                 <button type="button" id="btn-jade-bot" class="gear-select-trigger gear-icon-trigger" aria-label="Jade Bot core" aria-pressed="${b.jadeBotCore}" ${wikiTooltipAttributes('Jade Bot core', b.jadeBotCore ? 'Enabled' : 'Disabled', 'Power Core')}>${equipmentIcon(GEAR_ICONS.JadeBot)}</button>
                 <span class="gear-item-caption"><span class="gear-label">Jade Bot</span><span class="gear-equipped-name">${b.jadeBotCore ? 'Enabled' : 'Disabled'}</span></span>
@@ -292,8 +292,8 @@ export function renderGear(app: ProfessionAppState): void {
 `;
   requiredElement('equipment-info').innerHTML = `
             <section class="equipment-upgrades workspace-card">${sectionHeading('Upgrades')}
-            ${selectRow('Rune', 'sel-rune', b.rune, groupedOptions(RUNE_GROUPS, b.rune, runeOptionLabel), EQUIPMENT_ICONS[b.rune] || '')}
-            ${selectRow('Relic', 'sel-relic', b.relic, groupedOptions(RELIC_GROUPS, b.relic, relicOptionLabel), (RELIC_DATA as Record<string, { icon?: string }>)[b.relic]?.icon || '')}
+            ${selectRow('Rune', 'sel-rune', b.rune, groupedOptionsHtml(RUNE_GROUPS, b.rune, runeOptionLabel), EQUIPMENT_ICONS[b.rune] || '')}
+            ${selectRow('Relic', 'sel-relic', b.relic, groupedOptionsHtml(RELIC_GROUPS, b.relic, relicOptionLabel), (RELIC_DATA as Record<string, { icon?: string }>)[b.relic]?.icon || '')}
             <div id="precast-relics">
               ${candidatePicker('precastRelics', 'Precast relics', PRECAST_RELIC_NAMES, b.precastRelics || [], 0, relicOptionLabel, 'No precast relics')}
             </div>
@@ -307,7 +307,7 @@ export function renderGear(app: ProfessionAppState): void {
                     `Infusion ${index + 1}`,
                     infusion.stat,
                     `<select id="sel-infusion-stat${index}" class="gear-select inf-stat" aria-label="Infusion ${index + 1} stat" data-index="${index}">
-                      ${INFUSION_STATS.map((stat) => option(stat, infusion.stat, `${stat} (+${INFUSION_BONUS} each)`)).join('')}
+                      ${INFUSION_STATS.map((stat) => optionHtml(stat, infusion.stat, `${stat} (+${INFUSION_BONUS} each)`)).join('')}
                     </select>`,
                     INFUSION_ICONS[infusion.stat]
                   )}

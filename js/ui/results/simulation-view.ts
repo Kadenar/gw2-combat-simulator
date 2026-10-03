@@ -19,7 +19,7 @@ export interface SimulationViewModel {
 }
 
 /** Clears stale content before mounting game-owned panels in section order. */
-export function mountSimulationView(container: HTMLElement | null | undefined, view: SimulationViewSection): void {
+export function mountSimulationSection(container: HTMLElement | null | undefined, view: SimulationViewSection): void {
   if (!container) return;
   container.innerHTML = '';
   for (const panel of view.panels || []) panel.mount(container);

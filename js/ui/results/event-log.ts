@@ -6,12 +6,6 @@ export interface EventLogDescriptor {
   readonly description: string;
   readonly details?: readonly string[];
   readonly className?: string;
-  readonly order?: number;
-}
-
-export interface NormalizedEventLogDescriptor extends EventLogDescriptor {
-  readonly className: string;
-  readonly order: number;
 }
 
 /** How a row's owner was established; inferred links are drawn dashed and named when tracing a row. */
@@ -61,41 +55,6 @@ export interface EventLogMountOptions {
   readonly filename?: string;
   /** Singular and plural names for the summed metric in group summaries. */
   readonly metricUnit?: readonly [singular: string, plural: string];
-}
-
-export const EVENT_LOG_ORDER: Readonly<Record<string, number>> = Object.freeze({
-  combat_start: 5,
-  action: 10,
-  cast: 10,
-  entity: 15,
-  resource: 30,
-  marker: 40,
-  proc: 50,
-  trigger: 55,
-  damage: 60,
-  condition: 70,
-  cast_end: 90
-});
-
-/**
- * Converts a profession presenter result into the one canonical descriptor
- * shape used by both platform and application event logs.
- *
- * `null` is an explicit suppression. `undefined` means no presenter exists.
- */
-export function normalizeEventLogDescriptor(descriptor: unknown): NormalizedEventLogDescriptor | null | undefined {
-  if (descriptor === null) return null;
-  if (!descriptor || typeof descriptor !== 'object') return undefined;
-  const value = descriptor as Record<string, unknown>;
-  const type = String(value.type || '').trim();
-  const description = String(value.description || '').trim();
-  if (!type || !description) return undefined;
-  return {
-    type,
-    description,
-    className: String(value.className || ''),
-    order: Number.isFinite(Number(value.order)) ? Number(value.order) : (EVENT_LOG_ORDER[type] ?? 80)
-  };
 }
 
 export function eventLogCsv(rows: readonly EventLogRow[]): string {

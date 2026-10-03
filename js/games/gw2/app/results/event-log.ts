@@ -2,8 +2,8 @@
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
-import { EVENT_LOG_ORDER, mountEventLog, normalizeEventLogDescriptor } from '#ui/results/event-log.js';
-import type { EventLogRow } from '#ui/results/event-log.js';
+import { mountEventLog } from '#ui/results/event-log.js';
+import type { EventLogDescriptor, EventLogRow } from '#ui/results/event-log.js';
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
 import { professionPlanningState } from '#gw2/app/rotation/context.js';
 import { effectName } from '#gw2/app/results/model.js';
@@ -20,6 +20,47 @@ import {
   eventLogSource,
   minionAttackerLabel
 } from '#gw2/app/results/event-ownership.js';
+
+interface NormalizedEventLogDescriptor extends EventLogDescriptor {
+  readonly className: string;
+  readonly order: number;
+}
+
+/** Orders GW2 event categories when activation order and timestamps are equal. */
+const EVENT_LOG_ORDER: Readonly<Record<string, number>> = Object.freeze({
+  combat_start: 5,
+  action: 10,
+  cast: 10,
+  entity: 15,
+  resource: 30,
+  marker: 40,
+  proc: 50,
+  trigger: 55,
+  damage: 60,
+  condition: 70,
+  cast_end: 90
+});
+
+/**
+ * Converts a profession presenter result into the one canonical descriptor
+ * shape used to order rows before passing them to the neutral renderer.
+ *
+ * `null` is an explicit suppression. `undefined` means no presenter exists.
+ */
+function normalizeProfessionEventLogDescriptor(descriptor: unknown): NormalizedEventLogDescriptor | null | undefined {
+  if (descriptor === null) return null;
+  if (!descriptor || typeof descriptor !== 'object') return undefined;
+  const value = descriptor as Record<string, unknown>;
+  const type = String(value.type || '').trim();
+  const description = String(value.description || '').trim();
+  if (!type || !description) return undefined;
+  return {
+    type,
+    description,
+    className: String(value.className || ''),
+    order: Number.isFinite(Number(value.order)) ? Number(value.order) : (EVENT_LOG_ORDER[type] ?? 80)
+  };
+}
 
 /** Rows keep their source event until ownership is resolved; END rows borrow their cast's event. */
 type OrderedEventLogRow = EventLogRow & {
@@ -121,7 +162,7 @@ export function simulationEventLogRows(
 
   // Shared events a slice does not present keep their generic fallback row instead of a diagnostic.
   const pushProfessionRow = (event: SimulationEvent, fallback?: () => void): void => {
-    const normalized = normalizeEventLogDescriptor(
+    const normalized = normalizeProfessionEventLogDescriptor(
       professionUi?.eventLogRow?.(
         {
           result,

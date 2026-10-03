@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { groupSkillHits } from '#ui/results/charts/hit-timeline-model.js';
-import { drawHitTimeline } from '#ui/results/charts/hit-timeline-view.js';
+import { groupSkillHits } from '#gw2/app/results/charts/hit-timeline-model.js';
+import { drawHitTimeline } from '#gw2/app/results/charts/hit-timeline-view.js';
 import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 
 // Payout inspection preserves partial and zero-rounded shares across sources and the observation boundary.

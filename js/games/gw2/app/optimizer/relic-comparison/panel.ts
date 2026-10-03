@@ -1,7 +1,7 @@
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { bindRelicComparisonChartHover, relicComparisonChartSvg } from '#gw2/app/optimizer/relic-comparison/chart.js';
 import type { RelicComparisonModel } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
-import { groupedOptions } from '#gw2/app/shared/html.js';
+import { groupedOptionsHtml } from '#ui/shared/select-options.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import { RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
 
@@ -44,7 +44,7 @@ export function mountRelicComparison(
   const relicComparisonAction = `<label class="relic-cmp-control">
           Compare with
           <select data-role="relic-comparison-target" aria-label="Comparison relic">
-            ${groupedOptions(relicComparisonGroups, relicComparisonTarget, (name) => `Relic of ${name}`)}
+            ${groupedOptionsHtml(relicComparisonGroups, relicComparisonTarget, (name) => `Relic of ${name}`)}
           </select>
         </label>
         <label class="relic-cmp-control" data-role="relic-comparison-stacks-control"${relicComparisonTarget === 'Thorns' ? '' : ' hidden'}>
