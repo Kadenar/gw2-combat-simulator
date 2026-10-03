@@ -89,7 +89,7 @@ export interface ProfessionAppState {
   patchId: string;
   patchComparison: PatchComparison | null;
   build: Gw2CanonicalBuild;
-  simulationSettings?: import('#gw2/app/build/panels/simulation-settings.js').SimulationSettings;
+  simulationSettings?: import('#gw2/app/simulation/settings.js').SimulationSettings;
   skills: Skill[];
   skillByName: ReadonlyMap<string, Skill>;
   skillById: ReadonlyMap<SkillId, Skill>;

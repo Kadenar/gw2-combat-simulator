@@ -23,7 +23,7 @@ import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runne
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/preferences.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
-import { loadSimulationSettings, type SimulationSettings } from '#gw2/app/build/panels/simulation-settings.js';
+import { loadSimulationSettings, type SimulationSettings } from '#gw2/app/simulation/settings.js';
 import { renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/builder.js';
 import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
 import { renderEventLog } from '#gw2/app/results/event-log.js';

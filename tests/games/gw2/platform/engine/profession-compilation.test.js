@@ -33,21 +33,31 @@ test('mixed-stage reaction arrays retain dispatch ownership and stable order aft
 // Compiling and running a headless family must never evaluate application presentation factories.
 test('native runtime compilation defers presentation until the application requests it', () => {
   let presentations = 0;
+  let familyPresentations = 0;
+  const presentationCatalogs = [];
   const profession = defineNativeProfession({
     id: 'headless',
     name: 'Headless',
+    presentation(catalog) {
+      familyPresentations += 1;
+      presentationCatalogs.push(catalog);
+      return { resourceViews: () => [{ id: 'family-resource', maximum: 5, value: 2 }] };
+    },
     modules: [
       defineNativeModule({
         id: 'Core',
         data: {},
         state: { create: () => ({}) },
-        presentation() {
+        presentation(catalog) {
           presentations += 1;
+          presentationCatalogs.push(catalog);
           return { resourceViews: () => [{ id: 'resource', maximum: 3, value: 1 }] };
         }
       })
     ]
   });
+  assert.equal(familyPresentations, 0);
+  assert.equal(presentations, 0);
   const runtime = resolveProfessionContract(profession);
   // Resolution requires a family so an already-resolved runtime cannot bypass specialization selection.
   assert.throws(() => resolveProfessionContract(runtime), /profession family contract is required/);
@@ -56,9 +66,19 @@ test('native runtime compilation defers presentation until the application reque
   assert.equal(Object.hasOwn(runtime, 'migrateBuild'), false);
   assert.deepEqual(simulateGw2({ profession, rotation: [] }).warnings, []);
   assert.equal(presentations, 0);
+  assert.equal(familyPresentations, 0);
   const ui = profession.ui;
   assert.equal(presentations, 1);
+  assert.equal(familyPresentations, 1);
+  assert.equal(presentationCatalogs.length, 2);
+  for (const catalog of presentationCatalogs) assert.equal(catalog, profession.catalog);
   assert.equal(profession.ui, ui);
-  assert.equal(ui.resourceViews({}).length, 1);
+  assert.deepEqual(
+    ui.resourceViews({}).map(({ id }) => id),
+    ['resource', 'family-resource']
+  );
+  // Repeated UI access and projections reuse the composed presentation without rebinding either factory.
+  assert.equal(presentations, 1);
+  assert.equal(familyPresentations, 1);
   assert.equal(profession.resolveProfession({}), runtime);
 });

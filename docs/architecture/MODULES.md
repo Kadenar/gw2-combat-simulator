@@ -195,8 +195,8 @@ grouping uses the first owning specialization/Core/family callback, including an
 `simulation/build-config.ts` translates application builds into engine configuration. `baseline/`,
 `modifier-contributions/`, and `random-distribution/` each keep their views, runners, workers, and contracts together.
 `optimizer/` owns `view.ts`, `gear/`, and `relic-comparison/` on the same pattern. Consumers import the owning module
-directly. Browser simulation settings are mounted by `build/panels/simulation-settings.ts`, independently of saved build
-assumptions.
+directly. `simulation/settings.ts` owns the browser simulation settings contract and persistence, independently of saved
+build assumptions and workspace tabs. `build/panels/simulation-settings.ts` mounts the controls using that shared owner.
 
 Use `runner.ts`, `worker.ts`, and `panel.ts` for feature-local roles and descriptive names for everything else (for
 example `optimizer/gear/search.ts`, `fast-search.ts`, `search-space.ts`). These modules orchestrate simulation work;

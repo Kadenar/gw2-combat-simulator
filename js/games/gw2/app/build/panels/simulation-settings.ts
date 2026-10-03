@@ -1,35 +1,6 @@
-import {
-  normalizeTransitionDelays,
-  TRANSITION_DELAY_KEYS,
-  type TransitionDelays
-} from '#gw2/platform/skills/transition-delays.js';
+import { normalizeTransitionDelays, TRANSITION_DELAY_KEYS } from '#gw2/platform/skills/transition-delays.js';
+import { loadSimulationSettings, saveSimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-
-export interface SimulationSettings {
-  transitionDelays: TransitionDelays;
-}
-export const SIMULATION_SETTINGS_STORAGE_KEY = 'gw2.simulation-settings';
-
-/** Simulation preferences belong to this browser, independent of builds, presets, and workspace tabs. */
-export function loadSimulationSettings(): SimulationSettings {
-  try {
-    const saved = JSON.parse(localStorage.getItem(SIMULATION_SETTINGS_STORAGE_KEY) || 'null');
-    return { transitionDelays: normalizeTransitionDelays(saved?.transitionDelays) };
-  } catch {
-    return { transitionDelays: normalizeTransitionDelays(null) };
-  }
-}
-
-export function saveSimulationSettings(settings: SimulationSettings): void {
-  try {
-    localStorage.setItem(
-      SIMULATION_SETTINGS_STORAGE_KEY,
-      JSON.stringify({ transitionDelays: normalizeTransitionDelays(settings.transitionDelays) })
-    );
-  } catch {
-    // Storage restrictions must not prevent the current session from using its simulation settings.
-  }
-}
 
 /** Mount native numeric inputs outside build assumptions; changing them reruns every dependent simulation. */
 export function mountSimulationSettings(app: ProfessionAppState, root: Document = document): void {

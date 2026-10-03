@@ -336,9 +336,6 @@ export function defineNativeProfession<
   const core = modules[0];
   const specializations = new Map(modules.slice(1).map((module) => [module.id, module]));
   const build = normalizeProfessionBuild(definition.id, definition.build);
-  // Family controls bind independently of lazy module presentation.
-  const familyUi =
-    typeof definition.presentation === 'function' ? definition.presentation(assembly.catalog) : definition.presentation;
   let presentation: ProfessionUiContract | undefined;
   type State = NativeProfessionRuntimeState<TModules>;
   const selections = new Map<
@@ -489,7 +486,11 @@ export function defineNativeProfession<
           specializations: Object.fromEntries(
             [...specializations].map(([name, module]) => [name, createModuleUi(module, assembly.catalog)])
           ),
-          family: familyUi,
+          // Family and module factories stay lazy so headless compilation never initializes presentation.
+          family:
+            typeof definition.presentation === 'function'
+              ? definition.presentation(assembly.catalog)
+              : definition.presentation,
           // Capacity previews use live hook policies without creating state or starting gameplay tasks.
           resourcesFor(specialization) {
             const runtime = runtimeFor({ specialization });
