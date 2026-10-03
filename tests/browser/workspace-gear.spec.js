@@ -129,6 +129,8 @@ test('flipped utility skills remain replaceable from the skill strip', async ({ 
     app.build.rotation = [];
     app.changed();
   });
+  // Let the setup simulation finish repainting the palette before clicking its summon skill.
+  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
   const first = page.locator('#skill-bar [data-key="Utility1"]');
   await page.locator('.utility-palette-group .pal-skill[data-skill="Summon Bone Minions"]').click();
   await expect(page.locator('.utility-palette-group .pal-skill[data-skill="Putrid Explosion"]')).toBeVisible();
